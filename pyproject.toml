@@ -4,7 +4,16 @@ version = "0.0.0"
 description = "Experiments and replications from Ernest Chan's quantitative trading books."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+# The replications compute their numbers through statsmodels rather than a
+# hand-rolled least squares, so there is one implementation of each estimator
+# to drift from. numpy and pandas load and align the committed vintages; scipy
+# supplies the t-distribution behind the return-correlation significance test.
+dependencies = [
+    "numpy>=2",
+    "pandas>=2",
+    "scipy>=1.13",
+    "statsmodels>=0.14",
+]
 
 [dependency-groups]
 dev = [

@@ -40,10 +40,51 @@ number reproduces and nothing more.
 
 ## Status
 
-Scaffolded. Nothing built yet. The tracker is the source of truth for what each
-deliverable is, and the two open slices are
+Two replications run here, both from Chan's *Quantitative Trading* and both
+ported from the sibling
+[trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
+they were first built.
+
+1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
+2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
+   returns yet does not cointegrate in levels.
+
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
+every number this repo quotes about either pair, and it is the only place any
+of them is derived. Each GLD/GDX pin names its window and its regression
+specification, because the book prints two of those near each other and they
+come from different runs.
+
+The vintage machinery is not built yet, so a replication reads a committed CSV
+directly rather than through a recorder that verifies it first.
+[data/README.md](data/README.md) carries each file's vendor, symbol, span,
+download date and checksum in the meantime.
+
+The tracker is the source of truth for what each deliverable is, and the two
+open slices are
 [the vintage record](https://github.com/l3a0/quantitative-trading/milestone/1)
 and [the first replication](https://github.com/l3a0/quantitative-trading/milestone/2).
+
+## Running a replication
+
+```bash
+uv run python -m chan.pair_cointegration --ch3
+```
+
+Chan's Chapter 3 run, on the first 252 trading days. `--ch7` runs the full
+Chapter 7 window and `--ko-pep` runs the counter-example. Each of the three
+names the window, the price basis, and the specification every number came
+from, so no figure in the report is separable from the vintage that produced
+it.
+
+`--selftest` is the odd one out. It reads no vintage and reports no window,
+because it checks the arithmetic against synthetic series whose answers are
+known in advance.
+
+Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
+show that even his saved data misses his printed hedge, which is a claim about
+a number rather than a run someone would repeat, so
+`TestGldGdxChanArchive` is where it lives.
 
 ## Running the checks
 
@@ -64,10 +105,10 @@ carries the agent instructions, CI, and GitHub-side policy shared with
 [marketlake](https://github.com/l3a0/marketlake) and
 [trading-strategies](https://github.com/l3a0/trading-strategies).
 
-The GLD/GDX reproduction that this repo starts from was first run in
-`trading-strategies`. It goes first because that run already mapped the traps:
-the book's hedge ratio and its test statistic come from different chapters, on
-different windows, under different regression specifications, and the book's
-own number is unreproducible from any modern download. Redoing it here is a
-test of whether the vintage machinery makes those visible, not a search for a
-new result.
+The GLD/GDX replication was first run in `trading-strategies`, and it came
+here because that run already mapped the traps: the book's hedge ratio and its
+test statistic come from different chapters, on different windows, under
+different regression specifications, and the book's own number is
+unreproducible from any modern download. What is left to check is whether the
+vintage machinery makes those traps visible on its own, rather than through the
+comments that currently point them out.

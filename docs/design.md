@@ -9,6 +9,7 @@ carries the slice order.
 
 - [Premise](#premise)
 - [What this repo is for](#what-this-repo-is-for)
+  - [Three more results came across with it](#three-more-results-came-across-with-it)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
 - [Considered and rejected](#considered-and-rejected)
@@ -56,7 +57,14 @@ as a match, and often more so, because it names something the method depends
 on that the text did not.
 
 The sibling `trading-strategies` repo already ran one of these, and what it
-found is the reason this repo is shaped the way it is.
+found is the reason this repo is shaped the way it is. That run now lives here
+too, ported into `src/chan/pair_cointegration.py`. Every computed number this
+section quotes is asserted in
+[tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py), and
+this section states them rather than deriving them. Chan's own published
+figures, 1.6766 among them, are quoted from the book and are not computed here
+at all, which is the distinction the vocabulary table draws between a published
+figure and a replication.
 
 The GLD/GDX hedge ratio and the cointegration test statistic are printed near
 each other in the book and are not one result. The hedge ratio, 1.6766, comes
@@ -81,6 +89,38 @@ Two things follow for this repo. Trace every published number to its own run
 and its own specification before trying to match it. And prefer a series that
 cannot be restated, falling back on a committed vintage when only an adjusted
 series will do.
+
+### Three more results came across with it
+
+Each one earns its place by answering an objection the GLD/GDX gap invites.
+
+1. **Chan's own archived GLD and GDX files.** The obvious reply to a hedge that
+   will not reproduce is that the reproduction is wrong. Chan's own companion
+   spreadsheets, re-run through the same code, give 1.6395 rather than his
+   printed 1.6766. His saved data does not reach his published number either,
+   so the 2007 vintage he read is a state no surviving file carries. The
+   cointegration verdict survives the drift. Only the hedge moved.
+2. **KO and PEP, Example 7.3.** The second reply is that a replication which
+   never matches is a replication that cannot match anything. Chan's KO/PEP
+   counter-example reproduces his printed figures to the digit, because his
+   companion data for it survives intact. The same code, on a vintage that was
+   not lost, lands exactly. That pair is also the demonstration that
+   correlation and cointegration are different things: KO and PEP correlate in
+   daily returns at 0.4849 and do not cointegrate in levels.
+3. **The lag setting behind Chan's Python verdict.** Chan reports that Python
+   disagreed with MATLAB and R on this pair and concludes Python's statistics
+   packages cannot be trusted. The packages are fine. `statsmodels` reads the
+   lag count off the data by default and picks six on the short window, where
+   MATLAB and R fix it at one, and six lags carry the statistic back across the
+   10% line. A conclusion about a library turned out to be a conclusion about a
+   default.
+
+A fourth piece of machinery came with them. The rolling-window scan in
+`rolling_cointegration` re-runs the test on a one-year window stepped monthly
+across the whole history, which turns a single verdict into a map of when the
+relationship held. Over GLD/GDX only 31 of 231 windows clear even the 10% bar
+and they cluster before 2015, so cointegration here is a property of a window
+rather than of the pair. Nothing outside the tests calls it yet.
 
 Three things follow, and they set what the repo holds.
 
@@ -135,5 +175,8 @@ change that cuts it.
 | --- | --- |
 | Downloading a series at run time | It is the failure this repo exists to prevent. A run that fetches its own data produces a number nobody can reproduce, because the next fetch returns a different series. A run reads a committed vintage or it does not run. |
 | Recomputing a published number in prose | Prose states numbers and never derives them. A doc that recomputes a figure is a second implementation of the calculation, and the two drift without either looking wrong. The test is the single authority. |
+| The sibling's blog essay on the GLD/GDX reproduction | It is that repo's write-up, and this repo owes its own replication log entry. Copying the essay would put a second prose surface here quoting numbers the test suite already owns, which is the drift the single-authority rule exists to prevent. |
+| The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
+| The regime-map figure and the script that draws it | The scan behind it came across and is pinned. The picture is presentation for the essay that did not, and an image no page displays is an artifact nothing regenerates or checks. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |
