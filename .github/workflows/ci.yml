@@ -1,0 +1,68 @@
+name: CI
+
+# Triggers:
+#   pull_request       runs on every PR opened, updated, or reopened
+#   push to main       runs after a merge, so a bad merge is caught on the
+#                      branch the ruleset protects
+#   workflow_dispatch  allows a manual run from the Actions tab
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # The ruleset on `main` requires this check by name. Renaming the job means
+  # editing .github/rulesets/default.json and re-applying it, or the required
+  # check goes missing and a pull request reports a short rollup rather than a
+  # failure. Count what ran rather than scanning for red.
+  test:
+    runs-on: ubuntu-latest
+    # A ceiling far above the real runtime, so it fires on a hang rather than
+    # on a slow day. It replaces GitHub's six-hour default.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+
+      - name: Install the toolchain and dependencies
+        run: uv sync --dev
+
+      # Unscoped, exactly as a local check should run. A path-scoped local run
+      # passes while CI fails, because CI lints every file.
+      - name: Lint
+        run: uv run ruff check
+
+      # `ruff check` says nothing about formatting. This is its own step for
+      # the same reason it is its own CI failure.
+      - name: Check formatting
+        run: uv run ruff format --check
+
+      # The suite includes tests/test_markdown_hygiene.py, which runs the two
+      # prose sweeps CLAUDE.md names. They run here rather than in the docs
+      # job so a local `pytest` catches them too.
+      - name: Run the test suite
+        run: uv run pytest
+
+  # CLAUDE.md requires every .md file to pass markdownlint. Without this job
+  # that rule is advice, which is how it sat in the repos this template came
+  # from. The ruleset requires this check by name too.
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v24
+        with:
+          globs: |
+            **/*.md
+            !node_modules

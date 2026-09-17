@@ -1,0 +1,46 @@
+# Dependabot version updates.
+#
+# The ecosystem is `uv`, not `pip`, because the repo ships a uv.lock and that
+# is the file a bump has to rewrite. The `pip` ecosystem reads pyproject.toml
+# and leaves the lock stale, which CI then fails on.
+version: 2
+
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      # Minor and patch bumps ride one pull request. Majors stay separate,
+      # since they are the ones that need reading.
+      #
+      # ruff is excluded from the group on purpose. A linter release adds
+      # rules that flag previously-clean code. Grouped, that lands inside an
+      # unrelated bump and turns one pull request red for a reason its title
+      # does not mention. On its own, the findings arrive where CI shows
+      # exactly what changed.
+      python-minor-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - ruff
+        update-types:
+          - minor
+          - patch
+
+  # Actions pinned in ci.yml. They move together and are low-risk, so one
+  # grouped pull request is enough.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      actions:
+        patterns:
+          - "*"

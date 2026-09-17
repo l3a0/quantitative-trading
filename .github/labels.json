@@ -1,0 +1,16 @@
+[
+  { "name": "bug", "color": "d73a4a", "description": "A defect: something behaves wrongly" },
+  { "name": "enhancement", "color": "a2eeef", "description": "A gap: specified or needed, not yet built" },
+  { "name": "documentation", "color": "0075ca", "description": "Improvements or additions to documentation" },
+  { "name": "test", "color": "5319e7", "description": "Tests do not cover what the code claims" },
+  { "name": "deferred", "color": "ededed", "description": "Deferred under the usability directive: zero observations, no exception" },
+  { "name": "question", "color": "d876e3", "description": "Further information or an owner decision is requested" },
+  { "name": "accessibility", "color": "f143ab", "description": "Barrier affecting people with disabilities" },
+  { "name": "duplicate", "color": "cfd3d7", "description": "This issue or pull request already exists" },
+  { "name": "invalid", "color": "e4e669", "description": "This doesn't seem right" },
+  { "name": "wontfix", "color": "ffffff", "description": "This will not be worked on" },
+  { "name": "good first issue", "color": "7057ff", "description": "Good for newcomers" },
+  { "name": "help wanted", "color": "008672", "description": "Extra attention is needed" },
+  { "name": "dependencies", "color": "0366d6", "description": "Pull requests that update a dependency file" },
+  { "name": "github_actions", "color": "000000", "description": "Pull requests that update GitHub Actions code" }
+]
