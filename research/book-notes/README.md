@@ -35,9 +35,21 @@ to correct, and the only way to satisfy the tilde rule inside a quotation is to
 edit the quotation. One highlight in `algorithmic-trading.md` quotes a URL
 containing a tilde, which is what forced the question.
 
-The exemption covers those two rules and nothing else. markdownlint still runs
-over these files in CI, and a test pins the excused set to this directory, so
-widening it breaks the suite rather than passing quietly.
+A test pins the excused set to this directory, so widening it breaks the suite
+rather than passing quietly.
+
+markdownlint still runs over these files, under
+[.markdownlint.jsonc](.markdownlint.jsonc) in this directory, which switches
+off four rules and keeps the rest. Three of the four fire on the books' own
+text: websites cited in running prose, a quoted list that starts at 2 because
+the highlight begins mid-list, and a `* i` that is multiplication rather than
+emphasis. The fourth is the note format, which runs one h1 title and then one
+h3 per highlight.
+
+That directory config also covers this README, which is the price of putting
+the exemption next to what it governs. The four rules it relaxes are minor
+style checks, every other markdownlint rule still applies here, and the two
+prose sweeps still read this file.
 
 Editing a highlight's text is out of bounds. A note is a record of what the
 book says, and a record that has been tidied is no longer evidence. Fix a
