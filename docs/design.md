@@ -56,7 +56,11 @@ as a match, and often more so, because it names something the method depends
 on that the text did not.
 
 The sibling `trading-strategies` repo already ran one of these, and what it
-found is the reason this repo is shaped the way it is.
+found is the reason this repo is shaped the way it is. That run now lives here
+too, ported into `src/chan/pair_cointegration.py`, and
+[tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py) is the
+single authority for every number quoted below. This section states them and
+never derives them.
 
 The GLD/GDX hedge ratio and the cointegration test statistic are printed near
 each other in the book and are not one result. The hedge ratio, 1.6766, comes
