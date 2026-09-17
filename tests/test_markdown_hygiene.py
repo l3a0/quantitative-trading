@@ -130,7 +130,7 @@ def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
         markdown_files(tmp_path)
 
 
-# Every file the repo authors prose in. A count would let five of them vanish
+# Every Markdown file this repo owns. A count would let four of them vanish
 # from discovery unnoticed, and a sweep that reaches nothing passes.
 MUST_BE_SWEPT = frozenset(
     {
