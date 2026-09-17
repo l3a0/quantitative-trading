@@ -61,10 +61,10 @@ directly rather than through a recorder that verifies it first.
 download date and checksum in the meantime.
 
 The tracker is the source of truth for what each deliverable is, and it carries
-no milestones. Every issue stands alone, so
-[docs/build-plan.md](docs/build-plan.md) is the only place the work is grouped
-at all. It groups the experiments by the chapter of the book they come from,
-and lists the machinery they run on separately.
+one milestone per section of [docs/build-plan.md](docs/build-plan.md), with the
+same name. The experiments are grouped by the chapter of the book they come
+from, and the machinery they run on is grouped separately, because a vintage
+recorder belongs to no chapter.
 
 The deliverables are the book's own worked examples. Fifteen are tracked: four
 reproduced, six reachable, and five blocked by data that is not free. Twelve of

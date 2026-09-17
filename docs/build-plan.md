@@ -8,8 +8,10 @@ goes stale the moment work lands.
 
 ## How the work is grouped
 
-The tracker carries no milestones. Every issue stands alone, so this doc is the
-only surface that groups them at all.
+The tracker carries one milestone per section below, with the same name, so a
+filed issue has a milestone to take and the two surfaces say the same thing. The
+tracker is where an issue's group is recorded. This doc is where the grouping is
+reasoned about.
 
 Experiments are grouped by the chapter of Chan's book they come from. A chapter
 is a property of the source rather than a property of this plan, so the grouping
@@ -22,10 +24,12 @@ contents nobody here holds.
 Everything the experiments run on is machinery. Machinery belongs to no chapter,
 so it is listed on its own below.
 
-The price of grouping this way is that the grouping says nothing about order. A
-milestone at least implied a sequence. A chapter does not, and the book is
-lopsided enough that most of it lands in one chapter anyway. Order comes from
-the dependencies at the end of this doc and from nowhere else.
+The price of grouping this way is that the grouping says nothing about order.
+A grouping cut by the work itself at least implies a sequence, because the
+earlier piece is the one the later piece needs. A chapter implies nothing, and
+the book is lopsided enough that most of it lands in one chapter anyway. Order
+comes from the dependencies at the end of this doc and from nowhere else, and
+milestone order is not it.
 
 ## How work gets cut
 
@@ -33,8 +37,8 @@ A deliverable is cut down to the smallest piece that leaves the repo usable by
 someone at the end of it. Not a layer, and not a subsystem. A piece that ends
 with a component nobody can run is cut the wrong way.
 
-Removing the milestones changed where work is grouped. It did not change this,
-because it is a rule about cutting rather than about filing.
+What the milestones are named after has changed, and this has not, because it is
+a rule about cutting work rather than about filing it.
 
 ## The order
 
