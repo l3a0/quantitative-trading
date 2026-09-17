@@ -60,16 +60,16 @@ directly rather than through a recorder that verifies it first.
 [data/README.md](data/README.md) carries each file's vendor, symbol, span,
 download date and checksum in the meantime.
 
-The tracker is the source of truth for what each deliverable is, and the two
-open slices are
-[the vintage record](https://github.com/l3a0/quantitative-trading/milestone/1),
-[the first replication](https://github.com/l3a0/quantitative-trading/milestone/2)
-and [more of Chan's experiments](https://github.com/l3a0/quantitative-trading/milestone/3).
+The tracker is the source of truth for what each deliverable is, and it carries
+no milestones. Every issue stands alone, so
+[docs/build-plan.md](docs/build-plan.md) is the only place the work is grouped
+at all. It groups the experiments by the chapter of the book they come from,
+and lists the machinery they run on separately.
 
-The deliverables are the book's own worked examples. Fifteen of them are
-tracked: four reproduced, six filed and reachable, and five filed under
-[a milestone that is not a slice](https://github.com/l3a0/quantitative-trading/milestone/4)
-because the data they need is not free.
+The deliverables are the book's own worked examples. Fifteen are tracked: four
+reproduced, six reachable, and five blocked by data that is not free. Twelve of
+the fifteen sit in Chapter 7, which is where Chan works almost every numbered
+example.
 
 ## Running a replication
 
