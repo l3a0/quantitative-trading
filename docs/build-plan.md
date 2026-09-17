@@ -95,16 +95,18 @@ coin-flip game is the only experiment in the book that needs no data at all,
 so it is the only one that can run before slice 1 exists.
 
 **Test surface.** Each experiment pins the figures the book prints, at the
-precision the book prints them, naming its vintage and its window. Two of them
-pin a direction rather than a number, because the book states a sign and not a
-figure, and inventing a digit there would be worse than pinning the sign.
+precision the book prints them, naming its vintage and its window. Where the
+book states a ranking or a verdict rather than a figure, that is what gets
+pinned, because inventing a digit the source does not carry would be worse than
+pinning the claim the source makes. Which experiments those are is on their
+issues, not restated here.
 
 ## Not a slice: the experiments the data blocks
 
 Five more of the book's experiments are filed under
 [a milestone that is not a slice](https://github.com/l3a0/quantitative-trading/milestone/4).
 They need continuous futures history, point-in-time earnings estimates,
-fundamentals, a small-cap panel, or fourteen years of one-minute bars. None of
+fundamentals, a small-cap panel, or fifteen years of one-minute bars. None of
 that is free, and none of it is derivable from anything here.
 
 They are filed rather than dropped because an unfiled experiment is one nobody
