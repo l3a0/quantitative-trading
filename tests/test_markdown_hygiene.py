@@ -135,6 +135,158 @@ def test_the_repo_has_markdown_to_sweep() -> None:
     assert len(markdown_files(REPO_ROOT)) >= 3
 
 
+# --- The fence-closing decision ----------------------------------------------
+# Every clause of the closing test below was deletable with no test noticing.
+
+
+def test_a_backtick_fence_is_not_closed_by_a_tilde_line() -> None:
+    document = "```bash\n~~~\necho (~30)\n```\n"
+    assert sweep_text(document, Path("x.md")) == []
+
+
+def test_a_longer_run_closes_a_fence() -> None:
+    # The closing run may exceed the opening one, so prose after it is prose.
+    document = "```\nx\n````\n\nword~30\n"
+    findings = sweep_text(document, Path("x.md"))
+    assert [finding.line_number for finding in findings] == [5]
+
+
+def test_a_shorter_run_does_not_close_a_fence() -> None:
+    document = "````\n```\nword~30\n````\n"
+    assert sweep_text(document, Path("x.md")) == []
+
+
+def test_a_fence_line_carrying_an_info_string_does_not_close() -> None:
+    # Only a bare delimiter closes. A line with an info string opens.
+    document = "```\n```python\nword~30\n```\n"
+    assert sweep_text(document, Path("x.md")) == []
+
+
+def test_a_fenced_block_stays_exempt_past_its_second_line() -> None:
+    # Clearing the fence unconditionally would end the block after one body
+    # line, leaking every longer example in the repo's own docs into prose.
+    document = "```bash\nword~30\nword~30\nword~30\n```\n"
+    assert sweep_text(document, Path("x.md")) == []
+
+
+def test_an_indented_fence_is_still_a_fence() -> None:
+    document = "  ```\n  word~30\n  ```\n"
+    assert sweep_text(document, Path("x.md")) == []
+
+
+def test_four_spaces_of_indent_is_not_a_fence() -> None:
+    # Four spaces is an indented code block, which this sweep does not model,
+    # so the delimiter is prose and the line after it is scanned.
+    document = "    ```\nword~30\n"
+    findings = sweep_text(document, Path("x.md"))
+    assert [finding.line_number for finding in findings] == [2]
+
+
+def test_a_two_character_run_is_not_a_fence() -> None:
+    document = "``\nword~30\n``\n"
+    findings = sweep_text(document, Path("x.md"))
+    assert [finding.line_number for finding in findings] == [2]
+
+
+def test_a_four_backtick_fence_opens_and_closes() -> None:
+    document = "````\nx\n````\n\nword~30\n"
+    findings = sweep_text(document, Path("x.md"))
+    assert [finding.line_number for finding in findings] == [5]
+
+
+# --- Backtick spans -----------------------------------------------------------
+
+
+def test_a_longer_run_does_not_close_a_shorter_span() -> None:
+    # The double run does not close the single one, so nothing on the line is
+    # a span at all and the tilde is scanned as the prose it is.
+    findings = sweep_text("A `word~30 and ``x`` later.\n", Path("x.md"))
+    assert _rules(findings) == ["unescaped tilde, write it as \\~"]
+
+
+def test_a_double_backtick_span_is_not_closed_by_a_single_backtick() -> None:
+    # Only a run of exactly two closes it. Anything looser walks off the end
+    # of the line, which is a crash rather than a finding.
+    assert sweep_text("The span ``a b`\n", Path("x.md")) == []
+
+
+def test_an_unmatched_run_does_not_swallow_a_later_span() -> None:
+    assert sweep_text("A run ``` of three and `x~y` after.\n", Path("x.md")) == []
+
+
+def test_an_unmatched_run_does_not_stop_the_scan() -> None:
+    assert sweep_text("A stray ` and ``x~30`` later.\n", Path("x.md")) == []
+
+
+def test_a_tilde_after_a_span_closing_backtick_is_left_alone() -> None:
+    # The closing backtick is blanked, so the tilde follows whitespace and can
+    # only open a pair. Leaving the backtick unblanked would flag this.
+    assert sweep_text("Set `flag`~30 percent.\n", Path("x.md")) == []
+
+
+# --- The two patterns ---------------------------------------------------------
+
+
+def test_a_tilde_preceded_by_a_tilde_is_left_alone() -> None:
+    # A deliberate strikethrough opener is not a slip.
+    assert sweep_text("Roughly ~~30 people showed.\n", Path("x.md")) == []
+
+
+def test_a_tilde_preceded_by_an_angle_bracket_is_left_alone() -> None:
+    assert sweep_text("An element a<~b here.\n", Path("x.md")) == []
+
+
+def test_a_tilde_preceded_by_a_tab_is_left_alone() -> None:
+    # The class is whitespace, not a literal space.
+    assert sweep_text("A tab\t~30 percent.\n", Path("x.md")) == []
+
+
+def test_a_one_dash_tight_row_is_flagged() -> None:
+    findings = sweep_text("| a |\n|-|\n", Path("x.md"))
+    assert _rules(findings) == ["tight table delimiter row, pad it as | --- |"]
+
+
+def test_a_row_padded_on_one_side_only_is_left_alone() -> None:
+    # MD060 is about mixed padding across rows. A half-padded delimiter is not
+    # the tight form this sweep exists to catch.
+    assert sweep_text("| a |\n|--- |\n", Path("x.md")) == []
+    assert sweep_text("| a |\n| ---|\n", Path("x.md")) == []
+
+
+def test_an_empty_cell_is_not_a_delimiter_row() -> None:
+    assert sweep_text("| a | b |\n||\n", Path("x.md")) == []
+
+
+# --- What a finding reports ---------------------------------------------------
+
+
+def test_a_finding_quotes_the_source_line_not_the_blanked_one() -> None:
+    # The reader opens the file at this line, so the message has to match what
+    # they will see there rather than the blanked copy the scan read.
+    findings = sweep_text("A `code` and word~30.\n", Path("x.md"))
+    assert [finding.line for finding in findings] == ["A `code` and word~30."]
+
+
+# --- Discovery ----------------------------------------------------------------
+
+
+def test_discovery_skips_a_markdown_path_that_is_not_a_regular_file(
+    tmp_path: Path,
+) -> None:
+    # A directory named like a document satisfies an existence check and then
+    # raises IsADirectoryError from the read.
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "kept.md").write_text("kept\n", encoding="utf-8")
+    (tmp_path / "notes.md").write_text("about to become a directory\n", encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    (tmp_path / "notes.md").unlink()
+    (tmp_path / "notes.md").mkdir()
+
+    found = [path.relative_to(tmp_path).as_posix() for path in markdown_files(tmp_path)]
+
+    assert found == ["kept.md"]
+
+
 @pytest.mark.parametrize(
     "path", markdown_files(REPO_ROOT), ids=lambda path: str(path.relative_to(REPO_ROOT))
 )
