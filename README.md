@@ -50,10 +50,10 @@ they were first built.
    returns yet does not cointegrate in levels.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
-every number this repo quotes about either pair, and it is the only place any
-of them is derived. Each GLD/GDX pin names its window and its regression
-specification, because the book prints two of those near each other and they
-come from different runs.
+every number this repo computes about either pair, and it is the only place any
+of them is derived. The one exception is named under The write-up below. Each
+GLD/GDX pin names its window and its regression specification, because the book
+prints two of those near each other and they come from different runs.
 
 The vintage machinery is not built yet, so a replication reads a committed CSV
 directly rather than through a recorder that verifies it first.
@@ -91,6 +91,32 @@ Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
 `TestGldGdxChanArchive` is where it lives.
+
+## The write-up
+
+[blog/gld-gdx-cointegration-lessons.md](blog/gld-gdx-cointegration-lessons.md)
+is the human-readable account of the GLD/GDX replication: what the book
+printed, what this repo computes, and the six detours that explain the gap.
+[docs/gld-gdx-cointegration-lessons.html](docs/gld-gdx-cointegration-lessons.html)
+is the same piece as a self-contained styled page, images inlined, which is
+what gets published.
+
+Both were written in the sibling
+[trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
+the replication was first built, and copied here byte for byte apart from the
+links back to the implementation, which now point at this repo's engine and
+its tests.
+
+The piece is a replication write-up, so it is exploratory by construction. It
+says whether a published number reproduces and nothing about whether the trade
+works today. The last of its six detours answers that anyway: the pair stopped
+cointegrating, and only 31 of 231 rolling windows clear even the 10% bar.
+
+One figure in it has no source this repo can check. It says GDX has paid
+dividends for nineteen years since 2007, which is a fact about the fund's
+distribution history rather than anything derivable from committed closes.
+Every other number traces to an assertion in
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).
 
 ## Where the book's numbers come from
 

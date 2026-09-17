@@ -53,6 +53,7 @@ from chan.pair_cointegration import (
     RollingCoint,
     aligned_closes,
     engle_granger,
+    load_close,
     return_correlation,
     rolling_cointegration,
     run,
@@ -171,6 +172,9 @@ class TestGldGdxReproduction:
         assert full_span.nobs == 5028
         assert full_span.adf_stat == pytest.approx(-1.45, abs=1e-2)
         assert full_span.adf_stat > EG_CRIT_N2["10%"]
+        # The half-life is the other half of the story the blog post tells:
+        # ten days on Chan's window, over eight hundred on the full span.
+        assert full_span.half_life == pytest.approx(833.5, abs=0.1)
 
 
 # ============================================================
@@ -360,6 +364,38 @@ class TestGldGdxChanArchive:
 # ============================================================
 # Layer 6 -- the lag setting behind Chan's Python-vs-MATLAB detour
 # ============================================================
+
+
+class TestAdjustedCloseMovesWithTheDownloadDate:
+    """The vintage premise, as far as one download date can show it.
+
+    An adjusted close folds every later dividend back into the history, so the
+    same 2006 trading day reads lower in the adjusted series than in the raw
+    one. Two vintages taken at different dates would show the series moving
+    under itself, which is issue 4's remaining half and needs the recorder.
+    This is the weaker claim that the committed files already support, and
+    ``blog/gld-gdx-cointegration-lessons.md`` quotes the gap it measures.
+    """
+
+    def test_gdx_2006_adjusted_sits_about_fifteen_percent_below_raw(self) -> None:
+        raw = load_close("GDX", unadjusted=True)
+        adjusted = load_close("GDX")
+        shared = raw.index.intersection(adjusted.index)
+        gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
+
+        assert len(gap) > 0
+        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-4)
+
+    def test_gld_pays_nothing_so_its_two_series_do_not_part(self) -> None:
+        """GLD is the control. It pays no distribution, so the adjustment has
+        nothing to fold in and the two series stay on top of each other. That
+        is why the essay names GDX rather than GLD as the symbol that drifts."""
+        raw = load_close("GLD", unadjusted=True)
+        adjusted = load_close("GLD")
+        shared = raw.index.intersection(adjusted.index)
+        gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).abs()
+
+        assert float(gap.max()) < 1e-3
 
 
 class TestLagSettingDetour:
