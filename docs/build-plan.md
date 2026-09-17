@@ -175,12 +175,15 @@ on that training window. All three landed with the port, alongside the rest of
 the suite the sibling repo had already built. Every number the log entry quotes
 traces to one of these assertions.
 
-One more test carries the premise, and it has not landed. Two vintages of the
-same symbol, taken at different dates, return the same raw series and a
-different adjusted one where a corporate action falls between them. That turns
-the reason this repo commits vintages into something executable rather than
-something asserted in the design doc. GDX is the symbol that shows it, since
-GLD pays no distributions and its adjusted series does not drift.
+One more test carries the premise, and half of it has landed. The half that
+runs against committed files pins GDX's adjusted 2006 closes about fifteen
+percent below its raw ones, and pins GLD as the control that does not move,
+since GLD pays no distributions. The half that is still missing needs two
+vintages of the same symbol taken at different dates, returning the same raw
+series and a different adjusted one where a corporate action falls between
+them. That is what turns the reason this repo commits vintages into something
+executable rather than something asserted in the design doc, and it waits on
+the recorder.
 
 ## What comes after that
 

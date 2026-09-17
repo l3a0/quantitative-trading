@@ -139,6 +139,7 @@ MUST_BE_SWEPT = frozenset(
         "docs/design.md",
         "docs/build-plan.md",
         "data/README.md",
+        "blog/gld-gdx-cointegration-lessons.md",
         "research/book-notes/README.md",
         "research/book-notes/quantitative-trading.md",
     }
@@ -177,7 +178,7 @@ def test_the_repo_has_markdown_to_sweep() -> None:
 
     A discovery bug turns the parametrized sweep into a vacuous pass, and it
     does not announce itself: the suite goes green with fewer tests. An earlier
-    count asked for at least three files against an actual seven, so four could
+    count asked for at least three files against an actual eight, so five could
     vanish unnoticed.
     """
     found = {path.relative_to(REPO_ROOT).as_posix() for path in markdown_files(REPO_ROOT)}
