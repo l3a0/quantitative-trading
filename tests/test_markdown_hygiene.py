@@ -130,9 +130,58 @@ def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
         markdown_files(tmp_path)
 
 
+# Every Markdown file this repo owns. A count would let four of them vanish
+# from discovery unnoticed, and a sweep that reaches nothing passes.
+MUST_BE_SWEPT = frozenset(
+    {
+        "CLAUDE.md",
+        "README.md",
+        "docs/design.md",
+        "docs/build-plan.md",
+        "data/README.md",
+        "research/book-notes/README.md",
+        "research/book-notes/quantitative-trading.md",
+    }
+)
+
+
+def test_findings_far_apart_are_both_reported(tmp_path: Path) -> None:
+    """The sweep reads the whole document and reports every finding.
+
+    Two ways to lose a finding leave a green suite: stopping at the first one,
+    and reading only the head of a long file. The book notes run past 1400
+    lines, so a truncated read would reach a real finding in one of them and
+    miss anything below it.
+    """
+    document = tmp_path / "long.md"
+    filler = "\n".join("A clean line." for _ in range(1500))
+    document.write_text(f"A floor near (~30).\n{filler}\nA ceiling near (~90).\n")
+
+    findings = sweep_file(document)
+
+    assert [finding.line_number for finding in findings] == [1, 1502]
+
+
+def test_an_unreadable_document_raises_rather_than_reading_clean(tmp_path: Path) -> None:
+    """A read that fails is not a document with nothing wrong in it. Swallowing
+    the error would report every unreadable file as clean."""
+    directory = tmp_path / "notes.md"
+    directory.mkdir()
+
+    with pytest.raises(OSError):
+        sweep_file(directory)
+
+
 def test_the_repo_has_markdown_to_sweep() -> None:
-    # Without this, a discovery bug turns the sweep below into a vacuous pass.
-    assert len(markdown_files(REPO_ROOT)) >= 3
+    """Name the files rather than count them.
+
+    A discovery bug turns the parametrized sweep into a vacuous pass, and it
+    does not announce itself: the suite goes green with fewer tests. An earlier
+    count asked for at least three files against an actual seven, so four could
+    vanish unnoticed.
+    """
+    found = {path.relative_to(REPO_ROOT).as_posix() for path in markdown_files(REPO_ROOT)}
+    assert MUST_BE_SWEPT <= found, f"missing from discovery: {sorted(MUST_BE_SWEPT - found)}"
 
 
 # --- The fence-closing decision ----------------------------------------------

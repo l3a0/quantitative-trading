@@ -86,6 +86,18 @@ show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
 `TestGldGdxChanArchive` is where it lives.
 
+## Where the book's numbers come from
+
+[research/book-notes](research/book-notes/README.md) holds verbatim Kindle
+highlights from Chan's *Quantitative Trading*, cited by location. Where a
+published figure a replication chases is among them, that is where it traces
+to. A highlight covers what somebody marked, so the notes carry two of the five
+figures this repo names.
+
+The notes are quoted rather than written, so nothing edits them by hand and
+three markdownlint rules stand down over that directory. The reasoning is in
+its README.
+
 ## Running the checks
 
 ```bash

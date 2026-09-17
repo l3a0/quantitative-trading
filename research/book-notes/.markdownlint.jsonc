@@ -1,0 +1,29 @@
+{
+  // Rule overrides for this directory only. markdownlint-cli2 reads the
+  // nearest config, so these apply to the book notes and to nothing else in
+  // the repo. The repo-wide file one level up still supplies everything not
+  // named here.
+  //
+  // A note is a record of what a book says. The only way to satisfy these three
+  // rules inside a quotation is to edit the quotation, which costs more than
+  // the rules buy, and a re-extraction would undo the edit anyway. So the
+  // rules are switched off here rather than the text being rewritten.
+  //
+  // MD034 (no-bare-urls): the book cites websites in running text, as
+  // "www.elitetrader.com" and three more. markdownlint wants them wrapped in
+  // angle brackets, which would put characters in a quotation that the author
+  // did not write.
+  //
+  // MD037 (no-space-in-emphasis): a quoted passage contains "* i", which
+  // markdownlint reads as an emphasis marker with a space after it. It is
+  // multiplication in the book's notation.
+  //
+  // MD001 (heading-increment) is the one that is not about quoted text. The
+  // note runs a single h1 title and then one h3 per highlight, which is the
+  // shape the extraction produces. Renaming the levels would mean re-editing
+  // the file every time it is re-extracted.
+  "extends": "../../.markdownlint.jsonc",
+  "MD001": false,
+  "MD034": false,
+  "MD037": false
+}
