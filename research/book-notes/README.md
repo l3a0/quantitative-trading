@@ -1,8 +1,14 @@
 # Book notes
 
 Kindle highlights from the books this repo replicates, quoted verbatim and
-cited by Kindle location. They are the source of the published figures a
-replication tries to match, so a number that appears in a test starts here.
+cited by Kindle location.
+
+They carry some of the published figures a replication tries to match, and not
+all of them. Chan's GLD/GDX hedge of 1.6766 and his KO/PEP return correlation
+of 0.4849 are both quoted here. His CADF statistic of -3.357, his KO/PEP hedge
+of 1.0114 and its statistic of -2.14 are not: a highlight covers the sentences
+somebody marked, which is a different set from the numbers a replication ends
+up chasing. Where a figure is here, this is where it traces to.
 
 Two notes, both Ernest Chan.
 
@@ -13,9 +19,16 @@ Two notes, both Ernest Chan.
 
 Both came from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, byte for
-byte. Chan's other books are not here because nothing in this repo replicates
-them yet, and the notes for other authors stayed in the sibling for the same
-reason.
+byte.
+
+Mind the edition. These notes are the revised second edition of *Quantitative
+Trading*, published in 2021, while this repo's citations of chapter and page
+numbers come from the first edition of 2009. The two are not interchangeable,
+and [issue 12](https://github.com/l3a0/quantitative-trading/issues/12) carries
+what that unsettles.
+
+Chan's other books are not here because nothing in this repo replicates them
+yet, and the notes for other authors stayed in the sibling for the same reason.
 
 ## What a highlight carries
 
@@ -23,8 +36,12 @@ Each entry gives the Kindle location and the highlight's text. Amazon's export
 limit truncates some highlights on the notebook page and hides others entirely.
 Those were recovered from the Cloud Reader and carry a `↻` tag. A span that
 crosses a table, a figure or a display equation carries `≈`, meaning the text
-is faithful but the exact boundaries are best-effort. Each file's own header
-gives its counts.
+is faithful but the exact boundaries are best-effort.
+
+Each file's header gives its total and how many were recovered. Neither counts
+the `≈` spans, of which there are two, both in the Algorithmic Trading notes.
+The totals are asserted in `tests/test_book_notes.py`, so a re-extraction that
+returns fewer highlights fails the suite instead of passing quietly.
 
 ## These files are quoted, not authored
 

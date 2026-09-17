@@ -89,8 +89,10 @@ a number rather than a run someone would repeat, so
 ## Where the book's numbers come from
 
 [research/book-notes](research/book-notes/README.md) holds verbatim Kindle
-highlights from the two Chan books, cited by location. A published figure a
-replication tries to match traces back to a highlight there. Those files are
+highlights from the two Chan books, cited by location. Where a published figure
+a replication chases is among them, that is where it traces to. A highlight
+covers what somebody marked, so the notes carry two of the five figures this
+repo names. Those files are
 quoted rather than written, so they are the one place in the repo the prose
 sweeps do not reach, and the reasoning is in that directory's README.
 
