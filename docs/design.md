@@ -52,7 +52,10 @@ something from a vintage still on disk can wait for evidence that it matters.
 
 Ernest Chan's books work through examples with published numbers. Reproducing
 one tests whether the method survives contact with data a reader can actually
-get. A gap between the published number and the reproduction is as informative
+get. The published figures themselves are recorded in
+[research/book-notes](../research/book-notes/README.md), quoted verbatim and
+cited by Kindle location, so a target number traces to the sentence that
+printed it rather than to someone's memory of it. A gap between the published number and the reproduction is as informative
 as a match, and often more so, because it names something the method depends
 on that the text did not.
 

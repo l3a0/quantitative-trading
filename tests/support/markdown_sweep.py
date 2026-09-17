@@ -181,3 +181,47 @@ def markdown_files(root: Path) -> list[Path]:
 
 def sweep_file(path: Path) -> list[Finding]:
     return sweep_text(path.read_text(encoding="utf-8"), path)
+
+
+# Directories holding verbatim quotation rather than prose this repo wrote.
+#
+# The sweeps exist to catch a slip an author made. A quoted source has no
+# author here to correct, and the only way to satisfy the tilde rule inside a
+# quotation is to edit the quotation, which costs more than the rule buys. One
+# highlight in research/book-notes/algorithmic-trading.md quotes a URL
+# containing a tilde, and escaping it would leave a file that no longer matches
+# the book.
+#
+# The exemption is deliberately one directory and deliberately narrow.
+# markdownlint still runs over these files in CI, so they are linted; it is
+# only these two prose rules they are excused from. A new directory added here
+# is a decision to stop sweeping something, so it takes an argument. A README
+# inside one of them stays swept, because it is written rather than quoted.
+QUOTED_SOURCE_DIRS: tuple[str, ...] = ("research/book-notes",)
+
+
+def is_quoted_source(path: Path, root: Path) -> bool:
+    """Whether ``path`` is verbatim quotation rather than prose this repo wrote.
+
+    A README inside one of these directories is the exception. It explains the
+    quoted files and is authored like any other document, so it stays swept.
+    Without that carve-out the exemption grows by one file every time someone
+    documents the directory, which is how an exclusion stops being narrow.
+    """
+    try:
+        relative = path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return False
+    if path.name == "README.md":
+        return False
+    return any(relative.startswith(f"{directory}/") for directory in QUOTED_SOURCE_DIRS)
+
+
+def authored_markdown_files(root: Path) -> list[Path]:
+    """Every Markdown file this repo wrote, which is what the sweeps govern.
+
+    ``markdown_files`` answers a different question: everything the repository
+    owns. Quoted sources are owned and are not authored, so they are listed
+    there and excused here.
+    """
+    return [path for path in markdown_files(root) if not is_quoted_source(path, root)]

@@ -86,6 +86,14 @@ show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
 `TestGldGdxChanArchive` is where it lives.
 
+## Where the book's numbers come from
+
+[research/book-notes](research/book-notes/README.md) holds verbatim Kindle
+highlights from the two Chan books, cited by location. A published figure a
+replication tries to match traces back to a highlight there. Those files are
+quoted rather than written, so they are the one place in the repo the prose
+sweeps do not reach, and the reasoning is in that directory's README.
+
 ## Running the checks
 
 ```bash

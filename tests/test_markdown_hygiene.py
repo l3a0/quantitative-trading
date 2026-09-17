@@ -14,8 +14,11 @@ from pathlib import Path
 import pytest
 
 from tests.support.markdown_sweep import (
+    QUOTED_SOURCE_DIRS,
     Finding,
+    authored_markdown_files,
     blank_code,
+    is_quoted_source,
     markdown_files,
     sweep_file,
     sweep_text,
@@ -288,8 +291,52 @@ def test_discovery_skips_a_markdown_path_that_is_not_a_regular_file(
 
 
 @pytest.mark.parametrize(
-    "path", markdown_files(REPO_ROOT), ids=lambda path: str(path.relative_to(REPO_ROOT))
+    "path", authored_markdown_files(REPO_ROOT), ids=lambda path: str(path.relative_to(REPO_ROOT))
 )
-def test_every_markdown_file_passes_the_prose_sweeps(path: Path) -> None:
+def test_every_authored_markdown_file_passes_the_prose_sweeps(path: Path) -> None:
     findings = sweep_file(path)
     assert not findings, "\n".join(str(finding) for finding in findings)
+
+
+class TestQuotedSourcesAreExcused:
+    """Hold the exemption to the one directory it claims.
+
+    An exclusion is how a check quietly stops checking. These pin what is
+    excused and, more importantly, what is not.
+    """
+
+    def test_only_the_book_notes_are_excused(self) -> None:
+        """The repo owns more Markdown than it authored, and the difference is
+        exactly the book notes."""
+        owned = set(markdown_files(REPO_ROOT))
+        authored = set(authored_markdown_files(REPO_ROOT))
+        excused = {path.relative_to(REPO_ROOT).as_posix() for path in owned - authored}
+        assert excused == {
+            "research/book-notes/algorithmic-trading.md",
+            "research/book-notes/quantitative-trading.md",
+        }
+
+    def test_the_exemption_names_one_directory(self) -> None:
+        """Widening this list is a decision, so it should break a test."""
+        assert QUOTED_SOURCE_DIRS == ("research/book-notes",)
+
+    def test_a_readme_beside_the_quotes_is_still_swept(self) -> None:
+        """A directory's own documentation is authored prose, whatever it sits
+        next to."""
+        assert not is_quoted_source(REPO_ROOT / "research/book-notes/README.md", REPO_ROOT)
+
+    def test_a_lookalike_path_is_not_excused(self) -> None:
+        """Matching is on the directory, not on the name. A file that merely
+        starts with the same characters stays swept."""
+        assert not is_quoted_source(REPO_ROOT / "research/book-notes-scratch.md", REPO_ROOT)
+        assert not is_quoted_source(REPO_ROOT / "docs/research/book-notes/x.md", REPO_ROOT)
+        assert is_quoted_source(
+            REPO_ROOT / "research/book-notes/quantitative-trading.md", REPO_ROOT
+        )
+
+    def test_the_excused_files_would_otherwise_fail(self) -> None:
+        """The exemption is load-bearing rather than precautionary: without it
+        the suite goes red on a URL inside a verbatim quotation."""
+        excused = set(markdown_files(REPO_ROOT)) - set(authored_markdown_files(REPO_ROOT))
+        findings = [finding for path in excused for finding in sweep_file(path)]
+        assert findings, "nothing is excused any more; drop the exemption"
