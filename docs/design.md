@@ -58,7 +58,8 @@ cited by Kindle location, so where a target number is there it traces to the
 sentence that printed it rather than to someone's memory of it. A highlight
 covers what somebody marked, so the notes carry 1.6766 and 0.4849 and not the
 other three figures this doc names. The notes are also the 2021 revised
-edition, while the chapter and page citations below are first-edition.
+edition of *Quantitative Trading*, while the chapter and page citations below
+are first-edition.
 
 A gap between the published number and the reproduction is as informative as a
 match, and often more so, because it names something the method depends on

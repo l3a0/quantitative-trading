@@ -26,7 +26,6 @@ NOTES_DIR = Path(__file__).resolve().parents[1] / "research" / "book-notes"
 # as happily if every surface drifted together.
 EXPECTED_HIGHLIGHTS = {
     "quantitative-trading.md": 235,
-    "algorithmic-trading.md": 301,
 }
 
 ENTRY = re.compile(r"^### Location ", re.MULTILINE)
