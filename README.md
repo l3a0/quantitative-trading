@@ -49,8 +49,9 @@ they were first built.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
    returns yet does not cointegrate in levels.
 
-Fifteen pins in [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py)
-freeze what they compute. Each names its window and its regression
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
+every number this repo quotes about either pair, and it is the only place any
+of them is derived. Each GLD/GDX pin names its window and its regression
 specification, because the book prints two of those near each other and they
 come from different runs.
 
@@ -71,9 +72,19 @@ uv run python -m chan.pair_cointegration --ch3
 ```
 
 Chan's Chapter 3 run, on the first 252 trading days. `--ch7` runs the full
-Chapter 7 window, `--ko-pep` runs the counter-example, and `--selftest` checks
-the arithmetic against synthetic series with known answers. Each report names
-the window, the price basis, and the specification every number came from.
+Chapter 7 window and `--ko-pep` runs the counter-example. Each of the three
+names the window, the price basis, and the specification every number came
+from, so no figure in the report is separable from the vintage that produced
+it.
+
+`--selftest` is the odd one out. It reads no vintage and reports no window,
+because it checks the arithmetic against synthetic series whose answers are
+known in advance.
+
+Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
+show that even his saved data misses his printed hedge, which is a claim about
+a number rather than a run someone would repeat, so
+`TestGldGdxChanArchive` is where it lives.
 
 ## Running the checks
 

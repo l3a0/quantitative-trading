@@ -10,6 +10,11 @@ These are replications, which means they are exploratory by construction.
 Reproducing a published figure spends the sample on a hypothesis someone else
 chose, so it says whether the number reproduces and nothing more.
 
+``docs/design.md`` carries the reasoning: why the hedge ratio drifted while the
+verdict held, why Chan's own archived files are committed beside the yfinance
+ones, and what the KO/PEP counter-example answers. The notes below stay
+operational, naming which run each constant belongs to.
+
 Three steps, all backed by ``chan.timeseries``:
 
 1. Hedge ratio. OLS of A's close on B's close with an intercept, which is the

@@ -15,13 +15,10 @@ wrong. So the estimators live here once and the replications call them:
   series.
 
 The fixed lag in ``adf_tstat`` is the load-bearing choice, not a default worth
-copying past. Chan reports that Python disagreed with MATLAB and R on the
-GLD/GDX verdict and concludes Python's statistics packages cannot be trusted.
-The disagreement is real and it is a setting. ``statsmodels`` defaults to
-``autolag='aic'``, which reads the lag count off the data and picked six on
-the short window, while MATLAB and R fix it at one. Each extra lag pulls the
-statistic toward zero, and six was enough to flip the verdict. Pin the lag and
-all three agree.
+copying past. Letting ``statsmodels`` choose the lag count reverses the GLD/GDX
+verdict on the same data. ``docs/design.md`` carries why that matters, and
+``TestLagSettingDetour`` in ``tests/test_pair_cointegration.py`` is the
+authority for both statistics.
 
 This module imports nothing else in ``chan``, so any replication can build on
 it without a dependency running backwards.

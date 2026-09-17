@@ -60,17 +60,18 @@ traps visible rather than rediscovering them.
 - [Write the GLD/GDX replication log entry, naming what matched and what did not](https://github.com/l3a0/quantitative-trading/issues/5)
 - [Decide whether the cross-surface sweep policy applies, once a second prose surface exists](https://github.com/l3a0/quantitative-trading/issues/6)
 
-**Test surface.** Three pins, each naming its window and its regression
-specification, because the book prints two of these near each other and they
-come from different runs: the through-origin slope on the Chapter 7 window,
-the slope with an intercept on the Chapter 3 window, and the cointegration
-test statistic on the Chapter 3 window.
+**Test surface.** Three pins were planned, each naming its window and its
+regression specification, because the book prints two of these near each other
+and they come from different runs: the through-origin slope on the Chapter 7
+window, the slope with an intercept on the Chapter 3 window, and the
+cointegration test statistic on the Chapter 3 window. All three landed with the
+port, alongside the rest of the suite the sibling repo had already built.
 
-One more test carries the premise. Two vintages of the same symbol, taken at
-different dates, return the same raw series and a different adjusted one where
-a corporate action falls between them. That turns the reason this repo commits
-vintages into something executable rather than something asserted in the
-design doc. GDX is the symbol that shows it, since GLD pays no distributions
+One more test carries the premise, and it has not landed. Two vintages of the
+same symbol, taken at different dates, return the same raw series and a
+different adjusted one where a corporate action falls between them. That turns
+the reason this repo commits vintages into something executable rather than
+something asserted in the design doc. GDX is the symbol that shows it, since GLD pays no distributions
 and its adjusted series does not drift.
 
 Every number the log entry quotes traces to one of these assertions.
@@ -78,8 +79,10 @@ Every number the log entry quotes traces to one of these assertions.
 ## What comes after
 
 Nothing is planned past slice 2, on purpose. The ranking rule says evidence
-from real use outranks any order set in advance, and this repo has run zero
-replications. Whatever slice 2 makes awkward is what slice 3 fixes.
+from real use outranks any order set in advance, and the two replications here
+were copied in finished rather than run into existence, so they have produced
+no evidence about what this repo's own machinery makes hard. Whatever slice 2
+makes awkward is what slice 3 fixes.
 
 Three candidates are worth naming so they are not re-invented, and none of
 them is committed to.
@@ -92,10 +95,22 @@ them is committed to.
 
 ## Dependencies between slices
 
-Slice 2 waits on slice 1, and only on the two vintage deliverables it actually
-reads. [Issue 4](https://github.com/l3a0/quantitative-trading/issues/4) can
-start once [issue 1](https://github.com/l3a0/quantitative-trading/issues/1)
-and [issue 2](https://github.com/l3a0/quantitative-trading/issues/2) land.
+Slice 2 was planned to wait on slice 1, and only on the two vintage
+deliverables it actually reads:
+[issue 4](https://github.com/l3a0/quantitative-trading/issues/4) starting once
+[issue 1](https://github.com/l3a0/quantitative-trading/issues/1) and
+[issue 2](https://github.com/l3a0/quantitative-trading/issues/2) land.
+
+That is not what happened. The sibling repo's finished replications were copied
+here first, so the computation arrived before the machinery meant to feed it.
+They read a committed CSV directly, and `data/README.md` records each file's
+vendor, symbol, span, download date and checksum by hand in the meantime.
+
+The dependency was real and is now a debt rather than a gate. Issue 4's
+remaining half is the test that carries the premise, and that half still needs
+issues 1 and 2, because it takes two vintages of one symbol and compares them.
+The order to protect from here is that no further replication lands before the
+recorder does, since each one added now is another reader to convert later.
 
 The split back-out sits in slice 1 because it belongs to the vintage story,
 not because the first replication needs it. Whether the GLD/GDX span carries a
