@@ -68,8 +68,8 @@ and lists the machinery they run on separately.
 
 The deliverables are the book's own worked examples. Fifteen are tracked: four
 reproduced, six reachable, and five blocked by data that is not free. Twelve of
-the fifteen sit in Chapter 7, which is where Chan works almost every numbered
-example.
+the fifteen sit in Chapter 7, the chapter Chan calls the special topics chapter
+at Kindle location 2735.
 
 ## Running a replication
 
@@ -98,7 +98,7 @@ a number rather than a run someone would repeat, so
 highlights from Chan's *Quantitative Trading*, cited by location. Where a
 published figure a replication chases is among them, that is where it traces
 to. A highlight covers what somebody marked, so the notes carry two of the five
-figures this repo names.
+figures the design doc names.
 
 The notes are quoted rather than written, so nothing edits them by hand and
 three markdownlint rules stand down over that directory. The reasoning is in

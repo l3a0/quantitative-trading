@@ -27,23 +27,35 @@ milestone at least implied a sequence. A chapter does not, and the book is
 lopsided enough that most of it lands in one chapter anyway. Order comes from
 the dependencies at the end of this doc and from nowhere else.
 
+## How work gets cut
+
+A deliverable is cut down to the smallest piece that leaves the repo usable by
+someone at the end of it. Not a layer, and not a subsystem. A piece that ends
+with a component nobody can run is cut the wrong way.
+
+Removing the milestones changed where work is grouped. It did not change this,
+because it is a rule about cutting rather than about filing.
+
 ## The order
 
 The ranking rule in [CLAUDE.md](../CLAUDE.md) decides it: what is missing from
 the shortest path to something usable goes first. Then ship it, use it, and let
 what breaks set the order after that.
 
-Three facts set the order today, and not one of them is a chapter.
+Three facts constrain the order today, and not one of them is a chapter.
 
 1. The vintage recorder unblocks more than anything else on the tracker. Five
    of the six experiments this repo could otherwise reach cannot run until a
    series is recorded and committed, because the design doc rejects fetching at
    run time.
-2. The coin-flip game needs no data at all. It is synthetic, so it is the one
-   experiment the unbuilt recorder does not block, and the shortest path to the
-   repo doing its job twice instead of once.
+2. The coin-flip game is synthetic, so the unbuilt recorder does not block it.
+   It is the shortest path to the repo doing its job twice instead of once.
 3. Five experiments wait on data that is not free. They are not waiting on
    anybody's time, so they never compete for a place in the order.
+
+Beyond those three constraints the order among the reachable experiments is not
+set, and that is deliberate rather than an omission. The ranking rule says
+evidence from real use decides it, and this repo has run one replication.
 
 ## The machinery
 
@@ -57,52 +69,69 @@ including its author.
 | [Record a downloaded series as a vintage, immutable once written](https://github.com/l3a0/quantitative-trading/issues/1) | Any series can be downloaded once, committed with its provenance, and read back later as exactly the bytes a result came from |
 | [Verify a vintage before a run reads it, and tell absent apart from unreadable](https://github.com/l3a0/quantitative-trading/issues/2) | A run refuses a vintage it cannot trust, and says which one and in which state |
 | [Back the split adjustment out of a vendor series that adjusts when asked not to](https://github.com/l3a0/quantitative-trading/issues/3) | A raw series is raw, including across a split the vendor silently applied |
-| [Decide whether the cross-surface sweep policy applies](https://github.com/l3a0/quantitative-trading/issues/6) | An owner decision rather than a session's work |
-| [Close the pins the ported suite leaves open, found by mutating it](https://github.com/l3a0/quantitative-trading/issues/10) | Deferred on purpose, on a count of zero runs |
 
-Test surface for the vintage deliverables: every rule is executable with no
-network, because the recorder takes rows rather than fetching them. One test
-writes a synthetic series, reads back every manifest field, and confirms a
-second write to the same path leaves the original file unchanged. Three more
-drive the three verification failures and assert each message names which
-vintage and which state. One makes a vintage unreadable rather than absent,
-which is the case a `Path.exists` check reports wrongly.
+Test surface for the three above: every rule is executable with no network,
+because the recorder takes rows rather than fetching them. One test writes a
+synthetic series, reads back every manifest field, and confirms a second write
+to the same path leaves the original file unchanged. Three more drive the three
+verification failures and assert each message names which vintage and which
+state. One makes a vintage unreadable rather than absent, which is the case a
+`Path.exists` check reports wrongly.
+
+## Open questions and deferred work
+
+Neither of these leaves anything usable, which is why they are listed apart from
+the machinery rather than inside it.
+
+- [Decide whether the cross-surface sweep policy applies, once a second prose surface exists](https://github.com/l3a0/quantitative-trading/issues/6)
+  is an owner decision rather than a session's work, and the issue carries the
+  trigger that would make it live.
+- [Close the pins the ported suite leaves open, found by mutating it](https://github.com/l3a0/quantitative-trading/issues/10)
+  is deferred on purpose, on a count of zero runs through the paths the
+  surviving mutants sit on.
 
 ## Chapter 3
 
-One experiment, at Kindle location 2099.
+One experiment, introduced at Kindle location 2099.
 
 - [Reproduce the Khandani-Lo linear reversal, Example 3.7](https://github.com/l3a0/quantitative-trading/issues/17)
 
-What it pins is a collapse rather than an edge. A Sharpe of 4.47 in the
-original paper falls to 0.25 on an S&P 500 large-cap universe and to −3.19
-after five basis points of cost, so the costing model matters more than the
-universe does.
-
 ## Chapter 6
 
-Two experiments, at locations 2858 and 3186.
+Two experiments.
 
-- [Reproduce the coin-flip game, Example 6.1](https://github.com/l3a0/quantitative-trading/issues/13)
-- [Reproduce Kelly leverage on SPY, Example 6.2](https://github.com/l3a0/quantitative-trading/issues/14)
-
-The coin-flip game is the only experiment in the book that needs no data, which
-makes it the only one that can run before the recorder exists. Kelly on SPY
-needs one free series and nothing else, so it is the cheapest experiment after
-the recorder lands.
+- [Reproduce Kelly leverage on SPY, Example 6.2](https://github.com/l3a0/quantitative-trading/issues/14),
+  worked at location 2858
+- [Reproduce the coin-flip game, Example 6.1](https://github.com/l3a0/quantitative-trading/issues/13),
+  worked at location 3186
 
 ## Chapter 7
 
 Twelve of the book's fifteen experiments are here, between locations 3360 and
-4684. Chan calls it the special topics chapter at location 1093, and it is
-where he works almost every numbered example. A reader who stops before it
-never reaches them.
+4684. It is the chapter Chan calls the special topics chapter at location 2735,
+and twelve of fifteen is what makes the chapter grouping worth having: the
+tracker's deliverables are not spread across the book.
 
-Four are reproduced already, all under one issue.
+Four are reproduced, and all four shipped under one issue. They are the GLD/GDX
+cointegration test, the Ornstein-Uhlenbeck half-life, the Python-versus-MATLAB
+disagreement, and the KO/PEP counter-example at Example 7.3.
 
 - [Reproduce the GLD/GDX example against committed vintages, pinning each number to its own run](https://github.com/l3a0/quantitative-trading/issues/4)
+
+Two more belong to those four without being experiments themselves. One writes
+the verdict up, and one asks whether the chapter numbering here is even the
+right one.
+
 - [Write the GLD/GDX replication log entry, naming what matched and what did not](https://github.com/l3a0/quantitative-trading/issues/5)
 - [Check the GLD/GDX two-window framing against the edition it came from](https://github.com/l3a0/quantitative-trading/issues/12)
+
+Issue 12 is why this section carries a caveat. The GLD/GDX training-set run is
+called the Chapter 3 run throughout this repo, after the first edition's
+`example3_6_1.m` and page 63. In the revised edition committed here, the figure
+it produces is printed at location 3718, which is Chapter 7. The grouping above
+follows where the figure is printed, per the method stated at the top of this
+doc. Which edition the citations mean is the open question, not an assumption
+this section is entitled to make.
 
 Three more are reachable, and each needs a series this repo does not hold yet.
 
@@ -113,7 +142,9 @@ Three more are reachable, and each needs a series this repo does not hold yet.
 Five are blocked by data that is not free and is not derivable from anything
 here. They are filed rather than dropped, because an unfiled experiment is one
 nobody finds again and the data question gets rediscovered from scratch every
-time someone reads the chapter.
+time someone reads the chapter. They stay in this chapter rather than in a
+backlog of their own, because a backlog says somebody's time is what they wait
+on.
 
 - [Reproduce the commodity-futures seasonals](https://github.com/l3a0/quantitative-trading/issues/19)
 - [Reproduce post-earnings announcement drift](https://github.com/l3a0/quantitative-trading/issues/20)
@@ -122,10 +153,7 @@ time someone reads the chapter.
 - [Reproduce Conditional Parameter Optimization, the revised edition's centrepiece](https://github.com/l3a0/quantitative-trading/issues/23)
 
 They need continuous futures history, point-in-time earnings estimates,
-fundamentals, a small-cap panel, or fifteen years of one-minute bars. Keeping
-them in this chapter rather than in a backlog of their own says what is true:
-they are part of the book, and no amount of building here will produce what
-they read.
+fundamentals, a small-cap panel, or fifteen years of one-minute bars.
 
 ## Test surface for the experiments
 
@@ -137,10 +165,11 @@ makes. Which figures those are is on each issue, not restated here.
 
 Three pins were planned for GLD/GDX, each naming its window and its regression
 specification, because the book prints two of these near each other and they
-come from different runs: the through-origin slope on the Chapter 7 window, the
-slope with an intercept on the Chapter 3 training window, and the cointegration
-test statistic on that training window. All three landed with the port,
-alongside the rest of the suite the sibling repo had already built.
+come from different runs: the through-origin slope on the full window, the slope
+with an intercept on the training window, and the cointegration test statistic
+on that training window. All three landed with the port, alongside the rest of
+the suite the sibling repo had already built. Every number the log entry quotes
+traces to one of these assertions.
 
 One more test carries the premise, and it has not landed. Two vintages of the
 same symbol, taken at different dates, return the same raw series and a
@@ -164,6 +193,10 @@ committed to.
 2. A registered experiment, which is a different object from a replication and
    needs its hypothesis committed in writing before any number is seen.
 
+A third candidate this section used to name, more replications chosen by what
+the first one made easy or hard, is no longer a candidate. The catalogue is
+filed, and the chapters above are where it lives.
+
 ## Dependencies
 
 The first replication was planned to wait on the vintage machinery, and only on
@@ -182,6 +215,10 @@ remaining half is the test that carries the premise, and that half still needs
 issues 1 and 2, because it takes two vintages of one symbol and compares them.
 The order to protect from here is that no further replication lands before the
 recorder does, since each one added now is another reader to convert later.
+
+GLD/GDX went first because the sibling repo had already worked out where its
+traps are, so the work here was checking that the vintage machinery makes those
+traps visible rather than rediscovering them.
 
 The split back-out sits with the machinery because it belongs to the vintage
 story, not because the first replication needs it. Whether the GLD/GDX span
