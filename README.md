@@ -50,10 +50,11 @@ they were first built.
    returns yet does not cointegrate in levels.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
-every number this repo computes about either pair, and it is the only place any
-of them is derived. The one exception is named under The write-up below. Each
-GLD/GDX pin names its window and its regression specification, because the book
-prints two of those near each other and they come from different runs.
+every number this repo quotes about either pair, and it is the only place any of
+them is derived. The write-up copied in from the sibling repo is the exception,
+and what it says that nothing here asserts is listed below. Each GLD/GDX pin
+names its window and its regression specification, because the book prints two
+of those near each other and they come from different runs.
 
 The vintage machinery is not built yet, so a replication reads a committed CSV
 directly rather than through a recorder that verifies it first.
@@ -96,26 +97,47 @@ a number rather than a run someone would repeat, so
 
 [blog/gld-gdx-cointegration-lessons.md](blog/gld-gdx-cointegration-lessons.md)
 is the human-readable account of the GLD/GDX replication: what the book
-printed, what this repo computes, and the six detours that explain the gap.
+printed, what this repo computes, and what explains the gap.
 [docs/gld-gdx-cointegration-lessons.html](docs/gld-gdx-cointegration-lessons.html)
 is the same piece as a self-contained styled page, images inlined, which is
 what gets published.
 
 Both were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-the replication was first built, and copied here byte for byte apart from the
-links back to the implementation, which now point at this repo's engine and
-its tests.
+the replication was first built, and copied here byte for byte apart from three
+changes. The links back to the implementation now name this repo. Chan's own
+archive is quoted at 1.6395, which is what
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) pins,
+rather than at the 1.6379 the sibling's copy gives it. The footer says the
+committed engine is the statsmodels-backed port of the numpy-only test the
+piece describes, because the piece describes an implementation this repo does
+not hold.
 
 The piece is a replication write-up, so it is exploratory by construction. It
 says whether a published number reproduces and nothing about whether the trade
-works today. The last of its six detours answers that anyway: the pair stopped
-cointegrating, and only 31 of 231 rolling windows clear even the 10% bar.
+works today. It is not the replication log entry
+[issue 5](https://github.com/l3a0/quantitative-trading/issues/5) asks for,
+which is a verdict rather than an essay.
 
-One figure in it has no source this repo can check. It says GDX has paid
-dividends for nineteen years since 2007, which is a fact about the fund's
-distribution history rather than anything derivable from committed closes.
-Every other number traces to an assertion in
+Six of its figures are not pinned here, and they are worth knowing before
+quoting any of them.
+
+1. GDX has paid dividends for nineteen years since 2007. A fact about the
+   fund's distribution history, not derivable from committed closes.
+2. The hedge slipped "about two percent". Derived from 1.6766 and 1.6379,
+   which are both pinned. The true figure is 2.31%.
+3. Chan's Chapter 3 example "drops the last 60 days". The 252 reconciles and
+   the 60 does not, and `example3_6_1.m` is not committed here.
+4. A test statistic of −3.36 and a verdict of roughly 95% confidence on the
+   Chapter 7 window. Both are Chan's, and neither is among the committed
+   highlights. They live in a code comment.
+5. The two-window table gives −3.18 for 2006 to 2008. That is Chan's printed
+   figure, not a window this repo computes. The runs here give −3.45 and −3.09.
+6. The piece dates the book to 2009 and cites the revised edition, which is the
+   edition question on
+   [issue 12](https://github.com/l3a0/quantitative-trading/issues/12).
+
+Every other number in it traces to an assertion in
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).
 
 ## Where the book's numbers come from

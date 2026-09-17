@@ -1,9 +1,10 @@
 """The pins for the GLD/GDX and KO/PEP replications.
 
-This file is the single authority for every number the prose quotes about
-these two pairs. A doc that recomputed one of them would be a second
+This file is the single authority for every number the repo's own prose quotes
+about these two pairs. A doc that recomputed one of them would be a second
 implementation of the calculation, and the two would drift without either
-looking wrong.
+looking wrong. The essay copied in from the sibling repo is the exception, and
+README.md lists the six figures in it that nothing here asserts.
 
 There is no dataset gate. All four vintages are committed to git, so every
 layer runs everywhere the suite runs. The primitives underneath have their own
@@ -28,7 +29,10 @@ replications themselves.
 6. ``TestLagSettingDetour``, the third GLD/GDX result in the book. Chan reports
    that Python disagreed with MATLAB and R on the verdict and concludes Python
    cannot be trusted for this. The disagreement is a setting, and this pins it.
-7. ``TestReportNamesItsBasis``, which holds the report's price-basis line. It
+7. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
+   premise one download date can show: GDX's adjusted 2006 closes sit below
+   its raw ones, and GLD's do not move at all.
+8. ``TestReportNamesItsBasis``, which holds the report's price-basis line. It
    is the one line that says which vintage produced the numbers above it.
 
 1.6766 is a cited book target throughout, never asserted as a computed result,
@@ -366,38 +370,6 @@ class TestGldGdxChanArchive:
 # ============================================================
 
 
-class TestAdjustedCloseMovesWithTheDownloadDate:
-    """The vintage premise, as far as one download date can show it.
-
-    An adjusted close folds every later dividend back into the history, so the
-    same 2006 trading day reads lower in the adjusted series than in the raw
-    one. Two vintages taken at different dates would show the series moving
-    under itself, which is issue 4's remaining half and needs the recorder.
-    This is the weaker claim that the committed files already support, and
-    ``blog/gld-gdx-cointegration-lessons.md`` quotes the gap it measures.
-    """
-
-    def test_gdx_2006_adjusted_sits_about_fifteen_percent_below_raw(self) -> None:
-        raw = load_close("GDX", unadjusted=True)
-        adjusted = load_close("GDX")
-        shared = raw.index.intersection(adjusted.index)
-        gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
-
-        assert len(gap) > 0
-        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-4)
-
-    def test_gld_pays_nothing_so_its_two_series_do_not_part(self) -> None:
-        """GLD is the control. It pays no distribution, so the adjustment has
-        nothing to fold in and the two series stay on top of each other. That
-        is why the essay names GDX rather than GLD as the symbol that drifts."""
-        raw = load_close("GLD", unadjusted=True)
-        adjusted = load_close("GLD")
-        shared = raw.index.intersection(adjusted.index)
-        gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).abs()
-
-        assert float(gap.max()) < 1e-3
-
-
 class TestLagSettingDetour:
     """Pin the third GLD/GDX result, which is a claim about tooling.
 
@@ -444,7 +416,44 @@ class TestLagSettingDetour:
 
 
 # ============================================================
-# Layer 7 -- the report's price-basis line
+# Layer 7 -- the vintage premise, as far as one download date shows
+# ============================================================
+
+
+class TestAdjustedCloseMovesWithTheDownloadDate:
+    """The vintage premise, as far as one download date can show it.
+
+    An adjusted close folds every later dividend back into the history, so the
+    same 2006 trading day reads lower in the adjusted series than in the raw
+    one. Two vintages taken at different dates would show the series moving
+    under itself, which is issue 4's remaining half and needs the recorder.
+    This is the weaker claim that the committed files already support, and
+    ``blog/gld-gdx-cointegration-lessons.md`` quotes the gap it measures.
+    """
+
+    def test_gdx_2006_adjusted_sits_about_fifteen_percent_below_raw(self) -> None:
+        raw = load_close("GDX", unadjusted=True)
+        adjusted = load_close("GDX")
+        shared = raw.index.intersection(adjusted.index)
+        gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
+
+        assert len(gap) > 0
+        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-4)
+
+    def test_gld_pays_nothing_so_its_two_series_do_not_part(self) -> None:
+        """GLD is the control. It pays no distribution, so the adjustment has
+        nothing to fold in and the two series stay on top of each other. That
+        is why the essay names GDX rather than GLD as the symbol that drifts."""
+        raw = load_close("GLD", unadjusted=True)
+        adjusted = load_close("GLD")
+        shared = raw.index.intersection(adjusted.index)
+        gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).abs()
+
+        assert float(gap.max()) < 1e-3
+
+
+# ============================================================
+# Layer 8 -- the report's price-basis line
 # ============================================================
 
 

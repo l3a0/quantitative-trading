@@ -9,7 +9,7 @@ The book runs a **cointegration test** on the pair. That is a statistical check 
 1. A **hedge ratio** of 1.6766, meaning short 1.6766 dollars of miners per dollar of gold.
 2. A test statistic of −3.18, where more negative means the spread mean-reverts more convincingly.
 
-Using Python and the latest data reproduced the test statistic, but not the hedge ratio. The hedge ratio kept landing on 1.6379, not the book's 1.6766. So did [the independent reproduction](https://aushaff.github.io/2018/04/06/e_chan_ex7.2.html) and [Chan's own data](https://github.com/burakbayramli/books/tree/master/Quantitative_Trading_Chan) when re-run today.
+Using Python and the latest data reproduced the test statistic, but not the hedge ratio. The hedge ratio kept landing on 1.6379, not the book's 1.6766. So did [the independent reproduction](https://aushaff.github.io/2018/04/06/e_chan_ex7.2.html). [Chan's own data](https://github.com/burakbayramli/books/tree/master/Quantitative_Trading_Chan) re-run today lands at 1.6395, which is no closer to his printed figure.
 
 Here is the ledger of what reproduced and what didn't, then the six detours that explain why.
 
@@ -106,4 +106,4 @@ When backtesting from a paper or a book, budget more time for data provenance th
 
 The clean version of this project would have printed 1.6766 and moved on. The messy version shows how a published number ages. The method holds. The data drifts. And the relationship itself can quietly dissolve. Reproducing a result is less about matching digits than understanding why they move.
 
-*Reproduced with a numpy-only Engle-Granger / CADF test, cross-checked against statsmodels. The implementation is open source: [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading), with the [pair engine](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pair_cointegration.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pair_cointegration.py). Source: Ernest P. Chan, Quantitative Trading, rev. ed., `example7_2.m` and `example3_6_1.m`, GLD & GDX daily closes.*
+*Reproduced with a numpy-only Engle-Granger / CADF test, cross-checked against statsmodels. What is committed here is the statsmodels-backed port of that test, so the second implementation the cross-check used is not in this tree. The port is open source: [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading), with the [pair engine](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pair_cointegration.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pair_cointegration.py). Source: Ernest P. Chan, Quantitative Trading, rev. ed., `example7_2.m` and `example3_6_1.m`, GLD & GDX daily closes.*
