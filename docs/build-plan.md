@@ -71,27 +71,67 @@ One more test carries the premise, and it has not landed. Two vintages of the
 same symbol, taken at different dates, return the same raw series and a
 different adjusted one where a corporate action falls between them. That turns
 the reason this repo commits vintages into something executable rather than
-something asserted in the design doc. GDX is the symbol that shows it, since GLD pays no distributions
-and its adjusted series does not drift.
+something asserted in the design doc. GDX is the symbol that shows it, since
+GLD pays no distributions and its adjusted series does not drift.
 
 Every number the log entry quotes traces to one of these assertions.
 
-## What comes after
+### Slice 3, more of Chan's experiments
 
-Nothing is planned past slice 2, on purpose. The ranking rule says evidence
-from real use outranks any order set in advance, and the two replications here
-were copied in finished rather than run into existence, so they have produced
-no evidence about what this repo's own machinery makes hard. Whatever slice 2
-makes awkward is what slice 3 fixes.
+**What it leaves usable.** A second replication, and then a third, so the repo
+has done the thing it exists to do more than once. Six of the book's examples
+sit here, and every one of them is reachable: the data is either synthetic or
+free to fetch.
 
-Three candidates are worth naming so they are not re-invented, and none of
-them is committed to.
+**Deliverables.** The
+[milestone](https://github.com/l3a0/quantitative-trading/milestone/3) carries
+them, and each issue is the source of truth for what its experiment is and
+which of the book's figures it must match.
 
-1. More replications, chosen by what the first one made easy or hard.
-2. A negative-results log, once a replication has failed in a way worth
+**Order inside the slice is not set**, and that is deliberate rather than an
+omission. The ranking rule says evidence from real use decides it, and this
+repo has run one replication. One thing is worth saying in advance: the
+coin-flip game is the only experiment in the book that needs no data at all,
+so it is the only one that can run before slice 1 exists.
+
+**Test surface.** Each experiment pins the figures the book prints, at the
+precision the book prints them, naming its vintage and its window. Two of them
+pin a direction rather than a number, because the book states a sign and not a
+figure, and inventing a digit there would be worse than pinning the sign.
+
+## Not a slice: the experiments the data blocks
+
+Five more of the book's experiments are filed under
+[a milestone that is not a slice](https://github.com/l3a0/quantitative-trading/milestone/4).
+They need continuous futures history, point-in-time earnings estimates,
+fundamentals, a small-cap panel, or fourteen years of one-minute bars. None of
+that is free, and none of it is derivable from anything here.
+
+They are filed rather than dropped because an unfiled experiment is one nobody
+finds again, and the data question gets rediscovered from scratch every time
+someone reads that chapter. They are kept out of the slices because putting
+them in one would say they are waiting on somebody's time, and they are not.
+The price of naming them is a milestone that will sit unfinished, possibly for
+good.
+
+## What comes after that
+
+Nothing is planned past the experiments, on purpose. The ranking rule says
+evidence from real use outranks any order set in advance, and the two
+replications here were copied in finished rather than run into existence, so
+they have produced no evidence about what this repo's own machinery makes hard.
+
+Two candidates are worth naming so they are not re-invented, and neither is
+committed to.
+
+1. A negative-results log, once a replication has failed in a way worth
    recording separately from its own entry.
-3. A registered experiment, which is a different object from a replication and
+2. A registered experiment, which is a different object from a replication and
    needs its hypothesis committed in writing before any number is seen.
+
+The third candidate this section used to name, more replications chosen by
+what the first one made easy or hard, is no longer a candidate. It is slice 3,
+and the catalogue is filed.
 
 ## Dependencies between slices
 

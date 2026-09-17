@@ -62,8 +62,14 @@ download date and checksum in the meantime.
 
 The tracker is the source of truth for what each deliverable is, and the two
 open slices are
-[the vintage record](https://github.com/l3a0/quantitative-trading/milestone/1)
-and [the first replication](https://github.com/l3a0/quantitative-trading/milestone/2).
+[the vintage record](https://github.com/l3a0/quantitative-trading/milestone/1),
+[the first replication](https://github.com/l3a0/quantitative-trading/milestone/2)
+and [more of Chan's experiments](https://github.com/l3a0/quantitative-trading/milestone/3).
+
+The deliverables are the book's own worked examples. Fifteen of them are
+tracked: four reproduced, six filed and reachable, and five filed under
+[a milestone that is not a slice](https://github.com/l3a0/quantitative-trading/milestone/4)
+because the data they need is not free.
 
 ## Running a replication
 
