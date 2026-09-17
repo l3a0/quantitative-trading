@@ -1,11 +1,16 @@
-# CLAUDE.md — PROJECT_NAME
+# CLAUDE.md — quantitative-trading
 
-<!-- TEMPLATE: replace this paragraph with the repo's premise. Say what the
-     project is, what it is for, and where the reasoning lives. Two or three
-     sentences. The premise is what every later ranking decision appeals to,
-     so write it before writing anything else. -->
+This repo tracks experiments and replications from Ernest Chan's quantitative
+trading books. A replication reproduces one published number against data
+committed alongside the result, and records a verdict on the gap. Status:
+scaffolded, nothing built. Code lives in `src/chan`, with tests under `tests/`.
 
-PROJECT_NAME is TODO. Status: TODO. Code lives in `src/`, with tests under `tests/`.
+**The premise is the vintage.** Vendors restate price history, so an adjusted
+close is a function of the download date rather than a property of a trading
+day. A number computed from a series nobody kept is a number nobody can check,
+including its author. Everything else here is regenerable. That asymmetry is
+what every ranking decision below appeals to, and
+[docs/design.md](docs/design.md) carries the full reasoning.
 
 **The tracker is authoritative for scope.** An unbuilt deliverable's issue is the source of truth for what it is and what it must do. The design doc at [docs/design.md](docs/design.md) carries the reasoning, the premise, and the considered-and-rejected register, and it links to the issue rather than competing with it. [docs/build-plan.md](docs/build-plan.md) carries the slicing rule, the build order, and each slice's test surface, and its deliverable entries are links. Read an unbuilt deliverable's issue before proposing a change to it. Read the design doc for everything else, which includes every built deliverable and the reasoning behind all of them.
 
@@ -102,11 +107,11 @@ A repo drifts when two surfaces describe the same thing and only one gets update
 - **The design doc is the single authority for reasoning.** Code comments point at it rather than restating it.
 - **The issue is the single authority for unbuilt scope**, per the tracker directive above.
 
-<!-- TEMPLATE: list this repo's prose surfaces and what can drift between them.
-     The sibling `trading-strategies` repo's list is the worked example: line
-     anchors of the form `file.py#L12`, symbol names cited in prose, pinned
-     numbers, figure embeds, and generated artifacts that must be regenerated
-     rather than hand-edited. Delete this section if the repo has one surface. -->
+Today this repo has one prose surface and no generated artifacts, so the only
+thing that drifts is a quoted number. The wider sweep policy, covering line
+anchors, symbol names, figure embeds, and regeneration obligations, is
+deferred with a count of zero and its trigger written down on
+[issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
 
 Before reporting a code change done, sweep the prose surfaces for what the change could have invalidated, and end the response with a short **Consistency sweep** note listing what was checked, what was updated, and what is still stale. For a pure-internal refactor that moves no line numbers and changes no observable behavior, say "no prose-facing surfaces affected" so it is clear the check was considered rather than forgotten.
 
@@ -114,12 +119,11 @@ A mechanical consequence of an edit is part of that edit, not a separate decisio
 
 ## Secrets and machine paths
 
-This repo is public. Tracked files never carry secrets or machine-specific paths. Machine-local config lives under `~/.config/PROJECT_NAME/`, and the design doc's Configuration section states the full rules. Sweep for leaks before any publish.
+This repo is public. Tracked files never carry secrets or machine-specific paths. Machine-local config lives under `~/.config/quantitative-trading/`, and the design doc's Configuration section states the full rules. Sweep for leaks before any publish.
 
-<!-- TEMPLATE: name this repo's secrets and where they live. Credentials,
-     tokens, ping URLs, and notification topics are all secrets. A path that
-     names a machine or a person is not a secret but still does not belong in
-     a tracked file. -->
+No vendor used so far needs a credential, so the repo holds no secrets today. That changes the first time a paid data source lands, and the design doc's Configuration table is where it gets named.
+
+Committed data is a separate question from secrets. A vintage is committed on purpose, because the premise says a result nobody can re-read is a result nobody can check. What does not get committed is anything that identifies a machine or a person.
 
 ## Committing
 
@@ -177,13 +181,85 @@ PR titles use a Conventional Commits prefix. The form is `type(scope): summary`.
 
 PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`, then `## What`. Add situational sections after as the change needs them, like `## Scope`, `## Notes`, or `## Evidence`. The body's prose obeys the writing-style rules above. So clear, short sentences and no em dashes. End every body with the footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
-## Repo-specific policy
+## Research pins
 
-<!-- TEMPLATE: policy that only this repo needs goes here. Two modules ship
-     with the template in docs/optional-policies.md, ready to move into this
-     section when the repo needs them:
+This repo quotes measured numbers from its first commit, so this section
+applies from day one. It came from the sibling `trading-strategies` repo,
+where each rule was written after the failure it prevents had happened once.
 
-       1. Research pins, for a repo whose prose quotes measured numbers.
-       2. Cross-surface sweeps, for a repo with generated artifacts.
+### The test is the single authority for a quoted number
 
-     Delete this heading if the repo needs neither. -->
+Every quoted figure traces to an assertion in the test suite. Prose states
+these numbers and never derives them. A document that recomputes a number is a
+second implementation of the calculation, and the two drift without either one
+looking wrong.
+
+When a regression test is re-pinned, the prose that quotes it moves in the same
+change. Grep the rounded and spelled-out forms too, since a narrative quotes a
+figure in words where a table quotes it exactly.
+
+### Every pinned number names its vintage
+
+A pin with no vintage cannot be re-derived, and a re-pin with no vintage cannot
+say what moved. The vintage is part of the assertion, not a note beside it.
+
+### Match number precision to the data
+
+Present a number at the precision the data supports, and write the same
+quantity the same way everywhere it appears. When reproducing a source's
+figure, match the source's precision rather than rounding below a real digit
+or inventing one. Round from the true value, not from an already-rounded
+printout. Where matching a source's precision would only expose disagreement,
+stop at the precision that is real.
+
+### Pin a null result rather than leaving it ephemeral
+
+When an experiment kills an idea, record it. A cheap check that is not written
+down gets re-derived from scratch every session, and the same dead end costs
+the same afternoon twice.
+
+Three surfaces, and a null result needs all three.
+
+1. The code that produced it, deterministic and seeded, reading a committed
+   vintage like anything else.
+2. A regression test pinning the decisive output, meaning the wrong-signed
+   statistic or the percentile that failed, not every intermediate.
+3. A written log entry saying what was tried and what killed it.
+
+### Keep the epistemic label loud on every surface
+
+An exploratory result and a registered result are different objects, and a
+reader who confuses them draws a conclusion the evidence does not support.
+
+- **Exploratory** means the sample was spent looking. The result kills an idea
+  or justifies a closer look. It is never a verdict, however good the number.
+- **Registered** means the hypothesis was committed in writing before the
+  number was seen. Only a registered result confirms anything.
+
+A replication is exploratory by construction. Reproducing a published figure
+spends the sample on a hypothesis someone else already chose, so it can say
+whether the number reproduces and nothing more. A replication that survives
+earns a registration, not a headline.
+
+### What promotes a result is out-of-sample evidence, not an explanation
+
+A mechanism is a prior, not a requirement. A story about why an effect should
+exist raises the odds that it persists, so a coherent one earns trust on less
+out-of-sample evidence. It is not a truth condition, and an unexplained effect
+is still an effect.
+
+The arbiter is survival on a true holdout, after costs. A result that clears
+that bar promotes whether or not anyone can explain it. A persuasive
+explanation that has not cleared it does not promote.
+
+### Searching many hypotheses needs its own honesty rail
+
+Trying many variants multiplies the chance that something looks significant by
+accident. Where that happens, significance is judged across the whole batch
+under a declared false-discovery-rate control rather than one candidate at a
+time, the hypothesis space is written down before the search runs, and some
+data is held back that the search never loads.
+
+None of that applies to a replication, which tests one number chosen by
+someone else. It applies the moment this repo starts varying parameters to see
+what works.

@@ -172,7 +172,11 @@ def markdown_files(root: Path) -> list[Path]:
         message = result.stderr.decode("utf-8", "replace").strip()
         raise RuntimeError(f"git ls-files failed in {root}: {message}")
     names = result.stdout.decode("utf-8").split("\0")
-    return sorted(root / name for name in names if name)
+    # A path in the index but not on disk is a deletion that has not been
+    # staged yet. Sweeping it raises FileNotFoundError from the read, which
+    # reports a pending deletion as a prose failure.
+    paths = (root / name for name in names if name)
+    return sorted(path for path in paths if path.is_file())
 
 
 def sweep_file(path: Path) -> list[Finding]:

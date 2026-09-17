@@ -1,64 +1,49 @@
-# repo-template
+# quantitative-trading
 
-A starting point for a new repository: the agent instructions, the CI, and the
-GitHub-side policy that the [marketlake](https://github.com/l3a0/marketlake)
-and [trading-strategies](https://github.com/l3a0/trading-strategies)
-repositories converged on, in one place a new repo can start from.
+Experiments and replications from Ernest Chan's quantitative trading books,
+each one pinned to the data vintage it ran on.
 
-Those two repos grew the same rules twice, in different words, and drifted. One
-example: they gave opposite committing instructions, because a directive
-written to replace the other never reached the second repo. This template is
-the merged version, so the next repo starts from the settled rule rather than
-from whichever copy it was cloned off.
+## Why the vintage comes first
 
-## What it carries
+Vendors restate price history. An adjusted close is not a property of a trading
+day. It is a function of the day the series was downloaded, because every later
+split and dividend rescales the whole series behind it. Run the same code
+against the same symbol a year apart and the numbers move, with nothing in the
+code or the output saying why.
 
-- **[CLAUDE.md](CLAUDE.md)** is the agent instruction file. Scope authority,
-  how to rank work, plan audits, writing style, markdown hygiene, secrets,
-  committing, and pull request review. It has template slots for the premise
-  and for repo-specific policy, marked as HTML comments.
-- **[.github/workflows/ci.yml](.github/workflows/ci.yml)** runs two jobs. `test`
-  runs ruff, a format check, and pytest under uv. `docs` runs markdownlint.
-  The ruleset requires both by name.
-- **[.github/rulesets/default.json](.github/rulesets/default.json)** makes
-  `main` require a pull request, a squash merge, linear history, CodeQL, and
-  both status checks. It is the ruleset both sibling repos run, with the
-  required checks retargeted and the stale-green gap closed.
-- **[.github/labels.json](.github/labels.json)** is the label set the triage
-  rule in CLAUDE.md expects to exist.
-- **[.github/dependabot.yml](.github/dependabot.yml)** groups minor and patch
-  bumps, keeps majors separate, and keeps ruff on its own so a new lint rule
-  never turns an unrelated pull request red.
-- **[scripts/setup-repo.sh](scripts/setup-repo.sh)** applies the ruleset, the
-  labels, and CodeQL default setup to a repository. It is idempotent and takes
-  `DRY_RUN=1`.
-- **[docs/design.md](docs/design.md)** and
-  **[docs/build-plan.md](docs/build-plan.md)** are skeletons for the two docs
-  CLAUDE.md refers to by name.
-- **[docs/optional-policies.md](docs/optional-policies.md)** holds two policy
-  modules that only some repos need, ready to move into CLAUDE.md.
-- **[tests/test_markdown_hygiene.py](tests/test_markdown_hygiene.py)** runs the
-  two prose sweeps CLAUDE.md names, so they fail the suite rather than waiting
-  for someone to remember the command.
+So a result here is committed next to the exact series it was computed from.
+Everything else is regenerable. Rerun the analysis and it comes back. Lose the
+vintage and the number becomes an assertion nobody can check, including its
+author.
 
-## Starting a repo from it
+[docs/design.md](docs/design.md) carries the reasoning.
+[docs/build-plan.md](docs/build-plan.md) carries the order.
 
-```bash
-gh repo create l3a0/new-repo --public --template l3a0/repo-template --clone
-cd new-repo
-scripts/setup-repo.sh l3a0/new-repo
-```
+## What a replication is here
 
-Then do the four things nothing can guess.
+A record, not a script. It carries five things.
 
-1. Fill the premise slot at the top of `CLAUDE.md` and the premise section in
-   `docs/design.md`. Every later ranking decision appeals to it.
-2. Rename `src/project/` and update the `packages` entry in `pyproject.toml`.
-3. Create one milestone per slice, named as `docs/build-plan.md` names them.
-4. Decide whether either module in `docs/optional-policies.md` applies, move
-   what does into `CLAUDE.md`, and delete the file.
+1. The source and the published figure, at the precision the source uses.
+2. The vintage each number was computed from.
+3. What this repo computed.
+4. The gap, at the precision both numbers support.
+5. The verdict, with the reason.
 
-## Running the checks locally
+A gap is a result. A number that fails to reproduce says something about the
+method's sensitivity, and that is worth more than a match nobody examined.
+
+A replication is exploratory by construction. Reproducing a published figure
+spends the sample on a hypothesis someone else chose, so it can say whether the
+number reproduces and nothing more.
+
+## Status
+
+Scaffolded. Nothing built yet. The tracker is the source of truth for what each
+deliverable is, and the two open slices are
+[the vintage record](https://github.com/l3a0/quantitative-trading/milestone/1)
+and [the first replication](https://github.com/l3a0/quantitative-trading/milestone/2).
+
+## Running the checks
 
 ```bash
 uv sync --dev
@@ -68,12 +53,16 @@ uv run pytest
 ```
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
-two sweeps it cannot do run in the test suite.
+two prose sweeps it cannot do run in the test suite.
 
-## Why the checks are required rather than advisory
+## Where this came from
 
-A ruleset that lists no required status check leaves a red job blocking
-nothing. marketlake merged 43 pull requests in that state, and a rollup with
-no failures in it reads the same as a rollup that passed, so nothing about the
-pull request page says the gate is open. This template requires both checks
-from the first commit.
+Seeded from [l3a0/repo-template](https://github.com/l3a0/repo-template), which
+carries the agent instructions, CI, and GitHub-side policy shared with
+[marketlake](https://github.com/l3a0/marketlake) and
+[trading-strategies](https://github.com/l3a0/trading-strategies).
+
+The GLD/GDX reproduction that this repo starts from was first run in
+`trading-strategies`. It is the first replication here because it already has a
+known gap, which makes it a test of the vintage machinery rather than a fresh
+result.

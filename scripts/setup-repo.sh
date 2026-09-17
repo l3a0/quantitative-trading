@@ -96,13 +96,15 @@ PY
 # CodeQL to actually run. Without default setup enabled, the rule waits on a
 # tool that never reports. `actions` is in the language list because the
 # workflows are part of the attack surface, not only the Python.
+#
+# The body goes in as JSON rather than as --raw-field pairs, because the
+# language list is an array and the flag form encodes it as strings.
+codeql_body='{"state":"configured","query_suite":"default","threat_model":"remote","languages":["actions","python"]}'
 echo "code scanning: CodeQL default setup"
-if ! run gh api --method PATCH "repos/$repo/code-scanning/default-setup" \
-  --raw-field state=configured \
-  --raw-field query_suite=default \
-  --raw-field threat_model=remote \
-  --raw-field 'languages[]=actions' \
-  --raw-field 'languages[]=python' >/dev/null 2>&1; then
+if [[ -n "$dry_run" ]]; then
+  echo "[dry-run] gh api --method PATCH repos/$repo/code-scanning/default-setup --input - <<< $codeql_body"
+elif ! printf '%s' "$codeql_body" \
+  | gh api --method PATCH "repos/$repo/code-scanning/default-setup" --input - >/dev/null 2>&1; then
   echo "  could not configure CodeQL. It needs code pushed and a language" >&2
   echo "  GitHub recognises, so re-run this script after the first push." >&2
 fi

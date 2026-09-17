@@ -110,6 +110,20 @@ def test_discovery_keeps_untracked_files_and_drops_ignored_ones(tmp_path: Path) 
     assert found == ["tracked.md", "untracked.md"]
 
 
+def test_discovery_skips_a_file_deleted_but_still_in_the_index(tmp_path: Path) -> None:
+    # git lists an index entry whose file is gone, and reading it raises
+    # FileNotFoundError, which reports a pending deletion as a prose failure.
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "kept.md").write_text("kept\n", encoding="utf-8")
+    (tmp_path / "removed.md").write_text("about to go\n", encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    (tmp_path / "removed.md").unlink()
+
+    found = [path.relative_to(tmp_path).as_posix() for path in markdown_files(tmp_path)]
+
+    assert found == ["kept.md"]
+
+
 def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
     # A silent empty list would turn the sweep below into a vacuous pass.
     with pytest.raises(RuntimeError):
