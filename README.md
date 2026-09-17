@@ -60,10 +60,16 @@ directly rather than through a recorder that verifies it first.
 [data/README.md](data/README.md) carries each file's vendor, symbol, span,
 download date and checksum in the meantime.
 
-The tracker is the source of truth for what each deliverable is, and the two
-open slices are
-[the vintage record](https://github.com/l3a0/quantitative-trading/milestone/1)
-and [the first replication](https://github.com/l3a0/quantitative-trading/milestone/2).
+The tracker is the source of truth for what each deliverable is, and it carries
+one milestone per section of [docs/build-plan.md](docs/build-plan.md), with the
+same name. The experiments are grouped by the chapter of the book they come
+from, and the machinery they run on is grouped separately, because a vintage
+recorder belongs to no chapter.
+
+The deliverables are the book's own worked examples. Fifteen are tracked: four
+reproduced, six reachable, and five blocked by data that is not free. Twelve of
+the fifteen sit in Chapter 7, the chapter Chan calls the special topics chapter
+at Kindle location 2735.
 
 ## Running a replication
 
@@ -92,7 +98,7 @@ a number rather than a run someone would repeat, so
 highlights from Chan's *Quantitative Trading*, cited by location. Where a
 published figure a replication chases is among them, that is where it traces
 to. A highlight covers what somebody marked, so the notes carry two of the five
-figures this repo names.
+figures the design doc names.
 
 The notes are quoted rather than written, so nothing edits them by hand and
 three markdownlint rules stand down over that directory. The reasoning is in

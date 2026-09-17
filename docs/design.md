@@ -3,7 +3,7 @@
 This doc carries the reasoning. An unbuilt deliverable's scope lives on its
 issue, which [CLAUDE.md](../CLAUDE.md) makes authoritative, and this doc links
 to an issue rather than restating it. [docs/build-plan.md](build-plan.md)
-carries the slice order.
+carries the build order.
 
 ## Contents
 
@@ -167,8 +167,8 @@ This repo is public. Tracked files never carry secrets or machine-specific
 paths. Machine-local config lives under `~/.config/quantitative-trading/`.
 
 The table below stays empty until a vendor that needs a key is actually used.
-yfinance needs none, which is why the first slice runs with no configuration
-at all.
+yfinance needs none, which is why everything built so far runs with no
+configuration at all.
 
 | Setting | Secret | Lives in | Read by |
 | --- | --- | --- | --- |
