@@ -50,17 +50,30 @@ state. One makes a vintage unreadable rather than absent, which is the case a
 a committed vintage, with a written verdict on the gap. At the end of this
 slice the repo does the thing it exists to do, once, for one example.
 
+GLD/GDX goes first because the sibling repo already worked out where its
+traps are, so the work here is checking that the vintage machinery makes those
+traps visible rather than rediscovering them.
+
 **Deliverables.**
 
 - [Reproduce the GLD/GDX cointegration example against a committed vintage, and pin what it computes](https://github.com/l3a0/quantitative-trading/issues/4)
 - [Write the GLD/GDX replication log entry, naming what matched and what did not](https://github.com/l3a0/quantitative-trading/issues/5)
 - [Decide whether the cross-surface sweep policy applies, once a second prose surface exists](https://github.com/l3a0/quantitative-trading/issues/6)
 
-**Test surface.** The hedge ratio and the cointegration statistic are pinned
-against a named vintage. A second vintage of the same symbols produces a
-different hedge ratio, which turns the claim that the gap is a vintage effect
-into a test rather than an assertion. Every number the log entry quotes traces
-to one of those assertions.
+**Test surface.** Three pins, each naming its window and its regression
+specification, because the book prints two of these near each other and they
+come from different runs: the through-origin slope on the Chapter 7 window,
+the slope with an intercept on the Chapter 3 window, and the cointegration
+test statistic on the Chapter 3 window.
+
+One more test carries the premise. Two vintages of the same symbol, taken at
+different dates, return the same raw series and a different adjusted one where
+a corporate action falls between them. That turns the reason this repo commits
+vintages into something executable rather than something asserted in the
+design doc. GDX is the symbol that shows it, since GLD pays no distributions
+and its adjusted series does not drift.
+
+Every number the log entry quotes traces to one of these assertions.
 
 ## What comes after
 

@@ -19,13 +19,23 @@ A replication is only worth something if someone can check it later, and the
 thing that quietly stops them is the data.
 
 Vendors restate price history. An adjusted close is not a property of a
-trading day. It is a function of the day the series was downloaded, because
-every later split and dividend rescales the whole series behind it. Run the
-same code against the same symbol a year apart and the numbers move, with
-nothing in the code or the output saying why. yfinance rescales adjusted
-closes on every download, and it split-adjusts `Close` even when asked not to,
-which is how the sibling `trading-strategies` repo produced a false positive
-strong enough to look like a discovery before the cause was found.
+trading day. It is a function of the day the series was downloaded, because an
+adjusted series is pinned to the latest price and every later split or
+dividend rescales the whole history behind it.
+
+The effect is per corporate action, not per download. A symbol that has paid
+nothing since the last download returns the same series. GDX has paid
+dividends for nineteen years since 2007, so its adjusted 2006 price today sits
+roughly 15% below the number Chan saw. GLD pays no distributions, so its
+adjusted series does not drift at all. Which symbol you are looking at decides
+whether the problem shows up, which is why it is easy to miss.
+
+A second failure is cruder and not about adjustment at all. yfinance
+split-adjusts `Close` even when called with `auto_adjust=False`. That put
+XLE's pre-split prices at half the scale of its strikes in the sibling
+`trading-strategies` repo, and the delta hedge built on them reported a
+fabricated result strong enough to read as a discovery before the cause was
+found.
 
 So the one thing this repo must get right is the vintage. A series used to
 produce a number is committed alongside that number, with the vendor, the
@@ -41,14 +51,36 @@ something from a vintage still on disk can wait for evidence that it matters.
 
 Ernest Chan's books work through examples with published numbers. Reproducing
 one tests whether the method survives contact with data a reader can actually
-get, and the informative part is usually the gap rather than the match.
+get. A gap between the published number and the reproduction is as informative
+as a match, and often more so, because it names something the method depends
+on that the text did not.
 
-The sibling `trading-strategies` repo already ran one of these. Chan prints the
-GLD/GDX hedge ratio as 1.6766, and that repo's reproduction against current
-data computed 1.6379, while the cointegration test statistic did reproduce.
-The hedge ratio moved because the two runs read different vintages of the same
-series. That finding is what this repo is built around rather than a detail it
-happens to contain.
+The sibling `trading-strategies` repo already ran one of these, and what it
+found is the reason this repo is shaped the way it is.
+
+The GLD/GDX hedge ratio and the cointegration test statistic are printed near
+each other in the book and are not one result. The hedge ratio, 1.6766, comes
+from a full-window run in Chapter 7. The test statistic comes from a Chapter 3
+example that drops the last 60 days and tests only the first 252. They also
+come from two different regression specifications: Chan's hedge ratio is a
+regression forced through the origin, and his test statistic uses a separate
+regression with an intercept.
+
+Reading them as one result produces the wrong number twice over. On modern
+data the through-origin slope is about 1.6379, and independent reproductions
+converge there. The slope from the test's own specification, with an
+intercept, is 1.3905. Neither is 1.6766, and the reason no modern download
+reaches 1.6766 is the vintage: Chan read a 2007-vintage adjusted series, and
+nineteen years of GDX dividends have rescaled it since.
+
+The sibling's response was to read raw as-traded prices instead, which are
+fixed by construction. A given day's close is a historical fact whatever
+dividends come later.
+
+Two things follow for this repo. Trace every published number to its own run
+and its own specification before trying to match it. And prefer a series that
+cannot be restated, falling back on a committed vintage when only an adjusted
+series will do.
 
 Three things follow, and they set what the repo holds.
 
@@ -70,7 +102,9 @@ candidate for a synonym.
 
 | Term | Definition |
 | --- | --- |
-| **vintage** | One download of one series, identified by vendor, symbol, span, and download date, committed as a file with a checksum. |
+| **vintage** | One download of one series, identified by vendor, symbol, span, download date, and which price the series carries, committed as a file with a checksum. |
+| **raw price** | The as-traded close. Fixed once the day has passed, so it is the same in every vintage. |
+| **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
