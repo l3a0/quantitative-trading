@@ -157,10 +157,11 @@ Verify by executing, not by reading. Mutate the code and confirm a test fails. A
 
 So watch the run rather than assume it. `gh pr checks <n> --watch` blocks until every check settles, and `gh pr view <n> --json statusCheckRollup` says what each one concluded. When a check fails, read its log, fix the cause, and push again, in the same session and without waiting to be asked. A red check the owner finds first is work handed over unfinished.
 
-Two behaviours make the rule sharper than "look for a green tick", and each was measured on a pull request in the sibling `marketlake` repo.
+Three behaviours make the rule sharper than "look for a green tick". The first two were measured on pull requests in the sibling `marketlake` repo, and the third on the template this repo was seeded from.
 
 1. **A conflicting pull request gets no run at all.** A `pull_request` workflow builds the merge ref, and a branch that conflicts has none, so no run is created. PR #414 there showed three green CodeQL entries and no `test` run whatsoever. An absent check reads as a short rollup rather than as a failure, so count what ran instead of scanning for red.
 2. **Green goes stale.** A run is computed against one merge ref, and a later merge to the base replaces it. PR #433 there read green after the branch had already conflicted underneath it. Re-read the rollup whenever the base has moved.
+3. **Red goes stale the same way, and costs more.** A failure inherited from the base survives in the rollup after the base has been fixed. A pull request on the template carried a red `test` check from a run computed 25 seconds before the pull request that fixed its base merged. Rebasing made it green, and a monitor reading the older snapshot reported the failure again afterwards. A red check is a claim about one merge ref at one moment, so re-read it before acting, and check whether the pull request has already merged before fixing anything.
 
 Fix the cause rather than the symptom. A lint rule that fails on one file usually fails on its siblings, so sweep for the class. Re-running a job changes nothing the second time unless the failure was the runner rather than the code. Where a failure comes from another branch's merge rather than from this change, say so on the pull request instead of absorbing an unrelated fix into it.
 
