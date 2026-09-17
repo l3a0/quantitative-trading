@@ -8,13 +8,16 @@ caller is ``python -m chan.pair_cointegration`` from the root or a pytest run
 from anywhere else.
 
 ``DATA_DIR`` is the single switch that says where the vintages sit. Moving the
-data tree is a one-line change in this file.
+data tree is a one-line change in this file. ``FIGURES_DIR`` does the same for
+the one committed image, which :mod:`chan.regime_figure` draws from those same
+vintages.
 """
 
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "data"
+FIGURES_DIR = REPO_ROOT / "docs" / "figures"
 
 
 def data_path(name: str) -> str:

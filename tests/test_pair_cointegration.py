@@ -182,7 +182,7 @@ class TestGldGdxReproduction:
 
 
 # ============================================================
-# Layer 3 -- the rolling-window regime scan
+# Layer 3 -- the rolling-window regime scan behind the write-up's figure
 # ============================================================
 
 
@@ -192,6 +192,13 @@ class TestRollingRegime:
     A one-year window, 252 trading days, stepped monthly by 21 days, with
     ``origin=True`` so Chan's through-origin hedge rides along. A re-download
     that shifts the vintage moves these pins.
+
+    These are the numbers section 6 of
+    ``blog/gld-gdx-cointegration-lessons.md`` quotes, and
+    ``docs/figures/reproduction_regime_map.png`` is the picture of them, drawn
+    by :mod:`chan.regime_figure`. A vintage shift moves the prose, the figure
+    and these pins together, and ``tests/test_regime_figure.py`` is what holds
+    the figure to what this class computes.
     """
 
     @staticmethod

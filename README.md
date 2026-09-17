@@ -102,7 +102,21 @@ printed, what this repo computes, and what explains the gap.
 is the same piece as a self-contained styled page, images inlined, which is
 what gets published.
 
-Both were written in the sibling
+Its one figure, the rolling regime map, is drawn by
+[src/chan/regime_figure.py](src/chan/regime_figure.py) from the committed
+vintages:
+
+```bash
+uv run python -m chan.regime_figure
+```
+
+Redrawing it produces the same picture and a different file, because a PNG
+carries the matplotlib version that rendered it.
+[tests/test_regime_figure.py](tests/test_regime_figure.py) therefore holds the
+data behind the picture rather than its bytes, and asserts that the figure
+plots the same scan `TestRollingRegime` computes.
+
+Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
 the replication was first built, and copied here byte for byte apart from three
 changes. The links back to the implementation now name this repo. Chan's own
@@ -160,6 +174,9 @@ uv run ruff check
 uv run ruff format --check
 uv run pytest
 ```
+
+`matplotlib` is a dev dependency rather than a runtime one. No replication
+needs it. It is there so the one committed figure can be redrawn and checked.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
 two prose sweeps it cannot do run in the test suite.
