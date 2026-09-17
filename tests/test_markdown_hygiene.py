@@ -133,9 +133,68 @@ def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
         markdown_files(tmp_path)
 
 
+# Every file the repo authors prose in. A count would let five of them vanish
+# from discovery unnoticed, and a sweep that reaches nothing passes.
+MUST_BE_SWEPT = frozenset(
+    {
+        "CLAUDE.md",
+        "README.md",
+        "docs/design.md",
+        "docs/build-plan.md",
+        "data/README.md",
+        "research/book-notes/README.md",
+    }
+)
+
+
+def test_findings_far_apart_are_both_reported(tmp_path: Path) -> None:
+    """The sweep reads the whole document and reports every finding.
+
+    Two ways to lose a finding leave a green suite: stopping at the first one,
+    and reading only the head of a long file. The book notes run past 1400
+    lines, so a truncated read would reach a real finding in one of them and
+    miss anything below it.
+    """
+    document = tmp_path / "long.md"
+    filler = "\n".join("A clean line." for _ in range(1500))
+    document.write_text(f"A floor near (~30).\n{filler}\nA ceiling near (~90).\n")
+
+    findings = sweep_file(document)
+
+    assert [finding.line_number for finding in findings] == [1, 1502]
+
+
+def test_an_unreadable_document_raises_rather_than_reading_clean(tmp_path: Path) -> None:
+    """A read that fails is not a document with nothing wrong in it. Swallowing
+    the error would report every unreadable file as clean."""
+    directory = tmp_path / "notes.md"
+    directory.mkdir()
+
+    with pytest.raises(OSError):
+        sweep_file(directory)
+
+
 def test_the_repo_has_markdown_to_sweep() -> None:
-    # Without this, a discovery bug turns the sweep below into a vacuous pass.
-    assert len(markdown_files(REPO_ROOT)) >= 3
+    """Name the files rather than count them.
+
+    A discovery bug turns the parametrized sweep into a vacuous pass, and it
+    does not announce itself: the suite goes green with fewer tests. Dropping a
+    directory from discovery is also the way to get a file excused without
+    touching the exemption, so this is the other half of that guard.
+    """
+    found = {path.relative_to(REPO_ROOT).as_posix() for path in markdown_files(REPO_ROOT)}
+    assert MUST_BE_SWEPT <= found, f"missing from discovery: {sorted(MUST_BE_SWEPT - found)}"
+
+
+def test_everything_that_must_be_swept_actually_is() -> None:
+    """Discovery is not the sweep. A file can be discovered and then excused,
+    so the set the sweep runs over is the one worth asserting."""
+    authored = {
+        path.relative_to(REPO_ROOT).as_posix() for path in authored_markdown_files(REPO_ROOT)
+    }
+    assert MUST_BE_SWEPT <= authored, (
+        f"discovered but not swept: {sorted(MUST_BE_SWEPT - authored)}"
+    )
 
 
 # --- The fence-closing decision ----------------------------------------------
@@ -322,8 +381,46 @@ class TestQuotedSourcesAreExcused:
 
     def test_a_readme_beside_the_quotes_is_still_swept(self) -> None:
         """A directory's own documentation is authored prose, whatever it sits
-        next to."""
-        assert not is_quoted_source(REPO_ROOT / "research/book-notes/README.md", REPO_ROOT)
+        next to.
+
+        Not excused and swept are two different claims, and only the second is
+        the one this carve-out exists to make. Both are asserted, because the
+        README can be dropped upstream in discovery while ``is_quoted_source``
+        keeps answering correctly about it.
+        """
+        notes_readme = REPO_ROOT / "research/book-notes/README.md"
+        assert not is_quoted_source(notes_readme, REPO_ROOT)
+        assert notes_readme in authored_markdown_files(REPO_ROOT)
+
+    def test_a_nested_readme_is_not_excused(self) -> None:
+        """The carve-out is about the name, not about sitting one level down."""
+        assert not is_quoted_source(REPO_ROOT / "research/book-notes/notes/README.md", REPO_ROOT)
+
+    @pytest.mark.parametrize(
+        "relative",
+        [
+            "docs/notes/x.md",
+            "docs/pairs-trading.md",
+            "research/notes/x.md",
+            "research/book-notes-scratch.md",
+            "src/chan/quoted.md",
+            "notes/book-notes/x.md",
+        ],
+    )
+    def test_paths_that_must_never_be_excused(self, tmp_path: Path, relative: str) -> None:
+        """Test the rule, not today's file listing.
+
+        The set-difference test above only fires once a file matching a widened
+        rule actually exists, so a commit that widens the rule passes green and
+        the commit that adds the file is the one that breaks. These assert the
+        rule directly, against paths that need not exist.
+        """
+        assert not is_quoted_source(tmp_path / relative, tmp_path)
+
+    def test_a_path_outside_the_repo_is_not_excused(self) -> None:
+        """An unrelatable path fails closed, into the sweep rather than out
+        of it."""
+        assert not is_quoted_source(Path("/tmp/elsewhere/x.md"), REPO_ROOT)
 
     def test_a_lookalike_path_is_not_excused(self) -> None:
         """Matching is on the directory, not on the name. A file that merely
@@ -335,8 +432,18 @@ class TestQuotedSourcesAreExcused:
         )
 
     def test_the_excused_files_would_otherwise_fail(self) -> None:
-        """The exemption is load-bearing rather than precautionary: without it
-        the suite goes red on a URL inside a verbatim quotation."""
+        """A tripwire, not the justification.
+
+        The reason these files are excused is categorical: they are quotation,
+        and the only way to satisfy a prose rule inside a quotation is to edit
+        it. Today exactly one of the two would actually fail, on the tilde in a
+        URL at algorithmic-trading.md:496, and quantitative-trading.md is clean.
+
+        So this asserts only that the exclusion still suppresses something. If
+        a re-extraction removes that URL the test fails, which is the moment to
+        decide whether a categorical exemption should stay without a live case
+        behind it, rather than a moment to widen anything.
+        """
         excused = set(markdown_files(REPO_ROOT)) - set(authored_markdown_files(REPO_ROOT))
         findings = [finding for path in excused for finding in sweep_file(path)]
         assert findings, "nothing is excused any more; drop the exemption"
