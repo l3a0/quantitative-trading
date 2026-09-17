@@ -6,10 +6,12 @@ each one pinned to the data vintage it ran on.
 ## Why the vintage comes first
 
 Vendors restate price history. An adjusted close is not a property of a trading
-day. It is a function of the day the series was downloaded, because every later
-split and dividend rescales the whole series behind it. Run the same code
-against the same symbol a year apart and the numbers move, with nothing in the
-code or the output saying why.
+day. It is a function of the day the series was downloaded, because the series
+is pinned to the latest price and every later split or dividend rescales the
+history behind it. Run the same code against a symbol that has paid a dividend
+since the last download and the numbers move, with nothing in the code or the
+output saying why. A symbol that has paid nothing comes back unchanged, which
+is what makes the problem easy to miss.
 
 So a result here is committed next to the exact series it was computed from.
 Everything else is regenerable. Rerun the analysis and it comes back. Lose the
@@ -63,6 +65,9 @@ carries the agent instructions, CI, and GitHub-side policy shared with
 [trading-strategies](https://github.com/l3a0/trading-strategies).
 
 The GLD/GDX reproduction that this repo starts from was first run in
-`trading-strategies`. It is the first replication here because it already has a
-known gap, which makes it a test of the vintage machinery rather than a fresh
-result.
+`trading-strategies`. It goes first because that run already mapped the traps:
+the book's hedge ratio and its test statistic come from different chapters, on
+different windows, under different regression specifications, and the book's
+own number is unreproducible from any modern download. Redoing it here is a
+test of whether the vintage machinery makes those visible, not a search for a
+new result.

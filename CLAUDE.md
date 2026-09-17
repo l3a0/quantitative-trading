@@ -28,12 +28,12 @@ Three exceptions come from the same reasoning.
 
 1. A path that can lose or corrupt data the project cannot recapture is never deferred. That data is gone forever, while everything computed downstream is regenerable.
 2. An alarm reads zero while it is healthy, so the count says nothing about it. Dead-man checks, watchdogs, canaries, and backups sit outside this rule. Count the cycles they watched, not the times they fired.
-3. A guard whose price is paid by building it late is not cheaper deferred. A read path that must exclude quarantined records is inert until something writes a verdict, and adding the exclusion afterwards leaves a second read path that skips it.
+3. A guard whose price is paid by building it late is not cheaper deferred. A read path that must exclude flagged data is inert until something flags any, and adding the exclusion afterwards leaves a second read path that skips it.
 
 Three measurements in the sibling `marketlake` repository produced this rule, and they are cited here as the evidence behind it rather than as facts about this repo.
 
 1. Its daemon slice stood at 43 issues closed and 32 open while its read-layer slice stood at 0 closed.
-2. Its lake held 9,839,816 captured rows and no supported way to read any of them.
+2. Its lake held 9,839,816 rows captured on a single day and no supported way to read any of them.
 3. Several rounds of work hardened an overflow column that was non-null on zero of 9,846,266 sealed rows.
 
 Ranking by severity never runs out of work, because any path with no test behind it can be called a failure waiting to happen. That is how three rounds of hardening reached one capture path while the data stayed unreadable.
@@ -57,7 +57,7 @@ A correction goes on the issue, because a spawned session reads the issue and re
 
 Where the audit finds the code contradicting the issue, the issue still decides what the deliverable is, per the tracker directive above. What changes is that the code's stated reason becomes something the issue answers in advance rather than something the work runs into halfway through.
 
-The price is a pass over the files before work starts, paid on issues whose files have moved.
+The price is a pass over the files before work starts, paid on issues whose files have moved. The same evidence that sets the trigger also bounds it. In the repo the rule came from, two audits found something, both on issues naming code that was still moving that day, and seventy closed issues before them are not cited.
 
 ## Writing style
 
@@ -103,14 +103,15 @@ When a heading changes, verify the Contents anchors still resolve.
 
 A repo drifts when two surfaces describe the same thing and only one gets updated. The fix is to give each surface exactly one job, so nothing is stated twice.
 
-- **The test suite is the single authority for any number the prose quotes.** Every quoted figure traces to an assertion. Prose states these numbers and never derives them.
+- **The test suite is the single authority for any number the prose quotes.** Prose states these numbers and never derives them. The repo does not meet this yet: `docs/design.md` quotes 1.6766, 1.6379 and 1.3905 from the sibling repo, and nothing here asserts any of them. Closing that is part of [issue 4](https://github.com/l3a0/quantitative-trading/issues/4).
 - **The design doc is the single authority for reasoning.** Code comments point at it rather than restating it.
 - **The issue is the single authority for unbuilt scope**, per the tracker directive above.
 
-Today this repo has one prose surface and no generated artifacts, so the only
-thing that drifts is a quoted number. The wider sweep policy, covering line
-anchors, symbol names, figure embeds, and regeneration obligations, is
-deferred with a count of zero and its trigger written down on
+This repo has four Markdown surfaces and states its premise on three of them,
+so prose already drifts here. What it does not yet have is the machinery the
+wider sweep policy is written for: no generated artifact, no figure embed, and
+no link or prose reference that names a line number. That policy is deferred
+on a count of zero for those, and its trigger is written down on
 [issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
 
 Before reporting a code change done, sweep the prose surfaces for what the change could have invalidated, and end the response with a short **Consistency sweep** note listing what was checked, what was updated, and what is still stale. For a pure-internal refactor that moves no line numbers and changes no observable behavior, say "no prose-facing surfaces affected" so it is clear the check was considered rather than forgotten.
@@ -156,10 +157,10 @@ Verify by executing, not by reading. Mutate the code and confirm a test fails. A
 
 So watch the run rather than assume it. `gh pr checks <n> --watch` blocks until every check settles, and `gh pr view <n> --json statusCheckRollup` says what each one concluded. When a check fails, read its log, fix the cause, and push again, in the same session and without waiting to be asked. A red check the owner finds first is work handed over unfinished.
 
-Two measurements make the rule sharper than "look for a green tick".
+Two behaviours make the rule sharper than "look for a green tick", and each was measured on a pull request in the sibling `marketlake` repo.
 
-1. **A conflicting pull request gets no run at all.** A `pull_request` workflow builds the merge ref, and a branch that conflicts has none, so no run is created. An absent check reads as a short rollup rather than as a failure, so count what ran instead of scanning for red.
-2. **Green goes stale.** A run is computed against one merge ref, and a later merge to the base replaces it. Re-read the rollup whenever the base has moved.
+1. **A conflicting pull request gets no run at all.** A `pull_request` workflow builds the merge ref, and a branch that conflicts has none, so no run is created. PR #414 there showed three green CodeQL entries and no `test` run whatsoever. An absent check reads as a short rollup rather than as a failure, so count what ran instead of scanning for red.
+2. **Green goes stale.** A run is computed against one merge ref, and a later merge to the base replaces it. PR #433 there read green after the branch had already conflicted underneath it. Re-read the rollup whenever the base has moved.
 
 Fix the cause rather than the symptom. A lint rule that fails on one file usually fails on its siblings, so sweep for the class. Re-running a job changes nothing the second time unless the failure was the runner rather than the code. Where a failure comes from another branch's merge rather than from this change, say so on the pull request instead of absorbing an unrelated fix into it.
 
@@ -187,21 +188,27 @@ This repo quotes measured numbers from its first commit, so this section
 applies from day one. It came from the sibling `trading-strategies` repo,
 where each rule was written after the failure it prevents had happened once.
 
-### The test is the single authority for a quoted number
+### Re-pinning a number moves the prose that quotes it
 
-Every quoted figure traces to an assertion in the test suite. Prose states
-these numbers and never derives them. A document that recomputes a number is a
-second implementation of the calculation, and the two drift without either one
-looking wrong.
+The single-authority rule itself is stated once, under Cross-surface
+consistency above. What follows here is what it costs in practice.
 
-When a regression test is re-pinned, the prose that quotes it moves in the same
+A document that recomputes a number is a second implementation of the
+calculation, and the two drift without either one looking wrong. So when a
+regression test is re-pinned, the prose that quotes it moves in the same
 change. Grep the rounded and spelled-out forms too, since a narrative quotes a
 figure in words where a table quotes it exactly.
 
-### Every pinned number names its vintage
+### Every pinned number names its vintage and its specification
 
 A pin with no vintage cannot be re-derived, and a re-pin with no vintage cannot
 say what moved. The vintage is part of the assertion, not a note beside it.
+
+The specification belongs there for the same reason. Chan's GLD/GDX example
+prints a hedge ratio from a through-origin regression on one window and a test
+statistic from a regression with an intercept on another, near enough to each
+other to read as one result. A pin that names only the number reproduces that
+confusion rather than resolving it.
 
 ### Match number precision to the data
 
