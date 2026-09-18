@@ -28,6 +28,8 @@ The hedge ratio and the test statistic do not come from the same computation. Th
 
 The book prints them near each other. It is easy to read them as one result. They are two, on two different windows. Trace every quoted number to its own run before trying to match it.
 
+Those chapter numbers are the 2009 first edition's. The 2021 revised edition puts both printouts in one Chapter 7 example and says outright that Chapter 3 defers the analysis rather than performing it. The separation that matters survives the renumbering, because it is between two regression specifications rather than between two chapters.
+
 ### 2. Two regressions, two different hedge ratios
 
 The hedge ratio from the test's own regression came out at 1.3905, nowhere near the book's 1.6766. The answer was buried in Chan's `example7_2.m`.

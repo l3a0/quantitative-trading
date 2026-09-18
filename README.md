@@ -168,9 +168,11 @@ quoting any of them.
    highlights. They live in a code comment.
 5. The two-window table gives −3.18 for 2006 to 2008. That is Chan's printed
    figure, not a window this repo computes. The runs here give −3.45 and −3.09.
-6. The piece dates the book to 2009 and cites the revised edition, which is the
-   edition question on
-   [issue 12](https://github.com/l3a0/quantitative-trading/issues/12).
+6. The piece dates the book to 2009 and names first-edition chapters. That is
+   consistent rather than confused, and it now says so: every chapter, page and
+   MATLAB filename this repo cites means the first edition unless stated. The
+   revised edition puts both GLD/GDX printouts in one Chapter 7 example, which
+   [docs/design.md](docs/design.md) works through.
 
 Every other number in it traces to an assertion in
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).

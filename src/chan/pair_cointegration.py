@@ -36,10 +36,19 @@ a test statistic near each other, and they are not one result. His
 ``cadf(GLD, GDX, 0, 1)`` runs the with-intercept test and reports the t-stat
 and half-life. His ``ols(GLD, GDX)`` quotes a through-origin hedge of 1.6766.
 The two also come from two windows of the GLD-GDX intersection: the full
-2006-05-23 to 2007-11-30 span in Chapter 7 (``--ch7``, reported t=-3.357,
-better than 95%) and the first 252 trading days in the Chapter 3 example on
-page 63 (``--ch3``, reported t=-3.18, better than 90%). Reading them as one
-result produces the wrong number twice over.
+2006-05-23 to 2007-11-30 span (``--ch7``, reported t=-3.357, better than 95%)
+and the first 252 trading days (``--ch3``, reported t=-3.18, better than 90%).
+Reading them as one result produces the wrong number twice over.
+
+The ``ch7`` and ``ch3`` names are first-edition shorthand, after that
+edition's Chapter 7 and its Chapter 3 example on page 63 with
+``example3_6_1.m``. The 2021 revised edition puts both printouts in one
+Chapter 7 example, and says at Kindle location 1862 that Chapter 3 defers the
+training-set analysis rather than performing it. The names are kept because
+the windows they stand for are unambiguous, and ``docs/design.md`` carries the
+reasoning. What does not depend on the edition is the specification split
+above: it comes from ``cadf`` and ``ols`` being different functions, not from
+the book's chapter numbering.
 
 **The vintage.** This module matches the t-stat and half-life closely, at
 t=-3.45 on the full window and -3.09 on the training set, and lands the

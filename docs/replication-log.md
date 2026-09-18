@@ -361,22 +361,32 @@ assertion, and the one thing that assertion would not notice is the critical
 table moving underneath it. Closing that pin belongs to issue 10 rather than to
 this entry.
 
-### The chapter labels follow an open question
+### The chapter labels are first-edition shorthand
 
 The rows call one window the Chapter 7 window and the other the Chapter 3
 window, which is this repo's naming throughout, taken from the first edition's
-`example3_6_1.m` and page 63.
-[Issue 12](https://github.com/l3a0/quantitative-trading/issues/12) is open on
-whether that reading holds against the edition committed here. The notes in
-[research/book-notes](../research/book-notes/README.md) are the 2021 revised
-edition, and in it the two printouts sit nine Kindle locations apart, at 3718
-and 3727, reading as one adjacent pair under a Chapter 7 figure rather than as
-results from two chapters. Chan also writes at location 1862 that he defers the
-training-set cointegration analysis to Chapter 7. Which chapter location 3718
-belongs to is the open question rather than something this entry settles.
+`example3_6_1.m` and page 63. That naming does not survive into the edition
+committed here, and
+[issue 12](https://github.com/l3a0/quantitative-trading/issues/12) settled it.
 
-The labels stay for now, because renaming them here while the tracker is still
-testing the question would make this a fourth surface asserting the answer. The
+The notes in [research/book-notes](../research/book-notes/README.md) are the
+2021 revised edition. In it the two printouts sit nine Kindle locations apart,
+at 3718 and 3727, under one worked example introduced at location 3678 as
+teaching both the cointegration test and the hedge ratio. Chan writes at
+location 1862 that Chapter 3 defers the training-set analysis to Chapter 7
+rather than performing it. So there is no two-chapter split in that edition.
+
+What the rows rest on is untouched by this, and the distinction is the point.
+The separation that matters is between two regression specifications, `cadf`
+with an intercept against a through-origin `ols`, and that comes from the
+MATLAB package rather than from the book's structure. Chapter numbering was
+never load-bearing for a single pinned figure.
+[docs/design.md](design.md) carries the full argument.
+
+The labels stay, because the windows they name are unambiguous whatever the
+chapters are called, and every row already carries its own date range and price
+basis. What changed is that they are declared shorthand rather than left to
+look like the book's own structure. The
 windows themselves are unambiguous whatever the chapters turn out to be, since
 each row gives its dates.
 
