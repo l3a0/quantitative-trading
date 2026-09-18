@@ -118,7 +118,7 @@ from ithildincore.timeseries import (
 from numpy.typing import NDArray
 from scipy import stats
 
-from chan.series import load_vintage
+from chan.series import WindowCrossesScaleBreak, load_vintage, refuse_window_crossing_a_break
 from chan.vintage import VintageEntry, VintageUnavailable
 
 
@@ -299,6 +299,21 @@ def aligned_closes(
         joined = joined.loc[joined.index >= pd.Timestamp(start)]
     if end is not None:
         joined = joined.loc[joined.index <= pd.Timestamp(end)]
+    if not joined.empty:
+        # The clip is what decides whether a scale break is inside the window,
+        # so the check runs here and not in `load_vintage`. The KO vintage
+        # spans 1962 to 2008 and carries two breaks in the 1960s, and it
+        # arrives here whole: refusing it at load time would stop the KO/PEP
+        # replication, whose window starts in 1977 and is correct. Each leg is
+        # handed over unclipped and cut to its own trading days inside the
+        # check, rather than read off `joined`, whose inner join drops days one
+        # leg traded and the other did not and so widens the gap a ratio is
+        # taken across.
+        refuse_window_crossing_a_break(
+            ((entry_a, close_a), (entry_b, close_b)),
+            start=joined.index[0],
+            end=joined.index[-1],
+        )
     joined.attrs["vintages"] = (entry_a, entry_b)
     return joined
 
@@ -616,11 +631,13 @@ def main() -> None:
             show_correlation=show_correlation,
             chan=chan,
         )
-    except VintageUnavailable as unavailable:
+    except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
         # A refusal that names which vintage and which state is worth nothing at
         # the bottom of a twenty-line pandas traceback. `run` already exits this
-        # way for a window with too few trading days, so this follows it.
-        raise SystemExit(str(unavailable)) from unavailable
+        # way for a window with too few trading days, so this follows it. A
+        # window crossing a scale break is a second refusal with the same
+        # problem and the same fix, and it reaches here through the same call.
+        raise SystemExit(str(refusal)) from refusal
 
 
 if __name__ == "__main__":

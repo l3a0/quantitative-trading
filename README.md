@@ -88,6 +88,15 @@ bytes it is about to parse, and stops the run when they disagree. So a
 replication names the file it read, and the default GLD/GDX run says its two
 legs were downloaded 72 days apart.
 
+Bytes that verify are still not a series it is safe to compute across. The same
+module reads each committed series against itself day over day and reports any
+day it changed scale rather than price, and a run whose window spans one stops
+instead of printing a number. Two days of `ko_chan.csv` are reported today and
+nothing computes across them, because the KO/PEP replication reads the
+intersection with `pep_chan.csv` and that starts in 1977.
+[tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
+the bound and for what the committed vintages carry.
+
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
 
