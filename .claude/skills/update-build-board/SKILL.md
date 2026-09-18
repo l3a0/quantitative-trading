@@ -34,6 +34,12 @@ that hits one and leaves has made the board wrong, and nothing else notices.
    `PRS` entry has `state` of `open`, so nothing removes a card on its own and
    it sits in a review column indefinitely.
 
+A branch that closes no issue gets no card at all, because the page is built
+from the tracker. That has happened, and the fix was to file the issue and link
+the branch to it rather than giving the page a second source of truth. Check
+`closingIssuesReferences` when a pull request opens, and if it is empty and the
+branch means to close something, fix the body before the board is touched.
+
 One block these four do not maintain, said plainly rather than left to be
 discovered. `WORKING` marks a card a session is on right now, which is only
 knowable while a session is running, and every moment above fires when one
@@ -135,9 +141,22 @@ gh api repos/l3a0/quantitative-trading/commits/$(gh pr view <n> --json headRefOi
 
 An empty `closingIssuesReferences` on a pull request that means to close
 something is the signal to fix its body before merging, and it is the only way
-to tell a plain keyword from one inside a code span. Read the checks against the
-pull request's current head, because a rollup is a claim about one merge ref at
-one moment and goes stale in both directions.
+to tell a plain keyword from one inside a code span. It catches the opposite
+slip too: a sentence written to say a pull request closes nothing registered a
+link anyway, because the keyword parses wherever it sits.
+
+The middle command is why `reviewed` is counted rather than queried. GitHub's
+own `reviewDecision` stays at "review required" whatever a session posts,
+because a session comments rather than approving, so a review that has landed
+and a review nobody has written look identical to the API. Counting the comments
+that open with a review heading is what separates them, and that flag is the
+only thing that moves a card into the column saying the next move is the
+owner's.
+
+Read the checks against the pull request's current head, because a rollup is a
+claim about one merge ref at one moment and goes stale in both directions. An
+in-progress run reports a null conclusion, so a filter written as "not success"
+counts it as a failure. That has been reported as a red pull request twice.
 
 ## The data blocks, and what each owns
 
@@ -233,7 +252,7 @@ check could not see the surface it was most needed on.
 
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something
-false. Four checks catch most of them.
+false. Five checks catch most of them.
 
 1. **The totals reconcile.** In-flight cards plus board cards equals open issues,
    and every card carries its labels.
@@ -247,6 +266,11 @@ false. Four checks catch most of them.
    hand-written prose, and one update left four stale figures in it at once.
    Deleting that prose is what made this check cheap, so the thing to watch for
    is prose growing back rather than a surface to re-read.
+5. **Every conjunction still has its other half.** A computed sentence joins
+   clauses that each drop out on their own, so a "too" or an "and" can outlive
+   the clause it referred back to. One read "#27 is planned too" with nothing
+   before it, because the card it was agreeing with had merged. Read the
+   sentences, not only the counts.
 
 ## What goes wrong, from the record
 
@@ -271,13 +295,17 @@ than something new.
    comparator, and every column that draws cards calls it. Keep it that way.
    The ranking section itself is gone, which is defect 9.
 6. **A key describing cards that moved.** Each section computes its legend from
-   what it drew. A fixed legend advertises states that are not below it.
+   what it drew. A fixed legend advertises states that are not below it. This
+   one has recurred once already, in a different place: after defect 11 landed,
+   the in-flight legend still advertised "ready to hand to a builder" for a card
+   whose pull request had retired that marker, because it asked `PLANNED`
+   instead of asking what was rendered. Legends read the render, never the data.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
    declaration, which throws on load rather than degrading quietly. The stub
    catches this immediately.
 8. **Pluralisation.** `plu` appended a bare letter s, giving a count of passes
    that read "19 passs". It now handles a word already ending in one.
-The three below are a different kind of row. They were caught by the owner
+The four below are a different kind of row. They were caught by the owner
 reading the published page rather than by a check, and each was a shape the page
 had carried for a while rather than a slip in one edit. They are kept because
 they are the failures this page invites and the ones a harness cannot see.
@@ -298,6 +326,15 @@ they are the failures this page invites and the ones a harness cannot see.
     while the sort still reads `PLANNED` so the card keeps its position. The
     suppression is specific to that pair rather than a licence to hide other
     states.
+12. **Two fixes that each worked, contradicting each other.** A priority chip
+    was added to the cards when the ranking section was deleted, and separately
+    the sort was changed to force a deferred card last because one had been
+    sitting fourth in a column of twenty-five. Together they gave issue 10 a
+    chip reading 6 above a position reading last, which is two answers to one
+    question. The chip is dropped on a deferred card, because the ranking holds
+    one only to record that it is deliberately not being done, and the dashed
+    border and the kind word already say that. Watch for this shape whenever two
+    rules touch one card: each is defensible alone and the pair is not.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
@@ -339,3 +376,12 @@ Publish, then report in the same reply.
 
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.
+
+This is no longer hypothetical. Now that every session updates the board, a
+refusal is the normal outcome of two sessions finishing near each other, and it
+has already fired. When it does, the refusal hands over the live source. Read
+all of it, decide which side is newer for each part rather than for the file,
+and merge in that direction. The last time, the other session's code was ahead
+on three counts and this session's data was ahead on four, so the merge went
+data-onto-theirs rather than the reverse. Resending your own file unchanged
+would have reverted a working improvement.
