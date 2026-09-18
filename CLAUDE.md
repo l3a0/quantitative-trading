@@ -12,13 +12,13 @@ including its author. Everything else here is regenerable. That asymmetry is
 what every ranking decision below appeals to, and
 [docs/design.md](docs/design.md) carries the full reasoning.
 
-**The tracker is authoritative for scope.** An unbuilt deliverable's issue is the source of truth for what it is and what it must do. The design doc at [docs/design.md](docs/design.md) carries the reasoning, the premise, and the considered-and-rejected register, and it links to the issue rather than competing with it. [docs/build-plan.md](docs/build-plan.md) carries the slicing rule, the build order, and each slice's test surface, and its deliverable entries are links. Read an unbuilt deliverable's issue before proposing a change to it. Read the design doc for everything else, which includes every built deliverable and the reasoning behind all of them.
+**The tracker is authoritative for scope.** An unbuilt deliverable's issue is the source of truth for what it is and what it must do. The design doc at [docs/design.md](docs/design.md) carries the reasoning, the premise, and the considered-and-rejected register, and it links to the issue rather than competing with it. [docs/build-plan.md](docs/build-plan.md) carries the rule for cutting work, the order, and the test surface for the experiments, and its deliverable entries are links. Read an unbuilt deliverable's issue before proposing a change to it. Read the design doc for everything else, which includes every built deliverable and the reasoning behind all of them.
 
 The price of this is named rather than hidden: the same substance now exists in an issue and in the doc that reasons about it, so the two can drift. The issue wins. When they disagree, the doc is what gets corrected.
 
 ## Rank work by what makes the product usable
 
-Whatever the premise names as the thing that must not fail ranks first, and [docs/build-plan.md](docs/build-plan.md) carries the slice order and the dependencies between slices. This directive decides what to take next from the work those two allow, and what decides it is not severity. Before proposing an order, name what is missing from the shortest path to a product someone can use, and put that first.
+Whatever the premise names as the thing that must not fail ranks first, and [docs/build-plan.md](docs/build-plan.md) carries the order and the dependencies. This directive decides what to take next from the work those two allow, and what decides it is not severity. Before proposing an order, name what is missing from the shortest path to a product someone can use, and put that first.
 
 Then ship it, use it, and let what breaks set the order after that. Evidence from real use outranks any ranking made in advance, including this one.
 
@@ -390,9 +390,9 @@ Three behaviours make the rule sharper than "look for a green tick". The first t
 
 Fix the cause rather than the symptom. A lint rule that fails on one file usually fails on its siblings, so sweep for the class. Re-running a job changes nothing the second time unless the failure was the runner rather than the code. Where a failure comes from another branch's merge rather than from this change, say so on the pull request instead of absorbing an unrelated fix into it.
 
-**A filed issue carries its milestone and its labels.** Filing is not finished when the issue exists. An issue with no milestone appears in no slice view and no view scoped by kind, so only a sweep for nulls finds it, and nothing brings it back on its own. So a filed issue is finished when it says three things.
+**A filed issue carries its milestone and its labels.** Filing is not finished when the issue exists. An issue with no milestone appears in no milestone view and no view scoped by kind, so only a sweep for nulls finds it, and nothing brings it back on its own. So a filed issue is finished when it says three things.
 
-1. A milestone says which slice owns it.
+1. A milestone says which grouping owns it.
 2. A label says what kind of work it is.
 3. A dependency says what it waits on, where it waits on anything.
 
