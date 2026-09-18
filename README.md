@@ -1,7 +1,7 @@
 # quantitative-trading
 
 Experiments and replications from Ernest Chan's quantitative trading books,
-each one pinned to the data vintage it ran on.
+each one pinned to the data vintage it ran on, or saying it has none.
 
 ## Why the vintage comes first
 
@@ -13,8 +13,9 @@ since the last download and the numbers move, with nothing in the code or the
 output saying why. A symbol that has paid nothing comes back unchanged, which
 is what makes the problem easy to miss.
 
-So a result here is committed next to the exact series it was computed from.
-Everything else is regenerable. Rerun the analysis and it comes back. Lose the
+So a result computed from a series is committed next to the exact series it was
+computed from, and a result computed from none says so. Everything else is
+regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
 
@@ -40,20 +41,25 @@ method's sensitivity, and that is worth more than a match nobody examined.
 It also carries the rule it uses to pick between the three verdicts, which the
 vocabulary defines without saying how to choose.
 
-A replication is exploratory by construction. Reproducing a published figure
-spends the sample on a hypothesis someone else chose, so it can say whether the
-number reproduces and nothing more.
+A replication against data is exploratory by construction. Reproducing a
+published figure spends the sample on a hypothesis someone else chose, so it
+can say whether the number reproduces and nothing more. A replication that
+spends no sample is outside that label and its opposite both, which the
+coin-flip entry says in place of picking one.
 
 ## Status
 
-Two replications run here, both from Chan's *Quantitative Trading* and both
-ported from the sibling
+Three replications run here, all from Chan's *Quantitative Trading*. The first
+two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built.
+they were first built. The third was built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
    returns yet does not cointegrate in levels.
+3. The coin-flip gamble, Example 6.1, where the expected return of a round is
+   positive and the growth rate of capital is negative. It is the one
+   replication here that reads no series at all, so it has no vintage to name.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -62,7 +68,12 @@ and what it says that nothing here asserts is listed below. Each GLD/GDX pin
 names its window and its regression specification, because the book prints two
 of those near each other and they come from different runs.
 
-Both reach a verdict in
+[tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py) does the same
+for the coin flip, and separates the figures the book prints from what a seeded
+run is entitled to claim, because no simulation this suite could afford
+resolves Chan's seven decimals.
+
+All three reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
@@ -74,6 +85,9 @@ naming its vendor, symbol, price basis, span, date, row count and sha256.
 What is still missing is the other side. A replication reads a committed CSV by
 filename, not through a reader that checks it against that record first, which
 is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
+
+The coin flip reaches none of that. It records no vintage and reads no series,
+which is why it could ship before the recorder existed.
 
 The estimators behind those numbers are not in this repo. Least squares, the
 Augmented Dickey-Fuller statistic, the half-life and the MacKinnon critical
@@ -92,8 +106,8 @@ each waits on. Milestones do the grouping: the experiments by the chapter of
 the book they come from, and the machinery they run on separately, because a
 vintage recorder belongs to no chapter.
 
-The deliverables are the book's own worked examples. Fifteen are tracked: four
-reproduced, six reachable, and five blocked by data that is not free. Twelve of
+The deliverables are the book's own worked examples. Fifteen are tracked: five
+reproduced, five reachable, and five blocked by data that is not free. Twelve of
 the fifteen sit in Chapter 7, the chapter Chan calls the special topics chapter
 at Kindle location 2735.
 
@@ -112,6 +126,21 @@ it.
 `--selftest` is the odd one out. It reads no vintage and reports no window,
 because it checks the arithmetic against synthetic series whose answers are
 known in advance.
+
+The coin-flip gamble is its own command, and it reads nothing:
+
+```bash
+uv run python -m chan.coin_flip_growth
+```
+
+It prints the figures the book prints, the two averages in one unit so their
+signs can be compared, a seeded run with the standard error beside it, and the
+capital each average compounds into over four horizons. The rates themselves
+are constants, so the divergence is visible in the capital and nowhere else.
+`--rounds`, `--paths` and `--seed` move the run off its pinned size. The report
+prints the standard error beside the estimate either way, and says outright
+when a size is too small to resolve the sign, which is a line a reader sees
+rather than an exception, because at that size nothing has failed.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

@@ -11,6 +11,7 @@ issue's own statement of what it waits on.
 - [What this repo is for](#what-this-repo-is-for)
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
+  - [The one replication that reads nothing](#the-one-replication-that-reads-nothing)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
@@ -188,8 +189,11 @@ The labels stay, because the windows they name are unambiguous and renaming
 them across five surfaces would buy nothing the price basis and the date range
 do not already say. What changes is that they are now declared as
 first-edition shorthand rather than left to look like the book's own
-structure. Every citation of a chapter, a page or a MATLAB filename in this
-repo means the 2009 first edition unless it says otherwise.
+structure. Every citation of a chapter, a page, an example number or a MATLAB
+filename in this repo means the 2009 first edition unless it says otherwise.
+Example 6.1, the coin-flip gamble, is the one that says otherwise: that name
+comes from the revised edition's prose at location 3186, and the first-edition
+mirror carries no `example6_1` at all.
 
 One thing this does not settle, and the difference matters. `-3.357` appears
 nowhere in the committed highlights, and neither does a window label for the
@@ -263,6 +267,49 @@ Two things did not move, and the reasons are worth keeping.
    `ou_half_life` in the installed package was run to confirm the first half of
    that.
 
+### The one replication that reads nothing
+
+Every argument above is about data that moves underneath a result. Chan's
+coin-flip gamble, Example 6.1, has none. It is a fair coin paying $110 or
+costing $100 against $1,000 of capital, and every figure the book prints
+follows from those payoffs.
+[src/chan/coin_flip_growth.py](../src/chan/coin_flip_growth.py) works it, and
+[tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py) is the
+authority for every number quoted about it.
+
+Four things follow, and each one is a rule stated elsewhere in this repo
+meeting a case it was not written for.
+
+1. **A vintage column can say it has none.** The premise says a result is
+   committed next to the series it came from. There is no series, so the row
+   writes `none, synthetic` and `src/chan/__init__.py` now says a result names
+   its vintage or says it has none. Saying nothing would read as an omission.
+2. **Neither epistemic label reaches it.** The vocabulary defines exploratory
+   as a result produced by looking at the data, and registered as one whose
+   hypothesis was committed before the number was seen. This spends no sample,
+   so the entry states that both are inapplicable rather than picking one.
+3. **The verdict was knowable before the work started.** A verdict says
+   whether the claim a published figure supports survives on this repo's
+   vintage, and the mechanism that moves a number is a vintage. With none,
+   nothing can move it. The value of this replication is therefore not its
+   verdict. It is that the ensemble average and the time average are shown
+   disagreeing in sign, and that the log format was exercised a second time.
+4. **The book prints no formula, so the formula is what the pin holds.** Three
+   plausible choices give three numbers. The population standard deviation
+   with `g = m - s^2 / 2` reproduces −0.0005125 exactly. The sample form gives
+   −0.006025, out by a factor of 11.8. The exact discrete rate gives
+   −0.00050025, which differs at the fourth significant digit. The suite pins
+   all three, because a pin on the first alone holds a number rather than a
+   choice.
+
+One thing this replication cannot do is reach its own precision by simulation,
+because the spread of a single coin flip is two hundred times the quantity
+being estimated. So the pins are closed form and the seeded run is the
+demonstration, sized from a measurement rather than from taste.
+[docs/replication-log.md](replication-log.md) carries both figures, under the
+heading that says why no simulated number is pinned against the book, which is
+where that entry's numbers belong.
+
 ## How work is cut and ordered
 
 The tracker carries the plan. Issues say what each deliverable is, milestones
@@ -291,7 +338,9 @@ is a component nobody can run. The issue stays open for the reading half.
 Each experiment pins the figures the book prints, at the precision the book
 prints them, naming its vintage and its window. An experiment that reads no
 series names neither and says so, rather than leaving the column blank, because
-a blank reads as an omission.
+a blank reads as an omission. A column with nothing to hold in any row is
+dropped instead, which is why the coin flip's computed table has five columns
+where the pair entry's has six.
 
 Where the book states a ranking or a verdict rather than a figure, the claim is
 what gets pinned. Inventing a digit the source does not carry would be worse
@@ -332,12 +381,14 @@ candidate for a synonym.
 | **vintage** | One download of one series, identified by vendor, symbol, span, download date, and which price the series carries, committed as a file with a checksum. |
 | **raw price** | The as-traded close. Fixed once the day has passed, so it is the same in every vintage. |
 | **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
-| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage. |
+| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
 | **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. Nothing else in this repo is called a manifest. |
 | **projection** | A file derived from the manifest and rewritten from it, never edited. `data/checksums.sha256` is the only one. |
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |
+| **ensemble average** | The average across many players of one gamble, which is what an expected return describes. Chan names it at Kindle location 3166. |
+| **time average** | The average over one player's own sequence of rounds, which is the compound growth rate of that player's capital. Chan calls it the time series average at location 3166. It is the one a trader lives in. |
 | **exploratory** | A result produced by looking at the data. It kills an idea or justifies a closer look, and it is never a verdict about whether an edge exists. |
 | **registered** | A result whose hypothesis was committed in writing before the number was seen. Only a registered result confirms anything. |
 
@@ -374,4 +425,9 @@ change that cuts it.
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Renaming the eight committed vintages to the recorder's path convention | The recorder's path carries vendor, symbol, price basis, span and download date. The eight predate it and carry none of that. Renaming them would move the eight files, `data/checksums.sha256`, [data/README.md](../data/README.md)'s table and prose, `load_close` and three provenance comments in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), two docstrings in [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py), and five rows of [docs/replication-log.md](replication-log.md). Each of those cites a filename beside a pinned number, and a rename buys none of them. The manifest carries the path, so identity is read from the record rather than parsed out of a name, which is what makes two conventions affordable. |
 | Reading a clock for a vintage's download date | The recorder does not fetch, so it cannot know when a fetch happened, and a date it invents is wrong in the field that identifies the vintage. It would also make every test differ from the last run. The caller supplies it. |
+| Porting the sibling's `kelly_fraction` for the coin-flip growth rate | It is the only place in `trading-strategies` that computes a time-average log growth rate, and it computes it as one line inside a grid search rather than as a callable, so there is a line to retype and nothing to port. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) had already ruled the function out as the discrete form over a bag of trades. The ruling reaches Example 6.1 by a shorter route: that example optimises nothing at all. |
+| Porting the sibling's `common/portfolio.py` as growth arithmetic | It is not growth arithmetic. Its own docstring fixes every leg as dollar diffs over a fixed capital base, "never prior-day-equity returns (compounding returns do not add; dollars do)", so it decided against compounding on purpose. |
+| Porting the sibling's `simulate_sizing` for the coin-flip simulation | It folds draws through `equity *= (1 + fraction * r)`, which is the identity Example 6.1 needs, and nothing around that line carries over: an empirical bag of trade outcomes rather than a known two-point distribution, percentiles and ruin probabilities rather than a growth rate, and `random.Random` rather than the `numpy.random.default_rng` this repo uses throughout. A port would have been a rewrite. |
+| Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. |
+| A figure for the coin-flip divergence | `docs/figures` holds one image and it already costs three copies to keep in step, one file and two embeds, plus a redraw in the same change that moves it. The divergence is four rows of capital, which a terminal table and a log row carry without adding a third copy of a number the suite already pins. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |
