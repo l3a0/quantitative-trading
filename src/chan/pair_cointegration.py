@@ -15,7 +15,7 @@ verdict held, why Chan's own archived files are committed beside the yfinance
 ones, and what the KO/PEP counter-example answers. The notes below stay
 operational, naming which run each constant belongs to.
 
-Three steps, all backed by ``quantcore.timeseries``:
+Three steps, all backed by ``ithildincore.timeseries``:
 
 1. Hedge ratio. OLS of A's close on B's close with an intercept, which is the
    cointegrating regression the CADF test uses. The residual
@@ -76,14 +76,14 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
-from quantcore.timeseries import (
+from ithildincore.timeseries import (
     ADF_CRIT_CONST,
     EG_CRIT_N2,
     adf_tstat,
     ols,
     ou_half_life,
 )
+from numpy.typing import NDArray
 from scipy import stats
 
 from chan.paths import data_path

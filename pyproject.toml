@@ -4,7 +4,7 @@ version = "0.0.0"
 description = "Experiments and replications from Ernest Chan's quantitative trading books."
 readme = "README.md"
 requires-python = ">=3.12"
-# The replications compute their numbers through quantcore rather than a
+# The replications compute their numbers through ithildincore rather than a
 # hand-rolled least squares, so there is one implementation of each estimator
 # to drift from. That package holds the OLS, ADF and half-life work this repo
 # shares with the sibling trading-strategies repo, and it pulls statsmodels in,
@@ -12,7 +12,7 @@ requires-python = ">=3.12"
 # the committed vintages. scipy supplies the t-distribution behind the
 # return-correlation significance test.
 #
-# quantcore is named by a direct URL at an exact commit, and both halves of
+# ithildincore is named by a direct URL at an exact commit, and both halves of
 # that are deliberate.
 #
 # The commit rather than the v0.1.0 tag it belongs to, because a tag can be
@@ -22,8 +22,8 @@ requires-python = ">=3.12"
 # tests/test_pair_cointegration.py were computed by this exact code, so moving
 # the pin is a re-pin of this repo and not a dependency bump.
 #
-# The URL rather than a bare `quantcore>=0.1` with a [tool.uv.sources] entry,
-# because `quantcore` is an occupied name on PyPI, an unrelated C++ backtesting
+# The URL rather than a bare `ithildincore>=0.1` with a [tool.uv.sources] entry,
+# because `ithildincore` is an occupied name on PyPI, an unrelated C++ backtesting
 # package whose 0.1.0 release satisfies that floor. tool.uv.sources is a
 # uv-only key that pip ignores, so a contributor running `pip install .` would
 # have installed a stranger's package under the name this repo imports. A
@@ -32,7 +32,7 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy>=2",
     "pandas>=2",
-    "quantcore @ git+https://github.com/l3a0/quant-core@d088015176a74f38d1f1e1240f8371b5637d5db2",
+    "ithildincore @ git+https://github.com/l3a0/ithildin-core@9d39ae35c9dd9931ad3f4021aa09153d85f12912",
     "scipy>=1.13",
     "statsmodels>=0.14",
 ]
@@ -51,7 +51,7 @@ build-backend = "hatchling.build"
 # Hatchling refuses a direct URL dependency unless this says otherwise, because
 # a package carrying one cannot be uploaded to PyPI. That guard does not apply
 # here. This repo is not published, it is cloned and run, and the direct URL is
-# what keeps `pip install .` from resolving `quantcore` against an unrelated
+# what keeps `pip install .` from resolving `ithildincore` against an unrelated
 # package of that name on PyPI.
 [tool.hatch.metadata]
 allow-direct-references = true

@@ -73,7 +73,7 @@ costs.
 A port makes a second copy, and a second copy of one calculation drifts
 without either one looking wrong. So when a candidate would be used by both
 repositories rather than adapted for this one,
-[quantcore](https://github.com/l3a0/quant-core) is where it goes. That package
+[ithildincore](https://github.com/l3a0/ithildin-core) is where it goes. That package
 is the shared home, and its own `CLAUDE.md` carries the bar: two repositories,
 not two call sites.
 
@@ -117,7 +117,7 @@ and indentation markers dropped:
 | `tests/test_pair_cointegration.py` | `tests/test_pair_cointegration.py` | 1,494 | 2,206 |
 
 Two of those files are no longer here. `src/chan/timeseries.py` and
-`tests/test_timeseries.py` went to `quantcore` once the duplication was
+`tests/test_timeseries.py` went to `ithildincore` once the duplication was
 measured, which is what the first subsection above is about. The table is
 kept at `f35ffcc`, when all six were, because what it measures is what a port
 costs and that does not change.
@@ -155,7 +155,7 @@ A sibling module maps onto a deliverable here in one of three ways, and
 calling the wrong one ships a port that does not answer the issue. One
 measured example of each, all read at `b27222b`.
 
-1. **Direct, which means it belongs in `quantcore` rather than here.** The
+1. **Direct, which means it belongs in `ithildincore` rather than here.** The
    worked example is `common/stats.py`, 88 lines of Newey-West standard errors
    that needed no adaptation at all, so copying it would have made a second
    copy of code neither repo had a reason to diverge on. It went to the shared
@@ -229,7 +229,7 @@ for prose: `README.md` names the sibling and lists all three changes.
 
 None of the four still here does this yet, which is what
 [issue 29](https://github.com/l3a0/quantitative-trading/issues/29) back-fills.
-The two that went to `quantcore` carry it there, in that package's `README.md`
+The two that went to `ithildincore` carry it there, in that package's `README.md`
 and in the release its tag points at.
 
 ## Writing style

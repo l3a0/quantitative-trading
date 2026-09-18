@@ -205,6 +205,15 @@ wheels = [
 ]
 
 [[package]]
+name = "ithildincore"
+version = "0.2.0"
+source = { git = "https://github.com/l3a0/ithildin-core?rev=9d39ae35c9dd9931ad3f4021aa09153d85f12912#9d39ae35c9dd9931ad3f4021aa09153d85f12912" }
+dependencies = [
+    { name = "numpy" },
+    { name = "statsmodels" },
+]
+
+[[package]]
 name = "kiwisolver"
 version = "1.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -652,22 +661,13 @@ wheels = [
 ]
 
 [[package]]
-name = "quantcore"
-version = "0.1.0"
-source = { git = "https://github.com/l3a0/quant-core?rev=d088015176a74f38d1f1e1240f8371b5637d5db2#d088015176a74f38d1f1e1240f8371b5637d5db2" }
-dependencies = [
-    { name = "numpy" },
-    { name = "statsmodels" },
-]
-
-[[package]]
 name = "quantitative-trading"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ithildincore" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "quantcore" },
     { name = "scipy" },
     { name = "statsmodels" },
 ]
@@ -681,9 +681,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ithildincore", git = "https://github.com/l3a0/ithildin-core?rev=9d39ae35c9dd9931ad3f4021aa09153d85f12912" },
     { name = "numpy", specifier = ">=2" },
     { name = "pandas", specifier = ">=2" },
-    { name = "quantcore", git = "https://github.com/l3a0/quant-core?rev=d088015176a74f38d1f1e1240f8371b5637d5db2" },
     { name = "scipy", specifier = ">=1.13" },
     { name = "statsmodels", specifier = ">=0.14" },
 ]

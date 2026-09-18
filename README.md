@@ -70,12 +70,12 @@ download date and checksum in the meantime.
 
 The estimators behind those numbers are not in this repo. Least squares, the
 Augmented Dickey-Fuller statistic, the half-life and the MacKinnon critical
-values live in [quantcore](https://github.com/l3a0/quant-core), shared with
+values live in [ithildincore](https://github.com/l3a0/ithildin-core), shared with
 the sibling repo because both had the same copy. The dependency is a direct URL
 at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
 two cannot drift apart unnoticed. All three parts earn their place, and
 [docs/design.md](docs/design.md) says which failure each one closes.
-[tests/test_quantcore_contract.py](tests/test_quantcore_contract.py) is what
+[tests/test_ithildincore_contract.py](tests/test_ithildincore_contract.py) is what
 tells a dependency change apart from a vintage change, since its cases read no
 vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
 and what it does not buy.
@@ -199,7 +199,7 @@ uv run pytest
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the one committed figure can be redrawn and checked.
 
-`uv sync` fetches `quantcore` from GitHub at the tag `pyproject.toml` pins, so
+`uv sync` fetches `ithildincore` from GitHub at the tag `pyproject.toml` pins, so
 the first sync needs a network. Every run after that reads the cache, and no
 replication reaches a network at any point.
 

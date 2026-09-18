@@ -151,7 +151,7 @@ Three things follow, and they set what the repo holds.
 
 The least squares, the Augmented Dickey-Fuller statistic, the half-life and
 the MacKinnon critical values are not in `src/chan`. They are in
-[quantcore](https://github.com/l3a0/quant-core), a package this repo shares
+[ithildincore](https://github.com/l3a0/ithildin-core), a package this repo shares
 with the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo.
 
@@ -176,8 +176,8 @@ does one job, and each answers a different way the pin could have failed.
 2. **The lock, because a plain `uv sync` re-locks silently** and installs
    different code the moment `pyproject.toml` and the lock disagree, rewriting
    the lock inside a runner where nothing commits it. `--locked` fails instead.
-3. **The URL rather than a bare `quantcore>=0.1` with a `[tool.uv.sources]`
-   entry.** `quantcore` is an occupied name on PyPI, an unrelated backtesting
+3. **The URL rather than a bare `ithildincore>=0.1` with a `[tool.uv.sources]`
+   entry.** `ithildincore` is an occupied name on PyPI, an unrelated backtesting
    package whose 0.1.0 release satisfies that floor, and `tool.uv.sources` is a
    uv-only key that pip ignores. The earlier spelling would have had a
    contributor running `pip install .` install a stranger's package under the
@@ -188,7 +188,7 @@ bump.
 
 The price is real and is not paid off by the pin. A committed vintage sits in
 this repository, and the code now sits behind a remote reference. If
-`quant-core` is deleted, made private, or force-pushed past the commit the lock
+`ithildin-core` is deleted, made private, or force-pushed past the commit the lock
 names, no pinned number here is re-derivable at all, and nothing in this repo
 can prevent that. The data has no such failure mode. What the pin buys is that
 a change cannot happen quietly, not that it cannot happen.
@@ -207,7 +207,7 @@ Two things did not move, and the reasons are worth keeping.
    one of its assertions reads a CSV, so a dependency change and a vintage
    change arrive as the same red, and telling those two apart is the thing this
    repo exists to do.
-   [tests/test_quantcore_contract.py](../tests/test_quantcore_contract.py) is
+   [tests/test_ithildincore_contract.py](../tests/test_ithildincore_contract.py) is
    what restores the distinction. Its cases read no vintage and have answers
    known in closed form, so they fail only on the dependency. Both files red
    points at the pin, the pair tests alone red points at the data. Mutating
@@ -258,8 +258,8 @@ change that cuts it.
 | The sibling's blog essay on the GLD/GDX reproduction, cut then reversed | Cut because it is that repo's write-up, and copying it would put a second prose surface here quoting numbers the test suite already owns. The owner reversed that on 2026-09-17 and the essay is at [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md). The price the cut named is now real and is paid rather than avoided: every figure the piece quotes had to be pinned or named as unpinned, and re-pinning one moves four surfaces instead of two. The verdict an essay does not reach is now written down separately, in [docs/replication-log.md](replication-log.md), which makes a fifth. |
 | The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
 | The regime-map figure and its generator, cut then reversed | Cut because the scan behind the figure was already pinned, so the picture is presentation rather than a result, and an image nothing regenerates is an artifact nobody can check. The owner reversed that on 2026-09-17. The objection is answered rather than ignored: [src/chan/regime_figure.py](../src/chan/regime_figure.py) draws the figure from the committed vintages, and [tests/test_regime_figure.py](../tests/test_regime_figure.py) pins that it draws the scan `TestRollingRegime` computes. It does not compare bytes, because a PNG carries the matplotlib version that rendered it. The image still counts as a checked-in generated artifact for [issue 6](https://github.com/l3a0/quantitative-trading/issues/6). |
-| Keeping the duplicated estimators in step with a drift test | The test cannot exist. Neither repo's continuous integration can see the other's checkout, so the check would compare against a committed checksum that fires only when somebody updates it. A rule that depends on remembering is what the duplication already was. The estimators moved to [quantcore](https://github.com/l3a0/quant-core) instead. |
-| Depending on quantcore by name plus a `[tool.uv.sources]` redirect | `quantcore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
-| Depending on quantcore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
+| Keeping the duplicated estimators in step with a drift test | The test cannot exist. Neither repo's continuous integration can see the other's checkout, so the check would compare against a committed checksum that fires only when somebody updates it. A rule that depends on remembering is what the duplication already was. The estimators moved to [ithildincore](https://github.com/l3a0/ithildin-core) instead. |
+| Depending on ithildincore by name plus a `[tool.uv.sources]` redirect | `ithildincore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
+| Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |
