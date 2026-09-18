@@ -308,11 +308,19 @@ than something new.
    comparator, and every column that draws cards calls it. Keep it that way.
    The ranking section itself is gone, which is defect 9.
 6. **A legend describing cards that are not under it.** It began as a fixed list
-   advertising states that had moved to another section. It came back computed,
-   which was not enough: after defect 11 landed, the in-flight legend still
-   offered "ready to hand to a builder" for a card whose pull request had
-   retired that marker, because it computed from `PLANNED` rather than from what
-   was drawn. Both spellings fail the same way. A legend reads the render.
+   advertising states that had moved to another section. Computing it was not
+   enough either: after defect 11 landed, the in-flight legend still offered
+   "ready to hand to a builder" for a card whose pull request had retired that
+   marker.
+
+   The first correction was wrong and is worth recording as wrong, because it
+   nearly became a rule. It said a legend reads the render rather than the data,
+   which implies the render outranks the data. It does not. The data is the
+   source of truth and the marker is a function of the data plus one suppression
+   rule, and the defect was that the rule existed in two places. There is now one
+   `planMarker` that both the card and the legend call. **A legend calls whatever
+   decides the marker, never a second copy of the rule.** That is defect 5 in a
+   second place rather than a new kind of failure.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
    declaration, which throws on load rather than degrading quietly. The stub
    catches this immediately.
@@ -338,11 +346,12 @@ ones a harness cannot see.
 11. **A plan line under a pull request.** A card with an open branch said its
     plan was ready to be written, directly above a line saying it was written.
     The plan line and its marker are suppressed once a pull request exists,
-    while the sort still reads `PLANNED` so the card keeps its position. Two
-    things follow. The suppression is specific to that pair rather than a licence
-    to hide other states. And suppressing a marker splits the render from the
-    data, so every other reader of the same field has to be swept: the legend was
-    missed, which is the second half of defect 6.
+    while the sort still reads `PLANNED` so the card keeps its position whether
+    or not the marker is drawn. Two things follow. The suppression is specific to
+    that pair rather than a licence to hide other states. And a suppression rule
+    is a second consumer of the field, so it goes in one function every reader
+    calls rather than being written out wherever it is needed. Writing it twice
+    is what made the legend wrong, which is the second half of defect 6.
 12. **Two fixes that each worked, contradicting each other.** A priority chip
     was added to the cards when the ranking section was deleted, and separately
     the sort was changed to force a deferred card last because one had been
