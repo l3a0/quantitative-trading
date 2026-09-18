@@ -331,14 +331,8 @@ with a component nobody can run is cut the wrong way.
 
 The recorder is the worked example and the caution at once. It shipped as
 `Part of` its issue rather than closing it, because a vintage nothing can read
-is a component nobody can run. The reading half was never that issue's.
-[Issue 2](https://github.com/l3a0/quantitative-trading/issues/2) holds it, so
-[issue 1](https://github.com/l3a0/quantitative-trading/issues/1) closed by hand
-on 2026-09-18 once every rule it named was delivered and its one separable
-remainder became
-[issue 51](https://github.com/l3a0/quantitative-trading/issues/51). The cut
-left a component that waits on another deliverable to be runnable, which is the
-price the rule above names.
+is a component nobody can run. Nothing here reads what it writes yet, and that
+wait is what cutting this one too narrowly cost.
 
 ### What an experiment pins
 
