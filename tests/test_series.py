@@ -109,17 +109,32 @@ def committed_copy(tmp_path: Path) -> Path:
     return directory
 
 
-def digest_of(values) -> str:
-    """A hash of the series' values, fixed to little-endian so it is portable."""
-    return hashlib.sha256(values.to_numpy(float).astype("<f8").tobytes()).hexdigest()[:16]
-
-
 # The eight, as the reader returned them at 42978ce, before it consulted a
-# manifest at all. Asserted against that captured output rather than against a
-# fresh expectation, because the claim is that the conversion changed nothing
-# about what comes back.
+# manifest at all: path, row count, span, the first and last close, and the
+# sum. Asserted against that captured output rather than against a fresh
+# expectation, because the claim is that the conversion changed nothing about
+# what comes back.
+#
+# The sum stands in for every value between the two ends, and it is compared
+# with a tolerance rather than exactly. A hash of the parsed doubles is not a
+# pin anybody can keep: the four yfinance files carry full float64 reprs like
+# `56.36000061035156`, and parsing those gives answers that differ in the last
+# bit between a macOS arm64 run and CI's linux x86_64, measured on PR 71 rather
+# than predicted. The four workbook columns carry two decimals and agree
+# everywhere. `TestTheParseDoesNotDependOnWhereTheBytesCameFrom` below covers
+# what a hash was reaching for.
 COMMITTED = [
-    ("GLD", {}, "gld_20yr_prices.csv", 5030, "2006-06-19", "2026-06-16", "9f4439dd3e5003cc"),
+    (
+        "GLD",
+        {},
+        "gld_20yr_prices.csv",
+        5030,
+        "2006-06-19",
+        "2026-06-16",
+        56.36000061035156,
+        397.6300048828125,
+        753957.9496269226,
+    ),
     (
         "GLD",
         {"unadjusted": True},
@@ -127,9 +142,21 @@ COMMITTED = [
         5477,
         "2004-11-18",
         "2026-08-27",
-        "52cd959b2aea3b04",
+        44.380001068115234,
+        422.6000061035156,
+        792556.8096580505,
     ),
-    ("GDX", {}, "gdx_20yr_prices.csv", 5099, "2006-05-22", "2026-08-27", "60f2efc070f67175"),
+    (
+        "GDX",
+        {},
+        "gdx_20yr_prices.csv",
+        5099,
+        "2006-05-22",
+        "2026-08-27",
+        31.594470977783203,
+        103.69000244140624,
+        171276.68938541412,
+    ),
     (
         "GDX",
         {"unadjusted": True},
@@ -137,12 +164,44 @@ COMMITTED = [
         5099,
         "2006-05-22",
         "2026-08-27",
-        "66592fdb7fbd3eda",
+        37.22999954223633,
+        103.69000244140624,
+        187504.61998081207,
     ),
-    ("GLD", {"chan": True}, "gld_chan.csv", 764, "2004-11-18", "2007-11-30", "7ee814d142b54af4"),
-    ("GDX", {"chan": True}, "gdx_chan.csv", 385, "2006-05-23", "2007-11-30", "cb50203633d79702"),
-    ("KO", {"chan": True}, "ko_chan.csv", 11592, "1962-01-02", "2008-01-18", "b5ded66ad9b725c3"),
-    ("PEP", {"chan": True}, "pep_chan.csv", 7835, "1977-01-03", "2008-01-18", "3905598b9072edd6"),
+    ("GLD", {"chan": True}, "gld_chan.csv", 764, "2004-11-18", "2007-11-30", 44.38, 77.32, 43361.5),
+    (
+        "GDX",
+        {"chan": True},
+        "gdx_chan.csv",
+        385,
+        "2006-05-23",
+        "2007-11-30",
+        37.85,
+        46.36,
+        15325.119999999999,
+    ),
+    (
+        "KO",
+        {"chan": True},
+        "ko_chan.csv",
+        11592,
+        "1962-01-02",
+        "2008-01-18",
+        0.63,
+        60.74,
+        173128.16,
+    ),
+    (
+        "PEP",
+        {"chan": True},
+        "pep_chan.csv",
+        7835,
+        "1977-01-03",
+        "2008-01-18",
+        0.66,
+        71.46,
+        154041.09,
+    ),
 ]
 
 
@@ -150,10 +209,11 @@ class TestTheEightStillReadAsTheyDid:
     """Rule 1. The conversion changes where the path comes from and nothing else."""
 
     @pytest.mark.parametrize(
-        ("ticker", "flags", "path", "rows", "first", "last", "digest"), COMMITTED
+        ("ticker", "flags", "path", "rows", "first", "last", "opening", "closing", "total"),
+        COMMITTED,
     )
     def test_a_committed_vintage_returns_the_series_it_returned_before(
-        self, ticker, flags, path, rows, first, last, digest
+        self, ticker, flags, path, rows, first, last, opening, closing, total
     ) -> None:
         entry, values = load_vintage(ticker, **flags)
 
@@ -161,7 +221,18 @@ class TestTheEightStillReadAsTheyDid:
         assert len(values) == rows
         assert str(values.index[0].date()) == first
         assert str(values.index[-1].date()) == last
-        assert digest_of(values) == digest
+        assert float(values.iloc[0]) == pytest.approx(opening, rel=1e-14)
+        assert float(values.iloc[-1]) == pytest.approx(closing, rel=1e-14)
+        assert float(values.sum()) == pytest.approx(total, rel=1e-10)
+
+    def test_the_row_count_the_manifest_records_survives_the_parse(self) -> None:
+        """The header rows are dropped and nothing else is. Four of the eight
+        carry yfinance's three-row header and still record the row count of the
+        series, so the manifest can say it for all eight."""
+        for ticker, flags, path, rows, *_ in COMMITTED:
+            entry, values = load_vintage(ticker, **flags)
+            assert entry.row_count == rows, path
+            assert len(values) == rows, path
 
     def test_the_three_arguments_map_onto_the_manifest_and_nothing_is_left_over(self) -> None:
         """The map is total over the eight, which is what lets the filename go.
@@ -439,6 +510,38 @@ class TestTheParseTakesTwoColumnsAndStaysQuiet:
             load_close("GLD")
 
         assert [str(warning.message) for warning in raised] == []
+
+
+class TestTheParseDoesNotDependOnWhereTheBytesCameFrom:
+    """Rule 5's other half. The buffer and the path must parse to one series.
+
+    Reading from an in-memory buffer is what makes one read answer both the
+    hash and the parse. It is worth nothing if it quietly parses differently
+    from the path the old reader opened, so the two are compared rather than
+    assumed equal. This is also what a hash of the parsed values was reaching
+    for, and unlike a hash it holds on every platform.
+    """
+
+    @pytest.mark.parametrize(("ticker", "flags", "path"), [case[:3] for case in COMMITTED])
+    def test_the_buffer_parse_matches_the_path_parse_exactly(self, ticker, flags, path) -> None:
+        import warnings
+
+        import pandas as pd
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            from_path = pd.read_csv(
+                str(DATA_DIR / path), header=None, names=["date", "close"], usecols=[0, 1]
+            )
+            dates = pd.to_datetime(from_path["date"], errors="coerce")
+        mask = dates.notna()
+        expected = pd.Series(
+            pd.to_numeric(from_path["close"][mask], errors="coerce").to_numpy(dtype=float),
+            index=pd.DatetimeIndex(dates[mask]),
+            name=ticker.upper(),
+        ).sort_index()
+
+        assert load_close(ticker, **flags).equals(expected)
 
 
 class TestTheSeriesComesBackInDateOrder:
