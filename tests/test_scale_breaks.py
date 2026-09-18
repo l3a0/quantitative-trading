@@ -447,9 +447,22 @@ class TestTheRefusalIsAType:
         assert "2007-01-03" in message
         assert "\n" not in message
 
-    def test_the_figure_command_prints_a_line(self, halved: Path) -> None:
+    def test_the_figure_command_prints_a_line(
+        self, halved: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``main`` takes no output path, so the figure directory is moved instead.
+
+        Without that, a run reaching ``savefig`` writes over the committed
+        ``docs/figures/reproduction_regime_map.png``, which is a tracked
+        artifact three surfaces are held to. The refusal is what stops it
+        today, and a test whose own correctness depends on the thing it is
+        testing overwrites the figure the moment it regresses. Measured:
+        deleting the call in ``aligned_closes`` left the committed PNG modified
+        in the working tree.
+        """
         from chan import regime_figure
 
+        monkeypatch.setattr(regime_figure, "FIGURES_DIR", tmp_path)
         with pytest.raises(SystemExit) as stopped:
             regime_figure.main()
 
