@@ -39,6 +39,30 @@ replications themselves.
 
 1.6766 is a cited book target throughout, never asserted as a computed result,
 because no surviving file reproduces it.
+
+**Where this came from.** ``tests/test_pair_cointegration.py`` in the sibling
+``trading-strategies`` repo, at commit ``b27222b``, landed here in ``ce3f757``.
+That repo retired its Chan material in ``cc1ec3a`` and this file is gone from
+its tip, so the path alone no longer finds it and the commit is what does.
+No test method and no class was removed, and all sixteen sibling test methods
+survived. The copy changed five things.
+
+1. Imports repointed to ``chan``, with ``math``, ``warnings``,
+   ``statsmodels.tsa.stattools.adfuller``, ``run`` and ``adf_tstat`` added.
+2. Seven cached fixture helpers became static methods and dropped ``self``.
+3. Two classes added, ``TestLagSettingDetour`` and ``TestReportNamesItsBasis``.
+4. Six test methods added.
+5. Several pins tightened from a bound to an exact figure, ``kopep.half_life``
+   from greater than 100 to 618.8 among them, and the return correlation
+   gained a t-statistic pin beside its r.
+
+Those five describe the file at ``ce3f757``, where the repointed imports named
+``chan.timeseries``, which went to ``ithildincore`` in ``aec40f3`` and cannot
+be imported today. They cover the code. The comments and the docstrings were
+rewritten to this repo's writing rules, which ``CLAUDE.md`` says no port carries
+across, and the sibling's ``pyright`` pragma went with them. Diff ``b27222b``
+against ``ce3f757`` to read the port and against ``HEAD`` to read everything
+since, with docstrings stripped from both sides, because they are most of it.
 """
 
 from __future__ import annotations

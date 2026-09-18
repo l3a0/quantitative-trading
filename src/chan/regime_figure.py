@@ -28,6 +28,28 @@ picture rather than the bytes of it: a byte comparison would fail on a
 matplotlib upgrade that changed nothing a reader can see.
 
 Colours match the essay's palette, so the picture reads as part of it.
+
+**Where this came from.** ``search/make_regime_figure.py`` in the sibling
+``trading-strategies`` repo, at commit ``b27222b``, landed here in ``fbb29ea``.
+That repo retired its Chan material in ``cc1ec3a`` and this file is gone from
+its tip, so the path alone no longer finds it and the commit is what does. The
+copy changed two things.
+
+1. Three imports repointed to ``chan``, and ``pathlib.Path`` added for the
+   annotation the new argument needs.
+2. ``make_regime_figure`` gained one argument, ``out``, so a test could draw
+   the figure without overwriting the committed image, and the output path
+   became conditional on it.
+
+Both describe the file at ``fbb29ea``, where one of those imports named
+``chan.timeseries``, which went to ``ithildincore`` in ``aec40f3`` and cannot
+be imported today. The function gained a second argument, ``data_dir``, later
+in ``71061d6``. They cover the code. The comments and the docstrings were
+rewritten to this repo's writing rules, which ``CLAUDE.md`` says no port carries
+across, so the diff below shows prose changes neither item above names. Diff
+``b27222b`` against ``fbb29ea`` to read the port and against ``HEAD`` to read
+everything since, with docstrings stripped from both sides, because they are
+most of it.
 """
 
 from __future__ import annotations

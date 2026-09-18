@@ -74,6 +74,29 @@ Usage:
     python -m chan.pair_cointegration --ko-pep          # Chan's KO/PEP counter-example
     python -m chan.pair_cointegration --a SPY --b IVV --origin
     python -m chan.pair_cointegration --selftest        # verify the math
+
+**Where this came from.** ``search/pair_cointegration.py`` in the sibling
+``trading-strategies`` repo, at commit ``b27222b``, landed here in ``ce3f757``.
+That repo retired its Chan material in ``cc1ec3a`` and this file is gone from
+its tip, so the path alone no longer finds it and the commit is what does. The
+copy changed five things.
+
+1. Two imports repointed from ``common`` to ``chan``.
+2. Two new locals, ``ch7_window`` and ``ch3_window``, feeding the argument
+   help.
+3. One line of output reworded, "pinned reproduction" to "pinned replication".
+4. The basis ternary expanded into a branch naming Chan's companion files as a
+   third price basis.
+5. Two argument help strings reworded.
+
+No function signature changed. Those five describe the file at ``ce3f757``,
+where one of the repointed imports named ``chan.timeseries``, which went to
+``ithildincore`` in ``aec40f3`` and cannot be imported today. They cover the
+code. The comments and the docstrings were rewritten to this repo's writing
+rules, which ``CLAUDE.md`` says no port carries across, so the diff below shows
+prose changes no item above names. Diff ``b27222b`` against ``ce3f757`` to read
+the port and against ``HEAD`` to read everything since, with docstrings
+stripped from both sides, because they are most of it.
 """
 
 from __future__ import annotations

@@ -15,6 +15,24 @@ one switch. Which file inside that tree a run reads is not decided here at all:
 
 ``FIGURES_DIR`` does the same for the one committed image, which
 :mod:`chan.regime_figure` draws from those same vintages.
+
+**Where this came from.** ``common/paths.py`` in the sibling
+``trading-strategies`` repo, at commit ``b27222b``, landed here in ``ce3f757``.
+The commit is the anchor rather than the path, because that repo retired its
+Chan material in ``cc1ec3a`` and ``b27222b`` is the ancestor where every file
+copied here still resolves. The copy changed three things.
+
+1. ``parents[1]`` became ``parents[2]``, for the deeper ``src/chan/`` layout.
+2. ``FIGURES_DIR`` was dropped, because nothing here drew a figure yet.
+3. The comment above ``DATA_DIR`` was dropped and the docstring rewritten.
+
+Those three describe the file at ``ce3f757`` rather than today's file.
+``data_path`` came across intact and went later, in ``71061d6``, and
+``FIGURES_DIR`` came back in ``fbb29ea``, so a diff against today's file shows
+the sibling and this one agreeing on a constant the port had dropped. Diff
+``b27222b`` against ``ce3f757`` to read the port and against ``HEAD`` to read
+everything since, with docstrings stripped from both sides, because they are
+most of it.
 """
 
 from pathlib import Path

@@ -224,15 +224,22 @@ session searching the register will not find, and it re-proposes the port.
 
 A ported file that does not name where it came from cannot be diffed against
 its original, which throws away the one cheap check the table above shows is
-worth running. So a port names the sibling file, the commit it was taken from,
-and what changed on the way over, in the module docstring.
+worth running. So a port names four things in its module docstring.
+
+1. The sibling file it came from.
+2. The commit it was taken from there.
+3. The commit the copy landed at here. Without it a reader diffing the sibling
+   against today's file sees the port mixed with everything this repo did
+   afterwards, and cannot tell the two apart.
+4. What changed on the way over.
+
 [PR #25](https://github.com/l3a0/quantitative-trading/pull/25) is the pattern
 for prose: `README.md` names the sibling and lists all three changes.
 
-None of the four still here does this yet, which is what
-[issue 29](https://github.com/l3a0/quantitative-trading/issues/29) back-fills.
-The two that went to `ithildincore` carry it there, in that package's `README.md`
-and in the release its tag points at.
+The four still here carry their note, back-filled in
+[issue 29](https://github.com/l3a0/quantitative-trading/issues/29). The two that
+went to `ithildincore` carry it there, in that package's `README.md` and in the
+release its tag points at.
 
 ## Writing style
 
