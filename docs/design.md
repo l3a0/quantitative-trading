@@ -41,7 +41,8 @@ found.
 
 So the one thing this repo must get right is the vintage. A series used to
 produce a number is committed alongside that number, with the vendor, the
-symbol, the span, and the download date recorded next to it. Everything else
+symbol, the span, the download date, and which price it carries recorded next
+to it. Everything else
 here is regenerable. Rerun the analysis and it comes back. Lose the vintage
 and the number becomes an assertion nobody can check, including its author.
 
@@ -274,6 +275,8 @@ candidate for a synonym.
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
+| **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. Nothing else in this repo is called a manifest. |
+| **projection** | A file derived from the manifest and rewritten from it, never edited. `data/checksums.sha256` is the only one. |
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |
 | **exploratory** | A result produced by looking at the data. It kills an idea or justifies a closer look, and it is never a verdict about whether an edge exists. |
 | **registered** | A result whose hypothesis was committed in writing before the number was seen. Only a registered result confirms anything. |
@@ -300,7 +303,7 @@ change that cuts it.
 | Cut | Why |
 | --- | --- |
 | Downloading a series at run time | It is the failure this repo exists to prevent. A run that fetches its own data produces a number nobody can reproduce, because the next fetch returns a different series. A run reads a committed vintage or it does not run. |
-| The sibling repo's price-fetch script | Nothing here regenerates a committed vintage, on purpose. A re-download returns a different series, which moves the pinned numbers and fails the suite, so replacing a vintage stays a deliberate act with a visible cost. [data/README.md](../data/README.md) states the same next to the files it governs. This cuts the script, not the work: [issue 1](https://github.com/l3a0/quantitative-trading/issues/1) records a series as a vintage and keeps the download outside itself, so every rule it carries is testable with no network. |
+| The sibling repo's price-fetch script | Nothing here regenerates a committed vintage, on purpose. A re-download returns a different series, which moves the pinned numbers and fails the suite, so replacing a vintage stays a deliberate act with a visible cost. [data/README.md](../data/README.md) states the same next to the files it governs. This cut the script and not the work. [src/chan/vintage.py](../src/chan/vintage.py) records a series as a vintage and keeps the download outside itself, so every rule it carries is exercised with no network. |
 | Recomputing a published number in prose | Prose states numbers and never derives them. A doc that recomputes a figure is a second implementation of the calculation, and the two drift without either looking wrong. The test is the single authority. |
 | The sibling's blog essay on the GLD/GDX reproduction, cut then reversed | Cut because it is that repo's write-up, and copying it would put a second prose surface here quoting numbers the test suite already owns. The owner reversed that on 2026-09-17 and the essay is at [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md). The price the cut named is now real and is paid rather than avoided: every figure the piece quotes had to be pinned or named as unpinned, and re-pinning one moves four surfaces instead of two. The verdict an essay does not reach is now written down separately, in [docs/replication-log.md](replication-log.md), which makes a fifth. |
 | The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
@@ -309,4 +312,6 @@ change that cuts it.
 | Depending on ithildincore by name plus a `[tool.uv.sources]` redirect | `ithildincore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
 | Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
+| Renaming the eight committed vintages to the recorder's path convention | The recorder's path carries vendor, symbol, price basis, span and download date. The eight predate it and carry none of that. Renaming them would move the eight files, `data/checksums.sha256`, [data/README.md](../data/README.md)'s table and prose, `load_close` and three provenance comments in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), two docstrings in [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py), and five rows of [docs/replication-log.md](replication-log.md). Each of those cites a filename beside a pinned number, and a rename buys none of them. The manifest carries the path, so identity is read from the record rather than parsed out of a name, which is what makes two conventions affordable. |
+| Reading a clock for a vintage's download date | The recorder does not fetch, so it cannot know when a fetch happened, and a date it invents is wrong in the field that identifies the vintage. It would also make every test differ from the last run. The caller supplies it. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |

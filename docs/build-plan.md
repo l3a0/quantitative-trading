@@ -51,9 +51,12 @@ Three facts constrain the order today, and not one of them is a chapter.
 1. The vintage recorder unblocks more than anything else on the tracker. Five
    of the six experiments this repo could otherwise reach cannot run until a
    series is recorded and committed, because the design doc rejects fetching at
-   run time.
-2. The coin-flip game is synthetic, so the unbuilt recorder does not block it.
-   It is the shortest path to the repo doing its job twice instead of once.
+   run time. The recorder is built. Those five still wait, because each needs a
+   series recorded and each reads it through a reader
+   [issue 2](https://github.com/l3a0/quantitative-trading/issues/2) has yet to
+   build.
+2. The coin-flip game is synthetic, so it never needed the recorder. It is the
+   shortest path to the repo doing its job twice instead of once.
 3. Five experiments wait on data that is not free. They are not waiting on
    anybody's time, so they never compete for a place in the order.
 
@@ -73,14 +76,32 @@ including its author.
 | [Record a downloaded series as a vintage, immutable once written](https://github.com/l3a0/quantitative-trading/issues/1) | Any series can be downloaded once, committed with its provenance, and read back later as exactly the bytes a result came from |
 | [Verify a vintage before a run reads it, and tell absent apart from unreadable](https://github.com/l3a0/quantitative-trading/issues/2) | A run refuses a vintage it cannot trust, and says which one and in which state |
 | [Back the split adjustment out of a vendor series that adjusts when asked not to](https://github.com/l3a0/quantitative-trading/issues/3) | A raw series is raw, including across a split the vendor silently applied |
+| [Hold the committed vintages' bytes fixed across checkouts](https://github.com/l3a0/quantitative-trading/issues/41) | A recorded sha256 stays a fact on a clone that rewrites line endings |
+| [Fail the suite when data/README.md and the vintage manifest disagree](https://github.com/l3a0/quantitative-trading/issues/43) | One surface owns each field a vintage's provenance states |
 
-Test surface for the three above: every rule is executable with no network,
-because the recorder takes rows rather than fetching them. One test writes a
-synthetic series, reads back every manifest field, and confirms a second write
-to the same path leaves the original file unchanged. Three more drive the three
-verification failures and assert each message names which vintage and which
-state. One makes a vintage unreadable rather than absent, which is the case a
-`Path.exists` check reports wrongly.
+The first of those five is built. `src/chan/vintage.py` records a vintage and
+refuses to overwrite one, `data/vintages.jsonl` holds the eight this repo
+already carried, and `data/checksums.sha256` is now regenerated from that
+manifest rather than kept by hand. The two new entries came out of decomposing
+it, and each is separable in the way its own issue records.
+
+Test surface for the five above: every rule is executable with no network,
+because the recorder takes rows rather than fetching them.
+
+The recorder's cases live in [tests/test_vintage.py](../tests/test_vintage.py)
+and are not counted here, because a count in prose is a number no test holds and
+`tests/test_markdown_hygiene.py` exists to make that point. What is worth
+recording is where they came from. This entry planned one test. Issue 1's
+decomposition settled twelve rules and asked for twelve tests, and mutating a
+first implementation showed that four of those rules were held by none of them.
+The rollback was the sharpest: without it one transient disk error retires a
+vintage's path for good, and only a case written for it says so.
+
+The other four entries keep their planned surface. For issues 2 and 3, three
+tests drive the three verification failures and assert each message names which
+vintage and which state, and one makes a vintage unreadable rather than absent,
+which is the case a `Path.exists` check reports wrongly. Issues 41 and 43 each
+carry their own, on their own issue.
 
 ## Open questions and deferred work
 
@@ -187,8 +208,10 @@ since GLD pays no distributions. The half that is still missing needs two
 vintages of the same symbol taken at different dates, returning the same raw
 series and a different adjusted one where a corporate action falls between
 them. That is what turns the reason this repo commits vintages into something
-executable rather than something asserted in the design doc, and it waits on
-the recorder.
+executable rather than something asserted in the design doc. The recorder it
+waited on is built, so what it needs now is two downloads of one symbol taken
+on different days and a reader that finds them, which is
+[issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
 
 ## What comes after that
 
@@ -219,14 +242,17 @@ the two deliverables it actually reads:
 
 That is not what happened. The sibling repo's finished replications were copied
 here first, so the computation arrived before the machinery meant to feed it.
-They read a committed CSV directly, and `data/README.md` records each file's
-vendor, symbol, span, download date and checksum by hand in the meantime.
+They read a committed CSV directly. `data/vintages.jsonl` now records each
+file's vendor, symbol, price basis, span, date, row count and checksum, and
+`data/README.md`'s table says the same in prose.
 
 The dependency was real and is now a debt rather than a gate. Issue 4's
 remaining half is the test that carries the premise, and that half still needs
 issues 1 and 2, because it takes two vintages of one symbol and compares them.
-The order to protect from here is that no further replication lands before the
-recorder does, since each one added now is another reader to convert later.
+The order that was worth protecting, no further replication landing before the
+recorder, is no longer at risk. What replaces it is that each replication still
+reads by filename, so every one added before issue 2 is another reader to
+convert.
 
 GLD/GDX went first because the sibling repo had already worked out where its
 traps are, so the work here was checking that the vintage machinery makes those

@@ -113,8 +113,8 @@ class TestGldGdxReproduction:
     Vintage: GLD and GDX from yfinance. The two book windows read the raw
     as-traded close, downloaded 2026-08-27. The full-history run reads Yahoo's
     dividend-adjusted close, and GLD's adjusted file was downloaded 2026-06-16,
-    ten weeks earlier than the other three. data/README.md carries the dates
-    per file, because they are not one date.
+    ten weeks earlier than the other three. data/vintages.jsonl carries the
+    dates per file, because they are not one date.
 
     Values are pinned at the 4-decimal CLI precision, rounded from the true
     value. Chan's printed 1.6766 is not asserted, because it is a book target
