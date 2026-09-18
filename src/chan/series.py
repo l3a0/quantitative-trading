@@ -54,7 +54,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from chan.vintage import VintageEntry, read_manifest, read_vintage, resolve_vintage
+from chan.vintage import VintageEntry, read_vintage, resolve_vintage
 
 #: A day-over-day price ratio further than this from 1, in log terms, is a scale break.
 #:
@@ -200,47 +200,43 @@ def scale_breaks(closes: pd.Series, *, bound: float = SCALE_BREAK_BOUND) -> list
     nothing. A zero close, which ``_validated_rows`` allows because a vendor
     returns one for a halted day, makes the ratios ``0.0`` and ``inf``. A
     negative close makes the log NaN out of two finite numbers.
+
+    The two answers come back in one list, because what this function is asked
+    is which days a run must not compute across and both kinds are that.
+    :func:`refuse_window_crossing_a_break` tells them apart, because a refusal
+    names the state it found and those two have different fixes.
+    """
+    days, magnitudes = _ratio_magnitudes(closes)
+    # Written as the negation of the passing case rather than as `> bound`, so
+    # a magnitude that is not a number flags instead of quietly passing.
+    return list(days[~(magnitudes <= bound)])
+
+
+def _ratio_magnitudes(closes: pd.Series) -> tuple[pd.DatetimeIndex, np.ndarray]:
+    """Each day paired with how far its move from the day before is from 1, in log terms.
+
+    The day is the later of the two, which is the day the move lands on. Both
+    :func:`scale_breaks` and :func:`refuse_window_crossing_a_break` are built on
+    this, so the sort, the suppression and the choice of which day to name exist
+    once. Writing the arithmetic twice is how the two would come to disagree
+    about one series.
+
+    A magnitude that is not a finite number is handed back as it is, because the
+    refusal needs to tell a series that changed scale apart from one whose scale
+    could not be read, and those two are different facts with different fixes.
     """
     closes = closes.sort_index()
     values = closes.to_numpy(dtype=float)
     if values.size < 2:
-        return []
+        return closes.index[:0], np.empty(0, dtype=float)
     with warnings.catch_warnings():
         # A zero close divides by zero and a negative one takes the log of a
-        # negative, and numpy warns on both. Both are flagged on the line
-        # below rather than skipped, so the warning reports something already
-        # handled. `_parse_close` suppresses its own expected one the same way.
+        # negative, and numpy warns on both. Neither is skipped, so the warning
+        # reports something already handled. `_parse_close` suppresses its own
+        # expected one the same way.
         warnings.simplefilter("ignore", RuntimeWarning)
         ratios = values[1:] / values[:-1]
-        magnitudes = np.abs(np.log(ratios))
-    # Written as the negation of the passing case rather than as `> bound`, so
-    # a NaN magnitude flags instead of quietly passing.
-    return list(closes.index[1:][~(magnitudes <= bound)])
-
-
-def manifest_scale_breaks(data_dir: Path | None = None) -> dict[str, list[pd.Timestamp]]:
-    """Every committed vintage that changes scale inside itself, keyed by its path.
-
-    It iterates :func:`chan.vintage.read_manifest` rather than a list of the
-    eight vintages this repo holds today, so a ninth is covered on the day it
-    is recorded rather than on the day somebody remembers to extend a list.
-
-    A vintage with nothing to report is left out, because what a caller wants
-    is what was found. The key is the entry's ``path`` and not the entry, since
-    an entry carries a field that is not hashable and keying by one reaches an
-    operator as a traceback, which is
-    [issue 93](https://github.com/l3a0/quantitative-trading/issues/93).
-
-    It calls :func:`_parse_close` directly rather than :func:`load_close`,
-    which would resolve through the manifest each entry it was just handed.
-    """
-    found = {}
-    for entry in read_manifest(data_dir):
-        closes = _parse_close(read_vintage(entry, data_dir=data_dir), entry.symbol)
-        flagged = scale_breaks(closes)
-        if flagged:
-            found[entry.path] = flagged
-    return found
+        return closes.index[1:], np.abs(np.log(ratios))
 
 
 def refuse_window_crossing_a_break(
@@ -248,16 +244,25 @@ def refuse_window_crossing_a_break(
     *,
     start: pd.Timestamp,
     end: pd.Timestamp,
-    bound: float = SCALE_BREAK_BOUND,
 ) -> None:
     """Stop a run whose window spans a scale break in one of the series it read.
 
     Each leg is its own ``(entry, closes)`` pair, clipped here to
-    ``[start, end]`` on its own calendar and run through :func:`scale_breaks`.
-    Running the guard per leg is what makes a flag table unnecessary: the ratio
-    computation over a clipped series is already the test for whether the
-    window spans the break, and running it on each leg is already the union
-    across them.
+    ``[start, end]`` on its own calendar and differenced. Running the guard per
+    leg is what makes a flag table unnecessary: the ratio computation over a
+    clipped series is already the test for whether the window spans the break,
+    and running it on each leg is already the union across them.
+
+    The message names which of two states it found, rather than calling both a
+    scale break. A series that changed scale and a series whose scale could not
+    be read are different facts with different fixes, which is the rule
+    ``tests/test_series.py`` states for the four refusals already here. The
+    second is reachable through a run whose own frame drops the row: an inner
+    join and a ``dropna`` discard a NaN close, so the computed rows can be clean
+    while the day beside them says nothing about whether the scale held. That
+    day is refused rather than passed over, because the guard cannot rule a
+    break out there and "no break" and "could not tell" must not be the same
+    answer.
 
     Each leg is clipped on its own trading days rather than on the joined ones.
     An inner join and a ``dropna`` drop days one leg traded and the other did
@@ -278,24 +283,46 @@ def refuse_window_crossing_a_break(
     and GDX and neither is flagged, and :func:`scale_breaks` underneath returns
     the dates either way.
     """
-    crossed = []
+    moved, unreadable = [], []
     for entry, closes in legs:
         clipped = closes.loc[(closes.index >= start) & (closes.index <= end)]
-        flagged = scale_breaks(clipped, bound=bound)
-        if flagged:
-            crossed.append((entry, flagged))
-    if not crossed:
+        days, magnitudes = _ratio_magnitudes(clipped)
+        readable = np.isfinite(magnitudes)
+        # A magnitude that is not a number already fails `<= bound`, so the two
+        # sets below partition the flagged days rather than overlapping.
+        if (~readable).any():
+            unreadable.append((entry, days[~readable]))
+        changed = readable & ~(magnitudes <= SCALE_BREAK_BOUND)
+        if changed.any():
+            moved.append((entry, days[changed]))
+    if not moved and not unreadable:
         return
-    named = "; ".join(
-        f"{entry.path} on {', '.join(str(day.date()) for day in flagged)}"
-        for entry, flagged in crossed
-    )
+    said = [f"{entry.path} changes scale on {_dates(days)}" for entry, days in moved]
+    said += [
+        f"{entry.path} has no readable day-over-day move on {_dates(days)}"
+        for entry, days in unreadable
+    ]
+    why = []
+    if moved:
+        why.append(
+            f"A day-over-day close ratio further from 1 than "
+            f"{math.exp(SCALE_BREAK_BOUND):g} is the series changing scale rather than the "
+            f"price moving, and a number computed across one is fiction."
+        )
+    if unreadable:
+        why.append(
+            "A close that is not a finite number leaves the scale on both sides of it unknown, "
+            "and no break and could not tell are not the same answer."
+        )
     raise WindowCrossesScaleBreak(
-        f"the window {start.date()} to {end.date()} crosses a scale break: {named}. "
-        f"A day-over-day close ratio further from 1 than {math.exp(bound):g} is the series "
-        f"changing scale rather than the price moving, and a number computed across one is "
-        f"fiction. Read a window that does not span the dates named."
+        f"the window {start.date()} to {end.date()} cannot be computed across: "
+        f"{'; '.join(said)}. {' '.join(why)} Read a window that does not span the dates named."
     )
+
+
+def _dates(days: pd.DatetimeIndex) -> str:
+    """Days as the ISO dates a refusal prints, which is what a reader greps for."""
+    return ", ".join(str(day.date()) for day in days)
 
 
 def _parse_close(payload: bytes, ticker: str) -> pd.Series:

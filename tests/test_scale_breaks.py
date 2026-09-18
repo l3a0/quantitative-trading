@@ -42,12 +42,18 @@ from chan.pair_cointegration import aligned_closes
 from chan.series import (
     SCALE_BREAK_BOUND,
     WindowCrossesScaleBreak,
+    _parse_close,
     load_vintage,
-    manifest_scale_breaks,
     refuse_window_crossing_a_break,
     scale_breaks,
 )
-from chan.vintage import MANIFEST_NAME, VintageUnavailable, read_manifest, record_vintage
+from chan.vintage import (
+    MANIFEST_NAME,
+    VintageUnavailable,
+    read_manifest,
+    read_vintage,
+    record_vintage,
+)
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 from tests.support.committed_vintages import rewrite_entry
 
@@ -89,6 +95,40 @@ def series_of(closes: list[float], *, days: list[str] = DAYS) -> pd.Series:
 def days_of(flagged: list[pd.Timestamp]) -> list[str]:
     """Flagged timestamps as the ISO dates a pin is written in."""
     return [str(day.date()) for day in flagged]
+
+
+def breaks_across_the_manifest(data_dir: Path | None = None) -> dict[str, list[str]]:
+    """Every committed vintage that changes scale inside itself, keyed by its path.
+
+    It iterates :func:`read_manifest` rather than a list of the eight vintages
+    this repo holds today, so a ninth is covered on the day it is recorded
+    rather than on the day somebody remembers to extend a list. That is the
+    rule ``TestTheCommittedManifest`` follows in ``tests/test_vintage.py``, and
+    the opposite of ``COMMITTED`` in ``tests/test_series.py``.
+
+    It lives here and not in :mod:`chan.series`, because nothing under ``src/``
+    has a reason to scan the whole manifest. A run opens the two legs it was
+    asked for and the refusal reads those, so a public scan would be a path
+    with a count of zero, which is what this repo's ranking directive says not
+    to add. What needs it is this file.
+
+    It reaches the bytes through :func:`read_vintage` and the module's own
+    parse rather than through :func:`load_vintage`, which resolves an entry it
+    was just handed and would stop on the first symbol carrying two downloads
+    of one basis. That state is what
+    [issue 83](https://github.com/l3a0/quantitative-trading/issues/83) brings.
+
+    Keyed by the entry's path and not by the entry, since an entry carries a
+    field that is not hashable and keying by one reaches an operator as a
+    traceback, which is
+    [issue 93](https://github.com/l3a0/quantitative-trading/issues/93).
+    """
+    found = {}
+    for entry in read_manifest(data_dir):
+        flagged = scale_breaks(_parse_close(read_vintage(entry, data_dir=data_dir), entry.symbol))
+        if flagged:
+            found[entry.path] = days_of(flagged)
+    return found
 
 
 def payload_of(rows: list[tuple[str, str]]) -> bytes:
@@ -184,24 +224,30 @@ class TestTheGuardOverTheWholeManifest:
     """
 
     def test_the_whole_manifest_flags_exactly_the_two_known_breaks(self) -> None:
-        found = manifest_scale_breaks()
+        found = breaks_across_the_manifest()
 
-        assert {path: days_of(days) for path, days in found.items()} == KNOWN_BREAKS
+        assert found == KNOWN_BREAKS
         assert sum(len(days) for days in found.values()) == 2
 
-    def test_the_seven_other_committed_vintages_are_clean(self) -> None:
-        """Said as its own case, because a guard that flagged nothing would pass the count."""
-        flagged = set(manifest_scale_breaks())
+    def test_every_committed_vintage_is_read_and_only_one_reports(self) -> None:
+        """Said as its own case, because a guard that read one file would pass the count.
 
-        assert {entry.path for entry in read_manifest()} - flagged == {
-            "gld_20yr_prices.csv",
-            "gld_20yr_prices_unadjusted.csv",
-            "gdx_20yr_prices.csv",
-            "gdx_20yr_prices_unadjusted.csv",
-            "gld_chan.csv",
-            "gdx_chan.csv",
-            "pep_chan.csv",
-        }
+        The clean vintages are counted off the manifest rather than listed.
+        Naming them would be the hand-written list of eight this guard exists
+        not to be, and it would fail on the day a ninth lands whether or not
+        that ninth changes scale. A ninth is on a branch already, recording a
+        SPY download for
+        [issue 14](https://github.com/l3a0/quantitative-trading/issues/14). The
+        claim here is that every entry the manifest holds was read and
+        answered, and that one of them answers with anything.
+        """
+        swept = {}
+        for entry in read_manifest():
+            closes = _parse_close(read_vintage(entry), entry.symbol)
+            swept[entry.path] = days_of(scale_breaks(closes))
+
+        assert set(swept) == {entry.path for entry in read_manifest()}
+        assert {path: days for path, days in swept.items() if days} == KNOWN_BREAKS
 
 
 class TestItSortsBeforeItDifferences:
@@ -317,19 +363,9 @@ class TestItIteratesTheManifest:
             data_dir=committed_copy,
         )
 
-        found = manifest_scale_breaks(committed_copy)
+        found = breaks_across_the_manifest(committed_copy)
 
-        assert days_of(found[entry.path]) == ["2026-01-06"]
-        assert {path: days_of(days) for path, days in found.items()} == {
-            **KNOWN_BREAKS,
-            entry.path: ["2026-01-06"],
-        }
-
-    def test_the_result_is_keyed_by_path_rather_than_by_entry(self) -> None:
-        """An entry carries an unhashable field, so keying by one reaches an operator
-        as a traceback, which is
-        [issue 93](https://github.com/l3a0/quantitative-trading/issues/93)."""
-        assert all(isinstance(key, str) for key in manifest_scale_breaks())
+        assert found == {**KNOWN_BREAKS, entry.path: ["2026-01-06"]}
 
 
 class TestAWindowThatCrossesABreakStops:
@@ -356,8 +392,8 @@ class TestAWindowThatCrossesABreakStops:
             )
 
         message = str(refused.value)
-        assert "ko_chan.csv" in message
-        assert "1965-02-19" in message
+        assert "ko_chan.csv changes scale on 1965-02-19" in message
+        assert "no readable day-over-day move" not in message
         assert "\n" not in message
 
     def test_a_window_starting_on_the_break_runs(self, ko) -> None:
@@ -411,6 +447,60 @@ class TestAWindowThatCrossesABreakStops:
         message = str(refused.value)
         assert "gld_20yr_prices_unadjusted.csv" in message
         assert "2007-01-03" in message
+
+    def test_a_break_in_the_second_leg_refuses_too(self, committed_copy: Path) -> None:
+        """The union across the legs, which every other case here reaches through leg A.
+
+        The ``halved`` fixture breaks GLD, which is ``a`` in both
+        ``aligned_closes`` calls this repo makes, so a guard reading only the
+        first leg passed every other case in this file. Measured: truncating
+        the loop to ``list(legs)[:1]`` left the whole suite green.
+        """
+        halve_one_close(committed_copy, named="gdx_20yr_prices_unadjusted.csv", on="2007-01-03")
+
+        with pytest.raises(WindowCrossesScaleBreak) as refused:
+            aligned_closes("GLD", "GDX", unadjusted=True, data_dir=committed_copy)
+
+        assert "gdx_20yr_prices_unadjusted.csv changes scale" in str(refused.value)
+
+    def test_an_unreadable_close_is_named_as_unreadable_rather_than_as_a_break(
+        self, data_dir: Path
+    ) -> None:
+        """Two states, two sentences. A NaN close is not a series that changed scale.
+
+        The refusal still fires, because the guard cannot rule a break out
+        across a day it could not read and "no break" and "could not tell" must
+        not be the same answer. What it may not do is report the wrong one of
+        the two, which is the rule ``tests/test_series.py`` states for the four
+        refusals already there. This is reachable through a run whose own frame
+        drops the row, since ``aligned_closes`` ends in a ``dropna``.
+        """
+        place(
+            data_dir,
+            name="unreadable.csv",
+            rows=[("2026-01-02", "100"), ("2026-01-05", "n/a"), ("2026-01-06", "52")],
+        )
+        entry, closes = load_vintage("ZZZ", data_dir=data_dir)
+
+        with pytest.raises(WindowCrossesScaleBreak) as refused:
+            refuse_window_crossing_a_break(
+                [(entry, closes)], start=closes.index[0], end=closes.index[-1]
+            )
+
+        message = str(refused.value)
+        assert "unreadable.csv has no readable day-over-day move on" in message
+        assert "2026-01-05, 2026-01-06" in message
+        assert "changes scale" not in message
+
+    def test_a_window_the_two_legs_do_not_share_is_not_an_error(self) -> None:
+        """An empty intersection has no first day to hand the check, and is not a refusal.
+
+        Measured: without the emptiness branch at the call site,
+        ``joined.index[0]`` raises ``IndexError`` through a public call.
+        """
+        joined = aligned_closes("KO", "PEP", chan=True, start="2030-01-01", end="2030-12-31")
+
+        assert joined.empty
 
     def test_a_window_clear_of_the_halving_still_runs(self, halved: Path) -> None:
         """A refusal that fired on the whole vintage rather than the window passes
@@ -518,13 +608,9 @@ class TestTheBoundIsTheOneThatWasMeasured:
         [issue 3](https://github.com/l3a0/quantitative-trading/issues/3) prints
         the truncation 0.6832.
         """
-        widest, breaks, ratios = 0.0, [], []
+        widest, breaks, ratios, kept = 0.0, [], [], []
         for entry in read_manifest():
-            _, closes = load_vintage(
-                entry.symbol,
-                unadjusted=entry.price_basis == "raw",
-                chan=entry.vendor == "chan-xls",
-            )
+            closes = _parse_close(read_vintage(entry), entry.symbol)
             values = closes.to_numpy(dtype=float)
             moves = values[1:] / values[:-1]
             magnitudes = np.abs(np.log(moves))
@@ -532,8 +618,10 @@ class TestTheBoundIsTheOneThatWasMeasured:
             widest = max(widest, float(magnitudes[~flagged].max()))
             breaks.extend(magnitudes[flagged])
             ratios.extend(moves[flagged])
+            kept.extend(moves[~flagged])
 
         assert round(widest, 4) == 0.2849
+        assert (round(min(kept), 4), round(max(kept), 4)) == (0.7521, 1.2654)
         assert [round(float(one), 4) for one in sorted(breaks)] == [0.6833, 0.6838]
         assert sorted(round(float(one), 4) for one in ratios) == [0.5047, 0.5050]
         assert widest < SCALE_BREAK_BOUND < min(breaks)
