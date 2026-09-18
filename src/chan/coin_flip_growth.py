@@ -31,9 +31,9 @@ the vintage recorder exists.
 **The pins are closed form, and the simulation cannot carry them.** Every
 figure the book prints follows from the payoffs alone. The per-flip standard
 deviation of the log return is 0.10486, so the standard error of a simulated
-growth rate falls as ``0.10486 / sqrt(flips)``. Resolving −0.0005 to one part
-in a hundred thousand takes about 110 million flips, and Chan prints seven
-decimals. So :func:`gamble_moments` is what the book's figures are pinned
+growth rate falls as ``0.10486 / sqrt(flips)``. Pinning −0.0005 down to an
+absolute 1e-5 takes about 110 million flips and to 1e-6 about 11 billion, while
+Chan prints seven decimals. So :func:`gamble_moments` is what the book's figures are pinned
 against, and :func:`simulate` is the demonstration a reader looks at.
 
 Three choices in :func:`gamble_moments` are load-bearing, because the book
@@ -256,10 +256,11 @@ def simulate(
     The ensemble side is the mean simple return per flip, converted to log
     units. The other candidate, the log of the mean terminal wealth, estimates
     the same quantity and collapses as rounds grow, because a sample mean
-    misses more of the lognormal tail the longer the paths run: at 1,000 paths
-    it reads +0.004998 at 100 rounds and +0.001508 at 20,000, losing 70% of the
-    ensemble side over exactly the range where the divergence is supposed to
-    become clearer.
+    misses more of the lognormal tail the longer the paths run. At 5,000 rounds
+    by 1,000 paths this estimator holds ``ln(1.005)`` to within 1e-4 on every
+    one of the first 20 seeds, while that one sits below 0.0038 on every one of
+    them, over exactly the range where the divergence should become clearer.
+    ``test_only_one_ensemble_estimator_survives_more_rounds`` pins both.
     """
     logs = _flip_log_returns(rounds, paths, seed, win, loss, capital)
     return Simulation(
@@ -291,7 +292,7 @@ def seeds_with_positive_time_average(
 
 def capital_horizon(
     rounds: int,
-    moments: Moments | None = None,
+    moments: Moments,
     capital: float = START_CAPITAL,
 ) -> Horizon:
     """Capital after ``rounds``, on the ensemble average and on the time average.
@@ -300,9 +301,8 @@ def capital_horizon(
     compound into pulls apart, and the ratio grows as ``exp((e - g) * rounds)``
     where the exponent is 0.005488 per round for Chan's payoffs.
     """
-    m = moments if moments is not None else gamble_moments()
-    ensemble = capital * math.exp(m.ensemble_log_growth * rounds)
-    time_average = capital * math.exp(m.growth_exact * rounds)
+    ensemble = capital * math.exp(moments.ensemble_log_growth * rounds)
+    time_average = capital * math.exp(moments.growth_exact * rounds)
     return Horizon(
         rounds=rounds,
         ensemble_capital=ensemble,
@@ -329,6 +329,9 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
     print()
     print("The two averages, in one unit, per round:")
     print(f"  ensemble average (across traders) = {m.ensemble_log_growth:+.7f}")
+    print("    closed form ln(1 + m). The run below estimates it as the mean")
+    print("    simple return per flip, not as the log of mean terminal wealth,")
+    print("    which collapses as rounds grow.")
     print(
         f"  time average     (one trader)     = {m.growth_continuous:+.7f}  "
         "<- the book's continuous approximation"
