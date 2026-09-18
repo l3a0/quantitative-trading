@@ -578,6 +578,7 @@ publishing** above, then publish and report in the same reply.
 2. Any sentence the execution caught, and what replaced it.
 3. What is still stale, including the two sibling pages.
 4. A build task for every card left in "Planned, no builder", per the rule below.
+5. A decompose task for every card on the free list, in the order it is drawn.
 
 ### A planned card with no builder is a build task waiting to be offered
 
@@ -607,6 +608,37 @@ reads none of this.
    neighbouring issues the builder must not absorb. `PLANNED` carries a `note`
    for exactly this and renders it nowhere, so it reaches a builder only if the
    offer quotes it.
+
+### A ready card with no plan is a decompose task waiting to be offered
+
+The Build order's first column holds cards nothing open blocks. The free list is
+that column minus what a session or a branch already carries, minus what is
+deferred, and minus what waits on an owner decision. The note under the column
+names it card by card. What is left is work anyone could start and nobody has
+planned.
+
+So an update offers a decompose-until-completion task for each card on that
+list, in the order the column draws it, which is the priority order the ranking
+sets and then the issue number. Offer them in that order, so the owner can take
+the top of the queue rather than read all of it.
+
+Three costs, named rather than hidden.
+
+1. **The list is long.** It stood at 27 cards on 2026-09-18. This offers a queue
+   rather than a task, and the order is what makes it usable.
+2. **A loop is not cheap, and the record says it pays anyway.** Across the runs
+   this repo has recorded, not one exited on its first two passes, they ran from
+   six passes to fourteen, and each found something a builder would otherwise
+   have met mid-change.
+3. **Running many at once costs board updates.** Three concurrent sessions on
+   2026-09-18 produced two publish refusals inside one update, and each refusal
+   costs a full read of the live page and a merge. The offer is a queue the owner
+   starts, so the rate is theirs, and this is the number behind that choice.
+
+A card already in `PLANNED` never appears on this list, because a finished plan
+with nobody on it is drawn in the In flight section instead. That is the two
+rules meeting rather than overlapping. One offers a builder where the plan is
+done, the other offers a planner where it is not.
 
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.
