@@ -56,6 +56,7 @@ one.
   - [What this repo computed](#what-this-repo-computed-2)
   - [The verdicts](#the-verdicts-2)
   - [What the entry concludes](#what-the-entry-concludes-2)
+  - [Figures from Chan's workbook, which nothing here pins](#figures-from-chans-workbook-which-nothing-here-pins)
   - [What this entry cannot say](#what-this-entry-cannot-say)
 
 ## How to read an entry
@@ -587,18 +588,18 @@ own `example6_3.m`. Shipped under
 Fifteen rows, all derivable from
 [tests/test_kelly_leverage.py](../tests/test_kelly_leverage.py).
 
-**No row here reproduces a figure Chan computed from a series, and that is the
-entry rather than its failure.** He read SPY through 2007-12-28 on a
-2008-vintage adjusted series. This reads a 2026 download of the same symbol
-over the same dates, and eighteen years of distributions have rescaled that
-history since, so rows 1 to 8 measure vendor drift with the window held fixed.
-Reading his own workbook is
+**Exactly one figure Chan computed from a series reproduces here, and it is the
+dispersion.** He read SPY through 2007-12-28 on a 2008-vintage adjusted series.
+This reads a 2026 download of the same symbol over the same dates, so rows 1 to
+8 measure eighteen years of restatement with the window held fixed. Rows 1 and
+3 to 8 all miss, every one of them high. Row 2 lands on the two decimals he
+prints, because a standard deviation is a dispersion rather than a level and
+restatement moves it far less. Reading his own workbook is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
-`reproduced` verdict against his data belongs there.
+`reproduced` verdict on the rest belongs there.
 
-Three rows do reproduce and none of them reads a series. Rows 9 and 11 are
-arithmetic on figures the book prints, and row 12 is a claim rather than a
-number.
+Two more rows reproduce and neither reads a series. Rows 9 and 11 are
+arithmetic on figures the book prints, so nothing could have moved them.
 
 Three rows carry no published figure and say so in their own cells: row 10 is
 this vintage's own account beside the book's, row 13 is the worst day SPY
@@ -679,11 +680,15 @@ lines.
 
 Four things, and the first is what makes the other three worth reading.
 
-1. **The claims survived and not one computed number did.** Rows 1 and 3 to 8
-   all miss, every one of them high, and every claim behind them holds. That is
-   the same split Entry 1 found on a different pair with a different estimator:
-   a published number and the claim it supports have different shelf lives, and
-   only the number depends on a vintage.
+1. **Seven numbers moved and no claim did.** Every level Chan computed from a
+   series is now higher, by 0.06 percentage points on the mean and 0.023 on the
+   leverage, and every statement those numbers were printed to support still
+   holds on this vintage. That is the same split Entry 1 found on a different
+   pair with a different estimator: a published number and the claim it
+   supports have different shelf lives, and only the number depends on a
+   vintage. What is new here is the one that did not move. The dispersion of
+   row 2 reproduces while the mean of row 1 does not, which says the
+   restatement shifted the level of the series and left its shape alone.
 2. **The specification is what rows 4 and 7 really hold.** Two choices are
    invisible on the page and each has a plausible wrong answer that does not
    look wrong. The population dispersion form moves the Sharpe ratio by 5.7e-5
@@ -705,6 +710,42 @@ Four things, and the first is what makes the other three worth reading.
    0.023 in row 5. So a leverage reported with no window named mixes sample
    choice and vendor drift, and neither is recoverable afterwards. That is why
    the window is an argument and why the default is Chan's own.
+
+### Figures from Chan's workbook, which nothing here pins
+
+Six quantities quoted in this entry, in
+[src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) and in
+[docs/design.md](design.md), come from Ernest Chan's own `example6_2.xls`,
+which this repo does not hold. They are measurements of his data rather than figures
+he printed, and no assertion in this repo touches any of them. That workbook is
+[issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and
+pinning them is what that issue is for.
+
+They are named here rather than left to read as asserted, which is the shape
+`README.md`'s `## The write-up` uses for the six figures its essay quotes and
+the suite does not hold.
+
+1. **2.5278 and 1.9341**, his exact leverage on his adjusted close and on his
+   as-traded close. Everything this entry says about the price basis rests on
+   them, including the 0.59 margin in the conclusions and the reversal of his
+   own risk conclusion, since 1.9341 is below the 1.954079 threshold this repo
+   does compute.
+2. **0.427523 and 0.427580**, his Sharpe ratio under the sample and population
+   dispersion forms. They are why row 4 says only the sample form prints as the
+   0.4275 he published. This repo's own two forms are 5.7e-5 apart on the same
+   quantity, which is pinned, so the argument survives without them and the
+   demonstration on his own data does not.
+3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row 9 quotes
+   it to say the published \$252,800 is arithmetic on a rounded input.
+4. **1.68 percentage points**, what SPY's distributions are worth in annual
+   mean return on his span. The design doc's fallback section quotes it.
+5. **0.11186 and 0.11142**, his mean annualised by 251 and by 250. The module
+   quotes them as the near misses that fix 252. The same comparison is pinned
+   here against this vintage's own moments.
+6. **The three monthly resampling rules run on his series**, which land 43 to
+   47 percent above his daily figure. Row 15 cites them to say no vintage
+   explanation is available for the claim it refutes. That row's own numbers,
+   on this vintage, are pinned.
 
 ### What this entry cannot say
 
