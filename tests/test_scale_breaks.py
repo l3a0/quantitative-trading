@@ -38,11 +38,11 @@ import pandas as pd
 import pytest
 
 from chan import paths
-from chan.pair_cointegration import aligned_closes
 from chan.series import (
     SCALE_BREAK_BOUND,
     WindowCrossesScaleBreak,
     _parse_close,
+    aligned_closes,
     load_vintage,
     refuse_window_crossing_a_break,
     scale_breaks,

@@ -60,9 +60,9 @@ import matplotlib.dates as mdates
 from ithildincore.timeseries import EG_CRIT_N2
 from matplotlib.figure import Figure
 
-from chan.pair_cointegration import aligned_closes, rolling_cointegration
+from chan.pair_cointegration import rolling_cointegration
 from chan.paths import FIGURES_DIR
-from chan.series import WindowCrossesScaleBreak, vintage_line
+from chan.series import WindowCrossesScaleBreak, aligned_closes, vintage_line
 from chan.vintage import VintageUnavailable
 
 # Essay palette, from the :root tokens in docs/gld-gdx-cointegration-lessons.html.

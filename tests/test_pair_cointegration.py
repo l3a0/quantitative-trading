@@ -82,14 +82,13 @@ from chan.pair_cointegration import (
     BOOK_TRAIN_END,
     CointResult,
     RollingCoint,
-    aligned_closes,
     engle_granger,
     return_correlation,
     rolling_cointegration,
     run,
     selftest,
 )
-from chan.series import load_close
+from chan.series import aligned_closes, load_close
 
 # ============================================================
 # Layer 1 -- the two-step test on synthetic pairs (engle_granger)

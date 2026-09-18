@@ -97,6 +97,13 @@ rules, which ``CLAUDE.md`` says no port carries across, so the diff below shows
 prose changes no item above names. Diff ``b27222b`` against ``ce3f757`` to read
 the port and against ``HEAD`` to read everything since, with docstrings
 stripped from both sides, because they are most of it.
+
+One deletion in that second diff has somewhere to go rather than nowhere.
+``aligned_closes`` left for :mod:`chan.series` under
+[issue 122](https://github.com/l3a0/quantitative-trading/issues/122), because a
+two-leg read is a read and every experiment that needs one would otherwise
+import this chapter to open two files. Its own docstring there carries the rest
+of the provenance.
 """
 
 from __future__ import annotations
@@ -107,7 +114,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from ithildincore.timeseries import (
     ADF_CRIT_CONST,
     EG_CRIT_N2,
@@ -120,8 +126,7 @@ from scipy import stats
 
 from chan.series import (
     WindowCrossesScaleBreak,
-    load_vintage,
-    refuse_window_crossing_a_break,
+    aligned_closes,
     vintage_line,
 )
 from chan.vintage import VintageUnavailable
@@ -266,61 +271,6 @@ def rolling_cointegration(
         origin_hedge=np.array(hedge, dtype=np.float64),
         half_life=np.array(half, dtype=np.float64),
     )
-
-
-def aligned_closes(
-    a: str,
-    b: str,
-    *,
-    start: str | None = None,
-    end: str | None = None,
-    unadjusted: bool = False,
-    chan: bool = False,
-    data_dir: Path | None = None,
-) -> pd.DataFrame:
-    """Inner-join two tickers' closes on their common trading days.
-
-    Optionally clipped to the inclusive window ``[start, end]``, both
-    ``YYYY-MM-DD``. ``chan=True`` loads both legs from Chan's committed
-    companion data. Each leg is resolved through the manifest and verified
-    against the sha256 recorded there before it is read.
-
-    The two entries come back on ``DataFrame.attrs["vintages"]``, in leg order.
-    A report that names which vintage produced its numbers needs them, and the
-    frame drops everything the lookup knew, so they ride along rather than
-    being resolved a second time to a possibly different answer.
-
-    There is no ``dated`` argument here on purpose. One date applied to both
-    legs is wrong on the default run, whose two vintages were downloaded 72
-    days apart, so a pair that needs to name its dates needs one per leg. That
-    is [issue 69](https://github.com/l3a0/quantitative-trading/issues/69).
-    Until it lands, an ambiguous pair stops the run and names the candidates.
-    """
-    entry_a, close_a = load_vintage(a, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
-    entry_b, close_b = load_vintage(b, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
-    joined = pd.concat([close_a, close_b], axis=1, join="inner").dropna()
-    joined.columns = [a.upper(), b.upper()]
-    if start is not None:
-        joined = joined.loc[joined.index >= pd.Timestamp(start)]
-    if end is not None:
-        joined = joined.loc[joined.index <= pd.Timestamp(end)]
-    if not joined.empty:
-        # The clip is what decides whether a scale break is inside the window,
-        # so the check runs here and not in `load_vintage`. The KO vintage
-        # spans 1962 to 2008 and carries two breaks in the 1960s, and it
-        # arrives here whole: refusing it at load time would stop the KO/PEP
-        # replication, whose window starts in 1977 and is correct. Each leg is
-        # handed over unclipped and cut to its own trading days inside the
-        # check, rather than read off `joined`, whose inner join drops days one
-        # leg traded and the other did not and so widens the gap a ratio is
-        # taken across.
-        refuse_window_crossing_a_break(
-            ((entry_a, close_a), (entry_b, close_b)),
-            start=joined.index[0],
-            end=joined.index[-1],
-        )
-    joined.attrs["vintages"] = (entry_a, entry_b)
-    return joined
 
 
 def _verdict(stat: float, crit: dict[str, float]) -> str:
