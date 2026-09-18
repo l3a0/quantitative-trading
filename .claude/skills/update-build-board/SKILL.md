@@ -577,6 +577,36 @@ publishing** above, then publish and report in the same reply.
 1. The version number and what moved.
 2. Any sentence the execution caught, and what replaced it.
 3. What is still stale, including the two sibling pages.
+4. A build task for every card left in "Planned, no builder", per the rule below.
+
+### A planned card with no builder is a build task waiting to be offered
+
+The In flight section's last column holds cards whose decompose loop exited and
+that nobody is on. That is planning finished and building not started, so a card
+sitting there is work that is ready and idle, and the page has no way to move it
+on its own.
+
+So an update that leaves a card there offers a build task for it in the same
+reply, one per card, rather than reporting the column and stopping. The desktop
+app surfaces such a task as a chip the owner starts. Nothing has to happen
+first, because a card only reaches that column once a loop has run its plan
+against the code, which is the thing a builder would otherwise have to do again.
+
+Two things the offer needs, since a builder reads the issue once at spawn and
+reads none of this.
+
+1. **Check what the card waits on before offering it.** The column's test asks
+   only whether a plan exists, whether a branch exists and whether a session is
+   on it. It never looks at `needs`, so a plan-complete card sitting behind an
+   open blocker lands there too, and offering it hands a builder work they cannot
+   finish. Read the card's `needs` against the open issues first. No card has hit
+   this yet, because every `PLANNED` entry so far has had an empty `needs`, which
+   is why the column was built without the test rather than with it.
+2. **Carry what the loop found that the issue body does not repeat.** A
+   measurement the loop took, the file the change will collide with, and the
+   neighbouring issues the builder must not absorb. `PLANNED` carries a `note`
+   for exactly this and renders it nowhere, so it reaches a builder only if the
+   offer quotes it.
 
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.
