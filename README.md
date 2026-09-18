@@ -257,7 +257,9 @@ network. Every run after that reads the cache, and no replication reaches a
 network at any point.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
-two prose sweeps it cannot do run in the test suite.
+prose checks it has no rule for run in the test suite: a tilde that can close a
+strikethrough pair, a table delimiter row written tight, a heading quoted in
+prose that no longer exists, and a link whose anchor no heading produces.
 
 ## Where this came from
 

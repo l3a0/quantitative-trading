@@ -56,9 +56,9 @@ That directory config also covers this README, which is the price of putting
 the exemption next to what it governs. The three rules it relaxes are minor
 style checks, and every other markdownlint rule still applies here.
 
-The two prose sweeps in `tests/test_markdown_hygiene.py` do still read this
+The prose sweeps in `tests/test_markdown_hygiene.py` do still read this
 directory, including the note itself, because the note happens to contain
-nothing either sweep objects to. If a future re-extraction or a second note
+nothing any of them objects to. If a future re-extraction or a second note
 introduces something they flag, the fix is an exemption written down here, not
 an edit to the quotation.
 

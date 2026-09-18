@@ -1,14 +1,22 @@
 """The prose sweeps CLAUDE.md names, run as tests rather than from memory.
 
-Three layers. The first pins the sweep's own behavior on small documents, which
-is what keeps the code-fence exemption honest. The second runs the sweep over
-every Markdown file in the repo, so a slip fails the suite locally and in CI
-rather than waiting for someone to remember the command.
+The behavior layer pins each sweep on small documents, which is what keeps the
+code-fence exemption honest. The repository layer runs the single-document
+sweeps over every Markdown file here, so a slip fails the suite locally and in
+CI rather than waiting for someone to remember the command.
 
-The third is the cross-surface layer, `TestTheFigureHasThreeCopies`. The one
-committed figure exists as a PNG, as a base64 copy inlined in the HTML essay,
-and as an embed in the blog Markdown. Redrawing it updates one of the three,
-and nothing else in this repo would notice the other two.
+The cross-document layer reads one document against another. A heading quoted
+in prose and an anchor written into a link both name a heading somewhere, and
+both stop resolving when the heading is renamed with nothing else noticing.
+
+The cross-surface layer is `TestTheFigureHasThreeCopies`. The one committed
+figure exists as a PNG, as a base64 copy inlined in the HTML essay, and as an
+embed in the blog Markdown. Redrawing it updates one of the three, and nothing
+else in this repo would notice the other two.
+
+The layers are named rather than counted, for the reason
+`test_the_repo_has_markdown_to_sweep` gives about files. A count is wrong the
+moment a layer is added and nothing asserts it.
 """
 
 from __future__ import annotations
@@ -19,12 +27,25 @@ from pathlib import Path
 import pytest
 
 from tests.support.markdown_sweep import (
+    Attribution,
     Finding,
+    ReferenceFinding,
+    Unit,
+    attribution,
     blank_code,
     blank_fences,
+    document_headings,
+    fragment_links,
+    heading_index,
+    heading_references,
     markdown_files,
+    nearest_heading,
+    slug,
     sweep_file,
+    sweep_fragment_links,
+    sweep_heading_references,
     sweep_text,
+    units,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -349,6 +370,620 @@ def test_discovery_skips_a_markdown_path_that_is_not_a_regular_file(
 def test_every_markdown_file_passes_the_prose_sweeps(path: Path) -> None:
     findings = sweep_file(path)
     assert not findings, "\n".join(str(finding) for finding in findings)
+
+
+# --- The cross-document layer -------------------------------------------------
+# A heading quoted in prose and an anchor written into a link both name a
+# heading somewhere else. Neither is a link a renderer resolves, so nothing
+# else here notices when the heading is renamed out from under it.
+
+
+def _repository(tmp_path: Path, files: dict[str, str]) -> Path:
+    """A committed repo, since discovery asks git which files it owns."""
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    for name, body in files.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    return tmp_path
+
+
+def _messages(findings: list) -> list[str]:
+    return [str(finding) for finding in findings]
+
+
+# --- The unit the attribution scan reads --------------------------------------
+
+
+def test_a_paragraph_is_one_unit_across_its_lines() -> None:
+    # A hard-wrapped file puts the attribution and the span it governs on the
+    # same line only by luck, so the scan reads past the wrap.
+    found = units("The design doc's\n`## Heading` carries it.\n")
+    assert [unit.text for unit in found] == ["The design doc's\n`## Heading` carries it."]
+
+
+def test_a_blank_line_ends_a_unit() -> None:
+    found = units("First.\n\nSecond.\n")
+    assert [(unit.text, unit.first_line) for unit in found] == [("First.", 1), ("Second.", 3)]
+
+
+def test_a_table_row_is_its_own_unit() -> None:
+    # A register table is one blank-line paragraph, and reading it whole hands
+    # every row's attribution to every other row's span.
+    found = units("| a | b |\n| --- | --- |\n| 1 | 2 |\n")
+    assert [unit.first_line for unit in found] == [1, 2, 3]
+    assert [unit.text for unit in found] == ["| a | b |", "| --- | --- |", "| 1 | 2 |"]
+
+
+def test_a_table_row_breaks_the_paragraph_around_it() -> None:
+    found = units("Lead in.\n| a |\nTrail.\n")
+    assert [(unit.text, unit.first_line) for unit in found] == [
+        ("Lead in.", 1),
+        ("| a |", 2),
+        ("Trail.", 3),
+    ]
+
+
+def test_a_list_item_is_its_own_unit() -> None:
+    # A tight list is one blank-line paragraph and each item carries its own
+    # subject, so reading the list whole lends one item's attribution to the
+    # next item's span. CLAUDE.md already writes a list of that shape.
+    found = units("- First names a file.\n- Second quotes a heading.\n")
+    assert [(unit.text, unit.first_line) for unit in found] == [
+        ("- First names a file.", 1),
+        ("- Second quotes a heading.", 2),
+    ]
+
+
+def test_a_numbered_item_is_its_own_unit() -> None:
+    found = units("1. First.\n2. Second.\n")
+    assert [unit.first_line for unit in found] == [1, 2]
+
+
+def test_a_continuation_line_joins_the_item_above_it() -> None:
+    # A wrapped item is indented rather than marked, so it belongs to the
+    # item it continues and not to a unit of its own.
+    found = units("- An item that runs on\n  past the margin.\n- The next one.\n")
+    assert [unit.text for unit in found] == [
+        "- An item that runs on\n  past the margin.",
+        "- The next one.",
+    ]
+
+
+def test_a_unit_reports_the_line_an_offset_sits_on() -> None:
+    # The finding points at the line the span sits on, which the paragraph
+    # rule would otherwise lose to the line the unit starts at.
+    unit = units("one\ntwo\nthree\n")[0]
+    assert [unit.line_of(unit.text.index(word)) for word in ("one", "two", "three")] == [1, 2, 3]
+
+
+# --- The heading index --------------------------------------------------------
+
+
+def test_a_heading_carries_its_level_and_its_text() -> None:
+    found = document_headings("# Title\n\ntext\n\n### Deep\n")
+    assert [(head.level, head.text) for head in found] == [(1, "Title"), (3, "Deep")]
+
+
+def test_a_hash_inside_a_fence_is_not_a_heading() -> None:
+    # A line starting `#` inside a shell fence is a comment. CLAUDE.md has two,
+    # and an index counting them lets a reference resolve against a comment.
+    assert document_headings("```bash\n# Not a heading\n```\n") == []
+
+
+def test_a_closing_hash_run_is_not_part_of_the_heading_text() -> None:
+    assert [head.text for head in document_headings("## Closed ##\n")] == ["Closed"]
+
+
+def test_a_repeated_heading_text_takes_githubs_numeric_suffix() -> None:
+    # MD024 is set to siblings_only on purpose, so the log repeats a table
+    # heading per entry and a third entry produces a second repeat.
+    found = document_headings("### The verdicts\n\n### The verdicts\n\n### The verdicts\n")
+    assert [head.slug for head in found] == ["the-verdicts", "the-verdicts-1", "the-verdicts-2"]
+
+
+def test_the_index_keys_headings_by_the_path_handed_in(tmp_path: Path) -> None:
+    (tmp_path / "one.md").write_text("## One\n", encoding="utf-8")
+    index = heading_index([tmp_path / "one.md"])
+    assert [head.span for head in index[tmp_path / "one.md"]] == ["## One"]
+
+
+# --- The anchor a heading produces --------------------------------------------
+
+
+def test_a_slug_lowercases_and_hyphenates() -> None:
+    assert slug("How work is cut and ordered") == "how-work-is-cut-and-ordered"
+
+
+def test_a_slug_drops_punctuation_and_emphasis() -> None:
+    assert slug("Entry 1: GLD/GDX and KO/PEP, Chan's *Quantitative Trading*") == (
+        "entry-1-gldgdx-and-kopep-chans-quantitative-trading"
+    )
+
+
+def test_a_slug_keeps_digits_underscores_and_hyphens() -> None:
+    assert slug("Pass 2_3 and non-obvious") == "pass-2_3-and-non-obvious"
+
+
+# --- Which document a sentence attributes a heading to ------------------------
+
+
+def _attributed(text: str, span: str, document: Path, root: Path, known=()) -> Attribution:
+    start = text.index(span)
+    return attribution(Unit(text, 1), start, start + len(span), document, root, set(known))
+
+
+def test_a_positional_word_after_the_span_names_the_document_it_is_in() -> None:
+    here = Path("/repo/data/README.md")
+    named = _attributed("`## Header shape` below is why.", "`## Header shape`", here, Path("/repo"))
+    assert named.target == here
+
+
+def test_a_positional_word_elsewhere_in_the_unit_does_not_attribute() -> None:
+    # CLAUDE.md's pull request paragraph ends "the writing-style rules above"
+    # with five correct spans in front of it. Accepting the word anywhere in
+    # the unit fails all five.
+    text = "Lead with `## Why`, then `## What`. The prose obeys the rules above."
+    named = _attributed(text, "`## Why`", Path("/repo/CLAUDE.md"), Path("/repo"))
+    assert named.target is None and not named.path_shaped
+
+
+def test_a_positional_word_still_binds_across_a_wrapped_line() -> None:
+    # Re-wrapping a paragraph is an edit nothing announces, and a line scan
+    # goes quiet when the wrap lands between the span and the word.
+    here = Path("/repo/data/README.md")
+    text = "The check compares the record against `## Header shape`\nbelow, which says why."
+    assert _attributed(text, "`## Header shape`", here, Path("/repo")).target == here
+
+
+def test_a_markdown_link_attributes_the_span_that_follows_it(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("## Status\n", encoding="utf-8")
+    named = _attributed(
+        "and [README.md](README.md)'s `## Status` names what runs today.",
+        "`## Status`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+        known=[(tmp_path / "README.md").resolve()],
+    )
+    assert named.target == (tmp_path / "README.md").resolve()
+
+
+def test_a_link_resolves_from_the_file_holding_it(tmp_path: Path) -> None:
+    # docs/design.md writes `../data/README.md`, which is what a renderer
+    # follows and is not where the repository root would look.
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "README.md").write_text("## Header shape\n", encoding="utf-8")
+    (tmp_path / "docs").mkdir()
+    named = _attributed(
+        "the prose in [data/README.md](../data/README.md)'s `## Header shape`",
+        "`## Header shape`",
+        tmp_path / "docs" / "design.md",
+        tmp_path,
+        known=[(tmp_path / "data" / "README.md").resolve()],
+    )
+    assert named.target == (tmp_path / "data" / "README.md").resolve()
+
+
+def test_a_backticked_filename_resolves_from_the_repository_root(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("## The write-up\n", encoding="utf-8")
+    named = _attributed(
+        "`README.md`'s `## The write-up` lists the rest.",
+        "`## The write-up`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+        known=[(tmp_path / "README.md").resolve()],
+    )
+    assert named.target == (tmp_path / "README.md").resolve()
+
+
+def test_the_nearest_attribution_wins(tmp_path: Path) -> None:
+    # A register row carries several links, and the span belongs to the one
+    # beside it rather than to the first in the row.
+    for name in ("one.md", "two.md"):
+        (tmp_path / name).write_text("## Shared\n", encoding="utf-8")
+    known = [(tmp_path / name).resolve() for name in ("one.md", "two.md")]
+    named = _attributed(
+        "| `one.md` sets it out and `two.md`'s `## Shared` repeats it. |",
+        "`## Shared`",
+        tmp_path / "docs.md",
+        tmp_path,
+        known=known,
+    )
+    assert named.target == (tmp_path / "two.md").resolve()
+
+
+def test_an_alias_resolves_through_the_table(tmp_path: Path) -> None:
+    # The reference whose target has actually moved carries no path at all.
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "design.md").write_text("## How work is cut and ordered\n", "utf-8")
+    named = _attributed(
+        "The design doc's `## How work is cut and ordered` carries the rules.",
+        "`## How work is cut and ordered`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+        known=[(tmp_path / "docs" / "design.md").resolve()],
+    )
+    assert named.target == (tmp_path / "docs" / "design.md").resolve()
+
+
+def test_an_attribution_naming_no_tracked_document_stays_path_shaped(tmp_path: Path) -> None:
+    named = _attributed(
+        "`docs/build-plan.md`'s `## The order` says so.",
+        "`## The order`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+    )
+    assert named.target is None and named.path_shaped
+
+
+def test_a_span_with_nothing_attributing_it_resolves_to_nothing() -> None:
+    named = _attributed(
+        "An issue body opens with `## Done when`.",
+        "`## Done when`",
+        Path("/repo/docs/design.md"),
+        Path("/repo"),
+    )
+    assert named.target is None and not named.path_shaped
+
+
+def test_a_one_hash_span_is_a_comment_rather_than_a_heading(tmp_path: Path) -> None:
+    # A shell or Python comment is quoted in backticks the same way a heading
+    # is, and prose in this repo writes plenty of them.
+    root = _repository(
+        tmp_path,
+        {"CLAUDE.md": "The design doc explains `# type: ignore`.\n", "docs/design.md": "# D\n"},
+    )
+    assert sweep_heading_references(root) == []
+
+
+def test_an_alias_needs_its_own_word_boundaries(tmp_path: Path) -> None:
+    # "the design docs" names no one document, so it attributes nothing.
+    named = _attributed(
+        "Neither the design docs nor the tracker keep a body's `## Evidence`.",
+        "`## Evidence`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+    )
+    assert named.target is None and not named.path_shaped
+
+
+def test_a_url_ending_in_md_is_not_an_attribution(tmp_path: Path) -> None:
+    # A link to another repository's file names nothing this checkout holds,
+    # so reporting it would fail correct prose rather than find a deletion.
+    for written in (
+        "The template's `https://github.com/l3a0/repo-template/blob/main/CLAUDE.md`",
+        "The template's [CLAUDE.md](https://github.com/l3a0/repo-template/blob/main/CLAUDE.md)",
+    ):
+        named = _attributed(
+            f"{written} and a body's `## Why` after it.",
+            "`## Why`",
+            tmp_path / "CLAUDE.md",
+            tmp_path,
+        )
+        assert named.target is None and not named.path_shaped
+
+
+def test_a_home_directory_path_is_not_an_attribution(tmp_path: Path) -> None:
+    # CLAUDE.md names the owner's global instructions file this way today.
+    named = _attributed(
+        "The owner's global `~/.claude/CLAUDE.md` is the source, and its `## Writing style` wins.",
+        "`## Writing style`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+    )
+    assert named.target is None and not named.path_shaped
+
+
+def test_a_backticked_filename_written_upwards_resolves_from_the_document(
+    tmp_path: Path,
+) -> None:
+    # The repository root has no parent to climb to, so `../` can only mean
+    # the directory the sentence is written in.
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "README.md").write_text("## Header shape\n", encoding="utf-8")
+    (tmp_path / "docs").mkdir()
+    named = _attributed(
+        "`../data/README.md`'s `## Header shape` states it.",
+        "`## Header shape`",
+        tmp_path / "docs" / "design.md",
+        tmp_path,
+        known=[(tmp_path / "data" / "README.md").resolve()],
+    )
+    assert named.target == (tmp_path / "data" / "README.md").resolve()
+
+
+def test_a_positional_attribution_records_the_word_it_matched() -> None:
+    here = Path("/repo/data/README.md")
+    named = _attributed("`## Header shape` below is why.", "`## Header shape`", here, Path("/repo"))
+    assert named.written == "below"
+
+
+def test_a_python_filename_is_not_an_attribution(tmp_path: Path) -> None:
+    # Only a Markdown file can hold a Markdown heading, so a source file
+    # beside a span leaves the span unattributed rather than reported.
+    named = _attributed(
+        "[src/chan/vintage.py](src/chan/vintage.py) and `## Done when` after it.",
+        "`## Done when`",
+        tmp_path / "docs.md",
+        tmp_path,
+    )
+    assert named.target is None and not named.path_shaped
+
+
+# --- What a reference finding says --------------------------------------------
+
+
+def test_the_nearest_heading_is_the_one_sharing_most_words() -> None:
+    present = document_headings("## How work is cut\n\n## What this repo is for\n")
+    assert nearest_heading("How work is cut and ordered", present) == "## How work is cut"
+
+
+def test_no_shared_word_suggests_nothing() -> None:
+    # An unrelated heading offered as the answer sends a reader to the wrong
+    # section, which is worse than saying nothing.
+    present = document_headings("## Configuration\n")
+    assert nearest_heading("Status", present) == ""
+
+
+def test_a_finding_names_the_file_the_line_the_span_and_the_nearest_heading() -> None:
+    finding = ReferenceFinding(
+        Path("CLAUDE.md"), 6, "## Status", "names no heading in README.md", "## Statuses"
+    )
+    assert str(finding) == (
+        "CLAUDE.md:6: `## Status` names no heading in README.md, nearest present is `## Statuses`"
+    )
+
+
+def test_a_finding_with_no_suggestion_says_nothing_about_one() -> None:
+    finding = ReferenceFinding(Path("CLAUDE.md"), 6, "## Status", "names no heading in README.md")
+    assert str(finding) == "CLAUDE.md:6: `## Status` names no heading in README.md"
+
+
+# --- The heading sweep, end to end --------------------------------------------
+
+
+def test_a_renamed_heading_fails_and_the_message_names_the_one_that_replaced_it(
+    tmp_path: Path,
+) -> None:
+    root = _repository(
+        tmp_path,
+        {
+            "CLAUDE.md": "See [README.md](README.md)'s `## Status` for what runs.\n",
+            "README.md": "# Repo\n\n## Status of each replication\n\nRows.\n",
+        },
+    )
+    findings = sweep_heading_references(root)
+    assert _messages(findings) == [
+        "CLAUDE.md:1: `## Status` names no heading in README.md, "
+        "nearest present is `## Status of each replication`"
+    ]
+
+
+def test_a_rename_sharing_no_word_is_still_caught_and_suggests_nothing(tmp_path: Path) -> None:
+    root = _repository(
+        tmp_path,
+        {
+            "CLAUDE.md": "See [README.md](README.md)'s `## Status` for what runs.\n",
+            "README.md": "# Repo\n\n## Where the numbers come from\n\nRows.\n",
+        },
+    )
+    assert _messages(sweep_heading_references(root)) == [
+        "CLAUDE.md:1: `## Status` names no heading in README.md"
+    ]
+
+
+def test_a_demoted_heading_fails_although_its_text_is_still_there(tmp_path: Path) -> None:
+    # Nothing was renamed and nothing moved, and the reference still sends a
+    # reader to a section that is not at the level the prose says.
+    root = _repository(
+        tmp_path,
+        {
+            "CLAUDE.md": "See [README.md](README.md)'s `## Status` for what runs.\n",
+            "README.md": "# Repo\n\n### Status\n\nRows.\n",
+        },
+    )
+    assert _messages(sweep_heading_references(root)) == [
+        "CLAUDE.md:1: `## Status` names no heading in README.md, nearest present is `### Status`"
+    ]
+
+
+def test_a_span_attributed_to_a_document_this_repo_does_not_keep_is_reported(
+    tmp_path: Path,
+) -> None:
+    # What a retired document leaves behind. Skipping an attribution that does
+    # not resolve would make the sweep quiet about exactly that deletion.
+    root = _repository(tmp_path, {"CLAUDE.md": "`docs/build-plan.md`'s `## The order` says.\n"})
+    assert _messages(sweep_heading_references(root)) == [
+        "CLAUDE.md:1: `## The order` is attributed to docs/build-plan.md, "
+        "which this repo does not keep"
+    ]
+
+
+def test_a_past_tense_record_naming_a_retired_document_stays_quiet(tmp_path: Path) -> None:
+    # The branch is keyed on the span rather than on the filename, so a
+    # sentence saying a file used to hold something reports nothing.
+    root = _repository(tmp_path, {"CLAUDE.md": "`docs/build-plan.md` used to hold both.\n"})
+    assert sweep_heading_references(root) == []
+
+
+def test_a_span_nothing_attributes_is_left_alone(tmp_path: Path) -> None:
+    # An issue body's `## Done when` is not a rename of anything, and a
+    # fallback requiring the heading to exist somewhere fails nine correct
+    # sentences in this repo.
+    root = _repository(tmp_path, {"docs.md": "An issue body opens with `## Done when`.\n"})
+    assert sweep_heading_references(root) == []
+
+
+def test_a_table_row_does_not_lend_its_attribution_to_the_next_row(tmp_path: Path) -> None:
+    # Reading the table as one paragraph fails both rows below, which are
+    # correct prose. Removing the table-row split is what this pins.
+    root = _repository(
+        tmp_path,
+        {
+            "docs.md": (
+                "| Row | Note |\n"
+                "| --- | --- |\n"
+                "| A | [README.md](README.md)'s `## Status` lists it. |\n"
+                "| B | An issue body opens with `## Done when`. |\n"
+            ),
+            "README.md": "# Repo\n\n## Status\n",
+        },
+    )
+    assert sweep_heading_references(root) == []
+
+
+def test_a_heading_span_wrapped_across_two_lines_still_resolves(tmp_path: Path) -> None:
+    root = _repository(
+        tmp_path,
+        {
+            "docs.md": "See [README.md](README.md)'s `## How work is\ncut and ordered` for it.\n",
+            "README.md": "# Repo\n\n## How work is cut and ordered\n",
+        },
+    )
+    assert sweep_heading_references(root) == []
+
+
+def test_a_heading_quoted_inside_a_fence_is_not_a_reference(tmp_path: Path) -> None:
+    root = _repository(
+        tmp_path,
+        {"docs.md": "```bash\ngrep -n '[README.md](README.md)' && echo '`## Gone`'\n```\n"},
+    )
+    assert sweep_heading_references(root) == []
+
+
+# --- The anchor sweep, end to end ---------------------------------------------
+
+
+def test_an_anchor_no_heading_produces_is_flagged(tmp_path: Path) -> None:
+    root = _repository(tmp_path, {"docs.md": "# Doc\n\n[Jump](#the-order)\n\n## The ordering\n"})
+    assert _messages(sweep_fragment_links(root)) == [
+        "docs.md:3: `#the-order` names no anchor in docs.md, nearest present is `## The ordering`"
+    ]
+
+
+def test_an_anchor_matching_a_heading_resolves(tmp_path: Path) -> None:
+    root = _repository(tmp_path, {"docs.md": "# Doc\n\n[Jump](#the-order)\n\n## The order\n"})
+    assert sweep_fragment_links(root) == []
+
+
+def test_a_repeated_headings_suffixed_anchor_resolves(tmp_path: Path) -> None:
+    # The log's Contents links depend on the suffix, and a third entry adds a
+    # second repeat of each of its four repeated texts.
+    root = _repository(
+        tmp_path,
+        {
+            "log.md": "[One](#the-verdicts)\n[Two](#the-verdicts-1)\n\n## The verdicts\n\n"
+            "## The verdicts\n"
+        },
+    )
+    assert sweep_fragment_links(root) == []
+
+
+def test_a_cross_document_anchor_resolves_against_the_other_file(tmp_path: Path) -> None:
+    root = _repository(
+        tmp_path,
+        {
+            "docs/log.md": "[Terms](design.md#vocabulary)\n",
+            "docs/design.md": "# Design\n\n## Vocabulary\n",
+        },
+    )
+    assert sweep_fragment_links(root) == []
+
+
+def test_a_cross_document_anchor_that_stopped_resolving_is_flagged(tmp_path: Path) -> None:
+    root = _repository(
+        tmp_path,
+        {
+            "docs/log.md": "[Terms](design.md#vocabulary)\n",
+            "docs/design.md": "# Design\n\n## Pinned vocabulary\n",
+        },
+    )
+    assert _messages(sweep_fragment_links(root)) == [
+        "docs/log.md:1: `design.md#vocabulary` names no anchor in docs/design.md, "
+        "nearest present is `## Pinned vocabulary`"
+    ]
+
+
+def test_an_anchor_into_a_document_this_repo_does_not_keep_is_flagged(tmp_path: Path) -> None:
+    root = _repository(tmp_path, {"docs.md": "[Order](build-plan.md#the-order)\n"})
+    assert _messages(sweep_fragment_links(root)) == [
+        "docs.md:1: `build-plan.md#the-order` points at a document this repo does not keep"
+    ]
+
+
+def test_an_anchor_into_a_tracked_file_this_sweep_cannot_index_is_left_alone(
+    tmp_path: Path,
+) -> None:
+    # The committed HTML essay is a prose surface this repo keeps and this
+    # sweep cannot read headings from. Calling it missing is a false claim
+    # about a tracked file.
+    root = _repository(
+        tmp_path,
+        {
+            "README.md": "# R\n\nSee [the essay](docs/essay.html#lesson-three).\n",
+            "docs/essay.html": "<h2 id='lesson-three'>Lesson three</h2>\n",
+        },
+    )
+    assert sweep_fragment_links(root) == []
+
+
+def test_a_root_absolute_anchor_resolves_from_the_repository_root(tmp_path: Path) -> None:
+    # A leading slash is repository-absolute on GitHub rather than a machine
+    # path, and reading it as one sends every such link to a file nobody has.
+    root = _repository(
+        tmp_path,
+        {"docs/design.md": "# D\n\n## Vocabulary\n\n[Terms](/docs/design.md#vocabulary)\n"},
+    )
+    assert sweep_fragment_links(root) == []
+
+
+def test_an_external_fragment_link_is_left_alone(tmp_path: Path) -> None:
+    root = _repository(tmp_path, {"docs.md": "[Spec](https://example.com/page#section)\n"})
+    assert sweep_fragment_links(root) == []
+
+
+def test_an_anchor_inside_a_fence_is_not_a_link(tmp_path: Path) -> None:
+    root = _repository(tmp_path, {"docs.md": "```markdown\n[Gone](#no-such-heading)\n```\n"})
+    assert sweep_fragment_links(root) == []
+
+
+# --- The two whole-repo assertions ---------------------------------------------
+
+
+def test_the_repo_has_references_to_sweep() -> None:
+    """Name the shape rather than count the references.
+
+    Both sweeps below arrive empty and stay empty, so a scan that matches
+    nothing and a repo with nothing wrong in it are the same green suite. This
+    is what tells them apart. A count would go stale on the next paragraph
+    anybody writes, which is what `test_the_repo_has_markdown_to_sweep`
+    already decided about files.
+    """
+    quoted = [one for one in heading_references(REPO_ROOT) if one.attributed.target]
+    anchors = [link for link in fragment_links(REPO_ROOT) if link.document]
+    assert quoted, "no quoted heading in this repo is attributed to a document it keeps"
+    assert anchors, "no fragment link in this repo resolves to a document it keeps"
+
+
+def test_no_prose_surface_quotes_a_heading_that_is_not_there() -> None:
+    """A quoted heading is not a link, so nothing else here resolves it.
+
+    A reader who cannot find the section guesses which one was meant, or
+    concludes the instructions are stale and discounts the rest. CLAUDE.md is
+    loaded at the start of every session, so the second reading is paid by
+    every session after the drift lands.
+    """
+    findings = sweep_heading_references(REPO_ROOT)
+    assert not findings, "\n".join(_messages(findings))
+
+
+def test_every_fragment_link_resolves_to_a_heading() -> None:
+    """CLAUDE.md says to verify the Contents anchors by hand when a heading
+    changes. This is that, executed. An anchor nobody kept still renders as a
+    working link, and GitHub answers it by leaving the reader at the top."""
+    findings = sweep_fragment_links(REPO_ROOT)
+    assert not findings, "\n".join(_messages(findings))
 
 
 # --- The cross-surface layer ---------------------------------------------------
