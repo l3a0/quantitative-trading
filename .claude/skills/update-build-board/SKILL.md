@@ -179,6 +179,33 @@ that way. This is a fourth rollup behaviour alongside the three `CLAUDE.md`
 already lists, and it belongs there rather than only here, which
 [issue 87](https://github.com/l3a0/quantitative-trading/issues/87) carries.
 
+### Measure again immediately before publishing
+
+The figures taken at the start are a claim about the moment the update began,
+and an update takes minutes. Both halves of that gap have already cost something
+inside one session.
+
+1. **A rollup settled underneath the edit.** Pull request 90 read five checks
+   still running on the first pass and six green on the last. Publishing the
+   first reading would have said a branch was not ready when it was. The set of
+   runs is not fixed either: `CodeQL` had not been created when the first read
+   ran, so a session that reads the runs once is reading a set that is still
+   growing.
+2. **Two pull requests opened during the edit.** Pull requests 91 and 92 did not
+   exist when that update started. By the time it was ready to publish they had
+   emptied the Building column and moved two cards a whole stage each.
+
+So re-run the volatile commands as the last step before publishing, and publish
+what those say rather than what the session opened with. The volatile ones are
+the open issue count, the open pull request list, and every per-branch query.
+`main`, the vintage rows, the suite total and the highlight count move only when
+something merges, and a merge shows up in the first of them.
+
+The price is one more round of queries per update. What it buys is a page that
+is right when it is published rather than right when the update began. Nothing
+reads the page again afterwards, so whatever is wrong at publication stays wrong
+until the next session runs this.
+
 ## The data blocks, and what each owns
 
 Everything the page says comes from the blocks below. They are not adjacent:
@@ -200,7 +227,7 @@ One more constant is not in the table because nothing should edit it.
 | --- | --- |
 | `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
 | `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
-| `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card |
+| `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
 | `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
@@ -324,6 +351,10 @@ false. Six checks catch most of them.
    had forced to the bottom. Read each card's own marks against its place in the
    column.
 
+One class the six cannot reach. Every check above reads what the page rendered,
+so none of them sees code that renders nothing. Defect 13 is that class, and
+what catches it is a grep rather than a read.
+
 ## What goes wrong, from the record
 
 Each of these shipped or was caught at the last moment, except where a row says
@@ -360,6 +391,11 @@ than something new.
    `planMarker` that both the card and the legend call. **A legend calls whatever
    decides the marker, never a second copy of the rule.** That is defect 5 in a
    second place rather than a new kind of failure.
+
+   The inverse shipped too, and it is one rule read the other way. The in-flight
+   legend explained a plan marker and a pull request while saying nothing about
+   the session marker, which every card under it was drawing. A legend accounts
+   for each marker its own cards drew, and for no marker they did not.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
    declaration, which throws on load rather than degrading quietly. The stub
    catches this immediately.
@@ -382,15 +418,22 @@ ones a harness cannot see.
     the cards, and the longest one rendered several times the height of its
     neighbours for text that was already one click away. The argument belongs on
     the issue, and the card carries the position as a number.
-11. **A plan line under a pull request.** A card with an open branch said its
-    plan was ready to be written, directly above a line saying it was written.
-    The plan line and its marker are suppressed once a pull request exists,
-    while the sort still reads `PLANNED` so the card keeps its position whether
-    or not the marker is drawn. Two things follow. The suppression is specific to
-    that pair rather than a licence to hide other states. And a suppression rule
-    is a second consumer of the field, so it goes in one function every reader
-    calls rather than being written out wherever it is needed. Writing it twice
-    is what made the legend wrong, which is the second half of defect 6.
+11. **A plan line under work already under way.** A card with an open branch
+    said its plan was ready to be written, directly above a line saying it was
+    written. The owner later made the same call about a build session, which is
+    the same handover before a branch exists, so the marker now goes for either.
+    The sort still reads `PLANNED`, so the card keeps its position whether or not
+    the marker is drawn.
+
+    Three things follow. What decides the suppression is the question the marker
+    answers, whether the card can still be handed to a builder, rather than a
+    list of states to hide. A decompose loop is deliberately left out, because it
+    revises the plan rather than carrying it out, and a card under one is still
+    waiting for a builder. That distinction is why `WORKING` carries `kind`. And
+    a suppression rule is a second consumer of the field, so it goes in one
+    function every reader calls rather than being written out wherever it is
+    needed. Writing it twice is what made the legend wrong, which is the second
+    half of defect 6.
 12. **Two fixes that each worked, contradicting each other.** A priority chip
     was added to the cards when the ranking section was deleted, and separately
     the sort was changed to force a deferred card last because one had been
@@ -400,9 +443,31 @@ ones a harness cannot see.
     one only to record that it is deliberately not being done, and the dashed
     border and the kind word already say that. The shape is not rare: the card
     renderer carries two other comments reasoning about giving one card two
-    answers to one question. Check 6 below is what catches the next one, so a
+    answers to one question. Check 6 above is what catches the next one, so a
     rule added to a card is read against the card's own position rather than
     only against the data it came from.
+
+The last two are a third kind, and what they share is where they were found.
+Both were made and caught inside one session, by reading the harness output and
+the script beside it rather than by the owner reading the page.
+
+13. **Bindings left behind when the sentence they fed moved.** The board note
+    once described the cards a session was on. That sentence moved to the
+    in-flight note, and nine bindings that computed it stayed, one of them
+    building the whole paragraph and assigning it to a variable nothing reads.
+    The harness cannot see this, because it prints what the page rendered and
+    dead code renders nothing. So when a sentence is deleted or moved, grep the
+    script for the names that fed it. A leftover here costs more than ordinary
+    dead code: it is a finished sentence about live data sitting beside a surface
+    that would print it, and the next session to find it is likelier to wire it
+    back up than to delete it.
+14. **A set of alternatives joined with "and".** The board note lists the reasons
+    a first-column card is not free, and `andlist` joined them, so it read that a
+    card can need a decision rather than a session and be deferred on purpose.
+    One card, doing both. The join now takes its conjunction as an argument, and
+    `andlist` and `orlist` are two names for it. Check 5 catches a conjunction
+    whose other half dropped out. This one had its other half and was the wrong
+    word, so read what a joined list claims and not only that it is intact.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
@@ -454,7 +519,8 @@ the line it edits, and checks here for a sentence describing the same mechanism.
 
 ## Finishing
 
-Publish, then report in the same reply.
+Re-measure the volatile figures first, under **Measure again immediately before
+publishing** above, then publish and report in the same reply.
 
 1. The version number and what moved.
 2. Any sentence the execution caught, and what replaced it.
