@@ -11,9 +11,9 @@
   // MD024 (no-duplicate-heading): siblings_only allows a repeated heading
   // under different parents, such as a per-chapter section in the build plan
   // repeating a heading another chapter already uses, while still catching two
-  // same-named headings inside one section. Nothing in the repo relies on this
-  // today. It is kept because the structure that needs it recurs whenever a
-  // document groups the same shape of content more than once.
+  // same-named headings inside one section. docs/replication-log.md relies on
+  // it: Entry 2 repeats Entry 1's three table headings, which is the shape the
+  // file's own rule for a second entry asks for.
   //
   // MD033 (no-inline-html): <details> and <summary> render on GitHub and are
   // how a document hides an answer until the reader has committed to a

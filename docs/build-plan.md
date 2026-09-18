@@ -165,7 +165,8 @@ fundamentals, a small-cap panel, or fifteen years of one-minute bars.
 ## Test surface for the experiments
 
 Each experiment pins the figures the book prints, at the precision the book
-prints them, naming its vintage and its window. Where the book states a ranking
+prints them, naming its vintage and its window. An experiment that reads no
+series names neither and says so, which is what the coin-flip game does. Where the book states a ranking
 or a verdict rather than a figure, that is what gets pinned, because inventing a
 digit the source does not carry would be worse than pinning the claim the source
 makes. Which figures those are is on each issue, not restated here.

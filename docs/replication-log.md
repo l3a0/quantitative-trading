@@ -8,7 +8,7 @@ This file is where the verdicts live. One entry per replication, and one row
 per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
 vintage, what this repo computed, the gap, and the verdict. A row usually
-matches one published figure to one computation. Four of the rows below do not,
+matches one published figure to one computation. Four of Entry 1's rows do not,
 and each says so in its own cells.
 
 1. Row 2 carries no published figure, because the book prints no
@@ -17,10 +17,15 @@ and each says so in its own cells.
 3. Row 10 carries no published figure, because the book stops in 2007.
 4. Row 11 covers the two statistics Chan printed from one disagreement.
 
-Every result here is **exploratory** in the design doc's sense. Reproducing a
-published figure spends the sample on a hypothesis someone else already chose,
-so an entry can say whether the number reproduces and nothing about whether the
-trade works today.
+Entry 2 carries three of its own, and they are listed in that entry rather than
+here, because the list is about an entry's rows and not about the file.
+
+Every result in Entry 1 is **exploratory** in the design doc's sense.
+Reproducing a published figure spends the sample on a hypothesis someone else
+already chose, so an entry can say whether the number reproduces and nothing
+about whether the trade works today. Entry 2 spends no sample at all and is
+outside that label and its opposite both, which it states rather than picking
+one.
 
 ## Contents
 
@@ -39,6 +44,12 @@ trade works today.
   - [What the citations do not cover](#what-the-citations-do-not-cover)
   - [The chapter labels are first-edition shorthand](#the-chapter-labels-are-first-edition-shorthand)
   - [Nothing checks this file against the suite](#nothing-checks-this-file-against-the-suite)
+- [Entry 2: the coin-flip gamble, Chan's *Quantitative Trading*](#entry-2-the-coin-flip-gamble-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-1)
+  - [What this repo computed](#what-this-repo-computed-1)
+  - [The verdicts](#the-verdicts-1)
+  - [What the entry concludes](#what-the-entry-concludes-1)
+  - [Why no simulated number is pinned against the book](#why-no-simulated-number-is-pinned-against-the-book)
 
 ## How to read an entry
 
@@ -407,3 +418,120 @@ and the published
 Missing the second is the easy slip, because it is a hand-maintained copy that
 no build step regenerates. 1.6766 now appears on eleven tracked files and
 1.6379 on ten.
+
+## Entry 2: the coin-flip gamble, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, Example 6.1. Shipped under
+[issue 13](https://github.com/l3a0/quantitative-trading/issues/13).
+
+The name is a revised-edition label, and this entry declares it because the
+repo reads every other one as first-edition. It comes from the book's own prose
+at Kindle location 3186, "As Example 6.1 shows". The first-edition code mirror
+this repo cites for `example7_2.m` and `example7_3.m` carries `example6_2.xls`
+and `example6_3.m` and no `example6_1` in any form, so there is no companion
+file to check the arithmetic against. The printed prose is the whole source.
+
+Eight rows, all derivable from
+[tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py). Three
+carry no published figure and say so in their own cells: row 6 is the exact
+discrete rate the book does not print, row 7 states the ensemble side in log
+units, and row 8 is the capital comparison that makes the argument visible.
+
+**The vintage column says `none, synthetic` in every row.** A gamble has no
+vendor and no download date, so the column that makes every other row checkable
+has nothing to hold. Leaving it blank would read as an omission.
+
+### What the book printed
+
+| # | Row | Published figure | Where the book prints it |
+| --- | --- | --- | --- |
+| 1 | Expected gain per round, with infinite capital | \$5 | Kindle locations 3176 and 3186, which print it twice |
+| 2 | Expected return of one round | 0.005 | location 3186 |
+| 3 | Standard deviation of that return | 0.105 | location 3186 |
+| 4 | Expected growth rate, continuous approximation | −0.0005125 per round | location 3186 |
+| 5 | The rescaling, worked | \$2,000 of capital wins \$220 or loses \$200 | location 3186 |
+| 6 | Exact discrete growth rate | none, the book gives only the continuous approximation | n/a |
+| 7 | Ensemble average in log units | none, the book prints the simple return | n/a |
+| 8 | Capital after 1,000 rounds on each average | none, the book works no horizon | n/a |
+
+### What this repo computed
+
+| # | Specification | Vintage | Computed | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | Half the win less half the loss, at the starting capital | none, synthetic | \$5.00 | `TestBookFigures::test_expected_gain_is_five_dollars` |
+| 2 | Mean of the two equally likely returns, +0.11 and −0.10 | none, synthetic | 0.005 | `TestBookFigures::test_expected_return_and_standard_deviation` |
+| 3 | Population standard deviation over those two outcomes, not the sample form | none, synthetic | 0.105 | `TestBookFigures::test_expected_return_and_standard_deviation` |
+| 4 | `g = m - s^2 / 2` on that mean and that standard deviation | none, synthetic | −0.0005125 | `TestBookFigures::test_the_growth_rate_reproduces_to_the_digit` |
+| 5 | The stake the rescaling implies, as a fraction of capital at any level | none, synthetic | exactly 1/10, against a break-even stake of 1/11 | `TestBookFigures::test_the_stake_is_exactly_a_tenth` and `::test_the_gamble_sits_just_past_break_even` |
+| 6 | `0.5 * ln(1.11) + 0.5 * ln(0.90)` | none, synthetic | −0.00050025 | `TestTheNearMisses::test_the_exact_discrete_rate_is_a_different_number` |
+| 7 | `ln(1 + m)`, so both averages are per-round log rates | none, synthetic | +0.0049875 | `TestBookFigures::test_the_two_averages_disagree_in_sign` |
+| 8 | Each average compounded from \$1,000 over 1,000 rounds | none, synthetic | \$146,576 against \$606, a ratio of 241.72 | `TestTheCapitalDiverges::test_the_capital_a_reader_sees_at_a_thousand_rounds` and `::test_the_gap_widens_with_every_round` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.00 | reproduced | Chan's claim is that a player with infinite capital collects \$5 a round. The figure is exact and nothing can move it. |
+| 2 | 0.0000 | reproduced | Exact at the three decimals the book prints. |
+| 3 | 0.0000 | reproduced | Exact, and the specification is what the row holds. The sample form over two outcomes gives 0.14849 instead, which the suite pins as the near miss it is. |
+| 4 | 0.0000000 | reproduced | The replication. Chan's claim is that the growth rate is negative while the expected return is positive, so the layman refusing the gamble is right. It reproduces at the seven decimals he prints, and the claim survives with it. |
+| 5 | not statable, the source works an illustration rather than a figure | reproduced | Chan's claim is that adjusting the payoff keeps the return moments constant as capital moves. It does, and the stake it implies is exactly a tenth, so the word "roughly" in any paraphrase is doing no work. |
+| 6 | none | none, not a replication | The book prints only the continuous approximation. The row exists so −0.00050025 is not read as a failure to reproduce −0.0005125: it is a different quantity, computed exactly, differing at the fourth significant digit. |
+| 7 | none | none, not a replication | Derived so the two averages can be compared. The book's own two figures are not in one unit, since 0.005 is an arithmetic mean simple return and −0.0005125 is a log growth rate. |
+| 8 | none | none, not a replication | The book works no horizon. This row is what makes the argument visible, and the reason the entry does not end on a rate. |
+
+### What the entry concludes
+
+Four things, and the first is why a verdict here carries less than it looks.
+
+1. **The verdict was knowable before the work started.** A verdict says whether
+   the claim a published figure supports survives on this repo's vintage, and a
+   vintage is the mechanism that moves a number. There is none, so nothing
+   could have moved it and rows 1 to 5 could only reproduce. What this entry is
+   worth is rows 7 and 8, not its verdict column.
+2. **The book prints no formula, so the formula is what rows 3 and 4 hold.**
+   Three plausible choices give three numbers, and only one reproduces all four
+   of Chan's figures at once. The sample standard deviation gives −0.006025, out
+   by a factor of 11.8 and still printing as a small negative number. The exact
+   discrete rate gives −0.00050025. Both are pinned, because an assertion on
+   −0.0005125 alone would hold a number rather than a choice.
+3. **The two rates do not diverge. The capital does.** Both are constants in
+   the number of rounds, so a report showing two rates at one horizon shows a
+   disagreement in sign and never a divergence. Row 8 is the divergence: the
+   ratio grows as `exp(0.005488 * n)`, that exponent being one rate minus the
+   other, and it reaches 241.72 by 1,000 rounds.
+4. **Neither epistemic label reaches this entry.** The design doc defines
+   exploratory as a result produced by looking at the data and registered as one
+   whose hypothesis was committed before the number was seen. This spends no
+   sample, so the entry says both are inapplicable rather than picking one. A
+   reader taking "exploratory" here would think the arithmetic might not hold.
+
+### Why no simulated number is pinned against the book
+
+[src/chan/coin_flip_growth.py](../src/chan/coin_flip_growth.py) also runs a
+seeded simulation, and none of its output appears in the tables above. That is
+deliberate and worth stating, because a reader expecting a Monte Carlo would
+otherwise look for one.
+
+The per-flip standard deviation of the log return is 0.10486, so a growth rate
+estimated from a million flips carries a standard error of 1.05e-4 against a
+quantity of 5e-4. Chan prints seven decimals. Reaching one part in a hundred
+thousand takes about 110 million flips and one part in a million takes about
+eleven billion. So the simulation demonstrates the argument and the closed form
+is what the book's figures are pinned against.
+
+Two things the suite does pin about it, because a demonstration nobody sized is
+a demonstration that works on the seed somebody tried. At 1,000 paths by 1,000
+rounds the time average comes out negative on all of the first 200 seeds. At
+100 rounds by 200 paths it comes out positive on 56 of them, so more than a
+quarter of seeds show no divergence at all. The report prints the standard error
+beside the estimate and says when a size cannot resolve the sign, which is a
+line a reader sees rather than an exception, because at that size nothing has
+failed.
+
+The draw method is part of what a seed means, and the module names it. On seed
+7, `rng.integers`, `rng.random`, `rng.binomial` and `rng.standard_normal` give
+four different flip sequences. This is the shape row 11 of Entry 1 records,
+where a conclusion about a library turned out to be a conclusion about an
+`autolag` default.

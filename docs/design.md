@@ -11,6 +11,7 @@ carries the build order.
 - [What this repo is for](#what-this-repo-is-for)
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
+  - [The one replication that reads nothing](#the-one-replication-that-reads-nothing)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
 - [Considered and rejected](#considered-and-rejected)
@@ -261,6 +262,49 @@ Two things did not move, and the reasons are worth keeping.
    `ou_half_life` in the installed package was run to confirm the first half of
    that.
 
+### The one replication that reads nothing
+
+Every argument above is about data that moves underneath a result. Chan's
+coin-flip gamble, Example 6.1, has none. It is a fair coin paying $110 or
+costing $100 against $1,000 of capital, and every figure the book prints
+follows from those payoffs. [src/chan/coin_flip_growth.py](../src/chan/coin_flip_growth.py)
+works it and [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py)
+is the authority for every number quoted about it.
+
+Four things follow, and each one is a rule stated elsewhere in this repo
+meeting a case it was not written for.
+
+1. **A vintage column can say it has none.** The premise says a result is
+   committed next to the series it came from. There is no series, so the row
+   writes `none, synthetic` and `src/chan/__init__.py` now says a result names
+   its vintage or says it has none. Saying nothing would read as an omission.
+2. **Neither epistemic label reaches it.** The vocabulary defines exploratory
+   as a result produced by looking at the data, and registered as one whose
+   hypothesis was committed before the number was seen. This spends no sample,
+   so the entry states that both are inapplicable rather than picking one. A
+   reader taking "exploratory" here would think the arithmetic might not hold.
+3. **The verdict was knowable before the work started.** A verdict says
+   whether the claim a published figure supports survives on this repo's
+   vintage, and the mechanism that moves a number is a vintage. With none,
+   nothing can move it. The value of this replication is therefore not its
+   verdict. It is that the ensemble average and the time average are shown
+   disagreeing in sign, and that the log format was exercised a second time.
+4. **The book prints no formula, so the formula is what the pin holds.** Three
+   plausible choices give three numbers. The population standard deviation
+   with `g = m - s^2 / 2` reproduces −0.0005125 exactly. The sample form gives
+   −0.006025, out by a factor of 11.8. The exact discrete rate gives
+   −0.00050025, which differs at the fourth significant digit. The suite pins
+   all three, because a pin on the first alone holds a number rather than a
+   choice.
+
+One thing this replication cannot do is reach its own precision by simulation.
+The per-flip standard deviation of the log return is 0.10486, so a growth rate
+estimated from a million flips carries a standard error of 1.05e-4 against a
+quantity of 5e-4. Chan prints seven decimals. The pins are therefore closed
+form and the seeded run is the demonstration, sized from a measurement rather
+than from taste: at 100 rounds by 200 paths the time average came out positive
+on 56 of the first 200 seeds, and at 1,000 by 1,000 on none of them.
+
 ## Vocabulary
 
 Terms with exact definitions, reused on purpose. A term listed here is not a
@@ -275,6 +319,8 @@ candidate for a synonym.
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |
+| **ensemble average** | The average across many players of one gamble, which is what an expected return describes. Chan names it at Kindle location 3166. |
+| **time average** | The average over one player's own sequence of rounds, which is the compound growth rate of that player's capital. Chan calls it the time series average at location 3166. It is the one a trader lives in. |
 | **exploratory** | A result produced by looking at the data. It kills an idea or justifies a closer look, and it is never a verdict about whether an edge exists. |
 | **registered** | A result whose hypothesis was committed in writing before the number was seen. Only a registered result confirms anything. |
 
@@ -309,4 +355,9 @@ change that cuts it.
 | Depending on ithildincore by name plus a `[tool.uv.sources]` redirect | `ithildincore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
 | Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
+| Porting the sibling's `kelly_fraction` for the coin-flip growth rate | It is the only place in `trading-strategies` that computes a time-average log growth rate, and it computes it as one line inside a grid search rather than as a callable, so there is a line to retype and nothing to port. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) had already ruled the function out as the discrete form over a bag of trades. The ruling reaches Example 6.1 by a shorter route: that example optimises nothing at all. |
+| Porting the sibling's `common/portfolio.py` as growth arithmetic | It is not growth arithmetic. Its own docstring fixes every leg as dollar diffs over a fixed capital base, "never prior-day-equity returns (compounding returns do not add; dollars do)", so it decided against compounding on purpose. |
+| Porting the sibling's `simulate_sizing` for the coin-flip simulation | It folds draws through `equity *= (1 + fraction * r)`, which is the identity Example 6.1 needs, and nothing around that line carries over: an empirical bag of trade outcomes rather than a known two-point distribution, percentiles and ruin probabilities rather than a growth rate, and `random.Random` rather than the `numpy.random.default_rng` this repo uses throughout. A port would have been a rewrite. |
+| Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. |
+| A figure for the coin-flip divergence | `docs/figures` holds one image and it already costs three copies to keep in step, one file and two embeds, plus a redraw in the same change that moves it. The divergence is four rows of capital, which a terminal table and a log row carry without adding a third copy of a number the suite already pins. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |
