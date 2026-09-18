@@ -43,11 +43,11 @@ below does not, because it replaces the whole manifest. Nothing runs this
 concurrently and nothing is planned to, so the assumption is written down here
 instead of defended in code.
 
-Only a download is recorded. Four of the committed vintages carry ``saved_date``
-and ``source_workbook`` because they are columns lifted from Ernest Chan's
-workbooks, and no caller can produce one of those through this module. Reading
-them back is supported and writing a new one is not, since the thing that would
-write it does not exist.
+Only a download is recorded. The committed ``*_chan.csv`` vintages carry
+``saved_date`` and ``source_workbook`` because they are columns lifted from
+Ernest Chan's workbooks, and no caller can produce one of those through this
+module. Reading them back is supported and writing a new one is not, since the
+thing that would write it does not exist.
 
 The identity fields are compared as strings, so one source needs one spelling.
 Case is normalised and the price basis is one of the two terms the design doc's
@@ -151,7 +151,7 @@ class VintageEntry:
     back, since the line is free to hold a list where the class says a string.
 
     ``source_workbook`` names the spreadsheet a column was lifted from, and the
-    four ``*_chan.csv`` entries are the only ones carrying it. It is recorded
+    ``*_chan.csv`` entries are the only ones carrying it. It is recorded
     rather than derived because a symbol does not carry it. Chan's
     ``example6_2.xls`` holds a SPY column, and a ``SPY.xls`` in the same mirror
     holds a different series, so a filename joined from the symbol would name a
@@ -159,13 +159,22 @@ class VintageEntry:
     this manifest the authority for a vintage's provenance, and the workbook a
     column came from is provenance.
 
-    It is optional and unchecked, which is two decisions rather than one. It is
-    optional because a download has no workbook, and demanding one on every line
-    would refuse every vintage a vendor returned. It is unchecked because no
-    rule here can confirm a name in a mirror this repo does not hold. What holds
-    it instead is ``data/README.md``'s table, which states the same workbook in
-    the same spelling, and the assertion in ``tests/test_vintage.py`` that
-    compares the two.
+    Which lines may carry it is a rule and the name itself is not, which is two
+    decisions rather than one.
+
+    The rule is that a workbook implies a saved date, checked below. A download
+    has no workbook, so demanding one on every line would refuse every vintage a
+    vendor returned, and allowing one anywhere would let a line claim a series a
+    vendor returned came out of a spreadsheet. That is a provenance claim in the
+    field that says where a series came from, written permanently into a record
+    nothing rewrites. It is stated against ``saved_date`` rather than against
+    the vendor, because which word names a vendor is a convention this module
+    does not enforce, while the date fields are already an invariant it does.
+
+    The name is not checked, because no rule here can confirm a filename in a
+    mirror this repo does not hold. What holds it instead is ``data/README.md``'s
+    table, which states the same workbook in the same spelling, and the
+    assertion in ``tests/test_vintage.py`` that compares the two.
 
     Like ``saved_date``, it is a field :func:`record_vintage` can never write,
     since the recorder takes rows and a download date and no workbook at all.
@@ -192,6 +201,13 @@ class VintageEntry:
                 f"{self.path}: an entry carries a download date or a saved date, not both and "
                 f"not neither"
             )
+        if self.source_workbook is not None and self.saved_date is None:
+            raise ValueError(
+                f"{self.path}: an entry carrying a source workbook carries a saved date, "
+                f"because the workbook is the thing that was saved. A series a vendor "
+                f"returned did not come out of a spreadsheet."
+            )
+
         # The writer's own functions, so a line reads back only if the recorder
         # would have written it. Running them here rather than in
         # :func:`read_manifest` puts them inside the refusal that already names
@@ -639,9 +655,12 @@ def _wrong_shape(parsed: object) -> str | None:
     known = {field.name for field in fields(VintageEntry)}
     # A field with a default is not required on the line, which covers the two
     # date fields, since `__post_init__` takes exactly one of the two and
-    # `as_json` writes only the one that is set. Naming those two here instead
-    # would give the same eight names today and would refuse the module's own
-    # output the first time `VintageEntry` gains another optional field.
+    # `as_json` writes only the one that is set, and `source_workbook`, which
+    # only a workbook column carries. That third one is the case this comment
+    # used to predict: naming the optional fields here instead would have
+    # refused the module's own output the first time `VintageEntry` gained
+    # another, and reading the required set off `dataclasses.fields` is why
+    # adding it refused nothing.
     required = {
         field.name
         for field in fields(VintageEntry)

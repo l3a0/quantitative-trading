@@ -12,12 +12,17 @@ were typed by hand. That is the whole reason they need naming. A hand-written
 line has no generator to check it against, while a recorded one does, and the
 two therefore need different assertions rather than one applied to both.
 
-The identity here is the five fields that say what a reader is looking at,
-keyed by the path that names the file. Four of them are confirmable from
-nothing at all: a hash says the bytes did not move and says nothing about
-which vendor sent them, on what day, or which price they carry. The symbol is
-the exception, and only for these eight, because each carries yfinance's
-``Ticker,`` header row.
+Six fields are pinned, keyed by the path that names the file. Five are the
+identity, meaning what a reader is looking at, and four of those are
+confirmable from nothing at all: a hash says the bytes did not move and says
+nothing about which vendor sent them, on what day, or which price they carry.
+The symbol is the exception, and only for these eight, because each carries
+yfinance's ``Ticker,`` header row.
+
+The sixth is ``source_workbook``, which says where the bytes came from rather
+than what they are. It is pinned with the identity because it is hand-typed on
+both surfaces that state it, so the two agreeing says nothing about either
+being right.
 """
 
 from __future__ import annotations
@@ -29,29 +34,44 @@ from pathlib import Path
 from chan.paths import DATA_DIR
 from chan.vintage import MANIFEST_NAME, VintageEntry
 
-#: Path to ``(vendor, symbol, price_basis, download_date, saved_date)``.
+#: Path to ``(vendor, symbol, price_basis, download_date, saved_date,
+#: source_workbook)``.
 #:
 #: The four ``*_chan.csv`` entries carry a saved date and no download date,
 #: because they are columns lifted from Ernest Chan's workbooks and nothing
-#: was fetched on that day.
+#: was fetched on that day. They carry the workbook for the same reason, and
+#: it is pinned here rather than left to the table alone because both surfaces
+#: stating it are hand-typed. A hand edit that moves the manifest and
+#: ``data/README.md`` together agrees with itself, so the check comparing the
+#: two passes and only a pin fails it.
 BACKFILLED = {
-    "gld_20yr_prices.csv": ("yfinance", "GLD", "adjusted", "2026-06-16", None),
-    "gld_20yr_prices_unadjusted.csv": ("yfinance", "GLD", "raw", "2026-08-27", None),
-    "gdx_20yr_prices.csv": ("yfinance", "GDX", "adjusted", "2026-08-27", None),
-    "gdx_20yr_prices_unadjusted.csv": ("yfinance", "GDX", "raw", "2026-08-27", None),
-    "gld_chan.csv": ("chan-xls", "GLD", "adjusted", None, "2007-12-02"),
-    "gdx_chan.csv": ("chan-xls", "GDX", "adjusted", None, "2007-12-02"),
-    "ko_chan.csv": ("chan-xls", "KO", "adjusted", None, "2008-01-23"),
-    "pep_chan.csv": ("chan-xls", "PEP", "adjusted", None, "2008-01-23"),
+    "gld_20yr_prices.csv": ("yfinance", "GLD", "adjusted", "2026-06-16", None, None),
+    "gld_20yr_prices_unadjusted.csv": ("yfinance", "GLD", "raw", "2026-08-27", None, None),
+    "gdx_20yr_prices.csv": ("yfinance", "GDX", "adjusted", "2026-08-27", None, None),
+    "gdx_20yr_prices_unadjusted.csv": ("yfinance", "GDX", "raw", "2026-08-27", None, None),
+    "gld_chan.csv": ("chan-xls", "GLD", "adjusted", None, "2007-12-02", "GLD.xls"),
+    "gdx_chan.csv": ("chan-xls", "GDX", "adjusted", None, "2007-12-02", "GDX.xls"),
+    "ko_chan.csv": ("chan-xls", "KO", "adjusted", None, "2008-01-23", "KO.xls"),
+    "pep_chan.csv": ("chan-xls", "PEP", "adjusted", None, "2008-01-23", "PEP.xls"),
 }
 
 
-def identity_of(entry: VintageEntry) -> tuple[str, str, str, str | None, str | None]:
-    """The five fields :data:`BACKFILLED` pins, read off an entry.
+def identity_of(
+    entry: VintageEntry,
+) -> tuple[str, str, str, str | None, str | None, str | None]:
+    """The six fields :data:`BACKFILLED` pins, read off an entry.
 
     Written here rather than at each call site so the tuple's order is decided
     once. A pin compared against a tuple assembled in a different order fails
     on fields that agree.
+
+    Five of the six say what a reader is looking at. ``source_workbook`` says
+    where the bytes came from instead, and it is pinned beside them because
+    nothing else in the tree fails a hand edit to it. The four ``.xls`` names
+    here happen to be their columns' symbols, which is what
+    [issue 152](https://github.com/l3a0/quantitative-trading/issues/152) stopped
+    deriving. Reading them off a list rather than joining them is the point: the
+    fifth workbook column's name is not its symbol.
     """
     return (
         entry.vendor,
@@ -59,6 +79,7 @@ def identity_of(entry: VintageEntry) -> tuple[str, str, str, str | None, str | N
         entry.price_basis,
         entry.download_date,
         entry.saved_date,
+        entry.source_workbook,
     )
 
 

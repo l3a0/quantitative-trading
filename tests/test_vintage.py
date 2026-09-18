@@ -1184,6 +1184,12 @@ def the_table_and_the_manifest_agree(directory: Path) -> None:
     somebody writes the row, and whoever reads the failure is the person who has
     to write it.
 
+    One failure names the path and no column, and it is the one case where no
+    column has two values to name. A `chan-xls` entry recording no source
+    workbook leaves `_vendor_cell` with nothing to build a cell from, so the
+    instruction is to write the missing field on the manifest line rather than
+    to move a cell toward it.
+
     Every column is compared, the File cell included. Pairing a row with an
     entry needs the path with its backticks off, and stopping there would leave
     one cell keyed on and never read, so the File cell is held to the spelling
@@ -1314,8 +1320,11 @@ class TestTheCommittedManifest:
         """A line's text is decided by the entry, not by how it was typed.
 
         Without sorted keys a hand-written line and a recorded one differ in
-        field order while carrying the same nine values, and the manifest stops
-        being a file a diff can be read against.
+        field order while carrying the same values, and the manifest stops being
+        a file a diff can be read against. No count is given, because the two
+        kinds of line do not carry the same number of fields: a workbook column
+        carries a saved date and the workbook it was lifted from, where a
+        download carries a download date and neither.
         """
         lines = (DATA_DIR / MANIFEST_NAME).read_text(encoding="utf-8").splitlines()
 
@@ -1369,6 +1378,41 @@ class TestTheCommittedManifest:
         for name, entry in by_path.items():
             assert (entry.download_date is None) != (entry.saved_date is None), name
             assert (entry.saved_date is not None) == name.endswith("_chan.csv"), name
+
+    def test_only_a_workbook_column_names_a_source_workbook(self):
+        """A series a vendor returned did not come out of a spreadsheet.
+
+        The committed half of the rule `VintageEntry` enforces, held the way
+        the case above holds the date fields. What it catches here is a hand
+        edit putting a workbook on a downloaded line, which states a false
+        source in the field that says where a series came from, in a record
+        nothing rewrites.
+
+        `read_manifest` refuses such a line before this runs, so a broken
+        manifest fails as a refusal rather than here. This is what says the
+        committed record satisfies the rule rather than the rule merely
+        existing.
+        """
+        for name, entry in {e.path: e for e in read_manifest()}.items():
+            assert (entry.source_workbook is not None) == name.endswith("_chan.csv"), name
+
+    def test_a_download_that_claims_a_workbook_is_refused_on_the_way_back(self, tmp_path):
+        """The rule bites on read, not only on the lines committed today.
+
+        Driven against a copy, because the state under test is a manifest line
+        this repo does not hold and must never hold. A download carrying a
+        workbook would otherwise read back clean: `_vendor_cell` returns the
+        bare vendor for anything that is not `chan-xls`, so the table check
+        never reaches the field, and `as_json` writes it back unchanged.
+        """
+        directory = committed_copy(tmp_path)
+        rewrite_entry(directory, "gld_20yr_prices.csv", source_workbook="example6_2.xls")
+
+        with pytest.raises(ValueError, match="gld_20yr_prices.csv") as refused:
+            read_manifest(directory)
+
+        assert "source workbook" in str(refused.value)
+        assert "saved date" in str(refused.value)
 
         shared = dict(
             vendor="yfinance",
