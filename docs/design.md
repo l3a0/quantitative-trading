@@ -331,7 +331,8 @@ with a component nobody can run is cut the wrong way.
 
 The recorder is the worked example and the caution at once. It shipped as
 `Part of` its issue rather than closing it, because a vintage nothing can read
-is a component nobody can run. The issue stays open for the reading half.
+is a component nobody can run. Nothing here reads what it writes yet, and that
+wait is what cutting this one too narrowly cost.
 
 ### What an experiment pins
 
