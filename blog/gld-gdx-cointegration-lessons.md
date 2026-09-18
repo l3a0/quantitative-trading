@@ -98,7 +98,7 @@ Cointegration flickers on and off, and just 31 of the 231 windows clear even the
 | Run | Window | Hedge (origin) | CADF t | Verdict |
 | --- | --- | --- | --- | --- |
 | Ch. 7 full | 2006-05 – 2007-11 | 1.6766 → 1.6379 | −3.36 → −3.45 | \~95% |
-| Ch. 3 (p.63) | first 252 days | 1.6766 → 1.6283 | −3.18 → −3.09 | \~90% |
+| Ch. 3 (p.63) | first 252 days | none → 1.6283 | −3.18 → −3.09 | \~90% |
 
 *Exploratory reproduction, not investment advice. Figures are from a from-scratch Python re-run on yfinance data and will not match the book to the last digit, by design.*
 
