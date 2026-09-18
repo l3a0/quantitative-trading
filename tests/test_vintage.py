@@ -295,30 +295,43 @@ class TestTheRefusal:
 
         assert manifest_lines(data_dir) == []
 
-    def test_the_writer_checks_its_date_before_it_builds_anything(self, data_dir):
-        """The reader's guard catches the same date later and in worse words.
+    def test_the_writer_checks_its_input_before_it_builds_anything(self, data_dir):
+        """The reader's guard catches the same values later and in worse words.
 
-        `record_vintage` validates its download date first, then builds a
+        `record_vintage` validates its own arguments first, then builds a
         filename, then reads the manifest. `VintageEntry` now refuses the same
-        value, which makes the writer's own call look redundant to whoever
-        reads the two together. Deleting it costs two messages.
+        values, which makes the writer's own calls look redundant to whoever
+        reads the two together. Deleting either costs two messages.
 
         1. The refusal names `..._dlbanana.csv`, a path that never existed.
         2. Against a directory with no manifest, the read runs first and the
-           refusal reports a missing manifest rather than a bad date, which is
+           refusal reports a missing manifest rather than a bad value, which is
            the conflation `read_manifest`'s own docstring exists to stop.
 
-        Both assertions anchor at the start of the message, because the
-        reader's guard prefixes the entry's path and the writer's does not.
+        The price basis is pinned here as well as in
+        `test_an_unknown_price_basis_is_refused`, which is the test that reads
+        as owning it. The guard raises that test's sentence from
+        `__post_init__` too, and that test matches it unanchored, so it cannot
+        tell which of the two sites raised. Deleting the writer's
+        `_validated_identity` call leaves it green.
+
+        The assertions anchor at the start of the message, because the reader's
+        guard prefixes the entry's path and the writer's does not.
         """
         with pytest.raises(ValueError, match=r"^download date 'banana' is not"):
             record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "banana"})
+
+        with pytest.raises(ValueError, match=r"^price basis 'unadjusted' is not"):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "price_basis": "unadjusted"})
 
         unrecorded = data_dir / "no-manifest-here"
         unrecorded.mkdir()
 
         with pytest.raises(ValueError, match=r"^download date 'banana' is not"):
             record_vintage(ROWS, data_dir=unrecorded, **{**SOURCE, "download_date": "banana"})
+
+        with pytest.raises(ValueError, match=r"^price basis 'unadjusted' is not"):
+            record_vintage(ROWS, data_dir=unrecorded, **{**SOURCE, "price_basis": "unadjusted"})
 
         assert manifest_lines(data_dir) == []
 
@@ -359,6 +372,91 @@ class TestTheRefusal:
         manifest.write_text(f"{good}\n{json.dumps(readable)}\n", encoding="utf-8")
 
         assert [entry.obtained for entry in read_manifest(data_dir)] == ["2026-08-27"] * 2
+
+    def test_an_identity_the_writer_would_not_have_written_is_refused_on_the_way_back(
+        self, data_dir
+    ):
+        """`resolve_vintage` matches three fields as strings, so a spelling is the record.
+
+        A misspelled field is worse than a missing line. Deleting an entry
+        leaves its file named by nothing, so the no-match refusal lists the file
+        and says to go look. A line spelling the vendor `Yfinance` still names
+        its own path, so before this guard the reader answered that no such
+        vintage was committed and listed nothing as unrecorded, which is a wrong
+        fact rather than a stopped run.
+
+        Three classes are driven, because a guard holding one accepts the
+        others. `Yfinance` and `gdx` are the ones that matter most: the
+        validator accepts both and rewrites them, so a guard calling it for its
+        refusals alone lets them through. What refuses them is comparing the
+        triple it returns against the triple the line holds. `Raw` and
+        `unadjusted` are refused outright, and the rest are what the writer's
+        two patterns and its type check refuse.
+
+        Each case is pinned on the cause rather than on `read_manifest`'s own
+        message, because the cause is what says which field was wrong and both
+        spellings, and it is what [issue
+        85](https://github.com/l3a0/quantitative-trading/issues/85) will carry
+        out to an operator. The vendor cases also pin that a refusal quotes the
+        line's own spelling, since lowering before matching would report
+        `'yahoo finance'` for a line nothing in the manifest spells that way.
+        The last case differs in two fields at once, which is what a badly
+        merged line looks like, and it holds the message naming both rather
+        than the first.
+
+        The bad line is written rather than placed through a helper, because a
+        helper builds the entry first and the guard would refuse it there,
+        which tests nothing about reading. It is the second line, so the refusal
+        is shown naming the line it came from rather than the only one there is.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        recorded = json.loads(good)
+        refused = [
+            ("vendor", "Yfinance", "vendor reads 'Yfinance' and the recorder writes 'yfinance'"),
+            ("symbol", "gdx", "symbol reads 'gdx' and the recorder writes 'GDX'"),
+            ("price_basis", "Raw", "price basis 'Raw' is not one of"),
+            ("price_basis", "unadjusted", "price basis 'unadjusted' is not one of"),
+            ("vendor", "Yahoo Finance", "vendor 'Yahoo Finance' carries a character"),
+            ("vendor", "alpha_vantage", "vendor 'alpha_vantage' carries a character"),
+            ("symbol", "A/B", "symbol 'A/B' carries a character"),
+            ("symbol", "", "symbol '' carries a character"),
+            ("vendor", ["yfinance"], "vendor and symbol are strings, not <class 'list'>"),
+            (
+                "symbol",
+                {"a": 1},
+                "vendor and symbol are strings, not <class 'str'> and <class 'dict'>",
+            ),
+            ("price_basis", 7, "price basis 7 is not one of"),
+        ]
+
+        for field, value, says in refused:
+            line = json.dumps({**recorded, field: value})
+            manifest.write_text(f"{good}\n{line}\n", encoding="utf-8")
+
+            with pytest.raises(ValueError, match="line 2") as refusal:
+                read_manifest(data_dir)
+            assert f"{RECORDED_NAME}: {says}" in str(refusal.value.__cause__)
+
+        both = json.dumps({**recorded, "vendor": "Yfinance", "symbol": "gdx"})
+        manifest.write_text(f"{good}\n{both}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError, match="line 2") as refusal:
+            read_manifest(data_dir)
+        said = str(refusal.value.__cause__)
+        assert "vendor reads 'Yfinance' and the recorder writes 'yfinance'" in said
+        assert "symbol reads 'gdx' and the recorder writes 'GDX'" in said
+
+        # The same second line rewritten to a spelling the writer would have
+        # produced, so the refusals above are the identity field's doing rather
+        # than the line's shape. A different vendor rather than the one already
+        # there, which is what says the line was rewritten at all.
+        manifest.write_text(
+            f"{good}\n{json.dumps({**recorded, 'vendor': 'fred'})}\n", encoding="utf-8"
+        )
+
+        assert [entry.vendor for entry in read_manifest(data_dir)] == ["yfinance", "fred"]
 
     def test_a_close_that_is_not_a_finite_number_is_refused(self, data_dir):
         """A vendor value too large to parse arrives as an infinity, not as an error.
@@ -810,10 +908,11 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
 
     Two limits are worth naming rather than leaving to be found.
 
-    1. The symbol's case is not recoverable, because the join lowercases it.
-       An entry edited from `SPY` to `spy` passes, and
-       [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) is
-       where a reader-side spelling check belongs.
+    1. The symbol's case is not recoverable, because the join lowercases it,
+       so an entry edited from `SPY` to `spy` agrees with its own name here.
+       What catches that edit is `VintageEntry` refusing a line whose identity
+       fields are not the spelling the recorder would have written, which means
+       `read_manifest` refuses before this check sees the entry at all.
     2. The predicate is "not one of the eight" where the intent is "the
        recorder wrote it". They part on a ninth workbook column added by hand,
        which would fail here. Nothing can write one: `record_vintage` has no

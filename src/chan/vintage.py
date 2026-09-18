@@ -53,6 +53,15 @@ Case is normalised and the price basis is one of the two terms the design doc's
 vocabulary defines, because ``raw`` against ``unadjusted`` would otherwise be
 two vintages of one download. Which word names a vendor is a convention rather
 than a rule, and the manifest's existing rows are what carry it.
+
+Normalising happens on the writing side only, and a line already in the manifest
+is refused when its spelling is not the one the recorder would have written.
+Refused rather than repaired, because a record one surface rewrites while
+another writes it plainly is a record two surfaces disagree about. The refusal
+is worth more than its odds suggest. Without it a misspelled field left the
+entry naming its own file, so :func:`resolve_vintage` answered that no such
+vintage was committed and listed nothing as unrecorded, which is a wrong fact
+rather than a stopped run. With it the line stops the read and names itself.
 """
 
 from __future__ import annotations
@@ -83,6 +92,12 @@ PRICE_BASES = ("raw", "adjusted")
 # has seen, because the vendors and tickers this repo will want are not known
 # yet: a leading caret is how every index is written, and an equals sign is how
 # futures and currency pairs are.
+#
+# They decide what the record may hold and not only what the recorder accepts,
+# because :class:`VintageEntry` runs them over a line read back as well. So
+# tightening either one refuses the committed vintages it newly excludes, and
+# one refused line refuses the whole manifest rather than the line, which means
+# a tightening naming four entries takes down all eight.
 VENDOR_PATTERN = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 SYMBOL_PATTERN = re.compile(r"^[A-Z0-9^][A-Z0-9.=^-]*$")
 
@@ -126,12 +141,16 @@ class VintageEntry:
     vintage.
 
     Both rules are checked wherever an entry is built, which includes the line
-    :func:`read_manifest` reads back. A hand-edited or badly-merged line is how
-    a date ``record_vintage`` would have refused reaches the record, and a
-    record whose reader takes such a date is weaker than the writer that filled
-    it. The other four identity fields are not checked here. Two of them are
-    [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) and the
-    path is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
+    :func:`read_manifest` reads back, and so are ``vendor``, ``symbol`` and
+    ``price_basis``, the three fields :func:`resolve_vintage` matches an ask
+    against. A hand-edited or badly-merged line is how a value
+    ``record_vintage`` would have refused reaches the record, and a record whose
+    reader takes such a value is weaker than the writer that filled it. Checking
+    the three is also what makes their ``str`` annotations true of an entry read
+    back, since the line is free to hold a list where the class says a string.
+
+    The span is not checked here, because nothing in ``src/`` reads it. The path
+    is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
     """
 
     vendor: str
@@ -151,12 +170,38 @@ class VintageEntry:
                 f"{self.path}: an entry carries a download date or a saved date, not both and "
                 f"not neither"
             )
-        # The writer's own function, so a line reads back only if the recorder
-        # would have written it. Running it here rather than in
-        # :func:`read_manifest` puts it inside the refusal that already names
+        # The writer's own functions, so a line reads back only if the recorder
+        # would have written it. Running them here rather than in
+        # :func:`read_manifest` puts them inside the refusal that already names
         # the line number, and holds a directly built entry too.
         field = "download date" if self.download_date is not None else "saved date"
         _validated_date(self.obtained, f"{self.path}: {field}")
+
+        # Comparing the two triples rather than calling the validator for its
+        # refusals alone. It normalises as well as refusing, so a guard reading
+        # only its raises accepts a vendor spelled `Yfinance` and leaves
+        # `resolve_vintage` unable to see the record. The question is what the
+        # recorder would have written, not what it would have refused.
+        #
+        # The price basis reaches the comparison equal or not at all, since the
+        # validator returns it unchanged or raises. It is compared anyway,
+        # because the invariant is the whole triple rather than the two fields
+        # that happen to normalise today.
+        held = (self.vendor, self.symbol, self.price_basis)
+        recorded = _validated_identity(*held, where=f"{self.path}: ")
+        if recorded != held:
+            differs = ", ".join(
+                f"{name} reads {line!r} and the recorder writes {written!r}"
+                for name, line, written in zip(
+                    ("vendor", "symbol", "price basis"), held, recorded, strict=True
+                )
+                if line != written
+            )
+            raise ValueError(
+                f"{self.path}: {differs}. The manifest is matched on the identity fields as "
+                f"strings, so a spelling the recorder would not have written names a vintage "
+                f"no reader can find."
+            )
 
     @property
     def obtained(self) -> str:
@@ -559,17 +604,33 @@ def _validated_rows(rows: Iterable[tuple[str, float]]) -> list[tuple[str, float]
     return materialized
 
 
-def _validated_identity(vendor: str, symbol: str, price_basis: str) -> tuple[str, str, str]:
+def _validated_identity(
+    vendor: str, symbol: str, price_basis: str, where: str = ""
+) -> tuple[str, str, str]:
+    """The triple the recorder would write, or a refusal naming the field that stopped it.
+
+    ``where`` prefixes every message, because this runs both for a caller's
+    arguments and for a line already in the manifest, and only the second has an
+    entry to point at. :func:`record_vintage` passes nothing, since
+    :func:`vintage_filename` has not run yet and there is no path to quote.
+
+    A refusal quotes the value as it was handed over rather than as it was
+    lowered, so a reader grepping the manifest for what the message said finds
+    the line. Lowering first would report ``'yahoo finance'`` for a line reading
+    ``Yahoo Finance``.
+    """
     if not isinstance(vendor, str) or not isinstance(symbol, str):
-        raise ValueError(f"vendor and symbol are strings, not {type(vendor)} and {type(symbol)}")
-    vendor, symbol = vendor.lower(), symbol.upper()
-    if not VENDOR_PATTERN.match(vendor):
-        raise ValueError(f"vendor {vendor!r} carries a character a path cannot")
-    if not SYMBOL_PATTERN.match(symbol):
-        raise ValueError(f"symbol {symbol!r} carries a character a path cannot")
+        raise ValueError(
+            f"{where}vendor and symbol are strings, not {type(vendor)} and {type(symbol)}"
+        )
+    lowered, uppered = vendor.lower(), symbol.upper()
+    if not VENDOR_PATTERN.match(lowered):
+        raise ValueError(f"{where}vendor {vendor!r} carries a character a path cannot")
+    if not SYMBOL_PATTERN.match(uppered):
+        raise ValueError(f"{where}symbol {symbol!r} carries a character a path cannot")
     if price_basis not in PRICE_BASES:
-        raise ValueError(f"price basis {price_basis!r} is not one of {PRICE_BASES}")
-    return vendor, symbol, price_basis
+        raise ValueError(f"{where}price basis {price_basis!r} is not one of {PRICE_BASES}")
+    return lowered, uppered, price_basis
 
 
 def _validated_date(value: str, label: str) -> None:
