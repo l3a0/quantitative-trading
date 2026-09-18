@@ -38,7 +38,7 @@ jobs:
 
       - name: Install the toolchain and dependencies
         # `--locked` rather than a plain sync. The lockfile is what records
-        # which commit of quantcore produced this repo's pinned numbers, and
+        # which commit of ithildincore produced this repo's pinned numbers, and
         # a plain sync silently re-locks and installs different code whenever
         # pyproject.toml and uv.lock disagree. `--locked` fails instead, so
         # the pin cannot drift without somebody seeing it.

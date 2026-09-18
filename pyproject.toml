@@ -15,12 +15,12 @@ requires-python = ">=3.12"
 # ithildincore is named by a direct URL at an exact commit, and both halves of
 # that are deliberate.
 #
-# The commit rather than the v0.1.0 tag it belongs to, because a tag can be
-# moved on the remote. uv.lock records whatever this resolves to and
-# `uv sync --locked` in CI refuses to re-resolve, but a `uv lock --upgrade`
-# would follow a tag wherever it now points. The numbers in
-# tests/test_pair_cointegration.py were computed by this exact code, so moving
-# the pin is a re-pin of this repo and not a dependency bump.
+# The commit rather than the tag it belongs to, because a tag can be moved on
+# the remote. uv.lock records whatever this resolves to and `uv sync --locked`
+# in CI refuses to re-resolve, but a `uv lock --upgrade` would follow a tag
+# wherever it now points. The numbers in tests/test_pair_cointegration.py were
+# computed by this exact code, so moving the pin is a re-pin of this repo and
+# not a dependency bump.
 #
 # The URL rather than a bare `ithildincore>=0.1` with a [tool.uv.sources] entry,
 # because `ithildincore` is an occupied name on PyPI, an unrelated C++ backtesting
