@@ -280,12 +280,64 @@ A repo drifts when two surfaces describe the same thing and only one gets update
 - **The design doc is the single authority for reasoning.** Code comments point at it rather than restating it.
 - **The issue is the single authority for unbuilt scope**, per the tracker directive above.
 
-This repo has four Markdown surfaces and states its premise on three of them,
-so prose already drifts here. What it does not yet have is the machinery the
-wider sweep policy is written for: no generated artifact, no figure embed, and
-no link or prose reference that names a line number. That policy is deferred
-on a count of zero for those, and its trigger is written down on
-[issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
+### The sweep policy applies here
+
+It was deferred on a count of zero and
+[issue 6](https://github.com/l3a0/quantitative-trading/issues/6) wrote down
+what would reopen it. All three triggers have fired, so the owner kept it on
+2026-09-18 and this is where it lives.
+
+This repo has ten prose surfaces: nine Markdown files and
+`docs/gld-gdx-cointegration-lessons.html`. That HTML file is the sharp case,
+because it is a second rendering of `blog/gld-gdx-cointegration-lessons.md`
+rather than a document of its own, and nothing generates it from the Markdown.
+
+**The one figure exists in three copies, and two of them are not files.**
+
+1. `docs/figures/reproduction_regime_map.png`, drawn by
+   [src/chan/regime_figure.py](src/chan/regime_figure.py).
+2. A base64 copy inlined in the HTML, so the page is self-contained.
+3. An embed in the blog Markdown pointing at copy 1.
+
+Redrawing the figure updates one of the three. That is what
+`test_the_inlined_figure_matches_the_committed_png` in
+[tests/test_markdown_hygiene.py](tests/test_markdown_hygiene.py) is for. It
+compares the inlined bytes against the file and fails when a redraw touches
+only one, because a policy nothing executes is a policy that holds until the
+first time it matters.
+
+Two of the template's sweeps have nothing to check here yet, and saying so is
+the point rather than an omission. No link and no sentence in this repo names a
+line of a source file, measured at `aec40f3`. Keep it that way: a prose
+reference names a symbol, which survives an edit, rather than a line, which
+does not.
+
+`test_no_prose_surface_names_a_line_number` is what keeps it that way, and
+writing it turned up two things worth knowing. It caught the first draft of
+this paragraph, which spelled the forbidden form out as an example and so
+became an instance of it. Describing the shape rather than writing one is the
+fix, and a rule that cannot state itself is worth noticing. It also needed
+`blank_fences` rather than `blank_code`, because a reference in prose is
+normally written in backticks and `blank_code` blanks those, which is right for
+the tilde and table sweeps and would have made this one pass on anything a
+person would actually write.
+
+```bash
+# Every figure embed resolves to a file that exists
+rg -o '\]\((?:\.\./)?docs/figures/[0-9A-Za-z_]+\.png\)' *.md docs/*.md blog/*.md \
+  | sed -E 's|\]\((\.\./)?||;s|\)||' \
+  | while read -r f; do [ -f "$f" ] || echo "MISSING $f"; done
+
+# Line references, which should stay empty
+rg -n --pcre2 '[a-z_]+\.py[:#]L?\d' *.md docs/*.md blog/*.md
+```
+
+**Regenerating is the second half of an edit, not a separate decision.** When a
+change leaves the figure stale, redraw it and commit it in the same change,
+without asking. A no-op diff from a redraw is a successful redraw rather than a
+skipped one. A large diff means a stale generator or a mismatched environment,
+so investigate instead of committing the churn. `docs/figures` is also why
+`matplotlib` is a dev dependency rather than a runtime one.
 
 Before reporting a code change done, sweep the prose surfaces for what the change could have invalidated, and end the response with a short **Consistency sweep** note listing what was checked, what was updated, and what is still stale. For a pure-internal refactor that moves no line numbers and changes no observable behavior, say "no prose-facing surfaces affected" so it is clear the check was considered rather than forgotten.
 

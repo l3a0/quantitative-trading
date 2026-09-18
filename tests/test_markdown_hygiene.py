@@ -1,9 +1,14 @@
 """The prose sweeps CLAUDE.md names, run as tests rather than from memory.
 
-Two layers. The first pins the sweep's own behavior on small documents, which
+Three layers. The first pins the sweep's own behavior on small documents, which
 is what keeps the code-fence exemption honest. The second runs the sweep over
 every Markdown file in the repo, so a slip fails the suite locally and in CI
 rather than waiting for someone to remember the command.
+
+The third is the cross-surface layer, `TestTheFigureHasThreeCopies`. The one
+committed figure exists as a PNG, as a base64 copy inlined in the HTML essay,
+and as an embed in the blog Markdown. Redrawing it updates one of the three,
+and nothing else in this repo would notice the other two.
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ import pytest
 from tests.support.markdown_sweep import (
     Finding,
     blank_code,
+    blank_fences,
     markdown_files,
     sweep_file,
     sweep_text,
@@ -344,3 +350,56 @@ def test_discovery_skips_a_markdown_path_that_is_not_a_regular_file(
 def test_every_markdown_file_passes_the_prose_sweeps(path: Path) -> None:
     findings = sweep_file(path)
     assert not findings, "\n".join(str(finding) for finding in findings)
+
+
+# --- The cross-surface layer ---------------------------------------------------
+# CLAUDE.md's sweep policy, executed. Two of its three sweeps have nothing to
+# check here yet, so the assertions below say so rather than passing vacuously.
+
+FIGURE = REPO_ROOT / "docs" / "figures" / "reproduction_regime_map.png"
+ESSAY_HTML = REPO_ROOT / "docs" / "gld-gdx-cointegration-lessons.html"
+ESSAY_MD = REPO_ROOT / "blog" / "gld-gdx-cointegration-lessons.md"
+
+
+class TestTheFigureHasThreeCopies:
+    def test_the_inlined_figure_matches_the_committed_png(self) -> None:
+        """Redrawing the figure and not re-inlining it is the failure here.
+
+        The HTML is self-contained on purpose, so it carries the image rather
+        than linking it. That makes the page publishable and makes the bytes a
+        second copy, which is the thing a sweep exists to catch.
+        """
+        import base64
+        import re
+
+        html = ESSAY_HTML.read_text(encoding="utf-8")
+        matches = re.findall(r"data:image/png;base64,([A-Za-z0-9+/=]+)", html)
+        assert len(matches) == 1, f"expected one inlined image, found {len(matches)}"
+        assert base64.b64decode(matches[0]) == FIGURE.read_bytes()
+
+    def test_every_figure_the_blog_embeds_exists(self) -> None:
+        """A relative embed resolves from the Markdown file's own directory."""
+        import re
+
+        embeds = re.findall(r"\]\(([^)]*docs/figures/[^)]+\.png)\)", ESSAY_MD.read_text("utf-8"))
+        assert embeds, "the blog post embeds no figure, so this sweep checks nothing"
+        for embed in embeds:
+            assert (ESSAY_MD.parent / embed).resolve().is_file(), f"missing embed: {embed}"
+
+    def test_no_prose_surface_names_a_line_number(self) -> None:
+        """A prose reference names a symbol, which survives an edit.
+
+        This is empty today and the assertion is what keeps it empty. A line
+        number in prose is invisible to every other sweep here, because it is
+        not a link and resolves to nothing a checker can follow.
+        """
+        import re
+
+        pattern = re.compile(r"[a-z_]+\.py[:#]L?\d")
+        offenders = [
+            f"{path.relative_to(REPO_ROOT)}:{n}"
+            for path in markdown_files(REPO_ROOT)
+            for n, line in enumerate(blank_fences(path.read_text("utf-8")).splitlines(), 1)
+            if pattern.search(line)
+        ]
+        assert not offenders, "line references in prose: " + ", ".join(offenders)
