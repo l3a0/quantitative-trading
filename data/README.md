@@ -18,6 +18,17 @@ adding a series is a recorded act and replacing one is not an act the recorder
 performs at all. It does not download. A caller hands it rows, which is what
 keeps every rule it enforces testable with no network.
 
+Its name is load-bearing. A recorded vintage's file is named by joining the
+five identity fields, so its vendor, symbol, price basis, span and download
+date are recoverable from the path without reading a byte, and
+[tests/test_vintage.py](../tests/test_vintage.py) holds every recorded entry to
+the name its file took. Renaming one of those files therefore fails the suite.
+The eight above are exempt, because they were committed before the recorder
+existed and carry hand-given names. That check is what holds a recorded
+vintage's identity, since a sha256 says the bytes did not move and says nothing
+about which series they are, and `## Header shape` below is why the bytes
+cannot say it either.
+
 ## What each file is
 
 A vintage is one download of one series, identified by vendor, symbol, span,
