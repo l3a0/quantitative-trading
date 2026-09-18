@@ -2,8 +2,9 @@
 
 This repo tracks experiments and replications from Ernest Chan's quantitative
 trading books. A replication reproduces one published number against data
-committed alongside the result, and records a verdict on the gap. Status:
-scaffolded, nothing built. Code lives in `src/chan`, with tests under `tests/`.
+committed alongside the result, and records a verdict on the gap. Code lives in
+`src/chan`, with tests under `tests/`, and [README.md](README.md)'s `## Status`
+is where what runs today is written down.
 
 **The premise is the vintage.** Vendors restate price history, so an adjusted
 close is a function of the download date rather than a property of a trading
@@ -12,13 +13,13 @@ including its author. Everything else here is regenerable. That asymmetry is
 what every ranking decision below appeals to, and
 [docs/design.md](docs/design.md) carries the full reasoning.
 
-**The tracker is authoritative for scope.** An unbuilt deliverable's issue is the source of truth for what it is and what it must do. The design doc at [docs/design.md](docs/design.md) carries the reasoning, the premise, and the considered-and-rejected register, and it links to the issue rather than competing with it. [docs/build-plan.md](docs/build-plan.md) carries the slicing rule, the build order, and each slice's test surface, and its deliverable entries are links. Read an unbuilt deliverable's issue before proposing a change to it. Read the design doc for everything else, which includes every built deliverable and the reasoning behind all of them.
+**The tracker is authoritative for scope.** An unbuilt deliverable's issue is the source of truth for what it is and what it must do. The design doc at [docs/design.md](docs/design.md) carries the reasoning, the premise, and the considered-and-rejected register, and it links to the issue rather than competing with it. [docs/build-plan.md](docs/build-plan.md) carries `## How work gets cut`, `## The order`, and the two passages that set a test surface, which are `## Test surface for the experiments` and a paragraph inside `## The machinery`. Its deliverable entries are links. Read an unbuilt deliverable's issue before proposing a change to it. Read the design doc for everything else, which includes every built deliverable and the reasoning behind all of them.
 
 The price of this is named rather than hidden: the same substance now exists in an issue and in the doc that reasons about it, so the two can drift. The issue wins. When they disagree, the doc is what gets corrected.
 
 ## Rank work by what makes the product usable
 
-Whatever the premise names as the thing that must not fail ranks first, and [docs/build-plan.md](docs/build-plan.md) carries the slice order and the dependencies between slices. This directive decides what to take next from the work those two allow, and what decides it is not severity. Before proposing an order, name what is missing from the shortest path to a product someone can use, and put that first.
+Whatever the premise names as the thing that must not fail ranks first, and [docs/build-plan.md](docs/build-plan.md) carries `## The order` and `## Dependencies`. This directive decides what to take next from the work those two allow, and what decides it is not severity. Before proposing an order, name what is missing from the shortest path to a product someone can use, and put that first.
 
 Then ship it, use it, and let what breaks set the order after that. Evidence from real use outranks any ranking made in advance, including this one.
 
@@ -61,9 +62,10 @@ The price is a pass over the files before work starts, paid on issues whose file
 
 ## Check the sibling repo before building infrastructure
 
-Four modules and two test files here were written in the sibling
-[trading-strategies](https://github.com/l3a0/trading-strategies) repo first.
-That repo holds 97 Python files, 42,713 lines of them, built against the same
+The files in the table below were written in the sibling
+[trading-strategies](https://github.com/l3a0/trading-strategies) repo first, and
+that table is also what says which of them are still here. At `b27222b` that
+repo held 97 Python files, 42,713 lines of them, built against the same
 problem, so a module this repo needs may already exist there. Writing a second
 one costs what the research pins below say a second implementation always
 costs.
@@ -79,9 +81,9 @@ not two call sites.
 
 Two modules have gone that way already, and each shows one of the two routes
 in. `timeseries` was already duplicated here and next door, so sharing it
-removed a copy. `stats` had eleven consumers next door and none here, and went
-in because this repo's next significance claim needs it and relocating
-exercised code is not the same as building something new.
+removed a copy. `stats` had eleven consumers next door at `b27222b` and none
+here, and went in because this repo's next significance claim needs it and
+relocating exercised code is not the same as building something new.
 
 Sharing costs more than porting, which is why it is not the default for
 everything. A shared module can only change through a release, and a change to
@@ -193,9 +195,10 @@ measured example of each, all read at `b27222b`.
 2. **The vocabulary.** A ported module carries terms that mean something next
    door and nothing here. The design doc's pinned vocabulary wins, and a term
    with no entry there gets replaced by what happens.
-3. **The dependencies.** This repo declares four runtime dependencies. A port
-   needing a fifth is a decision that belongs in the pull request body rather
-   than in a line of `pyproject.toml` nobody argued about.
+3. **The dependencies.** The `dependencies` list in `pyproject.toml` is the
+   short one this repo runs on. A port needing another entry is a decision that
+   belongs in the pull request body rather than in a line of `pyproject.toml`
+   nobody argued about.
 4. **The evidence.** The ranking directive counts how many times a path has
    run, and it means here. A ported path has run zero times in this repo
    whatever it did next door. Where the sibling's count is the argument, cite
@@ -276,7 +279,7 @@ When a heading changes, verify the Contents anchors still resolve.
 
 A repo drifts when two surfaces describe the same thing and only one gets updated. The fix is to give each surface exactly one job, so nothing is stated twice.
 
-- **The test suite is the single authority for any number the prose quotes.** Prose states these numbers and never derives them. The repo does not meet this yet: `docs/design.md` quotes 1.6766, 1.6379 and 1.3905 from the sibling repo, and nothing here asserts any of them. Closing that is part of [issue 4](https://github.com/l3a0/quantitative-trading/issues/4).
+- **The test suite is the single authority for any number the prose quotes.** Prose states these numbers and never derives them. `tests/test_pair_cointegration.py` derives 1.6379 and 1.3905 along with everything else the replications quote, and `tests/test_regime_figure.py` derives what the figure draws. 1.6766 is the deliberate exception. It is a figure Chan printed that no modern download reaches, so it is cited as a book target and never asserted as a computed result.
 - **The design doc is the single authority for reasoning.** Code comments point at it rather than restating it.
 - **The issue is the single authority for unbuilt scope**, per the tracker directive above.
 
@@ -390,9 +393,9 @@ Three behaviours make the rule sharper than "look for a green tick". The first t
 
 Fix the cause rather than the symptom. A lint rule that fails on one file usually fails on its siblings, so sweep for the class. Re-running a job changes nothing the second time unless the failure was the runner rather than the code. Where a failure comes from another branch's merge rather than from this change, say so on the pull request instead of absorbing an unrelated fix into it.
 
-**A filed issue carries its milestone and its labels.** Filing is not finished when the issue exists. An issue with no milestone appears in no slice view and no view scoped by kind, so only a sweep for nulls finds it, and nothing brings it back on its own. So a filed issue is finished when it says three things.
+**A filed issue carries its milestone and its labels.** Filing is not finished when the issue exists. An issue with no milestone appears in no grouped view and no view scoped by kind, so only a sweep for nulls finds it, and nothing brings it back on its own. So a filed issue is finished when it says three things.
 
-1. A milestone says which slice owns it.
+1. A milestone says which grouping owns it.
 2. A label says what kind of work it is.
 3. A dependency says what it waits on, where it waits on anything.
 
@@ -400,11 +403,11 @@ No automation supplies the first two. The same applies to an issue a spawned ses
 
 **Close an issue only when nothing is left in it.** Before a PR closes an issue, move whatever that PR does not do into its own issue. A piece described only inside a body goes when the body closes, and nothing surfaces it again.
 
-While a piece is outstanding, a PR writes `Part of #NN` and the closing keyword waits for the PR that leaves nothing. GitHub reads the keyword only when the number follows it immediately, so `Closes #101` closes and `Closes the second half of #101` closes nothing at all.
+While a piece is outstanding, a PR writes `Part of #NN` and the closing keyword waits for the PR that leaves nothing. GitHub reads the keyword only when the number follows it immediately, so Closes #101 closes and `Closes the second half of #101` closes nothing at all. The keyword also has to be plain text. A code span defeats it, so `` `Closes #101` `` in backticks closes nothing while the same words unwrapped close. Reading the body back does not distinguish the two. `gh pr view <n> --json closingIssuesReferences` does, and an empty result on a pull request that means to close something is the signal to fix the body before merging.
 
 An issue whose pieces have all been split has no finishing PR left, so close it by hand and name where each piece went. Do the same when two PRs are open against one issue, because merge order decides which lands last and neither body can know it. A split leaves code comments pointing at the parent for work that moved, so repoint those in the PR that splits. A comment naming a closed issue in the past tense records what happened rather than pointing anywhere, and it stays.
 
-PR titles use a Conventional Commits prefix. The form is `type(scope): summary`. Types in use: `docs`, `feat`, `fix`, `refactor`, `chore`, `ci`, `perf`. Add a scope in parens when it sharpens the title, like `docs(CLAUDE.md)`. Drop it when none does, like a plain `docs:` for a whole-doc change.
+PR titles use a Conventional Commits prefix. The form is `type(scope): summary`. `gh pr list --state merged --json title` is what has actually been used, rather than a list here that goes stale on the first unfamiliar prefix. Add a scope in parens when it sharpens the title, like `docs(CLAUDE.md)`. Drop it when none does, like a plain `docs:` for a whole-doc change.
 
 PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`, then `## What`. Add situational sections after as the change needs them, like `## Scope`, `## Notes`, or `## Evidence`. The body's prose obeys the writing-style rules above. So clear, short sentences and no em dashes. End every body with the footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
