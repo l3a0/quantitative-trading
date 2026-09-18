@@ -110,12 +110,21 @@ class VintageRefused(Exception):
 class VintageEntry:
     """One line of ``data/vintages.jsonl``.
 
-    Exactly one of ``download_date`` and ``saved_date`` is set. A download
-    carries the first. The four ``*_chan.csv`` files carry the second, because
-    their date is when Ernest Chan last saved the workbook a column was lifted
-    from and nothing was fetched on that day. Putting a save date in a field
-    named for a download would hand the next reader a wrong fact in the field
-    that identifies the vintage.
+    Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
+    one it is holds an ISO calendar date. A download carries the first. The four
+    ``*_chan.csv`` files carry the second, because their date is when Ernest
+    Chan last saved the workbook a column was lifted from and nothing was
+    fetched on that day. Putting a save date in a field named for a download
+    would hand the next reader a wrong fact in the field that identifies the
+    vintage.
+
+    Both rules are checked wherever an entry is built, which includes the line
+    :func:`read_manifest` reads back. A hand-edited or badly-merged line is how
+    a date ``record_vintage`` would have refused reaches the record, and a
+    record whose reader takes such a date is weaker than the writer that filled
+    it. The other four identity fields are not checked here. Two of them are
+    [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) and the
+    path is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
     """
 
     vendor: str
@@ -135,14 +144,22 @@ class VintageEntry:
                 f"{self.path}: an entry carries a download date or a saved date, not both and "
                 f"not neither"
             )
+        # The writer's own function, so a line reads back only if the recorder
+        # would have written it. Running it here rather than in
+        # :func:`read_manifest` puts it inside the refusal that already names
+        # the line number, and holds a directly built entry too.
+        field = "download date" if self.download_date is not None else "saved date"
+        _validated_date(self.obtained, f"{self.path}: {field}")
 
     @property
     def obtained(self) -> str:
         """The one date this entry carries, whichever of the two fields holds it.
 
-        ``__post_init__`` guarantees exactly one is set, so a caller that wants
-        to tell two vintages of one series apart asks here rather than picking a
-        field and finding ``None`` on half the manifest.
+        ``__post_init__`` guarantees exactly one is set and that it is an ISO
+        calendar date, so a caller that wants to tell two vintages of one series
+        apart asks here rather than picking a field and finding ``None`` on half
+        the manifest. That guarantee is what makes the return annotation true of
+        an entry read back from a manifest as well as one this module wrote.
         """
         return self.download_date if self.download_date is not None else self.saved_date
 
