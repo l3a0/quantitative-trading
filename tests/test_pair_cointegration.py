@@ -8,7 +8,7 @@ README.md lists the six figures in it that nothing here asserts.
 
 There is no dataset gate. All four vintages are committed to git, so every
 layer runs everywhere the suite runs. The primitives underneath have their own
-mechanics tests in ``tests/test_timeseries.py``; this file tests the
+mechanics tests in ``quantcore``; this file tests the
 pair-specific two-step ``engle_granger``, the return correlation, and the
 replications themselves.
 
@@ -74,7 +74,7 @@ class TestEngleGranger:
     """The pair-specific two-step test on synthetic pairs with known answers.
 
     The underlying OLS / ADF / OU primitives are tested in
-    tests/test_timeseries.py. Here the assertions are the verdict
+    quantcore's own suite. Here the assertions are the verdict
     ``engle_granger`` reaches.
     """
 

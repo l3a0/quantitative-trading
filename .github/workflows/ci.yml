@@ -37,7 +37,12 @@ jobs:
           enable-cache: true
 
       - name: Install the toolchain and dependencies
-        run: uv sync --dev
+        # `--locked` rather than a plain sync. The lockfile is what records
+        # which commit of quantcore produced this repo's pinned numbers, and
+        # a plain sync silently re-locks and installs different code whenever
+        # pyproject.toml and uv.lock disagree. `--locked` fails instead, so
+        # the pin cannot drift without somebody seeing it.
+        run: uv sync --dev --locked
 
       # Unscoped, exactly as a local check should run. A path-scoped local run
       # passes while CI fails, because CI lints every file.

@@ -72,9 +72,12 @@ The estimators behind those numbers are not in this repo. Least squares, the
 Augmented Dickey-Fuller statistic, the half-life and the MacKinnon critical
 values live in [quantcore](https://github.com/l3a0/quant-core), shared with
 the sibling repo because both had the same copy. The dependency names an exact
-tag and `uv.lock` records the commit it resolved to, so the code behind a
-pinned number is fixed the way the data behind it is fixed.
-[docs/design.md](docs/design.md) carries why that pin is not optional.
+tag, `uv.lock` records the commit it resolved to, and CI syncs with `--locked`
+so the two cannot drift apart unnoticed.
+[tests/test_quantcore_contract.py](tests/test_quantcore_contract.py) is what
+tells a dependency change apart from a vintage change, since its cases read no
+vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
+and what it does not buy.
 
 The tracker is the source of truth for what each deliverable is, and it carries
 one milestone per section of [docs/build-plan.md](docs/build-plan.md), with the

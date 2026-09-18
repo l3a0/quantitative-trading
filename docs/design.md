@@ -161,14 +161,23 @@ aside, and two copies of one calculation drift without either looking wrong.
 A rule to keep them matching was considered and cut, for the reason in the
 register below.
 
-This looks like it cuts against the premise, and the way it is pinned is what
-answers that. A result here has to be re-readable, and part of the code that
-produced it now lives somewhere else. So the dependency names an exact tag in
-`pyproject.toml` and `uv.lock` records the commit that tag resolved to. The
-code behind a pinned number is therefore fixed in the same way the data behind
-it is fixed, and moving the pin is a re-pin of this repo rather than a
-dependency bump. A floating version would give up exactly the property the
-premise is about.
+This cuts against the premise, and the way it is pinned is what limits the
+damage rather than what removes it. A result here has to be re-readable, and
+part of the code that produced it now lives somewhere else.
+
+So the dependency names an exact tag in `pyproject.toml`, `uv.lock` records the
+commit that tag resolved to, and CI runs `uv sync --locked`. Each of those does
+one job. The tag is readable. The lock is what actually holds, because a plain
+`uv sync` silently re-locks and installs different code the moment
+`pyproject.toml` and the lock disagree, and `--locked` fails instead. Moving
+the pin is therefore a re-pin of this repo rather than a dependency bump.
+
+The price is real and is not paid off by the pin. A committed vintage sits in
+this repository, and the code now sits behind a remote reference. If
+`quant-core` is deleted, made private, or force-pushed past the commit the lock
+names, no pinned number here is re-derivable at all, and nothing in this repo
+can prevent that. The data has no such failure mode. What the pin buys is that
+a change cannot happen quietly, not that it cannot happen.
 
 Two things did not move, and the reasons are worth keeping.
 
@@ -176,12 +185,20 @@ Two things did not move, and the reasons are worth keeping.
    the two repos. It resolves `parents[2]` here against `parents[1]` there,
    since this repo nests its package under `src/`. What is shared is the
    pattern rather than the constant.
-2. `tests/test_timeseries.py` went with the code. Its replacement here is
-   [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py),
-   which exercises the same estimators against committed vintages with exact
-   pins. That is the stronger guard, because it fails when the dependency
-   moves *and* when the vintage does, which is the pair of failures this repo
-   exists to tell apart.
+2. `tests/test_timeseries.py` went with the code, and something had to take
+   its place rather than nothing.
+   [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py)
+   exercises the same estimators against committed vintages with exact pins,
+   so it does fail when the dependency moves. What it cannot do is say so. Every
+   one of its assertions reads a CSV, so a dependency change and a vintage
+   change arrive as the same red, and telling those two apart is the thing this
+   repo exists to do.
+   [tests/test_quantcore_contract.py](../tests/test_quantcore_contract.py) is
+   what restores the distinction. Its cases read no vintage and have answers
+   known in closed form, so they fail only on the dependency. Both files red
+   points at the pin, the pair tests alone red points at the data. Mutating
+   `ou_half_life` in the installed package was run to confirm the first half of
+   that.
 
 ## Vocabulary
 
