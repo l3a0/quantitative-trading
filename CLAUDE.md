@@ -410,6 +410,17 @@ PR titles use a Conventional Commits prefix. The form is `type(scope): summary`.
 
 PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`, then `## What`. Add situational sections after as the change needs them, like `## Scope`, `## Notes`, or `## Evidence`. The body's prose obeys the writing-style rules above. So clear, short sentences and no em dashes. End every body with the footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
+## Keep the build board current
+
+The build board is a page that answers what is in flight and what to take next. It reads no disk and polls no API, so every figure on it was measured by hand. A session that changes what it shows and then leaves has made it wrong, and nothing else notices.
+
+So a session that finishes one of these updates it: a decompose loop exiting, a pull request opening, merging or gaining a review, or an issue being filed or closed. The `update-build-board` skill under `.claude/skills/` owns the procedure and the reasons behind each step. This section says when, and the skill says how, so neither repeats the other.
+
+Two limits are worth stating rather than leaving a reader to infer.
+
+1. The board is a private artifact on the owner's account. A session without access to it, or without the tool that publishes it, cannot do this and should say so in its handover rather than treat the rule as failed.
+2. What argues for the rule is one measured failure rather than a comparison. An update run against figures carried in a session's head shipped 39 open issues when a query said 40, which is why the skill leads with reading the live page and re-measuring. Nothing has yet measured what a stale board costs a reader, so the rule is a convention this repo keeps rather than a cost it has priced.
+
 ## Research pins
 
 This repo quotes measured numbers from its first commit, so this section
