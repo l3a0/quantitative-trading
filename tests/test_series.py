@@ -40,6 +40,7 @@ from chan.vintage import (
     record_vintage,
 )
 from tests.support.committed_vintages import BACKFILLED, rewrite_entry
+from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 
 # Root ignores mode bits, so a file at mode 000 opens and the case reads as a
 # pass while asserting nothing. Windows has no such bit at all.
@@ -111,9 +112,7 @@ def data_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def committed_copy(tmp_path: Path) -> Path:
     """The eight committed vintages, copied so a case may break one."""
-    directory = tmp_path / "committed"
-    shutil.copytree(DATA_DIR, directory)
-    return directory
+    return copy_the_committed_tree(tmp_path)
 
 
 # The eight, as the reader returned them at 42978ce, before it consulted a
@@ -224,6 +223,17 @@ def the_reader_reaches_every_backfilled_vintage(directory: Path) -> None:
     other would fail this the moment `data/` gains a ninth series while saying
     nothing about whether the map is partial. The left-hand side keeps its own
     count in `len(resolved) == 8`.
+
+    Name what that gives up. Comparing against the whole manifest also failed
+    when an entry was reachable by no reader argument at all, and comparing
+    against the eight does not. `record_vintage` takes any vendor matching
+    `VENDOR_PATTERN` while `close_identity` asks for three pairs, so a vintage
+    recorded under a fourth is committed, hashed and green while nothing can
+    open it. That state could not exist before, because no ninth vintage could
+    be recorded at all, and
+    [issue 96](https://github.com/l3a0/quantitative-trading/issues/96) owns it.
+    The check that would catch it also forbids recording a vintage before the
+    reader is taught to read it, which is a decision rather than an omission.
 
     It takes a directory rather than reading the committed one through a name
     bound at import, so `TestARecordedNinthLeavesTheReaderAlone` can run it
@@ -948,7 +958,14 @@ class TestARecordedNinthLeavesTheReaderAlone:
 
     @pytest.fixture
     def with_a_ninth(self, committed_copy: Path) -> Path:
-        """The eight, copied, with a series they do not carry recorded into the copy."""
+        """The eight, copied, with a series they do not carry recorded into the copy.
+
+        The symbol is asserted unused rather than assumed so. A committed
+        vintage of the same symbol would make this fixture record a second
+        download of one series, which is a different failure with a different
+        owner, and it arrives as a dozen errors naming nothing.
+        """
+        assert not [e for e in read_manifest(committed_copy) if e.symbol == "ZZZ"]
         record_vintage(
             SERIES,
             vendor="yfinance",
@@ -968,7 +985,7 @@ class TestARecordedNinthLeavesTheReaderAlone:
         the_reader_reaches_every_backfilled_vintage(with_a_ninth)
 
     def test_a_ninth_vintage_is_reachable_under_its_own_name(self, with_a_ninth: Path) -> None:
-        """A vintage nothing can read is not the outcome the scoping is for."""
+        """The scoping has to leave the ninth readable, not merely uncomplained about."""
         entry, values = load_vintage("ZZZ", data_dir=with_a_ninth)
 
         assert entry.path.startswith("yfinance_zzz_adjusted_")
@@ -988,4 +1005,21 @@ class TestARecordedNinthLeavesTheReaderAlone:
         rewrite_entry(with_a_ninth, "ko_chan.csv", price_basis="raw")
 
         with pytest.raises(VintageUnavailable, match="chan-xls KO adjusted"):
+            the_reader_reaches_every_backfilled_vintage(with_a_ninth)
+
+    def test_a_backfilled_vintage_reached_under_another_name_fails_the_comparison(
+        self, with_a_ninth: Path
+    ) -> None:
+        """The case above stops before the comparison, so this one drives it.
+
+        A reader that refuses raises inside the resolve and never reaches
+        either assertion, which left both deletable with the suite green. This
+        points a backfilled entry at a copy of its own file under a name the
+        eight do not carry. The reader resolves it and the bytes still verify,
+        so the run gets as far as comparing, and the two sides disagree.
+        """
+        shutil.copyfile(with_a_ninth / "gld_chan.csv", with_a_ninth / "gld_chan_moved.csv")
+        rewrite_entry(with_a_ninth, "gld_chan.csv", path="gld_chan_moved.csv")
+
+        with pytest.raises(AssertionError):
             the_reader_reaches_every_backfilled_vintage(with_a_ninth)

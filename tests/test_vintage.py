@@ -14,7 +14,6 @@ The order the cases appear in is the order the rules appear on
 
 import hashlib
 import json
-import shutil
 from pathlib import Path
 
 import pytest
@@ -31,7 +30,12 @@ from chan.vintage import (
     vintage_filename,
     write_checksums,
 )
-from tests.support.committed_vintages import BACKFILLED, identity_of, rewrite_entry
+from tests.support.committed_vintages import (
+    BACKFILLED,
+    committed_copy,
+    identity_of,
+    rewrite_entry,
+)
 
 ROWS = [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)]
 SOURCE = dict(vendor="yfinance", symbol="GDX", price_basis="raw", download_date="2026-08-27")
@@ -637,13 +641,23 @@ def the_backfill_identity_is_pinned(directory: Path) -> None:
     fail.
 
     Held by path rather than by set equality over the whole manifest, which is
-    what lets a recorded vintage sit beside the eight. Name what that gives up.
-    Set equality also failed when a ninth entry was forged into the manifest by
-    hand, and a paths-based comparison does not. What still catches a forgery
-    is `test_every_committed_series_has_exactly_one_entry`, because a forged
-    entry either names a file that is not on disk or repeats a path that is.
-    A forgery that arrives with its own new file is a recorded vintage, and
-    `the_recorded_entries_name_themselves` is what holds those.
+    what lets a recorded vintage sit beside the eight. Name what that gives up,
+    and name it accurately, because the first draft of this paragraph claimed
+    more than the code does.
+
+    Set equality failed on any ninth entry at all, a forged one included, for
+    the same reason it failed on a recorded one: it enumerated eight. Keying on
+    paths gives that up entirely. A hand-written entry that brings its own
+    file, hashes it correctly and takes the name its own fields produce passes
+    every assertion here, measured. That is not a hole that can be closed. Such
+    an entry is byte for byte what the recorder would have written, so no test
+    can separate the two, and what separates them is the commit that added one.
+
+    What the remaining assertions catch is an entry that is inconsistent with
+    itself. `test_every_committed_series_has_exactly_one_entry` fails one
+    naming a file that is not on disk or repeating a path that is, and
+    `the_recorded_entries_name_themselves` fails one whose fields and whose
+    name disagree.
     """
     by_path = {entry.path: entry for entry in read_manifest(directory)}
 
@@ -681,23 +695,28 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
     """Every entry the recorder wrote agrees with the path it took.
 
     `vintage_filename` joins all five identity fields, so a recorded vintage's
-    symbol, vendor, price basis and download date are recoverable from
-    `entry.path` without reading a byte. Comparing the two is what stands
-    between an entry and a file it does not describe. Without it, scoping the
-    two assertions above leaves those four fields held by nothing: a manifest
-    line naming the wrong series reads green, and the reader hands one series'
-    closes back under another's name, verified against the recorded sha256,
-    because a hash is a claim about bytes and says nothing about which series
-    they are.
+    vendor, symbol, price basis and span are recoverable from `entry.path`
+    without reading a byte. Comparing the two is what stands between an entry
+    and a file it does not describe. Scoping the two assertions above leaves
+    vendor, symbol, price basis and download date covered by no other test,
+    and `docs/design.md`'s register carries why that matters and why the
+    symbol is not written into the bytes instead.
 
-    This is not the path-naming `docs/design.md`'s register cut. That row
-    forbids identity flowing out of a filename at read time. Nothing here is
-    parsed out of a name and no caller gains a path argument. The comparison
-    runs the other way, from the record to its shadow.
+    What it catches is a one-sided edit. The recorder builds the name from the
+    fields it then writes, so for anything it wrote the comparison holds at
+    write time and only a later edit to one side can break it. It is not a
+    check on what the bytes contain.
 
-    The eight are exempt because they predate the recorder and carry hand-given
-    names, which the register's rename row keeps that way. So two naming
-    conventions coexist on purpose and the exemption set is the backfill.
+    Two limits are worth naming rather than leaving to be found.
+
+    1. The symbol's case is not recoverable, because the join lowercases it.
+       An entry edited from `SPY` to `spy` passes, and
+       [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) is
+       where a reader-side spelling check belongs.
+    2. The predicate is "not one of the eight" where the intent is "the
+       recorder wrote it". They part on a ninth workbook column added by hand,
+       which would fail here. Nothing can write one: `record_vintage` has no
+       saved-date parameter, and this module's docstring says so.
 
     Vacuous against the committed manifest, which holds no recorded entry yet.
     `TestARecordedVintageIsHeldToo` is what exercises it and what shows it
@@ -706,7 +725,7 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
     for entry in read_manifest(directory):
         if entry.path in BACKFILLED:
             continue
-        assert entry.download_date is not None, entry.path
+        assert entry.download_date is not None, f"{entry.path} carries no download date"
         assert entry.path == vintage_filename(
             vendor=entry.vendor,
             symbol=entry.symbol,
@@ -842,10 +861,11 @@ class TestARecordedVintageIsHeldToo:
 
         A series the eight do not carry. A second download of one they do is a
         different failure with a different owner, which is
-        [issue 83](https://github.com/l3a0/quantitative-trading/issues/83).
+        [issue 83](https://github.com/l3a0/quantitative-trading/issues/83), so
+        the symbol is asserted unused rather than assumed so.
         """
-        directory = tmp_path / "committed"
-        shutil.copytree(DATA_DIR, directory)
+        directory = committed_copy(tmp_path)
+        assert not [e for e in read_manifest(directory) if e.symbol == "ZZZ"]
         entry = record_vintage(
             ROWS,
             vendor="yfinance",
@@ -918,18 +938,51 @@ class TestARecordedVintageIsHeldToo:
             ("symbol", "QQQ"),
             ("price_basis", "raw"),
             ("download_date", "2026-09-18"),
+            ("first_date", "2026-08-24"),
+            ("last_date", "2026-08-28"),
         ],
     )
     def test_a_recorded_entry_that_names_the_wrong_thing_fails(self, with_a_ninth, field, value):
-        """The four fields the scoping would otherwise leave held by nothing.
+        """Every field the comparison reads, so no half of it can go tautological.
 
-        Each was measured green under the scoping alone. A manifest naming the
-        wrong symbol is the sharpest of the four, because the reader then hands
-        one series' closes back under another's name and the sha256 verifies,
-        a hash being a claim about bytes rather than about which series they
-        are.
+        Four of these are the fields no other test covers once the scoping
+        lands, and each was measured green under the scoping alone. A manifest
+        naming the wrong symbol is the sharpest, because the reader then hands
+        one series' closes back under another's name and the sha256 verifies.
+
+        The span is the other two, and they are driven here because a
+        comparison is only held where a case moves each side of it. Replacing
+        either span field with a value read back out of the path makes that
+        half compare a string to itself, and the suite was green under both
+        until these rows existed. The span is separately held against the file
+        by `test_every_entry_describes_the_file_it_names`, which speaks for
+        every entry, and that test reads the committed directory rather than
+        this copy.
         """
         rewrite_entry(with_a_ninth, NINTH_NAME, **{field: value})
 
         with pytest.raises(AssertionError):
             the_recorded_entries_name_themselves(with_a_ninth)
+
+    def test_a_recorded_entry_carrying_a_saved_date_fails(self, with_a_ninth):
+        """`vintage_filename` takes a download date and does not refuse `None`.
+
+        Handed one it returns a name ending `dlNone.csv` rather than raising,
+        so the check asks first and names the entry. Nothing reaches that
+        through `record_vintage`, which validates the date before it writes,
+        and this is the state a hand-edited line produces.
+        """
+        rewrite_entry(with_a_ninth, NINTH_NAME, download_date=None, saved_date="2026-09-17")
+
+        with pytest.raises(AssertionError, match="carries no download date"):
+            the_recorded_entries_name_themselves(with_a_ninth)
+
+    def test_rewriting_an_entry_no_manifest_line_names_is_refused(self, with_a_ninth):
+        """A negative case is only negative while its edit lands.
+
+        A mistyped path would leave the manifest untouched, and the case using
+        it would report that nothing raised rather than that nothing was
+        edited. The guard is what makes the second failure say so.
+        """
+        with pytest.raises(AssertionError, match="absent.csv"):
+            rewrite_entry(with_a_ninth, "absent.csv", vendor="acme")
