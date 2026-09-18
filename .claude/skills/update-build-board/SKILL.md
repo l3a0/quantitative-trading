@@ -152,6 +152,11 @@ to tell a plain keyword from one inside a code span. It catches the opposite
 slip too: a sentence written to say a pull request closes nothing registered a
 link anyway, because the keyword parses wherever it sits.
 
+That query is eventually consistent. Run immediately after a body is written or
+edited it can report nothing while the keyword is sitting in the body, so a
+session that reads it once and acts on the empty result rewrites a body that was
+already correct. Read it a second time before concluding the keyword failed.
+
 The middle command is why `reviewed` is counted rather than queried today, and
 the constraint is what this session posts rather than anything about the API. A
 review posted with `gh pr comment` is an issue comment, which never reaches
@@ -446,7 +451,6 @@ ones a harness cannot see.
     answers to one question. Check 6 above is what catches the next one, so a
     rule added to a card is read against the card's own position rather than
     only against the data it came from.
-
 The last two are a third kind, and what they share is where they were found.
 Both were made and caught inside one session, by reading the harness output and
 the script beside it rather than by the owner reading the page.
