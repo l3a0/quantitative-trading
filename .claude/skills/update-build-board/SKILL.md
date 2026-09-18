@@ -293,9 +293,12 @@ thinking goes.
    `needs` there would have said something false. The first card to carry one was
    issue 2, on a measurement about a Windows clone, and both it and the card it
    named have since merged, which is what an `after` is for.
-2. **`PLANNED` means a decompose loop exited**, on two consecutive passes that
-   asked different questions and found nothing. Not that a body looks thorough.
-   Check the issue for the verdict before adding an entry.
+2. **`PLANNED` means a decompose loop exited**, on a pass that did not reduce
+   the body. Not that a body looks thorough. Check the issue for the verdict
+   before adding an entry, and read the pass count as a cost rather than a
+   depth: one run reached 109 under the older exit rule, which asked for two
+   consecutive empty passes and could not terminate while the loop edited its
+   own artifact.
 3. **`band` in `NEXT`** is priority under this repo's ranking directive. 1 blocks
    other work or risks data that cannot be recaptured, 2 is the reader chain
    everything waits behind, 3 is a sentence wrong where a reader acts on it, and
