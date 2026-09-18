@@ -68,7 +68,30 @@ problem, so a module this repo needs may already exist there. Writing a second
 one costs what the research pins below say a second implementation always
 costs.
 
-Two reads come before a port rather than after it. Search the sibling for what
+### Sharing beats porting when both repos need the same thing
+
+A port makes a second copy, and a second copy of one calculation drifts
+without either one looking wrong. So when a candidate would be used by both
+repositories rather than adapted for this one,
+[quantcore](https://github.com/l3a0/quant-core) is where it goes. That package
+is the shared home, and its own `CLAUDE.md` carries the bar: two repositories,
+not two call sites.
+
+Two modules have gone that way already, and each shows one of the two routes
+in. `timeseries` was already duplicated here and next door, so sharing it
+removed a copy. `stats` had eleven consumers next door and none here, and went
+in because this repo's next significance claim needs it and relocating
+exercised code is not the same as building something new.
+
+Sharing costs more than porting, which is why it is not the default for
+everything. A shared module can only change through a release, and a change to
+one of its function bodies re-pins every consumer. A port can change here
+whenever this repo needs it to. So the question is not which is cleaner, it is
+whether the other repository would use the same code or a cousin of it.
+
+### Reads that come before a port
+
+Two of them, and both come before the work rather than after it. Search the sibling for what
 the issue needs, and read the considered-and-rejected register in
 [docs/design.md](docs/design.md), which is what stops a cut thing being
 re-proposed. Write what the search found on the issue, alongside the plan audit
@@ -84,7 +107,7 @@ Measured across the six files that already came over, this repo at `f35ffcc`
 against the sibling at `b27222b`, counting tokens with comments, blank lines
 and indentation markers dropped:
 
-| File here | Ported from | Tokens there | Tokens here |
+| File | Ported from | Tokens there | Tokens here |
 | --- | --- | --- | --- |
 | `src/chan/paths.py` | `common/paths.py` | 50 | 50 |
 | `src/chan/timeseries.py` | `common/timeseries.py` | 430 | 430 |
@@ -92,6 +115,12 @@ and indentation markers dropped:
 | `src/chan/regime_figure.py` | `search/make_regime_figure.py` | 879 | 900 |
 | `tests/test_timeseries.py` | `tests/test_timeseries.py` | 391 | 391 |
 | `tests/test_pair_cointegration.py` | `tests/test_pair_cointegration.py` | 1,494 | 2,206 |
+
+Two of those files are no longer here. `src/chan/timeseries.py` and
+`tests/test_timeseries.py` went to `quantcore` once the duplication was
+measured, which is what the first subsection above is about. The table is
+kept at `f35ffcc`, when all six were, because what it measures is what a port
+costs and that does not change.
 
 The code barely moved. Only `regime_figure.py` gained an argument, so a test
 could draw the figure without overwriting the committed image. The 36 tokens
@@ -126,13 +155,14 @@ A sibling module maps onto a deliverable here in one of three ways, and
 calling the wrong one ships a port that does not answer the issue. One
 measured example of each, all read at `b27222b`.
 
-1. **Direct.** `common/stats.py` is 88 lines of Newey-West standard errors,
-   and nothing in this repo computes a standard error robust to
-   autocorrelation. The arithmetic needs no adaptation. Its module docstring
-   is entirely about campaign cells and an engine version that do not exist
-   here, which is the cost split the table above measures. No issue asks for a
-   robust standard error today, so this waits for the one that does rather
-   than being built ahead of it.
+1. **Direct, which means it belongs in `quantcore` rather than here.** The
+   worked example is `common/stats.py`, 88 lines of Newey-West standard errors
+   that needed no adaptation at all, so copying it would have made a second
+   copy of code neither repo had a reason to diverge on. It went to the shared
+   package. Its module docstring did not: that was entirely about campaign
+   cells and an engine version that do not exist here, which is the cost split
+   the table above measures. A direct fit is the signal to share, not to
+   port.
 2. **Partial.** `common/position_sizing.py` carries `kelly_fraction`, and
    [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) has
    already ruled on it under a heading that says not to reuse it. The discrete
@@ -197,8 +227,10 @@ and what changed on the way over, in the module docstring.
 [PR #25](https://github.com/l3a0/quantitative-trading/pull/25) is the pattern
 for prose: `README.md` names the sibling and lists all three changes.
 
-None of the six files in the table does this yet, which is what
+None of the four still here does this yet, which is what
 [issue 29](https://github.com/l3a0/quantitative-trading/issues/29) back-fills.
+The two that went to `quantcore` carry it there, in that package's `README.md`
+and in the release its tag points at.
 
 ## Writing style
 
