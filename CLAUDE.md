@@ -59,6 +59,130 @@ Where the audit finds the code contradicting the issue, the issue still decides 
 
 The price is a pass over the files before work starts, paid on issues whose files have moved. The same evidence that sets the trigger also bounds it. In the repo the rule came from, two audits found something, both on issues naming code that was still moving that day, and seventy closed issues before them are not cited.
 
+## Check the sibling repo before building infrastructure
+
+Four modules and two test files here were written in the sibling
+[trading-strategies](https://github.com/l3a0/trading-strategies) repo first.
+That repo holds 97 Python files and 42,713 tracked lines built against the
+same problem, so a module this repo needs has a real chance of already
+existing there. Writing a second implementation costs the build and then
+costs the drift, because two implementations of one calculation diverge
+without either one looking wrong.
+
+So search the sibling before writing a new module for an issue, and write what
+the search found on the issue. Run that search with the plan audit above,
+since both answer the same question at the same moment: what does the builder
+need to know that the issue does not say yet. A search that found nothing is
+worth one sentence on the issue, because the next session would otherwise run
+it again. The audit rule above says the opposite, that a pass finding nothing
+writes nothing, and the difference is what the silence would mean. An audit
+finding nothing leaves the plan standing, which the issue already says. A
+sibling search finding nothing answers a question the issue records nowhere
+else.
+
+### A port is cheap in code and expensive in prose and tests
+
+Measured across the six files that already came over, this repo at `f35ffcc`
+against the sibling at `b27222b`, counting tokens with comments and blank
+lines dropped and each docstring counted as one:
+
+| File here | Tokens there | Tokens here |
+| --- | --- | --- |
+| `src/chan/paths.py` | 50 | 50 |
+| `src/chan/timeseries.py` | 430 | 430 |
+| `src/chan/pair_cointegration.py` | 2,111 | 2,147 |
+| `src/chan/regime_figure.py` | 879 | 900 |
+| `tests/test_timeseries.py` | 391 | 391 |
+| `tests/test_pair_cointegration.py` | 1,494 | 2,206 |
+
+Two modules and one test file arrived with the code untouched.
+`timeseries.py` differs from its source on 50 of its 115 lines, and every one
+of those is a docstring line, a comment, or the same signature wrapped across
+three lines. The two modules that did change grew by 36 tokens and 21 tokens,
+which is one new argument each.
+
+The remaining test file is where the work went. It grew by 712 tokens, close
+to half again, because a pinned number here names its vintage and its
+specification and the sibling's suite was not written to that rule.
+
+So budget a port as a rewrite of its prose and an extension of its tests. The
+copying is the part that takes minutes.
+
+### Say which of three shapes the fit is
+
+A sibling module maps onto a deliverable here in one of three ways, and
+calling the wrong one ships a port that does not answer the issue. One
+measured example of each, all read at `b27222b`.
+
+1. **Direct.** `common/stats.py` is 88 lines of Newey-West standard errors,
+   and nothing in this repo computes a standard error robust to
+   autocorrelation. Any experiment that reports significance needs it, and it
+   needs no adaptation to work here.
+2. **Partial.** `common/position_sizing.py` carries `kelly_fraction`, the
+   log-optimal fraction of a bag of per-trade R-multiples. Chan's Example 6.2
+   is leverage on a return series. The absorption boundary and the grid search
+   transfer and the input does not, so a port takes the reasoning rather than
+   the function.
+3. **None.** `pipeline/validate_dailies.py` is 580 lines whose name suggests
+   [issue 2](https://github.com/l3a0/quantitative-trading/issues/2), which
+   verifies a vintage before a run reads it. It validates option-chain greeks
+   against an entry band and shares nothing with a vintage check.
+   `pipeline/download_prices.py` is 41 lines that write a CSV carrying no
+   checksum, no download date, and no manifest, which is the whole of what
+   [issue 1](https://github.com/l3a0/quantitative-trading/issues/1) is for.
+   The vintage machinery is this repo's own idea and has to be built here.
+
+### Four things never come across
+
+1. **The prose.** The sibling's `CLAUDE.md` is a blog-writing prompt, and its
+   docstrings shout in capitals and open on its own vocabulary. Every ported
+   docstring here was rewritten, which is what the 50 changed lines in
+   `timeseries.py` are.
+2. **The vocabulary.** A ported module carries terms that mean something next
+   door and nothing here. The design doc's pinned vocabulary wins, and a term
+   with no entry there gets replaced by what happens.
+3. **The dependencies.** This repo declares four runtime dependencies. A port
+   needing a fifth is a decision that belongs in the pull request body rather
+   than in a line of `pyproject.toml` nobody argued about.
+4. **The evidence.** The ranking directive counts how many times a path has
+   run, and it means here. A ported path has run zero times in this repo
+   whatever it did next door. Where the sibling's count is the argument, cite
+   it as the sibling's, the way the `marketlake` numbers above are cited. The
+   tests are what carry the confidence over, so they land in the same change
+   or the port arrives with no pins at all.
+
+Committed data is its own case. A CSV copied from the sibling is a vintage, so
+it arrives with its row in [data/README.md](data/README.md) naming vendor,
+symbol, span, download date and price basis, and with its checksum.
+
+### Reuse is the default, and a declined port says why
+
+One port has already been declined on the record.
+[data/README.md](data/README.md) states that no fetch script came over, and
+gives the consequence rather than only the decision: nothing here regenerates
+a committed file, so replacing one is a deliberate act with a visible cost.
+
+That is not the same as cutting the work. Issue 1 keeps the download outside
+the recorder on purpose, so every rule the recorder carries stays testable
+with no network, and the register's first row cuts downloading at run time
+rather than downloading. So the sibling's script could come over as the thin
+fetch that hands the recorder its rows. What it cannot do is arrive as the
+recorder itself.
+
+The general form: port by default, and where a port is declined, write the
+reason next to the thing it affects. Otherwise the next session re-proposes
+it.
+
+### Every port names its source and its changes
+
+A ported file that does not name where it came from cannot be diffed against
+the original, which throws away the one cheap check available on it. The
+write-up copied in by
+[PR #25](https://github.com/l3a0/quantitative-trading/pull/25) is the pattern.
+`README.md` names the sibling and lists all three changes made on the way
+over. Do the same for code, in the module docstring, and name the sibling
+commit the copy was taken from.
+
 ## Writing style
 
 The owner's global `~/.claude/CLAUDE.md` is the source for these rules. This section repeats them because the repo is public and a reader or an agent may arrive without that file. The price is that the two copies can drift. The global file wins, and this section is what gets corrected.
