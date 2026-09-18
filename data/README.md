@@ -91,14 +91,20 @@ the vintages. The committed bytes are intact throughout, so every pinned number
 is fine.
 
 That attribute does not repair a clone made before it. There the working tree
-keeps its carriage returns, and `git status` goes from clean to eleven modified
-paths under `data/`, because the attribute forbids the normalization that was
-hiding them. `git checkout -- data/` restores the committed bytes. Committing
-those modifications instead writes carriage returns over the vintages and makes
-every recorded sha256 false, which is the failure this record exists to
-prevent. Not `git reset --hard`, which discards uncommitted work elsewhere, and
-not `git rm --cached -r .`, which is for a change of stored bytes rather than
-of working-tree shape.
+keeps its carriage returns, and `git status` goes from clean to a list of
+modified paths under `data/`, because the attribute forbids the normalization
+that was hiding them. On that list is every tracked file here whose bytes the
+delivering checkout did not rewrite on the way in. Committing them writes
+carriage returns over the vintages and makes every recorded sha256 false, which
+is the failure this record exists to prevent.
+
+Read `git diff --stat -- data/` first, to confirm every path it lists is the
+rewrite rather than an edit somebody made. Then `git checkout -- data/`
+restores the committed bytes. It restores every tracked file here, so an
+unstaged edit to this README or to `vintages.jsonl` goes with them and nothing
+stashes it. Not `git reset --hard`, which discards uncommitted work across the
+whole tree, and not `git rm --cached -r .`, which is for a change of stored
+bytes rather than of working-tree shape.
 
 Two files carry that record.
 

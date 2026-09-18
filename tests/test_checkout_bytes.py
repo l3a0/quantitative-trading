@@ -11,9 +11,10 @@ eleven tracked files under `data/` differ from their committed blobs, and
 one, because the list it parses was rewritten too.
 
 A runner on ubuntu never reproduces that rewrite, so neither case below reads
-its own working tree. `git cat-file --filters` asks git what a checkout would
-write, under a `core.autocrlf` these cases set rather than inherit, so both
-answer the same on every platform.
+its own working tree. The first asks `git cat-file --filters` what a converting
+checkout would write, under a `core.autocrlf` it sets rather than inherits. The
+second reads the index, which no platform's checkout touches. Both answer the
+same everywhere.
 
 The two cases divide the work. The first compares stored bytes against checkout
 bytes, which catches the guard going away or narrowing to a pattern that misses
