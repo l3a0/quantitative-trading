@@ -654,7 +654,7 @@ wheels = [
 [[package]]
 name = "quantcore"
 version = "0.1.0"
-source = { git = "https://github.com/l3a0/quant-core?rev=v0.1.0#d088015176a74f38d1f1e1240f8371b5637d5db2" }
+source = { git = "https://github.com/l3a0/quant-core?rev=d088015176a74f38d1f1e1240f8371b5637d5db2#d088015176a74f38d1f1e1240f8371b5637d5db2" }
 dependencies = [
     { name = "numpy" },
     { name = "statsmodels" },
@@ -683,7 +683,7 @@ dev = [
 requires-dist = [
     { name = "numpy", specifier = ">=2" },
     { name = "pandas", specifier = ">=2" },
-    { name = "quantcore", git = "https://github.com/l3a0/quant-core?rev=v0.1.0" },
+    { name = "quantcore", git = "https://github.com/l3a0/quant-core?rev=d088015176a74f38d1f1e1240f8371b5637d5db2" },
     { name = "scipy", specifier = ">=1.13" },
     { name = "statsmodels", specifier = ">=0.14" },
 ]

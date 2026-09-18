@@ -165,12 +165,26 @@ This cuts against the premise, and the way it is pinned is what limits the
 damage rather than what removes it. A result here has to be re-readable, and
 part of the code that produced it now lives somewhere else.
 
-So the dependency names an exact tag in `pyproject.toml`, `uv.lock` records the
-commit that tag resolved to, and CI runs `uv sync --locked`. Each of those does
-one job. The tag is readable. The lock is what actually holds, because a plain
-`uv sync` silently re-locks and installs different code the moment
-`pyproject.toml` and the lock disagree, and `--locked` fails instead. Moving
-the pin is therefore a re-pin of this repo rather than a dependency bump.
+So `pyproject.toml` names the dependency by a direct URL at an exact commit,
+`uv.lock` records that commit, and CI runs `uv sync --locked`. Each of those
+does one job, and each answers a different way the pin could have failed.
+
+1. **The commit rather than the `v0.1.0` tag it belongs to.** A tag can be
+   moved on the remote. `uv sync --locked` would not follow it, but a
+   `uv lock --upgrade` would, and then the lock would record the new target as
+   though nothing had happened.
+2. **The lock, because a plain `uv sync` re-locks silently** and installs
+   different code the moment `pyproject.toml` and the lock disagree, rewriting
+   the lock inside a runner where nothing commits it. `--locked` fails instead.
+3. **The URL rather than a bare `quantcore>=0.1` with a `[tool.uv.sources]`
+   entry.** `quantcore` is an occupied name on PyPI, an unrelated backtesting
+   package whose 0.1.0 release satisfies that floor, and `tool.uv.sources` is a
+   uv-only key that pip ignores. The earlier spelling would have had a
+   contributor running `pip install .` install a stranger's package under the
+   name this repo imports. A direct URL is satisfiable by no index.
+
+Moving the pin is therefore a re-pin of this repo rather than a dependency
+bump.
 
 The price is real and is not paid off by the pin. A committed vintage sits in
 this repository, and the code now sits behind a remote reference. If
@@ -245,6 +259,7 @@ change that cuts it.
 | The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
 | The regime-map figure and its generator, cut then reversed | Cut because the scan behind the figure was already pinned, so the picture is presentation rather than a result, and an image nothing regenerates is an artifact nobody can check. The owner reversed that on 2026-09-17. The objection is answered rather than ignored: [src/chan/regime_figure.py](../src/chan/regime_figure.py) draws the figure from the committed vintages, and [tests/test_regime_figure.py](../tests/test_regime_figure.py) pins that it draws the scan `TestRollingRegime` computes. It does not compare bytes, because a PNG carries the matplotlib version that rendered it. The image still counts as a checked-in generated artifact for [issue 6](https://github.com/l3a0/quantitative-trading/issues/6). |
 | Keeping the duplicated estimators in step with a drift test | The test cannot exist. Neither repo's continuous integration can see the other's checkout, so the check would compare against a committed checksum that fires only when somebody updates it. A rule that depends on remembering is what the duplication already was. The estimators moved to [quantcore](https://github.com/l3a0/quant-core) instead. |
+| Depending on quantcore by name plus a `[tool.uv.sources]` redirect | `quantcore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
 | Depending on quantcore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |
