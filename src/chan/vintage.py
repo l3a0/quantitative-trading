@@ -1,4 +1,4 @@
-"""Record a downloaded series as a vintage, immutable once written.
+"""Record a series as a vintage, immutable once written, and resolve one to read.
 
 A vintage is one download of one series, identified by vendor, symbol, span,
 download date, and which price the series carries. Losing one is the failure
@@ -19,6 +19,15 @@ writes them, so every rule it enforces is exercised with no network. It writes
 them in the order it is handed them, because the file is meant to be what the
 vendor returned, while the span in the entry is the smallest and largest date
 rather than the first and last row.
+
+Reading is the other half and it runs the record backwards.
+:func:`resolve_vintage` turns identity fields into the one entry that names
+them, and :func:`read_vintage` hands back that entry's bytes once they hash to
+what the record says. A run reads a committed vintage or it does not run, so a
+file that no longer matches its entry stops the run and names itself rather
+than producing a number from bytes nobody recorded. Nothing here parses a
+series: that costs pandas, and a module the whole repo reads through is worth
+keeping on the standard library.
 
 Three limits are decisions rather than omissions.
 
@@ -44,6 +53,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import re
 from collections import Counter
 from collections.abc import Iterable
@@ -51,7 +61,7 @@ from dataclasses import asdict, dataclass
 from datetime import date
 from pathlib import Path
 
-from chan.paths import DATA_DIR
+from chan import paths
 
 MANIFEST_NAME = "vintages.jsonl"
 CHECKSUMS_NAME = "checksums.sha256"
@@ -70,6 +80,21 @@ VENDOR_PATTERN = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 SYMBOL_PATTERN = re.compile(r"^[A-Z0-9^][A-Z0-9.=^-]*$")
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+class VintageUnavailable(Exception):
+    """A run asked for a committed vintage and did not get one.
+
+    Separate from :class:`VintageRefused`, which is the writer's and says a
+    vintage was not written because writing it would replace a record. This one
+    says a run could not read one, which is the opposite operation, so sharing
+    the exception would hand the next person a docstring describing something
+    that did not happen.
+
+    The message names which vintage and which state. Absent, unreadable and
+    altered are three different problems with three different fixes, and one
+    message for all of them sends the reader to the wrong one.
+    """
 
 
 class VintageRefused(Exception):
@@ -110,6 +135,25 @@ class VintageEntry:
                 f"{self.path}: an entry carries a download date or a saved date, not both and "
                 f"not neither"
             )
+
+    @property
+    def obtained(self) -> str:
+        """The one date this entry carries, whichever of the two fields holds it.
+
+        ``__post_init__`` guarantees exactly one is set, so a caller that wants
+        to tell two vintages of one series apart asks here rather than picking a
+        field and finding ``None`` on half the manifest.
+        """
+        return self.download_date if self.download_date is not None else self.saved_date
+
+    @property
+    def obtained_verb(self) -> str:
+        """``downloaded`` or ``saved``, so a report names what the date means.
+
+        Nothing was fetched on a saved date, and printing it under the word
+        "downloaded" would state a wrong fact about where the series came from.
+        """
+        return "downloaded" if self.download_date is not None else "saved"
 
     def as_json(self) -> str:
         """The entry as one JSON object, with the unset date field left out.
@@ -195,7 +239,7 @@ def record_vintage(
     directory, the way :func:`chan.regime_figure.make_regime_figure` takes an
     output path, so a run cannot write into the committed vintages.
     """
-    directory = DATA_DIR if data_dir is None else data_dir
+    directory = paths.DATA_DIR if data_dir is None else data_dir
     rows = _validated_rows(rows)
     vendor, symbol, price_basis = _validated_identity(vendor, symbol, price_basis)
     _validated_date(download_date, "download date")
@@ -280,14 +324,183 @@ def write_checksums(data_dir: Path | None = None) -> None:
     therefore a no-op diff, which is what says the projection reproduces the
     record rather than replacing it.
     """
-    directory = DATA_DIR if data_dir is None else data_dir
+    directory = paths.DATA_DIR if data_dir is None else data_dir
     entries = sorted(read_manifest(directory), key=lambda entry: entry.path)
     lines = [f"{entry.sha256}  {entry.path}\n" for entry in entries]
     (directory / CHECKSUMS_NAME).write_text("".join(lines), encoding="utf-8")
 
 
+def resolve_vintage(
+    *,
+    vendor: str,
+    symbol: str,
+    price_basis: str,
+    dated: str | None = None,
+    data_dir: Path | None = None,
+) -> VintageEntry:
+    """The one manifest entry these fields name, or a refusal saying why not.
+
+    ``vendor``, ``symbol`` and ``price_basis`` are the identity fields a caller
+    knows without looking at the data directory. They select exactly one of the
+    eight committed vintages today, and they stop being enough the moment a
+    second download of one series is recorded, which :func:`record_vintage` was
+    built to allow.
+
+    ``dated`` is what tells those two apart. It is compared against whichever
+    date field the entry carries, so it names a download and it names one of
+    the four series lifted from Ernest Chan's workbooks, which carry a saved
+    date and no download date at all. An argument named for the download date
+    could only name four of the eight.
+
+    Ambiguity refuses rather than picking. A rule that the latest date wins
+    would let a new download move a pinned number with nothing in the diff to
+    explain it, which is the failure ``docs/design.md``'s register cut under
+    "Reading a clock for a vintage's download date", arriving through the
+    manifest instead of through a clock. So a triple matching two entries stops
+    the run and names both, and the caller says which one it meant.
+    """
+    directory = _directory(data_dir)
+    try:
+        entries = read_manifest(directory)
+    except (OSError, ValueError) as unreadable:
+        # `read_manifest` raises three classes and none of them is this one, so
+        # without this a deleted or corrupt manifest reaches an operator as a
+        # traceback while a deleted vintage reaches one as a line. Its message
+        # is carried through rather than replaced, because it already says
+        # which of the manifest's own states fired.
+        raise VintageUnavailable(
+            f"the vintage manifest could not be read, so no vintage can be resolved: {unreadable}"
+        ) from unreadable
+    if not entries:
+        raise VintageUnavailable(
+            f"the manifest at {directory / MANIFEST_NAME} records no vintages at all. A record "
+            f"holding nothing is a lost record, which is a different problem from a download "
+            f"nobody made."
+        )
+
+    asked = f"{vendor} {symbol} {price_basis}" + ("" if dated is None else f" dated {dated}")
+    matches = [
+        entry
+        for entry in entries
+        if entry.vendor == vendor
+        and entry.symbol == symbol
+        and entry.price_basis == price_basis
+        and (dated is None or entry.obtained == dated)
+    ]
+    if not matches:
+        raise VintageUnavailable(
+            f"no committed vintage is recorded for {asked}.{_unrecorded_note(directory, entries)}"
+        )
+    if len(matches) > 1 and len(set(matches)) == 1:
+        raise VintageUnavailable(
+            f"the manifest holds {len(matches)} identical entries for {matches[0].path}. Naming a "
+            f"date cannot separate them, because they are one record written more than once."
+        )
+    if len(matches) > 1:
+        candidates = ", ".join(
+            f"{entry.path} ({entry.obtained_verb} {entry.obtained})" for entry in matches
+        )
+        raise VintageUnavailable(
+            f"{asked} names {len(matches)} recorded vintages: {candidates}. Name which one with "
+            f"the date it was {matches[0].obtained_verb}, because choosing here would move a "
+            f"pinned number with nothing in the diff to explain it."
+        )
+    return matches[0]
+
+
+def read_vintage(entry: VintageEntry, data_dir: Path | None = None) -> bytes:
+    """The vintage's bytes, once they are shown to be the bytes the record describes.
+
+    One read answers both questions. Hashing the file and then handing a parser
+    the path checks one read and uses another, which is the look-then-act shape
+    :func:`record_vintage` already rejected on the writing side.
+
+    Nothing is cached. Hashing all eight committed vintages takes 0.9 ms
+    against a 5 s suite, so a cache would save nothing measurable and would add
+    a second answer to the question of what is on disk right now.
+    """
+    path = _directory(data_dir) / entry.path
+    try:
+        payload = path.read_bytes()
+    except FileNotFoundError as absent:
+        # Asked after the open failed rather than before it, so this diagnoses a
+        # refusal that already happened instead of guarding one. `Path.exists`
+        # calls a dangling symlink absent and `open` agrees by raising this, so
+        # without the lstat here a broken link reads as a download nobody made.
+        if path.is_symlink():
+            raise VintageUnavailable(
+                f"{entry.path}: {path} is a symlink and nothing is at its target "
+                f"{os.readlink(path)!r}. Something is at the path, so this is not the same "
+                f"state as a vintage that was never committed."
+            ) from absent
+        raise VintageUnavailable(
+            f"{entry.path}: the manifest records this vintage and no file is at {path}. The "
+            f"record outlived the series, which is the state the recorder leaves when it is "
+            f"interrupted between the two."
+        ) from absent
+    except OSError as unreadable:
+        # Narrower than the `except OSError` that would sit around the whole
+        # read. FileNotFoundError is an OSError too, so catching the parent
+        # alone is what actually turns unreadable into absent.
+        raise VintageUnavailable(
+            f"{entry.path}: the file at {path} is there and could not be read: {unreadable}"
+        ) from unreadable
+
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != entry.sha256:
+        raise VintageUnavailable(
+            f"{entry.path}: the bytes at {path} hash to {digest} and the manifest records "
+            f"{entry.sha256}. The file is not the file the record describes, so the run stops "
+            f"rather than computing a number from it."
+        )
+    return payload
+
+
 def _manifest_path(data_dir: Path | None) -> Path:
-    return (DATA_DIR if data_dir is None else data_dir) / MANIFEST_NAME
+    return _directory(data_dir) / MANIFEST_NAME
+
+
+def _directory(data_dir: Path | None) -> Path:
+    """The data directory a call works against, read at call time.
+
+    ``chan.paths.DATA_DIR`` is the single switch that says where the vintages
+    sit, and looking it up through the module rather than binding it at import
+    keeps it the only one.
+    """
+    return paths.DATA_DIR if data_dir is None else data_dir
+
+
+def _unrecorded(directory: Path, entries: list[VintageEntry]) -> list[str] | None:
+    """Every ``*.csv`` no entry names, or ``None`` when the directory cannot be listed.
+
+    ``None`` rather than an empty list. This is the detector for an uncommitted
+    download reaching a result, so "nothing is unrecorded" and "the scan could
+    not run" must not be the same answer. A directory that is traversable but
+    not readable reaches the second: the manifest still opens by name and the
+    glob still fails.
+    """
+    recorded = {entry.path for entry in entries}
+    try:
+        present = sorted(found.name for found in directory.iterdir() if found.is_file())
+    except OSError:
+        return None
+    return [name for name in present if name.endswith(".csv") and name not in recorded]
+
+
+def _unrecorded_note(directory: Path, entries: list[VintageEntry]) -> str:
+    """The other half of rule 8, said only when there is something to say."""
+    unrecorded = _unrecorded(directory, entries)
+    if unrecorded is None:
+        return (
+            f" Whether an unrecorded series sits beside it is unknown, because {directory} could "
+            f"not be listed."
+        )
+    if not unrecorded:
+        return ""
+    return (
+        f" No entry names {', '.join(unrecorded)} either, and a series the manifest does not "
+        f"record is a download nobody can check."
+    )
 
 
 def _validated_rows(rows: Iterable[tuple[str, float]]) -> list[tuple[str, float]]:

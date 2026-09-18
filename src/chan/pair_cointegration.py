@@ -80,8 +80,8 @@ from __future__ import annotations
 
 import argparse
 import math
-import warnings
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -95,7 +95,8 @@ from ithildincore.timeseries import (
 from numpy.typing import NDArray
 from scipy import stats
 
-from chan.paths import data_path
+from chan.series import load_vintage
+from chan.vintage import VintageEntry, VintageUnavailable
 
 
 @dataclass(frozen=True)
@@ -239,57 +240,6 @@ def rolling_cointegration(
     )
 
 
-def load_close(ticker: str, *, unadjusted: bool = False, chan: bool = False) -> pd.Series:
-    """Load a ticker's daily close from a committed vintage, date-indexed.
-
-    Two sources, told apart by filename:
-
-    - The yfinance set, the default: ``data/{ticker}_20yr_prices.csv`` carries
-      Yahoo's dividend-adjusted close, and ``..._20yr_prices_unadjusted.csv``
-      carries the raw close when ``unadjusted=True``.
-    - Chan's book-companion set, with ``chan=True``: ``data/{ticker}_chan.csv``
-      is the adjusted-close column of Chan's own ``.xls`` for that ticker.
-      There is no unadjusted twin, so ``unadjusted`` is ignored here.
-
-    All are written with a three-row header (Price/Close, Ticker/SYM,
-    Date/blank). Rather than hard-code the skip count, every leading row whose
-    first field is not a parseable date is dropped, so either header shape
-    loads.
-
-    The basis decides the levels. GLD pays no distributions, so its adjusted
-    close already equals its raw close, while GDX's dividends put today's
-    adjusted history about 15% below raw. Chan's 2007-vintage adjusted close
-    was near raw, since GDX had paid little by then, so raw is the closest
-    modern proxy for reproducing the book. That is why ``--ch7``, ``--ch3`` and
-    ``--unadjusted`` read it.
-    """
-    # Provenance lives in data/vintages.jsonl, which names each file's vendor,
-    # symbol, price basis, span, date, row count and sha256. data/README.md says
-    # the same in prose. The four yfinance files were not all taken on one day,
-    # so the date is per file rather than per directory. All of them are frozen
-    # on purpose. Nothing regenerates these eight, and the pinned tests freeze
-    # these exact bytes against each source's drifting vintage, so a re-download
-    # would fail the replication rather than pass it quietly.
-    if chan:
-        path = data_path(f"{ticker.lower()}_chan.csv")
-    else:
-        suffix = "_20yr_prices_unadjusted.csv" if unadjusted else "_20yr_prices.csv"
-        path = data_path(f"{ticker.lower()}{suffix}")
-    raw = pd.read_csv(path, header=None, names=["date", "close"], usecols=[0, 1])
-    with warnings.catch_warnings():
-        # The header rows ("Date", "Ticker") do not parse as dates, and coerce
-        # drops them to NaT. pandas warns about the mixed formats, expected here.
-        warnings.simplefilter("ignore", UserWarning)
-        dates = pd.to_datetime(raw["date"], errors="coerce")
-    mask = dates.notna()
-    series = pd.Series(
-        pd.to_numeric(raw["close"][mask], errors="coerce").to_numpy(dtype=float),
-        index=pd.DatetimeIndex(dates[mask]),
-        name=ticker.upper(),
-    )
-    return series.sort_index()
-
-
 def aligned_closes(
     a: str,
     b: str,
@@ -298,26 +248,35 @@ def aligned_closes(
     end: str | None = None,
     unadjusted: bool = False,
     chan: bool = False,
+    data_dir: Path | None = None,
 ) -> pd.DataFrame:
     """Inner-join two tickers' closes on their common trading days.
 
     Optionally clipped to the inclusive window ``[start, end]``, both
     ``YYYY-MM-DD``. ``chan=True`` loads both legs from Chan's committed
-    companion data.
+    companion data. Each leg is resolved through the manifest and verified
+    against the sha256 recorded there before it is read.
+
+    The two entries come back on ``DataFrame.attrs["vintages"]``, in leg order.
+    A report that names which vintage produced its numbers needs them, and the
+    frame drops everything the lookup knew, so they ride along rather than
+    being resolved a second time to a possibly different answer.
+
+    There is no ``dated`` argument here on purpose. One date applied to both
+    legs is wrong on the default run, whose two vintages were downloaded 72
+    days apart, so a pair that needs to name its dates needs one per leg. That
+    is [issue 69](https://github.com/l3a0/quantitative-trading/issues/69).
+    Until it lands, an ambiguous pair stops the run and names the candidates.
     """
-    joined = pd.concat(
-        [
-            load_close(a, unadjusted=unadjusted, chan=chan),
-            load_close(b, unadjusted=unadjusted, chan=chan),
-        ],
-        axis=1,
-        join="inner",
-    ).dropna()
+    entry_a, close_a = load_vintage(a, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
+    entry_b, close_b = load_vintage(b, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
+    joined = pd.concat([close_a, close_b], axis=1, join="inner").dropna()
     joined.columns = [a.upper(), b.upper()]
     if start is not None:
         joined = joined.loc[joined.index >= pd.Timestamp(start)]
     if end is not None:
         joined = joined.loc[joined.index <= pd.Timestamp(end)]
+    joined.attrs["vintages"] = (entry_a, entry_b)
     return joined
 
 
@@ -328,6 +287,19 @@ def _verdict(stat: float, crit: dict[str, float]) -> str:
         if stat < crit[level]:
             return f"REJECTS the no-cointegration null at the {level} level"
     return "fails to reject -- no evidence of cointegration"
+
+
+def _vintage_line(entry: VintageEntry) -> str:
+    """One entry as the report prints it: which file, from where, and when.
+
+    The verb matters. Four committed vintages carry a saved date because they
+    are columns lifted from Ernest Chan's workbooks and nothing was fetched on
+    that day, so printing one under the word "downloaded" would state a wrong
+    fact about where the series came from.
+    """
+    return (
+        f"{entry.path}   {entry.vendor} {entry.price_basis}, {entry.obtained_verb} {entry.obtained}"
+    )
 
 
 def run(
@@ -342,9 +314,12 @@ def run(
     reference: str | None = None,
     show_correlation: bool = False,
     chan: bool = False,
+    data_dir: Path | None = None,
 ) -> None:
     """Load the pair, run the test, and print a book-style report."""
-    closes = aligned_closes(a, b, start=start, end=end, unadjusted=unadjusted, chan=chan)
+    closes = aligned_closes(
+        a, b, start=start, end=end, unadjusted=unadjusted, chan=chan, data_dir=data_dir
+    )
     if len(closes) < 30:
         raise SystemExit(
             f"only {len(closes)} common trading days in the window -- need >= 30 "
@@ -374,6 +349,12 @@ def run(
     print(f"  A = {au}   B = {bu}")
     print(f"  Span: {span_start} .. {span_end}   (N = {len(closes)} trading days)")
     print(f"  Price basis: {basis} (both legs)")
+    # Every field on these lines is read off the manifest entry the lookup
+    # already resolved, so this is not a fourth surface restating what
+    # data/vintages.jsonl, data/README.md and docs/replication-log.md carry. It
+    # cannot drift from the record, because it is the record.
+    for entry in closes.attrs["vintages"]:
+        print(f"  {entry.symbol} vintage: {_vintage_line(entry)}")
     if reference is not None:
         print(f"  Book reference: {reference}")
     print()
@@ -599,18 +580,24 @@ def main() -> None:
         # intersection, with the correlation check alongside the CADF.
         a_tick, b_tick = "KO", "PEP"
         origin, show_correlation, reference, chan = True, True, KOPEP_REF, True
-    run(
-        a_tick,
-        b_tick,
-        args.lags,
-        start=start,
-        end=end,
-        unadjusted=unadjusted,
-        origin=origin,
-        reference=reference,
-        show_correlation=show_correlation,
-        chan=chan,
-    )
+    try:
+        run(
+            a_tick,
+            b_tick,
+            args.lags,
+            start=start,
+            end=end,
+            unadjusted=unadjusted,
+            origin=origin,
+            reference=reference,
+            show_correlation=show_correlation,
+            chan=chan,
+        )
+    except VintageUnavailable as unavailable:
+        # A refusal that names which vintage and which state is worth nothing at
+        # the bottom of a twenty-line pandas traceback. `run` already exits this
+        # way for a window with too few trading days, so this follows it.
+        raise SystemExit(str(unavailable)) from unavailable
 
 
 if __name__ == "__main__":
