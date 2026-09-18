@@ -27,7 +27,7 @@ import struct
 from pathlib import Path
 
 import pytest
-from quantcore.timeseries import EG_CRIT_N2
+from ithildincore.timeseries import EG_CRIT_N2
 
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import REPRO_HEDGE, make_regime_figure

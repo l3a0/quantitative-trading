@@ -1,6 +1,6 @@
 """What this repo requires of the estimators it does not own.
 
-The estimators come from [quantcore](https://github.com/l3a0/quant-core), so a
+The estimators come from [ithildincore](https://github.com/l3a0/ithildin-core), so a
 number here can move for two different reasons: the vintage changed, or the
 dependency changed. `tests/test_pair_cointegration.py` fails on either and
 cannot say which, because every one of its assertions reads a committed CSV.
@@ -10,7 +10,7 @@ fail only when the estimator's behaviour moves. A run where these pass and the
 pair tests fail points at the data. A run where these fail points at the pin
 in `pyproject.toml`.
 
-That is the whole job. These are not a second copy of quantcore's own tests,
+That is the whole job. These are not a second copy of ithildincore's own tests,
 which are broader and live where the code does. This file holds the three
 properties this repo's replications actually rest on, and it is the reason the
 package is pinned to a tag rather than a range.
@@ -22,7 +22,7 @@ import math
 
 import numpy as np
 import pytest
-from quantcore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat, ols, ou_half_life
+from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat, ols, ou_half_life
 
 
 class TestTheEstimatorsStillBehaveAsTheReplicationsAssume:

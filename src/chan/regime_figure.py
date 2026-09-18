@@ -35,8 +35,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.dates as mdates
+from ithildincore.timeseries import EG_CRIT_N2
 from matplotlib.figure import Figure
-from quantcore.timeseries import EG_CRIT_N2
 
 from chan.pair_cointegration import aligned_closes, rolling_cointegration
 from chan.paths import FIGURES_DIR
