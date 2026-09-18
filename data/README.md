@@ -7,10 +7,16 @@ announcing it, so a result checked against a fresh download is a result checked
 against different data. [docs/design.md](../docs/design.md) carries the
 reasoning.
 
-Nothing here regenerates these files. No fetch script was ported, and a
+Nothing regenerates these eight files. No fetch script was ported, and a
 re-download would move the pinned numbers and fail the suite, which is the
 behaviour that makes the pins worth having. Replacing a file is therefore a
 deliberate act with a visible cost, not a refresh.
+
+A ninth vintage does not arrive by hand. `chan.vintage.record_vintage` writes
+one and records it, and refuses to overwrite either the file or its entry, so
+adding a series is a recorded act and replacing one is not an act the recorder
+performs at all. It does not download. A caller hands it rows, which is what
+keeps every rule it enforces testable with no network.
 
 ## What each file is
 
@@ -61,7 +67,9 @@ Date,
 ```
 
 `load_close` drops every leading row whose first field does not parse as a
-date, so the reader does not depend on that row count staying at three.
+date, so the reader does not depend on that row count staying at three. The
+recorder writes the same three rows, which is why this section describes every
+file here rather than only the eight.
 
 ## Verifying the bytes
 
@@ -69,6 +77,23 @@ date, so the reader does not depend on that row count staying at three.
 cd data && shasum -a 256 -c checksums.sha256
 ```
 
-The manifest is [checksums.sha256](checksums.sha256). A mismatch means the file
-changed, and any number pinned against it is no longer a number computed from
-it.
+A mismatch means the file changed, and any number pinned against it is no
+longer a number computed from it.
+
+Two files carry that record, and neither is written by hand.
+
+1. [vintages.jsonl](vintages.jsonl) is the record. One JSON object per line,
+   naming each vintage's vendor, symbol, price basis, span, date, path, row
+   count and sha256. A line carries `download_date` when a vendor was asked for
+   the series and `saved_date` for the four lifted from Chan's workbooks, whose
+   date is when he last saved one rather than when anything was fetched.
+2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
+   whenever a vintage is recorded, so `shasum` keeps working without a second
+   surface anyone has to remember to update.
+
+`TestTheCommittedManifest` in
+[tests/test_vintage.py](../tests/test_vintage.py) fails when an entry stops
+describing the file it names, when a file here has no entry, or when the
+projection stops matching the record. The table above is a third telling and is
+still hand-written, which
+[issue 43](https://github.com/l3a0/quantitative-trading/issues/43) closes.
