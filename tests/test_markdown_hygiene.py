@@ -1,18 +1,22 @@
 """The prose sweeps CLAUDE.md names, run as tests rather than from memory.
 
-Four layers. The first pins each sweep's own behavior on small documents, which
-is what keeps the code-fence exemption honest. The second runs the
-single-document sweeps over every Markdown file in the repo, so a slip fails the
-suite locally and in CI rather than waiting for someone to remember the command.
+The behavior layer pins each sweep on small documents, which is what keeps the
+code-fence exemption honest. The repository layer runs the single-document
+sweeps over every Markdown file here, so a slip fails the suite locally and in
+CI rather than waiting for someone to remember the command.
 
-The third reads one document against another. A heading quoted in prose and an
-anchor written into a link both name a heading somewhere, and both stop
-resolving when the heading is renamed with nothing else noticing.
+The cross-document layer reads one document against another. A heading quoted
+in prose and an anchor written into a link both name a heading somewhere, and
+both stop resolving when the heading is renamed with nothing else noticing.
 
-The fourth is the cross-surface layer, `TestTheFigureHasThreeCopies`. The one
-committed figure exists as a PNG, as a base64 copy inlined in the HTML essay,
-and as an embed in the blog Markdown. Redrawing it updates one of the three,
-and nothing else in this repo would notice the other two.
+The cross-surface layer is `TestTheFigureHasThreeCopies`. The one committed
+figure exists as a PNG, as a base64 copy inlined in the HTML essay, and as an
+embed in the blog Markdown. Redrawing it updates one of the three, and nothing
+else in this repo would notice the other two.
+
+The layers are named rather than counted, for the reason
+`test_the_repo_has_markdown_to_sweep` gives about files. A count is wrong the
+moment a layer is added and nothing asserts it.
 """
 
 from __future__ import annotations
@@ -421,6 +425,32 @@ def test_a_table_row_breaks_the_paragraph_around_it() -> None:
     ]
 
 
+def test_a_list_item_is_its_own_unit() -> None:
+    # A tight list is one blank-line paragraph and each item carries its own
+    # subject, so reading the list whole lends one item's attribution to the
+    # next item's span. CLAUDE.md already writes a list of that shape.
+    found = units("- First names a file.\n- Second quotes a heading.\n")
+    assert [(unit.text, unit.first_line) for unit in found] == [
+        ("- First names a file.", 1),
+        ("- Second quotes a heading.", 2),
+    ]
+
+
+def test_a_numbered_item_is_its_own_unit() -> None:
+    found = units("1. First.\n2. Second.\n")
+    assert [unit.first_line for unit in found] == [1, 2]
+
+
+def test_a_continuation_line_joins_the_item_above_it() -> None:
+    # A wrapped item is indented rather than marked, so it belongs to the
+    # item it continues and not to a unit of its own.
+    found = units("- An item that runs on\n  past the margin.\n- The next one.\n")
+    assert [unit.text for unit in found] == [
+        "- An item that runs on\n  past the margin.",
+        "- The next one.",
+    ]
+
+
 def test_a_unit_reports_the_line_an_offset_sits_on() -> None:
     # The finding points at the line the span sits on, which the paragraph
     # rule would otherwise lose to the line the unit starts at.
@@ -431,12 +461,9 @@ def test_a_unit_reports_the_line_an_offset_sits_on() -> None:
 # --- The heading index --------------------------------------------------------
 
 
-def test_a_heading_carries_its_level_and_its_line() -> None:
+def test_a_heading_carries_its_level_and_its_text() -> None:
     found = document_headings("# Title\n\ntext\n\n### Deep\n")
-    assert [(head.level, head.text, head.line_number) for head in found] == [
-        (1, "Title", 1),
-        (3, "Deep", 5),
-    ]
+    assert [(head.level, head.text) for head in found] == [(1, "Title"), (3, "Deep")]
 
 
 def test_a_hash_inside_a_fence_is_not_a_heading() -> None:
@@ -598,6 +625,78 @@ def test_a_span_with_nothing_attributing_it_resolves_to_nothing() -> None:
         Path("/repo"),
     )
     assert named.target is None and not named.path_shaped
+
+
+def test_a_one_hash_span_is_a_comment_rather_than_a_heading(tmp_path: Path) -> None:
+    # A shell or Python comment is quoted in backticks the same way a heading
+    # is, and prose in this repo writes plenty of them.
+    root = _repository(
+        tmp_path,
+        {"CLAUDE.md": "The design doc explains `# type: ignore`.\n", "docs/design.md": "# D\n"},
+    )
+    assert sweep_heading_references(root) == []
+
+
+def test_an_alias_needs_its_own_word_boundaries(tmp_path: Path) -> None:
+    # "the design docs" names no one document, so it attributes nothing.
+    named = _attributed(
+        "Neither the design docs nor the tracker keep a body's `## Evidence`.",
+        "`## Evidence`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+    )
+    assert named.target is None and not named.path_shaped
+
+
+def test_a_url_ending_in_md_is_not_an_attribution(tmp_path: Path) -> None:
+    # A link to another repository's file names nothing this checkout holds,
+    # so reporting it would fail correct prose rather than find a deletion.
+    for written in (
+        "The template's `https://github.com/l3a0/repo-template/blob/main/CLAUDE.md`",
+        "The template's [CLAUDE.md](https://github.com/l3a0/repo-template/blob/main/CLAUDE.md)",
+    ):
+        named = _attributed(
+            f"{written} and a body's `## Why` after it.",
+            "`## Why`",
+            tmp_path / "CLAUDE.md",
+            tmp_path,
+        )
+        assert named.target is None and not named.path_shaped
+
+
+def test_a_home_directory_path_is_not_an_attribution(tmp_path: Path) -> None:
+    # CLAUDE.md names the owner's global instructions file this way today.
+    named = _attributed(
+        "The owner's global `~/.claude/CLAUDE.md` is the source, and its `## Writing style` wins.",
+        "`## Writing style`",
+        tmp_path / "CLAUDE.md",
+        tmp_path,
+    )
+    assert named.target is None and not named.path_shaped
+
+
+def test_a_backticked_filename_written_upwards_resolves_from_the_document(
+    tmp_path: Path,
+) -> None:
+    # The repository root has no parent to climb to, so `../` can only mean
+    # the directory the sentence is written in.
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "README.md").write_text("## Header shape\n", encoding="utf-8")
+    (tmp_path / "docs").mkdir()
+    named = _attributed(
+        "`../data/README.md`'s `## Header shape` states it.",
+        "`## Header shape`",
+        tmp_path / "docs" / "design.md",
+        tmp_path,
+        known=[(tmp_path / "data" / "README.md").resolve()],
+    )
+    assert named.target == (tmp_path / "data" / "README.md").resolve()
+
+
+def test_a_positional_attribution_records_the_word_it_matched() -> None:
+    here = Path("/repo/data/README.md")
+    named = _attributed("`## Header shape` below is why.", "`## Header shape`", here, Path("/repo"))
+    assert named.written == "below"
 
 
 def test_a_python_filename_is_not_an_attribution(tmp_path: Path) -> None:
@@ -811,6 +910,32 @@ def test_an_anchor_into_a_document_this_repo_does_not_keep_is_flagged(tmp_path: 
     assert _messages(sweep_fragment_links(root)) == [
         "docs.md:1: `build-plan.md#the-order` points at a document this repo does not keep"
     ]
+
+
+def test_an_anchor_into_a_tracked_file_this_sweep_cannot_index_is_left_alone(
+    tmp_path: Path,
+) -> None:
+    # The committed HTML essay is a prose surface this repo keeps and this
+    # sweep cannot read headings from. Calling it missing is a false claim
+    # about a tracked file.
+    root = _repository(
+        tmp_path,
+        {
+            "README.md": "# R\n\nSee [the essay](docs/essay.html#lesson-three).\n",
+            "docs/essay.html": "<h2 id='lesson-three'>Lesson three</h2>\n",
+        },
+    )
+    assert sweep_fragment_links(root) == []
+
+
+def test_a_root_absolute_anchor_resolves_from_the_repository_root(tmp_path: Path) -> None:
+    # A leading slash is repository-absolute on GitHub rather than a machine
+    # path, and reading it as one sends every such link to a file nobody has.
+    root = _repository(
+        tmp_path,
+        {"docs/design.md": "# D\n\n## Vocabulary\n\n[Terms](/docs/design.md#vocabulary)\n"},
+    )
+    assert sweep_fragment_links(root) == []
 
 
 def test_an_external_fragment_link_is_left_alone(tmp_path: Path) -> None:

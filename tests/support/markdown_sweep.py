@@ -1,7 +1,11 @@
 """The prose sweeps for Markdown that markdownlint has no rule for.
 
-Four checks live here. Two read one document's own characters, and two read a
-reference in one document against a heading in another.
+Two read one document's own characters, flagging a tilde that can close a
+strikethrough pair and a table delimiter row written tight. Two read a
+reference in one document against a heading in another, one for a heading
+quoted in prose and one for an anchor written into a link. A count here would
+go stale the next time a check is added, which is what
+`test_the_repo_has_markdown_to_sweep` already decided about files.
 
 A tilde meaning "approximately" can close a strikethrough pair. Markdown reads
 a matching pair of tildes as deleted text, and renderers disagree about when a
@@ -24,10 +28,10 @@ A fragment link stops resolving the same way, and renders as a working link
 while doing it. GitHub answers an anchor nobody kept by leaving the reader at
 the top of the page.
 
-Both single-document checks read prose only. Text inside a fenced block or a
+The single-document checks read prose only. Text inside a fenced block or a
 backtick span is exempt, because a pattern written for prose keeps appearing
 inside the code fence that documents it. Blanking keeps line numbers intact,
-so a finding points at the line a reader will open. Both cross-document checks
+so a finding points at the line a reader will open. The cross-document checks
 blank fenced blocks and keep inline spans, because the reference they read is
 normally written in backticks.
 """
@@ -249,7 +253,6 @@ class Heading:
 
     level: int
     text: str
-    line_number: int
     slug: str
 
     @property
@@ -297,19 +300,34 @@ class QuotedHeading:
 
 @dataclass(frozen=True)
 class FragmentLink:
-    """One link carrying an anchor. `document` is empty when the target is gone."""
+    """One link carrying an anchor, and what the sweep can say about its target.
+
+    `document` is the Markdown file whose headings answer the anchor, and it
+    is empty when there is no such file. `exists` then separates the two
+    reasons. A target that is there but is not Markdown, such as the committed
+    HTML essay, carries headings this sweep cannot index, and calling it a
+    document the repo does not keep would be a false claim about a tracked
+    file. A target that is not there at all is the retired document this
+    sweep exists to notice.
+    """
 
     path: Path
     line_number: int
     target: str
     document: Path | None
+    exists: bool
     fragment: str
 
 
 # A heading quoted in prose. The text may wrap in a hard-wrapped file, so the
 # span is read across the unit rather than within one line and its whitespace
 # is collapsed afterwards.
-HEADING_SPAN = re.compile(r"`(#{1,6}[ \t][^`]+?)`")
+#
+# Two hashes at least, because one hash and a space is how a shell or Python
+# comment is written, and prose quotes those in backticks the same way it
+# quotes a heading. A document's one-hash heading is its title, which prose
+# names by filename instead, and no tracked file quotes one.
+HEADING_SPAN = re.compile(r"`(#{2,6}[ \t][^`]+?)`")
 
 # A positional word, accepted only where it follows the span. Accepting one
 # anywhere in the unit fails correct prose: a paragraph can end "the rules
@@ -320,6 +338,7 @@ _MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 _BACKTICKED_DOCUMENT = re.compile(r"`([^`\s]+\.md)`")
 _ATX_HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$")
 _TABLE_ROW = re.compile(r"^[ \t]*\|")
+_LIST_ITEM = re.compile(r"^[ \t]*(?:[-*+]|[0-9]+[.)])[ \t]")
 _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 
 # A document this repo's prose names by a phrase rather than by its path. The
@@ -327,7 +346,14 @@ _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 # before now. Skipping what carries no path would drop it.
 DOCUMENT_ALIASES = {"the design doc": "docs/design.md"}
 
-_ALIAS = re.compile("|".join(re.escape(alias) for alias in DOCUMENT_ALIASES), re.IGNORECASE)
+_ALIAS = re.compile(
+    r"\b(?:" + "|".join(re.escape(alias) for alias in DOCUMENT_ALIASES) + r")\b",
+    re.IGNORECASE,
+)
+
+# Matched case-insensitively, so the lookup is folded rather than trusting
+# every key to be written in lower case.
+_ALIAS_TARGETS = {alias.lower(): target for alias, target in DOCUMENT_ALIASES.items()}
 
 
 def units(text: str) -> list[Unit]:
@@ -344,29 +370,40 @@ def units(text: str) -> list[Unit]:
     spans, so reading the table whole hands every row's attribution to every
     other row's span.
 
-    So a table row is its own unit, and outside a table the unit is the
-    blank-line paragraph.
+    A tight list has the same shape as a table and takes the same rule. Its
+    items sit in one blank-line paragraph and each carries its own subject, so
+    a list read whole hands one item's attribution to the next item's span.
+    This repo writes tight lists everywhere, and one of them already carries a
+    heading span.
+
+    So a table row and a list item are each their own unit, and everything
+    else is the blank-line paragraph it sits in. A line that continues a list
+    item is indented rather than marked, so it joins the item above it.
     """
     found: list[Unit] = []
     buffer: list[str] = []
     first = 0
+
+    def flush() -> None:
+        nonlocal buffer
+        if buffer:
+            found.append(Unit("\n".join(buffer), first))
+            buffer = []
+
     for number, line in enumerate(text.split("\n"), start=1):
         if not line.strip():
-            if buffer:
-                found.append(Unit("\n".join(buffer), first))
-                buffer = []
+            flush()
             continue
         if _TABLE_ROW.match(line):
-            if buffer:
-                found.append(Unit("\n".join(buffer), first))
-                buffer = []
+            flush()
             found.append(Unit(line, number))
             continue
+        if _LIST_ITEM.match(line):
+            flush()
         if not buffer:
             first = number
         buffer.append(line)
-    if buffer:
-        found.append(Unit("\n".join(buffer), first))
+    flush()
     return found
 
 
@@ -397,7 +434,7 @@ def document_headings(text: str) -> list[Heading]:
     """
     seen: dict[str, int] = {}
     found: list[Heading] = []
-    for number, line in enumerate(blank_fences(text).split("\n"), start=1):
+    for line in blank_fences(text).split("\n"):
         match = _ATX_HEADING.match(line)
         if match is None:
             continue
@@ -405,7 +442,7 @@ def document_headings(text: str) -> list[Heading]:
         count = seen.get(base, 0)
         seen[base] = count + 1
         anchor = base if count == 0 else f"{base}-{count}"
-        found.append(Heading(len(match.group(1)), match.group(2), number, anchor))
+        found.append(Heading(len(match.group(1)), match.group(2), anchor))
     return found
 
 
@@ -451,14 +488,13 @@ def attribution(
     what separates the second branch from the first. A path-shaped attribution
     outside it names a document nobody keeps.
     """
-    if POSITIONAL.match(unit.text, end):
-        return Attribution("the document it is written in", document, False)
+    positional = POSITIONAL.match(unit.text, end)
+    if positional is not None:
+        return Attribution(positional.group(1), document, False)
     candidate = _last_attribution(unit.text[:start], document, root)
     if candidate is None:
         return Attribution("", None, False)
     written, target = candidate
-    if target is None:
-        return Attribution(written, None, False)
     return Attribution(written, target if target in known else None, True)
 
 
@@ -544,13 +580,14 @@ def fragment_links(root: Path) -> list[FragmentLink]:
             if "#" not in target or _SCHEME.match(target):
                 continue
             where, _, fragment = target.partition("#")
-            named = document if not where else _relative(where, document)
+            named = _link_target(where, document, root)
             found.append(
                 FragmentLink(
                     document,
                     text.count("\n", 0, match.start()) + 1,
                     target,
                     named if named in documents else None,
+                    named.exists(),
                     fragment,
                 )
             )
@@ -570,6 +607,8 @@ def sweep_fragment_links(root: Path) -> list[ReferenceFinding]:
     for link in fragment_links(root):
         here = link.path.relative_to(root)
         if link.document is None:
+            if link.exists:
+                continue
             findings.append(
                 ReferenceFinding(
                     here,
@@ -602,26 +641,65 @@ def _relative(target: str, document: Path) -> Path:
     return Path(os.path.normpath(document.parent / target)).resolve()
 
 
-def _last_attribution(before: str, document: Path, root: Path) -> tuple[str, Path | None] | None:
+def _link_target(where: str, document: Path, root: Path) -> Path:
+    """The file a link points at. An empty target means the document itself.
+
+    A leading slash is repository-absolute on GitHub rather than filesystem
+    absolute, so it resolves from the root. Reading it as a machine path
+    sends every such link to a file no checkout has.
+    """
+    if not where:
+        return document
+    if where.startswith("/"):
+        return (root / where.lstrip("/")).resolve()
+    return _relative(where, document)
+
+
+def _inside_the_repository(target: str) -> bool:
+    """Whether a name in prose could be a document this repository holds.
+
+    A URL, a home-directory path and a machine-absolute path all name
+    something outside the checkout, so none of them attributes a heading to a
+    tracked document. Treating one as an attribution reports a retired
+    document for prose that is right, and `CLAUDE.md` already names the
+    owner's global instructions file by a home-directory path.
+    """
+    return not (_SCHEME.match(target) or target.startswith(("~", "/")))
+
+
+def _document_path(target: str, document: Path, root: Path) -> Path:
+    """Resolve a filename written in prose.
+
+    One written from the repository root is the form this repo uses, so that
+    is the default. A leading `./` or `../` says otherwise and is read as
+    written, since the root has no parent to climb to and the notation can
+    only mean the document's own directory.
+    """
+    if target.startswith(("./", "../")):
+        return _relative(target, document)
+    return (root / target).resolve()
+
+
+def _last_attribution(before: str, document: Path, root: Path) -> tuple[str, Path] | None:
     """The attribution nearest the span, scanning back through one unit.
 
     A Markdown link resolves from the file holding it, because that is what a
-    renderer follows. A filename written in prose is followed by nobody and
-    this repo writes those from the repository root, so that is the only place
-    one is looked for. Trying the document's own directory as well would give
-    a filename naming nothing a second chance, which is the branch that
-    reports a retired document.
+    renderer follows. A filename written in prose is followed by nobody, so it
+    is read by the rule above instead.
     """
-    found: list[tuple[int, str, Path | None]] = []
+    found: list[tuple[int, str, Path]] = []
     for match in _MARKDOWN_LINK.finditer(before):
         target = match.group(1).partition("#")[0]
-        if not target.endswith(".md") or _SCHEME.match(target):
+        if not target.endswith(".md") or not _inside_the_repository(target):
             continue
         found.append((match.end(), target, _relative(target, document)))
     for match in _BACKTICKED_DOCUMENT.finditer(before):
-        found.append((match.end(), match.group(1), (root / match.group(1)).resolve()))
+        target = match.group(1)
+        if not _inside_the_repository(target):
+            continue
+        found.append((match.end(), target, _document_path(target, document, root)))
     for match in _ALIAS.finditer(before):
-        aliased = DOCUMENT_ALIASES[match.group(0).lower()]
+        aliased = _ALIAS_TARGETS[match.group(0).lower()]
         found.append((match.end(), match.group(0), (root / aliased).resolve()))
     if not found:
         return None
