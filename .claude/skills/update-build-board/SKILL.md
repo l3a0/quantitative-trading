@@ -108,6 +108,19 @@ zero, which looks enough like a result to be written down.
 A count recalled from earlier in the session is the one that will be wrong, and
 it has been: an update shipped 39 open issues when a query said 40.
 
+**Run the suite against the commit the strip names, on a checkout of it.** Not
+in whichever worktree the session happens to be standing in, which is rarely
+`main`. An update published 243 tests beside `2938775`, where the real count was
+241, because the run happened in a branch that adds tests. The strip prints the
+count next to the commit, so a figure from another tree is attributed to a tree
+that never produced it. `git worktree add --detach <dir> origin/main` gives a
+clean one, and removing it afterwards is part of the same step.
+
+That one is worth reading twice, because its cover story arrived on its own. PR
+90 merged twenty minutes later and made 243 right for `main`, so a session
+checking the number afterwards would have found it correct and left the method
+that produced it in place.
+
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
 gh issue list --state open --limit 100 --json number --jq 'length'
