@@ -19,10 +19,18 @@
 # ruleset JSON and re-running this script, or the required check goes missing
 # and a pull request reports a short rollup rather than a failure.
 #
-# `strict_required_status_checks_policy` is on, so a branch must be current
-# with `main` before it merges. A run is computed against one merge ref, and a
-# later merge to the base replaces it, which is how a rollup reads green after
-# the branch underneath it has gone stale.
+# `strict_required_status_checks_policy` is off, so a branch merges without
+# being brought up to date with `main` first. What that setting buys is one
+# thing: a run is computed against one merge ref, a later merge to the base
+# replaces it, and a rollup can read green after the branch underneath it has
+# gone stale. What it costs is charged to every branch rather than to the stale
+# ones, because any merge to `main` sends all the open branches back for another
+# round of checks.
+#
+# The staleness is real and is handled by reading rather than by blocking.
+# `CLAUDE.md` already requires a session to re-read a rollup whenever the base
+# has moved, and that rule does the work this setting was doing, on the branches
+# where it matters rather than on all of them.
 
 set -euo pipefail
 
