@@ -130,13 +130,15 @@ right one.
   landed as [docs/replication-log.md](replication-log.md)
 - [Check the GLD/GDX two-window framing against the edition it came from](https://github.com/l3a0/quantitative-trading/issues/12)
 
-Issue 12 is why this section carries a caveat. The GLD/GDX training-set run is
-called the Chapter 3 run throughout this repo, after the first edition's
-`example3_6_1.m` and page 63. In the revised edition committed here, the figure
-it produces is printed at location 3718, which is Chapter 7. The grouping above
+Issue 12 is why this section says which edition it means. The GLD/GDX
+training-set run is called the Chapter 3 run throughout this repo, after the
+first edition's `example3_6_1.m` and page 63. In the revised edition committed
+here the figure it produces is printed at location 3718, which is Chapter 7,
+and Chapter 3 defers the analysis rather than performing it. The grouping above
 follows where the figure is printed, per the method stated at the top of this
-doc. Which edition the citations mean is the open question, not an assumption
-this section is entitled to make.
+doc, so it is the revised edition's grouping while the run's name is the first
+edition's. Both are now declared rather than assumed, and
+[docs/design.md](design.md) carries the argument.
 
 Three more are reachable, and each needs a series this repo does not hold yet.
 

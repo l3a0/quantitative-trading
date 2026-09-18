@@ -58,9 +58,10 @@ get. Some of those published figures are recorded in
 cited by Kindle location, so where a target number is there it traces to the
 sentence that printed it rather than to someone's memory of it. A highlight
 covers what somebody marked, so the notes carry 1.6766 and 0.4849 and not the
-other three figures this doc names. The notes are also the 2021 revised
-edition of *Quantitative Trading*, while the chapter and page citations below
-are first-edition.
+other three figures this doc names. The notes are the 2021 revised edition of
+*Quantitative Trading*, and the chapter and page citations in this repo are
+first-edition. The next subsection says what follows from that, because the
+two editions do not tell the same story about where these numbers come from.
 
 A gap between the published number and the reproduction is as informative as a
 match, and often more so, because it names something the method depends on
@@ -146,6 +147,52 @@ Three things follow, and they set what the repo holds.
    published figure spends the sample on a hypothesis someone else already
    chose, so it cannot confirm that an edge exists today. It can only say
    whether the published number reproduces.
+
+### Which edition the chapter labels mean
+
+This repo calls one GLD/GDX run the Chapter 7 run and the other the Chapter 3
+run. Those are **first-edition labels**, and the revised edition committed in
+[research/book-notes](../research/book-notes/README.md) does not support them.
+[Issue 12](https://github.com/l3a0/quantitative-trading/issues/12) asked the
+question. The committed highlights answer it.
+
+1. **Location 1862.** "Here, however, I will defer until Chapter 7 the
+   cointegration analysis on the training set." The training-set run is the one
+   this repo labels Chapter 3, and Chapter 3 hands it forward rather than
+   performing it.
+2. **Location 3678.** "This example teaches you how to use a free MATLAB
+   package ... to determine if two price series are cointegrated and, if so,
+   how to find the optimal hedge ratio." One example produces both outputs.
+3. **Locations 3718 and 3727.** The CADF printout and the hedge printout, nine
+   locations apart, the second closing with "This should produce a chart
+   similar to Figure 7.2."
+
+So in the revised edition there is no two-chapter split. Both printouts belong
+to one worked example in Chapter 7.
+
+**What survives, and it is the half the pins rest on.** The repo asserts two
+separations at once, and only one of them was ever about chapters.
+
+- **Two chapters on two windows** is first-edition numbering. It does not hold
+  in the revised edition.
+- **Two regression specifications** holds in any edition, because it is a
+  property of the MATLAB package rather than of the book's structure. `cadf`
+  fits with an intercept and reports the t-statistic, while the printed hedge
+  ratio of 1.6766 comes from a through-origin `ols`. Reading one figure as
+  though it came from the other's fit is the trap, and renumbering chapters
+  does not touch it.
+
+The labels stay, because the windows they name are unambiguous and renaming
+them across five surfaces would buy nothing the price basis and the date range
+do not already say. What changes is that they are now declared as
+first-edition shorthand rather than left to look like the book's own
+structure. Every citation of a chapter, a page or a MATLAB filename in this
+repo means the 2009 first edition unless it says otherwise.
+
+One thing this does not settle, and the difference matters. `-3.357` appears
+nowhere in the committed highlights, and neither does a window label for the
+`-3.18` run. A highlight covers what somebody marked, so absence here is not
+absence in the book, and neither number's provenance is closed by this.
 
 ### The estimators live outside this repo
 

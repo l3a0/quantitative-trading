@@ -14,9 +14,12 @@ other authors. They stayed there, because nothing here replicates those books.
 
 Mind the edition. These notes are the revised second edition of 2021, while
 this repo's citations of chapter and page numbers come from the first edition
-of 2009. The two are not interchangeable, and
-[issue 12](https://github.com/l3a0/quantitative-trading/issues/12) carries what
-that unsettles.
+of 2009. The two are not interchangeable, and these notes are what showed it:
+the GLD/GDX chapter labels this repo uses throughout turn out to be
+first-edition shorthand, because in this edition both printouts belong to one
+Chapter 7 example and Chapter 3 defers the analysis at location 1862.
+[docs/design.md](../../docs/design.md) carries the argument and what survives
+it.
 
 ## What the notes carry
 
