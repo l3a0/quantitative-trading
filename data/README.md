@@ -80,8 +80,25 @@ date, so it reads either shape and does not depend on a row count.
 cd data && shasum -a 256 -c checksums.sha256
 ```
 
-A mismatch means the file changed, and any number pinned against it is no
-longer a number computed from it.
+On a checkout whose bytes are the committed bytes, a mismatch means the file
+changed, and any number pinned against it is no longer a number computed from
+it. [.gitattributes](../.gitattributes) is what makes that condition hold, with
+`data/** -text` over this directory. Without it, a clone made with
+`core.autocrlf=true`, the default of Git for Windows, rewrites every line
+ending here, and the check reports no mismatch at all. It reports eight files
+`shasum` cannot open, because the list of filenames was rewritten along with
+the vintages. The committed bytes are intact throughout, so every pinned number
+is fine.
+
+That attribute does not repair a clone made before it. There the working tree
+keeps its carriage returns, and `git status` goes from clean to eleven modified
+paths under `data/`, because the attribute forbids the normalization that was
+hiding them. `git checkout -- data/` restores the committed bytes. Committing
+those modifications instead writes carriage returns over the vintages and makes
+every recorded sha256 false, which is the failure this record exists to
+prevent. Not `git reset --hard`, which discards uncommitted work elsewhere, and
+not `git rm --cached -r .`, which is for a change of stored bytes rather than
+of working-tree shape.
 
 Two files carry that record.
 
