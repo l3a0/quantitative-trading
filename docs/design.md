@@ -322,30 +322,34 @@ later experiment on a dividend-paying instrument meets the same question.
 The preference for raw closes rests on GDX, which had paid almost nothing by
 2007. That made Chan's 2007-vintage adjusted close near raw, so a modern raw
 series was the closest surviving proxy for what he read. SPY had been paying
-for fifteen years by the end of his window. On his own workbook the dividends
-are worth 1.68 percentage points of annual mean return, and dropping them moves
-his Kelly leverage from 2.5278 to 1.9341, a quarter. So reading raw here would
-not be a conservative choice about restatement. It would be a different
-experiment.
+for fifteen years by the end of his window, and on his own data the difference
+between the two columns is worth a quarter of the answer.
+[docs/replication-log.md](replication-log.md) Entry 3 carries both figures and
+records that nothing here pins either, because they are measurements of a
+workbook this repo does not hold. So reading raw here would not be a
+conservative choice about restatement. It would be a different experiment.
 
 It is also not a choice about a number. Chan's own conclusion at Kindle
 location 3083 is that even half-Kelly would not have survived Black Monday, and
-that claim holds exactly while the leverage is above 1.954079. His adjusted
-figure clears it and his as-traded figure does not, so the price basis decides
-the verdict rather than shading it. [issue
+that claim holds exactly while the leverage is above 1.954079, which is a figure
+this repo does compute and pin. His adjusted column clears that threshold and
+his as-traded column does not, so the price basis decides the verdict rather
+than shading it. [issue
 125](https://github.com/l3a0/quantitative-trading/issues/125) is what makes
 that sharper still: yfinance returns two different series under the word
 adjusted, and only one of them carries the dividends.
 
-Two rules come out of this and they are not the same rule.
+What this adds to the standing rule above is how to tell which half of it
+applies, which the rule itself leaves to judgement. Ask what the source's own
+adjustment was worth on the symbol and the span in question. Near zero, and the
+raw series is the better proxy for what the author read. Not near zero, and the
+raw series answers a different question, so the committed adjusted vintage is
+what the fallback was written for.
 
-1. **The fallback is a question about the instrument, not a preference.** Ask
-   what the source's own adjustment was worth on the symbol and the span in
-   question. Where it is near zero the raw series is the better proxy, and
-   where it is not the committed adjusted vintage is the only honest answer.
-2. **A price basis can decide a verdict, so it is stated wherever the verdict
-   is.** [docs/replication-log.md](replication-log.md) Entry 3 says it in the
-   row, and `src/chan/kelly_leverage.py` says it in the module.
+That measurement is the price of the rule, and it is not free: answering it for
+SPY took Chan's own workbook, which this repo does not hold. Where no such
+measurement is available, the rule cannot be applied and the honest move is to
+say which basis was read and that the choice was not tested.
 
 One more thing this experiment settles, because it contradicts a choice made
 two deliverables earlier. The dispersion is the sample form, dividing by
@@ -353,7 +357,8 @@ two deliverables earlier. The dispersion is the sample form, dividing by
 also right: it averages over two outcomes that are the whole distribution,
 where the sample correction has nothing to correct for. Here the returns are a
 sample of a process, MATLAB's `cov` is what Chan's own `example6_3.m` calls,
-and the two forms are 5.7e-5 apart on the Sharpe ratio. The rule is that the
+and on this repo's own SPY vintage the two forms are 5.74e-5 apart on the
+Sharpe ratio, which `tests/test_kelly_leverage.py` pins. The rule is that the
 form follows what the numbers are rather than what the last experiment picked.
 
 ## How work is cut and ordered

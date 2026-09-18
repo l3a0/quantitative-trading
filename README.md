@@ -78,11 +78,9 @@ run is entitled to claim, because no simulation this suite could afford
 resolves Chan's seven decimals.
 
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py) does it for the
-Kelly run, and separates the figures from the specification that produces them.
-Two of Chan's five choices are invisible on the page and each has a plausible
-wrong answer: the population dispersion form moves his Sharpe ratio by 5.7e-5
-and his leverage by 0.0007, so pinning the leverage at the three decimals he
-prints would pass on either.
+Kelly run, and separates the figures from the specification that produces them,
+because three of the five choices behind Chan's numbers are invisible on the
+page and each has a plausible wrong answer that does not look wrong.
 
 All four reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row.
@@ -119,12 +117,13 @@ each waits on. Milestones do the grouping: the experiments by the chapter of
 the book they come from, and the machinery they run on separately, because a
 vintage recorder belongs to no chapter.
 
-The deliverables are the book's own worked examples, and the tracker's
-`replication` label is what counts them rather than a figure here that goes
-stale on the next one filed. Measured on 2026-09-18, fifteen issues carry it,
-six of those are also labelled `blocked-on-data` because the series they need
-is not free, and eleven sit in Chapter 7, the chapter Chan calls the special
-topics chapter at Kindle location 2735.
+The deliverables are the book's own worked examples, and the tracker counts
+them rather than this file. The `replication` label is the set, `blocked-on-data`
+marks the ones whose series is not free, and most of the rest sit in Chapter 7,
+the chapter Chan calls the special topics chapter at Kindle location 2735. This
+paragraph carried those three figures until 2026-09-18 and two of them were
+already wrong, because nothing fails when an issue is filed and a sentence here
+is not.
 
 ## Running a replication
 

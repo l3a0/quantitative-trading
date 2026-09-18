@@ -585,7 +585,7 @@ Algorithmic Trading Business*, Example 6.2, with the specification read off his
 own `example6_3.m`. Shipped under
 [issue 14](https://github.com/l3a0/quantitative-trading/issues/14).
 
-Fifteen rows, all derivable from
+Seventeen rows, all derivable from
 [tests/test_kelly_leverage.py](../tests/test_kelly_leverage.py).
 
 **Exactly one figure Chan computed from a series reproduces here, and it is the
@@ -601,9 +601,12 @@ restatement moves it far less. Reading his own workbook is
 Two more rows reproduce and neither reads a series. Rows 9 and 11 are
 arithmetic on figures the book prints, so nothing could have moved them.
 
-Three rows carry no published figure and say so in their own cells: row 10 is
+Five rows carry no published figure and say so in their own cells: row 10 is
 this vintage's own account beside the book's, row 13 is the worst day SPY
-actually holds, and row 14 is the full modern span.
+actually holds, and rows 14, 16 and 17 are three windows the book does not
+work. Those three are why the window is an argument, and rows 16 and 17 are the
+two that make the case, since between them the leverage runs from a short of
+2.82 times equity to a long of 4.90.
 
 Two rows chase a claim rather than a number, which is the shape
 [docs/design.md](design.md) names for a source that states a verdict instead of
@@ -635,6 +638,8 @@ lines.
 | 13 | Worst one-day loss in SPY | none, his 20.47 percent is an S&P 500 index figure from six years before SPY existed | n/a |
 | 14 | Kelly leverage over the full modern span | none, the book stops in 2007 | n/a |
 | 15 | Kelly's independence of time scale, unlike the Sharpe ratio | a claim rather than a figure | location 2858 |
+| 16 | Kelly leverage over the 2000 to 2002 bear market | none, the book works one window | n/a |
+| 17 | Kelly leverage over the 2003 to 2007 bull market | none, the book works one window | n/a |
 
 ### What this repo computed
 
@@ -655,6 +660,8 @@ lines.
 | 13 | 1993-01-29 to 2007-12-28 | the minimum of the daily simple returns | same file as row 1 | −7.2473 percent, on 1997-10-27 | `TestTheStressTest::test_black_monday_is_a_book_constant_and_not_a_vintage_figure` |
 | 14 | 1993-01-29 to 2026-09-18 | the same specification as rows 1 to 8 | same file as row 1 | mean 11.9982 percent, sd 18.5349 percent, Sharpe 0.4315, `f*` 2.3281 | `TestTheWindowMovesItFurtherThanTheVintageDoes::test_the_full_modern_span_has_no_published_counterpart` |
 | 15 | 1993-01-29 to 2007-12-28 | `f*` recomputed on resampled returns, under three named monthly rules | same file as row 1 | 3.7175 on calendar month-ends, 3.7460 dropping the partial final month, 3.6438 on 21-day blocks, against 2.5506 daily | `TestTimeScaleIndependence::test_resampling_is_what_actually_moves_it` and `::test_the_conclusion_does_not_depend_on_which_monthly_rule_is_picked` |
+| 16 | 2000-01-01 to 2002-12-31 | the same specification as rows 1 to 8 | same file as row 1 | mean −12.5412 percent, sd 24.2032 percent, `f*` −2.8237 | `TestTheWindowMovesItFurtherThanTheVintageDoes::test_the_bear_window_recommends_a_short` |
+| 17 | 2003-01-01 to 2007-12-28 | the same specification as rows 1 to 8 | same file as row 1 | mean 12.2867 percent, sd 13.0081 percent, `f*` 4.8972 | `TestTheWindowMovesItFurtherThanTheVintageDoes::test_the_bull_window_nearly_doubles_it` |
 
 ### The verdicts
 
@@ -675,6 +682,8 @@ lines.
 | 13 | none | none, not a replication | SPY's first bar is 1993-01-29 and Black Monday is 1987-10-19, so no SPY vintage of any span can check the book's 20.47 percent. The worst day this window holds is 7.2473 percent, about a third of it, and the row exists so the two are not read as one number. |
 | 14 | none | none, not a replication | The book stops in 2007. What the row shows is that nineteen more years of SPY lower the leverage to 2.3281 while leaving the Sharpe ratio at 0.4315, within 0.0002 of the shorter window's. The dispersion rose and the ratio did not move, which is the shape of a claim that has aged better than its number. |
 | 15 | none, the source states a claim | did not reproduce | The claim is true in the reading nobody needs and false in the one they do. Under the annualisation in use the factor cancels between the mean and the variance, so the annualised and per-period ratios agree to floating-point noise, exactly and for any factor. Resampling the returns rather than rescaling their moments moves `f*` by 43 to 47 percent, on all three monthly rules, and those sit within 0.11 of each other. No vintage explanation is available, because the same three rules on Chan's own workbook land 43 to 47 percent above his daily figure too. This is the shape of Entry 1's row 11, where a conclusion about a library turned out to be a conclusion about a default. |
+| 16 | none | none, not a replication | The book works one window. Kelly recommends a short of 2.82 times equity here, because the mean excess return over these three years is negative, and the row exists because that is the case requirement 10 of the issue was written for: a negative leverage is arithmetic rather than a failure, and neither half-Kelly nor the drawdown comparison carries across the sign change. |
+| 17 | none | none, not a replication | The book works one window. Read against row 16 this is the entry's fourth conclusion in two cells: one vintage, one specification, and a leverage running from −2.82 to +4.90 depending only on which five years are read. |
 
 ### What the entry concludes
 
@@ -691,9 +700,9 @@ Four things, and the first is what makes the other three worth reading.
    restatement shifted the level of the series and left its shape alone.
 2. **The specification is what rows 4 and 7 really hold.** Two choices are
    invisible on the page and each has a plausible wrong answer that does not
-   look wrong. The population dispersion form moves the Sharpe ratio by 5.7e-5
-   and the leverage by 0.0007, so a suite pinning the leverage at the three
-   decimals Chan prints passes on either. Reading `m` as the total return moves
+   look wrong. On this vintage the population dispersion form moves the Sharpe
+   ratio by 5.74e-5 and the leverage by 6.79e-4, so a suite pinning the
+   leverage at the three decimals Chan prints passes on either. Reading `m` as the total return moves
    the unlevered growth rate by exactly the risk-free rate, four points, which
    reads as a data gap rather than a misread symbol. Both are pinned, and the
    first is pinned tighter than the precision rule would ask for, which is the

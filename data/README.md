@@ -83,9 +83,10 @@ yfinance.download("SPY", period="max", interval="1d", auto_adjust=True, actions=
 ```
 
 run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to the
-recorder. That distinction is not cosmetic here: on Chan's own workbook,
-dropping the dividends moves his Kelly leverage from 2.5278 to 1.9341 and
-reverses the risk conclusion he draws from it.
+recorder. The distinction is not cosmetic. On Chan's own data the dividends are
+worth a quarter of the answer Example 6.2 computes, and
+[docs/design.md](../docs/design.md) carries why that decides which basis a
+replication reads.
 
 This is the one place that call is written down. The module that reads the
 series points here rather than restating it, because a fact in two places is a
