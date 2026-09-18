@@ -360,7 +360,17 @@ def resolve_vintage(
     the run and names both, and the caller says which one it meant.
     """
     directory = _directory(data_dir)
-    entries = read_manifest(directory)
+    try:
+        entries = read_manifest(directory)
+    except (OSError, ValueError) as unreadable:
+        # `read_manifest` raises three classes and none of them is this one, so
+        # without this a deleted or corrupt manifest reaches an operator as a
+        # traceback while a deleted vintage reaches one as a line. Its message
+        # is carried through rather than replaced, because it already says
+        # which of the manifest's own states fired.
+        raise VintageUnavailable(
+            f"the vintage manifest could not be read, so no vintage can be resolved: {unreadable}"
+        ) from unreadable
     if not entries:
         raise VintageUnavailable(
             f"the manifest at {directory / MANIFEST_NAME} records no vintages at all. A record "
@@ -380,6 +390,11 @@ def resolve_vintage(
     if not matches:
         raise VintageUnavailable(
             f"no committed vintage is recorded for {asked}.{_unrecorded_note(directory, entries)}"
+        )
+    if len(matches) > 1 and len(set(matches)) == 1:
+        raise VintageUnavailable(
+            f"the manifest holds {len(matches)} identical entries for {matches[0].path}. Naming a "
+            f"date cannot separate them, because they are one record written more than once."
         )
     if len(matches) > 1:
         candidates = ", ".join(
@@ -441,18 +456,6 @@ def read_vintage(entry: VintageEntry, data_dir: Path | None = None) -> bytes:
     return payload
 
 
-def unrecorded_files(data_dir: Path | None = None) -> list[str]:
-    """Every ``*.csv`` in the data directory that no manifest entry names.
-
-    The mirror of an entry with no file, and the more dangerous half. An entry
-    with no file stops a run that asks for it. A file with no entry is how an
-    uncommitted download reaches a result with nobody noticing which series
-    produced it.
-    """
-    directory = _directory(data_dir)
-    return _unrecorded(directory, read_manifest(directory))
-
-
 def _manifest_path(data_dir: Path | None) -> Path:
     return _directory(data_dir) / MANIFEST_NAME
 
@@ -467,18 +470,31 @@ def _directory(data_dir: Path | None) -> Path:
     return paths.DATA_DIR if data_dir is None else data_dir
 
 
-def _unrecorded(directory: Path, entries: list[VintageEntry]) -> list[str]:
+def _unrecorded(directory: Path, entries: list[VintageEntry]) -> list[str] | None:
+    """Every ``*.csv`` no entry names, or ``None`` when the directory cannot be listed.
+
+    ``None`` rather than an empty list. This is the detector for an uncommitted
+    download reaching a result, so "nothing is unrecorded" and "the scan could
+    not run" must not be the same answer. A directory that is traversable but
+    not readable reaches the second: the manifest still opens by name and the
+    glob still fails.
+    """
     recorded = {entry.path for entry in entries}
     try:
-        present = sorted(found.name for found in directory.glob("*.csv"))
+        present = sorted(found.name for found in directory.iterdir() if found.is_file())
     except OSError:
-        return []
-    return [name for name in present if name not in recorded]
+        return None
+    return [name for name in present if name.endswith(".csv") and name not in recorded]
 
 
 def _unrecorded_note(directory: Path, entries: list[VintageEntry]) -> str:
     """The other half of rule 8, said only when there is something to say."""
     unrecorded = _unrecorded(directory, entries)
+    if unrecorded is None:
+        return (
+            f" Whether an unrecorded series sits beside it is unknown, because {directory} could "
+            f"not be listed."
+        )
     if not unrecorded:
         return ""
     return (

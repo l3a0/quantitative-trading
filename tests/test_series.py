@@ -32,13 +32,7 @@ import pytest
 from chan import paths, series, vintage
 from chan.paths import DATA_DIR
 from chan.series import close_identity, load_close, load_vintage
-from chan.vintage import (
-    MANIFEST_NAME,
-    VintageEntry,
-    VintageUnavailable,
-    read_manifest,
-    unrecorded_files,
-)
+from chan.vintage import MANIFEST_NAME, VintageEntry, VintageUnavailable, read_manifest
 
 # Root ignores mode bits, so a file at mode 000 opens and the case reads as a
 # pass while asserting nothing. Windows has no such bit at all.
@@ -91,6 +85,11 @@ def place(
     if write_file:
         (directory / name).write_bytes(payload)
     return entry
+
+
+def _replace_with_directory(path: Path) -> None:
+    path.unlink()
+    path.mkdir()
 
 
 @pytest.fixture
@@ -231,9 +230,26 @@ class TestWhatTellsTwoDownloadsApart:
         is a filter rather than a name. The argument identifies one vintage."""
         place(data_dir, name="june.csv", download_date="2026-06-16")
 
-        for partial in ("2026", "2026-06", "2026-06-1"):
+        for partial in ("2026", "2026-06", "2026-06-1", " 2026-06-16", "2026-06-16 "):
             with pytest.raises(VintageUnavailable):
                 load_close("ZZZ", dated=partial, data_dir=data_dir)
+
+    def test_one_entry_written_twice_says_so_rather_than_offering_a_date(
+        self, data_dir: Path
+    ) -> None:
+        """A bad merge of an append-only file duplicates a line. Naming a date
+        cannot separate two identical entries, so a message offering that
+        remedy sends the reader to a fix that does not exist."""
+        entry = place(data_dir, name="june.csv", download_date="2026-06-16")
+        with open(data_dir / MANIFEST_NAME, "a", encoding="utf-8") as manifest:
+            manifest.write(entry.as_json() + "\n")
+
+        with pytest.raises(VintageUnavailable) as refused:
+            load_close("ZZZ", data_dir=data_dir)
+
+        message = str(refused.value)
+        assert "2 identical entries for june.csv" in message
+        assert "Name which one with the date" not in message
 
     def test_a_date_that_names_nothing_refuses_rather_than_falling_back(
         self, data_dir: Path
@@ -261,6 +277,15 @@ class TestTheChanSetIgnoresUnadjusted:
         assert len(with_flag) == 764
         assert with_flag.equals(without)
 
+    def test_a_lower_case_ticker_resolves_and_is_named_upper(self) -> None:
+        """Both entry points take a ticker string and normalise it, and every
+        other case here passes one that is already upper."""
+        lower = load_close("gld", chan=True)
+        upper = load_close("GLD", chan=True)
+
+        assert lower.name == "GLD"
+        assert lower.equals(upper)
+
     def test_the_identity_says_so_where_the_lookup_is_built(self) -> None:
         assert close_identity("GLD", chan=True, unadjusted=True) == ("chan-xls", "adjusted")
         assert close_identity("GLD", unadjusted=True) == ("yfinance", "raw")
@@ -286,6 +311,74 @@ class TestTheBytesAreCheckedAgainstTheRecord:
         for ticker, flags, path, *_ in COMMITTED:
             assert load_vintage(ticker, **flags, data_dir=committed_copy)[0].path == path
 
+    def test_the_bytes_that_were_hashed_are_the_bytes_that_come_back(
+        self, data_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """`read_vintage`'s own half of rule 5, which the parse's half does not hold.
+
+        A version ending in `return path.read_bytes()` re-opens the file after
+        the hash and hands back whatever is on disk at that second instant. The
+        parse-side case below patches `read_vintage` itself, so it cannot see
+        this. The file is swapped from inside the hash to hit the window.
+        """
+        entry = place(data_dir, name="one.csv")
+        other = payload_of([("2026-01-02", 99.0)])
+        genuine = hashlib.sha256
+
+        def swap_the_file_while_it_is_being_hashed(payload=b""):
+            (data_dir / "one.csv").write_bytes(other)
+            return genuine(payload)
+
+        monkeypatch.setattr(vintage.hashlib, "sha256", swap_the_file_while_it_is_being_hashed)
+        returned = vintage.read_vintage(entry, data_dir=data_dir)
+
+        assert returned == payload_of(SERIES)
+        assert (data_dir / "one.csv").read_bytes() == other
+
+    def test_a_hash_that_agrees_on_its_first_characters_is_not_a_match(
+        self, data_dir: Path
+    ) -> None:
+        """Comparing a prefix accepts bytes the record does not describe, and a
+        changed byte moves the whole digest, so no ordinary case can tell the
+        two comparisons apart."""
+        entry = place(data_dir, name="one.csv")
+        truncated = VintageEntry(
+            **{
+                **{
+                    field: getattr(entry, field)
+                    for field in (
+                        "vendor",
+                        "symbol",
+                        "price_basis",
+                        "first_date",
+                        "last_date",
+                        "path",
+                        "row_count",
+                        "download_date",
+                    )
+                },
+                "sha256": entry.sha256[:8] + "0" * 56,
+            }
+        )
+
+        with pytest.raises(VintageUnavailable, match="not the file the record describes"):
+            vintage.read_vintage(truncated, data_dir=data_dir)
+
+    def test_the_refusal_names_what_the_file_hashes_to_and_what_was_recorded(
+        self, data_dir: Path
+    ) -> None:
+        """Printing the recorded hash twice reads as a match that was refused."""
+        entry = place(data_dir, name="one.csv")
+        altered = payload_of([("2026-01-02", 10.5)])
+        (data_dir / "one.csv").write_bytes(altered)
+
+        with pytest.raises(VintageUnavailable) as refused:
+            load_close("ZZZ", data_dir=data_dir)
+
+        message = str(refused.value)
+        assert hashlib.sha256(altered).hexdigest() in message
+        assert entry.sha256 in message
+
     def test_a_truncated_vintage_is_caught_though_it_still_parses(self, data_dir: Path) -> None:
         """pandas reads a short file without complaining, which is the point."""
         place(data_dir, name="one.csv")
@@ -293,6 +386,59 @@ class TestTheBytesAreCheckedAgainstTheRecord:
 
         with pytest.raises(VintageUnavailable, match="not the file the record describes"):
             load_close("ZZZ", data_dir=data_dir)
+
+
+class TestTheParseTakesTwoColumnsAndStaysQuiet:
+    """Two arguments in ``_parse_close`` that every committed vintage leaves inert."""
+
+    def test_a_third_column_is_ignored_rather_than_shifting_the_series(
+        self, data_dir: Path
+    ) -> None:
+        """All eight committed vintages carry two columns, so `usecols` reads as
+        decoration. Without it pandas puts the first column into the index and
+        the close is read out of the wrong field, silently."""
+        entry = place(data_dir, name="one.csv")
+        with_volume = b"Date,Close,Volume\n" + b"".join(
+            f"{day},{value!r},1000\n".encode() for day, value in SERIES
+        )
+        (data_dir / "one.csv").write_bytes(with_volume)
+        repointed = VintageEntry(
+            **{
+                **{
+                    field: getattr(entry, field)
+                    for field in (
+                        "vendor",
+                        "symbol",
+                        "price_basis",
+                        "first_date",
+                        "last_date",
+                        "path",
+                        "row_count",
+                        "download_date",
+                    )
+                },
+                "sha256": hashlib.sha256(with_volume).hexdigest(),
+            }
+        )
+        with open(data_dir / MANIFEST_NAME, "w", encoding="utf-8") as manifest:
+            manifest.write(repointed.as_json() + "\n")
+
+        values = load_close("ZZZ", data_dir=data_dir)
+
+        assert list(values) == [10.0, 11.0, 12.5]
+        assert [str(day.date()) for day in values.index] == [day for day, _ in SERIES]
+
+    def test_reading_a_vintage_warns_about_nothing(self) -> None:
+        """The three-row header does not parse as a date and pandas says so. The
+        suppression is deliberate and nothing held it, so an operator running a
+        replication would have seen the noise it is written to hide."""
+        import warnings
+
+        with warnings.catch_warnings(record=True) as raised:
+            warnings.simplefilter("always")
+            load_close("GLD")
+
+        assert [str(warning.message) for warning in raised] == []
 
 
 class TestTheSeriesComesBackInDateOrder:
@@ -399,6 +545,29 @@ class TestFourSilencesAreToldApart:
         with pytest.raises(VintageUnavailable, match="could not be read"):
             load_close("ZZZ", data_dir=data_dir)
 
+    @NOT_ROOT
+    def test_a_parent_directory_with_no_execute_bit_refuses_rather_than_crashing(
+        self, data_dir: Path
+    ) -> None:
+        """The third trap in rule 7's table. ``Path.exists`` raises here rather
+        than answering, so a guard written as a look does not lie, it crashes,
+        and a ``try`` around the look reports the whole tree as absent. The
+        refusal has to come from the read."""
+        nested = data_dir / "nested"
+        nested.mkdir()
+        (nested / "one.csv").write_bytes(payload_of(SERIES))
+        place(data_dir, name="nested/one.csv", write_file=False)
+        nested.chmod(0o600)
+        try:
+            with pytest.raises(VintageUnavailable) as refused:
+                load_close("ZZZ", data_dir=data_dir)
+        finally:
+            nested.chmod(0o700)
+
+        message = str(refused.value)
+        assert message.startswith("nested/one.csv:")
+        assert "could not be read" in message
+
     def test_a_manifest_holding_nothing_is_a_lost_record_not_a_missing_download(
         self, data_dir: Path
     ) -> None:
@@ -469,14 +638,45 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
 
         assert str(entry_side.value) != str(file_side.value)
 
-    def test_the_committed_directory_holds_no_unrecorded_series(self) -> None:
-        assert unrecorded_files() == []
+    def test_every_unrecorded_series_is_named_and_they_are_sorted(self, data_dir: Path) -> None:
+        """One stray file holds nothing about order, about the separator, or
+        about whether the note stops after the first name."""
+        place(data_dir, name="recorded.csv", symbol="AAA")
+        for name in ("zulu.csv", "alpha.csv", "mike.csv"):
+            (data_dir / name).write_bytes(payload_of(SERIES))
 
-    def test_an_unrecorded_series_is_listed(self, data_dir: Path) -> None:
-        place(data_dir, name="recorded.csv")
-        (data_dir / "stray.csv").write_bytes(payload_of(SERIES))
+        with pytest.raises(VintageUnavailable) as refused:
+            load_close("ZZZ", data_dir=data_dir)
 
-        assert unrecorded_files(data_dir) == ["stray.csv"]
+        assert "No entry names alpha.csv, mike.csv, zulu.csv either" in str(refused.value)
+
+    @NOT_ROOT
+    def test_a_directory_that_cannot_be_listed_does_not_answer_nothing_unrecorded(
+        self, data_dir: Path
+    ) -> None:
+        """The alarm is the point. A scan that could not run must not give the
+        same answer as one that ran and found nothing. A directory at mode 300
+        still opens the manifest by name and still fails the listing."""
+        place(data_dir, name="recorded.csv", symbol="AAA")
+        data_dir.chmod(0o300)
+        try:
+            with pytest.raises(VintageUnavailable) as refused:
+                load_close("ZZZ", data_dir=data_dir)
+        finally:
+            data_dir.chmod(0o700)
+
+        assert "could not be listed" in str(refused.value)
+
+    def test_a_subdirectory_is_not_reported_as_an_unrecorded_series(self, data_dir: Path) -> None:
+        """A glob matches a directory whose name ends in .csv, and reporting one
+        as an uncommitted download sends the reader looking for a file."""
+        place(data_dir, name="recorded.csv", symbol="AAA")
+        (data_dir / "subdir.csv").mkdir()
+
+        with pytest.raises(VintageUnavailable) as refused:
+            load_close("ZZZ", data_dir=data_dir)
+
+        assert "subdir.csv" not in str(refused.value)
 
 
 class TestTheRefusalReachesAnOperatorAsALine:
@@ -519,6 +719,35 @@ class TestTheRefusalReachesAnOperatorAsALine:
         message = str(stopped.value)
         assert "gld_20yr_prices_unadjusted.csv" in message
         assert "\n" not in message
+
+    @pytest.mark.parametrize(
+        ("state", "wreck"),
+        [
+            ("the manifest is gone", lambda d: (d / MANIFEST_NAME).unlink()),
+            ("a line will not parse", lambda d: (d / MANIFEST_NAME).write_text("{\n")),
+            ("the manifest is a directory", lambda d: _replace_with_directory(d / MANIFEST_NAME)),
+        ],
+    )
+    def test_a_manifest_that_cannot_be_read_also_reaches_an_operator_as_a_line(
+        self, committed_copy: Path, monkeypatch: pytest.MonkeyPatch, state, wreck
+    ) -> None:
+        """`read_manifest` raises three classes and none of them is the reader's.
+
+        A deleted vintage reached an operator as a line while a deleted manifest
+        reached one as a traceback, which is the same failure rule 9 names, one
+        level up. A fresh clone with a bad checkout lands in exactly this state.
+        """
+        from chan import pair_cointegration
+
+        wreck(committed_copy)
+        monkeypatch.setattr(paths, "DATA_DIR", committed_copy)
+        monkeypatch.setattr(sys, "argv", ["chan.pair_cointegration", "--ch7"])
+        with pytest.raises(SystemExit) as stopped:
+            pair_cointegration.main()
+
+        message = str(stopped.value)
+        assert "manifest could not be read" in message, state
+        assert "\n" not in message, state
 
 
 class TestTheDataDirectoryThreadsAllTheWayDown:
