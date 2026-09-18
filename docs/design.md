@@ -222,10 +222,10 @@ So `pyproject.toml` names the dependency by a direct URL at an exact commit,
 `uv.lock` records that commit, and CI runs `uv sync --locked`. Each of those
 does one job, and each answers a different way the pin could have failed.
 
-1. **The commit rather than the `v0.1.0` tag it belongs to.** A tag can be
-   moved on the remote. `uv sync --locked` would not follow it, but a
-   `uv lock --upgrade` would, and then the lock would record the new target as
-   though nothing had happened.
+1. **The commit rather than the tag it belongs to.** A tag can be moved on the
+   remote. `uv sync --locked` would not follow it, but a `uv lock --upgrade`
+   would, and then the lock would record the new target as though nothing had
+   happened.
 2. **The lock, because a plain `uv sync` re-locks silently** and installs
    different code the moment `pyproject.toml` and the lock disagree, rewriting
    the lock inside a runner where nothing commits it. `--locked` fails instead.
@@ -422,7 +422,7 @@ change that cuts it.
 | The regime-map figure and its generator, cut then reversed | Cut because the scan behind the figure was already pinned, so the picture is presentation rather than a result, and an image nothing regenerates is an artifact nobody can check. The owner reversed that on 2026-09-17. The objection is answered rather than ignored: [src/chan/regime_figure.py](../src/chan/regime_figure.py) draws the figure from the committed vintages, and [tests/test_regime_figure.py](../tests/test_regime_figure.py) pins that it draws the scan `TestRollingRegime` computes. It does not compare bytes, because a PNG carries the matplotlib version that rendered it. The image still counts as a checked-in generated artifact for [issue 6](https://github.com/l3a0/quantitative-trading/issues/6). |
 | Keeping the duplicated estimators in step with a drift test | The test cannot exist. Neither repo's continuous integration can see the other's checkout, so the check would compare against a committed checksum that fires only when somebody updates it. A rule that depends on remembering is what the duplication already was. The estimators moved to [ithildincore](https://github.com/l3a0/ithildin-core) instead. |
 | Depending on ithildincore by name plus a `[tool.uv.sources]` redirect | `ithildincore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
-| Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
+| Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names an exact commit and `uv.lock` records it, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Renaming the eight committed vintages to the recorder's path convention | The recorder's path carries vendor, symbol, price basis, span and download date. The eight predate it and carry none of that. Renaming them would move the eight files, `data/checksums.sha256`, [data/README.md](../data/README.md)'s table and prose, `load_close` and three provenance comments in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), two docstrings in [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py), and five rows of [docs/replication-log.md](replication-log.md). Each of those cites a filename beside a pinned number, and a rename buys none of them. The manifest carries the path, so identity is read from the record rather than parsed out of a name, which is what makes two conventions affordable. |
 | Reading a clock for a vintage's download date | The recorder does not fetch, so it cannot know when a fetch happened, and a date it invents is wrong in the field that identifies the vintage. It would also make every test differ from the last run. The caller supplies it. |
