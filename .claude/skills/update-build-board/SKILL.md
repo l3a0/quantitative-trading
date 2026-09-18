@@ -69,9 +69,11 @@ A header strip and three sections, top to bottom. The strip is where every
 count, the test count, the experiments tracked, the open issue count and the
 stamp. The sections are these.
 
-1. **In flight**, four columns running most finished on the left: waiting on
-   your review, waiting on my review, building, planned with no builder. A card
-   here is drawn once and left out of the build order.
+1. **In flight**, five columns running most finished on the left: waiting on
+   your review, waiting on my review, building, planned with no builder, and
+   being planned. A card here is drawn once and left out of the build order.
+   Two of the five hold a card because a session is on it, and `kind` on the
+   `WORKING` entry is what separates a build session from a decompose loop.
 2. **Build order**, four columns by dependency depth, with everything else.
    Within a column, cards sort by readiness, then by the priority order, then by
    a measured `after`, then by number, except that a card whose `kind` is
@@ -273,7 +275,7 @@ One more constant is not in the table because nothing should edit it.
 | `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
-| `FLOW` | the four in-flight stages and the test that assigns a card to one |
+| `FLOW` | the five in-flight stages and the test that assigns a card to one |
 | `LABEL_HUE` | one colour per tracker label, read by the card chips |
 | `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
 | `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose" |
@@ -447,12 +449,12 @@ than something new.
    catches this immediately.
 8. **Pluralisation.** `plu` appended a bare letter s, giving a count of passes
    that read "19 passs". It now handles a word already ending in one.
-The four below are a different kind of row. Each was caught by the owner reading
-the published page rather than by a check, which is what they have in common.
-Three had been on the page for a while. The fourth was made and found inside one
-session, and it is kept anyway, because what produced it was two rules meeting
-rather than one careless edit. They are the failures this page invites and the
-ones a harness cannot see.
+The rows from here on, apart from 13 and 14, were each caught by the owner
+reading the published page rather than by a check. That is what they have in
+common. Most had been on the page for a while, and two were made and found
+inside one session, kept anyway because what produced each was two rules
+meeting rather than one careless edit. They are the failures this page invites
+and the ones a harness cannot see.
 
 9. **A second list of the same cards.** The page carried a ranking section
    listing nine cards the build order already drew, so every card had two homes.
@@ -496,10 +498,11 @@ ones a harness cannot see.
     answers to one question. Check 6 above is what catches the next one, so a
     rule added to a card is read against the card's own position rather than
     only against the data it came from.
-The last two are a third kind. Both were made and caught inside one session
+Defects 13 and 14 are a third kind. Both were made and caught inside one session
 rather than by the owner reading the page. Defect 14 came from the harness
 output. Defect 13 could not, for the reason it records, and came from reading
-the script beside it.
+the script beside it. The two after them are back in the owner's group, and each
+says so.
 
 13. **Bindings left behind when the sentence they fed moved.** The board note
     once described the cards a session was on. That sentence moved to the
@@ -520,6 +523,32 @@ the script beside it.
     `andlist` and `orlist` are two names for it. Check 5 used to look only for a
     conjunction whose other half had dropped out. This one had its other half
     and was the wrong word, so that check now covers both.
+
+15. **A column test reading half of what its heading claims.** Caught by the
+    owner reading the page. "Waiting on your review" asked only whether a review
+    had been posted, so a branch with two
+    checks still running sat under a heading saying the next move was the
+    owner's. `CLAUDE.md` is explicit that a pull request is not handed over until
+    its checks have settled, so the heading was making a promise the test did not
+    check, and the page invited a merge of a branch that could still go red.
+
+    The first attempt was worse than the defect. It kept the card in the owner's
+    column and added a clause to the note saying its checks had not settled,
+    which is the note working around a wrong test rather than the test being
+    fixed, and it put the rule in a second place. That is defect 5 again. One
+    `handedOver` now decides it, the card stays on the reviewer's side until
+    both halves are done, and the note went back to one sentence.
+
+    Three states stay on the reviewer's side and the third is the one to
+    remember: a check still running, a check that failed, and no checks reported
+    at all. A conflicting pull request gets no run created, so an empty rollup is
+    a branch nothing built rather than a branch with nothing wrong.
+16. **A heading that named one kind of session for two.** Found while publishing
+    the fix above, which is the only reason it was not shipped. Adding decompose
+    loops to `WORKING` put five cards under a column reading "Building", which is
+    what a loop is not. A loop ends in a sharper plan and a builder ends in a branch,
+    so they are different states and now have different columns. `kind` was
+    already the field that told them apart, and the column test reads it.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
