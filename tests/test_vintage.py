@@ -284,6 +284,71 @@ class TestTheRefusal:
 
         assert manifest_lines(data_dir) == []
 
+    def test_the_writer_checks_its_date_before_it_builds_anything(self, data_dir):
+        """The reader's guard catches the same date later and in worse words.
+
+        `record_vintage` validates its download date first, then builds a
+        filename, then reads the manifest. `VintageEntry` now refuses the same
+        value, which makes the writer's own call look redundant to whoever
+        reads the two together. Deleting it costs two messages.
+
+        1. The refusal names `..._dlbanana.csv`, a path that never existed.
+        2. Against a directory with no manifest, the read runs first and the
+           refusal reports a missing manifest rather than a bad date, which is
+           the conflation `read_manifest`'s own docstring exists to stop.
+
+        Both assertions anchor at the start of the message, because the
+        reader's guard prefixes the entry's path and the writer's does not.
+        """
+        with pytest.raises(ValueError, match=r"^download date 'banana' is not"):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "banana"})
+
+        unrecorded = data_dir / "no-manifest-here"
+        unrecorded.mkdir()
+
+        with pytest.raises(ValueError, match=r"^download date 'banana' is not"):
+            record_vintage(ROWS, data_dir=unrecorded, **{**SOURCE, "download_date": "banana"})
+
+        assert manifest_lines(data_dir) == []
+
+    def test_a_date_the_writer_would_refuse_is_refused_on_the_way_back(self, data_dir):
+        """The manifest is the record, so a line's date is not taken on trust.
+
+        `record_vintage` ran its date through the same check and `read_manifest`
+        ran nothing, so a hand-edited or badly-merged line carried a date the
+        writer would have refused. Every value below is one the writer refuses.
+        Two of them, `2026-02-31` and `2026-13-01`, clear the shape check and
+        are caught by the calendar behind it, which is why `_validated_date`
+        has two halves.
+
+        The bad line is written rather than placed through a helper, because a
+        helper builds the entry first and the guard would refuse it there,
+        which tests nothing about reading. It is the second line, so the refusal
+        is shown naming the line it came from rather than the only one there is.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        recorded = json.loads(good)
+        refused = ["", " 2026-08-27 ", "banana", "2026-1-3", "2026-02-31", "2026-13-01", 20260827]
+
+        for field in ["download_date", "saved_date"]:
+            for value in refused:
+                line = {key: held for key, held in recorded.items() if key != "download_date"}
+                line[field] = value
+                manifest.write_text(f"{good}\n{json.dumps(line)}\n", encoding="utf-8")
+
+                with pytest.raises(ValueError, match="line 2"):
+                    read_manifest(data_dir)
+
+        # The same second line with a date the writer would have written, so the
+        # refusals above are the date's doing rather than the line's shape.
+        readable = {key: held for key, held in recorded.items() if key != "download_date"}
+        readable["saved_date"] = "2026-08-27"
+        manifest.write_text(f"{good}\n{json.dumps(readable)}\n", encoding="utf-8")
+
+        assert [entry.obtained for entry in read_manifest(data_dir)] == ["2026-08-27"] * 2
+
     def test_a_close_that_is_not_a_finite_number_is_refused(self, data_dir):
         """A vendor value too large to parse arrives as an infinity, not as an error.
 
