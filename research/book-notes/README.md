@@ -30,6 +30,16 @@ of 1.0114 and its statistic of -2.14 are not: a highlight covers the sentences
 somebody marked, which is a different set from the numbers a replication ends
 up chasing. Where a figure is here, this is where it traces to.
 
+A second kind of absence turns up in Example 6.2, and it costs more than a
+missing figure. Every number that example prints is here. Its levered growth
+formula is not, because the book renders that equation as an image at location
+2849 and a highlight captures text. Its unlevered twin survives as inline text
+at 2869, so the two halves of one specification are not equally reachable. A
+formula is what a replication needs to know which quantity it is computing, so
+[src/chan/kelly_leverage.py](../../src/chan/kelly_leverage.py) recovers the
+missing one from Chan's own `example6_3.m` rather than reconstructing it, and
+says so.
+
 Each entry gives the Kindle location and the highlight's text. Amazon's export
 limit truncates some highlights on the notebook page, and those were recovered
 from the Cloud Reader and carry a `↻` tag. The header gives the total and how

@@ -12,6 +12,7 @@ issue's own statement of what it waits on.
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
   - [The one replication that reads nothing](#the-one-replication-that-reads-nothing)
+  - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
@@ -310,6 +311,51 @@ demonstration, sized from a measurement rather than from taste.
 heading that says why no simulated number is pinned against the book, which is
 where that entry's numbers belong.
 
+### The first time the fallback clause fires
+
+`## What this repo is for` ends by saying to prefer a series that cannot be
+restated, falling back on a committed vintage when only an adjusted series will
+do. Chan's Kelly example, Example 6.2, is the first deliverable where the
+fallback is what fires, and the reasoning outlives its log entry because every
+later experiment on a dividend-paying instrument meets the same question.
+
+The preference for raw closes rests on GDX, which had paid almost nothing by
+2007. That made Chan's 2007-vintage adjusted close near raw, so a modern raw
+series was the closest surviving proxy for what he read. SPY had been paying
+for fifteen years by the end of his window. On his own workbook the dividends
+are worth 1.68 percentage points of annual mean return, and dropping them moves
+his Kelly leverage from 2.5278 to 1.9341, a quarter. So reading raw here would
+not be a conservative choice about restatement. It would be a different
+experiment.
+
+It is also not a choice about a number. Chan's own conclusion at Kindle
+location 3083 is that even half-Kelly would not have survived Black Monday, and
+that claim holds exactly while the leverage is above 1.954079. His adjusted
+figure clears it and his as-traded figure does not, so the price basis decides
+the verdict rather than shading it. [issue
+125](https://github.com/l3a0/quantitative-trading/issues/125) is what makes
+that sharper still: yfinance returns two different series under the word
+adjusted, and only one of them carries the dividends.
+
+Two rules come out of this and they are not the same rule.
+
+1. **The fallback is a question about the instrument, not a preference.** Ask
+   what the source's own adjustment was worth on the symbol and the span in
+   question. Where it is near zero the raw series is the better proxy, and
+   where it is not the committed adjusted vintage is the only honest answer.
+2. **A price basis can decide a verdict, so it is stated wherever the verdict
+   is.** [docs/replication-log.md](replication-log.md) Entry 3 says it in the
+   row, and `src/chan/kelly_leverage.py` says it in the module.
+
+One more thing this experiment settles, because it contradicts a choice made
+two deliverables earlier. The dispersion is the sample form, dividing by
+`n - 1`. `src/chan/coin_flip_growth.py` uses the population form, and that is
+also right: it averages over two outcomes that are the whole distribution,
+where the sample correction has nothing to correct for. Here the returns are a
+sample of a process, MATLAB's `cov` is what Chan's own `example6_3.m` calls,
+and the two forms are 5.7e-5 apart on the Sharpe ratio. The rule is that the
+form follows what the numbers are rather than what the last experiment picked.
+
 ## How work is cut and ordered
 
 The tracker carries the plan. Issues say what each deliverable is, milestones
@@ -437,7 +483,7 @@ change that cuts it.
 | Porting the sibling's `kelly_fraction` for the coin-flip growth rate | It is the only place in `trading-strategies` that computes a time-average log growth rate, and it computes it as one line inside a grid search rather than as a callable, so there is a line to retype and nothing to port. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) had already ruled the function out as the discrete form over a bag of trades. The ruling reaches Example 6.1 by a shorter route: that example optimises nothing at all. |
 | Porting the sibling's `common/portfolio.py` as growth arithmetic | It is not growth arithmetic. Its own docstring fixes every leg as dollar diffs over a fixed capital base, "never prior-day-equity returns (compounding returns do not add; dollars do)", so it decided against compounding on purpose. |
 | Porting the sibling's `simulate_sizing` for the coin-flip simulation | It folds draws through `equity *= (1 + fraction * r)`, which is the identity Example 6.1 needs, and nothing around that line carries over: an empirical bag of trade outcomes rather than a known two-point distribution, percentiles and ruin probabilities rather than a growth rate, and `random.Random` rather than the `numpy.random.default_rng` this repo uses throughout. A port would have been a rewrite. |
-| Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. |
+| Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. Re-asked when issue 14 shipped and the answer is unchanged. The sibling repo was searched at `cc1ec3a` and holds no leverage or growth arithmetic at all, only a Sharpe ratio written twice as a four-line private helper inside a strategy module, so there is still one consumer and a plan. Issue 14's own arithmetic shares no function with the coin flip either, since one computes a leverage from a return series' moments and the other a growth rate over two outcomes. |
 | A figure for the coin-flip divergence | `docs/figures` holds one image and it already costs three copies to keep in step, one file and two embeds, plus a redraw in the same change that moves it. The divergence is four rows of capital, which a terminal table and a log row carry without adding a third copy of a number the suite already pins. |
 | A repo-wide `* text=auto eol=lf` | The exposure it would answer stops at `data/`. Measured on a clone of `main` made with `core.autocrlf=true`, `docs/figures/reproduction_regime_map.png` is byte-identical, because git detects a PNG as binary on its own, and `ruff check` and `ruff format --check` both pass over the rewritten sources. A rule reaching the whole repository would be fixing past the class it was written for. `.gitattributes` names `data/**` and stops there, which is what [issue 41](https://github.com/l3a0/quantitative-trading/issues/41) built. |
 | `data/** text eol=lf` as the spelling of that rule | The two spellings agree on every file this repo holds, because both deliver LF for content already stored as LF, so no comparison of bytes tells them apart on today's data. That is why `tests/test_checkout_bytes.py` reads the attribute itself in a second case. They differ on content carrying a carriage return. Committing such a file from a checkout with `core.autocrlf=true` stores the bytes on disk under `-text` and stores them with the carriage returns gone under `text eol=lf`, which git reports only as a warning. A vintage's sha256 is recorded before the commit, so that spelling turns a recorded fact into a false one and leaves no way back to the bytes. `-text` forbids conversion. `text eol=lf` only promises which ending git picks when it rewrites. `binary` is cut for a different reason. It is a macro for `-text`, `-diff` and `-merge`, so it would also stop the textual three-way merge on a vintage. A vintage's diff is how a replacement gets read, and [data/README.md](../data/README.md) already calls replacing one a deliberate act with a visible cost. `tests/test_checkout_bytes.py` pins that too, because `binary` holds the bytes as well as `-text` does and no byte comparison separates them. |
@@ -447,3 +493,5 @@ change that cuts it.
 | Repairing a misspelled identity field on read rather than refusing it | `_validated_identity` returns normalised values as well as refusing, so `read_manifest` could have matched a line spelling the vendor `Yfinance` instead of stopping on it. That is a repair, and a record one surface quietly rewrites while another writes it plainly is a record two surfaces disagree about. The manifest is in git, so a refusal sends the reader to [data/README.md](../data/README.md)'s own recovery procedure, `git diff --stat -- data/` and then `git checkout -- data/`, while a repair hides that anything moved. This does not reopen the carriage-return row above, and the difference is what the reader matches on. A carriage return changes nothing `resolve_vintage` compares, so refusing it would stop a run over a record that works. A vendor spelled `Yfinance` changes the thing being compared, so the record goes unreachable and the run is told no such vintage was ever committed. The alarm is already ringing there and it is ringing the wrong sentence. |
 | A sweep that fails an open issue body naming a closed issue as a dependency | It cannot tell a stale claim from a satisfied one, and no form of it catches the class. Measured on 2026-09-18 over the 49 open bodies as they stood before [issue 52](https://github.com/l3a0/quantitative-trading/issues/52) corrected eight of them, counting a closed issue rather than a merged pull request, which is what separates these counts from a wider reading. Scoped to a paragraph carrying dependency wording, it flags 4 bodies and catches 2 of the eight. Scoped to the whole section under a heading naming dependencies, it flags 12 and catches 5. The two sets of catches are disjoint, and [issue 47](https://github.com/l3a0/quantitative-trading/issues/47) is caught by neither, because its stale sentence sits under a heading about what the issue is not. This overturns issue 52's own `## Done when`, which said the section-scoped form misses [issues 14](https://github.com/l3a0/quantitative-trading/issues/14) through 18 entirely. It catches exactly those five and misses issues 4, 43 and 47 instead, so the guard fails in the other direction rather than not at all. Seven of the 12 are correct bodies. [Issues 19](https://github.com/l3a0/quantitative-trading/issues/19) through 23 name #1 and #2 in the same `## Depends on` section that issues 14 through 18 did, as needs a purchased series would still have to meet, which is true where "neither exists yet" was false. Separating those two needs a reader. |
 | Requiring a branch to be up to date with `main` before it merges | GitHub's `strict_required_status_checks_policy`, on from the first commit and off since 2026-09-18 on an owner directive. It bought one thing: CI builds the merge of a branch and its base, so a run is computed against one merge ref, a later merge to the base replaces it, and a rollup can read green after the branch underneath it has gone stale. Requiring every branch current means every rollup was computed against the base the branch actually merges into. The price was charged to every branch rather than to the stale ones. On 2026-09-18 four pull requests were open at once, and [PR 111](https://github.com/l3a0/quantitative-trading/pull/111) was brought current twice after its review had already passed, once by a rebase when [PR 110](https://github.com/l3a0/quantitative-trading/pull/110) merged and once by a merge of `main` when two more landed. Each cost a full round of six checks, and PR 110 shared no file with it. `CLAUDE.md`'s rule to re-read a rollup whenever the base has moved covers the same failure, on the branches where the base actually matters rather than on all of them. What is accepted in exchange is that a branch can now merge on a rollup computed against a base that has moved, caught by a session reading rather than by GitHub refusing. [Issue 129](https://github.com/l3a0/quantitative-trading/issues/129) carries the change and [l3a0/repo-template#14](https://github.com/l3a0/repo-template/issues/14) makes the same one in the template, so a repository seeded later does not get the rule back. |
+| A Treasury-bill series for the risk-free rate in Chan's Kelly example | It would need a second vintage and would move two inputs at once, which is what makes a gap unattributable to either. The rate stays the book's 4 percent, held as a constant the source supplies, and the report says it is his constant applied to whatever window was read rather than a rate anyone paid. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) is where this was decided. |
+| A second series to check the 20.47 percent Black Monday loss against | It would need an S&P 500 index vintage, which is a different symbol and a different deliverable. SPY's first bar is 1993-01-29 and the loss is from 1987-10-19, so no SPY vintage of any span can check it. It enters the replication as a constant the book supplies, named as such, with the worst loss the window actually holds reported beside it. |

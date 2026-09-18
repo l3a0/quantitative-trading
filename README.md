@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Three replications run here, all from Chan's *Quantitative Trading*. The first
+Four replications run here, all from Chan's *Quantitative Trading*. The first
 two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The third was built here.
+they were first built. The other two were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -60,6 +60,10 @@ they were first built. The third was built here.
 3. The coin-flip gamble, Example 6.1, where the expected return of a round is
    positive and the growth rate of capital is negative. It is the one
    replication here that reads no series at all, so it has no vintage to name.
+4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
+   maximises compounded growth and then whether that much would have survived
+   the worst day the index has had. Not one of Chan's computed figures
+   reproduces, every claim behind them does, and the entry is about that split.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -73,7 +77,14 @@ for the coin flip, and separates the figures the book prints from what a seeded
 run is entitled to claim, because no simulation this suite could afford
 resolves Chan's seven decimals.
 
-All three reach a verdict in
+[tests/test_kelly_leverage.py](tests/test_kelly_leverage.py) does it for the
+Kelly run, and separates the figures from the specification that produces them.
+Two of Chan's five choices are invisible on the page and each has a plausible
+wrong answer: the population dispersion form moves his Sharpe ratio by 5.7e-5
+and his leverage by 0.0007, so pinning the leverage at the three decimals he
+prints would pass on either.
+
+All four reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
@@ -108,10 +119,12 @@ each waits on. Milestones do the grouping: the experiments by the chapter of
 the book they come from, and the machinery they run on separately, because a
 vintage recorder belongs to no chapter.
 
-The deliverables are the book's own worked examples. Fifteen are tracked: five
-reproduced, five reachable, and five blocked by data that is not free. Twelve of
-the fifteen sit in Chapter 7, the chapter Chan calls the special topics chapter
-at Kindle location 2735.
+The deliverables are the book's own worked examples, and the tracker's
+`replication` label is what counts them rather than a figure here that goes
+stale on the next one filed. Measured on 2026-09-18, fifteen issues carry it,
+six of those are also labelled `blocked-on-data` because the series they need
+is not free, and eleven sit in Chapter 7, the chapter Chan calls the special
+topics chapter at Kindle location 2735.
 
 ## Running a replication
 
@@ -147,6 +160,26 @@ nowhere else.
 prints the standard error beside the estimate either way, and says outright
 when a size is too small to resolve the sign, which is a line a reader sees
 rather than an exception, because at that size nothing has failed.
+
+The Kelly run reads one series and takes a window:
+
+```bash
+uv run python -m chan.kelly_leverage
+```
+
+The default is Chan's own span, 1993-01-29 to 2007-12-28, held fixed so the
+vintage is the only thing that differs from his. `--start` and `--end` move it,
+and the report drops the published column on any other window rather than
+printing a comparison against figures that came from his. `--dated` picks which
+SPY download to read, which matters because a second one is coming, and
+`--risk-free` moves the book's 4 percent constant.
+
+It prints the moments against the book's, the worked example on this vintage's
+leverage beside the book's own rounded 2.528, the Black Monday comparison with
+Chan's constant kept apart from the worst day SPY actually holds, and the
+time-scale check. A window whose mean excess return is negative makes Kelly
+recommend a short, and that arrives as a line saying what it means rather than
+as an exception, because nothing has failed.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
