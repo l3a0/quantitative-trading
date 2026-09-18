@@ -381,8 +381,9 @@ class TestTheRefusal:
         A misspelled field is worse than a missing line. Deleting an entry
         leaves its file named by nothing, so the no-match refusal lists the file
         and says to go look. A line spelling the vendor `Yfinance` still names
-        its own path, so the reader reports no such vintage and lists nothing as
-        unrecorded, which is a wrong fact rather than a stopped run.
+        its own path, so before this guard the reader answered that no such
+        vintage was committed and listed nothing as unrecorded, which is a wrong
+        fact rather than a stopped run.
 
         Three classes are driven, because a guard holding one accepts the
         others. `Yfinance` and `gdx` are the ones that matter most: the
@@ -399,6 +400,9 @@ class TestTheRefusal:
         out to an operator. The vendor cases also pin that a refusal quotes the
         line's own spelling, since lowering before matching would report
         `'yahoo finance'` for a line nothing in the manifest spells that way.
+        The last case differs in two fields at once, which is what a badly
+        merged line looks like, and it holds the message naming both rather
+        than the first.
 
         The bad line is written rather than placed through a helper, because a
         helper builds the entry first and the guard would refuse it there,
@@ -434,6 +438,15 @@ class TestTheRefusal:
             with pytest.raises(ValueError, match="line 2") as refusal:
                 read_manifest(data_dir)
             assert f"{RECORDED_NAME}: {says}" in str(refusal.value.__cause__)
+
+        both = json.dumps({**recorded, "vendor": "Yfinance", "symbol": "gdx"})
+        manifest.write_text(f"{good}\n{both}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError, match="line 2") as refusal:
+            read_manifest(data_dir)
+        said = str(refusal.value.__cause__)
+        assert "vendor reads 'Yfinance' and the recorder writes 'yfinance'" in said
+        assert "symbol reads 'gdx' and the recorder writes 'GDX'" in said
 
         # The same second line rewritten to a spelling the writer would have
         # produced, so the refusals above are the identity field's doing rather
@@ -895,10 +908,11 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
 
     Two limits are worth naming rather than leaving to be found.
 
-    1. The symbol's case is not recoverable, because the join lowercases it.
-       An entry edited from `SPY` to `spy` passes, and
-       [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) is
-       where a reader-side spelling check belongs.
+    1. The symbol's case is not recoverable, because the join lowercases it,
+       so an entry edited from `SPY` to `spy` agrees with its own name here.
+       What catches that edit is `VintageEntry` refusing a line whose identity
+       fields are not the spelling the recorder would have written, which means
+       `read_manifest` refuses before this check sees the entry at all.
     2. The predicate is "not one of the eight" where the intent is "the
        recorder wrote it". They part on a ninth workbook column added by hand,
        which would fail here. Nothing can write one: `record_vintage` has no

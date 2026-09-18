@@ -58,9 +58,10 @@ Normalising happens on the writing side only, and a line already in the manifest
 is refused when its spelling is not the one the recorder would have written.
 Refused rather than repaired, because a record one surface rewrites while
 another writes it plainly is a record two surfaces disagree about. The refusal
-is worth more than its odds suggest: a misspelled field leaves the entry naming
-its own file, so :func:`resolve_vintage` reports no vintage and lists nothing as
-unrecorded, which is a wrong fact rather than a stopped run.
+is worth more than its odds suggest. Without it a misspelled field left the
+entry naming its own file, so :func:`resolve_vintage` answered that no such
+vintage was committed and listed nothing as unrecorded, which is a wrong fact
+rather than a stopped run. With it the line stops the read and names itself.
 """
 
 from __future__ import annotations
@@ -181,6 +182,11 @@ class VintageEntry:
         # only its raises accepts a vendor spelled `Yfinance` and leaves
         # `resolve_vintage` unable to see the record. The question is what the
         # recorder would have written, not what it would have refused.
+        #
+        # The price basis reaches the comparison equal or not at all, since the
+        # validator returns it unchanged or raises. It is compared anyway,
+        # because the invariant is the whole triple rather than the two fields
+        # that happen to normalise today.
         held = (self.vendor, self.symbol, self.price_basis)
         recorded = _validated_identity(*held, where=f"{self.path}: ")
         if recorded != held:
