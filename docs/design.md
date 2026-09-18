@@ -2,8 +2,8 @@
 
 This doc carries the reasoning. An unbuilt deliverable's scope lives on its
 issue, which [CLAUDE.md](../CLAUDE.md) makes authoritative, and this doc links
-to an issue rather than restating it. [docs/build-plan.md](build-plan.md)
-carries the build order.
+to an issue rather than restating it. The order lives there too, in each
+issue's own statement of what it waits on.
 
 ## Contents
 
@@ -11,6 +11,7 @@ carries the build order.
 - [What this repo is for](#what-this-repo-is-for)
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
+- [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
 - [Considered and rejected](#considered-and-rejected)
@@ -261,6 +262,65 @@ Two things did not move, and the reasons are worth keeping.
    points at the pin, the pair tests alone red points at the data. Mutating
    `ou_half_life` in the installed package was run to confirm the first half of
    that.
+
+## How work is cut and ordered
+
+The tracker carries the plan. Issues say what each deliverable is, milestones
+group them, and each issue names what it waits on. This section carries only
+the reasoning behind that, which an issue is the wrong place for because it
+outlives any one of them.
+
+`docs/build-plan.md` used to hold both. It was retired on 2026-09-18 because a
+plan in a document and a plan in a tracker drift, and the tracker is the one
+that is authoritative under [CLAUDE.md](../CLAUDE.md). The price of keeping it
+had become visible: two issues were open against its staleness at the moment it
+was removed.
+
+### Cutting
+
+A deliverable is cut down to the smallest piece that leaves the repo usable by
+someone at the end of it. Not a layer, and not a subsystem. A piece that ends
+with a component nobody can run is cut the wrong way.
+
+The recorder is the worked example and the caution at once. It shipped as
+`Part of` its issue rather than closing it, because a vintage nothing can read
+is a component nobody can run. The issue stays open for the reading half.
+
+### What an experiment pins
+
+Each experiment pins the figures the book prints, at the precision the book
+prints them, naming its vintage and its window. An experiment that reads no
+series names neither and says so, rather than leaving the column blank, because
+a blank reads as an omission.
+
+Where the book states a ranking or a verdict rather than a figure, the claim is
+what gets pinned. Inventing a digit the source does not carry would be worse
+than pinning the claim the source makes.
+
+### The debt that replaced the dependency
+
+The first replications were planned to wait on the vintage machinery. That is
+not what happened: the sibling repo's finished replications were copied here
+first, so the computation arrived before the machinery meant to feed it.
+
+The dependency was real and is now a debt rather than a gate. Every replication
+still reads by filename, so each one added before the reader lands is another
+reader to convert. That is the live constraint on ordering, and it is the
+reason a synthetic experiment can go ahead of the machinery while a
+series-reading one cannot.
+
+### Two candidates, named so they are not re-invented
+
+Neither is committed to, and neither has an issue.
+
+1. A negative-results log, once a replication has failed in a way worth
+   recording separately from its own entry.
+2. A registered experiment, which is a different object from a replication and
+   needs its hypothesis committed in writing before any number is seen.
+
+Nothing else is planned past the experiments, on purpose. The ranking rule says
+evidence from real use decides the order, and this repo has run few enough
+replications to have produced little of it.
 
 ## Vocabulary
 

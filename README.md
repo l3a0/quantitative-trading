@@ -18,8 +18,10 @@ Everything else is regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
 
-[docs/design.md](docs/design.md) carries the reasoning.
-[docs/build-plan.md](docs/build-plan.md) carries the order.
+[docs/design.md](docs/design.md) carries the reasoning. The
+[tracker](https://github.com/l3a0/quantitative-trading/issues) carries the
+order, because an issue and a document describing the same plan drift and only
+one of them can be authoritative.
 
 ## What a replication is here
 
@@ -85,11 +87,10 @@ tells a dependency change apart from a vintage change, since its cases read no
 vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
 and what it does not buy.
 
-The tracker is the source of truth for what each deliverable is, and it carries
-one milestone per section of [docs/build-plan.md](docs/build-plan.md), with the
-same name. The experiments are grouped by the chapter of the book they come
-from, and the machinery they run on is grouped separately, because a vintage
-recorder belongs to no chapter.
+The tracker is the source of truth for what each deliverable is and for what
+each waits on. Milestones do the grouping: the experiments by the chapter of
+the book they come from, and the machinery they run on separately, because a
+vintage recorder belongs to no chapter.
 
 The deliverables are the book's own worked examples. Fifteen are tracked: four
 reproduced, six reachable, and five blocked by data that is not free. Twelve of

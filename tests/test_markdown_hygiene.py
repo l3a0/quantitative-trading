@@ -143,7 +143,6 @@ MUST_BE_SWEPT = frozenset(
         "CLAUDE.md",
         "README.md",
         "docs/design.md",
-        "docs/build-plan.md",
         "docs/replication-log.md",
         "data/README.md",
         "blog/gld-gdx-cointegration-lessons.md",
