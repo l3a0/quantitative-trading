@@ -1,6 +1,6 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board artifact after work on this repo changes what it shows. Use when a session has opened or merged a pull request, filed or closed issues, or finished a decompose loop, and when asked to refresh or update the board. Needs the Artifact tool. Answering what to take next is a read and does not on its own call for a republish.
+description: Update the Quantitative Trading Build Board artifact whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens or merges, when a review lands on one, and when issues are filed or closed, as well as on any request to refresh or sync the board. Needs the Artifact tool. Answering what to take next is a read and does not on its own call for a republish.
 ---
 
 # Update the build board
@@ -14,6 +14,38 @@ the procedure below.
 Two sibling pages are not covered here. The experiments page is
 `9eXVcuzxSpqi6S3kBQbwgc` and the gap ledger is `YZHWFfB7AiqrwcaK7F7SCS`. Report
 them as stale rather than updating them unasked.
+
+## When to run it
+
+Three moments, and each is a moment the page's own answer changed. A session
+that hits one and leaves has just made the board wrong, and nothing else will
+notice.
+
+1. **A decompose loop exits.** Add the card to `PLANNED` with its pass count and
+   whether it is ready to build or waiting on an owner call.
+2. **A pull request opens or merges.** An open one moves the card out of the
+   build order into the in-flight section. A merged one usually takes the card
+   off the page, because the issue it closed is closed.
+3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
+   flag is the only thing that moves a card from waiting on a reviewer to
+   waiting on the owner, and it is the column the owner reads first.
+
+Filing or closing an issue changes `TRACKER` and `STATE.issues.open` and is
+worth an update on its own when nothing else is pending.
+
+## What the page is made of
+
+Three sections, top to bottom.
+
+1. **In flight**, four columns running most finished on the left: waiting on
+   your review, waiting on my review, building, planned with no builder. A card
+   here is drawn once and left out of the build order.
+2. **Build order**, four columns by dependency depth, with everything else.
+   Within a column, cards sort by readiness, then by the priority order, then by
+   a measured `after`, then by number.
+3. **One paragraph**, saying the page was measured by hand and cannot poll
+   anything. It is all that remains of a twenty-paragraph footer that was a
+   second telling of what the cards say. Do not grow it back.
 
 ## Read the live artifact before editing anything
 
@@ -44,7 +76,14 @@ gh pr list --state open --json number,title,mergeable,statusCheckRollup,closingI
 uv run pytest -q --no-header 2>&1 | tail -1
 python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
 grep -c 'Location' research/book-notes/quantitative-trading.md
+gh issue list --state open --limit 100 --json number,labels --jq 'sort_by(.number)[]|"\(.number)\t\(.labels|map(.name)|join(","))"'
 ```
+
+The last one feeds every card's `labels`. They are the tracker's own labels
+rather than a second vocabulary, so a label added on GitHub belongs on the card
+and `LABEL_HUE` takes its colour from `gh label list --json name,color`. One
+hue is deliberately not GitHub's: `enhancement` ships as a pale cyan that is
+unreadable as text on white, so the page darkens that same hue.
 
 That last one is `notes.highlights`. The one figure with no command is
 `issues.tracked`, the count of experiments the sibling experiments page lists,
@@ -87,8 +126,8 @@ data already carries, because that sentence outlives the number.
 | `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup` |
 | `WORKING` | cards a session is on now, each with `kind` of `build` or `decompose` |
 | `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`, `note` |
-| `TRACKER` | every open issue as a card: `n`, `ms`, `needs`, optional `after`, `kind`, `label` |
-| `NEXT` | the ranking, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order` |
+| `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
+| `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
 | `FLOW` | the four in-flight stages and the test that assigns a card to one |
 
 Three of these carry judgement rather than measurement, so they are where the
@@ -137,8 +176,6 @@ store.board.innerHTML.split('<div class="col k').slice(1).forEach(function(c){
   o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));});
 o.push("FLOWNOTE: "+s(store.flownote.innerHTML));
 o.push("BOARDNOTE: "+s(store.boardnote.innerHTML));
-o.push("RANK: "+store.rank.innerHTML.split("<li>").slice(1)
-  .map(function(i){return "#"+i.match(/#(\d+)<\/a>/)[1];}).join(" > "));
 o.push("KEY: "+s(store.key.innerHTML));
 o.push("FLOWKEY: "+s(store.flowkey.innerHTML));
 store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
@@ -163,7 +200,8 @@ check could not see the surface it was most needed on.
 this page has shipped were sentences that rendered perfectly and said something
 false. Four checks catch most of them.
 
-1. **The totals reconcile.** In-flight cards plus board cards equals open issues.
+1. **The totals reconcile.** In-flight cards plus board cards equals open issues,
+   and every card carries its labels.
 2. **No sentence contradicts another.** The free-card list must not name a card
    that a later sentence says nobody should start.
 3. **Every count matches its own list.** A sentence saying four cards and then
@@ -198,6 +236,27 @@ because the next one will be a variant rather than something new.
    catches this immediately.
 8. **Pluralisation.** `plu` appended a bare letter s, giving a count of passes
    that read "19 passs". It now handles a word already ending in one.
+9. **A second list of the same cards.** The page carried a ranking section
+   listing nine cards the build order already drew, so every card had two homes
+   and the two disagreed about order at least once. The section is gone and its
+   order drives the grid instead. Do not add a list that restates the cards.
+10. **Reasoning duplicated onto a card that links to the issue holding it.**
+    When the ranking section went, its argument for each position moved onto the
+    cards, and one card became three times the height of its neighbours for
+    text that was already one click away. The argument belongs on the issue, and
+    the card carries the position as a number.
+11. **A state that stops being news when a later one arrives.** A card with an
+    open branch was saying its plan was ready to be written, directly above a
+    line saying it was written. The plan line and its marker are suppressed once
+    a pull request exists, while the sort still reads `PLANNED` so the card
+    keeps its position.
+
+The footer check in the list above earned itself on the first run after it was
+added. Four hand-written figures had gone stale in one update: a count of
+planned cards, a count of finished plans, an interpolated test total that made
+an old pull request look like it shipped a number it did not, and an issue count
+attributed to the wrong work. None of them was computed, so nothing else would
+have caught them.
 
 ## Writing the prose
 
