@@ -55,6 +55,13 @@ writes that array, and a stale entry in it has nothing to clear it. Treat an
 entry as owed a removal by whoever added it, and read an empty Building column
 as no information rather than as nobody working.
 
+Whoever adds an entry sets its `kind`, because that field decides whether the
+card keeps its plan marker. A build session writes `build` and a decompose loop
+writes `decompose`, and an entry carrying no `kind` counts as a decompose loop.
+So a build session that leaves it out puts a line reading ready to build on a
+card somebody is already building, which is defect 11 arriving through the
+default rather than through a rule.
+
 ## What the page is made of
 
 A header strip and three sections, top to bottom. The strip is where every
@@ -62,9 +69,11 @@ A header strip and three sections, top to bottom. The strip is where every
 count, the test count, the experiments tracked, the open issue count and the
 stamp. The sections are these.
 
-1. **In flight**, four columns running most finished on the left: waiting on
-   your review, waiting on my review, building, planned with no builder. A card
-   here is drawn once and left out of the build order.
+1. **In flight**, five columns running most finished on the left: waiting on
+   your review, waiting on my review, building, planned with no builder, and
+   being planned. A card here is drawn once and left out of the build order.
+   Two of the five hold a card because a session is on it, and `kind` on the
+   `WORKING` entry is what separates a build session from a decompose loop.
 2. **Build order**, four columns by dependency depth, with everything else.
    Within a column, cards sort by readiness, then by the priority order, then by
    a measured `after`, then by number, except that a card whose `kind` is
@@ -100,6 +109,19 @@ zero, which looks enough like a result to be written down.
 
 A count recalled from earlier in the session is the one that will be wrong, and
 it has been: an update shipped 39 open issues when a query said 40.
+
+**Run the suite against the commit the strip names, on a checkout of it.** Not
+in whichever worktree the session happens to be standing in, which is rarely
+`main`. An update published 243 tests beside `2938775`, where the real count was
+241, because the run happened in a branch that adds tests. The strip prints the
+count next to the commit, so a figure from another tree is attributed to a tree
+that never produced it. `git worktree add --detach <dir> origin/main` gives a
+clean one, and removing it afterwards is part of the same step.
+
+That one is worth reading twice, because its cover story arrived on its own. PR
+90 merged twenty minutes later and made 243 right for `main`, so a session
+checking the number afterwards would have found it correct and left the method
+that produced it in place.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
@@ -152,6 +174,12 @@ to tell a plain keyword from one inside a code span. It catches the opposite
 slip too: a sentence written to say a pull request closes nothing registered a
 link anyway, because the keyword parses wherever it sits.
 
+That query is eventually consistent. On pull request 94 it reported nothing
+seconds after the body gained its closing keyword and reported the link on the
+next call, so a session that reads it once and acts on the empty result rewrites
+a body that was already right. Read it a second time before concluding the
+keyword failed.
+
 The middle command is why `reviewed` is counted rather than queried today, and
 the constraint is what this session posts rather than anything about the API. A
 review posted with `gh pr comment` is an issue comment, which never reaches
@@ -179,6 +207,49 @@ that way. This is a fourth rollup behaviour alongside the three `CLAUDE.md`
 already lists, and it belongs there rather than only here, which
 [issue 87](https://github.com/l3a0/quantitative-trading/issues/87) carries.
 
+### Measure again immediately before publishing
+
+The figures taken at the start are a claim about the moment the update began,
+and an update takes minutes. Both halves of that gap have already cost something
+inside one session.
+
+1. **A rollup settled underneath the edit.** Pull request 90 read five checks
+   still running on the first pass and six green on the last. Publishing the
+   first reading would have said a branch was not ready when it was. The set of
+   runs is not fixed either: `CodeQL` had not been created when the first read
+   ran, so a session that reads the runs once is reading a set that is still
+   growing.
+2. **Two pull requests opened during the edit.** Pull requests 91 and 92 did not
+   exist when that update started. By the time it was ready to publish they had
+   emptied the Building column and moved two cards a whole stage each.
+
+So re-run the volatile commands as the last step before publishing, and publish
+what those say rather than what the session opened with. Volatile means the
+first command, the open pull request list, every per-branch query, and both
+issue commands rather than only the one that counts them. An issue filed
+mid-update moves `STATE.issues.open` and owes `TRACKER` a card, so re-reading
+the count on its own leaves the page failing check 1. One was filed during the
+update this rule came from.
+
+The first command is in that set because it is the one that shows a merge, and a
+merge is what moves the four figures left out: `main` itself, the vintages and
+their rows, the suite total and the highlight count. Re-running it is what makes
+leaving those four alone safe, so excusing them and excusing it together would
+have been circular. Two figures are measured by none of this. `updatedAt` is
+written by the session rather than measured, and `issues.tracked` moves only
+when the sibling experiments page does.
+
+The price is one more round of queries per update. What it buys is a gap of
+seconds between the last measurement and the publish rather than a gap the
+length of the whole edit. The gap does not close, because editing the data
+blocks takes its own time and a figure that moved sends the session back to edit
+again.
+
+Nothing re-derives the page's figures after a publish, so whatever is wrong at
+that moment stays wrong until the next session runs this. What does read the
+page is the owner, and four rows in the record below were found exactly that
+way.
+
 ## The data blocks, and what each owns
 
 Everything the page says comes from the blocks below. They are not adjacent:
@@ -200,11 +271,11 @@ One more constant is not in the table because nothing should edit it.
 | --- | --- |
 | `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
 | `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
-| `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card |
+| `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
 | `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
-| `FLOW` | the four in-flight stages and the test that assigns a card to one |
+| `FLOW` | the five in-flight stages and the test that assigns a card to one |
 | `LABEL_HUE` | one colour per tracker label, read by the card chips |
 | `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
 | `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose" |
@@ -268,7 +339,8 @@ store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
 // unnoticed, so the sweep is what keeps that list honest. It sees load-time
 // `innerHTML` only: not `stamp`, which only a timer writes, not any
 // `aria-label`, since the tag-stripper deletes attributes, and not the
-// chainbar's picked state, which needs a click.
+// chainbar's picked state, which needs a click. It cannot see code that renders
+// nothing either, which is defect 13 and wants a grep rather than a read.
 var shown = {strip:1, flow:1, board:1, flownote:1, boardnote:1, key:1, flowkey:1, foot:1};
 Object.keys(store).sort().forEach(function(id){
   if (!shown[id]) o.push("OTHER["+id+"] "+s(store[id].innerHTML));});
@@ -313,16 +385,23 @@ false. Six checks catch most of them.
    hand-written prose, and one update left four stale figures in it at once.
    Deleting that prose is what made this check cheap, so the thing to watch for
    is prose growing back rather than a surface to re-read.
-5. **Every conjunction still has its other half.** A computed sentence joins
+5. **Every joined sentence says what it means.** A computed sentence joins
    clauses that each drop out on their own, so a "too" or an "and" can outlive
    the clause it referred back to. One read "#27 is planned too" with nothing
-   before it, because the card it was agreeing with had merged. Read the
-   sentences, not only the counts.
+   before it, because the card it was agreeing with had merged. A conjunction
+   can also be present and be the wrong word: a set of alternatives joined by
+   "and" reads as one card doing all of them at once. So read what a joined
+   sentence claims rather than only checking that both halves are there, and
+   read the sentences rather than only the counts.
 6. **Nothing a card says contradicts where the card sits.** A marker, a line of
    text and a position are three claims about one issue, and a rule added to any
    of them can disagree with the other two. A chip once read 6 on a card the sort
    had forced to the bottom. Read each card's own marks against its place in the
    column.
+
+One class the six cannot reach. Every check above reads what the page rendered,
+so none of them sees code that renders nothing. Defect 13 is that class, and
+what catches it is a grep rather than a read.
 
 ## What goes wrong, from the record
 
@@ -360,17 +439,22 @@ than something new.
    `planMarker` that both the card and the legend call. **A legend calls whatever
    decides the marker, never a second copy of the rule.** That is defect 5 in a
    second place rather than a new kind of failure.
+
+   The inverse shipped too, and it is one rule read the other way. The in-flight
+   legend explained a plan marker and a pull request while saying nothing about
+   the session marker, which every card in that render was drawing. A legend accounts
+   for each marker its own cards drew, and for no marker they did not.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
    declaration, which throws on load rather than degrading quietly. The stub
    catches this immediately.
 8. **Pluralisation.** `plu` appended a bare letter s, giving a count of passes
    that read "19 passs". It now handles a word already ending in one.
-The four below are a different kind of row. Each was caught by the owner reading
-the published page rather than by a check, which is what they have in common.
-Three had been on the page for a while. The fourth was made and found inside one
-session, and it is kept anyway, because what produced it was two rules meeting
-rather than one careless edit. They are the failures this page invites and the
-ones a harness cannot see.
+The rows from here on, apart from 13 and 14, were each caught by the owner
+reading the published page rather than by a check. That is what they have in
+common. Most had been on the page for a while, and two were made and found
+inside one session, kept anyway because what produced each was two rules
+meeting rather than one careless edit. They are the failures this page invites
+and the ones a harness cannot see.
 
 9. **A second list of the same cards.** The page carried a ranking section
    listing nine cards the build order already drew, so every card had two homes.
@@ -382,15 +466,26 @@ ones a harness cannot see.
     the cards, and the longest one rendered several times the height of its
     neighbours for text that was already one click away. The argument belongs on
     the issue, and the card carries the position as a number.
-11. **A plan line under a pull request.** A card with an open branch said its
-    plan was ready to be written, directly above a line saying it was written.
-    The plan line and its marker are suppressed once a pull request exists,
-    while the sort still reads `PLANNED` so the card keeps its position whether
-    or not the marker is drawn. Two things follow. The suppression is specific to
-    that pair rather than a licence to hide other states. And a suppression rule
-    is a second consumer of the field, so it goes in one function every reader
-    calls rather than being written out wherever it is needed. Writing it twice
-    is what made the legend wrong, which is the second half of defect 6.
+11. **A plan line under work already under way.** A card with an open branch
+    said its plan was ready to be written, directly above a line saying it was
+    written. The owner later made the same call about a build session, which is
+    the same handover before a branch exists, so the marker now goes for either.
+    The sort still reads `PLANNED`, so the card keeps its position whether or not
+    the marker is drawn.
+
+    The suppression is two measured states rather than a licence to hide
+    others, and the original wording of this row said so before the second state
+    was added. The principle that looks like it generates them, whether the card
+    can still be handed to a builder, reaches further than the evidence does. It
+    covers a decompose loop as well, which keeps its marker because it revises
+    the plan rather than carrying it out. A rule needing an exception written in
+    by hand to reach the two known cases is doing more than the evidence asks.
+    That carve-out is why `WORKING` carries `kind`.
+
+    A suppression rule is also a second consumer of the field, so it goes in one
+    function every reader calls rather than being written out wherever it is
+    needed. Writing it twice is what made the legend wrong, which is the second
+    half of defect 6.
 12. **Two fixes that each worked, contradicting each other.** A priority chip
     was added to the cards when the ranking section was deleted, and separately
     the sort was changed to force a deferred card last because one had been
@@ -400,9 +495,60 @@ ones a harness cannot see.
     one only to record that it is deliberately not being done, and the dashed
     border and the kind word already say that. The shape is not rare: the card
     renderer carries two other comments reasoning about giving one card two
-    answers to one question. Check 6 below is what catches the next one, so a
+    answers to one question. Check 6 above is what catches the next one, so a
     rule added to a card is read against the card's own position rather than
     only against the data it came from.
+Defects 13 and 14 are a third kind. Both were made and caught inside one session
+rather than by the owner reading the page. Defect 14 came from the harness
+output. Defect 13 could not, for the reason it records, and came from reading
+the script beside it. The two after them are back in the owner's group, and each
+says so.
+
+13. **Bindings left behind when the sentence they fed moved.** The board note
+    once described the cards a session was on. That sentence moved to the
+    in-flight note, and nine bindings that computed it stayed, one of them
+    building the whole paragraph and assigning it to a variable nothing reads.
+    The harness cannot see this, because it prints what the page rendered and
+    dead code renders nothing. So when a sentence is deleted or moved, grep the
+    script for the names that fed it. A leftover here costs more than ordinary
+    dead code, because it is not inert. It is a finished sentence about live
+    data, sitting beside a surface that would print it, under a rule that has
+    since changed.
+14. **A set of alternatives joined with "and".** The board note lists the reasons
+    a first-column card is not free, and `andlist` joined them, so it read that a
+    card can need a decision rather than a session and be deferred on purpose.
+    The reasons are collected from different cards, which is what defect 2 is
+    about, so joining them with "and" hands all of them to one card. The join
+    now takes its conjunction as an argument, and
+    `andlist` and `orlist` are two names for it. Check 5 used to look only for a
+    conjunction whose other half had dropped out. This one had its other half
+    and was the wrong word, so that check now covers both.
+
+15. **A column test reading half of what its heading claims.** Caught by the
+    owner reading the page. "Waiting on your review" asked only whether a review
+    had been posted, so a branch with two
+    checks still running sat under a heading saying the next move was the
+    owner's. `CLAUDE.md` is explicit that a pull request is not handed over until
+    its checks have settled, so the heading was making a promise the test did not
+    check, and the page invited a merge of a branch that could still go red.
+
+    The first attempt was worse than the defect. It kept the card in the owner's
+    column and added a clause to the note saying its checks had not settled,
+    which is the note working around a wrong test rather than the test being
+    fixed, and it put the rule in a second place. That is defect 5 again. One
+    `handedOver` now decides it, the card stays on the reviewer's side until
+    both halves are done, and the note went back to one sentence.
+
+    Three states stay on the reviewer's side and the third is the one to
+    remember: a check still running, a check that failed, and no checks reported
+    at all. A conflicting pull request gets no run created, so an empty rollup is
+    a branch nothing built rather than a branch with nothing wrong.
+16. **A heading that named one kind of session for two.** Found while publishing
+    the fix above, which is the only reason it was not shipped. Adding decompose
+    loops to `WORKING` put five cards under a column reading "Building", which is
+    what a loop is not. A loop ends in a sharper plan and a builder ends in a branch,
+    so they are different states and now have different columns. `kind` was
+    already the field that told them apart, and the column test reads it.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
@@ -454,11 +600,80 @@ the line it edits, and checks here for a sentence describing the same mechanism.
 
 ## Finishing
 
-Publish, then report in the same reply.
+Re-measure the volatile figures first, under **Measure again immediately before
+publishing** above, then publish and report in the same reply.
 
 1. The version number and what moved.
 2. Any sentence the execution caught, and what replaced it.
 3. What is still stale, including the two sibling pages.
+4. A build task for every card left in "Planned, no builder", per the rule below.
+5. A decompose task for every card on the free list, in the order it is drawn.
+
+### A planned card with no builder is a build task waiting to be offered
+
+The In flight section's last column holds cards whose decompose loop exited and
+that nobody is on. That is planning finished and building not started, so a card
+sitting there is work that is ready and idle, and the page has no way to move it
+on its own.
+
+So an update that leaves a card there offers a build task for it in the same
+reply, one per card, rather than reporting the column and stopping. The desktop
+app surfaces such a task as a chip the owner starts. Nothing has to happen
+first, because a card only reaches that column once a loop has run its plan
+against the code, which is the thing a builder would otherwise have to do again.
+
+Two things the offer needs, since a builder reads the issue once at spawn and
+reads none of this.
+
+1. **Check what the card waits on before offering it.** The column's test asks
+   only whether a plan exists, whether a branch exists and whether a session is
+   on it. It never looks at `needs`, so a plan-complete card sitting behind an
+   open blocker lands there too, and offering it hands a builder work they cannot
+   finish. Read the card's `needs` against the open issues first. No card has hit
+   this yet, because every `PLANNED` entry so far has had an empty `needs`, which
+   is why the column was built without the test rather than with it.
+2. **Carry what the loop found that the issue body does not repeat.** A
+   measurement the loop took, the file the change will collide with, and the
+   neighbouring issues the builder must not absorb. `PLANNED` carries a `note`
+   for exactly this and renders it nowhere, so it reaches a builder only if the
+   offer quotes it.
+
+### A ready card with no plan is a decompose task waiting to be offered
+
+The Build order's first column holds cards nothing open blocks. The free list is
+that column minus what a session or a branch already carries, minus what is
+deferred, and minus what waits on an owner decision. The note under the column
+names it card by card. What is left is work anyone could start and nobody has
+planned.
+
+So an update offers a decompose-until-completion task for each card on that
+list, in the order the column draws it, which is the priority order the ranking
+sets and then the issue number. Offer them in that order, so the owner can take
+the top of the queue rather than read all of it.
+
+Four costs, named rather than hidden.
+
+1. **The list is long.** It stood at 27 cards on 2026-09-18. This offers a queue
+   rather than a task, and the order is what makes it usable.
+2. **A loop is not cheap, and the record says it pays anyway.** Across the runs
+   this repo has recorded, not one exited on its first two passes, they ran from
+   six passes to fourteen, and each found something a builder would otherwise
+   have met mid-change.
+3. **Eight running at once is the ceiling.** The owner set it on 2026-09-18, and
+   what argues for a ceiling is measured: three concurrent sessions produced two
+   publish refusals inside one board update, and each refusal costs a full read
+   of the live page and a merge part by part. Offer the whole queue, because a
+   chip is a suggestion rather than a session, and never spawn past eight that
+   are actually running.
+4. **The chip queue holds twenty and drops the oldest to make room.** Offering
+   27 pushed the front of the priority order out. The tool result names which
+   one left, and nothing else does, so the reply is where that has to be passed
+   on or the highest-ranked card is the one that quietly vanishes.
+
+A card already in `PLANNED` never appears on this list, because a finished plan
+with nobody on it is drawn in the In flight section instead. That is the two
+rules meeting rather than overlapping. One offers a builder where the plan is
+done, the other offers a planner where it is not.
 
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.

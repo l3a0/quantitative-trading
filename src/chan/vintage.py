@@ -204,6 +204,12 @@ def vintage_filename(
     over a weekend or a holiday or after a delisting, agree on vendor, symbol,
     span and price basis, and the second would be refused as a duplicate of the
     first. That pair is exactly what a test of the premise needs.
+
+    The convention is asserted rather than merely followed. Because all five
+    fields are in the name, ``tests/test_vintage.py`` holds every recorded
+    entry to the name its file took, which is what stands between an entry and
+    a file it does not describe. Changing the join therefore moves that check,
+    and a vintage already on disk keeps the name it was given.
     """
     span = f"{first_date}_{last_date}"
     return f"{vendor}_{symbol.lower()}_{price_basis}_{span}_dl{download_date}.csv"
