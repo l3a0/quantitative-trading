@@ -17,7 +17,7 @@ them as stale rather than updating them unasked.
 
 ## When to run it
 
-Four moments, and each is one where the page's own answer changed. A session
+Five moments, and each is one where the page's own answer changed. A session
 that hits one and leaves has made the board wrong, and nothing else notices.
 
 1. **A decompose loop exits.** Add the card to `PLANNED` with its pass count and
@@ -40,7 +40,7 @@ the branch to it rather than giving the page a second source of truth. Check
 `closingIssuesReferences` when a pull request opens, and if it is empty and the
 branch means to close something, fix the body before the board is touched.
 
-One block these four do not maintain, said plainly rather than left to be
+One block these five do not maintain, said plainly rather than left to be
 discovered. `WORKING` marks a card a session is on right now, which is only
 knowable while a session is running, and every moment above fires when one
 finishes. So the Building column reads zero unless something outside this skill
@@ -91,8 +91,8 @@ root**, not from the scratch directory the rest of this page works in. Five of
 them fail loudly there and one does not: `uv run pytest` reports `no tests ran`,
 which looks enough like a result to be written down.
 
-A count carried in your head from earlier in the session is the one that will be
-wrong, and it has been: an update shipped 39 open issues when a query said 40.
+A count recalled from earlier in the session is the one that will be wrong, and
+it has been: an update shipped 39 open issues when a query said 40.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
@@ -145,18 +145,26 @@ to tell a plain keyword from one inside a code span. It catches the opposite
 slip too: a sentence written to say a pull request closes nothing registered a
 link anyway, because the keyword parses wherever it sits.
 
-The middle command is why `reviewed` is counted rather than queried. GitHub's
-own `reviewDecision` stays at "review required" whatever a session posts,
-because a session comments rather than approving, so a review that has landed
-and a review nobody has written look identical to the API. Counting the comments
-that open with a review heading is what separates them, and that flag is the
-only thing that moves a card into the column saying the next move is the
-owner's.
+The middle command is why `reviewed` is counted rather than queried today, and
+the constraint is what this session posts rather than anything about the API. A
+review posted with `gh pr comment` is an issue comment, which never reaches
+`reviews` or moves `reviewDecision`, so a landed review and an unwritten one are
+indistinguishable by query. `gh pr review --comment` posts a review instead, and
+an author may leave one on their own pull request even though they may not
+approve it. If a session posts reviews that way, `reviewed` becomes queryable
+and the comment count stops being needed. Until then, count the comments that
+open with a review heading, because that flag is the only thing that moves a
+card into the column saying the next move is the owner's.
 
 Read the checks against the pull request's current head, because a rollup is a
-claim about one merge ref at one moment and goes stale in both directions. An
-in-progress run reports a null conclusion, so a filter written as "not success"
-counts it as a failure. That has been reported as a red pull request twice.
+claim about one merge ref at one moment and goes stale in both directions.
+
+Read `status` before `conclusion`. An in-progress run carries a null conclusion,
+so anything that tests for "not success" reads it as a failure, and only a
+completed run's conclusion means anything. The board's own `checkword` does it
+that way. This is a fourth rollup behaviour alongside the three `CLAUDE.md`
+already lists, and it belongs there rather than only here, which
+[issue 87](https://github.com/l3a0/quantitative-trading/issues/87) carries.
 
 ## The data blocks, and what each owns
 
@@ -252,7 +260,7 @@ check could not see the surface it was most needed on.
 
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something
-false. Five checks catch most of them.
+false. Six checks catch most of them.
 
 1. **The totals reconcile.** In-flight cards plus board cards equals open issues,
    and every card carries its labels.
@@ -271,6 +279,11 @@ false. Five checks catch most of them.
    the clause it referred back to. One read "#27 is planned too" with nothing
    before it, because the card it was agreeing with had merged. Read the
    sentences, not only the counts.
+6. **Nothing a card says contradicts where the card sits.** A marker, a line of
+   text and a position are three claims about one issue, and a rule added to any
+   of them can disagree with the other two. A chip once read 6 on a card the sort
+   had forced to the bottom. Read each card's own marks against its place in the
+   column.
 
 ## What goes wrong, from the record
 
@@ -294,21 +307,23 @@ than something new.
    41 in one place and behind it in another. There is now one `cardOrder`
    comparator, and every column that draws cards calls it. Keep it that way.
    The ranking section itself is gone, which is defect 9.
-6. **A key describing cards that moved.** Each section computes its legend from
-   what it drew. A fixed legend advertises states that are not below it. This
-   one has recurred once already, in a different place: after defect 11 landed,
-   the in-flight legend still advertised "ready to hand to a builder" for a card
-   whose pull request had retired that marker, because it asked `PLANNED`
-   instead of asking what was rendered. Legends read the render, never the data.
+6. **A legend describing cards that are not under it.** It began as a fixed list
+   advertising states that had moved to another section. It came back computed,
+   which was not enough: after defect 11 landed, the in-flight legend still
+   offered "ready to hand to a builder" for a card whose pull request had
+   retired that marker, because it computed from `PLANNED` rather than from what
+   was drawn. Both spellings fail the same way. A legend reads the render.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
    declaration, which throws on load rather than degrading quietly. The stub
    catches this immediately.
 8. **Pluralisation.** `plu` appended a bare letter s, giving a count of passes
    that read "19 passs". It now handles a word already ending in one.
-The four below are a different kind of row. They were caught by the owner
-reading the published page rather than by a check, and each was a shape the page
-had carried for a while rather than a slip in one edit. They are kept because
-they are the failures this page invites and the ones a harness cannot see.
+The four below are a different kind of row. Each was caught by the owner reading
+the published page rather than by a check, which is what they have in common.
+Three had been on the page for a while. The fourth was made and found inside one
+session, and it is kept anyway, because what produced it was two rules meeting
+rather than one careless edit. They are the failures this page invites and the
+ones a harness cannot see.
 
 9. **A second list of the same cards.** The page carried a ranking section
    listing nine cards the build order already drew, so every card had two homes.
@@ -323,9 +338,11 @@ they are the failures this page invites and the ones a harness cannot see.
 11. **A plan line under a pull request.** A card with an open branch said its
     plan was ready to be written, directly above a line saying it was written.
     The plan line and its marker are suppressed once a pull request exists,
-    while the sort still reads `PLANNED` so the card keeps its position. The
-    suppression is specific to that pair rather than a licence to hide other
-    states.
+    while the sort still reads `PLANNED` so the card keeps its position. Two
+    things follow. The suppression is specific to that pair rather than a licence
+    to hide other states. And suppressing a marker splits the render from the
+    data, so every other reader of the same field has to be swept: the legend was
+    missed, which is the second half of defect 6.
 12. **Two fixes that each worked, contradicting each other.** A priority chip
     was added to the cards when the ranking section was deleted, and separately
     the sort was changed to force a deferred card last because one had been
@@ -333,8 +350,11 @@ they are the failures this page invites and the ones a harness cannot see.
     chip reading 6 above a position reading last, which is two answers to one
     question. The chip is dropped on a deferred card, because the ranking holds
     one only to record that it is deliberately not being done, and the dashed
-    border and the kind word already say that. Watch for this shape whenever two
-    rules touch one card: each is defensible alone and the pair is not.
+    border and the kind word already say that. The shape is not rare: the card
+    renderer carries two other comments reasoning about giving one card two
+    answers to one question. Check 6 below is what catches the next one, so a
+    rule added to a card is read against the card's own position rather than
+    only against the data it came from.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
@@ -366,6 +386,24 @@ Two further conventions are specific to this page.
    comments carry the measurements behind its choices, which is what stops the
    next session undoing one by accident.
 
+## Which copy wins where this file and the page overlap
+
+Several things are reasoned about twice, once in a comment beside the line it
+governs and once here. The duplication is deliberate and its price is named
+rather than hidden, because nothing checks the two against each other and the
+page lives outside git where no sweep reaches it.
+
+The split is by question. A comment in the script answers why that line is the
+way it is, and it is authoritative about the code it sits on, because it travels
+with the code through any rewrite. This file answers how to run an update and
+what has gone wrong before, and it is authoritative about the procedure and the
+record.
+
+So when the two disagree about a mechanism, the comment is right and this file
+is what gets corrected. When they disagree about what a session should do, this
+file is right. A session changing the page's behaviour updates the comment on
+the line it edits, and checks here for a sentence describing the same mechanism.
+
 ## Finishing
 
 Publish, then report in the same reply.
@@ -377,11 +415,9 @@ Publish, then report in the same reply.
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.
 
-This is no longer hypothetical. Now that every session updates the board, a
-refusal is the normal outcome of two sessions finishing near each other, and it
-has already fired. When it does, the refusal hands over the live source. Read
-all of it, decide which side is newer for each part rather than for the file,
-and merge in that direction. The last time, the other session's code was ahead
-on three counts and this session's data was ahead on four, so the merge went
-data-onto-theirs rather than the reverse. Resending your own file unchanged
-would have reverted a working improvement.
+This has fired once, since the update became every session's job. The refusal
+hands over the live source. Read all of it, and decide which side is newer part
+by part rather than for the file as a whole, because the two can differ: that
+time the other session had improved the rendering code while this one held newer
+measurements, so the data moved onto their file. Resending a file unchanged
+reverts whatever the other session did.
