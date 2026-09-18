@@ -550,63 +550,85 @@ class TestTheBytesEveryWriteProduces:
     """Every file the recorder writes, held to the bytes the code built.
 
     Python's text mode writes ``os.linesep`` for every newline when no
-    ``newline`` argument is given, and that is CRLF on Windows. Nowhere this
-    suite runs does it, so the case forces the same translation through the
-    same code path rather than waiting for a Windows runner. That is the writer
-    side of what `tests/test_checkout_bytes.py` asks of a checkout.
+    ``newline`` argument is given, and that is CRLF on Windows. No runner this
+    suite meets writes CRLF, so the case forces the same translation through
+    the same code path rather than waiting for a Windows runner. That is the
+    writer side of what `tests/test_checkout_bytes.py` asks of a checkout.
     """
 
     def test_no_write_translates_a_newline(self, data_dir, tmp_path_factory, monkeypatch):
-        """Both write surfaces are shimmed, and a control says the shims are live.
+        """Both write surfaces are patched, and a control says the patches are live.
 
         A test that patches a translating write in and then finds no carriage
-        return passes just as well when the patch never took hold, so two
-        writes performed here go through the same shims and are asserted to
-        come out CRLF. They land in their own directory, because the sweep
-        below reports every file the recorder left behind rather than three
-        names, which covers a fourth write without anyone remembering it.
+        return passes just as well when the patch never took hold, so three
+        writes performed here go through those same patches, and the case
+        asserts each one comes out CRLF. They land in their own directory,
+        because the sweep below reports every file the recorder left behind
+        rather than three names, which covers a fourth write without anyone
+        remembering it.
+
+        `pathlib.Path.open` is the second surface rather than
+        `pathlib.Path.write_text`, because `write_text` opens the file through
+        it. Patching the narrower one holds both spellings, and a write spelled
+        `manifest.open("a", encoding="utf-8")` would otherwise translate with
+        nothing here reporting it.
         """
         real_open = open
-        real_write_text = Path.write_text
+        real_path_open = Path.open
+
+        # A read is left alone. `Path.read_text` opens through the same method,
+        # and forcing a terminator on it would change what the reader sees
+        # rather than what a writer produces.
+        def translated(mode, newline):
+            # `newline=""` is falsy, so the comparison is against None. A
+            # `newline or "\r\n"` here would override the very argument a fix
+            # passes and make this case unable to see it.
+            writing = any(character in mode for character in "wax+")
+            return writing and "b" not in mode and newline is None
 
         def translating_open(file, mode="r", *arguments, **keywords):
-            # `newline=""` is falsy, so the comparison is against None. A
-            # `keywords.get("newline") or "\r\n"` here would override the very
-            # argument a fix passes and make this case unable to see it.
-            if "b" not in mode and keywords.get("newline") is None:
+            if translated(mode, keywords.get("newline")):
                 keywords["newline"] = "\r\n"
             return real_open(file, mode, *arguments, **keywords)
 
-        def translating_write_text(self, data, encoding=None, errors=None, newline=None):
-            return real_write_text(
-                self, data, encoding, errors, "\r\n" if newline is None else newline
-            )
+        def translating_path_open(self, mode="r", *arguments, **keywords):
+            if translated(mode, keywords.get("newline")):
+                keywords["newline"] = "\r\n"
+            return real_path_open(self, mode, *arguments, **keywords)
 
         monkeypatch.setattr(vintage, "open", translating_open, raising=False)
-        monkeypatch.setattr(Path, "write_text", translating_write_text)
+        monkeypatch.setattr(Path, "open", translating_path_open)
 
         control = tmp_path_factory.mktemp("translating-writes")
-        with vintage.open(control / "opened.txt", "w", encoding="utf-8") as handle:
+        with vintage.open(control / "builtin.txt", "w", encoding="utf-8") as handle:
+            handle.write("line\n")
+        with (control / "method.txt").open("w", encoding="utf-8") as handle:
             handle.write("line\n")
         (control / "written.txt").write_text("line\n", encoding="utf-8")
         untranslated = sorted(
             path.name for path in control.iterdir() if b"\r\n" not in path.read_bytes()
         )
         assert not untranslated, (
-            f"the shim left {', '.join(untranslated)} alone, so a text-mode write is no "
-            f"longer reaching it and the sweep below asserts nothing. Either chan.vintage "
-            f"stopped calling open, or pathlib.Path.write_text is no longer the other "
-            f"surface."
+            f"the patched writes left {', '.join(untranslated)} alone, so a text-mode "
+            f"write is no longer reaching them and the sweep below asserts nothing. "
+            f"Either chan.vintage stopped calling the builtin open, or pathlib.Path.open "
+            f"is no longer what Path.write_text and Path.open both go through."
         )
 
         def assert_untranslated(stage):
-            translated = sorted(
-                path.name for path in data_dir.iterdir() if b"\r" in path.read_bytes()
+            # Every file under the directory rather than its own children, so a
+            # write into a subdirectory is reported by name. A directory is
+            # skipped, because it has no bytes to read and naming one would
+            # report a file nothing wrote.
+            translated_files = sorted(
+                str(path.relative_to(data_dir))
+                for path in data_dir.rglob("*")
+                if path.is_file() and b"\r" in path.read_bytes()
             )
-            assert not translated, (
-                f"{', '.join(translated)} came out of {stage} carrying a carriage return. "
-                f"Python's text mode writes os.linesep for every newline when open or "
-                f"write_text is called with no newline argument, and os.linesep is CRLF on "
+            assert not translated_files, (
+                f"{', '.join(translated_files)} came out of {stage} carrying a carriage "
+                f"return. Python's text mode writes os.linesep for every newline when a "
+                f"file is opened with no newline argument, and os.linesep is CRLF on "
                 f"Windows. Every write in chan.vintage takes bytes so the file holds what "
                 f"the code built, and putting a text-mode write back undoes that."
             )
@@ -722,14 +744,17 @@ class TestTheCommittedManifest:
         assert (tmp_path / CHECKSUMS_NAME).read_bytes() == (DATA_DIR / CHECKSUMS_NAME).read_bytes()
 
     def test_the_committed_record_carries_no_carriage_return(self):
-        """The recorder is one producer of these two files and a hand edit is the other.
+        """The writer is one producer of the manifest and a hand edit is the other.
 
-        `data/README.md` says the manifest's lines were written by hand, and
-        `.gitattributes` holds `data/** -text`, so git commits whatever an
+        `data/README.md` says the manifest's eight lines were written by hand,
+        and `.gitattributes` holds `data/** -text`, so git commits whatever an
         editor saved rather than normalising it. `read_manifest` normalises on
-        the way in, so no run reports one, and `shasum -a 256 -c` reads the
-        carriage return as part of the filename and says eight vintages are
-        missing when none of them is.
+        the way in, so no run reports a carriage return. The projection is
+        regenerated from the manifest rather than edited, and it is read here
+        beside it because both files reach git through that same attribute,
+        and `shasum -a 256 -c` on a projection carrying one reads the carriage
+        return as part of the filename and says eight vintages are missing
+        when none of them is.
         """
         for name in (MANIFEST_NAME, CHECKSUMS_NAME):
             assert b"\r" not in (DATA_DIR / name).read_bytes(), name
