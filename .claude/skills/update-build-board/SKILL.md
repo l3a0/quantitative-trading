@@ -606,74 +606,6 @@ publishing** above, then publish and report in the same reply.
 1. The version number and what moved.
 2. Any sentence the execution caught, and what replaced it.
 3. What is still stale, including the two sibling pages.
-4. A build task for every card left in "Planned, no builder", per the rule below.
-5. A decompose task for every card on the free list, in the order it is drawn.
-
-### A planned card with no builder is a build task waiting to be offered
-
-The In flight section's last column holds cards whose decompose loop exited and
-that nobody is on. That is planning finished and building not started, so a card
-sitting there is work that is ready and idle, and the page has no way to move it
-on its own.
-
-So an update that leaves a card there offers a build task for it in the same
-reply, one per card, rather than reporting the column and stopping. The desktop
-app surfaces such a task as a chip the owner starts. Nothing has to happen
-first, because a card only reaches that column once a loop has run its plan
-against the code, which is the thing a builder would otherwise have to do again.
-
-Two things the offer needs, since a builder reads the issue once at spawn and
-reads none of this.
-
-1. **Check what the card waits on before offering it.** The column's test asks
-   only whether a plan exists, whether a branch exists and whether a session is
-   on it. It never looks at `needs`, so a plan-complete card sitting behind an
-   open blocker lands there too, and offering it hands a builder work they cannot
-   finish. Read the card's `needs` against the open issues first. No card has hit
-   this yet, because every `PLANNED` entry so far has had an empty `needs`, which
-   is why the column was built without the test rather than with it.
-2. **Carry what the loop found that the issue body does not repeat.** A
-   measurement the loop took, the file the change will collide with, and the
-   neighbouring issues the builder must not absorb. `PLANNED` carries a `note`
-   for exactly this and renders it nowhere, so it reaches a builder only if the
-   offer quotes it.
-
-### A ready card with no plan is a decompose task waiting to be offered
-
-The Build order's first column holds cards nothing open blocks. The free list is
-that column minus what a session or a branch already carries, minus what is
-deferred, and minus what waits on an owner decision. The note under the column
-names it card by card. What is left is work anyone could start and nobody has
-planned.
-
-So an update offers a decompose-until-completion task for each card on that
-list, in the order the column draws it, which is the priority order the ranking
-sets and then the issue number. Offer them in that order, so the owner can take
-the top of the queue rather than read all of it.
-
-Four costs, named rather than hidden.
-
-1. **The list is long.** It stood at 27 cards on 2026-09-18. This offers a queue
-   rather than a task, and the order is what makes it usable.
-2. **A loop is not cheap, and the record says it pays anyway.** Across the runs
-   this repo has recorded, not one exited on its first two passes, they ran from
-   six passes to fourteen, and each found something a builder would otherwise
-   have met mid-change.
-3. **Eight running at once is the ceiling.** The owner set it on 2026-09-18, and
-   what argues for a ceiling is measured: three concurrent sessions produced two
-   publish refusals inside one board update, and each refusal costs a full read
-   of the live page and a merge part by part. Offer the whole queue, because a
-   chip is a suggestion rather than a session, and never spawn past eight that
-   are actually running.
-4. **The chip queue holds twenty and drops the oldest to make room.** Offering
-   27 pushed the front of the priority order out. The tool result names which
-   one left, and nothing else does, so the reply is where that has to be passed
-   on or the highest-ranked card is the one that quietly vanishes.
-
-A card already in `PLANNED` never appears on this list, because a finished plan
-with nobody on it is drawn in the In flight section instead. That is the two
-rules meeting rather than overlapping. One offers a builder where the plan is
-done, the other offers a planner where it is not.
 
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.
@@ -684,3 +616,26 @@ by part rather than for the file as a whole, because the two can differ: that
 time the other session had improved the rendering code while this one held newer
 measurements, so the data moved onto their file. Resending a file unchanged
 reverts whatever the other session did.
+
+### Offering a task per idle card was tried and withdrawn
+
+For part of 2026-09-18 this skill told a session to offer a build task for every
+card left in "Planned, no builder" and a decompose task for every card on the
+free list. The owner withdrew both the same day. It is written down so the next
+session reading an idle column does not re-invent it.
+
+What went wrong is arithmetic rather than principle. The free list was 27 cards,
+so one update offered 28 tasks into a suggestion queue that holds 20 pending.
+Two were pushed out, and the queue drops the oldest still pending, which is the
+front of the priority order. So the rule fed the queue in exactly the order most
+likely to lose its best entry.
+
+The second eviction is the part worth keeping. One was named in the tool's own
+result and the other was visible only by diffing the pending list between two
+calls, so a session doing this cannot reliably report what it lost. A queue that
+silently drops the highest-ranked card is worse than no offer at all, because the
+reader takes the queue for the list.
+
+So an update reports the two columns and stops. What to start, and how many at
+once, is the owner's call, and their standing number is eight running at once,
+which this page neither enforces nor needs to.
