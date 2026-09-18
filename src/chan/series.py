@@ -42,12 +42,11 @@ Two days of ``ko_chan.csv`` are flagged today and nothing computes across
 them, which is what says the guard reports a real thing rather than a
 hypothetical.
 
-:func:`aligned_closes` reads two series rather than one, joining a pair on
-its common trading days and handing back both manifest entries, and it is
-here for the reason the parse is. Every experiment that reads a pair needs
-that join, and it sat in :mod:`chan.pair_cointegration` until
-[issue 122](https://github.com/l3a0/quantitative-trading/issues/122), where
-each one would have imported a Chapter 7 replication to open two files.
+:func:`aligned_closes` joins a pair on its common trading days and hands
+back both manifest entries, so this module reads two series as well as one.
+It sat in :mod:`chan.pair_cointegration` until
+[issue 122](https://github.com/l3a0/quantitative-trading/issues/122), and it
+is here for the reason the paragraph above gives for the parse.
 """
 
 from __future__ import annotations
@@ -375,18 +374,18 @@ def aligned_closes(
     is [issue 69](https://github.com/l3a0/quantitative-trading/issues/69).
     Until it lands, an ambiguous pair stops the run and names the candidates.
 
-    It lives beside the one-leg readers rather than in a replication, for the
-    reason this module's docstring gives for the parse: every experiment that
-    reads two series would otherwise import a Chapter 7 replication to open
-    two files. It sat in :mod:`chan.pair_cointegration` until
-    [issue 122](https://github.com/l3a0/quantitative-trading/issues/122) moved
-    it here.
+    It lives beside the one-leg readers rather than in a replication, because
+    every experiment that reads a pair needs this join, and importing a
+    Chapter 7 replication to open two files is what this module's docstring
+    decided against for the parse. It was in :mod:`chan.pair_cointegration`
+    until [issue 122](https://github.com/l3a0/quantitative-trading/issues/122)
+    moved it here.
 
     **Where this came from.** ``search/pair_cointegration.py`` in the sibling
     ``trading-strategies`` repo, at commit ``b27222b``, landed in
     ``chan.pair_cointegration`` here in ``ce3f757``. The port changed nothing
     but the formatting and the docstring. Everything that separates it from
-    the sibling's version was added here afterwards, in three steps.
+    the sibling's version was added here afterwards, in three changes.
 
     1. A ``data_dir`` argument, so a test reads a copied tree rather than the
        committed ``data/``.
@@ -395,9 +394,12 @@ def aligned_closes(
        gives the two entries this function hands back on ``attrs``.
     3. The scale-break refusal after the clip.
 
-    So diff ``b27222b`` against ``ce3f757`` to read the port and against
-    ``HEAD`` to read the three, with docstrings stripped from both sides
-    because they are most of it.
+    So diff ``b27222b:search/pair_cointegration.py`` against
+    ``ce3f757:src/chan/pair_cointegration.py`` to read the port, with
+    docstrings stripped from both sides because they are most of it. Neither
+    side is this file, and diffing the sibling against it instead compares a
+    cointegration script with a reader. The three above are the whole of what
+    happened after the port.
     """
     entry_a, close_a = load_vintage(a, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
     entry_b, close_b = load_vintage(b, unadjusted=unadjusted, chan=chan, data_dir=data_dir)

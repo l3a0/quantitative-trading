@@ -98,12 +98,13 @@ prose changes no item above names. Diff ``b27222b`` against ``ce3f757`` to read
 the port and against ``HEAD`` to read everything since, with docstrings
 stripped from both sides, because they are most of it.
 
-One deletion in that second diff has somewhere to go rather than nowhere.
-``aligned_closes`` left for :mod:`chan.series` under
-[issue 122](https://github.com/l3a0/quantitative-trading/issues/122), because a
-two-leg read is a read and every experiment that needs one would otherwise
-import this chapter to open two files. Its own docstring there carries the rest
-of the provenance.
+Two definitions in that second diff went somewhere rather than nowhere, and
+both went to :mod:`chan.series`. ``load_close`` went under
+[issue 2](https://github.com/l3a0/quantitative-trading/issues/2), which
+replaced its body with a manifest read on the way, so nothing of the sibling's
+version is left there to diff. ``aligned_closes`` went under
+[issue 122](https://github.com/l3a0/quantitative-trading/issues/122) with its
+body unchanged, and its docstring there carries the rest of its provenance.
 """
 
 from __future__ import annotations
