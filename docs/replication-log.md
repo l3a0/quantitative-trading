@@ -291,19 +291,19 @@ Four things, in the order of how much they cost to learn.
 Every computed figure here agrees with
 [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md),
 which carries a four-row summary of the same comparison and compresses the two
-CADF windows into one cell. The published figures agree too, and one of them
-took a correction to get there.
+CADF windows into one cell. The two-run table's published figures agree too,
+and one of them took a correction to get there.
 
 That essay's two-run table once gave the published hedge as 1.6766 on its
 Chapter 3 row as well as its Chapter 7 row. The book prints 1.6766 for the
 Chapter 7 window only, at location 3727. The Chapter 3 window's through-origin
 slope is 1.6283, pinned by `TestGldGdxReproduction::test_ch3_hedge_and_stat`,
-and it has no published counterpart at all, which is why the table of published
-figures above carries no row for it. Reading one published hedge onto both
-windows is the exact trap this replication exists to make visible.
-[Issue 27](https://github.com/l3a0/quantitative-trading/issues/27) corrected the
-cell to `none` in both copies of the essay, the second being
-[docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html).
+and it has no published counterpart at all. Reading one published hedge onto
+both windows is the exact trap this replication exists to make visible. The
+cell now reads `none` in both copies of the essay, the second being
+[docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html),
+corrected under
+[issue 27](https://github.com/l3a0/quantitative-trading/issues/27).
 
 One smaller wording difference is worth naming rather than leaving for a reader
 to trip on. The essay says Chan's own data "lands at 1.6395, which is no closer

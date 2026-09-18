@@ -192,9 +192,9 @@ says whether a published number reproduces and nothing about whether the trade
 works today. An essay is not a verdict, so the verdicts live separately, in
 [docs/replication-log.md](docs/replication-log.md). The two quote the same
 computed figures, the essay at coarser granularity, so a re-pin moves both. They
-agree on the published figures too, since
-[issue 27](https://github.com/l3a0/quantitative-trading/issues/27) corrected the
-essay's Chapter 3 row, which had read the Chapter 7 hedge onto a second window.
+agree on the two-run table's published figures too, since the essay's Chapter 3
+row no longer gives the Chapter 7 hedge a second window. That correction landed
+under [issue 27](https://github.com/l3a0/quantitative-trading/issues/27).
 
 Six of its figures are not pinned here, and they are worth knowing before
 quoting any of them.
