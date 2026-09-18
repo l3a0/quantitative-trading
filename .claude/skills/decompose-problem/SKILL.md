@@ -6,16 +6,14 @@ description: Plan a tracked unit of work to completion by repeatedly auditing it
 # Decompose a problem
 
 A plan is a hypothesis about work that has not happened yet. Planning is not writing the
-hypothesis down once. It is running passes against reality until the passes stop finding
-anything, then deciding whether what is left is one unit of work or several.
+hypothesis down once. It is running passes against reality until a pass stops making the
+plan smaller, then deciding whether what is left is one unit of work or several.
 
 ## This file is a copy, and the owner's copy wins
 
 The original lives in the owner's `~/.claude/skills/`, where it is used across repositories.
 This copy exists because a session spawned into a fresh worktree gets a clean checkout and
-nothing outside it, so a skill that is not committed never reaches the sessions that most
-need it. Five loops ran against this repo's issues that way.
-
+nothing outside it, so a skill that is not committed never reaches the sessions that need it.
 The price is the one `CLAUDE.md` already names for its copied writing rules: two copies can
 drift. The owner's copy is the source, and this one is what gets corrected.
 
@@ -31,35 +29,30 @@ Run this against one tracked issue. Each pass is a full cycle.
    against. An audit that found nothing is reported and written nowhere, because an issue
    padded with empty notes is harder to read.
 4. **Compact** if the body has grown past the band, and verify the compaction mechanically.
-5. **Repeat** until two consecutive passes, asking different questions, return nothing.
+5. **Repeat** until a pass does not make the body smaller.
 6. **Split** only if the unit is still large when the passes stop paying, and give each child
    the same loop.
 
+**Stop and ask the moment a pass produces a question only the owner can answer.** Do not bank
+it for the exit verdict. A ruling changes what the remaining passes are for, so every pass
+run before it is a pass spent planning work that may be cut.
+
 ## What makes a pass find something
 
-A pass that re-reads the plan finds nothing. These are the questions that return findings.
-They are ordered by how often they have paid.
+A pass that re-reads the plan finds nothing. Two questions return almost everything, and they
+run in this order.
 
-1. **Read what the code already decided in writing.** A docstring stating a rule is a decision
+1. **Why is this needed?** Ask it before asking whether the plan is correct, and ask it once,
+   at the start. `CLAUDE.md` says reviews armor what exists and rarely ask whether it should.
+   A plan can be correct in every detail and describe work with no consumer.
+2. **Read what the code already decided in writing.** A docstring stating a rule is a decision
    somebody made on purpose. A plan that contradicts one either loses to it or owes it an
    answer, and a builder meeting it mid-change will either delete it quietly or stop. Grep the
-   modules the plan names for their stated rules before trusting the plan's account of them.
-2. **Open every signature the plan names.** Plans routinely describe a function by what it
-   does and get its arguments wrong. "It takes a path, not a root" is a small correction that
-   saves a builder an hour.
-3. **Measure instead of assuming.** List the directory. Read the row counts. Query the real
-   data. A plan that cites a number nobody measured is carrying a guess in a factual voice.
-4. **Ask what the second run does.** Idempotence is where plans break. Run it twice, run it
-   with a different argument, run it after a partial failure. Two of the sharpest findings in
-   the session this skill came from were "this appends every night forever" and "re-running
-   with a corrected value corrupts the record".
-5. **Ask where the error surfaces**, not just that it is raised. An exception that reaches an
-   operator as a stack trace is a weaker guard than one that prints a line, and plans specify
-   the raise while forgetting the reader.
-6. **Look for the document contradicting itself.** After a split or an edit, one section
-   claims what another section gave away. Sweep for the class, not the instance.
-7. **Ask whether a new capability makes an unreachable failure reachable.** A guard that was
-   never needed becomes owed the moment an option lets two runs disagree.
+   modules the plan names for their stated rules, and open every signature and every issue the
+   plan cites rather than trusting its account of them.
+
+Answer both by measuring rather than reasoning. A plan that cites a number nobody measured is
+carrying a guess in a factual voice.
 
 Pin every finding to the commit it was derived against. Line numbers move, and a plan that
 cites them without a commit goes stale the next time anything merges.
@@ -93,32 +86,18 @@ the bodies of recently completed issues and take their range. The same for pull 
 which is what tells you whether a unit is one change or several. A band derived from the
 project answers "is this long" in the project's own terms.
 
-## Diminishing returns, judged against yourself
+## When to stop
 
-Stop when the character of the findings changes, not when their count drops. A pass is still
-paying while it returns defects: a contract the plan got wrong, a failure mode nobody named, a
-decision the code already made. A pass has stopped paying when it returns only restatement,
-reassurance that something is fine, or style.
+**Stop when a pass does not reduce the body.** Compaction counts, a correction that removes
+scope counts, an addition does not. It is a bound rather than a judgement: a body over the
+band cannot stall, and a pass spent fixing drift the loop itself introduced shrinks nothing so
+it ends the loop.
 
-**Predicting that the next pass will find nothing is not evidence.** Only a pass that ran and
-found nothing is. The prediction comes from the same reading that produced the plan, so it
-inherits that reading's blind spots, and it is reliably wrong. In the session this skill came
-from, a unit was called complete and handed to a builder, and the next pass found that every
-refusal in the command reached the operator as a stack trace rather than a line. The pass
-before that one had found the epoch measured from the wrong surface entirely. Each was called
-the last one at the time.
+The rule this replaced asked for two consecutive passes finding nothing, which cannot
+terminate while the loop edits its own artifact. One run reached 109 passes and never got two
+in a row.
 
-So require **two consecutive passes that find nothing**, and make the second ask different
-questions from the first. A pass returning nothing while re-asking what the previous pass
-already asked is not a second data point, it is the same one. Work down the question list
-above and then reach past it: the failure path rather than the happy one, the operator rather
-than the caller, the second run rather than the first, the surface nobody has opened yet.
-
-The asymmetry settles it. An extra pass costs one pass. A missed finding costs a builder's
-afternoon, ships a defect, or arrives after the work has started and has to chase it. Buy the
-cheap thing.
-
-A unit that feels finished is the cue to run two more passes, not the cue to stop.
+Record the stop with the pass count, because a pass count is a cost rather than a depth.
 
 ## Splitting
 
@@ -151,9 +130,9 @@ When a split does happen:
 
 ## Atomic
 
-A unit is atomic when two consecutive passes return nothing new and every remaining piece fails
-the separability test. That is the exit condition. Record it on the issue, with the argument,
-so the next reader inherits the conclusion rather than the question.
+A unit is atomic when a pass no longer reduces it and every remaining piece fails the
+separability test. That is the exit condition. Record it on the issue, with the argument, so
+the next reader inherits the conclusion rather than the question.
 
 ## When work is already running
 
@@ -161,11 +140,6 @@ A correction found after a build session has started must reach that session, no
 tracker. The session read the issue once, at spawn, and reads none of the conversation that
 follows. Send it the finding directly, say plainly whether it changes what they are building,
 and say what is deliberately not theirs.
-
-Get both empty passes in before spawning. That is the last moment a correction arrives ahead of
-the person acting on it, and it is exactly where the optimistic stop rule does its damage:
-declaring the plan finished is what authorises the spawn, so a pass skipped there is a finding
-that now has to chase a builder mid-change.
 
 ## Scope discipline
 
@@ -175,6 +149,9 @@ Two failures recur, and they pull in opposite directions.
    carry the same mistake.
 2. **Fixing past the class.** A correction generalised into places it does not belong, which is
    how a change grows until nothing can review it.
+
+Run both. Completeness checking adds and only over-reach checking removes, so a loop that
+runs one lens grows whatever it touches.
 
 When a pass turns up a defect that predates the work, file it separately rather than absorbing
 it. Name it on both issues so neither reader loses it. A unit that fixes everything it touched
