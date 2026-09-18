@@ -44,9 +44,10 @@ concurrently and nothing is planned to, so the assumption is written down here
 instead of defended in code.
 
 Only a download is recorded. Four of the committed vintages carry ``saved_date``
-because they are columns lifted from Ernest Chan's workbooks, and no caller can
-produce one of those through this module. Reading them back is supported and
-writing a new one is not, since the thing that would write it does not exist.
+and ``source_workbook`` because they are columns lifted from Ernest Chan's
+workbooks, and no caller can produce one of those through this module. Reading
+them back is supported and writing a new one is not, since the thing that would
+write it does not exist.
 
 The identity fields are compared as strings, so one source needs one spelling.
 Case is normalised and the price basis is one of the two terms the design doc's
@@ -149,6 +150,26 @@ class VintageEntry:
     the three is also what makes their ``str`` annotations true of an entry read
     back, since the line is free to hold a list where the class says a string.
 
+    ``source_workbook`` names the spreadsheet a column was lifted from, and the
+    four ``*_chan.csv`` entries are the only ones carrying it. It is recorded
+    rather than derived because a symbol does not carry it. Chan's
+    ``example6_2.xls`` holds a SPY column, and a ``SPY.xls`` in the same mirror
+    holds a different series, so a filename joined from the symbol would name a
+    real workbook about the wrong data. ``docs/design.md``'s vocabulary calls
+    this manifest the authority for a vintage's provenance, and the workbook a
+    column came from is provenance.
+
+    It is optional and unchecked, which is two decisions rather than one. It is
+    optional because a download has no workbook, and demanding one on every line
+    would refuse every vintage a vendor returned. It is unchecked because no
+    rule here can confirm a name in a mirror this repo does not hold. What holds
+    it instead is ``data/README.md``'s table, which states the same workbook in
+    the same spelling, and the assertion in ``tests/test_vintage.py`` that
+    compares the two.
+
+    Like ``saved_date``, it is a field :func:`record_vintage` can never write,
+    since the recorder takes rows and a download date and no workbook at all.
+
     The span is not checked here, because nothing in ``src/`` reads it. The path
     is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
     """
@@ -163,6 +184,7 @@ class VintageEntry:
     sha256: str
     download_date: str | None = None
     saved_date: str | None = None
+    source_workbook: str | None = None
 
     def __post_init__(self) -> None:
         if (self.download_date is None) == (self.saved_date is None):

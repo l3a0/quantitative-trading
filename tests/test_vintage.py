@@ -1215,19 +1215,39 @@ def _vendor_cell(entry: VintageEntry) -> str:
     """The Vendor cell the table writes for one entry.
 
     The two surfaces disagree here by spelling rather than by fact. The manifest
-    writes `chan-xls` and the table writes the workbook it names, which is the
-    same thing in a form a filename cannot hold. Deriving the cell from the
-    entry's own symbol rather than looking it up is what makes a row whose
-    workbook name stops matching its Symbol cell fail.
+    writes `chan-xls` in the vendor field and the workbook in `source_workbook`,
+    and the table writes the workbook, which is the pair in a form one cell can
+    hold.
 
-    A closed set, so the rule will never need a second case. `chan.vintage`
-    records a download and nothing else, and no caller can produce a saved-date
-    vintage through it, so the four workbook columns are every row this branch
-    will ever cover.
+    The workbook is read off the entry rather than joined from its symbol. A
+    joined name is a claim about a file in a mirror this repo does not hold,
+    derived from a field that does not carry it. It is true of the four
+    committed columns and false of the SPY column
+    [issue 124](https://github.com/l3a0/quantitative-trading/issues/124)
+    commits, whose source is `example6_2.xls` while a real `SPY.xls` in the same
+    mirror holds another series. The earlier draft of this function argued the
+    set was closed because no caller can record a saved-date vintage. A fifth
+    workbook column arrives by hand, which is the route that argument did not
+    cover.
+
+    Reading it off the entry is what keeps the comparison's message true. The
+    Vendor column's expected value comes from the entry like every other, so
+    `where the entry gives` still says where it came from.
+
+    A `chan-xls` entry carrying no workbook fails here by naming itself, rather
+    than writing a cell holding the word `None`.
+    `the_table_and_the_manifest_agree`'s docstring says a failure there is an
+    instruction to whoever writes the row, and this is the same instruction one
+    step earlier: the manifest line is what has to say which spreadsheet the
+    column came from.
     """
-    if entry.vendor == "chan-xls":
-        return f"Chan's `{entry.symbol}.xls`"
-    return entry.vendor
+    if entry.vendor != "chan-xls":
+        return entry.vendor
+    assert entry.source_workbook is not None, (
+        f"{entry.path}: the entry names vendor 'chan-xls' and no source workbook, so nothing "
+        f"says which of Chan's spreadsheets the column came from"
+    )
+    return f"Chan's `{entry.source_workbook}`"
 
 
 def _date_cell(entry: VintageEntry) -> str:
@@ -1497,8 +1517,8 @@ class TestTheTableIsHeldToTheManifest:
         with pytest.raises(AssertionError, match="spy_20yr_prices.csv"):
             the_table_and_the_manifest_agree(eight)
 
-    def test_a_workbook_name_that_stops_matching_its_symbol_cell_fails(self, eight):
-        """What says the vendor rule is derived rather than waved through.
+    def test_a_row_naming_another_series_workbook_fails(self, eight):
+        """What says the vendor rule is compared rather than waved through.
 
         The four workbook rows are the one place the two surfaces spell a field
         differently, so a check that accepted any `Chan's ...` cell against
@@ -1508,6 +1528,73 @@ class TestTheTableIsHeldToTheManifest:
 
         with pytest.raises(AssertionError, match="ko_chan.csv"):
             the_table_and_the_manifest_agree(eight)
+
+    def test_a_workbook_the_entry_does_not_name_fails_though_the_symbol_agrees(self, eight):
+        """The state this check could not fail while it joined the symbol to `.xls`.
+
+        The case above drives a workbook name disagreeing with the Symbol cell
+        of its own row, which is the only shape a derived cell could ever fail.
+        This one drives the other shape: a cell whose workbook agrees with its
+        symbol and is still not the workbook the column came from. Under the
+        derivation the two were one question by construction, so no test could
+        separate them.
+
+        `example6_2.xls` is the real case rather than an invented one.
+        [Issue 124](https://github.com/l3a0/quantitative-trading/issues/124)
+        commits a SPY column lifted from it, while a `SPY.xls` in the same
+        mirror holds a different series. Driven on `ko_chan.csv` because
+        `committed_copy` hands back the tree this repo holds today, and the
+        state under test is the entry and the row disagreeing rather than
+        anything about KO.
+        """
+        rewrite_entry(eight, "ko_chan.csv", source_workbook="example6_2.xls")
+
+        with pytest.raises(AssertionError) as refused:
+            the_table_and_the_manifest_agree(eight)
+
+        message = str(refused.value)
+        assert "ko_chan.csv" in message and "Vendor" in message
+        assert repr("Chan's `KO.xls`") in message
+        assert repr("Chan's `example6_2.xls`") in message
+
+    def test_a_row_naming_the_workbook_the_entry_names_is_green(self, eight):
+        """The record may now state a workbook that is not its symbol.
+
+        The complement of the case above, and the one the derivation forbade.
+        Moving both surfaces to `example6_2.xls` leaves the check green, which
+        is what lets [issue 124](https://github.com/l3a0/quantitative-trading/issues/124)
+        write its column's true source instead of a filename that happens to
+        match its symbol.
+
+        Asserted by calling the check rather than by its absence of a raise
+        elsewhere, because the fixture is already green and a case that only
+        edited the copy would pass on an edit that landed nowhere.
+        """
+        rewrite_entry(eight, "ko_chan.csv", source_workbook="example6_2.xls")
+        rewrite_row(eight, "ko_chan.csv", vendor="Chan's `example6_2.xls`")
+
+        assert read_table(eight)["ko_chan.csv"]["Vendor"] == "Chan's `example6_2.xls`"
+        the_table_and_the_manifest_agree(eight)
+
+    def test_a_workbook_entry_naming_no_source_fails_by_naming_itself(self, eight):
+        """A `chan-xls` line the record cannot place is an instruction, not a crash.
+
+        The field is optional, because a downloaded vintage has no workbook, so
+        a workbook vintage can reach this check carrying none. What it must not
+        do is write the word `None` into a cell nobody would read twice, or
+        reach whoever added the vintage as a stack trace naming no path. It
+        fails like every other disagreement here: naming the line and saying
+        what is missing from it.
+        """
+        rewrite_entry(eight, "ko_chan.csv", source_workbook=None)
+
+        with pytest.raises(AssertionError) as refused:
+            the_table_and_the_manifest_agree(eight)
+
+        message = str(refused.value)
+        assert "ko_chan.csv" in message
+        assert "no source workbook" in message
+        assert "Chan's `None`" not in message, "the cell was built from a workbook nothing names"
 
     def test_a_renamed_heading_fails_rather_than_reading_no_rows(self, eight):
         """Finding no table is eight missing rows, never a green run over nothing."""
