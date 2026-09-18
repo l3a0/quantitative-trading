@@ -151,8 +151,9 @@ with the name its file took.
 
 The table above is a third telling and is still hand-written. What keeps it
 true is another assertion in the same class, which reads both surfaces and
-holds every row to the entry for the file it names. A cell that stops agreeing
-fails and says which path, which field, and what each surface says. So does a
-row the manifest records nothing for, and an entry the table has no row for.
-That last one is what recording a ninth vintage costs: the suite is red until
-somebody writes its row, and the failure is the instruction saying so.
+holds every row to the entry for the file it names. Every column is held, and
+a cell that stops agreeing fails and says which path, which column, what the
+cell says and what the entry gives. So does a row the manifest records nothing
+for, and an entry the table has no row for. That last one is what recording a
+ninth vintage costs: the suite is red until somebody writes its row, and the
+failure is the instruction saying so.

@@ -40,12 +40,15 @@ from tests.support.committed_vintages import (
     rewrite_entry,
 )
 from tests.support.vintage_table import (
+    COLUMNS,
+    KEYWORDS,
     README_NAME,
     TABLE_HEADING,
     add_row,
     drop_row,
     read_table,
     rewrite_row,
+    row_line,
 )
 
 ROWS = [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)]
@@ -1176,10 +1179,15 @@ def the_table_and_the_manifest_agree(directory: Path) -> None:
     the wrong blanking helper produces, so absence has to read as eight missing
     rows rather than as nothing to check.
 
-    The message names the path, the field and both values, because a failure
+    The message names the path, the column and both values, because a failure
     here is an instruction. Recording a ninth vintage leaves this red until
     somebody writes the row, and whoever reads the failure is the person who has
     to write it.
+
+    Every column is compared, the File cell included. Pairing a row with an
+    entry needs the path with its backticks off, and stopping there would leave
+    one cell keyed on and never read, so the File cell is held to the spelling
+    the table gives every other filename.
     """
     rows = read_table(directory)
     entries = {entry.path: entry for entry in read_manifest(directory)}
@@ -1190,16 +1198,16 @@ def the_table_and_the_manifest_agree(directory: Path) -> None:
         assert path in entries, f"{path}: the table has a row for it and the manifest records none"
 
     for path, entry in entries.items():
-        for column, stated, recorded in (
+        for column, stated, given in (
+            ("File", rows[path]["File"], f"`{entry.path}`"),
             ("Vendor", rows[path]["Vendor"], _vendor_cell(entry)),
             ("Symbol", rows[path]["Symbol"], entry.symbol),
             ("Price", rows[path]["Price"], entry.price_basis),
             ("Span", rows[path]["Span"], f"{entry.first_date} .. {entry.last_date}"),
             ("Downloaded", rows[path]["Downloaded"], _date_cell(entry)),
         ):
-            assert stated == recorded, (
-                f"{path}: the table's {column} cell says {stated!r} and the manifest "
-                f"says {recorded!r}"
+            assert stated == given, (
+                f"{path}: the table's {column} cell says {stated!r} where the entry gives {given!r}"
             )
 
 
@@ -1358,6 +1366,12 @@ class TestTheCommittedManifest:
             VintageEntry(**shared, download_date="2026-08-27", saved_date="2026-08-27")
 
 
+#: The row the table-side cases break. One of the eight, so it is there whatever
+#: the two chips recording a ninth vintage land, and named once so a case says
+#: which row it edits rather than repeating a filename six times.
+HELD = "gld_20yr_prices.csv"
+
+
 class TestTheTableIsHeldToTheManifest:
     """What every disagreement between the two surfaces costs, driven against a copy.
 
@@ -1385,33 +1399,50 @@ class TestTheTableIsHeldToTheManifest:
         return directory
 
     @pytest.mark.parametrize(
-        ("column", "edited", "recorded"),
+        ("column", "edit"),
         [
-            ("vendor", "acme", "yfinance"),
-            ("symbol", "SPY", "GLD"),
-            ("price", "raw", "adjusted"),
-            ("span", "2006-06-20 .. 2026-06-16", "2006-06-19 .. 2026-06-16"),
-            ("span", "2006-06-19 .. 2026-06-15", "2006-06-19 .. 2026-06-16"),
-            ("downloaded", "2026-06-17", "2026-06-16"),
+            ("file", lambda cell: cell.strip("`")),
+            ("vendor", lambda cell: "acme"),
+            ("symbol", lambda cell: "SPY"),
+            ("price", lambda cell: "raw"),
+            ("span", lambda cell: " .. ".join(["1900-01-01", cell.split(" .. ")[1]])),
+            ("span", lambda cell: " .. ".join([cell.split(" .. ")[0], "2099-12-31"])),
+            ("downloaded", lambda cell: "1900-01-01"),
         ],
     )
-    def test_an_edited_cell_fails_and_names_both_values(self, eight, column, edited, recorded):
-        """Six values across five columns, because the span cell holds two fields.
+    def test_an_edited_cell_fails_and_names_both_values(self, eight, column, edit):
+        """Seven values across six columns, because the span cell holds two fields.
 
-        The message is asserted rather than the raise alone. A failure that
-        named only the path would leave whoever reads it to diff two files to
-        find out which field moved, and the row that goes red on a ninth
-        vintage is read by somebody who has to write a cell.
+        The edit is derived from the cell it replaces rather than written out
+        beside it. A case that pinned both values would state a fact about one
+        vintage, and a legitimate re-download of that series moves the fact and
+        breaks the case while the two surfaces still agree. What the case is
+        about is that a cell which stops agreeing fails, which is true of any
+        row.
+
+        The File cell is edited by dropping its backticks, which leaves the row
+        naming the same path and spelling it the way no other filename here is
+        spelled. That is the one column the comparison could have keyed on and
+        never read.
+
+        The message is asserted rather than the raise alone. A failure naming
+        only the path would leave whoever reads it to diff two files to find out
+        which cell moved, and the row that goes red on a ninth vintage is read
+        by somebody who has to write one.
         """
-        rewrite_row(eight, "gld_20yr_prices.csv", **{column: edited})
+        recorded = read_table(eight)[HELD][KEYWORDS[column]]
+        edited = edit(recorded)
+        assert edited != recorded, "an edit that changes nothing drives nothing"
+
+        rewrite_row(eight, HELD, **{column: edited})
 
         with pytest.raises(AssertionError) as refused:
             the_table_and_the_manifest_agree(eight)
 
         message = str(refused.value)
-        assert "gld_20yr_prices.csv" in message
-        assert column.title() in message
-        assert edited in message and recorded in message
+        assert HELD in message
+        assert KEYWORDS[column] in message
+        assert repr(edited) in message and repr(recorded) in message
 
     @pytest.mark.parametrize(
         ("field", "value"),
@@ -1419,9 +1450,9 @@ class TestTheTableIsHeldToTheManifest:
             ("vendor", "acme"),
             ("symbol", "QQQ"),
             ("price_basis", "raw"),
-            ("first_date", "2006-06-20"),
-            ("last_date", "2026-06-15"),
-            ("download_date", "2026-06-17"),
+            ("first_date", "1900-01-01"),
+            ("last_date", "2099-12-31"),
+            ("download_date", "1900-01-02"),
         ],
     )
     def test_an_edited_entry_fails_the_same_way(self, eight, field, value):
@@ -1436,9 +1467,12 @@ class TestTheTableIsHeldToTheManifest:
         picks valid-and-wrong values for the same reason. The two span fields
         are unchecked there and reach the comparison as typed.
         """
-        rewrite_entry(eight, "gld_20yr_prices.csv", **{field: value})
+        entry = {e.path: e for e in read_manifest(eight)}[HELD]
+        assert getattr(entry, field) != value, "an edit that changes nothing drives nothing"
 
-        with pytest.raises(AssertionError, match="gld_20yr_prices.csv"):
+        rewrite_entry(eight, HELD, **{field: value})
+
+        with pytest.raises(AssertionError, match=HELD):
             the_table_and_the_manifest_agree(eight)
 
     def test_a_deleted_row_fails_and_names_the_path(self, eight):
@@ -1484,6 +1518,65 @@ class TestTheTableIsHeldToTheManifest:
 
         with pytest.raises(AssertionError, match="What each file is"):
             the_table_and_the_manifest_agree(eight)
+
+    def test_a_second_heading_of_that_name_is_refused(self, eight):
+        """Two tables under one name would leave the reader choosing one."""
+        readme = eight / README_NAME
+        readme.write_text(
+            readme.read_text(encoding="utf-8") + f"\n{TABLE_HEADING}\n", encoding="utf-8"
+        )
+
+        with pytest.raises(AssertionError, match="2 headings"):
+            read_table(eight)
+
+    def test_a_heading_with_no_table_under_it_is_refused(self, eight):
+        """The zero-row state, which is the one a check driven from the rows passes on."""
+        readme = eight / README_NAME
+        kept = [
+            line
+            for line in readme.read_text(encoding="utf-8").split("\n")
+            if not line.startswith("|")
+        ]
+        readme.write_text("\n".join(kept), encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="carries no table"):
+            read_table(eight)
+
+    def test_a_renamed_column_is_refused(self, eight):
+        """Cells are read by position, so an unrecognised column is not a rename.
+
+        Without this the reader maps six cells onto the names it expected and
+        every row disagrees at once, which reports six failures for one edit and
+        names none of them the cause.
+        """
+        readme = eight / README_NAME
+        text = readme.read_text(encoding="utf-8")
+        header = row_line(COLUMNS)
+        assert text.count(header) == 1
+        readme.write_text(
+            text.replace(header, header.replace("Downloaded", "Obtained")), encoding="utf-8"
+        )
+
+        with pytest.raises(AssertionError, match="columns read"):
+            read_table(eight)
+
+    def test_a_path_the_table_names_twice_is_refused(self, eight):
+        """Two rows for one path would collapse onto one key, hiding whichever it drops."""
+        row = read_table(eight)[HELD]
+        add_row(eight, **{keyword: row[column] for keyword, column in KEYWORDS.items()})
+
+        with pytest.raises(AssertionError, match="names it twice"):
+            read_table(eight)
+
+    def test_editing_a_row_the_table_does_not_hold_is_refused(self, eight):
+        """A negative case is only negative while its edit lands.
+
+        The same guard `rewrite_entry` carries, for the same reason. A mistyped
+        path would leave the file untouched, and the case using it would report
+        that nothing raised rather than that nothing was edited.
+        """
+        with pytest.raises(AssertionError, match="absent.csv"):
+            rewrite_row(eight, "absent.csv", vendor="acme")
 
     def test_a_table_inside_a_fenced_block_is_not_the_record(self, eight):
         """The reader blanks fences, so a table in an example is not read as one.
