@@ -40,6 +40,7 @@ from matplotlib.figure import Figure
 
 from chan.pair_cointegration import aligned_closes, rolling_cointegration
 from chan.paths import FIGURES_DIR
+from chan.vintage import VintageUnavailable
 
 # Essay palette, from the :root tokens in docs/gld-gdx-cointegration-lessons.html.
 SURFACE = "#FEFDFA"  # figure ground
@@ -65,14 +66,19 @@ def _style(ax) -> None:
     ax.set_axisbelow(True)
 
 
-def make_regime_figure(out: Path | None = None) -> Figure:
+def make_regime_figure(out: Path | None = None, data_dir: Path | None = None) -> Figure:
     """Draw the two-panel GLD/GDX regime map and write it to ``out``.
 
     ``out`` defaults to the committed figure. A caller that passes a path
     elsewhere gets the same figure without touching it, which is what lets a
     test run the real drawing code.
+
+    ``data_dir`` does the same for what it reads. It defaults to
+    :data:`chan.paths.DATA_DIR`, and the pair is resolved through the manifest
+    and verified before it is drawn, so a vintage that no longer matches its
+    record stops the figure rather than moving it.
     """
-    df = aligned_closes("GLD", "GDX", unadjusted=True)
+    df = aligned_closes("GLD", "GDX", unadjusted=True, data_dir=data_dir)
     a = df["GLD"].to_numpy(float)
     b = df["GDX"].to_numpy(float)
     scan = rolling_cointegration(a, b, window=252, step=21, lags=1)
@@ -188,7 +194,13 @@ def make_regime_figure(out: Path | None = None) -> Figure:
 
 
 def main() -> None:
-    make_regime_figure()
+    try:
+        make_regime_figure()
+    except VintageUnavailable as unavailable:
+        # The same refusal `chan.pair_cointegration` prints. This module reaches
+        # a vintage through `aligned_closes` too, so correcting only that one
+        # would leave this entry point printing a traceback.
+        raise SystemExit(str(unavailable)) from unavailable
     print(f"wrote {FIGURES_DIR / 'reproduction_regime_map.png'}")
 
 

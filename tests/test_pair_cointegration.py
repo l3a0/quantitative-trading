@@ -32,8 +32,10 @@ replications themselves.
 7. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
    premise one download date can show: GDX's adjusted 2006 closes sit below
    its raw ones, and GLD's do not move at all.
-8. ``TestReportNamesItsBasis``, which holds the report's price-basis line. It
-   is the one line that says which vintage produced the numbers above it.
+8. ``TestReportNamesItsBasis``, which holds the lines of the report that say
+   which vintage produced the numbers above them. The basis line names which
+   kind of series and the vintage lines name which file, which vendor and which
+   date, read off the manifest entry the reader resolved.
 
 1.6766 is a cited book target throughout, never asserted as a computed result,
 because no surviving file reproduces it.
@@ -58,12 +60,12 @@ from chan.pair_cointegration import (
     RollingCoint,
     aligned_closes,
     engle_granger,
-    load_close,
     return_correlation,
     rolling_cointegration,
     run,
     selftest,
 )
+from chan.series import load_close
 
 # ============================================================
 # Layer 1 -- the two-step test on synthetic pairs (engle_granger)
@@ -487,3 +489,38 @@ class TestReportNamesItsBasis:
     ) -> None:
         run("GLD", "GDX", 1, start=BOOK_START, end=BOOK_END)
         assert "Price basis: Yahoo dividend-adjusted closes" in capsys.readouterr().out
+
+    def test_the_default_run_names_a_file_and_a_date_for_each_leg(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """The basis line says which kind of series and this says which file.
+
+        `src/chan/__init__.py` promises that every run names the vintage it read,
+        and until the reader resolved one there was nothing to name. The two legs
+        of the default run were downloaded 72 days apart, a gap invisible from
+        `--ch7` and `--ch3`, which read the raw pair and share a date.
+        """
+        run("GLD", "GDX", 1)
+        out = capsys.readouterr().out
+
+        first = "GLD vintage: gld_20yr_prices.csv   yfinance adjusted, downloaded 2026-06-16"
+        second = "GDX vintage: gdx_20yr_prices.csv   yfinance adjusted, downloaded 2026-08-27"
+
+        assert first in out
+        assert second in out
+        # Leg order, which carries no different words and so needs its own
+        # assertion. A report that prints B above A contradicts the "A = ...
+        # B = ..." line three rows above it.
+        assert out.index(first) < out.index(second)
+
+    def test_a_workbook_column_is_named_as_saved_rather_than_downloaded(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Nothing was fetched on 2008-01-23. Printing that date under the word
+        "downloaded" would state a wrong fact about where the series came from."""
+        run("KO", "PEP", 1, origin=True, show_correlation=True, chan=True)
+        out = capsys.readouterr().out
+
+        assert "KO vintage: ko_chan.csv   chan-xls adjusted, saved 2008-01-23" in out
+        assert "PEP vintage: pep_chan.csv   chan-xls adjusted, saved 2008-01-23" in out
+        assert "downloaded" not in out
