@@ -97,9 +97,13 @@ adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
 from the public mirror at
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading).
 The date given is when Chan last saved the workbook, which is the closest thing
-these files have to a download date. Their checksums, as `.xls`, are recorded
-in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py) next to
-the runs that read them.
+these files have to a download date. Which workbook each column came from is
+recorded too, in the manifest's `source_workbook` field, because a workbook's
+name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
+and a `SPY.xls` in the same mirror holds a different series. Their checksums,
+as `.xls`, are recorded in
+[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py) next to the
+runs that read them.
 
 ## Header shape
 
@@ -160,8 +164,24 @@ Two files carry that record.
    count and sha256. A line carries `download_date` when a vendor was asked for
    the series and `saved_date` for the four lifted from Chan's workbooks, whose
    date is when he last saved one rather than when anything was fetched. Those
-   four name their vendor `chan-xls`, which is the table's "Chan's `GLD.xls`"
-   in a form a filename can hold.
+   lines name their vendor `chan-xls` and carry a `source_workbook` field
+   holding the spreadsheet the column was lifted from. The table's
+   "Chan's `GLD.xls`" is that pair written as one cell, which is what a single
+   column can hold and a filename cannot.
+
+   The workbook is recorded rather than derived from the symbol. Joining the
+   two happens to spell every workbook committed so far and spells the wrong
+   one for a column whose source is named after a chapter's example rather than
+   after a ticker, which is a real file in the same mirror carrying another
+   series. The manifest is the authority for a vintage's provenance, so the
+   fact sits here and the table repeats it.
+
+   Both surfaces stating the workbook are hand-typed, which the identity pin in
+   [tests/support/committed_vintages.py](../tests/support/committed_vintages.py)
+   is what answers. An edit moving the manifest and the table together agrees
+   with itself, so the check comparing them passes and only the pin fails it.
+   The record also refuses a downloaded vintage claiming a workbook, because a
+   series a vendor returned did not come out of a spreadsheet.
 
    Its eight lines were written by hand, because the recorder refuses a path
    already on disk and all eight were here before it existed. They are the only
