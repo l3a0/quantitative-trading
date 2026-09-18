@@ -12,6 +12,7 @@ issue's own statement of what it waits on.
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
   - [The one replication that reads nothing](#the-one-replication-that-reads-nothing)
+  - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
@@ -319,6 +320,56 @@ demonstration, sized from a measurement rather than from taste.
 heading that says why no simulated number is pinned against the book, which is
 where that entry's numbers belong.
 
+### The first time the fallback clause fires
+
+`## What this repo is for` ends by saying to prefer a series that cannot be
+restated, falling back on a committed vintage when only an adjusted series will
+do. Chan's Kelly example, Example 6.2, is the first deliverable where the
+fallback is what fires, and the reasoning outlives its log entry because every
+later experiment on a dividend-paying instrument meets the same question.
+
+The preference for raw closes rests on GDX, which had paid almost nothing by
+2007. That made Chan's 2007-vintage adjusted close near raw, so a modern raw
+series was the closest surviving proxy for what he read. SPY had been paying
+for fifteen years by the end of his window, and on his own data the difference
+between the two columns is worth a quarter of the answer.
+[docs/replication-log.md](replication-log.md) Entry 3 carries both figures and
+records that nothing here pins either, because they are measurements of a
+workbook this repo does not hold. So reading raw here would not be a
+conservative choice about restatement. It would be a different experiment.
+
+It is also not a choice about a number. Chan's own conclusion at Kindle
+location 3083 is that even half-Kelly would not have survived Black Monday, and
+that claim holds exactly while the leverage is above 1.954079, which is a figure
+this repo does compute and pin. His adjusted column clears that threshold and
+his as-traded column does not, so the price basis decides the verdict rather
+than shading it. [issue
+125](https://github.com/l3a0/quantitative-trading/issues/125) is what makes
+that sharper still: yfinance returns two different series under the word
+adjusted, and only one of them carries the dividends.
+
+What this adds to the standing rule above is how to tell which half of it
+applies, which the rule itself leaves to judgement. Ask what the source's own
+adjustment was worth on the symbol and the span in question. Near zero, and the
+raw series is the better proxy for what the author read. Not near zero, and the
+raw series answers a different question, so the committed adjusted vintage is
+what the fallback was written for.
+
+That measurement is the price of the rule, and it is not free: answering it for
+SPY took Chan's own workbook, which this repo does not hold. Where no such
+measurement is available, the rule cannot be applied and the honest move is to
+say which basis was read and that the choice was not tested.
+
+One more thing this experiment settles, because it contradicts a choice made
+two deliverables earlier. The dispersion is the sample form, dividing by
+`n - 1`. `src/chan/coin_flip_growth.py` uses the population form, and that is
+also right: it averages over two outcomes that are the whole distribution,
+where the sample correction has nothing to correct for. Here the returns are a
+sample of a process, MATLAB's `cov` is what Chan's own `example6_3.m` calls,
+and on this repo's own SPY vintage the two forms are 5.74e-5 apart on the
+Sharpe ratio, which `tests/test_kelly_leverage.py` pins. The rule is that the
+form follows what the numbers are rather than what the last experiment picked.
+
 ## How work is cut and ordered
 
 The tracker carries the plan. Issues say what each deliverable is, milestones
@@ -447,7 +498,7 @@ change that cuts it.
 | Porting the sibling's `kelly_fraction` for the coin-flip growth rate | It is the only place in `trading-strategies` that computes a time-average log growth rate, and it computes it as one line inside a grid search rather than as a callable, so there is a line to retype and nothing to port. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) had already ruled the function out as the discrete form over a bag of trades. The ruling reaches Example 6.1 by a shorter route: that example optimises nothing at all. |
 | Porting the sibling's `common/portfolio.py` as growth arithmetic | It is not growth arithmetic. Its own docstring fixes every leg as dollar diffs over a fixed capital base, "never prior-day-equity returns (compounding returns do not add; dollars do)", so it decided against compounding on purpose. |
 | Porting the sibling's `simulate_sizing` for the coin-flip simulation | It folds draws through `equity *= (1 + fraction * r)`, which is the identity Example 6.1 needs, and nothing around that line carries over: an empirical bag of trade outcomes rather than a known two-point distribution, percentiles and ruin probabilities rather than a growth rate, and `random.Random` rather than the `numpy.random.default_rng` this repo uses throughout. A port would have been a rewrite. |
-| Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. |
+| Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. Re-asked when issue 14 shipped and the answer is unchanged. The sibling repo was searched at `cc1ec3a` and holds no leverage or growth arithmetic at all, only a Sharpe ratio written twice as a four-line private helper inside a strategy module, so there is still one consumer and a plan. Issue 14's own arithmetic shares no function with the coin flip either, since one computes a leverage from a return series' moments and the other a growth rate over two outcomes. |
 | A figure for the coin-flip divergence | `docs/figures` holds one image and it already costs three copies to keep in step, one file and two embeds, plus a redraw in the same change that moves it. The divergence is four rows of capital, which a terminal table and a log row carry without adding a third copy of a number the suite already pins. |
 | A repo-wide `* text=auto eol=lf` | The exposure it would answer stops at `data/`. Measured on a clone of `main` made with `core.autocrlf=true`, `docs/figures/reproduction_regime_map.png` is byte-identical, because git detects a PNG as binary on its own, and `ruff check` and `ruff format --check` both pass over the rewritten sources. A rule reaching the whole repository would be fixing past the class it was written for. `.gitattributes` names `data/**` and stops there, which is what [issue 41](https://github.com/l3a0/quantitative-trading/issues/41) built. |
 | `data/** text eol=lf` as the spelling of that rule | The two spellings agree on every file this repo holds, because both deliver LF for content already stored as LF, so no comparison of bytes tells them apart on today's data. That is why `tests/test_checkout_bytes.py` reads the attribute itself in a second case. They differ on content carrying a carriage return. Committing such a file from a checkout with `core.autocrlf=true` stores the bytes on disk under `-text` and stores them with the carriage returns gone under `text eol=lf`, which git reports only as a warning. A vintage's sha256 is recorded before the commit, so that spelling turns a recorded fact into a false one and leaves no way back to the bytes. `-text` forbids conversion. `text eol=lf` only promises which ending git picks when it rewrites. `binary` is cut for a different reason. It is a macro for `-text`, `-diff` and `-merge`, so it would also stop the textual three-way merge on a vintage. A vintage's diff is how a replacement gets read, and [data/README.md](../data/README.md) already calls replacing one a deliberate act with a visible cost. `tests/test_checkout_bytes.py` pins that too, because `binary` holds the bytes as well as `-text` does and no byte comparison separates them. |
@@ -466,3 +517,5 @@ change that cuts it.
 | Checking that every Markdown link names a file that exists | It is a wider class than the anchor sweep and it was not what the issue asked for. The anchor sweep resolves a link's target only because it has to read that document's headings, and it reports a target it cannot find because an anchor into a retired document is the failure it exists for. Extending that to every link is a separate question with its own false-positive surface, starting with a link into a directory rather than a file. |
 | Resolving a backticked filename from the directory of the document that writes it | A Markdown link resolves from the file holding it, because that is what a renderer follows. A filename written in prose is followed by nobody, and this repo writes those from the repository root. Trying the document's own directory as a second attempt would give a filename that names nothing a second chance, and that is the branch reporting a document nobody keeps. |
 | Requiring a quoted heading's attribution to sit beside it | The nearest attribution ending before the span wins, scanned back through one unit, and nothing makes it adjoin the span. Every reference here is adjacent, separated from its span by a possessive and nothing else, so requiring adjacency would cost nothing measured at `92637fa`. It is not required because the loose forms are ordinary English and this check reads prose rather than a notation. A sentence that names a document and then quotes one of its headings a clause later attributes as plainly as a possessive does, and a rule that skipped it would go quiet on the rename it was built for. The price is a false positive where one unit names a document and then quotes a heading belonging to something else. Splitting a table row and a list item into their own units removes the shapes this repo actually writes. Four units name a document and quote one of its own headings at `92637fa`, and none names a document and quotes a heading belonging to something else. When one does, the message names the document it resolved to, so the misattribution reads off the failure rather than having to be guessed. |
+| A Treasury-bill series for the risk-free rate in Chan's Kelly example | It would need a second vintage and would move two inputs at once, which is what makes a gap unattributable to either. The rate stays the book's 4 percent, held as a constant the source supplies, and the report says it is his constant applied to whatever window was read rather than a rate anyone paid. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) is where this was decided. |
+| A second series to check the 20.47 percent Black Monday loss against | It would need an S&P 500 index vintage, which is a different symbol and a different deliverable. SPY's first bar is 1993-01-29 and the loss is from 1987-10-19, so no SPY vintage of any span can check it. It enters the replication as a constant the book supplies, named as such, with the worst loss the window actually holds reported beside it. |

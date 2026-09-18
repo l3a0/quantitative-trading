@@ -62,7 +62,7 @@ from matplotlib.figure import Figure
 
 from chan.pair_cointegration import aligned_closes, rolling_cointegration
 from chan.paths import FIGURES_DIR
-from chan.series import WindowCrossesScaleBreak
+from chan.series import WindowCrossesScaleBreak, vintage_line
 from chan.vintage import VintageUnavailable
 
 # Essay palette, from the :root tokens in docs/gld-gdx-cointegration-lessons.html.
@@ -237,10 +237,7 @@ def main() -> None:
     # Every field here is read off the entry the lookup resolved, so it cannot
     # drift from the record.
     for entry in figure.vintages:
-        print(
-            f"{entry.symbol} vintage: {entry.path}   {entry.vendor} {entry.price_basis}, "
-            f"{entry.obtained_verb} {entry.obtained}"
-        )
+        print(f"{entry.symbol} vintage: {vintage_line(entry)}")
     print(f"wrote {FIGURES_DIR / 'reproduction_regime_map.png'}")
 
 

@@ -171,6 +171,26 @@ def load_close(
     return load_vintage(ticker, unadjusted=unadjusted, chan=chan, dated=dated, data_dir=data_dir)[1]
 
 
+def vintage_line(entry: VintageEntry) -> str:
+    """One entry as a report prints it: which file, from where, and when.
+
+    The verb matters. Four committed vintages carry a saved date because they
+    are columns lifted from Ernest Chan's workbooks and nothing was fetched on
+    that day, so printing one under the word "downloaded" would state a wrong
+    fact about where the series came from.
+
+    It lives beside the readers rather than in a replication, because every
+    experiment that reads a vintage has to name it, and importing a chapter to
+    format a line is the thing this module's docstring decided against for the
+    parse. It was ``_vintage_line`` in :mod:`chan.pair_cointegration` until
+    [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needed a
+    second caller.
+    """
+    return (
+        f"{entry.path}   {entry.vendor} {entry.price_basis}, {entry.obtained_verb} {entry.obtained}"
+    )
+
+
 def scale_breaks(closes: pd.Series, *, bound: float = SCALE_BREAK_BOUND) -> list[pd.Timestamp]:
     """Every day in ``closes`` on which the series changed scale, in date order.
 

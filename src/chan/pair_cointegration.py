@@ -118,8 +118,13 @@ from ithildincore.timeseries import (
 from numpy.typing import NDArray
 from scipy import stats
 
-from chan.series import WindowCrossesScaleBreak, load_vintage, refuse_window_crossing_a_break
-from chan.vintage import VintageEntry, VintageUnavailable
+from chan.series import (
+    WindowCrossesScaleBreak,
+    load_vintage,
+    refuse_window_crossing_a_break,
+    vintage_line,
+)
+from chan.vintage import VintageUnavailable
 
 
 @dataclass(frozen=True)
@@ -327,19 +332,6 @@ def _verdict(stat: float, crit: dict[str, float]) -> str:
     return "fails to reject -- no evidence of cointegration"
 
 
-def _vintage_line(entry: VintageEntry) -> str:
-    """One entry as the report prints it: which file, from where, and when.
-
-    The verb matters. Four committed vintages carry a saved date because they
-    are columns lifted from Ernest Chan's workbooks and nothing was fetched on
-    that day, so printing one under the word "downloaded" would state a wrong
-    fact about where the series came from.
-    """
-    return (
-        f"{entry.path}   {entry.vendor} {entry.price_basis}, {entry.obtained_verb} {entry.obtained}"
-    )
-
-
 def run(
     a: str,
     b: str,
@@ -392,7 +384,7 @@ def run(
     # data/vintages.jsonl, data/README.md and docs/replication-log.md carry. It
     # cannot drift from the record, because it is the record.
     for entry in closes.attrs["vintages"]:
-        print(f"  {entry.symbol} vintage: {_vintage_line(entry)}")
+        print(f"  {entry.symbol} vintage: {vintage_line(entry)}")
     if reference is not None:
         print(f"  Book reference: {reference}")
     print()

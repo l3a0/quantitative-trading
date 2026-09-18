@@ -52,8 +52,9 @@ download date, and which price the series carries.
 | `gdx_chan.csv` | Chan's `GDX.xls` | GDX | adjusted | 2006-05-23 .. 2007-11-30 | saved 2007-12-02 |
 | `ko_chan.csv` | Chan's `KO.xls` | KO | adjusted | 1962-01-02 .. 2008-01-18 | saved 2008-01-23 |
 | `pep_chan.csv` | Chan's `PEP.xls` | PEP | adjusted | 1977-01-03 .. 2008-01-18 | saved 2008-01-23 |
+| `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
 
-The four yfinance files were not all taken on one day. `gld_20yr_prices.csv`
+The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
 GLD's adjusted series covering a different span from its raw twin at both ends.
 It starts nineteen months later, in 2006-06 against 2004-11, and stops ten
@@ -63,6 +64,33 @@ Nobody intended that. The sibling repo carried a single comment dating all four
 files to 2026-08-27, and this table is what caught it. That is the argument for
 recording a download date per file rather than per directory, which is how the
 misattribution happened in the first place.
+
+The SPY file is the first recorded vintage, written by
+`chan.vintage.record_vintage` rather than placed by hand, which is why it
+carries the recorder's five-field name and a single `Date,Close` header. It is
+read by [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's
+Example 6.2.
+
+**Which "adjusted" it is, stated here because the word names two series.**
+yfinance returns a `Close` carrying both splits and dividends under
+`auto_adjust=True`, and under `auto_adjust=False` a split-only `Close` beside an
+`Adj Close` that carries both. The manifest records all of them as `adjusted`,
+which [issue 125](https://github.com/l3a0/quantitative-trading/issues/125) is
+about. This one is the both-adjustments series, from
+
+```python
+yfinance.download("SPY", period="max", interval="1d", auto_adjust=True, actions=False)
+```
+
+run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to the
+recorder. The distinction is not cosmetic. On Chan's own data the dividends are
+worth a quarter of the answer Example 6.2 computes, and
+[docs/design.md](../docs/design.md) carries why that decides which basis a
+replication reads.
+
+This is the one place that call is written down. The module that reads the
+series points here rather than restating it, because a fact in two places is a
+fact that can drift.
 
 The `*_chan.csv` files are a different kind of source. Each is the
 adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
@@ -75,8 +103,8 @@ the runs that read them.
 
 ## Header shape
 
-The eight files above carry a three-row header before the data, written by
-yfinance's multi-index frame:
+The files placed by hand above carry a three-row header before the data,
+written by yfinance's multi-index frame:
 
 ```text
 Price,Close
