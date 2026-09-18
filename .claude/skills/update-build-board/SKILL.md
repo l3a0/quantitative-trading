@@ -610,7 +610,8 @@ publishing** above, then publish and report in the same reply.
 If a publish is refused because the artifact moved, do not force it. Read the
 live version, merge onto it, and publish again. Forcing discards somebody's work.
 
-This has fired once, since the update became every session's job. The refusal
+This fires often now that the update is every session's job, and three
+concurrent sessions produced two refusals inside one update. The refusal
 hands over the live source. Read all of it, and decide which side is newer part
 by part rather than for the file as a whole, because the two can differ: that
 time the other session had improved the rendering code while this one held newer
@@ -620,22 +621,59 @@ reverts whatever the other session did.
 ### Offering a task per idle card was tried and withdrawn
 
 For part of 2026-09-18 this skill told a session to offer a build task for every
-card left in "Planned, no builder" and a decompose task for every card on the
-free list. The owner withdrew both the same day. It is written down so the next
-session reading an idle column does not re-invent it.
+card left in "Planned, no builder" and a decompose task for every card in the
+Build order's first column that nothing blocked, that no session or branch
+carried, and that was neither deferred nor waiting on an owner decision. The
+owner withdrew both the same day. It is written down so the next session reading
+an idle column does not re-invent it.
 
-What went wrong is arithmetic rather than principle. The free list was 27 cards,
-so one update offered 28 tasks into a suggestion queue that holds 20 pending.
-Two were pushed out, and the queue drops the oldest still pending, which is the
-front of the priority order. So the rule fed the queue in exactly the order most
-likely to lose its best entry.
+Two things went wrong, and neither depends on how large the queue is, which
+matters because nobody has established that.
 
-The second eviction is the part worth keeping. One was named in the tool's own
-result and the other was visible only by diffing the pending list between two
-calls, so a session doing this cannot reliably report what it lost. A queue that
-silently drops the highest-ranked card is worse than no offer at all, because the
-reader takes the queue for the list.
+1. **The offer is larger than the queue.** That column held 27 such cards on
+   2026-09-18, so one update offered 28 tasks, one per card plus a build task for
+   the single planned card. The owner started six while the offers were still
+   being made, which took those six out of the queue, and two of the rest were
+   dropped to make room.
+2. **A drop is not always reported.** The tool named one of the two. The other
+   was visible only by diffing the pending list across two calls, and a diff
+   cannot tell an eviction from a task somebody started, so the identity of the
+   second is inferred rather than read.
 
-So an update reports the two columns and stops. What to start, and how many at
-once, is the owner's call, and their standing number is eight running at once,
-which this page neither enforces nor needs to.
+The second is the reason to withdraw rather than to shrink the batch, and it is
+a judgement rather than a measurement, because nothing here priced what a silent
+drop costs a reader. The argument is that a queue looks like a list, so a reader
+who takes it for one is misled by exactly the entries nobody is told about, and
+that does not improve at five cards.
+
+**Do not write a capacity into this file**, because
+[issue 117](https://github.com/l3a0/quantitative-trading/issues/117) is open
+against the sentence that did. A tool result named twenty while a session
+measured a first eviction at six pending, and the same session then watched
+chips leave with no offer and no dismissal to explain it, so neither number is
+settled and the pending list may be a window rather than the queue. That issue
+says how to measure it. Until somebody does, the account above is written so it
+holds at any size.
+
+Which card is dropped is worth stating carefully, because the first draft of
+this record got it wrong. The queue drops the oldest still pending, which is the
+front of whatever the owner has not started, not the front of the priority
+order. Offering in priority order and starting from the top leaves the
+highest-ranked card the owner declined as the one at risk.
+
+So an update reports what it found in those two states and stops. What to start,
+and how many at once, is the owner's call. Their ceiling is eight running at
+once, set the same day and not withdrawn, and what argued for a ceiling was
+measured: three concurrent sessions produced two publish refusals inside one
+board update, and each refusal costs a full read of the live page and a merge
+decided part by part. Nothing in this skill starts anything, so the number is
+recorded here rather than enforced.
+
+One fact from the withdrawn text is about the page rather than about offering,
+so it stays. The "Planned, no builder" test asks only whether a plan exists,
+whether a branch exists and whether a session is on it. It never reads `needs`,
+so a plan-complete card sitting behind an open blocker lands there too, which
+qualifies the table's line above saying `needs` moves a card into a deeper
+column. The card still draws its own "waits on" line, so a reader is not misled,
+and no card has hit the case yet because every `PLANNED` entry so far has an
+empty `needs`.
