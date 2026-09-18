@@ -114,8 +114,8 @@ cat <<'NOTES'
 
 Done. Three steps stay with a human, because nothing here can guess them.
 
-1. Milestones. Create one per grouping in docs/build-plan.md, named as that doc
-   names them. A filed issue needs a milestone or it appears in no grouped view.
+1. Milestones. Create one per grouping the repo files work under. A filed issue
+   needs a milestone or it appears in no grouped view.
 2. The premise. Fill the slot at the top of CLAUDE.md and the premise section
    in docs/design.md. Every ranking decision appeals to it, so it comes first.
 3. The package name. Rename src/project/ and update the `packages` entry in
