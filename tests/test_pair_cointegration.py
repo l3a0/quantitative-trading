@@ -47,6 +47,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import pytest
+from quantcore.timeseries import EG_CRIT_N2, adf_tstat
 from statsmodels.tsa.stattools import adfuller
 
 from chan.pair_cointegration import (
@@ -63,7 +64,6 @@ from chan.pair_cointegration import (
     run,
     selftest,
 )
-from chan.timeseries import EG_CRIT_N2, adf_tstat
 
 # ============================================================
 # Layer 1 -- the two-step test on synthetic pairs (engle_granger)

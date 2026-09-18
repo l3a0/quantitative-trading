@@ -10,6 +10,7 @@ carries the build order.
 - [Premise](#premise)
 - [What this repo is for](#what-this-repo-is-for)
   - [Three more results came across with it](#three-more-results-came-across-with-it)
+  - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
 - [Considered and rejected](#considered-and-rejected)
@@ -146,6 +147,42 @@ Three things follow, and they set what the repo holds.
    chose, so it cannot confirm that an edge exists today. It can only say
    whether the published number reproduces.
 
+### The estimators live outside this repo
+
+The least squares, the Augmented Dickey-Fuller statistic, the half-life and
+the MacKinnon critical values are not in `src/chan`. They are in
+[quantcore](https://github.com/l3a0/quant-core), a package this repo shares
+with the sibling
+[trading-strategies](https://github.com/l3a0/trading-strategies) repo.
+
+They moved because both repos had them. `src/chan/timeseries.py` and that
+repo's `common/timeseries.py` parsed to the same tree once docstrings were set
+aside, and two copies of one calculation drift without either looking wrong.
+A rule to keep them matching was considered and cut, for the reason in the
+register below.
+
+This looks like it cuts against the premise, and the way it is pinned is what
+answers that. A result here has to be re-readable, and part of the code that
+produced it now lives somewhere else. So the dependency names an exact tag in
+`pyproject.toml` and `uv.lock` records the commit that tag resolved to. The
+code behind a pinned number is therefore fixed in the same way the data behind
+it is fixed, and moving the pin is a re-pin of this repo rather than a
+dependency bump. A floating version would give up exactly the property the
+premise is about.
+
+Two things did not move, and the reasons are worth keeping.
+
+1. `src/chan/paths.py` stays, because the line that matters differs between
+   the two repos. It resolves `parents[2]` here against `parents[1]` there,
+   since this repo nests its package under `src/`. What is shared is the
+   pattern rather than the constant.
+2. `tests/test_timeseries.py` went with the code. Its replacement here is
+   [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py),
+   which exercises the same estimators against committed vintages with exact
+   pins. That is the stronger guard, because it fails when the dependency
+   moves *and* when the vintage does, which is the pair of failures this repo
+   exists to tell apart.
+
 ## Vocabulary
 
 Terms with exact definitions, reused on purpose. A term listed here is not a
@@ -190,5 +227,7 @@ change that cuts it.
 | The sibling's blog essay on the GLD/GDX reproduction, cut then reversed | Cut because it is that repo's write-up, and copying it would put a second prose surface here quoting numbers the test suite already owns. The owner reversed that on 2026-09-17 and the essay is at [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md). The price the cut named is now real and is paid rather than avoided: every figure the piece quotes had to be pinned or named as unpinned, and re-pinning one moves four surfaces instead of two. The verdict an essay does not reach is now written down separately, in [docs/replication-log.md](replication-log.md), which makes a fifth. |
 | The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
 | The regime-map figure and its generator, cut then reversed | Cut because the scan behind the figure was already pinned, so the picture is presentation rather than a result, and an image nothing regenerates is an artifact nobody can check. The owner reversed that on 2026-09-17. The objection is answered rather than ignored: [src/chan/regime_figure.py](../src/chan/regime_figure.py) draws the figure from the committed vintages, and [tests/test_regime_figure.py](../tests/test_regime_figure.py) pins that it draws the scan `TestRollingRegime` computes. It does not compare bytes, because a PNG carries the matplotlib version that rendered it. The image still counts as a checked-in generated artifact for [issue 6](https://github.com/l3a0/quantitative-trading/issues/6). |
+| Keeping the duplicated estimators in step with a drift test | The test cannot exist. Neither repo's continuous integration can see the other's checkout, so the check would compare against a committed checksum that fires only when somebody updates it. A rule that depends on remembering is what the duplication already was. The estimators moved to [quantcore](https://github.com/l3a0/quant-core) instead. |
+| Depending on quantcore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |

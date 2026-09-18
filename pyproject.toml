@@ -4,13 +4,22 @@ version = "0.0.0"
 description = "Experiments and replications from Ernest Chan's quantitative trading books."
 readme = "README.md"
 requires-python = ">=3.12"
-# The replications compute their numbers through statsmodels rather than a
+# The replications compute their numbers through quantcore rather than a
 # hand-rolled least squares, so there is one implementation of each estimator
-# to drift from. numpy and pandas load and align the committed vintages; scipy
-# supplies the t-distribution behind the return-correlation significance test.
+# to drift from. That package holds the OLS, ADF and half-life work this repo
+# shares with the sibling trading-strategies repo, and it pulls statsmodels in,
+# which is what actually does the arithmetic. numpy and pandas load and align
+# the committed vintages. scipy supplies the t-distribution behind the
+# return-correlation significance test.
+#
+# quantcore is pinned to a tag under [tool.uv.sources] below, and uv.lock
+# records the commit that tag resolved to. That pin is load-bearing: the
+# numbers in tests/test_pair_cointegration.py were computed by that exact
+# code, so moving the pin is a re-pin of this repo and not a dependency bump.
 dependencies = [
     "numpy>=2",
     "pandas>=2",
+    "quantcore>=0.1",
     "scipy>=1.13",
     "statsmodels>=0.14",
 ]
@@ -43,3 +52,6 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.uv.sources]
+quantcore = { git = "https://github.com/l3a0/quant-core", rev = "v0.1.0" }
