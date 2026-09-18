@@ -263,13 +263,13 @@ def load_close(ticker: str, *, unadjusted: bool = False, chan: bool = False) -> 
     modern proxy for reproducing the book. That is why ``--ch7``, ``--ch3`` and
     ``--unadjusted`` read it.
     """
-    # Provenance lives in data/README.md, which names each file's vendor,
-    # symbol, span and download date, and carries the checksum manifest. The
-    # four yfinance files were not all taken on one day, so the download date
-    # is per file rather than per directory. All of them are frozen on purpose.
-    # There is no regeneration script, and the pinned tests freeze these exact
-    # bytes against each source's drifting vintage, so a re-download would fail
-    # the replication rather than pass it quietly.
+    # Provenance lives in data/vintages.jsonl, which names each file's vendor,
+    # symbol, price basis, span, date, row count and sha256. data/README.md says
+    # the same in prose. The four yfinance files were not all taken on one day,
+    # so the date is per file rather than per directory. All of them are frozen
+    # on purpose. Nothing regenerates these eight, and the pinned tests freeze
+    # these exact bytes against each source's drifting vintage, so a re-download
+    # would fail the replication rather than pass it quietly.
     if chan:
         path = data_path(f"{ticker.lower()}_chan.csv")
     else:

@@ -74,11 +74,18 @@ resolves Chan's seven decimals.
 All three reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row.
 
-The vintage machinery is not built yet, so a replication that reads a series
-reads a committed CSV directly rather than through a recorder that verifies it
-first. [data/README.md](data/README.md) carries each file's vendor, symbol,
-span, download date and checksum in the meantime. The coin flip needs none of
-that, which is why it could be built first.
+A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
+series and its provenance together and refuses to overwrite either, and
+[data/vintages.jsonl](data/vintages.jsonl) holds one line per committed series,
+naming its vendor, symbol, price basis, span, date, row count and sha256.
+[data/README.md](data/README.md) says the same in prose, next to the files.
+
+What is still missing is the other side. A replication reads a committed CSV by
+filename, not through a reader that checks it against that record first, which
+is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
+
+The coin flip reaches none of that. It records no vintage and reads no series,
+which is why it could ship before the recorder existed.
 
 The estimators behind those numbers are not in this repo. Least squares, the
 Augmented Dickey-Fuller statistic, the half-life and the MacKinnon critical
