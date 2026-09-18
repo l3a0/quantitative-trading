@@ -187,8 +187,11 @@ The labels stay, because the windows they name are unambiguous and renaming
 them across five surfaces would buy nothing the price basis and the date range
 do not already say. What changes is that they are now declared as
 first-edition shorthand rather than left to look like the book's own
-structure. Every citation of a chapter, a page or a MATLAB filename in this
-repo means the 2009 first edition unless it says otherwise.
+structure. Every citation of a chapter, a page, an example number or a MATLAB
+filename in this repo means the 2009 first edition unless it says otherwise.
+Example 6.1, the coin-flip gamble, is the one that says otherwise: that name
+comes from the revised edition's prose at location 3186, and the first-edition
+mirror carries no `example6_1` at all.
 
 One thing this does not settle, and the difference matters. `-3.357` appears
 nowhere in the committed highlights, and neither does a window label for the
@@ -267,9 +270,10 @@ Two things did not move, and the reasons are worth keeping.
 Every argument above is about data that moves underneath a result. Chan's
 coin-flip gamble, Example 6.1, has none. It is a fair coin paying $110 or
 costing $100 against $1,000 of capital, and every figure the book prints
-follows from those payoffs. [src/chan/coin_flip_growth.py](../src/chan/coin_flip_growth.py)
-works it and [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py)
-is the authority for every number quoted about it.
+follows from those payoffs.
+[src/chan/coin_flip_growth.py](../src/chan/coin_flip_growth.py) works it, and
+[tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py) is the
+authority for every number quoted about it.
 
 Four things follow, and each one is a rule stated elsewhere in this repo
 meeting a case it was not written for.
@@ -281,8 +285,7 @@ meeting a case it was not written for.
 2. **Neither epistemic label reaches it.** The vocabulary defines exploratory
    as a result produced by looking at the data, and registered as one whose
    hypothesis was committed before the number was seen. This spends no sample,
-   so the entry states that both are inapplicable rather than picking one. A
-   reader taking "exploratory" here would think the arithmetic might not hold.
+   so the entry states that both are inapplicable rather than picking one.
 3. **The verdict was knowable before the work started.** A verdict says
    whether the claim a published figure supports survives on this repo's
    vintage, and the mechanism that moves a number is a vintage. With none,
@@ -297,13 +300,13 @@ meeting a case it was not written for.
    all three, because a pin on the first alone holds a number rather than a
    choice.
 
-One thing this replication cannot do is reach its own precision by simulation.
-The per-flip standard deviation of the log return is 0.10486, so a growth rate
-estimated from a million flips carries a standard error of 1.05e-4 against a
-quantity of 5e-4. Chan prints seven decimals. The pins are therefore closed
-form and the seeded run is the demonstration, sized from a measurement rather
-than from taste: at 100 rounds by 200 paths the time average came out positive
-on 56 of the first 200 seeds, and at 1,000 by 1,000 on none of them.
+One thing this replication cannot do is reach its own precision by simulation,
+because the spread of a single coin flip is two hundred times the quantity
+being estimated. So the pins are closed form and the seeded run is the
+demonstration, sized from a measurement rather than from taste.
+[docs/replication-log.md](replication-log.md) carries both figures, under the
+heading that says why no simulated number is pinned against the book, which is
+where that entry's numbers belong.
 
 ## Vocabulary
 
@@ -315,7 +318,7 @@ candidate for a synonym.
 | **vintage** | One download of one series, identified by vendor, symbol, span, download date, and which price the series carries, committed as a file with a checksum. |
 | **raw price** | The as-traded close. Fixed once the day has passed, so it is the same in every vintage. |
 | **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
-| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage. |
+| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |

@@ -13,8 +13,9 @@ since the last download and the numbers move, with nothing in the code or the
 output saying why. A symbol that has paid nothing comes back unchanged, which
 is what makes the problem easy to miss.
 
-So a result here is committed next to the exact series it was computed from.
-Everything else is regenerable. Rerun the analysis and it comes back. Lose the
+So a result computed from a series is committed next to the exact series it was
+computed from, and a result computed from none says so. Everything else is
+regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
 
@@ -128,9 +129,10 @@ It prints the figures the book prints, the two averages in one unit so their
 signs can be compared, a seeded run with the standard error beside it, and the
 capital each average compounds into over four horizons. The rates themselves
 are constants, so the divergence is visible in the capital and nowhere else.
-`--rounds`, `--paths` and `--seed` move the run off its pinned size, and the
-report says when a size is too small to resolve the sign rather than printing a
-number it cannot support.
+`--rounds`, `--paths` and `--seed` move the run off its pinned size. The report
+prints the standard error beside the estimate either way, and says outright
+when a size is too small to resolve the sign, which is a line a reader sees
+rather than an exception, because at that size nothing has failed.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

@@ -52,14 +52,16 @@ Three facts constrain the order today, and not one of them is a chapter.
    of the six experiments this repo could otherwise reach cannot run until a
    series is recorded and committed, because the design doc rejects fetching at
    run time.
-2. The coin-flip game is synthetic, so the unbuilt recorder does not block it.
-   It is the shortest path to the repo doing its job twice instead of once.
+2. The coin-flip game is synthetic, so the unbuilt recorder did not block it.
+   It was the shortest path to the repo doing its job twice instead of once,
+   and it has shipped.
 3. Five experiments wait on data that is not free. They are not waiting on
    anybody's time, so they never compete for a place in the order.
 
 Beyond those three constraints the order among the reachable experiments is not
 set, and that is deliberate rather than an omission. The ranking rule says
-evidence from real use decides it, and this repo has run one replication.
+evidence from real use decides it, and this repo has now run two, only one of
+which was built here.
 
 ## The machinery
 
@@ -102,12 +104,18 @@ One experiment, introduced at Kindle location 2099.
 
 ## Chapter 6
 
-Two experiments.
+Two experiments, one of them reproduced.
 
 - [Reproduce Kelly leverage on SPY, Example 6.2](https://github.com/l3a0/quantitative-trading/issues/14),
   worked at location 2858
 - [Reproduce the coin-flip game, Example 6.1](https://github.com/l3a0/quantitative-trading/issues/13),
-  worked at location 3186
+  worked at location 3186, landed as
+  [src/chan/coin_flip_growth.py](../src/chan/coin_flip_growth.py) with its
+  verdict in [docs/replication-log.md](replication-log.md)
+
+Example 6.1 is a revised-edition label, unlike every other example number in
+this doc. It comes from the book's own prose at location 3186, and the
+first-edition code mirror carries no `example6_1` in any form.
 
 ## Chapter 7
 
@@ -166,7 +174,8 @@ fundamentals, a small-cap panel, or fifteen years of one-minute bars.
 
 Each experiment pins the figures the book prints, at the precision the book
 prints them, naming its vintage and its window. An experiment that reads no
-series names neither and says so, which is what the coin-flip game does. Where the book states a ranking
+series names neither and says so, which is what the coin-flip game does. Its
+computed table therefore drops the window column rather than filling it. Where the book states a ranking
 or a verdict rather than a figure, that is what gets pinned, because inventing a
 digit the source does not carry would be worse than pinning the claim the source
 makes. Which figures those are is on each issue, not restated here.
@@ -194,9 +203,11 @@ the recorder.
 ## What comes after that
 
 Nothing is planned past the experiments, on purpose. The ranking rule says
-evidence from real use outranks any order set in advance, and the replications
-here were copied in finished rather than run into existence, so they have
-produced no evidence about what this repo's own machinery makes hard.
+evidence from real use outranks any order set in advance, and the two
+replications that read a series were copied in finished rather than run into
+existence, so they have produced no evidence about what this repo's own
+machinery makes hard. The coin-flip game was built here and reads nothing, so
+it exercised the log format and none of the vintage machinery.
 
 Two candidates are worth naming so they are not re-invented, and neither is
 committed to.

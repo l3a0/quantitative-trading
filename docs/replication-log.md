@@ -58,10 +58,13 @@ one.
 The two columns of numbers come from different places, so one rule cannot cover
 both.
 
-1. **Every computed number names the assertion that holds it.**
-   [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py) is
-   the single authority for every figure this repo computes about these pairs,
-   and the computed column states those figures rather than deriving them.
+1. **Every computed number names the assertion that holds it.** One test file
+   per entry is the single authority for every figure that entry computes, and
+   the computed column states those figures rather than deriving them.
+   [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py)
+   holds Entry 1 and
+   [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py) holds
+   Entry 2.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -101,11 +104,11 @@ That exception carries weight. Row 4's verdict turns on a margin of 0.0055
 against Chan's own printed critical values, and at two decimals the margin
 would print as 0.01, nearly double the real one.
 
-Two quantities in this entry are derived rather than stated: a gap, which the
-vocabulary defines as exactly that difference, and a rejection margin, which is
-a statistic minus a critical value. Neither is a published figure, so neither
+Two quantities are derived rather than stated: a gap, which the vocabulary
+defines as exactly that difference, and a rejection margin, which is a
+statistic minus a critical value. Neither is a published figure, so neither
 meets the design doc's cut on recomputing a published number in prose. No
-published figure is recomputed anywhere here.
+published figure is recomputed in any entry.
 
 A gap runs computed minus published, so a negative gap means this repo landed
 below the book. The vocabulary names a gap's two operands without fixing their
@@ -115,8 +118,9 @@ direction and every row follows it.
 A gap is stated at the precision both sides support, which is the coarser of
 the two, and it is rounded from the engine's full value rather than from the
 quoted one. Subtracting two already-rounded numbers moves a gap by up to a full
-unit of the last digit, which is how row 3's gap of −0.10 would otherwise print
-as −0.09.
+unit of the last digit, which is how Entry 1's row 3 gap of −0.10 would
+otherwise print as −0.09. Row numbers restart per entry, so a reference to one
+outside its own entry names the entry too.
 
 ### How a verdict is chosen
 
@@ -157,11 +161,11 @@ below.
 
 The vocabulary defines a replication as an attempt to reproduce a specific
 published number. A row with no published number is therefore not a
-replication, and it can carry neither a gap nor any of the three verdicts. Rows
-2 and 10 are in that position, and their verdict cell says so rather than
-reaching for a fourth value.
+replication, and it can carry neither a gap nor any of the three verdicts.
+Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
+and each verdict cell says so rather than reaching for a fourth value.
 
-They are in the entry because leaving them out misleads. Row 2 is the slope
+They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
 comparing two specifications. Row 10 is what the book's pair looks like twenty
 years on, which is the result that makes the shelf life visible.
@@ -174,18 +178,24 @@ figures and the reason column carries the refutation.
 ### What a second entry does to this file
 
 A second entry is a new `## Entry N` section below the last one, with the same
-three tables and the same numbered rows. The sections above are shared and are
-not restated per entry.
+three tables and its own numbered rows, restarting at 1. The sections above are
+shared and are not restated per entry. Entry 2 is the first of these and what
+follows was written before it, so each point below now names what the entry
+actually did.
 
-Two things about the shape are deliberate.
+Three things about the shape are deliberate.
 
 - **A vintage column can be empty, and says so rather than going blank.** The
-  coin-flip game on
-  [issue 13](https://github.com/l3a0/quantitative-trading/issues/13) is
-  synthetic. It has no vendor and no download date, so the column that makes
-  these rows checkable has nothing to hold. Such a row writes `none, synthetic`
-  where every row here writes a file, because a blank cell reads as an
-  omission.
+  coin-flip game is synthetic. It has no vendor and no download date, so the
+  column that makes a row checkable has nothing to hold. Such a row writes
+  `none, synthetic` rather than going blank, because a blank cell reads as an
+  omission. Every row of Entry 2 does.
+- **A column with nothing to hold in any row is dropped rather than filled.**
+  Entry 1's computed table carries a Window column, because a window is what
+  selects the rows a vintage is read over. A gamble has no window in any row,
+  so Entry 2's table has five columns where Entry 1's has six. The vintage
+  column survives the same test because `none, synthetic` is information and an
+  empty window is not.
 - **A negative-results log stays a separate document.**
   [docs/build-plan.md](build-plan.md) names one as a candidate. It records an
   idea that was killed, which is a different object from a published figure
@@ -410,8 +420,9 @@ the suite green. Whether that guard gets built is the decision on
 [issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
 
 Until then this file joins the re-pin sweep by hand. A change to any assertion
-named above moves this entry in the same commit, and with it both copies of the
-essay, which quote the same figures at coarser granularity:
+named above moves the entry that cites it in the same commit. For Entry 1 that
+carries both copies of the essay too, which quote the same figures at coarser
+granularity:
 [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md)
 and the published
 [docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html).
@@ -472,9 +483,9 @@ has nothing to hold. Leaving it blank would read as an omission.
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | 0.00 | reproduced | Chan's claim is that a player with infinite capital collects \$5 a round. The figure is exact and nothing can move it. |
-| 2 | 0.0000 | reproduced | Exact at the three decimals the book prints. |
-| 3 | 0.0000 | reproduced | Exact, and the specification is what the row holds. The sample form over two outcomes gives 0.14849 instead, which the suite pins as the near miss it is. |
+| 1 | \$0, the book prints one significant figure | reproduced | Chan's claim is that a player with infinite capital collects \$5 a round. The figure is exact and nothing can move it. |
+| 2 | 0.000 at the three decimals the book prints | reproduced | Exact at that precision. |
+| 3 | 0.000 at the three decimals the book prints | reproduced | Exact at that precision, and the specification is what the row holds. The sample form over two outcomes gives 0.14849 instead, which the suite pins as the near miss it is. |
 | 4 | 0.0000000 | reproduced | The replication. Chan's claim is that the growth rate is negative while the expected return is positive, so the layman refusing the gamble is right. It reproduces at the seven decimals he prints, and the claim survives with it. |
 | 5 | not statable, the source works an illustration rather than a figure | reproduced | Chan's claim is that adjusting the payoff keeps the return moments constant as capital moves. It does, and the stake it implies is exactly a tenth, so the word "roughly" in any paraphrase is doing no work. |
 | 6 | none | none, not a replication | The book prints only the continuous approximation. The row exists so −0.00050025 is not read as a failure to reproduce −0.0005125: it is a different quantity, computed exactly, differing at the fourth significant digit. |
@@ -535,3 +546,7 @@ The draw method is part of what a seed means, and the module names it. On seed
 four different flip sequences. This is the shape row 11 of Entry 1 records,
 where a conclusion about a library turned out to be a conclusion about an
 `autolag` default.
+
+Nothing checks this entry against the suite either, for the reason Entry 1
+states above. A change to any assertion this entry names moves it in the same
+commit, and unlike Entry 1 there is no essay to move with it.
