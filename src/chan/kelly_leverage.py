@@ -8,12 +8,13 @@ mean **excess** return and ``s`` the annualised standard deviation. Chan works
 it on SPY, gets 2.528, and then asks whether that leverage would have survived
 the worst day the index has had.
 
-**Nothing here reproduces a figure the book prints.** Chan read SPY through
-2007-12-28. This reads a 2026 download of the same symbol, which is a
-different sample, so what the run buys is a gap rather than a match. Reading
-his own workbook is
+**One figure the book prints reproduces here and it is the dispersion.** Chan
+read SPY through 2007-12-28. This reads a 2026 download of the same symbol,
+which is a different sample, so every level it computes lands high. The
+standard deviation does not, because restatement moves where a series sits and
+not how much it moves. Reading his own workbook is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
-``reproduced`` verdict belongs there.
+``reproduced`` verdict on the rest belongs there.
 ``docs/replication-log.md`` Entry 3 carries this run's verdicts row by row, and
 ``tests/test_kelly_leverage.py`` is the single authority for every number any
 prose surface quotes about it.
@@ -27,8 +28,9 @@ Kelly for the next example, rather than guessed from the printed figures.
    ./lag1(adjcls)`` computes.
 2. **Annualised by 252 on the mean and by the square root of 252 on the
    standard deviation**, from his ``M=252*mean(excessRet)`` and
-   ``C=252*cov(excessRet)``. 251 gives a mean of 0.11186 and 250 gives 0.11142
-   against his workbook's 0.11231.
+   ``C=252*cov(excessRet)``. 251 and 250 are the plausible wrong answers and
+   :func:`annualised_moments` is held against both, on this vintage's own
+   moments rather than on his.
 3. **The sample standard deviation, dividing by n - 1**, which is what MATLAB's
    ``cov`` does. This is the one choice the book's own precision can separate,
    and :func:`annualised_moments` is where it lives. See
@@ -48,11 +50,11 @@ Kelly for the next example, rather than guessed from the printed figures.
 **The price basis runs against this repo's own default, and that is
 deliberate.** ``docs/design.md`` says to prefer a series that cannot be
 restated, falling back on a committed vintage when only an adjusted series
-will do, and ``chan.series`` explains why the GLD/GDX runs read raw closes.
-That argument rests on GDX having paid almost nothing by 2007, which made
-Chan's adjusted close near raw. SPY had been paying for fifteen years by the
-end of his window, worth 1.68 percentage points of annual mean return on his
-own data, so the fallback is what fires here.
+will do, and its ``### The first time the fallback clause fires`` is why this
+is the deliverable where the second half applies. The short version is that
+GDX had paid almost nothing by 2007 and SPY had been paying for fifteen years,
+worth 1.68 percentage points of annual mean return on his own data. The
+reasoning lives there rather than here, because it outlives this experiment.
 
 ## The Sharpe ratio is what holds the specification
 
@@ -70,7 +72,7 @@ reasoning across this module gets this one wrong.
 
 ## Black Monday is outside SPY, so it enters as a book constant
 
-SPY's first bar is 1993-01-29, six years after 1987-10-19. Location 3083 says
+SPY's first bar is 1993-01-29, five years after 1987-10-19. Location 3083 says
 "In the S&P 500 index example", and 20.47 percent on that day is an S&P 500
 index figure. No SPY vintage of any span can check it, so it is named as a
 constant the book supplies and the worst loss the window actually holds is
@@ -275,7 +277,9 @@ def simple_returns(close: pd.Series) -> pd.Series:
     ``example6_3.m`` drops days carrying a non-finite return before computing
     anything, and so does this. A zero close divides to an infinity rather than
     raising, so a series carrying one would otherwise annualise to a mean of
-    ``inf`` and report a leverage of zero.
+    ``inf`` and a standard deviation of ``nan``, since the dispersion
+    subtracts that mean from it. The reported leverage is then ``nan``, which
+    prints and compares without raising anywhere.
     """
     returns = close.pct_change().dropna()
     return returns[np.isfinite(returns)]
@@ -538,7 +542,12 @@ def _worked_example(moments: Moments, equity: float) -> None:
     mine = rebalance(moments.leverage, equity=equity)
     book = rebalance(BOOK_LEVERAGE, equity=equity)
     print(f"The worked example at locations 2869 and 3021, on ${equity:,.0f} of equity:")
-    print(f"  {'':<28} {'at f* = ' + format(moments.leverage, '.4f'):>16}   {'at 2.528':>16}")
+    # Both headers are built from the leverage the column was computed at, so
+    # neither can drift into naming a number the column below it did not use.
+    print(
+        f"  {'':<28} {'at f* = ' + format(moments.leverage, '.4f'):>16}   "
+        f"{'at ' + format(BOOK_LEVERAGE, 'g'):>16}"
+    )
     for label, field in (
         ("portfolio", "portfolio"),
         ("borrowed", "debt"),
@@ -603,7 +612,12 @@ def _time_scale(close: pd.Series, daily: Moments, risk_free: float) -> None:
     print("  the factor cancels between the mean and the variance. Testing that proves")
     print("  nothing about the data.")
     print()
-    print('  Resampling is what moves it, and "monthly" names three different series:')
+    print('  Resampling is what moves it, and "monthly" names three different series.')
+    print(
+        f"  Each rule subtracts the rate over its own period, {risk_free}/252 a day and "
+        f"{risk_free}/12 a month,"
+    )
+    print("  because a daily f* needs a daily r and the identity above breaks without it:")
     print(f"  {'rule':<20} {'returns':>8} {'mean':>10} {'sd':>10} {'f*':>10} {'vs daily':>10}")
     for rule, moments in sampling_scan(close, risk_free=risk_free).items():
         if moments is None:

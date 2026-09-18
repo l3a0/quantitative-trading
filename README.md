@@ -62,8 +62,9 @@ they were first built. The other two were built here.
    replication here that reads no series at all, so it has no vintage to name.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
    maximises compounded growth and then whether that much would have survived
-   the worst day the index has had. Not one of Chan's computed figures
-   reproduces, every claim behind them does, and the entry is about that split.
+   the worst day the index has had. Every level Chan computed from a series
+   lands high on a modern download and every claim behind those numbers still
+   holds, and the entry is about that split.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of

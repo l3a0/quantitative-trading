@@ -5,11 +5,13 @@ about this experiment. ``docs/replication-log.md`` Entry 3 states those numbers
 and derives none of them, and ``src/chan/kelly_leverage.py`` carries the
 reasoning.
 
-**Nothing here reproduces a published figure, and that is the result.** Chan
-read SPY through 2007-12-28 on a 2008-vintage adjusted series. This reads a
-2026 download of the same symbol over the same dates, so every gap below
-measures eighteen years of restatement rather than a method. Reading his own
-workbook is issue 138.
+**One published figure reproduces here and it is the dispersion.** Chan read
+SPY through 2007-12-28 on a 2008-vintage adjusted series. This reads a 2026
+download of the same symbol over the same dates, so every level below lands
+high and the gaps measure eighteen years of restatement rather than a method.
+The standard deviation is the exception, at the two decimals the book prints,
+because restatement moves where a series sits and not how much it moves.
+Reading his own workbook is issue 138.
 
 Two kinds of assertion live here and they are not interchangeable.
 
@@ -18,7 +20,7 @@ Two kinds of assertion live here and they are not interchangeable.
    +4.90 inside this one vintage.
 2. **Specification pins**, which hold a choice rather than a number. The
    dispersion form is the sharp one: the sample and population forms differ by
-   5.7e-5 on the Sharpe ratio and by 6.8e-4 on the leverage, so an assertion at
+   5.74e-5 on the Sharpe ratio and by 6.79e-4 on the leverage, so an assertion at
    the leverage's printed precision passes on either and only the Sharpe ratio
    decides.
 
@@ -39,12 +41,18 @@ replication is free here, and no contract case is owed.
 
 from __future__ import annotations
 
+import contextlib
+import inspect
+import io
 import math
+import re
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from chan.kelly_leverage import (
+    _PUBLISHED,
     BLACK_MONDAY_DATE,
     BLACK_MONDAY_LOSS,
     BLOCK_DAYS,
@@ -59,6 +67,7 @@ from chan.kelly_leverage import (
     SAMPLING_RULES,
     TRADING_DAYS,
     VINTAGE_DATE,
+    _worked_example,
     annualised_moments,
     main,
     rebalance,
@@ -69,7 +78,7 @@ from chan.kelly_leverage import (
     simple_returns,
     stress_test,
 )
-from chan.series import load_vintage
+from chan.series import load_close, load_vintage
 from chan.vintage import VintageUnavailable
 
 # The windows this file pins, each named where it is used. Chan's own span is
@@ -172,6 +181,10 @@ class TestTheSpecificationRatherThanTheNumber:
         assert round(sample.sharpe, 4) != round(population_sharpe, 4)
         assert round(sample.leverage, 3) == round(population_leverage, 3)
         assert abs(sample.sharpe - population_sharpe) == pytest.approx(5.74e-5, abs=5e-7)
+        # Both separations are quoted in prose, so both are held here. Without
+        # this line the leverage's is covered only by the three-decimal
+        # equality above, which admits anything up to about 0.001.
+        assert population_leverage - sample.leverage == pytest.approx(6.79e-4, abs=5e-6)
 
     def test_the_annualisation_is_252_and_the_near_counts_miss(self, chan_window) -> None:
         """251 and 250 are the plausible wrong answers and neither is close."""
@@ -220,9 +233,10 @@ class TestTheSpecificationRatherThanTheNumber:
     def test_a_non_finite_return_is_dropped_before_anything_is_computed(self) -> None:
         """``example6_3.m`` drops them and so does this.
 
-        A zero close divides to an infinity rather than raising, so a series
-        carrying one would annualise to an infinite mean and report a leverage
-        of zero with nothing failing.
+        A zero close divides to an infinity rather than raising. A series
+        carrying one annualises to an infinite mean and, because the dispersion
+        subtracts that mean, to a standard deviation of ``nan``. The leverage
+        is then ``nan``, which prints and compares without failing anywhere.
         """
         import pandas as pd
 
@@ -301,14 +315,15 @@ class TestChansWindowOnAModernDownload:
             RISK_FREE + moments.leverage * moments.excess_annual / 2.0, abs=5e-14
         )
 
-    def test_no_published_figure_reproduces_and_every_gap_points_one_way(self, moments) -> None:
+    def test_every_level_moved_and_only_the_dispersion_reproduces(self, moments) -> None:
         """The whole entry, in one assertion.
 
         Chan prints 11.23, 16.91, 7.231, 0.4275, 2.528, 13.14 and 9.8. Every
         computed figure lands above its published one, which is what a
         dividend-adjusted series eighteen years further on does to a mean. The
-        standard deviation is the exception and it moves by 0.0017 of a
-        percentage point, which rounds to the book's own two decimals.
+        standard deviation is the exception. It moves by 0.0017 of a percentage
+        point and rounds to the book's own two decimals, so the last assertion
+        here is the one row of Entry 3 that reproduces from a series.
         """
         assert moments.mean_annual * 100 - 11.23 == pytest.approx(0.0648, abs=5e-5)
         assert moments.sd_annual * 100 - 16.91 == pytest.approx(0.0017, abs=5e-5)
@@ -400,13 +415,16 @@ class TestTheWorkedExample:
         """$252,800 is the one printed figure with no exact counterpart.
 
         Chan rounded the leverage to three decimals before multiplying, so the
-        published portfolio is derived from a rounded input. Anything under
-        $12.50 of rounding in the leverage would land on the same $252,800, and
-        the gap this shows is the reason the chain above is pinned on 2.528
-        rather than on a computed number.
+        published portfolio is derived from a rounded input rather than from
+        the leverage his workbook computed. His four-decimal 2.5278 buys
+        $252,780, twenty dollars under what he printed, and the rounded 2.528
+        buys $252,800 exactly. That is why the chain above is pinned on 2.528
+        rather than on any computed number.
         """
         assert rebalance(2.5278).portfolio == pytest.approx(252_780.0, abs=5e-7)
-        assert round(rebalance(2.5278).portfolio, -2) == 252_800.0
+        assert rebalance(BOOK_LEVERAGE).portfolio - rebalance(2.5278).portfolio == pytest.approx(
+            20.0, abs=5e-7
+        )
 
     def test_this_vintages_chain_is_a_different_account(self, chan_window) -> None:
         """What the same $100,000 buys on the leverage this run computed."""
@@ -503,7 +521,7 @@ class TestTheStressTest:
             assert stress_test(faked, returns).survives is expected
 
     def test_black_monday_is_a_book_constant_and_not_a_vintage_figure(self, stress) -> None:
-        """SPY's first bar is 1993-01-29, six years after 1987-10-19.
+        """SPY's first bar is 1993-01-29, five years after 1987-10-19.
 
         The two losses are separate fields on purpose. Reporting the book's
         20.47 percent as something the series holds would be a wrong fact about
@@ -753,6 +771,12 @@ class TestTheReportSaysWhatItComputed:
         assert "as an identity it holds exactly" in out
         assert "the factor cancels between the mean and the variance" in out
         assert "Resampling is what moves it" in out
+        # The rate's treatment, for the rows it applies to. The spec line at
+        # the top names the daily one only, and three of the four rows below
+        # are monthly, so without this the report's one statement about the
+        # rate is accurate for a quarter of what it prints.
+        assert "subtracts the rate over its own period, 0.04/252 a day and 0.04/12 a month" in out
+        assert "a daily f* needs a daily r" in out
         for rule in SAMPLING_RULES:
             assert rule in out
 
@@ -815,3 +839,453 @@ class TestTheRunAndTheCli:
         from this module, so the catch is a relay and not a second sentence."""
         with pytest.raises(VintageUnavailable, match="1999-01-01"):
             load_vintage("SPY", dated="1999-01-01")
+
+
+# ============================================================
+# The report's labels, which a substring assertion does not hold
+# ============================================================
+
+
+def cell(out: str, label: str) -> str:
+    """What the line labelled ``label`` prints after it.
+
+    A report is a table of labels and values, and an assertion that a value
+    appears *somewhere* in the output holds neither. A mutation pass over this
+    module moved nine values onto the wrong labels and the suite stayed green
+    every time, including one that printed the unlevered growth rate under the
+    levered label, which is the comparison Example 6.2 exists to make.
+
+    The label has to be followed by at least two spaces, so ``month-end`` does
+    not match ``month-end-complete``.
+    """
+    for line in out.splitlines():
+        found = re.match(rf"\s*{re.escape(label)}\s\s+(.*?)\s*$", line)
+        if found:
+            return found.group(1)
+    raise AssertionError(f"no line labelled {label!r} in:\n{out}")
+
+
+class TestEveryLabelCarriesItsOwnValue:
+    """The mutation class that survived everything, closed one table at a time.
+
+    Each case reads the value off the line its label owns rather than off the
+    whole report. ``tests/test_pair_cointegration.py``'s ``TestReportNamesItsBasis``
+    is the precedent, and this is what extending it to four tables looks like.
+    """
+
+    @pytest.fixture(scope="class")
+    @staticmethod
+    def printed(spy, chan_window):
+        entry, _ = spy
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            report(entry, chan_window)
+        return buffer.getvalue()
+
+    def test_the_published_table_binds_all_three_columns(self, printed, chan_window) -> None:
+        """Computed, published and gap, on the row that claims them.
+
+        The gap is asserted too, because the published string and the number
+        the gap is computed from are separate fields of ``_PUBLISHED`` and
+        nothing else makes them agree.
+        """
+        moments = annualised_moments(simple_returns(chan_window))
+        for label, field, as_percent, printed_figure, value, decimals in _PUBLISHED:
+            computed = getattr(moments, field) * (100.0 if as_percent else 1.0)
+            shown = f"{computed:.4f}%" if as_percent else f"{computed:.4f}"
+            assert (
+                cell(printed, label)
+                == (f"{shown:>12}   {printed_figure:>8}   {computed - value:+.{decimals}f}").strip()
+            )
+
+    def test_the_table_is_the_specification_and_so_is_pinned_as_one(self) -> None:
+        """``_PUBLISHED`` decides which figure wears which label, so no case
+        that reads its expectation out of it can hold that.
+
+        Swapping the levered and unlevered rows' fields and labels together
+        passes every other assertion in this class, because they all walk this
+        tuple. The report then tells a reader the unlevered growth rate is
+        13.3031 percent and the levered rate 9.8648, which is the comparison
+        Example 6.2 exists to make, printed backwards. The literal is what
+        stands between that and a green suite.
+        """
+        assert _PUBLISHED == (
+            ("mean annual return", "mean_annual", True, "11.23%", 11.23, 2),
+            ("annualised standard deviation", "sd_annual", True, "16.91%", 16.91, 2),
+            ("mean excess return", "excess_annual", True, "7.231%", 7.231, 3),
+            ("Sharpe ratio", "sharpe", False, "0.4275", 0.4275, 4),
+            ("optimal Kelly leverage f*", "leverage", False, "2.528", 2.528, 3),
+            ("levered growth rate", "levered_growth", True, "13.14%", 13.14, 2),
+            ("unlevered growth rate", "unlevered_growth", True, "9.8%", 9.8, 1),
+            ("half-Kelly leverage", "half_kelly", False, "1.26", 1.26, 2),
+        )
+
+    def test_the_published_table_prints_every_row_it_holds_and_no_other(self, printed) -> None:
+        """A deleted row is invisible to an assertion that reads rows by name.
+
+        The excess return is the row this catches: it is the one quantity the
+        report's other assertions do not reach, and choice 4 of the module
+        docstring calls it the specification's sharp edge.
+        """
+        labels = [row[0] for row in _PUBLISHED]
+        assert [line.strip().split("  ")[0] for line in published_rows(printed)] == labels
+
+    def test_the_worked_example_puts_this_vintage_left_and_the_book_right(
+        self, printed, chan_window
+    ) -> None:
+        """Two columns of dollars, and swapping them reads as a reproduction."""
+        mine = rebalance(annualised_moments(simple_returns(chan_window)).leverage)
+        book = rebalance(BOOK_LEVERAGE)
+        for label, field in (
+            ("portfolio", "portfolio"),
+            ("borrowed", "debt"),
+            ("after SPY falls 10%", "shocked_portfolio"),
+            ("equity left", "shocked_equity"),
+            ("resized at the same leverage", "resized"),
+        ):
+            left = f"${getattr(mine, field):,.2f}"
+            right = f"${getattr(book, field):,.2f}"
+            assert cell(printed, label) == f"{left:>16}   {right:>16}".strip()
+
+    def test_the_worked_examples_header_names_the_leverage_each_column_used(
+        self, printed, chan_window
+    ) -> None:
+        """A header that stops naming its own leverage is a column nobody can check."""
+        leverage = annualised_moments(simple_returns(chan_window)).leverage
+        assert f"at f* = {leverage:.4f}" in printed
+        assert f"at {BOOK_LEVERAGE}" in printed
+
+    def test_the_equity_the_report_is_given_reaches_the_worked_example(
+        self, spy, chan_window, capsys
+    ) -> None:
+        """``report`` takes an equity and nothing called it with another one.
+
+        The book's $100,000 is the only value any other case uses, so passing
+        the module constant straight through instead of the argument was
+        invisible. A knob nobody turns is a knob nobody holds.
+        """
+        entry, _ = spy
+        report(entry, chan_window, equity=250_000.0)
+        out = capsys.readouterr().out
+        leverage = annualised_moments(simple_returns(chan_window)).leverage
+        assert "on $250,000 of equity" in out
+        assert cell(out, "portfolio").startswith(f"${leverage * 250_000.0:,.2f}")
+        assert f"${EQUITY:,.2f}" not in out
+
+    def test_the_stress_block_binds_its_four_figures(self, printed, chan_window) -> None:
+        """The half-Kelly line is the sharp one. Printing the full leverage there
+        leaves the sentence below comparing a number the reader never saw."""
+        returns = simple_returns(chan_window)
+        moments = annualised_moments(returns)
+        stress = stress_test(moments, returns)
+        assert cell(printed, "worst one-day S&P 500 loss").startswith(f"{stress.book_loss:.2%}")
+        assert cell(printed, "worst one-day loss in this window").startswith(
+            f"{abs(stress.worst_loss):.2%}"
+        )
+        assert cell(printed, f"a {stress.tolerance:.0%} one-day tolerance allows").startswith(
+            f"{stress.allowed_leverage:.6f}"
+        )
+        assert cell(printed, "half-Kelly here") == f"{stress.half_kelly:.6f}"
+        assert (
+            f"f* is above {stress.threshold:.6f}, and f* is {moments.leverage:.6f} here" in printed
+        )
+
+    def test_the_scan_binds_each_rule_to_its_own_moments(self, printed, chan_window) -> None:
+        """Four rows of four numbers. Swapping the mean and the standard
+        deviation columns, or their headers, was green."""
+        scan = sampling_scan(chan_window)
+        daily = scan["daily"]
+        for rule, moments in scan.items():
+            lift = "" if rule == "daily" else f"{moments.leverage / daily.leverage - 1.0:+.1%}"
+            assert (
+                cell(printed, rule)
+                == (
+                    f"{moments.returns:>8,} {moments.mean_annual:>10.4f} "
+                    f"{moments.sd_annual:>10.4f} {moments.leverage:>10.4f} {lift:>10}"
+                ).strip()
+            )
+        assert (
+            cell(printed, "rule")
+            == (f"{'returns':>8} {'mean':>10} {'sd':>10} {'f*':>10} {'vs daily':>10}").strip()
+        )
+
+    def test_the_identity_line_prints_the_two_leverages_it_compares(
+        self, printed, chan_window
+    ) -> None:
+        """One of them is the per-period ratio. Printing the Sharpe ratio there
+        was green, under a sentence saying the two are the same quantity."""
+        moments = annualised_moments(simple_returns(chan_window))
+        assert f"annualised moments is {moments.leverage:.10f}" in printed
+        assert f"before annualising it is {moments.period_leverage:.10f}" in printed
+
+    def test_a_window_that_is_not_chans_keeps_its_labels(self, spy, capsys) -> None:
+        """The no-published-column branch formats its own rows, so it needs its
+        own case. Dropping the label from it was green."""
+        entry, close = spy
+        report(entry, window(close, *BEAR))
+        out = capsys.readouterr().out
+        moments = annualised_moments(simple_returns(window(close, *BEAR)))
+        assert cell(out, "optimal Kelly leverage f*") == f"{moments.leverage:.4f}"
+        assert cell(out, "mean annual return") == f"{moments.mean_annual * 100:.4f}%"
+
+
+def published_rows(out: str) -> list[str]:
+    """The lines of the published table, taken as the block under its header.
+
+    Matching rows by shape rather than by position picks up the time-scale
+    scan as well, which has the same shape and a different job. The table is
+    the run of non-empty lines after the header row and nothing else, so a
+    deleted row shortens it and a reordered one moves inside it.
+    """
+    lines = out.splitlines()
+    header = next(i for i, line in enumerate(lines) if line.strip().startswith("quantity"))
+    rows = []
+    for line in lines[header + 1 :]:
+        if not line.strip():
+            break
+        rows.append(line)
+    return rows
+
+
+class TestTheReportCarriesEveryCaveatItOwes:
+    """Four sentences the report is required to print, each deletable and green.
+
+    A number is held by an assertion on the number. A caveat is held by nothing
+    unless somebody writes this class, and every one of these was removable
+    with the suite green.
+    """
+
+    def test_the_gap_column_says_it_is_a_drift_measurement(self, spy, chan_window, capsys) -> None:
+        """Without it the gap column reads as a reproduction, which the module
+        docstring's own first claim says it is not."""
+        entry, _ = spy
+        report(entry, chan_window)
+        out = " ".join(capsys.readouterr().out.split())
+        assert "the gap column is a vendor-drift measurement and not a reproduction" in out
+        assert "Chan's own workbook is issue 138, not this run" in out
+
+    def test_the_full_kelly_cost_is_flagged_as_unpublished(self, spy, chan_window, capsys) -> None:
+        """It is the one figure in the stress block the book does not print."""
+        entry, _ = spy
+        report(entry, chan_window)
+        assert "not a figure the book prints: at full Kelly" in capsys.readouterr().out
+
+    def test_the_report_points_at_the_entry_that_carries_the_verdict(
+        self, spy, chan_window, capsys
+    ) -> None:
+        """The report states figures and the log states verdicts, so a reader
+        who stops at the report needs the pointer."""
+        entry, _ = spy
+        report(entry, chan_window)
+        assert "docs/replication-log.md Entry 3 carries the verdict." in capsys.readouterr().out
+
+    def test_a_rule_too_short_for_the_window_says_so_rather_than_vanishing(
+        self, spy, capsys
+    ) -> None:
+        """``sampling_scan`` returns None so the report can say this. Deleting
+        the line drops the row without comment, which is what the None exists
+        to prevent."""
+        entry, close = spy
+        report(entry, window(close, "2007-11-01", BOOK_END))
+        out = capsys.readouterr().out
+        assert "too few returns in this window" in out
+        assert cell(out, "daily").startswith("39 ")
+
+
+class TestThePublishedConstantsAgreeWithThemselves:
+    """``_PUBLISHED`` holds each book figure twice, as a string and as a number.
+
+    The string is shown in the book column and the number computes the gap, and
+    nothing made them agree. Setting the Sharpe row's number to 0.4276 while
+    its string stayed 0.4275 was green, so the row printed a book figure and a
+    gap that cannot both be right.
+    """
+
+    def test_each_row_prints_the_number_it_subtracts(self) -> None:
+        for label, _field, as_percent, printed_figure, value, decimals in _PUBLISHED:
+            expected = f"{value}%" if as_percent else f"{value}"
+            assert printed_figure == expected, label
+            assert len(printed_figure.rstrip("%").split(".")[1]) == decimals, label
+
+    def test_every_published_figure_is_one_the_book_reference_quotes(self) -> None:
+        """``BOOK_REF`` is the report's second line and the table is below it, so
+        a figure in one and not the other is two answers to one question."""
+        for row in _PUBLISHED:
+            assert row[3] in BOOK_REF
+
+    def test_the_worked_examples_closing_sentence_quotes_the_chain_it_ran(self) -> None:
+        """Four dollar figures in prose beside a column that computes them.
+        Changing one to $188,829 was green."""
+        chain = rebalance(BOOK_LEVERAGE)
+        source = inspect.getsource(_worked_example)
+        for value in (chain.portfolio, chain.shocked_portfolio, chain.shocked_equity):
+            assert f"${value:,.0f}" in source
+        assert f"${chain.resized:,.0f}".rsplit(".", 1)[0] in source
+
+
+# ============================================================
+# The guards, which one-sided cases leave open
+# ============================================================
+
+
+class TestTheWindowGuardIsHeldOnBothSides:
+    """``MIN_TRADING_DAYS`` could move by a factor of 23 with the suite green.
+
+    The refusal case quoted the constant back at itself and its window held 19
+    days, so the floor was pinned only to the open range between 20 and about
+    752.
+    """
+
+    def test_the_floor_is_the_value_it_is_documented_as(self) -> None:
+        """Quoted in the module docstring's sibling comment and in the refusal,
+        so it is a number the prose carries."""
+        assert MIN_TRADING_DAYS == 30
+
+    def test_exactly_the_floor_runs_and_one_fewer_refuses(self, spy, capsys) -> None:
+        """The boundary from both sides. The refusal case alone passes on a
+        floor anywhere below the window it happens to use."""
+        _, close = spy
+        after = close[close.index >= pd.Timestamp(BOOK_START)]
+        at_the_floor = str(after.index[MIN_TRADING_DAYS - 1].date())
+        one_short = str(after.index[MIN_TRADING_DAYS - 2].date())
+        run(start=BOOK_START, end=at_the_floor)
+        assert f"{MIN_TRADING_DAYS:,} closes" in capsys.readouterr().out
+        with pytest.raises(SystemExit) as exited:
+            run(start=BOOK_START, end=one_short)
+        assert f"only {MIN_TRADING_DAYS - 1} trading days" in str(exited.value)
+
+    def test_the_refusal_names_the_window_in_the_order_it_was_asked_for(self, spy) -> None:
+        """Reversing the two was green, which turns a message meant to help a
+        reader fix the argument into one that describes a window nobody asked
+        for."""
+        with pytest.raises(SystemExit) as exited:
+            run(start="2007-12-01", end=BOOK_END)
+        assert f"in 2007-12-01..{BOOK_END}" in str(exited.value)
+
+    def test_two_returns_are_enough_for_a_sampling_rule(self, spy) -> None:
+        """The None branch was only exercised at one return, so the floor was
+        unpinned from above and could rise to twenty with nothing failing."""
+        _, close = spy
+        after = close[close.index >= pd.Timestamp(BOOK_START)]
+        three_bars = after.iloc[: 2 * BLOCK_DAYS + 1]
+        scan = sampling_scan(three_bars)
+        assert scan["block-21"] is not None
+        assert scan["block-21"].returns == 2
+        assert sampling_scan(after.iloc[: BLOCK_DAYS + 1])["block-21"] is None
+
+
+class TestTheBookColumnNeedsBothEndpoints:
+    """Sharing one endpoint with Chan's window is not sharing his window.
+
+    Testing either half alone was green, because the two windows the other
+    cases use differ at both ends. The bull window ends on ``BOOK_END``, so the
+    half that matters would have printed gaps against his published figures for
+    a run over 2003 to 2007.
+    """
+
+    def test_a_window_sharing_only_the_end_prints_no_gap(self, spy, capsys) -> None:
+        entry, close = spy
+        report(entry, window(close, *BULL))
+        out = capsys.readouterr().out
+        assert "no figure below has a published counterpart" in out
+        assert "the book   gap" not in out
+
+    def test_a_window_sharing_only_the_start_prints_no_gap(self, spy, capsys) -> None:
+        entry, close = spy
+        report(entry, window(close, BOOK_START, "2006-12-29"))
+        out = capsys.readouterr().out
+        assert "no figure below has a published counterpart" in out
+        assert "the book   gap" not in out
+
+
+class TestTheCliDefaultsAreTheirOwnPins:
+    """``run()``'s defaults and argparse's are two sets of constants.
+
+    Every earlier case called ``run()`` directly or passed arguments, so all
+    three argparse defaults could move with the suite green, including
+    ``--risk-free`` to 0.40.
+    """
+
+    def test_main_with_no_arguments_runs_chans_window_at_the_books_rate(
+        self, monkeypatch, capsys
+    ) -> None:
+        monkeypatch.setattr("sys.argv", ["chan.kelly_leverage"])
+        main()
+        out = capsys.readouterr().out
+        assert f"{BOOK_START} .. {BOOK_END}" in out
+        assert "3,758 closes, 3,757 daily returns" in out
+        assert f"risk-free {RISK_FREE:.0%} subtracted" in out
+        assert cell(out, "optimal Kelly leverage f*").startswith("2.5506")
+
+    def test_the_rate_reaches_the_arithmetic_and_not_only_the_label(
+        self, monkeypatch, capsys
+    ) -> None:
+        """The label and the figures came from different places. Dropping
+        ``risk_free=`` inside ``report`` printed "risk-free 0%" over figures
+        computed at four percent, and the argument-passing case passed on it
+        because it asserts the label.
+        """
+        monkeypatch.setattr("sys.argv", ["chan.kelly_leverage", "--risk-free", "0.0"])
+        main()
+        out = capsys.readouterr().out
+        moments = annualised_moments(
+            simple_returns(load_close("SPY", dated=VINTAGE_DATE)[BOOK_START:BOOK_END]),
+            risk_free=0.0,
+        )
+        assert (
+            cell(out, "optimal Kelly leverage f*")
+            == (
+                f"{moments.leverage:>12.4f}   {'2.528':>8}   {moments.leverage - 2.528:+.3f}"
+            ).strip()
+        )
+        # At a zero rate the excess return is the total return, so the two rows
+        # print the same computed figure under different book figures. That is
+        # the cheapest statement of "the rate reached the arithmetic" that does
+        # not restate a number.
+        assert (
+            cell(out, "mean excess return").split()[0]
+            == (cell(out, "mean annual return").split()[0])
+        )
+        assert "0.0/252 a day and 0.0/12 a month" in out
+
+    def test_the_rate_reaches_every_sampling_rule(self, chan_window) -> None:
+        """``sampling_scan`` takes the rate and three of its four rules are
+        monthly, so dropping it there moves three rows and no label."""
+        at_zero = sampling_scan(chan_window, risk_free=0.0)
+        at_the_book = sampling_scan(chan_window)
+        for rule in SAMPLING_RULES:
+            assert at_zero[rule].leverage != at_the_book[rule].leverage
+            assert at_zero[rule].excess_annual == pytest.approx(
+                at_the_book[rule].excess_annual + RISK_FREE, abs=5e-12
+            )
+
+
+class TestTheMonthEndCalendar:
+    """``_final_month_is_partial`` was covered by two shapes and needed four.
+
+    Both survivors are off-by-one on the range it scans, and each one drops a
+    month of returns from a rule that names itself complete.
+    """
+
+    @staticmethod
+    def series(days: list[str]) -> pd.Series:
+        return pd.Series(
+            range(1, len(days) + 1), index=pd.DatetimeIndex(pd.to_datetime(days)), dtype=float
+        )
+
+    def test_a_month_whose_last_weekday_is_the_last_bar_is_complete(self) -> None:
+        """May 2026 ends on a Sunday, so a Friday 29th bar closes it. Widening
+        the weekday test to include Saturday called this partial."""
+        closes = self.series(["2026-04-30", "2026-05-29"])
+        assert len(resample_close(closes, "month-end-complete")[0]) == 2
+
+    def test_the_last_bar_does_not_count_as_a_day_still_to_come(self) -> None:
+        """Scanning from ``last`` rather than the day after it makes every
+        weekday bar partial unless it is the month's final calendar day."""
+        closes = self.series(["2026-05-29", "2026-06-30"])
+        assert len(resample_close(closes, "month-end-complete")[0]) == 2
+
+    def test_a_month_with_weekdays_left_in_it_is_partial(self) -> None:
+        """The case Chan's own span is: 2007-12-28 with the 31st still to trade."""
+        closes = self.series(["2007-11-30", "2007-12-28"])
+        assert len(resample_close(closes, "month-end-complete")[0]) == 1
