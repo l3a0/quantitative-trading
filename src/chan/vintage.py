@@ -122,8 +122,9 @@ class VintageEntry:
     :func:`read_manifest` reads back. A hand-edited or badly-merged line is how
     a date ``record_vintage`` would have refused reaches the record, and a
     record whose reader takes such a date is weaker than the writer that filled
-    it. The date is one of the five fields a vintage is identified by, so it is
-    the last one to take on trust.
+    it. The other four identity fields are not checked here. Two of them are
+    [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) and the
+    path is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
     """
 
     vendor: str
