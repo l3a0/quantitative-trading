@@ -47,7 +47,10 @@ prints no formula and the near misses do not look wrong on the page.
 3. ``growth_exact`` is the discrete rate, ``0.5 * ln(1.11) + 0.5 * ln(0.90)``.
    It is the right answer to a question the book did not ask, and it differs
    at the fourth significant digit, so it is reported beside the book's figure
-   rather than in place of it.
+   rather than in place of it. That rule governs how a *rate* is reported,
+   where the book prints a figure to stand beside. :func:`capital_horizon`
+   reports a *capital*, and the book works no horizon, so there is nothing to
+   stand beside and the exact rate is compounded on its own.
 
 **The rescaling is the trap.** At location 3186 Chan adjusts the payoff as
 capital changes, so a doubled account of $2,000 wins $220 or loses $200. Each
@@ -59,8 +62,11 @@ $100 against a changing balance has no constant growth rate to report at all.
 the number of rounds, so a report showing two rates at one horizon shows a
 disagreement in sign and never a divergence. What accumulates is the capital
 they imply, since the ensemble mean compounds up while the time-average path
-compounds down. :func:`capital_horizon` is that comparison, and the ratio grows
-as ``exp(0.005488 * n)``.
+compounds down. :func:`capital_horizon` is that comparison. The ensemble side
+compounds ``ensemble_log_growth`` and the time-average side compounds
+``growth_exact``, so the ratio grows as
+``exp((ensemble_log_growth - growth_exact) * n)``. That exponent is 0.005488
+per round for Chan's payoffs.
 
 ``tests/test_coin_flip_growth.py`` is the single authority for every number
 quoted about this experiment, and ``docs/replication-log.md`` Entry 2 carries
@@ -87,7 +93,8 @@ LOSS = 100.0
 START_CAPITAL = 1000.0
 BOOK_REF = (
     "Example 6.1 (rev. ed., locations 3176 and 3186): win $110 or lose $100 "
-    "on $1,000, expected return 0.005, return sd 0.105, growth -0.0005125"
+    "on $1,000, expected return 0.005, return sd 0.105, growth -0.0005125 "
+    "in the continuous approximation"
 )
 
 # The size the pinned run uses. Chosen from measurement rather than taste: at
@@ -165,10 +172,14 @@ class Simulation:
 class Horizon:
     """Capital after ``rounds``, on both averages, and the gap between them.
 
-    ``time_average_capital`` is ``exp(g * rounds)``, the path the time-average
-    rate describes. It equals the median path at even ``rounds`` and not at odd
-    ones, where the head count cannot split, so it is named for the rate it
-    comes from rather than called typical.
+    ``time_average_capital`` compounds ``growth_exact``, the exact discrete
+    rate, and not the continuous approximation the book prints. It equals the
+    median path at even ``rounds`` and not at odd ones, where the head count
+    cannot split, so it is named for the rate it comes from rather than called
+    typical. That identity is what makes the choice of rate checkable, and
+    ``test_the_time_average_path_is_the_median_path`` holds it: the
+    approximation reaches $598.9962 at 1,000 rounds, which is no path the
+    gamble can take.
     """
 
     rounds: int
@@ -298,8 +309,11 @@ def capital_horizon(
     """Capital after ``rounds``, on the ensemble average and on the time average.
 
     This is the divergence. Both rates are constants, so only the capital they
-    compound into pulls apart, and the ratio grows as ``exp((e - g) * rounds)``
-    where the exponent is 0.005488 per round for Chan's payoffs.
+    compound into pulls apart. The ensemble side compounds
+    ``ensemble_log_growth`` and the time-average side compounds
+    ``growth_exact``, so the ratio grows as
+    ``exp((ensemble_log_growth - growth_exact) * rounds)``, an exponent of
+    0.005488 per round for Chan's payoffs.
     """
     ensemble = capital * math.exp(moments.ensemble_log_growth * rounds)
     time_average = capital * math.exp(moments.growth_exact * rounds)
@@ -367,6 +381,10 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
             f"  {h.rounds:>8,}  {'$' + format(h.ensemble_capital, ',.0f'):>16}"
             f"  {'$' + format(h.time_average_capital, ',.0f'):>19}  {h.ratio:>10,.2f}"
         )
+    print("  The time-average path compounds growth_exact, the exact discrete rate")
+    print("  above, and not the book's continuous approximation. The ensemble mean")
+    print("  compounds ensemble_log_growth, so the ratio grows at")
+    print("  ensemble_log_growth minus growth_exact.")
     print()
     print("A replication is exploratory when a sample was spent looking. This one")
     print("spends none, so neither that label nor its opposite reaches it.")

@@ -349,13 +349,45 @@ class TestTheCapitalDiverges:
         ]
         assert ratios == sorted(ratios)
 
+    def test_the_time_average_path_is_the_median_path(self, moments) -> None:
+        """Why ``capital_horizon`` compounds ``growth_exact`` and not the book's
+        continuous approximation.
+
+        At even rounds the median path has exactly half heads, so it is
+        ``1.11 * 0.90`` compounded ``rounds // 2`` times. Only the exact
+        discrete rate reproduces it, because that rate is the log of that
+        product halved. The approximation reaches $598.9962 at 1,000 rounds
+        against the median path's $606.3789, which is a capital no run of the
+        gamble can produce.
+
+        This is the claim that makes row 8 of ``docs/replication-log.md``
+        Entry 2 defensible, and nothing else in the suite holds it.
+        """
+        for rounds in (10, 100, 250, 1000):
+            median = START_CAPITAL * (1.11 * 0.90) ** (rounds // 2)
+            assert capital_horizon(rounds, moments).time_average_capital == pytest.approx(
+                median, rel=5e-12
+            )
+        approximated = START_CAPITAL * math.exp(moments.growth_continuous * 1000)
+        assert approximated == pytest.approx(598.9962, abs=5e-5)
+        assert approximated != pytest.approx(606.3789, abs=5e-5)
+
     def test_the_ratio_grows_at_the_difference_between_the_rates(self, moments) -> None:
-        """exp(0.005488 * n), that exponent being one rate minus the other."""
+        """The ratio grows as ``exp((ensemble_log_growth - growth_exact) * n)``.
+
+        0.005488 is that exponent rounded, and it is asserted as its own fact
+        rather than as the recipe the ratio comes from. Multiplying the rounded
+        figure by 1,000 gives 241.77 against the 241.72 the ratio actually
+        reaches, so a surface quoting both invites a reader to compute the
+        wrong one.
+        """
         exponent = moments.ensemble_log_growth - moments.growth_exact
         assert exponent == pytest.approx(0.005488, abs=5e-7)
         assert capital_horizon(1000, moments).ratio == pytest.approx(
             math.exp(exponent * 1000), rel=1e-9
         )
+        assert math.exp(0.005488 * 1000) == pytest.approx(241.77, abs=5e-3)
+        assert math.exp(0.005488 * 1000) != pytest.approx(241.72, abs=5e-3)
 
     def test_the_capital_a_reader_sees_at_a_thousand_rounds(self, moments) -> None:
         """$146,576 against $606, from $1,000. The ensemble player is rich and
@@ -419,6 +451,20 @@ class TestTheReportSaysWhatItComputed:
         rows = [line for line in capsys.readouterr().out.splitlines() if row.match(line)]
         assert len(rows) == 4
         assert "241.72" in rows[-1]
+
+    def test_the_report_names_which_rate_the_capital_table_compounds(self, capsys) -> None:
+        """Three numbers print under the label "time average" above the table,
+        so the table's own column header names none of them.
+
+        The assertion is on the sentence rather than on a phrase the rest of
+        the report already prints. ``exact discrete`` appears on the rate line
+        and ``time-average path`` is the column header, so an assertion on
+        either would pass with this line deleted. Checked by deleting it.
+        """
+        report(simulate(10, 10, 0), horizons=(10,))
+        out = capsys.readouterr().out
+        assert "compounds growth_exact" in out
+        assert "compounds ensemble_log_growth" in out
 
     def test_a_run_that_cannot_resolve_the_sign_says_so_in_the_report(self, capsys) -> None:
         """The too-small branch, which is the visible half of requirement 5.

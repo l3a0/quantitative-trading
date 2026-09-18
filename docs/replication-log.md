@@ -447,7 +447,9 @@ Eight rows, all derivable from
 [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py). Three
 carry no published figure and say so in their own cells: row 6 is the exact
 discrete rate the book does not print, row 7 states the ensemble side in log
-units, and row 8 is the capital comparison that makes the argument visible.
+units, and row 8 compounds those two against each other, the ensemble side over
+the exact discrete rate, into the capital comparison that makes the argument
+visible.
 
 **The vintage column says `none, synthetic` in every row.** A gamble has no
 vendor and no download date, so the column that makes every other row checkable
@@ -464,7 +466,7 @@ has nothing to hold. Leaving it blank would read as an omission.
 | 5 | The rescaling, worked | \$2,000 of capital wins \$220 or loses \$200 | location 3186 |
 | 6 | Exact discrete growth rate | none, the book gives only the continuous approximation | n/a |
 | 7 | Ensemble average in log units | none, the book prints the simple return | n/a |
-| 8 | Capital after 1,000 rounds on each average | none, the book works no horizon | n/a |
+| 8 | Capital after 1,000 rounds, the ensemble side against the exact discrete rate | none, the book works no horizon | n/a |
 
 ### What this repo computed
 
@@ -477,7 +479,7 @@ has nothing to hold. Leaving it blank would read as an omission.
 | 5 | The stake the rescaling implies, as a fraction of capital at any level | none, synthetic | exactly 1/10, against a break-even stake of 1/11 | `TestBookFigures::test_the_stake_is_exactly_a_tenth` and `::test_the_gamble_sits_just_past_break_even` |
 | 6 | `0.5 * ln(1.11) + 0.5 * ln(0.90)` | none, synthetic | −0.00050025 | `TestTheNearMisses::test_the_exact_discrete_rate_is_a_different_number` |
 | 7 | `ln(1 + m)`, so both averages are per-round log rates | none, synthetic | +0.0049875 | `TestBookFigures::test_the_two_averages_disagree_in_sign` |
-| 8 | Each average compounded from \$1,000 over 1,000 rounds | none, synthetic | \$146,576 against \$606, a ratio of 241.72 | `TestTheCapitalDiverges::test_the_capital_a_reader_sees_at_a_thousand_rounds` and `::test_the_gap_widens_with_every_round` |
+| 8 | `ensemble_log_growth` and `growth_exact` each compounded from \$1,000 over 1,000 rounds | none, synthetic | \$146,576 against \$606, a ratio of 241.72 | `TestTheCapitalDiverges::test_the_capital_a_reader_sees_at_a_thousand_rounds`, `::test_the_gap_widens_with_every_round` and `::test_the_time_average_path_is_the_median_path` |
 
 ### The verdicts
 
@@ -509,9 +511,22 @@ Four things, and the first is why a verdict here carries less than it looks.
    −0.0005125 alone would hold a number rather than a choice.
 3. **The two rates do not diverge. The capital does.** Both are constants in
    the number of rounds, so a report showing two rates at one horizon shows a
-   disagreement in sign and never a divergence. Row 8 is the divergence: the
-   ratio grows as `exp(0.005488 * n)`, that exponent being one rate minus the
-   other, and it reaches 241.72 by 1,000 rounds.
+   disagreement in sign and never a divergence. Row 8 of this entry is the
+   divergence: the ratio grows as
+   `exp((ensemble_log_growth - growth_exact) * n)`, and it reaches 241.72 by
+   1,000 rounds. That exponent rounds to 0.005488 per round, which is a
+   rounding of the rate and not the recipe the ratio comes from. Multiplying
+   the rounded figure by 1,000 gives 241.77 instead.
+
+   The rate on the time-average side changes between the two rows, and what
+   each row is for is the reason. Row 7 of this entry states the ensemble side
+   in log units so the two averages can be compared against the continuous
+   approximation the book prints. Row 8 of this entry compounds a capital, and
+   the book works no horizon there, so there is no published figure to match
+   and `growth_exact`, the exact discrete rate, is the quantity available. It
+   is also the only rate that reproduces the median path: at 1,000 rounds that
+   path reaches \$606, where the approximation compounds to \$599, a capital
+   no run of the gamble can produce.
 4. **Neither epistemic label reaches this entry.** The design doc defines
    exploratory as a result produced by looking at the data and registered as one
    whose hypothesis was committed before the number was seen. This spends no
