@@ -25,8 +25,11 @@ a guess about what is published.
 Artifact action="read" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW"
 ```
 
-Edit what comes back. Publish with the same `url`, which keeps the link, and a
-short `label` naming the change.
+Save what comes back to a scratch file. The rest of this page calls it
+`qt-board.html` and works in a scratch directory rather than the repo root,
+because the verification step writes two intermediate files and neither belongs
+in a commit. Edit that copy, then publish it with the same `url`, which keeps
+the link, and a short `label` naming the change.
 
 ## Measure everything, recall nothing
 
@@ -43,8 +46,9 @@ python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data
 ```
 
 The vintage row count comes from the manifest rather than from counting lines.
-Four of the eight files carry more than one header line, so `wc -l` overstates
-the total by sixteen.
+All eight files carry three header lines, `Price,Close` then `Ticker,<SYM>` then
+`Date,`, so `wc -l` over all eight gives 41,305 against the manifest's 41,281.
+The manifest is the authority.
 
 Three things decide where an open pull request's card goes, and none is
 guessable.
@@ -99,13 +103,16 @@ thinking goes.
 A parse check is not enough, because a comma dropped inside a nested array still
 parses. The page has no suite, so running it is the only check there is.
 
+Run it from the scratch directory holding `qt-board.html`, with `$REPO` set to
+this checkout.
+
 ```bash
 python3 -c "
 import re,sys
 t=open(sys.argv[1]).read()
 open('board.js','w').write(re.search(r'<script>(.*?)</script>', t, re.S).group(1))
 " qt-board.html
-cat .claude/skills/update-build-board/dom-stub.js board.js > run.js
+cat "$REPO"/.claude/skills/update-build-board/dom-stub.js board.js > run.js
 cat >> run.js <<'JS'
 function s(x){return String(x).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();}
 var o=[];
@@ -127,8 +134,10 @@ JS
 osascript -l JavaScript run.js
 ```
 
-No `node` is installed on this machine. `osascript -l JavaScript` is
-JavaScriptCore and runs the script against the stub.
+`osascript -l JavaScript` is JavaScriptCore, and it is what runs this where no
+`node` is installed. It is macOS only. Anywhere else, run the same two files
+with whatever JavaScript engine is present, because the stub is plain ES5 and
+assumes nothing about its host.
 
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something
@@ -170,12 +179,18 @@ because the next one will be a variant rather than something new.
 
 ## Writing the prose
 
-The repo's own writing rules govern every word on the page. Impersonal voice, no
-first person, no em dashes or semicolons, short complete sentences, a counted set
+The repo's own writing rules govern the page's prose. Impersonal voice, no first
+person, no em dashes or semicolons, short complete sentences, a counted set
 written as a list rather than inlined, and the price of a choice named rather
 than hidden.
 
-Two conventions are specific to this page.
+One exception is deliberate and load-bearing. The in-flight column headings say
+"Waiting on my review" and "Waiting on your review", and the whole point of
+those two columns is whose move it is. Applying the impersonal rule to them
+deletes the distinction the section exists to draw. Keep the first and second
+person there, and nowhere else.
+
+Two further conventions are specific to this page.
 
 1. **Say what the page cannot know.** The in-flight section is the most
    perishable thing on it, because a session ends without telling anyone and a
