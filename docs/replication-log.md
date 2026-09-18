@@ -197,7 +197,7 @@ Three things about the shape are deliberate.
   column survives the same test because `none, synthetic` is information and an
   empty window is not.
 - **A negative-results log stays a separate document.**
-  [docs/build-plan.md](build-plan.md) names one as a candidate. It records an
+  [docs/design.md](design.md) names one as a candidate. It records an
   idea that was killed, which is a different object from a published figure
   that was chased, so it does not fit these columns and would not share this
   file.
