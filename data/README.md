@@ -54,7 +54,7 @@ download date, and which price the series carries.
 | `pep_chan.csv` | Chan's `PEP.xls` | PEP | adjusted | 1977-01-03 .. 2008-01-18 | saved 2008-01-23 |
 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
 
-The four yfinance files were not all taken on one day. `gld_20yr_prices.csv`
+The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
 GLD's adjusted series covering a different span from its raw twin at both ends.
 It starts nineteen months later, in 2006-06 against 2004-11, and stops ten

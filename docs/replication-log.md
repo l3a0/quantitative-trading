@@ -722,11 +722,12 @@ Four things, and the first is what makes the other three worth reading.
 
 ### Figures from Chan's workbook, which nothing here pins
 
-Six quantities quoted in this entry, in
+Five quantities quoted in this entry, in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) and in
 [docs/design.md](design.md), come from Ernest Chan's own `example6_2.xls`,
-which this repo does not hold. They are measurements of his data rather than figures
-he printed, and no assertion in this repo touches any of them. That workbook is
+which this repo does not hold. They are measurements of his data rather than
+figures he printed, and no assertion in this repo touches any of them. That
+workbook is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and
 pinning them is what that issue is for.
 
@@ -741,17 +742,15 @@ the suite does not hold.
    does compute.
 2. **0.427523 and 0.427580**, his Sharpe ratio under the sample and population
    dispersion forms. They are why row 4 says only the sample form prints as the
-   0.4275 he published. This repo's own two forms are 5.7e-5 apart on the same
+   0.4275 he published. This repo's own two forms are 5.74e-5 apart on the same
    quantity, which is pinned, so the argument survives without them and the
    demonstration on his own data does not.
 3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row 9 quotes
    it to say the published \$252,800 is arithmetic on a rounded input.
 4. **1.68 percentage points**, what SPY's distributions are worth in annual
-   mean return on his span. The design doc's fallback section quotes it.
-5. **0.11186 and 0.11142**, his mean annualised by 251 and by 250. The module
-   quotes them as the near misses that fix 252. The same comparison is pinned
-   here against this vintage's own moments.
-6. **The three monthly resampling rules run on his series**, which land 43 to
+   mean return on his span. `src/chan/kelly_leverage.py` quotes it as the size
+   of the price-basis choice.
+5. **The three monthly resampling rules run on his series**, which land 43 to
    47 percent above his daily figure. Row 15 cites them to say no vintage
    explanation is available for the claim it refutes. That row's own numbers,
    on this vintage, are pinned.
