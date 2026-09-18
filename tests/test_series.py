@@ -31,7 +31,7 @@ import pytest
 
 from chan import paths, series, vintage
 from chan.paths import DATA_DIR
-from chan.series import close_identity, load_close, load_vintage
+from chan.series import aligned_closes, close_identity, load_close, load_vintage
 from chan.vintage import (
     MANIFEST_NAME,
     VintageEntry,
@@ -909,8 +909,6 @@ class TestTheDataDirectoryThreadsAllTheWayDown:
     """
 
     def test_the_pair_reader_takes_one(self, committed_copy: Path) -> None:
-        from chan.pair_cointegration import aligned_closes
-
         assert len(aligned_closes("GLD", "GDX", unadjusted=True, data_dir=committed_copy)) == 5099
 
     def test_the_report_takes_one(

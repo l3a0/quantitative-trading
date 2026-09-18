@@ -41,6 +41,12 @@ spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged today and nothing computes across
 them, which is what says the guard reports a real thing rather than a
 hypothetical.
+
+:func:`aligned_closes` joins a pair on its common trading days and hands
+back both manifest entries, so this module reads two series as well as one.
+It sat in :mod:`chan.pair_cointegration` until
+[issue 122](https://github.com/l3a0/quantitative-trading/issues/122), and it
+is here for the reason the paragraph above gives for the parse.
 """
 
 from __future__ import annotations
@@ -297,11 +303,11 @@ def refuse_window_crossing_a_break(
 
     It is all or nothing at this boundary, which is right for a single-window
     run and not for a rolling one. :func:`chan.regime_figure.make_regime_figure`
-    rolls inside one :func:`chan.pair_cointegration.aligned_closes` call, so a
-    flagged leg withdraws the whole figure rather than the windows that cross.
-    Nothing needs the other behaviour today, since that function hard-codes GLD
-    and GDX and neither is flagged, and :func:`scale_breaks` underneath returns
-    the dates either way.
+    rolls inside one :func:`aligned_closes` call, so a flagged leg withdraws
+    the whole figure rather than the windows that cross. Nothing needs the
+    other behaviour today, since that function hard-codes GLD and GDX and
+    neither is flagged, and :func:`scale_breaks` underneath returns the dates
+    either way.
     """
     moved, unreadable = [], []
     for entry, closes in legs:
@@ -338,6 +344,88 @@ def refuse_window_crossing_a_break(
         f"the window {start.date()} to {end.date()} cannot be computed across: "
         f"{'; '.join(said)}. {' '.join(why)} Read a window that does not span the dates named."
     )
+
+
+def aligned_closes(
+    a: str,
+    b: str,
+    *,
+    start: str | None = None,
+    end: str | None = None,
+    unadjusted: bool = False,
+    chan: bool = False,
+    data_dir: Path | None = None,
+) -> pd.DataFrame:
+    """Inner-join two tickers' closes on their common trading days.
+
+    Optionally clipped to the inclusive window ``[start, end]``, both
+    ``YYYY-MM-DD``. ``chan=True`` loads both legs from Chan's committed
+    companion data. Each leg is resolved through the manifest and verified
+    against the sha256 recorded there before it is read.
+
+    The two entries come back on ``DataFrame.attrs["vintages"]``, in leg order.
+    A report that names which vintage produced its numbers needs them, and the
+    frame drops everything the lookup knew, so they ride along rather than
+    being resolved a second time to a possibly different answer.
+
+    There is no ``dated`` argument here on purpose. One date applied to both
+    legs is wrong on the default run, whose two vintages were downloaded 72
+    days apart, so a pair that needs to name its dates needs one per leg. That
+    is [issue 69](https://github.com/l3a0/quantitative-trading/issues/69).
+    Until it lands, an ambiguous pair stops the run and names the candidates.
+
+    It lives beside the one-leg readers rather than in a replication, because
+    every experiment that reads a pair needs this join, and importing a
+    Chapter 7 replication to open two files is what this module's docstring
+    decided against for the parse. It was in :mod:`chan.pair_cointegration`
+    until [issue 122](https://github.com/l3a0/quantitative-trading/issues/122)
+    moved it here.
+
+    **Where this came from.** ``search/pair_cointegration.py`` in the sibling
+    ``trading-strategies`` repo, at commit ``b27222b``, landed in
+    ``chan.pair_cointegration`` here in ``ce3f757``. The port changed nothing
+    but the formatting and the docstring. Everything that separates it from
+    the sibling's version was added here afterwards, in three changes.
+
+    1. A ``data_dir`` argument, so a test reads a copied tree rather than the
+       committed ``data/``.
+    2. ``load_close`` became ``load_vintage`` for each leg, which is what
+       resolves the pair through the manifest and verifies its bytes, and what
+       gives the two entries this function hands back on ``attrs``.
+    3. The scale-break refusal after the clip.
+
+    So diff ``b27222b:search/pair_cointegration.py`` against
+    ``ce3f757:src/chan/pair_cointegration.py`` to read the port, with
+    docstrings stripped from both sides because they are most of it. Neither
+    side is this file, and diffing the sibling against it instead compares a
+    cointegration script with a reader. The three above are the whole of what
+    happened after the port.
+    """
+    entry_a, close_a = load_vintage(a, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
+    entry_b, close_b = load_vintage(b, unadjusted=unadjusted, chan=chan, data_dir=data_dir)
+    joined = pd.concat([close_a, close_b], axis=1, join="inner").dropna()
+    joined.columns = [a.upper(), b.upper()]
+    if start is not None:
+        joined = joined.loc[joined.index >= pd.Timestamp(start)]
+    if end is not None:
+        joined = joined.loc[joined.index <= pd.Timestamp(end)]
+    if not joined.empty:
+        # The clip is what decides whether a scale break is inside the window,
+        # so the check runs here and not in `load_vintage`. The KO vintage
+        # spans 1962 to 2008 and carries two breaks in the 1960s, and it
+        # arrives here whole: refusing it at load time would stop the KO/PEP
+        # replication, whose window starts in 1977 and is correct. Each leg is
+        # handed over unclipped and cut to its own trading days inside the
+        # check, rather than read off `joined`, whose inner join drops days one
+        # leg traded and the other did not and so widens the gap a ratio is
+        # taken across.
+        refuse_window_crossing_a_break(
+            ((entry_a, close_a), (entry_b, close_b)),
+            start=joined.index[0],
+            end=joined.index[-1],
+        )
+    joined.attrs["vintages"] = (entry_a, entry_b)
+    return joined
 
 
 def _dates(days: pd.DatetimeIndex) -> str:
