@@ -20,6 +20,13 @@ them in the order it is handed them, because the file is meant to be what the
 vendor returned, while the span in the entry is the smallest and largest date
 rather than the first and last row.
 
+Every write here takes bytes rather than text, which covers the series file,
+the manifest entry, the rollback's rewrite and ``data/checksums.sha256``. A
+text-mode write with no ``newline`` argument translates every newline to
+``os.linesep``, which is CRLF on Windows. The record would then hold bytes the
+code did not build, and a projection whose lines end in a carriage return fails
+``shasum -a 256 -c`` on every vintage it names.
+
 Reading is the other half and it runs the record backwards.
 :func:`resolve_vintage` turns identity fields into the one entry that names
 them, and :func:`read_vintage` hands back that entry's bytes once they hash to
@@ -197,6 +204,12 @@ def vintage_filename(
     over a weekend or a holiday or after a delisting, agree on vendor, symbol,
     span and price basis, and the second would be refused as a duplicate of the
     first. That pair is exactly what a test of the premise needs.
+
+    The convention is asserted rather than merely followed. Because all five
+    fields are in the name, ``tests/test_vintage.py`` holds every recorded
+    entry to the name its file took, which is what stands between an entry and
+    a file it does not describe. Changing the join therefore moves that check,
+    and a vintage already on disk keeps the name it was given.
     """
     span = f"{first_date}_{last_date}"
     return f"{vendor}_{symbol.lower()}_{price_basis}_{span}_dl{download_date}.csv"
@@ -344,7 +357,7 @@ def write_checksums(data_dir: Path | None = None) -> None:
     directory = paths.DATA_DIR if data_dir is None else data_dir
     entries = sorted(read_manifest(directory), key=lambda entry: entry.path)
     lines = [f"{entry.sha256}  {entry.path}\n" for entry in entries]
-    (directory / CHECKSUMS_NAME).write_text("".join(lines), encoding="utf-8")
+    (directory / CHECKSUMS_NAME).write_bytes("".join(lines).encode("utf-8"))
 
 
 def resolve_vintage(
@@ -596,10 +609,10 @@ def _append_entry(data_dir: Path, entry: VintageEntry) -> None:
     """
     manifest = _manifest_path(data_dir)
     existing = manifest.read_bytes()
-    with open(manifest, "a", encoding="utf-8") as handle:
+    with open(manifest, "ab") as handle:
         if existing and not existing.endswith(b"\n"):
-            handle.write("\n")
-        handle.write(entry.as_json() + "\n")
+            handle.write(b"\n")
+        handle.write((entry.as_json() + "\n").encode("utf-8"))
 
 
 def _drop_entry(data_dir: Path, entry: VintageEntry) -> None:
@@ -631,5 +644,6 @@ def _rewrite_manifest(data_dir: Path, entries: list[VintageEntry]) -> None:
     """
     manifest = _manifest_path(data_dir)
     temporary = manifest.with_name(manifest.name + ".rewriting")
-    temporary.write_text("".join(entry.as_json() + "\n" for entry in entries), encoding="utf-8")
+    payload = "".join(entry.as_json() + "\n" for entry in entries)
+    temporary.write_bytes(payload.encode("utf-8"))
     temporary.replace(manifest)
