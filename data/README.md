@@ -32,8 +32,10 @@ That check is what stands between a recorded entry and a file it does not
 describe, and it is worth saying what it does not do. It compares the record
 against its own shadow, so it catches an edit to one side and never an entry
 that was consistent when it was written. The symbol's case is outside it too,
-because the join lowercases it. `## Header shape` below is why the bytes cannot
-carry the symbol instead.
+because the join lowercases it, and what catches a case edit there is
+`chan.vintage`'s own refusal of a line whose vendor, symbol or price basis is
+not the spelling the recorder would have written. `## Header shape` below is
+why the bytes cannot carry the symbol instead.
 
 ## What each file is
 
