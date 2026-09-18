@@ -193,6 +193,9 @@ build-order column heading and subtitle, and `KINDWORD` carries the phrase a
 card prints for its kind. A heading that looks hardcoded in the template is in
 one of those.
 
+One more constant is not in the table because nothing should edit it.
+`NEXT_SORTED` is `NEXT` put in order, and it is derived on every load.
+
 | Block | Holds |
 | --- | --- |
 | `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
