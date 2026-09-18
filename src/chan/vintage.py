@@ -73,7 +73,7 @@ import os
 import re
 from collections import Counter
 from collections.abc import Iterable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import date
 from pathlib import Path
 
@@ -269,8 +269,18 @@ def read_manifest(data_dir: Path | None = None) -> list[VintageEntry]:
 
     A manifest that is there but cannot be read says that instead, because the
     two are different problems with different fixes and one message for both
-    sends the reader to the wrong one. A line that will not parse names its own
-    number, since a manifest is read to find out what went wrong.
+    sends the reader to the wrong one. A refused line names its own number and
+    the reason it was refused, since a manifest is read to find out what went
+    wrong and a number says which line rather than what. The fix for a date a
+    hand edit broke, for a key a hand edit dropped, and for a line that is not
+    JSON are three different fixes.
+
+    The reason takes one of three shapes and the message takes one.
+    :meth:`VintageEntry.__post_init__` already writes for an operator and its
+    words carry through untouched. ``json`` writes for whoever is looking at
+    the text, and its column survives while its own line number does not.
+    Python writes about the constructor, so :func:`_wrong_shape` says those in
+    the manifest's terms before an entry is built.
     """
     manifest = _manifest_path(data_dir)
     if not manifest.exists():
@@ -283,9 +293,25 @@ def read_manifest(data_dir: Path | None = None) -> list[VintageEntry]:
         if not line.strip():
             continue
         try:
-            entries.append(VintageEntry(**json.loads(line)))
-        except (json.JSONDecodeError, TypeError, ValueError) as unreadable:
-            raise ValueError(f"{manifest} line {number} is not a vintage entry") from unreadable
+            parsed = json.loads(line)
+        except json.JSONDecodeError as unparsed:
+            # `msg` and `colno` rather than the exception's own string, which
+            # ends in "line 1 column 2 (char 1)". `json` is handed one line at a
+            # time, so that line number is always 1, and printing it beside the
+            # manifest's would put two numbers meaning two different things in
+            # one message. The manifest's is the one an operator needs.
+            raise _refused_line(
+                manifest, number, f"it is not JSON: {unparsed.msg}, at column {unparsed.colno}"
+            ) from unparsed
+
+        wrong_shape = _wrong_shape(parsed)
+        if wrong_shape is not None:
+            raise _refused_line(manifest, number, wrong_shape)
+
+        try:
+            entries.append(VintageEntry(**parsed))
+        except (TypeError, ValueError) as refused:
+            raise _refused_line(manifest, number, str(refused)) from refused
     return entries
 
 
@@ -529,6 +555,69 @@ def read_vintage(entry: VintageEntry, data_dir: Path | None = None) -> bytes:
             f"rather than computing a number from it."
         )
     return payload
+
+
+def _refused_line(manifest: Path, number: int, reason: str) -> ValueError:
+    """The one shape every refused line takes, built in one place.
+
+    Returned rather than raised, so the caller keeps the ``raise ... from`` that
+    holds the original as the chained cause. Three literals would let a reader
+    think the difference between them carried something.
+    """
+    return ValueError(f"{manifest} line {number} is not a vintage entry: {reason}")
+
+
+def _wrong_shape(parsed: object) -> str | None:
+    """What a parsed line got wrong before an entry is built, or ``None``.
+
+    Decided here rather than in a handler because Python cannot be asked. A
+    line that is not a mapping, a line missing a field and a line carrying a
+    field that does not exist all reach ``VintageEntry(**parsed)`` as a bare
+    :class:`TypeError` holding one argument, and only its message string tells
+    the three apart. That message also describes the constructor rather than
+    the manifest, and it names only the first key it does not recognise.
+
+    So the price of saying this in the manifest's terms is a second statement
+    of what a line must hold. It is read off :func:`dataclasses.fields` rather
+    than written out, so adding a field to :class:`VintageEntry` cannot leave
+    it behind.
+    """
+    if not isinstance(parsed, dict):
+        return f"an entry's fields are a JSON object, and this line is {_json_kind(parsed)}"
+
+    known = {field.name for field in fields(VintageEntry)}
+    # Neither date field is required on its own, because `__post_init__` takes
+    # exactly one of the two. A plain difference against every field would call
+    # both missing on every valid line, including the eight committed ones.
+    required = known - {"download_date", "saved_date"}
+    missing = sorted(required - parsed.keys())
+    unknown = sorted(parsed.keys() - known)
+
+    reasons = []
+    if missing:
+        reasons.append(f"it does not carry {', '.join(missing)}")
+    if unknown:
+        reasons.append(f"an entry has no field named {', '.join(unknown)}")
+    return " and ".join(reasons) or None
+
+
+def _json_kind(parsed: object) -> str:
+    """What ``json`` calls the thing a line parsed to, for a reader reading JSON.
+
+    A manifest line is JSON text, so "a JSON array" sends its reader somewhere
+    Python's ``list`` does not. The lookup is on the exact type, since ``bool``
+    is a subclass of ``int`` and would otherwise be a number. ``json.loads``
+    returns nothing else, and the fallback is there so a miss could not replace
+    a refusal with a ``KeyError`` raised while reporting it.
+    """
+    return {
+        list: "a JSON array",
+        str: "a JSON string",
+        int: "a JSON number",
+        float: "a JSON number",
+        bool: "a JSON boolean",
+        type(None): "the JSON literal null",
+    }.get(type(parsed), f"a {type(parsed).__name__}")
 
 
 def _manifest_path(data_dir: Path | None) -> Path:

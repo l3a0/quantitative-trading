@@ -130,14 +130,126 @@ class TestRecordingAVintage:
 
         assert [entry.path for entry in read_manifest(data_dir)] == [first.path, second.path]
 
-    def test_a_line_that_will_not_parse_names_itself(self, data_dir):
-        """A manifest is read to find out what went wrong, so it says which line."""
+    def test_a_line_that_will_not_parse_names_itself_and_holds_one_line_number(self, data_dir):
+        """A manifest is read to find out what went wrong, so it says which line.
+
+        And which column, without a second line number beside the first.
+        `json` is handed one line at a time, so its own message ends in
+        "line 1 column 2 (char 1)" however far down the manifest the line sits.
+        Concatenating that would put two numbers meaning two different things
+        in one message, and the manifest's is the one an operator needs.
+        `JSONDecodeError` carries `msg` and `colno` separately, which gives the
+        column without the line.
+        """
         record_vintage(ROWS, data_dir=data_dir, **SOURCE)
         manifest = data_dir / MANIFEST_NAME
         manifest.write_text(manifest.read_text() + "{not json}\n", encoding="utf-8")
 
-        with pytest.raises(ValueError, match="line 2"):
+        with pytest.raises(ValueError) as refused:
             read_manifest(data_dir)
+
+        assert "line 2 is not a vintage entry: it is not JSON: " in str(refused.value)
+        assert "at column 2" in str(refused.value)
+        assert "line 1" not in str(refused.value)
+
+    def test_a_refused_line_carries_the_reason_it_was_refused(self, data_dir):
+        """A line number says which line and not what, and the fixes differ.
+
+        The funnel dropped eight causes into one message, so a date a hand edit
+        broke, a key a hand edit dropped and a line that is not JSON all
+        reached an operator as the same sentence. The reason arrives in three
+        shapes and one message shape has to hold all three.
+
+        1. What `__post_init__` raises already names the entry's own path and
+           the value, so it carries through as it stands.
+        2. What `json` raises is checked in the test above, which owns the
+           collision between its line number and the manifest's. It appears
+           here only to show one message shape holding all three.
+        3. What Python raises describes `VintageEntry.__init__` rather than the
+           manifest, and names only the first key it does not recognise, so
+           this is the shape that is restated. Its three sub-cases all arrive
+           as a bare `TypeError` that only the message string tells apart,
+           which is why the shape is decided from the parsed object instead.
+
+        Asserted as substrings rather than through `pytest.raises(match=...)`,
+        which takes a regex and no test in this suite calls `re.escape`. Every
+        fragment below holds a committed-style path, so the dot before `csv`
+        would read as any character and quietly weaken the assertion that is
+        written on the page.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        recorded = json.loads(good)
+
+        def without(*keys):
+            return {key: held for key, held in recorded.items() if key not in keys}
+
+        refused = [
+            (
+                {**recorded, "saved_date": "2026-08-27"},
+                f"{RECORDED_NAME}: an entry carries a download date or a saved date, not both "
+                f"and not neither",
+            ),
+            (
+                {**recorded, "download_date": "2026-02-30"},
+                f"{RECORDED_NAME}: download date '2026-02-30' is not a day that exists",
+            ),
+            ([recorded], "an entry's fields are a JSON object, and this line is a JSON array"),
+            (without("symbol", "sha256"), "it does not carry sha256, symbol"),
+            # Two of them, because Python names one. A hand edit that misspells
+            # a key produces one of each at once, so both halves are said.
+            ({**recorded, "extra": 1, "also": 2}, "an entry has no field named also, extra"),
+            (
+                {**without("symbol"), "also": 2, "extra": 1},
+                "it does not carry symbol and an entry has no field named also, extra",
+            ),
+        ]
+
+        for line, reason in refused:
+            manifest.write_text(f"{good}\n{json.dumps(line)}\n", encoding="utf-8")
+
+            with pytest.raises(ValueError) as caught:
+                read_manifest(data_dir)
+
+            assert f"line 2 is not a vintage entry: {reason}" in str(caught.value)
+
+        manifest.write_text(f"{good}\n{{not json}}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError) as caught:
+            read_manifest(data_dir)
+
+        assert "line 2 is not a vintage entry: it is not JSON: " in str(caught.value)
+
+    def test_neither_date_field_is_required_on_its_own(self, data_dir):
+        """The shape check asks for eight fields, and the two dates are not among them.
+
+        `__post_init__` takes exactly one of `download_date` and `saved_date`,
+        so a plain difference against every declared field would report both as
+        missing on every valid line, including the eight committed ones. The
+        line that carries neither still refuses, and it refuses for the reason
+        `__post_init__` gives rather than for a shape the check invented.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        recorded = json.loads(good)
+        neither = {key: held for key, held in recorded.items() if key != "download_date"}
+        manifest.write_text(f"{good}\n{json.dumps(neither)}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError) as caught:
+            read_manifest(data_dir)
+
+        assert "does not carry" not in str(caught.value)
+        assert "not both and not neither" in str(caught.value)
+
+        saved = {**neither, "saved_date": "2026-08-27"}
+        manifest.write_text(f"{good}\n{json.dumps(saved)}\n", encoding="utf-8")
+
+        assert [entry.obtained_verb for entry in read_manifest(data_dir)] == [
+            "downloaded",
+            "saved",
+        ]
 
     def test_an_appended_entry_cannot_be_glued_to_the_line_above(self, data_dir):
         """A manifest whose last line lost its newline would otherwise lose two entries.
@@ -355,6 +467,11 @@ class TestTheRefusal:
         good = manifest_lines(data_dir)[0]
         recorded = json.loads(good)
         refused = ["", " 2026-08-27 ", "banana", "2026-1-3", "2026-02-31", "2026-13-01", 20260827]
+        # Which half of `_validated_date` each value is expected to reach. The
+        # calendar half was held by no test in this repo before this one: it
+        # could be reworded to anything and the suite stayed green, because
+        # every assertion stopped at the line number.
+        no_such_day = {"2026-02-31", "2026-13-01"}
 
         for field in ["download_date", "saved_date"]:
             for value in refused:
@@ -362,8 +479,20 @@ class TestTheRefusal:
                 line[field] = value
                 manifest.write_text(f"{good}\n{json.dumps(line)}\n", encoding="utf-8")
 
-                with pytest.raises(ValueError, match="line 2"):
+                with pytest.raises(ValueError) as caught:
                     read_manifest(data_dir)
+
+                half = (
+                    "is not a day that exists"
+                    if value in no_such_day
+                    else "is not an ISO calendar date"
+                )
+                # `download_date` names itself "download date" in the refusal,
+                # which is how the message says which of the two fields it read.
+                named = f"{RECORDED_NAME}: {field.replace('_', ' ')}"
+                assert f"line 2 is not a vintage entry: {named} {value!r} {half}" in str(
+                    caught.value
+                )
 
         # The same second line with a date the writer would have written, so the
         # refusals above are the date's doing rather than the line's shape.
