@@ -13,7 +13,7 @@ in `pyproject.toml`.
 That is the whole job. These are not a second copy of ithildincore's own tests,
 which are broader and live where the code does. This file holds the three
 properties this repo's replications actually rest on, and it is the reason the
-package is pinned to a tag rather than a range.
+package is pinned to a commit rather than a range.
 """
 
 from __future__ import annotations

@@ -236,9 +236,9 @@ uv run pytest
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the one committed figure can be redrawn and checked.
 
-`uv sync` fetches `ithildincore` from GitHub at the tag `pyproject.toml` pins, so
-the first sync needs a network. Every run after that reads the cache, and no
-replication reaches a network at any point.
+`uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
+network. Every run after that reads the cache, and no replication reaches a
+network at any point.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
 two prose sweeps it cannot do run in the test suite.
