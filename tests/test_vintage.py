@@ -11,6 +11,7 @@ The order the cases appear in is the order the rules appear on
 
 import hashlib
 import json
+from pathlib import Path
 
 import pytest
 
@@ -23,11 +24,13 @@ from chan.vintage import (
     VintageRefused,
     read_manifest,
     record_vintage,
+    write_checksums,
 )
 
 ROWS = [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)]
 SOURCE = dict(vendor="yfinance", symbol="GDX", price_basis="raw", download_date="2026-08-27")
 RECORDED_NAME = "yfinance_gdx_raw_2026-08-25_2026-08-27_dl2026-08-27.csv"
+RECORDED_ON_29 = "yfinance_gdx_raw_2026-08-25_2026-08-27_dl2026-08-29.csv"
 
 
 @pytest.fixture
@@ -77,21 +80,70 @@ class TestRecordingAVintage:
         entry = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
 
         assert (data_dir / entry.path).read_bytes() == (
-            b"Price,Close\nTicker,GDX\nDate,\n2026-08-25,50.0\n2026-08-26,51.25\n2026-08-27,52.0\n"
+            b"Date,Close\n2026-08-25,50.0\n2026-08-26,51.25\n2026-08-27,52.0\n"
         )
 
-    def test_the_header_matches_the_shape_every_committed_vintage_carries(self, data_dir):
-        """A second header shape would make data/README.md describe one of two.
+    def test_an_integer_close_is_written_as_a_float(self, data_dir):
+        """One series handed in twice must hash the same, whatever the caller's types.
 
-        `load_close` drops every leading row whose first field is not a date,
-        so a plainer header would read fine. Writing the shape already in the
-        ground costs nothing and keeps one description true for every file.
+        `repr(50)` is `50` and `repr(50.0)` is `50.0`, so without the coercion a
+        caller passing ints and a caller passing floats record the same series
+        under two different digests.
+        """
+        entry = record_vintage([("2026-08-25", 50)], data_dir=data_dir, **SOURCE)
+
+        assert (data_dir / entry.path).read_bytes() == b"Date,Close\n2026-08-25,50.0\n"
+
+    def test_the_header_does_not_borrow_one_vendor_s_shape(self, data_dir):
+        """The eight committed vintages carry yfinance's three-row header.
+
+        Writing that shape for every vendor would put `Price,Close` and a
+        `Ticker` row at the top of a series no vendor of that name returned,
+        which is a claim the file has no business making. `load_close` drops
+        every leading row whose first field is not a date, so it reads either
+        shape, and `data/README.md` describes both.
         """
         entry = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
 
-        written = (data_dir / entry.path).read_text(encoding="utf-8").splitlines()[:3]
-        committed = (DATA_DIR / "gdx_20yr_prices.csv").read_text(encoding="utf-8").splitlines()[:3]
-        assert written == committed
+        written = (data_dir / entry.path).read_text(encoding="utf-8").splitlines()
+        committed = (DATA_DIR / "gdx_20yr_prices.csv").read_text(encoding="utf-8").splitlines()
+        assert written[0] == "Date,Close"
+        assert committed[:3] == ["Price,Close", "Ticker,GDX", "Date,"]
+
+    def test_the_manifest_keeps_the_order_entries_were_written_in(self, data_dir):
+        """`read_manifest` promises write order, and the rollback rewrites the file."""
+        first = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        second = record_vintage(
+            [("2026-01-05", 9.0)], data_dir=data_dir, **{**SOURCE, "download_date": "2026-01-06"}
+        )
+
+        assert [entry.path for entry in read_manifest(data_dir)] == [first.path, second.path]
+
+    def test_a_line_that_will_not_parse_names_itself(self, data_dir):
+        """A manifest is read to find out what went wrong, so it says which line."""
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        manifest.write_text(manifest.read_text() + "{not json}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError, match="line 2"):
+            read_manifest(data_dir)
+
+    def test_an_appended_entry_cannot_be_glued_to_the_line_above(self, data_dir):
+        """A manifest whose last line lost its newline would otherwise lose two entries.
+
+        The append would run the new object onto the end of the old one, and
+        nothing could read the file afterwards, including the rollback that
+        would have undone it.
+        """
+        first = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        manifest.write_text(manifest.read_text().rstrip("\n"), encoding="utf-8")
+
+        second = record_vintage(
+            [("2026-01-05", 9.0)], data_dir=data_dir, **{**SOURCE, "download_date": "2026-01-06"}
+        )
+
+        assert [entry.path for entry in read_manifest(data_dir)] == [first.path, second.path]
 
     def test_unsorted_rows_record_the_span_of_their_dates(self, data_dir):
         """Rule 2. Taking the first and last row records a span the series does not have."""
@@ -193,6 +245,71 @@ class TestTheRefusal:
         assert manifest_lines(data_dir) == []
         assert list(data_dir.iterdir()) == [data_dir / MANIFEST_NAME]
 
+    def test_a_symbol_is_normalised_and_a_path_separator_is_refused(self, data_dir):
+        """The name joins five fields with underscores, so no field may hold one.
+
+        Beyond that the rule is deliberately wide. A leading caret is how every
+        index is written and an equals sign is how futures and currency pairs
+        are, and refusing those would refuse vintages this repo will want.
+        """
+        entry = record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "symbol": "gdx"})
+        assert entry.symbol == "GDX"
+
+        for refused in ["A_B", "A/B", "-X", ""]:
+            with pytest.raises(ValueError, match="symbol"):
+                record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "symbol": refused})
+
+        for accepted in ["^GSPC", "ES=F", "BRK.B", "BTC-USD"]:
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "symbol": accepted})
+
+    def test_a_vendor_is_lowered_and_an_underscore_is_refused(self, data_dir):
+        """Refusing `FRED` outright would be a spelling rule pretending to be a path rule."""
+        entry = record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "vendor": "FRED"})
+        assert entry.vendor == "fred"
+
+        with pytest.raises(ValueError, match="vendor"):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "vendor": "alpha_vantage"})
+
+    def test_a_date_that_no_calendar_carries_is_refused(self, data_dir):
+        """The shape of a date is not the same question as whether the day exists.
+
+        A regex passes `2026-02-31` and `2026-99-99`, and both would reach the
+        manifest as a span and a filename nothing could ever match.
+        """
+        with pytest.raises(ValueError, match="row date"):
+            record_vintage([("2026-02-31", 1.0)], data_dir=data_dir, **SOURCE)
+
+        with pytest.raises(ValueError, match="download date"):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "2026-99-99"})
+
+        assert manifest_lines(data_dir) == []
+
+    def test_a_close_that_is_not_a_finite_number_is_refused(self, data_dir):
+        """A vendor value too large to parse arrives as an infinity, not as an error.
+
+        `float("1e400")` is `inf`, and freezing that into a vintage records an
+        artifact of parsing as a price, with a checksum that will verify it
+        happily for the rest of its life.
+        """
+        for close in [float("nan"), float("inf"), "1e400", None, "n/a"]:
+            with pytest.raises(ValueError, match="close on"):
+                record_vintage([("2026-08-25", close)], data_dir=data_dir, **SOURCE)
+
+        assert manifest_lines(data_dir) == []
+
+    def test_a_manifest_that_cannot_be_read_is_not_reported_as_absent(self, tmp_path):
+        """Absent and unreadable are different problems with different fixes.
+
+        `Path.is_file` is False for both, so the obvious check sends a reader
+        looking for a missing file when the path is occupied by something else.
+        """
+        (tmp_path / MANIFEST_NAME).mkdir()
+
+        with pytest.raises(OSError) as unreadable:
+            read_manifest(tmp_path)
+        assert not isinstance(unreadable.value, FileNotFoundError)
+        assert "not a readable file" in str(unreadable.value)
+
     def test_an_unknown_price_basis_is_refused(self, data_dir):
         """Rule 10. Every refusal compares strings, and so does the path.
 
@@ -279,6 +396,134 @@ class TestTheFailurePath:
 
         assert occupied.read_bytes() == b"first\n"
 
+    def test_an_interrupt_rolls_back_like_any_other_failure(self, data_dir):
+        """The catch is `BaseException` because the danger is not only an `OSError`.
+
+        A keyboard interrupt between the entry and the file leaves exactly the
+        orphan the write order exists to prevent, and it is the one failure a
+        person is most likely to cause by hand.
+        """
+
+        def interrupted(path, payload):
+            raise KeyboardInterrupt
+
+        monkeypatch = pytest.MonkeyPatch()
+        monkeypatch.setattr(vintage, "_write_new_file", interrupted)
+        with pytest.raises(KeyboardInterrupt):
+            record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        monkeypatch.undo()
+
+        assert manifest_lines(data_dir) == []
+
+    def test_a_rollback_leaves_earlier_entries_alone(self, data_dir, monkeypatch):
+        """The rollback replaces the whole manifest, so it can take the wrong line.
+
+        Two downloads of one span share a sha256 and differ only in their
+        download date and path, which the suite asserts elsewhere. A rollback
+        comparing on any single field would drop the earlier vintage and leave
+        its file on disk with no entry, which is the state this module exists
+        to prevent.
+        """
+        kept = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+
+        monkeypatch.setattr(
+            vintage, "_write_new_file", lambda path, payload: (_ for _ in ()).throw(OSError("disk"))
+        )
+        with pytest.raises(OSError):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "2026-08-29"})
+
+        assert [entry.path for entry in read_manifest(data_dir)] == [kept.path]
+        assert (data_dir / kept.path).exists()
+
+    def test_a_rollback_leaves_the_projection_describing_what_is_there(self, data_dir):
+        """A projection written before the file survives a rollback and names a ghost.
+
+        `shasum -a 256 -c` then fails forever on a line for a vintage that was
+        never recorded, which reads as corruption rather than as a failed run.
+        """
+        kept = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+
+        monkeypatch = pytest.MonkeyPatch()
+        monkeypatch.setattr(
+            vintage, "_write_new_file", lambda path, payload: (_ for _ in ()).throw(OSError("disk"))
+        )
+        with pytest.raises(OSError):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "2026-08-29"})
+        monkeypatch.undo()
+
+        assert (data_dir / CHECKSUMS_NAME).read_text(encoding="utf-8") == (
+            f"{kept.sha256}  {kept.path}\n"
+        )
+
+    def test_losing_the_path_to_another_writer_destroys_nothing(self, data_dir, monkeypatch):
+        """The refusal asks `Path.exists` and the write asks the filesystem.
+
+        Those disagree on a dangling symlink, and they disagree whenever
+        anything lands in between. The exclusive create is what decides, and
+        losing to it must not delete whatever won, because that file is not
+        something this repo can recapture.
+        """
+        real_write = vintage._write_new_file
+
+        def someone_else_gets_there_first(path, payload):
+            path.write_bytes(b"not ours\n")
+            return real_write(path, payload)
+
+        monkeypatch.setattr(vintage, "_write_new_file", someone_else_gets_there_first)
+        with pytest.raises(VintageRefused, match="taken before the write"):
+            record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+
+        assert (data_dir / RECORDED_NAME).read_bytes() == b"not ours\n"
+        assert manifest_lines(data_dir) == []
+
+    def test_the_rollback_swaps_a_new_manifest_in_rather_than_truncating_the_old(
+        self, data_dir, monkeypatch
+    ):
+        """The rollback is the only write that replaces the manifest instead of appending.
+
+        Writing it in place would truncate the record first and refill it
+        second, so a failure between those two loses every entry rather than
+        the one being undone. The temporary file and the rename are what make
+        the manifest go from its old contents to its new ones with nothing in
+        between, and this is the case that says so.
+        """
+        kept = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        seen = {}
+        swap = Path.replace
+
+        def watched(source, target):
+            seen["manifest_before_the_swap"] = Path(target).read_bytes()
+            return swap(source, target)
+
+        monkeypatch.setattr(Path, "replace", watched)
+        monkeypatch.setattr(
+            vintage, "_write_new_file", lambda path, payload: (_ for _ in ()).throw(OSError("disk"))
+        )
+        with pytest.raises(OSError):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "2026-08-29"})
+
+        # Read at the instant of the rename, the old manifest is whole: both
+        # entries, every line parsing. A rewrite in place would be empty here,
+        # and a rewrite with no rename would never reach this at all.
+        standing = seen["manifest_before_the_swap"].decode("utf-8").splitlines()
+        assert [json.loads(line)["path"] for line in standing] == [kept.path, RECORDED_ON_29]
+        assert [entry.path for entry in read_manifest(data_dir)] == [kept.path]
+
+    def test_a_projection_that_cannot_be_written_does_not_undo_the_vintage(self, data_dir):
+        """Once the file verifies the record is true, and nothing undoes a true record.
+
+        The projection is regenerable and the vintage is not. A caller told the
+        record failed would rerun and meet a refusal that reads as a duplicate
+        download rather than as stale checksums.
+        """
+        (data_dir / CHECKSUMS_NAME).mkdir()
+
+        with pytest.raises(OSError, match="is recorded and verified"):
+            record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+
+        assert len(read_manifest(data_dir)) == 1
+        assert (data_dir / RECORDED_NAME).exists()
+
 
 class TestTheChecksumProjection:
     def test_the_projection_follows_the_manifest(self, data_dir):
@@ -336,6 +581,66 @@ class TestTheCommittedManifest:
 
         assert (DATA_DIR / CHECKSUMS_NAME).read_text(encoding="utf-8") == expected
 
+    def test_every_entry_names_the_series_its_file_actually_holds(self):
+        """The hash, the row count and the span say nothing about which series it is.
+
+        All three would pass with the vendor, the symbol and the price basis
+        swapped, and those are the three fields that say what a reader is
+        looking at. The symbol is recoverable from the file, because every
+        committed vintage carries yfinance's `Ticker,` header row, so it is
+        derived rather than restated.
+        """
+        for entry in read_manifest():
+            header = (DATA_DIR / entry.path).read_text(encoding="utf-8").splitlines()[1]
+            assert header == f"Ticker,{entry.symbol}", entry.path
+
+    def test_the_identity_of_all_eight_is_pinned(self):
+        """Nothing in the bytes says which vendor sent a file or on what day.
+
+        The backfill is committed data with no generator, so a hand edit to any
+        of these is a hand edit to the record. This is the assertion that makes
+        one fail.
+        """
+        assert {
+            (e.path, e.vendor, e.symbol, e.price_basis, e.download_date, e.saved_date)
+            for e in read_manifest()
+        } == {
+            ("gld_20yr_prices.csv", "yfinance", "GLD", "adjusted", "2026-06-16", None),
+            ("gld_20yr_prices_unadjusted.csv", "yfinance", "GLD", "raw", "2026-08-27", None),
+            ("gdx_20yr_prices.csv", "yfinance", "GDX", "adjusted", "2026-08-27", None),
+            ("gdx_20yr_prices_unadjusted.csv", "yfinance", "GDX", "raw", "2026-08-27", None),
+            ("gld_chan.csv", "chan-xls", "GLD", "adjusted", None, "2007-12-02"),
+            ("gdx_chan.csv", "chan-xls", "GDX", "adjusted", None, "2007-12-02"),
+            ("ko_chan.csv", "chan-xls", "KO", "adjusted", None, "2008-01-23"),
+            ("pep_chan.csv", "chan-xls", "PEP", "adjusted", None, "2008-01-23"),
+        }
+
+    def test_every_committed_line_is_the_one_its_entry_would_write(self):
+        """A line's text is decided by the entry, not by how it was typed.
+
+        Without sorted keys a hand-written line and a recorded one differ in
+        field order while carrying the same nine values, and the manifest stops
+        being a file a diff can be read against.
+        """
+        lines = (DATA_DIR / MANIFEST_NAME).read_text(encoding="utf-8").splitlines()
+
+        assert [json.loads(line) for line in lines]
+        for line in lines:
+            assert VintageEntry(**json.loads(line)).as_json() == line
+
+    def test_the_projection_regenerates_over_the_committed_manifest(self, tmp_path):
+        """Running it over the eight reproduces the file that was kept by hand.
+
+        That is what says the projection took the record over rather than
+        replaced it, and it is the only case that exercises the ordering, since
+        every other one writes a single entry.
+        """
+        (tmp_path / MANIFEST_NAME).write_bytes((DATA_DIR / MANIFEST_NAME).read_bytes())
+
+        write_checksums(tmp_path)
+
+        assert (tmp_path / CHECKSUMS_NAME).read_bytes() == (DATA_DIR / CHECKSUMS_NAME).read_bytes()
+
     def test_an_entry_carries_one_kind_of_date(self):
         """The four `*_chan.csv` files were saved, not downloaded.
 
@@ -350,14 +655,17 @@ class TestTheCommittedManifest:
             assert (entry.download_date is None) != (entry.saved_date is None), name
             assert (entry.saved_date is not None) == name.endswith("_chan.csv"), name
 
+        shared = dict(
+            vendor="yfinance",
+            symbol="GDX",
+            price_basis="raw",
+            first_date="2026-08-25",
+            last_date="2026-08-27",
+            path="x.csv",
+            row_count=3,
+            sha256="0" * 64,
+        )
         with pytest.raises(ValueError, match="not both and not neither"):
-            VintageEntry(
-                vendor="yfinance",
-                symbol="GDX",
-                price_basis="raw",
-                first_date="2026-08-25",
-                last_date="2026-08-27",
-                path="x.csv",
-                row_count=3,
-                sha256="0" * 64,
-            )
+            VintageEntry(**shared)
+        with pytest.raises(ValueError, match="not both and not neither"):
+            VintageEntry(**shared, download_date="2026-08-27", saved_date="2026-08-27")

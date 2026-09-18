@@ -88,18 +88,20 @@ it, and each is separable in the way its own issue records.
 Test surface for the five above: every rule is executable with no network,
 because the recorder takes rows rather than fetching them.
 
-The recorder landed with twenty-one cases in
-[tests/test_vintage.py](../tests/test_vintage.py), and the count is worth a
-sentence rather than a list. This entry planned one, which would have held five
-of the twelve rules the issue settled. The other seven were found by breaking
-the implementation and seeing which cases noticed, and the rollback was the
-sharpest of them: without it one transient disk error retires a vintage's path
-for good, and nothing else in the suite says so.
+The recorder's cases live in [tests/test_vintage.py](../tests/test_vintage.py)
+and are not counted here, because a count in prose is a number no test holds and
+`tests/test_markdown_hygiene.py` exists to make that point. What is worth
+recording is where they came from. This entry planned one test. Issue 1's
+decomposition settled twelve rules and asked for twelve tests, and mutating a
+first implementation showed that four of those rules were held by none of them.
+The rollback was the sharpest: without it one transient disk error retires a
+vintage's path for good, and only a case written for it says so.
 
-The two unbuilt entries keep their planned surface. Three tests drive the three
-verification failures and assert each message names which vintage and which
-state. One makes a vintage unreadable rather than absent, which is the case a
-`Path.exists` check reports wrongly.
+The other four entries keep their planned surface. For issues 2 and 3, three
+tests drive the three verification failures and assert each message names which
+vintage and which state, and one makes a vintage unreadable rather than absent,
+which is the case a `Path.exists` check reports wrongly. Issues 41 and 43 each
+carry their own, on their own issue.
 
 ## Open questions and deferred work
 

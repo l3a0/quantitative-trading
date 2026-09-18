@@ -56,8 +56,8 @@ the runs that read them.
 
 ## Header shape
 
-Every file carries a three-row header before the data, written by yfinance's
-multi-index frame:
+The eight files above carry a three-row header before the data, written by
+yfinance's multi-index frame:
 
 ```text
 Price,Close
@@ -66,10 +66,13 @@ Date,
 2004-11-18,44.380001068115234
 ```
 
+A recorded vintage carries one header row, `Date,Close`, and nothing else.
+Two shapes rather than one is deliberate. The three rows above are an artifact
+of one vendor's frame, and writing `Price,Close` at the top of a series some
+other vendor returned would be a claim the file has no business making.
+
 `load_close` drops every leading row whose first field does not parse as a
-date, so the reader does not depend on that row count staying at three. The
-recorder writes the same three rows, which is why this section describes every
-file here rather than only the eight.
+date, so it reads either shape and does not depend on a row count.
 
 ## Verifying the bytes
 
@@ -80,13 +83,19 @@ cd data && shasum -a 256 -c checksums.sha256
 A mismatch means the file changed, and any number pinned against it is no
 longer a number computed from it.
 
-Two files carry that record, and neither is written by hand.
+Two files carry that record.
 
 1. [vintages.jsonl](vintages.jsonl) is the record. One JSON object per line,
    naming each vintage's vendor, symbol, price basis, span, date, path, row
    count and sha256. A line carries `download_date` when a vendor was asked for
    the series and `saved_date` for the four lifted from Chan's workbooks, whose
-   date is when he last saved one rather than when anything was fetched.
+   date is when he last saved one rather than when anything was fetched. Those
+   four name their vendor `chan-xls`, which is the table's "Chan's `GLD.xls`"
+   in a form a filename can hold.
+
+   Its eight lines were written by hand, because the recorder refuses a path
+   already on disk and all eight were here before it existed. They are the only
+   lines that will ever be.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.

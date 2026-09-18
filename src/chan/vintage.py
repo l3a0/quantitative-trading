@@ -9,27 +9,43 @@ check, including its author.
 So this module writes two things and refuses rather than overwrite either. The
 series becomes a file under ``data/``, and a line in ``data/vintages.jsonl``
 records the five identity fields plus the file's path, row count and sha256.
-The manifest is the record and the file is its shadow, which is why the entry
+That manifest is the record and the file is its shadow, which is why the entry
 is appended first: a crash between the two then leaves an entry with no file,
 which a verifier reports, rather than a file with no entry, which is how an
 uncommitted download reaches a result unnoticed.
 
 The download happens somewhere else. :func:`record_vintage` takes rows and
-writes them, so every rule it enforces is exercised with no network.
+writes them, so every rule it enforces is exercised with no network. It writes
+them in the order it is handed them, because the file is meant to be what the
+vendor returned, while the span in the entry is the smallest and largest date
+rather than the first and last row.
 
-Two things the identity fields carry that a filename cannot be trusted to
-carry. The price basis is one of ``raw`` or ``adjusted``, the two terms the
-design doc's vocabulary defines, because a refusal compares strings and
-``raw`` against ``unadjusted`` would be two vintages of one download. Which
-word names a vendor is a convention rather than a rule, and the manifest's
-existing rows are what carry it.
+Three limits are decisions rather than omissions.
+
+One writer at a time. Appending a line survives two writers and the rollback
+below does not, because it replaces the whole manifest. Nothing runs this
+concurrently and nothing is planned to, so the assumption is written down here
+instead of defended in code.
+
+Only a download is recorded. Four of the committed vintages carry ``saved_date``
+because they are columns lifted from Ernest Chan's workbooks, and no caller can
+produce one of those through this module. Reading them back is supported and
+writing a new one is not, since the thing that would write it does not exist.
+
+The identity fields are compared as strings, so one source needs one spelling.
+Case is normalised and the price basis is one of the two terms the design doc's
+vocabulary defines, because ``raw`` against ``unadjusted`` would otherwise be
+two vintages of one download. Which word names a vendor is a convention rather
+than a rule, and the manifest's existing rows are what carry it.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
+from collections import Counter
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from datetime import date
@@ -44,11 +60,14 @@ CHECKSUMS_NAME = "checksums.sha256"
 #: either one is a second vintage of the same download.
 PRICE_BASES = ("raw", "adjusted")
 
-#: Lower case and filename-safe, so one source has one spelling in the path.
-VENDOR_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]*$")
-
-#: Upper case after normalisation. Dots and carets appear in real tickers.
-SYMBOL_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9.^-]*$")
+# A name joins the five identity fields with underscores, so no field may hold
+# one. Beyond that the patterns keep a field from reaching outside the data
+# directory or carrying whitespace. They are not an allowlist of shapes anybody
+# has seen, because the vendors and tickers this repo will want are not known
+# yet: a leading caret is how every index is written, and an equals sign is how
+# futures and currency pairs are.
+VENDOR_PATTERN = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
+SYMBOL_PATTERN = re.compile(r"^[A-Z0-9^][A-Z0-9.=^-]*$")
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -56,9 +75,9 @@ _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 class VintageRefused(Exception):
     """A vintage was not written, because writing it would replace a record.
 
-    Raised before anything is written. The message names the path and which of
-    the two conditions fired, because "the file exists" sends a reader to the
-    wrong fix when the real state is a manifest entry whose file was deleted.
+    The message names the path and which condition fired, because "the file
+    exists" sends a reader to the wrong fix when the real state is a manifest
+    entry whose file was deleted.
     """
 
 
@@ -93,7 +112,11 @@ class VintageEntry:
             )
 
     def as_json(self) -> str:
-        """The entry as one JSON object, with the unset date field left out."""
+        """The entry as one JSON object, with the unset date field left out.
+
+        Keys are sorted, so a line's text is decided by the entry rather than by
+        the order the fields happen to be declared in.
+        """
         fields = {key: value for key, value in asdict(self).items() if value is not None}
         return json.dumps(fields, sort_keys=True)
 
@@ -124,15 +147,27 @@ def read_manifest(data_dir: Path | None = None) -> list[VintageEntry]:
     An absent manifest raises rather than reading as an empty one. A manifest
     that is moved or lost would otherwise turn every path new again, and the
     refusal in :func:`record_vintage` would stop refusing without saying so.
+
+    A manifest that is there but cannot be read says that instead, because the
+    two are different problems with different fixes and one message for both
+    sends the reader to the wrong one. A line that will not parse names its own
+    number, since a manifest is read to find out what went wrong.
     """
     manifest = _manifest_path(data_dir)
-    if not manifest.is_file():
+    if not manifest.exists():
         raise FileNotFoundError(f"no vintage manifest at {manifest}")
-    return [
-        VintageEntry(**json.loads(line))
-        for line in manifest.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    if not manifest.is_file():
+        raise OSError(f"the vintage manifest at {manifest} is not a readable file")
+
+    entries = []
+    for number, line in enumerate(manifest.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            entries.append(VintageEntry(**json.loads(line)))
+        except (json.JSONDecodeError, TypeError, ValueError) as unreadable:
+            raise ValueError(f"{manifest} line {number} is not a vintage entry") from unreadable
+    return entries
 
 
 def record_vintage(
@@ -144,12 +179,17 @@ def record_vintage(
     download_date: str,
     data_dir: Path | None = None,
 ) -> VintageEntry:
-    """Write ``rows`` as a vintage and record it, or refuse and write nothing.
+    """Write ``rows`` as a vintage and record it, or refuse and leave no trace.
 
-    ``rows`` pairs an ISO date with a close. The download date comes from the
-    caller because this function does not fetch, so it cannot know when a fetch
-    happened, and reading a clock would make the field that identifies the
-    vintage differ on every run.
+    ``rows`` pairs an ISO date with a close, and is written in the order it is
+    given. The download date comes from the caller because this function does
+    not fetch, so it cannot know when a fetch happened, and reading a clock
+    would make the field that identifies the vintage differ on every run.
+
+    Once the file verifies, the vintage is recorded and nothing undoes it. The
+    projection into ``data/checksums.sha256`` is regenerated after that, and a
+    failure there is reported as what it is rather than as a failed record,
+    because the record is already true and rerunning would be refused.
 
     ``data_dir`` defaults to :data:`chan.paths.DATA_DIR`. A test passes its own
     directory, the way :func:`chan.regime_figure.make_regime_figure` takes an
@@ -181,7 +221,7 @@ def record_vintage(
     if path.exists():
         raise VintageRefused(f"{name}: the file is already on disk with no manifest entry")
 
-    payload = _serialize(symbol, rows)
+    payload = _serialize(rows)
     entry = VintageEntry(
         vendor=vendor,
         symbol=symbol,
@@ -199,14 +239,32 @@ def record_vintage(
         _write_new_file(path, payload)
         if hashlib.sha256(path.read_bytes()).hexdigest() != entry.sha256:
             raise OSError(f"{name}: the file on disk does not match the bytes that were hashed")
+    except FileExistsError as taken:
+        # Nothing was created here, so nothing is removed. The check above asks
+        # `Path.exists`, which reports a dangling symlink as absent and leaves a
+        # window a second writer can take. The exclusive create is what actually
+        # decides, and losing to it must not delete whatever won.
+        _drop_entry(directory, entry)
+        raise VintageRefused(
+            f"{name}: the path was taken before the write could claim it"
+        ) from taken
     except BaseException:
-        # Removing only the file would leave an entry the refusal above
-        # honours forever, so one transient error would retire this path.
+        # Anything else means this call may have created the file, so the
+        # partial goes with the entry. Removing only the file would leave an
+        # entry the refusal honours forever, and one transient error would
+        # retire this path.
         path.unlink(missing_ok=True)
-        _rewrite_manifest(directory, [kept for kept in read_manifest(directory) if kept != entry])
+        _drop_entry(directory, entry)
         raise
 
-    write_checksums(directory)
+    try:
+        write_checksums(directory)
+    except OSError as unwritable:
+        raise OSError(
+            f"{name}: the vintage is recorded and verified, and {CHECKSUMS_NAME} could not be "
+            f"regenerated from the manifest. Recording it again will be refused, which is "
+            f"right. Regenerate the projection instead."
+        ) from unwritable
     return entry
 
 
@@ -233,22 +291,37 @@ def _manifest_path(data_dir: Path | None) -> Path:
 
 
 def _validated_rows(rows: Iterable[tuple[str, float]]) -> list[tuple[str, float]]:
-    materialized = [(day, float(value)) for day, value in rows]
+    materialized = []
+    for day, value in rows:
+        _validated_date(day, "row date")
+        try:
+            close = float(value)
+        except (TypeError, ValueError) as unusable:
+            raise ValueError(f"the close on {day} is not a number: {value!r}") from unusable
+        if not math.isfinite(close):
+            raise ValueError(
+                f"the close on {day} is not a finite number: {value!r}. A vendor value too "
+                f"large to parse arrives as an infinity and a missing bar arrives as a NaN, "
+                f"and freezing either into a vintage records an artifact as a price."
+            )
+        materialized.append((day, close))
+
     if not materialized:
         raise ValueError("an empty series has no span, so it cannot be identified as a vintage")
-    days = [day for day, _ in materialized]
-    for day in days:
-        _validated_date(day, "row date")
-    duplicates = sorted({day for day in days if days.count(day) > 1})
-    if duplicates:
-        raise ValueError(f"one date carries more than one close: {', '.join(duplicates)}")
+    repeated = sorted(
+        day for day, seen in Counter(day for day, _ in materialized).items() if seen > 1
+    )
+    if repeated:
+        raise ValueError(f"one date carries more than one close: {', '.join(repeated)}")
     return materialized
 
 
 def _validated_identity(vendor: str, symbol: str, price_basis: str) -> tuple[str, str, str]:
+    if not isinstance(vendor, str) or not isinstance(symbol, str):
+        raise ValueError(f"vendor and symbol are strings, not {type(vendor)} and {type(symbol)}")
+    vendor, symbol = vendor.lower(), symbol.upper()
     if not VENDOR_PATTERN.match(vendor):
-        raise ValueError(f"vendor {vendor!r} is not lower case and filename-safe")
-    symbol = symbol.upper()
+        raise ValueError(f"vendor {vendor!r} carries a character a path cannot")
     if not SYMBOL_PATTERN.match(symbol):
         raise ValueError(f"symbol {symbol!r} carries a character a path cannot")
     if price_basis not in PRICE_BASES:
@@ -257,26 +330,55 @@ def _validated_identity(vendor: str, symbol: str, price_basis: str) -> tuple[str
 
 
 def _validated_date(value: str, label: str) -> None:
-    if not _ISO_DATE.match(value):
+    if not isinstance(value, str) or not _ISO_DATE.match(value):
         raise ValueError(f"{label} {value!r} is not an ISO calendar date")
-    date.fromisoformat(value)
+    try:
+        date.fromisoformat(value)
+    except ValueError as impossible:
+        raise ValueError(f"{label} {value!r} is not a day that exists") from impossible
 
 
-def _serialize(symbol: str, rows: list[tuple[str, float]]) -> bytes:
-    """The file's bytes, in the three-row header shape every committed vintage uses.
+def _serialize(rows: list[tuple[str, float]]) -> bytes:
+    """The file's bytes, one header row and then the series.
 
     The bytes are the record, so the format is part of the contract. A close is
     written as Python's shortest round-trip repr, which is what produced the
     committed files, and lines end in a single newline.
+
+    The header names the two columns and nothing else. The eight vintages
+    committed before this module existed carry yfinance's three-row multi-index
+    header instead, and writing that shape for every vendor would put a line
+    reading ``Price,Close`` at the top of a series no vendor of that name
+    returned. ``load_close`` drops every leading row whose first field is not a
+    date, so it reads either.
     """
-    lines = ["Price,Close", f"Ticker,{symbol}", "Date,"]
+    lines = ["Date,Close"]
     lines.extend(f"{day},{value!r}" for day, value in rows)
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
 def _append_entry(data_dir: Path, entry: VintageEntry) -> None:
-    with open(_manifest_path(data_dir), "a", encoding="utf-8") as handle:
+    """Add one line, after making sure the file ends in one.
+
+    A manifest whose last line has no newline would otherwise have this entry
+    glued onto it. That loses both lines rather than one, and leaves the file
+    unreadable to everything that opens it afterwards, including the rollback.
+    """
+    manifest = _manifest_path(data_dir)
+    existing = manifest.read_bytes()
+    with open(manifest, "a", encoding="utf-8") as handle:
+        if existing and not existing.endswith(b"\n"):
+            handle.write("\n")
         handle.write(entry.as_json() + "\n")
+
+
+def _drop_entry(data_dir: Path, entry: VintageEntry) -> None:
+    """Take one entry back out, comparing on the whole entry rather than a field.
+
+    Two downloads of one span share a sha256 and differ only in their download
+    date and path, so a narrower comparison would roll back the wrong line.
+    """
+    _rewrite_manifest(data_dir, [kept for kept in read_manifest(data_dir) if kept != entry])
 
 
 def _write_new_file(path: Path, payload: bytes) -> None:

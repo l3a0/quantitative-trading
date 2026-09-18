@@ -41,7 +41,8 @@ found.
 
 So the one thing this repo must get right is the vintage. A series used to
 produce a number is committed alongside that number, with the vendor, the
-symbol, the span, and the download date recorded next to it. Everything else
+symbol, the span, the download date, and which price it carries recorded next
+to it. Everything else
 here is regenerable. Rerun the analysis and it comes back. Lose the vintage
 and the number becomes an assertion nobody can check, including its author.
 
@@ -274,6 +275,8 @@ candidate for a synonym.
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
+| **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. Nothing else in this repo is called a manifest. |
+| **projection** | A file derived from the manifest and rewritten from it, never edited. `data/checksums.sha256` is the only one. |
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |
 | **exploratory** | A result produced by looking at the data. It kills an idea or justifies a closer look, and it is never a verdict about whether an edge exists. |
 | **registered** | A result whose hypothesis was committed in writing before the number was seen. Only a registered result confirms anything. |
@@ -310,6 +313,5 @@ change that cuts it.
 | Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names a tag and `uv.lock` records the commit, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
 | Renaming the eight committed vintages to the recorder's path convention | The recorder's path carries vendor, symbol, price basis, span and download date. The eight predate it and carry none of that. Renaming them would move the eight files, `data/checksums.sha256`, [data/README.md](../data/README.md)'s table and prose, `load_close` and three provenance comments in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), two docstrings in [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py), and five rows of [docs/replication-log.md](replication-log.md). Each of those cites a filename beside a pinned number, and a rename buys none of them. The manifest carries the path, so identity is read from the record rather than parsed out of a name, which is what makes two conventions affordable. |
-| Generating `data/README.md`'s table from the manifest | Most of that file is prose a manifest cannot carry: why GLD's adjusted span differs from its raw twin, what the `*_chan.csv` files are, and what the three-row header means for `load_close`. A generator owning a table inside that prose needs a rule about where the generated block starts and stops. One assertion buys the same protection against drift, which is [issue 43](https://github.com/l3a0/quantitative-trading/issues/43). The price is that two surfaces still state five fields and a test rather than a single source is what keeps them together. |
 | Reading a clock for a vintage's download date | The recorder does not fetch, so it cannot know when a fetch happened, and a date it invents is wrong in the field that identifies the vintage. It would also make every test differ from the last run. The caller supplies it. |
 | Reporting only the replications that matched | A gap is a result. Reporting matches alone turns the log into an advertisement and destroys the thing it is useful for. |
