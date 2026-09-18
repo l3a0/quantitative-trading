@@ -37,7 +37,7 @@ trade works today.
   - [What the entry concludes](#what-the-entry-concludes)
   - [Two counts and two senses of one word](#two-counts-and-two-senses-of-one-word)
   - [What the citations do not cover](#what-the-citations-do-not-cover)
-  - [The chapter labels follow an open question](#the-chapter-labels-follow-an-open-question)
+  - [The chapter labels are first-edition shorthand](#the-chapter-labels-are-first-edition-shorthand)
   - [Nothing checks this file against the suite](#nothing-checks-this-file-against-the-suite)
 
 ## How to read an entry
