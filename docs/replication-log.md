@@ -4,10 +4,18 @@ A replication is finished when it reaches a verdict. Until then the repo holds
 a reproduced experiment, which is a number sitting next to another number with
 nobody saying what the pair means.
 
-This file is where the verdicts live. One entry per replication, one row per
-published figure, and every row carrying the five parts
+This file is where the verdicts live. One entry per replication, and one row
+per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
-vintage, what this repo computed, the gap, and the verdict.
+vintage, what this repo computed, the gap, and the verdict. A row usually
+matches one published figure to one computation. Four of the rows below do not,
+and each says so in its own cells.
+
+1. Row 2 carries no published figure, because the book prints no
+   with-intercept slope.
+2. Row 5 reproduces one published figure from two vintages at once.
+3. Row 10 carries no published figure, because the book stops in 2007.
+4. Row 11 covers the two statistics Chan printed from one disagreement.
 
 Every result here is **exploratory** in the design doc's sense. Reproducing a
 published figure spends the sample on a hypothesis someone else already chose,
@@ -61,6 +69,12 @@ replication ends up chasing. Their values survive in `BOOK_REF_FULL` and
 [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), which is
 where those rows trace to.
 
+Row 8 is therefore quoted at the two decimals `KOPEP_REF` records, and not at
+the −2.14258438 that the docstring of `test_fails_to_cointegrate` also carries.
+A docstring is not an authority for a number. Row 4 looks like the opposite
+call and is not: its eight-digit figure is quoted because the book prints it,
+at location 3718.
+
 ### What precision a number is quoted at
 
 A computed number is quoted at the precision its assertion holds, never past it.
@@ -73,11 +87,25 @@ statistic at `abs=5e-4`, so row 4 quotes −3.0875 and cites that assertion
 rather than the two-decimal pin on the same quantity.
 
 That exception carries weight. Row 4's verdict turns on a margin of 0.0055
-against one of the two critical tables in the tree, and at two decimals the
-margin would print as 0.01, nearly double the real one.
+against Chan's own printed critical values, and at two decimals the margin
+would print as 0.01, nearly double the real one.
+
+Two quantities in this entry are derived rather than stated: a gap, which the
+vocabulary defines as exactly that difference, and a rejection margin, which is
+a statistic minus a critical value. Neither is a published figure, so neither
+meets the design doc's cut on recomputing a published number in prose. No
+published figure is recomputed anywhere here.
+
+A gap runs computed minus published, so a negative gap means this repo landed
+below the book. The vocabulary names a gap's two operands without fixing their
+order, which leaves a reader to guess, so the column header states the
+direction and every row follows it.
 
 A gap is stated at the precision both sides support, which is the coarser of
-the two.
+the two, and it is rounded from the engine's full value rather than from the
+quoted one. Subtracting two already-rounded numbers moves a gap by up to a full
+unit of the last digit, which is how row 3's gap of −0.10 would otherwise print
+as −0.09.
 
 ### How a verdict is chosen
 
@@ -105,7 +133,7 @@ named and outside the method. Row 6 re-runs Chan's own saved spreadsheet
 through the same specification and still misses the number he printed from it.
 Nothing is left to blame, which is the harder failure and the worse verdict.
 
-The rule also settles the two CADF rows, which carry gaps of −0.09 and +0.0941
+The rule also settles the two CADF rows, which carry gaps of −0.10 and +0.0940
 and still reproduce. Chan's claim is that the pair rejects the no-cointegration
 null at a stated level. Both rows reject at that level, so the claim survives.
 
@@ -180,7 +208,7 @@ Eleven rows, and all of them are derivable from
 | 5 | GLD/GDX mean-reversion half-life | about 10 days | Kindle location 4226 |
 | 6 | GLD/GDX hedge from Chan's own archive, through the origin | 1.6766, the same figure as row 1 | Kindle location 3727 |
 | 7 | KO/PEP hedge, through the origin | 1.0114 | no location, absence recorded in the book notes, value kept in `KOPEP_REF` |
-| 8 | KO/PEP CADF statistic | −2.14, reported as not cointegrating | no location, absence recorded in the book notes, value kept in `KOPEP_REF` |
+| 8 | KO/PEP CADF statistic | −2.14258438, quoted in `KOPEP_REF` as −2.14 and reported as not cointegrating | no location, absence recorded in the book notes, value kept in `KOPEP_REF` |
 | 9 | KO/PEP daily-return correlation | 0.4849, reported as statistically significant | Kindle location 3838 |
 | 10 | GLD/GDX CADF statistic, full modern span | none, the book stops in 2007 | n/a |
 | 11 | Chan's Python-versus-MATLAB disagreement | −2.4 from his Python run and −3.2 from his R run, against the −3.18156477 of row 4 | Kindle locations 3755 and 3806 |
@@ -194,7 +222,7 @@ Eleven rows, and all of them are derivable from
 | 3 | 2006-05-23 to 2007-11-30 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 1 | −3.45 | `TestGldGdxReproduction::test_ch7_hedge_and_stat` |
 | 4 | 2006-05-23 to 2007-05-23 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 1 | −3.0875 | `TestLagSettingDetour::test_fixed_lag_reproduces_the_book` |
 | 5 | 2006-05-23 to 2007-11-30, both runs | Ornstein-Uhlenbeck half-life of the with-intercept residual spread | two vintages, run separately: the two raw yfinance files of row 1, and `gld_chan.csv` with `gdx_chan.csv`, saved 2007-12-02 | 10.6 on the yfinance raw closes, 10.3 on Chan's archive | `TestGldGdxReproduction::test_ch7_hedge_and_stat` and `TestGldGdxChanArchive::test_reproduces_chans_archive` |
-| 6 | 2006-05-23 to 2007-11-30 | OLS through the origin, no intercept, the same specification as row 1 | `gld_chan.csv` and `gdx_chan.csv`, the adjusted-close columns of Chan's own `GLD.xls` and `GDX.xls`, saved 2007-12-02 | 1.6395 | `TestGldGdxChanArchive::test_reproduces_chans_archive` for the value, and `test_hedge_is_not_the_lost_book_vintage` for the direction only, since that one asserts a bound rather than a number |
+| 6 | 2006-05-23 to 2007-11-30 | OLS through the origin, no intercept, the same specification as row 1 | `gld_chan.csv` and `gdx_chan.csv`, the adjusted-close columns of Chan's own `GLD.xls` and `GDX.xls`, saved 2007-12-02 | 1.6395 | `TestGldGdxChanArchive::test_reproduces_chans_archive` for the value, and `test_hedge_is_not_the_lost_book_vintage` for the distance only, since that one asserts a two-sided bound of more than 0.03 away from 1.6766 rather than a number, and carries no direction |
 | 7 | 1977-01-03 to 2008-01-18 | OLS through the origin, no intercept | `ko_chan.csv` and `pep_chan.csv`, the adjusted-close columns of Chan's own `KO.xls` and `PEP.xls`, saved 2008-01-23 | 1.0114 | `TestKoPepNonCointegration::test_hedge_matches_chan_exactly` |
 | 8 | 1977-01-03 to 2008-01-18 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 7 | −2.14 | `TestKoPepNonCointegration::test_fails_to_cointegrate` |
 | 9 | 1977-01-03 to 2008-01-18 | Pearson correlation of daily returns, returns divided by the earlier price, two-sided significance on n−2 degrees of freedom | same two files as row 7 | 0.48492, with t = 49.0707 | `TestKoPepNonCointegration::test_returns_are_correlated` |
@@ -203,12 +231,12 @@ Eleven rows, and all of them are derivable from
 
 ### The verdicts
 
-| # | Gap | Verdict | Why |
+| # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
 | 1 | −0.0387 | reproduced with a gap | The claim survives on rows 3 and 4, which reject the no-cointegration null. The number does not, and the cause is named and outside the method: Chan read a 2007-vintage adjusted series, and nineteen years of GDX distributions have rescaled that history since, so no modern download reaches it. |
 | 2 | none | none, not a replication | The book prints no with-intercept slope, so there is nothing to reproduce. The row exists so that 1.3905 is not read against 1.6766, which would compare two specifications rather than two vintages. |
-| 3 | −0.09 | reproduced | Chan reports better than 95% confidence. The computed statistic clears the 5% critical value under both critical tables in the tree, −3.34 from `EG_CRIT_N2` and −3.380 from his own MATLAB printout, so the level he states survives. |
-| 4 | +0.0941 | reproduced | Chan reports better than 90% and not 95%, which is exactly the band the computed statistic lands in. It clears the 10% value and misses the 5% one under both tables. The margin is what the verdict rests on, and the two tables disagree about how thin it is: −0.0475 against `EG_CRIT_N2`'s −3.04, and −0.0055 against the −3.082 his MATLAB printed at location 3718. Same verdict, a margin nine times thinner, and this row cites `EG_CRIT_N2` as the table it used. |
+| 3 | −0.10 | reproduced | Chan reports better than 95% confidence. The computed statistic clears the 5% critical value under both tables in play, −3.34 from `EG_CRIT_N2` in the tree and −3.380 from the MATLAB printout quoted at location 3718, so the level he states survives. That printout is from his Chapter 3 run, and these are asymptotic values, so reading it across to this window is sound. |
+| 4 | +0.0940 | reproduced | Chan reports better than 90% and not 95%, which is exactly the band the computed statistic lands in. It clears the 10% value and misses the 5% one under both tables. The margin is what the verdict rests on, and the two tables disagree about how thin it is: −0.0475 against `EG_CRIT_N2`'s −3.04, which is the only critical table in the tree, and −0.0055 against the −3.082 his MATLAB printed at location 3718, which survives only as quoted highlight text. Same verdict, and under his table the margin is smaller by a factor of 8.6. This row cites `EG_CRIT_N2` as the table it used. |
 | 5 | not statable, the source gives one significant figure | reproduced | Both computations land on about 10 days. Two vintages that disagree on the hedge agree on the half-life, which is the evidence for which of the two estimates is fragile. |
 | 6 | −0.0371 | did not reproduce | A smaller distance than row 1 and a worse verdict, because the vintage explanation is spent. This is Chan's own saved spreadsheet, re-run through his own specification, missing the number he printed from it. The 2007 book-run series is a state no surviving file carries, his included. |
 | 7 | 0.0000 | reproduced | The same code, on a vintage that was not lost, lands on the printed digits. This is the counterpart to row 1 and the reason the GLD/GDX gap is a vintage story rather than a broken implementation. |
@@ -239,17 +267,34 @@ Four things, in the order of how much they cost to learn.
 4. **The relationship itself has expired.** Row 10 is not a replication and is
    the reason the entry does not end on a match.
 
-The entry also contradicts nothing in
+Every computed figure here agrees with
 [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md),
 which carries a four-row summary of the same comparison and compresses the two
-CADF windows into one cell. One difference in granularity is worth naming. That
-essay's two-run table repeats the published 1.6766 on its Chapter 3 row. The
-book prints that figure for the Chapter 7 window only, and the Chapter 3
-through-origin slope of 1.6283, pinned by
-`TestGldGdxReproduction::test_ch3_hedge_and_stat`, has no published counterpart
-at all. Reading one published hedge onto both windows is the trap this
-replication exists to make visible, and the row granularity here is what keeps
-it visible.
+CADF windows into one cell. One published figure does not agree, and it is a
+disagreement rather than a difference in granularity.
+
+That essay's two-run table gives the published hedge as 1.6766 on its Chapter 3
+row as well as its Chapter 7 row. The book prints 1.6766 for the Chapter 7
+window only, at location 3727. The Chapter 3 window's through-origin slope is
+1.6283, pinned by `TestGldGdxReproduction::test_ch3_hedge_and_stat`, and it has
+no published counterpart at all. Reading one published hedge onto both windows
+is the exact trap this replication exists to make visible, so the essay states
+something this entry contradicts.
+
+One smaller wording difference is worth naming rather than leaving for a reader
+to trip on. The essay says Chan's own data "lands at 1.6395, which is no closer
+to his printed figure". Rows 1 and 6 give the two distances as 0.0387 and
+0.0371, so 1.6395 is nearer by under two thousandths. The essay rounds that to
+nothing, which is fair at its granularity, and the rows state both distances
+because the verdict rule turns on them.
+
+The essay is not corrected here. It was copied in byte for byte from the
+sibling repo with three named changes, which README lists, so amending its
+figures is a separate decision from writing this entry. It is filed as
+[issue 27](https://github.com/l3a0/quantitative-trading/issues/27), and the
+same cell stands in
+[docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html),
+the published copy of the same piece.
 
 ### Two counts and two senses of one word
 
@@ -258,12 +303,24 @@ means.
 
 **Which count.** A run of `python -m chan.pair_cointegration --ch7` reports 385
 aligned trading days and 383 ADF observations. The difference is one day to
-difference the spread and one more for the lag. The window column above gives
-date spans rather than counts, and where a count matters it is the ADF
-observation count, which is what the suite pins: 383 for rows 1, 2, 3, 5 and
-6, 250 for rows 4 and 11, 7833 for rows 7 through 9, and 5028 for row 10. The
-aligned trading-day counts are two higher in each case and are asserted
-nowhere.
+difference the spread and one more for the lag, so the two counts are not
+interchangeable and a row has to say which it means. The window column above
+gives date spans rather than counts, because a row's count depends on what that
+row computes.
+
+- A hedge ratio is an OLS fit over every aligned trading day: 385 for rows 1, 2
+  and 6, and 7835 for row 7. The suite asserts none of these four.
+- A CADF statistic is an ADF fit, two observations shorter at the fixed lag of
+  1 that these rows use: 383 for row 3, 250 for row 4, 7833 for row 8, and 5028
+  for row 10. The suite pins all four.
+- Row 5's half-life is an AR(1) regression on the same spreads as rows 3 and 6.
+- Row 9 is neither. It runs on 7834 daily returns with 7832 degrees of freedom,
+  which is what its pinned t of 49.0707 carries.
+- Row 11 is two runs and two counts. The fixed-lag run has the 250 observations
+  of row 4. The `autolag='aic'` run drops five more to its six lags and has
+  245, which the suite does not assert, because
+  `test_the_default_lag_choice_flips_the_verdict` pins the lag and the statistic
+  and discards the count.
 
 **Which sense of verdict.** The same run prints `Verdict: REJECTS the
 no-cointegration null`, which is the statistical sense: what the test concluded
@@ -277,22 +334,32 @@ column, where it is the thing the vocabulary's verdict is judging.
 Every computed number above names an assertion, and the assertion holds less
 than the row might suggest.
 [Issue 10](https://github.com/l3a0/quantitative-trading/issues/10) lists what
-survived a mutation pass over the ported suite, and three of its findings sit
-directly under the rejection levels this entry quotes.
+survived a mutation pass over the ported suite. Three of its findings look as
+though they sit under the rejection levels this entry quotes. Re-running them
+says one does, one is narrower than the issue claims, and one does not reach
+these rows at all.
 
-1. `_verdict`, the function that decides which level a statistic clears, has no
-   test. Reversing its level order, so that every rejection reports the weakest
-   level instead of the most demanding one, changes nothing the suite notices.
-2. `EG_CRIT_N2` is protected only by accident, through window counts in the
-   rolling tests. Nothing asserts the three values themselves.
-3. The ADF regression term can be forced to `c`, `n` or `ct` with the suite
-   still green, because on the Chapter 7 window the statistic moves 0.0042,
-   well inside the `abs=1e-2` pin.
+1. `EG_CRIT_N2` is protected only by accident, through window counts in the
+   rolling tests. Nothing asserts the three values themselves, so the table the
+   rows compare against could be moved with the suite green.
+2. The specification a row names is held, and by exactly one assertion.
+   Forcing the ADF regression term from `n` to `c` moves the Chapter 7
+   statistic by 0.0042, well inside every `abs=1e-2` pin, and the one test that
+   fails is `TestLagSettingDetour::test_fixed_lag_reproduces_the_book`, whose
+   `abs=5e-4` pin on −3.0875 is tight enough to catch it. Forcing the term to
+   `ct` fails eleven tests. Issue 10's body says all three terms leave the
+   suite green, which running them does not bear out, and that correction is
+   recorded on the issue.
+3. `_verdict` has no test either, and reversing its level order so that every
+   rejection reports the weakest level goes unnoticed. That one does not reach
+   these rows. `_verdict` formats the CLI's report, and every rejection claim
+   above traces instead to a test comparing the statistic against `EG_CRIT_N2`
+   directly, such as `assert ch7.adf_stat < EG_CRIT_N2["5%"]`.
 
-So a row here that says the statistic rejects at the 5% level traces to a real
-assertion, and that assertion would not notice the level being computed
-wrongly, the critical table being moved, or the specification changing under
-it. Closing those pins belongs to issue 10 rather than to this entry.
+So a row saying the statistic rejects at the 5% level traces to a real
+assertion, and the one thing that assertion would not notice is the critical
+table moving underneath it. Closing that pin belongs to issue 10 rather than to
+this entry.
 
 ### The chapter labels follow an open question
 
@@ -302,9 +369,11 @@ window, which is this repo's naming throughout, taken from the first edition's
 [Issue 12](https://github.com/l3a0/quantitative-trading/issues/12) is open on
 whether that reading holds against the edition committed here. The notes in
 [research/book-notes](../research/book-notes/README.md) are the 2021 revised
-edition, the figure this repo calls the Chapter 3 statistic is printed there at
-location 3718, which falls in Chapter 7, and Chan writes at location 1862 that
-he defers the training-set cointegration analysis to Chapter 7.
+edition, and in it the two printouts sit nine Kindle locations apart, at 3718
+and 3727, reading as one adjacent pair under a Chapter 7 figure rather than as
+results from two chapters. Chan also writes at location 1862 that he defers the
+training-set cointegration analysis to Chapter 7. Which chapter location 3718
+belongs to is the open question rather than something this entry settles.
 
 The labels stay for now, because renaming them here while the tracker is still
 testing the question would make this a fourth surface asserting the answer. The
@@ -320,6 +389,11 @@ the suite green. Whether that guard gets built is the decision on
 [issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
 
 Until then this file joins the re-pin sweep by hand. A change to any assertion
-named above moves this entry in the same commit, along with the essay, which
-quotes the same figures at coarser granularity. 1.6766 now appears on eleven
-tracked files and 1.6379 on ten.
+named above moves this entry in the same commit, and with it both copies of the
+essay, which quote the same figures at coarser granularity:
+[blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md)
+and the published
+[docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html).
+Missing the second is the easy slip, because it is a hand-maintained copy that
+no build step regenerates. 1.6766 now appears on eleven tracked files and
+1.6379 on ten.

@@ -174,9 +174,9 @@ come from different runs: the through-origin slope on the full window, the slope
 with an intercept on the training window, and the cointegration test statistic
 on that training window. All three landed with the port, alongside the rest of
 the suite the sibling repo had already built. The log entry in
-[docs/replication-log.md](replication-log.md) quotes eleven rows rather than
-three, so it traces to assertions across the whole file rather than to these
-three, and each row names its own.
+[docs/replication-log.md](replication-log.md) quotes more than these three, and
+traces to assertions across the whole suite rather than to this planned set.
+Each of its rows names the assertion it uses.
 
 One more test carries the premise, and half of it has landed. The half that
 runs against committed files pins GDX's adjusted 2006 closes about fifteen

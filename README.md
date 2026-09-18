@@ -35,9 +35,8 @@ A gap is a result. A number that fails to reproduce says something about the
 method's sensitivity, and that is worth more than a match nobody examined.
 
 [docs/replication-log.md](docs/replication-log.md) is where those records live.
-It carries one entry per replication and one row per published figure, along
-with the rule it uses to pick between the three verdicts, which the vocabulary
-defines without saying how to choose.
+It also carries the rule it uses to pick between the three verdicts, which the
+vocabulary defines without saying how to choose.
 
 A replication is exploratory by construction. Reproducing a published figure
 spends the sample on a hypothesis someone else chose, so it can say whether the
@@ -62,9 +61,7 @@ names its window and its regression specification, because the book prints two
 of those near each other and they come from different runs.
 
 Both reach a verdict in
-[docs/replication-log.md](docs/replication-log.md), across eleven rows. Nine of
-them chase a figure Chan printed. Two are this repo's own computations, carry
-no published figure, and therefore carry no verdict either.
+[docs/replication-log.md](docs/replication-log.md), row by row.
 
 The vintage machinery is not built yet, so a replication reads a committed CSV
 directly rather than through a recorder that verifies it first.
@@ -141,7 +138,9 @@ The piece is a replication write-up, so it is exploratory by construction. It
 says whether a published number reproduces and nothing about whether the trade
 works today. An essay is not a verdict, so the verdicts live separately, in
 [docs/replication-log.md](docs/replication-log.md). The two quote the same
-figures, the essay at coarser granularity, and a re-pin moves both.
+computed figures, the essay at coarser granularity, so a re-pin moves both. They
+disagree on one published figure, which
+[issue 27](https://github.com/l3a0/quantitative-trading/issues/27) carries.
 
 Six of its figures are not pinned here, and they are worth knowing before
 quoting any of them.
