@@ -2,9 +2,11 @@
 
 Every case here is driven by a synthetic series, because the recorder takes
 rows rather than fetching them. Nothing in this file touches a network, and
-nothing writes into the committed ``data/`` directory. The last two classes
+nothing writes into the committed ``data/`` directory. The last three classes
 read it. ``TestTheCommittedManifest`` checks the manifest still describes the
-eight vintages this repo ships, and ``TestARecordedVintageIsHeldToo`` copies
+eight vintages this repo ships, ``TestTheTableIsHeldToTheManifest`` breaks a
+copy of the tree to show what each disagreement between the manifest and
+``data/README.md``'s table costs, and ``TestARecordedVintageIsHeldToo`` copies
 the tree, records a ninth into the copy and runs the assertions issue 51
 scoped against a directory that has one.
 
@@ -36,6 +38,14 @@ from tests.support.committed_vintages import (
     committed_copy,
     identity_of,
     rewrite_entry,
+)
+from tests.support.vintage_table import (
+    README_NAME,
+    TABLE_HEADING,
+    add_row,
+    drop_row,
+    read_table,
+    rewrite_row,
 )
 
 ROWS = [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)]
@@ -1151,6 +1161,81 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
         ), entry.path
 
 
+def the_table_and_the_manifest_agree(directory: Path) -> None:
+    """`data/README.md`'s table states, on every vintage, what the manifest states.
+
+    Five identity fields live on two surfaces. The manifest is the record and
+    the table is prose somebody typed, so nothing derives the second from the
+    first and only an assertion keeps them from separating. The table is worth
+    that assertion rather than a generator, because the argument is in
+    `docs/design.md`'s register and the drift it catches has happened: the
+    misattribution the table documents is one this table is what caught.
+
+    Driven from the entries rather than from the rows. A loop over rows passes
+    on a table it cannot find, which is what a renamed heading produces and what
+    the wrong blanking helper produces, so absence has to read as eight missing
+    rows rather than as nothing to check.
+
+    The message names the path, the field and both values, because a failure
+    here is an instruction. Recording a ninth vintage leaves this red until
+    somebody writes the row, and whoever reads the failure is the person who has
+    to write it.
+    """
+    rows = read_table(directory)
+    entries = {entry.path: entry for entry in read_manifest(directory)}
+
+    for path in entries:
+        assert path in rows, f"{path}: the manifest records it and the table has no row for it"
+    for path in rows:
+        assert path in entries, f"{path}: the table has a row for it and the manifest records none"
+
+    for path, entry in entries.items():
+        for column, stated, recorded in (
+            ("Vendor", rows[path]["Vendor"], _vendor_cell(entry)),
+            ("Symbol", rows[path]["Symbol"], entry.symbol),
+            ("Price", rows[path]["Price"], entry.price_basis),
+            ("Span", rows[path]["Span"], f"{entry.first_date} .. {entry.last_date}"),
+            ("Downloaded", rows[path]["Downloaded"], _date_cell(entry)),
+        ):
+            assert stated == recorded, (
+                f"{path}: the table's {column} cell says {stated!r} and the manifest "
+                f"says {recorded!r}"
+            )
+
+
+def _vendor_cell(entry: VintageEntry) -> str:
+    """The Vendor cell the table writes for one entry.
+
+    The two surfaces disagree here by spelling rather than by fact. The manifest
+    writes `chan-xls` and the table writes the workbook it names, which is the
+    same thing in a form a filename cannot hold. Deriving the cell from the
+    entry's own symbol rather than looking it up is what makes a row whose
+    workbook name stops matching its Symbol cell fail.
+
+    A closed set, so the rule will never need a second case. `chan.vintage`
+    records a download and nothing else, and no caller can produce a saved-date
+    vintage through it, so the four workbook columns are every row this branch
+    will ever cover.
+    """
+    if entry.vendor == "chan-xls":
+        return f"Chan's `{entry.symbol}.xls`"
+    return entry.vendor
+
+
+def _date_cell(entry: VintageEntry) -> str:
+    """The Downloaded cell the table writes for one entry.
+
+    The column carries a verb on the four rows whose date is not a download
+    date, writing `saved 2007-12-02` where the entry carries a saved date and a
+    bare date where it carries a download date. `VintageEntry.obtained` and
+    `obtained_verb` exist for exactly this, so the cell is built from the pair
+    rather than from a field named for a download, which names four of eight.
+    """
+    if entry.download_date is not None:
+        return entry.obtained
+    return f"{entry.obtained_verb} {entry.obtained}"
+
+
 class TestTheCommittedManifest:
     """The eight vintages this repo ships, and the record that describes them.
 
@@ -1239,6 +1324,10 @@ class TestTheCommittedManifest:
         for name in (MANIFEST_NAME, CHECKSUMS_NAME):
             assert b"\r" not in (DATA_DIR / name).read_bytes(), name
 
+    def test_the_table_states_what_the_manifest_states(self):
+        """The hand-written telling of the record agrees with the record itself."""
+        the_table_and_the_manifest_agree(DATA_DIR)
+
     def test_an_entry_carries_one_kind_of_date(self):
         """The four `*_chan.csv` files were saved, not downloaded.
 
@@ -1269,6 +1358,156 @@ class TestTheCommittedManifest:
             VintageEntry(**shared, download_date="2026-08-27", saved_date="2026-08-27")
 
 
+class TestTheTableIsHeldToTheManifest:
+    """What every disagreement between the two surfaces costs, driven against a copy.
+
+    Both surfaces sit inside `data/`, so `committed_copy` hands back a tree
+    carrying the pair and every case here breaks the copy. Nothing edits the
+    committed tree and remembers to put it back.
+
+    A cell is edited through the row the reader locates rather than through a
+    string replacement, which `tests/support/vintage_table.py` explains: every
+    value these cases change also appears in the prose around the table, so a
+    replacement can land somewhere the check never reads and the case goes green
+    on an edit that proved nothing.
+    """
+
+    @pytest.fixture
+    def eight(self, tmp_path):
+        """The committed tree, copied and untouched, which the check passes on.
+
+        Asserted green here rather than assumed, because every case below
+        asserts that an edit turns it red and a fixture that arrived red would
+        pass all of them while proving nothing.
+        """
+        directory = committed_copy(tmp_path)
+        the_table_and_the_manifest_agree(directory)
+        return directory
+
+    @pytest.mark.parametrize(
+        ("column", "edited", "recorded"),
+        [
+            ("vendor", "acme", "yfinance"),
+            ("symbol", "SPY", "GLD"),
+            ("price", "raw", "adjusted"),
+            ("span", "2006-06-20 .. 2026-06-16", "2006-06-19 .. 2026-06-16"),
+            ("span", "2006-06-19 .. 2026-06-15", "2006-06-19 .. 2026-06-16"),
+            ("downloaded", "2026-06-17", "2026-06-16"),
+        ],
+    )
+    def test_an_edited_cell_fails_and_names_both_values(self, eight, column, edited, recorded):
+        """Six values across five columns, because the span cell holds two fields.
+
+        The message is asserted rather than the raise alone. A failure that
+        named only the path would leave whoever reads it to diff two files to
+        find out which field moved, and the row that goes red on a ninth
+        vintage is read by somebody who has to write a cell.
+        """
+        rewrite_row(eight, "gld_20yr_prices.csv", **{column: edited})
+
+        with pytest.raises(AssertionError) as refused:
+            the_table_and_the_manifest_agree(eight)
+
+        message = str(refused.value)
+        assert "gld_20yr_prices.csv" in message
+        assert column.title() in message
+        assert edited in message and recorded in message
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("vendor", "acme"),
+            ("symbol", "QQQ"),
+            ("price_basis", "raw"),
+            ("first_date", "2006-06-20"),
+            ("last_date", "2026-06-15"),
+            ("download_date", "2026-06-17"),
+        ],
+    )
+    def test_an_edited_entry_fails_the_same_way(self, eight, field, value):
+        """The other surface, edited with a value that is valid and wrong.
+
+        `VintageEntry` checks the vendor, the symbol, the price basis and the
+        date when a line is read back, and one refused line refuses the whole
+        manifest rather than the line. A case driven by the obviously wrong
+        spellings, `YFinance` or `gld` or `unadjusted`, therefore raises out of
+        `read_manifest` before any comparison runs and tests the reader instead
+        of this check. `test_a_hand_edit_to_a_backfilled_entry_still_fails`
+        picks valid-and-wrong values for the same reason. The two span fields
+        are unchecked there and reach the comparison as typed.
+        """
+        rewrite_entry(eight, "gld_20yr_prices.csv", **{field: value})
+
+        with pytest.raises(AssertionError, match="gld_20yr_prices.csv"):
+            the_table_and_the_manifest_agree(eight)
+
+    def test_a_deleted_row_fails_and_names_the_path(self, eight):
+        """A row is prose nothing derives, so its absence is the drift to catch."""
+        drop_row(eight, "pep_chan.csv")
+
+        with pytest.raises(AssertionError, match="pep_chan.csv"):
+            the_table_and_the_manifest_agree(eight)
+
+    def test_a_row_naming_no_vintage_fails_and_names_the_path(self, eight):
+        """The other direction, which set equality over paths is what covers."""
+        add_row(
+            eight,
+            file="`spy_20yr_prices.csv`",
+            vendor="yfinance",
+            symbol="SPY",
+            price="adjusted",
+            span="2006-06-19 .. 2026-06-16",
+            downloaded="2026-06-16",
+        )
+
+        with pytest.raises(AssertionError, match="spy_20yr_prices.csv"):
+            the_table_and_the_manifest_agree(eight)
+
+    def test_a_workbook_name_that_stops_matching_its_symbol_cell_fails(self, eight):
+        """What says the vendor rule is derived rather than waved through.
+
+        The four workbook rows are the one place the two surfaces spell a field
+        differently, so a check that accepted any `Chan's ...` cell against
+        `chan-xls` would pass a row naming another series' workbook.
+        """
+        rewrite_row(eight, "ko_chan.csv", vendor="Chan's `PEP.xls`")
+
+        with pytest.raises(AssertionError, match="ko_chan.csv"):
+            the_table_and_the_manifest_agree(eight)
+
+    def test_a_renamed_heading_fails_rather_than_reading_no_rows(self, eight):
+        """Finding no table is eight missing rows, never a green run over nothing."""
+        readme = eight / README_NAME
+        text = readme.read_text(encoding="utf-8")
+        assert text.count(TABLE_HEADING) == 1
+        readme.write_text(text.replace(TABLE_HEADING, "## The files"), encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="What each file is"):
+            the_table_and_the_manifest_agree(eight)
+
+    def test_a_table_inside_a_fenced_block_is_not_the_record(self, eight):
+        """The reader blanks fences, so a table in an example is not read as one.
+
+        It blanks fences and nothing else. Every File cell and all four workbook
+        names are written in backticks, so blanking inline spans too would leave
+        eight rows carrying no filename and a check that compares nothing.
+        """
+        readme = eight / README_NAME
+        before = read_table(eight)
+        fenced = "\n".join(
+            ["", "```text", "| File | Vendor |", "| --- | --- |", "| a.csv | acme |", "```", ""]
+        )
+        readme.write_text(
+            readme.read_text(encoding="utf-8").replace(
+                f"{TABLE_HEADING}\n", f"{TABLE_HEADING}\n{fenced}"
+            ),
+            encoding="utf-8",
+        )
+
+        assert read_table(eight) == before
+        the_table_and_the_manifest_agree(eight)
+
+
 class TestARecordedVintageIsHeldToo:
     """A ninth vintage passes the scoped assertions, and a wrong one does not.
 
@@ -1284,6 +1523,13 @@ class TestARecordedVintageIsHeldToo:
     assertions that were measured red, plus the check that replaces what the
     scoping gives up. The full run was done by hand once, on the pull request
     that built this.
+
+    That completion condition is now partly taken back, and by one check rather
+    than by an accident. `data/README.md`'s table is prose nothing derives, so
+    holding it to the manifest means a recorded ninth is red until somebody
+    writes its row. `test_a_recorded_ninth_needs_a_table_row` below is where the
+    suite states that cost, rather than leaving it for whoever records the first
+    real one to discover.
     """
 
     @pytest.fixture
@@ -1407,6 +1653,30 @@ class TestARecordedVintageIsHeldToo:
 
         with pytest.raises(AssertionError, match="carries no download date"):
             the_recorded_entries_name_themselves(with_a_ninth)
+
+    def test_a_recorded_ninth_needs_a_table_row(self, with_a_ninth):
+        """Recording into `data/` is red until the table describes what is there.
+
+        One disagreement rather than a cascade, which the second half is what
+        says: the eight rows still agree on all five fields, so writing the
+        ninth row is the whole of what a recording costs on this surface. The
+        row is written here in the table's own spelling, which is also the
+        worked example of what the failure asks an operator for.
+        """
+        with pytest.raises(AssertionError, match=NINTH_NAME):
+            the_table_and_the_manifest_agree(with_a_ninth)
+
+        add_row(
+            with_a_ninth,
+            file=f"`{NINTH_NAME}`",
+            vendor="yfinance",
+            symbol="ZZZ",
+            price="adjusted",
+            span="2026-08-25 .. 2026-08-27",
+            downloaded="2026-09-17",
+        )
+
+        the_table_and_the_manifest_agree(with_a_ninth)
 
     def test_rewriting_an_entry_no_manifest_line_names_is_refused(self, with_a_ninth):
         """A negative case is only negative while its edit lands.
