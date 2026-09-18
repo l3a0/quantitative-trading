@@ -622,7 +622,7 @@ list, in the order the column draws it, which is the priority order the ranking
 sets and then the issue number. Offer them in that order, so the owner can take
 the top of the queue rather than read all of it.
 
-Three costs, named rather than hidden.
+Four costs, named rather than hidden.
 
 1. **The list is long.** It stood at 27 cards on 2026-09-18. This offers a queue
    rather than a task, and the order is what makes it usable.
@@ -630,10 +630,16 @@ Three costs, named rather than hidden.
    this repo has recorded, not one exited on its first two passes, they ran from
    six passes to fourteen, and each found something a builder would otherwise
    have met mid-change.
-3. **Running many at once costs board updates.** Three concurrent sessions on
-   2026-09-18 produced two publish refusals inside one update, and each refusal
-   costs a full read of the live page and a merge. The offer is a queue the owner
-   starts, so the rate is theirs, and this is the number behind that choice.
+3. **Eight running at once is the ceiling.** The owner set it on 2026-09-18, and
+   what argues for a ceiling is measured: three concurrent sessions produced two
+   publish refusals inside one board update, and each refusal costs a full read
+   of the live page and a merge part by part. Offer the whole queue, because a
+   chip is a suggestion rather than a session, and never spawn past eight that
+   are actually running.
+4. **The chip queue holds twenty and drops the oldest to make room.** Offering
+   27 pushed the front of the priority order out. The tool result names which
+   one left, and nothing else does, so the reply is where that has to be passed
+   on or the highest-ranked card is the one that quietly vanishes.
 
 A card already in `PLANNED` never appears on this list, because a finished plan
 with nobody on it is drawn in the In flight section instead. That is the two
