@@ -44,7 +44,7 @@ one.
   - [Two counts and two senses of one word](#two-counts-and-two-senses-of-one-word)
   - [What the citations do not cover](#what-the-citations-do-not-cover)
   - [The chapter labels are first-edition shorthand](#the-chapter-labels-are-first-edition-shorthand)
-  - [Nothing checks this file against the suite](#nothing-checks-this-file-against-the-suite)
+  - [Nothing checks this file's numbers against the suite](#nothing-checks-this-files-numbers-against-the-suite)
 - [Entry 2: the coin-flip gamble, Chan's *Quantitative Trading*](#entry-2-the-coin-flip-gamble-chans-quantitative-trading)
   - [What the book printed](#what-the-book-printed-1)
   - [What this repo computed](#what-this-repo-computed-1)
@@ -422,11 +422,12 @@ look like the book's own structure. The
 windows themselves are unambiguous whatever the chapters turn out to be, since
 each row gives its dates.
 
-### Nothing checks this file against the suite
+### Nothing checks this file's numbers against the suite
 
 Nothing compares the numbers in this document against the assertions they name.
-[tests/test_markdown_hygiene.py](../tests/test_markdown_hygiene.py) sweeps
-formatting only, so a re-pin that moves a number leaves this entry stale and
+[tests/test_markdown_hygiene.py](../tests/test_markdown_hygiene.py) sweeps this
+file's formatting and resolves every anchor its Contents carries, and neither
+reads a figure, so a re-pin that moves a number leaves this entry stale and
 the suite green. Whether that guard gets built is the decision on
 [issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
 

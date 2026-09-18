@@ -175,6 +175,13 @@ Two files carry that record.
 entry stops describing the file it names, when a file here has no entry, when
 the projection stops matching the record, when one of the eight above stops
 carrying the identity it was given, and when a recorded entry stops agreeing
-with the name its file took. The table above is a third telling and is still
-hand-written, which
-[issue 43](https://github.com/l3a0/quantitative-trading/issues/43) closes.
+with the name its file took.
+
+The table above is a third telling and is still hand-written. What keeps it
+true is another assertion in the same class, which reads both surfaces and
+holds every row to the entry for the file it names. Every column is held, and
+a cell that stops agreeing fails and says which path, which column, what the
+cell says and what the entry gives. So does a row the manifest records nothing
+for, and an entry the table has no row for. That last one is what recording a
+ninth vintage costs: the suite is red until somebody writes its row, and the
+failure is the instruction saying so.

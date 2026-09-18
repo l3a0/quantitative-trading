@@ -62,7 +62,7 @@ from matplotlib.figure import Figure
 
 from chan.pair_cointegration import aligned_closes, rolling_cointegration
 from chan.paths import FIGURES_DIR
-from chan.series import vintage_line
+from chan.series import WindowCrossesScaleBreak, vintage_line
 from chan.vintage import VintageUnavailable
 
 # Essay palette, from the :root tokens in docs/gld-gdx-cointegration-lessons.html.
@@ -226,11 +226,12 @@ def make_regime_figure(out: Path | None = None, data_dir: Path | None = None) ->
 def main() -> None:
     try:
         figure = make_regime_figure()
-    except VintageUnavailable as unavailable:
-        # The same refusal `chan.pair_cointegration` prints. This module reaches
-        # a vintage through `aligned_closes` too, so correcting only that one
-        # would leave this entry point printing a traceback.
-        raise SystemExit(str(unavailable)) from unavailable
+    except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
+        # The same two refusals `chan.pair_cointegration` prints. This module
+        # reaches a vintage through `aligned_closes` too, so correcting only
+        # that one would leave this entry point printing a traceback. Both
+        # arrive from that one call, so both are caught in one place.
+        raise SystemExit(str(refusal)) from refusal
     # Naming the vintage is the same rule, and correcting only the replication
     # would leave the other run that reads a series saying nothing about it.
     # Every field here is read off the entry the lookup resolved, so it cannot

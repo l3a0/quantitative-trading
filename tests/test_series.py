@@ -848,10 +848,20 @@ class TestTheRefusalReachesAnOperatorAsALine:
         assert "\n" not in message
 
     def test_the_figure_command_prints_a_line(
-        self, broken: Path, monkeypatch: pytest.MonkeyPatch
+        self, broken: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """The figure directory is moved as well as the data directory.
+
+        ``main`` takes no output path, so a run that reaches ``savefig`` writes
+        over the committed ``docs/figures/reproduction_regime_map.png``. Only
+        the refusal under test stops it, which makes this case's own
+        correctness the thing that protects a tracked artifact. Measured on
+        `tests/test_scale_breaks.py`'s copy of this case, where deleting the
+        guard left the committed PNG modified in the working tree.
+        """
         from chan import regime_figure
 
+        monkeypatch.setattr(regime_figure, "FIGURES_DIR", tmp_path)
         with pytest.raises(SystemExit) as stopped:
             regime_figure.main()
 
