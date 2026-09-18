@@ -40,6 +40,7 @@ from matplotlib.figure import Figure
 
 from chan.pair_cointegration import aligned_closes, rolling_cointegration
 from chan.paths import FIGURES_DIR
+from chan.vintage import VintageUnavailable
 
 # Essay palette, from the :root tokens in docs/gld-gdx-cointegration-lessons.html.
 SURFACE = "#FEFDFA"  # figure ground
@@ -65,14 +66,22 @@ def _style(ax) -> None:
     ax.set_axisbelow(True)
 
 
-def make_regime_figure(out: Path | None = None) -> Figure:
+def make_regime_figure(out: Path | None = None, data_dir: Path | None = None) -> Figure:
     """Draw the two-panel GLD/GDX regime map and write it to ``out``.
 
     ``out`` defaults to the committed figure. A caller that passes a path
     elsewhere gets the same figure without touching it, which is what lets a
     test run the real drawing code.
+
+    ``data_dir`` does the same for what it reads. It defaults to
+    :data:`chan.paths.DATA_DIR`, and the pair is resolved through the manifest
+    and verified before it is drawn, so a vintage that no longer matches its
+    record stops the figure rather than moving it.
+
+    The returned figure carries the two resolved entries on ``vintages``, so
+    the command line can name what it drew from.
     """
-    df = aligned_closes("GLD", "GDX", unadjusted=True)
+    df = aligned_closes("GLD", "GDX", unadjusted=True, data_dir=data_dir)
     a = df["GLD"].to_numpy(float)
     b = df["GDX"].to_numpy(float)
     scan = rolling_cointegration(a, b, window=252, step=21, lags=1)
@@ -184,11 +193,30 @@ def make_regime_figure(out: Path | None = None) -> Figure:
 
     path = out if out is not None else FIGURES_DIR / "reproduction_regime_map.png"
     fig.savefig(path, facecolor=SURFACE, bbox_inches="tight")
+    # The two entries the pair resolved, carried out so `main` can name them
+    # without resolving them a second time. `Figure` takes an attribute the way
+    # the frame takes one, for the same reason.
+    fig.vintages = df.attrs["vintages"]
     return fig
 
 
 def main() -> None:
-    make_regime_figure()
+    try:
+        figure = make_regime_figure()
+    except VintageUnavailable as unavailable:
+        # The same refusal `chan.pair_cointegration` prints. This module reaches
+        # a vintage through `aligned_closes` too, so correcting only that one
+        # would leave this entry point printing a traceback.
+        raise SystemExit(str(unavailable)) from unavailable
+    # Naming the vintage is the same rule, and correcting only the replication
+    # would leave the other run that reads a series saying nothing about it.
+    # Every field here is read off the entry the lookup resolved, so it cannot
+    # drift from the record.
+    for entry in figure.vintages:
+        print(
+            f"{entry.symbol} vintage: {entry.path}   {entry.vendor} {entry.price_basis}, "
+            f"{entry.obtained_verb} {entry.obtained}"
+        )
     print(f"wrote {FIGURES_DIR / 'reproduction_regime_map.png'}")
 
 

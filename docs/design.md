@@ -331,8 +331,10 @@ with a component nobody can run is cut the wrong way.
 
 The recorder is the worked example and the caution at once. It shipped as
 `Part of` its issue rather than closing it, because a vintage nothing can read
-is a component nobody can run. Nothing here reads what it writes yet, and that
-wait is what cutting this one too narrowly cost.
+is a component nobody can run. The reader landed on 2026-09-18 and closed that
+gap, two deliverables after the recorder rather than one. What the narrow cut
+cost is the stretch in between, when the repo held a component that wrote a
+record nothing could read back.
 
 ### What an experiment pins
 
@@ -353,11 +355,13 @@ The first replications were planned to wait on the vintage machinery. That is
 not what happened: the sibling repo's finished replications were copied here
 first, so the computation arrived before the machinery meant to feed it.
 
-The dependency was real and is now a debt rather than a gate. Every replication
-still reads by filename, so each one added before the reader lands is another
-reader to convert. That is the live constraint on ordering, and it is the
-reason a synthetic experiment can go ahead of the machinery while a
-series-reading one cannot.
+The dependency was real and the debt it left has been paid. Every replication
+read by filename until the reader landed, so each one added in between was
+another reader to convert, and the conversion reached `aligned_closes`, `run`,
+`make_regime_figure` and two `main` functions rather than one function. That
+cost is what the ordering rule was protecting against, and it is the reason a
+synthetic experiment can go ahead of the machinery while a series-reading one
+cannot.
 
 ### Two candidates, named so they are not re-invented
 
@@ -424,7 +428,9 @@ change that cuts it.
 | Depending on ithildincore by name plus a `[tool.uv.sources]` redirect | `ithildincore` is an occupied name on PyPI, and `tool.uv.sources` is a uv-only key that pip ignores, so `pip install .` resolved the name against an unrelated package. A direct URL at a commit is satisfiable by no index, which closes it for every installer rather than only for uv. Hatchling needs `allow-direct-references` to permit that, which is fine here because this repo is cloned and run rather than published. |
 | Depending on ithildincore by version range | A range lets a release change a number here with nothing in this repo's diff to explain it, which is the vintage failure applied to code. The dependency names an exact commit and `uv.lock` records it, so a bump is a visible, deliberate re-pin. |
 | A price cache shared across replications | It reintroduces the vintage problem at one remove. Two replications reading one cache cannot say which download each result rests on, and refreshing the cache silently re-pins both. |
-| Renaming the eight committed vintages to the recorder's path convention | The recorder's path carries vendor, symbol, price basis, span and download date. The eight predate it and carry none of that. Renaming them would move the eight files, `data/checksums.sha256`, [data/README.md](../data/README.md)'s table and prose, `load_close` and three provenance comments in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), two docstrings in [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py), and five rows of [docs/replication-log.md](replication-log.md). Each of those cites a filename beside a pinned number, and a rename buys none of them. The manifest carries the path, so identity is read from the record rather than parsed out of a name, which is what makes two conventions affordable. |
+| Renaming the eight committed vintages to the recorder's path convention | The recorder's path carries vendor, symbol, price basis, span and download date. The eight predate it and carry none of that. Renaming them would move the eight files, the manifest's `path` field, `data/checksums.sha256`, [data/README.md](../data/README.md)'s table and prose, two provenance comments in [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), all four files under `tests/`, and five rows of [docs/replication-log.md](replication-log.md). The surfaces are named rather than the citations inside them counted, because a count goes stale on the next test that names a file. Each of those cites a filename beside a pinned number, and a rename buys none of them. The reader is the one surface a rename no longer touches, because [src/chan/series.py](../src/chan/series.py) asks the manifest for the path rather than building one out of a ticker. Identity read from the record rather than parsed out of a name is what makes two conventions affordable. |
+| Resolving a vintage by the latest download date | It is the clock cut below, arriving through the manifest instead of through a time function. A new download of a series would move every pinned number that reads it, with nothing in the diff to explain the move. It also does not run: four committed entries carry a saved date and no download date, so the comparison raises `TypeError` on `None`. [src/chan/vintage.py](../src/chan/vintage.py) refuses an ambiguous request and names the candidates, so a second download stops a run rather than re-pinning it. |
+| Naming a vintage by its path to tell two downloads apart | The path is the record's shadow and the manifest is the record, which is the same reasoning as the rename row above. A path argument hands identity back to the filename this reader exists to stop parsing, and it ties every pinned replication to the recorder's naming convention, so the convention could not change without moving pins. The reader takes a date instead, compared against whichever of `download_date` and `saved_date` an entry carries, which names all eight committed vintages where an argument named for the download date names four. |
 | Reading a clock for a vintage's download date | The recorder does not fetch, so it cannot know when a fetch happened, and a date it invents is wrong in the field that identifies the vintage. It would also make every test differ from the last run. The caller supplies it. |
 | Porting the sibling's `kelly_fraction` for the coin-flip growth rate | It is the only place in `trading-strategies` that computes a time-average log growth rate, and it computes it as one line inside a grid search rather than as a callable, so there is a line to retype and nothing to port. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) had already ruled the function out as the discrete form over a bag of trades. The ruling reaches Example 6.1 by a shorter route: that example optimises nothing at all. |
 | Porting the sibling's `common/portfolio.py` as growth arithmetic | It is not growth arithmetic. Its own docstring fixes every leg as dollar diffs over a fixed capital base, "never prior-day-equity returns (compounding returns do not add; dollars do)", so it decided against compounding on purpose. |

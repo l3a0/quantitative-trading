@@ -351,9 +351,10 @@ class TestTheFailurePath:
         """Rule 5. The order decides which state a crash leaves behind.
 
         A file with no entry is how an uncommitted download reaches a result,
-        because `load_close` reads by filename and consults no manifest. An
-        entry with no file is the state a verifier reports. The seam below is
-        the moment between the two, and it is checked from inside the write.
+        because nothing resolves it and nothing therefore verifies it. An entry
+        with no file is the state `chan.vintage.read_vintage` reports, naming
+        the vintage whose record outlived its series. The seam below is the
+        moment between the two, and it is checked from inside the write.
         """
         seen = {}
 

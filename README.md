@@ -82,9 +82,11 @@ series and its provenance together and refuses to overwrite either, and
 naming its vendor, symbol, price basis, span, date, row count and sha256.
 [data/README.md](data/README.md) says the same in prose, next to the files.
 
-What is still missing is the other side. A replication reads a committed CSV by
-filename, not through a reader that checks it against that record first, which
-is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
+The other side reads it back. `src/chan/series.py` resolves a vintage through
+the manifest rather than by building a filename, recomputes its sha256 from the
+bytes it is about to parse, and stops the run when they disagree. So a
+replication names the file it read, and the default GLD/GDX run says its two
+legs were downloaded 72 days apart.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.

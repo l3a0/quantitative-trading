@@ -54,6 +54,39 @@ def drawn(tmp_path_factory: pytest.TempPathFactory) -> tuple[object, Path]:
     return make_regime_figure(out=out), out
 
 
+class TestTheFigureNamesWhatItDrewFrom:
+    """The other run that reads a series, held to the same rule as the report.
+
+    ``src/chan/__init__.py`` says the coin flip "has no vendor and no download
+    date and nothing to restate, and it says so where every other run names a
+    file." Correcting only ``chan.pair_cointegration`` would leave that sentence
+    false for this module, which reads the same pair through ``aligned_closes``.
+    """
+
+    def test_the_figure_carries_the_two_entries_it_resolved(self, drawn) -> None:
+        fig, _ = drawn
+
+        assert [entry.path for entry in fig.vintages] == [
+            "gld_20yr_prices_unadjusted.csv",
+            "gdx_20yr_prices_unadjusted.csv",
+        ]
+
+    def test_the_command_prints_a_vintage_line_for_each_leg(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from chan import regime_figure
+
+        monkeypatch.setattr(regime_figure, "FIGURES_DIR", tmp_path)
+        regime_figure.main()
+        out = capsys.readouterr().out
+
+        first = "GLD vintage: gld_20yr_prices_unadjusted.csv   yfinance raw, downloaded 2026-08-27"
+        second = "GDX vintage: gdx_20yr_prices_unadjusted.csv   yfinance raw, downloaded 2026-08-27"
+        assert first in out
+        assert second in out
+        assert out.index(first) < out.index(second)
+
+
 class TestTheFigureDrawsTheScanThatIsPinned:
     def test_the_upper_panel_plots_every_rolling_window(self, drawn) -> None:
         fig, _ = drawn
