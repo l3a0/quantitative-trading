@@ -32,7 +32,15 @@ import pytest
 from chan import paths, series, vintage
 from chan.paths import DATA_DIR
 from chan.series import close_identity, load_close, load_vintage
-from chan.vintage import MANIFEST_NAME, VintageEntry, VintageUnavailable, read_manifest
+from chan.vintage import (
+    MANIFEST_NAME,
+    VintageEntry,
+    VintageUnavailable,
+    read_manifest,
+    record_vintage,
+)
+from tests.support.committed_vintages import BACKFILLED, rewrite_entry
+from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 
 # Root ignores mode bits, so a file at mode 000 opens and the case reads as a
 # pass while asserting nothing. Windows has no such bit at all.
@@ -104,9 +112,7 @@ def data_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def committed_copy(tmp_path: Path) -> Path:
     """The eight committed vintages, copied so a case may break one."""
-    directory = tmp_path / "committed"
-    shutil.copytree(DATA_DIR, directory)
-    return directory
+    return copy_the_committed_tree(tmp_path)
 
 
 # The eight, as the reader returned them at 42978ce, before it consulted a
@@ -205,6 +211,44 @@ COMMITTED = [
 ]
 
 
+def the_reader_reaches_every_backfilled_vintage(directory: Path) -> None:
+    """The map is total over the eight, which is what lets the filename go.
+
+    A partial map would leave a committed vintage the reader cannot name, and
+    the only way to notice is to count both sides.
+
+    The right-hand side counts the backfilled entries rather than the whole
+    manifest. A recorded vintage is not in `COMMITTED`, which is the captured
+    output of the reader at 42978ce, so counting it on one side and not the
+    other would fail this the moment `data/` gains a ninth series while saying
+    nothing about whether the map is partial. The left-hand side keeps its own
+    count in `len(resolved) == 8`.
+
+    Name what that gives up. Comparing against the whole manifest also failed
+    when an entry was reachable by no reader argument at all, and comparing
+    against the eight does not. `record_vintage` takes any vendor matching
+    `VENDOR_PATTERN` while `close_identity` asks for three pairs, so a vintage
+    recorded under a fourth is committed, hashed and green while nothing can
+    open it. That state could not exist before, because no ninth vintage could
+    be recorded at all, and
+    [issue 96](https://github.com/l3a0/quantitative-trading/issues/96) owns it.
+    The check that would catch it also forbids recording a vintage before the
+    reader is taught to read it, which is a decision rather than an omission.
+
+    It takes a directory rather than reading the committed one through a name
+    bound at import, so `TestARecordedNinthLeavesTheReaderAlone` can run it
+    against a copy that has a ninth vintage in it.
+    """
+    resolved = {
+        load_vintage(ticker, **flags, data_dir=directory)[0].path for ticker, flags, *_ in COMMITTED
+    }
+
+    assert resolved == {
+        entry.path for entry in read_manifest(directory) if entry.path in BACKFILLED
+    }
+    assert len(resolved) == 8
+
+
 class TestTheEightStillReadAsTheyDid:
     """Rule 1. The conversion changes where the path comes from and nothing else."""
 
@@ -235,15 +279,7 @@ class TestTheEightStillReadAsTheyDid:
             assert len(values) == rows, path
 
     def test_the_three_arguments_map_onto_the_manifest_and_nothing_is_left_over(self) -> None:
-        """The map is total over the eight, which is what lets the filename go.
-
-        A partial map would leave a committed vintage the reader cannot name,
-        and the only way to notice is to count both sides.
-        """
-        resolved = {load_vintage(ticker, **flags)[0].path for ticker, flags, *_ in COMMITTED}
-
-        assert resolved == {entry.path for entry in read_manifest()}
-        assert len(resolved) == 8
+        the_reader_reaches_every_backfilled_vintage(DATA_DIR)
 
 
 class TestWhatTellsTwoDownloadsApart:
@@ -908,3 +944,82 @@ class TestTheDataDirectoryThreadsAllTheWayDown:
         """The argument has to decide the lookup, not merely be accepted."""
         with pytest.raises(VintageUnavailable):
             load_close("GLD", data_dir=data_dir)
+
+
+class TestARecordedNinthLeavesTheReaderAlone:
+    """Issue 51's first completion condition, for the assertion this file owns.
+
+    The other two it scopes are in `tests/test_vintage.py`, and
+    `TestARecordedVintageIsHeldToo` there covers them the same way. Split
+    across two files rather than gathered into one, because each case runs the
+    assertion its own file holds and a shared case would leave one file's
+    assertion checked somewhere its reader does not look.
+    """
+
+    @pytest.fixture
+    def with_a_ninth(self, committed_copy: Path) -> Path:
+        """The eight, copied, with a series they do not carry recorded into the copy.
+
+        The symbol is asserted unused rather than assumed so. A committed
+        vintage of the same symbol would make this fixture record a second
+        download of one series, which is a different failure with a different
+        owner, and it arrives as a dozen errors naming nothing.
+        """
+        assert not [e for e in read_manifest(committed_copy) if e.symbol == "ZZZ"]
+        record_vintage(
+            SERIES,
+            vendor="yfinance",
+            symbol="ZZZ",
+            price_basis="adjusted",
+            download_date="2026-09-17",
+            data_dir=committed_copy,
+        )
+        return committed_copy
+
+    def test_a_ninth_vintage_does_not_break_the_count_over_the_eight(
+        self, with_a_ninth: Path
+    ) -> None:
+        recorded = {entry.path for entry in read_manifest(with_a_ninth)}
+
+        assert set(BACKFILLED) < recorded
+        the_reader_reaches_every_backfilled_vintage(with_a_ninth)
+
+    def test_a_ninth_vintage_is_reachable_under_its_own_name(self, with_a_ninth: Path) -> None:
+        """The scoping has to leave the ninth readable, not merely uncomplained about."""
+        entry, values = load_vintage("ZZZ", data_dir=with_a_ninth)
+
+        assert entry.path.startswith("yfinance_zzz_adjusted_")
+        assert len(values) == len(SERIES)
+
+    def test_a_backfilled_vintage_the_reader_cannot_reach_still_stops_the_case(
+        self, with_a_ninth: Path
+    ) -> None:
+        """A map going partial surfaces as a refusal rather than as a count.
+
+        The three arguments name a price basis, so an entry carrying one no
+        triple asks for is an entry the reader resolves nothing for. It stops
+        there rather than reaching the comparison, which is why this asserts
+        the refusal and not an `AssertionError`. Both stop the case, and the
+        refusal names which vintage, which the count could not.
+        """
+        rewrite_entry(with_a_ninth, "ko_chan.csv", price_basis="raw")
+
+        with pytest.raises(VintageUnavailable, match="chan-xls KO adjusted"):
+            the_reader_reaches_every_backfilled_vintage(with_a_ninth)
+
+    def test_a_backfilled_vintage_reached_under_another_name_fails_the_comparison(
+        self, with_a_ninth: Path
+    ) -> None:
+        """The case above stops before the comparison, so this one drives it.
+
+        A reader that refuses raises inside the resolve and never reaches
+        either assertion, which left both deletable with the suite green. This
+        points a backfilled entry at a copy of its own file under a name the
+        eight do not carry. The reader resolves it and the bytes still verify,
+        so the run gets as far as comparing, and the two sides disagree.
+        """
+        shutil.copyfile(with_a_ninth / "gld_chan.csv", with_a_ninth / "gld_chan_moved.csv")
+        rewrite_entry(with_a_ninth, "gld_chan.csv", path="gld_chan_moved.csv")
+
+        with pytest.raises(AssertionError):
+            the_reader_reaches_every_backfilled_vintage(with_a_ninth)

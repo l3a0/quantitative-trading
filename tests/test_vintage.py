@@ -1,9 +1,12 @@
 """What the vintage recorder must do, and what it must refuse.
 
 Every case here is driven by a synthetic series, because the recorder takes
-rows rather than fetching them. Nothing in this file touches a network or the
-committed ``data/`` directory, except the last class, which reads the eight
-vintages this repo ships and checks the manifest still describes them.
+rows rather than fetching them. Nothing in this file touches a network, and
+nothing writes into the committed ``data/`` directory. The last two classes
+read it. ``TestTheCommittedManifest`` checks the manifest still describes the
+eight vintages this repo ships, and ``TestARecordedVintageIsHeldToo`` copies
+the tree, records a ninth into the copy and runs the assertions issue 51
+scoped against a directory that has one.
 
 The order the cases appear in is the order the rules appear on
 [issue 1](https://github.com/l3a0/quantitative-trading/issues/1).
@@ -24,13 +27,21 @@ from chan.vintage import (
     VintageRefused,
     read_manifest,
     record_vintage,
+    vintage_filename,
     write_checksums,
+)
+from tests.support.committed_vintages import (
+    BACKFILLED,
+    committed_copy,
+    identity_of,
+    rewrite_entry,
 )
 
 ROWS = [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)]
 SOURCE = dict(vendor="yfinance", symbol="GDX", price_basis="raw", download_date="2026-08-27")
 RECORDED_NAME = "yfinance_gdx_raw_2026-08-25_2026-08-27_dl2026-08-27.csv"
 RECORDED_ON_29 = "yfinance_gdx_raw_2026-08-25_2026-08-27_dl2026-08-29.csv"
+NINTH_NAME = "yfinance_zzz_adjusted_2026-08-25_2026-08-27_dl2026-09-17.csv"
 
 
 @pytest.fixture
@@ -611,6 +622,120 @@ class TestTheChecksumProjection:
         assert (data_dir / CHECKSUMS_NAME).read_bytes() == before
 
 
+# The three assertions below take a directory rather than reading `DATA_DIR`
+# through a name bound at import. Issue 51's first completion condition is that
+# a recorded ninth vintage leaves the suite green, and a name bound at import
+# cannot be redirected, so the condition had no mechanical check. A directory
+# argument gives it one: `TestARecordedVintageIsHeldToo` copies the committed
+# tree, records into the copy and runs all three against it. That is the same
+# choice issue 1 made for the recorder and `tests/test_series.py` made for the
+# reader, both under the rule that a test must not write into `data/`.
+
+
+def the_backfill_identity_is_pinned(directory: Path) -> None:
+    """The eight entries that predate the recorder carry the identity they were given.
+
+    Nothing in the bytes says which vendor sent a file or on what day, and the
+    backfill is committed data with no generator, so a hand edit to any of
+    these is a hand edit to the record. This is the assertion that makes one
+    fail.
+
+    Held by path rather than by set equality over the whole manifest, which is
+    what lets a recorded vintage sit beside the eight. Name what that gives up,
+    and name it accurately, because the first draft of this paragraph claimed
+    more than the code does.
+
+    Set equality failed on any ninth entry at all, a forged one included, for
+    the same reason it failed on a recorded one: it enumerated eight. Keying on
+    paths gives that up entirely. A hand-written entry that brings its own
+    file, hashes it correctly and takes the name its own fields produce passes
+    every assertion here, measured. That is not a hole that can be closed. Such
+    an entry is byte for byte what the recorder would have written, so no test
+    can separate the two, and what separates them is the commit that added one.
+
+    What the remaining assertions catch is an entry that is inconsistent with
+    itself. `test_every_committed_series_has_exactly_one_entry` fails one
+    naming a file that is not on disk or repeating a path that is, and
+    `the_recorded_entries_name_themselves` fails one whose fields and whose
+    name disagree.
+    """
+    by_path = {entry.path: entry for entry in read_manifest(directory)}
+
+    for path, pinned in BACKFILLED.items():
+        assert path in by_path, path
+        assert identity_of(by_path[path]) == pinned, path
+
+
+def the_backfill_names_the_series_its_file_holds(directory: Path) -> None:
+    """The hash, the row count and the span say nothing about which series it is.
+
+    All three would pass with the vendor, the symbol and the price basis
+    swapped, and those are the three fields that say what a reader is looking
+    at. The symbol is recoverable from these eight files, because each carries
+    yfinance's `Ticker,` header row, so it is derived rather than restated.
+
+    Only these eight. A recorded vintage carries a single `Date,Close` header
+    and no symbol anywhere in its bytes, which is the shape `_serialize` writes
+    and `data/README.md`'s `## Header shape` section explains. Its symbol is
+    held by `the_recorded_entries_name_themselves` instead, out of the path.
+
+    The symbol compared is the entry's rather than the one `BACKFILLED` pins,
+    which is what keeps this a second hold rather than a restatement of the
+    first. Reading the pin on both sides would compare the pin against itself
+    and pass over a manifest naming a series its file does not carry.
+    """
+    for entry in read_manifest(directory):
+        if entry.path not in BACKFILLED:
+            continue
+        header = (directory / entry.path).read_text(encoding="utf-8").splitlines()[1]
+        assert header == f"Ticker,{entry.symbol}", entry.path
+
+
+def the_recorded_entries_name_themselves(directory: Path) -> None:
+    """Every entry the recorder wrote agrees with the path it took.
+
+    `vintage_filename` joins all five identity fields, so a recorded vintage's
+    vendor, symbol, price basis and span are recoverable from `entry.path`
+    without reading a byte. Comparing the two is what stands between an entry
+    and a file it does not describe. Scoping the two assertions above leaves
+    vendor, symbol, price basis and download date covered by no other test,
+    and `docs/design.md`'s register carries why that matters and why the
+    symbol is not written into the bytes instead.
+
+    What it catches is a one-sided edit. The recorder builds the name from the
+    fields it then writes, so for anything it wrote the comparison holds at
+    write time and only a later edit to one side can break it. It is not a
+    check on what the bytes contain.
+
+    Two limits are worth naming rather than leaving to be found.
+
+    1. The symbol's case is not recoverable, because the join lowercases it.
+       An entry edited from `SPY` to `spy` passes, and
+       [issue 86](https://github.com/l3a0/quantitative-trading/issues/86) is
+       where a reader-side spelling check belongs.
+    2. The predicate is "not one of the eight" where the intent is "the
+       recorder wrote it". They part on a ninth workbook column added by hand,
+       which would fail here. Nothing can write one: `record_vintage` has no
+       saved-date parameter, and this module's docstring says so.
+
+    Vacuous against the committed manifest, which holds no recorded entry yet.
+    `TestARecordedVintageIsHeldToo` is what exercises it and what shows it
+    bites.
+    """
+    for entry in read_manifest(directory):
+        if entry.path in BACKFILLED:
+            continue
+        assert entry.download_date is not None, f"{entry.path} carries no download date"
+        assert entry.path == vintage_filename(
+            vendor=entry.vendor,
+            symbol=entry.symbol,
+            price_basis=entry.price_basis,
+            first_date=entry.first_date,
+            last_date=entry.last_date,
+            download_date=entry.download_date,
+        ), entry.path
+
+
 class TestTheCommittedManifest:
     """The eight vintages this repo ships, and the record that describes them.
 
@@ -647,39 +772,15 @@ class TestTheCommittedManifest:
 
         assert (DATA_DIR / CHECKSUMS_NAME).read_text(encoding="utf-8") == expected
 
-    def test_every_entry_names_the_series_its_file_actually_holds(self):
-        """The hash, the row count and the span say nothing about which series it is.
-
-        All three would pass with the vendor, the symbol and the price basis
-        swapped, and those are the three fields that say what a reader is
-        looking at. The symbol is recoverable from the file, because every
-        committed vintage carries yfinance's `Ticker,` header row, so it is
-        derived rather than restated.
-        """
-        for entry in read_manifest():
-            header = (DATA_DIR / entry.path).read_text(encoding="utf-8").splitlines()[1]
-            assert header == f"Ticker,{entry.symbol}", entry.path
+    def test_every_backfilled_entry_names_the_series_its_file_actually_holds(self):
+        the_backfill_names_the_series_its_file_holds(DATA_DIR)
 
     def test_the_identity_of_all_eight_is_pinned(self):
-        """Nothing in the bytes says which vendor sent a file or on what day.
+        the_backfill_identity_is_pinned(DATA_DIR)
 
-        The backfill is committed data with no generator, so a hand edit to any
-        of these is a hand edit to the record. This is the assertion that makes
-        one fail.
-        """
-        assert {
-            (e.path, e.vendor, e.symbol, e.price_basis, e.download_date, e.saved_date)
-            for e in read_manifest()
-        } == {
-            ("gld_20yr_prices.csv", "yfinance", "GLD", "adjusted", "2026-06-16", None),
-            ("gld_20yr_prices_unadjusted.csv", "yfinance", "GLD", "raw", "2026-08-27", None),
-            ("gdx_20yr_prices.csv", "yfinance", "GDX", "adjusted", "2026-08-27", None),
-            ("gdx_20yr_prices_unadjusted.csv", "yfinance", "GDX", "raw", "2026-08-27", None),
-            ("gld_chan.csv", "chan-xls", "GLD", "adjusted", None, "2007-12-02"),
-            ("gdx_chan.csv", "chan-xls", "GDX", "adjusted", None, "2007-12-02"),
-            ("ko_chan.csv", "chan-xls", "KO", "adjusted", None, "2008-01-23"),
-            ("pep_chan.csv", "chan-xls", "PEP", "adjusted", None, "2008-01-23"),
-        }
+    def test_every_recorded_entry_agrees_with_the_path_it_took(self):
+        """Vacuous today. `TestARecordedVintageIsHeldToo` is where it bites."""
+        the_recorded_entries_name_themselves(DATA_DIR)
 
     def test_every_committed_line_is_the_one_its_entry_would_write(self):
         """A line's text is decided by the entry, not by how it was typed.
@@ -735,3 +836,153 @@ class TestTheCommittedManifest:
             VintageEntry(**shared)
         with pytest.raises(ValueError, match="not both and not neither"):
             VintageEntry(**shared, download_date="2026-08-27", saved_date="2026-08-27")
+
+
+class TestARecordedVintageIsHeldToo:
+    """A ninth vintage passes the scoped assertions, and a wrong one does not.
+
+    This is the mechanical check for issue 51's first completion condition,
+    which is that recording a vintage into `data/` leaves the suite green.
+    The three assertions it scopes take a directory, so the condition is
+    exercised against a copy of the committed tree rather than by editing the
+    committed tree and remembering to put it back.
+
+    Name what the copy does not cover. The rest of the suite reads `DATA_DIR`
+    through names bound at import, so "the whole suite is green against a real
+    ninth" is still a claim this cannot make. What it holds is the three
+    assertions that were measured red, plus the check that replaces what the
+    scoping gives up. The full run was done by hand once, on the pull request
+    that built this.
+    """
+
+    @pytest.fixture
+    def with_a_ninth(self, tmp_path):
+        """The eight, copied, with a ninth recorded into the copy.
+
+        A series the eight do not carry. A second download of one they do is a
+        different failure with a different owner, which is
+        [issue 83](https://github.com/l3a0/quantitative-trading/issues/83), so
+        the symbol is asserted unused rather than assumed so.
+        """
+        directory = committed_copy(tmp_path)
+        assert not [e for e in read_manifest(directory) if e.symbol == "ZZZ"]
+        entry = record_vintage(
+            ROWS,
+            vendor="yfinance",
+            symbol="ZZZ",
+            price_basis="adjusted",
+            download_date="2026-09-17",
+            data_dir=directory,
+        )
+
+        assert entry.path == NINTH_NAME
+        return directory
+
+    def test_a_recorded_ninth_leaves_the_three_scoped_assertions_green(self, with_a_ninth):
+        recorded = [entry.path for entry in read_manifest(with_a_ninth)]
+
+        assert NINTH_NAME in recorded
+        assert set(BACKFILLED) <= set(recorded)
+        the_backfill_identity_is_pinned(with_a_ninth)
+        the_backfill_names_the_series_its_file_holds(with_a_ninth)
+        the_recorded_entries_name_themselves(with_a_ninth)
+
+    @pytest.mark.parametrize(
+        ("path", "field", "value"),
+        [
+            ("gdx_20yr_prices.csv", "vendor", "acme"),
+            ("gdx_20yr_prices.csv", "symbol", "QQQ"),
+            ("gdx_20yr_prices.csv", "price_basis", "raw"),
+            ("gdx_20yr_prices.csv", "download_date", "2026-09-18"),
+            ("ko_chan.csv", "saved_date", "2008-01-24"),
+        ],
+    )
+    def test_a_hand_edit_to_a_backfilled_entry_still_fails(self, with_a_ninth, path, field, value):
+        """Scoping to the eight must not stop the eight being held.
+
+        A ninth vintage sits in the manifest while this runs, because that is
+        the state the scoping was for and a pin that only holds against eight
+        entries would not have been scoped at all.
+        """
+        rewrite_entry(with_a_ninth, path, **{field: value})
+
+        with pytest.raises(AssertionError):
+            the_backfill_identity_is_pinned(with_a_ninth)
+
+    def test_a_backfilled_entry_dropped_from_the_manifest_still_fails(self, with_a_ninth):
+        """Set equality caught an absence by counting. A paths pin has to ask."""
+        manifest = with_a_ninth / MANIFEST_NAME
+        kept = [
+            line
+            for line in manifest.read_text(encoding="utf-8").splitlines()
+            if json.loads(line)["path"] != "pep_chan.csv"
+        ]
+        manifest.write_text("".join(line + "\n" for line in kept), encoding="utf-8")
+
+        with pytest.raises(AssertionError):
+            the_backfill_identity_is_pinned(with_a_ninth)
+
+    def test_a_backfilled_entry_renamed_to_a_series_its_file_does_not_hold_still_fails(
+        self, with_a_ninth
+    ):
+        """The `Ticker,` row is derived from the file, so the symbol has two holds."""
+        rewrite_entry(with_a_ninth, "gld_chan.csv", symbol="KO")
+
+        with pytest.raises(AssertionError):
+            the_backfill_names_the_series_its_file_holds(with_a_ninth)
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("vendor", "acme"),
+            ("symbol", "QQQ"),
+            ("price_basis", "raw"),
+            ("download_date", "2026-09-18"),
+            ("first_date", "2026-08-24"),
+            ("last_date", "2026-08-28"),
+        ],
+    )
+    def test_a_recorded_entry_that_names_the_wrong_thing_fails(self, with_a_ninth, field, value):
+        """Every field the comparison reads, so no half of it can go tautological.
+
+        Four of these are the fields no other test covers once the scoping
+        lands, and each was measured green under the scoping alone. A manifest
+        naming the wrong symbol is the sharpest, because the reader then hands
+        one series' closes back under another's name and the sha256 verifies.
+
+        The span is the other two, and they are driven here because a
+        comparison is only held where a case moves each side of it. Replacing
+        either span field with a value read back out of the path makes that
+        half compare a string to itself, and the suite was green under both
+        until these rows existed. The span is separately held against the file
+        by `test_every_entry_describes_the_file_it_names`, which speaks for
+        every entry, and that test reads the committed directory rather than
+        this copy.
+        """
+        rewrite_entry(with_a_ninth, NINTH_NAME, **{field: value})
+
+        with pytest.raises(AssertionError):
+            the_recorded_entries_name_themselves(with_a_ninth)
+
+    def test_a_recorded_entry_carrying_a_saved_date_fails(self, with_a_ninth):
+        """`vintage_filename` takes a download date and does not refuse `None`.
+
+        Handed one it returns a name ending `dlNone.csv` rather than raising,
+        so the check asks first and names the entry. Nothing reaches that
+        through `record_vintage`, which validates the date before it writes,
+        and this is the state a hand-edited line produces.
+        """
+        rewrite_entry(with_a_ninth, NINTH_NAME, download_date=None, saved_date="2026-09-17")
+
+        with pytest.raises(AssertionError, match="carries no download date"):
+            the_recorded_entries_name_themselves(with_a_ninth)
+
+    def test_rewriting_an_entry_no_manifest_line_names_is_refused(self, with_a_ninth):
+        """A negative case is only negative while its edit lands.
+
+        A mistyped path would leave the manifest untouched, and the case using
+        it would report that nothing raised rather than that nothing was
+        edited. The guard is what makes the second failure say so.
+        """
+        with pytest.raises(AssertionError, match="absent.csv"):
+            rewrite_entry(with_a_ninth, "absent.csv", vendor="acme")

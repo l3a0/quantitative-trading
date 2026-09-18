@@ -18,6 +18,23 @@ adding a series is a recorded act and replacing one is not an act the recorder
 performs at all. It does not download. A caller hands it rows, which is what
 keeps every rule it enforces testable with no network.
 
+A recorded vintage's name is load-bearing. The recorder builds it by joining
+the five identity fields, so the vendor, symbol, price basis, span and download
+date are recoverable from the path without reading a byte, and
+[tests/test_vintage.py](../tests/test_vintage.py) holds every recorded entry to
+the name its file took. Renaming such a file fails the suite either way.
+Renaming the file alone leaves an entry naming nothing, and renaming the entry
+with it makes the fields and the name disagree. The eight above are exempt,
+because they were committed before the recorder existed and carry hand-given
+names.
+
+That check is what stands between a recorded entry and a file it does not
+describe, and it is worth saying what it does not do. It compares the record
+against its own shadow, so it catches an edit to one side and never an entry
+that was consistent when it was written. The symbol's case is outside it too,
+because the join lowercases it. `## Header shape` below is why the bytes cannot
+carry the symbol instead.
+
 ## What each file is
 
 A vintage is one download of one series, identified by vendor, symbol, span,
@@ -124,8 +141,10 @@ Two files carry that record.
    surface anyone has to remember to update.
 
 `TestTheCommittedManifest` in
-[tests/test_vintage.py](../tests/test_vintage.py) fails when an entry stops
-describing the file it names, when a file here has no entry, or when the
-projection stops matching the record. The table above is a third telling and is
-still hand-written, which
+[tests/test_vintage.py](../tests/test_vintage.py) fails on five states: when an
+entry stops describing the file it names, when a file here has no entry, when
+the projection stops matching the record, when one of the eight above stops
+carrying the identity it was given, and when a recorded entry stops agreeing
+with the name its file took. The table above is a third telling and is still
+hand-written, which
 [issue 43](https://github.com/l3a0/quantitative-trading/issues/43) closes.
