@@ -518,15 +518,16 @@ Four things, and the first is why a verdict here carries less than it looks.
    rounding of the rate and not the recipe the ratio comes from. Multiplying
    the rounded figure by 1,000 gives 241.77 instead.
 
-   The rate on the time-average side changes between the two rows, and what
-   each row is for is the reason. Row 7 of this entry states the ensemble side
-   in log units so the two averages can be compared against the continuous
-   approximation the book prints. Row 8 of this entry compounds a capital, and
-   the book works no horizon there, so there is no published figure to match
-   and `growth_exact`, the exact discrete rate, is the quantity available. It
-   is also the only rate that reproduces the median path: at 1,000 rounds that
-   path reaches \$606, where the approximation compounds to \$599, a capital
-   no run of the gamble can produce.
+   What the ensemble side is set against changes between the two rows, and
+   what each row is for is the reason. Row 7 of this entry states that side in
+   log units so it can be compared against the continuous approximation the
+   book prints, which is what row 4 of this entry reproduces. Row 8 of this
+   entry compounds a capital instead, and the book works no horizon there, so
+   there is no published figure to match and `growth_exact`, the exact
+   discrete rate, is the quantity available. It is also the only rate that
+   reproduces the median path: at 1,000 rounds that path reaches \$606, where
+   the approximation compounds to \$599, a capital no run of the gamble can
+   produce.
 4. **Neither epistemic label reaches this entry.** The design doc defines
    exploratory as a result produced by looking at the data and registered as one
    whose hypothesis was committed before the number was seen. This spends no

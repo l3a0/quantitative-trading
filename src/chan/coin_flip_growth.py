@@ -177,9 +177,11 @@ class Horizon:
     median path at even ``rounds`` and not at odd ones, where the head count
     cannot split, so it is named for the rate it comes from rather than called
     typical. That identity is what makes the choice of rate checkable, and
-    ``test_the_time_average_path_is_the_median_path`` holds it: the
-    approximation reaches $598.9962 at 1,000 rounds, which is no path the
-    gamble can take.
+    ``test_the_time_average_path_is_the_median_path`` holds it. For Chan's
+    payoffs the approximation reaches $598.9962 at 1,000 rounds against the
+    median path's $606.3789, which is a capital no run of that gamble can
+    produce. The payoffs are arguments, so both figures move with them and
+    the identity is what holds for any of them.
     """
 
     rounds: int
@@ -381,10 +383,10 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
             f"  {h.rounds:>8,}  {'$' + format(h.ensemble_capital, ',.0f'):>16}"
             f"  {'$' + format(h.time_average_capital, ',.0f'):>19}  {h.ratio:>10,.2f}"
         )
-    print("  The time-average path compounds growth_exact, the exact discrete rate")
-    print("  above, and not the book's continuous approximation. The ensemble mean")
-    print("  compounds ensemble_log_growth, so the ratio grows at")
-    print("  ensemble_log_growth minus growth_exact.")
+    print("  The time-average path compounds growth_exact, the exact discrete")
+    print("  rate above, and not the book's continuous approximation.")
+    print("  The ensemble mean compounds ensemble_log_growth, so the ratio")
+    print("  grows at ensemble_log_growth minus growth_exact.")
     print()
     print("A replication is exploratory when a sample was spent looking. This one")
     print("spends none, so neither that label nor its opposite reaches it.")

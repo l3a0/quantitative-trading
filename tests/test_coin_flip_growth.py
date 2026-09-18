@@ -368,9 +368,9 @@ class TestTheCapitalDiverges:
             assert capital_horizon(rounds, moments).time_average_capital == pytest.approx(
                 median, rel=5e-12
             )
+        assert START_CAPITAL * (1.11 * 0.90) ** 500 == pytest.approx(606.3789, abs=5e-5)
         approximated = START_CAPITAL * math.exp(moments.growth_continuous * 1000)
         assert approximated == pytest.approx(598.9962, abs=5e-5)
-        assert approximated != pytest.approx(606.3789, abs=5e-5)
 
     def test_the_ratio_grows_at_the_difference_between_the_rates(self, moments) -> None:
         """The ratio grows as ``exp((ensemble_log_growth - growth_exact) * n)``.
@@ -380,14 +380,18 @@ class TestTheCapitalDiverges:
         figure by 1,000 gives 241.77 against the 241.72 the ratio actually
         reaches, so a surface quoting both invites a reader to compute the
         wrong one.
+
+        The last assertion is what holds that gap against the code. An equality
+        on ``math.exp(0.005488 * 1000)`` alone would name no symbol from
+        ``src/chan`` and so could never go red, which is why 241.77 is compared
+        against the computed ratio rather than against a second literal.
         """
         exponent = moments.ensemble_log_growth - moments.growth_exact
         assert exponent == pytest.approx(0.005488, abs=5e-7)
-        assert capital_horizon(1000, moments).ratio == pytest.approx(
-            math.exp(exponent * 1000), rel=1e-9
-        )
+        ratio = capital_horizon(1000, moments).ratio
+        assert ratio == pytest.approx(math.exp(exponent * 1000), rel=1e-9)
         assert math.exp(0.005488 * 1000) == pytest.approx(241.77, abs=5e-3)
-        assert math.exp(0.005488 * 1000) != pytest.approx(241.72, abs=5e-3)
+        assert math.exp(0.005488 * 1000) - ratio == pytest.approx(0.0504, abs=5e-5)
 
     def test_the_capital_a_reader_sees_at_a_thousand_rounds(self, moments) -> None:
         """$146,576 against $606, from $1,000. The ensemble player is rich and
@@ -456,15 +460,24 @@ class TestTheReportSaysWhatItComputed:
         """Three numbers print under the label "time average" above the table,
         so the table's own column header names none of them.
 
-        The assertion is on the sentence rather than on a phrase the rest of
-        the report already prints. ``exact discrete`` appears on the rate line
-        and ``time-average path`` is the column header, so an assertion on
-        either would pass with this line deleted. Checked by deleting it.
+        Each rate is anchored to the side that compounds it, and not asserted
+        as a bare substring. Two unanchored substrings pass when the report
+        names the rates the wrong way round, because the sentence owning each
+        one simply moves to the other side, which is the one mutation a
+        refactor would plausibly make. Checked by making it.
+
+        The wrapping is normalised away first, so the assertions hold what the
+        report says rather than where its lines happen to break. ``exact
+        discrete`` appears on the rate line above and ``time-average path`` is
+        the column header, so an assertion on either would pass with the whole
+        block deleted. Checked by deleting it.
         """
         report(simulate(10, 10, 0), horizons=(10,))
-        out = capsys.readouterr().out
-        assert "compounds growth_exact" in out
-        assert "compounds ensemble_log_growth" in out
+        out = " ".join(capsys.readouterr().out.split())
+        assert "The time-average path compounds growth_exact" in out
+        assert "not the book's continuous approximation" in out
+        assert "The ensemble mean compounds ensemble_log_growth" in out
+        assert "the ratio grows at ensemble_log_growth minus growth_exact" in out
 
     def test_a_run_that_cannot_resolve_the_sign_says_so_in_the_report(self, capsys) -> None:
         """The too-small branch, which is the visible half of requirement 5.
@@ -482,6 +495,12 @@ class TestTheReportSaysWhatItComputed:
         assert f"{moments.expected_return:.3f}" in BOOK_REF
         assert f"{moments.return_sd:.3f}" in BOOK_REF
         assert f"{moments.growth_continuous:.7f}" in BOOK_REF
+        # The qualifier is part of the quotation. The book prints this figure
+        # "in the continuous approximation" at location 3186, and the report
+        # prints BOOK_REF twelve lines above a block where the same number
+        # reappears under that label. Dropping it leaves the report's second
+        # line naming a rate the module computes two ways.
+        assert "in the continuous approximation" in BOOK_REF
 
     def test_the_cli_refuses_a_size_it_cannot_run(self, monkeypatch) -> None:
         """Zero rounds divides by zero in the standard error. argparse exits

@@ -137,8 +137,12 @@ uv run python -m chan.coin_flip_growth
 
 It prints the figures the book prints, the two averages in one unit so their
 signs can be compared, a seeded run with the standard error beside it, and the
-capital each average compounds into over four horizons. The rates themselves
-are constants, so the divergence is visible in the capital and nowhere else.
+capital those two rates compound into over four horizons. The ensemble side
+compounds `ensemble_log_growth` and the time-average side compounds
+`growth_exact`, the exact discrete rate rather than the continuous
+approximation the book prints, and the report says so beneath the table. The
+rates themselves are constants, so the divergence is visible in the capital and
+nowhere else.
 `--rounds`, `--paths` and `--seed` move the run off its pinned size. The report
 prints the standard error beside the estimate either way, and says outright
 when a size is too small to resolve the sign, which is a line a reader sees
