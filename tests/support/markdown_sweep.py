@@ -58,6 +58,21 @@ def blank_code(text: str) -> str:
 
     A blanked line keeps its length and its position, so a match found in the
     result points at the same column of the same line in the source.
+
+    This blanks inline spans as well as fenced blocks, which is right for the
+    sweeps that consume it: a tilde or a tight delimiter row inside backticks
+    is code rather than prose. A caller that wants the opposite, meaning prose
+    including its inline code, wants :func:`blank_fences`.
+    """
+    return "\n".join(_blank_spans(line) for line in blank_fences(text).split("\n"))
+
+
+def blank_fences(text: str) -> str:
+    """Blank fenced code blocks only, leaving inline spans alone.
+
+    Separate from :func:`blank_code` because a reference written in prose is
+    normally written in backticks. A check for one has to see inside them,
+    while a fenced block showing a command is not a prose reference at all.
     """
     blanked: list[str] = []
     fence: str | None = None
@@ -68,7 +83,7 @@ def blank_code(text: str) -> str:
                 fence = match.group(1)
                 blanked.append(" " * len(line))
                 continue
-            blanked.append(_blank_spans(line))
+            blanked.append(line)
             continue
         blanked.append(" " * len(line))
         closes = (
