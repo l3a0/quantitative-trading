@@ -1,6 +1,6 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board artifact whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens or merges, when a review lands on one, and when issues are filed or closed, as well as on any request to refresh or sync the board. Needs the Artifact tool. Answering what to take next is a read and does not on its own call for a republish.
+description: Update the Quantitative Trading Build Board artifact whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. Needs the Artifact tool. Answering what to take next is a read and does not on its own call for a republish.
 ---
 
 # Update the build board
@@ -17,7 +17,7 @@ them as stale rather than updating them unasked.
 
 ## When to run it
 
-Five moments, and each is one where the page's own answer changed. A session
+Seven moments, and each is one where the page's own answer changed. A session
 that hits one and leaves has made the board wrong, and nothing else notices.
 
 1. **A decompose loop exits.** Add the card to `PLANNED` with its pass count and
@@ -33,6 +33,13 @@ that hits one and leaves has made the board wrong, and nothing else notices.
 5. **A pull request closes unmerged.** In-flight membership asks whether a
    `PRS` entry has `state` of `open`, so nothing removes a card on its own and
    it sits in a review column indefinitely.
+6. **A pull request's checks settle.** `rollup` is per check, and the footer
+   warns that it decays. `CLAUDE.md` already makes a session watch its checks
+   after pushing, so the outcome is always known and only writing it down is
+   optional.
+7. **An issue is retitled or relabelled.** `TRACKER` carries `label`, `ms` and
+   `labels` by hand, and none of them moves on its own. A decompose loop
+   correcting a body counts under the first moment only if the loop exits.
 
 A branch that closes no issue gets no card at all, because the page is built
 from the tracker. That has happened, and the fix was to file the issue and link
@@ -40,7 +47,7 @@ the branch to it rather than giving the page a second source of truth. Check
 `closingIssuesReferences` when a pull request opens, and if it is empty and the
 branch means to close something, fix the body before the board is touched.
 
-One block these five do not maintain, said plainly rather than left to be
+One block these seven do not maintain, said plainly rather than left to be
 discovered. `WORKING` marks a card a session is on right now, which is only
 knowable while a session is running, and every moment above fires when one
 finishes. So the Building column reads zero unless something outside this skill
@@ -87,9 +94,9 @@ the link, and a short `label` naming the change.
 ## Measure everything, recall nothing
 
 Every figure on the page has a command behind it. Run them **from the repo
-root**, not from the scratch directory the rest of this page works in. Five of
-them fail loudly there and one does not: `uv run pytest` reports `no tests ran`,
-which looks enough like a result to be written down.
+root**, not from the scratch directory the rest of this page works in. Most fail
+loudly there. One does not: `uv run pytest` reports `no tests ran` and exits
+zero, which looks enough like a result to be written down.
 
 A count recalled from earlier in the session is the one that will be wrong, and
 it has been: an update shipped 39 open issues when a query said 40.
@@ -97,18 +104,24 @@ it has been: an update shipped 39 open issues when a query said 40.
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
 gh issue list --state open --limit 100 --json number --jq 'length'
-gh pr list --state open --json number,title,mergeable,statusCheckRollup,closingIssuesReferences
+gh pr list --state open --json number,title,statusCheckRollup,closingIssuesReferences
 uv run pytest -q --no-header 2>&1 | tail -1
 python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
 wc -l < data/vintages.jsonl
 grep -c 'Location' research/book-notes/quantitative-trading.md
-gh issue list --state open --limit 100 --json number,labels --jq 'sort_by(.number)[]|"\(.number)\t\(.labels|map(.name)|join(","))"'
+gh issue list --state open --limit 100 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
 ```
 
 `wc -l` on the manifest is `vintages.files`, and the line above it is
-`vintages.rows`.
+`vintages.rows`. The `grep` is `notes.highlights`. The one figure with no
+command is `issues.tracked`, which counts the experiments the sibling
+experiments page lists and moves only when that page does. Leave it alone rather
+than deriving it from the open issue count, which is a different number and has
+been confused with it before.
 
-The last command feeds every card's `labels`. They are the tracker's own labels
+The `gh issue list` command feeds every card's `ms` and `labels`. `ms` is the
+GitHub milestone title, printed on the card exactly as the tracker spells it,
+which is why it is queried rather than recalled from the five that exist. They are the tracker's own labels
 rather than a second vocabulary, so a label added on GitHub belongs on the card,
 and `LABEL_HUE` takes its colour from `gh label list --json name,color`.
 
@@ -118,12 +131,6 @@ so a value that reads fine there can be invisible here. `enhancement` is
 `a2eeef` and `deferred` is `ededed`, both too pale to read as text on white, so
 the page substitutes a darker colour for each. Syncing `LABEL_HUE` straight from
 the command would undo both.
-
-That last one is `notes.highlights`. The one figure with no command is
-`issues.tracked`, the count of experiments the sibling experiments page lists,
-which moves only when that page does. Leave it alone rather than deriving it
-from the open issue count, which is a different number and has been confused
-with it before.
 
 The vintage row count comes from the manifest rather than from counting lines.
 All eight files carry three header lines, `Price,Close` then `Ticker,<SYM>` then
@@ -151,10 +158,16 @@ review posted with `gh pr comment` is an issue comment, which never reaches
 `reviews` or moves `reviewDecision`, so a landed review and an unwritten one are
 indistinguishable by query. `gh pr review --comment` posts a review instead, and
 an author may leave one on their own pull request even though they may not
-approve it. If a session posts reviews that way, `reviewed` becomes queryable
-and the comment count stops being needed. Until then, count the comments that
+approve it. If a session posts reviews that way, `reviews` becomes queryable and
+the comment count stops being needed. `reviewDecision` still will not move,
+because only an approval changes it, so it is not the field to read either way. Until then, count the comments that
 open with a review heading, because that flag is the only thing that moves a
 card into the column saying the next move is the owner's.
+
+That heading is a convention this command depends on and nothing else states, so
+it is stated here: **a session's review comment opens with a line reading
+`## Review`.** A review headed anything else counts as zero, and its card sits
+in "Waiting on my review" until somebody notices.
 
 Read the checks against the pull request's current head, because a rollup is a
 claim about one merge ref at one moment and goes stale in both directions.
@@ -168,23 +181,31 @@ already lists, and it belongs there rather than only here, which
 
 ## The data blocks, and what each owns
 
-Everything the page says comes from two objects and six arrays in its script.
-They are not adjacent: `STATE`, `PRS`, `WORKING`, `PLANNED` and `NEXT` sit
-together near the top, `TRACKER` is about a third of the way down, and `FLOW` is
-near the bottom beside the code that reads it. Find each by name rather than by
-scrolling. Change the data. Never hand-write a sentence stating a number the
-data already carries, because that sentence outlives the number.
+Everything the page says comes from the blocks below. They are not adjacent:
+`STATE`, `PRS`, `WORKING`, `PLANNED` and `NEXT` sit together near the top,
+`TRACKER` is about a third of the way down, and the rest are near the code that
+reads them. Find each by name rather than by scrolling. Change the data. Never
+hand-write a sentence stating a number the data already carries, because that
+sentence outlives the number.
+
+Two of them hold rendered prose rather than values. `COLS` carries every
+build-order column heading and subtitle, and `KINDWORD` carries the phrase a
+card prints for its kind. A heading that looks hardcoded in the template is in
+one of those.
 
 | Block | Holds |
 | --- | --- |
 | `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
-| `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup` |
+| `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
 | `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card |
 | `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
 | `FLOW` | the four in-flight stages and the test that assigns a card to one |
 | `LABEL_HUE` | one colour per tracker label, read by the card chips |
+| `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
+| `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose" |
+| `READY_RANK` | the order `build`, `decide` and `plan` sort in, read by the ranking sort |
 
 Three of these carry judgement rather than measurement, so they are where the
 thinking goes.
@@ -192,9 +213,12 @@ thinking goes.
 1. **`needs` against `after`.** `needs` is a hard blocker and moves a card into a
    deeper column. `after` is an ordering somebody measured that nothing
    enforces, so it leaves the card where it is and sorts it below what it names.
-   Issue 2 carries `after: [41]` because a default Windows clone goes from two
-   red tests to twenty-nine if they land the other way round. Using `needs`
-   there would have said something false.
+   Issue 83 carries `after: [51]` because its own body measures the split: three
+   of the failures a second download causes belong to issue 51 and the rest do
+   not, so it can be built first while the suite stays red until 51 lands. Using
+   `needs` there would have said something false. The first card to carry one was
+   issue 2, on a measurement about a Windows clone, and both it and the card it
+   named have since merged, which is what an `after` is for.
 2. **`PLANNED` means a decompose loop exited**, on two consecutive passes that
    asked different questions and found nothing. Not that a body looks thorough.
    Check the issue for the verdict before adding an entry.
@@ -238,7 +262,10 @@ store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
   o.push("FOOT["+(i+1)+"] "+s(x));});
 // Anything the page wrote to that the lines above do not format. Listing the
 // surfaces by hand is what let `chainbar` go unread and a dead `rank` probe go
-// unnoticed, so the sweep is what guarantees the list cannot go stale.
+// unnoticed, so the sweep is what keeps that list honest. It sees load-time
+// `innerHTML` only: not `stamp`, which only a timer writes, not any
+// `aria-label`, since the tag-stripper deletes attributes, and not the
+// chainbar's picked state, which needs a click.
 var shown = {strip:1, flow:1, board:1, flownote:1, boardnote:1, key:1, flowkey:1, foot:1};
 Object.keys(store).sort().forEach(function(id){
   if (!shown[id]) o.push("OTHER["+id+"] "+s(store[id].innerHTML));});
@@ -257,6 +284,15 @@ version of this harness skipped `foot`, `key` and `flowkey`, and `foot` is the
 largest prose block on the page and the one holding the most hand-written
 numbers. Planting a false figure in it left the output byte-identical, so the
 check could not see the surface it was most needed on.
+
+**Much of the page is dark when `PRS` and `WORKING` are empty**, which is the
+state it is in between batches and every time a session opens the first branch
+of one. The flow note collapses to a sentence, the flow legend loses two
+entries, and the footer's decay clause disappears entirely. That clause is where
+check 5's conjunction lives, so on an empty board the sentence it warns about
+cannot be read at all. Where a change touches that code, add an entry to `PRS`
+in the scratch copy, run the harness, read the output, and take the entry out
+again before publishing.
 
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something

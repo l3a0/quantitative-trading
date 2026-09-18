@@ -414,7 +414,7 @@ PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`
 
 The build board is a page that answers what is in flight and what to take next. It reads no disk and polls no API, so every figure on it was measured by hand. A session that changes what it shows and then leaves has made it wrong, and nothing else notices.
 
-So a session that finishes one of these updates it: a decompose loop exiting, a pull request opening, merging or gaining a review, or an issue being filed or closed. The `update-build-board` skill under `.claude/skills/` owns the procedure and the reasons behind each step. This section says when, and the skill says how, so neither repeats the other.
+So a session that changes any of these updates it: a decompose loop's verdict, a pull request's existence, its review or its checks, or an issue's existence, title or labels. The `update-build-board` skill under `.claude/skills/` owns the procedure, the full list of moments and the reasons behind each step. This section says that the rule exists, and the skill says what it covers and how, so neither repeats the other and only one of them goes stale when the page gains a state.
 
 Two limits are worth stating rather than leaving a reader to infer.
 
