@@ -546,6 +546,85 @@ class TestTheChecksumProjection:
         assert (data_dir / CHECKSUMS_NAME).read_bytes() == before
 
 
+class TestTheBytesEveryWriteProduces:
+    """Every file the recorder writes, held to the bytes the code built.
+
+    Python's text mode writes ``os.linesep`` for every newline when no
+    ``newline`` argument is given, and that is CRLF on Windows. Nowhere this
+    suite runs does it, so the case forces the same translation through the
+    same code path rather than waiting for a Windows runner. That is the writer
+    side of what `tests/test_checkout_bytes.py` asks of a checkout.
+    """
+
+    def test_no_write_translates_a_newline(self, data_dir, tmp_path_factory, monkeypatch):
+        """Both write surfaces are shimmed, and a control says the shims are live.
+
+        A test that patches a translating write in and then finds no carriage
+        return passes just as well when the patch never took hold, so two
+        writes performed here go through the same shims and are asserted to
+        come out CRLF. They land in their own directory, because the sweep
+        below reports every file the recorder left behind rather than three
+        names, which covers a fourth write without anyone remembering it.
+        """
+        real_open = open
+        real_write_text = Path.write_text
+
+        def translating_open(file, mode="r", *arguments, **keywords):
+            # `newline=""` is falsy, so the comparison is against None. A
+            # `keywords.get("newline") or "\r\n"` here would override the very
+            # argument a fix passes and make this case unable to see it.
+            if "b" not in mode and keywords.get("newline") is None:
+                keywords["newline"] = "\r\n"
+            return real_open(file, mode, *arguments, **keywords)
+
+        def translating_write_text(self, data, encoding=None, errors=None, newline=None):
+            return real_write_text(
+                self, data, encoding, errors, "\r\n" if newline is None else newline
+            )
+
+        monkeypatch.setattr(vintage, "open", translating_open, raising=False)
+        monkeypatch.setattr(Path, "write_text", translating_write_text)
+
+        control = tmp_path_factory.mktemp("translating-writes")
+        with vintage.open(control / "opened.txt", "w", encoding="utf-8") as handle:
+            handle.write("line\n")
+        (control / "written.txt").write_text("line\n", encoding="utf-8")
+        untranslated = sorted(
+            path.name for path in control.iterdir() if b"\r\n" not in path.read_bytes()
+        )
+        assert not untranslated, (
+            f"the shim left {', '.join(untranslated)} alone, so a text-mode write is no "
+            f"longer reaching it and the sweep below asserts nothing. Either chan.vintage "
+            f"stopped calling open, or pathlib.Path.write_text is no longer the other "
+            f"surface."
+        )
+
+        def assert_untranslated(stage):
+            translated = sorted(
+                path.name for path in data_dir.iterdir() if b"\r" in path.read_bytes()
+            )
+            assert not translated, (
+                f"{', '.join(translated)} came out of {stage} carrying a carriage return. "
+                f"Python's text mode writes os.linesep for every newline when open or "
+                f"write_text is called with no newline argument, and os.linesep is CRLF on "
+                f"Windows. Every write in chan.vintage takes bytes so the file holds what "
+                f"the code built, and putting a text-mode write back undoes that."
+            )
+
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        # Checked here rather than at the end, because the rollback below
+        # replaces the whole manifest and would hide a translating append.
+        assert_untranslated("recording a vintage")
+
+        monkeypatch.setattr(
+            vintage, "_write_new_file", lambda path, payload: (_ for _ in ()).throw(OSError("disk"))
+        )
+        with pytest.raises(OSError):
+            record_vintage(ROWS, data_dir=data_dir, **{**SOURCE, "download_date": "2026-08-29"})
+
+        assert_untranslated("rolling a failed record back out")
+
+
 class TestTheCommittedManifest:
     """The eight vintages this repo ships, and the record that describes them.
 
@@ -641,6 +720,19 @@ class TestTheCommittedManifest:
         write_checksums(tmp_path)
 
         assert (tmp_path / CHECKSUMS_NAME).read_bytes() == (DATA_DIR / CHECKSUMS_NAME).read_bytes()
+
+    def test_the_committed_record_carries_no_carriage_return(self):
+        """The recorder is one producer of these two files and a hand edit is the other.
+
+        `data/README.md` says the manifest's lines were written by hand, and
+        `.gitattributes` holds `data/** -text`, so git commits whatever an
+        editor saved rather than normalising it. `read_manifest` normalises on
+        the way in, so no run reports one, and `shasum -a 256 -c` reads the
+        carriage return as part of the filename and says eight vintages are
+        missing when none of them is.
+        """
+        for name in (MANIFEST_NAME, CHECKSUMS_NAME):
+            assert b"\r" not in (DATA_DIR / name).read_bytes(), name
 
     def test_an_entry_carries_one_kind_of_date(self):
         """The four `*_chan.csv` files were saved, not downloaded.
