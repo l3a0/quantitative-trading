@@ -14,6 +14,7 @@ The order the cases appear in is the order the rules appear on
 
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -144,13 +145,48 @@ class TestRecordingAVintage:
         record_vintage(ROWS, data_dir=data_dir, **SOURCE)
         manifest = data_dir / MANIFEST_NAME
         manifest.write_text(manifest.read_text() + "{not json}\n", encoding="utf-8")
+        try:
+            json.loads("{not json}")
+        except json.JSONDecodeError as unparsed:
+            said = unparsed.msg
 
         with pytest.raises(ValueError) as refused:
             read_manifest(data_dir)
 
-        assert "line 2 is not a vintage entry: it is not JSON: " in str(refused.value)
-        assert "at column 2" in str(refused.value)
+        # The parser's own words, read off `json` here rather than written out,
+        # so this holds that they are carried without pinning CPython's
+        # wording. Asserting only the prefix and the column left the reason
+        # free to go missing again, which is the defect this change exists to
+        # end.
+        assert f"line 2 is not a vintage entry: it is not JSON: {said!r} at column 2" in str(
+            refused.value
+        )
         assert "line 1" not in str(refused.value)
+
+    def test_a_parser_message_that_ends_mid_phrase_still_reads_as_a_sentence(self, data_dir):
+        """Several of CPython's own messages are finished by the position text.
+
+        `Unterminated string starting at` is one, and the position text is the
+        half dropped here, because it carries a line number that would sit
+        beside the manifest's meaning something else. Quoting what `json` said
+        is what keeps the fragment reading as the parser's sentence rather than
+        dangling into this module's.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        broken = '{"vendor": "yfinance'
+        try:
+            json.loads(broken)
+        except json.JSONDecodeError as unparsed:
+            said = unparsed.msg
+        assert said.endswith(" at"), "this test is pointless if CPython stopped dangling"
+        manifest.write_text(f"{good}\n{broken}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError) as refused:
+            read_manifest(data_dir)
+
+        assert f"it is not JSON: {said!r} at column" in str(refused.value)
 
     def test_a_refused_line_carries_the_reason_it_was_refused(self, data_dir):
         """A line number says which line and not what, and the fixes differ.
@@ -196,13 +232,18 @@ class TestRecordingAVintage:
                 f"{RECORDED_NAME}: download date '2026-02-30' is not a day that exists",
             ),
             ([recorded], "an entry's fields are a JSON object, and this line is a JSON array"),
-            (without("symbol", "sha256"), "it does not carry sha256, symbol"),
+            ("a.csv", "an entry's fields are a JSON object, and this line is a JSON string"),
+            (7, "an entry's fields are a JSON object, and this line is a JSON number"),
+            (7.5, "an entry's fields are a JSON object, and this line is a JSON number"),
+            (True, "an entry's fields are a JSON object, and this line is a JSON boolean"),
+            (None, "an entry's fields are a JSON object, and this line is the JSON literal null"),
+            (without("symbol", "sha256"), "it does not carry 'sha256', 'symbol'"),
             # Two of them, because Python names one. A hand edit that misspells
             # a key produces one of each at once, so both halves are said.
-            ({**recorded, "extra": 1, "also": 2}, "an entry has no field named also, extra"),
+            ({**recorded, "extra": 1, "also": 2}, "an entry has no field named 'also', 'extra'"),
             (
                 {**without("symbol"), "also": 2, "extra": 1},
-                "it does not carry symbol and an entry has no field named also, extra",
+                "it does not carry 'symbol' and an entry has no field named 'also', 'extra'",
             ),
         ]
 
@@ -220,6 +261,51 @@ class TestRecordingAVintage:
             read_manifest(data_dir)
 
         assert "line 2 is not a vintage entry: it is not JSON: " in str(caught.value)
+
+    def test_a_key_a_line_carries_cannot_forge_the_message(self, data_dir):
+        """An unknown key is printed, and it is the line that decides what it says.
+
+        The reason is the first thing to put a field a manifest controls into
+        an operator's terminal, so a key holding a newline would print further
+        lines reading as this module's own words. Quoting it is what keeps the
+        refusal one line. The eight sites that print a path have the same
+        defect and are
+        [issue 99](https://github.com/l3a0/quantitative-trading/issues/99),
+        which this must not add a ninth to.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        forged = "x\nno vintage is missing, this run is fine"
+        line = json.dumps({**json.loads(good), forged: 1})
+        manifest.write_text(f"{good}\n{line}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError) as caught:
+            read_manifest(data_dir)
+
+        assert len(str(caught.value).splitlines()) == 1
+        assert "no vintage is missing" not in str(caught.value).splitlines()[0].split("named ")[0]
+        assert repr(forged) in str(caught.value)
+
+    def test_a_number_json_will_not_build_still_names_its_line(self, data_dir):
+        """`json.loads` raises more than `JSONDecodeError`, and the funnel takes both.
+
+        A JSON integer literal longer than `sys.get_int_max_str_digits` raises
+        a bare `ValueError` out of `int`. Catching only the subclass sent that
+        to an operator as a CPython message naming no manifest, no line and no
+        field, which is what this whole refusal exists to stop.
+        """
+        record_vintage(ROWS, data_dir=data_dir, **SOURCE)
+        manifest = data_dir / MANIFEST_NAME
+        good = manifest_lines(data_dir)[0]
+        huge = "9" * (sys.get_int_max_str_digits() + 100)
+        manifest.write_text(f'{good}\n{{"row_count": {huge}}}\n', encoding="utf-8")
+
+        with pytest.raises(ValueError) as caught:
+            read_manifest(data_dir)
+
+        assert "line 2 is not a vintage entry: it is not JSON: " in str(caught.value)
+        assert "integer string conversion" in str(caught.value)
 
     def test_neither_date_field_is_required_on_its_own(self, data_dir):
         """The shape check asks for eight fields, and the two dates are not among them.
