@@ -30,17 +30,34 @@ that hits one and leaves has made the board wrong, and nothing else notices.
    waiting on the owner, and it is the column the owner reads first.
 4. **An issue is filed or closed.** That moves `TRACKER` and
    `STATE.issues.open`, and it is worth an update on its own.
+5. **A pull request closes unmerged.** In-flight membership asks whether a
+   `PRS` entry has `state` of `open`, so nothing removes a card on its own and
+   it sits in a review column indefinitely.
+
+One block these four do not maintain, said plainly rather than left to be
+discovered. `WORKING` marks a card a session is on right now, which is only
+knowable while a session is running, and every moment above fires when one
+finishes. So the Building column reads zero unless something outside this skill
+writes that array, and a stale entry in it has nothing to clear it. Treat an
+entry as owed a removal by whoever added it, and read an empty Building column
+as no information rather than as nobody working.
 
 ## What the page is made of
 
-Three sections, top to bottom.
+A header strip and three sections, top to bottom. The strip is where every
+`STATE` figure renders: `main`, the vintages and their rows, the highlight
+count, the test count, the experiments tracked, the open issue count and the
+stamp. The sections are these.
 
 1. **In flight**, four columns running most finished on the left: waiting on
    your review, waiting on my review, building, planned with no builder. A card
    here is drawn once and left out of the build order.
 2. **Build order**, four columns by dependency depth, with everything else.
    Within a column, cards sort by readiness, then by the priority order, then by
-   a measured `after`, then by number.
+   a measured `after`, then by number, except that a card whose `kind` is
+   `deferred` is forced last whatever the rest says. Under it sits a chainbar,
+   which holds a hint until a card is picked and then says what that card waits
+   on and what waits on it.
 3. **One paragraph**, saying the page was measured by hand and cannot poll
    anything. It is all that remains of a twenty-paragraph footer that was a
    second telling of what the cards say. Do not grow it back.
@@ -63,9 +80,13 @@ the link, and a short `label` naming the change.
 
 ## Measure everything, recall nothing
 
-Every figure on the page has a command behind it. Run them. A count carried in
-your head from earlier in the session is the one that will be wrong, and it has
-been: an update shipped 39 open issues when a query said 40.
+Every figure on the page has a command behind it. Run them **from the repo
+root**, not from the scratch directory the rest of this page works in. Five of
+them fail loudly there and one does not: `uv run pytest` reports `no tests ran`,
+which looks enough like a result to be written down.
+
+A count carried in your head from earlier in the session is the one that will be
+wrong, and it has been: an update shipped 39 open issues when a query said 40.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
@@ -73,15 +94,24 @@ gh issue list --state open --limit 100 --json number --jq 'length'
 gh pr list --state open --json number,title,mergeable,statusCheckRollup,closingIssuesReferences
 uv run pytest -q --no-header 2>&1 | tail -1
 python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
+wc -l < data/vintages.jsonl
 grep -c 'Location' research/book-notes/quantitative-trading.md
 gh issue list --state open --limit 100 --json number,labels --jq 'sort_by(.number)[]|"\(.number)\t\(.labels|map(.name)|join(","))"'
 ```
 
-The last one feeds every card's `labels`. They are the tracker's own labels
-rather than a second vocabulary, so a label added on GitHub belongs on the card
-and `LABEL_HUE` takes its colour from `gh label list --json name,color`. One
-hue is deliberately not GitHub's: `enhancement` ships as a pale cyan that is
-unreadable as text on white, so the page darkens that same hue.
+`wc -l` on the manifest is `vintages.files`, and the line above it is
+`vintages.rows`.
+
+The last command feeds every card's `labels`. They are the tracker's own labels
+rather than a second vocabulary, so a label added on GitHub belongs on the card,
+and `LABEL_HUE` takes its colour from `gh label list --json name,color`.
+
+Two hues are deliberately not GitHub's, and the rule is readability rather than
+fidelity. A label colour on GitHub is a chip background, while here it is text,
+so a value that reads fine there can be invisible here. `enhancement` is
+`a2eeef` and `deferred` is `ededed`, both too pale to read as text on white, so
+the page substitutes a darker colour for each. Syncing `LABEL_HUE` straight from
+the command would undo both.
 
 That last one is `notes.highlights`. The one figure with no command is
 `issues.tracked`, the count of experiments the sibling experiments page lists,
@@ -111,7 +141,7 @@ one moment and goes stale in both directions.
 
 ## The data blocks, and what each owns
 
-Everything the page says comes from one object and six arrays in its script.
+Everything the page says comes from two objects and six arrays in its script.
 They are not adjacent: `STATE`, `PRS`, `WORKING`, `PLANNED` and `NEXT` sit
 together near the top, `TRACKER` is about a third of the way down, and `FLOW` is
 near the bottom beside the code that reads it. Find each by name rather than by
@@ -122,11 +152,12 @@ data already carries, because that sentence outlives the number.
 | --- | --- |
 | `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
 | `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup` |
-| `WORKING` | cards a session is on now, each with `kind` of `build` or `decompose` |
-| `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`, `note` |
+| `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card |
+| `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
 | `FLOW` | the four in-flight stages and the test that assigns a card to one |
+| `LABEL_HUE` | one colour per tracker label, read by the card chips |
 
 Three of these carry judgement rather than measurement, so they are where the
 thinking goes.
@@ -178,6 +209,12 @@ o.push("KEY: "+s(store.key.innerHTML));
 o.push("FLOWKEY: "+s(store.flowkey.innerHTML));
 store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
   o.push("FOOT["+(i+1)+"] "+s(x));});
+// Anything the page wrote to that the lines above do not format. Listing the
+// surfaces by hand is what let `chainbar` go unread and a dead `rank` probe go
+// unnoticed, so the sweep is what guarantees the list cannot go stale.
+var shown = {strip:1, flow:1, board:1, flownote:1, boardnote:1, key:1, flowkey:1, foot:1};
+Object.keys(store).sort().forEach(function(id){
+  if (!shown[id]) o.push("OTHER["+id+"] "+s(store[id].innerHTML));});
 o.join("\n");
 JS
 osascript -l JavaScript run.js
