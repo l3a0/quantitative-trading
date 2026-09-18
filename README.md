@@ -34,6 +34,10 @@ A record, not a script. It carries five things.
 A gap is a result. A number that fails to reproduce says something about the
 method's sensitivity, and that is worth more than a match nobody examined.
 
+[docs/replication-log.md](docs/replication-log.md) is where those records live.
+It also carries the rule it uses to pick between the three verdicts, which the
+vocabulary defines without saying how to choose.
+
 A replication is exploratory by construction. Reproducing a published figure
 spends the sample on a hypothesis someone else chose, so it can say whether the
 number reproduces and nothing more.
@@ -55,6 +59,9 @@ them is derived. The write-up copied in from the sibling repo is the exception,
 and what it says that nothing here asserts is listed below. Each GLD/GDX pin
 names its window and its regression specification, because the book prints two
 of those near each other and they come from different runs.
+
+Both reach a verdict in
+[docs/replication-log.md](docs/replication-log.md), row by row.
 
 The vintage machinery is not built yet, so a replication reads a committed CSV
 directly rather than through a recorder that verifies it first.
@@ -129,9 +136,11 @@ not hold.
 
 The piece is a replication write-up, so it is exploratory by construction. It
 says whether a published number reproduces and nothing about whether the trade
-works today. It is not the replication log entry
-[issue 5](https://github.com/l3a0/quantitative-trading/issues/5) asks for,
-which is a verdict rather than an essay.
+works today. An essay is not a verdict, so the verdicts live separately, in
+[docs/replication-log.md](docs/replication-log.md). The two quote the same
+computed figures, the essay at coarser granularity, so a re-pin moves both. They
+disagree on one published figure, which
+[issue 27](https://github.com/l3a0/quantitative-trading/issues/27) carries.
 
 Six of its figures are not pinned here, and they are worth knowing before
 quoting any of them.

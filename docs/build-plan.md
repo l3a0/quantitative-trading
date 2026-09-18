@@ -126,7 +126,8 @@ Two more belong to those four without being experiments themselves. One writes
 the verdict up, and one asks whether the chapter numbering here is even the
 right one.
 
-- [Write the GLD/GDX replication log entry, naming what matched and what did not](https://github.com/l3a0/quantitative-trading/issues/5)
+- [Write the replication log for both pairs, naming what matched and what did not](https://github.com/l3a0/quantitative-trading/issues/5),
+  landed as [docs/replication-log.md](replication-log.md)
 - [Check the GLD/GDX two-window framing against the edition it came from](https://github.com/l3a0/quantitative-trading/issues/12)
 
 Issue 12 is why this section carries a caveat. The GLD/GDX training-set run is
@@ -172,8 +173,10 @@ specification, because the book prints two of these near each other and they
 come from different runs: the through-origin slope on the full window, the slope
 with an intercept on the training window, and the cointegration test statistic
 on that training window. All three landed with the port, alongside the rest of
-the suite the sibling repo had already built. Every number the log entry quotes
-traces to one of these assertions.
+the suite the sibling repo had already built. The log entry in
+[docs/replication-log.md](replication-log.md) quotes more than these three, and
+traces to assertions across the whole suite rather than to this planned set.
+Each of its rows names the assertion it uses.
 
 One more test carries the premise, and half of it has landed. The half that
 runs against committed files pins GDX's adjusted 2006 closes about fifteen
