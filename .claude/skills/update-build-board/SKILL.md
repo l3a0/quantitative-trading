@@ -17,21 +17,19 @@ them as stale rather than updating them unasked.
 
 ## When to run it
 
-Three moments, and each is a moment the page's own answer changed. A session
-that hits one and leaves has just made the board wrong, and nothing else will
-notice.
+Four moments, and each is one where the page's own answer changed. A session
+that hits one and leaves has made the board wrong, and nothing else notices.
 
 1. **A decompose loop exits.** Add the card to `PLANNED` with its pass count and
    whether it is ready to build or waiting on an owner call.
 2. **A pull request opens or merges.** An open one moves the card out of the
-   build order into the in-flight section. A merged one usually takes the card
-   off the page, because the issue it closed is closed.
+   build order into the in-flight section, as a `PRS` entry. A merged one
+   usually takes the card off the page, because the issue it closed is closed.
 3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
    flag is the only thing that moves a card from waiting on a reviewer to
    waiting on the owner, and it is the column the owner reads first.
-
-Filing or closing an issue changes `TRACKER` and `STATE.issues.open` and is
-worth an update on its own when nothing else is pending.
+4. **An issue is filed or closed.** That moves `TRACKER` and
+   `STATE.issues.open`, and it is worth an update on its own.
 
 ## What the page is made of
 
@@ -206,13 +204,18 @@ false. Four checks catch most of them.
    that a later sentence says nobody should start.
 3. **Every count matches its own list.** A sentence saying four cards and then
    naming three is the prose and the data disagreeing.
-4. **Every number in the footer is one you measured this session.** That block is
-   hand-written prose rather than computed, so nothing else will catch it.
+4. **No figure is typed into a sentence.** Every number the page renders should
+   come from the data blocks, so that changing the data changes the page. This
+   holds today and did not always: the footer used to carry twenty paragraphs of
+   hand-written prose, and one update left four stale figures in it at once.
+   Deleting that prose is what made this check cheap, so the thing to watch for
+   is prose growing back rather than a surface to re-read.
 
 ## What goes wrong, from the record
 
-Each of these shipped or was caught at the last moment. They are written down
-because the next one will be a variant rather than something new.
+Each of these shipped or was caught at the last moment, except where a row says
+otherwise. They are written down because the next one will be a variant rather
+than something new.
 
 1. **A sentence outliving its data.** A hardcoded "everything in the third column
    waits on the same two issues" survived the column emptying. Compute the
@@ -228,7 +231,8 @@ because the next one will be a variant rather than something new.
 5. **Two sorts that agree today.** The grid sorted by issue number while the
    ranking sorted by a measured argument, so the page put issue 2 ahead of issue
    41 in one place and behind it in another. There is now one `cardOrder`
-   comparator and both sections call it. Keep it that way.
+   comparator, and every column that draws cards calls it. Keep it that way.
+   The ranking section itself is gone, which is defect 9.
 6. **A key describing cards that moved.** Each section computes its legend from
    what it drew. A fixed legend advertises states that are not below it.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
@@ -236,27 +240,34 @@ because the next one will be a variant rather than something new.
    catches this immediately.
 8. **Pluralisation.** `plu` appended a bare letter s, giving a count of passes
    that read "19 passs". It now handles a word already ending in one.
-9. **A second list of the same cards.** The page carried a ranking section
-   listing nine cards the build order already drew, so every card had two homes
-   and the two disagreed about order at least once. The section is gone and its
-   order drives the grid instead. Do not add a list that restates the cards.
-10. **Reasoning duplicated onto a card that links to the issue holding it.**
-    When the ranking section went, its argument for each position moved onto the
-    cards, and one card became three times the height of its neighbours for
-    text that was already one click away. The argument belongs on the issue, and
-    the card carries the position as a number.
-11. **A state that stops being news when a later one arrives.** A card with an
-    open branch was saying its plan was ready to be written, directly above a
-    line saying it was written. The plan line and its marker are suppressed once
-    a pull request exists, while the sort still reads `PLANNED` so the card
-    keeps its position.
+The three below are a different kind of row. They were caught by the owner
+reading the published page rather than by a check, and each was a shape the page
+had carried for a while rather than a slip in one edit. They are kept because
+they are the failures this page invites and the ones a harness cannot see.
 
-The footer check in the list above earned itself on the first run after it was
-added. Four hand-written figures had gone stale in one update: a count of
-planned cards, a count of finished plans, an interpolated test total that made
-an old pull request look like it shipped a number it did not, and an issue count
-attributed to the wrong work. None of them was computed, so nothing else would
-have caught them.
+9. **A second list of the same cards.** The page carried a ranking section
+   listing nine cards the build order already drew, so every card had two homes.
+   The one recorded consequence is defect 5, where the two sections ordered one
+   pair differently. The section is gone and its order drives the grid instead.
+   Do not add a list that restates the cards.
+10. **Reasoning duplicated onto a card that links to the issue holding it.**
+    When the ranking section went, its argument for each position was moved onto
+    the cards, and the longest one rendered several times the height of its
+    neighbours for text that was already one click away. The argument belongs on
+    the issue, and the card carries the position as a number.
+11. **A plan line under a pull request.** A card with an open branch said its
+    plan was ready to be written, directly above a line saying it was written.
+    The plan line and its marker are suppressed once a pull request exists,
+    while the sort still reads `PLANNED` so the card keeps its position. The
+    suppression is specific to that pair rather than a licence to hide other
+    states.
+
+The four figures that argued for deleting the footer were a count of planned
+cards, a count of finished plans, an interpolated test total that made an old
+pull request look like it shipped a number it did not, and an issue count
+attributed to the wrong work. They are named here because they are what a
+hand-written surface costs, and because the fix was to remove the surface rather
+than to keep checking it.
 
 ## Writing the prose
 

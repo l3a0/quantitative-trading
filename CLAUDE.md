@@ -410,25 +410,16 @@ PR titles use a Conventional Commits prefix. The form is `type(scope): summary`.
 
 PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`, then `## What`. Add situational sections after as the change needs them, like `## Scope`, `## Notes`, or `## Evidence`. The body's prose obeys the writing-style rules above. So clear, short sentences and no em dashes. End every body with the footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
-## Update the build board when a session finishes
+## Keep the build board current
 
-The build board is the page that answers what is in flight and what to take next, and it cannot refresh itself. It reads no disk and polls no API, so every figure on it was measured by hand and baked in. A session that finishes its work and leaves is a session that has just made the board wrong, and nothing else will notice.
+The build board is a page that answers what is in flight and what to take next. It reads no disk and polls no API, so every figure on it was measured by hand. A session that changes what it shows and then leaves has made it wrong, and nothing else notices.
 
-So three moments end with a board update, and each is the moment the page's own answer changed.
+So a session that finishes one of these updates it: a decompose loop exiting, a pull request opening, merging or gaining a review, or an issue being filed or closed. The `update-build-board` skill under `.claude/skills/` owns the procedure and the reasons behind each step. This section says when, and the skill says how, so neither repeats the other.
 
-1. **A decompose loop exits.** The plan is now one somebody has executed against the code, and the board draws that as a state rather than leaving the card reading like every other guess.
-2. **A pull request opens or merges.** The card moves out of the build order and into the in-flight section, or out of the tracker entirely.
-3. **A review lands on a pull request.** That is the only thing that moves a card from waiting on a reviewer to waiting on the owner, and it is the column the owner reads first.
+Two limits are worth stating rather than leaving a reader to infer.
 
-The `update-build-board` skill under `.claude/skills/` carries the procedure, including which commands measure which figure and how to execute the page before publishing it. Follow it rather than editing the page by eye.
-
-Two things about that update are worth naming rather than discovering.
-
-Measure, never recall. Every figure has a command behind it, and the count carried in your head from earlier in the session is the one that will be wrong. One update shipped 39 open issues against a query that said 40.
-
-Read the live page before editing it. Another session may have republished, a publish over a version nobody read is refused, and a local copy is a guess about what is published.
-
-The price of this rule is real and is accepted on purpose. Every session pays an update, and a session that runs it against stale measurements makes the page worse rather than better, which is why the procedure leads with reading and measuring rather than with editing. The alternative is worse: a page nobody updates is a page that reads as current while describing a repository that has moved, and the first reader to trust it pays more than every skipped update saved.
+1. The board is a private artifact on the owner's account. A session without access to it, or without the tool that publishes it, cannot do this and should say so in its handover rather than treat the rule as failed.
+2. What argues for the rule is one measured failure rather than a comparison. An update run against figures carried in a session's head shipped 39 open issues when a query said 40, which is why the skill leads with reading the live page and re-measuring. Nothing has yet measured what a stale board costs a reader, so the rule is a convention this repo keeps rather than a cost it has priced.
 
 ## Research pins
 
