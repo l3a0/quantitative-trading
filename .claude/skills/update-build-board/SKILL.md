@@ -1,6 +1,6 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board artifact after work on this repo finishes. Use when a session has opened or merged a pull request, filed or closed issues, finished a decompose loop, or been asked to refresh the board, sync the tracker, or say what to take next.
+description: Update the Quantitative Trading Build Board artifact after work on this repo changes what it shows. Use when a session has opened or merged a pull request, filed or closed issues, or finished a decompose loop, and when asked to refresh or update the board. Needs the Artifact tool. Answering what to take next is a read and does not on its own call for a republish.
 ---
 
 # Update the build board
@@ -43,7 +43,14 @@ gh issue list --state open --limit 100 --json number --jq 'length'
 gh pr list --state open --json number,title,mergeable,statusCheckRollup,closingIssuesReferences
 uv run pytest -q --no-header 2>&1 | tail -1
 python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
+grep -c 'Location' research/book-notes/quantitative-trading.md
 ```
+
+That last one is `notes.highlights`. The one figure with no command is
+`issues.tracked`, the count of experiments the sibling experiments page lists,
+which moves only when that page does. Leave it alone rather than deriving it
+from the open issue count, which is a different number and has been confused
+with it before.
 
 The vintage row count comes from the manifest rather than from counting lines.
 All eight files carry three header lines, `Price,Close` then `Ticker,<SYM>` then
@@ -67,18 +74,21 @@ one moment and goes stale in both directions.
 
 ## The data blocks, and what each owns
 
-Everything the page says comes from seven arrays near the top of its script.
-Change the data. Never hand-write a sentence stating a number the data already
-carries, because that sentence outlives the number.
+Everything the page says comes from one object and six arrays in its script.
+They are not adjacent: `STATE`, `PRS`, `WORKING`, `PLANNED` and `NEXT` sit
+together near the top, `TRACKER` is about a third of the way down, and `FLOW` is
+near the bottom beside the code that reads it. Find each by name rather than by
+scrolling. Change the data. Never hand-write a sentence stating a number the
+data already carries, because that sentence outlives the number.
 
 | Block | Holds |
 | --- | --- |
-| `STATE` | `main`, `updatedAt`, vintages, `suite.tests`, `issues.open` |
+| `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
 | `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup` |
 | `WORKING` | cards a session is on now, each with `kind` of `build` or `decompose` |
-| `PLANNED` | cards whose decompose loop exited, with `passes`, `ready`, `note` |
+| `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`, `note` |
 | `TRACKER` | every open issue as a card: `n`, `ms`, `needs`, optional `after`, `kind`, `label` |
-| `NEXT` | the ranking, each with `band`, `ready`, optional `order`, `why` |
+| `NEXT` | the ranking, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order` |
 | `FLOW` | the four in-flight stages and the test that assigns a card to one |
 
 Three of these carry judgement rather than measurement, so they are where the
@@ -129,6 +139,10 @@ o.push("FLOWNOTE: "+s(store.flownote.innerHTML));
 o.push("BOARDNOTE: "+s(store.boardnote.innerHTML));
 o.push("RANK: "+store.rank.innerHTML.split("<li>").slice(1)
   .map(function(i){return "#"+i.match(/#(\d+)<\/a>/)[1];}).join(" > "));
+o.push("KEY: "+s(store.key.innerHTML));
+o.push("FLOWKEY: "+s(store.flowkey.innerHTML));
+store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
+  o.push("FOOT["+(i+1)+"] "+s(x));});
 o.join("\n");
 JS
 osascript -l JavaScript run.js
@@ -139,15 +153,23 @@ osascript -l JavaScript run.js
 with whatever JavaScript engine is present, because the stub is plain ES5 and
 assumes nothing about its host.
 
+Print every surface the page renders into, not the interesting ones. An earlier
+version of this harness skipped `foot`, `key` and `flowkey`, and `foot` is the
+largest prose block on the page and the one holding the most hand-written
+numbers. Planting a false figure in it left the output byte-identical, so the
+check could not see the surface it was most needed on.
+
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something
-false. Three checks catch most of them.
+false. Four checks catch most of them.
 
 1. **The totals reconcile.** In-flight cards plus board cards equals open issues.
 2. **No sentence contradicts another.** The free-card list must not name a card
    that a later sentence says nobody should start.
 3. **Every count matches its own list.** A sentence saying four cards and then
    naming three is the prose and the data disagreeing.
+4. **Every number in the footer is one you measured this session.** That block is
+   hand-written prose rather than computed, so nothing else will catch it.
 
 ## What goes wrong, from the record
 
