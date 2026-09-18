@@ -291,16 +291,19 @@ Four things, in the order of how much they cost to learn.
 Every computed figure here agrees with
 [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md),
 which carries a four-row summary of the same comparison and compresses the two
-CADF windows into one cell. One published figure does not agree, and it is a
-disagreement rather than a difference in granularity.
+CADF windows into one cell. The published figures agree too, and one of them
+took a correction to get there.
 
-That essay's two-run table gives the published hedge as 1.6766 on its Chapter 3
-row as well as its Chapter 7 row. The book prints 1.6766 for the Chapter 7
-window only, at location 3727. The Chapter 3 window's through-origin slope is
-1.6283, pinned by `TestGldGdxReproduction::test_ch3_hedge_and_stat`, and it has
-no published counterpart at all. Reading one published hedge onto both windows
-is the exact trap this replication exists to make visible, so the essay states
-something this entry contradicts.
+That essay's two-run table once gave the published hedge as 1.6766 on its
+Chapter 3 row as well as its Chapter 7 row. The book prints 1.6766 for the
+Chapter 7 window only, at location 3727. The Chapter 3 window's through-origin
+slope is 1.6283, pinned by `TestGldGdxReproduction::test_ch3_hedge_and_stat`,
+and it has no published counterpart at all, which is why the table of published
+figures above carries no row for it. Reading one published hedge onto both
+windows is the exact trap this replication exists to make visible.
+[Issue 27](https://github.com/l3a0/quantitative-trading/issues/27) corrected the
+cell to `none` in both copies of the essay, the second being
+[docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html).
 
 One smaller wording difference is worth naming rather than leaving for a reader
 to trip on. The essay says Chan's own data "lands at 1.6395, which is no closer
@@ -308,14 +311,6 @@ to his printed figure". Rows 1 and 6 give the two distances as 0.0387 and
 0.0371, so 1.6395 is nearer by under two thousandths. The essay rounds that to
 nothing, which is fair at its granularity, and the rows state both distances
 because the verdict rule turns on them.
-
-The essay is not corrected here. It was copied in byte for byte from the
-sibling repo with three named changes, which README lists, so amending its
-figures is a separate decision from writing this entry. It is filed as
-[issue 27](https://github.com/l3a0/quantitative-trading/issues/27), and the
-same cell stands in
-[docs/gld-gdx-cointegration-lessons.html](gld-gdx-cointegration-lessons.html),
-the published copy of the same piece.
 
 ### Two counts and two senses of one word
 
