@@ -55,6 +55,13 @@ writes that array, and a stale entry in it has nothing to clear it. Treat an
 entry as owed a removal by whoever added it, and read an empty Building column
 as no information rather than as nobody working.
 
+Whoever adds an entry sets its `kind`, because that field decides whether the
+card keeps its plan marker. A build session writes `build` and a decompose loop
+writes `decompose`, and an entry carrying no `kind` counts as a decompose loop.
+So a build session that leaves it out puts a line reading ready to build on a
+card somebody is already building, which is defect 11 arriving through the
+default rather than through a rule.
+
 ## What the page is made of
 
 A header strip and three sections, top to bottom. The strip is where every
@@ -152,10 +159,11 @@ to tell a plain keyword from one inside a code span. It catches the opposite
 slip too: a sentence written to say a pull request closes nothing registered a
 link anyway, because the keyword parses wherever it sits.
 
-That query is eventually consistent. Run immediately after a body is written or
-edited it can report nothing while the keyword is sitting in the body, so a
-session that reads it once and acts on the empty result rewrites a body that was
-already correct. Read it a second time before concluding the keyword failed.
+That query is eventually consistent. On pull request 94 it reported nothing
+seconds after the body gained its closing keyword and reported the link on the
+next call, so a session that reads it once and acts on the empty result rewrites
+a body that was already right. Read it a second time before concluding the
+keyword failed.
 
 The middle command is why `reviewed` is counted rather than queried today, and
 the constraint is what this session posts rather than anything about the API. A
@@ -201,15 +209,31 @@ inside one session.
    emptied the Building column and moved two cards a whole stage each.
 
 So re-run the volatile commands as the last step before publishing, and publish
-what those say rather than what the session opened with. The volatile ones are
-the open issue count, the open pull request list, and every per-branch query.
-`main`, the vintage rows, the suite total and the highlight count move only when
-something merges, and a merge shows up in the first of them.
+what those say rather than what the session opened with. Volatile means the
+first command, the open pull request list, every per-branch query, and both
+issue commands rather than only the one that counts them. An issue filed
+mid-update moves `STATE.issues.open` and owes `TRACKER` a card, so re-reading
+the count on its own leaves the page failing check 1. One was filed during the
+update this rule came from.
 
-The price is one more round of queries per update. What it buys is a page that
-is right when it is published rather than right when the update began. Nothing
-reads the page again afterwards, so whatever is wrong at publication stays wrong
-until the next session runs this.
+The first command is in that set because it is the one that shows a merge, and a
+merge is what moves the four figures left out: `main` itself, the vintages and
+their rows, the suite total and the highlight count. Re-running it is what makes
+leaving those four alone safe, so excusing them and excusing it together would
+have been circular. Two figures are measured by none of this. `updatedAt` is
+written by the session rather than measured, and `issues.tracked` moves only
+when the sibling experiments page does.
+
+The price is one more round of queries per update. What it buys is a gap of
+seconds between the last measurement and the publish rather than a gap the
+length of the whole edit. The gap does not close, because editing the data
+blocks takes its own time and a figure that moved sends the session back to edit
+again.
+
+Nothing re-derives the page's figures after a publish, so whatever is wrong at
+that moment stays wrong until the next session runs this. What does read the
+page is the owner, and four rows in the record below were found exactly that
+way.
 
 ## The data blocks, and what each owns
 
@@ -300,7 +324,8 @@ store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
 // unnoticed, so the sweep is what keeps that list honest. It sees load-time
 // `innerHTML` only: not `stamp`, which only a timer writes, not any
 // `aria-label`, since the tag-stripper deletes attributes, and not the
-// chainbar's picked state, which needs a click.
+// chainbar's picked state, which needs a click. It cannot see code that renders
+// nothing either, which is defect 13 and wants a grep rather than a read.
 var shown = {strip:1, flow:1, board:1, flownote:1, boardnote:1, key:1, flowkey:1, foot:1};
 Object.keys(store).sort().forEach(function(id){
   if (!shown[id]) o.push("OTHER["+id+"] "+s(store[id].innerHTML));});
@@ -345,11 +370,14 @@ false. Six checks catch most of them.
    hand-written prose, and one update left four stale figures in it at once.
    Deleting that prose is what made this check cheap, so the thing to watch for
    is prose growing back rather than a surface to re-read.
-5. **Every conjunction still has its other half.** A computed sentence joins
+5. **Every joined sentence says what it means.** A computed sentence joins
    clauses that each drop out on their own, so a "too" or an "and" can outlive
    the clause it referred back to. One read "#27 is planned too" with nothing
-   before it, because the card it was agreeing with had merged. Read the
-   sentences, not only the counts.
+   before it, because the card it was agreeing with had merged. A conjunction
+   can also be present and be the wrong word: a set of alternatives joined by
+   "and" reads as one card doing all of them at once. So read what a joined
+   sentence claims rather than only checking that both halves are there, and
+   read the sentences rather than only the counts.
 6. **Nothing a card says contradicts where the card sits.** A marker, a line of
    text and a position are three claims about one issue, and a rule added to any
    of them can disagree with the other two. A chip once read 6 on a card the sort
@@ -399,7 +427,7 @@ than something new.
 
    The inverse shipped too, and it is one rule read the other way. The in-flight
    legend explained a plan marker and a pull request while saying nothing about
-   the session marker, which every card under it was drawing. A legend accounts
+   the session marker, which every card in that render was drawing. A legend accounts
    for each marker its own cards drew, and for no marker they did not.
 7. **Declaration order.** `planOf` was read by a sort that ran before its
    declaration, which throws on load rather than degrading quietly. The stub
@@ -430,12 +458,16 @@ ones a harness cannot see.
     The sort still reads `PLANNED`, so the card keeps its position whether or not
     the marker is drawn.
 
-    Three things follow. What decides the suppression is the question the marker
-    answers, whether the card can still be handed to a builder, rather than a
-    list of states to hide. A decompose loop is deliberately left out, because it
-    revises the plan rather than carrying it out, and a card under one is still
-    waiting for a builder. That distinction is why `WORKING` carries `kind`. And
-    a suppression rule is a second consumer of the field, so it goes in one
+    The suppression is two measured states rather than a licence to hide
+    others, and the original wording of this row said so before the second state
+    was added. The principle that looks like it generates them, whether the card
+    can still be handed to a builder, reaches further than the evidence does. It
+    covers a decompose loop as well, which keeps its marker because it revises
+    the plan rather than carrying it out. A rule needing an exception written in
+    by hand to reach the two known cases is doing more than the evidence asks.
+    That carve-out is why `WORKING` carries `kind`.
+
+    A suppression rule is also a second consumer of the field, so it goes in one
     function every reader calls rather than being written out wherever it is
     needed. Writing it twice is what made the legend wrong, which is the second
     half of defect 6.
@@ -451,9 +483,10 @@ ones a harness cannot see.
     answers to one question. Check 6 above is what catches the next one, so a
     rule added to a card is read against the card's own position rather than
     only against the data it came from.
-The last two are a third kind, and what they share is where they were found.
-Both were made and caught inside one session, by reading the harness output and
-the script beside it rather than by the owner reading the page.
+The last two are a third kind. Both were made and caught inside one session
+rather than by the owner reading the page. Defect 14 came from the harness
+output. Defect 13 could not, for the reason it records, and came from reading
+the script beside it.
 
 13. **Bindings left behind when the sentence they fed moved.** The board note
     once described the cards a session was on. That sentence moved to the
@@ -462,16 +495,18 @@ the script beside it rather than by the owner reading the page.
     The harness cannot see this, because it prints what the page rendered and
     dead code renders nothing. So when a sentence is deleted or moved, grep the
     script for the names that fed it. A leftover here costs more than ordinary
-    dead code: it is a finished sentence about live data sitting beside a surface
-    that would print it, and the next session to find it is likelier to wire it
-    back up than to delete it.
+    dead code, because it is not inert. It is a finished sentence about live
+    data, sitting beside a surface that would print it, under a rule that has
+    since changed.
 14. **A set of alternatives joined with "and".** The board note lists the reasons
     a first-column card is not free, and `andlist` joined them, so it read that a
     card can need a decision rather than a session and be deferred on purpose.
-    One card, doing both. The join now takes its conjunction as an argument, and
-    `andlist` and `orlist` are two names for it. Check 5 catches a conjunction
-    whose other half dropped out. This one had its other half and was the wrong
-    word, so read what a joined list claims and not only that it is intact.
+    The reasons are collected from different cards, which is what defect 2 is
+    about, so joining them with "and" hands all of them to one card. The join
+    now takes its conjunction as an argument, and
+    `andlist` and `orlist` are two names for it. Check 5 used to look only for a
+    conjunction whose other half had dropped out. This one had its other half
+    and was the wrong word, so that check now covers both.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
