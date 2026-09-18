@@ -8,7 +8,7 @@ README.md lists the six figures in it that nothing here asserts.
 
 There is no dataset gate. All four vintages are committed to git, so every
 layer runs everywhere the suite runs. The primitives underneath have their own
-mechanics tests in ``tests/test_timeseries.py``; this file tests the
+mechanics tests in ``quantcore``; this file tests the
 pair-specific two-step ``engle_granger``, the return correlation, and the
 replications themselves.
 
@@ -47,6 +47,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import pytest
+from quantcore.timeseries import EG_CRIT_N2, adf_tstat
 from statsmodels.tsa.stattools import adfuller
 
 from chan.pair_cointegration import (
@@ -63,7 +64,6 @@ from chan.pair_cointegration import (
     run,
     selftest,
 )
-from chan.timeseries import EG_CRIT_N2, adf_tstat
 
 # ============================================================
 # Layer 1 -- the two-step test on synthetic pairs (engle_granger)
@@ -74,7 +74,7 @@ class TestEngleGranger:
     """The pair-specific two-step test on synthetic pairs with known answers.
 
     The underlying OLS / ADF / OU primitives are tested in
-    tests/test_timeseries.py. Here the assertions are the verdict
+    quantcore's own suite. Here the assertions are the verdict
     ``engle_granger`` reaches.
     """
 

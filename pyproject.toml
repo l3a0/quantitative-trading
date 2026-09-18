@@ -4,13 +4,35 @@ version = "0.0.0"
 description = "Experiments and replications from Ernest Chan's quantitative trading books."
 readme = "README.md"
 requires-python = ">=3.12"
-# The replications compute their numbers through statsmodels rather than a
+# The replications compute their numbers through quantcore rather than a
 # hand-rolled least squares, so there is one implementation of each estimator
-# to drift from. numpy and pandas load and align the committed vintages; scipy
-# supplies the t-distribution behind the return-correlation significance test.
+# to drift from. That package holds the OLS, ADF and half-life work this repo
+# shares with the sibling trading-strategies repo, and it pulls statsmodels in,
+# which is what actually does the arithmetic. numpy and pandas load and align
+# the committed vintages. scipy supplies the t-distribution behind the
+# return-correlation significance test.
+#
+# quantcore is named by a direct URL at an exact commit, and both halves of
+# that are deliberate.
+#
+# The commit rather than the v0.1.0 tag it belongs to, because a tag can be
+# moved on the remote. uv.lock records whatever this resolves to and
+# `uv sync --locked` in CI refuses to re-resolve, but a `uv lock --upgrade`
+# would follow a tag wherever it now points. The numbers in
+# tests/test_pair_cointegration.py were computed by this exact code, so moving
+# the pin is a re-pin of this repo and not a dependency bump.
+#
+# The URL rather than a bare `quantcore>=0.1` with a [tool.uv.sources] entry,
+# because `quantcore` is an occupied name on PyPI, an unrelated C++ backtesting
+# package whose 0.1.0 release satisfies that floor. tool.uv.sources is a
+# uv-only key that pip ignores, so a contributor running `pip install .` would
+# have installed a stranger's package under the name this repo imports. A
+# direct URL is satisfiable by no index, which closes that off for every
+# installer rather than only for uv.
 dependencies = [
     "numpy>=2",
     "pandas>=2",
+    "quantcore @ git+https://github.com/l3a0/quant-core@d088015176a74f38d1f1e1240f8371b5637d5db2",
     "scipy>=1.13",
     "statsmodels>=0.14",
 ]
@@ -25,6 +47,14 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+# Hatchling refuses a direct URL dependency unless this says otherwise, because
+# a package carrying one cannot be uploaded to PyPI. That guard does not apply
+# here. This repo is not published, it is cloned and run, and the direct URL is
+# what keeps `pip install .` from resolving `quantcore` against an unrelated
+# package of that name on PyPI.
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/chan"]

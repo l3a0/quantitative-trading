@@ -68,6 +68,18 @@ directly rather than through a recorder that verifies it first.
 [data/README.md](data/README.md) carries each file's vendor, symbol, span,
 download date and checksum in the meantime.
 
+The estimators behind those numbers are not in this repo. Least squares, the
+Augmented Dickey-Fuller statistic, the half-life and the MacKinnon critical
+values live in [quantcore](https://github.com/l3a0/quant-core), shared with
+the sibling repo because both had the same copy. The dependency is a direct URL
+at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
+two cannot drift apart unnoticed. All three parts earn their place, and
+[docs/design.md](docs/design.md) says which failure each one closes.
+[tests/test_quantcore_contract.py](tests/test_quantcore_contract.py) is what
+tells a dependency change apart from a vintage change, since its cases read no
+vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
+and what it does not buy.
+
 The tracker is the source of truth for what each deliverable is, and it carries
 one milestone per section of [docs/build-plan.md](docs/build-plan.md), with the
 same name. The experiments are grouped by the chapter of the book they come
@@ -186,6 +198,10 @@ uv run pytest
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the one committed figure can be redrawn and checked.
+
+`uv sync` fetches `quantcore` from GitHub at the tag `pyproject.toml` pins, so
+the first sync needs a network. Every run after that reads the cache, and no
+replication reaches a network at any point.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
 two prose sweeps it cannot do run in the test suite.
