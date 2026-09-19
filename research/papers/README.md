@@ -92,16 +92,13 @@ which is why they are worth recording as confirmations rather than as changes.
 
 ## What it does not settle
 
-The equity leg. Qian read the Russell 1000 and Entry 4 reads SPY, which tracks
-the S&P 500.
-[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) swaps in
-IWB, which tracks his index and shares Entry 4's window, so that substitution
-is measurable on free data.
+Two things, and each has a card that is the authority for what it is.
 
-The sample. His is 1983 to 2004 and Entry 4's is 2003 to 2026, and the two
-share about fifteen months.
-[Issue 161](https://github.com/l3a0/quantitative-trading/issues/161) reaches
-his, and it is blocked on licensed index history.
+1. **The equity leg.** He read the Russell 1000 and Entry 4 reads SPY, which
+   tracks the S&P 500.
+   [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
+2. **The sample.** His is 1983 to 2004 and Entry 4's is 2003 to 2026.
+   [Issue 161](https://github.com/l3a0/quantitative-trading/issues/161).
 
 ## Provenance
 
@@ -114,9 +111,12 @@ his, and it is blocked on licensed index history.
 | Copyright | PanAgora Asset Management, per the notice the document carries |
 
 The checksum is recorded for the same reason a vintage carries one, so a reader
-can tell this copy from a later revision. It is stated here rather than held by
-a test, because nothing has replaced a paper yet and the counting rule in
-[CLAUDE.md](../../CLAUDE.md) defers a guard on a path that has run zero times.
+can tell this copy from a later revision. Nothing executes it. It is stated here
+rather than held by a test, because nothing has replaced a paper yet and the
+counting rule in [CLAUDE.md](../../CLAUDE.md) defers a guard on a path that has
+run zero times.
+[Issue 164](https://github.com/l3a0/quantitative-trading/issues/164) is where
+that deferral is written down, with what would reopen it.
 The file itself carries a 2011 copyright line and a `270416 9/11` document code,
 so it is a reprint of the September 2005 paper rather than the original
 release.
