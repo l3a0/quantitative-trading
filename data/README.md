@@ -77,11 +77,14 @@ files to 2026-08-27, and this table is what caught it. That is the argument for
 recording a download date per file rather than per directory, which is how the
 misattribution happened in the first place.
 
-The SPY file is the first recorded vintage, written by
-`chan.vintage.record_vintage` rather than placed by hand, which is why it
-carries the recorder's five-field name and a single `Date,Close` header. It is
-read by [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's
-Example 6.2.
+`yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` is the first
+recorded vintage, written by `chan.vintage.record_vintage` rather than placed
+by hand, which is why it carries the recorder's five-field name and a single
+`Date,Close` header. It is read by
+[src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
+6.2. The other SPY file, `spy_chan.csv`, is a workbook column placed by hand
+and reading it is
+[issue 138](https://github.com/l3a0/quantitative-trading/issues/138).
 
 **Which "adjusted" it is, stated here because the word names two series.**
 yfinance returns a `Close` carrying both splits and dividends under
@@ -125,8 +128,9 @@ adds the run and the checksum together.
 
 The files placed by hand above carry a three-row header before the data. The
 shape is yfinance's multi-index frame, and the workbook columns were written
-into it rather than into a bare `Date,Close`, so the symbol sits in the bytes
-where a check can read it back:
+into it too. What that buys, whether or not anybody meant it at the time, is
+that the symbol sits in the bytes where a check can read it back, and
+`tests/test_vintage.py` now does:
 
 ```text
 Price,Close
@@ -154,10 +158,10 @@ changed, and any number pinned against it is no longer a number computed from
 it. [.gitattributes](../.gitattributes) is what makes that condition hold, with
 `data/** -text` over this directory. Without it, a clone made with
 `core.autocrlf=true`, the default of Git for Windows, rewrites every line
-ending here, and the check reports no mismatch at all. It reports every vintage as a file
-`shasum` cannot open, because the list of filenames was rewritten along with
-them. The committed bytes are intact throughout, so every pinned number
-is fine.
+ending here, and the check reports no mismatch at all. It reports every vintage
+as a file `shasum` cannot open, because the list of filenames was rewritten
+along with them. The committed bytes are intact throughout, so every pinned
+number is fine.
 
 That attribute does not repair a clone made before it. There the working tree
 keeps its carriage returns, and `git status` goes from clean to a list of

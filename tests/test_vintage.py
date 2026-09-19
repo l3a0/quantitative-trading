@@ -1322,7 +1322,12 @@ class TestTheCommittedManifest:
         the_hand_written_identities_are_pinned(DATA_DIR)
 
     def test_every_recorded_entry_agrees_with_the_path_it_took(self):
-        """Vacuous today. `TestARecordedVintageIsHeldToo` is where it bites."""
+        """It bites on the committed manifest since a recorded vintage landed in it.
+
+        Vacuous until then, which is what `TestARecordedVintageIsHeldToo`
+        exists for and still covers, because that class drives the negative
+        cases this one cannot.
+        """
         the_recorded_entries_name_themselves(DATA_DIR)
 
     def test_every_committed_line_is_the_one_its_entry_would_write(self):

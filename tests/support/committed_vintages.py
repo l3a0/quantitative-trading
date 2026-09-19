@@ -29,6 +29,15 @@ nothing about which vendor sent them, on what day, or which price they carry.
 The symbol is the exception, and only for this set, because each of its files
 carries the ``Ticker,`` header row.
 
+That header is a property of the members rather than of the key, and the two
+are worth telling apart. "Backfilled" entailed it, because every file that
+predates the recorder carries yfinance's frame. "Hand-written" does not, so a
+hand-placed file written as a bare ``Date,Close`` would join this set and reach
+``the_hand_written_entries_name_their_series`` with no header row to read. What
+stops that today is convention rather than a check: every file here is written
+in the three-row shape, which ``data/README.md``'s ``## Header shape`` states,
+and the next one is expected to be.
+
 The sixth is ``source_workbook``, which says where the bytes came from rather
 than what they are. It is pinned with the identity because it is hand-typed on
 both surfaces that state it, so the two agreeing says nothing about either

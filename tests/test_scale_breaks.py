@@ -345,11 +345,11 @@ class TestANonFiniteRatioIsReportedNotSkipped:
 class TestItIteratesTheManifest:
     """Rule 4. A ninth vintage is covered on the day it is recorded.
 
-    ``COMMITTED`` in ``tests/test_series.py`` is a hand-written list of eight
-    and ``TestTheCommittedManifest`` iterates ``read_manifest()`` instead. The
-    guard follows the second, so this records a ninth carrying a break and asks
-    whether the scan found it. A list of eight passes every other case in this
-    file and fails this one.
+    ``COMMITTED`` in ``tests/test_series.py`` is a hand-written list somebody
+    extends, and ``TestTheCommittedManifest`` iterates ``read_manifest()``
+    instead. The guard follows the second, so this records a ninth carrying a
+    break and asks whether the scan found it. A hand-written list passes every
+    other case in this file and fails this one.
     """
 
     def test_a_recorded_ninth_carrying_a_break_is_found(self, committed_copy: Path) -> None:

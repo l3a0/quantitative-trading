@@ -430,7 +430,7 @@ class TestTheBytesAreCheckedAgainstTheRecord:
         assert entry.sha256 in message
 
     def test_every_committed_vintage_verifies_as_it_stands(self, committed_copy: Path) -> None:
-        """The check has to pass on the eight before it is worth anything."""
+        """The check has to pass on what is committed before it is worth anything."""
         for ticker, flags, path, *_ in COMMITTED:
             assert load_vintage(ticker, **flags, data_dir=committed_copy)[0].path == path
 
@@ -1038,8 +1038,8 @@ class TestARecordedNinthLeavesTheReaderAlone:
 
         A reader that refuses raises inside the resolve and never reaches
         either assertion, which left both deletable with the suite green. This
-        points a hand-written entry at a copy of its own file under a name the
-        eight do not carry. The reader resolves it and the bytes still verify,
+        points a hand-written entry at a copy of its own file under a name no
+        committed vintage carries. The reader resolves it and the bytes still verify,
         so the run gets as far as comparing, and the two sides disagree.
         """
         shutil.copyfile(with_a_ninth / "gld_chan.csv", with_a_ninth / "gld_chan_moved.csv")
