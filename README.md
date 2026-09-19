@@ -68,9 +68,9 @@ they were first built. The other three were built here.
 5. Edward Qian's risk parity against the classic 60/40, reported at Kindle
    location 4684, on SPY and AGG. Both figures Chan prints land close and the
    claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
-   matched risk, on the full span and on both sub-windows. It is the first
-   entry here where the numbers reproduce and the claim does not, which is the
-   reverse of what the first four found.
+   matched risk on the full span, resolved at a robust t of −2.17. It is the
+   first entry here where the numbers reproduce and the claim does not, which
+   is the reverse of the split the GLD/GDX and Kelly entries both found.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -222,9 +222,10 @@ published counterpart, and `--risk-free` moves Chan's 4 percent constant.
 Each window reports both legs' volatilities against the ratio Qian's 23-77
 implies, the risk each leg contributes under 60/40 and under risk parity, the
 leverage that matches 60/40's volatility, and the Sharpe ranking as a measured
-difference with a robust t-statistic beside it. A window that cannot resolve
-the ranking says so in a line rather than raising, because at that sample size
-nothing has failed.
+difference with a robust t-statistic beside it. A window whose robust t cannot
+resolve the ranking says so in a line rather than stopping the run, because a
+sample that cannot settle a sign has not failed at anything. One of the two
+sub-windows is in that position.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

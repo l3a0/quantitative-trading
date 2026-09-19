@@ -212,17 +212,26 @@ absence in the book, and neither number's provenance is closed by this.
 
 ### The estimators live outside this repo
 
-The least squares, the Augmented Dickey-Fuller statistic, the half-life and
-the MacKinnon critical values are not in `src/chan`. They are in
+The least squares, the Augmented Dickey-Fuller statistic, the half-life, the
+MacKinnon critical values and the Newey-West significance block are not in
+`src/chan`. They are in
 [ithildincore](https://github.com/l3a0/ithildin-core), a package this repo shares
 with the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo.
 
-They moved because both repos had them. `src/chan/timeseries.py` and that
-repo's `common/timeseries.py` parsed to the same tree once docstrings were set
-aside, and two copies of one calculation drift without either looking wrong.
-A rule to keep them matching was considered and cut, for the reason in the
-register below.
+The first four moved because both repos had them. `src/chan/timeseries.py` and
+that repo's `common/timeseries.py` parsed to the same tree once docstrings were
+set aside, and two copies of one calculation drift without either looking
+wrong. A rule to keep them matching was considered and cut, for the reason in
+the register below.
+
+The Newey-West block took the other route in, and naming it here is what stops
+the two being read as one rule. `common/stats.py` was never duplicated here. It
+had eleven consumers next door and none in this repo, and it went over because
+this repo's next significance claim would need it. That claim is Qian's risk
+parity, which reports a Sharpe ranking as a measured difference and a robust
+t-statistic rather than as a sign, so relocating exercised code was the whole
+of what happened rather than anything being built.
 
 This cuts against the premise, and the way it is pinned is what limits the
 damage rather than what removes it. A result here has to be re-readable, and
@@ -360,21 +369,8 @@ SPY took Chan's own workbook, which this repo does not hold. Where no such
 measurement is available, the rule cannot be applied and the honest move is to
 say which basis was read and that the choice was not tested.
 
-**The second firing does not need that measurement, and saying why is what
-makes the rule usable.** Qian's risk parity,
-[docs/replication-log.md](replication-log.md) Entry 4, reads AGG on the
-adjusted basis. No workbook of Chan's holds an AGG column, so the measurement
-above cannot be taken at all. It is not needed here, because the question the
-rule asks is answered by what the instrument is rather than by a vintage. An
-aggregate bond fund distributes most of what it earns, so its raw close strips
-out most of its return by construction and a Sharpe ratio computed from one is
-wrong about the leg rather than conservative about it. The equity leg reads
-adjusted for the reason the paragraphs above give, so both legs of that run are
-on one basis and the comparison between them is not a comparison of two
-conventions.
-
-One more thing the Kelly experiment settles, because it contradicts a choice
-made two deliverables earlier. The dispersion is the sample form, dividing by
+One more thing this experiment settles, because it contradicts a choice made
+two deliverables earlier. The dispersion is the sample form, dividing by
 `n - 1`. `src/chan/coin_flip_growth.py` uses the population form, and that is
 also right: it averages over two outcomes that are the whole distribution,
 where the sample correction has nothing to correct for. Here the returns are a

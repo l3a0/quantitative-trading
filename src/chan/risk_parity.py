@@ -6,9 +6,12 @@ bonds is not the balanced portfolio its labels suggest. Capital is split 60 to
 the bond leg. Weighting the legs so each contributes the same share of risk
 moves the capital split a long way toward bonds, and levering the result back
 to 60/40's volatility is what makes the two comparable. Location 4684 prints
-one clause carrying four figures: "to achieve a higher Sharpe ratio while
-maintaining the same risk level as the 60-40 portfolio, Dr. Qian recommended a
-23-77 allocation while leveraging the entire portfolio by 1.8".
+one clause, quoted here as the committed highlight carries it: "to achieve a
+higher Sharpe ratio while maintaining the same risk level as the 60–40
+portfolio, Dr. Qian recommended a 23–77 allocation while leveraging the entire
+portfolio by 1.8". Three things in it are chased below, the allocation, the
+leverage and the Sharpe ranking, and the fourth is the matching condition the
+leverage exists to meet.
 
 So the claim is a Sharpe ranking at matched risk, and the reproducible parts
 are the allocation, the leverage, the risk decomposition and the ranking. The
@@ -52,11 +55,11 @@ volatilities cancel out of the ratio once their ratio is pinned by the weights.
 :func:`leverage_from_correlation` is that map and
 :func:`correlation_from_leverage` runs it backwards. Read forwards it is
 useful, since the leverage this run derives moves visibly with the measured
-correlation. Read backwards it is weak: 1.8 solves to a correlation near 0.16,
-and once 1.8's own rounding and the weights' rounding are both allowed for the
-band runs from roughly 0.0 to 0.3. So the report states what the derived
-leverage implies and does not claim to have recovered Qian's correlation from a
-number he printed to two digits.
+correlation. Read backwards it is weak. 1.8 solves to a correlation near 0.16
+on his printed weights, and letting both of his roundings vary at once opens
+that to roughly −0.01 through +0.37, which is most of the range a stock-bond
+correlation occupies. So the report states what the derived leverage implies
+and does not claim to have recovered the correlation Qian measured.
 
 ## The bond leg is an aggregate bond fund, committed before anything was read
 
@@ -122,9 +125,19 @@ inventing a second.
 Under costless financing on excess returns a Sharpe ratio does not move with
 leverage, so the ranking's sign is settled before the portfolio is levered.
 :func:`rank_at_matched_volatility` computes the leverage inside the window it
-ranks, and that introduces no look-ahead, because the quantity it reports is
-invariant to the leverage. ``tests/test_risk_parity.py`` holds that invariance
-rather than leaving it asserted here.
+ranks, and what that costs is worth stating exactly rather than waving away.
+
+``sharpe_difference`` is invariant to the leverage, so the point estimate
+carries no look-ahead at all and ``tests/test_risk_parity.py`` holds that at
+three leverages. The error bar is a different matter. ``newey_west_summary``
+reads ``leverage * parity - bench``, so ``mean_difference_annual`` and
+``t_newey_west`` are both functions of a leverage estimated inside the window
+they describe. On the rising-rates window the robust t runs from −2.20 at the
+in-window leverage to −1.64 at the falling window's, which crosses the
+threshold this module reports against. The in-window leverage is the right
+choice, because it is the one that makes the matched-volatility identity below
+exact and so the one the error bar is attached to, but it is a choice the
+sample informed and the suite pins the spread rather than hiding it.
 
 The leverage still earns its place beyond the distance from 1.8. Once the two
 portfolios are matched on volatility, their Sharpe difference is exactly their
@@ -201,7 +214,7 @@ import numpy as np
 import pandas as pd
 from ithildincore.stats import newey_west_summary
 
-from chan.series import aligned_closes, load_close, vintage_line
+from chan.series import WindowCrossesScaleBreak, aligned_closes, load_close, vintage_line
 from chan.vintage import VintageUnavailable
 
 #: The two legs, stocks first. Chan names no instruments, so both are this
@@ -359,6 +372,25 @@ class Ranking:
     lag: int
 
     @property
+    def rate_sensitivity(self) -> float:
+        """How far the Sharpe difference moves per unit of assumed risk-free rate.
+
+        ``1 / vol(60/40)`` less ``1 / vol(risk parity, unlevered)``, which is
+        the derivative of the difference with respect to the rate. Levering to
+        match puts the unlevered risk-parity volatility at
+        ``matched_volatility / leverage``, so the whole thing collapses to
+        ``(1 - leverage) / matched_volatility`` and is negative exactly when
+        the leverage exceeds 1. That is the same condition as risk parity
+        being the quieter portfolio before it is levered.
+
+        It is computed rather than asserted because the rate was declared with
+        the windows, so scanning it would spend the sample on a search nothing
+        recorded. The derivative says which way a different rate would push
+        without computing a second ranking.
+        """
+        return (1.0 - self.leverage) / self.matched_volatility
+
+    @property
     def resolved(self) -> bool:
         """Whether the robust t clears 2, the usual two-sided 5 percent rule.
 
@@ -511,6 +543,13 @@ def correlation_from_leverage(
     a refusal rather than as a number, because a correlation of 1.4 read as a
     figure is worse than no figure.
     """
+    if leverage <= 0.0:
+        # The inversion squares its input, so without this a leverage of -5
+        # comes back as a perfectly ordinary-looking correlation. Nothing
+        # reaches here with one, because `matching_leverage` is a ratio of two
+        # standard deviations, and a guard whose cost is one comparison is
+        # cheaper than the reader who has to work out why the sign vanished.
+        return None
     ratio = weights[1] / weights[0]
     squared = leverage**2
     # Both variances are affine in the correlation, so the equation is linear.
@@ -763,9 +802,13 @@ def _decomposition(result: WindowResult, *, against_the_book: bool) -> None:
     )
     inside = "inside" if legs.ratio_inside_the_band else "outside"
     low, high = BOOK_RATIO_BAND
+    # Four decimals rather than two. The band's low end is 3.2553, which prints
+    # as 3.26 and would make a measured 3.2554 read as "inside the 3.26 band",
+    # so a reader checking the flag against the printed bound would find it
+    # false. Nothing measured lands there and the line is what a reader checks.
     print(
         f"  volatility ratio {STOCK}/{BOND}       {legs.vol_ratio:>8.4f}   "
-        f"{inside} the {low:.2f} to {high:.2f} band Qian's 23-77 admits"
+        f"{inside} the {low:.4f} to {high:.4f} band Qian's 23-77 admits"
     )
     print(f"  measured correlation            {legs.correlation:>+8.4f}")
     print(
@@ -847,6 +890,10 @@ def _ranking(ranking: Ranking, *, against_the_book: bool) -> None:
         f"    {'robust t on that mean':<30}{ranking.t_newey_west:>+10.4f}   "
         f"Newey-West at lag {ranking.lag}, against a naive {ranking.t_naive:+.4f}"
     )
+    print(
+        f"    {'per unit of assumed rate':<30}{ranking.rate_sensitivity:>+10.4f}   "
+        f"(1 - leverage) / volatility, so a higher rate costs risk parity"
+    )
     if ranking.resolved:
         print("    This window resolves the ranking: the robust t clears 2.")
     else:
@@ -872,6 +919,12 @@ def report(
     print("The three windows below were declared on issue 15 before any number existed, and")
     print(f"the boundary is the Federal Reserve's first increase of the cycle, {TIGHTENING_START}.")
     print("All three print every run, so no window here was chosen after its ranking was seen.")
+    print()
+    print(f"One return falls in neither sub-window, the one dated {TIGHTENING_START} itself, which")
+    print("is why the two sub-windows hold one day fewer between them than the full span.")
+    print("A return spans two closes, so that one straddles the cut and belongs to neither")
+    print("side of it. It is the decision day, and it is the largest single day in the")
+    print("neighbourhood, so it is named here rather than left for a reader to subtract.")
     print()
     for label, _, _ in WINDOWS:
         _decomposition(measured[label][0], against_the_book=True)
@@ -905,12 +958,13 @@ def report(
     print("anyone paid, and no transaction cost or financing spread is charged, which")
     print("favours the levered portfolio the book argues for.")
     print()
-    print("The assumed rate is not neutral to the ranking, and the direction is exact. The")
-    print("Sharpe difference changes with the rate by 1/vol(60/40) less 1/vol(risk parity),")
-    print("which is negative whenever the unlevered risk-parity portfolio is the quieter of")
-    print("the two, and it is on every window above. So a higher assumed rate penalises")
-    print("risk parity and a lower one favours it. --risk-free moves it, and a run that")
-    print("does is off the reproduction, because the rate was declared with the windows.")
+    print("The assumed rate is not neutral to the ranking, which is why every window above")
+    print("reports what it costs. The Sharpe difference changes with the rate by")
+    print("1/vol(60/40) less 1/vol(risk parity, unlevered), and levering to match collapses")
+    print("that to (1 - leverage) / volatility. So a higher assumed rate penalises risk")
+    print("parity whenever the leverage is above 1. --risk-free moves the rate, and a run")
+    print("that does is off the reproduction, because the rate was declared with the")
+    print("windows.")
     print("docs/replication-log.md Entry 4 carries the verdict.")
 
 
@@ -960,10 +1014,13 @@ def main() -> None:
     args = parser.parse_args()
     try:
         run(start=args.start, end=args.end, risk_free=args.risk_free)
-    except (VintageUnavailable, WindowTooShort) as stopped:
+    except (VintageUnavailable, WindowCrossesScaleBreak, WindowTooShort) as stopped:
         # A refusal naming which vintage or which window is worth nothing at the
-        # bottom of a twenty-line pandas traceback. Both reach the operator as a
-        # line, the way `chan.pair_cointegration.main` already exits.
+        # bottom of a twenty-line pandas traceback. All three reach the operator
+        # as a line, the way `chan.pair_cointegration.main` and
+        # `chan.regime_figure.main` already exit. The scale-break refusal is
+        # raised inside `aligned_closes` rather than here, so a module that
+        # reads a pair and does not name it lets it through as a traceback.
         raise SystemExit(str(stopped)) from stopped
 
 

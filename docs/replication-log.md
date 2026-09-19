@@ -799,12 +799,20 @@ earns a higher Sharpe ratio at the same risk, and 60/40 wins it by 0.2169 with
 a robust t of −2.17. So this entry is the first here where a published number
 lands close and the claim behind it does not survive.
 
-Three rows are replications and twelve are not. Rows 1, 2 and 3 chase the three
-things location 4684 prints. The risk decompositions, the leg volatilities,
-their ratio and the correlations have no published counterpart and say so in
-their own cells. They are in the entry because the risk decomposition is the
-argument the allocation rests on, and a weight reported with nothing behind it
-would be a number with no reasoning attached.
+Three rows are replications and twelve are not. Rows 1, 2 and 3 are the three
+things location 4684 prints. The other twelve fall into four groups.
+
+1. **Rows 4 and 5**, the volatility ratio Qian's weights imply and the one
+   these two legs measured. They are what row 1's gap is really about.
+2. **Rows 6 and 9**, the measured correlation and the one this run's leverage
+   implies on Qian's printed weights. The second is row 2 restated in the unit
+   his 1.8 is about.
+3. **Rows 7, 8 and 10**, the risk decomposition under each allocation and both
+   portfolios' Sharpe ratios. The decomposition is the argument the allocation
+   rests on, and a weight reported with nothing behind it would be a number
+   with no reasoning attached. Row 10 is there because a ranking reported as a
+   sign hides its size.
+4. **Rows 11 to 15**, the two sub-windows.
 
 **The sub-window rows carry no verdict either**, because the book makes no
 claim about a window. They are what turns rows 1 to 3 into a verdict rather
@@ -881,11 +889,21 @@ every trading day. The moments are simple daily returns, the mean scaled by
 | 8 | 2003-09-30 to 2026-09-17 | the same quantity at the row 1 weights | 50 percent each, exactly | `TestTheFullSpan::test_the_risk_parity_weights_land_about_a_point_off_qians` |
 | 9 | none, the map takes no volatility | row 2 inverted through the leverage-to-correlation map on Qian's 23-77 weights | −0.1508, against the +0.1579 his 1.8 implies | `TestTheFullSpan::test_the_leverage_and_what_it_implies` |
 | 10 | 2003-09-30 to 2026-09-17 | annualised mean excess return over annualised volatility, both at 11.3181 percent volatility | 60/40 0.4111, levered risk parity 0.1942 | `TestTheFullSpan::test_the_ranking_goes_against_the_book_and_the_window_resolves_it` |
-| 11 | 2003-09-30 to 2022-03-15 | the row 1 and row 5 specifications, recomputed inside the window | 20.53 to 79.47, SPY 18.8748 percent, AGG 4.8772 percent, ratio 3.8700, correlation −0.0688 | `TestTheTwoSubWindows::test_the_falling_rates_window` |
-| 12 | 2003-09-30 to 2022-03-15 | the row 3 specification, on weights fitted inside the window because nothing precedes it | −0.1565, robust t −1.3455 at lag 9 | `TestTheTwoSubWindows::test_the_falling_rates_window` |
-| 13 | 2022-03-17 to 2026-09-17 | the row 1 and row 5 specifications, recomputed inside the window | 26.63 to 73.37, SPY 17.1193 percent, AGG 6.2127 percent, ratio 2.7555, correlation +0.2442 | `TestTheTwoSubWindows::test_the_rising_rates_window` |
-| 14 | 2022-03-17 to 2026-09-17 | the row 3 specification, on the row 11 weights, which are strictly earlier data | −0.4974, a mean difference of −5.5417 percent a year, robust t −2.1956 at lag 6 | `TestTheTwoSubWindows::test_the_rising_rates_window` |
+| 11 | 2003-09-30 to 2022-03-15 | the row 1, 5, 7 and 8 specifications, recomputed inside the window | 20.53 to 79.47, SPY 18.8748 percent, AGG 4.8772 percent, ratio 3.8700, correlation −0.0688, 60/40 risk 98.2290 and 1.7710 percent, risk parity 50 percent each | `TestTheTwoSubWindows::test_the_falling_rates_window` |
+| 12 | 2003-09-30 to 2022-03-15 | the row 2, 3, 9 and 10 specifications, on weights fitted inside the window because nothing precedes it | leverage 2.1475, implying −0.3299 on his weights, Sharpe 0.3820 against 0.2255, difference −0.1565, mean difference −1.7777 percent a year, robust t −1.3455 at lag 9 | `TestTheTwoSubWindows::test_the_falling_rates_window` |
+| 13 | 2022-03-17 to 2026-09-17 | the row 1, 5, 7 and 8 specifications, recomputed inside the window | 26.63 to 73.37, SPY 17.1193 percent, AGG 6.2127 percent, ratio 2.7555, correlation +0.2442, 60/40 risk 90.0043 and 9.9957 percent, risk parity 50 percent each | `TestTheTwoSubWindows::test_the_rising_rates_window` |
+| 14 | 2022-03-17 to 2026-09-17 | the row 3, 9 and 10 specifications, on the row 11 weights, which are strictly earlier data | implying +0.5689 on his weights, Sharpe 0.5071 against 0.0097, difference −0.4974, a mean difference of −5.5417 percent a year, robust t −2.1956 at lag 6 | `TestTheTwoSubWindows::test_the_rising_rates_window` |
 | 15 | the two windows of rows 11 and 13 | the row 2 specification | 2.1475 falling, 1.6572 rising | `TestTheTwoSubWindows::test_the_falling_rates_window` and `::test_the_rising_rates_window` |
+
+**One return falls in neither sub-window and it is the boundary day's.** Rows 11
+to 15 run on 4,647 and 1,130 daily returns against the full span's 5,778, one
+short. A return spans two closes, so the one dated 2022-03-16 runs from the
+falling window's last close to the rising window's first and belongs to neither
+side of the cut. It is the decision day itself, and the largest in its
+neighbourhood at SPY +2.2174 percent against AGG +0.0743 percent, so it is named
+here rather than left for a reader to notice the counts miss by one.
+`TestTheTwoSubWindows::test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut`
+holds that day's two returns, so the arithmetic above stays checkable.
 
 ### The verdicts
 
@@ -896,10 +914,10 @@ every trading day. The moments are simple daily returns, the mean scaled by
 | 3 | none, the source states a claim | did not reproduce | The replication. 60/40 earns the higher Sharpe ratio at matched volatility, by 0.2169, and the window resolves it at a robust t of −2.17. No cause outside the method is available. The vintage explanation that carries Entry 1's rows is about a series nobody holds, and this is a claim about two instruments this repo chose in the open on a span every one of whose days is committed here. What the entry concludes says what the gap is made of. |
 | 4 | none | none, not a replication | Derived from row 1's published pair rather than printed. It is here because it is the quantity the printed weights are a statement about, and because a reader comparing only the weights would call row 1 a near match. |
 | 5 | none | none, not a replication | The book prints no volatilities. The measured ratio of 3.5909 sits outside the 3.26 to 3.44 band row 4 gives, which is the sharper reading of row 1's gap. |
-| 6 | none | none, not a replication | The book prints no correlation. Over the full span the two legs are uncorrelated to four decimals, which is a coincidence of averaging rather than a stable fact: rows 11 and 13 give −0.0688 and +0.2442. |
+| 6 | none | none, not a replication | The book prints no correlation. Over the full span the two legs are uncorrelated to three decimals, at −0.0002, which is a coincidence of averaging rather than a stable fact: rows 11 and 13 give −0.0688 and +0.2442. |
 | 7 | none | none, not a replication | Qian's premise, measured. 60 percent of the capital carries 96.67 percent of the risk, so 60/40 is nearly an all-equity portfolio in risk terms and the labels say otherwise. This row is why rows 1 and 2 are worth chasing at all. |
 | 8 | none | none, not a replication | Exactly 50 percent each, which is what says the weights of row 1 are the risk-parity weights rather than something near them. |
-| 9 | none | none, not a replication | Row 2 in the unit his 1.8 is really about. It is not the measured correlation of row 6 and the two are kept apart, because the map is read on his printed weights and this run's weights are not his. No claim is made about recovering the correlation Qian measured: his 1.8 carries two significant figures and so do his weights, and allowing for both puts the band at roughly 0.0 to 0.3. |
+| 9 | none | none, not a replication | Row 2 in the unit his 1.8 is really about. It is not the measured correlation of row 6 and the two are kept apart, because the map is read on his printed weights and this run's weights are not his. No claim is made about recovering the correlation Qian measured. His 1.8 carries two significant figures and so do his weights, and letting both roundings vary at once opens the band to −0.01265 through +0.37141, which is most of the range a stock-bond correlation occupies. |
 | 10 | none | none, not a replication | The book prints no Sharpe ratio, only the ranking of row 3. Both are stated because a ranking reported as a sign hides its size, and 0.4111 against 0.1942 is not a near miss. |
 | 11 | none | none, not a replication | The book works no window. The bond leg is at its quietest here, so the volatility ratio reaches 3.8700 and risk parity holds the least equity it holds anywhere in this entry. |
 | 12 | none | none, not a replication | The book works no window. The robust t is −1.3455, so this window does not resolve its own ranking and nothing is read off the sign. Its weights are fitted inside it, because nothing precedes it, and the row says so rather than letting it pass as the out-of-sample row 14. |
@@ -917,8 +935,6 @@ Four things, and the first is the one the other three explain.
    claim those two were printed to support and 60/40 wins it by 0.2169 of
    Sharpe, resolved at a robust t of −2.17. That is the reverse of the split
    Entries 1 and 3 both found, where every number moved and every claim held.
-   A published number and the claim behind it have different shelf lives, and
-   this entry is the case where the claim is the shorter one.
 2. **The gap is where the return is, not where the risk is.** Row 8 lands on 50
    percent each exactly, so the method did what it says. Row 7 confirms the
    premise it rests on. What fails is the step from a balanced risk split to a
@@ -931,9 +947,8 @@ Four things, and the first is the one the other three explain.
 3. **The out-of-sample window is the worst one, which is the direction that
    matters.** Row 14 is the only ranking whose weights came from outside the
    window they are judged on, and it is the largest loss in the entry.
-   Refitting inside the window would have improved it, which is exactly the
-   flattery the separation exists to prevent. A replication that had refitted
-   would have reported a smaller gap and called the difference a detail.
+   Refitting inside the window would have improved it, which is the bias the
+   separation exists to remove.
 4. **The volatility ratio is a regime measurement rather than a constant.**
    Rows 5, 11 and 13 give 3.5909, 3.8700 and 2.7555 against Qian's implied 3.3,
    and the two sub-windows straddle the band from opposite sides. So the
@@ -944,7 +959,8 @@ Four things, and the first is the one the other three explain.
 
 ### What this entry cannot say
 
-Three things, and each is a missing series rather than an oversight.
+Four things. One is a missing series, two are choices inherited from the source
+or from this repo, and the fourth is a limit of the estimator.
 
 **Whether the ranking survives a real financing cost.** It is charged nothing,
 because the book charges nothing, and the omission favours the levered
@@ -964,6 +980,27 @@ Chan reports, so SPY and AGG are this repo's choice, fixed in writing on issue
 15 before any number was seen. Rows 1 and 2 are therefore a test of the
 argument on an aggregate bond fund rather than of his published pair, and no
 vintage could close that, because there is no pair to hold.
+
+**How much of the robust t the estimated leverage is worth.** Every t above is
+computed on `leverage * parity - bench`, with the leverage estimated from the
+same sample as the mean and then treated as a known constant. The sampling
+variation in the two standard deviations behind it never enters the variance,
+and the bias points toward significance. A moving-block bootstrap that
+re-estimates the leverage on every draw, 4,000 resamples at block length 10,
+puts the understatement at 2.7 percent on the full span, 2.6 on the falling
+window and 1.3 on the rising one. No verdict above turns over, and the full
+span's row 3 clears its threshold by 8.6 percent against an understatement of
+2.7. Closing it properly needs a bootstrapped or Jobson-Korkie standard error,
+which is a second estimator and a different deliverable. The bootstrap is
+quoted here as a measurement taken during review rather than as something this
+suite pins, the way Entry 3 names the figures from Chan's workbook.
+
+The same estimate is why the ranking's point estimate and its error bar are
+reported as different things. `sharpe_difference` does not move with the
+leverage at all, so row 3's −0.2169 carries no look-ahead. The t does move, and
+`TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove` pins both halves,
+including the rising window's spread from −2.1956 to −1.6422 across the two
+leverages a reader could defend.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

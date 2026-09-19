@@ -88,8 +88,8 @@ leg of Qian's allocation. The other SPY file, `spy_chan.csv`, is a workbook
 column placed by hand and reading it is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138).
 
-`yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` is the second
-recorded vintage and the bond leg of that same run. Two things about it are
+`yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` is recorded the
+same way and is the bond leg of that same run. Two things about it are
 worth stating rather than leaving a reader to infer from the span.
 
 1. **It ends a day before the SPY file it is read beside.** The download
@@ -111,7 +111,8 @@ yfinance returns a `Close` carrying both splits and dividends under
 `auto_adjust=True`, and under `auto_adjust=False` a split-only `Close` beside an
 `Adj Close` that carries both. The manifest records all of them as `adjusted`,
 which [issue 125](https://github.com/l3a0/quantitative-trading/issues/125) is
-about. Both recorded vintages are the both-adjustments series, from
+about. The SPY and AGG files above both carry the both-adjustments series,
+from
 
 ```python
 yfinance.download("SPY", period="max", interval="1d", auto_adjust=True, actions=False)
@@ -229,10 +230,17 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its ten lines were written by hand. Eight were here before the
+   Nine of its eleven lines were written by hand. Eight were here before the
    recorder existed, and `spy_chan.csv`'s was typed because the recorder cannot
    write a saved date. More will be, for as long as a replication reaches for
    another of Chan's workbook columns.
+
+   That sentence is corrected here rather than left to
+   [issue 132](https://github.com/l3a0/quantitative-trading/issues/132)'s
+   sweep, which owns the wider class. It was true until the AGG vintage below
+   arrived, so the change that recorded that vintage is what made it false, and
+   the sweep's own measurement counts the statements saying "eight" and "four"
+   and would not find one saying "ten".
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.

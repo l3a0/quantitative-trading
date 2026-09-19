@@ -49,6 +49,7 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.stats import newey_west_summary
 
 from chan.risk_parity import (
     BENCHMARK_WEIGHTS,
@@ -64,6 +65,7 @@ from chan.risk_parity import (
     TIGHTENING_START,
     TRADING_DAYS,
     WINDOWS,
+    Legs,
     Ranking,
     WindowTooShort,
     annualised_covariance,
@@ -84,7 +86,7 @@ from chan.risk_parity import (
     run,
     simple_returns,
 )
-from chan.series import aligned_closes, load_close
+from chan.series import WindowCrossesScaleBreak, aligned_closes, load_close
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import committed_copy
 
@@ -205,10 +207,19 @@ class TestTheTwoLegAlgebra:
                 [correlation * stock_vol * bond_vol, bond_vol**2],
             ]
         )
-        stock = (1.0 / stock_vol) / (1.0 / stock_vol + 1.0 / bond_vol)
-        shares = risk_shares((stock, 1.0 - stock), covariance)
+        # Through the shipped function rather than a second copy of the
+        # formula. A test that reimplements what it checks holds the algebra
+        # and not the code, so a mutation to the module walks past it.
+        legs = _legs_at(stock_vol, bond_vol, correlation)
+        weights = risk_parity_weights(legs)
+        shares = risk_shares(weights, covariance)
         assert shares[0] == pytest.approx(0.5, abs=1e-12)
         assert shares[1] == pytest.approx(0.5, abs=1e-12)
+        # And it is the inverse-volatility allocation, which is the other half
+        # of the claim. Equal shares alone would also pass on 50/50 weights
+        # over two legs of equal volatility.
+        assert weights[0] * stock_vol == pytest.approx(weights[1] * bond_vol, abs=1e-12)
+        assert weights[0] + weights[1] == pytest.approx(1.0, abs=1e-12)
 
     def test_the_risk_shares_sum_to_one_and_60_40_is_nowhere_near_balanced(self) -> None:
         """Qian's whole argument, on the illustrative volatilities the issue names.
@@ -270,6 +281,31 @@ class TestTheTwoLegAlgebra:
         assert correlation_from_leverage(1.75) == pytest.approx(0.2783, abs=5e-5)
         assert correlation_from_leverage(1.85) == pytest.approx(0.0557, abs=5e-5)
 
+    def test_allowing_for_both_of_his_roundings_opens_the_band_a_long_way(self) -> None:
+        """Roughly −0.01 through +0.37, which is most of the range the pair occupies.
+
+        Qian printed two significant figures on the leverage and two on the
+        weights. The map is monotone decreasing in both, so the band's ends sit
+        at opposite corners of the two rounding intervals: the equity weight
+        anywhere in [0.225, 0.235) and the leverage anywhere in [1.75, 1.85).
+
+        Issue 15 estimated this at roughly 0.0 to 0.3 and the upper end is
+        further out than that, which is why it is derived here rather than
+        quoted. It is the number behind the report declining to name the
+        correlation Qian measured.
+        """
+        corners = {
+            (weight, leverage): correlation_from_leverage(leverage, weights=(weight, 1.0 - weight))
+            for weight in (0.225, 0.235)
+            for leverage in (1.75, 1.85)
+        }
+        assert min(corners.values()) == pytest.approx(-0.01265, abs=5e-6)
+        assert max(corners.values()) == pytest.approx(0.37141, abs=5e-6)
+        # The corners are the extremes, so nothing inside the intervals escapes
+        # them. His own printed pair sits well inside.
+        assert min(corners.values()) < correlation_from_leverage(BOOK_LEVERAGE)
+        assert correlation_from_leverage(BOOK_LEVERAGE) < max(corners.values())
+
     @pytest.mark.parametrize("correlation", [-0.6, -0.2, 0.0, 0.3, 0.7])
     def test_the_leverage_map_inverts(self, correlation) -> None:
         """Forwards then backwards returns the correlation it started from."""
@@ -294,14 +330,32 @@ class TestTheTwoLegAlgebra:
         assert correlation_from_leverage(4.0) == pytest.approx(-0.850977, abs=5e-7)
         assert correlation_from_leverage(BOOK_LEVERAGE) is not None
 
+    @pytest.mark.parametrize("leverage", [-5.0, -1.8, 0.0])
+    def test_a_leverage_that_is_not_a_leverage_is_refused_rather_than_squared(
+        self, leverage
+    ) -> None:
+        """The inversion squares its input, so a negative one would answer plausibly.
 
-class TestTheRankingIsBuiltSoLeverageCannotMoveIt:
-    """Why measuring the leverage inside the window it ranks is not look-ahead.
+        Without the guard, −5 comes back as a correlation of −0.9077, which is
+        an ordinary-looking number a reader has no way to spot as nonsense.
+        Nothing reaches it today, because `matching_leverage` is a ratio of two
+        standard deviations and cannot be negative, so this holds the guard
+        rather than a path. A guard that costs one comparison and removes a
+        silently wrong answer is cheaper than the reader who has to work out
+        where the sign went.
+        """
+        assert correlation_from_leverage(leverage) is None
+
+
+class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
+    """What measuring the leverage inside the ranked window does and does not cost.
 
     A Sharpe ratio does not move with leverage under costless financing on
-    excess returns. So the quantity the ranking reports is invariant to the
-    leverage, and the only thing carried in from outside a window is the
-    weights. That claim is load-bearing and it is checked rather than asserted.
+    excess returns, so ``sharpe_difference`` is invariant to it and the point
+    estimate carries no look-ahead. The error bar is not invariant, because
+    ``newey_west_summary`` reads the levered difference series. Both halves are
+    pinned, because the module used to claim the first and mean the second, and
+    the spread on the rising window crosses the threshold the report uses.
     """
 
     def test_the_sharpe_difference_does_not_move_with_the_leverage(self, measured) -> None:
@@ -317,6 +371,38 @@ class TestTheRankingIsBuiltSoLeverageCannotMoveIt:
         for multiple in (0.5, 2.0, 3.0):
             levered = _rank_at_leverage(returns, weights, base.leverage * multiple)
             assert levered == pytest.approx(base.sharpe_difference, abs=1e-12)
+
+    def test_the_error_bar_does_move_with_the_leverage_and_the_spread_matters(
+        self, measured
+    ) -> None:
+        """The half the invariance above does not cover, pinned rather than glossed.
+
+        ``newey_west_summary`` reads ``leverage * parity - bench``, so the
+        robust t is a function of a leverage the ranked window supplied. On the
+        rising window the in-window leverage gives −2.1956 and the falling
+        window's, which is the only one available at the boundary, gives
+        −1.6422. Those sit on opposite sides of the threshold
+        :attr:`Ranking.resolved` reports against, so this is the sharpest case
+        rather than a rounding.
+
+        The in-window leverage is still the right one, because it is what makes
+        the matched-volatility identity exact and so what the error bar is
+        attached to. What this case removes is the reading that the choice was
+        free.
+        """
+        _, returns = measured["rising rates"]
+        carried = measured["falling rates"][0].parity
+        weights = (carried.stock_weight, carried.bond_weight)
+
+        shipped = rank_at_matched_volatility(
+            "rising rates", returns, weights, weight_source="falling rates", in_sample=False
+        )
+        assert shipped.t_newey_west == pytest.approx(-2.195624, abs=5e-7)
+        assert shipped.resolved is True
+
+        at_the_earlier_leverage = _t_at_leverage(returns, weights, 2.147542)
+        assert at_the_earlier_leverage == pytest.approx(-1.642, abs=5e-4)
+        assert abs(at_the_earlier_leverage) < 2.0
 
     def test_at_matched_volatility_the_ranking_is_one_series_mean(self, rankings) -> None:
         """The identity that turns a comparison of two ratios into a measurable mean.
@@ -342,27 +428,50 @@ class TestTheRankingIsBuiltSoLeverageCannotMoveIt:
             levered_vol = float((ranking.leverage * parity).std(ddof=1)) * math.sqrt(TRADING_DAYS)
             assert levered_vol == pytest.approx(ranking.matched_volatility, abs=1e-12)
 
-    def test_the_assumed_rate_is_not_neutral_and_the_direction_is_exact(self, measured) -> None:
-        """Raising the rate lowers the Sharpe difference, by 1/vol(60/40) less 1/vol(parity).
+    def test_the_assumed_rate_is_not_neutral_and_the_direction_is_exact(
+        self, measured, rankings
+    ) -> None:
+        """Raising the rate lowers the Sharpe difference, on every declared window.
 
         The report states this rather than scanning the rate, because the rate
         was declared with the windows and a run that moves it is off the
         reproduction. The derivative is exact, so it is pinned rather than
-        sampled, and it is negative on every window because the unlevered
-        risk-parity portfolio is the quieter of the two.
+        sampled. It is checked here two ways that cannot both be wrong in the
+        same direction: against a numerical difference quotient on the real
+        returns, and against the closed form the module reports.
         """
-        _, returns = measured["full span"]
-        legs = measure_legs(returns)
-        weights = risk_parity_weights(legs)
-        bench_vol = decompose("b", returns, BENCHMARK_WEIGHTS).volatility
-        parity_vol = decompose("p", returns, weights).volatility
-        expected = 1.0 / bench_vol - 1.0 / parity_vol
-        assert expected < 0.0
+        for label, (_, returns) in measured.items():
+            ranking = rankings[label]
+            weights = _weights_used(measured, ranking)
+            bench_vol = decompose("b", returns, BENCHMARK_WEIGHTS).volatility
+            parity_vol = decompose("p", returns, weights).volatility
+            expected = 1.0 / bench_vol - 1.0 / parity_vol
+            assert expected < 0.0, label
 
-        step = 1e-6
-        low = _sharpe_difference(returns, weights, RISK_FREE)
-        high = _sharpe_difference(returns, weights, RISK_FREE + step)
-        assert (high - low) / step == pytest.approx(expected, rel=1e-6)
+            step = 1e-6
+            low = _sharpe_difference(returns, weights, RISK_FREE)
+            high = _sharpe_difference(returns, weights, RISK_FREE + step)
+            assert (high - low) / step == pytest.approx(expected, rel=1e-6), label
+
+            # The closed form the module reports. Levering to match puts the
+            # unlevered risk-parity volatility at `matched / leverage`, so the
+            # whole derivative collapses to `(1 - leverage) / matched`.
+            assert ranking.rate_sensitivity == pytest.approx(expected, rel=1e-9), label
+
+    def test_the_rate_costs_risk_parity_exactly_when_the_leverage_is_above_one(
+        self, rankings
+    ) -> None:
+        """Which is the same condition as risk parity being the quieter portfolio.
+
+        Held to the three measured values rather than to the sign alone,
+        because a sign survives any mutation that leaves it alone, which is the
+        rule this file's ranking pins already follow.
+        """
+        assert rankings["full span"].rate_sensitivity == pytest.approx(-8.6692, abs=5e-5)
+        assert rankings["falling rates"].rate_sensitivity == pytest.approx(-10.1029, abs=5e-5)
+        assert rankings["rising rates"].rate_sensitivity == pytest.approx(-5.8979, abs=5e-5)
+        for ranking in rankings.values():
+            assert (ranking.rate_sensitivity < 0.0) == (ranking.leverage > 1.0)
 
 
 class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:
@@ -618,15 +727,17 @@ class TestTheTwoSubWindows:
             ("rising rates", "2022-03-16", None),
         )
 
-    def test_the_two_windows_partition_the_span_with_no_day_counted_twice(
+    def test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut(
         self, joined, measured
     ) -> None:
-        """4,647 plus 1,130 daily returns against the full span's 5,778.
+        """4,647 plus 1,130 daily returns against the full span's 5,778, one short.
 
-        One short, which is the return on the first day after the boundary.
-        Splitting a price series into two windows loses the return that
-        straddles the cut, and saying which day it is beats leaving a reader to
-        wonder why the counts miss by one.
+        The missing one is dated 2022-03-16, the boundary day itself. A return
+        spans two closes, so that one runs from the falling window's last close
+        to the rising window's first and belongs to neither side. The windows
+        therefore cover the span rather than partitioning it, and the word
+        matters because the lost day is the decision day and the largest in its
+        neighbourhood.
         """
         full = measured["full span"][0].legs.days
         falling = measured["falling rates"][0].legs.days
@@ -635,6 +746,32 @@ class TestTheTwoSubWindows:
         assert falling + rising == full - 1
         assert measured["falling rates"][0].legs.end == "2022-03-15"
         assert measured["rising rates"][0].legs.start == "2022-03-17"
+
+        boundary = pd.Timestamp(TIGHTENING_START)
+        lost = simple_returns(joined).loc[[boundary]]
+        assert float(lost[STOCK].iloc[0]) == pytest.approx(0.022174, abs=5e-7)
+        assert float(lost[BOND].iloc[0]) == pytest.approx(0.000743, abs=5e-7)
+        assert float((lost @ np.asarray(BENCHMARK_WEIGHTS)).iloc[0]) == pytest.approx(
+            0.013602, abs=5e-7
+        )
+
+    def test_the_falling_window_ends_on_the_trading_day_before_the_boundary(self, joined) -> None:
+        """The end date is a literal, so nothing ties it to ``TIGHTENING_START``.
+
+        Held as the property rather than as the spelling. Moving
+        ``TIGHTENING_START`` back two days while leaving the literal alone makes
+        the two windows overlap and count 2022-03-14 and 2022-03-15 twice, and
+        an assertion on the tuple alone reads as "update the constant" rather
+        than as "you broke the split".
+        """
+        _, _, falling_end = WINDOWS[1]
+        days = joined.index
+        before = days[days < pd.Timestamp(TIGHTENING_START)]
+        assert str(before[-1].date()) == falling_end
+        # And no day is in both windows.
+        assert set(clip(joined, None, falling_end).index).isdisjoint(
+            clip(joined, TIGHTENING_START, None).index
+        )
 
     def test_the_falling_rates_window(self, measured, rankings) -> None:
         """The quiet-bond regime, where the volatility ratio is furthest from Qian's."""
@@ -647,9 +784,18 @@ class TestTheTwoSubWindows:
         assert parity.stock_weight == pytest.approx(0.205340, abs=5e-7)
         assert result.benchmark.stock_risk_share == pytest.approx(0.982290, abs=5e-7)
 
+        assert parity.bond_weight == pytest.approx(0.794660, abs=5e-7)
+        assert parity.stock_risk_share == pytest.approx(0.5, abs=1e-12)
+        assert parity.bond_risk_share == pytest.approx(0.5, abs=1e-12)
+        assert result.benchmark.bond_risk_share == pytest.approx(0.017710, abs=5e-7)
+
         ranking = rankings["falling rates"]
         assert ranking.leverage == pytest.approx(2.147542, abs=5e-7)
+        assert ranking.implied_correlation == pytest.approx(-0.329885, abs=5e-7)
+        assert ranking.sharpe_benchmark == pytest.approx(0.382005, abs=5e-7)
+        assert ranking.sharpe_parity == pytest.approx(0.225498, abs=5e-7)
         assert ranking.sharpe_difference == pytest.approx(-0.156507, abs=5e-7)
+        assert ranking.mean_difference_annual == pytest.approx(-0.017777, abs=5e-7)
         assert ranking.t_newey_west == pytest.approx(-1.345475, abs=5e-7)
         assert ranking.lag == 9
         assert ranking.resolved is False
@@ -671,11 +817,16 @@ class TestTheTwoSubWindows:
         assert legs.correlation == pytest.approx(0.244222, abs=5e-7)
         assert legs.bond_mean == pytest.approx(0.011596, abs=5e-7)
         assert parity.stock_weight == pytest.approx(0.266274, abs=5e-7)
+        assert parity.bond_weight == pytest.approx(0.733726, abs=5e-7)
+        assert parity.stock_risk_share == pytest.approx(0.5, abs=1e-12)
+        assert parity.bond_risk_share == pytest.approx(0.5, abs=1e-12)
         assert result.parity_tilts_toward_stocks is False
         assert result.benchmark.stock_risk_share == pytest.approx(0.900043, abs=5e-7)
+        assert result.benchmark.bond_risk_share == pytest.approx(0.099957, abs=5e-7)
 
         ranking = rankings["rising rates"]
         assert ranking.leverage == pytest.approx(1.657157, abs=5e-7)
+        assert ranking.implied_correlation == pytest.approx(0.568947, abs=5e-7)
         assert ranking.sharpe_benchmark == pytest.approx(0.507062, abs=5e-7)
         assert ranking.sharpe_parity == pytest.approx(0.009696, abs=5e-7)
         assert ranking.sharpe_difference == pytest.approx(-0.497366, abs=5e-7)
@@ -747,14 +898,41 @@ class TestTheRefusals:
             main()
         assert "AGG" in str(stopped.value)
 
-    def test_the_two_refusals_are_different_exceptions(self) -> None:
-        """A run that could not read a vintage and one whose window was thin.
+    def test_a_window_spanning_a_scale_break_also_reaches_it_as_a_line(self, monkeypatch) -> None:
+        """The third refusal, which `aligned_closes` raises and this run must name.
 
-        Different facts with different fixes, which is the rule
-        ``tests/test_series.py`` states for the refusals already here.
+        It is raised inside the join rather than here, so a module that reads a
+        pair and forgets it lets the refusal through as a traceback while every
+        sibling module catches it. `chan.pair_cointegration.main` and
+        `chan.regime_figure.main` both name it, and this case is what stops
+        this module being the one that does not.
         """
-        assert not issubclass(WindowTooShort, VintageUnavailable)
-        assert not issubclass(VintageUnavailable, WindowTooShort)
+
+        def raise_it(*args, **kwargs):
+            raise WindowCrossesScaleBreak("gld_20yr_prices.csv changes scale on 2007-01-02")
+
+        monkeypatch.setattr("sys.argv", ["chan.risk_parity"])
+        monkeypatch.setattr("chan.risk_parity.aligned_closes", raise_it)
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert "changes scale on 2007-01-02" in str(stopped.value)
+
+    def test_the_three_refusals_are_different_exceptions(self) -> None:
+        """A vintage that would not read, a window that spans a scale break, and
+        a window too thin to carry a volatility.
+
+        Three facts with three fixes, which is the rule
+        ``tests/test_series.py`` states for the refusals already here. Sharing
+        an exception would hand the next reader a docstring describing
+        something that did not happen.
+        """
+        for one, other in (
+            (WindowTooShort, VintageUnavailable),
+            (WindowTooShort, WindowCrossesScaleBreak),
+            (VintageUnavailable, WindowCrossesScaleBreak),
+        ):
+            assert not issubclass(one, other)
+            assert not issubclass(other, one)
 
 
 # ============================================================
@@ -834,6 +1012,27 @@ def printed(joined):
     return buffer.getvalue()
 
 
+def _legs_at(stock_vol: float, bond_vol: float, correlation: float) -> Legs:
+    """A :class:`Legs` carrying two volatilities and a correlation, and nothing real.
+
+    The structure cases need the weights the module derives from a pair of
+    volatilities, and nothing else on the record. The window fields are filled
+    with placeholders so a reader cannot mistake one of these for a
+    measurement.
+    """
+    return Legs(
+        start="synthetic",
+        end="synthetic",
+        days=0,
+        stock_vol=stock_vol,
+        bond_vol=bond_vol,
+        vol_ratio=stock_vol / bond_vol,
+        correlation=correlation,
+        stock_mean=0.0,
+        bond_mean=0.0,
+    )
+
+
 def _rank_at_leverage(returns, weights, leverage: float) -> float:
     """The Sharpe difference at an arbitrary leverage, which should not move.
 
@@ -847,6 +1046,19 @@ def _rank_at_leverage(returns, weights, leverage: float) -> float:
     sharpe_parity = float(levered.mean()) / float(levered.std(ddof=1)) * math.sqrt(TRADING_DAYS)
     sharpe_bench = float(bench.mean()) / float(bench.std(ddof=1)) * math.sqrt(TRADING_DAYS)
     return sharpe_parity - sharpe_bench
+
+
+def _t_at_leverage(returns, weights, leverage: float) -> float:
+    """The robust t on the difference series at an arbitrary leverage.
+
+    The counterpart to :func:`_rank_at_leverage`, for the half of the ranking
+    that is not invariant. The leverage is supplied by the test rather than by
+    the module, for the same reason: one the run can be handed is a parameter
+    somebody would eventually fit.
+    """
+    parity = portfolio_excess_returns(returns, weights)
+    bench = portfolio_excess_returns(returns, BENCHMARK_WEIGHTS)
+    return newey_west_summary((leverage * parity - bench).to_numpy()).t_newey_west
 
 
 def _sharpe_difference(returns, weights, risk_free: float) -> float:

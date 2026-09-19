@@ -108,16 +108,20 @@ class TestTheSignificanceBlockTheRankingRestsOn:
         assert summary.t_newey_west == pytest.approx(2.0 / math.sqrt(5.0 / 12.0), abs=1e-12)
         assert summary.t_newey_west < summary.t_naive
 
-    def test_the_lag_rule_gives_the_lags_the_pinned_verdicts_were_read_at(self) -> None:
-        """`docs/replication-log.md` Entry 4 quotes these three lags by number.
+    def test_the_lag_rule_steps_where_it_has_always_stepped(self) -> None:
+        """``L = int(4 * (n / 100) ** (2 / 9))``, held at its own boundaries.
 
-        The sample sizes are the three declared windows' daily-difference
-        counts. A lag rule that moved would move every robust t in that entry,
-        and this is what says the move was the dependency rather than the data.
+        A pin in the middle of a plateau holds almost nothing: this rule
+        returns 9 for every sample from 3,845 to 6,176, so three sizes drawn
+        from one replication's windows would survive a formula that moved by a
+        long way. The boundaries are where the rule is actually decidable, and
+        they are properties of the dependency with no vintage in them, which is
+        what this file is for. Each pair is the last sample at one lag and the
+        first at the next.
         """
-        assert newey_west_lag(5778) == 9
-        assert newey_west_lag(4647) == 9
-        assert newey_west_lag(1130) == 6
+        for last, first in ((99, 100), (272, 273), (620, 621), (1240, 1241), (3844, 3845)):
+            assert newey_west_lag(first) == newey_west_lag(last) + 1
+        assert [newey_west_lag(n) for n in (99, 100, 620, 621, 3844, 3845)] == [3, 4, 5, 6, 8, 9]
 
     def test_a_sample_too_short_to_carry_a_variance_returns_zeros(self) -> None:
         """The guard `chan.risk_parity` relies on rather than checking for itself.
