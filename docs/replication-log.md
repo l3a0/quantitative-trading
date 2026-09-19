@@ -987,9 +987,13 @@ Diversification", September 2005, works monthly excess returns over
 three-month Treasury bills on the Russell 1000 Index and the Lehman Aggregate
 Bond Index from 1983 to 2004, and prints the volatilities, the correlation, the
 risk split and both Sharpe ratios this entry has no published counterpart for.
-[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) is what
-reads it. Three things it changes are worth stating here rather than leaving to
-that card.
+Two cards read it, because the gap splits into an instrument and a sample.
+[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) swaps the
+equity leg for one that tracks his index and holds everything else fixed, which
+runs on free data.
+[Issue 161](https://github.com/l3a0/quantitative-trading/issues/161) reaches his
+1983 to 2004 sample and is blocked on licensed history. Three things they change
+are worth stating here rather than leaving to those cards.
 
 1. **His window and this one barely overlap.** 1983 to 2004 against
    2003-09-30 to 2026-09-17, which share about fifteen months, or a twentieth
@@ -1001,7 +1005,15 @@ that card.
    its first bar is 2003-09-29, five days before his sample ends.
 3. **His equity leg is the Russell 1000 and SPY is not that.** It is the S&P
    500, which is a narrower index, and nothing here has measured what the
-   substitution costs.
+   substitution costs. IWB tracks the Russell 1000 and shares this entry's own
+   window, so that one is measurable on free data and is issue 160.
+
+His bond index settles the proxy ruling from the source rather than from
+argument. The paper's disclosure describes the Lehman Aggregate as roughly
+6,000 bonds with an approximate average maturity of ten years, which is
+intermediate duration rather than long. Issue 15 chose AGG over TLT on that
+reasoning before any of this was read, and this is the citation it did not
+have.
 
 **How much of the robust t the estimated leverage is worth.** Every t above is
 computed on `leverage * parity - bench`, with the leverage estimated from the

@@ -225,9 +225,12 @@ from chan.vintage import VintageUnavailable
 #: 1000 Index against the Lehman Aggregate Bond Index from 1983 to 2004. AGG
 #: tracks that bond index under its later names, so the bond leg is his in
 #: substance and cannot reach his span, since the fund opened five days before
-#: his sample ends. SPY is the S&P 500 rather than the Russell 1000. Reading
-#: his pair over his window is
-#: [issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
+#: his sample ends. SPY is the S&P 500 rather than the Russell 1000, and IWB is
+#: the fund that tracks his index. Swapping the equity leg for it is
+#: [issue 160](https://github.com/l3a0/quantitative-trading/issues/160), which
+#: runs on free data, and reaching his 1983 to 2004 sample is
+#: [issue 161](https://github.com/l3a0/quantitative-trading/issues/161), which
+#: does not.
 STOCK = "SPY"
 BOND = "AGG"
 
