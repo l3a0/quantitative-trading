@@ -65,6 +65,7 @@ download date, and which price the series carries.
 | `pep_chan.csv` | Chan's `PEP.xls` | PEP | adjusted | 1977-01-03 .. 2008-01-18 | saved 2008-01-23 |
 | `spy_chan.csv` | Chan's `example6_2.xls` | SPY | adjusted | 1993-01-29 .. 2007-12-28 | saved 2008-01-29 |
 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
+| `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` | yfinance | AGG | adjusted | 2003-09-29 .. 2026-09-17 | 2026-09-18 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -82,26 +83,50 @@ recorded vintage, written by `chan.vintage.record_vintage` rather than placed
 by hand, which is why it carries the recorder's five-field name and a single
 `Date,Close` header. It is read by
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
-6.2. The other SPY file, `spy_chan.csv`, is a workbook column placed by hand
-and reading it is
+6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
+leg of Qian's allocation. The other SPY file, `spy_chan.csv`, is a workbook
+column placed by hand and reading it is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138).
+
+`yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` is recorded the
+same way and is the bond leg of that same run. Two things about it are
+worth stating rather than leaving a reader to infer from the span.
+
+1. **It ends a day before the SPY file it is read beside.** The download
+   returned a non-finite close for 2026-09-18, the day it was taken, and
+   `_validated_rows` refuses one of those by name rather than freezing it as a
+   price. The row was dropped before the recorder saw it, so the span the entry
+   carries is 2003-09-29 to 2026-09-17 and the pair's common history ends
+   there.
+2. **AGG is what bounds that common history, not SPY.** SPY reaches back to
+   1993 and this fund's first bar is 2003-09-29, so the replication that reads
+   the pair runs on about two decades rather than three. The instrument was
+   committed in writing on
+   [issue 15](https://github.com/l3a0/quantitative-trading/issues/15) before
+   anything was downloaded, because it is the aggregate bond exposure Qian's
+   argument describes, and the span is whatever that choice returned.
 
 **Which "adjusted" it is, stated here because the word names two series.**
 yfinance returns a `Close` carrying both splits and dividends under
 `auto_adjust=True`, and under `auto_adjust=False` a split-only `Close` beside an
 `Adj Close` that carries both. The manifest records all of them as `adjusted`,
 which [issue 125](https://github.com/l3a0/quantitative-trading/issues/125) is
-about. This one is the both-adjustments series, from
+about. The SPY and AGG files above both carry the both-adjustments series,
+from
 
 ```python
 yfinance.download("SPY", period="max", interval="1d", auto_adjust=True, actions=False)
+yfinance.download("AGG", period="max", interval="1d", auto_adjust=True, actions=False)
 ```
 
 run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to the
-recorder. The distinction is not cosmetic. On Chan's own data the dividends are
-worth a quarter of the answer Example 6.2 computes, and
+recorder in each case. The distinction is not cosmetic. On Chan's own data the
+dividends are worth a quarter of the answer Example 6.2 computes, and
 [docs/design.md](../docs/design.md) carries why that decides which basis a
-replication reads.
+replication reads. It decides even more on the bond leg. An aggregate bond
+fund's return is mostly its distributions, so a raw AGG series would strip out
+most of what that leg earns and make every return and Sharpe figure computed
+from it wrong.
 
 This is the one place that call is written down. The module that reads the
 series points here rather than restating it, because a fact in two places is a
@@ -205,10 +230,17 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its ten lines were written by hand. Eight were here before the
+   Nine of its eleven lines were written by hand. Eight were here before the
    recorder existed, and `spy_chan.csv`'s was typed because the recorder cannot
    write a saved date. More will be, for as long as a replication reaches for
    another of Chan's workbook columns.
+
+   That sentence is corrected here rather than left to
+   [issue 132](https://github.com/l3a0/quantitative-trading/issues/132)'s
+   sweep, which owns the wider class. It was true until the AGG vintage below
+   arrived, so the change that recorded that vintage is what made it false, and
+   the sweep's own measurement counts the statements saying "eight" and "four"
+   and would not find one saying "ten".
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.

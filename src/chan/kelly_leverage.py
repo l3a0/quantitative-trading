@@ -130,10 +130,12 @@ BOOK_START = "1993-01-29"
 BOOK_END = "2007-12-28"
 
 # The SPY vintage this experiment reads, named by the date it was downloaded.
-# Issue 15 records a SPY adjusted vintage too, and two of them make
-# ``load_close("SPY")`` refuse and name the candidates, which is the reader
-# doing its job. Resolving with a date from the outset means that issue landing
-# does not break this run's pins.
+# The date was written in from the outset against issue 15 recording a second
+# SPY adjusted download, because two of those make ``load_close("SPY")`` refuse
+# and name the candidates. That issue shipped reading this file instead, so the
+# manifest still holds one yfinance SPY entry and the date is belt and braces.
+# It stays, because the next SPY download is what it was written for and the
+# refusal it avoids is a stopped run rather than a wrong number.
 #
 # Provenance: recorded through :func:`chan.vintage.record_vintage` from a
 # yfinance download of the both-adjustments close, splits and dividends folded

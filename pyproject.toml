@@ -7,8 +7,9 @@ requires-python = ">=3.12"
 # The replications compute their numbers through ithildincore rather than a
 # hand-rolled least squares, so there is one implementation of each estimator
 # to drift from. That package holds the OLS, ADF and half-life work this repo
-# shares with the sibling trading-strategies repo, and it pulls statsmodels in,
-# which is what actually does the arithmetic. numpy and pandas load and align
+# shares with the sibling trading-strategies repo, plus the Newey-West
+# significance block the risk-parity ranking rests on, and it pulls statsmodels
+# in, which is what actually does the arithmetic. numpy and pandas load and align
 # the committed vintages. scipy supplies the t-distribution behind the
 # return-correlation significance test.
 #

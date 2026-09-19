@@ -212,17 +212,26 @@ absence in the book, and neither number's provenance is closed by this.
 
 ### The estimators live outside this repo
 
-The least squares, the Augmented Dickey-Fuller statistic, the half-life and
-the MacKinnon critical values are not in `src/chan`. They are in
+The least squares, the Augmented Dickey-Fuller statistic, the half-life, the
+MacKinnon critical values and the Newey-West significance block are not in
+`src/chan`. They are in
 [ithildincore](https://github.com/l3a0/ithildin-core), a package this repo shares
 with the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo.
 
-They moved because both repos had them. `src/chan/timeseries.py` and that
-repo's `common/timeseries.py` parsed to the same tree once docstrings were set
-aside, and two copies of one calculation drift without either looking wrong.
-A rule to keep them matching was considered and cut, for the reason in the
-register below.
+The first four moved because both repos had them. `src/chan/timeseries.py` and
+that repo's `common/timeseries.py` parsed to the same tree once docstrings were
+set aside, and two copies of one calculation drift without either looking
+wrong. A rule to keep them matching was considered and cut, for the reason in
+the register below.
+
+The Newey-West block took the other route in, and naming it here is what stops
+the two being read as one rule. `common/stats.py` was never duplicated here. It
+had eleven consumers next door and none in this repo, and it went over because
+this repo's next significance claim would need it. That claim is Qian's risk
+parity, which reports a Sharpe ranking as a measured difference and a robust
+t-statistic rather than as a sign, so relocating exercised code was the whole
+of what happened rather than anything being built.
 
 This cuts against the premise, and the way it is pinned is what limits the
 damage rather than what removes it. A result here has to be re-readable, and
@@ -455,6 +464,8 @@ candidate for a synonym.
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |
 | **ensemble average** | The average across many players of one gamble, which is what an expected return describes. Chan names it at Kindle location 3166. |
 | **time average** | The average over one player's own sequence of rounds, which is the compound growth rate of that player's capital. Chan calls it the time series average at location 3166. It is the one a trader lives in. |
+| **risk contribution** | A leg's share of a portfolio's variance, `w_i (Sigma w)_i / (w' Sigma w)`, where `Sigma` is the covariance matrix of the legs' returns. The shares sum to 1. It is what says how far a capital split is from a risk split, and it is not a capital weight. |
+| **risk parity** | The allocation whose risk contributions are equal. On two legs it is the same allocation as inverse-volatility weighting, because the correlation cancels out of the equal-contribution equation, and the two part company from three legs onward. A pin names which of the two it computed. |
 | **exploratory** | A result produced by looking at the data. It kills an idea or justifies a closer look, and it is never a verdict about whether an edge exists. |
 | **registered** | A result whose hypothesis was committed in writing before the number was seen. Only a registered result confirms anything. |
 
@@ -520,4 +531,7 @@ change that cuts it.
 | Requiring a quoted heading's attribution to sit beside it | The nearest attribution ending before the span wins, scanned back through one unit, and nothing makes it adjoin the span. Every reference here is adjacent, separated from its span by a possessive and nothing else, so requiring adjacency would cost nothing measured at `92637fa`. It is not required because the loose forms are ordinary English and this check reads prose rather than a notation. A sentence that names a document and then quotes one of its headings a clause later attributes as plainly as a possessive does, and a rule that skipped it would go quiet on the rename it was built for. The price is a false positive where one unit names a document and then quotes a heading belonging to something else. Splitting a table row and a list item into their own units removes the shapes this repo actually writes. Four units name a document and quote one of its own headings at `92637fa`, and none names a document and quotes a heading belonging to something else. When one does, the message names the document it resolved to, so the misattribution reads off the failure rather than having to be guessed. |
 | A Treasury-bill series for the risk-free rate in Chan's Kelly example | It would need a second vintage and would move two inputs at once, which is what makes a gap unattributable to either. The rate stays the book's 4 percent, held as a constant the source supplies, and the report says it is his constant applied to whatever window was read rather than a rate anyone paid. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14) is where this was decided. |
 | A second series to check the 20.47 percent Black Monday loss against | It would need an S&P 500 index vintage, which is a different symbol and a different deliverable. SPY's first bar is 1993-01-29 and the loss is from 1987-10-19, so no SPY vintage of any span can check it. It enters the replication as a constant the book supplies, named as such, with the worst loss the window actually holds reported beside it. |
+| TLT as the bond leg of the risk-parity replication | Cut by the owner on 2026-09-18. Qian's bond leg is an aggregate bond exposure and TLT is a twenty-plus-year Treasury fund, whose volatility sits far closer to equities' than an aggregate index's does. The derived weights could not then land near his 23-77, and the cause would be the instrument rather than the method, which is a verdict about a proxy rather than about the claim. AGG replaced it, chosen in writing before anything was downloaded. Nothing inherits the choice: [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) reproduces Chan's fixed-income pair, where a long-duration leg is the faithful stand-in, and it carries its own written commitment to TLT. |
+| Scanning the risk-free rate beside the 4 percent the risk-parity run declares | The rate moves the ranking and the direction is not in doubt, so a scan would spend the sample on a search nothing recorded, which is what the declared windows exist to prevent. The Sharpe difference moves with the rate by `1 / vol(60/40)` less `1 / vol(risk parity)`, which is exact and is pinned in [tests/test_risk_parity.py](../tests/test_risk_parity.py), so the report states the direction and computes no second ranking. `--risk-free` still moves it for a reader who wants to, and a run that moves it is off the reproduction the same way a new window is. |
+| Refitting the risk-parity weights inside each sub-window before ranking it | 60/40 is fixed by definition and never sees the data. Weights refitted inside a window have seen every day they are then judged on, so a ranking built that way compares a fixed allocation against a fitted one and risk parity wins some of that for a reason the book is not claiming. Measured on the rising-rates window, refitting moves the ranking in risk parity's favour, which is the direction that would have flattered the claim under test. The decomposition is still computed in-window, because what it answers is what balanced risk looked like in that regime, and it carries no ranking. |
 | Giving `record_vintage` a saved-date parameter, so a column lifted from one of Chan's workbooks could be recorded rather than typed | It is the other way to make [issue 124](https://github.com/l3a0/quantitative-trading/issues/124)'s `spy_chan.csv` hold, and it is cut. `vintage_filename` takes `download_date` as a required keyword and ends every name it builds with `_dl{download_date}.csv`, so a recorder able to write a saved date needs a second naming convention, and `the_recorded_entries_name_themselves` compares a path against that join. The row above already says a check asserting the naming convention moves when the convention does, so this route pays that price to generate lines a person types once per workbook column. The route that shipped moves no predicate and one count, measured. The checks read a set of hand-written paths, so `spy_chan.csv` joining that set turns them on for it, and the only assertion that moved is `len(resolved) == 8` becoming `== 9` in [tests/test_series.py](../tests/test_series.py), which counts that same set. Nothing executable in `src/` moved, and the changes there are prose. What is given up is that a hand-typed line has no generator to check it against, and what replaces the generator is the identity pinned in [tests/support/committed_vintages.py](../tests/support/committed_vintages.py) and the `Ticker,` header row the file's own bytes carry, which names the series and is derived rather than restated. [Issue 138](https://github.com/l3a0/quantitative-trading/issues/138) reads this vintage and its body assumed this outcome. |

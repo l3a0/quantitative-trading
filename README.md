@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Four replications run here, all from Chan's *Quantitative Trading*. The first
+Five replications run here, all from Chan's *Quantitative Trading*. The first
 two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other two were built here.
+they were first built. The other three were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -65,6 +65,12 @@ they were first built. The other two were built here.
    the worst day the index has had. Every level Chan computed from a series
    lands high on a modern download and every claim behind those numbers still
    holds, and the entry is about that split.
+5. Edward Qian's risk parity against the classic 60/40, reported at Kindle
+   location 4684, on SPY and AGG. Both figures Chan prints land close and the
+   claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
+   matched risk on the full span, resolved at a robust t of −2.17. It is the
+   first entry here where the numbers reproduce and the claim does not, which
+   is the reverse of the split the GLD/GDX and Kelly entries both found.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -83,7 +89,13 @@ Kelly run, and separates the figures from the specification that produces them,
 because three of the five choices behind Chan's numbers are invisible on the
 page and each has a plausible wrong answer that does not look wrong.
 
-All four reach a verdict in
+[tests/test_risk_parity.py](tests/test_risk_parity.py) does it for the risk
+parity run, and pins the ranking as a measured difference and a robust
+t-statistic rather than as the comparison's result, because an assertion that
+one Sharpe ratio exceeds another survives any mutation that leaves the sign
+alone.
+
+All five reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
@@ -111,8 +123,9 @@ The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
 
 The estimators behind those numbers are not in this repo. Least squares, the
-Augmented Dickey-Fuller statistic, the half-life and the MacKinnon critical
-values live in [ithildincore](https://github.com/l3a0/ithildin-core), shared with
+Augmented Dickey-Fuller statistic, the half-life, the MacKinnon critical values
+and the Newey-West significance block live in
+[ithildincore](https://github.com/l3a0/ithildin-core), shared with
 the sibling repo because both had the same copy. The dependency is a direct URL
 at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
 two cannot drift apart unnoticed. All three parts earn their place, and
@@ -180,7 +193,7 @@ The default is Chan's own span, 1993-01-29 to 2007-12-28, held fixed so the
 vintage is the only thing that differs from his. `--start` and `--end` move it,
 and the report drops the published column on any other window rather than
 printing a comparison against figures that came from his. `--dated` picks which
-SPY download to read, which matters because a second one is coming, and
+SPY download to read, which matters the day a second one arrives, and
 `--risk-free` moves the book's 4 percent constant.
 
 It prints the moments against the book's, the worked example on this vintage's
@@ -189,6 +202,30 @@ Chan's constant kept apart from the worst day SPY actually holds, and the
 time-scale check. A window whose mean excess return is negative makes Kelly
 recommend a short, and that arrives as a line saying what it means rather than
 as an exception, because nothing has failed.
+
+The risk parity run reads two series and takes no window, because its windows
+were declared in advance:
+
+```bash
+uv run python -m chan.risk_parity
+```
+
+It prints the three windows
+[issue 15](https://github.com/l3a0/quantitative-trading/issues/15) declared
+before any number existed, every run, so a window cannot be reported alone.
+The boundary between the two sub-windows is the Federal Reserve's first
+increase of the 2022 tightening cycle, 2022-03-16, which is a dated external
+event rather than anything read from the series under test. `--start` and
+`--end` add a fourth window, reported as off the reproduction and carrying no
+published counterpart, and `--risk-free` moves Chan's 4 percent constant.
+
+Each window reports both legs' volatilities against the ratio Qian's 23-77
+implies, the risk each leg contributes under 60/40 and under risk parity, the
+leverage that matches 60/40's volatility, and the Sharpe ranking as a measured
+difference with a robust t-statistic beside it. A window whose robust t cannot
+resolve the ranking says so in a line rather than stopping the run, because a
+sample that cannot settle a sign has not failed at anything. One of the two
+sub-windows is in that position.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
