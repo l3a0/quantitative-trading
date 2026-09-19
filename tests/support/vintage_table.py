@@ -9,8 +9,8 @@ reads the table and how a negative case breaks a row.
 Reading goes through :func:`blank_fences` rather than :func:`blank_code`, and
 the cells come out of the blanked text so that choice decides what the check
 compares. `blank_code` blanks inline backtick spans as well as fenced blocks,
-and every File cell and all four workbook names in the Vendor column are
-backticked, so a reader built on it hands back eight rows carrying no filename
+and every File cell and every workbook name in the Vendor column is backticked,
+so a reader built on it hands back a row for each vintage carrying no filename
 at all. `CLAUDE.md` records the same distinction for
 `test_no_prose_surface_names_a_line_number`, which needed `blank_fences` for the
 same reason. Blanking at all is what keeps a table inside a fenced block from

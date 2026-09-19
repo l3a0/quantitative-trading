@@ -39,7 +39,7 @@ from chan.vintage import (
     read_manifest,
     record_vintage,
 )
-from tests.support.committed_vintages import BACKFILLED, rewrite_entry
+from tests.support.committed_vintages import HAND_WRITTEN, rewrite_entry
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 
 # Root ignores mode bits, so a file at mode 000 opens and the case reads as a
@@ -111,23 +111,29 @@ def data_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def committed_copy(tmp_path: Path) -> Path:
-    """The eight committed vintages, copied so a case may break one."""
+    """The committed vintages, copied so a case may break one."""
     return copy_the_committed_tree(tmp_path)
 
 
-# The eight, as the reader returned them at 42978ce, before it consulted a
-# manifest at all: path, row count, span, the first and last close, and the
-# sum. Asserted against that captured output rather than against a fresh
-# expectation, because the claim is that the conversion changed nothing about
-# what comes back.
+# Every hand-written vintage, as the reader returned it at 42978ce, before it
+# consulted a manifest at all: path, row count, span, the first and last close,
+# and the sum. Asserted against that captured output rather than against a
+# fresh expectation, because the claim is that the conversion changed nothing
+# about what comes back.
+#
+# `spy_chan.csv` postdates that commit and has no captured output to compare
+# against, so its row was computed from the file it arrived with, under
+# [issue 124](https://github.com/l3a0/quantitative-trading/issues/124). What it
+# pins is the same thing: this file, parsed this way, gives these numbers, and
+# a change to either that moves them fails here.
 #
 # The sum stands in for every value between the two ends, and it is compared
 # with a tolerance rather than exactly. A hash of the parsed doubles is not a
 # pin anybody can keep: the four yfinance files carry full float64 reprs like
 # `56.36000061035156`, and parsing those gives answers that differ in the last
 # bit between a macOS arm64 run and CI's linux x86_64, measured on PR 71 rather
-# than predicted. The four workbook columns carry two decimals and agree
-# everywhere. `TestTheParseDoesNotDependOnWhereTheBytesCameFrom` below covers
+# than predicted. The five workbook columns carry at most two decimals and
+# agree everywhere. `TestTheParseDoesNotDependOnWhereTheBytesCameFrom` below covers
 # what a hash was reaching for.
 COMMITTED = [
     (
@@ -208,25 +214,35 @@ COMMITTED = [
         71.46,
         154041.09,
     ),
+    (
+        "SPY",
+        {"chan": True},
+        "spy_chan.csv",
+        3758,
+        "1993-01-29",
+        "2007-12-28",
+        34.18,
+        147.3,
+        345323.98,
+    ),
 ]
 
 
-def the_reader_reaches_every_backfilled_vintage(directory: Path) -> None:
-    """The map is total over the eight, which is what lets the filename go.
+def the_reader_reaches_every_hand_written_vintage(directory: Path) -> None:
+    """The map is total over the hand-written set, which is what lets the filename go.
 
     A partial map would leave a committed vintage the reader cannot name, and
     the only way to notice is to count both sides.
 
-    The right-hand side counts the backfilled entries rather than the whole
-    manifest. A recorded vintage is not in `COMMITTED`, which is the captured
-    output of the reader at 42978ce, so counting it on one side and not the
-    other would fail this the moment `data/` gains a ninth series while saying
-    nothing about whether the map is partial. The left-hand side keeps its own
-    count in `len(resolved) == 8`.
+    The right-hand side counts the hand-written entries rather than the whole
+    manifest. A recorded vintage is not in `COMMITTED`, so counting it on one
+    side and not the other would fail this the moment `data/` gains a recorded
+    series while saying nothing about whether the map is partial. The left-hand
+    side keeps its own count in `len(resolved) == 9`.
 
     Name what that gives up. Comparing against the whole manifest also failed
     when an entry was reachable by no reader argument at all, and comparing
-    against the eight does not. `record_vintage` takes any vendor matching
+    against the hand-written set does not. `record_vintage` takes any vendor matching
     `VENDOR_PATTERN` while `close_identity` asks for three pairs, so a vintage
     recorded under a fourth is committed, hashed and green while nothing can
     open it. That state could not exist before, because no ninth vintage could
@@ -244,12 +260,12 @@ def the_reader_reaches_every_backfilled_vintage(directory: Path) -> None:
     }
 
     assert resolved == {
-        entry.path for entry in read_manifest(directory) if entry.path in BACKFILLED
+        entry.path for entry in read_manifest(directory) if entry.path in HAND_WRITTEN
     }
-    assert len(resolved) == 8
+    assert len(resolved) == 9
 
 
-class TestTheEightStillReadAsTheyDid:
+class TestTheCommittedSeriesStillReadAsTheyDid:
     """Rule 1. The conversion changes where the path comes from and nothing else."""
 
     @pytest.mark.parametrize(
@@ -270,23 +286,23 @@ class TestTheEightStillReadAsTheyDid:
         assert float(values.sum()) == pytest.approx(total, rel=1e-10)
 
     def test_the_row_count_the_manifest_records_survives_the_parse(self) -> None:
-        """The header rows are dropped and nothing else is. Four of the eight
-        carry yfinance's three-row header and still record the row count of the
-        series, so the manifest can say it for all eight."""
+        """The header rows are dropped and nothing else is. Every hand-written
+        vintage carries a three-row header and still records the row count of
+        the series, so the manifest can say it for all of them."""
         for ticker, flags, path, rows, *_ in COMMITTED:
             entry, values = load_vintage(ticker, **flags)
             assert entry.row_count == rows, path
             assert len(values) == rows, path
 
     def test_the_three_arguments_map_onto_the_manifest_and_nothing_is_left_over(self) -> None:
-        the_reader_reaches_every_backfilled_vintage(DATA_DIR)
+        the_reader_reaches_every_hand_written_vintage(DATA_DIR)
 
 
 class TestWhatTellsTwoDownloadsApart:
     """Rule 2. The discriminator is a date, read from whichever field carries it.
 
-    An argument named for the download date could name only four of the eight
-    committed vintages, because the other four are columns lifted from Ernest
+    An argument named for the download date could name only the downloads,
+    because five of the committed vintages are columns lifted from Ernest
     Chan's workbooks and carry a saved date instead. A rule that the latest date
     wins would compare `None` against a string, and where it did work it would
     let a new download move a pinned number with nothing in the diff to explain
@@ -312,7 +328,7 @@ class TestWhatTellsTwoDownloadsApart:
         assert len(later) == 4
 
     def test_a_saved_date_entry_resolves_through_the_same_argument(self) -> None:
-        """The four workbook columns carry no download date at all."""
+        """The workbook columns carry no download date at all."""
         entry, _ = load_vintage("KO", chan=True, dated="2008-01-23")
 
         assert (entry.path, entry.download_date) == ("ko_chan.csv", None)
@@ -414,7 +430,7 @@ class TestTheBytesAreCheckedAgainstTheRecord:
         assert entry.sha256 in message
 
     def test_every_committed_vintage_verifies_as_it_stands(self, committed_copy: Path) -> None:
-        """The check has to pass on the eight before it is worth anything."""
+        """The check has to pass on what is committed before it is worth anything."""
         for ticker, flags, path, *_ in COMMITTED:
             assert load_vintage(ticker, **flags, data_dir=committed_copy)[0].path == path
 
@@ -585,8 +601,8 @@ class TestTheSeriesComesBackInDateOrder:
 
     ``_serialize``'s docstring says the file is meant to be what the vendor
     returned, so a vendor that answers newest-first produces a vintage that is
-    committed unsorted. The eight committed ones are sorted already, which is
-    why nothing else here would notice the reader dropping the sort.
+    committed unsorted. Every committed one is sorted already, which is why
+    nothing else here would notice the reader dropping the sort.
     """
 
     def test_a_vintage_written_backwards_reads_forwards(self, data_dir: Path) -> None:
@@ -966,7 +982,7 @@ class TestARecordedNinthLeavesTheReaderAlone:
 
     @pytest.fixture
     def with_a_ninth(self, committed_copy: Path) -> Path:
-        """The eight, copied, with a series they do not carry recorded into the copy.
+        """The committed tree, copied, with a series it does not carry recorded into it.
 
         The symbol is asserted unused rather than assumed so. A committed
         vintage of the same symbol would make this fixture record a second
@@ -984,13 +1000,13 @@ class TestARecordedNinthLeavesTheReaderAlone:
         )
         return committed_copy
 
-    def test_a_ninth_vintage_does_not_break_the_count_over_the_eight(
+    def test_a_ninth_vintage_does_not_break_the_count_over_the_hand_written_ones(
         self, with_a_ninth: Path
     ) -> None:
         recorded = {entry.path for entry in read_manifest(with_a_ninth)}
 
-        assert set(BACKFILLED) < recorded
-        the_reader_reaches_every_backfilled_vintage(with_a_ninth)
+        assert set(HAND_WRITTEN) < recorded
+        the_reader_reaches_every_hand_written_vintage(with_a_ninth)
 
     def test_a_ninth_vintage_is_reachable_under_its_own_name(self, with_a_ninth: Path) -> None:
         """The scoping has to leave the ninth readable, not merely uncomplained about."""
@@ -999,7 +1015,7 @@ class TestARecordedNinthLeavesTheReaderAlone:
         assert entry.path.startswith("yfinance_zzz_adjusted_")
         assert len(values) == len(SERIES)
 
-    def test_a_backfilled_vintage_the_reader_cannot_reach_still_stops_the_case(
+    def test_a_hand_written_vintage_the_reader_cannot_reach_still_stops_the_case(
         self, with_a_ninth: Path
     ) -> None:
         """A map going partial surfaces as a refusal rather than as a count.
@@ -1013,21 +1029,21 @@ class TestARecordedNinthLeavesTheReaderAlone:
         rewrite_entry(with_a_ninth, "ko_chan.csv", price_basis="raw")
 
         with pytest.raises(VintageUnavailable, match="chan-xls KO adjusted"):
-            the_reader_reaches_every_backfilled_vintage(with_a_ninth)
+            the_reader_reaches_every_hand_written_vintage(with_a_ninth)
 
-    def test_a_backfilled_vintage_reached_under_another_name_fails_the_comparison(
+    def test_a_hand_written_vintage_reached_under_another_name_fails_the_comparison(
         self, with_a_ninth: Path
     ) -> None:
         """The case above stops before the comparison, so this one drives it.
 
         A reader that refuses raises inside the resolve and never reaches
         either assertion, which left both deletable with the suite green. This
-        points a backfilled entry at a copy of its own file under a name the
-        eight do not carry. The reader resolves it and the bytes still verify,
+        points a hand-written entry at a copy of its own file under a name no
+        committed vintage carries. The reader resolves it and the bytes still verify,
         so the run gets as far as comparing, and the two sides disagree.
         """
         shutil.copyfile(with_a_ninth / "gld_chan.csv", with_a_ninth / "gld_chan_moved.csv")
         rewrite_entry(with_a_ninth, "gld_chan.csv", path="gld_chan_moved.csv")
 
         with pytest.raises(AssertionError):
-            the_reader_reaches_every_backfilled_vintage(with_a_ninth)
+            the_reader_reaches_every_hand_written_vintage(with_a_ninth)
