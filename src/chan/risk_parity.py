@@ -219,6 +219,15 @@ from chan.vintage import VintageUnavailable
 
 #: The two legs, stocks first. Chan names no instruments, so both are this
 #: repo's choice, fixed in writing on issue 15 before anything was downloaded.
+#:
+#: Qian's own paper does name them, which Chan's "not publicly distributed"
+#: obscured and a search found on PanAgora's own site. He worked the Russell
+#: 1000 Index against the Lehman Aggregate Bond Index from 1983 to 2004. AGG
+#: tracks that bond index under its later names, so the bond leg is his in
+#: substance and cannot reach his span, since the fund opened five days before
+#: his sample ends. SPY is the S&P 500 rather than the Russell 1000. Reading
+#: his pair over his window is
+#: [issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
 STOCK = "SPY"
 BOND = "AGG"
 

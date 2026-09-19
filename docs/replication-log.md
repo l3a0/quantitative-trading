@@ -975,11 +975,33 @@ The rate is Chan's constant and the report says so on its own last lines. The
 derivative above says which way a lower rate would push, and says nothing about
 whether it would push far enough.
 
-**Whether Qian's own instruments reproduce his numbers.** He names none in what
-Chan reports, so SPY and AGG are this repo's choice, fixed in writing on issue
-15 before any number was seen. Rows 1 and 2 are therefore a test of the
-argument on an aggregate bond fund rather than of his published pair, and no
-vintage could close that, because there is no pair to hold.
+**Whether Qian's own instruments and span reproduce his numbers.** Chan names
+neither, so SPY and AGG and this window are this repo's choice, fixed in writing
+on issue 15 before any number was seen. Rows 1 and 2 are therefore a test of the
+argument on the instruments and the period this repo picked rather than of his.
+
+Chan calls the source "not publicly distributed" and it is on PanAgora's own
+site, which is what makes this a gap somebody could close rather than one nobody
+can. Qian's "Risk Parity Portfolios: Efficient Portfolios Through True
+Diversification", September 2005, works monthly excess returns over
+three-month Treasury bills on the Russell 1000 Index and the Lehman Aggregate
+Bond Index from 1983 to 2004, and prints the volatilities, the correlation, the
+risk split and both Sharpe ratios this entry has no published counterpart for.
+[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) is what
+reads it. Three things it changes are worth stating here rather than leaving to
+that card.
+
+1. **His window and this one barely overlap.** 1983 to 2004 against
+   2003-09-30 to 2026-09-17, which share about fifteen months, or a twentieth
+   of either sample. His is the bond bull market and this one carries its
+   reversal.
+2. **His bond index is the one AGG tracks.** The Lehman Aggregate was renamed
+   to Barclays and then to Bloomberg, and AGG follows it, so the proxy ruling
+   was right about the index. What the fund cannot do is reach his span, since
+   its first bar is 2003-09-29, five days before his sample ends.
+3. **His equity leg is the Russell 1000 and SPY is not that.** It is the S&P
+   500, which is a narrower index, and nothing here has measured what the
+   substitution costs.
 
 **How much of the robust t the estimated leverage is worth.** Every t above is
 computed on `leverage * parity - bench`, with the leverage estimated from the
