@@ -16,13 +16,24 @@ Chan reports this paper at Kindle location 4684 and describes it as "not
 publicly distributed". It is on PanAgora's own website. Those two facts
 together are the whole argument for keeping a copy.
 
-1. **It is the only published counterpart six of Entry 4's rows have.**
+1. **It is the only published counterpart four of Entry 4's rows have.**
    Chan prints an allocation, a leverage and a ranking, and no returns, no
-   volatilities and no correlation. Twelve of that entry's fifteen rows
-   therefore carry "none, not a replication", and the paper states a figure for
-   six of them: rows 5 through 10, the two volatilities, the correlation, both
-   risk splits and both Sharpe ratios. The other six are sub-windows, which the
-   paper works no more than the book does.
+   volatilities and no correlation, so twelve of that entry's fifteen rows carry
+   "none, not a replication". The paper does better on six of those twelve, and
+   the six are not alike.
+
+   - **Four carry a printed figure.** Row 5 the two leg volatilities, row 6 the
+     correlation, row 7 the 60/40 risk split, and row 10 both Sharpe ratios.
+   - **Row 8 carries a claim rather than a figure.** The paper says the 23-77
+     weights "would have equal risk contribution from stocks and bonds" and
+     prints no number for it. Table 3's 48.4 and 51.6 are loss contributions,
+     which the paper keeps distinct from risk contributions throughout.
+   - **Row 4 is derivable rather than printed.** The volatility ratio is the
+     quotient of the two volatilities of row 5.
+
+   The other six are row 9, which asks what leverage implies about a
+   correlation the paper never poses that way, and rows 11 to 15, which are
+   sub-windows the paper works no more than the book does.
 2. **The repo's rule is that every published figure names where the source
    prints it.** Entry 4 now quotes figures from this paper, so the paper has to
    be reachable or the rule is satisfied in form and not in substance.
@@ -39,14 +50,18 @@ on request. The repo owner made that call on 2026-09-18.
 ## What it holds
 
 Six pages. The figures below are what Entry 4 reads, quoted at the precision
-the paper prints and computed nowhere in this repo.
+the paper prints. Each is stated by the paper rather than computed here. The
+one derived number in this file is the volatility ratio two sections down,
+which is a quotient of the two volatilities in this table and is labelled as
+derived where it appears.
 
 | Figure | Value | Where |
 | --- | --- | --- |
-| Sample | 1983 to 2004, monthly | Tables 1 and 2 |
-| Stock index | Russell 1000 | Table 2 |
-| Bond index | Lehman Brothers Aggregate Bond Index | Table 2 |
-| Return basis | excess over three-month Treasury bills | footnote 3 |
+| Sample span | 1983 to 2004 | the captions of Tables 1 and 2 |
+| Sample frequency | monthly | the prose beside Table 1, on its own N column |
+| Stock index | Russell 1000 | Table 2, as a column header |
+| Bond index | Lehman Aggregate Bond Index | page 1 and Table 1's caption, abbreviated to "Lehman Agg" in Table 2 and given in full as "Lehman Brothers" only in the page 5 disclosure |
+| Return basis | excess returns, "the returns of the assets minus 90-day T-bills" | footnote 3, and page 2 words the same thing as three-month Treasury bills |
 | Stock volatility | 15.1 percent | Table 2 |
 | Bond volatility | 4.6 percent | Table 2 |
 | Stock-bond correlation | 0.2 | page 1 |
@@ -70,8 +85,10 @@ which is why they are worth recording as confirmations rather than as changes.
    citation it did not have.
 2. **The band around the printed weights.** `BOOK_RATIO_BAND` in
    [src/chan/risk_parity.py](../../src/chan/risk_parity.py) was derived purely
-   from the rounding of 23 and 77, with no knowledge of the paper. Qian's
-   measured volatility ratio of 3.2826 lands inside it.
+   from the rounding of 23 and 77, with no knowledge of the paper, and it runs
+   from 3.2553 to 3.4444. Dividing the two volatilities the paper prints gives
+   3.2826, which lands inside it. That quotient is derived here rather than
+   printed by the paper, which is why it is not in the table above.
 
 ## What it does not settle
 
