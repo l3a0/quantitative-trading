@@ -982,8 +982,11 @@ argument on the instruments and the period this repo picked rather than of his.
 
 Chan calls the source "not publicly distributed" and it is on PanAgora's own
 site, which is what makes this a gap somebody could close rather than one nobody
-can. Qian's "Risk Parity Portfolios: Efficient Portfolios Through True
-Diversification", September 2005, works monthly excess returns over
+can. A copy is committed at
+[research/papers](../research/papers/README.md), so every figure quoted below
+is checkable against the document rather than against a link. Qian's "Risk
+Parity Portfolios: Efficient Portfolios Through True Diversification",
+September 2005, works monthly excess returns over
 three-month Treasury bills on the Russell 1000 Index and the Lehman Aggregate
 Bond Index from 1983 to 2004, and prints the volatilities, the correlation, the
 risk split and both Sharpe ratios this entry has no published counterpart for.
