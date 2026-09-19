@@ -5,10 +5,10 @@
 must not lose. A checksum is a claim about bytes, so it is a fact only while
 the bytes a clone writes are the bytes that were committed. Git for Windows
 defaults to `core.autocrlf=true`, which rewrites every line ending on checkout,
-and nothing in such a clone reports it. `git status` reads clean while all
-eleven tracked files under `data/` differ from their committed blobs, and
-`shasum -a 256 -c checksums.sha256` fails on all eight vintages without opening
-one, because the list it parses was rewritten too.
+and nothing in such a clone reports it. `git status` reads clean while every
+tracked file under `data/` differs from its committed blob, and
+`shasum -a 256 -c checksums.sha256` fails on every vintage without opening one,
+because the list it parses was rewritten too.
 
 A runner on ubuntu never reproduces that rewrite, so no case below reads its own
 working tree. The first asks `git cat-file --filters` what a converting checkout
@@ -30,7 +30,7 @@ holding the guard alone.
    `.git/info/attributes` and from `core.attributesFile` as well as from the
    tracked file. Neither of those is cloned. Measured: moving the rule into
    `.git/info/attributes` leaves both of the other cases green while a clone of
-   that tree loses all eight vintages.
+   that tree loses every vintage.
 
 Every case reads the index rather than `HEAD`. The recorder writes a vintage and
 a run of the suite comes before the commit, so `HEAD:` holds no blob for a path
@@ -182,8 +182,8 @@ def test_the_rule_lives_in_a_blob_a_clone_receives() -> None:
     `.git/info/attributes` and `core.attributesFile` both feed `check-attr` and
     `cat-file --filters`, and neither is cloned. Measured: moving the rule into
     `.git/info/attributes` leaves the two cases above green while a clone made
-    from that tree fails all eight vintages. So the rule has to be read out of
-    the index rather than asked of git.
+    from that tree fails every vintage. So the rule has to be read out of the
+    index rather than asked of git.
     """
     tracked = _git("ls-files", "--cached", "--", ATTRIBUTES_FILE).decode("utf-8").split()
     assert tracked == [ATTRIBUTES_FILE], (

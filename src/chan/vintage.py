@@ -46,8 +46,13 @@ instead of defended in code.
 Only a download is recorded. The committed ``*_chan.csv`` vintages carry
 ``saved_date`` and ``source_workbook`` because they are columns lifted from
 Ernest Chan's workbooks, and no caller can produce one of those through this
-module. Reading them back is supported and writing a new one is not, since the
-thing that would write it does not exist.
+module. Reading them back is supported and writing one is not, which stays a
+decision now that ``spy_chan.csv`` has arrived and shown that such a vintage
+still gets typed in by hand. ``docs/design.md``'s register carries the price a
+saved-date parameter would charge, which is a second naming convention and the
+check that asserts the first one. What holds a hand-typed line instead is the
+identity pinned for it in ``tests/support/committed_vintages.py`` and the
+``Ticker,`` header row its own bytes carry.
 
 The identity fields are compared as strings, so one source needs one spelling.
 Case is normalised and the price basis is one of the two terms the design doc's
@@ -98,7 +103,8 @@ PRICE_BASES = ("raw", "adjusted")
 # because :class:`VintageEntry` runs them over a line read back as well. So
 # tightening either one refuses the committed vintages it newly excludes, and
 # one refused line refuses the whole manifest rather than the line, which means
-# a tightening naming four entries takes down all eight.
+# a tightening that newly excludes a single entry takes down every vintage in
+# the record.
 VENDOR_PATTERN = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 SYMBOL_PATTERN = re.compile(r"^[A-Z0-9^][A-Z0-9.=^-]*$")
 
@@ -134,7 +140,7 @@ class VintageEntry:
     """One line of ``data/vintages.jsonl``.
 
     Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
-    one it is holds an ISO calendar date. A download carries the first. The four
+    one it is holds an ISO calendar date. A download carries the first. The
     ``*_chan.csv`` files carry the second, because their date is when Ernest
     Chan last saved the workbook a column was lifted from and nothing was
     fetched on that day. Putting a save date in a field named for a download
@@ -485,16 +491,16 @@ def resolve_vintage(
     """The one manifest entry these fields name, or a refusal saying why not.
 
     ``vendor``, ``symbol`` and ``price_basis`` are the identity fields a caller
-    knows without looking at the data directory. They select exactly one of the
-    eight committed vintages today, and they stop being enough the moment a
-    second download of one series is recorded, which :func:`record_vintage` was
-    built to allow.
+    knows without looking at the data directory. They select exactly one
+    committed vintage today, and they stop being enough the moment a second
+    download of one series is recorded, which :func:`record_vintage` was built
+    to allow.
 
     ``dated`` is what tells those two apart. It is compared against whichever
     date field the entry carries, so it names a download and it names one of
-    the four series lifted from Ernest Chan's workbooks, which carry a saved
-    date and no download date at all. An argument named for the download date
-    could only name four of the eight.
+    the series lifted from Ernest Chan's workbooks, which carry a saved date and
+    no download date at all. An argument named for the download date would reach
+    the downloads and none of the workbook columns.
 
     Ambiguity refuses rather than picking. A rule that the latest date wins
     would let a new download move a pinned number with nothing in the diff to
@@ -828,12 +834,12 @@ def _serialize(rows: list[tuple[str, float]]) -> bytes:
     written as Python's shortest round-trip repr, which is what produced the
     committed files, and lines end in a single newline.
 
-    The header names the two columns and nothing else. The eight vintages
-    committed before this module existed carry yfinance's three-row multi-index
-    header instead, and writing that shape for every vendor would put a line
-    reading ``Price,Close`` at the top of a series no vendor of that name
-    returned. ``load_close`` drops every leading row whose first field is not a
-    date, so it reads either.
+    The header names the two columns and nothing else. The hand-placed
+    vintages carry a three-row multi-index header instead, which is yfinance's
+    shape, and writing that for every vendor would put a line reading
+    ``Price,Close`` at the top of a series no vendor of that name returned.
+    ``load_close`` drops every leading row whose first field is not a date, so
+    it reads either.
     """
     lines = ["Date,Close"]
     lines.extend(f"{day},{value!r}" for day, value in rows)

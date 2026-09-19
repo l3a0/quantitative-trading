@@ -27,11 +27,11 @@ since GDX had paid little by then, so raw is the closest modern proxy for
 reproducing the book. That is why ``--ch7``, ``--ch3`` and ``--unadjusted``
 read it.
 
-The eight committed vintages are frozen on purpose. Nothing regenerates them,
-and the pinned tests freeze these exact bytes against each source's drifting
-vintage, so a re-download would fail the replication rather than pass it
-quietly. That is a fact about the data rather than about this code, which is
-why a manifest lookup does not say it and this paragraph does.
+Every committed vintage is frozen on purpose. Nothing regenerates one, and the
+pinned tests freeze these exact bytes against each source's drifting vintage,
+so a re-download would fail the replication rather than pass it quietly. That
+is a fact about the data rather than about this code, which is why a manifest
+lookup does not say it and this paragraph does.
 
 Verified bytes are not the whole of a series being safe to compute across. A
 committed vintage can change scale partway through, and the record says
@@ -180,10 +180,10 @@ def load_close(
 def vintage_line(entry: VintageEntry) -> str:
     """One entry as a report prints it: which file, from where, and when.
 
-    The verb matters. Four committed vintages carry a saved date because they
-    are columns lifted from Ernest Chan's workbooks and nothing was fetched on
-    that day, so printing one under the word "downloaded" would state a wrong
-    fact about where the series came from.
+    The verb matters. The committed vintages lifted from Ernest Chan's
+    workbooks carry a saved date, because nothing was fetched on that day, so
+    printing one under the word "downloaded" would state a wrong fact about
+    where the series came from.
 
     It lives beside the readers rather than in a replication, because every
     experiment that reads a vintage has to name it, and importing a chapter to
@@ -440,10 +440,12 @@ def _parse_close(payload: bytes, ticker: str) -> pd.Series:
     read answer both questions. Replacing the file between the hash and the
     parse then cannot change what comes back.
 
-    The eight committed vintages carry yfinance's three-row header
-    (Price/Close, Ticker/SYM, Date/blank) and a recorded one carries a single
-    ``Date,Close``. Rather than hard-code a skip count, every leading row whose
-    first field is not a parseable date is dropped, so either shape loads.
+    The hand-written vintages carry a three-row header (Price/Close,
+    Ticker/SYM, Date/blank), which is yfinance's multi-index frame and the
+    shape the workbook columns were written into, and a recorded one carries a
+    single ``Date,Close``. Rather than hard-code a skip count, every leading
+    row whose first field is not a parseable date is dropped, so either shape
+    loads.
     """
     raw = pd.read_csv(io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1])
     with warnings.catch_warnings():

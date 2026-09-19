@@ -1,22 +1,30 @@
 # Committed vintages
 
-Eight price series, committed because the numbers in
-[tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py) were
-computed from these exact bytes. A vendor restates an adjusted series without
-announcing it, so a result checked against a fresh download is a result checked
-against different data. [docs/design.md](../docs/design.md) carries the
+The price series every run here reads, committed because the numbers the suite
+pins were computed from these exact bytes. A vendor restates an adjusted series
+without announcing it, so a result checked against a fresh download is a result
+checked against different data. [docs/design.md](../docs/design.md) carries the
 reasoning.
 
-Nothing regenerates these eight files. No fetch script was ported, and a
-re-download would move the pinned numbers and fail the suite, which is the
-behaviour that makes the pins worth having. Replacing a file is therefore a
-deliberate act with a visible cost, not a refresh.
+Nothing regenerates these files. No fetch script was ported, and a re-download
+would move the pinned numbers and fail the suite, which is the behaviour that
+makes the pins worth having. Replacing a file is therefore a deliberate act
+with a visible cost, not a refresh.
 
-A ninth vintage does not arrive by hand. `chan.vintage.record_vintage` writes
-one and records it, and refuses to overwrite either the file or its entry, so
-adding a series is a recorded act and replacing one is not an act the recorder
-performs at all. It does not download. A caller hands it rows, which is what
-keeps every rule it enforces testable with no network.
+A vintage arrives one of two ways, and which one decides what holds it.
+`chan.vintage.record_vintage` writes the file and appends its entry, and
+refuses to overwrite either, so recording a series is a recorded act and
+replacing one is not an act the recorder performs at all. It does not download.
+A caller hands it rows, which is what keeps every rule it enforces testable
+with no network.
+
+The other way is by hand, and it did not stop when the recorder arrived. The
+recorder takes a download date and builds a name out of it, and a column lifted
+from one of Chan's workbooks has no download date to give it, so nothing can
+record one. Every such column is typed into the record by hand. `spy_chan.csv`
+is the first to arrive that way since `chan.vintage` existed, and
+[issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
+that was settled.
 
 A recorded vintage's name is load-bearing. The recorder builds it by joining
 the five identity fields, so the vendor, symbol, price basis, span and download
@@ -24,9 +32,12 @@ date are recoverable from the path without reading a byte, and
 [tests/test_vintage.py](../tests/test_vintage.py) holds every recorded entry to
 the name its file took. Renaming such a file fails the suite either way.
 Renaming the file alone leaves an entry naming nothing, and renaming the entry
-with it makes the fields and the name disagree. The eight above are exempt,
-because they were committed before the recorder existed and carry hand-given
-names.
+with it makes the fields and the name disagree. The hand-written files above
+are exempt, because nothing built their names out of their fields and so
+nothing can compare the two. What holds a hand-written entry instead is the
+identity pinned for it in
+[tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
+and its own `Ticker,` header row, which names the series its bytes carry.
 
 That check is what stands between a recorded entry and a file it does not
 describe, and it is worth saying what it does not do. It compares the record
@@ -52,6 +63,7 @@ download date, and which price the series carries.
 | `gdx_chan.csv` | Chan's `GDX.xls` | GDX | adjusted | 2006-05-23 .. 2007-11-30 | saved 2007-12-02 |
 | `ko_chan.csv` | Chan's `KO.xls` | KO | adjusted | 1962-01-02 .. 2008-01-18 | saved 2008-01-23 |
 | `pep_chan.csv` | Chan's `PEP.xls` | PEP | adjusted | 1977-01-03 .. 2008-01-18 | saved 2008-01-23 |
+| `spy_chan.csv` | Chan's `example6_2.xls` | SPY | adjusted | 1993-01-29 .. 2007-12-28 | saved 2008-01-29 |
 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
@@ -100,15 +112,21 @@ The date given is when Chan last saved the workbook, which is the closest thing
 these files have to a download date. Which workbook each column came from is
 recorded too, in the manifest's `source_workbook` field, because a workbook's
 name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
-and a `SPY.xls` in the same mirror holds a different series. Their checksums,
-as `.xls`, are recorded in
-[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py) next to the
-runs that read them.
+and a `SPY.xls` in the same mirror holds a different series.
+
+Four of the five workbooks have their `.xls` checksum recorded in
+[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), beside the
+runs that read the columns taken from them. `example6_2.xls` does not, because
+no replication here reads `spy_chan.csv` yet.
+[Issue 138](https://github.com/l3a0/quantitative-trading/issues/138) is what
+adds the run and the checksum together.
 
 ## Header shape
 
-The files placed by hand above carry a three-row header before the data,
-written by yfinance's multi-index frame:
+The files placed by hand above carry a three-row header before the data. The
+shape is yfinance's multi-index frame, and the workbook columns were written
+into it rather than into a bare `Date,Close`, so the symbol sits in the bytes
+where a check can read it back:
 
 ```text
 Price,Close
@@ -136,9 +154,9 @@ changed, and any number pinned against it is no longer a number computed from
 it. [.gitattributes](../.gitattributes) is what makes that condition hold, with
 `data/** -text` over this directory. Without it, a clone made with
 `core.autocrlf=true`, the default of Git for Windows, rewrites every line
-ending here, and the check reports no mismatch at all. It reports eight files
+ending here, and the check reports no mismatch at all. It reports every vintage as a file
 `shasum` cannot open, because the list of filenames was rewritten along with
-the vintages. The committed bytes are intact throughout, so every pinned number
+them. The committed bytes are intact throughout, so every pinned number
 is fine.
 
 That attribute does not repair a clone made before it. There the working tree
@@ -162,7 +180,7 @@ Two files carry that record.
 1. [vintages.jsonl](vintages.jsonl) is the record. One JSON object per line,
    naming each vintage's vendor, symbol, price basis, span, date, path, row
    count and sha256. A line carries `download_date` when a vendor was asked for
-   the series and `saved_date` for the four lifted from Chan's workbooks, whose
+   the series and `saved_date` for the five lifted from Chan's workbooks, whose
    date is when he last saved one rather than when anything was fetched. Those
    lines name their vendor `chan-xls` and carry a `source_workbook` field
    holding the spreadsheet the column was lifted from. The table's
@@ -183,9 +201,10 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Its eight lines were written by hand, because the recorder refuses a path
-   already on disk and all eight were here before it existed. They are the only
-   lines that will ever be.
+   Nine of its ten lines were written by hand. Eight were here before the
+   recorder existed, and `spy_chan.csv`'s was typed because the recorder cannot
+   write a saved date. More will be, for as long as a replication reaches for
+   another of Chan's workbook columns.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.
@@ -193,15 +212,15 @@ Two files carry that record.
 `TestTheCommittedManifest` in
 [tests/test_vintage.py](../tests/test_vintage.py) fails on five states: when an
 entry stops describing the file it names, when a file here has no entry, when
-the projection stops matching the record, when one of the eight above stops
-carrying the identity it was given, and when a recorded entry stops agreeing
-with the name its file took.
+the projection stops matching the record, when one of the hand-written entries
+above stops carrying the identity it was given, and when a recorded entry stops
+agreeing with the name its file took.
 
 The table above is a third telling and is still hand-written. What keeps it
 true is another assertion in the same class, which reads both surfaces and
 holds every row to the entry for the file it names. Every column is held, and
 a cell that stops agreeing fails and says which path, which column, what the
 cell says and what the entry gives. So does a row the manifest records nothing
-for, and an entry the table has no row for. That last one is what recording a
-ninth vintage costs: the suite is red until somebody writes its row, and the
-failure is the instruction saying so.
+for, and an entry the table has no row for. That last one is what adding a
+vintage costs: the suite is red until somebody writes its row, and the failure
+is the instruction saying so.

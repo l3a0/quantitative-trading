@@ -4,7 +4,7 @@ Every case here is driven by a synthetic series, because the recorder takes
 rows rather than fetching them. Nothing in this file touches a network, and
 nothing writes into the committed ``data/`` directory. The last three classes
 read it. ``TestTheCommittedManifest`` checks the manifest still describes the
-eight vintages this repo ships, ``TestTheTableIsHeldToTheManifest`` breaks a
+vintages this repo ships, ``TestTheTableIsHeldToTheManifest`` breaks a
 copy of the tree to show what each disagreement between the manifest and
 ``data/README.md``'s table costs, and ``TestARecordedVintageIsHeldToo`` copies
 the tree, records a ninth into the copy and runs the assertions issue 51
@@ -34,7 +34,7 @@ from chan.vintage import (
     write_checksums,
 )
 from tests.support.committed_vintages import (
-    BACKFILLED,
+    HAND_WRITTEN,
     committed_copy,
     identity_of,
     rewrite_entry,
@@ -120,7 +120,7 @@ class TestRecordingAVintage:
         assert (data_dir / entry.path).read_bytes() == b"Date,Close\n2026-08-25,50.0\n"
 
     def test_the_header_does_not_borrow_one_vendor_s_shape(self, data_dir):
-        """The eight committed vintages carry yfinance's three-row header.
+        """The hand-placed vintages carry a three-row header instead.
 
         Writing that shape for every vendor would put `Price,Close` and a
         `Ticker` row at the top of a series no vendor of that name returned,
@@ -325,7 +325,7 @@ class TestRecordingAVintage:
 
         `__post_init__` takes exactly one of `download_date` and `saved_date`,
         so a plain difference against every declared field would report both as
-        missing on every valid line, including the eight committed ones. The
+        missing on every valid line, including every committed one. The
         line that carries neither still refuses, and it refuses for the reason
         `__post_init__` gives rather than for a shape the check invented.
         """
@@ -1059,18 +1059,18 @@ class TestTheBytesEveryWriteProduces:
 # reader, both under the rule that a test must not write into `data/`.
 
 
-def the_backfill_identity_is_pinned(directory: Path) -> None:
-    """The eight entries that predate the recorder carry the identity they were given.
+def the_hand_written_identities_are_pinned(directory: Path) -> None:
+    """Every hand-written entry carries the identity it was given.
 
-    Nothing in the bytes says which vendor sent a file or on what day, and the
-    backfill is committed data with no generator, so a hand edit to any of
+    Nothing in the bytes says which vendor sent a file or on what day, and a
+    hand-written line has no generator behind it, so a hand edit to any of
     these is a hand edit to the record. This is the assertion that makes one
     fail.
 
     Held by path rather than by set equality over the whole manifest, which is
-    what lets a recorded vintage sit beside the eight. Name what that gives up,
-    and name it accurately, because the first draft of this paragraph claimed
-    more than the code does.
+    what lets a recorded vintage sit beside them. Name what that gives up, and
+    name it accurately, because the first draft of this paragraph claimed more
+    than the code does.
 
     Set equality failed on any ninth entry at all, a forged one included, for
     the same reason it failed on a recorded one: it enumerated eight. Keying on
@@ -1088,31 +1088,37 @@ def the_backfill_identity_is_pinned(directory: Path) -> None:
     """
     by_path = {entry.path: entry for entry in read_manifest(directory)}
 
-    for path, pinned in BACKFILLED.items():
+    for path, pinned in HAND_WRITTEN.items():
         assert path in by_path, path
         assert identity_of(by_path[path]) == pinned, path
 
 
-def the_backfill_names_the_series_its_file_holds(directory: Path) -> None:
+def the_hand_written_entries_name_their_series(directory: Path) -> None:
     """The hash, the row count and the span say nothing about which series it is.
 
     All three would pass with the vendor, the symbol and the price basis
     swapped, and those are the three fields that say what a reader is looking
-    at. The symbol is recoverable from these eight files, because each carries
-    yfinance's `Ticker,` header row, so it is derived rather than restated.
+    at. The symbol is recoverable from a hand-written vintage's file, because
+    each carries the `Ticker,` header row, so it is derived rather than
+    restated.
 
-    Only these eight. A recorded vintage carries a single `Date,Close` header
-    and no symbol anywhere in its bytes, which is the shape `_serialize` writes
-    and `data/README.md`'s `## Header shape` section explains. Its symbol is
-    held by `the_recorded_entries_name_themselves` instead, out of the path.
+    Only those. A recorded vintage carries a single `Date,Close` header and no
+    symbol anywhere in its bytes, which is the shape `_serialize` writes and
+    `data/README.md`'s `## Header shape` section explains. Its symbol is held
+    by `the_recorded_entries_name_themselves` instead, out of the path.
 
-    The symbol compared is the entry's rather than the one `BACKFILLED` pins,
+    This is what covers a workbook column, which is the reason `spy_chan.csv`
+    joined `HAND_WRITTEN` rather than being left outside it. The check skips
+    any entry not in that set, so a workbook column left out would be covered
+    here not at all.
+
+    The symbol compared is the entry's rather than the one `HAND_WRITTEN` pins,
     which is what keeps this a second hold rather than a restatement of the
     first. Reading the pin on both sides would compare the pin against itself
     and pass over a manifest naming a series its file does not carry.
     """
     for entry in read_manifest(directory):
-        if entry.path not in BACKFILLED:
+        if entry.path not in HAND_WRITTEN:
             continue
         header = (directory / entry.path).read_text(encoding="utf-8").splitlines()[1]
         assert header == f"Ticker,{entry.symbol}", entry.path
@@ -1141,17 +1147,19 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
        What catches that edit is `VintageEntry` refusing a line whose identity
        fields are not the spelling the recorder would have written, which means
        `read_manifest` refuses before this check sees the entry at all.
-    2. The predicate is "not one of the eight" where the intent is "the
-       recorder wrote it". They part on a ninth workbook column added by hand,
-       which would fail here. Nothing can write one: `record_vintage` has no
-       saved-date parameter, and this module's docstring says so.
-
-    Vacuous against the committed manifest, which holds no recorded entry yet.
-    `TestARecordedVintageIsHeldToo` is what exercises it and what shows it
-    bites.
+    2. The predicate is "not written by hand", read off `HAND_WRITTEN`, and
+       that set is a list of paths somebody keeps rather than anything derived.
+       So the next workbook column committed by hand fails here with
+       `X carries no download date`, and the fix is to add its path to the set,
+       not to give it a date it does not have. `record_vintage` takes a
+       download date and builds a name out of it, so it cannot write such a
+       vintage and the next one arrives by hand too.
+       [Issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is
+       where that was settled, and `docs/design.md`'s register carries why the
+       recorder was not taught to write a saved date instead.
     """
     for entry in read_manifest(directory):
-        if entry.path in BACKFILLED:
+        if entry.path in HAND_WRITTEN:
             continue
         assert entry.download_date is not None, f"{entry.path} carries no download date"
         assert entry.path == vintage_filename(
@@ -1176,8 +1184,8 @@ def the_table_and_the_manifest_agree(directory: Path) -> None:
 
     Driven from the entries rather than from the rows. A loop over rows passes
     on a table it cannot find, which is what a renamed heading produces and what
-    the wrong blanking helper produces, so absence has to read as eight missing
-    rows rather than as nothing to check.
+    the wrong blanking helper produces, so absence has to read as one missing
+    row per vintage rather than as nothing to check.
 
     The message names the path, the column and both values, because a failure
     here is an instruction. Recording a ninth vintage leaves this red until
@@ -1227,14 +1235,14 @@ def _vendor_cell(entry: VintageEntry) -> str:
 
     The workbook is read off the entry rather than joined from its symbol. A
     joined name is a claim about a file in a mirror this repo does not hold,
-    derived from a field that does not carry it. It is true of the four
-    committed columns and false of the SPY column
-    [issue 124](https://github.com/l3a0/quantitative-trading/issues/124)
-    commits, whose source is `example6_2.xls` while a real `SPY.xls` in the same
-    mirror holds another series. The earlier draft of this function argued the
-    set was closed because no caller can record a saved-date vintage. A fifth
-    workbook column arrives by hand, which is the route that argument did not
-    cover.
+    derived from a field that does not carry it. It was true of the four
+    columns committed before
+    [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) and is
+    false of the SPY column that issue committed, whose source is
+    `example6_2.xls` while a real `SPY.xls` in the same mirror holds another
+    series. The earlier draft of this function argued the set was closed
+    because no caller can record a saved-date vintage. The fifth workbook
+    column arrived by hand, which is the route that argument did not cover.
 
     Reading it off the entry is what keeps the comparison's message true. The
     Vendor column's expected value comes from the entry like every other, so
@@ -1259,11 +1267,12 @@ def _vendor_cell(entry: VintageEntry) -> str:
 def _date_cell(entry: VintageEntry) -> str:
     """The Downloaded cell the table writes for one entry.
 
-    The column carries a verb on the four rows whose date is not a download
-    date, writing `saved 2007-12-02` where the entry carries a saved date and a
-    bare date where it carries a download date. `VintageEntry.obtained` and
+    The column carries a verb on every row whose date is not a download date,
+    writing `saved 2007-12-02` where the entry carries a saved date and a bare
+    date where it carries a download date. `VintageEntry.obtained` and
     `obtained_verb` exist for exactly this, so the cell is built from the pair
-    rather than from a field named for a download, which names four of eight.
+    rather than from a field named for a download, which would leave the
+    workbook columns blank.
     """
     if entry.download_date is not None:
         return entry.obtained
@@ -1271,7 +1280,7 @@ def _date_cell(entry: VintageEntry) -> str:
 
 
 class TestTheCommittedManifest:
-    """The eight vintages this repo ships, and the record that describes them.
+    """The vintages this repo ships, and the record that describes them.
 
     Nothing in this repo checked the committed bytes against a recorded hash
     before now. `data/README.md` documents `shasum -a 256 -c` for a person to
@@ -1306,11 +1315,11 @@ class TestTheCommittedManifest:
 
         assert (DATA_DIR / CHECKSUMS_NAME).read_text(encoding="utf-8") == expected
 
-    def test_every_backfilled_entry_names_the_series_its_file_actually_holds(self):
-        the_backfill_names_the_series_its_file_holds(DATA_DIR)
+    def test_every_hand_written_entry_names_the_series_its_file_actually_holds(self):
+        the_hand_written_entries_name_their_series(DATA_DIR)
 
-    def test_the_identity_of_all_eight_is_pinned(self):
-        the_backfill_identity_is_pinned(DATA_DIR)
+    def test_the_identity_of_every_hand_written_vintage_is_pinned(self):
+        the_hand_written_identities_are_pinned(DATA_DIR)
 
     def test_every_recorded_entry_agrees_with_the_path_it_took(self):
         """Vacuous today. `TestARecordedVintageIsHeldToo` is where it bites."""
@@ -1333,7 +1342,7 @@ class TestTheCommittedManifest:
             assert VintageEntry(**json.loads(line)).as_json() == line
 
     def test_the_projection_regenerates_over_the_committed_manifest(self, tmp_path):
-        """Running it over the eight reproduces the file that was kept by hand.
+        """Running it over the committed manifest reproduces the file kept by hand.
 
         That is what says the projection took the record over rather than
         replaced it, and it is the only case that exercises the ordering, since
@@ -1348,15 +1357,15 @@ class TestTheCommittedManifest:
     def test_the_committed_record_carries_no_carriage_return(self):
         """The writer is one producer of the manifest and a hand edit is the other.
 
-        `data/README.md` says the manifest's eight lines were written by hand,
-        and `.gitattributes` holds `data/** -text`, so git commits whatever an
+        `data/README.md` says all but one of the manifest's lines were written
+        by hand, and `.gitattributes` holds `data/** -text`, so git commits whatever an
         editor saved rather than normalising it. `read_manifest` normalises on
         the way in, so no run reports a carriage return. The projection is
         regenerated from the manifest rather than edited, and it is read here
         beside it because both files reach git through that same attribute,
         and `shasum -a 256 -c` on a projection carrying one reads the carriage
-        return as part of the filename and says eight vintages are missing
-        when none of them is.
+        return as part of the filename and says every vintage is missing when
+        none of them is.
         """
         for name in (MANIFEST_NAME, CHECKSUMS_NAME):
             assert b"\r" not in (DATA_DIR / name).read_bytes(), name
@@ -1430,9 +1439,9 @@ class TestTheCommittedManifest:
             VintageEntry(**shared, download_date="2026-08-27", saved_date="2026-08-27")
 
 
-#: The row the table-side cases break. One of the eight, so it is there whatever
-#: the two chips recording a ninth vintage land, and named once so a case says
-#: which row it edits rather than repeating a filename six times.
+#: The row the table-side cases break. One of the vintages committed before the
+#: recorder existed, so it is there whatever else lands, and named once so a
+#: case says which row it edits rather than repeating a filename six times.
 HELD = "gld_20yr_prices.csv"
 
 
@@ -1451,7 +1460,7 @@ class TestTheTableIsHeldToTheManifest:
     """
 
     @pytest.fixture
-    def eight(self, tmp_path):
+    def committed(self, tmp_path):
         """The committed tree, copied and untouched, which the check passes on.
 
         Asserted green here rather than assumed, because every case below
@@ -1474,7 +1483,7 @@ class TestTheTableIsHeldToTheManifest:
             ("downloaded", lambda cell: "1900-01-01"),
         ],
     )
-    def test_an_edited_cell_fails_and_names_both_values(self, eight, column, edit):
+    def test_an_edited_cell_fails_and_names_both_values(self, committed, column, edit):
         """Seven values across six columns, because the span cell holds two fields.
 
         The edit is derived from the cell it replaces rather than written out
@@ -1494,14 +1503,14 @@ class TestTheTableIsHeldToTheManifest:
         which cell moved, and the row that goes red on a ninth vintage is read
         by somebody who has to write one.
         """
-        recorded = read_table(eight)[HELD][KEYWORDS[column]]
+        recorded = read_table(committed)[HELD][KEYWORDS[column]]
         edited = edit(recorded)
         assert edited != recorded, "an edit that changes nothing drives nothing"
 
-        rewrite_row(eight, HELD, **{column: edited})
+        rewrite_row(committed, HELD, **{column: edited})
 
         with pytest.raises(AssertionError) as refused:
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
         message = str(refused.value)
         assert HELD in message
@@ -1519,7 +1528,7 @@ class TestTheTableIsHeldToTheManifest:
             ("download_date", "1900-01-02"),
         ],
     )
-    def test_an_edited_entry_fails_the_same_way(self, eight, field, value):
+    def test_an_edited_entry_fails_the_same_way(self, committed, field, value):
         """The other surface, edited with a value that is valid and wrong.
 
         `VintageEntry` checks the vendor, the symbol, the price basis and the
@@ -1527,29 +1536,29 @@ class TestTheTableIsHeldToTheManifest:
         manifest rather than the line. A case driven by the obviously wrong
         spellings, `YFinance` or `gld` or `unadjusted`, therefore raises out of
         `read_manifest` before any comparison runs and tests the reader instead
-        of this check. `test_a_hand_edit_to_a_backfilled_entry_still_fails`
+        of this check. `test_a_hand_edit_to_a_hand_written_entry_still_fails`
         picks valid-and-wrong values for the same reason. The two span fields
         are unchecked there and reach the comparison as typed.
         """
-        entry = {e.path: e for e in read_manifest(eight)}[HELD]
+        entry = {e.path: e for e in read_manifest(committed)}[HELD]
         assert getattr(entry, field) != value, "an edit that changes nothing drives nothing"
 
-        rewrite_entry(eight, HELD, **{field: value})
+        rewrite_entry(committed, HELD, **{field: value})
 
         with pytest.raises(AssertionError, match=HELD):
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
-    def test_a_deleted_row_fails_and_names_the_path(self, eight):
+    def test_a_deleted_row_fails_and_names_the_path(self, committed):
         """A row is prose nothing derives, so its absence is the drift to catch."""
-        drop_row(eight, "pep_chan.csv")
+        drop_row(committed, "pep_chan.csv")
 
         with pytest.raises(AssertionError, match="pep_chan.csv"):
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
-    def test_a_row_naming_no_vintage_fails_and_names_the_path(self, eight):
+    def test_a_row_naming_no_vintage_fails_and_names_the_path(self, committed):
         """The other direction, which set equality over paths is what covers."""
         add_row(
-            eight,
+            committed,
             file="`spy_20yr_prices.csv`",
             vendor="yfinance",
             symbol="SPY",
@@ -1559,21 +1568,21 @@ class TestTheTableIsHeldToTheManifest:
         )
 
         with pytest.raises(AssertionError, match="spy_20yr_prices.csv"):
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
-    def test_a_row_naming_another_series_workbook_fails(self, eight):
+    def test_a_row_naming_another_series_workbook_fails(self, committed):
         """What says the vendor rule is compared rather than waved through.
 
-        The four workbook rows are the one place the two surfaces spell a field
+        The workbook rows are the one place the two surfaces spell a field
         differently, so a check that accepted any `Chan's ...` cell against
         `chan-xls` would pass a row naming another series' workbook.
         """
-        rewrite_row(eight, "ko_chan.csv", vendor="Chan's `PEP.xls`")
+        rewrite_row(committed, "ko_chan.csv", vendor="Chan's `PEP.xls`")
 
         with pytest.raises(AssertionError, match="ko_chan.csv"):
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
-    def test_a_workbook_the_entry_does_not_name_fails_though_the_symbol_agrees(self, eight):
+    def test_a_workbook_the_entry_does_not_name_fails_though_the_symbol_agrees(self, committed):
         """The state this check could not fail while it joined the symbol to `.xls`.
 
         The case above drives a workbook name disagreeing with the Symbol cell
@@ -1591,17 +1600,17 @@ class TestTheTableIsHeldToTheManifest:
         state under test is the entry and the row disagreeing rather than
         anything about KO.
         """
-        rewrite_entry(eight, "ko_chan.csv", source_workbook="example6_2.xls")
+        rewrite_entry(committed, "ko_chan.csv", source_workbook="example6_2.xls")
 
         with pytest.raises(AssertionError) as refused:
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
         message = str(refused.value)
         assert "ko_chan.csv" in message and "Vendor" in message
         assert repr("Chan's `KO.xls`") in message
         assert repr("Chan's `example6_2.xls`") in message
 
-    def test_a_row_naming_the_workbook_the_entry_names_is_green(self, eight):
+    def test_a_row_naming_the_workbook_the_entry_names_is_green(self, committed):
         """The record may now state a workbook that is not its symbol.
 
         The complement of the case above, and the one the derivation forbade.
@@ -1614,13 +1623,13 @@ class TestTheTableIsHeldToTheManifest:
         elsewhere, because the fixture is already green and a case that only
         edited the copy would pass on an edit that landed nowhere.
         """
-        rewrite_entry(eight, "ko_chan.csv", source_workbook="example6_2.xls")
-        rewrite_row(eight, "ko_chan.csv", vendor="Chan's `example6_2.xls`")
+        rewrite_entry(committed, "ko_chan.csv", source_workbook="example6_2.xls")
+        rewrite_row(committed, "ko_chan.csv", vendor="Chan's `example6_2.xls`")
 
-        assert read_table(eight)["ko_chan.csv"]["Vendor"] == "Chan's `example6_2.xls`"
-        the_table_and_the_manifest_agree(eight)
+        assert read_table(committed)["ko_chan.csv"]["Vendor"] == "Chan's `example6_2.xls`"
+        the_table_and_the_manifest_agree(committed)
 
-    def test_a_workbook_entry_naming_no_source_fails_by_naming_itself(self, eight):
+    def test_a_workbook_entry_naming_no_source_fails_by_naming_itself(self, committed):
         """A `chan-xls` line the record cannot place is an instruction, not a crash.
 
         The field is optional, because a downloaded vintage has no workbook, so
@@ -1630,39 +1639,39 @@ class TestTheTableIsHeldToTheManifest:
         fails like every other disagreement here: naming the line and saying
         what is missing from it.
         """
-        rewrite_entry(eight, "ko_chan.csv", source_workbook=None)
+        rewrite_entry(committed, "ko_chan.csv", source_workbook=None)
 
         with pytest.raises(AssertionError) as refused:
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
         message = str(refused.value)
         assert "ko_chan.csv" in message
         assert "no source workbook" in message
         assert "Chan's `None`" not in message, "the cell was built from a workbook nothing names"
 
-    def test_a_renamed_heading_fails_rather_than_reading_no_rows(self, eight):
-        """Finding no table is eight missing rows, never a green run over nothing."""
-        readme = eight / README_NAME
+    def test_a_renamed_heading_fails_rather_than_reading_no_rows(self, committed):
+        """Finding no table is a missing row per vintage, never a green run over nothing."""
+        readme = committed / README_NAME
         text = readme.read_text(encoding="utf-8")
         assert text.count(TABLE_HEADING) == 1
         readme.write_text(text.replace(TABLE_HEADING, "## The files"), encoding="utf-8")
 
         with pytest.raises(AssertionError, match="What each file is"):
-            the_table_and_the_manifest_agree(eight)
+            the_table_and_the_manifest_agree(committed)
 
-    def test_a_second_heading_of_that_name_is_refused(self, eight):
+    def test_a_second_heading_of_that_name_is_refused(self, committed):
         """Two tables under one name would leave the reader choosing one."""
-        readme = eight / README_NAME
+        readme = committed / README_NAME
         readme.write_text(
             readme.read_text(encoding="utf-8") + f"\n{TABLE_HEADING}\n", encoding="utf-8"
         )
 
         with pytest.raises(AssertionError, match="2 headings"):
-            read_table(eight)
+            read_table(committed)
 
-    def test_a_heading_with_no_table_under_it_is_refused(self, eight):
+    def test_a_heading_with_no_table_under_it_is_refused(self, committed):
         """The zero-row state, which is the one a check driven from the rows passes on."""
-        readme = eight / README_NAME
+        readme = committed / README_NAME
         kept = [
             line
             for line in readme.read_text(encoding="utf-8").split("\n")
@@ -1671,16 +1680,16 @@ class TestTheTableIsHeldToTheManifest:
         readme.write_text("\n".join(kept), encoding="utf-8")
 
         with pytest.raises(AssertionError, match="carries no table"):
-            read_table(eight)
+            read_table(committed)
 
-    def test_a_renamed_column_is_refused(self, eight):
+    def test_a_renamed_column_is_refused(self, committed):
         """Cells are read by position, so an unrecognised column is not a rename.
 
         Without this the reader maps six cells onto the names it expected and
         every row disagrees at once, which reports six failures for one edit and
         names none of them the cause.
         """
-        readme = eight / README_NAME
+        readme = committed / README_NAME
         text = readme.read_text(encoding="utf-8")
         header = row_line(COLUMNS)
         assert text.count(header) == 1
@@ -1689,17 +1698,17 @@ class TestTheTableIsHeldToTheManifest:
         )
 
         with pytest.raises(AssertionError, match="columns read"):
-            read_table(eight)
+            read_table(committed)
 
-    def test_a_path_the_table_names_twice_is_refused(self, eight):
+    def test_a_path_the_table_names_twice_is_refused(self, committed):
         """Two rows for one path would collapse onto one key, hiding whichever it drops."""
-        row = read_table(eight)[HELD]
-        add_row(eight, **{keyword: row[column] for keyword, column in KEYWORDS.items()})
+        row = read_table(committed)[HELD]
+        add_row(committed, **{keyword: row[column] for keyword, column in KEYWORDS.items()})
 
         with pytest.raises(AssertionError, match="names it twice"):
-            read_table(eight)
+            read_table(committed)
 
-    def test_editing_a_row_the_table_does_not_hold_is_refused(self, eight):
+    def test_editing_a_row_the_table_does_not_hold_is_refused(self, committed):
         """A negative case is only negative while its edit lands.
 
         The same guard `rewrite_entry` carries, for the same reason. A mistyped
@@ -1707,17 +1716,17 @@ class TestTheTableIsHeldToTheManifest:
         that nothing raised rather than that nothing was edited.
         """
         with pytest.raises(AssertionError, match="absent.csv"):
-            rewrite_row(eight, "absent.csv", vendor="acme")
+            rewrite_row(committed, "absent.csv", vendor="acme")
 
-    def test_a_table_inside_a_fenced_block_is_not_the_record(self, eight):
+    def test_a_table_inside_a_fenced_block_is_not_the_record(self, committed):
         """The reader blanks fences, so a table in an example is not read as one.
 
-        It blanks fences and nothing else. Every File cell and all four workbook
-        names are written in backticks, so blanking inline spans too would leave
-        eight rows carrying no filename and a check that compares nothing.
+        It blanks fences and nothing else. Every File cell and every workbook
+        name is written in backticks, so blanking inline spans too would leave
+        every row carrying no filename and a check that compares nothing.
         """
-        readme = eight / README_NAME
-        before = read_table(eight)
+        readme = committed / README_NAME
+        before = read_table(committed)
         fenced = "\n".join(
             ["", "```text", "| File | Vendor |", "| --- | --- |", "| a.csv | acme |", "```", ""]
         )
@@ -1728,8 +1737,8 @@ class TestTheTableIsHeldToTheManifest:
             encoding="utf-8",
         )
 
-        assert read_table(eight) == before
-        the_table_and_the_manifest_agree(eight)
+        assert read_table(committed) == before
+        the_table_and_the_manifest_agree(committed)
 
 
 class TestARecordedVintageIsHeldToo:
@@ -1758,10 +1767,10 @@ class TestARecordedVintageIsHeldToo:
 
     @pytest.fixture
     def with_a_ninth(self, tmp_path):
-        """The eight, copied, with a ninth recorded into the copy.
+        """The committed tree, copied, with a ninth recorded into the copy.
 
-        A series the eight do not carry. A second download of one they do is a
-        different failure with a different owner, which is
+        A series the committed set does not carry. A second download of one it
+        does is a different failure with a different owner, which is
         [issue 83](https://github.com/l3a0/quantitative-trading/issues/83), so
         the symbol is asserted unused rather than assumed so.
         """
@@ -1783,9 +1792,9 @@ class TestARecordedVintageIsHeldToo:
         recorded = [entry.path for entry in read_manifest(with_a_ninth)]
 
         assert NINTH_NAME in recorded
-        assert set(BACKFILLED) <= set(recorded)
-        the_backfill_identity_is_pinned(with_a_ninth)
-        the_backfill_names_the_series_its_file_holds(with_a_ninth)
+        assert set(HAND_WRITTEN) <= set(recorded)
+        the_hand_written_identities_are_pinned(with_a_ninth)
+        the_hand_written_entries_name_their_series(with_a_ninth)
         the_recorded_entries_name_themselves(with_a_ninth)
 
     @pytest.mark.parametrize(
@@ -1798,19 +1807,21 @@ class TestARecordedVintageIsHeldToo:
             ("ko_chan.csv", "saved_date", "2008-01-24"),
         ],
     )
-    def test_a_hand_edit_to_a_backfilled_entry_still_fails(self, with_a_ninth, path, field, value):
-        """Scoping to the eight must not stop the eight being held.
+    def test_a_hand_edit_to_a_hand_written_entry_still_fails(
+        self, with_a_ninth, path, field, value
+    ):
+        """Scoping to the hand-written set must not stop that set being held.
 
-        A ninth vintage sits in the manifest while this runs, because that is
-        the state the scoping was for and a pin that only holds against eight
-        entries would not have been scoped at all.
+        A recorded vintage sits in the manifest while this runs, because that
+        is the state the scoping was for and a pin that only held against the
+        committed set would not have been scoped at all.
         """
         rewrite_entry(with_a_ninth, path, **{field: value})
 
         with pytest.raises(AssertionError):
-            the_backfill_identity_is_pinned(with_a_ninth)
+            the_hand_written_identities_are_pinned(with_a_ninth)
 
-    def test_a_backfilled_entry_dropped_from_the_manifest_still_fails(self, with_a_ninth):
+    def test_a_hand_written_entry_dropped_from_the_manifest_still_fails(self, with_a_ninth):
         """Set equality caught an absence by counting. A paths pin has to ask."""
         manifest = with_a_ninth / MANIFEST_NAME
         kept = [
@@ -1821,16 +1832,16 @@ class TestARecordedVintageIsHeldToo:
         manifest.write_text("".join(line + "\n" for line in kept), encoding="utf-8")
 
         with pytest.raises(AssertionError):
-            the_backfill_identity_is_pinned(with_a_ninth)
+            the_hand_written_identities_are_pinned(with_a_ninth)
 
-    def test_a_backfilled_entry_renamed_to_a_series_its_file_does_not_hold_still_fails(
+    def test_a_hand_written_entry_renamed_to_a_series_its_file_does_not_hold_still_fails(
         self, with_a_ninth
     ):
         """The `Ticker,` row is derived from the file, so the symbol has two holds."""
         rewrite_entry(with_a_ninth, "gld_chan.csv", symbol="KO")
 
         with pytest.raises(AssertionError):
-            the_backfill_names_the_series_its_file_holds(with_a_ninth)
+            the_hand_written_entries_name_their_series(with_a_ninth)
 
     @pytest.mark.parametrize(
         ("field", "value"),
@@ -1882,7 +1893,7 @@ class TestARecordedVintageIsHeldToo:
         """Recording into `data/` is red until the table describes what is there.
 
         One disagreement rather than a cascade, which the second half is what
-        says: the eight rows still agree on all five fields, so writing the
+        says: the committed rows still agree on all five fields, so writing the
         ninth row is the whole of what a recording costs on this surface. The
         row is written here in the table's own spelling, which is also the
         worked example of what the failure asks an operator for.
