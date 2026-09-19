@@ -91,10 +91,12 @@ BULL = ("2003-01-01", "2007-12-28")
 def spy():
     """The committed SPY vintage, resolved by the date it was downloaded.
 
-    ``dated`` rather than symbol and basis alone, because issue 15 records a
-    second SPY adjusted vintage and two of them make the bare lookup refuse and
-    name the candidates. Written this way from the outset, that issue landing
-    moves nothing here.
+    ``dated`` rather than symbol and basis alone, against a second yfinance SPY
+    download arriving, because two of those make the bare lookup refuse and
+    name the candidates. Issue 15 was expected to be that and was not: it reads
+    this file as its equity leg rather than downloading the symbol again.
+    Written this way from the outset, neither that issue landing nor the next
+    SPY download moves anything here.
     """
     return load_vintage("SPY", dated=VINTAGE_DATE)
 
