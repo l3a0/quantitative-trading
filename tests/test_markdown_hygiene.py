@@ -169,6 +169,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/gld-gdx-cointegration-lessons.md",
         "research/book-notes/README.md",
         "research/book-notes/quantitative-trading.md",
+        "research/papers/README.md",
     }
 )
 

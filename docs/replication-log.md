@@ -982,26 +982,45 @@ argument on the instruments and the period this repo picked rather than of his.
 
 Chan calls the source "not publicly distributed" and it is on PanAgora's own
 site, which is what makes this a gap somebody could close rather than one nobody
-can. Qian's "Risk Parity Portfolios: Efficient Portfolios Through True
-Diversification", September 2005, works monthly excess returns over
+can. A copy is committed at
+[research/papers](../research/papers/README.md), so every figure quoted below
+is checkable against the document rather than against a link. Qian's "Risk
+Parity Portfolios: Efficient Portfolios Through True Diversification",
+September 2005, works monthly excess returns over
 three-month Treasury bills on the Russell 1000 Index and the Lehman Aggregate
 Bond Index from 1983 to 2004, and prints the volatilities, the correlation, the
 risk split and both Sharpe ratios this entry has no published counterpart for.
-[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) is what
-reads it. Three things it changes are worth stating here rather than leaving to
-that card.
+Two cards read it, because the gap splits into an instrument and a sample.
+[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) swaps the
+equity leg for one that tracks his index and holds everything else fixed, which
+runs on free data.
+[Issue 161](https://github.com/l3a0/quantitative-trading/issues/161) reaches his
+1983 to 2004 sample and is blocked on licensed history. Three things they change
+are worth stating here rather than leaving to those cards.
 
 1. **His window and this one barely overlap.** 1983 to 2004 against
-   2003-09-30 to 2026-09-17, which share about fifteen months, or a twentieth
-   of either sample. His is the bond bull market and this one carries its
-   reversal.
+   2003-09-30 to 2026-09-17. The paper gives years rather than months, so
+   fifteen months is the most they can share and only if his sample runs to the
+   end of 2004. That is about a seventeenth of his and an eighteenth of this
+   one. His is the bond bull market and this one carries its reversal.
 2. **His bond index is the one AGG tracks.** The Lehman Aggregate was renamed
    to Barclays and then to Bloomberg, and AGG follows it, so the proxy ruling
-   was right about the index. What the fund cannot do is reach his span, since
-   its first bar is 2003-09-29, five days before his sample ends.
+   was right about the index. What the fund cannot do is reach his span. Its
+   first bar is 2003-09-29 and his sample ends in 2004, so it covers the tail of
+   his twenty-two years and nothing before it.
 3. **His equity leg is the Russell 1000 and SPY is not that.** It is the S&P
    500, which is a narrower index, and nothing here has measured what the
-   substitution costs.
+   substitution costs. IWB tracks the Russell 1000 and shares this entry's own
+   window, so that one is measurable on free data and is issue 160.
+
+His bond index settles the proxy ruling from the source rather than from
+argument. The paper's disclosure describes the Lehman Aggregate as roughly
+6,000 bonds with an approximate average maturity of ten years. The paper never
+says duration and average maturity is not duration, so the reading that this is
+an intermediate rather than a long-duration index is this repo's and not his.
+It is the reading issue 15 took when it chose AGG over TLT, before any of this
+was read, and a maturity the source states is better evidence for it than the
+argument it had.
 
 **How much of the robust t the estimated leverage is worth.** Every t above is
 computed on `leverage * parity - bench`, with the leverage estimated from the

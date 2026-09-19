@@ -306,6 +306,12 @@ published figure a replication chases is among them, that is where it traces
 to. A highlight covers what somebody marked, so the notes carry two of the five
 figures the design doc names.
 
+Not every published figure is Chan's.
+[research/papers](research/papers/README.md) holds whole documents, for a
+source he cites rather than prints, and it exists because he cites one he
+believed was not publicly available. A figure quoted from one of those traces
+there instead.
+
 The notes are quoted rather than written, so nothing edits them by hand and
 three markdownlint rules stand down over that directory. The reasoning is in
 its README.
