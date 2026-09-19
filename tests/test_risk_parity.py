@@ -45,6 +45,7 @@ from __future__ import annotations
 import contextlib
 import io
 import math
+import re
 
 import numpy as np
 import pandas as pd
@@ -65,9 +66,13 @@ from chan.risk_parity import (
     TIGHTENING_START,
     TRADING_DAYS,
     WINDOWS,
+    Allocation,
     Legs,
     Ranking,
+    WindowResult,
     WindowTooShort,
+    _decomposition,
+    _header,
     annualised_covariance,
     clip,
     correlation_from_leverage,
@@ -1084,3 +1089,340 @@ def test_matching_leverage_agrees_with_the_one_the_ranking_reports(measured, ran
         ranking = rankings[label]
         weights = _weights_used(measured, ranking)
         assert matching_leverage(returns, weights) == pytest.approx(ranking.leverage, abs=1e-12)
+
+
+# ============================================================
+# The report's own numbers, which are what a reader actually reads
+# ============================================================
+
+
+def _section(text: str, label: str) -> str:
+    """One window's block of the report, from its heading to the next one.
+
+    The report prints three windows with the same row labels, so a search over
+    the whole text finds the first window's row whichever window it meant. A
+    mutation that prints the full span's verdict under the rising window's
+    heading is exactly what this splits apart.
+    """
+    start = text.index(f"--- {label}:")
+    rest = text[start + len("--- ") :]
+    end = rest.find("\n--- ")
+    return rest if end == -1 else rest[:end]
+
+
+def _numbers_on(section: str, label: str) -> list[float]:
+    """Every number printed after ``label`` on its own line, percents unscaled.
+
+    Read out of the rendered text rather than rebuilt from the format string.
+    A test that rebuilds the line it checks holds the formatting and not the
+    wiring, so printing the benchmark's Sharpe ratio under the risk-parity
+    label would pass it.
+    """
+    for line in section.splitlines():
+        if label not in line:
+            continue
+        found = []
+        for token in re.findall(r"[-+]?\d[\d,]*\.?\d*%?", line.split(label, 1)[1]):
+            value = float(token.rstrip("%").replace(",", ""))
+            found.append(value / 100.0 if token.endswith("%") else value)
+        return found
+    raise AssertionError(f"no line carrying {label!r} in:\n{section}")
+
+
+def _band_line(section: str) -> str:
+    """The line carrying the volatility ratio against Qian's band.
+
+    Named rather than searched for by the words "inside" and "outside", which
+    both occur elsewhere on the page: the header says how many of a leg's rows
+    fall inside the joined span, and the closing paragraph says a run that moves
+    the rate is off the reproduction.
+    """
+    return next(line for line in section.splitlines() if "band Qian's 23-77 admits" in line)
+
+
+class TestTheReportPrintsTheNumbersItMeasured:
+    """Every figure on the page, against the object the run computed it into.
+
+    A mutation review of this branch broke the report twenty-nine ways and the
+    suite noticed none of them, because the report cases asserted fixed prose
+    and never a number. The arithmetic was pinned throughout and the page that
+    carries it to a reader was not, which is the same failure as pinning a
+    ranking as a boolean: the assertion holds something other than the thing
+    that matters.
+
+    Tolerances here are the printed precision rather than the assertion's,
+    because what is under test is which value reached which line.
+    """
+
+    @pytest.mark.parametrize("label", [name for name, _, _ in WINDOWS])
+    def test_each_window_prints_its_own_leg_moments(self, printed, measured, label) -> None:
+        section = _section(printed, label)
+        legs = measured[label][0].legs
+        assert _numbers_on(section, "leg volatility, annualised") == [
+            pytest.approx(legs.stock_vol, abs=5e-5),
+            pytest.approx(legs.bond_vol, abs=5e-5),
+        ]
+        assert _numbers_on(section, "leg mean return, annualised") == [
+            pytest.approx(legs.stock_mean, abs=5e-5),
+            pytest.approx(legs.bond_mean, abs=5e-5),
+        ]
+        assert _numbers_on(section, f"volatility ratio {STOCK}/{BOND}")[0] == pytest.approx(
+            legs.vol_ratio, abs=5e-5
+        )
+        assert _numbers_on(section, "measured correlation")[0] == pytest.approx(
+            legs.correlation, abs=5e-5
+        )
+        # The day count sits before its label rather than after, in the
+        # section heading, so it is read off the heading line itself.
+        heading = section.splitlines()[0]
+        assert f"({legs.days:,} daily returns)" in heading
+        assert f"{legs.start} .. {legs.end}" in heading
+
+    @pytest.mark.parametrize("label", [name for name, _, _ in WINDOWS])
+    def test_each_window_prints_its_own_allocations_and_risk_split(
+        self, printed, measured, label
+    ) -> None:
+        section = _section(printed, label)
+        result = measured[label][0]
+        for row, allocation in (
+            ("60/40 capital weights", result.benchmark),
+            ("risk-parity capital weights", result.parity),
+        ):
+            assert _numbers_on(section, row) == [
+                pytest.approx(allocation.stock_weight, abs=5e-5),
+                pytest.approx(allocation.bond_weight, abs=5e-5),
+            ]
+        for row, allocation in (
+            ("60/40 risk contributions", result.benchmark),
+            ("its risk contributions", result.parity),
+        ):
+            assert _numbers_on(section, row) == [
+                pytest.approx(allocation.stock_risk_share, abs=5e-5),
+                pytest.approx(allocation.bond_risk_share, abs=5e-5),
+            ]
+
+    @pytest.mark.parametrize("label", [name for name, _, _ in WINDOWS])
+    def test_each_window_prints_its_own_ranking(self, printed, rankings, label) -> None:
+        section = _section(printed, label)
+        ranking = rankings[label]
+        for row, value, tolerance in (
+            ("leverage that matches 60/40", ranking.leverage, 5e-5),
+            ("read back on his 23-77 weights", ranking.implied_correlation, 5e-5),
+            ("the volatility both carry", ranking.matched_volatility, 5e-5),
+            ("Sharpe, 60/40", ranking.sharpe_benchmark, 5e-5),
+            ("Sharpe, risk parity", ranking.sharpe_parity, 5e-5),
+            ("difference, parity less 60/40", ranking.sharpe_difference, 5e-5),
+            ("mean excess-return difference", ranking.mean_difference_annual, 5e-5),
+            ("robust t on that mean", ranking.t_newey_west, 5e-5),
+            ("per unit of assumed rate", ranking.rate_sensitivity, 5e-5),
+        ):
+            assert _numbers_on(section, row)[0] == pytest.approx(value, abs=tolerance), row
+        # The naive t rides on the robust t's line, second, so the two cannot be
+        # swapped without one of these failing.
+        assert _numbers_on(section, "robust t on that mean")[1] == pytest.approx(
+            ranking.lag, abs=1e-9
+        )
+        assert _numbers_on(section, "robust t on that mean")[2] == pytest.approx(
+            ranking.t_naive, abs=5e-5
+        )
+        assert ranking.t_newey_west != pytest.approx(ranking.t_naive, abs=5e-5)
+
+    @pytest.mark.parametrize("label", [name for name, _, _ in WINDOWS])
+    def test_each_window_prints_the_verdict_its_own_numbers_support(
+        self, printed, measured, rankings, label
+    ) -> None:
+        """The three sentences a reader takes the conclusion from.
+
+        Each is checked inside its own window's section, because the report
+        prints three and the split across them is uneven. An assertion that
+        both wordings appear somewhere in the whole report passes on any
+        permutation of them, which is how all three survived a mutation pass.
+        """
+        section = _section(printed, label)
+        ranking, result = rankings[label], measured[label][0]
+
+        resolved = "resolves the ranking: the robust t clears 2" in section
+        unresolved = "does NOT resolve the ranking" in section
+        assert resolved != unresolved, label
+        assert resolved is ranking.resolved, label
+
+        parity_higher = "risk parity ranks higher" in section
+        bench_higher = "60/40 ranks higher" in section
+        assert parity_higher != bench_higher, label
+        assert parity_higher is (ranking.sharpe_difference > 0), label
+
+        band = _band_line(section)
+        assert (" outside the " in band) is not result.legs.ratio_inside_the_band, label
+        assert (" inside the " in band) is result.legs.ratio_inside_the_band, label
+
+    def test_every_window_reports_against_the_book_and_none_of_them_matched(
+        self, printed, measured
+    ) -> None:
+        """The headline the entry rests on, read off the page rather than the objects.
+
+        All three ratios miss Qian's band, so the word is "outside" three times.
+        A mutation hardcoding it to "inside" produced three false lines and the
+        suite stayed green, because nothing read the printed word at all.
+        """
+        bands = [_band_line(_section(printed, name)) for name, _, _ in WINDOWS]
+        assert sum(" outside the " in line for line in bands) == 3
+        assert not any(" inside the " in line for line in bands)
+        assert printed.count("60/40 ranks higher") == 3
+        assert "risk parity ranks higher" not in printed
+        assert not any(result.legs.ratio_inside_the_band for result, _ in measured.values())
+
+    def test_the_header_states_the_rate_the_run_actually_subtracted(self, joined) -> None:
+        """The spec block is where a reader reads the specification off.
+
+        Rendered at a second rate, so the assertion holds the wiring rather than
+        the default. Printing a constant there would pass a check against 4
+        percent alone.
+        """
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            report(joined, {STOCK: load_close(STOCK), BOND: load_close(BOND)}, risk_free=0.02)
+        text = buffer.getvalue()
+        assert "risk-free 2% subtracted as 0.02/252" in text
+        assert "risk-free 4%" not in text
+
+    def test_the_header_states_what_the_join_dropped(self, printed, joined) -> None:
+        """The count exists to make a truncated vintage or a foreign calendar visible.
+
+        It is zero on both legs today, which is the answer that makes it useless
+        as a pin unless the surrounding numbers are held too. So the whole line
+        is checked: what each leg recorded, what it brought to the span, and
+        what the join lost.
+        """
+        for entry in joined.attrs["vintages"]:
+            line = next(
+                row
+                for row in printed.splitlines()
+                if row.strip().startswith(f"{entry.symbol} recorded")
+            )
+            assert f"{entry.first_date}..{entry.last_date}" in line
+            assert f"{entry.row_count:,} rows" in line
+            assert f"{len(joined):,} of them inside the joined span" in line
+            assert "the join dropped 0" in line
+
+    def test_a_leg_trading_on_a_day_the_other_does_not_is_counted_as_dropped(self, joined) -> None:
+        """The state the count exists for, which no committed pair reaches.
+
+        Both legs trade one calendar here, so the drop is zero and an assertion
+        on zero alone cannot tell a computed count from a constant. This hands
+        the header a stock leg carrying four days the join does not have and
+        checks the printed number moves by four. Those days are Saturdays,
+        which is what a vendor returning a foreign calendar would look like.
+        """
+        stock, bond = load_close(STOCK), load_close(BOND)
+        first, last = joined.index[0], joined.index[-1]
+        extra = pd.date_range("2010-01-02", periods=4, freq="7D")
+        assert all(day.weekday() >= 5 for day in extra)
+        assert all(first < day < last for day in extra)
+        widened = pd.concat([stock, pd.Series(1.0, index=extra, name=STOCK)]).sort_index()
+
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            _header(joined, {STOCK: widened, BOND: bond}, RISK_FREE)
+        text = buffer.getvalue()
+
+        assert f"{len(joined) + 4:,} of them inside the joined span" in text
+        assert "the join dropped 4" in text
+        # The bond leg is untouched, so the two lines cannot both be coming
+        # from one constant.
+        assert "the join dropped 0" in text
+
+    def test_the_default_report_carries_no_window_off_the_reproduction(self, printed) -> None:
+        """A run given no window prints the three declared ones and stops.
+
+        `run` builds the extra section only when a bound is passed, and a
+        mutation making it unconditional added a fourth section covering the
+        whole span, on in-sample weights, labelled as a reader's own request.
+        """
+        assert "This window is not one of the three declared above" not in printed
+        assert "the window you asked for" not in printed
+        assert len(re.findall(r"^--- ", printed, flags=re.MULTILINE)) == len(WINDOWS)
+
+    def test_the_preamble_says_the_three_windows_were_declared_in_advance(self, printed) -> None:
+        """All three sentences, because a mutation blanked the third and nothing fell."""
+        assert "declared on issue 15 before any number existed" in printed
+        assert "the Federal Reserve's first increase of the cycle, 2022-03-16" in printed
+        assert "All three print every run, so no window here was chosen after its" in printed
+        assert "chosen after its ranking was seen" in printed
+
+
+class TestTheConstantsTheModuleClaimsItShares:
+    """Two claims the module makes about its own numbers, held rather than read."""
+
+    def test_the_window_floor_is_the_one_the_other_replications_use(self) -> None:
+        """30 trading days, pinned to the value and to its sibling.
+
+        The module docstring says this is the floor `chan.pair_cointegration`
+        and `chan.kelly_leverage` already use. Without the literal here, moving
+        it moves the refusal, the test that drives the refusal and the message
+        the refusal prints, all together, and nothing says the claim stopped
+        being true. `chan.pair_cointegration` spells its own as a bare 30
+        rather than a constant, so only the other one can be compared directly.
+        """
+        from chan.kelly_leverage import MIN_TRADING_DAYS as KELLY_FLOOR
+
+        assert MIN_TRADING_DAYS == 30
+        assert MIN_TRADING_DAYS == KELLY_FLOOR
+
+    def test_the_ratio_band_includes_its_own_endpoints(self) -> None:
+        """A rounding band, so a ratio landing exactly on a bound is inside it.
+
+        No measured ratio lands there, which is why the inclusivity was
+        undeclared and a mutation to it survived. It is a rounding interval
+        rather than a measurement, so inclusive is the reading, and stating it
+        costs one case.
+        """
+        low, high = BOOK_RATIO_BAND
+        for ratio in (low, high, BOOK_VOL_RATIO):
+            assert _legs_at(ratio, 1.0, 0.0).ratio_inside_the_band, ratio
+        for ratio in (low - 1e-9, high + 1e-9):
+            assert not _legs_at(ratio, 1.0, 0.0).ratio_inside_the_band, ratio
+
+
+class TestTheInversionTheReportIsBuiltToShow:
+    """The state where risk parity holds more equity than 60/40 does.
+
+    `WindowResult.parity_tilts_toward_stocks` guards a four-line paragraph
+    saying the book's correction points the other way in that window. No
+    committed window reaches it, so the suite only ever saw it return False and
+    a mutation moving its threshold to the bond leg survived. Driven here
+    against a constructed result instead, because the paragraph is the whole
+    reason the issue asked for the direction to be reported rather than assumed.
+    """
+
+    def _result(self, stock_weight: float) -> WindowResult:
+        legs = _legs_at(0.18, 0.18 * (1.0 - stock_weight) / stock_weight, 0.2)
+        allocation = decompose.__wrapped__ if hasattr(decompose, "__wrapped__") else None
+        assert allocation is None  # decompose is not wrapped; built by hand below
+        return WindowResult(
+            label="constructed",
+            legs=legs,
+            benchmark=Allocation("60/40", 0.6, 0.4, 0.9, 0.1, 0.11, 0.04, 0.36),
+            parity=Allocation(
+                "risk parity", stock_weight, 1.0 - stock_weight, 0.5, 0.5, 0.11, 0.04, 0.36
+            ),
+        )
+
+    @pytest.mark.parametrize(
+        ("stock_weight", "tilts"), [(0.2178, False), (0.5999, False), (0.6, False), (0.7, True)]
+    )
+    def test_the_threshold_is_the_benchmarks_own_equity_weight(self, stock_weight, tilts) -> None:
+        """Strictly above 0.60, so an allocation equal to 60/40 is not a tilt."""
+        assert self._result(stock_weight).parity_tilts_toward_stocks is tilts
+
+    def test_the_paragraph_prints_only_when_the_inversion_happens(self) -> None:
+        """Dead code as far as the suite went, until this drove it both ways."""
+        said = "Risk parity puts MORE weight on stocks here than 60/40 does"
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            _decomposition(self._result(0.7), against_the_book=False)
+        assert said in buffer.getvalue()
+
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            _decomposition(self._result(0.2178), against_the_book=False)
+        assert said not in buffer.getvalue()
