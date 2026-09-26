@@ -433,7 +433,7 @@
               <p class="aside-note">Same data, same library, one setting. Chan's own numbers were &minus;2.4 and &minus;3.2 &mdash; reproduced here.</p>
             </div>
 
-            <p>The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Each extra lag pulls the statistic toward zero, and six was enough to push Python's result across the line into &ldquo;not cointegrated.&rdquo; Pin the lag and all three agree.</p>
+            <p>The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into &ldquo;not cointegrated.&rdquo; More lags do not weaken the statistic steadily, though. Across zero to sixteen lags it rises and falls: &minus;2.41 at three lags, &minus;2.64 at four, &minus;2.99 at thirteen. What holds is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and all three agree.</p>
           </div>
         </div>
       </article>

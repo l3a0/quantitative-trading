@@ -411,9 +411,16 @@ class TestLagSettingDetour:
     three ran the same test under different defaults.
 
     ``statsmodels`` defaults to ``autolag='aic'``, which reads the lag count
-    off the data. On the Chapter 3 window it picks six, and each added lag
-    pulls the statistic toward zero. Six is enough to carry it back across the
-    10% line, which is the whole disagreement. MATLAB and R fix the lag at one.
+    off the data. On the Chapter 3 window it picks six, where MATLAB and R fix
+    the lag at one. Six carries the statistic back across the 10% line, which
+    is the whole disagreement.
+
+    The statistic does not drift steadily toward zero as lags are added. It
+    rises and falls: weaker at three lags than at four, and back near the line
+    at thirteen. What holds across the sweep is the verdict, which clears 10%
+    at zero and one lag and misses it at every count from two to sixteen. So
+    the lag setting decides the verdict, but not through a steady pull.
+    ``test_the_statistic_is_not_monotone_in_the_lag`` pins that shape.
 
     Without this pin the claim lives only in a module docstring, and a docstring
     is not an authority for a number.
@@ -445,6 +452,42 @@ class TestLagSettingDetour:
         assert used_lag == 6
         assert stat == pytest.approx(-2.2979, abs=5e-4)
         assert stat > EG_CRIT_N2["10%"]
+
+    def test_the_statistic_is_not_monotone_in_the_lag(self, spread: np.ndarray) -> None:
+        """Adding lags moves the statistic both ways, while the verdict holds
+        from two lags up.
+
+        Vintage: ``gld_20yr_prices_unadjusted.csv`` and
+        ``gdx_20yr_prices_unadjusted.csv``, yfinance raw closes, both downloaded
+        2026-08-27. Specification: the with-intercept residual spread over
+        2006-05-23 to 2007-05-23, 252 observations, tested by ``adfuller`` with
+        ``maxlag=k``, ``autolag=None`` and ``regression='n'``, so each lag count
+        is a fixed lag rather than a selection. The spread and the window are
+        row 4 of ``docs/replication-log.md``. The sweep was first run on
+        2026-09-26.
+        """
+
+        def stat_at(k: int) -> float:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                return float(adfuller(spread, maxlag=k, autolag=None, regression="n")[0])
+
+        sweep = {k: stat_at(k) for k in range(17)}
+
+        # Four lags reject more strongly than three, and thirteen more strongly
+        # than any count from two to twelve. A steady pull toward zero would
+        # forbid both.
+        assert sweep[3] == pytest.approx(-2.4067, abs=5e-4)
+        assert sweep[4] == pytest.approx(-2.6394, abs=5e-4)
+        assert sweep[13] == pytest.approx(-2.9872, abs=5e-4)
+        assert sweep[4] < sweep[3]
+        assert sweep[13] < min(sweep[k] for k in range(2, 13))
+
+        # The verdict is what the lag decides: zero and one lag clear the 10%
+        # line, and every count from two to sixteen misses it.
+        assert sweep[0] == pytest.approx(-3.2018, abs=5e-4)
+        assert all(sweep[k] < EG_CRIT_N2["10%"] for k in (0, 1))
+        assert all(sweep[k] > EG_CRIT_N2["10%"] for k in range(2, 17))
 
 
 # ============================================================
