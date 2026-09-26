@@ -272,7 +272,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 1977-01-03 to 2008-01-18 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 7 | −2.14 | `TestKoPepNonCointegration::test_fails_to_cointegrate` |
 | 9 | 1977-01-03 to 2008-01-18 | Pearson correlation of daily returns, returns divided by the earlier price, two-sided significance on n−2 degrees of freedom | same two files as row 7 | 0.48492, with t = 49.0707 | `TestKoPepNonCointegration::test_returns_are_correlated` |
 | 10 | 2006-06-19 to 2026-06-16 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | `gld_20yr_prices.csv`, downloaded 2026-06-16, and `gdx_20yr_prices.csv`, downloaded 2026-08-27, both Yahoo dividend-adjusted. Two files and two dates, so naming one of them cannot re-derive the row | −1.45, with a half-life of 833.5 | `TestGldGdxReproduction::test_full_span_fails_to_reject` |
-| 11 | 2006-05-23 to 2007-05-23 | the same residual spread as row 4, tested twice: once at `autolag='aic'`, which picks 6 lags, and once at the fixed lag of 1 that MATLAB and R use | same two files as row 1 | −2.2979 at 6 lags and −3.0875 at 1 lag | `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict` and `::test_fixed_lag_reproduces_the_book` |
+| 11 | 2006-05-23 to 2007-05-23 | the same residual spread as row 4, tested twice: once at `autolag='aic'`, which picks 6 lags, and once at the fixed lag of 1 that MATLAB and R use. A sweep behind it repeats the fixed-lag test at every lag from 0 to 16 | same two files as row 1 | −2.2979 at 6 lags and −3.0875 at 1 lag. The sweep clears −3.04 only at 0 and 1 lags | `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict` and `::test_fixed_lag_reproduces_the_book`, with `::test_the_statistic_is_not_monotone_in_the_lag` pinning the fixed-lag sweep from 0 to 16 |
 
 ### The verdicts
 
@@ -306,9 +306,11 @@ Four things, in the order of how much they cost to learn.
 3. **Chan's conclusion about Python is refuted by his own numbers.** Row 11 is
    the most useful verdict here. His −2.4 and his −3.2 both reproduce, from one
    library, on one window, on one spread. What separates them is
-   `autolag='aic'` picking six lags where MATLAB and R fix one, and each added
-   lag pulls the statistic toward zero. A conclusion about a library turns out
-   to be a conclusion about a default.
+   `autolag='aic'` picking six lags where MATLAB and R fix one. The statistic
+   does not weaken steadily as lags are added, since it is more negative at
+   four lags than at three. The verdict is what holds: zero or one lag clears
+   the 10% line and every count from two to sixteen misses it. A conclusion about
+   a library turns out to be a conclusion about a default.
 4. **The relationship itself has expired.** Row 10 is not a replication and is
    the reason the entry does not end on a match.
 
@@ -360,7 +362,8 @@ row computes.
   of row 4. The `autolag='aic'` run drops five more to its six lags and has
   245, which the suite does not assert, because
   `test_the_default_lag_choice_flips_the_verdict` pins the lag and the statistic
-  and discards the count.
+  and discards the count. The sweep drops one observation per lag, from 251
+  at 0 lags to 235 at 16, and the suite does not assert those counts either.
 
 **Which sense of verdict.** The same run prints `Verdict: REJECTS the
 no-cointegration null`, which is the statistical sense: what the test concluded

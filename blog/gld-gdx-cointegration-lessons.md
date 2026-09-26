@@ -70,7 +70,7 @@ Chan hit the same fork and drew the opposite lesson. His Python test disagreed w
 
 Same data, same library, one setting. Chan's own numbers were −2.4 and −3.2, reproduced here.
 
-The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Each extra lag pulls the statistic toward zero, and six was enough to push Python's result across the line into "not cointegrated." Pin the lag and all three agree.
+The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into "not cointegrated." More lags do not weaken the statistic steadily, though. Across zero to sixteen lags it rises and falls: −2.41 at three lags, −2.64 at four, −2.99 at thirteen. What holds is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and all three agree.
 
 ### 6. Cointegration is a property of a window, not a pair
 
