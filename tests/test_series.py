@@ -835,7 +835,7 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
 
 
 class TestTheRefusalReachesAnOperatorAsALine:
-    """Rule 9. Both entry points that reach a vintage, not only the one measured.
+    """Rule 9. Every entry point that reaches the pair, not only the one measured.
 
     ``main`` takes no data directory, because it is a command line rather than a
     library call, so these point the default at a temporary tree. That is the
@@ -880,6 +880,21 @@ class TestTheRefusalReachesAnOperatorAsALine:
         monkeypatch.setattr(regime_figure, "FIGURES_DIR", tmp_path)
         with pytest.raises(SystemExit) as stopped:
             regime_figure.main()
+
+        message = str(stopped.value)
+        assert "gld_20yr_prices_unadjusted.csv" in message
+        assert "\n" not in message
+
+    def test_the_residual_figure_command_prints_a_line(
+        self, broken: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The same case for the second figure, whose ``main`` also writes a
+        committed image once it gets past the refusal."""
+        from chan import lag_residual_figure
+
+        monkeypatch.setattr(lag_residual_figure, "FIGURES_DIR", tmp_path)
+        with pytest.raises(SystemExit) as stopped:
+            lag_residual_figure.main()
 
         message = str(stopped.value)
         assert "gld_20yr_prices_unadjusted.csv" in message
@@ -961,6 +976,14 @@ class TestTheDataDirectoryThreadsAllTheWayDown:
 
         with pytest.raises(VintageUnavailable):
             make_regime_figure(out=tmp_path / "figure.png", data_dir=data_dir)
+
+    def test_the_residual_figure_reads_the_directory_it_was_handed(
+        self, data_dir: Path, tmp_path: Path
+    ) -> None:
+        from chan.lag_residual_figure import make_lag_residual_figure
+
+        with pytest.raises(VintageUnavailable):
+            make_lag_residual_figure(out=tmp_path / "figure.png", data_dir=data_dir)
 
     def test_a_reader_pointed_elsewhere_refuses_rather_than_reaching_the_committed_data(
         self, data_dir: Path

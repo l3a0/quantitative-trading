@@ -1,4 +1,4 @@
-"""The pins for the one committed image.
+"""The pins for the regime map, the figure the essay carries.
 
 A figure nothing regenerates is an artifact nobody can check, which is the
 objection ``docs/design.md`` raises against committing one. The generator came

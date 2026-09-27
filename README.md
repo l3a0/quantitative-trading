@@ -232,6 +232,19 @@ show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
 `TestGldGdxChanArchive` is where it lives.
 
+The residual check behind the lag setting has a figure of its own. It draws
+what each ADF lag count leaves in the residuals on the Chapter 3 window, which
+is the evidence for which lag count the test is entitled to, and Entry 1 of
+[docs/replication-log.md](docs/replication-log.md) embeds it.
+[src/chan/lag_residual_figure.py](src/chan/lag_residual_figure.py) draws it
+from the committed vintages, and
+[tests/test_lag_residual_figure.py](tests/test_lag_residual_figure.py) holds
+the numbers behind it rather than its bytes:
+
+```bash
+uv run python -m chan.lag_residual_figure
+```
+
 ## The write-up
 
 [blog/gld-gdx-cointegration-lessons.md](blog/gld-gdx-cointegration-lessons.md)
@@ -326,7 +339,7 @@ uv run pytest
 ```
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
-needs it. It is there so the one committed figure can be redrawn and checked.
+needs it. It is there so the two committed figures can be redrawn and checked.
 
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a

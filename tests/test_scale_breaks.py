@@ -203,8 +203,8 @@ def committed_copy(tmp_path: Path) -> Path:
 def halved(committed_copy: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """The committed tree with one GLD close halved, pointed at by the default.
 
-    ``gld_20yr_prices_unadjusted.csv`` is the leg both entry points read, so one
-    edit reaches the replication and the figure. ``main`` takes no data
+    ``gld_20yr_prices_unadjusted.csv`` is the leg every entry point reads, so one
+    edit reaches the replication and both figures. ``main`` takes no data
     directory, because it is a command line rather than a library call, so this
     moves the default the way ``tests/test_series.py`` does for the same reason.
     """
@@ -511,7 +511,7 @@ class TestAWindowThatCrossesABreakStops:
 
 
 class TestTheRefusalIsAType:
-    """Rule 6. Caught by both ``main`` functions, and told apart from the other refusal.
+    """Rule 6. Caught by every ``main`` that reads the pair, and told apart from the other refusal.
 
     A vintage being unavailable and a window crossing a break are two problems
     with two fixes. ``chan.vintage`` already argues that sharing an exception
@@ -555,6 +555,22 @@ class TestTheRefusalIsAType:
         monkeypatch.setattr(regime_figure, "FIGURES_DIR", tmp_path)
         with pytest.raises(SystemExit) as stopped:
             regime_figure.main()
+
+        message = str(stopped.value)
+        assert "gld_20yr_prices_unadjusted.csv" in message
+        assert "2007-01-03" in message
+        assert "\n" not in message
+
+    def test_the_residual_figure_command_prints_a_line(
+        self, halved: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The halved day, 2007-01-03, sits inside the Chapter 3 window this
+        figure reads, so the refusal reaches it as well."""
+        from chan import lag_residual_figure
+
+        monkeypatch.setattr(lag_residual_figure, "FIGURES_DIR", tmp_path)
+        with pytest.raises(SystemExit) as stopped:
+            lag_residual_figure.main()
 
         message = str(stopped.value)
         assert "gld_20yr_prices_unadjusted.csv" in message

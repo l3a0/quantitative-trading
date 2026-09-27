@@ -13,8 +13,9 @@ name through this module rather than binding it at import, so the switch stays
 one switch. Which file inside that tree a run reads is not decided here at all:
 :mod:`chan.series` asks ``data/vintages.jsonl`` for the path.
 
-``FIGURES_DIR`` does the same for the one committed image, which
-:mod:`chan.regime_figure` draws from those same vintages.
+``FIGURES_DIR`` does the same for the committed figures, which
+:mod:`chan.regime_figure` and :mod:`chan.lag_residual_figure` draw from those
+same vintages.
 
 **Where this came from.** ``common/paths.py`` in the sibling
 ``trading-strategies`` repo, at commit ``b27222b``, landed here in ``ce3f757``.
