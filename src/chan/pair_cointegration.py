@@ -124,6 +124,8 @@ from ithildincore.timeseries import (
 )
 from numpy.typing import NDArray
 from scipy import stats
+from statsmodels.stats.diagnostic import acorr_breusch_godfrey
+from statsmodels.tsa.stattools import acf, adfuller
 
 from chan.series import (
     WindowCrossesScaleBreak,
@@ -271,6 +273,69 @@ def rolling_cointegration(
         adf_stat=np.array(adf, dtype=np.float64),
         origin_hedge=np.array(hedge, dtype=np.float64),
         half_life=np.array(half, dtype=np.float64),
+    )
+
+
+#: How many residual autocorrelations :func:`residual_check` reads, and the
+#: horizon its Breusch-Godfrey test covers. Ten trading days is two weeks and
+#: reaches past the lag-6 autocorrelation the Chapter 3 fits leave behind.
+RESIDUAL_LAGS = 10
+
+
+@dataclass(frozen=True)
+class ResidualCheck:
+    """One fixed-lag ADF fit and what it leaves in its residuals."""
+
+    lags: int
+    adf_stat: float
+    nobs: int
+    autocorrelation: NDArray[np.float64]  # residual lags 1..RESIDUAL_LAGS
+    breusch_godfrey_p: float
+
+    @property
+    def band(self) -> float:
+        """The half-width of the white-noise band, ``1.96/√n``.
+
+        It is a pointwise band. Each bar has a 5% chance of leaving it under
+        white noise, so ten bars leave at least one outside about 40% of the
+        time, and a single bar outside says less than it looks.
+        """
+        return 1.96 / float(np.sqrt(self.nobs))
+
+    @property
+    def outside(self) -> list[int]:
+        """The residual lags whose autocorrelation falls outside the band."""
+        return [lag for lag, r in enumerate(self.autocorrelation, 1) if abs(r) > self.band]
+
+
+def residual_check(
+    spread: NDArray[np.float64], lags: int, horizon: int = RESIDUAL_LAGS
+) -> ResidualCheck:
+    """Fit the ADF at a fixed ``lags`` with no deterministic term, and test its residuals.
+
+    The ADF critical values assume the fitted regression leaves residuals with
+    no autocorrelation, so this asks whether a given lag count earned them.
+    ``autolag=None`` makes ``lags`` a fixed count rather than a ceiling for a
+    search. The statistic is the one :func:`adf_tstat` computes, reached
+    through ``statsmodels`` because the check needs the fitted regression.
+
+    Breusch-Godfrey is the test rather than Ljung-Box because the ADF
+    regression carries lagged differences of the spread on its right-hand
+    side, which is the case Breusch-Godfrey is built for. Its verdict depends
+    on ``horizon``: a horizon shorter than the lag of the leftover
+    autocorrelation cannot see it.
+    """
+    fit = adfuller(
+        spread, maxlag=lags, autolag=None, regression="n", regresults=True, result_object=True
+    )
+    fitted = fit.resstore.resols
+    bg = acorr_breusch_godfrey(fitted, nlags=horizon, result_object=True)
+    return ResidualCheck(
+        lags=lags,
+        adf_stat=float(fit.statistic),
+        nobs=int(fit.nobs),
+        autocorrelation=acf(fitted.resid, nlags=RESIDUAL_LAGS)[1:],
+        breusch_godfrey_p=float(bg.lmpval),
     )
 
 

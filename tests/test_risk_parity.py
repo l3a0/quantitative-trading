@@ -908,9 +908,10 @@ class TestTheRefusals:
 
         It is raised inside the join rather than here, so a module that reads a
         pair and forgets it lets the refusal through as a traceback while every
-        sibling module catches it. `chan.pair_cointegration.main` and
-        `chan.regime_figure.main` both name it, and this case is what stops
-        this module being the one that does not.
+        sibling module catches it. `chan.pair_cointegration.main`,
+        `chan.regime_figure.main` and `chan.lag_residual_figure.main` all name
+        it, and this case is what stops this module being the one that does
+        not.
         """
 
         def raise_it(*args, **kwargs):

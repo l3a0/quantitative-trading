@@ -3,32 +3,33 @@
 The augmented Dickey-Fuller test adds lagged differences of the spread so that
 what is left over has no autocorrelation. Its critical values assume exactly
 that, so a lag count that leaves autocorrelation behind reads its statistic
-against a table that does not apply, and the usual consequence is a test that
-rejects too often. ``TestLagSettingDetour`` in
+against a table that does not apply, and the test's real rejection rate is not
+the one it states. ``TestLagSettingDetour`` in
 ``tests/test_pair_cointegration.py`` pins the statistic at every lag count from
 0 to 16 and shows that the lag count decides the verdict. This figure asks
 which of those lag counts the test is entitled to.
 
-Each panel is one fixed-lag ADF fit on the Chapter 3 residual spread. The bars
-are the autocorrelations of that fit's residuals at lags 1 to
-:data:`RESIDUAL_LAGS`, the shaded band is ``±1.96/√n`` around zero, and a bar
-outside it is drawn in the breakdown colour with its value printed. Each
-panel's title carries the ADF statistic and the p-value of a Breusch-Godfrey
-test on the same residuals. That test is used rather than Ljung-Box because
-the ADF regression has lagged differences on its right-hand side, which is the
-case Breusch-Godfrey is built for and Ljung-Box is not.
+Each panel is one fixed-lag ADF fit on the Chapter 3 residual spread, checked
+by :func:`chan.pair_cointegration.residual_check`. The bars are the
+autocorrelations of that fit's residuals at lags 1 to
+:data:`~chan.pair_cointegration.RESIDUAL_LAGS`, the shaded band is
+``±1.96/√n`` around zero, and a bar outside it is drawn in the breakdown colour
+with its value printed. Each panel's title carries the ADF statistic and the
+p-value of a Breusch-Godfrey test on the same residuals.
 
 The picture shows which lag is missing, which a p-value cannot. A single
 autocorrelation at lag 6 survives every fit short of six lags, and the fit at
-one lag, which is MATLAB's and R's default and the book's specification, fails
-the Breusch-Godfrey test at 10%. This is exploratory: the sample was spent
-looking, and a lag-6 autocorrelation that sits just outside the band on 252
-days is what a different vintage could move inside it.
+one lag, which is the lag Chan passed to ``cadf`` and the book's
+specification, fails the Breusch-Godfrey test at 10%. This is exploratory: the
+sample was spent looking, the band is pointwise, and a lag-6 autocorrelation
+that sits just outside it on 250 observations is what a different vintage
+could move inside.
 
 It reads the committed vintages through the same code the replication uses, so
-it fetches nothing. ``tests/test_lag_residual_figure.py`` pins both what
-:func:`residual_check` computes and that the figure draws it. Regenerate after
-any change that moves either::
+it fetches nothing. ``TestResidualCheck`` in
+``tests/test_pair_cointegration.py`` pins what the check computes, and
+``tests/test_lag_residual_figure.py`` pins that this module draws it.
+Regenerate after any change that moves either::
 
     uv run python -m chan.lag_residual_figure
 
@@ -40,17 +41,19 @@ The idea is the same and none of the code carries over.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from ithildincore.timeseries import EG_CRIT_N2
 from matplotlib.figure import Figure
-from numpy.typing import NDArray
-from statsmodels.stats.diagnostic import acorr_breusch_godfrey
-from statsmodels.tsa.stattools import acf, adfuller
 
-from chan.pair_cointegration import BOOK_START, BOOK_TRAIN_END, engle_granger
+from chan.pair_cointegration import (
+    BOOK_START,
+    BOOK_TRAIN_END,
+    RESIDUAL_LAGS,
+    engle_granger,
+    residual_check,
+)
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import GROUND, INK, LOST, MUTED, RULE, SURFACE
 from chan.series import WindowCrossesScaleBreak, aligned_closes, vintage_line
@@ -62,51 +65,6 @@ FIGURE_NAME = "adf_residual_autocorrelation.png"
 #: and 3 are the two nearest that do not, and 6 is the first whose residuals
 #: pass, which is also the count ``autolag='aic'`` picks.
 LAG_COUNTS = (0, 1, 2, 3, 6)
-
-#: How many residual autocorrelations each panel draws and the Breusch-Godfrey
-#: test covers. Ten trading days is two weeks and reaches past the lag-6 spike.
-RESIDUAL_LAGS = 10
-
-
-@dataclass(frozen=True)
-class ResidualCheck:
-    """One fixed-lag ADF fit and what it leaves in its residuals."""
-
-    lags: int
-    adf_stat: float
-    nobs: int
-    autocorrelation: NDArray[np.float64]  # residual lags 1..RESIDUAL_LAGS
-    breusch_godfrey_p: float
-
-    @property
-    def band(self) -> float:
-        """The half-width of the white-noise band, ``1.96/√n``."""
-        return 1.96 / float(np.sqrt(self.nobs))
-
-    @property
-    def outside(self) -> list[int]:
-        """The residual lags whose autocorrelation falls outside the band."""
-        return [lag for lag, r in enumerate(self.autocorrelation, 1) if abs(r) > self.band]
-
-
-def residual_check(spread: NDArray[np.float64], lags: int) -> ResidualCheck:
-    """Fit the ADF at a fixed ``lags`` with no deterministic term, and test its residuals.
-
-    ``autolag=None`` makes ``lags`` a fixed count rather than a ceiling for a
-    search, which is the specification ``TestLagSettingDetour`` sweeps.
-    """
-    fit = adfuller(
-        spread, maxlag=lags, autolag=None, regression="n", regresults=True, result_object=True
-    )
-    ols = fit.resstore.resols
-    bg = acorr_breusch_godfrey(ols, nlags=RESIDUAL_LAGS, result_object=True)
-    return ResidualCheck(
-        lags=lags,
-        adf_stat=float(fit.statistic),
-        nobs=int(fit.nobs),
-        autocorrelation=acf(ols.resid, nlags=RESIDUAL_LAGS)[1:],
-        breusch_godfrey_p=float(bg.lmpval),
-    )
 
 
 def _signed(x: float, places: int) -> str:
@@ -213,7 +171,8 @@ def main() -> None:
     try:
         figure = make_lag_residual_figure()
     except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
-        # The same two refusals the other two commands turn into a line.
+        # The same two refusals every other command that reads the pair turns
+        # into a line.
         raise SystemExit(str(refusal)) from refusal
     for entry in figure.vintages:
         print(f"{entry.symbol} vintage: {vintage_line(entry)}")

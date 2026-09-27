@@ -141,11 +141,11 @@ Each one earns its place by answering an objection the GLD/GDX gap invites.
    MATLAB and R fix it at one, and six lags carry the statistic back across the
    10% line. A conclusion about a library turned out to be a conclusion about a
    default. Which lag count the test is entitled to is a different question,
-   and a residual check answers it rather than a sweep. That check is the
-   second figure in `docs/figures`, added on the owner's request on
-   2026-09-27. It earns the place a number cannot take, because it shows which
-   lag is missing, and it costs two copies rather than the regime map's three,
-   one file and one embed in
+   and an exploratory residual check bears on it where a sweep cannot. That
+   check is the second figure in `docs/figures`, added on the owner's request
+   on 2026-09-27. It earns the place a number cannot take, because it shows
+   which lag is missing, and it costs two copies rather than the regime map's
+   three, one file and one embed in
    [docs/replication-log.md](replication-log.md), since nothing inlines it.
 
 A fourth piece of machinery came with them. The rolling-window scan in

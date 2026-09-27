@@ -931,7 +931,7 @@ class TestTheRefusalReachesAnOperatorAsALine:
 
 
 class TestTheDataDirectoryThreadsAllTheWayDown:
-    """Rule 11. Four functions sit between a test and ``chan.paths.DATA_DIR``.
+    """Rule 11. Five functions sit between a test and ``chan.paths.DATA_DIR``.
 
     Issue 1 chose the argument over monkeypatching a module constant for the
     writer, on the grounds that the alternative is a test writing into the
@@ -976,6 +976,14 @@ class TestTheDataDirectoryThreadsAllTheWayDown:
 
         with pytest.raises(VintageUnavailable):
             make_regime_figure(out=tmp_path / "figure.png", data_dir=data_dir)
+
+    def test_the_residual_figure_takes_one(self, committed_copy: Path, tmp_path: Path) -> None:
+        from chan.lag_residual_figure import make_lag_residual_figure
+
+        out = tmp_path / "figure.png"
+        make_lag_residual_figure(out=out, data_dir=committed_copy)
+
+        assert out.exists()
 
     def test_the_residual_figure_reads_the_directory_it_was_handed(
         self, data_dir: Path, tmp_path: Path

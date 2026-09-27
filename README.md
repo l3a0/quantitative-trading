@@ -234,12 +234,13 @@ a number rather than a run someone would repeat, so
 
 The residual check behind the lag setting has a figure of its own. It draws
 what each ADF lag count leaves in the residuals on the Chapter 3 window, which
-is the evidence for which lag count the test is entitled to, and Entry 1 of
-[docs/replication-log.md](docs/replication-log.md) embeds it.
-[src/chan/lag_residual_figure.py](src/chan/lag_residual_figure.py) draws it
+bears on which lag count the test is entitled to. The result is exploratory,
+and Entry 1 of [docs/replication-log.md](docs/replication-log.md) embeds it
+and says what it can support. `TestResidualCheck` pins the numbers,
+[src/chan/lag_residual_figure.py](src/chan/lag_residual_figure.py) draws them
 from the committed vintages, and
 [tests/test_lag_residual_figure.py](tests/test_lag_residual_figure.py) holds
-the numbers behind it rather than its bytes:
+that the picture shows them rather than its bytes:
 
 ```bash
 uv run python -m chan.lag_residual_figure

@@ -1034,7 +1034,8 @@ class TestTheFigureHasThreeCopies:
             (path, embed)
             for path in markdown_files(REPO_ROOT)
             for embed in re.findall(
-                r"\]\(([^)\s]*figures/[^)\s]+\.png)\)", blank_fences(path.read_text("utf-8"))
+                r"!\[[^\]]*\]\(([^)\s]*figures/[^)\s]+\.png)\)",
+                blank_fences(path.read_text("utf-8")),
             )
         ]
         assert {path.name for path, _ in embeds} >= {

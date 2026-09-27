@@ -346,44 +346,57 @@ because the verdict rule turns on them.
 Row 11 shows that the lag count decides the verdict. It does not say which lag
 count to believe. The ADF critical values assume the fitted regression leaves
 residuals with no autocorrelation. A lag count that leaves some behind reads its
-statistic against a table that does not apply, and the usual result is a test
-that rejects too often.
+statistic against a table that does not apply, so the test no longer rejects at
+the rate it states. Which way the error runs depends on what is left behind. On
+this spread, the fits with fewer lags are the ones that reject.
 
 This check is exploratory. It spent the Chapter 3 sample looking, after the
 sweep behind row 11 had already been seen.
 
 Each fixed-lag fit on the row 4 spread had its residuals checked at lags 1 to
-10, in two ways.
+10, in two ways. Passing means both.
 
 1. Each autocorrelation against a white-noise band of ±1.96/√n, which is
-   ±0.124 at one lag.
-2. A Breusch-Godfrey test over the same ten lags. It replaces Ljung-Box here
-   because the ADF regression carries lagged differences on its right-hand
-   side, which is the case Breusch-Godfrey is built for.
+   ±0.1240 at one lag. The band is pointwise. Under white noise each bar has a
+   5% chance of leaving it, so one of ten bars outside is common and says less
+   than it looks.
+2. A Breusch-Godfrey test over the same ten lags, at the 10% cut. It replaces
+   Ljung-Box here because the ADF regression carries lagged differences on its
+   right-hand side, which is the case Breusch-Godfrey is built for.
 
 [![Five panels of residual autocorrelation at lags 1 to 10, one panel each for ADF fits at 0, 1, 2, 3 and 6 lags. In the first four panels a bar at lag 6 rises above the shaded white-noise band, and in the panel for 2 lags a bar at lag 3 falls below it. In the panel for 6 lags every bar sits inside the band.](figures/adf_residual_autocorrelation.png)](figures/adf_residual_autocorrelation.png)
 
-An autocorrelation at lag 6, between 0.15 and 0.18, survives every fit from
-zero lags to five. Six lags is the first count whose residuals pass both
-checks, with a Breusch-Godfrey p of 0.840, and at six lags the statistic is
-−2.2979, which does not reject. At one lag, which is the book's specification
-and the one row 4 reproduces, the Breusch-Godfrey p is 0.042. So the fit behind
-Chan's better-than-90% verdict fails the residual check, and the fit
-`autolag='aic'` picks is the one that passes it.
+An autocorrelation at lag 6 of 0.15 to 0.18 survives every fit from zero lags
+to five. Six lags is the first count whose residuals pass both checks, with a
+Breusch-Godfrey p of 0.8395, and at six lags the statistic is −2.2979, which
+does not reject. At one lag, which is the book's specification and the one row 4
+reproduces, the Breusch-Godfrey p is 0.0421. So the fit behind Chan's
+better-than-90% verdict fails the residual check, and the fit `autolag='aic'`
+picks is the one that passes it.
+
+The ten-lag horizon is a choice, so the check was repeated at every horizon
+from one to ten. The one-lag fit fails at every horizon from two up, and six
+lags pass at all ten. Zero lags is the fit whose verdict turns on the choice,
+failing only at horizons six and seven.
 
 Row 4's verdict stands, because it asks whether Chan's number reproduces under
 his specification, and it does. What changes is what that number can support.
-On this vintage the evidence leans against cointegration on the Chapter 3
-window, and the Python default Chan distrusted was the better-specified test.
-Two things keep that a lean rather than a verdict.
+At the first lag count whose residuals pass, the test does not reject, so the
+Chapter 3 window gives no evidence of cointegration on this vintage. That is an
+absence of evidence rather than evidence against. The ADF has little power on
+245 observations, and a failure to reject is what a weakly cointegrated pair
+would also produce. Two more things keep the result small.
 
-1. At one lag the lag-6 autocorrelation is 0.17 against a band of 0.124, on
+1. At one lag the lag-6 autocorrelation is 0.1668 against a band of 0.1240, on
    250 observations, so a different vintage could move it inside.
-2. The two checks disagree at zero lags, where Breusch-Godfrey passes at 0.119
-   and the lag-6 bar still sits outside the band.
+2. At the 5% cut, Breusch-Godfrey alone passes the fits at zero, two and five
+   lags as well, and still fails one lag. What keeps those three out is the
+   lag-6 bar outside the band, and the band is the pointwise check.
 
-`tests/test_lag_residual_figure.py` pins every number in this section, and
-`src/chan/lag_residual_figure.py` redraws the figure.
+`TestResidualCheck` in `tests/test_pair_cointegration.py` pins every number in
+this section. `src/chan/lag_residual_figure.py` redraws the figure, and
+`tests/test_lag_residual_figure.py` holds that it draws what the check
+computes.
 
 ### Two counts and two senses of one word
 

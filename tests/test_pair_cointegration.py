@@ -29,10 +29,14 @@ replications themselves.
 6. ``TestLagSettingDetour``, the third GLD/GDX result in the book. Chan reports
    that Python disagreed with MATLAB and R on the verdict and concludes Python
    cannot be trusted for this. The disagreement is a setting, and this pins it.
-7. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
+7. ``TestResidualCheck``, which asks which of those settings the test is
+   entitled to, by checking what each lag count leaves in the residuals.
+   Exploratory, and ``docs/figures/adf_residual_autocorrelation.png`` is the
+   picture of it.
+8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
    premise one download date can show: GDX's adjusted 2006 closes sit below
    its raw ones, and GLD's do not move at all.
-8. ``TestReportNamesItsBasis``, which holds the lines of the report that say
+9. ``TestReportNamesItsBasis``, which holds the lines of the report that say
    which vintage produced the numbers above them. The basis line names which
    kind of series and the vintage lines name which file, which vendor and which
    date, read off the manifest entry the reader resolved.
@@ -80,9 +84,11 @@ from chan.pair_cointegration import (
     BOOK_END,
     BOOK_START,
     BOOK_TRAIN_END,
+    RESIDUAL_LAGS,
     CointResult,
     RollingCoint,
     engle_granger,
+    residual_check,
     return_correlation,
     rolling_cointegration,
     run,
@@ -489,6 +495,128 @@ class TestLagSettingDetour:
         # line, and every count from two to sixteen misses it.
         assert all(sweep[k] < EG_CRIT_N2["10%"] for k in (0, 1))
         assert all(sweep[k] > EG_CRIT_N2["10%"] for k in range(2, 17))
+
+
+class TestResidualCheck:
+    """Which lag count the test is entitled to, read off the residuals.
+
+    ``TestLagSettingDetour`` shows the lag count decides the verdict. The ADF
+    critical values assume the fit leaves residuals with no autocorrelation,
+    so this checks each fixed-lag fit's residuals at lags 1 to 10, two ways: a
+    pointwise white-noise band of ``±1.96/√n``, and a Breusch-Godfrey test over
+    the same ten lags. Passing means both.
+
+    Exploratory. The sample was spent looking, after the sweep had been seen.
+
+    Vintage: ``gld_20yr_prices_unadjusted.csv`` and
+    ``gdx_20yr_prices_unadjusted.csv``, yfinance raw closes, both downloaded
+    2026-08-27. Specification: the with-intercept residual spread over
+    2006-05-23 to 2007-05-23, row 4 of ``docs/replication-log.md``, tested by
+    ``adfuller`` at a fixed lag count with ``regression='n'``. First run on
+    2026-09-26. ``tests/test_lag_residual_figure.py`` holds that the figure
+    draws these numbers, and repeats some of them on purpose, for the reason
+    ``tests/test_regime_figure.py`` gives.
+    """
+
+    #: Per lag count: observations, ADF statistic, Breusch-Godfrey p, and the
+    #: residual lags that fall outside the band.
+    PINNED = {
+        0: (251, -3.2018, 0.1193, [6]),
+        1: (250, -3.0875, 0.0421, [6]),
+        2: (249, -2.6402, 0.0714, [3, 6]),
+        3: (248, -2.4067, 0.0043, [6]),
+        4: (247, -2.6394, 0.0066, [6]),
+        5: (246, -2.1853, 0.0634, [6]),
+        6: (245, -2.2979, 0.8395, []),
+    }
+
+    @staticmethod
+    @pytest.fixture(scope="class")
+    def spread() -> np.ndarray:
+        df = aligned_closes("GLD", "GDX", start=BOOK_START, end=BOOK_TRAIN_END, unadjusted=True)
+        return engle_granger(df["GLD"].to_numpy(float), df["GDX"].to_numpy(float)).spread
+
+    @pytest.mark.parametrize("lags", sorted(PINNED))
+    def test_the_fit_and_its_residuals(self, spread: np.ndarray, lags: int) -> None:
+        nobs, stat, bg_p, outside = self.PINNED[lags]
+        check = residual_check(spread, lags)
+
+        assert check.nobs == nobs
+        assert check.adf_stat == pytest.approx(stat, abs=5e-5)
+        assert check.breusch_godfrey_p == pytest.approx(bg_p, abs=5e-5)
+        assert check.outside == outside
+        assert len(check.autocorrelation) == RESIDUAL_LAGS
+
+    @pytest.mark.parametrize("lags", sorted(PINNED))
+    def test_the_statistic_is_the_one_the_replication_computes(
+        self, spread: np.ndarray, lags: int
+    ) -> None:
+        """The check reaches the ADF through ``statsmodels`` because it needs
+        the fitted regression, and the replication reaches it through
+        ``ithildincore``. They have to be the same test, or the check reads
+        the residuals of a fit nobody reported."""
+        stat, _nobs = adf_tstat(spread, lags=lags, constant=False)
+        assert residual_check(spread, lags).adf_stat == pytest.approx(stat, abs=1e-10)
+
+    def test_the_band_at_the_books_lag_count(self, spread: np.ndarray) -> None:
+        assert residual_check(spread, 1).band == pytest.approx(0.1240, abs=5e-5)
+
+    def test_the_lag_six_autocorrelation_survives_until_six_lags(self, spread: np.ndarray) -> None:
+        at_six = [float(residual_check(spread, k).autocorrelation[5]) for k in range(7)]
+        assert at_six == pytest.approx(
+            [0.1631, 0.1668, 0.1764, 0.1546, 0.1551, 0.1477, 0.0100], abs=5e-5
+        )
+
+    def test_two_lags_also_leave_one_at_lag_three(self, spread: np.ndarray) -> None:
+        assert residual_check(spread, 2).autocorrelation[2] == pytest.approx(-0.1331, abs=5e-5)
+
+    def test_the_books_lag_count_fails_the_residual_check(self, spread: np.ndarray) -> None:
+        """One lag is the count behind Chan's better-than-90% verdict. The ADF
+        rejects there and the residuals fail Breusch-Godfrey at 10%."""
+        check = residual_check(spread, 1)
+        assert check.adf_stat < EG_CRIT_N2["10%"]
+        assert check.breusch_godfrey_p < 0.10
+
+    def test_which_horizons_the_breusch_godfrey_verdict_survives(self, spread: np.ndarray) -> None:
+        """The ten-lag horizon is a choice, so this asks what every horizon from
+        one to ten says at the 10% cut. The one-lag fit fails at every horizon
+        from two up, six lags pass at all ten, and zero lags is the fit whose
+        verdict turns on the choice, failing only at six and seven."""
+
+        def fails(k: int) -> list[int]:
+            return [
+                h
+                for h in range(1, RESIDUAL_LAGS + 1)
+                if residual_check(spread, k, horizon=h).breusch_godfrey_p < 0.10
+            ]
+
+        assert fails(1) == list(range(2, 11))
+        assert fails(6) == []
+        assert fails(0) == [6, 7]
+        assert residual_check(spread, 1, horizon=1).breusch_godfrey_p == pytest.approx(
+            0.1369, abs=5e-5
+        )
+
+    def test_at_five_percent_breusch_godfrey_alone_passes_more_fits(
+        self, spread: np.ndarray
+    ) -> None:
+        """The cut is a choice too. At 5% the test alone lets through zero, two
+        and five lags, still fails one, and leaves the band as what keeps the
+        first three out."""
+        passing = [k for k in range(7) if residual_check(spread, k).breusch_godfrey_p > 0.05]
+        assert passing == [0, 2, 5, 6]
+        assert all(residual_check(spread, k).outside == [6] for k in (0, 5))
+
+    def test_six_is_the_first_lag_count_whose_residuals_pass(self, spread: np.ndarray) -> None:
+        """Zero lags clears Breusch-Godfrey and not the band, which is why both
+        are asked. At six lags the test no longer rejects."""
+
+        def passes(k: int) -> bool:
+            check = residual_check(spread, k)
+            return check.breusch_godfrey_p > 0.10 and not check.outside
+
+        assert [passes(k) for k in range(7)] == [False] * 6 + [True]
+        assert residual_check(spread, 6).adf_stat > EG_CRIT_N2["10%"]
 
 
 # ============================================================
