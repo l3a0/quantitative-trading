@@ -9,8 +9,8 @@ The cross-document layer reads one document against another. A heading quoted
 in prose and an anchor written into a link both name a heading somewhere, and
 both stop resolving when the heading is renamed with nothing else noticing.
 
-The cross-surface layer is `TestTheFigureHasThreeCopies`. The one committed
-figure exists as a PNG, as a base64 copy inlined in the HTML essay, and as an
+The cross-surface layer is `TestTheFigureHasThreeCopies`. The essay's regime
+map exists as a PNG, as a base64 copy inlined in the HTML essay, and as an
 embed in the blog Markdown. Redrawing it updates one of the three, and nothing
 else in this repo would notice the other two.
 
@@ -1020,6 +1020,31 @@ class TestTheFigureHasThreeCopies:
         assert embeds, "the blog post embeds no figure, so this sweep checks nothing"
         for embed in embeds:
             assert (ESSAY_MD.parent / embed).resolve().is_file(), f"missing embed: {embed}"
+
+    def test_every_figure_any_markdown_file_embeds_exists(self) -> None:
+        """The blog is not the only surface that embeds a figure.
+
+        The replication log embeds the residual figure with a path relative to
+        ``docs/``, which the blog's pattern above never matches. A sweep keyed
+        on one document's path shape checks that document and nothing else.
+        """
+        import re
+
+        embeds = [
+            (path, embed)
+            for path in markdown_files(REPO_ROOT)
+            for embed in re.findall(
+                r"!\[[^\]]*\]\(([^)\s]*figures/[^)\s]+\.png)\)",
+                blank_fences(path.read_text("utf-8")),
+            )
+        ]
+        assert {path.name for path, _ in embeds} >= {
+            "gld-gdx-cointegration-lessons.md",
+            "replication-log.md",
+        }, "a surface that embeds a figure went unread, so this checks less than it says"
+        for path, embed in embeds:
+            target = (path.parent / embed).resolve()
+            assert target.is_file(), f"{path.relative_to(REPO_ROOT)} embeds missing {embed}"
 
     def test_no_prose_surface_names_a_line_number(self) -> None:
         """A prose reference names a symbol, which survives an edit.
