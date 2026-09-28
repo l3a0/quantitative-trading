@@ -403,6 +403,37 @@ class TestGldGdxChanArchive:
         yfinance data."""
         assert arch.adf_stat < EG_CRIT_N2["5%"]
 
+    def test_the_half_life_slope_is_not_the_adf_slope(self, arch: CointResult) -> None:
+        """Both regressions put the daily change on the lagged level, so their
+        slopes estimate the same reversion speed, and they are still two
+        numbers. The half-life regression carries a constant and no lagged
+        differences. The ADF regression at Chan's one lag carries a lagged
+        difference and no constant. Read as half-lives, the two slopes give
+        10.3 and 10.6 days.
+
+        Specification: the with-intercept residual spread over 2006-05-23 to
+        2007-11-30, 385 observations. The half-life slope is the one
+        ``ou_half_life`` fits, with a constant. The ADF slope is ``adfuller``
+        at ``maxlag=1``, ``autolag=None`` and ``regression='n'``, the fit
+        behind ``arch.adf_stat``. First pinned on 2026-09-28.
+        """
+        z = arch.spread
+        dz = np.diff(z)
+        lam = float(
+            np.linalg.lstsq(np.column_stack([z[:-1], np.ones(len(dz))]), dz, rcond=None)[0][0]
+        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            fit = adfuller(z, maxlag=1, autolag=None, regression="n", regresults=True)
+        gamma = float(fit[-1].resols.params[0])
+
+        assert lam == pytest.approx(-0.0672, abs=5e-5)
+        assert gamma == pytest.approx(-0.0654, abs=5e-5)
+        assert math.log(2) / -lam == pytest.approx(arch.half_life, abs=1e-9)
+        assert math.log(2) / -lam == pytest.approx(10.3, abs=0.05)
+        assert math.log(2) / -gamma == pytest.approx(10.6, abs=0.05)
+        assert float(fit[0]) == pytest.approx(arch.adf_stat, abs=1e-9)
+
 
 # ============================================================
 # Layer 6 -- the lag setting behind Chan's Python-vs-MATLAB detour
