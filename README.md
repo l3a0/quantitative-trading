@@ -236,7 +236,9 @@ The residual check behind the lag setting has a figure of its own. It draws
 what each ADF lag count leaves in the residuals on the Chapter 3 window, which
 bears on which lag count the test is entitled to. The result is exploratory,
 and Entry 1 of [docs/replication-log.md](docs/replication-log.md) embeds it
-and says what it can support. `TestResidualCheck` pins the numbers,
+and says what it can support. `TestResidualCheckChapter7` runs the same check
+on the Chapter 7 window, which has no figure. `TestResidualCheck` pins the
+numbers,
 [src/chan/lag_residual_figure.py](src/chan/lag_residual_figure.py) draws them
 from the committed vintages, and
 [tests/test_lag_residual_figure.py](tests/test_lag_residual_figure.py) holds

@@ -393,18 +393,40 @@ would also produce. Two more things keep the result small.
    lags as well, and still fails one lag. What keeps those three out is the
    lag-6 bar outside the band, and the band is the pointwise check.
 
-The same check on the Chapter 7 window, run on Chan's own files over
-2006-05-23 to 2007-11-30, gives the same caveat from a different lag. At one
-lag the statistic is −3.5171, which rejects at 5%. The residuals fail both
-halves of the check there: a Breusch-Godfrey p of 0.0337, and an
-autocorrelation of 0.1435 at lag 10 against a band of 0.1002. No lag count
-from zero to eight passes, because every one leaves the lag-10 autocorrelation
-outside the band. Six and seven lags clear Breusch-Godfrey, at 0.3035 and
-0.1082, and by then the test no longer rejects at 10%. This check is
-exploratory too, and it was run after the Chapter 3 result had been seen.
+The same check on the Chapter 7 window, 2006-05-23 to 2007-11-30, gives a
+different answer. It ran on two vintages, the yfinance raw closes behind row 3
+and Chan's own files, and the two agree on the shape. At one lag, which rejects
+at 5% on both, the residuals fail both halves of the check. The Breusch-Godfrey
+p is 0.0325 on the yfinance closes and 0.0337 on Chan's files, and the
+autocorrelation at lag 10 is 0.1443 and 0.1435 against a band of 0.1002. Every
+lag count from zero to nine leaves that lag-10 autocorrelation outside the
+band. Ten lags is the first count that passes, with a Breusch-Godfrey p of
+0.3861 and 0.3896, and there the test still rejects. On the yfinance closes the
+statistic is −3.2965, which clears 10% and misses 5% under both tables. On
+Chan's files it is −3.3580, which clears `EG_CRIT_N2`'s −3.34 by 0.018 and
+misses the −3.380 his MATLAB printed by 0.022. Its nearness to Chan's printed
+−3.357 is a coincidence, since that figure is a one-lag fit on an earlier
+vintage.
+
+The lag-10 bar that decides this is the last one the band reads, so the count
+of bars is a choice in the way the Breusch-Godfrey horizon is. With the
+horizon held at ten, a band reading nine bars lets zero lags pass first, and a
+band reading sixteen or more reaches a lag-16 bar and moves the first pass to
+sixteen lags. At every setting tried, the first fit that passes rejects at 10%
+or better on both vintages. So the check leaves the rejection in row 3
+standing, at better than 90% rather than the better than 95% Chan reports.
+Row 3's verdict stands for the reason row 4's does, since it asks whether
+Chan's number reproduces under his specification.
+
+Zero lags, which `autolag='aic'` and `autolag='bic'` both pick on this window,
+clears Breusch-Godfrey and rejects at 5%. One bar at lag 10 keeps it out, and
+that bar stays outside even a band widened for reading ten bars at once,
+2.807/√n. This check is exploratory too, and it was run after the Chapter 3
+result had been seen.
 
 `TestResidualCheck` and `TestResidualCheckChapter7` in
-`tests/test_pair_cointegration.py` pin every number in this section. `src/chan/lag_residual_figure.py` redraws the figure, and
+`tests/test_pair_cointegration.py` pin every number in this section.
+`src/chan/lag_residual_figure.py` redraws the figure, and
 `tests/test_lag_residual_figure.py` holds that it draws what the check
 computes.
 
