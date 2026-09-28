@@ -625,16 +625,18 @@ class TestResidualCheckChapter7:
 
     Row 3 of ``docs/replication-log.md`` is this window on the yfinance raw
     closes, and ``TestGldGdxChanArchive`` is the same window on Chan's own
-    files. Both reject at one lag. This asks what each lag count from zero to
-    twelve leaves in the residuals, and what the test says at the first one
-    that passes.
+    files. Both reject at one lag. This asks what each lag count leaves in the
+    residuals, and what the test says at the first one that passes.
 
     The answer differs from the Chapter 3 window. Every fit from zero lags to
-    nine leaves an autocorrelation at residual lag 10 outside the band, and one
-    lag also fails Breusch-Godfrey. Ten lags is the first count that passes,
-    and there the test still rejects: at 5% on Chan's files and at 10% on the
-    yfinance closes. So the check leaves the Chapter 7 verdict standing, at a
-    weaker level than one lag gives on the modern download.
+    nine leaves an autocorrelation at residual lag 10 outside the band, and the
+    one-lag fit also fails Breusch-Godfrey, as do six other counts from zero to
+    nine. With the band reading ten bars, ten lags is the first count that
+    passes, and the test still rejects there. Which count passes first moves
+    with how many bars the band reads, because the decisive bar is its last
+    one. At every setting tried, the first fit that passes rejects at 10% or
+    better on both vintages. So the check leaves the rejection standing, at
+    better than 90% rather than the better than 95% Chan reports.
 
     Exploratory. The sample was spent looking, after the Chapter 3 check had
     been seen.
@@ -647,6 +649,11 @@ class TestResidualCheckChapter7:
     observations, tested by ``adfuller`` at a fixed lag count with
     ``regression='n'``. First run on 2026-09-28.
     """
+
+    #: The 5% critical value Chan's MATLAB printed, quoted at Kindle location
+    #: 3718 and kept in row 3 of the replication log's verdicts. It survives
+    #: only as highlight text, so nothing else in the tree carries it.
+    MATLAB_5PCT = -3.380
 
     #: Per vintage and lag count: observations, ADF statistic, Breusch-Godfrey
     #: p, the residual lags that fall outside the band, and the autocorrelation
@@ -734,33 +741,80 @@ class TestResidualCheckChapter7:
     def test_ten_is_the_first_lag_count_whose_residuals_pass(
         self, spreads: dict[str, np.ndarray], vintage: str
     ) -> None:
-        """Ten lags absorbs the lag-10 autocorrelation the way six lags absorbs
-        the lag-6 one on Chapter 3, and there the test still rejects at 10%."""
+        """With the band reading ten bars, ten lags absorbs the lag-10
+        autocorrelation the way six lags absorbs the lag-6 one on Chapter 3,
+        and there the test still rejects at 10%."""
         spread = spreads[vintage]
         assert [self.passes(spread, k) for k in range(11)] == [False] * 10 + [True]
         assert residual_check(spread, 10).adf_stat < EG_CRIT_N2["10%"]
 
-    def test_the_level_at_ten_lags_depends_on_the_vintage(
+    @pytest.mark.parametrize(
+        ("bars", "first", "chan_stat", "raw_stat"),
+        [
+            (9, 0, -3.6981, -3.6314),
+            (10, 10, -3.3580, -3.2965),
+            (15, 10, -3.3580, -3.2965),
+            (16, 16, -3.1865, -3.1234),
+            (20, 16, -3.1865, -3.1234),
+        ],
+    )
+    def test_the_first_passing_fit_moves_with_the_bars_and_still_rejects(
+        self,
+        spreads: dict[str, np.ndarray],
+        bars: int,
+        first: int,
+        chan_stat: float,
+        raw_stat: float,
+    ) -> None:
+        """How many autocorrelations the band reads is a choice, like the
+        Breusch-Godfrey horizon. Nine bars stop short of the lag-10 bar and let
+        zero lags through. Sixteen reach a lag-16 bar that ten and eleven lags
+        leave behind. Whichever fit passes first, it rejects at 10% on both
+        vintages. The Breusch-Godfrey horizon stays at ten throughout."""
+
+        def first_pass(spread: np.ndarray) -> int:
+            for k in range(21):
+                check = residual_check(spread, k, bars=bars)
+                if check.breusch_godfrey_p > 0.10 and not check.outside:
+                    return k
+            raise AssertionError("no lag count up to 20 passes")
+
+        for vintage, stat in (("chan", chan_stat), ("raw", raw_stat)):
+            spread = spreads[vintage]
+            k = first_pass(spread)
+            assert k == first
+            check = residual_check(spread, k, bars=bars)
+            assert check.adf_stat == pytest.approx(stat, abs=5e-5)
+            assert check.adf_stat < EG_CRIT_N2["10%"]
+
+    def test_the_level_at_ten_lags_depends_on_the_table(
         self, spreads: dict[str, np.ndarray]
     ) -> None:
-        """Chan's files still clear 5% at ten lags, by 0.018. The yfinance
-        closes clear only 10%, so on row 3's vintage the check weakens the
-        stated level from better than 95% to better than 90%."""
-        assert residual_check(spreads["chan"], 10).adf_stat < EG_CRIT_N2["5%"]
-        assert residual_check(spreads["raw"], 10).adf_stat > EG_CRIT_N2["5%"]
+        """At ten lags the yfinance closes miss 5% under both tables. Chan's
+        files clear ``EG_CRIT_N2``'s -3.34 by 0.018 and miss the -3.380 his
+        MATLAB printed by 0.022, so the 5% level rests on the table. What
+        both vintages clear under both tables is 10%."""
+        chan = residual_check(spreads["chan"], 10).adf_stat
+        raw = residual_check(spreads["raw"], 10).adf_stat
+        assert chan < EG_CRIT_N2["5%"]
+        assert chan == pytest.approx(EG_CRIT_N2["5%"] - 0.018, abs=5e-4)
+        assert chan > self.MATLAB_5PCT
+        assert raw > EG_CRIT_N2["5%"]
+        assert max(chan, raw) < EG_CRIT_N2["10%"]
 
     @pytest.mark.parametrize("vintage", ["chan", "raw"])
     def test_zero_lags_fails_only_on_the_lag_ten_bar(
         self, spreads: dict[str, np.ndarray], vintage: str
     ) -> None:
         """Zero lags is what ``autolag='aic'`` and ``autolag='bic'`` pick here.
-        It clears Breusch-Godfrey and rejects at 5%, and one pointwise bar is
-        all that keeps it out, the case the Chapter 3 section warns says less
-        than it looks."""
+        It clears Breusch-Godfrey and rejects at 5%, and one bar at lag 10 keeps
+        it out. That bar stays outside even a band widened for reading ten bars
+        at once, 2.807/√n."""
         check = residual_check(spreads[vintage], 0)
         assert check.breusch_godfrey_p > 0.10
         assert check.outside == [10]
         assert check.adf_stat < EG_CRIT_N2["5%"]
+        assert abs(check.autocorrelation[9]) > 2.807 / np.sqrt(check.nobs)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", FutureWarning)
             picks = [

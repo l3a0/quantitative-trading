@@ -402,16 +402,27 @@ autocorrelation at lag 10 is 0.1443 and 0.1435 against a band of 0.1002. Every
 lag count from zero to nine leaves that lag-10 autocorrelation outside the
 band. Ten lags is the first count that passes, with a Breusch-Godfrey p of
 0.3861 and 0.3896, and there the test still rejects. On the yfinance closes the
-statistic is −3.2965, which clears 10% and misses 5%. On Chan's files it is
-−3.3580, which clears 5% by 0.018.
+statistic is −3.2965, which clears 10% and misses 5% under both tables. On
+Chan's files it is −3.3580, which clears `EG_CRIT_N2`'s −3.34 by 0.018 and
+misses the −3.380 his MATLAB printed by 0.022. Its nearness to Chan's printed
+−3.357 is a coincidence, since that figure is a one-lag fit on an earlier
+vintage.
 
-So the check leaves row 3's claim standing at a weaker level. Chan reports
-better than 95%, and on row 3's vintage the first fit whose residuals pass
-supports better than 90%. Zero lags, which `autolag='aic'` and `autolag='bic'`
-both pick on this window, clears Breusch-Godfrey and rejects at 5%. What keeps
-it out is one lag-10 bar outside a pointwise band, and the band's description
-above warns that a single bar outside it says less than it looks. This check
-is exploratory too, and it was run after the Chapter 3 result had been seen.
+The lag-10 bar that decides this is the last one the band reads, so the count
+of bars is a choice in the way the Breusch-Godfrey horizon is. With the
+horizon held at ten, a band reading nine bars lets zero lags pass first, and a
+band reading sixteen or more reaches a lag-16 bar and moves the first pass to
+sixteen lags. At every setting tried, the first fit that passes rejects at 10%
+or better on both vintages. So the check leaves the rejection in row 3
+standing, at better than 90% rather than the better than 95% Chan reports.
+Row 3's verdict stands for the reason row 4's does, since it asks whether
+Chan's number reproduces under his specification.
+
+Zero lags, which `autolag='aic'` and `autolag='bic'` both pick on this window,
+clears Breusch-Godfrey and rejects at 5%. One bar at lag 10 keeps it out, and
+that bar stays outside even a band widened for reading ten bars at once,
+2.807/√n. This check is exploratory too, and it was run after the Chapter 3
+result had been seen.
 
 `TestResidualCheck` and `TestResidualCheckChapter7` in
 `tests/test_pair_cointegration.py` pin every number in this section.

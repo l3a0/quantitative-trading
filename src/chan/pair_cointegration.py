@@ -278,7 +278,10 @@ def rolling_cointegration(
 
 #: How many residual autocorrelations :func:`residual_check` reads, and the
 #: horizon its Breusch-Godfrey test covers. Ten trading days is two weeks and
-#: reaches past the lag-6 autocorrelation the Chapter 3 fits leave behind.
+#: reaches past the lag-6 autocorrelation the Chapter 3 fits leave behind. On
+#: the Chapter 7 window it reaches exactly to a lag-10 autocorrelation, so which
+#: fit passes first there moves with this number, and
+#: ``TestResidualCheckChapter7`` pins how.
 RESIDUAL_LAGS = 10
 
 
@@ -289,7 +292,7 @@ class ResidualCheck:
     lags: int
     adf_stat: float
     nobs: int
-    autocorrelation: NDArray[np.float64]  # residual lags 1..RESIDUAL_LAGS
+    autocorrelation: NDArray[np.float64]  # residual lags 1..bars
     breusch_godfrey_p: float
 
     @property
@@ -309,7 +312,10 @@ class ResidualCheck:
 
 
 def residual_check(
-    spread: NDArray[np.float64], lags: int, horizon: int = RESIDUAL_LAGS
+    spread: NDArray[np.float64],
+    lags: int,
+    horizon: int = RESIDUAL_LAGS,
+    bars: int = RESIDUAL_LAGS,
 ) -> ResidualCheck:
     """Fit the ADF at a fixed ``lags`` with no deterministic term, and test its residuals.
 
@@ -323,7 +329,8 @@ def residual_check(
     regression carries lagged differences of the spread on its right-hand
     side, which is the case Breusch-Godfrey is built for. Its verdict depends
     on ``horizon``: a horizon shorter than the lag of the leftover
-    autocorrelation cannot see it.
+    autocorrelation cannot see it. ``bars`` is how many autocorrelations the
+    band reads, and the same holds for it.
     """
     fit = adfuller(
         spread, maxlag=lags, autolag=None, regression="n", regresults=True, result_object=True
@@ -334,7 +341,7 @@ def residual_check(
         lags=lags,
         adf_stat=float(fit.statistic),
         nobs=int(fit.nobs),
-        autocorrelation=acf(fitted.resid, nlags=RESIDUAL_LAGS)[1:],
+        autocorrelation=acf(fitted.resid, nlags=bars)[1:],
         breusch_godfrey_p=float(bg.lmpval),
     )
 
