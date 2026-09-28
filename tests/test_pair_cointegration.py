@@ -78,7 +78,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import pytest
-from ithildincore.timeseries import EG_CRIT_N2, adf_tstat
+from ithildincore.timeseries import EG_CRIT_N2, adf_tstat, ols
 from statsmodels.tsa.stattools import adfuller
 
 from chan.pair_cointegration import (
@@ -402,6 +402,59 @@ class TestGldGdxChanArchive:
         cointegrates at the 5% level, the same verdict --ch7 reaches on
         yfinance data."""
         assert arch.adf_stat < EG_CRIT_N2["5%"]
+
+    def test_the_half_life_slope_is_not_the_adf_slope(self, arch: CointResult) -> None:
+        """Both regressions put the daily change on the lagged level, so under
+        the half-life's own AR(1) model their slopes estimate the same
+        reversion speed. They are still two numbers, and read as half-lives
+        they give 10.3 and 10.6 days.
+
+        The half-life regression carries a constant and no lagged difference.
+        The ADF regression at Chan's one lag carries a lagged difference and no
+        constant, and it loses one more row to that lag. Stepping from one fit
+        to the other one change at a time splits the gap of 0.0018:
+
+        1. Dropping the constant moves the slope by less than 1e-5. The spread
+           is a residual from a fit with an intercept, so its mean is already
+           zero and a constant has nothing to absorb.
+        2. Dropping the first row moves it by about a tenth of the gap.
+        3. Adding the lagged difference moves it by the rest, about nine
+           tenths.
+
+        Specification: the with-intercept residual spread over 2006-05-23 to
+        2007-11-30, 385 observations, which leaves 384 rows in the half-life
+        fit and 383 in the ADF fit. The half-life slope is the one
+        ``ou_half_life`` fits. The ADF slope is ``adfuller`` at ``maxlag=1``,
+        ``autolag=None`` and ``regression='n'``, the fit behind
+        ``arch.adf_stat``. First pinned on 2026-09-28.
+        """
+        z = arch.spread
+        dz = np.diff(z)
+
+        def slope(y: np.ndarray, *cols: np.ndarray) -> float:
+            return float(ols(y, np.column_stack(cols)).beta[0])
+
+        lam = slope(dz, z[:-1], np.ones(len(dz)))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            fit = adfuller(z, maxlag=1, autolag=None, regression="n", regresults=True)
+        gamma = float(fit[-1].resols.params[0])
+
+        assert lam == pytest.approx(-0.0672, abs=5e-5)
+        assert gamma == pytest.approx(-0.0654, abs=5e-5)
+        assert gamma - lam == pytest.approx(0.0018, abs=5e-5)
+        assert math.log(2) / -lam == pytest.approx(arch.half_life, abs=1e-9)
+        assert math.log(2) / -lam == pytest.approx(10.3, abs=0.05)
+        assert math.log(2) / -gamma == pytest.approx(10.6, abs=0.05)
+        assert float(fit[0]) == pytest.approx(arch.adf_stat, abs=1e-9)
+        assert slope(dz[1:], z[1:-1], dz[:-1]) == pytest.approx(gamma, abs=1e-12)
+
+        no_constant = slope(dz, z[:-1])
+        no_first_row = slope(dz[1:], z[1:-1])
+        gap = gamma - lam
+        assert abs(no_constant - lam) < 1e-5
+        assert (no_first_row - no_constant) / gap == pytest.approx(0.088, abs=0.005)
+        assert (gamma - no_first_row) / gap == pytest.approx(0.909, abs=0.005)
 
 
 # ============================================================
