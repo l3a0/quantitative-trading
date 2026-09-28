@@ -725,6 +725,7 @@ class TestResidualCheckChapter7:
     def test_the_band_at_the_books_lag_count(self, spreads: dict[str, np.ndarray]) -> None:
         for spread in spreads.values():
             assert residual_check(spread, 1).band == pytest.approx(0.1002, abs=5e-5)
+            assert residual_check(spread, 10).band == pytest.approx(0.1013, abs=5e-5)
 
     @pytest.mark.parametrize("vintage", ["chan", "raw"])
     def test_the_books_lag_count_fails_the_residual_check(
@@ -743,9 +744,14 @@ class TestResidualCheckChapter7:
     ) -> None:
         """With the band reading ten bars, ten lags absorbs the lag-10
         autocorrelation the way six lags absorbs the lag-6 one on Chapter 3,
-        and there the test still rejects at 10%."""
+        and there the test still rejects at 10%.
+
+        The band decides every fit from zero to nine, so the Breusch-Godfrey
+        half of the rule is first tested at twelve lags, which it fails. No lag
+        count here has a p between 0.05 and 0.10 that the band lets through, so
+        this data cannot tell a 10% cut from a 5% one."""
         spread = spreads[vintage]
-        assert [self.passes(spread, k) for k in range(11)] == [False] * 10 + [True]
+        assert [self.passes(spread, k) for k in range(13)] == [False] * 10 + [True, True, False]
         assert residual_check(spread, 10).adf_stat < EG_CRIT_N2["10%"]
 
     @pytest.mark.parametrize(
