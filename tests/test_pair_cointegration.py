@@ -33,7 +33,7 @@ replications themselves.
    entitled to, by checking what each lag count leaves in the residuals.
    Exploratory, and ``docs/figures/adf_residual_autocorrelation.png`` is the
    picture of it. ``TestResidualCheckChapter7`` asks the same of the longer
-   window on Chan's own files.
+   window, on the yfinance closes and on Chan's own files.
 8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
    premise one download date can show: GDX's adjusted 2006 closes sit below
    its raw ones, and GLD's do not move at all.
@@ -621,84 +621,153 @@ class TestResidualCheck:
 
 
 class TestResidualCheckChapter7:
-    """The same residual check on the longer Chapter 7 window, where the
-    verdict rests on Chan's own files rather than a modern download.
+    """The same residual check on the longer Chapter 7 window, on two vintages.
 
-    ``TestGldGdxChanArchive`` pins that this window rejects at 5% at one lag.
-    This asks what that fit leaves in its residuals, and what the other lag
-    counts leave. None of the fits from zero lags to eight pass: every one
-    leaves an autocorrelation at lag 10 outside the band, and one lag also
-    fails Breusch-Godfrey. So the Chapter 7 verdict carries the same caveat as
-    the Chapter 3 one, from a different lag.
+    Row 3 of ``docs/replication-log.md`` is this window on the yfinance raw
+    closes, and ``TestGldGdxChanArchive`` is the same window on Chan's own
+    files. Both reject at one lag. This asks what each lag count from zero to
+    twelve leaves in the residuals, and what the test says at the first one
+    that passes.
+
+    The answer differs from the Chapter 3 window. Every fit from zero lags to
+    nine leaves an autocorrelation at residual lag 10 outside the band, and one
+    lag also fails Breusch-Godfrey. Ten lags is the first count that passes,
+    and there the test still rejects: at 5% on Chan's files and at 10% on the
+    yfinance closes. So the check leaves the Chapter 7 verdict standing, at a
+    weaker level than one lag gives on the modern download.
 
     Exploratory. The sample was spent looking, after the Chapter 3 check had
     been seen.
 
-    Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
-    of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
-    Specification: the with-intercept residual spread over 2006-05-23 to
-    2007-11-30, 385 observations, tested by ``adfuller`` at a fixed lag count
-    with ``regression='n'``. First run on 2026-09-28.
+    Vintages: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
+    of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02; and
+    ``gld_20yr_prices_unadjusted.csv`` and ``gdx_20yr_prices_unadjusted.csv``,
+    yfinance raw closes, both downloaded 2026-08-27. Specification: the
+    with-intercept residual spread over 2006-05-23 to 2007-11-30, 385
+    observations, tested by ``adfuller`` at a fixed lag count with
+    ``regression='n'``. First run on 2026-09-28.
     """
 
-    #: Per lag count: observations, ADF statistic, Breusch-Godfrey p, the
-    #: residual lags that fall outside the band, and the autocorrelation at
-    #: lag 10.
+    #: Per vintage and lag count: observations, ADF statistic, Breusch-Godfrey
+    #: p, the residual lags that fall outside the band, and the autocorrelation
+    #: at residual lag 10.
     PINNED = {
-        0: (384, -3.6981, 0.1068, [10], 0.1463),
-        1: (383, -3.5171, 0.0337, [10], 0.1435),
-        2: (382, -3.4232, 0.0819, [10], 0.1444),
-        3: (381, -3.0458, 0.0153, [10], 0.1342),
-        4: (380, -3.1378, 0.0116, [10], 0.1410),
-        5: (379, -2.8030, 0.0511, [10], 0.1239),
-        6: (378, -2.8562, 0.3035, [10], 0.1161),
-        7: (377, -2.7189, 0.1082, [10], 0.1111),
-        8: (376, -2.8054, 0.0216, [10], 0.1155),
+        "chan": {
+            0: (384, -3.6981, 0.1068, [10], 0.1463),
+            1: (383, -3.5171, 0.0337, [10], 0.1435),
+            2: (382, -3.4232, 0.0819, [10], 0.1444),
+            3: (381, -3.0458, 0.0153, [10], 0.1342),
+            4: (380, -3.1378, 0.0116, [10], 0.1410),
+            5: (379, -2.8030, 0.0511, [10], 0.1239),
+            6: (378, -2.8562, 0.3035, [10], 0.1161),
+            7: (377, -2.7189, 0.1082, [10], 0.1111),
+            8: (376, -2.8054, 0.0216, [10], 0.1155),
+            9: (375, -2.7999, 0.0043, [10], 0.1180),
+            10: (374, -3.3580, 0.3896, [], -0.0037),
+            11: (373, -3.2667, 0.2923, [], -0.0030),
+            12: (372, -3.2419, 0.0348, [], -0.0047),
+        },
+        "raw": {
+            0: (384, -3.6314, 0.1064, [10], 0.1472),
+            1: (383, -3.4544, 0.0325, [10], 0.1443),
+            2: (382, -3.3654, 0.0809, [10], 0.1453),
+            3: (381, -2.9911, 0.0149, [10], 0.1352),
+            4: (380, -3.0794, 0.0115, [10], 0.1417),
+            5: (379, -2.7533, 0.0526, [10], 0.1244),
+            6: (378, -2.8141, 0.3104, [10], 0.1167),
+            7: (377, -2.6809, 0.1125, [10], 0.1117),
+            8: (376, -2.7568, 0.0182, [10], 0.1158),
+            9: (375, -2.7465, 0.0039, [10], 0.1181),
+            10: (374, -3.2965, 0.3861, [], -0.0040),
+            11: (373, -3.2061, 0.2917, [], -0.0033),
+            12: (372, -3.1752, 0.0353, [], -0.0050),
+        },
     }
 
     @staticmethod
     @pytest.fixture(scope="class")
-    def spread() -> np.ndarray:
-        df = aligned_closes("GLD", "GDX", start=BOOK_START, end=BOOK_END, chan=True)
-        return engle_granger(df["GLD"].to_numpy(float), df["GDX"].to_numpy(float)).spread
+    def spreads() -> dict[str, np.ndarray]:
+        def spread(**basis: bool) -> np.ndarray:
+            df = aligned_closes("GLD", "GDX", start=BOOK_START, end=BOOK_END, **basis)
+            return engle_granger(df["GLD"].to_numpy(float), df["GDX"].to_numpy(float)).spread
 
-    @pytest.mark.parametrize("lags", sorted(PINNED))
-    def test_the_fit_and_its_residuals(self, spread: np.ndarray, lags: int) -> None:
-        nobs, stat, bg_p, outside, at_ten = self.PINNED[lags]
+        return {"chan": spread(chan=True), "raw": spread(unadjusted=True)}
+
+    @staticmethod
+    def passes(spread: np.ndarray, lags: int) -> bool:
         check = residual_check(spread, lags)
+        return check.breusch_godfrey_p > 0.10 and not check.outside
 
+    @pytest.mark.parametrize(
+        ("vintage", "lags"),
+        [(v, k) for v in ("chan", "raw") for k in range(13)],
+    )
+    def test_the_fit_and_its_residuals(
+        self, spreads: dict[str, np.ndarray], vintage: str, lags: int
+    ) -> None:
+        nobs, stat, bg_p, outside, at_ten = self.PINNED[vintage][lags]
+        check = residual_check(spreads[vintage], lags)
+
+        assert check.lags == lags
         assert check.nobs == nobs
         assert check.adf_stat == pytest.approx(stat, abs=5e-5)
         assert check.breusch_godfrey_p == pytest.approx(bg_p, abs=5e-5)
         assert check.outside == outside
         assert check.autocorrelation[9] == pytest.approx(at_ten, abs=5e-5)
 
-    def test_the_band_at_the_books_lag_count(self, spread: np.ndarray) -> None:
-        assert residual_check(spread, 1).band == pytest.approx(0.1002, abs=5e-5)
+    def test_the_band_at_the_books_lag_count(self, spreads: dict[str, np.ndarray]) -> None:
+        for spread in spreads.values():
+            assert residual_check(spread, 1).band == pytest.approx(0.1002, abs=5e-5)
 
-    def test_the_books_lag_count_fails_the_residual_check(self, spread: np.ndarray) -> None:
+    @pytest.mark.parametrize("vintage", ["chan", "raw"])
+    def test_the_books_lag_count_fails_the_residual_check(
+        self, spreads: dict[str, np.ndarray], vintage: str
+    ) -> None:
         """At one lag the ADF rejects at 5% and the residuals fail both halves
         of the check, as they do on the Chapter 3 window."""
-        check = residual_check(spread, 1)
+        check = residual_check(spreads[vintage], 1)
         assert check.adf_stat < EG_CRIT_N2["5%"]
         assert check.breusch_godfrey_p < 0.10
         assert check.outside == [10]
 
-    def test_no_lag_count_up_to_eight_passes(self, spread: np.ndarray) -> None:
-        """Six and seven lags clear Breusch-Godfrey and not the band, and by
-        then the test no longer rejects at 10%."""
+    @pytest.mark.parametrize("vintage", ["chan", "raw"])
+    def test_ten_is_the_first_lag_count_whose_residuals_pass(
+        self, spreads: dict[str, np.ndarray], vintage: str
+    ) -> None:
+        """Ten lags absorbs the lag-10 autocorrelation the way six lags absorbs
+        the lag-6 one on Chapter 3, and there the test still rejects at 10%."""
+        spread = spreads[vintage]
+        assert [self.passes(spread, k) for k in range(11)] == [False] * 10 + [True]
+        assert residual_check(spread, 10).adf_stat < EG_CRIT_N2["10%"]
 
-        def passes(k: int) -> bool:
-            check = residual_check(spread, k)
-            return check.breusch_godfrey_p > 0.10 and not check.outside
+    def test_the_level_at_ten_lags_depends_on_the_vintage(
+        self, spreads: dict[str, np.ndarray]
+    ) -> None:
+        """Chan's files still clear 5% at ten lags, by 0.018. The yfinance
+        closes clear only 10%, so on row 3's vintage the check weakens the
+        stated level from better than 95% to better than 90%."""
+        assert residual_check(spreads["chan"], 10).adf_stat < EG_CRIT_N2["5%"]
+        assert residual_check(spreads["raw"], 10).adf_stat > EG_CRIT_N2["5%"]
 
-        assert not any(passes(k) for k in self.PINNED)
-        assert [k for k in self.PINNED if residual_check(spread, k).breusch_godfrey_p > 0.10] == [
-            0,
-            6,
-            7,
-        ]
-        assert all(residual_check(spread, k).adf_stat > EG_CRIT_N2["10%"] for k in (5, 6, 7, 8))
+    @pytest.mark.parametrize("vintage", ["chan", "raw"])
+    def test_zero_lags_fails_only_on_the_lag_ten_bar(
+        self, spreads: dict[str, np.ndarray], vintage: str
+    ) -> None:
+        """Zero lags is what ``autolag='aic'`` and ``autolag='bic'`` pick here.
+        It clears Breusch-Godfrey and rejects at 5%, and one pointwise bar is
+        all that keeps it out, the case the Chapter 3 section warns says less
+        than it looks."""
+        check = residual_check(spreads[vintage], 0)
+        assert check.breusch_godfrey_p > 0.10
+        assert check.outside == [10]
+        assert check.adf_stat < EG_CRIT_N2["5%"]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            picks = [
+                int(adfuller(spreads[vintage], autolag=rule, regression="n")[2])
+                for rule in ("aic", "bic")
+            ]
+        assert picks == [0, 0]
 
 
 # ============================================================
