@@ -393,8 +393,18 @@ would also produce. Two more things keep the result small.
    lags as well, and still fails one lag. What keeps those three out is the
    lag-6 bar outside the band, and the band is the pointwise check.
 
-`TestResidualCheck` in `tests/test_pair_cointegration.py` pins every number in
-this section. `src/chan/lag_residual_figure.py` redraws the figure, and
+The same check on the Chapter 7 window, run on Chan's own files over
+2006-05-23 to 2007-11-30, gives the same caveat from a different lag. At one
+lag the statistic is −3.5171, which rejects at 5%. The residuals fail both
+halves of the check there: a Breusch-Godfrey p of 0.0337, and an
+autocorrelation of 0.1435 at lag 10 against a band of 0.1002. No lag count
+from zero to eight passes, because every one leaves the lag-10 autocorrelation
+outside the band. Six and seven lags clear Breusch-Godfrey, at 0.3035 and
+0.1082, and by then the test no longer rejects at 10%. This check is
+exploratory too, and it was run after the Chapter 3 result had been seen.
+
+`TestResidualCheck` and `TestResidualCheckChapter7` in
+`tests/test_pair_cointegration.py` pin every number in this section. `src/chan/lag_residual_figure.py` redraws the figure, and
 `tests/test_lag_residual_figure.py` holds that it draws what the check
 computes.
 
