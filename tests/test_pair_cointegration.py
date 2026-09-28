@@ -32,7 +32,8 @@ replications themselves.
 7. ``TestResidualCheck``, which asks which of those settings the test is
    entitled to, by checking what each lag count leaves in the residuals.
    Exploratory, and ``docs/figures/adf_residual_autocorrelation.png`` is the
-   picture of it.
+   picture of it. ``TestResidualCheckChapter7`` asks the same of the longer
+   window on Chan's own files.
 8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
    premise one download date can show: GDX's adjusted 2006 closes sit below
    its raw ones, and GLD's do not move at all.
@@ -617,6 +618,87 @@ class TestResidualCheck:
 
         assert [passes(k) for k in range(7)] == [False] * 6 + [True]
         assert residual_check(spread, 6).adf_stat > EG_CRIT_N2["10%"]
+
+
+class TestResidualCheckChapter7:
+    """The same residual check on the longer Chapter 7 window, where the
+    verdict rests on Chan's own files rather than a modern download.
+
+    ``TestGldGdxChanArchive`` pins that this window rejects at 5% at one lag.
+    This asks what that fit leaves in its residuals, and what the other lag
+    counts leave. None of the fits from zero lags to eight pass: every one
+    leaves an autocorrelation at lag 10 outside the band, and one lag also
+    fails Breusch-Godfrey. So the Chapter 7 verdict carries the same caveat as
+    the Chapter 3 one, from a different lag.
+
+    Exploratory. The sample was spent looking, after the Chapter 3 check had
+    been seen.
+
+    Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
+    of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
+    Specification: the with-intercept residual spread over 2006-05-23 to
+    2007-11-30, 385 observations, tested by ``adfuller`` at a fixed lag count
+    with ``regression='n'``. First run on 2026-09-28.
+    """
+
+    #: Per lag count: observations, ADF statistic, Breusch-Godfrey p, the
+    #: residual lags that fall outside the band, and the autocorrelation at
+    #: lag 10.
+    PINNED = {
+        0: (384, -3.6981, 0.1068, [10], 0.1463),
+        1: (383, -3.5171, 0.0337, [10], 0.1435),
+        2: (382, -3.4232, 0.0819, [10], 0.1444),
+        3: (381, -3.0458, 0.0153, [10], 0.1342),
+        4: (380, -3.1378, 0.0116, [10], 0.1410),
+        5: (379, -2.8030, 0.0511, [10], 0.1239),
+        6: (378, -2.8562, 0.3035, [10], 0.1161),
+        7: (377, -2.7189, 0.1082, [10], 0.1111),
+        8: (376, -2.8054, 0.0216, [10], 0.1155),
+    }
+
+    @staticmethod
+    @pytest.fixture(scope="class")
+    def spread() -> np.ndarray:
+        df = aligned_closes("GLD", "GDX", start=BOOK_START, end=BOOK_END, chan=True)
+        return engle_granger(df["GLD"].to_numpy(float), df["GDX"].to_numpy(float)).spread
+
+    @pytest.mark.parametrize("lags", sorted(PINNED))
+    def test_the_fit_and_its_residuals(self, spread: np.ndarray, lags: int) -> None:
+        nobs, stat, bg_p, outside, at_ten = self.PINNED[lags]
+        check = residual_check(spread, lags)
+
+        assert check.nobs == nobs
+        assert check.adf_stat == pytest.approx(stat, abs=5e-5)
+        assert check.breusch_godfrey_p == pytest.approx(bg_p, abs=5e-5)
+        assert check.outside == outside
+        assert check.autocorrelation[9] == pytest.approx(at_ten, abs=5e-5)
+
+    def test_the_band_at_the_books_lag_count(self, spread: np.ndarray) -> None:
+        assert residual_check(spread, 1).band == pytest.approx(0.1002, abs=5e-5)
+
+    def test_the_books_lag_count_fails_the_residual_check(self, spread: np.ndarray) -> None:
+        """At one lag the ADF rejects at 5% and the residuals fail both halves
+        of the check, as they do on the Chapter 3 window."""
+        check = residual_check(spread, 1)
+        assert check.adf_stat < EG_CRIT_N2["5%"]
+        assert check.breusch_godfrey_p < 0.10
+        assert check.outside == [10]
+
+    def test_no_lag_count_up_to_eight_passes(self, spread: np.ndarray) -> None:
+        """Six and seven lags clear Breusch-Godfrey and not the band, and by
+        then the test no longer rejects at 10%."""
+
+        def passes(k: int) -> bool:
+            check = residual_check(spread, k)
+            return check.breusch_godfrey_p > 0.10 and not check.outside
+
+        assert not any(passes(k) for k in self.PINNED)
+        assert [k for k in self.PINNED if residual_check(spread, k).breusch_godfrey_p > 0.10] == [
+            0,
+            6,
+            7,
+        ]
+        assert all(residual_check(spread, k).adf_stat > EG_CRIT_N2["10%"] for k in (5, 6, 7, 8))
 
 
 # ============================================================
