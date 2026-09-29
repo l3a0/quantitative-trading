@@ -194,7 +194,7 @@ The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded
 
 ### Check the method, not only the result
 
-The two near misses are also a lesson in checking work. Landing on −0.0005125 confirms a number, and a wrong formula could still sit behind it. Confirming that the sample form gives −0.006025 and the exact form gives −0.00050025 confirms the formula too, and a wrong formula is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
+The two wrong choices are also a lesson in checking work. Landing on −0.0005125 shows the number is right, while a different formula could still sit behind it. Showing that the sample form gives −0.006025 and the exact form gives −0.00050025, and that neither matches Chan, rules out the two alternatives a reader would most likely try. It narrows the method down rather than proving it, and a wrong method is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
 ## Lesson 6: a simulation of the coin can mislead in two ways
 
@@ -247,4 +247,4 @@ The replication itself is exact arithmetic on a coin. It uses no historical pric
 - Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
 - Peters, O., and Gell-Mann, M. (2016). Evaluating gambles using dynamics. *Chaos*, 26(2), 023103.
 
-*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and the [checks behind every figure](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py).*
+*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and [the charts](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_figures.py), with the checks behind [every number](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py) and [every chart](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_figures.py).*
