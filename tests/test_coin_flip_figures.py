@@ -18,14 +18,19 @@ from matplotlib.colors import to_rgba
 
 from chan import coin_flip_figures as figures
 from chan.coin_flip_figures import (
+    ACCENT,
     DISTRIBUTION_FIGURE,
     FAN_PATHS,
     GOOD,
     HEADS_SHOWN,
     LOST,
+    MAX_STAKE,
+    MUTED,
     PATHS_FIGURE,
     ROUNDS,
     STAKE_FIGURE,
+    _dollars,
+    _signed_rate,
     final_balances,
     make_distribution_figure,
     make_paths_figure,
@@ -59,6 +64,15 @@ def distribution(out_dir: Path):
 
 def _texts(ax) -> list[str]:
     return [text.get_text() for text in ax.texts]
+
+
+def _rgb(colour) -> tuple[float, float, float]:
+    return tuple(to_rgba(colour)[:3])
+
+
+def _thick(ax) -> list:
+    """The lines a reader is meant to follow, as opposed to the fan or a rule."""
+    return [line for line in ax.lines if line.get_linewidth() > 2 and len(line.get_xdata()) > 2]
 
 
 class TestTheStakeFigure:
@@ -113,6 +127,38 @@ class TestTheStakeFigure:
         assert f"{best:+.7f}" in labels[0]
         assert f"{chan:+.8f}".replace("-", "−") in labels[2]
 
+    def test_the_marks_and_fills_wear_the_colours_the_note_names(self, stake) -> None:
+        """The note says green where capital grows and red where it shrinks,
+        so a swapped fill or a swapped mark says the opposite."""
+        ax = stake.axes[0]
+        marks = [line for line in ax.lines if len(line.get_xdata()) == 1]
+        assert [_rgb(line.get_color()) for line in marks] == [_rgb(GOOD), _rgb(MUTED), _rgb(LOST)]
+        fills = ax.collections
+        assert [_rgb(fill.get_facecolor()[0]) for fill in fills] == [_rgb(GOOD), _rgb(LOST)]
+        grows = fills[0].get_paths()[0].vertices
+        shrinks = fills[1].get_paths()[0].vertices
+        assert grows[:, 1].min() >= -1e-12 and grows[:, 0].max() <= 1 / 11 + 1e-3
+        assert shrinks[:, 1].max() <= 1e-12 and shrinks[:, 0].min() >= 1 / 11 - 1e-3
+
+    def test_the_axes_show_the_whole_curve_and_the_zero_line(self, stake) -> None:
+        ax = stake.axes[0]
+        assert ax.get_xlim() == pytest.approx((0.0, MAX_STAKE))
+        low, high = ax.get_ylim()
+        assert low < stake.curve.growth.min() and stake.curve.growth.max() < high
+        (zero,) = [line for line in ax.lines if list(line.get_ydata()) == [0, 0]]
+        assert zero is not None
+
+    def test_the_tick_labels_use_a_typographic_minus_and_a_bare_zero(self) -> None:
+        assert _signed_rate(-0.0005) == "−0.0005"
+        assert _signed_rate(0.001) == "+0.0010"
+        assert _signed_rate(0.0) == "0"
+        assert [_dollars(v) for v in (146_576, 1.0, 0.5, 0.002)] == [
+            "$146,576",
+            "$1",
+            "$0.50",
+            "$2e-03",
+        ]
+
 
 class TestThePathsFigure:
     """Lessons 1 and 2: a seeded fan, the ensemble mean and the median path."""
@@ -161,6 +207,37 @@ class TestThePathsFigure:
         assert f"seed {BOOK_SEED}" in note
         assert "rng.integers" in note
         assert f"{FAN_PATHS} simulated traders" in note
+
+    def test_the_gold_and_red_lines_are_the_two_rates_compounded(self, paths) -> None:
+        """Only the attributes were held before, so a figure drawing the mean
+        in red, or the median from the approximation, passed."""
+        moments = gamble_moments()
+        rounds = np.arange(ROUNDS + 1)
+        gold, red = _thick(paths.axes[0])
+        assert _rgb(gold.get_color()) == _rgb(ACCENT)
+        assert _rgb(red.get_color()) == _rgb(LOST)
+        assert list(gold.get_ydata()) == pytest.approx(
+            list(1000.0 * np.exp(moments.ensemble_log_growth * rounds)), rel=1e-12
+        )
+        assert list(red.get_ydata()) == pytest.approx(
+            list(1000.0 * np.exp(moments.growth_exact * rounds)), rel=1e-12
+        )
+
+    def test_a_different_seed_draws_different_paths_and_says_so(self, tmp_path: Path) -> None:
+        other = make_paths_figure(out=tmp_path / "seed7.png", seed=7)
+        logs = _flip_log_returns(ROUNDS, FAN_PATHS, 7, 110.0, 100.0, 1000.0)
+        assert other.paths[:, -1] == pytest.approx(1000.0 * np.exp(logs.sum(axis=1)), rel=1e-9)
+        (note,) = [t.get_text() for t in other.texts if t is not other._suptitle]
+        assert "seed 7" in note
+
+    def test_the_axes_are_log_scaled_and_show_every_round(self, paths) -> None:
+        ax = paths.axes[0]
+        assert ax.get_yscale() == "log"
+        assert ax.get_xlim() == pytest.approx((0, ROUNDS))
+        low, high = ax.get_ylim()
+        assert low < paths.paths.min() and paths.paths.max() < high
+        dashed = [line for line in ax.lines if list(line.get_ydata()) == [1000.0, 1000.0]]
+        assert len(dashed) == 1
 
 
 class TestTheDistributionFigure:
@@ -251,6 +328,33 @@ class TestTheDistributionFigure:
             for ax in fig.axes:
                 texts += [*ax.texts, ax.title, ax._left_title]
             assert all(not text.get_parse_math() for text in texts)
+
+    def test_each_bar_is_centred_on_its_own_balance(self, distribution) -> None:
+        """Heights and colours alone pass with every bar shifted one slot, so
+        the geometric centre of each bar on the log axis is held too."""
+        b = distribution.balances
+        low, _ = HEADS_SHOWN
+        for h, bar in enumerate(distribution.axes[0].containers[0], low):
+            left, right = bar.get_x(), bar.get_x() + bar.get_width()
+            assert np.sqrt(left * right) == pytest.approx(b.balance[h], rel=1e-9)
+            assert left < b.balance[h] < right
+
+    def test_the_lines_and_stems_wear_their_colours_and_the_axes_their_scales(
+        self, distribution
+    ) -> None:
+        ax = distribution.axes[0]
+        assert ax.get_xscale() == "log"
+        assert [_rgb(line.get_color()) for line in ax.lines] == [
+            _rgb(LOST),
+            _rgb(MUTED),
+            _rgb(ACCENT),
+        ]
+        low, high = ax.get_ylim()
+        assert low == 0 and distribution.balances.probability.max() < high
+        inset = distribution.inset
+        assert [_rgb(c.get_color()[0]) for c in inset.collections] == [_rgb(LOST), _rgb(LOST)]
+        tops = [c.get_segments()[0][1][1] for c in inset.collections]
+        assert all(t < inset.get_ylim()[1] for t in tops)
 
 
 class TestTheCommittedImagesAreThoseFigures:
