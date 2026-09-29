@@ -348,7 +348,8 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
 2. A stock moving 1% up or down each minute loses about half a basis point a
    minute. That is Chan's, at location 2822, and no test computes it.
 3. One head and one tail leave 0.999 of the capital, a tenth of a percent
-   lost every two rounds, and the worked \$1,110 and \$111 of that pair. All
+   lost every two rounds, and the worked \$1,110 and \$111 of that pair. The
+   two-round table of \$810.00, \$999.00 and \$1,232.10 is the same kind. All
    of it is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no
    test asserts it.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in

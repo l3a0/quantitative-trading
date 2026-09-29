@@ -123,37 +123,78 @@ The formula says to scale Chan’s bet down to 0.4535 of its size, which is a st
 
 This changes what the layman’s refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
-## Lesson 5: the printed numbers fix the conventions the prose leaves open
+## Lesson 5: two unstated formula choices can change a growth rate
 
-Chan prints four numbers for this example.
+Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right but does not match Chan’s. The coin exposes both, because Chan printed enough figures to tell the right choice from the wrong one.
+
+He prints four numbers for this example.
 
 1. The \$5 expected gain.
 2. The 0.005 mean.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He gives the approximation’s formula, `m − s²/2`, earlier in the chapter, but the example itself works no arithmetic. Matching all four numbers at once is what rules out two choices that look equally reasonable on the page.
+He gives the approximation’s formula earlier in the chapter, but the example itself works no arithmetic. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
-1. **Sample versus population standard deviation.** Over two equally likely outcomes, dividing by `n − 1` instead of `n` gives 0.14849 rather than 0.105. The growth rate becomes −0.006025, out by a factor of 11.8, and it still prints as a small negative number, so nothing about it looks wrong. pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form, so the choice can flip by switching libraries.
-2. **Exact versus approximate growth.** The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small. The exact rate is the one to compound. After 1,000 rounds the balance depends only on how many tosses came up heads, so only 1,001 balances are possible. The two nearest the middle are \$492 for 499 heads and \$606 for 500. The approximation compounds to \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe.
+### Which standard deviation
 
-A test that checks only −0.0005125 fails when the number moves. Checking the two near misses as well makes it fail when the formula changes, which is the mistake that leaves the printed number looking plausible.
+A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and `n − 1` corrects for that. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
 
-## Lesson 6: a simulation has to be sized before it can be believed
+The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it, because pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
 
-A simulation that tosses random coins for many traders is the obvious way to show the effect. It turns out to be a poor way to measure it.
+### Exact or approximate growth
 
-The log return of one toss has a standard deviation of 0.10486. A growth rate estimated from `N` tosses carries a **standard error**, the typical size of its estimation error, of 0.10486 divided by √N. A million tosses give a standard error of 1.05e-4, against an effect of about 5e-4. Chan prints seven decimals, and reaching even the fifth would take about 110 million tosses. So the book’s figures are checked against exact arithmetic, and the simulation only demonstrates the sign.
+The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small.
 
-Even the sign needs a large enough run, and three measurements show how large.
+The difference matters once the rate is compounded into a balance. Each head multiplies the balance by 1.11 and each tail by 0.90. Multiplication ignores order, so heads then tails leaves the same \$999 as tails then heads, and the balance depends only on how many tosses came up heads. Two rounds show how the counting works.
 
-1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs get the sign wrong.
+| Heads in 2 rounds | Balance from \$1,000 |
+| --- | --- |
+| 0 | 1,000 × 0.90 × 0.90 = \$810.00 |
+| 1 | 1,000 × 1.11 × 0.90 = \$999.00 |
+| 2 | 1,000 × 1.11 × 1.11 = \$1,232.10 |
+
+Two rounds allow three head counts, 0, 1 and 2, so three balances. The count always runs from zero heads up to one head per round, which is one more value than the number of rounds. After 1,000 rounds it runs from 0 to 1,000, so 1,001 balances are possible, one for each head count `h`:
+
+```math
+C(h) = 1000 \times 1.11^{h} \times 0.90^{\,1000-h}, \qquad h = 0, 1, 2, \ldots, 1000
+```
+
+The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded, the approximation gives \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Use the approximation to see where growth comes from, the mean less half the variance, and compound the exact rate to get a balance.
+
+### Checking the formula, not only the number
+
+The two near misses are also what make a check worth running. A test that checks only −0.0005125 catches a changed number. Checking that the sample form gives −0.006025 and the exact form gives −0.00050025 catches a changed formula, which is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
+
+## Lesson 6: three ways a simulation of the coin misleads
+
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, which is recorded so the run can be repeated. Three things go wrong, and each has a counterpart when simulating a real strategy.
+
+### Noise swamps a small edge
+
+A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard. Print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
+
+The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured.
+
+A small run can therefore land on the wrong side of zero. Three measurements show how large a run has to be.
+
+1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs say the losing bet wins.
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
-3. The run the repo reports sits 4.955 standard errors below zero, and the report prints that margin beside the estimate.
+3. The run in this post’s code sits 4.955 standard errors below zero, and its report prints that margin beside the estimate.
 
-The ensemble side is harder to see than it looks, for the reason Lesson 1 gives. Its true growth per round is ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. That misses the rare lucky paths that carry the mean. With 1,000 traders playing 5,000 rounds each, the estimated ensemble growth per round sits below 0.0038 on every one of the first 20 seeds. The other way averages the simple return of every toss and converts that average to a log rate. On the same 20 seeds, its estimated growth per round lands within 1e-4 of 0.0049875.
+### Average final wealth reads low
 
-A seed alone does not determine a run either. From seed 7, numpy’s `integers`, `random`, `binomial` and `standard_normal` give four different sequences of tosses. The draw method is part of what makes a simulated result reproducible, so name it beside the seed.
+The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because the paths that carry the true mean, for the reason Lesson 1 gives, are too rare for a sample to draw.
+
+The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
+
+### A seed does not determine a run
+
+numpy, Python’s numerical library, offers several ways to draw random tosses. From seed 7, four of them, `integers`, `random`, `binomial` and `standard_normal`, give four different sequences. Record the draw method beside the seed, or a rerun can produce different numbers from the same seed.
+
+### Why the book’s figures are not checked by simulation
+
+The first problem settles this. Chan prints seven decimals, and matching even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
 
 ## What this means for a trader
 
