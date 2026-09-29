@@ -1,6 +1,6 @@
 # A coin toss that pays on average and still loses money
 
-*Six lessons from replicating Chan’s Box 6.1, on why a trader should judge a bet by the compound growth rate of capital rather than by its expected value.*
+*Why a trader should judge a bet by the compound growth rate of capital rather than by its expected value.*
 
 ## Why the average is the wrong yardstick
 
