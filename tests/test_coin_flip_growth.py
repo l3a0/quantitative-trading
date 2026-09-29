@@ -156,7 +156,7 @@ class TestTheNearMisses:
         """0.5*ln(1.11) + 0.5*ln(0.90) = −0.00050025.
 
         It is the right answer to a question the book did not ask, and it
-        differs at the fourth significant digit, so it fails the book's pin. It
+        differs at the second significant digit, so it fails the book's pin. It
         is reported beside Chan's figure rather than in place of it, and
         ``docs/replication-log.md`` gives it its own row with no published
         counterpart.
@@ -603,6 +603,9 @@ class TestTheStakeDecidesTheSign:
         assert at_best.stake_fraction == pytest.approx(1.0 / 22.0, abs=5e-12)
         assert at_best.breakeven_stake == pytest.approx(2.0 * at_best.stake_fraction, abs=5e-12)
         assert at_best.growth_exact == pytest.approx(0.0011351, abs=5e-8)
+        # The break-even stake is the module's closed form, so hold that growth
+        # really is zero there rather than comparing a search to a formula.
+        assert gamble_moments(capital=1100).growth_exact == pytest.approx(0.0, abs=1e-15)
 
     def test_the_half_holds_for_a_second_payoff(self) -> None:
         """b = 1.5 peaks at 1/6 against a break-even of 1/3, so the factor of
@@ -613,7 +616,11 @@ class TestTheStakeDecidesTheSign:
         )
         assert best == 1200
         at_best = gamble_moments(win=300.0, loss=200.0, capital=best)
+        assert at_best.growth_exact == pytest.approx(at_best.ensemble_log_growth / 2.0, rel=1e-12)
         assert at_best.stake_fraction == pytest.approx(1.0 / 6.0, abs=5e-12)
+        assert gamble_moments(win=300.0, loss=200.0, capital=600).growth_exact == pytest.approx(
+            0.0, abs=1e-15
+        )
         assert at_best.breakeven_stake == pytest.approx(2.0 * at_best.stake_fraction, abs=5e-12)
 
     def test_the_continuous_kelly_stake_lands_near_the_exact_one(self, moments) -> None:

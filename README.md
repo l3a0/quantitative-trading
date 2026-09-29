@@ -74,8 +74,8 @@ they were first built. The other three were built here.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
-them is derived. The two blog posts about the pairs are the exceptions, and what each says that
-nothing here asserts is listed below. Each GLD/GDX pin
+them is derived. The two blog posts about the pairs are the exceptions, and
+what each says that nothing here asserts is listed below. Each GLD/GDX pin
 names its window and its regression specification, because the book prints two
 of those near each other and they come from different runs.
 
@@ -347,8 +347,11 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
    vintage.
 2. A stock moving 1% up or down each minute loses about half a basis point a
    minute. That is Chan's, at location 2822, and no test computes it.
-3. One head and one tail leave 0.999 of the capital. That is the product of
-   the two pinned multipliers, 1.11 and 0.90, and no test asserts the product.
+3. One head and one tail leave 0.999 of the capital, a tenth of a percent
+   lost every two rounds, and the worked \$1,110 and \$111 of that pair. All
+   of it is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no
+   test asserts it. The drag `s²/2` of 0.0055125 is the same kind of
+   arithmetic on the pinned 0.105.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
    its docstring and does not assert the percentage.
 

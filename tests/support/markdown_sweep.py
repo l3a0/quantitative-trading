@@ -359,8 +359,8 @@ _ALIAS_TARGETS = {alias.lower(): target for alias, target in DOCUMENT_ALIASES.it
 def units(text: str) -> list[Unit]:
     """Split a document into the stretches the attribution scan reads.
 
-    A line is the wrong unit because this repo wraps two ways. Six of its ten
-    Markdown files are hard-wrapped near eighty columns and four are authored
+    A line is the wrong unit because this repo wraps two ways. Six of its eleven
+    Markdown files are hard-wrapped near eighty columns and five are authored
     one paragraph per line, so in a hard-wrapped file an attribution and the
     span it governs share a line only by luck. Re-wrapping a paragraph would
     then silence a reference with nothing announcing it.
