@@ -664,9 +664,9 @@ otherwise look for one.
 
 The per-flip standard deviation of the log return is 0.10486, so a growth rate
 estimated from a million flips carries a standard error of 1.05e-4 against a
-quantity of 5e-4. Chan prints seven decimals. Reaching one part in a hundred
-thousand takes about 110 million flips and one part in a million takes about
-eleven billion. So the simulation demonstrates the argument and the closed form
+quantity of 5e-4. Chan prints seven decimals. Bringing the standard error down
+to one part in a hundred thousand takes about 110 million flips, and to one
+part in a million about eleven billion. So the simulation demonstrates the argument and the closed form
 is what the book's figures are pinned against.
 
 Two things the suite does pin about it, because a demonstration nobody sized is

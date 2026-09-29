@@ -8,7 +8,7 @@ Most performance numbers a trader sees are averages of one-period returns. A bac
 
 A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
 
-This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, and the few that are Chan’s own printed figures say so.
+This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, apart from a few steps of hand arithmetic, and the few that are Chan’s own printed figures say so.
 
 ## The gamble
 
@@ -105,9 +105,9 @@ Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both ex
 1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute.
 2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
 
-So two strategies with the same mean return do not grow at the same rate. The one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. Holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
+So two strategies with the same mean return do not grow at the same rate. In the approximation, the one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. Holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
 
-Lesson 4 shows the stronger form of this. Once the bet is sized well, the Sharpe ratio alone sets the best growth a strategy can reach, and the mean return drops out.
+Lesson 4 shows the stronger form of this. Once the bet is sized well, the Sharpe ratio alone sets the best growth a strategy can reach, and the mean return drops out. That holds in the continuous approximation, with the risk-free rate at zero and the bet free to be scaled up or down.
 
 ## Lesson 4: the stake decides the sign
 
@@ -126,9 +126,9 @@ Two stakes on this curve matter.
 
 *The same coin at every stake. Growth peaks at 1/22 and turns negative past 1/11. Chan’s 1/10 sits on the negative side.*
 
-The best stake is exactly half the break-even stake, and that factor of two is a property of any even-odds coin rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
+The best stake is exactly half the break-even stake, and that factor of two is a property of any fair coin, one with two equally likely outcomes, rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
 
-At the best stake the two averages still differ, but both are positive. After 1,000 rounds from \$1,000 the median path reaches \$3,111 and the ensemble mean reaches \$9,681, a ratio of 3.11 rather than 241.72. For an even-odds coin at the best stake, one trader’s log growth is exactly half the ensemble’s.
+At the best stake the two averages still differ, but both are positive. After 1,000 rounds from \$1,000 the median path reaches \$3,111 and the ensemble mean reaches \$9,681, a ratio of 3.11 rather than 241.72. For a fair coin at the best stake, one trader’s log growth is exactly half the ensemble’s.
 
 The growth-maximising stake is the **Kelly** stake. Chan gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by, computed from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures the section on the two averages uses:
 
@@ -163,13 +163,13 @@ He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box i
 
 ### Which standard deviation
 
-A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and `n − 1` corrects for that. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
+A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and dividing by `n − 1` makes the variance unbiased. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
 
 The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it, because pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
 
 ### Exact or approximate growth
 
-The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small.
+The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth approaches as each round’s return gets small, in the sense that the gap between the two shrinks faster than either rate.
 
 The difference matters once the rate is compounded into a balance. Each head multiplies the balance by 1.11 and each tail by 0.90. Multiplication ignores order, so heads then tails leaves the same \$999 as tails then heads, and the balance depends only on how many tosses came up heads. Two rounds show how the counting works.
 
@@ -208,7 +208,7 @@ A small run can therefore land on the wrong side of zero. Three measurements sho
 
 1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs say the losing bet wins.
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
-3. The run in this post’s code sits 4.955 standard errors below zero, and its report prints that margin beside the estimate.
+3. The run in this post’s code sits 4.955 standard errors below zero, and its report prints that margin, rounded to 5.0, beside the estimate.
 
 ![Two histograms on one horizontal axis of simulated time-average growth per round, each counting 200 seeds. The top one, for 100 rounds by 200 traders, spreads from about −0.0024 to +0.0015 and straddles zero, with the 56 seeds right of zero shaded red. The bottom one, for 1,000 rounds by 1,000 traders, is a narrow spike centred on the true growth of −0.0005, entirely left of zero.](../docs/figures/coin_flip_sign_by_run_size.png)
 
@@ -230,7 +230,7 @@ numpy, Python’s numerical library, offers several ways to draw random tosses. 
 
 ### Why the book’s figures are not checked by simulation
 
-The first problem settles this. Chan prints seven decimals, and matching even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
+The first problem settles this. Chan prints seven decimals, and bringing the standard error down to even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
 
 ## What this means for a trader
 
@@ -239,7 +239,7 @@ Chan’s own summary is short: “take time average, not ensemble average, when 
 Three habits follow from the lessons above.
 
 1. **Judge a strategy by its compound growth rate.** A mean return is an ensemble number. Subtract the volatility drag before comparing two strategies.
-2. **Size before deciding.** The same bet can shrink or grow capital depending on the stake. On an even-odds bet, and in the continuous approximation for any bet, a stake beyond twice the growth-maximising one turns growth negative however attractive the average looks.
+2. **Size before deciding.** The same bet can shrink or grow capital depending on the stake. On a fair coin, and in the continuous approximation for any bet, a stake beyond twice the growth-maximising one turns growth negative however attractive the average looks.
 3. **Report capital over several horizons.** Two rates at one horizon hide the divergence, and the divergence is the risk.
 
 The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) records the verdict row by row.

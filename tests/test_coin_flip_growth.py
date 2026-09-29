@@ -631,7 +631,7 @@ class TestTheStakeDecidesTheSign:
 
     def test_the_half_holds_for_a_second_payoff(self) -> None:
         """b = 1.5 peaks at 1/6 against a break-even of 1/3, so the factor of
-        two is a property of an even-odds coin and not of Chan's 1/11."""
+        two is a property of a fair coin and not of Chan's 1/11."""
         best = max(
             range(700, 5001, 10),
             key=lambda c: gamble_moments(win=300.0, loss=200.0, capital=c).growth_exact,

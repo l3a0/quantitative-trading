@@ -35,8 +35,8 @@ the vintage recorder exists.
 **The pins are closed form, and the simulation cannot carry them.** Every
 figure the book prints follows from the payoffs alone. The per-flip standard
 deviation of the log return is 0.10486, so the standard error of a simulated
-growth rate falls as ``0.10486 / sqrt(flips)``. Pinning −0.0005 down to an
-absolute 1e-5 takes about 110 million flips and to 1e-6 about 11 billion, while
+growth rate falls as ``0.10486 / sqrt(flips)``. Bringing that standard error
+down to 1e-5 takes about 110 million flips and to 1e-6 about 11 billion, while
 Chan prints seven decimals. So :func:`gamble_moments` is what the book's figures are pinned
 against, and :func:`simulate` is the demonstration a reader looks at.
 
