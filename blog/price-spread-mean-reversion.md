@@ -107,7 +107,7 @@ The through-origin slope `β₀` is the hedge ratio Chan prints. The ratio of th
 \beta_0 = \frac{\sum_t x_t \, y_t}{\sum_t x_t^2} \approx \frac{\bar{y}}{\bar{x}}
 ```
 
-The approximation holds when prices move only a little compared with their level, which is usual for daily prices. On Chan’s Chapter 7 window, 385 trading days from 2006-05-23 to 2007-11-30 in his archived price files, the ratio gives 1.642 against a through-origin slope of 1.640. The with-intercept `β` is 1.386, so the ratio is a quick check on `β₀` and not a substitute for `β`.
+The approximation holds when prices move only a little compared with their level, which is usual for daily prices. On Chan’s Chapter 7 window, 385 trading days from 2006-05-23 to 2007-11-30 in his archived price files, the ratio gives 1.6416 against a through-origin slope of 1.6395. The with-intercept `β` is 1.3865, so the ratio is a quick check on `β₀` and not a substitute for `β`.
 
 #### Step 2: Test whether the spread is stationary
 

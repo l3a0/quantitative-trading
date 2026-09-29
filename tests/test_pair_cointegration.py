@@ -424,7 +424,7 @@ class TestGldGdxChanArchive:
         level, that is close to the ratio of the means, which is why the ratio
         works as a quick check on Chan's printed hedge and not on the slope the
         test uses. ``blog/price-spread-mean-reversion.md`` quotes all three at
-        three decimals, so the rounded forms are pinned too.
+        four decimals, the form the rest of the repo writes the hedges in.
 
         Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close
         columns of Chan's companion .xls. Specification: the full intersection,
@@ -437,10 +437,10 @@ class TestGldGdxChanArchive:
         assert ratio == pytest.approx(1.6416, abs=5e-5)
         assert ratio - arch.origin_hedge == pytest.approx(0.0021, abs=5e-5)
         assert abs(ratio - arch.hedge_ratio) > 0.25
-        assert (round(ratio, 3), round(arch.origin_hedge, 3), round(arch.hedge_ratio, 3)) == (
-            1.642,
-            1.640,
-            1.386,
+        assert (round(ratio, 4), round(arch.origin_hedge, 4), round(arch.hedge_ratio, 4)) == (
+            1.6416,
+            1.6395,
+            1.3865,
         )
 
     def test_hedge_is_not_the_lost_book_vintage(self, arch: CointResult) -> None:
