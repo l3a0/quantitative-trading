@@ -356,7 +356,27 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
    its docstring and does not assert the percentage.
 
 Every other number in the post traces to an assertion in
-[tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py).
+[tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py), or, for the
+two shares its distribution figure prints, in
+[tests/test_coin_flip_figures.py](tests/test_coin_flip_figures.py).
+
+The post carries three figures, drawn from the gamble's own arithmetic by
+[src/chan/coin_flip_figures.py](src/chan/coin_flip_figures.py). They read no
+vintage, so they redraw anywhere:
+
+```bash
+uv run python -m chan.coin_flip_figures
+```
+
+1. Growth per round against the stake, for Lesson 4.
+2. A fan of 200 seeded capital paths with the ensemble mean and the median
+   path, for Lessons 1 and 2.
+3. The probability of every balance 1,000 rounds can reach, with an inset
+   showing the continuous approximation's balance falling between two of
+   them, for Lessons 1 and 5.
+
+The test file holds what each figure draws rather than its bytes, for the
+reason given above for the regime map.
 
 ## Where the book's numbers come from
 
