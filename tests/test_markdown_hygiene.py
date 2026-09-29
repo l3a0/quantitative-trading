@@ -1044,6 +1044,7 @@ class TestTheFigureHasThreeCopies:
             "gld-gdx-cointegration-lessons.md",
             "replication-log.md",
             "coin-toss-expected-value-vs-growth.md",
+            "price-spread-mean-reversion.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()

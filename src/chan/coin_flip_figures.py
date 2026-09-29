@@ -1,7 +1,7 @@
 """Three figures for the coin-flip gamble, drawn for the blog post about it.
 
 ``blog/coin-toss-expected-value-vs-growth.md`` makes its argument in numbers,
-and the owner asked on 2026-09-29 for pictures that land it. Each figure below
+and the owner asked on 2026-09-29 for pictures that show it. Each figure below
 draws one lesson from quantities :mod:`chan.coin_flip_growth` already computes,
 so a figure can only be wrong by drawing the wrong thing, which
 ``tests/test_coin_flip_figures.py`` checks.
@@ -22,7 +22,8 @@ This reopens a row of the considered-and-rejected register in
 cost of keeping copies in step. The owner chose all three figures knowing
 that, and the row now records the reversal.
 
-None of the figures reads a vintage, for the reason the gamble reads none.
+None of the figures reads a vintage, because the gamble is arithmetic on a
+known coin rather than market data.
 Regenerate after any change that moves what they draw::
 
     uv run python -m chan.coin_flip_figures
@@ -30,10 +31,12 @@ Regenerate after any change that moves what they draw::
 
 from __future__ import annotations
 
+import functools
 import math
 from dataclasses import dataclass
 from pathlib import Path
 
+import matplotlib
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter, PercentFormatter
@@ -91,6 +94,22 @@ class Balances:
     share_at_or_above_mean: float
 
 
+def _plain_text(make):
+    """Draw with matplotlib's math parsing off, so a dollar sign is a dollar sign.
+
+    Every label here prints dollars, and two dollar signs in one string turn
+    the text between them into an italic formula. The inset title did exactly
+    that on its first draw.
+    """
+
+    @functools.wraps(make)
+    def draw(*args, **kwargs):
+        with matplotlib.rc_context({"text.parse_math": False}):
+            return make(*args, **kwargs)
+
+    return draw
+
+
 def _dollars(x: float, _pos: object = None) -> str:
     """A tick label in whole dollars, or cents below one dollar."""
     if x >= 1:
@@ -116,7 +135,7 @@ def _style(ax) -> None:
 
 def _title(fig: Figure, title: str, note: str) -> None:
     fig.suptitle(title, x=0.01, ha="left", color=INK, fontsize=13.5, fontweight="bold")
-    fig.text(0.01, 0.012, note, color=MUTED, fontsize=8.5, linespacing=1.5)
+    fig.text(0.01, 0.012, note, color=MUTED, fontsize=10, linespacing=1.45)
 
 
 def stake_curve(points: int = 441) -> StakeCurve:
@@ -164,6 +183,7 @@ def _save(fig: Figure, out: Path | None, name: str) -> Figure:
     return fig
 
 
+@_plain_text
 def make_stake_figure(out: Path | None = None) -> Figure:
     """Growth per round against the stake, with three stakes marked."""
     curve = stake_curve()
@@ -217,22 +237,24 @@ def make_stake_figure(out: Path | None = None) -> Figure:
     ax.set_ylabel("growth per round, exact", color=INK, fontsize=10.5)
     _title(
         fig,
-        "The same coin grows or shrinks capital depending on the stake",
+        "Chan’s stake of 1/10 shrinks capital, and a stake of 1/22 grows it fastest",
         "Fair coin, heads pays 1.1 times the stake, tails loses it. "
-        "Growth is ½ ln(1 + 1.1f) + ½ ln(1 − f) for a stake f. "
+        "Growth is ½ ln(1 + 1.1f) + ½ ln(1 − f) for a stake f.\n"
         "Shaded green where capital grows, red where it shrinks.",
     )
-    fig.tight_layout(rect=(0, 0.04, 1, 0.96))
+    fig.tight_layout(rect=(0, 0.07, 1, 0.96))
     fig.curve = curve
     return _save(fig, out, STAKE_FIGURE)
 
 
+@_plain_text
 def make_paths_figure(out: Path | None = None, seed: int = BOOK_SEED) -> Figure:
     """A fan of seeded capital paths with the ensemble mean and the median path."""
     logs = _flip_log_returns(ROUNDS, FAN_PATHS, seed, WIN, LOSS, START_CAPITAL)
     paths = START_CAPITAL * np.exp(np.cumsum(logs, axis=1))
     paths = np.hstack([np.full((FAN_PATHS, 1), START_CAPITAL), paths])
     rounds = np.arange(ROUNDS + 1)
+    sample_mean = float(paths[:, -1].mean())
     moments = gamble_moments()
     mean = START_CAPITAL * np.exp(moments.ensemble_log_growth * rounds)
     median = START_CAPITAL * np.exp(moments.growth_exact * rounds)
@@ -245,12 +267,12 @@ def make_paths_figure(out: Path | None = None, seed: int = BOOK_SEED) -> Figure:
 
     for path in paths:
         ax.plot(rounds, path, color=MUTED, lw=0.5, alpha=0.18)
-    ax.axhline(START_CAPITAL, color=MUTED, lw=0.9, ls="--")
+    ax.axhline(START_CAPITAL, color=INK, lw=1, ls=(0, (5, 3)), alpha=0.7, zorder=3)
     ax.plot(rounds, mean, color=ACCENT, lw=2.2)
     ax.plot(rounds, median, color=LOST, lw=2.2)
 
     ax.annotate(
-        f"ensemble mean\n{_dollars(mean[-1])}",
+        f"ensemble mean, all possible traders\n{_dollars(mean[-1])}",
         (ROUNDS, mean[-1]),
         xytext=(-8, 12),
         textcoords="offset points",
@@ -278,19 +300,21 @@ def make_paths_figure(out: Path | None = None, seed: int = BOOK_SEED) -> Figure:
     ax.set_ylabel("capital, log scale", color=INK, fontsize=10.5)
     _title(
         fig,
-        "The average trader gets rich while the typical trader loses",
-        f"{FAN_PATHS} simulated traders from $1,000, seed {seed}, tosses drawn with rng.integers. "
-        "Dashed: the starting capital.\n"
-        "Gold: the ensemble mean, compounding ln(1.005) a round. "
-        "Red: the median path, compounding the exact time average.",
+        "The ensemble mean climbs while the median trader loses",
+        f"{FAN_PATHS} simulated traders from $1,000, seed {seed}, tosses drawn with numpy’s "
+        "rng.integers. Dashed: the starting capital.\n"
+        f"The {FAN_PATHS} drawn average {_dollars(sample_mean)} at round {ROUNDS:,}, short of the "
+        "gold line, because the lucky paths that carry the mean are too rare to draw.",
     )
-    fig.tight_layout(rect=(0, 0.06, 1, 0.96))
+    fig.tight_layout(rect=(0, 0.07, 1, 0.96))
     fig.paths = paths
+    fig.sample_mean = sample_mean
     fig.mean = mean
     fig.median = median
     return _save(fig, out, PATHS_FIGURE)
 
 
+@_plain_text
 def make_distribution_figure(out: Path | None = None) -> Figure:
     """The probability of each reachable balance after 1,000 rounds, on a log axis."""
     b = final_balances()
@@ -314,7 +338,7 @@ def make_distribution_figure(out: Path | None = None) -> Figure:
         width=x * half / 1.02 - x / half * 1.02,
         align="edge",
         color=[LOST if v < START_CAPITAL else GOOD for v in x],
-        alpha=0.75,
+        alpha=0.8,
         lw=0,
     )
 
@@ -346,7 +370,7 @@ def make_distribution_figure(out: Path | None = None) -> Figure:
         inset.spines[side].set_visible(False)
     for side in ("left", "bottom"):
         inset.spines[side].set_color(RULE)
-    inset.tick_params(colors=MUTED, labelsize=8)
+    inset.tick_params(colors=MUTED, labelsize=10)
     near = [ROUNDS // 2 - 1, ROUNDS // 2]
     for h in near:
         colour = LOST if b.balance[h] < START_CAPITAL else GOOD
@@ -359,7 +383,7 @@ def make_distribution_figure(out: Path | None = None) -> Figure:
             ha="left",
             va="bottom",
             color=INK,
-            fontsize=8.5,
+            fontsize=10,
         )
     inset.axvline(b.approximated, color=INK, lw=1.2, ls=":")
     inset.annotate(
@@ -370,13 +394,19 @@ def make_distribution_figure(out: Path | None = None) -> Figure:
         ha="right",
         va="center",
         color=INK,
-        fontsize=8.5,
+        fontsize=10,
     )
-    inset.set_xlim(470, 660)
+    inset.set_xlim(470, 690)
+    inset.set_xticks([500, 550, 600, 650])
     inset.set_ylim(0, b.probability[near[1]] * 1.45)
     inset.set_yticks([])
     inset.xaxis.set_major_formatter(FuncFormatter(_dollars))
-    inset.set_title("zoomed: no balance at $599", color=INK, fontsize=9, loc="left")
+    inset.set_title(
+        f"zoomed near $600: no balance at {_dollars(b.approximated)}",
+        color=INK,
+        fontsize=10,
+        loc="left",
+    )
     fig.inset = inset
 
     ax.set_ylim(0, peak * 1.3)
@@ -388,12 +418,12 @@ def make_distribution_figure(out: Path | None = None) -> Figure:
         fig,
         f"{b.share_below_start:.1%} of traders end below $1,000, "
         f"and {b.share_at_or_above_mean:.1%} reach the ensemble mean",
-        "Every balance 1,000 rounds can reach, one bar per head count from 440 to 560, "
-        "with its binomial probability. Red bars end below the starting capital.\n"
-        "The inset zooms in on the 499-head and 500-head balances, where the continuous "
-        "approximation compounds to a balance no head count gives.",
+        f"One bar per head count from {low} to {high}, with its binomial probability. "
+        "Red bars end below the starting capital.\n"
+        "The mean is an average, not a balance any head count gives, and neither is the "
+        "approximation’s balance in the inset.",
     )
-    fig.tight_layout(rect=(0, 0.06, 1, 0.96))
+    fig.tight_layout(rect=(0, 0.07, 1, 0.96))
     fig.balances = b
     return _save(fig, out, DISTRIBUTION_FIGURE)
 

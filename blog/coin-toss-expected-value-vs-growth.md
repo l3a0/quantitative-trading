@@ -64,7 +64,7 @@ That \$606 is also where the median path ends. After an even number of rounds it
 
 The gap is carried by a few lucky paths. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Almost nobody lives on those paths. The mean describes the crowd’s total wealth, and it says very little about any one member of the crowd.
 
-![Bar chart of every balance 1,000 rounds can reach, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of $606, which sits just left of the $1,000 starting line. The ensemble mean of $146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, $492 and $606, with the approximation's $599 falling between them.](../docs/figures/coin_flip_final_balances.png)
+![Bar chart of every balance 1,000 rounds can reach, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of \$606, which sits just left of the \$1,000 starting line. The ensemble mean of \$146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, \$492 and \$606, with the approximation’s \$599 falling between them.](../docs/figures/coin_flip_final_balances.png)
 
 *Every balance 1,000 rounds can reach, and the share of traders who reach it. 56.3% end below the \$1,000 they started with, and only 4.7% reach the ensemble mean.*
 
@@ -72,9 +72,9 @@ The gap is carried by a few lucky paths. A trader who happens to throw far more 
 
 Neither average changes with the number of rounds. The ensemble rate is +0.0049875 per round at round 10 and at round 1,000, and the time average is −0.00050025 at both. A report that prints the two rates shows a disagreement in sign and nothing more.
 
-![Two hundred simulated capital paths over 1,000 rounds on a log scale, spreading from $1,000 into a fan between a few cents and a few million dollars. A gold line for the ensemble mean climbs steadily to $146,576. A red line for the median trader drifts down to $606.](../docs/figures/coin_flip_capital_paths.png)
+![Two hundred simulated capital paths over 1,000 rounds on a log scale, spreading from \$1,000 into a fan between a few cents and a few million dollars. A gold line for the ensemble mean climbs steadily to \$146,576. A red line for the median trader drifts down to \$606.](../docs/figures/coin_flip_capital_paths.png)
 
-*Two hundred simulated traders. The gold line compounds the ensemble rate and the red line compounds the time average. The dashed line is the \$1,000 each trader started with.*
+*Two hundred simulated traders. The gold line compounds the ensemble rate and the red line compounds the time average. The dashed line is the \$1,000 each trader started with. The 200 drawn here average \$21,664 at round 1,000, well short of the gold line, for the reason Lesson 6 gives.*
 
 What pulls apart is the capital they compound into. The ratio of ensemble capital to time-average capital grows by the same factor every round. That factor is set by the difference between the two log rates, 0.005488 per round.
 
@@ -120,9 +120,9 @@ Two stakes on this curve matter.
 1. **Growth is zero** at a stake of `(b − 1)/b`, which is 1/11 for Chan’s coin. His stake of 1/10 sits just past that line, which is why the growth rate is a small negative number rather than a large one.
 2. **Growth is highest** at `(b − 1)/(2b)`, which is 1/22. At that stake the time average is +0.0011351 per round.
 
-![A curve of growth per round against the stake, from 0% to 11% of capital. It rises from zero to a peak of +0.0011351 at a stake of 1/22, falls back through zero at 1/11, and turns negative. Chan's stake of 1/10 sits just below zero at −0.00050025. The region above zero is shaded green and the region below it red.](../docs/figures/coin_flip_growth_by_stake.png)
+![A curve of growth per round against the stake, from 0% to 11% of capital. It rises from zero to a peak of +0.0011351 at a stake of 1/22, falls back through zero at 1/11, and turns negative. Chan’s stake of 1/10 sits just below zero at −0.00050025. The region above zero is shaded green and the region below it red.](../docs/figures/coin_flip_growth_by_stake.png)
 
-*The same coin at every stake. Growth peaks at 1/22 and turns negative past 1/11, which is where Chan’s 1/10 sits.*
+*The same coin at every stake. Growth peaks at 1/22 and turns negative past 1/11. Chan’s 1/10 sits on the negative side.*
 
 The best stake is exactly half the break-even stake, and that factor of two is a property of any even-odds coin rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
 

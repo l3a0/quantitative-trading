@@ -356,8 +356,9 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
    its docstring and does not assert the percentage.
 
 Every other number in the post traces to an assertion in
-[tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py), or, for the
-two shares its distribution figure prints, in
+[tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers
+the figures print, including the two shares in the distribution figure's title
+and the \$21,664 the fan's 200 paths average, trace to
 [tests/test_coin_flip_figures.py](tests/test_coin_flip_figures.py).
 
 The post carries three figures, drawn from the gamble's own arithmetic by
@@ -406,7 +407,7 @@ uv run pytest
 ```
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
-needs it. It is there so the two committed figures can be redrawn and checked.
+needs it. It is there so the committed figures can be redrawn and checked.
 
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a

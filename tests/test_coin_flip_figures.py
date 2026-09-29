@@ -96,6 +96,11 @@ class TestTheStakeFigure:
             pytest.approx((0.1, -0.00050025), abs=5e-9),
         ]
 
+    def test_the_title_states_the_finding(self, stake) -> None:
+        assert stake._suptitle.get_text() == (
+            "Chan’s stake of 1/10 shrinks capital, and a stake of 1/22 grows it fastest"
+        )
+
     def test_each_mark_is_labelled_with_its_own_numbers(self, stake) -> None:
         labels = _texts(stake.axes[0])
         assert labels == [
@@ -128,7 +133,28 @@ class TestThePathsFigure:
         assert paths.median[-1] == pytest.approx(1000.0 * (1.11 * 0.90) ** 500, rel=1e-12)
 
     def test_the_labels_carry_those_two_balances(self, paths) -> None:
-        assert _texts(paths.axes[0]) == ["ensemble mean\n$146,576", "median trader\n$606"]
+        assert _texts(paths.axes[0]) == [
+            "ensemble mean, all possible traders\n$146,576",
+            "median trader\n$606",
+        ]
+
+    def test_the_title_names_the_mean_and_the_median(self, paths) -> None:
+        """Lesson 1 says the mean describes the crowd rather than any trader,
+        so the title names the ensemble mean rather than an average trader."""
+        assert paths._suptitle.get_text() == (
+            "The ensemble mean climbs while the median trader loses"
+        )
+
+    def test_the_drawn_paths_average_well_short_of_the_ensemble_mean(self, paths) -> None:
+        """The gold line is the mean over every possible trader, and the 200
+        drawn fall far short of it, which is Lesson 6's point. The note says
+        so, because a reader would otherwise take the gold line for the
+        average of the grey ones."""
+        assert paths.sample_mean == pytest.approx(21_664, abs=0.5)
+        assert paths.sample_mean == pytest.approx(paths.paths[:, -1].mean(), rel=1e-12)
+        assert np.mean(paths.paths[:, -1] > paths.mean[-1]) == pytest.approx(0.035)
+        (note,) = [t.get_text() for t in paths.texts if t is not paths._suptitle]
+        assert "average $21,664 at round 1,000" in note
 
     def test_the_note_names_the_seed_and_the_draw_method(self, paths) -> None:
         (note,) = [t.get_text() for t in paths.texts if t is not paths._suptitle]
@@ -208,6 +234,23 @@ class TestTheDistributionFigure:
         assert stems[0] < dotted < stems[1]
         assert inset.get_xlim()[0] < stems[0] and stems[1] < inset.get_xlim()[1]
         assert _texts(inset) == ["499 heads\n$492", "500 heads\n$606", "$599, the\napproximation"]
+        assert inset.get_title(loc="left") == "zoomed near $600: no balance at $599"
+
+    def test_the_note_names_the_range_the_bars_cover(self, distribution) -> None:
+        low, high = HEADS_SHOWN
+        (note,) = [t.get_text() for t in distribution.texts if t is not distribution._suptitle]
+        assert f"One bar per head count from {low} to {high}" in note
+        assert (low, high) == (440, 560)
+
+    def test_no_label_is_parsed_as_math(self, stake, paths, distribution) -> None:
+        """Two dollar signs in one matplotlib string turn the text between
+        them into an italic formula, which the inset title did on its first
+        draw. Every text artist here is drawn with math parsing off."""
+        for fig in (stake, paths, distribution):
+            texts = [*fig.texts]
+            for ax in fig.axes:
+                texts += [*ax.texts, ax.title, ax._left_title]
+            assert all(not text.get_parse_math() for text in texts)
 
 
 class TestTheCommittedImagesAreThoseFigures:
