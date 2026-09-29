@@ -4,9 +4,9 @@
 
 ## Why the average is the wrong yardstick
 
-Most performance numbers a trader sees are averages of one-period returns. A backtest reports a mean daily return, a fund reports a mean annual return, and a bet gets judged by its expected value. All of them answer the same question: what does one round pay, averaged over every way it could turn out?
+A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pays \$5, so the bet looks worth taking. Play it 1,000 times from \$1,000, with the bet scaled to the account as it grows, and the typical player ends with \$606.
 
-A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds a bet where the average return and the growth of capital have opposite signs. The expected value is positive, and a trader who keeps playing ends up poorer.
+Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds this bet to show why. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind, and for this bet the average return and the growth of capital have opposite signs.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in code. The code behind every figure is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Where a number is Chan’s own printed figure rather than one worked out here, the post says so.
 
@@ -194,9 +194,9 @@ The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded
 
 The two near misses are also a lesson in checking work. Landing on −0.0005125 confirms a number, and a wrong formula could still sit behind it. Confirming that the sample form gives −0.006025 and the exact form gives −0.00050025 confirms the formula too, and a wrong formula is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
-## Lesson 6: a simulation of the coin can mislead in three ways
+## Lesson 6: a simulation of the coin can mislead in two ways
 
-Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, and recording it lets anyone repeat the run. Three things go wrong, and each has a counterpart when simulating a real strategy.
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, and recording it lets anyone repeat the run. Record the method that draws the tosses beside it, since one seed gives different tosses under different methods. Two things go wrong, and each has a counterpart when simulating a real strategy.
 
 ### Noise swamps a small edge
 
@@ -214,7 +214,7 @@ A small run can therefore land on the wrong side of zero. Three results show wha
 
 *The same simulation at two sizes, 200 seeds each. The small run’s spread is wider than the effect it measures, so 56 seeds land on the wrong side of zero. The large run’s spread is narrow enough that none do.*
 
-The same noise is why the book’s figures are not checked by simulation. Chan prints seven decimals, and bringing the standard error down to even the fifth decimal place would take about 110 million tosses. So this replication checks his figures against exact arithmetic, and uses the simulation only to show the sign.
+The same noise is why this replication checks Chan’s printed figures against exact arithmetic, and uses simulation only to show the sign.
 
 ### Average final wealth reads low
 
@@ -225,10 +225,6 @@ The other way averages the simple return of every toss and converts that average
 ![A dot plot with two rows and one dot per seed for 20 seeds. The top row, the log of the mean final wealth, spreads from about 0.0023 to 0.0037, every dot well left of a vertical line at the true ensemble growth of 0.0049875. The bottom row, the mean of each toss’s return, is a tight cluster sitting on that line.](../docs/figures/coin_flip_ensemble_estimators.png)
 
 *Two ways to estimate the ensemble growth from the same simulated tosses. Averaging final wealth reads low on every seed, while averaging each toss’s return lands on the true value.*
-
-### A seed does not determine a run
-
-numpy offers several ways to draw random tosses. From seed 7, four of them, `integers`, `random`, `binomial` and `standard_normal`, give four different sequences. Record the draw method beside the seed, or a rerun can produce different numbers from the same seed.
 
 ## What this means for a trader
 
