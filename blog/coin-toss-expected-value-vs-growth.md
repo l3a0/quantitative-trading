@@ -125,7 +125,7 @@ This changes what the layman’s refusal means. Refusing at a tenth of capital i
 
 ## Lesson 5: two unstated formula choices can change a growth rate
 
-Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right and is not. The coin exposes both, because Chan printed enough figures to tell the right choice from the wrong one.
+Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right but does not match Chan’s. The coin exposes both, because Chan printed enough figures to tell the right choice from the wrong one.
 
 He prints four numbers for this example.
 
@@ -138,7 +138,7 @@ He gives the approximation’s formula earlier in the chapter, but the example i
 
 ### Which standard deviation
 
-A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form, which corrects for estimating the mean from the same data. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot, and the coin’s two outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
+A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and `n − 1` corrects for that. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
 
 The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it, because pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
 
@@ -146,11 +146,11 @@ The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −
 
 The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small.
 
-The difference matters once the rate is compounded into a balance. After 1,000 rounds the balance depends only on how many tosses came up heads, so only 1,001 balances are possible. The two nearest the middle are \$492 for 499 heads and \$606 for 500. The approximation compounds to \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Reason about growth with the approximation, and compute a balance with the exact rate.
+The difference matters once the rate is compounded into a balance. After 1,000 rounds the balance depends only on how many tosses came up heads, so only 1,001 balances are possible. The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded, the approximation gives \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Use the approximation to see where growth comes from, the mean less half the variance, and compound the exact rate to get a balance.
 
 ### Checking the formula, not only the number
 
-The two wrong choices are also what make a check worth running. A test that checks only −0.0005125 catches a changed number. Checking that the sample form gives −0.006025 and the exact form gives −0.00050025 catches a changed formula, which is the mistake that leaves a printed number looking plausible. The same holds for checking any backtest against a published figure.
+The two near misses are also what make a check worth running. A test that checks only −0.0005125 catches a changed number. Checking that the sample form gives −0.006025 and the exact form gives −0.00050025 catches a changed formula, which is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
 ## Lesson 6: three ways a simulation of the coin misleads
 
