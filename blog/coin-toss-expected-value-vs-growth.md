@@ -146,7 +146,21 @@ The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −
 
 The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small.
 
-The difference matters once the rate is compounded into a balance. After 1,000 rounds the balance depends only on how many tosses came up heads, not on their order. That count can be anything from 0 to 1,000, and counting both ends gives 1,001 possible head counts, so only 1,001 balances are possible. The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded, the approximation gives \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Use the approximation to see where growth comes from, the mean less half the variance, and compound the exact rate to get a balance.
+The difference matters once the rate is compounded into a balance. Each head multiplies the balance by 1.11 and each tail by 0.90. Multiplication ignores order, so heads then tails leaves the same \$999 as tails then heads, and the balance depends only on how many tosses came up heads. Two rounds show how the counting works.
+
+| Heads in 2 rounds | Balance from \$1,000 |
+| --- | --- |
+| 0 | 1,000 × 0.90 × 0.90 = \$810.00 |
+| 1 | 1,000 × 1.11 × 0.90 = \$999.00 |
+| 2 | 1,000 × 1.11 × 1.11 = \$1,232.10 |
+
+Two rounds allow three head counts, 0, 1 and 2, so three balances. The count always runs from zero heads up to one head per round, which is one more value than the number of rounds. After 1,000 rounds it runs from 0 to 1,000, so 1,001 balances are possible, one for each head count `h`:
+
+```math
+C(h) = 1000 \times 1.11^{h} \times 0.90^{\,1000-h}, \qquad h = 0, 1, 2, \ldots, 1000
+```
+
+The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded, the approximation gives \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Use the approximation to see where growth comes from, the mean less half the variance, and compound the exact rate to get a balance.
 
 ### Checking the formula, not only the number
 
