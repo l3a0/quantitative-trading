@@ -198,7 +198,7 @@ The two near misses are also a lesson in checking work. Landing on −0.0005125 
 
 ## Lesson 6: a simulation of the coin can mislead in two ways
 
-Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, and recording it lets anyone repeat the run. Record the method that draws the tosses beside it, since one seed gives different tosses under different methods. Two things go wrong, and each has a counterpart when simulating a real strategy.
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from. Recording it lets anyone repeat the run only alongside the method that draws the tosses and the version of the library that runs them, since one seed can give different tosses under either change. Two things go wrong, and each has a counterpart when simulating a real strategy.
 
 ### Noise swamps a small edge
 
