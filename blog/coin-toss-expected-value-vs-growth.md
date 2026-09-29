@@ -159,7 +159,7 @@ He prints four numbers for this example.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He gives the approximation’s formula earlier in the chapter, but the example itself works no arithmetic. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
+He gives the approximation’s formula earlier in the chapter, but the example itself doesn’t show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
 ### Which standard deviation
 
