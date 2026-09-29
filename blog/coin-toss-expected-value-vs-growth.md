@@ -139,15 +139,35 @@ He gives the approximation’s formula, `m − s²/2`, earlier in the chapter, b
 
 A test that checks only −0.0005125 fails when the number moves. Checking the two near misses as well makes it fail when the formula changes, which is the mistake that leaves the printed number looking plausible.
 
-## Lesson 6: a simulation can get the sign wrong unless it is large enough
+## Lesson 6: three ways a simulation of the coin misleads
 
-Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Three things go wrong, and each has a counterpart when simulating a real strategy.
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, which is recorded so the run can be repeated. Three things go wrong, and each has a counterpart when simulating a real strategy.
 
-1. **Noise swamps a small edge.** The log return of one toss has a standard deviation of 0.10486, against an effect of about 0.0005 per round. Averaging `N` tosses shrinks that noise to 0.10486 divided by √N, which is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the effect. So a small run can land on the wrong side of zero. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds, so more than a quarter of runs say the losing bet wins. At 1,000 rounds by 1,000 traders it comes out negative on all 200, and the run the repo reports sits 4.955 standard errors below zero. The same arithmetic applies to any strategy whose edge is small next to its swings. Print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
-2. **Average wealth lives on paths the simulation never draws.** The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. That misses the rare lucky paths that carry the mean, for the reason Lesson 1 gives. With 1,000 traders playing 5,000 rounds each, this estimated growth per round sits below 0.0038 on every one of the first 20 seeds. The other way averages the simple return of every toss and converts that average to a log rate. On the same 20 seeds, its estimated growth per round lands within 1e-4 of 0.0049875. So a simulation’s average final wealth is unreliable, because it depends on how lucky its luckiest paths happened to be. For a single account, the time-average growth per round is the figure to read, and estimating it needs no rare paths.
-3. **A seed does not determine a run.** A seed is the starting number a random generator uses, and it is usually recorded so a run can be repeated. From seed 7, numpy’s `integers`, `random`, `binomial` and `standard_normal` give four different sequences of tosses. So record the draw method beside the seed, or a rerun can produce different numbers from the same seed.
+### Noise swamps a small edge
 
-The first problem is also why the book’s figures are not checked by simulation. Chan prints seven decimals, and reaching even the fifth would take about 110 million tosses. So the repo checks his figures against exact arithmetic, and uses the simulation only to show the sign.
+A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard. Print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
+
+The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured.
+
+A small run can therefore land on the wrong side of zero. Three measurements show how large a run has to be.
+
+1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs say the losing bet wins.
+2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
+3. The run in this post’s code sits 4.955 standard errors below zero, and its report prints that margin beside the estimate.
+
+### Average final wealth reads low
+
+The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because the paths that carry the true mean, for the reason Lesson 1 gives, are too rare for a sample to draw.
+
+The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
+
+### A seed does not determine a run
+
+numpy, Python’s numerical library, offers several ways to draw random tosses. From seed 7, four of them, `integers`, `random`, `binomial` and `standard_normal`, give four different sequences. Record the draw method beside the seed, or a rerun can produce different numbers from the same seed.
+
+### Why the book’s figures are not checked by simulation
+
+The first problem settles this. Chan prints seven decimals, and matching even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
 
 ## What this means for a trader
 
