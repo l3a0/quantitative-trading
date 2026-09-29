@@ -113,7 +113,13 @@ The best stake is exactly half the break-even stake, and that factor of two is a
 
 At the best stake the two averages still differ, but both are positive. After 1,000 rounds from \$1,000 the median path reaches \$3,111 and the ensemble mean reaches \$9,681, a ratio of 3.11 rather than 241.72. For an even-odds coin at the best stake, one trader’s log growth is exactly half the ensemble’s.
 
-The growth-maximising stake is the **Kelly** stake, and Chan gives its continuous form in the same chapter as `m / s²`. On this coin that formula says to hold 0.4535 of Chan’s stake, a stake of 0.04535 against the exact 1/22 of 0.04545.
+The growth-maximising stake is the **Kelly** stake. Chan gives its continuous form in the same chapter as a leverage, a number to multiply a position by, computed from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures the section on the two averages uses:
+
+```math
+\frac{m}{s^2} = \frac{0.005}{0.105^2} \approx 0.4535
+```
+
+The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
 
 This changes what the layman’s refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
