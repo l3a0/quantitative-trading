@@ -151,7 +151,7 @@ Even the sign needs a large enough run, and three measurements show how large.
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
 3. The run the repo reports sits 4.955 standard errors below zero, and the report prints that margin beside the estimate.
 
-The ensemble side is harder to see than it looks, for the reason Lesson 1 gives. Estimating it as the log of the mean final wealth misses the rare lucky paths that carry the mean. At 5,000 rounds by 1,000 traders, that estimate sits below 0.0038 on every one of the first 20 seeds, against a true value of 0.0049875. Averaging the simple return of each toss instead recovers the true value to within 1e-4 on every one of those seeds.
+The ensemble side is harder to see than it looks, for the reason Lesson 1 gives. Its true growth per round is ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. That misses the rare lucky paths that carry the mean. With 1,000 traders playing 5,000 rounds each, the estimated ensemble growth per round sits below 0.0038 on every one of the first 20 seeds. The other way averages the simple return of every toss and converts that average to a log rate. On the same 20 seeds, its estimated growth per round lands within 1e-4 of 0.0049875.
 
 A seed alone does not determine a run either. From seed 7, numpy’s `integers`, `random`, `binomial` and `standard_normal` give four different sequences of tosses. The draw method is part of what makes a simulated result reproducible, so name it beside the seed.
 
