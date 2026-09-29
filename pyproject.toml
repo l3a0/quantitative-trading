@@ -3,6 +3,8 @@ name = "quantitative-trading"
 version = "0.0.0"
 description = "Experiments and replications from Ernest Chan's quantitative trading books."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 # The replications compute their numbers through ithildincore rather than a
 # hand-rolled least squares, so there is one implementation of each estimator
