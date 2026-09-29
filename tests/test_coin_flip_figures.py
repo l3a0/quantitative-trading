@@ -20,6 +20,8 @@ from chan import coin_flip_figures as figures
 from chan.coin_flip_figures import (
     ACCENT,
     DISTRIBUTION_FIGURE,
+    ESTIMATOR_FIGURE,
+    ESTIMATOR_RUN,
     FAN_PATHS,
     GOOD,
     HEADS_SHOWN,
@@ -28,16 +30,22 @@ from chan.coin_flip_figures import (
     MUTED,
     PATHS_FIGURE,
     ROUNDS,
+    RUN_SIZES,
+    SIGN_FIGURE,
+    SIGN_SEEDS,
     STAKE_FIGURE,
     _dollars,
     _signed_rate,
+    ensemble_estimates,
     final_balances,
     make_distribution_figure,
+    make_estimator_figure,
     make_paths_figure,
+    make_sign_figure,
     make_stake_figure,
     stake_curve,
 )
-from chan.coin_flip_growth import BOOK_SEED, _flip_log_returns, gamble_moments
+from chan.coin_flip_growth import BOOK_SEED, _flip_log_returns, gamble_moments, simulate
 from chan.paths import FIGURES_DIR
 from tests.test_regime_figure import png_size
 
@@ -60,6 +68,16 @@ def paths(out_dir: Path):
 @pytest.fixture(scope="module")
 def distribution(out_dir: Path):
     return make_distribution_figure(out=out_dir / DISTRIBUTION_FIGURE)
+
+
+@pytest.fixture(scope="module")
+def sign(out_dir: Path):
+    return make_sign_figure(out=out_dir / SIGN_FIGURE)
+
+
+@pytest.fixture(scope="module")
+def estimator(out_dir: Path):
+    return make_estimator_figure(out=out_dir / ESTIMATOR_FIGURE)
 
 
 def _texts(ax) -> list[str]:
@@ -320,11 +338,11 @@ class TestTheDistributionFigure:
         assert f"One bar per head count from {low} to {high}" in note
         assert (low, high) == (440, 560)
 
-    def test_no_label_is_parsed_as_math(self, stake, paths, distribution) -> None:
+    def test_no_label_is_parsed_as_math(self, stake, paths, distribution, sign, estimator) -> None:
         """Two dollar signs in one matplotlib string turn the text between
         them into an italic formula, which the inset title did on its first
         draw. Every text artist here is drawn with math parsing off."""
-        for fig in (stake, paths, distribution):
+        for fig in (stake, paths, distribution, sign, estimator):
             texts = [*fig.texts]
             for ax in fig.axes:
                 texts += [*ax.texts, ax.title, ax._left_title]
@@ -358,10 +376,131 @@ class TestTheDistributionFigure:
         assert all(t < inset.get_ylim()[1] for t in tops)
 
 
+class TestTheSignFigure:
+    """Lesson 6, first problem: a small run gets the sign wrong a quarter of the time."""
+
+    def test_each_run_is_the_simulation_at_its_size(self, sign) -> None:
+        assert [(r.rounds, r.traders) for r in sign.runs] == list(RUN_SIZES)
+        for run in sign.runs:
+            assert len(run.estimates) == SIGN_SEEDS
+            for seed in (0, 42, 199):
+                assert (
+                    run.estimates[seed]
+                    == simulate(run.rounds, run.traders, seed).time_average_growth
+                )
+
+    def test_the_wrong_sign_counts_and_standard_errors(self, sign) -> None:
+        """56 and 0 are what ``tests/test_coin_flip_growth.py`` pins for these
+        two sizes, and the note prints the two standard errors."""
+        small, large = sign.runs
+        assert (small.wrong_sign, large.wrong_sign) == (56, 0)
+        # The alt text in the post describes the small run's spread by these.
+        assert small.estimates.min() == pytest.approx(-0.0024, abs=5e-5)
+        assert small.estimates.max() == pytest.approx(0.0015, abs=5e-5)
+        assert small.standard_error == pytest.approx(7.4148e-4, abs=5e-8)
+        assert large.standard_error == pytest.approx(1.0486e-4, abs=5e-8)
+        (note,) = [t.get_text() for t in sign.texts if t is not sign._suptitle]
+        assert "Standard error 7.41e-04 for the small run and 1.05e-04 for the large one" in note
+
+    def test_the_bars_count_every_seed_and_zero_is_a_bin_edge(self, sign) -> None:
+        """A bar straddling zero would mix right and wrong signs under one
+        colour, so zero has to be an edge."""
+        assert np.isclose(sign.edges, 0.0, atol=1e-15).any()
+        for ax, run in zip(sign.axes, sign.runs, strict=True):
+            bars = ax.containers[0]
+            heights = [bar.get_height() for bar in bars]
+            expected, _ = np.histogram(run.estimates, bins=sign.edges)
+            assert heights == list(expected)
+            assert sum(heights) == SIGN_SEEDS
+            centres = [bar.get_x() + bar.get_width() / 2 for bar in bars]
+            assert centres == pytest.approx(list((sign.edges[:-1] + sign.edges[1:]) / 2))
+
+    def test_red_bars_are_exactly_the_wrong_signs(self, sign) -> None:
+        for ax, run in zip(sign.axes, sign.runs, strict=True):
+            red = 0
+            for bar in ax.containers[0]:
+                centre = bar.get_x() + bar.get_width() / 2
+                expected = LOST if centre > 0 else MUTED
+                assert _rgb(bar.get_facecolor()) == _rgb(expected)
+                red += bar.get_height() if centre > 0 else 0
+            assert red == run.wrong_sign
+
+    def test_each_panel_marks_zero_and_the_true_growth(self, sign) -> None:
+        truth = gamble_moments().growth_exact
+        for ax in sign.axes:
+            lines = [(line.get_xdata()[0], _rgb(line.get_color())) for line in ax.lines]
+            assert lines == [(0, _rgb("#23201A")), (pytest.approx(truth), _rgb(ACCENT))]
+        assert sign.axes[0].get_xlim() == sign.axes[1].get_xlim()
+
+    def test_the_titles_state_the_counts(self, sign) -> None:
+        assert (
+            sign._suptitle.get_text()
+            == "A small simulation gets the sign wrong a quarter of the time"
+        )
+        assert [ax.get_title(loc="left") for ax in sign.axes] == [
+            "100 rounds × 200 traders: 56 of 200 seeds get the sign wrong",
+            "1,000 rounds × 1,000 traders: 0 of 200 seeds get the sign wrong",
+        ]
+        assert _texts(sign.axes[0]) == ["true growth, −0.0005", "zero"]
+
+
+class TestTheEstimatorFigure:
+    """Lesson 6, second problem: averaging final wealth reads low."""
+
+    def test_both_estimators_come_from_the_same_draws(self) -> None:
+        rounds, traders, seeds = ESTIMATOR_RUN
+        assert (rounds, traders, seeds) == (5000, 1000, 20)
+        e = ensemble_estimates()
+        logs = _flip_log_returns(rounds, traders, 3, 110.0, 100.0, 1000.0)
+        assert e.wealth_average[3] == pytest.approx(
+            np.log(np.exp(logs.sum(axis=1)).mean()) / rounds, rel=1e-12
+        )
+        assert e.per_toss[3] == pytest.approx(np.log1p(np.expm1(logs).mean()), rel=1e-12)
+        assert e.per_toss[3] == pytest.approx(
+            simulate(rounds, traders, 3).ensemble_log_growth, rel=1e-12
+        )
+
+    def test_the_wealth_average_reads_low_and_the_per_toss_one_does_not(self, estimator) -> None:
+        """The same bounds ``tests/test_coin_flip_growth.py`` holds, which the
+        title and the post quote."""
+        e = estimator.estimates
+        assert e.truth == pytest.approx(0.0049875, abs=5e-8)
+        assert np.all(e.wealth_average < 0.0038)
+        # The alt text in the post describes the wealth average's spread by these.
+        assert e.wealth_average.min() == pytest.approx(0.0023, abs=5e-5)
+        assert e.wealth_average.max() == pytest.approx(0.0037, abs=5e-5)
+        assert np.all(np.abs(e.per_toss - e.truth) < 1e-4)
+
+    def test_the_dots_are_the_estimates_in_their_rows(self, estimator) -> None:
+        e = estimator.estimates
+        ax = estimator.axes[0]
+        dots = [line for line in ax.lines if line.get_marker() == "o"]
+        assert [_rgb(d.get_color()) for d in dots] == [_rgb(LOST), _rgb(MUTED)]
+        assert list(dots[0].get_xdata()) == pytest.approx(list(e.wealth_average))
+        assert list(dots[1].get_xdata()) == pytest.approx(list(e.per_toss))
+        assert set(dots[0].get_ydata()) == {1.0} and set(dots[1].get_ydata()) == {0.0}
+        low, high = ax.get_xlim()
+        assert low < e.wealth_average.min() and max(e.per_toss.max(), e.truth) < high
+
+    def test_the_true_value_is_marked_and_labelled(self, estimator) -> None:
+        ax = estimator.axes[0]
+        (truth,) = [line for line in ax.lines if line.get_marker() != "o"]
+        assert truth.get_xdata()[0] == pytest.approx(estimator.estimates.truth)
+        assert _rgb(truth.get_color()) == _rgb(ACCENT)
+        assert _texts(ax) == [
+            "true ensemble growth\nln(1.005) = 0.0049875",
+            "all 20 dots, within 0.0001 of the true value",
+        ]
+        assert estimator._suptitle.get_text() == "Averaging final wealth reads low on all 20 seeds"
+
+
 class TestTheCommittedImagesAreThoseFigures:
-    @pytest.mark.parametrize("name", [STAKE_FIGURE, PATHS_FIGURE, DISTRIBUTION_FIGURE])
+    @pytest.mark.parametrize(
+        "name",
+        [STAKE_FIGURE, PATHS_FIGURE, DISTRIBUTION_FIGURE, SIGN_FIGURE, ESTIMATOR_FIGURE],
+    )
     def test_a_fresh_draw_has_the_committed_image_dimensions(
-        self, name: str, out_dir: Path, stake, paths, distribution
+        self, name: str, out_dir: Path, stake, paths, distribution, sign, estimator
     ) -> None:
         assert png_size(out_dir / name) == png_size(FIGURES_DIR / name)
 
@@ -376,6 +515,8 @@ class TestTheCommittedImagesAreThoseFigures:
         make_stake_figure(out=tmp_path / "a.png")
         make_paths_figure(out=tmp_path / "b.png")
         make_distribution_figure(out=tmp_path / "c.png")
+        make_sign_figure(out=tmp_path / "d.png")
+        make_estimator_figure(out=tmp_path / "e.png")
         assert list(default.iterdir()) == []
 
     def test_the_command_writes_all_three_and_says_where(
@@ -384,6 +525,12 @@ class TestTheCommittedImagesAreThoseFigures:
         monkeypatch.setattr(figures, "FIGURES_DIR", tmp_path)
         figures.main()
         out = capsys.readouterr().out
-        for name in (STAKE_FIGURE, PATHS_FIGURE, DISTRIBUTION_FIGURE):
+        for name in (
+            STAKE_FIGURE,
+            PATHS_FIGURE,
+            DISTRIBUTION_FIGURE,
+            SIGN_FIGURE,
+            ESTIMATOR_FIGURE,
+        ):
             assert f"wrote {tmp_path / name}" in out
             assert (tmp_path / name).is_file()

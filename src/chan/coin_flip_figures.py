@@ -1,4 +1,4 @@
-"""Three figures for the coin-flip gamble, drawn for the blog post about it.
+"""Five figures for the coin-flip gamble, drawn for the blog post about it.
 
 ``blog/coin-toss-expected-value-vs-growth.md`` makes its argument in numbers,
 and the owner asked on 2026-09-29 for pictures that show it. Each figure below
@@ -16,11 +16,19 @@ so a figure can only be wrong by drawing the wrong thing, which
    1,000 rounds can reach. The median, the starting capital and the ensemble
    mean are marked, and so is the balance the continuous approximation
    compounds to, which falls between two bars. That is Lessons 1 and 5.
+4. :func:`make_sign_figure` draws the simulated time average from each of 200
+   seeds at two run sizes. The small run straddles zero and the large one
+   does not, which is the first problem in Lesson 6.
+5. :func:`make_estimator_figure` draws two estimates of the ensemble growth
+   from each of 20 seeds. Averaging final wealth reads low on every one, and
+   averaging each toss's return lands on the true value, which is the second
+   problem in Lesson 6.
 
 This reopens a row of the considered-and-rejected register in
 ``docs/design.md``, which cut a figure for the coin-flip divergence on the
-cost of keeping copies in step. The owner chose all three figures knowing
-that, and the row now records the reversal.
+cost of keeping copies in step. The owner chose the first three figures
+knowing that, and the row now records the reversal. The owner asked for the
+last two on the same day, to make Lesson 6 easier to follow.
 
 None of the figures reads a vintage, because the gamble is arithmetic on a
 known coin rather than market data.
@@ -49,6 +57,8 @@ from chan.coin_flip_growth import (
     _flip_log_returns,
     capital_horizon,
     gamble_moments,
+    log_return_sd,
+    simulate,
 )
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, GROUND, INK, LOST, MUTED, RULE, SURFACE
@@ -56,6 +66,8 @@ from chan.regime_figure import ACCENT, GOOD, GROUND, INK, LOST, MUTED, RULE, SUR
 STAKE_FIGURE = "coin_flip_growth_by_stake.png"
 PATHS_FIGURE = "coin_flip_capital_paths.png"
 DISTRIBUTION_FIGURE = "coin_flip_final_balances.png"
+SIGN_FIGURE = "coin_flip_sign_by_run_size.png"
+ESTIMATOR_FIGURE = "coin_flip_ensemble_estimators.png"
 
 #: Rounds every capital figure runs, matching the horizon the post quotes.
 ROUNDS = 1000
@@ -72,6 +84,22 @@ MAX_STAKE = 0.11
 #: Head counts the balance distribution draws. Outside this range the
 #: probabilities sum to about 1.3e-4, so nothing visible is cut.
 HEADS_SHOWN = (440, 560)
+
+#: The two run sizes the sign figure compares, as (rounds, traders). They are
+#: the sizes ``tests/test_coin_flip_growth.py`` pins: the small one gets the
+#: sign wrong on 56 of the first 200 seeds and the large one on none.
+RUN_SIZES = ((100, 200), (1000, 1000))
+
+#: Seeds each sign histogram counts, the same sweep the growth tests use.
+SIGN_SEEDS = 200
+
+#: Bin width for the sign histograms, in growth per round. Zero is a bin edge,
+#: so no bar mixes estimates on both sides of it.
+SIGN_BIN = 1e-4
+
+#: The estimator figure's run, as (rounds, traders, seeds). The same size and
+#: seed count the growth tests use to show the wealth average reading low.
+ESTIMATOR_RUN = (5000, 1000, 20)
 
 
 @dataclass(frozen=True)
@@ -428,11 +456,217 @@ def make_distribution_figure(out: Path | None = None) -> Figure:
     return _save(fig, out, DISTRIBUTION_FIGURE)
 
 
+@dataclass(frozen=True)
+class SignRun:
+    """The simulated time average from each seed at one run size."""
+
+    rounds: int
+    traders: int
+    estimates: np.ndarray
+    standard_error: float
+
+    @property
+    def wrong_sign(self) -> int:
+        return int((self.estimates > 0).sum())
+
+
+def sign_runs() -> tuple[SignRun, ...]:
+    """One :class:`SignRun` per entry of :data:`RUN_SIZES`."""
+    runs = []
+    for rounds, traders in RUN_SIZES:
+        estimates = np.array(
+            [simulate(rounds, traders, seed).time_average_growth for seed in range(SIGN_SEEDS)]
+        )
+        runs.append(
+            SignRun(
+                rounds=rounds,
+                traders=traders,
+                estimates=estimates,
+                standard_error=log_return_sd() / math.sqrt(rounds * traders),
+            )
+        )
+    return tuple(runs)
+
+
+@_plain_text
+def make_sign_figure(out: Path | None = None) -> Figure:
+    """Histograms of the simulated time average at two run sizes, on one axis."""
+    runs = sign_runs()
+    truth = gamble_moments().growth_exact
+    low = min(r.estimates.min() for r in runs)
+    high = max(r.estimates.max() for r in runs)
+    edges = np.arange(
+        math.floor(low / SIGN_BIN) * SIGN_BIN,
+        math.ceil(high / SIGN_BIN) * SIGN_BIN + SIGN_BIN / 2,
+        SIGN_BIN,
+    )
+
+    fig = Figure(figsize=(10, 6.4), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    axes = fig.subplots(len(runs), 1, sharex=True)
+    for ax, run in zip(axes, runs, strict=True):
+        _style(ax)
+        counts, _ = np.histogram(run.estimates, bins=edges)
+        centres = (edges[:-1] + edges[1:]) / 2
+        ax.bar(
+            centres,
+            counts,
+            width=SIGN_BIN * 0.9,
+            color=[LOST if c > 0 else MUTED for c in centres],
+            lw=0,
+        )
+        ax.axvline(0, color=INK, lw=1.2)
+        ax.axvline(truth, color=ACCENT, lw=1.8, ls=(0, (5, 3)))
+        ax.set_ylim(0, counts.max() * 1.25)
+        ax.set_ylabel("seeds", color=INK, fontsize=10.5)
+        ax.set_title(
+            f"{run.rounds:,} rounds × {run.traders:,} traders: "
+            f"{run.wrong_sign} of {SIGN_SEEDS} seeds get the sign wrong",
+            color=INK,
+            fontsize=11.5,
+            loc="left",
+            fontweight="bold",
+        )
+    axes[0].annotate(
+        "true growth, −0.0005",
+        (truth, axes[0].get_ylim()[1] * 0.92),
+        xytext=(-6, 0),
+        textcoords="offset points",
+        ha="right",
+        color=INK,
+        fontsize=10,
+    )
+    axes[0].annotate(
+        "zero",
+        (0, axes[0].get_ylim()[1] * 0.92),
+        xytext=(6, 0),
+        textcoords="offset points",
+        ha="left",
+        color=INK,
+        fontsize=10,
+    )
+    axes[-1].xaxis.set_major_formatter(FuncFormatter(_signed_rate))
+    axes[-1].set_xlabel("simulated time-average growth per round", color=INK, fontsize=10.5)
+    small, large = runs
+    _title(
+        fig,
+        "A small simulation gets the sign wrong a quarter of the time",
+        f"Each bar counts seeds whose estimate falls in a {SIGN_BIN:.4f}-wide range. Red bars sit "
+        "right of zero, where the losing bet looks like a winner.\n"
+        f"Standard error {small.standard_error:.2e} for the small run and "
+        f"{large.standard_error:.2e} for the large one, against a true growth of −0.0005.",
+    )
+    fig.tight_layout(rect=(0, 0.07, 1, 0.96))
+    fig.runs = runs
+    fig.edges = edges
+    return _save(fig, out, SIGN_FIGURE)
+
+
+@dataclass(frozen=True)
+class Estimates:
+    """Two estimates of the ensemble growth per round from each seed."""
+
+    wealth_average: np.ndarray
+    per_toss: np.ndarray
+    truth: float
+
+
+def ensemble_estimates() -> Estimates:
+    """Both estimators from the same draws, at :data:`ESTIMATOR_RUN`.
+
+    The wealth average is the log of the mean final wealth divided by the
+    rounds, which ``chan.coin_flip_growth.simulate`` rejects. The per-toss
+    estimate is the one it uses: the mean simple return of every toss,
+    converted to a log rate.
+    """
+    rounds, traders, seeds = ESTIMATOR_RUN
+    wealth, toss = [], []
+    for seed in range(seeds):
+        logs = _flip_log_returns(rounds, traders, seed, WIN, LOSS, START_CAPITAL)
+        wealth.append(math.log(np.exp(logs.sum(axis=1)).mean()) / rounds)
+        toss.append(math.log1p(float(np.expm1(logs).mean())))
+    return Estimates(
+        wealth_average=np.array(wealth),
+        per_toss=np.array(toss),
+        truth=gamble_moments().ensemble_log_growth,
+    )
+
+
+@_plain_text
+def make_estimator_figure(out: Path | None = None) -> Figure:
+    """A dot strip of the two ensemble estimators against the true value."""
+    e = ensemble_estimates()
+    rounds, traders, seeds = ESTIMATOR_RUN
+
+    fig = Figure(figsize=(10, 4.6), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    ax = fig.subplots()
+    _style(ax)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+
+    rows = [
+        (1, e.wealth_average, LOST, "log of the mean\nfinal wealth"),
+        (0, e.per_toss, MUTED, "mean of each\ntoss’s return"),
+    ]
+    for y, values, colour, _ in rows:
+        ax.plot(
+            values,
+            np.full(len(values), y, dtype=float),
+            "o",
+            ms=9,
+            color=colour,
+            mec=SURFACE,
+            mew=1.5,
+            alpha=0.85,
+        )
+    ax.axvline(e.truth, color=ACCENT, lw=2)
+    ax.annotate(
+        f"true ensemble growth\nln(1.005) = {e.truth:.7f}",
+        (e.truth, 1.45),
+        xytext=(-8, 0),
+        textcoords="offset points",
+        ha="right",
+        va="center",
+        color=INK,
+        fontsize=10,
+    )
+    ax.annotate(
+        f"all {seeds} dots, within 0.0001 of the true value",
+        (e.per_toss.min(), 0),
+        xytext=(-14, 0),
+        textcoords="offset points",
+        ha="right",
+        va="center",
+        color=INK,
+        fontsize=10,
+    )
+    ax.set_yticks([y for y, *_ in rows], [label for *_, label in rows])
+    ax.tick_params(axis="y", labelsize=10.5, colors=INK)
+    ax.set_ylim(-0.6, 1.8)
+    ax.set_xlim(0.002, 0.0055)
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x:.4f}"))
+    ax.set_xlabel("estimated ensemble growth per round", color=INK, fontsize=10.5)
+    _title(
+        fig,
+        f"Averaging final wealth reads low on all {seeds} seeds",
+        f"{traders:,} simulated traders playing {rounds:,} rounds, one dot per seed. "
+        "The wealth average misses the rare lucky paths that carry the mean.\n"
+        "Averaging each toss’s return needs no rare paths and lands within 0.0001 of "
+        "the true value every time.",
+    )
+    fig.tight_layout(rect=(0, 0.09, 1, 0.95))
+    fig.estimates = e
+    return _save(fig, out, ESTIMATOR_FIGURE)
+
+
 def main() -> None:
     for make, name in (
         (make_stake_figure, STAKE_FIGURE),
         (make_paths_figure, PATHS_FIGURE),
         (make_distribution_figure, DISTRIBUTION_FIGURE),
+        (make_sign_figure, SIGN_FIGURE),
+        (make_estimator_figure, ESTIMATOR_FIGURE),
     ):
         make()
         print(f"wrote {FIGURES_DIR / name}")
