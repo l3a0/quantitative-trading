@@ -138,6 +138,8 @@ The growth-maximising stake is the **Kelly** stake. Chan gives its continuous fo
 
 The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
 
+The same approximation carries the factor of two to any bet, not only a fair coin. Scaling a position by `k` gives growth of about `k·m − k²·s²/2`, which peaks at `k = m / s²` and falls back to zero at twice that.
+
 Chan also gives the growth that the Kelly stake reaches (Chan, 2021), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
 
 ```math
