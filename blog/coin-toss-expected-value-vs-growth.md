@@ -6,15 +6,15 @@
 
 Most performance numbers a trader sees are averages of one-period returns. A backtest reports a mean daily return, a fund reports a mean annual return, and a bet gets judged by its expected value. All of them answer the same question: what does one round pay, averaged over every way it could turn out?
 
-A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
+A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds a bet where the average return and the growth of capital have opposite signs. The expected value is positive, and a trader who keeps playing ends up poorer.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, apart from a few steps of hand arithmetic, and the few that are Chan’s own printed figures say so.
 
 ## The gamble
 
-Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. A fair coin is tossed. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
+Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. The bet is a single toss of a fair coin. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
 
-The expected gain is \$5 a round, half of \$110 less half of \$100. Most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
+The expected gain is \$5 a round, half of \$110 less half of \$100. Experiments show that most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
 
 The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly a tenth of capital. Tails loses the stake, while heads pays 1.1 times it, which is 11% of capital. So each round multiplies the account by one of two numbers:
 
@@ -42,7 +42,7 @@ The ensemble average is the mean simple return of one round:
 m = \tfrac{1}{2}(0.11) + \tfrac{1}{2}(-0.10) = 0.005
 ```
 
-The time average is the mean log return, which is what compounds:
+The time average is the mean log return. A round’s **log return** is the natural log of the factor it multiplies capital by, so ln 1.11 for a head. Logs add across rounds where the factors multiply, which is why their mean is what compounds:
 
 ```math
 g = \tfrac{1}{2}\ln 1.11 + \tfrac{1}{2}\ln 0.90 = \tfrac{1}{2}(0.1043600) + \tfrac{1}{2}(-0.1053605) = -0.00050025
@@ -64,9 +64,9 @@ That \$606 is also where the median path ends. After an even number of rounds it
 
 The gap is carried by a few lucky paths. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Almost nobody lives on those paths. The mean describes the crowd’s total wealth, and it says very little about any one member of the crowd.
 
-![Bar chart of every balance 1,000 rounds can reach, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of \$606, which sits just left of the \$1,000 starting line. The ensemble mean of \$146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, \$492 and \$606, with the approximation’s \$599 falling between them.](../docs/figures/coin_flip_final_balances.png)
+![Bar chart of the balances 1,000 rounds can reach between 440 and 560 heads, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of \$606, which sits just left of the \$1,000 starting line. The ensemble mean of \$146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, \$492 and \$606, with the approximation’s \$599 falling between them.](../docs/figures/coin_flip_final_balances.png)
 
-*Every balance 1,000 rounds can reach, and the share of traders who reach it. 56.3% end below the \$1,000 they started with, and only 4.7% reach the ensemble mean.*
+*The balances 1,000 rounds can reach from 440 to 560 heads, which covers all but 0.013% of traders, and the share who reach each. 56.3% end below the \$1,000 they started with, and only 4.7% reach the ensemble mean. The inset’s \$599 is what the continuous approximation compounds to, which Lesson 5 explains.*
 
 ## Lesson 2: the rates stay constant and the capital diverges
 
@@ -102,8 +102,8 @@ The second term is often called **volatility drag**, the growth a series loses p
 
 Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both examples are his printed figures rather than numbers this repo computes.
 
-1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute.
-2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
+1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point, or 0.005%, a minute.
+2. SPY, an exchange-traded fund that tracks the S&P 500, has a mean annual return of 11.23% in his example, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
 
 So two strategies with the same mean return do not grow at the same rate. In the approximation, the one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. Holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
 
@@ -165,7 +165,7 @@ He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box i
 
 A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and dividing by `n − 1` makes the variance unbiased. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
 
-The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it, because pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
+The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it. pandas and numpy, two Python libraries common in finance, disagree: pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
 
 ### Exact or approximate growth
 
@@ -194,17 +194,17 @@ The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded
 
 The two near misses are also what make a check worth running. A test that checks only −0.0005125 catches a changed number. Checking that the sample form gives −0.006025 and the exact form gives −0.00050025 catches a changed formula, which is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
-## Lesson 6: three ways a simulation of the coin misleads
+## Lesson 6: a simulation of the coin can mislead in three ways
 
-Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, which is recorded so the run can be repeated. Three things go wrong, and each has a counterpart when simulating a real strategy.
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number a random generator starts from, and recording it lets anyone repeat the run. Three things go wrong, and each has a counterpart when simulating a real strategy.
 
 ### Noise swamps a small edge
 
 A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard. Print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
 
-The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured.
+The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 0.000105, a fifth of the growth being measured.
 
-A small run can therefore land on the wrong side of zero. Three measurements show how large a run has to be.
+A small run can therefore land on the wrong side of zero. Three results show what the size of a run does.
 
 1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs say the losing bet wins.
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
@@ -214,11 +214,13 @@ A small run can therefore land on the wrong side of zero. Three measurements sho
 
 *The same simulation at two sizes, 200 seeds each. The small run’s spread is wider than the effect it measures, so 56 seeds land on the wrong side of zero. The large run’s spread is narrow enough that none do.*
 
+The same noise is why the book’s figures are not checked by simulation. Chan prints seven decimals, and bringing the standard error down to even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
+
 ### Average final wealth reads low
 
 The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because the paths that carry the true mean, for the reason Lesson 1 gives, are too rare for a sample to draw.
 
-The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
+The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 0.0001 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
 
 ![A dot plot with two rows and one dot per seed for 20 seeds. The top row, the log of the mean final wealth, spreads from about 0.0023 to 0.0037, every dot well left of a vertical line at the true ensemble growth of 0.0049875. The bottom row, the mean of each toss’s return, is a tight cluster sitting on that line.](../docs/figures/coin_flip_ensemble_estimators.png)
 
@@ -226,21 +228,18 @@ The other way averages the simple return of every toss and converts that average
 
 ### A seed does not determine a run
 
-numpy, Python’s numerical library, offers several ways to draw random tosses. From seed 7, four of them, `integers`, `random`, `binomial` and `standard_normal`, give four different sequences. Record the draw method beside the seed, or a rerun can produce different numbers from the same seed.
-
-### Why the book’s figures are not checked by simulation
-
-The first problem settles this. Chan prints seven decimals, and bringing the standard error down to even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
+numpy offers several ways to draw random tosses. From seed 7, four of them, `integers`, `random`, `binomial` and `standard_normal`, give four different sequences. Record the draw method beside the seed, or a rerun can produce different numbers from the same seed.
 
 ## What this means for a trader
 
 Chan’s own summary is short: “take time average, not ensemble average, when evaluating real-world risks” (Chan, 2021). A trader has one account and plays in sequence, so the time average is the one that describes what happens to them.
 
-Three habits follow from the lessons above.
+Four habits follow from the lessons above.
 
 1. **Judge a strategy by its compound growth rate.** A mean return is an ensemble number. Subtract the volatility drag before comparing two strategies.
 2. **Size before deciding.** The same bet can shrink or grow capital depending on the stake. On a fair coin, and in the continuous approximation for any bet, a stake beyond twice the growth-maximising one turns growth negative however attractive the average looks.
-3. **Report capital over several horizons.** Two rates at one horizon hide the divergence, and the divergence is the risk.
+3. **Report capital over several horizons.** Two rates at one horizon hide how far the capital they compound into drifts apart.
+4. **Check how a number was computed.** Name the standard-deviation convention behind a volatility, and print the standard error beside a simulated growth rate.
 
 The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) records the verdict row by row.
 
