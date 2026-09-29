@@ -548,15 +548,21 @@ no build step regenerates. 1.6766 now appears on eleven tracked files and
 ## Entry 2: the coin-flip gamble, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
-Algorithmic Trading Business*, Example 6.1. Shipped under
+Algorithmic Trading Business*, Box 6.1, "Loss aversion is not a behavioral
+bias". Shipped under
 [issue 13](https://github.com/l3a0/quantitative-trading/issues/13).
 
-The name is a revised-edition label, and this entry declares it because the
-repo reads every other one as first-edition. It comes from the book's own prose
-at Kindle location 3186, "As Example 6.1 shows". The first-edition code mirror
-this repo cites for `example7_2.m` and `example7_3.m` carries `example6_2.xls`
-and `example6_3.m` and no `example6_1` in any form, so there is no companion
-file to check the arithmetic against. The printed prose is the whole source.
+The label is a revised-edition one, and this entry declares it because the
+repo reads every other one as first-edition. The gamble sits in Box 6.1 of
+Chapter 6, a sidebar the 2009 edition could not hold because it quotes
+Kahneman's 2011 book. The box cites a separate Example 6.1 at Kindle location
+3186, "As Example 6.1 shows", for the continuous approximation it uses. This
+entry called the gamble Example 6.1 until 2026-09-29, misreading that sentence,
+and the owner corrected the label against the book. The first-edition code
+mirror this repo cites for `example7_2.m` and `example7_3.m` carries
+`example6_2.xls` and `example6_3.m` and nothing for Box 6.1, so there is no
+companion file to check the arithmetic against. The printed prose is the whole
+source.
 
 Eight rows, all derivable from
 [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py). Three

@@ -1,6 +1,6 @@
 """Chan's Kelly leverage on SPY, Example 6.2, against a modern download.
 
-Example 6.1 argues that a positive expected return can still shrink capital.
+Box 6.1 argues that a positive expected return can still shrink capital.
 This one puts a number on the other side of that argument. Given a return
 series, the continuous Kelly formula gives the leverage that maximises
 long-term compounded growth, ``f* = m / s^2``, where ``m`` is the annualised

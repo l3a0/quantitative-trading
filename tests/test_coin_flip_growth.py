@@ -1,4 +1,4 @@
-"""Pins for Chan's coin-flip gamble, Example 6.1.
+"""Pins for Chan's coin-flip gamble, Box 6.1.
 
 This file is the single authority for every number any prose surface quotes
 about this experiment. ``docs/replication-log.md`` Entry 2 and
@@ -75,7 +75,7 @@ def _terminal_wealth_estimator(rounds: int, paths: int, seed: int) -> float:
 
 
 class TestBookFigures:
-    """Every figure Example 6.1 prints, at the precision it prints it.
+    """Every figure Box 6.1 prints, at the precision it prints it.
 
     Chan gives four numbers at locations 3176 and 3186 and no formula, so the
     formula is what these assertions really hold. Only one choice reproduces

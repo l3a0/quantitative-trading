@@ -1,12 +1,12 @@
 # A coin toss that pays on average and still loses money
 
-*Six lessons from replicating Chan’s Example 6.1, on why a trader should judge a bet by the compound growth rate of capital rather than by its expected value.*
+*Six lessons from replicating Chan’s Box 6.1, on why a trader should judge a bet by the compound growth rate of capital rather than by its expected value.*
 
 ## Why the average is the wrong yardstick
 
 Most performance numbers a trader sees are averages of one-period returns. A backtest reports a mean daily return, a fund reports a mean annual return, and a bet gets judged by its expected value. All of them answer the same question: what does one round pay, averaged over every way it could turn out?
 
-A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Example 6.1, in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
+A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, and the few that are Chan’s own printed figures say so.
 
@@ -152,14 +152,14 @@ This changes what the layman’s refusal means. Refusing at a tenth of capital i
 
 Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right but does not match Chan’s. The coin exposes both, because Chan printed enough figures to tell the right choice from the wrong one.
 
-He prints four numbers for this example.
+He prints four numbers for the gamble.
 
 1. The \$5 expected gain.
 2. The 0.005 mean.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He gives the approximation’s formula earlier in Chapter 6, but the example itself doesn’t show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
+He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box itself doesn’t show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
 ### Which standard deviation
 

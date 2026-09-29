@@ -1,4 +1,4 @@
-"""Chan's coin-flip gamble, Example 6.1, where expectation and growth disagree.
+"""Chan's coin-flip gamble, Box 6.1, where expectation and growth disagree.
 
 Chan borrows Kahneman's gamble and rescales it for a trading account. A fair
 coin pays $110 on heads and costs $100 on tails against $1,000 of capital. The
@@ -13,14 +13,18 @@ the **time series average** over one trader's horizon. Here they have opposite
 signs. The ensemble side gains 0.005 per round and the time average loses
 0.0005125, so the layman refusing the gamble is right.
 
-The name is a revised-edition label. ``docs/design.md`` declares that every
+The label is a revised-edition one. ``docs/design.md`` declares that every
 citation of a chapter, a page or a MATLAB filename in this repo means the 2009
-first edition unless it says otherwise. This one does not: it comes from the
-revised edition's own prose at location 3186, "As Example 6.1 shows". The
-first-edition code mirror this repo cites elsewhere carries ``example6_2.xls``
-and ``example6_3.m`` and no ``example6_1`` in any form, so there is no
-companion file to check the arithmetic against. The printed prose is the whole
-source.
+first edition unless it says otherwise. This one does not: the gamble sits in
+Box 6.1, "Loss aversion is not a behavioral bias", a sidebar the 2009 edition
+could not hold because it quotes Kahneman's 2011 book. The box's sentence at
+location 3186, "As Example 6.1 shows", cites a separate, earlier example for
+the continuous approximation. This module called the gamble Example 6.1 until
+2026-09-29, misreading that sentence, and the owner corrected it against the
+book. The first-edition code mirror this repo cites elsewhere carries
+``example6_2.xls`` and ``example6_3.m`` and nothing for Box 6.1, so there is
+no companion file to check the arithmetic against. The printed prose is the
+whole source.
 
 **This experiment reads no vintage.** Every other replication here commits the
 series it ran on, because a vendor restates an adjusted price without
@@ -74,7 +78,7 @@ the verdict.
 
 Usage::
 
-    python -m chan.coin_flip_growth            # Chan's Example 6.1, the pinned run
+    python -m chan.coin_flip_growth            # Chan's Box 6.1, the pinned run
     python -m chan.coin_flip_growth --rounds 100 --paths 200
 """
 
@@ -92,7 +96,7 @@ WIN = 110.0
 LOSS = 100.0
 START_CAPITAL = 1000.0
 BOOK_REF = (
-    "Example 6.1 (rev. ed., locations 3176 and 3186): win $110 or lose $100 "
+    "Box 6.1 (rev. ed., locations 3176 and 3186): win $110 or lose $100 "
     "on $1,000, expected return 0.005, return sd 0.105, growth -0.0005125 "
     "in the continuous approximation"
 )
@@ -195,7 +199,7 @@ def gamble_moments(
     loss: float = LOSS,
     capital: float = START_CAPITAL,
 ) -> Moments:
-    """Everything Example 6.1 prints, from the payoffs alone. No random draws.
+    """Everything Box 6.1 prints, from the payoffs alone. No random draws.
 
     The two outcomes are equally likely, so every moment below is an average
     over exactly two numbers and the whole calculation is exact.
@@ -330,7 +334,7 @@ def capital_horizon(
 def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) -> None:
     """Print the closed-form figures, the seeded run, and the capital gap."""
     m = gamble_moments()
-    print("Chan's coin-flip gamble, Example 6.1 (revised edition, location 3186)")
+    print("Chan's coin-flip gamble, Box 6.1 (revised edition, location 3186)")
     print(f"  {BOOK_REF}")
     print("  vintage: none, synthetic. This experiment reads no series.")
     print()
@@ -395,7 +399,7 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Chan's coin-flip gamble, Example 6.1: expectation against growth"
+        description="Chan's coin-flip gamble, Box 6.1: expectation against growth"
     )
     parser.add_argument(
         "--rounds",

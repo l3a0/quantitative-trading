@@ -57,7 +57,7 @@ they were first built. The other three were built here.
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
    returns yet does not cointegrate in levels.
-3. The coin-flip gamble, Example 6.1, where the expected return of a round is
+3. The coin-flip gamble, Box 6.1, where the expected return of a round is
    positive and the growth rate of capital is negative. It is the one
    replication here that reads no series at all, so it has no vintage to name.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
@@ -336,7 +336,7 @@ other number in the post traces to an assertion in
 
 [blog/coin-toss-expected-value-vs-growth.md](blog/coin-toss-expected-value-vs-growth.md)
 is a third post, about the coin-flip gamble rather than either pair. It draws
-six lessons from Example 6.1 on expected value against the compound growth
+six lessons from Box 6.1 on expected value against the compound growth
 rate of capital. The growth-maximising stake it quotes is pinned beside the
 rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
 
