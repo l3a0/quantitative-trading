@@ -123,21 +123,34 @@ The formula says to scale Chan’s bet down to 0.4535 of its size, which is a st
 
 This changes what the layman’s refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
-## Lesson 5: the printed numbers fix the conventions the prose leaves open
+## Lesson 5: two unstated formula choices can change a growth rate
 
-Chan prints four numbers for this example.
+Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right and is not. The coin exposes both, because Chan printed enough figures to tell the right choice from the wrong one.
+
+He prints four numbers for this example.
 
 1. The \$5 expected gain.
 2. The 0.005 mean.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He gives the approximation’s formula, `m − s²/2`, earlier in the chapter, but the example itself works no arithmetic. Matching all four numbers at once is what rules out two choices that look equally reasonable on the page.
+He gives the approximation’s formula earlier in the chapter, but the example itself works no arithmetic. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
-1. **Sample versus population standard deviation.** Over two equally likely outcomes, dividing by `n − 1` instead of `n` gives 0.14849 rather than 0.105. The growth rate becomes −0.006025, out by a factor of 11.8, and it still prints as a small negative number, so nothing about it looks wrong. pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form, so the choice can flip by switching libraries.
-2. **Exact versus approximate growth.** The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small. The exact rate is the one to compound. After 1,000 rounds the balance depends only on how many tosses came up heads, so only 1,001 balances are possible. The two nearest the middle are \$492 for 499 heads and \$606 for 500. The approximation compounds to \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe.
+### Which standard deviation
 
-A test that checks only −0.0005125 fails when the number moves. Checking the two near misses as well makes it fail when the formula changes, which is the mistake that leaves the printed number looking plausible.
+A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form, which corrects for estimating the mean from the same data. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot, and the coin’s two outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
+
+The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it, because pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
+
+### Exact or approximate growth
+
+The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth tends to when each round’s return is small.
+
+The difference matters once the rate is compounded into a balance. After 1,000 rounds the balance depends only on how many tosses came up heads, so only 1,001 balances are possible. The two nearest the middle are \$492 for 499 heads and \$606 for 500. The approximation compounds to \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Reason about growth with the approximation, and compute a balance with the exact rate.
+
+### Checking the formula, not only the number
+
+The two wrong choices are also what make a check worth running. A test that checks only −0.0005125 catches a changed number. Checking that the sample form gives −0.006025 and the exact form gives −0.00050025 catches a changed formula, which is the mistake that leaves a printed number looking plausible. The same holds for checking any backtest against a published figure.
 
 ## Lesson 6: three ways a simulation of the coin misleads
 
