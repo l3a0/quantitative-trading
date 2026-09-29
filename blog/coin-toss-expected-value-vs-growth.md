@@ -8,7 +8,7 @@ Most performance numbers a trader sees are averages of one-period returns. A bac
 
 A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds a bet where the average return and the growth of capital have opposite signs. The expected value is positive, and a trader who keeps playing ends up poorer.
 
-This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, apart from a few steps of hand arithmetic, and the few that are Chan’s own printed figures say so.
+This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in code. The code behind every figure is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Where a number is Chan’s own printed figure rather than one worked out here, the post says so.
 
 ## The gamble
 
@@ -100,7 +100,7 @@ g \approx m - \frac{s^2}{2}
 
 The second term is often called **volatility drag**, the growth a series loses purely because it moves around. For the coin, the drag `s²/2` is 0.0055125, slightly larger than the mean of 0.005, so the drag wins.
 
-Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both examples are his printed figures rather than numbers this repo computes.
+Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both examples are his printed figures rather than numbers worked out here.
 
 1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point, or 0.005%, a minute.
 2. SPY, an exchange-traded fund that tracks the S&P 500, has a mean annual return of 11.23% in his example, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
@@ -190,9 +190,9 @@ C(h) = 1000 \times 1.11^{h} \times 0.90^{\,1000-h}, \qquad h = 0, 1, 2, \ldots, 
 
 The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded, the approximation gives \$599, which falls between them and so is a balance no sequence of tosses can produce. The exact rate compounds to \$606, the balance of the median trader, which is the trader the time average is meant to describe. Use the approximation to see where growth comes from, the mean less half the variance, and compound the exact rate to get a balance.
 
-### Checking the formula, not only the number
+### Check the method, not only the result
 
-The two near misses are also what make a check worth running. A test that checks only −0.0005125 catches a changed number. Checking that the sample form gives −0.006025 and the exact form gives −0.00050025 catches a changed formula, which is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
+The two near misses are also a lesson in checking work. Landing on −0.0005125 confirms a number, and a wrong formula could still sit behind it. Confirming that the sample form gives −0.006025 and the exact form gives −0.00050025 confirms the formula too, and a wrong formula is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
 ## Lesson 6: a simulation of the coin can mislead in three ways
 
@@ -208,13 +208,13 @@ A small run can therefore land on the wrong side of zero. Three results show wha
 
 1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs say the losing bet wins.
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
-3. The run in this post’s code sits 4.955 standard errors below zero, and its report prints that margin, rounded to 5.0, beside the estimate.
+3. The large run at seed 42 sits 4.955 standard errors below zero, well clear of the two-standard-error line.
 
 ![Two histograms on one horizontal axis of simulated time-average growth per round, each counting 200 seeds. The top one, for 100 rounds by 200 traders, spreads from about −0.0024 to +0.0015 and straddles zero, with the 56 seeds right of zero shaded red. The bottom one, for 1,000 rounds by 1,000 traders, is a narrow spike centred on the true growth of −0.0005, entirely left of zero.](../docs/figures/coin_flip_sign_by_run_size.png)
 
 *The same simulation at two sizes, 200 seeds each. The small run’s spread is wider than the effect it measures, so 56 seeds land on the wrong side of zero. The large run’s spread is narrow enough that none do.*
 
-The same noise is why the book’s figures are not checked by simulation. Chan prints seven decimals, and bringing the standard error down to even the fifth decimal place would take about 110 million tosses. The repo therefore checks his figures against exact arithmetic, and uses the simulation only to show the sign.
+The same noise is why the book’s figures are not checked by simulation. Chan prints seven decimals, and bringing the standard error down to even the fifth decimal place would take about 110 million tosses. So this replication checks his figures against exact arithmetic, and uses the simulation only to show the sign.
 
 ### Average final wealth reads low
 
@@ -241,7 +241,7 @@ Four habits follow from the lessons above.
 3. **Report capital over several horizons.** Two rates at one horizon hide how far the capital they compound into drifts apart.
 4. **Check how a number was computed.** Name the standard-deviation convention behind a volatility, and print the standard error beside a simulated growth rate.
 
-The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) records the verdict row by row.
+The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) sets each of Chan’s figures beside the one reproduced here.
 
 ## References
 
@@ -249,4 +249,4 @@ The replication itself is exact arithmetic on a coin. It uses no historical pric
 - Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
 - Peters, O., and Gell-Mann, M. (2016). Evaluating gambles using dynamics. *Chaos*, 26(2), 023103.
 
-*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py).*
+*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and the [checks behind every figure](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py).*
