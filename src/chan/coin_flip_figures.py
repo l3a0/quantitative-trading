@@ -101,6 +101,10 @@ SIGN_BIN = 1e-4
 #: seed count the growth tests use to show the wealth average reading low.
 ESTIMATOR_RUN = (5000, 1000, 20)
 
+#: How close every per-toss estimate lands to the true ensemble growth, the
+#: band ``tests/test_coin_flip_growth.py`` holds and the estimator figure prints.
+PER_TOSS_BAND = 1e-4
+
 
 @dataclass(frozen=True)
 class StakeCurve:
@@ -148,6 +152,15 @@ def _dollars(x: float, _pos: object = None) -> str:
 def _signed_rate(y: float, _pos: object = None) -> str:
     """A growth-rate tick with a typographic minus, and a bare zero."""
     return "0" if abs(y) < 1e-12 else f"{y:+.4f}".replace("-", "−")
+
+
+def _sci(x: float, digits: int) -> str:
+    """E-notation without the padded exponent, so 1.05e-4 rather than 1.05e-04.
+
+    The post writes small figures this way, and the charts match it.
+    """
+    mantissa, exponent = f"{x:.{digits}e}".split("e")
+    return f"{mantissa}e{int(exponent)}"
 
 
 def _style(ax) -> None:
@@ -551,10 +564,10 @@ def make_sign_figure(out: Path | None = None) -> Figure:
     _title(
         fig,
         "A small simulation gets the sign wrong more than a quarter of the time",
-        f"Each bar counts seeds whose estimate falls in a {SIGN_BIN:.4f}-wide range. Red bars sit "
-        "right of zero, where the losing bet looks like a winner.\n"
-        f"Standard error {small.standard_error:.2e} for the small run and "
-        f"{large.standard_error:.2e} for the large one, against a true growth of "
+        f"Each bar counts seeds whose estimate falls in a {_sci(SIGN_BIN, 0)}-wide range. "
+        "Red bars sit right of zero, where the losing bet looks like a winner.\n"
+        f"Standard error {_sci(small.standard_error, 2)} for the small run and "
+        f"{_sci(large.standard_error, 2)} for the large one, against a true growth of "
         f"{_signed_rate(truth)}.",
     )
     fig.tight_layout(rect=(0, 0.07, 1, 0.96))
@@ -635,7 +648,7 @@ def make_estimator_figure(out: Path | None = None) -> Figure:
         fontsize=10,
     )
     ax.annotate(
-        f"all {seeds} dots, within 0.0001 of the true value",
+        f"all {seeds} dots, within {_sci(PER_TOSS_BAND, 0)} of the true value",
         (e.per_toss.min(), 0),
         xytext=(-14, 0),
         textcoords="offset points",
@@ -655,8 +668,8 @@ def make_estimator_figure(out: Path | None = None) -> Figure:
         f"Averaging final wealth reads low on all {seeds} seeds",
         f"{traders:,} simulated traders playing {rounds:,} rounds, one dot per seed. "
         "The wealth average misses the rare lucky paths that carry the mean.\n"
-        "Averaging each toss’s return needs no rare paths and lands within 0.0001 of "
-        "the true value every time.",
+        "Averaging each toss’s return needs no rare paths and lands within "
+        f"{_sci(PER_TOSS_BAND, 0)} of the true value every time.",
     )
     fig.tight_layout(rect=(0, 0.09, 1, 0.95))
     fig.estimates = e

@@ -29,6 +29,7 @@ from chan.coin_flip_figures import (
     MAX_STAKE,
     MUTED,
     PATHS_FIGURE,
+    PER_TOSS_BAND,
     ROUNDS,
     RUN_SIZES,
     SIGN_FIGURE,
@@ -401,9 +402,9 @@ class TestTheSignFigure:
         assert large.standard_error == pytest.approx(1.0486e-4, abs=5e-8)
         (note,) = [t.get_text() for t in sign.texts if t is not sign._suptitle]
         assert note == (
-            "Each bar counts seeds whose estimate falls in a 0.0001-wide range. Red bars sit "
+            "Each bar counts seeds whose estimate falls in a 1e-4-wide range. Red bars sit "
             "right of zero, where the losing bet looks like a winner.\n"
-            "Standard error 7.41e-04 for the small run and 1.05e-04 for the large one, "
+            "Standard error 7.41e-4 for the small run and 1.05e-4 for the large one, "
             "against a true growth of −0.0005."
         )
 
@@ -476,7 +477,8 @@ class TestTheEstimatorFigure:
         # The alt text in the post describes the wealth average's spread by these.
         assert e.wealth_average.min() == pytest.approx(0.0023, abs=5e-5)
         assert e.wealth_average.max() == pytest.approx(0.0037, abs=5e-5)
-        assert np.all(np.abs(e.per_toss - e.truth) < 1e-4)
+        assert np.all(np.abs(e.per_toss - e.truth) < PER_TOSS_BAND)
+        assert PER_TOSS_BAND == 1e-4
 
     def test_the_dots_are_the_estimates_in_their_rows(self, estimator) -> None:
         e = estimator.estimates
@@ -496,14 +498,14 @@ class TestTheEstimatorFigure:
         assert _rgb(truth.get_color()) == _rgb(ACCENT)
         assert _texts(ax) == [
             "true ensemble growth\nln(1.005) = 0.0049875",
-            "all 20 dots, within 0.0001 of the true value",
+            "all 20 dots, within 1e-4 of the true value",
         ]
         assert estimator._suptitle.get_text() == "Averaging final wealth reads low on all 20 seeds"
         (note,) = [t.get_text() for t in estimator.texts if t is not estimator._suptitle]
         assert note == (
             "1,000 simulated traders playing 5,000 rounds, one dot per seed. "
             "The wealth average misses the rare lucky paths that carry the mean.\n"
-            "Averaging each toss’s return needs no rare paths and lands within 0.0001 of "
+            "Averaging each toss’s return needs no rare paths and lands within 1e-4 of "
             "the true value every time."
         )
 
