@@ -85,6 +85,7 @@ class TestTheStakeFigure:
         assert curve.growth[0] == 0.0
         drawn = max(stake.axes[0].lines, key=lambda line: len(line.get_xdata()))
         assert list(drawn.get_ydata()) == pytest.approx(list(curve.growth), abs=1e-15)
+        assert list(drawn.get_xdata()) == pytest.approx(list(curve.stakes), abs=1e-15)
 
     def test_the_curve_peaks_at_a_twenty_second_and_crosses_zero_at_an_eleventh(self) -> None:
         curve = stake_curve()
