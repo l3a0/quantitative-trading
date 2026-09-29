@@ -202,7 +202,7 @@ Traders test ideas by simulating them, in a backtest or a run of random scenario
 
 A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard. Print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
 
-The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 0.000105, a fifth of the growth being measured.
+The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured.
 
 A small run can therefore land on the wrong side of zero. Three results show what the size of a run does.
 
@@ -220,7 +220,7 @@ The same noise is why the book’s figures are not checked by simulation. Chan p
 
 The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because the paths that carry the true mean, for the reason Lesson 1 gives, are too rare for a sample to draw.
 
-The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 0.0001 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
+The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
 
 ![A dot plot with two rows and one dot per seed for 20 seeds. The top row, the log of the mean final wealth, spreads from about 0.0023 to 0.0037, every dot well left of a vertical line at the true ensemble growth of 0.0049875. The bottom row, the mean of each toss’s return, is a tight cluster sitting on that line.](../docs/figures/coin_flip_ensemble_estimators.png)
 
