@@ -130,7 +130,7 @@ Chan prints four numbers for this example.
 1. The \$5 expected gain.
 2. The 0.005 mean.
 3. The 0.105 standard deviation.
-4. The −0.0005125 growth rate.
+4. The −0.0005125 growth rate, from the continuous approximation.
 
 He names the continuous approximation, whose formula `m − s²/2` he gives earlier in the chapter, but the example itself works no arithmetic. Matching all four numbers at once is what rules out two choices that look equally reasonable on the page.
 
