@@ -372,6 +372,15 @@ class TestTheCapitalDiverges:
         approximated = START_CAPITAL * math.exp(moments.growth_continuous * 1000)
         assert approximated == pytest.approx(598.9962, abs=5e-5)
 
+        # Capital after 1,000 rounds depends only on the head count, so the
+        # reachable balances are a ladder. The approximation lands between the
+        # 499-head and 500-head rungs, which is what makes it unreachable.
+        # ``blog/coin-toss-expected-value-vs-growth.md`` quotes both rungs.
+        median_path = capital_horizon(1000, moments).time_average_capital
+        one_fewer_head = median_path * 0.90 / 1.11
+        assert one_fewer_head == pytest.approx(491.6586, abs=5e-5)
+        assert one_fewer_head < approximated < median_path
+
     def test_the_ratio_grows_at_the_difference_between_the_rates(self, moments) -> None:
         """The ratio grows as ``exp((ensemble_log_growth - growth_exact) * n)``.
 
