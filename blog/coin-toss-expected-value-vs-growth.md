@@ -6,13 +6,13 @@
 
 Most performance numbers a trader sees are averages of one-period returns. A backtest reports a mean daily return, a fund reports a mean annual return, and a bet gets judged by its expected value. All of them answer the same question: what does one round pay, averaged over every way it could turn out?
 
-A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Ernest Chan’s Example 6.1 in *Quantitative Trading* builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
+A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Ernest Chan’s Example 6.1 in *Quantitative Trading* (Chan, 2021) builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, and the few that are Chan’s own printed figures say so.
 
 ## The gamble
 
-Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* and changes the numbers to suit a trading account. A fair coin is tossed. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
+Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. A fair coin is tossed. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
 
 The expected gain is \$5 a round, half of \$110 less half of \$100. Most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
 
@@ -23,7 +23,7 @@ The argument works because Chan lets the payoff scale with capital, so an accoun
 
 ## Two averages that disagree
 
-Chan credits the physicists Ole Peters and Murray Gell-Mann with the distinction that settles the question. There are two ways to average a repeated bet.
+Chan credits the physicists Ole Peters and Murray Gell-Mann with the distinction that settles the question (Peters and Gell-Mann, 2016). There are two ways to average a repeated bet.
 
 1. The **ensemble average** looks across many traders who each play the same number of rounds side by side. It asks what the crowd earns on average.
 2. The **time average** follows one trader through many rounds in sequence. It asks what happens to a single account over time.
@@ -100,10 +100,10 @@ g \approx m - \frac{s^2}{2}
 
 The second term is often called **volatility drag**, the growth a series loses purely because it moves around. For the coin, the drag `s²/2` is 0.0055125, slightly larger than the mean of 0.005, so the drag wins.
 
-Chan makes the same point twice elsewhere in the chapter, and both examples are his printed figures rather than numbers this repo computes.
+Chan makes the same point twice elsewhere in the chapter (Chan, 2021), and both examples are his printed figures rather than numbers this repo computes.
 
-1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute (Kindle location 2822).
-2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8% (location 2869). The 1.43-point gap is the drag.
+1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute.
+2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
 
 So two strategies with the same mean return do not grow at the same rate. The one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. Holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
 
@@ -138,7 +138,7 @@ The growth-maximising stake is the **Kelly** stake. Chan gives its continuous fo
 
 The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
 
-Chan also gives the growth that the Kelly stake reaches (Kindle location 2849), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
+Chan also gives the growth that the Kelly stake reaches (Chan, 2021), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
 
 ```math
 g^* \approx \frac{S^2}{2}
@@ -226,7 +226,7 @@ The first problem settles this. Chan prints seven decimals, and matching even th
 
 ## What this means for a trader
 
-Chan’s own summary is short: “take time average, not ensemble average, when evaluating real-world risks.” A trader has one account and plays in sequence, so the time average is the one that describes what happens to them.
+Chan’s own summary is short: “take time average, not ensemble average, when evaluating real-world risks” (Chan, 2021). A trader has one account and plays in sequence, so the time average is the one that describes what happens to them.
 
 Three habits follow from the lessons above.
 
@@ -236,4 +236,10 @@ Three habits follow from the lessons above.
 
 The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) records the verdict row by row.
 
-*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py). Sources: Ernest P. Chan, Quantitative Trading, rev. ed., Example 6.1, Kindle locations 3166 to 3186. Daniel Kahneman, Thinking, Fast and Slow, 2011. Ole Peters and Murray Gell-Mann, “Evaluating gambles using dynamics”, Chaos 26, 023103, 2016.*
+## References
+
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley.
+- Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
+- Peters, O., and Gell-Mann, M. (2016). Evaluating gambles using dynamics. *Chaos*, 26(2), 023103.
+
+*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py).*
