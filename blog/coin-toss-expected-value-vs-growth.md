@@ -6,13 +6,13 @@
 
 Most performance numbers a trader sees are averages of one-period returns. A backtest reports a mean daily return, a fund reports a mean annual return, and a bet gets judged by its expected value. All of them answer the same question: what does one round pay, averaged over every way it could turn out?
 
-A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Ernest Chan’s Example 6.1 in *Quantitative Trading* builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
+A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. Example 6.1, in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), builds a bet where those two things disagree in sign. The expected value is positive, and a trader who keeps playing ends up poorer.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Every number below that the repository computes is checked by a test that fails if the number changes, and the few that are Chan’s own printed figures say so.
 
 ## The gamble
 
-Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* and changes the numbers to suit a trading account. A fair coin is tossed. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
+Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. A fair coin is tossed. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
 
 The expected gain is \$5 a round, half of \$110 less half of \$100. Most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
 
@@ -23,7 +23,7 @@ The argument works because Chan lets the payoff scale with capital, so an accoun
 
 ## Two averages that disagree
 
-Chan credits the physicists Ole Peters and Murray Gell-Mann with the distinction that settles the question. There are two ways to average a repeated bet.
+Chan credits the physicists Ole Peters and Murray Gell-Mann with the distinction that settles the question (Peters and Gell-Mann, 2016). There are two ways to average a repeated bet.
 
 1. The **ensemble average** looks across many traders who each play the same number of rounds side by side. It asks what the crowd earns on average.
 2. The **time average** follows one trader through many rounds in sequence. It asks what happens to a single account over time.
@@ -64,18 +64,29 @@ That \$606 is also where the median path ends. After an even number of rounds it
 
 The gap is carried by a few lucky paths. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Almost nobody lives on those paths. The mean describes the crowd’s total wealth, and it says very little about any one member of the crowd.
 
+![Bar chart of every balance 1,000 rounds can reach, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of \$606, which sits just left of the \$1,000 starting line. The ensemble mean of \$146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, \$492 and \$606, with the approximation’s \$599 falling between them.](../docs/figures/coin_flip_final_balances.png)
+
+*Every balance 1,000 rounds can reach, and the share of traders who reach it. 56.3% end below the \$1,000 they started with, and only 4.7% reach the ensemble mean.*
+
 ## Lesson 2: the rates stay constant and the capital diverges
 
 Neither average changes with the number of rounds. The ensemble rate is +0.0049875 per round at round 10 and at round 1,000, and the time average is −0.00050025 at both. A report that prints the two rates shows a disagreement in sign and nothing more.
 
+![Two hundred simulated capital paths over 1,000 rounds on a log scale, spreading from \$1,000 into a fan between a few cents and a few million dollars. A gold line for the ensemble mean climbs steadily to \$146,576. A red line for the median trader drifts down to \$606.](../docs/figures/coin_flip_capital_paths.png)
+
+*Two hundred simulated traders. The gold line compounds the ensemble rate and the red line compounds the time average. The dashed line is the \$1,000 each trader started with. The 200 drawn here average \$21,664 at round 1,000, well short of the gold line, for the reason Lesson 6 gives.*
+
 What pulls apart is the capital they compound into. The ratio of ensemble capital to time-average capital grows by the same factor every round. That factor is set by the difference between the two log rates, 0.005488 per round.
 
-| Rounds | Ensemble capital ÷ time-average capital |
-| --- | --- |
-| 10 | 1.06 |
-| 100 | 1.73 |
-| 250 | 3.94 |
-| 1,000 | 241.72 |
+```math
+\begin{array}{r|r}
+\text{Rounds} & \text{Ensemble capital} \div \text{time-average capital} \\ \hline
+10 & 1.06 \\
+100 & 1.73 \\
+250 & 3.94 \\
+1{,}000 & 241.72
+\end{array}
+```
 
 Over ten rounds the two views differ by 6%, which is why the bet looks harmless to someone who plays it a few times. The damage is in the length of the horizon.
 
@@ -89,12 +100,14 @@ g \approx m - \frac{s^2}{2}
 
 The second term is often called **volatility drag**, the growth a series loses purely because it moves around. For the coin, the drag `s²/2` is 0.0055125, slightly larger than the mean of 0.005, so the drag wins.
 
-Chan makes the same point twice elsewhere in the chapter, and both examples are his printed figures rather than numbers this repo computes.
+Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both examples are his printed figures rather than numbers this repo computes.
 
-1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute (Kindle location 2822).
-2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8% (location 2869). The 1.43-point gap is the drag.
+1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute.
+2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
 
-So two strategies with the same mean return do not grow at the same rate. The one with lower variance compounds faster.
+So two strategies with the same mean return do not grow at the same rate. The one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. Holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
+
+Lesson 4 shows the stronger form of this. Once the bet is sized well, the Sharpe ratio alone sets the best growth a strategy can reach, and the mean return drops out.
 
 ## Lesson 4: the stake decides the sign
 
@@ -109,17 +122,29 @@ Two stakes on this curve matter.
 1. **Growth is zero** at a stake of `(b − 1)/b`, which is 1/11 for Chan’s coin. His stake of 1/10 sits just past that line, which is why the growth rate is a small negative number rather than a large one.
 2. **Growth is highest** at `(b − 1)/(2b)`, which is 1/22. At that stake the time average is +0.0011351 per round.
 
+![A curve of growth per round against the stake, from 0% to 11% of capital. It rises from zero to a peak of +0.0011351 at a stake of 1/22, falls back through zero at 1/11, and turns negative. Chan’s stake of 1/10 sits just below zero at −0.00050025. The region above zero is shaded green and the region below it red.](../docs/figures/coin_flip_growth_by_stake.png)
+
+*The same coin at every stake. Growth peaks at 1/22 and turns negative past 1/11. Chan’s 1/10 sits on the negative side.*
+
 The best stake is exactly half the break-even stake, and that factor of two is a property of any even-odds coin rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
 
 At the best stake the two averages still differ, but both are positive. After 1,000 rounds from \$1,000 the median path reaches \$3,111 and the ensemble mean reaches \$9,681, a ratio of 3.11 rather than 241.72. For an even-odds coin at the best stake, one trader’s log growth is exactly half the ensemble’s.
 
-The growth-maximising stake is the **Kelly** stake. Chan gives its continuous form in the same chapter as a leverage, a number to multiply a position by, computed from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures the section on the two averages uses:
+The growth-maximising stake is the **Kelly** stake. Chan gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by, computed from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures the section on the two averages uses:
 
 ```math
 \frac{m}{s^2} = \frac{0.005}{0.105^2} \approx 0.4535
 ```
 
 The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
+
+Chan also gives the growth that the Kelly stake reaches (Chan, 2021), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
+
+```math
+g^* \approx \frac{S^2}{2}
+```
+
+Scaling a bet up or down scales `m` and `s` by the same factor, so it never changes `S`. That is why the Sharpe ratio, and not the mean return, is what caps growth. A strategy with twice the coin’s mean return and twice its standard deviation has the same Sharpe ratio, and so the same best growth. The coin checks the formula. Its Sharpe ratio per round is 0.005 / 0.105, exactly 1/21, so the formula gives a best growth of 1/882, about 0.0011338 per round. The exact best, at a stake of 1/22, is 0.0011351.
 
 This changes what the layman’s refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
@@ -134,7 +159,7 @@ He prints four numbers for this example.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He gives the approximation’s formula earlier in the chapter, but the example itself works no arithmetic. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
+He gives the approximation’s formula earlier in Chapter 6, but the example itself doesn’t show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
 ### Which standard deviation
 
@@ -148,11 +173,14 @@ The exact rate is −0.00050025 and the approximation is −0.0005125. They diff
 
 The difference matters once the rate is compounded into a balance. Each head multiplies the balance by 1.11 and each tail by 0.90. Multiplication ignores order, so heads then tails leaves the same \$999 as tails then heads, and the balance depends only on how many tosses came up heads. Two rounds show how the counting works.
 
-| Heads in 2 rounds | Balance from \$1,000 |
-| --- | --- |
-| 0 | 1,000 × 0.90 × 0.90 = \$810.00 |
-| 1 | 1,000 × 1.11 × 0.90 = \$999.00 |
-| 2 | 1,000 × 1.11 × 1.11 = \$1,232.10 |
+```math
+\begin{array}{c|l}
+\text{Heads in 2 rounds} & \text{Balance from } \$1{,}000 \\ \hline
+0 & 1{,}000 \times 0.90 \times 0.90 = \$810.00 \\
+1 & 1{,}000 \times 1.11 \times 0.90 = \$999.00 \\
+2 & 1{,}000 \times 1.11 \times 1.11 = \$1{,}232.10
+\end{array}
+```
 
 Two rounds allow three head counts, 0, 1 and 2, so three balances. The count always runs from zero heads up to one head per round, which is one more value than the number of rounds. After 1,000 rounds it runs from 0 to 1,000, so 1,001 balances are possible, one for each head count `h`:
 
@@ -182,11 +210,19 @@ A small run can therefore land on the wrong side of zero. Three measurements sho
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
 3. The run in this post’s code sits 4.955 standard errors below zero, and its report prints that margin beside the estimate.
 
+![Two histograms on one horizontal axis of simulated time-average growth per round, each counting 200 seeds. The top one, for 100 rounds by 200 traders, spreads from about −0.0024 to +0.0015 and straddles zero, with the 56 seeds right of zero shaded red. The bottom one, for 1,000 rounds by 1,000 traders, is a narrow spike centred on the true growth of −0.0005, entirely left of zero.](../docs/figures/coin_flip_sign_by_run_size.png)
+
+*The same simulation at two sizes, 200 seeds each. The small run’s spread is wider than the effect it measures, so 56 seeds land on the wrong side of zero. The large run’s spread is narrow enough that none do.*
+
 ### Average final wealth reads low
 
 The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because the paths that carry the true mean, for the reason Lesson 1 gives, are too rare for a sample to draw.
 
 The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
+
+![A dot plot with two rows and one dot per seed for 20 seeds. The top row, the log of the mean final wealth, spreads from about 0.0023 to 0.0037, every dot well left of a vertical line at the true ensemble growth of 0.0049875. The bottom row, the mean of each toss’s return, is a tight cluster sitting on that line.](../docs/figures/coin_flip_ensemble_estimators.png)
+
+*Two ways to estimate the ensemble growth from the same simulated tosses. Averaging final wealth reads low on every seed, while averaging each toss’s return lands on the true value.*
 
 ### A seed does not determine a run
 
@@ -198,7 +234,7 @@ The first problem settles this. Chan prints seven decimals, and matching even th
 
 ## What this means for a trader
 
-Chan’s own summary is short: “take time average, not ensemble average, when evaluating real-world risks.” A trader has one account and plays in sequence, so the time average is the one that describes what happens to them.
+Chan’s own summary is short: “take time average, not ensemble average, when evaluating real-world risks” (Chan, 2021). A trader has one account and plays in sequence, so the time average is the one that describes what happens to them.
 
 Three habits follow from the lessons above.
 
@@ -208,4 +244,10 @@ Three habits follow from the lessons above.
 
 The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) records the verdict row by row.
 
-*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py). Sources: Ernest P. Chan, Quantitative Trading, rev. ed., Example 6.1, Kindle locations 3166 to 3186. Daniel Kahneman, Thinking, Fast and Slow, 2011. Ole Peters and Murray Gell-Mann, “Evaluating gambles using dynamics”, Chaos 26, 023103, 2016.*
+## References
+
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley.
+- Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
+- Peters, O., and Gell-Mann, M. (2016). Evaluating gambles using dynamics. *Chaos*, 26(2), 023103.
+
+*Not investment advice. Code: [the gamble](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/coin_flip_growth.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_coin_flip_growth.py).*
