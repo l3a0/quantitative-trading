@@ -46,7 +46,7 @@ prints no formula and the near misses do not look wrong on the page.
    book names, and it reproduces −0.0005125 exactly.
 3. ``growth_exact`` is the discrete rate, ``0.5 * ln(1.11) + 0.5 * ln(0.90)``.
    It is the right answer to a question the book did not ask, and it differs
-   at the fourth significant digit, so it is reported beside the book's figure
+   at the second significant digit, so it is reported beside the book's figure
    rather than in place of it. That rule governs how a *rate* is reported,
    where the book prints a figure to stand beside. :func:`capital_horizon`
    reports a *capital*, and the book works no horizon, so there is nothing to

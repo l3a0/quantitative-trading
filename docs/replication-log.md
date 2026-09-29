@@ -605,7 +605,7 @@ has nothing to hold. Leaving it blank would read as an omission.
 | 3 | 0.000 at the three decimals the book prints | reproduced | Exact at that precision, and the specification is what the row holds. The sample form over two outcomes gives 0.14849 instead, which the suite pins as the near miss it is. |
 | 4 | 0.0000000 | reproduced | The replication. Chan's claim is that the growth rate is negative while the expected return is positive, so the layman refusing the gamble is right. It reproduces at the seven decimals he prints, and the claim survives with it. |
 | 5 | not statable, the source works an illustration rather than a figure | reproduced | Chan's claim is that adjusting the payoff keeps the return moments constant as capital moves. It does, and the stake it implies is exactly a tenth, so the word "roughly" in any paraphrase is doing no work. |
-| 6 | none | none, not a replication | The book prints only the continuous approximation. The row exists so −0.00050025 is not read as a failure to reproduce −0.0005125: it is a different quantity, computed exactly, differing at the fourth significant digit. |
+| 6 | none | none, not a replication | The book prints only the continuous approximation. The row exists so −0.00050025 is not read as a failure to reproduce −0.0005125: it is a different quantity, computed exactly, differing at the second significant digit. |
 | 7 | none | none, not a replication | Derived so the two averages can be compared. The book's own two figures are not in one unit, since 0.005 is an arithmetic mean simple return and −0.0005125 is a log growth rate. |
 | 8 | none | none, not a replication | The book works no horizon. This row is what makes the argument visible, and the reason the entry does not end on a rate. |
 
@@ -680,7 +680,9 @@ where a conclusion about a library turned out to be a conclusion about an
 
 Nothing checks this entry against the suite either, for the reason Entry 1
 states above. A change to any assertion this entry names moves it in the same
-commit, and unlike Entry 1 there is no essay to move with it.
+commit, and moves
+[blog/coin-toss-expected-value-vs-growth.md](../blog/coin-toss-expected-value-vs-growth.md)
+with it, since that post quotes the same pins.
 
 ## Entry 3: Kelly leverage on SPY, Chan's *Quantitative Trading*
 

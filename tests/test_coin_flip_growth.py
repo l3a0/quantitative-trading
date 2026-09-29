@@ -1,9 +1,9 @@
 """Pins for Chan's coin-flip gamble, Example 6.1.
 
 This file is the single authority for every number any prose surface quotes
-about this experiment. ``docs/replication-log.md`` Entry 2 states those numbers
-and derives none of them, and ``src/chan/coin_flip_growth.py`` carries the
-reasoning.
+about this experiment. ``docs/replication-log.md`` Entry 2 and
+``blog/coin-toss-expected-value-vs-growth.md`` state those numbers and derive
+none of them, and ``src/chan/coin_flip_growth.py`` carries the reasoning.
 
 Two kinds of assertion live here and they are not interchangeable.
 
@@ -103,6 +103,19 @@ class TestBookFigures:
         """
         assert moments.growth_continuous == pytest.approx(-0.0005125, abs=5e-11)
 
+    def test_the_worked_steps_the_post_shows(self, moments) -> None:
+        """``blog/coin-toss-expected-value-vs-growth.md`` works both growth
+        rates one step at a time, so each intermediate figure it prints is
+        held here and tied back to the rate it builds."""
+        up, down = math.log1p(WIN / START_CAPITAL), math.log1p(-LOSS / START_CAPITAL)
+        assert up == pytest.approx(0.1043600, abs=5e-8)
+        assert down == pytest.approx(-0.1053605, abs=5e-8)
+        assert 0.5 * up + 0.5 * down == pytest.approx(moments.growth_exact, rel=1e-12)
+        assert moments.return_sd**2 == pytest.approx(0.011025, abs=5e-10)
+        assert moments.return_sd**2 / 2.0 == pytest.approx(0.0055125, abs=5e-11)
+        drag = moments.return_sd**2 / 2.0
+        assert moments.expected_return - drag == pytest.approx(moments.growth_continuous, rel=1e-12)
+
     def test_the_two_averages_disagree_in_sign(self, moments) -> None:
         """The argument, and the reason the layman is right to refuse.
 
@@ -156,7 +169,7 @@ class TestTheNearMisses:
         """0.5*ln(1.11) + 0.5*ln(0.90) = −0.00050025.
 
         It is the right answer to a question the book did not ask, and it
-        differs at the fourth significant digit, so it fails the book's pin. It
+        differs at the second significant digit, so it fails the book's pin. It
         is reported beside Chan's figure rather than in place of it, and
         ``docs/replication-log.md`` gives it its own row with no published
         counterpart.
@@ -372,6 +385,15 @@ class TestTheCapitalDiverges:
         approximated = START_CAPITAL * math.exp(moments.growth_continuous * 1000)
         assert approximated == pytest.approx(598.9962, abs=5e-5)
 
+        # Capital after 1,000 rounds depends only on the head count, so the
+        # reachable balances are a ladder. The approximation lands between the
+        # 499-head and 500-head rungs, which is what makes it unreachable.
+        # ``blog/coin-toss-expected-value-vs-growth.md`` quotes both rungs.
+        median_path = capital_horizon(1000, moments).time_average_capital
+        one_fewer_head = median_path * 0.90 / 1.11
+        assert one_fewer_head == pytest.approx(491.6586, abs=5e-5)
+        assert one_fewer_head < approximated < median_path
+
     def test_the_ratio_grows_at_the_difference_between_the_rates(self, moments) -> None:
         """The ratio grows as ``exp((ensemble_log_growth - growth_exact) * n)``.
 
@@ -582,6 +604,66 @@ class TestTheGambleIsParameterised:
         assert seeds_with_positive_time_average(100, 200) == seeds_with_positive_time_average(
             100, 200, SEEDS
         )
+
+
+class TestTheStakeDecidesTheSign:
+    """Where growth peaks as the stake moves, which the book does not work.
+
+    ``blog/coin-toss-expected-value-vs-growth.md`` quotes every figure below.
+    The stake is ``loss / capital``, so passing a larger ``capital`` to
+    ``gamble_moments`` is how a smaller stake on the same odds is expressed.
+    A capital of 2,200 is a stake of 1/22.
+    """
+
+    def test_growth_peaks_at_half_the_break_even_stake(self) -> None:
+        """1/22 against a break-even of 1/11, found by search rather than by
+        the closed form ``(b - 1) / (2 * b)``, so a wrong formula in the
+        prose cannot be copied into the pin."""
+        best = max(range(1100, 5001, 10), key=lambda c: gamble_moments(capital=c).growth_exact)
+        assert best == 2200
+        at_best = gamble_moments(capital=best)
+        assert at_best.stake_fraction == pytest.approx(1.0 / 22.0, abs=5e-12)
+        assert at_best.breakeven_stake == pytest.approx(2.0 * at_best.stake_fraction, abs=5e-12)
+        assert at_best.growth_exact == pytest.approx(0.0011351, abs=5e-8)
+        # The break-even stake is the module's closed form, so hold that growth
+        # really is zero there rather than comparing a search to a formula.
+        assert gamble_moments(capital=1100).growth_exact == pytest.approx(0.0, abs=1e-15)
+
+    def test_the_half_holds_for_a_second_payoff(self) -> None:
+        """b = 1.5 peaks at 1/6 against a break-even of 1/3, so the factor of
+        two is a property of an even-odds coin and not of Chan's 1/11."""
+        best = max(
+            range(700, 5001, 10),
+            key=lambda c: gamble_moments(win=300.0, loss=200.0, capital=c).growth_exact,
+        )
+        assert best == 1200
+        at_best = gamble_moments(win=300.0, loss=200.0, capital=best)
+        assert at_best.growth_exact == pytest.approx(at_best.ensemble_log_growth / 2.0, rel=1e-12)
+        assert at_best.stake_fraction == pytest.approx(1.0 / 6.0, abs=5e-12)
+        assert gamble_moments(win=300.0, loss=200.0, capital=600).growth_exact == pytest.approx(
+            0.0, abs=1e-15
+        )
+        assert at_best.breakeven_stake == pytest.approx(2.0 * at_best.stake_fraction, abs=5e-12)
+
+    def test_the_continuous_kelly_stake_lands_near_the_exact_one(self, moments) -> None:
+        """``m / s^2`` is 0.4535 of Chan's stake, a stake of 0.04535 against
+        the exact 1/22 = 0.04545. The Kelly formula of Chapter 6 is the
+        continuous approximation of the same search."""
+        scale = moments.expected_return / moments.return_sd**2
+        assert scale == pytest.approx(0.4535, abs=5e-5)
+        assert scale * moments.stake_fraction == pytest.approx(0.04535, abs=5e-6)
+
+    def test_at_the_best_stake_one_trader_keeps_half_the_ensemble_rate(self) -> None:
+        """At 1/22, ``(1 + b*f)(1 - f)`` equals ``1 + m``, so the time average
+        is exactly half the ensemble rate in log units. After 1,000 rounds from
+        $1,000 that is $3,111 on the median path against an ensemble mean of
+        $9,681, a ratio of 3.11 rather than 241.72."""
+        at_best = gamble_moments(capital=2200)
+        assert at_best.growth_exact == pytest.approx(at_best.ensemble_log_growth / 2.0, rel=1e-12)
+        horizon = capital_horizon(1000, at_best)
+        assert horizon.time_average_capital == pytest.approx(3111, abs=0.5)
+        assert horizon.ensemble_capital == pytest.approx(9681, abs=0.5)
+        assert horizon.ratio == pytest.approx(3.11, abs=5e-3)
 
 
 def test_the_moments_type_is_what_the_horizon_takes() -> None:
