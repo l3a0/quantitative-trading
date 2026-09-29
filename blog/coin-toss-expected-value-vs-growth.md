@@ -45,13 +45,13 @@ m = \tfrac{1}{2}(0.11) + \tfrac{1}{2}(-0.10) = 0.005
 The time average is the mean log return, which is what compounds:
 
 ```math
-g = \tfrac{1}{2}\ln 1.11 + \tfrac{1}{2}\ln 0.90 = -0.00050025
+g = \tfrac{1}{2}\ln 1.11 + \tfrac{1}{2}\ln 0.90 = \tfrac{1}{2}(0.1043600) + \tfrac{1}{2}(-0.1053605) = -0.00050025
 ```
 
-Chan prints a slightly different figure for `g`, because he uses the continuous approximation. It needs only the mean `m` and the standard deviation `s` of the one-round return, which is 0.105 here:
+Chan prints a slightly different figure for `g`, because he uses the continuous approximation. It needs only the mean `m` and the standard deviation `s` of the one-round return. Here `s` is 0.105, so the variance `s²` is 0.011025:
 
 ```math
-g \approx m - \frac{s^2}{2} = 0.005 - \frac{0.105^2}{2} = -0.0005125
+g \approx m - \frac{s^2}{2} = 0.005 - \frac{0.011025}{2} = 0.005 - 0.0055125 = -0.0005125
 ```
 
 To compare the two averages in one unit, convert the ensemble side to a log rate too. That gives ln(1.005) = +0.0049875 per round, against a time average of −0.00050025 per round. The two averages have opposite signs.

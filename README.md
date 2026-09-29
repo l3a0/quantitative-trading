@@ -350,8 +350,7 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
 3. One head and one tail leave 0.999 of the capital, a tenth of a percent
    lost every two rounds, and the worked \$1,110 and \$111 of that pair. All
    of it is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no
-   test asserts it. The drag `s²/2` of 0.0055125 is the same kind of
-   arithmetic on the pinned 0.105.
+   test asserts it.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
    its docstring and does not assert the percentage.
 

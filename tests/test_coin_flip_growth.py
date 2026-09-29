@@ -103,6 +103,19 @@ class TestBookFigures:
         """
         assert moments.growth_continuous == pytest.approx(-0.0005125, abs=5e-11)
 
+    def test_the_worked_steps_the_post_shows(self, moments) -> None:
+        """``blog/coin-toss-expected-value-vs-growth.md`` works both growth
+        rates one step at a time, so each intermediate figure it prints is
+        held here and tied back to the rate it builds."""
+        up, down = math.log1p(WIN / START_CAPITAL), math.log1p(-LOSS / START_CAPITAL)
+        assert up == pytest.approx(0.1043600, abs=5e-8)
+        assert down == pytest.approx(-0.1053605, abs=5e-8)
+        assert 0.5 * up + 0.5 * down == pytest.approx(moments.growth_exact, rel=1e-12)
+        assert moments.return_sd**2 == pytest.approx(0.011025, abs=5e-10)
+        assert moments.return_sd**2 / 2.0 == pytest.approx(0.0055125, abs=5e-11)
+        drag = moments.return_sd**2 / 2.0
+        assert moments.expected_return - drag == pytest.approx(moments.growth_continuous, rel=1e-12)
+
     def test_the_two_averages_disagree_in_sign(self, moments) -> None:
         """The argument, and the reason the layman is right to refuse.
 
