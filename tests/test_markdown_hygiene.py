@@ -167,6 +167,7 @@ MUST_BE_SWEPT = frozenset(
         "docs/replication-log.md",
         "data/README.md",
         "blog/gld-gdx-cointegration-lessons.md",
+        "blog/price-spread-mean-reversion.md",
         "research/book-notes/README.md",
         "research/book-notes/quantitative-trading.md",
         "research/papers/README.md",

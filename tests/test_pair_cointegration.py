@@ -3,8 +3,8 @@
 This file is the single authority for every number the repo's own prose quotes
 about these two pairs. A doc that recomputed one of them would be a second
 implementation of the calculation, and the two would drift without either
-looking wrong. The essay copied in from the sibling repo is the exception, and
-README.md lists the six figures in it that nothing here asserts.
+looking wrong. The two blog posts are the exceptions, and README.md lists the
+figures in each that nothing here asserts.
 
 There is no dataset gate. All four vintages are committed to git, so every
 layer runs everywhere the suite runs. The primitives underneath have their own
@@ -79,6 +79,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from ithildincore.timeseries import EG_CRIT_N2, adf_tstat, ols
+from statsmodels.tsa.adfvalues import mackinnoncrit
 from statsmodels.tsa.stattools import adfuller
 
 from chan.pair_cointegration import (
@@ -331,6 +332,27 @@ class TestKoPepNonCointegration:
         assert math.isfinite(kopep.half_life)
         assert kopep.half_life == pytest.approx(618.8, abs=0.1)
 
+    def test_the_plain_adf_table_would_have_passed_it(self, kopep: CointResult) -> None:
+        """Read against the plain ADF table, the same statistic rejects at 5%.
+
+        The plain table is for a series nobody fitted. The Engle-Granger table
+        is stricter because step one already picked the most stationary-looking
+        combination of the two prices. KO/PEP sits between the two: it clears
+        the plain 5% value and misses every Engle-Granger value, so the table is
+        what decides the verdict. ``blog/price-spread-mean-reversion.md`` quotes
+        the plain values at two decimals.
+
+        Specification: statsmodels' MacKinnon (2010) large-sample critical
+        values for one series with no deterministic term, which is the
+        ``regression='n'`` ADF this file runs on every residual spread. First
+        pinned on 2026-09-29.
+        """
+        one_pct, five_pct, ten_pct = (float(v) for v in mackinnoncrit(N=1, regression="n"))
+        assert (one_pct, five_pct, ten_pct) == pytest.approx((-2.5657, -1.9410, -1.6168), abs=5e-5)
+        assert (round(one_pct, 2), round(five_pct, 2), round(ten_pct, 2)) == (-2.57, -1.94, -1.62)
+        assert one_pct < kopep.adf_stat < five_pct
+        assert kopep.adf_stat > max(EG_CRIT_N2.values())
+
     def test_a_weak_correlation_is_judged_two_sided(self) -> None:
         """The p-value is two-sided, and on KO/PEP that cannot be checked,
         because the true p underflows to zero and any tail convention clears
@@ -390,6 +412,36 @@ class TestGldGdxChanArchive:
         assert arch.hedge_ratio == pytest.approx(1.3865, abs=5e-4)
         assert arch.adf_stat == pytest.approx(-3.52, abs=1e-2)
         assert arch.half_life == pytest.approx(10.3, abs=0.1)
+
+    def test_the_mean_price_ratio_approximates_the_through_origin_slope(
+        self, arch: CointResult
+    ) -> None:
+        """The ratio of the mean prices lands 0.0021 from the through-origin
+        slope and more than 0.25 from the with-intercept one.
+
+        The through-origin slope is the sum of the price products over the sum
+        of GDX's squared prices. When prices move only a little against their
+        level, that is close to the ratio of the means, which is why the ratio
+        works as a quick check on Chan's printed hedge and not on the slope the
+        test uses. ``blog/price-spread-mean-reversion.md`` quotes all three at
+        four decimals, the form the rest of the repo writes the hedges in.
+
+        Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close
+        columns of Chan's companion .xls. Specification: the full intersection,
+        2006-05-23 to 2007-11-30, 385 rows. First pinned on 2026-09-29.
+        """
+        df = aligned_closes("GLD", "GDX", chan=True)
+        assert len(df) == 385
+        ratio = float(df["GLD"].mean() / df["GDX"].mean())
+        assert arch.origin_hedge is not None
+        assert ratio == pytest.approx(1.6416, abs=5e-5)
+        assert ratio - arch.origin_hedge == pytest.approx(0.0021, abs=5e-5)
+        assert abs(ratio - arch.hedge_ratio) > 0.25
+        assert (round(ratio, 4), round(arch.origin_hedge, 4), round(arch.hedge_ratio, 4)) == (
+            1.6416,
+            1.6395,
+            1.3865,
+        )
 
     def test_hedge_is_not_the_lost_book_vintage(self, arch: CointResult) -> None:
         """The whole point of committing this archive. Even Chan's own saved
@@ -511,6 +563,40 @@ class TestLagSettingDetour:
         assert used_lag == 6
         assert stat == pytest.approx(-2.2979, abs=5e-4)
         assert stat > EG_CRIT_N2["10%"]
+
+    def test_each_automatic_rule_and_the_ceiling_it_searches_to(self, spread: np.ndarray) -> None:
+        """AIC and the t-stat rule pick six lags and BIC picks none, each
+        searching up to sixteen.
+
+        Schwert's rule, ``12 * (n / 100) ** 0.25``, gives 15.12 at 252 days.
+        Schwert rounds it down to 15, and statsmodels rounds it up to 16 when no
+        ``maxlag`` is passed. The ceiling is read off the stored result, so it
+        is what statsmodels searched rather than what the formula says it
+        should. BIC charges more per extra term, which is why it stops at zero
+        where the other two stop at six. ``blog/price-spread-mean-reversion.md``
+        quotes all of this.
+
+        Vintage and specification are the sweep's below: the Chapter 3
+        with-intercept residual spread on the 2026-08-27 yfinance raw closes,
+        tested by ``adfuller`` with ``regression='n'`` and each ``autolag``
+        rule at its default ceiling. First pinned on 2026-09-29.
+        """
+        schwert = 12 * (len(spread) / 100) ** 0.25
+        assert len(spread) == 252
+        assert schwert == pytest.approx(15.12, abs=5e-3)
+        assert (math.floor(schwert), math.ceil(schwert)) == (15, 16)
+
+        picks = {}
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            for rule in ("aic", "bic", "t-stat"):
+                result = adfuller(spread, autolag=rule, regression="n", store=True)
+                assert result[-1].maxlag == 16
+                picks[rule] = (int(result[-1].usedlag), float(result[0]))
+        assert {rule: lag for rule, (lag, _) in picks.items()} == {"aic": 6, "bic": 0, "t-stat": 6}
+        assert picks["aic"][1] == pytest.approx(-2.2979, abs=5e-4)
+        assert picks["t-stat"][1] == pytest.approx(-2.2979, abs=5e-4)
+        assert picks["bic"][1] == pytest.approx(-3.2018, abs=5e-4)
 
     def test_the_statistic_is_not_monotone_in_the_lag(self, spread: np.ndarray) -> None:
         """Adding lags moves the statistic both ways, while the verdict holds
@@ -858,6 +944,7 @@ class TestResidualCheckChapter7:
         assert chan < EG_CRIT_N2["5%"]
         assert chan == pytest.approx(EG_CRIT_N2["5%"] - 0.018, abs=5e-4)
         assert chan > self.MATLAB_5PCT
+        assert chan == pytest.approx(self.MATLAB_5PCT + 0.022, abs=5e-4)
         assert raw > EG_CRIT_N2["5%"]
         assert max(chan, raw) < EG_CRIT_N2["10%"]
 

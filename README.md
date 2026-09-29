@@ -74,8 +74,8 @@ they were first built. The other three were built here.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
-them is derived. The write-up copied in from the sibling repo is the exception,
-and what it says that nothing here asserts is listed below. Each GLD/GDX pin
+them is derived. The two blog posts are the exceptions, and what each says that
+nothing here asserts is listed below. Each GLD/GDX pin
 names its window and its regression specification, because the book prints two
 of those near each other and they come from different runs.
 
@@ -236,7 +236,9 @@ The residual check behind the lag setting has a figure of its own. It draws
 what each ADF lag count leaves in the residuals on the Chapter 3 window, which
 bears on which lag count the test is entitled to. The result is exploratory,
 and Entry 1 of [docs/replication-log.md](docs/replication-log.md) embeds it
-and says what it can support. `TestResidualCheckChapter7` runs the same check
+and says what it can support.
+[blog/price-spread-mean-reversion.md](blog/price-spread-mean-reversion.md)
+embeds it too. `TestResidualCheckChapter7` runs the same check
 on the Chapter 7 window, which has no figure. `TestResidualCheck` pins the
 numbers,
 [src/chan/lag_residual_figure.py](src/chan/lag_residual_figure.py) draws them
@@ -312,6 +314,24 @@ quoting any of them.
    [docs/design.md](docs/design.md) works through.
 
 Every other number in it traces to an assertion in
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).
+
+[blog/price-spread-mean-reversion.md](blog/price-spread-mean-reversion.md) is a
+second post, written for Substack and copied in as Markdown. It walks through
+the Engle-Granger test, the ADF lag choice and the half-life on the same two
+pairs. Two of its figures are not pinned here, and both are about R rather than
+about any committed vintage.
+
+1. `urca::ur.df` uses 1 lag unless told otherwise. That is a package default,
+   and nothing here runs R.
+2. `tseries::adf.test` uses 6 lags at 252 days. Its default is
+   trunc((n − 1)^(1/3)), which gives 6 at n = 252, but that formula is the
+   package's and no test here calls it.
+
+Chan's printed −3.18 and the −3.380 his MATLAB reported are book figures. The
+code carries them as cited constants, `BOOK_REF_TRAIN` and
+`TestResidualCheckChapter7.MATLAB_5PCT`, rather than computing them. Every
+other number in the post traces to an assertion in
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).
 
 ## Where the book's numbers come from
