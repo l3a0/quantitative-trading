@@ -400,7 +400,12 @@ class TestTheSignFigure:
         assert small.standard_error == pytest.approx(7.4148e-4, abs=5e-8)
         assert large.standard_error == pytest.approx(1.0486e-4, abs=5e-8)
         (note,) = [t.get_text() for t in sign.texts if t is not sign._suptitle]
-        assert "Standard error 7.41e-04 for the small run and 1.05e-04 for the large one" in note
+        assert note == (
+            "Each bar counts seeds whose estimate falls in a 0.0001-wide range. Red bars sit "
+            "right of zero, where the losing bet looks like a winner.\n"
+            "Standard error 7.41e-04 for the small run and 1.05e-04 for the large one, "
+            "against a true growth of −0.0005."
+        )
 
     def test_the_bars_count_every_seed_and_zero_is_a_bin_edge(self, sign) -> None:
         """A bar straddling zero would mix right and wrong signs under one
@@ -435,8 +440,10 @@ class TestTheSignFigure:
     def test_the_titles_state_the_counts(self, sign) -> None:
         assert (
             sign._suptitle.get_text()
-            == "A small simulation gets the sign wrong a quarter of the time"
+            == "A small simulation gets the sign wrong more than a quarter of the time"
         )
+        small, _ = sign.runs
+        assert small.wrong_sign / SIGN_SEEDS > 0.25
         assert [ax.get_title(loc="left") for ax in sign.axes] == [
             "100 rounds × 200 traders: 56 of 200 seeds get the sign wrong",
             "1,000 rounds × 1,000 traders: 0 of 200 seeds get the sign wrong",
@@ -492,6 +499,13 @@ class TestTheEstimatorFigure:
             "all 20 dots, within 0.0001 of the true value",
         ]
         assert estimator._suptitle.get_text() == "Averaging final wealth reads low on all 20 seeds"
+        (note,) = [t.get_text() for t in estimator.texts if t is not estimator._suptitle]
+        assert note == (
+            "1,000 simulated traders playing 5,000 rounds, one dot per seed. "
+            "The wealth average misses the rare lucky paths that carry the mean.\n"
+            "Averaging each toss’s return needs no rare paths and lands within 0.0001 of "
+            "the true value every time."
+        )
 
 
 class TestTheCommittedImagesAreThoseFigures:
@@ -519,7 +533,7 @@ class TestTheCommittedImagesAreThoseFigures:
         make_estimator_figure(out=tmp_path / "e.png")
         assert list(default.iterdir()) == []
 
-    def test_the_command_writes_all_three_and_says_where(
+    def test_the_command_writes_all_five_and_says_where(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         monkeypatch.setattr(figures, "FIGURES_DIR", tmp_path)

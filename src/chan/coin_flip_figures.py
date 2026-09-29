@@ -27,8 +27,8 @@ so a figure can only be wrong by drawing the wrong thing, which
 This reopens a row of the considered-and-rejected register in
 ``docs/design.md``, which cut a figure for the coin-flip divergence on the
 cost of keeping copies in step. The owner chose the first three figures
-knowing that, and the row now records the reversal. The owner asked for the
-last two on the same day, to make Lesson 6 easier to follow.
+knowing that, and the row now records the reversal. The last two followed
+on the same day, to make Lesson 6 easier to follow.
 
 None of the figures reads a vintage, because the gamble is arithmetic on a
 known coin rather than market data.
@@ -528,7 +528,7 @@ def make_sign_figure(out: Path | None = None) -> Figure:
             fontweight="bold",
         )
     axes[0].annotate(
-        "true growth, −0.0005",
+        f"true growth, {_signed_rate(truth)}",
         (truth, axes[0].get_ylim()[1] * 0.92),
         xytext=(-6, 0),
         textcoords="offset points",
@@ -550,11 +550,12 @@ def make_sign_figure(out: Path | None = None) -> Figure:
     small, large = runs
     _title(
         fig,
-        "A small simulation gets the sign wrong a quarter of the time",
+        "A small simulation gets the sign wrong more than a quarter of the time",
         f"Each bar counts seeds whose estimate falls in a {SIGN_BIN:.4f}-wide range. Red bars sit "
         "right of zero, where the losing bet looks like a winner.\n"
         f"Standard error {small.standard_error:.2e} for the small run and "
-        f"{large.standard_error:.2e} for the large one, against a true growth of −0.0005.",
+        f"{large.standard_error:.2e} for the large one, against a true growth of "
+        f"{_signed_rate(truth)}.",
     )
     fig.tight_layout(rect=(0, 0.07, 1, 0.96))
     fig.runs = runs
@@ -610,13 +611,15 @@ def make_estimator_figure(out: Path | None = None) -> Figure:
         (0, e.per_toss, MUTED, "mean of each\ntoss’s return"),
     ]
     for y, values, colour, _ in rows:
+        # The per-toss dots overlap almost exactly, and a white edge on each
+        # draws a halo that reads as a bracket, so that row has none.
         ax.plot(
             values,
             np.full(len(values), y, dtype=float),
             "o",
             ms=9,
             color=colour,
-            mec=SURFACE,
+            mec=SURFACE if y == 1 else "none",
             mew=1.5,
             alpha=0.85,
         )
