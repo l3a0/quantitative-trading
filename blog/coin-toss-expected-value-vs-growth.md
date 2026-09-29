@@ -4,17 +4,15 @@
 
 ## Why the average is the wrong yardstick
 
-A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pays \$5, so the bet looks worth taking. Play it 1,000 times from \$1,000, with the bet scaled to the account as it grows, and the typical player ends with \$606.
+A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pays \$5, so the bet looks worth taking. Play it 1,000 times from \$1,000, with the bet scaled to the account as it grows, and the typical trader ends with \$606.
 
-Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds this bet to show why. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind, and for this bet the average return and the growth of capital have opposite signs.
+Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds this bet to show how a bet that pays on average can still lose. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. For this bet, the average return and the growth of capital have opposite signs.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in code. The code behind every figure is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Where a number is Chan’s own printed figure rather than one worked out here, the post says so.
 
 ## The gamble
 
-Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. The bet is a single toss of a fair coin. Heads wins \$110 and tails loses \$100, starting from \$1,000 of capital.
-
-The expected gain is \$5 a round, half of \$110 less half of \$100. Experiments show that most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
+Chan borrows this setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. The \$5 expected gain is half of \$110 less half of \$100. Experiments show that most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
 
 The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly a tenth of capital. Tails loses the stake, while heads pays 1.1 times it, which is 11% of capital. So each round multiplies the account by one of two numbers:
 
@@ -54,7 +52,7 @@ Chan prints a slightly different figure for `g`, because he uses the continuous 
 g \approx m - \frac{s^2}{2} = 0.005 - \frac{0.011025}{2} = 0.005 - 0.0055125 = -0.0005125
 ```
 
-To compare the two averages in one unit, convert the ensemble side to a log rate too. That gives ln(1.005) = +0.0049875 per round, against a time average of −0.00050025 per round. **The two averages have opposite signs.**
+To compare the two averages in one unit, convert the ensemble side to a log rate too. That gives ln(1.005) = 0.0049875 per round, against a time average of −0.00050025 per round. **The two averages have opposite signs.**
 
 ## Lesson 1: a positive expected value can shrink the typical account
 
@@ -70,11 +68,7 @@ The gap is carried by a few lucky paths. A trader who happens to throw far more 
 
 ## Lesson 2: the rates stay constant and the capital diverges
 
-Neither average changes with the number of rounds. The ensemble rate is +0.0049875 per round at round 10 and at round 1,000, and the time average is −0.00050025 at both. A report that prints the two rates shows a disagreement in sign and nothing more.
-
-![Two hundred simulated capital paths over 1,000 rounds on a log scale, spreading from \$1,000 into a fan between a few cents and a few million dollars. A gold line for the ensemble mean climbs steadily to \$146,576. A red line for the median trader drifts down to \$606.](../docs/figures/coin_flip_capital_paths.png)
-
-*Two hundred simulated traders. The gold line compounds the ensemble rate and the red line compounds the time average. The dashed line is the \$1,000 each trader started with. The 200 drawn here average \$21,664 at round 1,000, well short of the gold line, for the reason Lesson 6 gives.*
+Neither average changes with the number of rounds. The ensemble rate is 0.0049875 per round at round 10 and at round 1,000, and the time average is −0.00050025 at both. A report that prints the two rates shows a disagreement in sign and nothing more.
 
 What pulls apart is the capital they compound into. The ratio of ensemble capital to time-average capital grows by the same factor every round. That factor is set by the difference between the two log rates, 0.005488 per round.
 
@@ -89,6 +83,10 @@ What pulls apart is the capital they compound into. The ratio of ensemble capita
 ```
 
 Over ten rounds the two views differ by 6%, which is why the bet looks harmless to someone who plays it a few times. The damage is in the length of the horizon.
+
+![Two hundred simulated capital paths over 1,000 rounds on a log scale, spreading from \$1,000 into a fan between a few cents and a few million dollars. A gold line for the ensemble mean climbs steadily to \$146,576. A red line for the median trader drifts down to \$606.](../docs/figures/coin_flip_capital_paths.png)
+
+*Two hundred simulated traders. The gold line compounds the ensemble rate and the red line compounds the time average. The dashed line is the \$1,000 each trader started with. The 200 drawn here average \$21,664 at round 1,000, well short of the gold line, for the reason Lesson 6 gives.*
 
 ## Lesson 3: variance is a cost charged against growth
 
@@ -148,7 +146,7 @@ g^* \approx \frac{S^2}{2}
 
 Scaling a bet up or down scales `m` and `s` by the same factor, so it never changes `S`. That is why the Sharpe ratio, and not the mean return, is what caps growth. A strategy with twice the coin’s mean return and twice its standard deviation has the same Sharpe ratio, and so the same best growth. The coin checks the formula. Its Sharpe ratio per round is 0.005 / 0.105, exactly 1/21, so the formula gives a best growth of 1/882, about 0.0011338 per round. The exact best, at a stake of 1/22, is 0.0011351.
 
-This changes what the layman’s refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
+This changes what the refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
 ## Lesson 5: two unstated formula choices can change a growth rate
 
@@ -202,9 +200,9 @@ Traders test ideas by simulating them, in a backtest or a run of random scenario
 
 ### Noise swamps a small edge
 
-A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard. Print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
+A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard.
 
-The arithmetic behind that rule starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to 0.10486 divided by √N. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured.
+The arithmetic starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to `0.10486 / √N`. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured. So print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
 
 A small run can therefore land on the wrong side of zero. Three results show what the size of a run does.
 
