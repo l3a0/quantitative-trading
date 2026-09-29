@@ -54,7 +54,7 @@ Chan prints a slightly different figure for `g`, because he uses the continuous 
 g \approx m - \frac{s^2}{2} = 0.005 - \frac{0.011025}{2} = 0.005 - 0.0055125 = -0.0005125
 ```
 
-To compare the two averages in one unit, convert the ensemble side to a log rate too. That gives ln(1.005) = +0.0049875 per round, against a time average of −0.00050025 per round. The two averages have opposite signs.
+To compare the two averages in one unit, convert the ensemble side to a log rate too. That gives ln(1.005) = +0.0049875 per round, against a time average of −0.00050025 per round. **The two averages have opposite signs.**
 
 ## Lesson 1: a positive expected value can shrink the typical account
 
