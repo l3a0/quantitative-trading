@@ -18,9 +18,9 @@ In *Quantitative Trading*, Ernest Chan claims that many individual asset price t
 
 Chan further argues that a linear combination of economically related assets may produce a stationary spread even when the individual asset prices are nonstationary. Assets with common economic drivers can therefore be reasonable candidates to test for cointegration, although economic similarity does not guarantee cointegration. Cointegration exists when a linear combination of nonstationary asset prices is stationary. For example, for two assets `xₜ` and `yₜ`, there may be a hedge ratio `β` such that the spread `zₜ` is stationary.
 
-$$
+```math
 y_t = \alpha + \beta x_t + z_t
-$$
+```
 
 This gives:
 
@@ -32,23 +32,23 @@ This is saying: “How many shares of `xₜ` are needed to hedge one share of `y
 
 Rearrange it to solve for the spread.
 
-$$
+```math
 z_t = y_t - \beta x_t - \alpha
-$$
+```
 
 ### The residual tracks the portfolio’s market value
 
 Hold one specific portfolio: long 1 share of GLD, the gold ETF (`yₜ`), and short `β` shares of GDX, the gold-miners ETF (`xₜ`). Its net market value is the long leg minus the short leg:
 
-$$
+```math
 V_t = y_t - \beta x_t
-$$
+```
 
 So `zₜ = Vₜ − α`. The residual spread tracks the portfolio’s value on every day, shifted down by the intercept. The portfolio value `Vₜ` reverts to `α`, and the spread `zₜ` reverts to 0.
 
-$$
+```math
 \bar{z} = 0 \quad\Longrightarrow\quad \bar{V} = \bar{z} + \alpha = \alpha
-$$
+```
 
 ## How to test for cointegration
 
@@ -60,17 +60,17 @@ The question: is `zₜ` stationary? If yes, then `yₜ` and `xₜ` are cointegra
 
 Run an ordinary least squares (OLS) regression using the linear relationship.
 
-$$
+```math
 y_t = \alpha + \beta x_t + z_t
-$$
+```
 
 The regression finds the `β` and `α` that make the fitted price `α + βxₜ` as close as possible to the actual price `yₜ`.
 
 The goal is to minimize the sum of the squared spreads. In other words, find the line that makes the squared prediction errors as small as possible.
 
-$$
+```math
 \sum_{t} z_t^2
-$$
+```
 
 Then calculate the spread `zₜ` from the estimated `β` and `α`.
 
@@ -78,9 +78,9 @@ Then calculate the spread `zₜ` from the estimated `β` and `α`.
 
 OLS with an intercept makes the residual spread average zero by construction. Minimizing the squared errors over `α` sets their sum to zero:
 
-$$
+```math
 \frac{\partial}{\partial \alpha} \sum_t \left( y_t - \alpha - \beta x_t \right)^2 = -2 \sum_t z_t = 0 \quad\Longrightarrow\quad \bar{z} = 0
-$$
+```
 
 Without the intercept there is no `α` to solve for, and nothing forces the sum to zero. A different fitting method, such as least absolute deviations, makes the *median* residual zero, not the *mean*.
 
@@ -90,9 +90,9 @@ The Engle-Granger critical values come from simulations by the economist James M
 
 A through-origin fit drops the intercept and forces the line through zero:
 
-$$
+```math
 y_t = \beta_0 x_t
-$$
+```
 
 Two things decide between the fits:
 
@@ -103,9 +103,9 @@ Two things decide between the fits:
 
 The through-origin slope `β₀` is the hedge ratio Chan prints. The ratio of the average prices approximates it:
 
-$$
+```math
 \beta_0 = \frac{\sum_t x_t \, y_t}{\sum_t x_t^2} \approx \frac{\bar{y}}{\bar{x}}
-$$
+```
 
 The approximation holds when prices move only a little compared with their level, which is usual for daily prices. On Chan’s Chapter 7 window, 385 trading days from 2006-05-23 to 2007-11-30 in his archived price files, the ratio gives 1.642 against a through-origin slope of 1.640. The with-intercept `β` is 1.386, so the ratio is a quick check on `β₀` and not a substitute for `β`.
 
@@ -113,38 +113,38 @@ The approximation holds when prices move only a little compared with their level
 
 Run an ADF test on the spread `zₜ`. This is another OLS regression, but on the estimated spread time series instead of the price time series.
 
-$$
+```math
 \Delta z_t = \gamma z_{t-1} + \sum_{i=1}^{p} \phi_i \Delta z_{t-i} + \varepsilon_t
-$$
+```
 
 `Δzₜ` is the change in the spread from one day to the next:
 
-$$
+```math
 \Delta z_t = z_t - z_{t-1}
-$$
+```
 
 The null hypothesis says the spread is nonstationary.
 
-$$
+```math
 H_0:\gamma = 0
-$$
+```
 
 The alternative hypothesis says there is stationarity.
 
-$$
+```math
 H_1:\gamma < 0
-$$
+```
 
 The ADF statistic is the estimate of `γ` divided by its standard error. Reject the null hypothesis when the statistic is more negative than the critical value. MacKinnon’s residual-based tables give these critical values for two series:
 
-$$
+```math
 \begin{array}{c|c|c}
 \text{Significance} & \text{Confidence} & \text{Critical value} \\ \hline
 10\% & 90\% & -3.04 \\
 5\% & 95\% & -3.34 \\
 1\% & 99\% & -3.90
 \end{array}
-$$
+```
 
 These are more negative than the plain ADF values of −1.62, −1.94 and −2.57. Step 1 already picked the `β` that makes the spread’s variance as small as possible, which is the combination of the two prices that looks most stationary. So even two unrelated random walks leave a spread that looks mean-reverting, and the stricter values correct for that. KO and PEP below show the difference: their −2.14 passes the plain ADF at 5% and fails every Engle-Granger value.
 
@@ -154,30 +154,30 @@ Real time series have autocorrelation in their errors. Autocorrelation means pri
 
 The change in the spread depends on the prior spread and on up to `p` prior changes:
 
-$$
+```math
 z_{t-1}, \quad \Delta z_{t-1}, \quad \Delta z_{t-2}, \dots, \Delta z_{t-p}
-$$
+```
 
 Run an OLS regression on the ADF equation to estimate the coefficients `γ` and `φ₁` through `φₚ`.
 
 Using a lag `p = 2` gives the ADF equation below.
 
-$$
+```math
 \Delta z_t = \gamma z_{t-1} + \phi_1 \Delta z_{t-1} + \phi_2 \Delta z_{t-2} + \varepsilon_t
-$$
+```
 
 Suppose an example spread time series like below.
 
-$$
+```math
 \begin{array}{c|ccccc}
 t & 1 & 2 & 3 & 4 & 5 \\ \hline
 z_t & 2.0 & 1.5 & 0.5 & 0.8 & 0.2
 \end{array}
-$$
+```
 
 For `t = 4`.
 
-$$
+```math
 \begin{gather*}
 \Delta z_4 = z_4 - z_3 = 0.8 - 0.5 = 0.3 \\
 z_3 = 0.5 \\
@@ -185,17 +185,17 @@ z_3 = 0.5 \\
 \Delta z_2 = 1.5 - 2.0 = -0.5 \\
 0.3 = \gamma(0.5) + \phi_1(-1.0) + \phi_2(-0.5) + \varepsilon_4
 \end{gather*}
-$$
+```
 
 This yields a dataset like below.
 
-$$
+```math
 \begin{array}{c|c|ccc}
 t & \Delta z_t & z_{t-1} & \Delta z_{t-1} & \Delta z_{t-2} \\ \hline
 4 & 0.3 & 0.5 & -1.0 & -0.5 \\
 5 & -0.6 & 0.8 & 0.3 & -1.0
 \end{array}
-$$
+```
 
 Then estimate `γ`, `φ₁` and `φ₂` from the above data with an OLS regression.
 
@@ -253,15 +253,15 @@ Leftover autocorrelation means the ADF critical values no longer apply, so the r
 
 Regressing `yₜ` on `xₜ` gives one spread:
 
-$$
+```math
 y_t = \alpha + \beta x_t + z_t
-$$
+```
 
 Regressing `xₜ` on `yₜ` gives a different set of coefficients and a different spread:
 
-$$
+```math
 x_t = \alpha' + \beta' y_t + z'_t
-$$
+```
 
 With more than two assets, use the Johansen test. It treats all the series together, does not depend on which one goes on the left, and can find more than one cointegrating relationship.
 
@@ -273,42 +273,42 @@ Measure the half-life using the Ornstein-Uhlenbeck decay rate of the spread. Thi
 
 Half-life is `h`. `θ` is the reversion speed. Each day the spread closes roughly a fraction `θ` of its gap to the mean, so the gap halves after `h` days:
 
-$$
+```math
 h = \frac{\ln 2}{\theta}
-$$
+```
 
 #### Step 2: Estimate θ with an OLS regression on daily residual changes
 
 With a step of one day, the model becomes a regression of each day’s change on the previous day’s level:
 
-$$
+```math
 \Delta z_t = c + \lambda \, z_{t-1} + \varepsilon_t, \qquad \lambda \approx -\theta
-$$
+```
 
 A negative slope `λ` means the spread falls when it is high and rises when it is low, which is mean reversion. It estimates the same thing as `γ` in the ADF regression, from a simpler regression. This one adds a constant and drops the lagged differences. The ADF needs those lags so that its test statistic can be trusted. The half-life needs only the slope.
 
-$$
+```math
 \begin{aligned}
 \text{ADF:}\quad \Delta z_t &= \gamma z_{t-1} + \sum_{i=1}^{p} \phi_i \Delta z_{t-i} + \varepsilon_t \\
 \text{half-life:}\quad \Delta z_t &= c + \lambda z_{t-1} + \varepsilon_t
 \end{aligned}
-$$
+```
 
 On Chan’s 385 days, `λ` is −0.0672 and `γ` at `p = 1` is −0.0654. Read as half-lives, they give 10.3 and 10.6 days. Nearly all of that gap comes from the lagged difference. The constant changes almost nothing, because the spread already averages zero.
 
 Then plug the slope into the formula:
 
-$$
+```math
 h = \frac{\ln 2}{-\lambda}
-$$
+```
 
 This is a condensed version of [ou_half_life](https://github.com/l3a0/ithildin-core/blob/9d39ae35c9dd9931ad3f4021aa09153d85f12912/src/ithildincore/timeseries.py) in `ithildincore.timeseries`:
 
 ```python
 dz = np.diff(z)
-zlag = z[:-1]            # lag 1 day
+zlag = z[:-1]  # lag 1 day
 fit = ols(dz, np.column_stack([zlag, np.ones(len(zlag))]))
-slope = fit.beta[0]            # lambda, which estimates -theta
+slope = fit.beta[0]  # lambda, which estimates -theta
 half_life = math.log(2) / -slope if slope < 0 else math.inf
 ```
 
