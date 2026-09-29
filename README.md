@@ -423,6 +423,14 @@ prose checks it has no rule for run in the test suite: a tilde that can close a
 strikethrough pair, a table delimiter row written tight, a heading quoted in
 prose that no longer exists, and a link whose anchor no heading produces.
 
+## License
+
+The code is released under the [MIT License](LICENSE), so anyone may reuse it,
+including commercially, as long as the copyright notice travels with it. The
+committed price vintages under `data/` are downloads from their vendors, and
+the licence covers this repo's own work rather than granting any right the
+vendors did not.
+
 ## Where this came from
 
 Seeded from [l3a0/repo-template](https://github.com/l3a0/repo-template), which
