@@ -74,7 +74,7 @@ they were first built. The other three were built here.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
-them is derived. The two blog posts are the exceptions, and what each says that
+them is derived. The two blog posts about the pairs are the exceptions, and what each says that
 nothing here asserts is listed below. Each GLD/GDX pin
 names its window and its regression specification, because the book prints two
 of those near each other and they come from different runs.
@@ -333,6 +333,27 @@ code carries them as cited constants, `BOOK_REF_TRAIN` and
 `TestResidualCheckChapter7.MATLAB_5PCT`, rather than computing them. Every
 other number in the post traces to an assertion in
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).
+
+[blog/coin-toss-expected-value-vs-growth.md](blog/coin-toss-expected-value-vs-growth.md)
+is a third post, about the coin-flip gamble rather than either pair. It draws
+six lessons from Example 6.1 on expected value against the compound growth
+rate of capital. The growth-maximising stake it quotes is pinned beside the
+rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
+
+1. SPY's mean annual return of 11.23% and its unlevered growth rate of 9.8%,
+   and the 1.43-point gap between them. All three are Chan's, at Kindle
+   location 2869. [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py)
+   cites the first two as book figures and computes its own on a modern
+   vintage.
+2. A stock moving 1% up or down each minute loses about half a basis point a
+   minute. That is Chan's, at location 2822, and no test computes it.
+3. One head and one tail leave 0.999 of the capital. That is the product of
+   the two pinned multipliers, 1.11 and 0.90, and no test asserts the product.
+4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
+   its docstring and does not assert the percentage.
+
+Every other number in the post traces to an assertion in
+[tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py).
 
 ## Where the book's numbers come from
 

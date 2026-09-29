@@ -1,9 +1,9 @@
 """Pins for Chan's coin-flip gamble, Example 6.1.
 
 This file is the single authority for every number any prose surface quotes
-about this experiment. ``docs/replication-log.md`` Entry 2 states those numbers
-and derives none of them, and ``src/chan/coin_flip_growth.py`` carries the
-reasoning.
+about this experiment. ``docs/replication-log.md`` Entry 2 and
+``blog/coin-toss-expected-value-vs-growth.md`` state those numbers and derive
+none of them, and ``src/chan/coin_flip_growth.py`` carries the reasoning.
 
 Two kinds of assertion live here and they are not interchangeable.
 
@@ -582,6 +582,59 @@ class TestTheGambleIsParameterised:
         assert seeds_with_positive_time_average(100, 200) == seeds_with_positive_time_average(
             100, 200, SEEDS
         )
+
+
+class TestTheStakeDecidesTheSign:
+    """Where growth peaks as the stake moves, which the book does not work.
+
+    ``blog/coin-toss-expected-value-vs-growth.md`` quotes every figure below.
+    The stake is ``loss / capital``, so passing a larger ``capital`` to
+    ``gamble_moments`` is how a smaller stake on the same odds is expressed.
+    A capital of 2,200 is a stake of 1/22.
+    """
+
+    def test_growth_peaks_at_half_the_break_even_stake(self) -> None:
+        """1/22 against a break-even of 1/11, found by search rather than by
+        the closed form ``(b - 1) / (2 * b)``, so a wrong formula in the
+        prose cannot be copied into the pin."""
+        best = max(range(1100, 5001, 10), key=lambda c: gamble_moments(capital=c).growth_exact)
+        assert best == 2200
+        at_best = gamble_moments(capital=best)
+        assert at_best.stake_fraction == pytest.approx(1.0 / 22.0, abs=5e-12)
+        assert at_best.breakeven_stake == pytest.approx(2.0 * at_best.stake_fraction, abs=5e-12)
+        assert at_best.growth_exact == pytest.approx(0.0011351, abs=5e-8)
+
+    def test_the_half_holds_for_a_second_payoff(self) -> None:
+        """b = 1.5 peaks at 1/6 against a break-even of 1/3, so the factor of
+        two is a property of an even-odds coin and not of Chan's 1/11."""
+        best = max(
+            range(700, 5001, 10),
+            key=lambda c: gamble_moments(win=300.0, loss=200.0, capital=c).growth_exact,
+        )
+        assert best == 1200
+        at_best = gamble_moments(win=300.0, loss=200.0, capital=best)
+        assert at_best.stake_fraction == pytest.approx(1.0 / 6.0, abs=5e-12)
+        assert at_best.breakeven_stake == pytest.approx(2.0 * at_best.stake_fraction, abs=5e-12)
+
+    def test_the_continuous_kelly_stake_lands_near_the_exact_one(self, moments) -> None:
+        """``m / s^2`` is 0.4535 of Chan's stake, a stake of 0.04535 against
+        the exact 1/22 = 0.04545. The Kelly formula of Chapter 6 is the
+        continuous approximation of the same search."""
+        scale = moments.expected_return / moments.return_sd**2
+        assert scale == pytest.approx(0.4535, abs=5e-5)
+        assert scale * moments.stake_fraction == pytest.approx(0.04535, abs=5e-6)
+
+    def test_at_the_best_stake_one_trader_keeps_half_the_ensemble_rate(self) -> None:
+        """At 1/22, ``(1 + b*f)(1 - f)`` equals ``1 + m``, so the time average
+        is exactly half the ensemble rate in log units. After 1,000 rounds from
+        $1,000 that is $3,111 on the median path against an ensemble mean of
+        $9,681, a ratio of 3.11 rather than 241.72."""
+        at_best = gamble_moments(capital=2200)
+        assert at_best.growth_exact == pytest.approx(at_best.ensemble_log_growth / 2.0, rel=1e-12)
+        horizon = capital_horizon(1000, at_best)
+        assert horizon.time_average_capital == pytest.approx(3111, abs=0.5)
+        assert horizon.ensemble_capital == pytest.approx(9681, abs=0.5)
+        assert horizon.ratio == pytest.approx(3.11, abs=5e-3)
 
 
 def test_the_moments_type_is_what_the_horizon_takes() -> None:

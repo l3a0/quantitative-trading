@@ -3,8 +3,8 @@
 This file is the single authority for every number the repo's own prose quotes
 about these two pairs. A doc that recomputed one of them would be a second
 implementation of the calculation, and the two would drift without either
-looking wrong. The two blog posts are the exceptions, and README.md lists the
-figures in each that nothing here asserts.
+looking wrong. The two blog posts about these pairs are the exceptions, and
+README.md lists the figures in each that nothing here asserts.
 
 There is no dataset gate. All four vintages are committed to git, so every
 layer runs everywhere the suite runs. The primitives underneath have their own
