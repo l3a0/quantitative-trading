@@ -16,7 +16,7 @@ Chan borrows the setup from Daniel Kahneman’s *Thinking, Fast and Slow* and ch
 
 The expected gain is \$5 a round, half of \$110 less half of \$100. Most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
 
-The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly a tenth of capital, and each round multiplies the account by one of two numbers:
+The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly a tenth of capital. Tails loses the stake, while heads pays 1.1 times it, which is 11% of capital. So each round multiplies the account by one of two numbers:
 
 1. 1.11 on heads.
 2. 0.90 on tails.
