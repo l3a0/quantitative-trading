@@ -653,6 +653,27 @@ class TestTheStakeDecidesTheSign:
         assert scale == pytest.approx(0.4535, abs=5e-5)
         assert scale * moments.stake_fraction == pytest.approx(0.04535, abs=5e-6)
 
+    def test_the_sharpe_ratio_alone_sets_the_best_growth(self, moments) -> None:
+        """``blog/coin-toss-expected-value-vs-growth.md`` checks Chan's
+        ``g* = S^2 / 2`` against the coin. The Sharpe ratio per round is
+        0.005 / 0.105, exactly 1/21, so the formula gives 1/882, about
+        0.0011338, against the exact best of 0.0011351 at a stake of 1/22.
+
+        Scaling the bet moves ``m`` and ``s`` together, so the Sharpe ratio is
+        the same at every stake, which is what makes the formula a statement
+        about the strategy rather than about how it is sized.
+        """
+        sharpe = moments.expected_return / moments.return_sd
+        assert sharpe == pytest.approx(1 / 21, rel=1e-12)
+        assert sharpe**2 / 2 == pytest.approx(1 / 882, rel=1e-12)
+        assert sharpe**2 / 2 == pytest.approx(0.0011338, abs=5e-8)
+        exact_best = gamble_moments(capital=2200).growth_exact
+        assert exact_best == pytest.approx(0.0011351, abs=5e-8)
+        assert exact_best > sharpe**2 / 2
+        for capital in (1100, 2200, 5000):
+            other = gamble_moments(capital=capital)
+            assert other.expected_return / other.return_sd == pytest.approx(sharpe, rel=1e-12)
+
     def test_at_the_best_stake_one_trader_keeps_half_the_ensemble_rate(self) -> None:
         """At 1/22, ``(1 + b*f)(1 - f)`` equals ``1 + m``, so the time average
         is exactly half the ensemble rate in log units. After 1,000 rounds from

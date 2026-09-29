@@ -105,7 +105,9 @@ Chan makes the same point twice elsewhere in the chapter, and both examples are 
 1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point a minute (Kindle location 2822).
 2. SPY’s mean annual return in his example is 11.23%, and its compound growth rate without leverage is 9.8% (location 2869). The 1.43-point gap is the drag.
 
-So two strategies with the same mean return do not grow at the same rate. The one with lower variance compounds faster.
+So two strategies with the same mean return do not grow at the same rate. The one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. Holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
+
+Lesson 4 shows the stronger form of this. Once the bet is sized well, the Sharpe ratio alone sets the best growth a strategy can reach, and the mean return drops out.
 
 ## Lesson 4: the stake decides the sign
 
@@ -135,6 +137,14 @@ The growth-maximising stake is the **Kelly** stake. Chan gives its continuous fo
 ```
 
 The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
+
+Chan also gives the growth that the Kelly stake reaches (Kindle location 2849), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
+
+```math
+g^* \approx \frac{S^2}{2}
+```
+
+Scaling a bet up or down scales `m` and `s` by the same factor, so it never changes `S`. That is why the Sharpe ratio, and not the mean return, is what caps growth. A strategy with twice the coin’s mean return and twice its standard deviation has the same Sharpe ratio, and so the same best growth. The coin checks the formula. Its Sharpe ratio per round is 0.005 / 0.105, exactly 1/21, so the formula gives a best growth of 1/882, about 0.0011338 per round. The exact best, at a stake of 1/22, is 0.0011351.
 
 This changes what the layman’s refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
