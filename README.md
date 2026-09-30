@@ -446,10 +446,10 @@ above for the regime map.
 fifth post, about Qian's risk parity against 60/40, which Chan reports at
 Kindle location 4684. It draws six lessons from Entry 4 of the replication log:
 the close numbers and the failed claim, the volatility ratio and correlation
-Qian's two figures encode, the bond leg earning below cash, the cash rate at
-which the ranking ties, the weights judged on a window they did not see, and
-the inputs moving between the two windows. Two groups of its figures are not
-pinned here.
+Qian's two figures encode, bonds earning too little per unit of risk beside
+stocks, the cash rate at which the ranking ties, the weights judged on a window
+they did not see, and the inputs moving between the two windows. Two groups of
+its figures are not pinned here.
 
 1. Published figures. Chan's 23-77 and 1.8 and his 4% rate, which the code
    carries as cited constants. From Qian's paper, committed at
@@ -457,10 +457,12 @@ pinned here.
    15.1% and 4.6% volatilities, the 0.2 correlation, the 93% risk share, the
    Sharpe ratios of 0.55, 0.80, 0.67 and 0.87, the bond index's 3.7% a year
    above Treasury bills, the 2 points a year his levered portfolio beat 60/40
-   by, and the condition under which his paper says risk parity is
-   mean-variance optimal. The ratio of 3.28 is the quotient of his two
-   volatilities, and the 15-month overlap of the two samples comes from
-   Entry 4.
+   by, his 60/40 volatility of 9.6%, and the condition under which his paper
+   says risk parity is mean-variance optimal. The Federal Reserve's near-zero
+   policy rate from December 2008 to December 2015 and from March 2020 to March
+   2022, about nine of the 23 years, is a public record rather than anything
+   committed here. The ratio of 3.28 is the quotient of his two volatilities,
+   and the 15-month overlap of the two samples comes from Entry 4.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
    about 29 times bonds', the \$43 of SPY, \$155 of AGG and \$98 borrowed per
    \$100 of equity, risk parity being about half as volatile as 60/40 before
@@ -469,11 +471,11 @@ pinned here.
    and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4% rate,
    the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the 0.71,
    0.98 and 0.18 that weight the two funds' Sharpe ratios under a correlation
-   near zero, with the bar of about half they set for bonds against stocks,
-   the bar of about two-thirds the same arithmetic gives at Qian's inputs and
-   the 0.87 and 0.67 it gives back there, and the three-quarters and 0.12 that
-   split the later period's 0.50 gap between the period and the carried
-   weights.
+   near zero, with the bar of about half they set for bonds against stocks, the
+   bar of about two-thirds the same arithmetic gives at Qian's inputs and the
+   0.87 and 0.67 it gives back there, AGG's Sharpe ratio of about −0.46 in the
+   later period, and the three-quarters and 0.12 that split the later period's
+   0.50 gap between the period and the carried weights.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
