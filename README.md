@@ -475,15 +475,16 @@ of its figures are not pinned here.
    correlation near zero, with the hurdle of about half they set for bonds
    against stocks, the hurdle of about two-thirds the same arithmetic gives at
    Qian's inputs and the 0.87 and 0.67 it gives back there, AGG's Sharpe ratio
-   of about −0.46 against SPY's 0.66 in the later period and the correlation of
-   about −0.96 below which the hurdle would fall under it, and the
-   three-quarters and 0.12 that split the later period's 0.50 gap between the
-   period and the carried weights, and the 0.52 and 0.28 in the inequality that
-   sets the hurdle, and the Sharpe gaps of about 0.02 for 60/40 over the whole
-   period at the 1.74% bill average and about 0.13 for risk parity before 2022
-   at 1.17%, and the Sharpe ratios of about 0.26 for AGG and 0.57 for SPY at
-   the 1.74% bill average, with the 0.44 of the 0.98 difference in bonds'
-   Sharpe ratio that the cash rate accounts for.
+   of about −0.46 against SPY's 0.66 in the later period the correlation of
+   about −0.6 below which the hurdle turns negative and the −0.96 below which
+   it would fall under AGG's, and the three-quarters and 0.12 that split the
+   later period's 0.50 gap between the period and the carried weights, and the
+   0.52 and 0.28 in the inequality that sets the hurdle, and the Sharpe gaps of
+   about 0.02 for 60/40 over the whole period at the 1.74% bill average and
+   about 0.13 for risk parity before 2022 at 1.17%, and the Sharpe ratios of
+   about 0.26 for AGG and 0.57 for SPY at the 1.74% bill average, with the 0.44
+   of the 0.98 difference in bonds' Sharpe ratio that the cash rate accounts
+   for.
 3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
    series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from October
    2003 to August 2026, 1.17% from October 2003 to February 2022 and 4.18% from
