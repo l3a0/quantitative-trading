@@ -448,8 +448,8 @@ Kindle location 4684. It draws six lessons from Entry 4 of the replication log:
 the close numbers and the failed claim, the volatility ratio and correlation
 Qian's two figures encode, bonds earning too little per unit of risk beside
 stocks, the cash rate at which the ranking ties, the weights judged on a window
-they did not see, and the inputs moving between the two windows. Two groups of
-its figures are not pinned here.
+they did not see, and the inputs moving between the two windows. Three groups
+of its figures are not pinned here.
 
 1. Published figures. Chan's 23-77 and 1.8 and his 4% rate, which the code
    carries as cited constants. From Qian's paper, committed at
@@ -475,7 +475,14 @@ its figures are not pinned here.
    bar of about two-thirds the same arithmetic gives at Qian's inputs and the
    0.87 and 0.67 it gives back there, AGG's Sharpe ratio of about −0.46 in the
    later period, and the three-quarters and 0.12 that split the later period's
-   0.50 gap between the period and the carried weights.
+   0.50 gap between the period and the carried weights, and the 0.52 and 0.28
+   in the inequality that sets the bar.
+3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month
+   bill series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from
+   October 2003 to August 2026, 1.17% before the 2022 rise and 4.18% after it,
+   with 108 months under 0.25%. The post labels them as pointers rather than
+   results, because the premise here is that a figure nobody stored is one
+   nobody can check.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
