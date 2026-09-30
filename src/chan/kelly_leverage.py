@@ -11,14 +11,16 @@ the worst day the index has had.
 **One figure the book prints reproduces here and it is the dispersion.** Chan
 read SPY through 2007-12-28. This reads a 2026 download of the same symbol over
 the same dates, and every level it computes lands high. The standard deviation
-does not. Dividends paid after 2008 cannot be the cause, because they scale
-every earlier price by one factor and leave every return unchanged. Set day by
-day against Chan's own ``data/spy_chan.csv``, the whole gap in the mean sits on
-about ten ex-dividend days, where one download credits nearly a whole quarterly
-payout that the other does not, mostly in one direction. Elsewhere the two
-differ by rounding that cancels. A few large differences in one direction add
-up in a mean and barely touch a standard deviation. That comparison is measured
-rather than pinned. Reading his own workbook, and pinning it, is
+does not. Dividends paid after his window cannot be the cause, because they
+scale every price inside it by one factor and leave every return unchanged.
+Set day by day against Chan's own ``data/spy_chan.csv``, the whole gap in the
+mean sits on about ten days on or beside SPY's quarterly ex-dividend dates. On
+the four largest, one download folds nearly a whole quarterly payout into the
+day's return and the other does not, and on the rest it folds in part of one.
+The differences mostly raise the 2026 mean. Elsewhere the two differ by
+rounding that cancels, so a few large differences move a mean and barely touch
+a standard deviation. That comparison is measured rather than pinned. Reading
+his own workbook, and pinning it, is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
 ``reproduced`` verdict on the rest belongs there.
 ``docs/replication-log.md`` Entry 3 carries this run's verdicts row by row, and
@@ -506,7 +508,7 @@ def report(
     if against_the_book:
         print("This is Chan's own window read on a 2026 download, so the gap column is a")
         print("vendor-drift measurement and not a reproduction. He read a 2008-vintage")
-        print("download, and the two credit a few quarterly dividends differently.")
+        print("download, and the two differ on about ten quarterly dividends.")
         print("Chan's own workbook is issue 138, not this run.")
         print()
         print(f"  {'quantity':<31} {'this run':>12}   {'the book':>8}   gap")

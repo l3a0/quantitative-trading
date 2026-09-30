@@ -12,17 +12,21 @@ This post walks through the formula and six lessons from reproducing Chan’s ex
 
 ## The Kelly formula
 
-Kelly sizing comes from John Kelly’s work on betting (Kelly, 1956), which asked what share of capital to stake so that wealth grows fastest over many rounds. Chan applies it to a return series. Here `m` is the mean annual **excess return**, the return above a risk-free rate, and `s` is the annual standard deviation. Chan sets the risk-free rate `r` at 4%. **Leverage** is the position divided by equity, so a leverage of 2 means \$2 of SPY for every \$1 of the trader’s own money, with the rest borrowed.
+Kelly sizing comes from John Kelly’s work on betting (Kelly, 1956), which asked what share of capital to stake so that wealth grows fastest over many rounds. Chan applies it to what he calls continuous finance, where a trade’s outcome can land anywhere on a range of profits and losses rather than on the few fixed payoffs of a card game. He also assumes returns follow a bell curve with a fixed mean and standard deviation.
 
-Start with what leverage does to the return. At a leverage `f`, the account holds `f` dollars of SPY for each dollar of equity and borrows the rest at `r`. Its return is `r` plus `f` times SPY’s excess return. So leverage multiplies the mean excess return by `f`, and it multiplies the variance `s²`, the square of the standard deviation, by `f²`.
+Here `m` is the mean annual **excess return**, the return above a risk-free rate, and `s` is the annual standard deviation. Chan sets the risk-free rate `r` at 4%. **Leverage** is the position divided by equity, so a leverage of 2 means \$2 of SPY for every \$1 of the trader’s own money, with the rest borrowed.
 
-Next, turn that return into compound growth. A return series compounds at roughly its mean less half its variance, because swings cost more than they pay. A 10% loss followed by a 10% gain leaves 99% of the starting capital, not 100%. That cost is called **volatility drag**. For the levered account it gives one formula, and everything else in this post follows from it:
+Leverage changes the return in a simple way. At a leverage `f`, each dollar of equity holds `f` dollars of SPY and borrows `f − 1` dollars at `r`. It earns `f` times SPY’s return and pays `r` on the borrowing, which nets to `r` plus `f` times SPY’s excess return. So the mean of the levered return is `r + f·m`. Scaling a return by `f` scales every swing by `f`, and variance squares the swings, so the variance of the levered return is `f²s²`, where `s²` is the square of the standard deviation. The fixed `r` adds no variance.
+
+Returns do not compound at their mean. A 10% loss followed by a 10% gain leaves 99% of the starting capital, because the gain works on a smaller balance. That shortfall is called **volatility drag**, and it comes to about half the variance per period. The two returns in the example average zero and have a variance of 0.01. Half of that is 0.5% a round, and two rounds lose 1%, which is what the example lost. So a return series compounds at roughly its mean less half its variance.
+
+Putting the levered mean and variance into mean less half variance gives `g(f)`, the growth rate at leverage `f`:
 
 ```math
 g(f) = r + f\,m - \frac{f^2 s^2}{2}
 ```
 
-The formula is exact for a position rebalanced continuously, which is why Chan calls it the continuous form, and an approximation for returns measured daily.
+Under Chan’s bell-curve assumption this is exact for a position rebalanced continuously, and it is an approximation for returns measured daily. Everything below follows from it.
 
 Without leverage, `f` is 1:
 
@@ -30,23 +34,29 @@ Without leverage, `f` is 1:
 g(1) = r + m - \frac{s^2}{2}
 ```
 
-Because `m` is the return above `r`, `r + m` is simply SPY’s total mean return, 11.29% on this download. The drag `s²/2` is 1.43%, so the account compounds at 11.29% less 1.43%, which is 9.86% a year and rounds to the 9.9% in the table below.
+Because `m` is the return above `r`, `r + m` is SPY’s total mean return, 11.29% on this download. The drag `s²/2` is 1.43%, so the account compounds at 11.29% less 1.43%, which is 9.86% a year.
 
-The Kelly leverage is the top of the curve, where one more unit of leverage adds no growth. That is where the slope of `g(f)` is zero:
+Each extra unit of leverage adds `m` of growth, but the drag grows with `f²`, so `g(f)` rises, peaks and falls. At a leverage `f`, one more small step adds `m` of growth and costs about `f·s²` of drag. Below the peak the gain is larger, and above it the cost is. At the top the two balance, which is where the slope `dg/df` is zero:
 
 ```math
 \frac{dg}{df} = m - f\,s^2 = 0 \quad\Rightarrow\quad f^* = \frac{m}{s^2}
 ```
 
-On this download `m` is 7.295% and `s²` is 0.0286, so `f*` is 2.551.
+On this download `m` is 0.07295 and `s²` is 0.0286, which is 16.91% squared, so `f*` is 2.551.
 
-Putting `f*` back into `g(f)` gives the growth at the Kelly leverage. It is simplest in terms of the **Sharpe ratio** `S = m/s`, the excess return per unit of risk:
+Putting `f*` back into `g(f)` gives the growth at the Kelly leverage. The return term becomes `m/s²` times `m`, which is `m²/s²`. The drag term becomes `(m/s²)²` times `s²/2`, which is `m²/(2s²)`, exactly half of the return term. So at the Kelly leverage the drag takes back half of what leverage adds. The result is simplest in terms of the **Sharpe ratio** `S = m/s`, the excess return per unit of risk:
 
 ```math
-g^* = r + \frac{m^2}{s^2} - \frac{m^2}{2s^2} = r + \frac{S^2}{2}
+g^* = r + \frac{m^2}{s^2} - \frac{m^2}{2s^2} = r + \frac{m^2}{2s^2} = r + \frac{S^2}{2}
 ```
 
-With `S` at 0.4313, `S²/2` is 9.30%, so capital compounds at 4% plus 9.30%, which is 13.30% a year. **Half-Kelly** trades at half the Kelly leverage to cut risk.
+With `S` at 0.4313, `S²/2` is 9.30%, so capital compounds at 4% plus 9.30%, which is 13.30% a year.
+
+**Half-Kelly** trades at half the Kelly leverage to cut risk. It keeps three-quarters of the growth above `r`, 10.98% a year on this download. Twice the Kelly leverage gives all of that back and grows at the 4% of cash.
+
+![A curve of compound growth per year against leverage from 0 to 5.6, for SPY from 1993 to 2007 on the 2026 download. It starts at the 4% cash rate, rises through unlevered SPY at 9.86% a year and half-Kelly at 10.98%, peaks at the Kelly leverage of 2.551 with 13.30% a year, and falls back to the dashed 4% line at twice Kelly, 5.10.](../docs/figures/kelly_growth_by_leverage.png)
+
+*The growth formula on Chan’s window. Growth peaks at the Kelly leverage, half-Kelly keeps three-quarters of the gain above cash, and twice Kelly earns only the cash rate.*
 
 Here are Chan’s figures beside the ones this replication computes on the same **window**, meaning the same span of dates:
 
@@ -64,15 +74,15 @@ Here are Chan’s figures beside the ones this replication computes on the same 
 \end{array}
 ```
 
-On this window, levering to the Kelly figure raises the growth rate from 9.9% a year to 13.30%.
+On this window, levering to the Kelly figure raises the growth rate from 9.86% a year to 13.30%.
 
 ## Lesson 1: the figures moved and no conclusion did
 
 Nearly every figure computed from the series lands slightly above Chan’s. The mean is 0.06 percentage points higher, the Sharpe ratio 0.0038 higher and the leverage 0.023 higher. The conclusions those numbers support still hold. SPY returned about 11% a year over his window, the growth-maximising leverage is about two and a half, and levering to it lifts growth above the unlevered rate.
 
-The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. Dividends paid after 2008 cannot explain the gap, because they scale every earlier price by one factor and leave every return unchanged. The difference lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten ex-dividend days. On each, one download credits nearly a whole quarterly payout that the other does not, and the differences mostly run in one direction. On other days the two differ only by rounding that cancels out. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
+The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. On the **ex-dividend day**, the first day a buyer no longer gets the next dividend, the price drops by about the payout, and the adjustment folds the payout back into that day’s return. Dividends paid after Chan’s window cannot explain the gap, because they scale every price inside it by one factor and leave every return unchanged. The difference lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten days on or beside SPY’s quarterly ex-dividend dates. On the four largest, one download folds nearly a whole quarterly payout into the day’s return and the other does not, and on the rest it folds in part of one. The differences mostly raise the 2026 mean. On other days the two differ only by rounding that cancels out. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
 
-The exception is the standard deviation, which matches at the two decimals Chan prints. A few large differences, mostly in one direction, add up in a mean and barely touch a standard deviation.
+The standard deviation is the one figure that matches, at the two decimals Chan prints. A few large differences, mostly in one direction, add up in a mean and barely touch a standard deviation.
 
 A backtest that quotes a figure without naming its data vintage quotes something nobody can check, its author included.
 
@@ -117,7 +127,7 @@ The vendor moved the leverage by 0.023. The choice of years moved it by 7.72.
 
 The variance `s²` on Chan’s window is 0.0286, so dividing by it multiplies any error in the mean by about 35. A mean estimated from three or five years swings widely, and the leverage swings with it.
 
-The longest window shows what stays put. Extending the window to September 2026 lowered the leverage from 2.551 to 2.33 and left the Sharpe ratio at 0.4315, against 0.4313 on Chan’s window. The leverage is also `S/s`, so a steady Sharpe ratio and a standard deviation that rose to 18.53% give a smaller leverage.
+The longest window shows what stays put. Extending the window to September 2026 lowered the leverage from 2.551 to 2.33 and left the Sharpe ratio at 0.4315, against 0.4313 on Chan’s window. The leverage is also `S/s`, because `m/s²` is `(m/s)/s`, so a steady Sharpe ratio and a standard deviation that rose to 18.53% give a smaller leverage.
 
 A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kelly guards against a mean estimated too large, not against one with the wrong sign. Chan’s stress test measures a long position’s worst day, so it does not carry across the change of sign either.
 
@@ -144,7 +154,7 @@ Four habits follow from the lessons above.
 3. **Find the threshold.** Compute where a risk conclusion turns over, rather than setting two numbers side by side.
 4. **Treat full Kelly as a ceiling.** The formula is an approximation, and it gives the fastest growth only when the mean and the standard deviation are known. A sample only estimates them.
 
-On the adjusted close, SPY’s growth-maximising leverage over his window is about two and a half, and even half of it would not have survived a repeat of Black Monday. What a trader should carry away is the range around his 2.528, from a short of 2.82 to a long of 4.90, set by nothing but the years read.
+On the adjusted close, SPY’s growth-maximising leverage over Chan’s window is about two and a half, and even half of it would not have survived a repeat of Black Monday. What a trader should carry away is the range around his 2.528, from a short of 2.82 to a long of 4.90, set by nothing but the years read.
 
 ## References
 
