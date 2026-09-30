@@ -881,7 +881,8 @@ and leave every gap above unattributable to either.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
-unlike Entry 1 there is no essay to move with it.
+[blog/kelly-leverage-on-spy.md](../blog/kelly-leverage-on-spy.md) moves with
+it, since that essay quotes the same figures at coarser precision.
 
 ## Entry 4: risk parity against 60/40, Chan's *Quantitative Trading*
 

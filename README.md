@@ -391,6 +391,32 @@ uv run python -m chan.coin_flip_figures
 The test file holds what each figure draws rather than its bytes, for the
 reason given above for the regime map.
 
+[blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
+post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
+Entry 3 of the replication log, on how far the leverage moves with the vintage,
+the specification, the price series, the window and the return frequency.
+Three groups of its figures are not pinned here.
+
+1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
+   7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
+   growth rates and 1.26 half-Kelly, and the 20.47% Black Monday loss and 20%
+   tolerance of the stress test. The code carries them as cited constants and
+   computes none of them.
+2. The leverage of 1.93 on Chan's as-traded close. It comes from his own
+   workbook, which this repo does not hold, and
+   [issue 138](https://github.com/l3a0/quantitative-trading/issues/138) is
+   where it would be pinned. A test cites it only to compare it with the
+   threshold.
+3. Arithmetic on pinned figures that no test asserts: the 0.60 margin above
+   the 1.954 threshold, the 7.72 spread between the bear and bull windows, the
+   13.86% that reading `m` as the total return gives, the variance of about
+   0.03 and the factor of about 35 it multiplies an error in the mean by, the
+   43 to 47 percent that monthly sampling adds, and the worst SPY day being
+   about a third of Black Monday.
+
+Every other number in the post traces to an assertion in
+[tests/test_kelly_leverage.py](tests/test_kelly_leverage.py).
+
 ## Where the book's numbers come from
 
 [research/book-notes](research/book-notes/README.md) holds verbatim Kindle
