@@ -4,35 +4,51 @@
 
 ## Why one leverage figure is not enough
 
-Ernest Chan’s *Quantitative Trading* (Chan, 2021) works the Kelly formula on SPY, the exchange-traded fund that tracks the S&P 500, in Example 6.2 of Chapter 6. Over SPY’s history from January 1993 to the end of 2007, he finds that the leverage that makes capital grow fastest is 2.528 times equity. A trader with \$100,000 would hold \$252,800 of SPY.
+Ernest Chan’s *Quantitative Trading* (Chan, 2021) works the Kelly formula on SPY, the exchange-traded fund that tracks the S&P 500, in Example 6.2 of Chapter 6. Over SPY’s history from January 1993 to 28 December 2007, he finds that the leverage that makes capital grow fastest is 2.528 times equity. A trader with \$100,000 would hold \$252,800 of SPY.
 
-Reading the same fund over the same dates from a 2026 download gives 2.551. Reading only 2000 to 2002 gives −2.82, which is a short. Reading only 2003 to 2007 gives 4.90. The arithmetic is exact, and each of those numbers is correct for its inputs. What moves the answer is the inputs, and the choice of years moves it most.
+Reading the same fund over the same dates from a 2026 download gives 2.551. Reading only 2000 to 2002 gives −2.82, which is a short. Reading only 2003 to 2007 gives 4.90. The arithmetic is exact, and each of those numbers is correct for its inputs. What moves the answer is the inputs, and the years chosen move it furthest.
 
 This post walks through the formula and six lessons from reproducing Chan’s example in code. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The Kelly formula
 
-Kelly sizing comes from John Kelly’s work on betting (Kelly, 1956), which asked what share of capital to stake so that wealth grows fastest over many rounds. Chan uses its continuous form, an approximation for an asset that trades continuously rather than a bet with fixed payoffs. It reads the leverage straight off a return series’ mean and standard deviation:
+Kelly sizing comes from John Kelly’s work on betting (Kelly, 1956), which asked what share of capital to stake so that wealth grows fastest over many rounds. Chan applies it to a return series. Here `m` is the mean annual **excess return**, the return above a risk-free rate, and `s` is the annual standard deviation. Chan sets the risk-free rate `r` at 4%. **Leverage** is the position divided by equity, so a leverage of 2 means \$2 of SPY for every \$1 of the trader’s own money, with the rest borrowed.
+
+Start with what leverage does to the return. At a leverage `f`, the account holds `f` dollars of SPY for each dollar of equity and borrows the rest at `r`. Its return is `r` plus `f` times SPY’s excess return. So leverage multiplies the mean excess return by `f`, and it multiplies the variance `s²`, the square of the standard deviation, by `f²`.
+
+Next, turn that return into compound growth. A return series compounds at roughly its mean less half its variance, because swings cost more than they pay. A 10% loss followed by a 10% gain leaves 99% of the starting capital, not 100%. That cost is called **volatility drag**. For the levered account it gives one formula, and everything else in this post follows from it:
 
 ```math
-f^* = \frac{m}{s^2}
+g(f) = r + f\,m - \frac{f^2 s^2}{2}
 ```
 
-Here `m` is the mean annual **excess return**, the return above a risk-free rate, and `s` is the annual standard deviation. Chan sets the risk-free rate `r` at 4%. **Leverage** is the position divided by equity, so a leverage of 2 means \$2 of SPY for every \$1 of the trader’s own money, with the rest borrowed. **Half-Kelly** trades at half the Kelly leverage to cut risk.
+The formula is exact for a position rebalanced continuously, which is why Chan calls it the continuous form, and an approximation for returns measured daily.
 
-At the Kelly leverage capital compounds at the fastest possible rate. Chan gives the rate in terms of the **Sharpe ratio** `S = m/s`, the excess return per unit of risk:
+Without leverage, `f` is 1:
 
 ```math
-g^* = r + \frac{S^2}{2}
+g(1) = r + m - \frac{s^2}{2}
 ```
 
-Without leverage, the account compounds at the mean return less half the variance `s²`, the square of the standard deviation. That cost is called **volatility drag**:
+Because `m` is the return above `r`, `r + m` is simply SPY’s total mean return, 11.29% on this download. The drag `s²/2` is 1.43%, so the account compounds at 11.29% less 1.43%, which is 9.86% a year and rounds to the 9.9% in the table below.
+
+The Kelly leverage is the top of the curve, where one more unit of leverage adds no growth. That is where the slope of `g(f)` is zero:
 
 ```math
-g = r + m - \frac{s^2}{2}
+\frac{dg}{df} = m - f\,s^2 = 0 \quad\Rightarrow\quad f^* = \frac{m}{s^2}
 ```
 
-Here are Chan’s figures beside the ones this replication computes on the same **window**, the range of dates read:
+On this download `m` is 7.295% and `s²` is 0.0286, so `f*` is 2.551.
+
+Putting `f*` back into `g(f)` gives the growth at the Kelly leverage. It is simplest in terms of the **Sharpe ratio** `S = m/s`, the excess return per unit of risk:
+
+```math
+g^* = r + \frac{m^2}{s^2} - \frac{m^2}{2s^2} = r + \frac{S^2}{2}
+```
+
+With `S` at 0.4313, `S²/2` is 9.30%, so capital compounds at 4% plus 9.30%, which is 13.30% a year. **Half-Kelly** trades at half the Kelly leverage to cut risk.
+
+Here are Chan’s figures beside the ones this replication computes on the same **window**, meaning the same span of dates:
 
 ```math
 \begin{array}{l|r|r}
@@ -50,19 +66,19 @@ Here are Chan’s figures beside the ones this replication computes on the same 
 
 On this window, levering to the Kelly figure raises the growth rate from 9.9% a year to 13.30%.
 
-## Lesson 1: every figure moved and no conclusion did
+## Lesson 1: the figures moved and no conclusion did
 
-Every figure computed from the series lands at or slightly above Chan’s. The mean is 0.06 percentage points higher, the Sharpe ratio 0.0038 higher and the leverage 0.023 higher. Every conclusion those numbers support still holds. SPY returned about 11% a year over his window, the growth-maximising leverage is about two and a half, and levering to it lifts growth above the unlevered rate.
+Nearly every figure computed from the series lands slightly above Chan’s. The mean is 0.06 percentage points higher, the Sharpe ratio 0.0038 higher and the leverage 0.023 higher. The conclusions those numbers support still hold. SPY returned about 11% a year over his window, the growth-maximising leverage is about two and a half, and levering to it lifts growth above the unlevered rate.
 
-The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. Dividends paid after 2008 cannot explain the gap, because they scale every earlier price by one factor and leave every return unchanged. The difference lies inside the window. Set day by day against Chan’s own series, the 2026 download disagrees mostly on days in SPY’s dividend months, where the two downloads credit the same payouts slightly differently. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
+The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. Dividends paid after 2008 cannot explain the gap, because they scale every earlier price by one factor and leave every return unchanged. The difference lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten ex-dividend days. On each, one download credits nearly a whole quarterly payout that the other does not, and the differences mostly run in one direction. On other days the two differ only by rounding that cancels out. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
 
-Of the figures computed from the price series, the one that reproduces is the standard deviation, at the two decimals Chan prints. Small differences on a few days, mostly of one sign, add up in a mean and barely touch a standard deviation.
+The exception is the standard deviation, which matches at the two decimals Chan prints. A few large differences, mostly in one direction, add up in a mean and barely touch a standard deviation.
 
 A backtest that quotes a figure without naming its data vintage quotes something nobody can check, its author included.
 
 ## Lesson 2: the formula hides two choices, and each wrong answer looks right
 
-Chan prints results rather than code, but his own MATLAB for the next example, `example6_3.m`, settles how he computed them. The formula hides two choices, and both are easy to get wrong without noticing.
+Chan prints results rather than code, but his own MATLAB for the next example, `example6_3.m`, settles how he computed them, including two choices the formula leaves open.
 
 1. **Which standard deviation.** A standard deviation can divide by the number of returns `n`, the population form, or by `n − 1`, the sample form. His code uses MATLAB’s `cov`, which takes the sample form. On this download the two forms differ by 5.74e-5 on the Sharpe ratio and 6.79e-4 on the leverage. At the three decimals Chan gives the leverage, both forms print the same number, so a check on the leverage alone cannot tell them apart. Only the Sharpe ratio, printed to four decimals, can.
 2. **What `m` means.** Chan’s formulas use the excess return, but the sentence beside his unlevered growth rate calls `m` “the annualized mean return”. Following that wording adds the whole 4% risk-free rate back, so on this download the unlevered growth rate becomes 13.9% instead of 9.9%. A four-point error reads as a problem with the data rather than a misread symbol.
@@ -75,17 +91,17 @@ Chan’s worked example follows the leverage through a bad day. With \$100,000 o
 
 To get back to 2.528 times equity, the account has to shrink the position to \$188,892, selling SPY straight after it fell. Every figure in that chain is arithmetic on Chan’s rounded 2.528, so it reproduces to the cent.
 
-The same arithmetic runs the other way after a gain, when the rule buys. An account held at a constant leverage above 1 sells after losses and buys after gains, which is the behaviour of a momentum trader, whatever the strategy underneath. In a fall followed by a recovery, it sells near the low and buys back higher.
+The same arithmetic runs the other way after a gain, when rebalancing buys. An account held at a constant leverage above 1 sells after losses and buys after gains, which is the behaviour of a momentum trader, whatever the strategy underneath. In a fall followed by a recovery, it sells near the low and buys back higher.
 
 ## Lesson 4: the stress test has a threshold, and it sits close
 
-Chan then asks whether the Kelly leverage would have survived Black Monday, 19 October 1987, when the S&P 500 fell 20.47% in a day. If a trader can tolerate losing 20% of equity in one day, the leverage that allows is 0.20 divided by 0.2047, which is 0.977 and which Chan calls “about 1”. Half-Kelly is 1.26 in his figures. Since 1.26 is above 0.977, he concludes that even half-Kelly would not have survived that day. At full Kelly on this download, a repeat of that day would cost 52.21% of equity.
+Chan then asks whether the Kelly leverage would have survived Black Monday, 19 October 1987, when the S&P 500 fell 20.47% in a day. If a trader can tolerate losing 20% of equity in one day, the leverage that allows is 0.20 divided by 0.2047, or 0.977. Chan calls it “about 1”. Half-Kelly is 1.26 in his figures. Since 1.26 is above 0.977, he concludes that even half-Kelly would not have survived that day. At full Kelly on this download, a repeat of Black Monday would cost 52.21% of equity.
 
-The conclusion holds while half the Kelly leverage exceeds 0.977, which means while the full leverage exceeds 1.954. This download gives 2.551, a margin of 0.60. Chan’s spreadsheet for the example also holds the **as-traded close**, the price as it printed each day with no adjustment for dividends. Read from that column, the leverage is 1.93, which is below the line. So the choice of price series alone reverses his conclusion. That 1.93 is a measurement of his spreadsheet, and no test here reproduces it yet, because this replication holds only his adjusted column.
+The conclusion holds while half the Kelly leverage exceeds 0.977, which means while the full leverage exceeds 1.954. This download gives 2.551, a margin of 0.60. Chan’s spreadsheet for the example also carries the **as-traded close**, the price as it printed each day with no adjustment for dividends. Computed from that column, the leverage is 1.93, below the 1.954 threshold, so the choice of price series alone reverses his conclusion. That 1.93 comes from reading his spreadsheet directly. The repository keeps only his adjusted column, so no test reproduces it yet.
 
 The 20.47% needs two cautions.
 
-1. SPY started trading in January 1993, so no SPY data can check a figure from 1987. It belongs to the index, and this replication takes it as Chan’s constant.
+1. SPY started trading in January 1993, so no SPY data can check a figure from 1987. It belongs to the index, and this replication takes it from Chan as given.
 2. The worst day SPY itself holds in Chan’s window is a 7.25% fall on 27 October 1997, about a third of Black Monday. Through September 2026 its worst is 10.94%, on 16 March 2020.
 
 ## Lesson 5: the window moves the answer further than the vendor does
@@ -99,23 +115,23 @@ The same download and the same formula give leverages from a short to nearly fiv
 
 The vendor moved the leverage by 0.023. The choice of years moved it by 7.72.
 
-The variance `s²` on Chan’s window is about 0.03, so dividing by it multiplies any error in the mean by about 35. A mean estimated from three or five years swings widely, and the leverage swings with it.
+The variance `s²` on Chan’s window is 0.0286, so dividing by it multiplies any error in the mean by about 35. A mean estimated from three or five years swings widely, and the leverage swings with it.
 
-The longest window shows what stays put. Running on to September 2026 lowered the leverage from 2.551 to 2.33 and left the Sharpe ratio at 0.4315, against 0.4313 on Chan’s window. The leverage is also `S/s`, so a steady Sharpe ratio and a standard deviation that rose to 18.53% give a smaller leverage.
+The longest window shows what stays put. Extending the window to September 2026 lowered the leverage from 2.551 to 2.33 and left the Sharpe ratio at 0.4315, against 0.4313 on Chan’s window. The leverage is also `S/s`, so a steady Sharpe ratio and a standard deviation that rose to 18.53% give a smaller leverage.
 
-A negative leverage needs care. Halving −2.82 still leaves a short, so half-Kelly protects against an overstated mean only if the sign itself is right. Chan’s stress test measures a long position’s worst day, so it does not carry across the change of sign either.
+A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kelly guards against a mean estimated too large, not against one with the wrong sign. Chan’s stress test measures a long position’s worst day, so it does not carry across the change of sign either.
 
 ## Lesson 6: the leverage depends on how often returns are measured
 
-Chan notes that the Kelly leverage, unlike the Sharpe ratio, does not depend on the time scale. In one reading that is an identity. Annualising daily figures multiplies the mean by 252, the trading days in a year, and the variance by 252 too, so the factor cancels and daily and annual moments give the same leverage. Confirming that in code checks the arithmetic and says nothing about SPY.
+Chan notes that the Kelly leverage, unlike the Sharpe ratio, does not depend on the time scale. In one sense that is true by construction. Annualising daily figures multiplies the mean by 252, the trading days in a year, and the variance by 252 too, so the factor cancels and daily and annual figures give the same leverage. Confirming that in code checks the arithmetic and says nothing about SPY.
 
-The reading that matters is whether monthly returns give the same answer as daily ones, and they do not. On Chan’s 1993 to 2007 window, monthly has three reasonable definitions.
+The question that matters is whether monthly returns give the same answer as daily ones, and they do not. On Chan’s 1993 to 2007 window, monthly has three reasonable definitions.
 
 1. Month-end closes give 3.72.
 2. Month-end closes with the unfinished last month dropped give 3.75.
 3. Blocks of 21 trading days give 3.64.
 
-All three sit near 3.7, against 2.551 from daily returns, which is 43 to 47% higher. Which monthly definition is picked barely matters, while monthly against daily matters a great deal. Why SPY’s monthly returns imply a larger leverage is outside what this replication tests. What it shows is that the return frequency is a choice, and a reported Kelly leverage should name it along with the window.
+All three sit near 3.7, which is 43 to 47% above the 2.551 from daily returns. Which monthly definition is picked barely matters, while monthly against daily matters a great deal. Why SPY’s monthly returns imply a larger leverage is outside what this replication tests. It shows that the return frequency is a choice, and a reported Kelly leverage should name it along with the window.
 
 ## What this means for a trader
 
@@ -128,7 +144,7 @@ Four habits follow from the lessons above.
 3. **Find the threshold.** Compute where a risk conclusion turns over, rather than setting two numbers side by side.
 4. **Treat full Kelly as a ceiling.** The formula is an approximation, and it gives the fastest growth only when the mean and the standard deviation are known. A sample only estimates them.
 
-Chan’s conclusions hold on a 2026 download. SPY’s growth-maximising leverage over his window is about two and a half, and even half of it would not have survived a repeat of Black Monday. What a trader should carry away is the range around his 2.528, from a short of 2.82 to a long of 4.90, set by nothing but the years read.
+On the adjusted close, SPY’s growth-maximising leverage over his window is about two and a half, and even half of it would not have survived a repeat of Black Monday. What a trader should carry away is the range around his 2.528, from a short of 2.82 to a long of 4.90, set by nothing but the years read.
 
 ## References
 

@@ -404,19 +404,22 @@ and the return frequency. Four groups of its figures are not pinned here.
    growth rates and 1.26 half-Kelly, the 4% risk-free rate, and the 20.47%
    Black Monday loss and 20% tolerance of the stress test. The code carries
    them as cited constants and computes none of them.
-2. The leverage of 1.93 on Chan's as-traded close. It comes from his own
-   workbook, which this repo does not hold, and
+2. The leverage of 1.93 on Chan's as-traded close. It comes from his
+   workbook's as-traded column, which this repo does not hold, and
    [issue 138](https://github.com/l3a0/quantitative-trading/issues/138) is
    where it would be pinned. A test cites it only to compare it with the
    threshold.
-3. Arithmetic on pinned figures that no test asserts: the 0.60 margin above
-   the 1.954 threshold, the 7.72 spread between the bear and bull windows, the
-   13.9% that reading `m` as the total return gives, the variance of about
-   0.03 and the factor of about 35 it multiplies an error in the mean by, the
-   43 to 47% that monthly sampling adds, and the worst SPY day being about a
-   third of Black Monday.
-4. The finding that the two downloads disagree mostly on days in SPY's
-   dividend months. It was measured against `data/spy_chan.csv`, and no test
+3. Arithmetic on pinned figures that no test asserts: the 1.43% volatility
+   drag, the 11.29% less 1.43% that gives 9.86%, the 9.30% that `S²/2` adds,
+   the 0.60 margin above the 1.954 threshold, the 7.72 spread between the
+   bear and bull windows, the 13.9% that reading `m` as the total return
+   gives, the variance of 0.0286 and the factor of about 35 it multiplies an
+   error in the mean by, and the worst SPY day being about a third of Black
+   Monday. The 43 to 47% that monthly sampling adds is held by a test only as
+   a band of 42 to 48%.
+4. The finding that about ten ex-dividend days carry the whole gap in the
+   mean, where one download credits nearly a whole quarterly payout that the
+   other does not. It was measured against `data/spy_chan.csv`, and no test
    holds it until
    [issue 138](https://github.com/l3a0/quantitative-trading/issues/138)
    compares the two vintages.

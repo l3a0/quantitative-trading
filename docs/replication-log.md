@@ -703,14 +703,16 @@ Seventeen rows, all derivable from
 **Exactly one figure Chan computed from a series reproduces here, and it is the
 dispersion.** He read SPY through 2007-12-28 on a 2008-vintage adjusted series.
 This reads a 2026 download of the same symbol over the same dates, so rows 1 to
-8 measure eighteen years of restatement with the window held fixed. Rows 1 and
+8 measure how two downloads eighteen years apart differ, with the window held
+fixed. Rows 1 and
 3 to 8 all miss, every one of them high. Row 2 lands on the two decimals he
 prints. Dividends paid after 2008 cannot explain the gaps, because they scale
 every earlier price by one factor and leave every return unchanged. Set day by
-day against his own `data/spy_chan.csv`, the two downloads disagree mostly on
-days in SPY's dividend months, where each credits the same in-window payout
-slightly differently, and small differences of one sign move a mean while
-barely touching a standard deviation. That comparison is measured rather than
+day against his own `data/spy_chan.csv`, the whole gap in the mean sits on
+about ten ex-dividend days, where one download credits nearly a whole quarterly
+payout that the other does not, mostly in one direction. Elsewhere the two
+differ by rounding that cancels, and a few large differences in one direction
+move a mean while barely touching a standard deviation. That comparison is measured rather than
 pinned. Reading his own workbook is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
 `reproduced` verdict on the rest belongs there.
@@ -784,8 +786,8 @@ lines.
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | +0.06 percentage points | reproduced with a gap | Chan's claim is that SPY's mean annual return over his span is about 11 percent, and it survives. The number does not, and the cause is named and outside the method: his 2008 download and this one credit the same in-window dividends slightly differently, so no modern download reaches it. Later dividends are not the cause, since they scale every earlier price by one factor and leave returns unchanged. |
-| 2 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints. The two downloads differ mostly on a few dividend days, by amounts that share a sign, which moves a mean and barely touches a standard deviation. |
+| 1 | +0.06 percentage points | reproduced with a gap | Chan's claim is that SPY's mean annual return over his span is about 11 percent, and it survives. The number does not, and the cause is named and outside the method: his 2008 download and this one credit a handful of in-window dividends differently, so no modern download reaches it. Later dividends are not the cause, since they scale every earlier price by one factor and leave returns unchanged. |
+| 2 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints. The whole gap in the mean sits on about ten ex-dividend days, where one download credits a payout the other misses, mostly in one direction, which moves a mean and barely touches a standard deviation. |
 | 3 | +0.064 percentage points | reproduced with a gap | Row 1's gap, carried through. The risk-free rate is the book's own constant, so nothing else moved. |
 | 4 | +0.0038 | reproduced with a gap | Chan's claim is that SPY's Sharpe ratio over his span is a shade above 0.42, and it survives. This row is also what holds the specification: the population dispersion form gives 0.4276 rather than 0.4275 on his own data, and only an assertion tighter than 5.7e-5 can tell the two apart. |
 | 5 | +0.023 | reproduced with a gap | The replication. Chan's claim is that the growth-optimal leverage on SPY is about two and a half times equity, and it survives with room. The number does not, for row 1's reason. |
@@ -814,8 +816,8 @@ Four things, and the first is what makes the other three worth reading.
    supports have different shelf lives, and only the number depends on a
    vintage. What is new here is the one that did not move. The dispersion of
    row 2 reproduces while the mean of row 1 does not, because the two downloads
-   differ on a few dividend days by amounts that share a sign, which moves a mean
-   and barely touches a standard deviation.
+   differ on about ten ex-dividend days, mostly in one direction, which moves a
+   mean and barely touches a standard deviation.
 2. **The specification is what rows 4 and 7 really hold.** Two choices are
    invisible on the page and each has a plausible wrong answer that does not
    look wrong. On this vintage the population dispersion form moves the Sharpe
@@ -833,7 +835,7 @@ Four things, and the first is what makes the other three worth reading.
    against 1.26" would have looked comfortable.
 4. **The window moves the answer further than the vendor does.** Inside this
    one vintage the leverage runs from a short of 2.82 times equity over 2000 to
-   2002 to a long of 4.90 over 2003 to 2007, a spread of 7.7 against a gap of
+   2002 to a long of 4.90 over 2003 to 2007, a spread of 7.72 against a gap of
    0.023 in row 5. So a leverage reported with no window named mixes sample
    choice and vendor drift, and neither is recoverable afterwards. That is why
    the window is an argument and why the default is Chan's own.

@@ -8,10 +8,12 @@ reasoning.
 **One published figure reproduces here and it is the dispersion.** Chan read
 SPY through 2007-12-28 on a 2008-vintage adjusted series. This reads a 2026
 download of the same symbol over the same dates, so every level below lands
-high and the gaps measure eighteen years of restatement rather than a method.
+high and the gaps measure how two downloads eighteen years apart differ rather
+than a method.
 The standard deviation is the exception, at the two decimals the book prints.
-The two downloads differ mostly on a few dividend days, by amounts that share a
-sign, which moves a mean and barely touches a standard deviation. That is
+The whole gap in the mean sits on about ten ex-dividend days, where one
+download credits a payout the other misses, mostly in one direction, which
+moves a mean and barely touches a standard deviation. That is
 measured against ``data/spy_chan.csv`` rather than pinned here, and reading his
 own workbook is issue 138.
 
@@ -323,8 +325,8 @@ class TestChansWindowOnAModernDownload:
         """The whole entry, in one assertion.
 
         Chan prints 11.23, 16.91, 7.231, 0.4275, 2.528, 13.14 and 9.8. Every
-        computed figure lands above its published one, which is what a
-        dividend-adjusted series eighteen years further on does to a mean. The
+        computed figure lands above its published one, because the two downloads
+        credit a handful of in-window dividends differently. The
         standard deviation is the exception. It moves by 0.0017 of a percentage
         point and rounds to the book's own two decimals, so the last assertion
         here is the one row of Entry 3 that reproduces from a series.
