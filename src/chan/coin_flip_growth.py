@@ -11,7 +11,8 @@ Two averages, and the argument is the difference between them. Chan names both
 at Kindle location 3166: the **ensemble average** across different traders, and
 the **time series average** over one trader's horizon. Here they have opposite
 signs. The ensemble side gains 0.005 per round and the time average loses
-0.0005125, so the layman refusing the gamble is right.
+0.00050025, which Chan's continuous approximation prints as 0.0005125, so the
+layman refusing the gamble is right.
 
 The label is a revised-edition one. ``docs/design.md`` declares that every
 citation of a chapter, a page or a MATLAB filename in this repo means the 2009
