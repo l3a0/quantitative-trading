@@ -18,7 +18,7 @@ The mean annual **excess return**, the return above a risk-free rate, is written
 
 At a leverage `f`, each dollar of equity holds `f` dollars of SPY and borrows `f − 1` dollars at `r`. With SPY’s return written `R`, the account earns `f·R` and pays `(f − 1)·r`, which rearranges to `r + f·(R − r)`, or `r` plus `f` times SPY’s excess return. So the mean of the levered return is `r + f·m`. Scaling a return by `f` scales every swing by `f`, and variance squares the swings, so the variance of the levered return is `f²s²`, where `s²` is the square of the standard deviation. The fixed `r` adds no variance.
 
-Returns do not compound at their mean. A 10% loss followed by a 10% gain leaves 99% of the starting capital, because the gain works on a smaller balance. That shortfall is called **volatility drag**, and it comes to about half the variance per period. The two returns in the example average zero, and each sits 0.1 from that average. The variance is the average squared distance from the mean, (0.1² + 0.1²) / 2 = 0.01, dividing by the number of returns. Half of that is 0.5% a period, and two periods lose 1%, which is exactly what the example lost. So a return series compounds at roughly its mean less half its variance.
+Returns do not compound at their mean. A 10% loss followed by a 10% gain leaves 99% of the starting capital, because the gain works on a smaller balance. That shortfall is called **volatility drag**, and it comes to about half the variance per period. The two returns in the example average zero, and each sits 0.1 from that average. The variance is the average squared distance from the mean, (0.1² + 0.1²) / 2 = 0.01. Half of that is 0.5% a period, and two periods lose 1%, which is exactly what the example lost. So a return series compounds at roughly its mean less half its variance.
 
 Applying that rule to the levered return, the mean `r + f·m` less half the variance `f²s²`, gives `g(f)`, the growth rate at leverage `f`:
 
@@ -36,7 +36,7 @@ g(1) = r + m - \frac{s^2}{2}
 
 Because `m` is the return above `r`, `r + m` is SPY’s total mean return, 11.29% on this download. The drag `s²/2` is 1.43%, so the account compounds at 11.29% less 1.43%, which is 9.86% a year.
 
-Each unit of leverage adds `m` of growth. The drag `f²s²/2` grows with the square of `f`, so `g(f)` rises, peaks and falls. Near a leverage `f`, the square `f²` grows about `2f` times as fast as `f` does. So a small step up raises the drag `f²s²/2` by about `2f·s²/2`, which is `f·s²`, for each unit of leverage, while the return term still adds `m`. Below the peak the gain is larger, and above it the cost is. At the top the two balance, which is where the slope `dg/df` is zero:
+Each unit of leverage adds `m` of growth. The drag `f²s²/2` grows with the square of `f`, so `g(f)` rises, peaks and falls. Near a leverage `f`, the square `f²` grows about `2f` times as fast as `f` does. So each small step up in leverage raises the drag `f²s²/2` by about `2f·s²/2`, which is `f·s²`. That is the cost per unit of leverage, and the gain is still `m`. Below the peak the gain is larger, and above it the cost is. At the top the two balance, which is where the slope `dg/df` is zero:
 
 ```math
 \frac{dg}{df} = m - f\,s^2 = 0 \quad\Rightarrow\quad f^* = \frac{m}{s^2}
@@ -52,7 +52,7 @@ g^* = r + \frac{m^2}{s^2} - \frac{m^2}{2s^2} = r + \frac{m^2}{2s^2} = r + \frac{
 
 With `S` at 0.4313, `S²/2` is 9.30%, so capital compounds at 4% plus 9.30%, which is 13.30% a year.
 
-**Half-Kelly** trades at half the Kelly leverage to cut risk. At half the leverage the return term `m²/s²` halves and the drag `m²/(2s²)` quarters, so the gain above `r` is `m²/(2s²) − m²/(8s²)`, or `3m²/(8s²)`, against `4m²/(8s²)` at full Kelly. That is three-quarters. On this download half-Kelly grows at 4% plus 6.98%, which is 10.98% a year. At twice the Kelly leverage the return term doubles and the drag quadruples, so the two cancel and growth falls back to the 4% of cash.
+**Half-Kelly** trades at half the Kelly leverage to cut risk. At half the leverage the return term `m²/s²` halves and the drag `m²/(2s²)` quarters, so the gain above `r` is `m²/(2s²) − m²/(8s²)`, which is `3m²/(8s²)`. Full Kelly gains `4m²/(8s²)`, so half-Kelly keeps three-quarters of it. On this download half-Kelly grows at 4% plus 6.98%, which is 10.98% a year. At twice the Kelly leverage the return term doubles and the drag quadruples, so the two cancel and growth falls back to the 4% of cash.
 
 ![A curve of compound growth per year against leverage from 0 to 5.6, for SPY from 1993 to 2007 on the 2026 download. It starts at the 4% cash rate, rises through unlevered SPY at 9.86% a year and half-Kelly at 10.98%, peaks at the Kelly leverage of 2.551 with 13.30% a year, and falls back to the dashed 4% line at twice Kelly, 5.10.](../docs/figures/kelly_growth_by_leverage.png)
 
@@ -80,7 +80,7 @@ Nearly every figure computed from the series lands slightly above Chan’s. The 
 
 The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. On the **ex-dividend day**, the first day a buyer no longer gets the next dividend, the price drops by about the payout, and the adjustment folds the payout back into that day’s return.
 
-Dividends paid after 2007 cannot cause the gap. Each one rescales every earlier price by the same factor, which leaves every return unchanged. So the gap lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten days at or next to SPY’s quarterly ex-dividend dates. On the four days with the largest differences, one download folds nearly a whole payout into the day’s return and the other does not. On the rest, the difference is part of a payout. Those ten days mostly raise the 2026 mean. On every other day the two series differ only by rounding that cancels out. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
+Dividends paid after 2007 cannot cause the gap. Each one rescales every earlier price by the same factor, which leaves every return unchanged. So the gap lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten days at or next to SPY’s quarterly ex-dividend dates. On the four days with the largest differences, one download folds nearly a whole payout into the day’s return and the other does not. On the rest of the ten, the difference is part of a payout. The differences on those days mostly raise the 2026 mean. On every other day the differences are small. Most are rounding, a few are smaller dividend differences, and together they offset less than a tenth of the gap. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
 
 The standard deviation is the one figure that matches, at the two decimals Chan prints. A few large differences, mostly in one direction, add up in a mean and barely touch a standard deviation.
 

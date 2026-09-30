@@ -420,7 +420,8 @@ and the return frequency. Four groups of its figures are not pinned here.
    a band of 42 to 48%.
 4. The finding that about ten days on or beside SPY's quarterly ex-dividend
    dates carry the whole gap in the mean, with nearly a whole quarterly
-   payout on the four largest. It was measured against `data/spy_chan.csv`,
+   payout on the four largest, with the other days offsetting less than a
+   tenth of it. It was measured against `data/spy_chan.csv`,
    and no test
    holds it until
    [issue 138](https://github.com/l3a0/quantitative-trading/issues/138)
