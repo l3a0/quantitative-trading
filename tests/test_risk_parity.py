@@ -497,7 +497,37 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
             assert tie == pytest.approx(tie_expected, abs=5e-7), label
             _, returns = measured[label]
             weights = _weights_used(measured, ranking)
-            assert _sharpe_difference(returns, weights, tie) == pytest.approx(0.0, abs=1e-12)
+            assert _sharpe_difference(returns, weights, tie) == pytest.approx(0.0, abs=1e-12), label
+
+    def test_the_full_span_resolves_its_ranking_only_near_the_declared_rate(
+        self, measured, rankings
+    ) -> None:
+        """The robust t is −2 at 3.80 percent and +1.30 at zero, which the post quotes.
+
+        Moving the rate shifts the daily difference by a constant, ``(1 - leverage)``
+        times the daily rate, and a constant shift leaves the Newey-West standard
+        error alone. So the t is linear in the rate and the crossing is a closed
+        form like the tie above. Recomputing the ranking at each rate checks it.
+        Row 3's t of −2.17 clears 2 by less than a fifth of a percentage point of
+        rate, and at no rate down to zero does risk parity's lead reach 2.
+        """
+        ranking = rankings["full span"]
+        _, returns = measured["full span"]
+        weights = _weights_used(measured, ranking)
+        per_unit_rate = (1.0 - ranking.leverage) * ranking.t_newey_west
+        per_unit_rate /= ranking.mean_difference_annual
+        crossing = RISK_FREE + (-2.0 - ranking.t_newey_west) / per_unit_rate
+        assert crossing == pytest.approx(0.038011, abs=5e-7)
+        for rate, t_expected in ((crossing, -2.0), (0.0, 1.300398)):
+            moved = rank_at_matched_volatility(
+                "full span",
+                returns,
+                weights,
+                weight_source="full span",
+                in_sample=True,
+                risk_free=rate,
+            )
+            assert moved.t_newey_west == pytest.approx(t_expected, abs=5e-6), rate
 
 
 class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:

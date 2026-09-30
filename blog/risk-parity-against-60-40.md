@@ -1,20 +1,22 @@
 # Risk parity’s numbers reproduce on SPY and AGG, and its claim does not
 
-*Qian’s 23-77 allocation and 1.8 leverage land close on 2003 to 2026 data. The higher Sharpe ratio they were printed to support goes to 60/40 unless cash paid less than 1.50%.*
+*Qian’s mix of 23% stocks and 77% bonds, levered 1.8 times, comes out close on 2003 to 2026 data. The better return for its risk that it was meant to deliver goes to 60/40, unless cash paid less than 1.50% a year.*
 
 ## Why a close match is not enough
 
-Ernest Chan’s *Quantitative Trading* (Chan, 2021) reports an argument by Edward Qian of PanAgora Asset Management. A portfolio split 60% stocks and 40% bonds is balanced in its capital and nowhere near balanced in its risk, because stocks swing several times as hard as bonds. Qian’s alternative weights each asset so that it carries the same share of the risk, then borrows to bring the whole portfolio back up to 60/40’s risk. Chan quotes the result in one sentence: to earn a higher **Sharpe ratio**, the return above cash per unit of risk, at the same risk as 60/40, Qian recommends 23% stocks and 77% bonds, levered 1.8 times.
+Ernest Chan’s *Quantitative Trading* (Chan, 2021) reports an argument by Edward Qian of PanAgora Asset Management, in a passage on why a lower-risk portfolio can be worth levering. A portfolio split 60% stocks and 40% bonds, usually called **60/40**, is balanced in its capital and nowhere near balanced in its risk, because stocks swing several times as hard as bonds. Qian’s alternative, **risk parity**, weights each asset so that it carries the same share of the risk, then borrows to bring the whole portfolio back up to 60/40’s risk.
 
-This replication runs the same calculation on SPY, the fund that tracks the S&P 500, and AGG, a fund that tracks the aggregate US bond market, from September 2003 to September 2026. The allocation comes out at 21.8% stocks against Qian’s 23%, and the leverage at 1.98 against his 1.8. Both are close. The Sharpe ratio claim those two numbers were printed to support goes the other way: 60/40 earns 0.41 and levered risk parity 0.19.
+Chan quotes the result in one sentence. At the same risk as 60/40, Qian recommends 23% stocks and 77% bonds, levered 1.8 times, to earn a higher **Sharpe ratio**. The Sharpe ratio is the return above cash divided by the size of the swings, so a higher one means more reward per unit of risk.
 
-Earlier replications of Chan’s examples found the opposite split, where the figures moved and the conclusions held. This post explains how risk parity works and draws six lessons from a case where the figures hold and the conclusion fails. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+This replication runs the same calculation on SPY, the fund that tracks the S&P 500, and AGG, a fund that tracks the aggregate US bond market, from September 2003 to September 2026. The allocation comes out at 21.8% stocks against Qian’s 23%, and the leverage at 1.98 against his 1.8. Both are close. At the 4% cash rate Chan uses elsewhere in the book, the Sharpe ratio claim goes the other way. 60/40 earns 0.41 and levered risk parity 0.19.
+
+Two earlier replications of Chan’s examples, of a cointegrated pair and of the Kelly leverage on SPY, went the other way. Their figures moved a little and their conclusions held. This post explains how risk parity works and draws six lessons from a case where the figures hold and the conclusion fails. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## How risk parity works
 
-A portfolio’s risk here is the standard deviation of its daily returns, stated as a yearly figure and called **volatility**. Over the span, SPY’s volatility is 18.55% and AGG’s is 5.17%, so stocks swing about 3.59 times as hard as bonds.
+A portfolio’s risk here is the standard deviation of its daily returns, stated as a yearly figure and called **volatility**. From 2003 to 2026, SPY’s volatility is 18.55% and AGG’s is 5.17%, so stocks swing 3.59 times as hard as bonds.
 
-With weights `w₁` and `w₂` on two assets with volatilities `σ₁` and `σ₂`, and a correlation `ρ` between their returns, the portfolio’s variance, the square of its volatility, is:
+Call stocks asset 1 and bonds asset 2, with weights `w₁` and `w₂` and volatilities `σ₁` and `σ₂`. Their **correlation** `ρ` runs from −1 to +1 and measures how far the two tend to move together. The portfolio’s variance, the square of its volatility, is:
 
 ```math
 \sigma_p^2 = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 + 2 \rho\, w_1 w_2 \sigma_1 \sigma_2
@@ -22,25 +24,25 @@ With weights `w₁` and `w₂` on two assets with volatilities `σ₁` and `σ�
 
 The first term belongs to stocks, the second to bonds, and the third is shared. Giving each asset its own term plus half of the shared one splits the variance into two **risk contributions**, which add up to the whole. Each asset’s share of risk is its contribution divided by the total.
 
-Over this span the correlation between SPY and AGG is −0.0002, close enough to zero that the shared term vanishes. Each asset’s share of risk is then its weight squared times its variance, as a share of the sum. At 60/40, stocks contribute 0.6² × 18.55%² and bonds 0.4² × 5.17%². The first is about 29 times the second, so stocks carry 96.7% of 60/40’s risk and bonds 3.3%. Qian’s own data gave 93% to stocks.
+From 2003 to 2026 the correlation between SPY and AGG is −0.0002, close enough to zero that the shared term is negligible. Each asset’s risk is then its weight squared times its variance, and its share is that divided by the two added together. At 60/40, stocks contribute 0.6² × 18.55%² and bonds 0.4² × 5.17%². The first is about 29 times the second, so stocks carry 96.7% of 60/40’s risk and bonds 3.3%. Qian’s own data gave 93% to stocks.
 
-**Risk parity** picks the weights that make the two contributions equal. Setting them equal, the shared term appears on both sides and cancels, whatever the correlation is:
+Risk parity picks the weights that make the two contributions equal. When the two are set equal, the shared term appears on both sides and cancels, whatever the correlation is:
 
 ```math
 w_1^2 \sigma_1^2 = w_2^2 \sigma_2^2 \quad\Rightarrow\quad w_1 \sigma_1 = w_2 \sigma_2
 ```
 
-So each weight is proportional to the inverse of its asset’s volatility. With weights that sum to 1, the stock weight is `σ₂ / (σ₁ + σ₂)`, which is 5.17 divided by 23.72, or 21.8%. Bonds get 78.2%.
+So each weight shrinks as its asset’s volatility grows, and an asset twice as volatile gets half the weight. With weights that sum to 1, the stock weight is `σ₂ / (σ₁ + σ₂)`, which is 5.17 divided by 23.72, or 21.8%. Bonds get 78.2%.
 
 ![Four horizontal bars for SPY and AGG from 2003 to 2026. 60/40 splits capital 60% SPY and 40% AGG and splits risk 96.7% SPY and 3.3% AGG. Risk parity splits capital 21.8% SPY and 78.2% AGG and splits risk 50% each.](../docs/figures/risk_parity_capital_and_risk.png)
 
 *60/40 is nearly an all-stock portfolio when measured by risk. Risk parity balances the risk by moving most of the capital into bonds.*
 
-Holding mostly bonds leaves risk parity about half as volatile as 60/40. Qian’s second step is to lever it until its volatility matches 60/40’s 11.32%, which here takes 1.98 times equity. At 1.98, every \$100 of the trader’s money holds \$43 of SPY and \$155 of AGG, and the extra \$98 is borrowed.
+Holding mostly bonds leaves risk parity about half as volatile as 60/40. Qian’s second step is to lever it until its volatility matches 60/40’s 11.32%, which here takes 1.98 times equity. At 1.98, every \$100 of the trader’s money holds \$43 of SPY and \$155 of AGG, and the extra \$98 is borrowed at the cash rate.
 
-Matching the volatilities is what makes the comparison fair. With both portfolios at 11.32% volatility, the difference in their Sharpe ratios is simply the difference in their mean returns above cash, divided by 11.32%. So the whole ranking comes down to one question: which portfolio earned more above cash.
+Matching the volatilities is what makes the comparison fair. With both portfolios at 11.32% volatility, the difference in their Sharpe ratios is the difference in their mean returns above cash, divided by 11.32%. So whichever portfolio earned more above cash has the higher Sharpe ratio.
 
-Here are Qian’s figures beside the ones this replication computes. Qian (2005) worked monthly returns on the Russell 1000 stock index and the Lehman Aggregate Bond Index from 1983 to 2004, so the two columns cover different years and different stock indices.
+Here are Qian’s figures beside the ones this replication computes. Qian (2005) used monthly returns on the Russell 1000 stock index and the Lehman Aggregate Bond Index from 1983 to 2004, so the two columns cover different years and different stock indices.
 
 ```math
 \begin{array}{l|r|r}
@@ -60,77 +62,79 @@ Here are Qian’s figures beside the ones this replication computes. Qian (2005)
 
 ## Lesson 1: the numbers landed close and the claim did not survive
 
-The allocation is a point off Qian’s and the leverage is 0.18 above it. The method did what it says, too. At the 21.8% weight, each asset carries exactly 50% of the risk. Judged on those figures alone, the replication would pass.
+The allocation is a point off Qian’s and the leverage is 0.18 above his. The method did what it says, too. At the 21.8% weight, each asset carries exactly 50% of the risk. Judged on those figures alone, the replication would pass.
 
-The Sharpe ratio claim is what those figures were printed to support, and it fails. 60/40 earns 0.41 and levered risk parity 0.19, a gap of 0.22 against risk parity. In mean returns above cash, 60/40 earns 2.46 percentage points a year more at the same volatility.
+Those figures were meant to back the Sharpe ratio claim, and it fails. At the 4% cash rate, 60/40 earns 0.41 and levered risk parity 0.19, a gap of 0.22 against risk parity. In mean returns above cash, 60/40 earns 2.46 percentage points a year more at the same volatility.
 
-A gap that size could still be chance. The test is a **t-statistic**: the average daily difference between the two portfolios, divided by its standard error, the typical size of the error in that average. The robust version, due to Newey and West (1987), widens the standard error to allow for each day’s return being related to the days before it. A robust t beyond 2 in either direction resolves the sign at the usual 5% level. Here it is −2.17, so over these 23 years the data does resolve the ranking, and it favours 60/40.
+A gap that size could still be luck. The standard check is a **t-statistic**. It divides the average daily difference between the two portfolios’ returns by how far that average would typically wander by chance. Newey and West (1987) give a version that allows for each day’s return being related to the days before it, and this post uses it throughout. Here that adjustment narrows the estimate of chance, since the plain t-statistic is −1.75. A t-statistic beyond 2 in either direction means a gap that large would arise by chance less than 5% of the time, the usual bar for naming a winner. The difference here is risk parity minus 60/40, so a negative t-statistic favours 60/40. It is −2.17, so at the 4% rate the 23 years are enough to name 60/40 the winner.
 
-## Lesson 2: Qian’s two figures encode a volatility ratio and a correlation
+## Lesson 2: Qian’s two figures are really a volatility ratio and a correlation
 
-Risk parity sets `w₁σ₁ = w₂σ₂`, so Qian’s 23-77 says his stocks were 77 / 23, or 3.3 times as volatile as his bonds. Two significant figures is all he printed. Any weights that round to 23 and 77 put the ratio between 3.26 and 3.44. Dividing the two volatilities in his paper gives 3.28, inside that band. On SPY and AGG the ratio is 3.59, outside it. A one-point miss on the weight is the visible sign of a volatility ratio that sits outside what his figures allow.
+Risk parity sets `w₁σ₁ = w₂σ₂`, so Qian’s 23-77 says his stocks were 77 / 23, or 3.3 times as volatile as his bonds. Two significant figures is all he printed. Any weights that round to 23 and 77 put the ratio between 3.26 and 3.44. Dividing the two volatilities in his paper gives 3.28, inside that band. On SPY and AGG the ratio is 3.59. So the one-point miss on the weight is the visible sign that SPY and AGG’s volatility ratio falls outside anything his rounded weights allow.
 
-The leverage carries a second hidden input. Once the weights fix the volatility ratio, the leverage that matches 60/40 depends only on the correlation. On his 23-77 weights, 1.8 corresponds to a correlation of 0.16. His paper prints 0.2. That correspondence is loose, though. Letting both his weights and his leverage vary within their rounding puts the correlation anywhere from −0.01 to +0.37, which is most of the range a stock-bond correlation takes. A two-digit leverage says roughly what the correlation was, and no more.
+The leverage carries a second hidden input. Once the weights fix the volatility ratio, the leverage that matches 60/40 depends only on the correlation. Risk parity’s two risk contributions are equal, so the shared term is a larger part of its variance than of 60/40’s. A higher correlation therefore raises risk parity’s volatility more, and it needs less leverage to reach 60/40’s. On his 23-77 weights, 1.8 corresponds to a correlation of 0.16, and his paper prints 0.2. That correspondence is loose, though. Letting both his weights and his leverage vary within their rounding puts the correlation anywhere from −0.01 to +0.37, wide enough to include both zero and a clearly positive correlation.
 
-Reading both figures as measurements explains why they cannot be constants. Lesson 6 shows both inputs moving.
+So Qian’s 23-77 and 1.8 describe the stocks and bonds of 1983 to 2004 rather than a rule for all time. Lesson 6 shows both inputs moving within the SPY and AGG data.
 
 ## Lesson 3: balancing risk does not balance return
 
 Equal risk says nothing about the return each unit of risk earns. Leverage multiplies the return above cash. When an asset earns less than cash, leverage multiplies a loss.
 
-Qian’s paper states the condition itself. Risk parity is the best mix of risk and return when the assets earn the same Sharpe ratio and their returns are uncorrelated. In his 1983 to 2004 sample the bond index did better than that condition asks. It earned 3.7% a year above Treasury bills at a Sharpe ratio of 0.80, against 0.55 for stocks. So the portfolio that leaned on bonds won, and his levered risk-parity portfolio beat 60/40 by 2 points a year at the same risk.
+Qian’s paper states the condition itself. Risk parity is the best mix of risk and return when the assets earn the same Sharpe ratio and their returns are uncorrelated. In his 1983 to 2004 sample, bonds did better than equal. They earned 3.7% a year above Treasury bills, short-term US government debt and the usual stand-in for cash, at a Sharpe ratio of 0.80 against 0.55 for stocks. So his levered risk-parity portfolio beat 60/40 by 2 points a year at the same risk.
 
-On SPY and AGG the condition fails badly. SPY returned 12.36% a year and AGG 3.09%. Against Chan’s 4% cash rate, SPY earned 8.36 points above cash, a Sharpe ratio of 0.45, and AGG earned 0.91 points below it, a Sharpe ratio of −0.18. A portfolio with 78.2% of its capital in AGG earns 1.11% above cash before leverage, and levering it 1.98 times lifts that to 2.20%. 60/40, with only 40% in AGG, earns 4.65%. That difference, divided by the shared 11.32% volatility, is the 0.22 by which 60/40 wins.
+On SPY and AGG the condition fails badly. SPY averaged 12.36% a year and AGG 3.09%. Against the 4% cash rate, SPY earned 8.36% a year above cash, a Sharpe ratio of 0.45, and AGG earned 0.91% below it, a Sharpe ratio of −0.18. A portfolio with 78.2% of its capital in AGG earns 1.11% above cash before leverage, and levering it 1.98 times lifts that to 2.20%. 60/40, with only 40% in AGG, earns 4.65%. That difference, divided by the shared 11.32% volatility, is the 0.22 by which 60/40 wins.
 
-## Lesson 4: the assumed cash rate decides the full-span ranking
+## Lesson 4: the assumed cash rate decides the winner over the whole period
 
-A Sharpe ratio needs a cash rate, and the repository holds no Treasury-bill series. The replication uses Chan’s 4%, the rate he uses in his Kelly example, and states it as a choice rather than a measurement. Qian measured returns above the actual three-month Treasury-bill rate.
+A Sharpe ratio needs a cash rate, and this replication has no record of what Treasury bills paid from 2003 to 2026. It takes the 4% Chan sets in his Kelly example, as a choice rather than a measurement. Qian measured returns above the three-month Treasury-bill rate each month actually paid.
 
-The choice is not neutral, and its direction is exact. The levered portfolio borrows \$0.98 for every dollar of equity, so it pays the cash rate on more money than 60/40 does. In returns above cash, each percentage point off the rate adds 0.98 points a year to risk parity’s side of the comparison. Closing the 2.46-point gap takes a rate about 2.5 points lower, and the two Sharpe ratios tie at an assumed rate of 1.50%. Below that, risk parity wins the full span.
+The choice tilts the result, and the tilt can be worked out exactly. The levered portfolio borrows \$0.98 for every dollar of equity, and 60/40 borrows nothing. So each percentage point cut from the assumed rate adds 0.98 points a year to risk parity’s return above cash, relative to 60/40. Closing the 2.46-point gap takes a rate about 2.5 points lower, and the two Sharpe ratios tie at 1.50%. Below that, risk parity has the higher Sharpe ratio over the whole period.
 
-Whether the Treasury-bill rate averaged above or below 1.50% from 2003 to 2026 roughly decides which portfolio had the higher Sharpe ratio, and answering it needs a bill-rate series this replication does not hold. The two sub-windows in Lesson 5 are less sensitive to the rate. Before 2022 the tie sits at 2.45%. After it, only a negative rate of −4.43% would tie them, so no positive rate reverses that window.
+The verdict at 4% is also close to the edge of what the data can settle. The t-statistic moves with the rate in a straight line, and it reaches −2 at an assumed 3.80%. In the other direction, even at a rate of zero, risk parity’s lead over the whole period has a t-statistic of only +1.30, too small to name it the winner.
 
-## Lesson 5: the weights must not see the window they are judged on
+Whether Treasury bills averaged above or below 1.50% from 2003 to 2026 roughly decides which portfolio had the higher Sharpe ratio. Answering that needs a bill-rate series this replication does not hold.
 
-60/40 never looks at the data, since its weights are fixed by definition. Risk-parity weights come from measured volatilities. Weights fitted over a window and then judged on that same window have seen every day they are scored on, which gives risk parity an advantage 60/40 never gets.
+## Lesson 5: compute the weights on one period and judge them on another
 
-The replication splits the span at 16 March 2022, the day the Federal Reserve made the first rate rise of its tightening cycle. The date was chosen before any result was seen, and it comes from an external event rather than from the price series. The falling-rates window runs from 2003 to the day before the rise, and the rising-rates window from the day after it to 2026. The weights for the rising window come from the falling window, which is data a trader would have held at the boundary.
+60/40’s weights are fixed in advance and use no data. Risk-parity weights are computed from measured volatilities. Weights computed from the same years they are then scored on are tuned to every day that scores them, an advantage 60/40 never gets.
 
-That out-of-sample window is the worst of the three for risk parity. 60/40 earns a Sharpe ratio of 0.51 and risk parity 0.01, a gap of 0.50, with a robust t of −2.20. Refitting the weights inside the window would have helped risk parity, which is why it is not done.
+So the replication splits the period at 16 March 2022, the day the Federal Reserve made the first of its 2022 run of rate rises. The replication fixed the date before computing any result, and took it from an outside event rather than from the prices. The earlier period runs from 2003 to the day before the rise, and the later period from the day after it to 2026. The weights for the later period come from the earlier one, which is data a trader would have held on the day.
 
-The t needs one caution. The leverage is measured inside the window, and the t moves with it. At the leverage fitted on the falling window instead, the rising window’s t is −1.64, which does not resolve the ranking. The gap in Sharpe ratios does not move with the leverage at all, since leverage scales return and risk together.
+Of the three periods, meaning the whole 23 years and its two parts, the later period is where risk parity does worst. 60/40 earns a Sharpe ratio of 0.51 and risk parity 0.01, a gap of 0.50, with a t-statistic of −2.20. Computing the weights inside that period would have helped risk parity, and removing that help is the reason for the split. The later period’s ranking also barely depends on the rate. Only a rate of −4.43% would tie the two, so no positive rate changes the winner there.
 
-The falling-rates window alone does not resolve its ranking either. 60/40 wins it by 0.16 with a robust t of −1.35. Those years point the same way as the full span without settling it.
+The t-statistic needs one caution. The weights come from the earlier period, but the leverage that matches 60/40’s volatility is measured inside the later one. Each Sharpe ratio ignores the leverage, since leverage scales return and risk together, so the gap of 0.50 stays put. The t-statistic works on the daily difference in returns, which grows with the leverage. At the leverage fitted on the earlier period instead, it is −1.64, which is not enough to name a winner.
 
-## Lesson 6: the inputs moved with the regime
+The earlier period on its own does not name a winner either. 60/40 wins it by 0.16, and a t-statistic of −1.35 is within what chance could produce. It is also more sensitive to the rate than the whole period, with the two tying at 2.45%. Those years lean the same way as the whole period without settling it.
 
-The volatility ratio and the correlation behind Qian’s two figures both changed between the windows.
+## Lesson 6: the volatility ratio and the correlation changed when rates turned
 
-1. Before the 2022 rise, SPY swung 3.87 times as hard as AGG and the correlation was −0.07. Risk parity held 20.5% stocks and needed leverage of 2.15.
-2. After it, AGG’s volatility rose to 6.21% and the correlation turned positive at +0.24. The ratio fell to 2.76, risk parity held 26.6% stocks and needed leverage of 1.66.
+The two inputs behind Qian’s figures differ between the two periods, as do the risk-parity weights each period would give on its own data.
 
-The two windows sit on opposite sides of the 3.26 to 3.44 band Qian’s weights allow, so the quantity his 23-77 encodes moved by about a third within one pair of funds. The full span’s near-zero correlation of −0.0002 is an average of a negative stretch before 2022 and a positive one after it, rather than a stable property of stocks and bonds.
+- Before the 2022 rise, AGG’s volatility was 4.88%, SPY swung 3.87 times as hard, and the correlation was −0.07. Risk parity held 20.5% stocks and needed leverage of 2.15.
+- After it, AGG’s volatility was 6.21%, SPY swung 2.76 times as hard, and the correlation was +0.24. Weights computed inside this period would hold 26.6% stocks. The portfolio actually scored kept the earlier 20.5% and needed leverage of 1.66 to match 60/40.
 
-In the rising window the correction still pointed the same way. Risk parity held 26.6% stocks, well short of 60/40’s 60%. With stocks and bonds moving together and AGG earning 1.16% a year there, though, the bonds that risk parity levered earned too little to pay for the borrowing.
+The volatility ratio fell from 3.87 to 2.76, and the two periods sit on opposite sides of the 3.26 to 3.44 band Qian’s weights allow. The near-zero correlation of −0.0002 over the whole period is an average of a negative stretch before 2022 and a positive one after it, rather than a stable property of stocks and bonds.
+
+Even computed inside the later period, risk parity would hold 26.6% stocks, well short of 60/40’s 60%, so it still leans away from stocks. With stocks and bonds moving together and AGG earning 1.16% a year there, though, the bonds that risk parity levered earned too little to pay for the borrowing.
 
 ## What this replication cannot say
 
-The replication tests Qian’s argument on instruments and years chosen here, fixed in writing before any number was computed. It cannot say three things.
+The replication tests Qian’s argument on funds and years this replication chose, and wrote down, before computing any number. It cannot say three things.
 
-1. **Whether Qian’s own data reproduces his numbers.** He used the Russell 1000 from 1983 to 2004, and SPY tracks the S&P 500 from 2003 on. AGG tracks his bond index but only opened in 2003. The two samples overlap by at most fifteen months.
+1. **Whether Qian’s own data reproduces his numbers.** He used the Russell 1000 from 1983 to 2004, and SPY tracks the S&P 500 from 2003 on. AGG tracks his bond index but only opened in 2003. The two samples overlap by at most 15 months.
 2. **Whether costs change the result.** The book charges no trading costs and no borrowing spread above the cash rate, so neither does the replication. Both would hurt the levered, rebalanced risk-parity portfolio more than 60/40, so charging them could only widen 60/40’s lead.
-3. **Which allocation anyone should hold.** A replication spends its sample checking someone else’s claim. It says whether the claim held on these funds over these years, and nothing about the next twenty.
+3. **Which allocation anyone should hold.** A replication uses its data to check someone else’s claim. It says whether the claim held on these funds over these years, and nothing about the next twenty years.
 
 ## What this means for a trader
 
 Four habits follow from the lessons above.
 
-1. **Check the claim, not only the numbers.** An allocation and a leverage that land within a point and two tenths can still carry a conclusion that fails.
-2. **Name the cash rate, and find the rate where the ranking flips.** Any comparison between a levered and an unlevered portfolio depends on the borrowing rate. Here the full-span verdict turns at 1.50%.
-3. **Judge weights on data they did not see.** A fixed benchmark against weights fitted in-sample is not a fair race, and here the out-of-sample window was the one risk parity lost worst.
-4. **Report a ranking with its size and its error bar.** A statement that one Sharpe ratio beats another hides whether the gap is 0.01 or 0.50, and whether the data can tell.
+1. **Check the claim, not only the numbers.** An allocation 1.2 points off and a leverage 0.18 off can still carry a conclusion that fails.
+2. **Name the cash rate, and find the rate where the ranking flips.** Any comparison between a levered and an unlevered portfolio depends on the cash rate. Here the verdict over the whole period turns at 1.50%.
+3. **Judge weights on data they did not see.** Weights computed from the very data they are judged on start with an advantage over fixed ones. Here the one period where risk parity’s weights came from earlier data was the period it lost by the most.
+4. **Report a ranking with its size and its t-statistic.** A statement that one Sharpe ratio beats another hides whether the gap is 0.01 or 0.50, and whether the data can tell the two portfolios apart.
 
-At Chan’s 4% rate on SPY and AGG from 2003 to 2026, risk parity balances the risk exactly as promised, and 60/40 still earns the higher Sharpe ratio at the same volatility. The premise holds and the payoff depends on bonds beating cash, which they did in Qian’s years and did not in these.
+At Chan’s 4% rate on SPY and AGG from 2003 to 2026, risk parity balances the risk exactly as described, and 60/40 still earns the higher Sharpe ratio at the same volatility. Whether balanced risk pays depends on bonds earning enough per unit of risk compared with stocks, which they did in Qian’s years and did not in these.
 
 ## References
 
