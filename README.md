@@ -95,7 +95,8 @@ listed below.
 parity run, and pins the ranking as a measured difference and a robust
 t-statistic rather than as the comparison's result, because an assertion that
 one Sharpe ratio exceeds another survives any mutation that leaves the sign
-alone.
+alone. The blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 All five reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row.
@@ -435,6 +436,50 @@ committed SPY vintage by [src/chan/kelly_figures.py](src/chan/kelly_figures.py):
 
 ```bash
 uv run python -m chan.kelly_figures
+```
+
+The test file holds what it draws rather than its bytes, for the reason given
+above for the regime map.
+
+[blog/risk-parity-against-60-40.md](blog/risk-parity-against-60-40.md) is a
+fifth post, about Qian's risk parity against 60/40, which Chan reports at
+Kindle location 4684. It draws six lessons from Entry 4 of the replication log:
+the close numbers and the failed claim, the volatility ratio and correlation
+Qian's two figures encode, the bond leg earning below cash, the cash rate at
+which the ranking ties, the weights judged on a window they did not see, and
+the inputs moving between the two windows. Two groups of its figures are not
+pinned here.
+
+1. Published figures. Chan's 23-77 and 1.8 and his 4% rate, which the code
+   carries as cited constants. From Qian's paper, committed at
+   [research/papers](research/papers/README.md): the 1983 to 2004 sample, the
+   15.1% and 4.6% volatilities, the 0.2 correlation, the 93% risk share, the
+   Sharpe ratios of 0.55, 0.80, 0.67 and 0.87, the bond index's 3.7% a year
+   above Treasury bills, and the 2 points a year his levered portfolio beat
+   60/40 by. The ratio of 3.28 is the quotient of his two volatilities, and
+   the fifteen-month overlap of the two samples comes from Entry 4.
+2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
+   about 29 times bonds', the 23.72 that 18.55 and 5.17 sum to, the \$43 of
+   SPY, \$155 of AGG and \$98 borrowed per \$100 of equity, risk parity being
+   about half as volatile as 60/40 before leverage, the leverage being 0.18
+   above 1.8, the 0.98 points a year each point off the rate is worth and the
+   2.5 points it takes to close the gap, the 8.36 and −0.91 points above cash
+   and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4% rate,
+   the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the
+   volatility ratio moving by about a third.
+
+Every other number in the post traces to an assertion in
+[tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
+1.50%, 2.45% and −4.43% at which the two Sharpe ratios tie, apart from the
+shares its figure draws, which trace to
+[tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
+
+Its one figure, the capital and risk shares of 60/40 and risk parity on the
+full span, is drawn from the committed SPY and AGG vintages by
+[src/chan/risk_parity_figures.py](src/chan/risk_parity_figures.py):
+
+```bash
+uv run python -m chan.risk_parity_figures
 ```
 
 The test file holds what it draws rather than its bytes, for the reason given

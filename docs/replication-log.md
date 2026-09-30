@@ -952,7 +952,7 @@ specification choices rather than measurements, and both push the same way.
    risk-parity portfolio is the quieter of the two, and it is on all three
    windows. So a higher assumed rate penalises risk parity and a lower one
    favours it. That derivative is pinned in
-   `TestTheRankingIsBuiltSoLeverageCannotMoveIt`.
+   `TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove`.
 2. **No transaction costs and no financing spread are charged**, because the
    book charges none. The omission points one way: a daily rebalance has
    turnover, the levered portfolio has more of it plus a borrowing cost, so
@@ -1092,8 +1092,13 @@ is allowed to point without being closed.
 vintage, which is a different symbol and a different deliverable, and the
 design doc's register already carries the same cut for Entry 3's Kelly example.
 The rate is Chan's constant and the report says so on its own last lines. The
-derivative above says which way a lower rate would push, and says nothing about
-whether it would push far enough.
+derivative above says which way a lower rate would push, and it also says how
+far. The difference is linear in the rate, so row 3 ties at an assumed rate of
+1.50 percent on the full span and 2.45 percent on the falling window, and the
+rising window ties only at −4.43 percent, which no positive rate reaches.
+`test_the_rate_at_which_the_two_sharpe_ratios_tie` pins all three. Whether the
+realised bill rate averaged below 1.50 percent over the full span is what the
+missing vintage would answer.
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing

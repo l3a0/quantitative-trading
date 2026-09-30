@@ -478,6 +478,27 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
         for ranking in rankings.values():
             assert (ranking.rate_sensitivity < 0.0) == (ranking.leverage > 1.0)
 
+    def test_the_rate_at_which_the_two_sharpe_ratios_tie(self, measured, rankings) -> None:
+        """1.50 percent on the full span, which the risk parity post quotes.
+
+        The difference is linear in the rate, so the tie sits at the declared
+        rate less the difference divided by the derivative above. That is a
+        closed form rather than a scan, so the declared 4 percent and the
+        verdict at it stay where they are, and the tie says only how far the
+        rate would have to move to reverse the verdict. Recomputing the Sharpe
+        ratios from the returns at that rate lands on zero, which is what says
+        the closed form and the ranking agree. The rising window ties only at a
+        negative rate, so no positive rate reverses it.
+        """
+        expected = {"full span": 0.014977, "falling rates": 0.024509, "rising rates": -0.044329}
+        for label, tie_expected in expected.items():
+            ranking = rankings[label]
+            tie = RISK_FREE - ranking.sharpe_difference / ranking.rate_sensitivity
+            assert tie == pytest.approx(tie_expected, abs=5e-7), label
+            _, returns = measured[label]
+            weights = _weights_used(measured, ranking)
+            assert _sharpe_difference(returns, weights, tie) == pytest.approx(0.0, abs=1e-12)
+
 
 class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:
     """The one thing separating a ranking from a fitted allocation's ranking."""
