@@ -394,11 +394,12 @@ The test file holds what each figure draws rather than its bytes, for the
 reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
-post, about Example 6.2's Kelly leverage on SPY. It draws seven lessons from
+post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
 Entry 3 of the replication log: the gap from Chan's figures, the specification,
 rebalancing at a constant leverage, the stress test's threshold and price
-series, the window, overbetting past the Kelly leverage, and the return
-frequency. Three groups of its figures are not pinned here.
+series, the window, and the return frequency. A seventh, on overbetting past
+the Kelly leverage, comes from the growth formula. Three groups of its figures
+are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
    7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%

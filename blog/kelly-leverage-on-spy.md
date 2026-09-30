@@ -125,7 +125,7 @@ A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kell
 
 ## Lesson 6: twice the Kelly leverage earns only the cash rate
 
-Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is the range. A long position that falls short of the Kelly leverage can at worst earn the cash rate, while one that overshoots can fall past cash to zero and below. A wrong-signed estimate like −2.82 is below cash from its first unit of leverage.
+Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is the range. A long position that falls short of the Kelly leverage can at worst earn the cash rate, while one that overshoots can fall past cash to zero and below. A short sized from a wrong-signed estimate like −2.82 earns less than cash from its first unit.
 
 At twice the Kelly leverage, 5.10 on Chan’s window, the return term and the drag cancel, so a trader carries about five times SPY’s swings and earns the same 4% as cash. Past it, growth drops below cash, and at a leverage of 5.60 it reaches zero, where capital stops growing at all.
 
