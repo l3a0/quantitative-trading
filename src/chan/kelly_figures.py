@@ -130,7 +130,7 @@ def make_growth_figure(out: Path | None = None, moments: Moments | None = None) 
         fig,
         "Growth on SPY peaks at the Kelly leverage and falls back to cash at twice it",
         f"SPY, {BOOK_START} to {BOOK_END}, 2026 download. g(f) = r + f·m − f²s²/2, "
-        f"with m = {moments.excess_annual:.5f}, s = {moments.sd_annual:.4f} and r = {r:.0%}.\n"
+        f"with m = {moments.excess_annual:.5f}, s = {moments.sd_annual:.4f} and r = {r:.2f}.\n"
         "The dashed line is the risk-free rate. Half-Kelly keeps three-quarters of "
         "the growth above it at half the leverage.",
     )

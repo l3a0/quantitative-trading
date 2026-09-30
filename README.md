@@ -411,7 +411,7 @@ and the return frequency. Four groups of its figures are not pinned here.
    where it would be pinned. A test cites it only to compare it with the
    threshold.
 3. Arithmetic that no test asserts: the 99% a 10% loss and a 10% gain leave,
-   with their variance of 0.01, half of it 0.5% a round and 1% over two, the
+   with their variance of 0.01, half of it 0.5% a period and 1% over two, the
    1.43% volatility drag, the 9.30% that
    `S²/2` adds, the 0.60 margin above the 1.954 threshold, the 7.72 spread
    between the bear and bull windows, the variance of 0.0286 and the factor

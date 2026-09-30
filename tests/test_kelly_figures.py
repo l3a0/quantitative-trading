@@ -78,6 +78,9 @@ class TestTheCurve:
         assert list(drawn.get_ydata()) == pytest.approx(list(curve.growth), abs=1e-15)
 
     def test_the_range_leaves_room_past_twice_kelly(self, moments) -> None:
+        """The alt text quotes the range, so the constant is pinned as well as
+        its relation to the last mark."""
+        assert MAX_LEVERAGE == 5.6
         curve = growth_curve(moments)
         assert curve.leverages[-1] > 2 * moments.leverage
 
@@ -117,7 +120,7 @@ class TestTheText:
         note = figure.texts[-1].get_text()
         assert "SPY, 1993-01-29 to 2007-12-28, 2026 download." in note
         assert "g(f) = r + f·m − f²s²/2" in note
-        assert "m = 0.07295, s = 0.1691 and r = 4%" in note
+        assert "m = 0.07295, s = 0.1691 and r = 0.04" in note
         assert "three-quarters" in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:

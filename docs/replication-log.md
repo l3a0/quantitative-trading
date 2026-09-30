@@ -788,7 +788,7 @@ lines.
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | +0.06 percentage points | reproduced with a gap | Chan's claim is that SPY's mean annual return over his span is about 11 percent, and it survives. The number does not, and the cause is named and outside the method: his 2008 download and this one differ on about ten quarterly dividends inside the window, so no modern download reaches it. Later dividends are not the cause, since they scale every earlier price by one factor and leave returns unchanged. |
+| 1 | +0.06 percentage points | reproduced with a gap | Chan's claim is that SPY's mean annual return over his span is about 11 percent, and it survives. The number does not, and the cause is named and outside the method: his 2008 download and this one differ on about ten quarterly dividends inside the window, so this download does not reach it. Later dividends are not the cause, since they scale every earlier price by one factor and leave returns unchanged. |
 | 2 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints. The whole gap in the mean sits on about ten days on or beside SPY's quarterly ex-dividend dates, where one download folds in all or part of a payout that the other does not, mostly raising the 2026 mean. That moves a mean and barely touches a standard deviation. |
 | 3 | +0.064 percentage points | reproduced with a gap | Row 1's gap, carried through. The risk-free rate is the book's own constant, so nothing else moved. |
 | 4 | +0.0038 | reproduced with a gap | Chan's claim is that SPY's Sharpe ratio over his span is a shade above 0.42, and it survives. This row is also what holds the specification: the population dispersion form gives 0.4276 rather than 0.4275 on his own data, and only an assertion tighter than 5.7e-5 can tell the two apart. |
@@ -848,10 +848,13 @@ Four things, and the first is what makes the other three worth reading.
 Five quantities quoted in this entry, in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) and in
 [docs/design.md](design.md), come from Ernest Chan's own `example6_2.xls`,
-whose adjusted column this repo holds as `data/spy_chan.csv` and reads nowhere
-yet. They are measurements of his data rather than figures he printed, and no
-assertion in this repo computes any of them. One test cites 1.9341 to compare
-it with the threshold. That workbook is
+whose adjusted column this repo holds as `data/spy_chan.csv` and no
+replication reads yet. They are measurements of his data rather than figures
+he printed, and no assertion in this repo computes any of them. One test cites
+1.9341 to compare it with the threshold. The day-by-day comparison against
+`data/spy_chan.csv` that this entry's intro, rows 1 and 2 and first conclusion
+quote is a sixth measurement of the same kind, run outside the suite. That
+workbook is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and
 pinning them is what that issue is for.
 
