@@ -101,7 +101,7 @@ Chan’s worked example follows the leverage through a bad day. With \$100,000 o
 
 To get back to 2.528 times equity, the account has to shrink the position to \$188,892, selling SPY straight after it fell. Every figure in that chain is arithmetic on Chan’s rounded 2.528, so each one reproduces. The resized position comes to \$188,892.16 before Chan rounds it to the dollar.
 
-The same arithmetic runs the other way after a gain, when rebalancing buys. An account held at a constant leverage above 1 sells after losses and buys after gains, which is the behaviour of a momentum trader, whatever the strategy underneath. In a fall followed by a recovery, it sells near the low and buys back higher.
+The same arithmetic runs the other way after a gain, when rebalancing buys. An account held at a constant leverage above 1 sells after losses and buys after gains, which is the **behaviour of a momentum trader**, whatever the strategy underneath. In a fall followed by a recovery, it sells near the low and buys back higher.
 
 ## Lesson 4: the stress test has a threshold, and it sits close
 
