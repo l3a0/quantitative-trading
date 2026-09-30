@@ -125,7 +125,7 @@ A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kell
 
 ## Lesson 6: the leverage depends on how often returns are measured
 
-Chan notes that the Kelly leverage, unlike the Sharpe ratio, does not depend on the time scale. In one sense that is true by construction. Annualising daily figures multiplies the mean by 252, the trading days in a year, and the variance by 252 too, so the factor cancels and daily and annual figures give the same leverage. Confirming that in code checks the arithmetic and says nothing about SPY.
+Chan notes that the Kelly leverage, unlike the Sharpe ratio, does not depend on the time scale. In one sense that is true by construction. Annualising daily figures multiplies the mean by 252, the trading days in a year, and the variance by 252 too, so the factor cancels and daily and annual figures give the same leverage.
 
 The question that matters is whether monthly returns give the same answer as daily ones, and they do not. On Chan’s 1993 to 2007 window, monthly has three reasonable definitions.
 
