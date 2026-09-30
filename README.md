@@ -338,11 +338,11 @@ other number in the post traces to an assertion in
 is a third post, about the coin-flip gamble rather than either pair. It draws
 six lessons from Box 6.1 on expected value against the compound growth
 rate of capital. The growth-maximising stake it quotes is pinned beside the
-rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
+rest, in `TestTheStakeDecidesTheSign`. Four groups of its figures are not pinned here.
 
 1. SPY's mean annual return of 11.23% and its unlevered growth rate of 9.8%,
-   and the 1.43-percentage-point gap between them. All three are Chan's, at Kindle
-   location 2869. [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py)
+   and the 1.43-percentage-point gap between them. All three are Chan's, at
+   Kindle location 2869. [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py)
    cites the first two as book figures and computes its own on a modern
    vintage.
 2. A stock moving 1% up or down each minute loses about half a basis point a
@@ -350,18 +350,21 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
 3. One head and one tail leave 0.999 of the capital, a tenth of a percent
    lost every two rounds, and the worked \$1,110, \$111 and \$999 of that pair. The
    two-round table of \$810.00, \$999.00 and \$1,232.10 is the same kind, and
-   so is the \$2,000 account that wins \$220 or loses \$200. All of it is
-   arithmetic on the two pinned multipliers, 1.11 and 0.90, and no test
+   so is Chan's own \$2,000 account that wins \$220 or loses \$200. All of it
+   is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no test
    asserts it.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
    its docstring and does not assert the percentage. Lesson 2's 6% gap at ten
-   rounds is the same kind, the pinned ratio of 1.06 written as a percentage.
+   rounds is the same kind, the pinned ratio of 1.06 written as a percentage,
+   and so is Lesson 4's 3.11 times, the pinned \$3,111 divided by \$1,000.
 
 Every other number in the post traces to an assertion in
 [tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers
 the figures print, including the two shares in the distribution figure's title
 and the \$21,664 the fan's 200 paths average, trace to
-[tests/test_coin_flip_figures.py](tests/test_coin_flip_figures.py).
+[tests/test_coin_flip_figures.py](tests/test_coin_flip_figures.py). So does
+the 0.013% of traders the distribution figure's caption leaves out, which no
+figure prints.
 
 The post carries five figures, drawn from the gamble's own arithmetic by
 [src/chan/coin_flip_figures.py](src/chan/coin_flip_figures.py). They read no

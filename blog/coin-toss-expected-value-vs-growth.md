@@ -34,7 +34,7 @@ Start with the time average, because one pair of tosses already shows it. One he
 
 of where it started. Starting from \$1,000, a win lifts the account to \$1,110, and the loss that follows takes 10% of that larger balance, which is \$111, leaving \$999. Over a long run a fair coin lands heads about half the time, so a typical trader gives up a tenth of a percent every two rounds.
 
-The ensemble average is the mean simple return of one round, meaning the mean percentage change in capital:
+The ensemble average is the mean simple return of one round, that is, the average percentage change in capital:
 
 ```math
 m = \tfrac{1}{2}(0.11) + \tfrac{1}{2}(-0.10) = 0.005
@@ -46,7 +46,7 @@ The time average is the mean log return. A round’s **log return** is the natur
 g = \tfrac{1}{2}\ln 1.11 + \tfrac{1}{2}\ln 0.90 = \tfrac{1}{2}(0.1043600) + \tfrac{1}{2}(-0.1053605) = -0.00050025
 ```
 
-Chan prints a slightly different figure for `g`, because he uses the continuous approximation, a shortcut that becomes exact as each round’s swings get small. It needs only the mean `m` and the standard deviation `s` of the one-round return. Each outcome sits 0.105 from the mean of 0.005, so `s` is 0.105 and the variance `s²` is 0.011025:
+Chan prints a slightly different figure for `g`, because he uses the continuous approximation, a shortcut that gets more accurate as each round’s swings get smaller. It needs only the mean `m` and the standard deviation `s` of the one-round return. Each outcome sits 0.105 from the mean of 0.005, so `s` is 0.105 and the variance `s²` is 0.011025:
 
 ```math
 g \approx m - \frac{s^2}{2} = 0.005 - \frac{0.011025}{2} = 0.005 - 0.0055125 = -0.0005125
@@ -60,11 +60,11 @@ Compound both rates from \$1,000 for 1,000 rounds. The ensemble mean reaches \$1
 
 That \$606 is also where the median path ends. After an even number of rounds it is exactly the path with half heads and half tails. So a trader who plays 1,000 rounds has at least an even chance of finishing at \$606 or less, while the average across all traders is \$146,576.
 
-The gap is carried by a few lucky paths. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Only 4.7% of traders reach the mean. The mean describes the crowd’s total wealth, and it says very little about any one member of the crowd.
+A few lucky paths carry the gap. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Only 4.7% of traders reach the mean. It describes the crowd’s total wealth, and it says very little about any one member of the crowd.
 
 ![Bar chart of the balances 1,000 rounds can reach between 440 and 560 heads, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of \$606, which sits just left of the \$1,000 starting line. The ensemble mean of \$146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, \$492 and \$606, with the approximation’s \$599 falling between them.](../docs/figures/coin_flip_final_balances.png)
 
-*The balances 1,000 rounds can reach from 440 to 560 heads, which covers all but 0.013% of traders, and the share who reach each. 56.3% end below the \$1,000 they started with, and only 4.7% reach the ensemble mean. The inset’s \$599 is what the continuous approximation compounds to, which Lesson 5 explains.*
+*The balances 1,000 rounds can reach from 440 to 560 heads, which covers all but 0.013% of traders, and the share who reach each. 56.3% end below the \$1,000 they started with. The inset’s \$599 is what the continuous approximation compounds to, which Lesson 5 explains.*
 
 ## Lesson 2: the rates stay constant and the capital diverges
 
@@ -122,11 +122,11 @@ Two stakes on this curve matter.
 
 *The same coin at every stake. Growth peaks at 1/22 and turns negative past 1/11. Chan’s 1/10 sits on the negative side.*
 
-The best stake is exactly half the break-even stake, and that factor of two is a property of any fair coin rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
+On any fair coin, not only Chan’s, the best stake is exactly half the break-even stake. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
 
-At the best stake the two averages still differ, but both are positive, and for a fair coin one trader’s log growth is exactly half the ensemble’s. So the ensemble’s growth multiple is the square of the median trader’s. After 1,000 rounds from \$1,000 the median path multiplies capital by 3.11 to reach \$3,111, and the ensemble mean reaches \$9,681, a ratio of 3.11 rather than 241.72.
+At the best stake the two averages still differ, but both are positive, and for a fair coin the time-average growth is exactly half the ensemble’s. So the factor the ensemble mean multiplies capital by is the square of the median trader’s factor. After 1,000 rounds from \$1,000 the median trader’s capital grows 3.11 times, to \$3,111. The ensemble mean grows by the square of that, to \$9,681, so the ratio between them is also 3.11, against 241.72 at Chan’s stake.
 
-The growth-maximising stake is the **Kelly** stake. Chan gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by. The leverage comes from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures as before:
+Chan calls the growth-maximising stake the **Kelly** stake. He gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by. The leverage comes from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures as before:
 
 ```math
 \frac{m}{s^2} = \frac{0.005}{0.105^2} \approx 0.4535
@@ -146,16 +146,14 @@ Scaling a bet up or down scales `m` and `s` by the same factor, so it never chan
 
 ## Lesson 5: the formula hides two choices, and one makes the loss nearly 12 times larger
 
-Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right but does not match Chan’s. The coin exposes both, because Chan printed enough figures to tell which choices he made.
-
-He prints four numbers that pin down how he computed it.
+Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right but does not match Chan’s. The coin exposes both, because Chan printed four numbers that any method has to reproduce:
 
 1. The \$5 expected gain.
 2. The 0.005 mean.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box itself does not show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
+He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box itself does not show his work. The way to test how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
 ### Which standard deviation
 
@@ -165,7 +163,7 @@ The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −
 
 ### Exact or approximate growth
 
-The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is the growth of a price that moves continuously with the same mean and variance per round.
+The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is the growth of a price that moves continuously, drifting at an average rate of `m` with a variance of `s²` per round.
 
 The difference matters once the rate is compounded into a balance. Each head multiplies the balance by 1.11 and each tail by 0.90. Multiplication ignores order, so heads then tails leaves the same \$999 as tails then heads, and the balance depends only on how many tosses came up heads. Two rounds show how the counting works.
 
@@ -188,11 +186,11 @@ The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded
 
 ### Check the method, not only the result
 
-The two choices that miss Chan’s figure are also a lesson in checking work. Landing on −0.0005125 shows the reproduction matches Chan’s figure, but a different formula could still produce it. Showing that the sample form gives −0.006025 and the exact rate gives −0.00050025, and that neither matches Chan, rules out the two alternatives a reader would most likely try. That narrows the method down without proving it. It matters because a wrong method can still print a plausible number, as the sample form does. A backtest checked only against its headline Sharpe ratio has the same blind spot.
+The two choices that miss Chan’s figure are also a lesson in checking work. Landing on −0.0005125 matches his number, but a different formula could still produce it. Showing that the sample form gives −0.006025 and the exact rate gives −0.00050025, and that neither matches Chan, rules out the two alternatives a reader would most likely try. That narrows the method down without proving it. The narrowing matters because a wrong method can still print a plausible number, as the sample form does. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
 ## Lesson 6: a simulation of the coin can mislead in two ways
 
-Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, the number that sets the random generator’s starting point. Recording the seed lets anyone repeat the run, provided the method that draws the tosses and the library version are recorded too. Change either one and the same seed gives different tosses. Each of the two ways has a counterpart when simulating a real strategy.
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, a number that fixes the sequence of tosses the random generator produces. Recording the seed lets anyone repeat the run, provided the method that draws the tosses and the library version are recorded too, since a change to either can give different tosses from the same seed. The coin shows two ways a simulation misleads, and each has a counterpart when simulating a real strategy.
 
 ### Noise swamps a small edge
 
