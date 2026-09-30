@@ -915,8 +915,8 @@ full common span the risk-parity weights are 21.78 to 78.22 against his 23-77,
 and the leverage that matches 60/40's volatility is 1.9812 against his 1.8.
 Rows 1 and 2 are therefore a percentage point and two tenths out. Row 3 is the
 claim those two were printed to support, that the levered risk-parity portfolio
-earns a higher Sharpe ratio at the same risk, and 60/40 wins it by 0.2169 with
-a robust t of −2.17. So this entry is the first here where a published number
+earns a higher Sharpe ratio at the same risk, and at Chan's 4 percent rate
+60/40 wins it by 0.2169 with a robust t of −2.17. So this entry is the first here where a published number
 lands close and the claim behind it does not survive.
 
 Three rows are replications and twelve are not. Rows 1, 2 and 3 are the three
@@ -1031,7 +1031,7 @@ holds that day's two returns, so the arithmetic above stays checkable.
 | --- | --- | --- | --- |
 | 1 | −1 percentage point on the equity leg | reproduced with a gap | Qian's claim is that equalising risk moves the allocation a long way toward bonds, to roughly a quarter equity, and it survives at 21.78 to 78.22. The number misses by a point, and the cause is named and outside the method: the bond proxy. AGG is the aggregate bond exposure his argument describes and it was committed in writing before anything was downloaded, so the proxy explains the gap and was not chosen to close it. Row 4 is why the miss is larger than a point makes it sound. |
 | 2 | +0.2 | reproduced with a gap | His claim is that matching 60/40's risk takes roughly double leverage on the risk-parity portfolio, and 1.9812 survives it. On his printed weights the leverage reads the correlation and nothing else, so this row and row 9 are one measurement stated twice, and the gap is the distance between a correlation near zero and the +0.16 his 1.8 implies. |
-| 3 | none, the source states a claim | did not reproduce | The replication. 60/40 earns the higher Sharpe ratio at matched volatility, by 0.2169, and the window resolves it at a robust t of −2.17. No cause outside the method is available. The vintage explanation that carries Entry 1's rows is about a series nobody holds, and this is a claim about two instruments this repo chose in the open on a span every one of whose days is committed here. What the entry concludes says what the gap is made of. |
+| 3 | none, the source states a claim | did not reproduce | The replication. At the declared 4 percent rate, 60/40 earns the higher Sharpe ratio at matched volatility, by 0.2169, and the window resolves it at a robust t of −2.17. The instruments and the span offer no cause outside the method. The vintage explanation that carries Entry 1's rows is about a series nobody holds, and this is a claim about two instruments this repo chose in the open on a span every one of whose days is committed here. The rate is the one input that stands in for something Qian measured, the Treasury-bill rate he subtracted. The ranking ties at an assumed 1.50 percent and resolves only at rates above 3.80 percent, and What this entry cannot say gives both. What the entry concludes says what the gap is made of. |
 | 4 | none | none, not a replication | Derived from row 1's published pair rather than printed. It is here because it is the quantity the printed weights are a statement about, and because a reader comparing only the weights would call row 1 a near match. |
 | 5 | none | none, not a replication | The book prints no volatilities. The measured ratio of 3.5909 sits outside the 3.26 to 3.44 band row 4 gives, which is the sharper reading of row 1's gap. |
 | 6 | none | none, not a replication | The book prints no correlation. Over the full span the two legs are uncorrelated to three decimals, at −0.0002, which is a coincidence of averaging rather than a stable fact: rows 11 and 13 give −0.0688 and +0.2442. |
@@ -1053,8 +1053,9 @@ Four things, and the first is the one the other three explain.
    percentage point and row 2 by two tenths, which on the five-figure scale
    Entry 3 works at would read as a comfortable reproduction. Row 3 is the
    claim those two were printed to support and 60/40 wins it by 0.2169 of
-   Sharpe, resolved at a robust t of −2.17. That is the reverse of the split
-   Entries 1 and 3 both found, where every number moved and every claim held.
+   Sharpe, resolved at a robust t of −2.17 at the declared 4 percent rate.
+   That is the reverse of the split Entries 1 and 3 both found, where every
+   number moved and the central claims held.
 2. **The gap is where the return is, not where the risk is.** Row 8 lands on 50
    percent each exactly, so the method did what it says. Row 7 confirms the
    premise it rests on. What fails is the step from a balanced risk split to a
@@ -1098,11 +1099,12 @@ far. The difference is linear in the rate, so row 3 ties at an assumed rate of
 1.50 percent, row 12 at 2.45 percent, and row 14 only at −4.43 percent, which
 no positive rate reaches. `test_the_rate_at_which_the_two_sharpe_ratios_tie`
 pins all three. Row 3's robust t is linear in the rate too, and it reaches −2
-at 3.80 percent, so the window resolves the ranking only within a fifth of a
-point of the declared rate. At a rate of zero risk parity leads with a t of
-+1.30, which does not resolve either.
-`test_the_full_span_resolves_its_ranking_only_near_the_declared_rate` pins
-both. Whether the realised bill rate averaged below 1.50 percent over the full
+at 3.80 percent, so the window resolves the ranking at rates down to 3.80
+percent and at none below, a fifth of a point under the declared rate. At a
+rate of zero risk parity leads with a t of +1.30, which does not resolve
+either. Row 14's t reaches −2 at 3.25 percent in the same way.
+`test_the_two_resolved_rankings_resolve_only_down_to_a_little_below_4_percent`
+pins all of these. Whether the realised bill rate averaged below 1.50 percent over the full
 span decides row 3's sign to first order, and that is what the missing vintage
 would answer.
 

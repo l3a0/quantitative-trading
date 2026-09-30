@@ -68,7 +68,8 @@ they were first built. The other three were built here.
 5. Edward Qian's risk parity against the classic 60/40, reported at Kindle
    location 4684, on SPY and AGG. Both figures Chan prints land close and the
    claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
-   matched risk on the full span, resolved at a robust t of −2.17. It is the
+   matched risk on the full span at Chan's 4 percent rate, resolved at a robust
+   t of −2.17. It is the
    first entry here where the numbers reproduce and the claim does not, which
    is the reverse of the split the GLD/GDX and Kelly entries both found.
 
@@ -463,8 +464,7 @@ pinned here.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
    about 29 times bonds', the 23.72 that 18.55 and 5.17 sum to, the \$43 of
    SPY, \$155 of AGG and \$98 borrowed per \$100 of equity, risk parity being
-   about half as volatile as 60/40 before leverage, the leverage being 0.18
-   above 1.8 and the weight 1.2 points below 23, the 0.98 points a year each
+   about half as volatile as 60/40 before leverage, the 0.98 points a year each
    point off the rate is worth and the 2.5 points it takes to close the gap,
    the 8.36% and −0.91% a year above cash and the Sharpe ratios of 0.45 and
    −0.18 the two funds earn at the 4% rate, and the 1.11%, 2.20% and 4.65% the
@@ -473,7 +473,8 @@ pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
 1.50%, 2.45% and −4.43% at which the two Sharpe ratios tie and the full span's
-t-statistic of −2 at 3.80% and +1.30 at zero. The shares its figure draws
+t-statistic of −2 at 3.80% and +1.30 at zero, and the later period's −2 at
+3.25%. The shares its figure draws
 trace to
 [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
 

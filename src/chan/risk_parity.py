@@ -399,9 +399,10 @@ class Ranking:
         the windows, so scanning it would spend the sample on a search nothing
         recorded. The derivative says which way a different rate would push
         without computing a second ranking. Because the difference is linear in
-        the rate, it also says how far: the two Sharpe ratios tie at
-        ``RISK_FREE - sharpe_difference / rate_sensitivity``, a closed form that
-        ``tests/test_risk_parity.py`` pins and that chooses nothing.
+        the rate, it also says how far: the two Sharpe ratios tie at the rate
+        the ranking was computed at, less ``sharpe_difference / rate_sensitivity``,
+        a closed form that ``tests/test_risk_parity.py`` pins and that chooses
+        nothing.
         """
         return (1.0 - self.leverage) / self.matched_volatility
 

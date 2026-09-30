@@ -10,7 +10,8 @@ full common span the risk-parity weights are 21.78 to 78.22, about a
 percentage point off his 23-77, and the leverage that matches 60/40's
 volatility is 1.98 against his 1.8. Both are close. The Sharpe ranking is not:
 60/40 beats the levered risk-parity portfolio by 0.2169 on the full span, and
-the robust t on that difference is −2.17, which the window resolves.
+the robust t on that difference is −2.17, which the window resolves at Chan's
+4 percent rate and at no rate below 3.80 percent.
 
 Three kinds of assertion live here and they are not interchangeable.
 
@@ -499,35 +500,40 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
             weights = _weights_used(measured, ranking)
             assert _sharpe_difference(returns, weights, tie) == pytest.approx(0.0, abs=1e-12), label
 
-    def test_the_full_span_resolves_its_ranking_only_near_the_declared_rate(
+    def test_the_two_resolved_rankings_resolve_only_down_to_a_little_below_4_percent(
         self, measured, rankings
     ) -> None:
-        """The robust t is −2 at 3.80 percent and +1.30 at zero, which the post quotes.
+        """The robust t reaches −2 at 3.80 percent on the full span and 3.25 on
+        the rising window, which the post quotes.
 
         Moving the rate shifts the daily difference by a constant, ``(1 - leverage)``
         times the daily rate, and a constant shift leaves the Newey-West standard
         error alone. So the t is linear in the rate and the crossing is a closed
-        form like the tie above. Recomputing the ranking at each rate checks it.
-        Row 3's t of −2.17 clears 2 by less than a fifth of a percentage point of
-        rate, and at no rate down to zero does risk parity's lead reach 2.
+        form like the tie above. It only grows in size as the rate rises, so each
+        ranking resolves at every rate above its crossing and at none below it.
+        Recomputing the ranking at each rate checks the closed form. At a rate of
+        zero the full span's t is +1.30 and the rising window's −1.15, so risk
+        parity's lead on the full span never reaches 2 at a non-negative rate.
         """
-        ranking = rankings["full span"]
-        _, returns = measured["full span"]
-        weights = _weights_used(measured, ranking)
-        per_unit_rate = (1.0 - ranking.leverage) * ranking.t_newey_west
-        per_unit_rate /= ranking.mean_difference_annual
-        crossing = RISK_FREE + (-2.0 - ranking.t_newey_west) / per_unit_rate
-        assert crossing == pytest.approx(0.038011, abs=5e-7)
-        for rate, t_expected in ((crossing, -2.0), (0.0, 1.300398)):
-            moved = rank_at_matched_volatility(
-                "full span",
-                returns,
-                weights,
-                weight_source="full span",
-                in_sample=True,
-                risk_free=rate,
-            )
-            assert moved.t_newey_west == pytest.approx(t_expected, abs=5e-6), rate
+        expected = {"full span": (0.038011, 1.300398), "rising rates": (0.032487, -1.154169)}
+        for label, (crossing_expected, t_at_zero) in expected.items():
+            ranking = rankings[label]
+            _, returns = measured[label]
+            weights = _weights_used(measured, ranking)
+            per_unit_rate = (1.0 - ranking.leverage) * ranking.t_newey_west
+            per_unit_rate /= ranking.mean_difference_annual
+            crossing = RISK_FREE + (-2.0 - ranking.t_newey_west) / per_unit_rate
+            assert crossing == pytest.approx(crossing_expected, abs=5e-7), label
+            for rate, t_expected in ((crossing, -2.0), (0.0, t_at_zero)):
+                moved = rank_at_matched_volatility(
+                    label,
+                    returns,
+                    weights,
+                    weight_source=ranking.weight_source,
+                    in_sample=ranking.in_sample,
+                    risk_free=rate,
+                )
+                assert moved.t_newey_west == pytest.approx(t_expected, abs=5e-6), (label, rate)
 
 
 class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:
@@ -749,6 +755,9 @@ class TestTheFullSpan:
 
     def test_the_ranking_goes_against_the_book_and_the_window_resolves_it(self, rankings) -> None:
         """60/40 beats levered risk parity by 0.2169 of Sharpe, robust t −2.17.
+
+        Both at the declared 4 percent rate. The tie and the crossing below say
+        how far the rate would have to move to undo each.
 
         Pinned as the measured difference and its robust t rather than as the
         comparison's result, because a boolean assertion survives any mutation
