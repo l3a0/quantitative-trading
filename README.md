@@ -412,18 +412,16 @@ and the return frequency. Four groups of its figures are not pinned here.
    threshold.
 3. Arithmetic that no test asserts: the 99% a 10% loss and a 10% gain leave,
    with their variance of 0.01, half of it 0.5% a period and 1% over two, the
-   1.43% volatility drag, the 6.98% half-Kelly adds above the 4% rate, the 9.30% that
-   `S²/2` adds, the 0.60 margin above the 1.954 threshold, the 7.72 spread
-   between the bear and bull windows, the variance of 0.0286 and the factor
-   of about 35 it multiplies an error in the mean by, and the worst SPY day
-   being about a third of Black Monday. The 43 to 47% that monthly sampling adds is held by a test only as
-   a band of 42 to 48%.
+   1.43% volatility drag, the 6.98% half-Kelly adds above the 4% rate, the
+   9.30% that `S²/2` adds, the 0.60 margin above the 1.954 threshold, the 7.72
+   spread between the bear and bull windows, the variance of 0.0286 and the
+   factor of about 35 it multiplies an error in the mean by, and the worst SPY
+   day being about a third of Black Monday. The 43 to 47% that monthly sampling
+   adds is held by a test only as a band of 42 to 48%.
 4. The finding that about ten days on or beside SPY's quarterly ex-dividend
-   dates carry the whole gap in the mean, with nearly a whole quarterly
-   payout on the four largest, with the other days offsetting less than a
-   tenth of it. It was measured against `data/spy_chan.csv`,
-   and no test
-   holds it until
+   dates carry the whole gap in the mean, with nearly a whole quarterly payout
+   on the four largest, while the other days offset less than a tenth of it.
+   It was measured against `data/spy_chan.csv`, and no test holds it until
    [issue 138](https://github.com/l3a0/quantitative-trading/issues/138)
    compares the two vintages.
 
