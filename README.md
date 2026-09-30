@@ -445,9 +445,9 @@ above for the regime map.
 [blog/risk-parity-against-60-40.md](blog/risk-parity-against-60-40.md) is a
 fifth post, about Qian's risk parity against 60/40, which Chan reports at
 Kindle location 4684. It draws six lessons from Entry 4 of the replication log:
-the close numbers and the failed claim, the volatility ratio and correlation
-Qian's two figures encode, bonds earning too little per unit of risk beside
-stocks, the cash rate at which the ranking ties, the weights judged on a window
+the close numbers and the failed claim, bonds earning too little per unit of
+risk beside stocks, the volatility ratio and correlation Qian's two figures
+encode, the cash rate at which the ranking ties, the weights judged on a window
 they did not see, and the inputs moving between the two windows. Three groups
 of its figures are not pinned here.
 
@@ -466,23 +466,26 @@ of its figures are not pinned here.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
    about 29 times bonds', the \$43 of SPY, \$155 of AGG and \$98 borrowed per
    \$100 of equity, risk parity being about half as volatile as 60/40 before
-   leverage, the 0.98 points a year each point off the rate is worth and the
-   2.5 points it takes to close the gap, the 8.36% and −0.91% a year above cash
-   and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4% rate,
-   the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the 0.71,
-   0.98 and 0.18 that weight the two funds' Sharpe ratios under a correlation
-   near zero, with the bar of about half they set for bonds against stocks, the
-   bar of about two-thirds the same arithmetic gives at Qian's inputs and the
-   0.87 and 0.67 it gives back there, AGG's Sharpe ratio of about −0.46 in the
-   later period, and the three-quarters and 0.12 that split the later period's
-   0.50 gap between the period and the carried weights, and the 0.52 and 0.28
-   in the inequality that sets the bar.
-3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month
-   bill series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from
-   October 2003 to August 2026, 1.17% before the 2022 rise and 4.18% after it,
-   with 108 months under 0.25%. The post labels them as pointers rather than
-   results, because the premise here is that a figure nobody stored is one
-   nobody can check.
+   leverage, the 0.98 points a year each point off the rate is worth, risk
+   parity's Sharpe ratio moving about twice as far as 60/40's per point, and
+   the 2.5 points it takes to close the gap, the 8.36% and −0.91% a year above
+   cash and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4%
+   rate, the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the
+   0.71, 0.98 and 0.18 that weight the two funds' Sharpe ratios under a
+   correlation near zero, with the hurdle of about half they set for bonds
+   against stocks, the hurdle of about two-thirds the same arithmetic gives at
+   Qian's inputs and the 0.87 and 0.67 it gives back there, AGG's Sharpe ratio
+   of about −0.46 in the later period and the correlation of about −0.95 below
+   which the hurdle would fall under it, and the three-quarters and 0.12 that
+   split the later period's 0.50 gap between the period and the carried
+   weights, and the 0.52 and 0.28 in the inequality that sets the hurdle.
+3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
+   series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from October
+   2003 to August 2026, 1.17% from October 2003 to February 2022 and 4.18% from
+   April 2022 to August 2026. The series also holds 108 months under 0.25%,
+   which backs the nine near-zero years in group 1. The post labels these as
+   figures read off the St. Louis Fed's site rather than results, because the
+   premise here is that a figure nobody stored is one nobody can check.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
