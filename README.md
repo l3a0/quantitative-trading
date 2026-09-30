@@ -469,7 +469,11 @@ pinned here.
    and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4% rate,
    the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the 0.71,
    0.98 and 0.18 that weight the two funds' Sharpe ratios under a correlation
-   near zero, with the bar of about half they set for bonds against stocks.
+   near zero, with the bar of about half they set for bonds against stocks,
+   the bar of about two-thirds the same arithmetic gives at Qian's inputs and
+   the 0.87 and 0.67 it gives back there, and the three-quarters and 0.12 that
+   split the later period's 0.50 gap between the period and the carried
+   weights.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
