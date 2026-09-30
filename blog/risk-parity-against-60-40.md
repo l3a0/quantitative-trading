@@ -10,7 +10,7 @@ Chan quotes the result in one sentence. At the same risk as 60/40, Qian recommen
 
 This replication runs the same calculation on SPY, the fund that tracks the S&P 500, and AGG, a fund that tracks the aggregate US bond market, from September 2003 to September 2026. The allocation comes out at 21.8% stocks against Qian’s 23%, and the leverage at 1.98 against his 1.8. Both are close. At the 4% cash rate Chan uses elsewhere in the book, the Sharpe ratio claim goes the other way. 60/40 earns 0.41 and levered risk parity 0.19. Bills paid less than that on average, 1.74%, and Lesson 4 shows that at that rate the two are too close to tell apart.
 
-In two earlier replications of Chan’s examples, of a cointegrated pair and of the Kelly leverage on SPY, the figures moved a little and the central claims held. Here the figures also land close and the claim fails. This post explains how risk parity works and draws six lessons from the replication. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+In two earlier replications of Chan’s examples, of [a cointegrated pair](https://baowebdev.substack.com/p/lessons-from-testing-gldgdx-for-cointegration) and of [the Kelly leverage on SPY](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md), the figures moved a little and the central claims held. Here the figures also land close and the claim fails. This post explains how risk parity works and draws six lessons from the replication. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## How risk parity works
 
