@@ -125,11 +125,11 @@ A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kell
 
 ## Lesson 6: twice the Kelly leverage earns only the cash rate
 
-Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is how far each can go. Too little leverage can at worst earn the cash rate, while too much can fall past cash to zero and below.
+Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is the range. A long position that falls short of the Kelly leverage can at worst earn the cash rate, while one that overshoots can fall past cash to zero and below. A wrong-signed estimate like −2.82 has no floor at all.
 
-The formula section showed that at twice the Kelly leverage the return term and the drag cancel. On Chan’s window that is a leverage of 5.10, carrying about five times SPY’s swings for the 4% return cash pays. Past it, growth drops below cash, and at a leverage of 5.60 it reaches zero, where capital stops growing at all. The chart in the formula section shows the whole curve.
+At twice the Kelly leverage, 5.10 on Chan’s window, the return term and the drag cancel, so a trader carries about five times SPY’s swings and earns the same 4% as cash. Past it, growth drops below cash, and at a leverage of 5.60 it reaches zero, where capital stops growing at all.
 
-The bull market makes the risk concrete. A trader who sized from 2003 to 28 December 2007, at 4.90, and held that leverage over Chan’s whole window would have compounded at 5.43% a year. That is less than the 9.86% of holding SPY unlevered, and little more than cash.
+The bull market makes the risk concrete. Suppose the moments of Chan’s whole window are the truth. A trader who trusted the bull market’s 4.90 would grow at 5.43% a year by the formula, less than the 9.86% of holding SPY unlevered and little more than cash.
 
 This is why half-Kelly works as a defence. Halving an estimate that is twice too high lands exactly on the true Kelly leverage, while halving a correct estimate still keeps three-quarters of the growth above cash.
 
