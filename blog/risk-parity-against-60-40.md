@@ -1,6 +1,6 @@
 # Risk parity’s numbers reproduce on SPY and AGG, and its claim does not
 
-*Qian’s mix of 23% stocks and 77% bonds, levered 1.8 times, comes out close on 2003 to 2026 data. At a 4% cash rate the better return for its risk that it was meant to deliver goes to 60/40, and no cash rate of zero or more makes risk parity a clear winner.*
+*Qian’s mix of 23% stocks and 77% bonds, levered 1.8 times, comes out close on 2003 to 2026 data. At a 4% cash rate 60/40 earns the better return for its risk, and no cash rate of zero or more makes risk parity a clear winner.*
 
 ## Why a close match is not enough
 
