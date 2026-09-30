@@ -348,12 +348,13 @@ rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
 2. A stock moving 1% up or down each minute loses about half a basis point a
    minute. That is Chan's, at location 2822, and no test computes it.
 3. One head and one tail leave 0.999 of the capital, a tenth of a percent
-   lost every two rounds, and the worked \$1,110 and \$111 of that pair. The
+   lost every two rounds, and the worked \$1,110, \$111 and \$999 of that pair. The
    two-round table of \$810.00, \$999.00 and \$1,232.10 is the same kind. All
    of it is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no
    test asserts it.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
-   its docstring and does not assert the percentage.
+   its docstring and does not assert the percentage. Lesson 2's 6% gap at ten
+   rounds is the same kind, the pinned ratio of 1.06 written as a percentage.
 
 Every other number in the post traces to an assertion in
 [tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers
@@ -369,12 +370,12 @@ vintage, so they redraw anywhere:
 uv run python -m chan.coin_flip_figures
 ```
 
-1. Growth per round against the stake, for Lesson 4.
-2. A fan of 200 seeded capital paths with the ensemble mean and the median
-   path, for Lessons 1 and 2.
-3. The probability of every balance 1,000 rounds can reach, with an inset
+1. The probability of every balance 1,000 rounds can reach, with an inset
    showing the continuous approximation's balance falling between two of
    them, for Lessons 1 and 5.
+2. A fan of 200 seeded capital paths with the ensemble mean and the median
+   path, for Lesson 2.
+3. Growth per round against the stake, for Lesson 4.
 4. Histograms of the simulated time average from 200 seeds at two run sizes,
    where the small run gets the sign wrong on 56 of them and the large run on
    none, for Lesson 6.

@@ -6,13 +6,13 @@
 
 A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pays \$5, so the bet looks worth taking. Play it 1,000 times from \$1,000, with the bet scaled to the account each round, and the typical trader ends with \$606.
 
-Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds this bet to show how a bet that pays on average can still lose. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. For this bet, the average return and the growth of capital have opposite signs.
+Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, uses this bet to argue that people who refuse it are right. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. For this bet, the average return and the growth of capital have opposite signs.
 
 This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in code. The code behind every figure is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Where a number is Chan’s own printed figure rather than one worked out here, the post says so.
 
 ## The gamble
 
-Chan borrows this setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. The \$5 expected gain is half of \$110 less half of \$100. Experiments show that most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
+Chan borrows this setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. The \$5 expected gain is half of \$110 less half of \$100. Chan notes that experiments show most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias. Chan argues the refusal is correct.
 
 The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly a tenth of capital. Tails loses the stake, while heads pays 1.1 times it, which is 11% of capital. So each round multiplies the account by one of two numbers:
 
@@ -32,7 +32,7 @@ Start with the time average, because one pair of tosses already shows it. One he
 1.11 \times 0.90 = 0.999
 ```
 
-of where it started. Over a long run a fair coin lands heads about half the time, so a typical trader gives up a tenth of a percent every two rounds. Starting from \$1,000, a win lifts the account to \$1,110, and the loss that follows takes 10% of that larger balance, which is \$111.
+of where it started. Starting from \$1,000, a win lifts the account to \$1,110, and the loss that follows takes 10% of that larger balance, which is \$111, leaving \$999. Over a long run a fair coin lands heads about half the time, so a typical trader gives up a tenth of a percent every two rounds.
 
 The ensemble average is the mean simple return of one round:
 
@@ -40,7 +40,7 @@ The ensemble average is the mean simple return of one round:
 m = \tfrac{1}{2}(0.11) + \tfrac{1}{2}(-0.10) = 0.005
 ```
 
-The time average is the mean log return. A round’s **log return** is the natural log of the factor it multiplies capital by, so ln 1.11 for a head. Logs add across rounds where the factors multiply, which is why their mean is what compounds:
+The time average is the mean log return. A round’s **log return** is the natural log of the factor it multiplies capital by, so ln(1.11) for a head. Logs add across rounds where the factors multiply, which is why their mean is what compounds:
 
 ```math
 g = \tfrac{1}{2}\ln 1.11 + \tfrac{1}{2}\ln 0.90 = \tfrac{1}{2}(0.1043600) + \tfrac{1}{2}(-0.1053605) = -0.00050025
@@ -82,7 +82,7 @@ What pulls apart is the capital they compound into. The ratio of ensemble capita
 \end{array}
 ```
 
-Over ten rounds the two views differ by 6%, which is why the bet looks harmless to someone who plays it a few times. The damage is in the length of the horizon.
+Over ten rounds the two capitals differ by 6%, which is why the bet looks harmless to someone who plays it a few times.
 
 ![Two hundred simulated capital paths over 1,000 rounds on a log scale, spreading from \$1,000 into a fan between a few cents and a few million dollars. A gold line for the ensemble mean climbs steadily to \$146,576. A red line for the median trader drifts down to \$606.](../docs/figures/coin_flip_capital_paths.png)
 
@@ -90,7 +90,7 @@ Over ten rounds the two views differ by 6%, which is why the bet looks harmless 
 
 ## Lesson 3: variance is a cost charged against growth
 
-The continuous approximation says where the loss comes from. Compound growth equals the mean return minus half the variance:
+The continuous approximation says where the loss comes from. Compound growth is approximately the mean return minus half the variance:
 
 ```math
 g \approx m - \frac{s^2}{2}
@@ -103,9 +103,7 @@ Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both ex
 1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point, or 0.005%, a minute.
 2. SPY, an exchange-traded fund that tracks the S&P 500, has a mean annual return of 11.23% in his example, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
 
-So two strategies with the same mean return do not grow at the same rate. In the approximation, the one with lower variance compounds faster, and for a positive mean it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin.
-
-Lesson 4 shows the stronger form of this. Once the bet is sized well, the Sharpe ratio alone sets the best growth a strategy can reach, and the mean return drops out. That holds in the continuous approximation, with the risk-free rate at zero and the bet free to be scaled up or down.
+So two strategies with the same mean return do not grow at the same rate. In the approximation, the one with lower variance compounds faster, and for a positive mean it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m/s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin.
 
 ## Lesson 4: the stake decides the sign
 
@@ -124,7 +122,7 @@ Two stakes on this curve matter.
 
 *The same coin at every stake. Growth peaks at 1/22 and turns negative past 1/11. Chan’s 1/10 sits on the negative side.*
 
-The best stake is exactly half the break-even stake, and that factor of two is a property of any fair coin, one with two equally likely outcomes, rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
+The best stake is exactly half the break-even stake, and that factor of two is a property of any fair coin rather than of Chan’s numbers. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
 
 At the best stake the two averages still differ, but both are positive. After 1,000 rounds from \$1,000 the median path reaches \$3,111 and the ensemble mean reaches \$9,681, a ratio of 3.11 rather than 241.72. For a fair coin at the best stake, one trader’s log growth is exactly half the ensemble’s.
 
@@ -136,7 +134,7 @@ The growth-maximising stake is the **Kelly** stake. Chan gives its continuous fo
 
 The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
 
-The same approximation carries the factor of two to any bet, not only a fair coin. Scaling a position by `k` gives growth of about `k·m − k²·s²/2`, which peaks at `k = m / s²` and falls back to zero at twice that.
+The same approximation carries the factor of two to any bet, not only a fair coin. Scaling a position by `k` gives growth of about `k·m − k²·s²/2`, which peaks at `k = m/s²` and falls back to zero at twice that.
 
 Chan also gives the growth that the Kelly stake reaches (Chan, 2021), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
 
@@ -145,8 +143,6 @@ g^* \approx \frac{S^2}{2}
 ```
 
 Scaling a bet up or down scales `m` and `s` by the same factor, so it never changes `S`. That is why the Sharpe ratio, and not the mean return, is what caps growth. A strategy with twice the coin’s mean return and twice its standard deviation has the same Sharpe ratio, and so the same best growth. The coin checks the formula. Its Sharpe ratio per round is 0.005 / 0.105, exactly 1/21, so the formula gives a best growth of 1/882, about 0.0011338 per round. The exact best, at a stake of 1/22, is 0.0011351.
-
-This changes what the refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
 ## Lesson 5: the formula hides two choices, and one makes the loss nearly 12 times larger
 
@@ -163,13 +159,13 @@ He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box i
 
 ### Which standard deviation
 
-A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and dividing by `n − 1` makes the variance unbiased. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
+A standard deviation can divide by the number of observations `n`, or by `n − 1`. The second is the sample form. A sample’s own average sits closer to its data than the true mean does, so dividing by `n` understates the spread, and dividing by `n − 1` corrects that understatement on average. Over a few thousand daily returns the two barely differ. Over the coin’s two outcomes they differ a lot. Those two equally likely outcomes are the whole distribution rather than a sample of it, so the population form is the correct one.
 
 The sample form gives 0.14849 rather than 0.105, and the growth rate becomes −0.006025, out by a factor of 11.8. It still prints as a small negative number, so nothing about it looks wrong. The choice can also flip without anyone making it. pandas and numpy, two Python libraries common in finance, disagree: pandas’ `.std()` defaults to the sample form and numpy’s `std` to the population form. Name the convention when reporting a volatility, and check it when copying one.
 
 ### Exact or approximate growth
 
-The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation is what that growth approaches as each round’s return gets small, in the sense that the gap between the two shrinks faster than either rate.
+The exact rate is −0.00050025 and the approximation is −0.0005125. They differ at the second significant digit, and both are correct answers to slightly different questions. The exact rate is the log growth per round of this two-outcome coin. The approximation gets closer to the exact rate as each round’s swings get smaller.
 
 The difference matters once the rate is compounded into a balance. Each head multiplies the balance by 1.11 and each tail by 0.90. Multiplication ignores order, so heads then tails leaves the same \$999 as tails then heads, and the balance depends only on how many tosses came up heads. Two rounds show how the counting works.
 
@@ -182,7 +178,7 @@ The difference matters once the rate is compounded into a balance. Each head mul
 \end{array}
 ```
 
-Two rounds allow three head counts, 0, 1 and 2, so three balances. The count always runs from zero heads up to one head per round, which is one more value than the number of rounds. After 1,000 rounds it runs from 0 to 1,000, so 1,001 balances are possible, one for each head count `h`:
+Two rounds allow three head counts, 0, 1 and 2, so three balances. In general, `n` rounds allow `n + 1` head counts. After 1,000 rounds it runs from 0 to 1,000, so 1,001 balances are possible, one for each head count `h`:
 
 ```math
 C(h) = 1000 \times 1.11^{h} \times 0.90^{\,1000-h}, \qquad h = 0, 1, 2, \ldots, 1000
@@ -202,7 +198,7 @@ Traders test ideas by simulating them, in a backtest or a run of random scenario
 
 A strategy whose edge is small next to its swings is hard to measure by simulation, and the coin shows how hard.
 
-The arithmetic starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to `0.10486 / √N`. That figure is the **standard error**, the typical size of the estimate’s error. A million tosses still leave a standard error of 1.05e-4, a fifth of the growth being measured. So print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
+The arithmetic starts with one toss. Its log return has a standard deviation of 0.10486. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to `0.10486/√N`. That figure is the **standard error**, the typical size of the estimate’s error. At 100 rounds by 200 traders, 20,000 tosses in all, the standard error is 7.41e-4, larger than the growth itself. A million tosses bring it down to 1.05e-4, a fifth of the growth. So print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
 
 A small run can therefore land on the wrong side of zero. Three results show what the size of a run does.
 
@@ -218,9 +214,9 @@ The same noise is why this replication checks Chan’s printed figures against e
 
 ### Average final wealth reads low
 
-The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because the paths that carry the true mean, for the reason Lesson 1 gives, are too rare for a sample to draw.
+The ensemble side has a true growth per round of ln(1.005) = 0.0049875. One way to estimate it from a simulation is to average every trader’s final wealth, take the log, and divide by the number of rounds. With 1,000 traders playing 5,000 rounds each, that estimate sits below 0.0038 on every one of the first 20 seeds. It reads low because a few very lucky paths carry the true mean, as Lesson 1 showed, and a sample of 1,000 traders rarely draws them.
 
-The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate it the same way. For a single account, the time-average growth is the figure to read anyway.
+The other way averages the simple return of every toss and converts that average to a log rate. It needs no rare paths, and on the same 20 seeds it lands within 1e-4 of 0.0049875. A simulation that reports mean final wealth for a strategy can understate the ensemble growth the same way. For a single account, the time-average growth is the figure to read anyway.
 
 ![A dot plot with two rows and one dot per seed for 20 seeds. The top row, the log of the mean final wealth, spreads from about 0.0023 to 0.0037, every dot well left of a vertical line at the true ensemble growth of 0.0049875. The bottom row, the mean of each toss’s return, is a tight cluster sitting on that line.](../docs/figures/coin_flip_ensemble_estimators.png)
 
@@ -230,6 +226,8 @@ The other way averages the simple return of every toss and converts that average
 
 Chan’s own summary is short: “take time average, not ensemble average, when evaluating real-world risks” (Chan, 2021). A trader has one account and plays in sequence, so the time average is the one that describes what happens to them.
 
+The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) sets each of Chan’s figures beside the one reproduced here.
+
 Four habits follow from the lessons above.
 
 1. **Judge a strategy by its compound growth rate.** A mean return is an ensemble number. Subtract the volatility drag before comparing two strategies.
@@ -237,7 +235,7 @@ Four habits follow from the lessons above.
 3. **Report capital over several horizons.** Two rates at one horizon hide how far the capital they compound into drifts apart.
 4. **Check how a number was computed.** Name the standard-deviation convention behind a volatility, and print the standard error beside a simulated growth rate.
 
-The replication itself is exact arithmetic on a coin. It uses no historical prices, so it can say that Chan’s arithmetic reproduces and why his argument holds. It says nothing about any particular strategy. The [replication log](../docs/replication-log.md#entry-2-the-coin-flip-gamble-chans-quantitative-trading) sets each of Chan’s figures beside the one reproduced here.
+The refusal Box 6.1 defends is a judgement about sizing. Refusing the bet at a tenth of capital is correct, and accepting the same coin at a twenty-second of capital is also correct. At Chan’s size, loss aversion gives the right answer.
 
 ## References
 
