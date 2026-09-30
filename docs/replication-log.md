@@ -704,20 +704,19 @@ Seventeen rows, all derivable from
 dispersion.** He read SPY through 2007-12-28 on a 2008-vintage adjusted series.
 This reads a 2026 download of the same symbol over the same dates, so rows 1 to
 8 measure how two downloads eighteen years apart differ, with the window held
-fixed. Rows 1 and
-3 to 8 all miss, every one of them high. Row 2 lands on the two decimals he
-prints. Dividends paid after his window cannot explain the gaps, because they
-scale every price inside it by one factor and leave every return unchanged.
-Set day by day against his own `data/spy_chan.csv`, the whole gap in the mean
-sits on about ten days on or beside SPY's quarterly ex-dividend dates. On the
-four largest, one download folds nearly a whole quarterly payout into the
-day's return and the other does not, and on the rest it folds in part of one.
-The differences mostly raise the 2026 mean. Elsewhere they are small, mostly
-rounding and a few smaller dividend differences, and together pull back less
-than a tenth of the gap. A few large differences move a mean while barely touching
-a standard deviation. That comparison is measured rather than pinned.
-Reading his own workbook is
-[issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
+fixed. Rows 1 and 3 to 8 all miss, every one of them high. Row 2 lands on the
+two decimals he prints. Dividends paid after his window cannot explain the
+gaps, because they scale every price inside it by one factor and leave every
+return unchanged. Set day by day against his own `data/spy_chan.csv`, the whole
+gap in the mean sits on about ten days on or beside SPY's quarterly ex-dividend
+dates. On the four largest, one download folds nearly a whole quarterly payout
+into the day's return and the other does not, and on the rest it folds in part
+of one. The differences mostly raise the 2026 mean. Elsewhere they are small,
+mostly rounding and a few smaller dividend differences, and together pull back
+less than a tenth of the gap. A few large differences move a mean while barely
+touching a standard deviation. That comparison is measured rather than pinned.
+Reading his own workbook is [issue
+138](https://github.com/l3a0/quantitative-trading/issues/138), and the
 `reproduced` verdict on the rest belongs there.
 
 Two more rows reproduce and neither reads a series. Rows 9 and 11 are
@@ -865,23 +864,21 @@ the suite does not hold.
 
 1. **2.5278 and 1.9341**, his exact leverage on his adjusted close and on his
    as-traded close. Everything this entry says about the price basis rests on
-   them, including the 0.59 the price basis is worth in the conclusions and the reversal of his
-   own risk conclusion, since 1.9341 is below the 1.954079 threshold this repo
-   does compute.
-2. **0.427523 and 0.427580**, his Sharpe ratio under the sample and population
-   dispersion forms. They are why row 4 says only the sample form prints as the
-   0.4275 he published. This repo's own two forms are 5.74e-5 apart on the same
-   quantity, which is pinned, so the argument survives without them and the
-   demonstration on his own data does not.
-3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row 9 quotes
-   it to say the published \$252,800 is arithmetic on a rounded input.
-4. **1.68 percentage points**, what SPY's distributions are worth in annual
+   them, including the 0.59 the price basis is worth in the conclusions and the
+   reversal of his own risk conclusion, since 1.9341 is below the 1.954079
+   threshold this repo does compute. 2. **0.427523 and 0.427580**, his Sharpe
+   ratio under the sample and population dispersion forms. They are why row 4
+   says only the sample form prints as the 0.4275 he published. This repo's own
+   two forms are 5.74e-5 apart on the same quantity, which is pinned, so the
+   argument survives without them and the demonstration on his own data does
+   not. 3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row
+   9 quotes it to say the published \$252,800 is arithmetic on a rounded input.
+   4. **1.68 percentage points**, what SPY's distributions are worth in annual
    mean return on his span. `src/chan/kelly_leverage.py` quotes it as the size
-   of the price-basis choice.
-5. **The three monthly resampling rules run on his series**, which land 43 to
-   47 percent above his daily figure. Row 15 cites them to say no vintage
-   explanation is available for the claim it refutes. That row's own numbers,
-   on this vintage, are pinned.
+   of the price-basis choice. 5. **The three monthly resampling rules run on
+   his series**, which land 43 to 47 percent above his daily figure. Row 15
+   cites them to say no vintage explanation is available for the claim it
+   refutes. That row's own numbers, on this vintage, are pinned.
 
 ### What this entry cannot say
 
