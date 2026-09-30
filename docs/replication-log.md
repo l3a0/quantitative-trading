@@ -1062,8 +1062,9 @@ Four things, and the first is the one the other three explain.
    risk to be worth the leverage. Over this span AGG returned 3.09 percent a
    year against the 4 percent rate the specification assumes, so its excess
    return is negative and levering a 78 percent holding of it 1.98 times
-   multiplies that. The rate is a declared choice and the direction it pushes
-   is stated above rather than searched for.
+   multiplies that. The rate is a declared choice. The direction it pushes and
+   the rate at which row 3 ties, 1.50 percent, follow from it in closed form
+   rather than from a search, and What this entry cannot say gives both.
 3. **The out-of-sample window is the worst one, which is the direction that
    matters.** Row 14 is the only ranking whose weights came from outside the
    window they are judged on, and it is the largest loss in the entry.
@@ -1094,11 +1095,16 @@ design doc's register already carries the same cut for Entry 3's Kelly example.
 The rate is Chan's constant and the report says so on its own last lines. The
 derivative above says which way a lower rate would push, and it also says how
 far. The difference is linear in the rate, so row 3 ties at an assumed rate of
-1.50 percent on the full span and 2.45 percent on the falling window, and the
-rising window ties only at −4.43 percent, which no positive rate reaches.
-`test_the_rate_at_which_the_two_sharpe_ratios_tie` pins all three. Whether the
-realised bill rate averaged below 1.50 percent over the full span is what the
-missing vintage would answer.
+1.50 percent, row 12 at 2.45 percent, and row 14 only at −4.43 percent, which
+no positive rate reaches. `test_the_rate_at_which_the_two_sharpe_ratios_tie`
+pins all three. Row 3's robust t is linear in the rate too, and it reaches −2
+at 3.80 percent, so the window resolves the ranking only within a fifth of a
+point of the declared rate. At a rate of zero risk parity leads with a t of
++1.30, which does not resolve either.
+`test_the_full_span_resolves_its_ranking_only_near_the_declared_rate` pins
+both. Whether the realised bill rate averaged below 1.50 percent over the full
+span decides row 3's sign to first order, and that is what the missing vintage
+would answer.
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing
@@ -1169,4 +1175,7 @@ including the rising window's spread from −2.1956 to −1.6422 across the two
 leverages a reader could defend.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/risk-parity-against-60-40.md](../blog/risk-parity-against-60-40.md)
+moves with it, since that essay quotes most of these figures and a few this
+entry does not.

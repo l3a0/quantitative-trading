@@ -135,7 +135,7 @@ def make_risk_split_figure(out: Path | None = None, result: WindowResult | None 
     legs = result.legs
     _title(
         fig,
-        "60/40 puts 60% of the capital and 97% of the risk in stocks",
+        "60/40 puts 60% of the capital and 96.7% of the risk in stocks",
         f"{STOCK} and {BOND}, {legs.start} to {legs.end}, 2026 downloads. A leg's share of risk "
         "is its share of the portfolio's variance.\n"
         f"Risk parity weights each leg by the inverse of its volatility, {legs.stock_vol:.2%} "

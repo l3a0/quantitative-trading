@@ -115,7 +115,7 @@ class TestTheText:
 
     def test_the_title_states_the_premise(self, figure) -> None:
         assert figure._suptitle.get_text() == (
-            "60/40 puts 60% of the capital and 97% of the risk in stocks"
+            "60/40 puts 60% of the capital and 96.7% of the risk in stocks"
         )
 
     def test_the_note_names_the_window_and_both_volatilities(self, figure) -> None:
