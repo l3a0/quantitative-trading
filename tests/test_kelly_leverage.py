@@ -405,17 +405,20 @@ class TestTheWorkedExample:
     """Locations 2869 and 3021, which are arithmetic on a rounded leverage."""
 
     def test_the_books_own_chain_reproduces_to_the_cent(self) -> None:
-        """All four printed figures, once 2.528 is taken as given.
+        """All four printed figures and the debt, once 2.528 is taken as given.
 
         This is the one part of the example that does reproduce, and it does so
         because none of it reads a series. It is the book's rounded leverage
-        multiplied out.
+        multiplied out. The resized position is held to the cent at
+        $188,892.16, which the book prints rounded to the dollar, and the
+        rounding is asserted separately.
         """
         chain = rebalance(BOOK_LEVERAGE)
         assert chain.portfolio == pytest.approx(252_800.0, abs=5e-7)
         assert chain.debt == pytest.approx(152_800.0, abs=5e-7)
         assert chain.shocked_portfolio == pytest.approx(227_520.0, abs=5e-7)
         assert chain.shocked_equity == pytest.approx(74_720.0, abs=5e-7)
+        assert chain.resized == pytest.approx(188_892.16, abs=5e-3)
         assert round(chain.resized) == 188_892
 
     def test_the_printed_portfolio_comes_from_a_rounded_leverage(self) -> None:

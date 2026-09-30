@@ -417,8 +417,7 @@ and the return frequency. Four groups of its figures are not pinned here.
    spread between the bear and bull windows, the variance of 0.0286 and the
    factor of about 35 it multiplies an error in the mean by, and the worst SPY
    day being about a third of Black Monday. The 43 to 47% that monthly sampling
-   adds is held by a test only as a band of 42 to 48%, and the \$188,892.16
-   the worked example ends at only to the dollar.
+   adds is held by a test only as a band of 42 to 48%.
 4. The finding that about ten days on or beside SPY's quarterly ex-dividend
    dates carry the whole gap in the mean, with nearly a whole quarterly payout
    on the four largest, while the other days pull back less than a tenth of it.
