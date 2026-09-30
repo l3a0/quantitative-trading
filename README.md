@@ -472,7 +472,7 @@ of its figures are not pinned here.
    cash and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4%
    rate, the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the
    0.71, 0.98 and 0.18 that weight the two funds' Sharpe ratios under a
-   correlation near zero, with the hurdle of about half they set for bonds
+   correlation near zero, with the hurdle of about 0.53 they set for bonds
    against stocks, the hurdle of about two-thirds the same arithmetic gives at
    Qian's inputs and the 0.87 and 0.67 it gives back there, AGG's Sharpe ratio
    of about −0.46 against SPY's 0.66 in the later period, about −0.7 times
@@ -485,9 +485,10 @@ of its figures are not pinned here.
    the period and the carried weights, and the 0.52 and 0.28 in the inequality
    that sets the hurdle, and the Sharpe gaps of about 0.02 for 60/40 over the
    whole period at the 1.74% bill average and about 0.13 for risk parity before
-   2022 at 1.17%, and the Sharpe ratios of about 0.26 for AGG and 0.57 for SPY
+   2022 at 1.17%, with t-statistics of −0.21 and +1.11 at those two rates, and the Sharpe ratios of about 0.26 for AGG and 0.57 for SPY
    at the 1.74% bill average, with the 0.44 of the 0.98 difference in bonds'
-   Sharpe ratio that the cash rate accounts for.
+   Sharpe ratio that the cash rate accounts for, and the 0.46 times SPY's that
+   AGG's 0.26 comes to there.
 3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
    series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from October
    2003 to August 2026, 1.17% from October 2003 to February 2022 and 4.18% from
