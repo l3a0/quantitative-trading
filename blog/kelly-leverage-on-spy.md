@@ -125,7 +125,7 @@ A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kell
 
 ## Lesson 6: twice the Kelly leverage earns only the cash rate
 
-Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is the range. A long position that falls short of the Kelly leverage can at worst earn the cash rate, while one that overshoots can fall past cash to zero and below. A short sized from a wrong-signed estimate like −2.82 earns less than cash from its first unit.
+Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is the range. A long position that falls short of the Kelly leverage can at worst earn the cash rate, while one that overshoots can fall past cash to zero and below. A short sized from a wrong-signed estimate like −2.82 earns less than cash from its first unit of leverage.
 
 At twice the Kelly leverage, 5.10 on Chan’s window, the return term and the drag cancel, so a trader carries about five times SPY’s swings and earns the same 4% as cash. Past it, growth drops below cash, and at a leverage of 5.60 it reaches zero, where capital stops growing at all.
 
@@ -143,7 +143,7 @@ The question that matters is whether monthly returns give the same answer as dai
 2. Month-end closes with the unfinished last month dropped give 3.75.
 3. Blocks of 21 trading days give 3.64.
 
-All three sit near 3.7, which is 43 to 47% above the 2.551 from daily returns. Which monthly definition is picked barely matters, while monthly against daily matters a great deal. Why SPY’s monthly returns imply a larger leverage is outside what this replication tests. It shows that the return frequency is a choice, and a reported Kelly leverage should name it along with the window.
+All three sit near 3.7, which is 43 to 47% above the 2.551 from daily returns. Which monthly definition is picked barely matters, while monthly against daily matters a great deal. Why SPY’s monthly returns imply a larger leverage is outside what this replication tests. The replication shows that the return frequency is a choice, and a reported Kelly leverage should name it along with the window.
 
 ## What this means for a trader
 
