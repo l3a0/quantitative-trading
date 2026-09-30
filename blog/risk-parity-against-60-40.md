@@ -44,11 +44,11 @@ Matching the volatilities turns the Sharpe comparison into a return comparison. 
 
 Leverage scales a portfolio’s return above cash and its volatility by the same factor, so it leaves the Sharpe ratio unchanged. Levering risk parity therefore cannot change which one wins. What leverage does is let an investor who wants 60/40’s risk take it through risk parity’s mix instead, and that pays off exactly when the unlevered mix already has the higher Sharpe ratio.
 
-Here are Qian’s figures beside the ones this replication computes. Qian (2005) used monthly returns on the Russell 1000 stock index and the Lehman Aggregate Bond Index from 1983 to 2004. He measured returns above the three-month Treasury-bill rate paid in each month. So the two columns cover different years, different stock indices and different cash rates.
+Here are Qian’s figures beside the ones this replication computes. Qian (2005) used monthly returns on the Russell 1000 stock index and the Lehman Aggregate Bond Index from 1983 to 2004. He measured returns above the three-month Treasury-bill rate paid in each month, while this replication measures them above a fixed 4%. The two columns therefore cover different years, different stock indices and different cash rates.
 
 ```math
 \begin{array}{l|r|r}
-\text{Quantity} & \text{Qian, 1983 to 2004, cash at bill rates} & \text{SPY and AGG, 2003 to 2026, cash at 4\%} \\ \hline
+\text{Quantity} & \text{Qian, 1983 to 2004} & \text{SPY and AGG, 2003 to 2026} \\ \hline
 \text{Stock volatility} & 15.1\% & 18.55\% \\
 \text{Bond volatility} & 4.6\% & 5.17\% \\
 \text{Stock-bond correlation} & 0.2 & -0.0002 \\
