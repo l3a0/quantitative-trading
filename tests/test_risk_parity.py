@@ -756,8 +756,9 @@ class TestTheFullSpan:
     def test_the_ranking_goes_against_the_book_and_the_window_resolves_it(self, rankings) -> None:
         """60/40 beats levered risk parity by 0.2169 of Sharpe, robust t −2.17.
 
-        Both at the declared 4 percent rate. The tie and the crossing below say
-        how far the rate would have to move to undo each.
+        Both at the declared 4 percent rate.
+        ``test_the_rate_at_which_the_two_sharpe_ratios_tie`` and the crossing test
+        beside it say how far the rate would have to move to undo each.
 
         Pinned as the measured difference and its robust t rather than as the
         comparison's result, because a boolean assertion survives any mutation

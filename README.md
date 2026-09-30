@@ -69,9 +69,9 @@ they were first built. The other three were built here.
    location 4684, on SPY and AGG. Both figures Chan prints land close and the
    claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
    matched risk on the full span at Chan's 4 percent rate, resolved at a robust
-   t of −2.17. It is the
-   first entry here where the numbers reproduce and the claim does not, which
-   is the reverse of the split the GLD/GDX and Kelly entries both found.
+   t of −2.17. It is the first entry here where the numbers reproduce and the
+   claim does not, which is the reverse of the split the GLD/GDX and Kelly
+   entries both found.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -462,13 +462,12 @@ pinned here.
    volatilities, and the 15-month overlap of the two samples comes from
    Entry 4.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
-   about 29 times bonds', the \$43 of
-   SPY, \$155 of AGG and \$98 borrowed per \$100 of equity, risk parity being
-   about half as volatile as 60/40 before leverage, the 0.98 points a year each
-   point off the rate is worth and the 2.5 points it takes to close the gap,
-   the 8.36% and −0.91% a year above cash and the Sharpe ratios of 0.45 and
-   −0.18 the two funds earn at the 4% rate, and the 1.11%, 2.20% and 4.65% the
-   portfolios earn above cash.
+   about 29 times bonds', the \$43 of SPY, \$155 of AGG and \$98 borrowed per
+   \$100 of equity, risk parity being about half as volatile as 60/40 before
+   leverage, the 0.98 points a year each point off the rate is worth and the
+   2.5 points it takes to close the gap, the 8.36% and −0.91% a year above cash
+   and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4% rate,
+   and the 1.11%, 2.20% and 4.65% the portfolios earn above cash.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of

@@ -916,8 +916,9 @@ and the leverage that matches 60/40's volatility is 1.9812 against his 1.8.
 Rows 1 and 2 are therefore a percentage point and two tenths out. Row 3 is the
 claim those two were printed to support, that the levered risk-parity portfolio
 earns a higher Sharpe ratio at the same risk, and at Chan's 4 percent rate
-60/40 wins it by 0.2169 with a robust t of −2.17. So this entry is the first here where a published number
-lands close and the claim behind it does not survive.
+60/40 wins it by 0.2169 with a robust t of −2.17. So this entry is the first
+here where a published number lands close and the claim behind it does not
+survive.
 
 Three rows are replications and twelve are not. Rows 1, 2 and 3 are the three
 things location 4684 prints. The other twelve fall into four groups.
@@ -1104,9 +1105,9 @@ percent and at none below, a fifth of a point under the declared rate. At a
 rate of zero risk parity leads with a t of +1.30, which does not resolve
 either. Row 14's t reaches −2 at 3.25 percent in the same way.
 `test_the_two_resolved_rankings_resolve_only_down_to_a_little_below_4_percent`
-pins all of these. Whether the realised bill rate averaged below 1.50 percent over the full
-span decides row 3's sign to first order, and that is what the missing vintage
-would answer.
+pins all of these. Whether the realised bill rate averaged below 1.50 percent
+over the full span decides row 3's sign to first order, and that is what the
+missing vintage would answer.
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing
