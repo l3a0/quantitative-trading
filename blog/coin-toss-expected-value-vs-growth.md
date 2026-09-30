@@ -232,7 +232,7 @@ Four habits follow from the lessons above.
 3. **Report capital over several horizons.** Two rates at one horizon hide how far the capital they compound into drifts apart.
 4. **Check how a number was computed.** Name the standard-deviation convention behind a volatility, and print the standard error beside a simulated growth rate.
 
-The refusal Box 6.1 defends is a judgement about sizing. At a tenth of capital, loss aversion gives the right answer. At a twenty-second of capital, the same aversion would turn down a bet worth taking.
+The refusal Box 6.1 defends is a judgement about sizing. At 1/10 of capital, loss aversion gives the right answer. At 1/22 of capital, the same aversion would turn down a bet worth taking.
 
 ## References
 
