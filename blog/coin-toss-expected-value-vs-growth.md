@@ -4,7 +4,7 @@
 
 ## Why the average is the wrong yardstick
 
-A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pays \$5, so the bet looks worth taking. Play it 1,000 times from \$1,000, with the bet scaled to the account as it grows, and the typical trader ends with \$606.
+A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pays \$5, so the bet looks worth taking. Play it 1,000 times from \$1,000, with the bet scaled to the account each round, and the typical trader ends with \$606.
 
 Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, builds this bet to show how a bet that pays on average can still lose. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. For this bet, the average return and the growth of capital have opposite signs.
 
@@ -103,7 +103,7 @@ Chan makes the same point twice elsewhere in Chapter 6 (Chan, 2021), and both ex
 1. A stock that moves up or down 1% each minute with equal odds has a mean return of zero. Its compound growth is negative, about half a basis point, or 0.005%, a minute.
 2. SPY, an exchange-traded fund that tracks the S&P 500, has a mean annual return of 11.23% in his example, and its compound growth rate without leverage is 9.8%. The 1.43-point gap is the drag.
 
-So two strategies with the same mean return do not grow at the same rate. In the approximation, the one with lower variance compounds faster, and it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin. For a positive mean, holding the mean fixed and cutting the standard deviation raises the Sharpe ratio and lowers the drag together, so here the higher Sharpe ratio is the faster-growing strategy.
+So two strategies with the same mean return do not grow at the same rate. In the approximation, the one with lower variance compounds faster, and for a positive mean it is also the one with the higher **Sharpe ratio**. That ratio is the mean return divided by its standard deviation, `m / s`, the usual measure of return per unit of risk. Strictly it uses the return above a risk-free rate, which is zero for the coin.
 
 Lesson 4 shows the stronger form of this. Once the bet is sized well, the Sharpe ratio alone sets the best growth a strategy can reach, and the mean return drops out. That holds in the continuous approximation, with the risk-free rate at zero and the bet free to be scaled up or down.
 
@@ -118,7 +118,7 @@ g(f) = \tfrac{1}{2}\ln(1 + b f) + \tfrac{1}{2}\ln(1 - f)
 Two stakes on this curve matter.
 
 1. **Growth is zero** at a stake of `(b − 1)/b`, which is 1/11 for Chan’s coin. His stake of 1/10 sits just past that line, which is why the growth rate is a small negative number rather than a large one.
-2. **Growth is highest** at `(b − 1)/(2b)`, which is 1/22. At that stake the time average is +0.0011351 per round.
+2. **Growth is highest** at `(b − 1)/(2b)`, which is 1/22. At that stake the time average is 0.0011351 per round.
 
 ![A curve of growth per round against the stake, from 0% to 11% of capital. It rises from zero to a peak of +0.0011351 at a stake of 1/22, falls back through zero at 1/11, and turns negative. Chan’s stake of 1/10 sits just below zero at −0.00050025. The region above zero is shaded green and the region below it red.](../docs/figures/coin_flip_growth_by_stake.png)
 
@@ -192,7 +192,7 @@ The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded
 
 ### Check the method, not only the result
 
-The two wrong choices are also a lesson in checking work. Landing on −0.0005125 shows the number is right, while a different formula could still sit behind it. Showing that the sample form gives −0.006025 and the exact form gives −0.00050025, and that neither matches Chan, rules out the two alternatives a reader would most likely try. It narrows the method down rather than proving it, and a wrong method is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
+The two choices that miss Chan’s figure are also a lesson in checking work. Landing on −0.0005125 shows the reproduction matches Chan’s figure, while a different formula could still sit behind it. Showing that the sample form gives −0.006025 and the exact rate gives −0.00050025, and that neither matches Chan, rules out the two alternatives a reader would most likely try. It narrows the method down rather than proving it, and a wrong method is the mistake that leaves a printed number looking plausible. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
 ## Lesson 6: a simulation of the coin can mislead in two ways
 
@@ -214,7 +214,7 @@ A small run can therefore land on the wrong side of zero. Three results show wha
 
 *The same simulation at two sizes, 200 seeds each. The small run’s spread is wider than the effect it measures, so 56 seeds land on the wrong side of zero. The large run’s spread is narrow enough that none do.*
 
-The same noise is why this replication checks Chan’s printed figures against exact arithmetic, and uses simulation only to show the sign.
+The same noise is why this replication checks Chan’s printed figures against exact arithmetic, and uses simulation only to illustrate the argument.
 
 ### Average final wealth reads low
 
