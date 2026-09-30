@@ -74,7 +74,6 @@ Here are Chan’s figures beside the ones this replication computes on the same 
 \end{array}
 ```
 
-
 ## Lesson 1: the figures moved and no conclusion did
 
 Nearly every figure computed from the series lands slightly above Chan’s. The mean is 0.06 percentage points higher, the Sharpe ratio 0.0038 higher and the leverage 0.023 higher. The conclusions those numbers support still hold. SPY returned about 11% a year over his window, the growth-maximising leverage is about two and a half, and levering to it lifts growth above the unlevered rate.
