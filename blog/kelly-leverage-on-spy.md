@@ -78,13 +78,9 @@ Here are Chan’s figures beside the ones this replication computes on the same 
 
 Nearly every figure computed from the series lands slightly above Chan’s. The mean is 0.06 percentage points higher, the Sharpe ratio 0.0038 higher and the leverage 0.023 higher. The conclusions those numbers support still hold. SPY returned about 11% a year over his window, the growth-maximising leverage is about two and a half, and levering to it lifts growth above the unlevered rate.
 
-The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. On the **ex-dividend day**, the first day a buyer no longer gets the next dividend, the price drops by about the payout, and the adjustment folds the payout back into that day’s return.
+The standard deviation is the one figure that matches, at the two decimals Chan prints.
 
-Dividends paid after 2007 cannot cause the gap, because they rescale every earlier price by the same factor and leave every return unchanged. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten days at or next to SPY’s quarterly ex-dividend dates, where one download counts all or part of a payout that the other misses. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
-
-The standard deviation is the one figure that matches, at the two decimals Chan prints. A few large differences, mostly in one direction, add up in a mean and barely touch a standard deviation.
-
-A backtest that quotes a figure without naming its data vintage quotes something nobody can check, its author included.
+A backtest that quotes a figure without naming which download of the data it read quotes something nobody can check, its author included.
 
 ## Lesson 2: the formula hides two choices, and each wrong answer looks right
 
@@ -107,7 +103,7 @@ The same arithmetic runs the other way after a gain, when rebalancing buys. An a
 
 Chan then asks whether the Kelly leverage would have survived Black Monday, 19 October 1987, when the S&P 500 fell 20.47% in a day. If a trader can tolerate losing 20% of equity in one day, the leverage that allows is 0.20 divided by 0.2047, or 0.977. Chan calls it “about 1”. Half-Kelly is 1.26 in his figures. Since 1.26 is above 0.977, he concludes that even half-Kelly would not have survived that day. At full Kelly on this download, a repeat of Black Monday would cost 52.21% of equity.
 
-The conclusion holds while half the Kelly leverage exceeds 0.977, which means while the full leverage exceeds 1.954. This download gives 2.551, a margin of 0.60. Chan’s spreadsheet for the example also carries the **as-traded close**, the price as it printed each day with no adjustment for dividends. Computed from that column, the leverage is 1.93, below the 1.954 threshold, so the choice of price series alone reverses his conclusion. That 1.93 comes from reading his spreadsheet directly. The repository keeps only his adjusted column, so no test reproduces it yet.
+The conclusion holds while half the Kelly leverage exceeds 0.977, which means while the full leverage exceeds 1.954. This download gives 2.551, a margin of 0.60. Chan computed his figures from an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. His spreadsheet for the example also carries the **as-traded close**, the price as it printed each day with no such adjustment. Computed from that column, the leverage is 1.93, below the 1.954 threshold, so the choice of price series alone reverses his conclusion. That 1.93 comes from reading his spreadsheet directly. The repository keeps only his adjusted column, so no test reproduces it yet.
 
 The 20.47% needs two cautions.
 

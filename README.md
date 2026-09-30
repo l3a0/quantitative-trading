@@ -397,7 +397,7 @@ reason given above for the regime map.
 post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
 Entry 3 of the replication log: the vintage, the specification, rebalancing at
 a constant leverage, the stress test's threshold and price series, the window,
-and the return frequency. Four groups of its figures are not pinned here.
+and the return frequency. Three groups of its figures are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
    7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
@@ -418,12 +418,6 @@ and the return frequency. Four groups of its figures are not pinned here.
    factor of about 35 it multiplies an error in the mean by, and the worst SPY
    day being about a third of Black Monday. The 43 to 47% that monthly sampling
    adds is held by a test only as a band of 42 to 48%.
-4. The finding that about ten days at or next to SPY's quarterly ex-dividend
-   dates carry the whole gap in the mean, where one download counts all or part
-   of a payout that the other misses.
-   It was measured against `data/spy_chan.csv`, and no test holds it until
-   [issue 138](https://github.com/l3a0/quantitative-trading/issues/138)
-   compares the two vintages.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py), apart from the
