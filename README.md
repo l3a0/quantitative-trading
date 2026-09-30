@@ -482,10 +482,11 @@ of its figures are not pinned here.
    which it would fall under AGG's, and the whole-period Sharpe ratios of 0.18
    and 0.25 that the earlier and later periods' weights would give risk parity,
    the three-quarters and 0.12 that split the later period's 0.50 gap between
-   the period and the carried weights, and the 0.52 and 0.28 in the inequality
+   the period and the carried weights, and the 0.525 and 0.276 in the inequality
    that sets the hurdle, and the Sharpe gaps of about 0.02 for 60/40 over the
    whole period at the 1.74% bill average and about 0.13 for risk parity before
-   2022 at 1.17%, with t-statistics of −0.21 and +1.11 at those two rates, and the Sharpe ratios of about 0.26 for AGG and 0.57 for SPY
+   2022 at 1.17%, with t-statistics of −0.21 and +1.11 at those two
+   rates, and the Sharpe ratios of about 0.26 for AGG and 0.57 for SPY
    at the 1.74% bill average, with the 0.44 of the 0.98 difference in bonds'
    Sharpe ratio that the cash rate accounts for, and the 0.46 times SPY's that
    AGG's 0.26 comes to there.
