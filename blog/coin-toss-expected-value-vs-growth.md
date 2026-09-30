@@ -148,7 +148,7 @@ Scaling a bet up or down scales `m` and `s` by the same factor, so it never chan
 
 This changes what the refusal means. Refusing at a tenth of capital is correct. Accepting at a twenty-second of capital is also correct. Loss aversion here is a judgement about sizing, and at Chan’s size it gives the right answer.
 
-## Lesson 5: two unstated formula choices can change a growth rate
+## Lesson 5: the formula hides two choices, and one makes the loss nearly 12 times larger
 
 Computing a growth rate from returns involves choices the formula `m − s²/2` does not state. Two of them matter here, and each produces a number that looks right but does not match Chan’s. The coin exposes both, because Chan printed enough figures to tell the right choice from the wrong one.
 
@@ -159,7 +159,7 @@ He prints four numbers for the gamble.
 3. The 0.105 standard deviation.
 4. The −0.0005125 growth rate, from the continuous approximation.
 
-He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box itself doesn’t show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
+He cites Example 6.1, earlier in Chapter 6, for the approximation, but the box itself does not show his work. The only way to learn how he computed the growth rate is to find the choices that reproduce all four numbers at once.
 
 ### Which standard deviation
 
