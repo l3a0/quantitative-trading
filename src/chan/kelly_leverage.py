@@ -18,8 +18,8 @@ mean sits on about ten days on or beside SPY's quarterly ex-dividend dates. On
 the four largest, one download folds nearly a whole quarterly payout into the
 day's return and the other does not, and on the rest it folds in part of one.
 The differences mostly raise the 2026 mean. Elsewhere they are small, mostly
-rounding and a few smaller dividend differences, and together offset less than
-a tenth of the gap. A few large differences move a mean and barely touch a
+rounding and a few smaller dividend differences, and together pull back less
+than a tenth of the gap. A few large differences move a mean and barely touch a
 standard deviation. That comparison is measured rather than pinned. Reading
 his own workbook, and pinning it, is
 [issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
