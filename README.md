@@ -462,7 +462,7 @@ pinned here.
    volatilities, and the 15-month overlap of the two samples comes from
    Entry 4.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
-   about 29 times bonds', the 23.72 that 18.55 and 5.17 sum to, the \$43 of
+   about 29 times bonds', the \$43 of
    SPY, \$155 of AGG and \$98 borrowed per \$100 of equity, risk parity being
    about half as volatile as 60/40 before leverage, the 0.98 points a year each
    point off the rate is worth and the 2.5 points it takes to close the gap,

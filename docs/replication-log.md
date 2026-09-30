@@ -1054,8 +1054,8 @@ Four things, and the first is the one the other three explain.
    Entry 3 works at would read as a comfortable reproduction. Row 3 is the
    claim those two were printed to support and 60/40 wins it by 0.2169 of
    Sharpe, resolved at a robust t of −2.17 at the declared 4 percent rate.
-   That is the reverse of the split Entries 1 and 3 both found, where every
-   number moved and the central claims held.
+   That is the reverse of the split Entries 1 and 3 both found, where most of
+   the numbers moved and the central claims held.
 2. **The gap is where the return is, not where the risk is.** Row 8 lands on 50
    percent each exactly, so the method did what it says. Row 7 confirms the
    premise it rests on. What fails is the step from a balanced risk split to a

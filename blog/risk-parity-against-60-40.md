@@ -32,7 +32,7 @@ Risk parity picks the weights that make the two contributions equal. Setting the
 w_1^2 \sigma_1^2 = w_2^2 \sigma_2^2 \quad\Rightarrow\quad w_1 \sigma_1 = w_2 \sigma_2
 ```
 
-So each weight shrinks as its asset’s volatility grows, and an asset twice as volatile gets half the weight. With weights that sum to 1, the stock weight is `σ₂ / (σ₁ + σ₂)`, which is 5.17 divided by 23.72, or 21.8%. Bonds get 78.2%.
+So each weight shrinks as its asset’s volatility grows, and an asset twice as volatile gets half the weight. With weights that sum to 1, the stock weight is `σ₂ / (σ₁ + σ₂)`, which is 5.17 divided by the sum of the two, or 21.8%. Bonds get 78.2%.
 
 ![Four horizontal bars for SPY and AGG from 2003 to 2026. 60/40 splits capital 60% SPY and 40% AGG and splits risk 96.7% SPY and 3.3% AGG. Risk parity splits capital 21.8% SPY and 78.2% AGG and splits risk 50% each.](../docs/figures/risk_parity_capital_and_risk.png)
 
@@ -102,7 +102,7 @@ So the replication splits the period at 16 March 2022, the day the Federal Reser
 
 Of the three periods, meaning the whole 23 years and its two parts, the later period is where risk parity does worst. 60/40 earns a Sharpe ratio of 0.51 and risk parity 0.01, a gap of 0.50, with a t-statistic of −2.20. Computing the weights inside that period would have helped risk parity, and removing that help is the reason for the split. The gap is wide enough that only a rate of −4.43% would tie the two, so no positive rate changes the winner there. The t-statistic is less secure. Like the whole period’s, it moves with the rate in a straight line. It reaches −2 at an assumed 3.25%, so below that rate the later period no longer clears the usual bar, even though 60/40 keeps the higher Sharpe ratio.
 
-A second caution applies to the t-statistic. The weights come from the earlier period, but the leverage that matches 60/40’s volatility is measured inside the later one. Neither Sharpe ratio depends on the leverage, since leverage scales return and risk together, so the gap of 0.50 stays put. It works on the daily difference in returns, which grows with the leverage. At the leverage measured on the earlier period instead, it is −1.64, which is not enough to name a winner.
+A second caution applies to the t-statistic. The weights come from the earlier period, but the leverage that matches 60/40’s volatility is measured inside the later one. Neither Sharpe ratio depends on the leverage, since leverage scales return and risk together, so the gap of 0.50 stays put. The t-statistic works on the daily difference in returns, which grows with the leverage. At the leverage measured on the earlier period instead, it is −1.64, which is not enough to name a winner.
 
 The earlier period on its own does not name a winner either. 60/40 wins it by 0.16, and a t-statistic of −1.35 is within what chance could produce. It is also more sensitive to the rate than the whole period, with the two tying at 2.45%. Those years lean the same way as the whole period without settling it.
 

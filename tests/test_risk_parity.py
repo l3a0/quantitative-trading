@@ -509,8 +509,8 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
         Moving the rate shifts the daily difference by a constant, ``(1 - leverage)``
         times the daily rate, and a constant shift leaves the Newey-West standard
         error alone. So the t is linear in the rate and the crossing is a closed
-        form like the tie above. It only grows in size as the rate rises, so each
-        ranking resolves at every rate above its crossing and at none below it.
+        form like the tie above. It only falls as the rate rises, so 60/40's lead
+        resolves at every rate above its crossing and at no rate below it.
         Recomputing the ranking at each rate checks the closed form. At a rate of
         zero the full span's t is +1.30 and the rising window's −1.15, so risk
         parity's lead on the full span never reaches 2 at a non-negative rate.
