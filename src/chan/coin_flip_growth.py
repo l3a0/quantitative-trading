@@ -356,7 +356,7 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
     print("    which collapses as rounds grow.")
     print(
         f"  time average     (one trader)     = {m.growth_exact:+.7f}  "
-        "<- exact, not a figure the book prints"
+        "<- exact discrete, not a figure the book prints"
     )
     print(
         f"  time average, continuous approx.  = {m.growth_continuous:+.7f}  "
