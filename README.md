@@ -467,14 +467,16 @@ pinned here.
    leverage, the 0.98 points a year each point off the rate is worth and the
    2.5 points it takes to close the gap, the 8.36% and −0.91% a year above cash
    and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4% rate,
-   and the 1.11%, 2.20% and 4.65% the portfolios earn above cash.
+   the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the 0.71,
+   0.98 and 0.18 that weight the two funds' Sharpe ratios under a correlation
+   near zero, with the bar of about half they set for bonds against stocks.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
 1.50%, 2.45% and −4.43% at which the two Sharpe ratios tie and the full span's
-t-statistic of −2 at 3.80% and +1.30 at zero, and the later period's −2 at
-3.25%. The shares its figure draws
-trace to
+t-statistic of −2 at 3.80% and +1.30 at zero, the later period's −2 at 3.25%,
+and the 0.38 gap its weights would leave if computed inside it. The shares its
+figure draws trace to
 [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
 
 Its one figure, the capital and risk shares of 60/40 and risk parity on the

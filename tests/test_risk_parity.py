@@ -566,8 +566,12 @@ class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:
         )
         # Refitting moves the ranking, which is why it is not done. It moves it
         # in risk parity's favour here, which is the direction that would have
-        # flattered the claim under test.
+        # flattered the claim under test. By how much is pinned too, because the
+        # risk parity post quotes it: the gap narrows from 0.50 to 0.38 and 60/40
+        # still wins, so most of the later period's loss is the period itself.
         assert refitted.sharpe_difference > rising.sharpe_difference
+        assert refitted.sharpe_difference == pytest.approx(-0.378086, abs=5e-7)
+        assert refitted.sharpe_parity == pytest.approx(0.128975, abs=5e-7)
 
     def test_the_other_two_windows_say_in_sample_because_nothing_precedes_them(
         self, rankings
