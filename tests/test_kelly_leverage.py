@@ -9,9 +9,11 @@ reasoning.
 SPY through 2007-12-28 on a 2008-vintage adjusted series. This reads a 2026
 download of the same symbol over the same dates, so every level below lands
 high and the gaps measure eighteen years of restatement rather than a method.
-The standard deviation is the exception, at the two decimals the book prints,
-because restatement moves where a series sits and not how much it moves.
-Reading his own workbook is issue 138.
+The standard deviation is the exception, at the two decimals the book prints.
+The two downloads differ mostly on a few dividend days, by amounts that share a
+sign, which moves a mean and barely touches a standard deviation. That is
+measured against ``data/spy_chan.csv`` rather than pinned here, and reading his
+own workbook is issue 138.
 
 Two kinds of assertion live here and they are not interchangeable.
 

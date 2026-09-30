@@ -87,7 +87,9 @@ resolves Chan's seven decimals.
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py) does it for the
 Kelly run, and separates the figures from the specification that produces them,
 because three of the five choices behind Chan's numbers are invisible on the
-page and each has a plausible wrong answer that does not look wrong.
+page and each has a plausible wrong answer that does not look wrong. The blog
+post about it is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_risk_parity.py](tests/test_risk_parity.py) does it for the risk
 parity run, and pins the ranking as a measured difference and a robust
@@ -393,15 +395,15 @@ reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
 post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
-Entry 3 of the replication log, on how far the leverage moves with the vintage,
-the specification, the price series, the window and the return frequency.
-Three groups of its figures are not pinned here.
+Entry 3 of the replication log: the vintage, the specification, rebalancing at
+a constant leverage, the stress test's threshold and price series, the window,
+and the return frequency. Four groups of its figures are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
    7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
-   growth rates and 1.26 half-Kelly, and the 20.47% Black Monday loss and 20%
-   tolerance of the stress test. The code carries them as cited constants and
-   computes none of them.
+   growth rates and 1.26 half-Kelly, the 4% risk-free rate, and the 20.47%
+   Black Monday loss and 20% tolerance of the stress test. The code carries
+   them as cited constants and computes none of them.
 2. The leverage of 1.93 on Chan's as-traded close. It comes from his own
    workbook, which this repo does not hold, and
    [issue 138](https://github.com/l3a0/quantitative-trading/issues/138) is
@@ -409,10 +411,15 @@ Three groups of its figures are not pinned here.
    threshold.
 3. Arithmetic on pinned figures that no test asserts: the 0.60 margin above
    the 1.954 threshold, the 7.72 spread between the bear and bull windows, the
-   13.86% that reading `m` as the total return gives, the variance of about
+   13.9% that reading `m` as the total return gives, the variance of about
    0.03 and the factor of about 35 it multiplies an error in the mean by, the
-   43 to 47 percent that monthly sampling adds, and the worst SPY day being
-   about a third of Black Monday.
+   43 to 47% that monthly sampling adds, and the worst SPY day being about a
+   third of Black Monday.
+4. The finding that the two downloads disagree mostly on days in SPY's
+   dividend months. It was measured against `data/spy_chan.csv`, and no test
+   holds it until
+   [issue 138](https://github.com/l3a0/quantitative-trading/issues/138)
+   compares the two vintages.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py).
