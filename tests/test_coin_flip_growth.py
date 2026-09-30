@@ -452,6 +452,20 @@ class TestTheReportSaysWhatItComputed:
         assert "rng.integers" in out
         assert "none, synthetic" in out
 
+    def test_the_one_trader_label_carries_the_exact_rate(self, moments, capsys) -> None:
+        """The time average is the exact rate, and the book's figure is its
+        continuous approximation, so the report's main time-average label sits
+        on growth_exact. The test above only finds each value somewhere in the
+        output, so it passes with the two lines swapped. Checked by swapping
+        them."""
+        report(simulate(10, 10, 0), horizons=(10,))
+        lines = capsys.readouterr().out.splitlines()
+        one_trader = next(line for line in lines if "(one trader)" in line)
+        approx = next(line for line in lines if "continuous approx." in line)
+        assert f"{moments.growth_exact:+.7f}" in one_trader
+        assert f"{moments.growth_continuous:+.7f}" in approx
+        assert "the figure the book prints" in approx
+
     def test_the_report_names_which_ensemble_estimator_the_run_used(self, capsys) -> None:
         """Requirement 2. Two estimators of the ensemble side exist and only one
         survives more rounds, so the report says which one produced its number

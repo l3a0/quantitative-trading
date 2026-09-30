@@ -355,12 +355,12 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
     print("    simple return per flip, not as the log of mean terminal wealth,")
     print("    which collapses as rounds grow.")
     print(
-        f"  time average     (one trader)     = {m.growth_continuous:+.7f}  "
-        "<- the book's continuous approximation"
+        f"  time average     (one trader)     = {m.growth_exact:+.7f}  "
+        "<- exact, not a figure the book prints"
     )
     print(
-        f"  time average, exact discrete      = {m.growth_exact:+.7f}  "
-        "<- not a figure the book prints"
+        f"  time average, continuous approx.  = {m.growth_continuous:+.7f}  "
+        "<- the figure the book prints"
     )
     print("  They disagree in sign, which is the whole argument.")
     print()
