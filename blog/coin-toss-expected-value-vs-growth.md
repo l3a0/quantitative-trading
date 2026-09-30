@@ -8,7 +8,7 @@ A fair coin pays \$110 on heads and costs \$100 on tails. On average a round pay
 
 Box 6.1 in Chapter 6 of Ernest Chan’s *Quantitative Trading* (Chan, 2021), titled “Loss aversion is not a behavioral bias”, uses this bet to argue that people who refuse it are right. Most performance numbers a trader sees are averages of one-period returns, like a backtest’s mean daily return or a bet’s expected value. A trader who reinvests does not collect that average. Capital compounds, so each round’s return multiplies what the last round left behind. For this bet, the average return and the growth of capital have opposite signs.
 
-This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in code. The code behind every figure is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading). Where a number is Chan’s own printed figure rather than one worked out here, the post says so.
+This post walks through the gamble, the two averages that disagree about it, and six lessons from reproducing it in code. The code behind every figure is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The gamble
 
