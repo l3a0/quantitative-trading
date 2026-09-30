@@ -80,7 +80,7 @@ Nearly every figure computed from the series lands slightly above Chan’s. The 
 
 The cause is the data vendor rather than the method. Chan read an **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. On the **ex-dividend day**, the first day a buyer no longer gets the next dividend, the price drops by about the payout, and the adjustment folds the payout back into that day’s return.
 
-Dividends paid after 2007 cannot cause the gap. Each one rescales every earlier price by the same factor, which leaves every return unchanged. So the gap lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten days at or next to SPY’s quarterly ex-dividend dates. On the four days with the largest differences, one download folds nearly a whole payout into the day’s return and the other does not. On the rest of the ten, part of a payout differs. The ten mostly raise the 2026 mean. Every other day differs only slightly. Most of those are rounding, a few are smaller dividend differences, and together they pull back less than a tenth of the gap. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
+Dividends paid after 2007 cannot cause the gap. Each one rescales every earlier price by the same factor, which leaves every return unchanged. So the gap lies inside the window. A day-by-day comparison with Chan’s own series puts the whole gap in the mean on about ten days at or next to SPY’s quarterly ex-dividend dates. On the four days with the largest differences, one download folds nearly a whole payout into the day’s return and the other does not. On the rest of the ten, part of a payout differs. The ten mostly raise the 2026 mean. Every other day differs only slightly, mostly from rounding and a few times from a smaller dividend difference, and together those days pull back less than a tenth of the gap. This replication keeps each download as a dated file, called a **vintage**, so a comparison like that can be run at all.
 
 The standard deviation is the one figure that matches, at the two decimals Chan prints. A few large differences, mostly in one direction, add up in a mean and barely touch a standard deviation.
 
@@ -99,7 +99,7 @@ A reported Sharpe ratio or Kelly leverage should say which standard deviation it
 
 Chan’s worked example follows the leverage through a bad day. With \$100,000 of equity at 2.528, the account holds \$252,800 of SPY and owes \$152,800. SPY then falls 10%, so the position is worth \$227,520 and equity is down to \$74,720. The loss on equity is 2.528 times the fund’s fall.
 
-To get back to 2.528 times equity, the account has to shrink the position to \$188,892, selling SPY straight after it fell. Every figure in that chain is arithmetic on Chan’s rounded 2.528, so it reproduces to the cent.
+To get back to 2.528 times equity, the account has to shrink the position to \$188,892, selling SPY straight after it fell. Every figure in that chain is arithmetic on Chan’s rounded 2.528, so it reproduces exactly. The last comes to \$188,892.16, which Chan rounds to the dollar.
 
 The same arithmetic runs the other way after a gain, when rebalancing buys. An account held at a constant leverage above 1 sells after losses and buys after gains, which is the behaviour of a momentum trader, whatever the strategy underneath. In a fall followed by a recovery, it sells near the low and buys back higher.
 

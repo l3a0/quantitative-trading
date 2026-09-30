@@ -866,19 +866,21 @@ the suite does not hold.
    as-traded close. Everything this entry says about the price basis rests on
    them, including the 0.59 the price basis is worth in the conclusions and the
    reversal of his own risk conclusion, since 1.9341 is below the 1.954079
-   threshold this repo does compute. 2. **0.427523 and 0.427580**, his Sharpe
-   ratio under the sample and population dispersion forms. They are why row 4
-   says only the sample form prints as the 0.4275 he published. This repo's own
-   two forms are 5.74e-5 apart on the same quantity, which is pinned, so the
-   argument survives without them and the demonstration on his own data does
-   not. 3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row
-   9 quotes it to say the published \$252,800 is arithmetic on a rounded input.
-   4. **1.68 percentage points**, what SPY's distributions are worth in annual
+   threshold this repo does compute.
+2. **0.427523 and 0.427580**, his Sharpe ratio under the sample and population
+   dispersion forms. They are why row 4 says only the sample form prints as the
+   0.4275 he published. This repo's own two forms are 5.74e-5 apart on the same
+   quantity, which is pinned, so the argument survives without them and the
+   demonstration on his own data does not.
+3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row 9 quotes
+   it to say the published \$252,800 is arithmetic on a rounded input.
+4. **1.68 percentage points**, what SPY's distributions are worth in annual
    mean return on his span. `src/chan/kelly_leverage.py` quotes it as the size
-   of the price-basis choice. 5. **The three monthly resampling rules run on
-   his series**, which land 43 to 47 percent above his daily figure. Row 15
-   cites them to say no vintage explanation is available for the claim it
-   refutes. That row's own numbers, on this vintage, are pinned.
+   of the price-basis choice.
+5. **The three monthly resampling rules run on his series**, which land 43 to
+   47 percent above his daily figure. Row 15 cites them to say no vintage
+   explanation is available for the claim it refutes. That row's own numbers,
+   on this vintage, are pinned.
 
 ### What this entry cannot say
 
