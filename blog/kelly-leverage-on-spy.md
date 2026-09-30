@@ -147,7 +147,7 @@ All three sit near 3.7, which is 43 to 47% above the 2.551 from daily returns. W
 
 ## What this means for a trader
 
-The replication reproduces Chan’s figures on one download of one fund. It tests figures someone else chose, so all it can say is whether his conclusions hold. It says nothing about whether leverage of this size is a good idea today. A leverage computed from one sample is a reference point rather than a recommendation.
+The replication reproduces Chan’s figures on one download of one fund. It can say whether his conclusions hold on that download, and nothing about whether leverage of this size is a good idea today. A leverage computed from one sample is a reference point rather than a recommendation.
 
 Four habits follow from the lessons above.
 
