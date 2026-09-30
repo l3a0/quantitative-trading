@@ -395,9 +395,11 @@ reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
 post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
-Entry 3 of the replication log: the vintage, the specification, rebalancing at
-a constant leverage, the stress test's threshold and price series, the window,
-and the return frequency. Four groups of its figures are not pinned here.
+Entry 3 of the replication log: the gap from Chan's figures, the specification,
+rebalancing at a constant leverage, the stress test's threshold and price
+series, the window, and the return frequency. A further lesson, Lesson 6, on
+overbetting past the Kelly leverage, comes from the growth formula. Three
+groups of its figures are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
    7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
@@ -415,21 +417,18 @@ and the return frequency. Four groups of its figures are not pinned here.
    1.43% volatility drag, the 6.98% half-Kelly adds above the 4% rate, the
    9.30% that `S²/2` adds, the 0.60 margin above the 1.954 threshold, the 7.72
    spread between the bear and bull windows, the variance of 0.0286 and the
-   factor of about 35 it multiplies an error in the mean by, and the worst SPY
-   day being about a third of Black Monday. The 43 to 47% that monthly sampling
-   adds is held by a test only as a band of 42 to 48%.
-4. The finding that about ten days on or beside SPY's quarterly ex-dividend
-   dates carry the whole gap in the mean, with nearly a whole quarterly payout
-   on the four largest, while the other days pull back less than a tenth of it.
-   It was measured against `data/spy_chan.csv`, and no test holds it until
-   [issue 138](https://github.com/l3a0/quantitative-trading/issues/138)
-   compares the two vintages.
+   factor of about 35 it multiplies an error in the mean by, the worst SPY day
+   being about a third of Black Monday, and twice Kelly carrying about five
+   times SPY's swings. The 43 to 47% that monthly sampling adds is held by a
+   test only as a band of 42 to 48%.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py), apart from the
-numbers its figure prints, which trace to
+numbers read off the growth formula, which trace to
 [tests/test_kelly_figures.py](tests/test_kelly_figures.py). Those include the
-10.98% half-Kelly keeps and the 5.10 of twice Kelly.
+10.98% half-Kelly keeps and the 5.10 of twice Kelly, which the figure prints,
+and the 5.60 at which growth reaches zero and the 5.43% the bull window's 4.90
+earns on Chan's window, which it does not.
 
 Its one figure, growth against leverage on Chan's window, is drawn from the
 committed SPY vintage by [src/chan/kelly_figures.py](src/chan/kelly_figures.py):
