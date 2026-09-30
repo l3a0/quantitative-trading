@@ -625,7 +625,7 @@ Four things, and the first is why a verdict here carries less than it looks.
    could have moved it and rows 1 to 5 could only reproduce. What this entry is
    worth is rows 7 and 8, not its verdict column.
 2. **The book prints no formula, so the formula is what rows 3 and 4 hold.**
-   Three plausible choices give three numbers, and only one reproduces all four
+   Three candidate formulas give three numbers, and only one reproduces all four
    of Chan's figures at once. The sample standard deviation gives −0.006025, out
    by a factor of 11.8 and still printing as a small negative number. The exact
    discrete rate gives −0.00050025. Both are pinned, because an assertion on
@@ -673,10 +673,10 @@ Two things the suite does pin about it, because a demonstration nobody sized is
 a demonstration that works on the seed somebody tried. At 1,000 paths by 1,000
 rounds the time average comes out negative on all of the first 200 seeds. At
 100 rounds by 200 paths it comes out positive on 56 of them, so more than a
-quarter of seeds show no divergence at all. The report prints the standard error
-beside the estimate and says when a size cannot resolve the sign, which is a
-line a reader sees rather than an exception, because at that size nothing has
-failed.
+quarter of seeds get the sign of the time average wrong. The report prints the
+standard error beside the estimate and says when a size cannot resolve the
+sign, which is a line a reader sees rather than an exception, because at that
+size nothing has failed.
 
 The draw method is part of what a seed means, and the module names it. On seed
 7, `rng.integers`, `rng.random`, `rng.binomial` and `rng.standard_normal` give

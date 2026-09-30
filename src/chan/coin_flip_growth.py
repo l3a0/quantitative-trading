@@ -103,7 +103,8 @@ BOOK_REF = (
 
 # The size the pinned run uses. Chosen from measurement rather than taste: at
 # 100 rounds by 200 paths the time average came out positive on 56 of the
-# first 200 seeds, so more than a quarter of seeds show no divergence at all.
+# first 200 seeds, so more than a quarter of seeds get the sign of the time
+# average wrong.
 # At this size none of those 200 seeds does, and the sweep costs about a
 # second. tests/test_coin_flip_growth.py pins both halves of that.
 BOOK_ROUNDS = 1000

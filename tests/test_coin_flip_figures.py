@@ -1,4 +1,4 @@
-"""The pins for the three coin-flip figures.
+"""The pins for the five coin-flip figures.
 
 ``tests/test_coin_flip_growth.py`` holds what the gamble computes. This file
 holds that each figure draws those numbers, so a generator that plotted the
@@ -181,7 +181,7 @@ class TestTheStakeFigure:
 
 
 class TestThePathsFigure:
-    """Lessons 1 and 2: a seeded fan, the ensemble mean and the median path."""
+    """Lesson 2: a seeded fan, the ensemble mean and the median path."""
 
     def test_the_fan_is_the_module_s_own_draws(self, paths) -> None:
         """The figure names its seed and its draw method, so the paths it draws

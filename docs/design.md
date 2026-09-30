@@ -327,7 +327,7 @@ meeting a case it was not written for.
    verdict. It is that the ensemble average and the time average are shown
    disagreeing in sign, and that the log format was exercised a second time.
 4. **The book prints no formula, so the formula is what the pin holds.** Three
-   plausible choices give three numbers. The population standard deviation
+   candidate formulas give three numbers. The population standard deviation
    with `g = m - s^2 / 2` reproduces −0.0005125 exactly. The sample form gives
    −0.006025, out by a factor of 11.8. The exact discrete rate gives
    −0.00050025, which differs at the second significant digit. The suite pins

@@ -11,7 +11,7 @@ so a figure can only be wrong by drawing the wrong thing, which
    just below zero, which is Lesson 4.
 2. :func:`make_paths_figure` draws a fan of seeded capital paths over 1,000
    rounds, with the ensemble mean climbing and the median path sinking, which
-   is Lessons 1 and 2.
+   is Lesson 2.
 3. :func:`make_distribution_figure` draws the probability of every balance
    1,000 rounds can reach. The median, the starting capital and the ensemble
    mean are marked, and so is the balance the continuous approximation
