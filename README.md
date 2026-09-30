@@ -355,8 +355,10 @@ rest, in `TestTheStakeDecidesTheSign`. Four groups of its figures are not pinned
    asserts it.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
    its docstring and does not assert the percentage. Lesson 2's 6% gap at ten
-   rounds is the same kind, the pinned ratio of 1.06 written as a percentage,
-   and so is Lesson 4's 3.11 times, the pinned \$3,111 divided by \$1,000.
+   rounds is the same kind, the pinned ratio of 1.06 written as a percentage.
+   So are Lesson 4's multiple of 3.11, the pinned \$3,111 divided by \$1,000,
+   and Lesson 6's "a fifth of the growth", the pinned standard error of
+   1.05e-4 set against the growth of about 0.0005.
 
 Every other number in the post traces to an assertion in
 [tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers

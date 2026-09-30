@@ -78,9 +78,9 @@ class TestBookFigures:
     """Every figure Box 6.1 prints, at the precision it prints it.
 
     Chan gives four numbers at locations 3176 and 3186 and no formula, so the
-    formula is what these assertions really hold. Only one choice reproduces
-    all four at once, and ``TestTheNearMisses`` is the other half of that
-    claim.
+    formula is what these assertions really hold. Of the three candidate
+    formulas, only one reproduces all four at once, and ``TestTheNearMisses``
+    pins the other two.
     """
 
     def test_expected_gain_is_five_dollars(self, moments) -> None:

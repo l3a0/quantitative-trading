@@ -46,7 +46,7 @@ The time average is the mean log return. A round’s **log return** is the natur
 g = \tfrac{1}{2}\ln 1.11 + \tfrac{1}{2}\ln 0.90 = \tfrac{1}{2}(0.1043600) + \tfrac{1}{2}(-0.1053605) = -0.00050025
 ```
 
-Chan prints a slightly different figure for `g`, because he uses the continuous approximation, a shortcut that gets more accurate as each round’s swings get smaller. It needs only the mean `m` and the standard deviation `s` of the one-round return. Each outcome sits 0.105 from the mean of 0.005, so `s` is 0.105 and the variance `s²` is 0.011025:
+Chan prints a slightly different figure for `g`, because he uses the continuous approximation, a shortcut that is accurate when each round’s returns are small. It needs only the mean `m` and the standard deviation `s` of the one-round return. Each outcome sits 0.105 from the mean of 0.005, so `s` is 0.105 and the variance `s²` is 0.011025:
 
 ```math
 g \approx m - \frac{s^2}{2} = 0.005 - \frac{0.011025}{2} = 0.005 - 0.0055125 = -0.0005125
@@ -60,7 +60,7 @@ Compound both rates from \$1,000 for 1,000 rounds. The ensemble mean reaches \$1
 
 That \$606 is also where the median path ends. After an even number of rounds it is exactly the path with half heads and half tails. So a trader who plays 1,000 rounds has at least an even chance of finishing at \$606 or less, while the average across all traders is \$146,576.
 
-A few lucky paths carry the gap. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Only 4.7% of traders reach the mean. It describes the crowd’s total wealth, and it says very little about any one member of the crowd.
+A few lucky paths carry the gap. A trader who happens to throw far more heads than tails ends up enormously rich, and those rare fortunes pull the mean up. Only 4.7% of traders reach the mean. The mean describes the crowd’s total wealth, and it says very little about any one member of the crowd.
 
 ![Bar chart of the balances 1,000 rounds can reach between 440 and 560 heads, on a log axis from under a cent to over a hundred million dollars, with the share of traders reaching each. The bars form a bell centred near the median of \$606, which sits just left of the \$1,000 starting line. The ensemble mean of \$146,576 sits far out on the right tail. An inset zooms in on the 499-head and 500-head balances, \$492 and \$606, with the approximation’s \$599 falling between them.](../docs/figures/coin_flip_final_balances.png)
 
@@ -124,7 +124,7 @@ Two stakes on this curve matter.
 
 On any fair coin, not only Chan’s, the best stake is exactly half the break-even stake. A coin whose win pays 1.5 times the stake peaks at a stake of 1/6 and breaks even at 1/3.
 
-At the best stake the two averages still differ, but both are positive, and for a fair coin the time-average growth is exactly half the ensemble’s. So the factor the ensemble mean multiplies capital by is the square of the median trader’s factor. After 1,000 rounds from \$1,000 the median trader’s capital grows 3.11 times, to \$3,111. The ensemble mean grows by the square of that, to \$9,681, so the ratio between them is also 3.11, against 241.72 at Chan’s stake.
+At the best stake the two averages still differ, but both are positive, and for a fair coin the time-average growth is exactly half the ensemble’s log growth. A log growth twice as large squares the factor capital is multiplied by. After 1,000 rounds from \$1,000 the median trader’s capital is multiplied by 3.11, to \$3,111. The ensemble mean is multiplied by the square of that, to \$9,681, so it ends 3.11 times the median, against 241.72 at Chan’s stake.
 
 Chan calls the growth-maximising stake the **Kelly** stake. He gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by. The leverage comes from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures as before:
 
@@ -134,7 +134,7 @@ Chan calls the growth-maximising stake the **Kelly** stake. He gives its continu
 
 The formula says to scale Chan’s bet down to 0.4535 of its size, which is a stake of 0.04535 of capital. The exact best stake found above is 1/22, or 0.04545.
 
-This approximation also carries the factor of two to any bet, not only a fair coin. Scaling a position by `k` gives growth of about `k·m − k²·s²/2`, which peaks at `k = m/s²` and falls back to zero at twice that.
+This approximation also puts the best stake at half the break-even one for any bet, not only a fair coin. Scaling a position by `k` gives growth of about `k·m − k²·s²/2`, which peaks at `k = m/s²` and falls back to zero at twice that.
 
 Chan also gives the growth that the Kelly stake reaches (Chan, 2021), and it depends on nothing but the Sharpe ratio `S`. With the risk-free rate at zero, as it is for the coin, the best growth is:
 
@@ -186,11 +186,11 @@ The two nearest the middle are \$492 for 499 heads and \$606 for 500. Compounded
 
 ### Check the method, not only the result
 
-The two choices that miss Chan’s figure are also a lesson in checking work. Landing on −0.0005125 matches his number, but a different formula could still produce it. Showing that the sample form gives −0.006025 and the exact rate gives −0.00050025, and that neither matches Chan, rules out the two alternatives a reader would most likely try. That narrows the method down without proving it. The narrowing matters because a wrong method can still print a plausible number, as the sample form does. A backtest checked only against its headline Sharpe ratio has the same blind spot.
+The two choices that miss Chan’s figure are also a lesson in checking work. Landing on −0.0005125 matches his number, but a different formula could still produce it. The sample form gives −0.006025 and the exact rate gives −0.00050025, and neither matches Chan. That rules out the two alternatives a reader would most likely try, which narrows the method down without proving it. The narrowing matters because a wrong method can still print a plausible number, as the sample form does. A backtest checked only against its headline Sharpe ratio has the same blind spot.
 
 ## Lesson 6: a simulation of the coin can mislead in two ways
 
-Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, a number that fixes the sequence of tosses the random generator produces. Recording the seed lets anyone repeat the run, provided the method that draws the tosses and the library version are recorded too, since a change to either can give different tosses from the same seed. The coin shows two ways a simulation misleads, and each has a counterpart when simulating a real strategy.
+Traders test ideas by simulating them, in a backtest or a run of random scenarios. The coin is a rare case where the right answer is known exactly, so it shows how far a simulation can be trusted. Each run starts from a **seed**, a number that tells the random generator which sequence of tosses to produce. Recording the seed lets anyone repeat the run. Record the method that draws the tosses and the library version too, because a change to either can give different tosses from the same seed. The coin shows two ways a simulation misleads, and each has a counterpart when simulating a real strategy.
 
 ### Noise swamps a small edge
 
