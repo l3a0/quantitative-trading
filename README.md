@@ -395,9 +395,10 @@ reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
 post, about Example 6.2's Kelly leverage on SPY. It draws seven lessons from
-Entry 3 of the replication log: the vintage, the specification, rebalancing at
-a constant leverage, the stress test's threshold and price series, the window,
-overbetting past the Kelly leverage, and the return frequency. Three groups of its figures are not pinned here.
+Entry 3 of the replication log: the gap from Chan's figures, the specification,
+rebalancing at a constant leverage, the stress test's threshold and price
+series, the window, overbetting past the Kelly leverage, and the return
+frequency. Three groups of its figures are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
    7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
@@ -415,9 +416,10 @@ overbetting past the Kelly leverage, and the return frequency. Three groups of i
    1.43% volatility drag, the 6.98% half-Kelly adds above the 4% rate, the
    9.30% that `S²/2` adds, the 0.60 margin above the 1.954 threshold, the 7.72
    spread between the bear and bull windows, the variance of 0.0286 and the
-   factor of about 35 it multiplies an error in the mean by, and the worst SPY
-   day being about a third of Black Monday. The 43 to 47% that monthly sampling
-   adds is held by a test only as a band of 42 to 48%.
+   factor of about 35 it multiplies an error in the mean by, the worst SPY day
+   being about a third of Black Monday, and twice Kelly carrying about five
+   times SPY's swings. The 43 to 47% that monthly sampling adds is held by a
+   test only as a band of 42 to 48%.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py), apart from the
