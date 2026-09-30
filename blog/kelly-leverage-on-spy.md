@@ -1,12 +1,12 @@
 # The Kelly leverage on SPY depends on which years are read
 
-*Reproducing Chan’s Example 6.2 on a 2026 download: the formula holds, every figure moves a little, and the choice of years moves it most.*
+*The formula holds, every figure moves a little, and the choice of years moves it most.*
 
 ## Why one leverage figure is not enough
 
 Ernest Chan’s *Quantitative Trading* (Chan, 2021) works the Kelly formula on SPY, the exchange-traded fund that tracks the S&P 500, in Example 6.2 of Chapter 6. Over SPY’s history from January 1993 to 28 December 2007, he finds that the leverage that makes capital grow fastest is 2.528 times equity. A trader with \$100,000 would hold \$252,800 of SPY.
 
-Reading the same fund over the same dates from a 2026 download gives 2.551. Reading only 2000 to 2002 gives −2.82, which is a short. Reading only 2003 to 28 December 2007 gives 4.90. The arithmetic is exact, and each of those numbers is correct for its inputs. What moves the answer is the inputs, and the years chosen move it furthest.
+Reading the same fund over the same dates from a 2026 download gives 2.551. Reading only 2000 to 2002 gives −2.82, which is a short. Reading only 2003 to 28 December 2007 gives 4.90. The years chosen moves the answer farthest.
 
 This post walks through the formula and six lessons from reproducing Chan’s example in code. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
