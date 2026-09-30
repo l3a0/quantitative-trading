@@ -548,15 +548,21 @@ no build step regenerates. 1.6766 now appears on eleven tracked files and
 ## Entry 2: the coin-flip gamble, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
-Algorithmic Trading Business*, Example 6.1. Shipped under
+Algorithmic Trading Business*, Box 6.1, "Loss aversion is not a behavioral
+bias". Shipped under
 [issue 13](https://github.com/l3a0/quantitative-trading/issues/13).
 
-The name is a revised-edition label, and this entry declares it because the
-repo reads every other one as first-edition. It comes from the book's own prose
-at Kindle location 3186, "As Example 6.1 shows". The first-edition code mirror
-this repo cites for `example7_2.m` and `example7_3.m` carries `example6_2.xls`
-and `example6_3.m` and no `example6_1` in any form, so there is no companion
-file to check the arithmetic against. The printed prose is the whole source.
+The label is a revised-edition one, and this entry declares it because the
+repo reads every other one as first-edition. The gamble sits in Box 6.1 of
+Chapter 6, a sidebar the 2009 edition could not hold because it quotes
+Kahneman's 2011 book. The box cites a separate Example 6.1 at Kindle location
+3186, "As Example 6.1 shows", for the continuous approximation it uses. This
+entry called the gamble Example 6.1 until 2026-09-29, misreading that sentence,
+and the owner corrected the label against the book. The first-edition code
+mirror this repo cites for `example7_2.m` and `example7_3.m` carries
+`example6_2.xls` and `example6_3.m` and nothing for Box 6.1, so there is no
+companion file to check the arithmetic against. The printed prose is the whole
+source.
 
 Eight rows, all derivable from
 [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py). Three
@@ -619,7 +625,7 @@ Four things, and the first is why a verdict here carries less than it looks.
    could have moved it and rows 1 to 5 could only reproduce. What this entry is
    worth is rows 7 and 8, not its verdict column.
 2. **The book prints no formula, so the formula is what rows 3 and 4 hold.**
-   Three plausible choices give three numbers, and only one reproduces all four
+   Three candidate formulas give three numbers, and only one reproduces all four
    of Chan's figures at once. The sample standard deviation gives −0.006025, out
    by a factor of 11.8 and still printing as a small negative number. The exact
    discrete rate gives −0.00050025. Both are pinned, because an assertion on
@@ -658,19 +664,19 @@ otherwise look for one.
 
 The per-flip standard deviation of the log return is 0.10486, so a growth rate
 estimated from a million flips carries a standard error of 1.05e-4 against a
-quantity of 5e-4. Chan prints seven decimals. Reaching one part in a hundred
-thousand takes about 110 million flips and one part in a million takes about
-eleven billion. So the simulation demonstrates the argument and the closed form
+quantity of 5e-4. Chan prints seven decimals. Bringing the standard error down
+to one part in a hundred thousand takes about 110 million flips, and to one
+part in a million about eleven billion. So the simulation demonstrates the argument and the closed form
 is what the book's figures are pinned against.
 
 Two things the suite does pin about it, because a demonstration nobody sized is
 a demonstration that works on the seed somebody tried. At 1,000 paths by 1,000
 rounds the time average comes out negative on all of the first 200 seeds. At
 100 rounds by 200 paths it comes out positive on 56 of them, so more than a
-quarter of seeds show no divergence at all. The report prints the standard error
-beside the estimate and says when a size cannot resolve the sign, which is a
-line a reader sees rather than an exception, because at that size nothing has
-failed.
+quarter of seeds get the sign of the time average wrong. The report prints the
+standard error beside the estimate and says when a size cannot resolve the
+sign, which is a line a reader sees rather than an exception, because at that
+size nothing has failed.
 
 The draw method is part of what a seed means, and the module names it. On seed
 7, `rng.integers`, `rng.random`, `rng.binomial` and `rng.standard_normal` give

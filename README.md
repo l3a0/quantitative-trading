@@ -57,7 +57,7 @@ they were first built. The other three were built here.
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
    returns yet does not cointegrate in levels.
-3. The coin-flip gamble, Example 6.1, where the expected return of a round is
+3. The coin-flip gamble, Box 6.1, where the expected return of a round is
    positive and the growth rate of capital is negative. It is the one
    replication here that reads no series at all, so it has no vintage to name.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
@@ -336,30 +336,37 @@ other number in the post traces to an assertion in
 
 [blog/coin-toss-expected-value-vs-growth.md](blog/coin-toss-expected-value-vs-growth.md)
 is a third post, about the coin-flip gamble rather than either pair. It draws
-six lessons from Example 6.1 on expected value against the compound growth
+six lessons from Box 6.1 on expected value against the compound growth
 rate of capital. The growth-maximising stake it quotes is pinned beside the
-rest, in `TestTheStakeDecidesTheSign`. Four of its figures are not pinned here.
+rest, in `TestTheStakeDecidesTheSign`. Four groups of its figures are not pinned here.
 
 1. SPY's mean annual return of 11.23% and its unlevered growth rate of 9.8%,
-   and the 1.43-point gap between them. All three are Chan's, at Kindle
-   location 2869. [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py)
+   and the 1.43-percentage-point gap between them. All three are Chan's, at
+   Kindle location 2869. [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py)
    cites the first two as book figures and computes its own on a modern
    vintage.
 2. A stock moving 1% up or down each minute loses about half a basis point a
    minute. That is Chan's, at location 2822, and no test computes it.
 3. One head and one tail leave 0.999 of the capital, a tenth of a percent
-   lost every two rounds, and the worked \$1,110 and \$111 of that pair. The
-   two-round table of \$810.00, \$999.00 and \$1,232.10 is the same kind. All
-   of it is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no
-   test asserts it.
+   lost every two rounds, and the worked \$1,110, \$111 and \$999 of that pair. The
+   two-round table of \$810.00, \$999.00 and \$1,232.10 is the same kind, and
+   so is Chan's own \$2,000 account that wins \$220 or loses \$200. All of it
+   is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no test
+   asserts it.
 4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
-   its docstring and does not assert the percentage.
+   its docstring and does not assert the percentage. Lesson 2's 6% gap at ten
+   rounds is the same kind, the pinned ratio of 1.06 written as a percentage.
+   So are Lesson 4's multiple of 3.11, the pinned \$3,111 divided by \$1,000,
+   and Lesson 6's "a fifth of the growth", the pinned standard error of
+   1.05e-4 set against the growth of about 0.0005.
 
 Every other number in the post traces to an assertion in
 [tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers
 the figures print, including the two shares in the distribution figure's title
 and the \$21,664 the fan's 200 paths average, trace to
-[tests/test_coin_flip_figures.py](tests/test_coin_flip_figures.py).
+[tests/test_coin_flip_figures.py](tests/test_coin_flip_figures.py). So does
+the 0.013% of traders the distribution figure's caption leaves out, which no
+figure prints.
 
 The post carries five figures, drawn from the gamble's own arithmetic by
 [src/chan/coin_flip_figures.py](src/chan/coin_flip_figures.py). They read no
@@ -369,12 +376,12 @@ vintage, so they redraw anywhere:
 uv run python -m chan.coin_flip_figures
 ```
 
-1. Growth per round against the stake, for Lesson 4.
-2. A fan of 200 seeded capital paths with the ensemble mean and the median
-   path, for Lessons 1 and 2.
-3. The probability of every balance 1,000 rounds can reach, with an inset
+1. The probability of every balance 1,000 rounds can reach, with an inset
    showing the continuous approximation's balance falling between two of
    them, for Lessons 1 and 5.
+2. A fan of 200 seeded capital paths with the ensemble mean and the median
+   path, for Lesson 2.
+3. Growth per round against the stake, for Lesson 4.
 4. Histograms of the simulated time average from 200 seeds at two run sizes,
    where the small run gets the sign wrong on 56 of them and the large run on
    none, for Lesson 6.

@@ -1,4 +1,4 @@
-"""Chan's coin-flip gamble, Example 6.1, where expectation and growth disagree.
+"""Chan's coin-flip gamble, Box 6.1, where expectation and growth disagree.
 
 Chan borrows Kahneman's gamble and rescales it for a trading account. A fair
 coin pays $110 on heads and costs $100 on tails against $1,000 of capital. The
@@ -11,16 +11,21 @@ Two averages, and the argument is the difference between them. Chan names both
 at Kindle location 3166: the **ensemble average** across different traders, and
 the **time series average** over one trader's horizon. Here they have opposite
 signs. The ensemble side gains 0.005 per round and the time average loses
-0.0005125, so the layman refusing the gamble is right.
+0.00050025, which Chan's continuous approximation prints as 0.0005125, so the
+layman refusing the gamble is right.
 
-The name is a revised-edition label. ``docs/design.md`` declares that every
+The label is a revised-edition one. ``docs/design.md`` declares that every
 citation of a chapter, a page or a MATLAB filename in this repo means the 2009
-first edition unless it says otherwise. This one does not: it comes from the
-revised edition's own prose at location 3186, "As Example 6.1 shows". The
-first-edition code mirror this repo cites elsewhere carries ``example6_2.xls``
-and ``example6_3.m`` and no ``example6_1`` in any form, so there is no
-companion file to check the arithmetic against. The printed prose is the whole
-source.
+first edition unless it says otherwise. This one does not: the gamble sits in
+Box 6.1, "Loss aversion is not a behavioral bias", a sidebar the 2009 edition
+could not hold because it quotes Kahneman's 2011 book. The box's sentence at
+location 3186, "As Example 6.1 shows", cites a separate, earlier example for
+the continuous approximation. This module called the gamble Example 6.1 until
+2026-09-29, misreading that sentence, and the owner corrected it against the
+book. The first-edition code mirror this repo cites elsewhere carries
+``example6_2.xls`` and ``example6_3.m`` and nothing for Box 6.1, so there is
+no companion file to check the arithmetic against. The printed prose is the
+whole source.
 
 **This experiment reads no vintage.** Every other replication here commits the
 series it ran on, because a vendor restates an adjusted price without
@@ -31,8 +36,8 @@ the vintage recorder exists.
 **The pins are closed form, and the simulation cannot carry them.** Every
 figure the book prints follows from the payoffs alone. The per-flip standard
 deviation of the log return is 0.10486, so the standard error of a simulated
-growth rate falls as ``0.10486 / sqrt(flips)``. Pinning −0.0005 down to an
-absolute 1e-5 takes about 110 million flips and to 1e-6 about 11 billion, while
+growth rate falls as ``0.10486 / sqrt(flips)``. Bringing that standard error
+down to 1e-5 takes about 110 million flips and to 1e-6 about 11 billion, while
 Chan prints seven decimals. So :func:`gamble_moments` is what the book's figures are pinned
 against, and :func:`simulate` is the demonstration a reader looks at.
 
@@ -74,7 +79,7 @@ the verdict.
 
 Usage::
 
-    python -m chan.coin_flip_growth            # Chan's Example 6.1, the pinned run
+    python -m chan.coin_flip_growth            # Chan's Box 6.1, the pinned run
     python -m chan.coin_flip_growth --rounds 100 --paths 200
 """
 
@@ -92,14 +97,15 @@ WIN = 110.0
 LOSS = 100.0
 START_CAPITAL = 1000.0
 BOOK_REF = (
-    "Example 6.1 (rev. ed., locations 3176 and 3186): win $110 or lose $100 "
+    "Box 6.1 (rev. ed., locations 3176 and 3186): win $110 or lose $100 "
     "on $1,000, expected return 0.005, return sd 0.105, growth -0.0005125 "
     "in the continuous approximation"
 )
 
 # The size the pinned run uses. Chosen from measurement rather than taste: at
 # 100 rounds by 200 paths the time average came out positive on 56 of the
-# first 200 seeds, so more than a quarter of seeds show no divergence at all.
+# first 200 seeds, so more than a quarter of seeds get the sign of the time
+# average wrong.
 # At this size none of those 200 seeds does, and the sweep costs about a
 # second. tests/test_coin_flip_growth.py pins both halves of that.
 BOOK_ROUNDS = 1000
@@ -195,7 +201,7 @@ def gamble_moments(
     loss: float = LOSS,
     capital: float = START_CAPITAL,
 ) -> Moments:
-    """Everything Example 6.1 prints, from the payoffs alone. No random draws.
+    """Everything Box 6.1 prints, from the payoffs alone. No random draws.
 
     The two outcomes are equally likely, so every moment below is an average
     over exactly two numbers and the whole calculation is exact.
@@ -330,7 +336,7 @@ def capital_horizon(
 def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) -> None:
     """Print the closed-form figures, the seeded run, and the capital gap."""
     m = gamble_moments()
-    print("Chan's coin-flip gamble, Example 6.1 (revised edition, location 3186)")
+    print("Chan's coin-flip gamble, Box 6.1 (revised edition, location 3186)")
     print(f"  {BOOK_REF}")
     print("  vintage: none, synthetic. This experiment reads no series.")
     print()
@@ -349,12 +355,12 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
     print("    simple return per flip, not as the log of mean terminal wealth,")
     print("    which collapses as rounds grow.")
     print(
-        f"  time average     (one trader)     = {m.growth_continuous:+.7f}  "
-        "<- the book's continuous approximation"
+        f"  time average     (one trader)     = {m.growth_exact:+.7f}  "
+        "<- exact discrete, not a figure the book prints"
     )
     print(
-        f"  time average, exact discrete      = {m.growth_exact:+.7f}  "
-        "<- not a figure the book prints"
+        f"  time average, continuous approx.  = {m.growth_continuous:+.7f}  "
+        "<- the figure the book prints"
     )
     print("  They disagree in sign, which is the whole argument.")
     print()
@@ -395,7 +401,7 @@ def report(run: Simulation, horizons: tuple[int, ...] = (10, 100, 250, 1000)) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Chan's coin-flip gamble, Example 6.1: expectation against growth"
+        description="Chan's coin-flip gamble, Box 6.1: expectation against growth"
     )
     parser.add_argument(
         "--rounds",

@@ -1,4 +1,4 @@
-"""Pins for Chan's coin-flip gamble, Example 6.1.
+"""Pins for Chan's coin-flip gamble, Box 6.1.
 
 This file is the single authority for every number any prose surface quotes
 about this experiment. ``docs/replication-log.md`` Entry 2 and
@@ -75,12 +75,12 @@ def _terminal_wealth_estimator(rounds: int, paths: int, seed: int) -> float:
 
 
 class TestBookFigures:
-    """Every figure Example 6.1 prints, at the precision it prints it.
+    """Every figure Box 6.1 prints, at the precision it prints it.
 
     Chan gives four numbers at locations 3176 and 3186 and no formula, so the
-    formula is what these assertions really hold. Only one choice reproduces
-    all four at once, and ``TestTheNearMisses`` is the other half of that
-    claim.
+    formula is what these assertions really hold. Of the three candidate
+    formulas, only one reproduces all four at once, and ``TestTheNearMisses``
+    pins the other two.
     """
 
     def test_expected_gain_is_five_dollars(self, moments) -> None:
@@ -452,6 +452,20 @@ class TestTheReportSaysWhatItComputed:
         assert "rng.integers" in out
         assert "none, synthetic" in out
 
+    def test_the_one_trader_label_carries_the_exact_rate(self, moments, capsys) -> None:
+        """The time average is the exact rate, and the book's figure is its
+        continuous approximation, so the report's main time-average label sits
+        on growth_exact. The test above only finds each value somewhere in the
+        output, so it passes with the two lines swapped. Checked by swapping
+        them."""
+        report(simulate(10, 10, 0), horizons=(10,))
+        lines = capsys.readouterr().out.splitlines()
+        one_trader = next(line for line in lines if "(one trader)" in line)
+        approx = next(line for line in lines if "continuous approx." in line)
+        assert f"{moments.growth_exact:+.7f}" in one_trader
+        assert f"{moments.growth_continuous:+.7f}" in approx
+        assert "the figure the book prints" in approx
+
     def test_the_report_names_which_ensemble_estimator_the_run_used(self, capsys) -> None:
         """Requirement 2. Two estimators of the ensemble side exist and only one
         survives more rounds, so the report says which one produced its number
@@ -631,7 +645,7 @@ class TestTheStakeDecidesTheSign:
 
     def test_the_half_holds_for_a_second_payoff(self) -> None:
         """b = 1.5 peaks at 1/6 against a break-even of 1/3, so the factor of
-        two is a property of an even-odds coin and not of Chan's 1/11."""
+        two is a property of a fair coin and not of Chan's 1/11."""
         best = max(
             range(700, 5001, 10),
             key=lambda c: gamble_moments(win=300.0, loss=200.0, capital=c).growth_exact,
