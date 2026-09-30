@@ -198,11 +198,10 @@ A strategy whose edge is small next to its swings is hard to measure by simulati
 
 One toss’s log return has a standard deviation of 0.10486, just under the 0.105 of its simple return. The number the simulation tries to measure is the time-average growth, about −0.0005 per round. Averaging `N` tosses shrinks the noise to `0.10486/√N`. That figure is the **standard error**, the typical size of the estimate’s error. At 100 rounds by 200 traders, 20,000 tosses in all, the standard error is 7.41e-4, larger than the growth itself. A million tosses bring it down to 1.05e-4, a fifth of the growth. So print the standard error beside a simulated growth rate, and do not trust a sign that sits within two standard errors of zero.
 
-A small run can therefore land on the wrong side of zero. Three results show what the size of a run does.
+A small run can therefore land on the wrong side of zero. Two results show what the size of a run does.
 
 1. At 100 rounds by 200 traders, the simulated time average comes out positive on 56 of the first 200 seeds. More than a quarter of runs say the losing bet wins.
 2. At 1,000 rounds by 1,000 traders, it comes out negative on all 200.
-3. The large run at seed 42 sits 4.955 standard errors below zero, well clear of the two-standard-error line.
 
 ![Two histograms on one horizontal axis of simulated time-average growth per round, each counting 200 seeds. The top one, for 100 rounds by 200 traders, spreads from about −0.0024 to +0.0015 and straddles zero, with the 56 seeds right of zero shaded red. The bottom one, for 1,000 rounds by 1,000 traders, is a narrow spike centred on the true growth of −0.0005, entirely left of zero.](../docs/figures/coin_flip_sign_by_run_size.png)
 
