@@ -14,7 +14,7 @@ This post walks through the gamble, the two averages that disagree about it, and
 
 Chan borrows this setup from Daniel Kahneman’s *Thinking, Fast and Slow* (Kahneman, 2011) and changes the numbers to suit a trading account. The \$5 expected gain is half of \$110 less half of \$100. Chan notes that experiments show most people still refuse the bet. Behavioural finance calls that **loss aversion**, meaning a loss weighs more heavily than a gain of the same size, and treats it as a bias.
 
-The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly a tenth of capital. Tails loses the stake, while heads pays 1.1 times it, which is 11% of capital. So each round multiplies the account by one of two numbers:
+The argument works because Chan lets the payoff scale with capital, so an account that has doubled to \$2,000 wins \$220 or loses \$200. The stake is therefore always exactly 1/10 of capital. Tails loses the stake, while heads pays 1.1 times it, which is 11% of capital. So each round multiplies the account by one of two numbers:
 
 1. 1.11 on heads.
 2. 0.90 on tails.
@@ -126,7 +126,7 @@ On any fair coin, not only Chan’s, the best stake is exactly half the break-ev
 
 At the best stake the two averages still differ, but both are positive. For a fair coin the time-average growth is exactly half the ensemble’s log growth, and doubling a log growth squares the factor it multiplies capital by. After 1,000 rounds from \$1,000 the median trader’s capital grows 3.11-fold, to \$3,111. The ensemble mean grows by the square of that factor, to \$9,681, so it ends 3.11 times the median, against 241.72 at Chan’s stake.
 
-Chan calls the growth-maximising stake the **Kelly** stake. He gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by. The leverage comes from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of a tenth of capital, so `m` is 0.005 and `s` is 0.105, the same two figures as before:
+Chan calls the growth-maximising stake the **Kelly** stake. He gives its continuous form in Chapter 6 as a leverage, a number to multiply a position by. The leverage comes from that position’s mean return `m` and standard deviation `s`. Here the position is Chan’s bet of 1/10 of capital, so `m` is 0.005 and `s` is 0.105, the same two figures as before:
 
 ```math
 \frac{m}{s^2} = \frac{0.005}{0.105^2} \approx 0.4535
