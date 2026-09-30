@@ -65,6 +65,19 @@ class TestTheCurve:
         assert growth(moments, kelly / 2) == pytest.approx(0.1097729837, abs=5e-10)
         assert 2 * kelly == pytest.approx(5.1011826450, abs=5e-10)
 
+    def test_growth_reaches_zero_at_5_60_and_the_bull_leverage_earns_5_43(self, moments) -> None:
+        """The post's lesson on overbetting quotes both.
+
+        Growth is zero where r + f*m - f**2 * s**2 / 2 = 0, which the quadratic
+        formula puts at (m + sqrt(m**2 + 2*r*s**2)) / s**2. The bull window's
+        leverage, 4.8972, is the one tests/test_kelly_leverage.py pins.
+        """
+        m, s2, r = moments.excess_annual, moments.sd_annual**2, moments.risk_free
+        zero = (m + (m**2 + 2 * r * s2) ** 0.5) / s2
+        assert growth(moments, zero) == pytest.approx(0.0, abs=1e-15)
+        assert zero == pytest.approx(5.6006185077, abs=5e-10)
+        assert growth(moments, 4.8972370287) == pytest.approx(0.0542826823, abs=5e-10)
+
     def test_the_drawn_curve_is_the_formula_and_peaks_at_kelly(self, figure, moments) -> None:
         curve = figure.curve
         assert curve.leverages[0] == 0.0

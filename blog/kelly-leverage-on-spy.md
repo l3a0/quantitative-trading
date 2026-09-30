@@ -8,7 +8,7 @@ Ernest Chan’s *Quantitative Trading* (Chan, 2021) works the Kelly formula on S
 
 Reading the same fund over the same dates from a 2026 download gives 2.551. Reading only 2000 to 2002 gives −2.82, which is a short. Reading only 2003 to 28 December 2007 gives 4.90. The years chosen move the answer farthest.
 
-This post walks through the formula and six lessons from reproducing Chan’s example in code. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+This post walks through the formula and seven lessons from reproducing Chan’s example in code. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The Kelly formula
 
@@ -52,7 +52,7 @@ g^* = r + \frac{m^2}{s^2} - \frac{m^2}{2s^2} = r + \frac{m^2}{2s^2} = r + \frac{
 
 With `S` at 0.4313, `S²/2` is 9.30%, so capital compounds at 4% plus 9.30%, which is 13.30% a year.
 
-**Half-Kelly** trades at half the Kelly leverage to cut risk. At half the leverage the return term `m²/s²` halves and the drag `m²/(2s²)` quarters, so the gain above `r` is `m²/(2s²) − m²/(8s²)`, which is `3m²/(8s²)`. Full Kelly gains `4m²/(8s²)`, so half-Kelly keeps three-quarters of it. On this download half-Kelly grows at 4% plus 6.98%, which is 10.98% a year. At twice the Kelly leverage the return term doubles and the drag quadruples, so the two cancel and growth falls back to the 4% of cash.
+**Half-Kelly** trades at half the Kelly leverage to cut risk. At half the leverage the return term `m²/s²` halves and the drag `m²/(2s²)` quarters, so the gain above `r` is `m²/(2s²) − m²/(8s²)`, which is `3m²/(8s²)`. Full Kelly gains `4m²/(8s²)`, so half-Kelly keeps three-quarters of it. On this download half-Kelly grows at 4% plus 6.98%, which is 10.98% a year.
 
 ![A curve of compound growth per year against leverage from 0 to 5.6, for SPY from 1993 to 2007 on the 2026 download. It starts at the 4% cash rate, rises through unlevered SPY at 9.86% a year and half-Kelly at 10.98%, peaks at the Kelly leverage of 2.551 with 13.30% a year, and falls back to the dashed 4% line at twice Kelly, 5.10.](../docs/figures/kelly_growth_by_leverage.png)
 
@@ -123,7 +123,17 @@ The longest window shows what stays put. Extending the window to September 2026 
 
 A negative leverage needs care. Halving −2.82 gives a smaller short. Half-Kelly guards against a mean estimated too large, not against one with the wrong sign. Chan’s stress test measures a long position’s worst day, so it does not carry across the change of sign either.
 
-## Lesson 6: the leverage depends on how often returns are measured
+## Lesson 6: twice the Kelly leverage earns only the cash rate
+
+Lesson 5 showed how far an estimate of the Kelly leverage can miss. A miss of the same size costs the same growth in either direction, as the chart’s caption notes. What differs is how far each can go. Too little leverage can at worst earn the cash rate, while too much can fall past cash to zero and below.
+
+The growth formula says why. At twice the Kelly leverage the return term doubles and the drag quadruples, so the two cancel and growth falls back to the 4% of cash. On Chan’s window that is a leverage of 5.10, carrying about five times SPY’s swings for the return cash pays. Past it, growth drops below cash, and at a leverage of 5.60 it reaches zero, where capital stops growing at all. The chart in the formula section shows the whole curve.
+
+The bull market makes the risk concrete. A trader who sized from 2003 to 28 December 2007, at 4.90, and held that leverage over Chan’s whole window would have compounded at 5.43% a year. That is less than the 9.86% of holding SPY unlevered, and little more than cash.
+
+This is why half-Kelly works as a defence. Halving an estimate that is twice too high lands exactly on the true Kelly leverage, while halving a correct estimate still keeps three-quarters of the growth above cash.
+
+## Lesson 7: the leverage depends on how often returns are measured
 
 Chan notes that the Kelly leverage, unlike the Sharpe ratio, does not depend on the time scale. In one sense that is true by construction. Annualising daily figures multiplies the mean by 252, the trading days in a year, and the variance by 252 too, so the factor cancels and daily and annual figures give the same leverage.
 

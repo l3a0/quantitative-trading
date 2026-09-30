@@ -394,10 +394,10 @@ The test file holds what each figure draws rather than its bytes, for the
 reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
-post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
+post, about Example 6.2's Kelly leverage on SPY. It draws seven lessons from
 Entry 3 of the replication log: the vintage, the specification, rebalancing at
 a constant leverage, the stress test's threshold and price series, the window,
-and the return frequency. Three groups of its figures are not pinned here.
+overbetting past the Kelly leverage, and the return frequency. Three groups of its figures are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
    7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
@@ -421,9 +421,11 @@ and the return frequency. Three groups of its figures are not pinned here.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py), apart from the
-numbers its figure prints, which trace to
+numbers read off the growth formula, which trace to
 [tests/test_kelly_figures.py](tests/test_kelly_figures.py). Those include the
-10.98% half-Kelly keeps and the 5.10 of twice Kelly.
+10.98% half-Kelly keeps and the 5.10 of twice Kelly, which the figure prints,
+and the 5.60 at which growth reaches zero and the 5.43% the bull window's 4.90
+earns on Chan's window, which it does not.
 
 Its one figure, growth against leverage on Chan's window, is drawn from the
 committed SPY vintage by [src/chan/kelly_figures.py](src/chan/kelly_figures.py):
