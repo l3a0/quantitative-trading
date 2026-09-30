@@ -143,7 +143,7 @@ Four habits follow from the lessons above.
 
 1. **Name the window.** It moved the leverage more than anything else here.
 2. **Name the specification.** Say which standard deviation, whether the return is total or excess, which price series and which return frequency.
-3. **Find the threshold.** Compute where a risk conclusion turns over, rather than setting two numbers side by side.
+3. **Find where the verdict flips.** When a risk check gives a yes-or-no answer, work out the input at which the answer changes, rather than comparing two numbers once. Chan’s Black Monday verdict flips at a leverage of 1.954.
 4. **Treat full Kelly as a ceiling.** The formula is an approximation, and it gives the fastest growth only when the mean and the standard deviation are known. A sample only estimates them.
 
 On the adjusted close, SPY’s growth-maximising leverage over Chan’s window is about two and a half, and even half of it would not have survived a repeat of Black Monday. What a trader should carry away is the range around his 2.528, from a short of 2.82 to a long of 4.90, set by nothing but the years read.
