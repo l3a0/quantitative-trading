@@ -8,10 +8,15 @@ reasoning.
 **One published figure reproduces here and it is the dispersion.** Chan read
 SPY through 2007-12-28 on a 2008-vintage adjusted series. This reads a 2026
 download of the same symbol over the same dates, so every level below lands
-high and the gaps measure eighteen years of restatement rather than a method.
-The standard deviation is the exception, at the two decimals the book prints,
-because restatement moves where a series sits and not how much it moves.
-Reading his own workbook is issue 138.
+high and the gaps measure how two downloads eighteen years apart differ rather
+than a method.
+The standard deviation is the exception, at the two decimals the book prints.
+The whole gap in the mean sits on about ten days on or beside SPY's quarterly
+ex-dividend dates, where one download folds in all or part of a payout that
+the other does not, mostly raising the 2026 mean. That moves a mean and barely
+touches a standard deviation. That is
+measured against ``data/spy_chan.csv`` rather than pinned here, and reading his
+own workbook is issue 138.
 
 Two kinds of assertion live here and they are not interchangeable.
 
@@ -321,8 +326,8 @@ class TestChansWindowOnAModernDownload:
         """The whole entry, in one assertion.
 
         Chan prints 11.23, 16.91, 7.231, 0.4275, 2.528, 13.14 and 9.8. Every
-        computed figure lands above its published one, which is what a
-        dividend-adjusted series eighteen years further on does to a mean. The
+        computed figure lands above its published one, because the two downloads
+        differ on about ten quarterly dividends inside the window. The
         standard deviation is the exception. It moves by 0.0017 of a percentage
         point and rounds to the book's own two decimals, so the last assertion
         here is the one row of Entry 3 that reproduces from a series.
@@ -400,17 +405,20 @@ class TestTheWorkedExample:
     """Locations 2869 and 3021, which are arithmetic on a rounded leverage."""
 
     def test_the_books_own_chain_reproduces_to_the_cent(self) -> None:
-        """All four printed figures, once 2.528 is taken as given.
+        """All four printed figures and the debt, once 2.528 is taken as given.
 
         This is the one part of the example that does reproduce, and it does so
         because none of it reads a series. It is the book's rounded leverage
-        multiplied out.
+        multiplied out. The resized position is held to the cent at
+        $188,892.16, which the book prints rounded to the dollar, and the
+        rounding is asserted separately.
         """
         chain = rebalance(BOOK_LEVERAGE)
         assert chain.portfolio == pytest.approx(252_800.0, abs=5e-7)
         assert chain.debt == pytest.approx(152_800.0, abs=5e-7)
         assert chain.shocked_portfolio == pytest.approx(227_520.0, abs=5e-7)
         assert chain.shocked_equity == pytest.approx(74_720.0, abs=5e-7)
+        assert chain.resized == pytest.approx(188_892.16, abs=5e-3)
         assert round(chain.resized) == 188_892
 
     def test_the_printed_portfolio_comes_from_a_rounded_leverage(self) -> None:

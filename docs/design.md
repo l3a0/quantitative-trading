@@ -356,8 +356,9 @@ series was the closest surviving proxy for what he read. SPY had been paying
 for fifteen years by the end of his window, and on his own data the difference
 between the two columns is worth a quarter of the answer.
 [docs/replication-log.md](replication-log.md) Entry 3 carries both figures and
-records that nothing here pins either, because they are measurements of a
-workbook this repo does not hold. So reading raw here would not be a
+records that nothing here pins either, because nothing here reads his workbook
+yet. The repo holds its adjusted column as `data/spy_chan.csv` and not its
+as-traded one. So reading raw here would not be a
 conservative choice about restatement. It would be a different experiment.
 
 It is also not a choice about a number. Chan's own conclusion at Kindle
@@ -378,7 +379,8 @@ raw series answers a different question, so the committed adjusted vintage is
 what the fallback was written for.
 
 That measurement is the price of the rule, and it is not free: answering it for
-SPY took Chan's own workbook, which this repo does not hold. Where no such
+SPY took both columns of Chan's own workbook, and this repo holds only the
+adjusted one. Where no such
 measurement is available, the rule cannot be applied and the honest move is to
 say which basis was read and that the choice was not tested.
 
