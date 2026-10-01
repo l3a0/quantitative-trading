@@ -54,7 +54,31 @@ w_2 = 1 - w_1 = \frac{\sigma_1}{\sigma_1 + \sigma_2} = \frac{18.55\%}{18.55\% + 
 
 *60/40 is nearly an all-stock portfolio when measured by risk. Risk parity balances the risk by moving most of the capital into bonds.*
 
-The replication rebalances both portfolios to their weights every trading day. Holding mostly bonds leaves risk parity about half as volatile as 60/40. Qian’s second step is to lever it until its volatility matches 60/40’s 11.32%, which here takes leverage of 1.98. At 1.98, every \$100 of the trader’s money holds \$43 of SPY and \$155 of AGG, and the trader borrows the extra \$98 at the cash rate.
+The replication rebalances both portfolios to their weights every trading day. Holding mostly bonds leaves risk parity about half as volatile as 60/40. Qian’s second step is to lever it until its volatility matches 60/40’s. Borrowing scales a portfolio’s returns, and so its volatility, by the leverage `L`, so the leverage is one volatility divided by the other:
+
+```math
+L\, \sigma_{\text{RP}} = \sigma_{60/40} \quad\Rightarrow\quad L = \frac{\sigma_{60/40}}{\sigma_{\text{RP}}}
+```
+
+Both come from the variance formula above. 60/40 puts weights of 0.6 and 0.4 into it:
+
+```math
+\sigma_{60/40} = \sqrt{0.6^2 (18.55\%)^2 + 0.4^2 (5.17\%)^2 + 2 \rho\, (0.6)(0.4)(18.55\%)(5.17\%)} = 11.32\%
+```
+
+Risk parity makes `w₁σ₁` equal `w₂σ₂`, and both come to 0.2178 × 18.55%, or 4.04%. The two terms under the square root are then equal:
+
+```math
+\sigma_{\text{RP}} = \sqrt{2 (w_1 \sigma_1)^2 (1 + \rho)} = 4.04\% \times \sqrt{2 (1 + \rho)} = 5.71\%
+```
+
+With the correlation near zero, that is 4.04% times √2. The leverage follows:
+
+```math
+L = \frac{11.32\%}{5.71\%} = 1.98
+```
+
+At 1.98, every \$100 of the trader’s money holds \$43 of SPY and \$155 of AGG, and the trader borrows the extra \$98 at the cash rate.
 
 Matching the volatilities turns the Sharpe comparison into a return comparison. With both portfolios at 11.32% volatility, the difference in their Sharpe ratios is the difference in their mean returns above cash, divided by 11.32%. That return gap is how many more percentage points a year the leading portfolio earned at 60/40’s risk, with borrowing charged at the assumed cash rate. Lesson 1 tests whether that gap could be luck.
 

@@ -783,6 +783,11 @@ class TestTheFullSpan:
         assert parity.stock_risk_share == pytest.approx(0.5, abs=1e-12)
         assert legs.vol_ratio == pytest.approx(3.590935, abs=5e-7)
         assert legs.ratio_inside_the_band is False
+        # The unlevered volatility the essay divides 60/40's into for the
+        # leverage. Equal risk makes each weight-volatility product 4.04
+        # percent, so at a correlation near zero the total is that times √2.
+        assert parity.stock_weight * legs.stock_vol == pytest.approx(0.040400, abs=5e-7)
+        assert parity.volatility == pytest.approx(0.057128, abs=5e-7)
         # The gap a prose surface quotes, at the whole percentage point Qian's
         # own two significant figures support, rounded from the full value.
         assert round((parity.stock_weight - BOOK_WEIGHTS[0]) * 100) == -1
