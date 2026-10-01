@@ -507,8 +507,8 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
         """Bills averaged 1.165% before the 2022 rise, and at that rate risk
         parity leads by about 0.13 with a t of +1.12, short of the bar. The rate
         is the TB3MS average ``tests/test_bill_rates.py`` pins, typed here
-        because the replication reads no bill series. A typed 1.17% gave
-        +1.11, which the post once quoted."""
+        because the run itself reads no bill series and these tests stay off
+        it too. A typed 1.17% gave +1.11, which the post once quoted."""
         result, returns = measured["falling rates"]
         weights = (result.parity.stock_weight, result.parity.bond_weight)
         ranking = rank_at_matched_volatility(
@@ -1565,7 +1565,7 @@ class TestTheBondSharpeHurdle:
         """At 4% AGG's Sharpe ratio is about −0.39 times SPY's, and at the
         1.74% bill average about 0.46 times, both short of 0.53. The 1.744%
         is the TB3MS average ``tests/test_bill_rates.py`` pins, typed here
-        because the replication reads no bill series."""
+        because the run itself reads no bill series and these tests stay off it too."""
         legs = measured["full span"][0].legs
         ratios = []
         for rate in (RISK_FREE, 0.01744):

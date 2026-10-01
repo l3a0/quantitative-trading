@@ -1785,6 +1785,26 @@ class TestWhatTheCorrelationFigureDraws:
         assert min(drawn.carried) > drawn.carried_floor
         assert drawn.carried_floor > drawn.agg_ratio
 
+    def test_the_solid_curve_at_the_whole_periods_correlation(self, correlation_figure) -> None:
+        """The caption reads about 0.56 off the solid curve at −0.0002, above
+        Lesson 2's 0.53, because the curve keeps the later period's
+        volatilities. The dashed curve reads about 0.68 there."""
+        from chan.risk_parity import WINDOWS, hurdle_for_weights, measure_window
+        from chan.series import aligned_closes
+
+        joined = aligned_closes("SPY", "AGG")
+        late = measure_window(*WINDOWS[2][:1], joined, *WINDOWS[2][1:])[0]
+        drawn = correlation_figure.curves
+        whole = drawn.measured[1][1]
+        legs = late.legs
+        fitted = (drawn.fitted_stock_weight, 1 - drawn.fitted_stock_weight)
+        carried = (drawn.carried_stock_weight, 1 - drawn.carried_stock_weight)
+        at_fitted = hurdle_for_weights(fitted, legs.stock_vol, legs.bond_vol, whole)
+        at_carried = hurdle_for_weights(carried, legs.stock_vol, legs.bond_vol, whole)
+        assert at_fitted == pytest.approx(0.560960, abs=5e-6)
+        assert at_carried == pytest.approx(0.676266, abs=5e-6)
+        assert round(at_fitted, 2) > 0.53
+
     def test_the_title_holds_for_every_measured_correlation(self, correlation_figure) -> None:
         """No correlation these funds showed brings either hurdle down to AGG."""
         drawn = correlation_figure.curves
