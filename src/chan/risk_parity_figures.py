@@ -218,8 +218,8 @@ def make_risk_split_figure(out: Path | None = None, result: WindowResult | None 
         fig,
         f"60/40 puts {_share(result.benchmark.stock_weight)} of the capital and "
         f"{_share(result.benchmark.stock_risk_share)} of the risk in stocks",
-        f"{STOCK} and {BOND}, {legs.start} to {legs.end}, 2026 downloads. A leg's share of risk "
-        "is its share of the portfolio's variance.\n"
+        f"{STOCK} and {BOND}, {legs.start} to {legs.end}, downloaded in 2026. A leg's share of "
+        "risk is its share of the portfolio's variance.\n"
         f"Risk parity weights each leg by the inverse of its volatility, {legs.stock_vol:.2%} "
         f"for {STOCK} and {legs.bond_vol:.2%} for {BOND}, which splits the risk evenly.",
     )
@@ -450,7 +450,7 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
         fig,
         "Risk parity's weight and leverage land close to Qian's, and its Sharpe ratio lead is gone",
         "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.\n"
-        f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, daily, 2026 downloads. "
+        f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, daily, downloaded in 2026. "
         f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate\n"
         "(TB3MS) from October 2003 to August 2026, read off the Fed's site and not stored "
         "with the replication's data.\n"
@@ -530,7 +530,7 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
     rows = hurdle_rows(result)
     legs = result.legs
 
-    fig = Figure(figsize=(10, 6.9), dpi=130)
+    fig = Figure(figsize=(10, 7.3), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     ax = fig.subplots()
     _style(ax)
@@ -611,13 +611,14 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
         f"Qian's is computed here from his rounded inputs: stocks {QIAN_STOCK_VOL:.1%}, bonds "
         f"{QIAN_BOND_VOL:.1%}, correlation {QIAN_CORRELATION:g} (Qian, 2005).\n"
         f"{STOCK} and {BOND}: {legs.stock_vol:.2%} and {legs.bond_vol:.2%}, correlation "
-        f"{_signed(legs.correlation, 4)}, {legs.start} to {legs.end}, 2026 downloads. "
+        f"{_signed(legs.correlation, 4)}, {legs.start} to {legs.end}, downloaded in 2026. "
         "Each multiple\ndivides unrounded Sharpe ratios. AGG's multiple meets the hurdle with "
         f"cash at {hurdle_rate(legs):.2%}, the rate where the two Sharpe ratios tie.\n"
         f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, not stored "
-        f"with the replication's data. {RISK_FREE:.0%} is the rate Chan assumes.",
+        "with the replication's data.\n"
+        f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
-    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.38)
+    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.41)
     fig.rows = rows
     return _save(fig, out, HURDLE_FIGURE)
 
@@ -885,7 +886,7 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
         f"{_signed(band_low, 2)} and +{band_high:.2f},\nare where the faint curves cross the "
         "ends of 1.8's rounding. "
         "The split is the Federal Reserve's first rate rise of 2022, on 16 March.\n"
-        f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, 2026 downloads.",
+        f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, downloaded in 2026.",
     )
     fig.subplots_adjust(left=0.235, right=0.98, top=0.87, bottom=0.29)
     fig.decoding = drawn
@@ -908,7 +909,7 @@ class RateLine:
     line: tuple[RatePoint, ...]
     marks: tuple[RatePoint, ...]
     tie: float
-    resolves_below: float
+    settles_above: float
     start: str
     end: str
 
@@ -946,7 +947,7 @@ def rate_line(result: WindowResult | None = None) -> RateLine:
         line=line,
         marks=(_at(0.0), _at(BILL_AVERAGE), _at(RISK_FREE)),
         tie=first.rate - first.gap / gap_slope,
-        resolves_below=first.rate + (-T_BAR - first.t) / t_slope,
+        settles_above=first.rate + (-T_BAR - first.t) / t_slope,
         start=result.legs.start,
         end=result.legs.end,
     )
@@ -978,9 +979,9 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
     ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
 
     low, high = RATE_RANGE
-    ax.axvspan(drawn.resolves_below, high, color=MUTED, alpha=0.12, lw=0)
+    ax.axvspan(drawn.settles_above, high, ymin=0.0, ymax=1.0, color=MUTED, alpha=0.12, lw=0)
     ax.annotate(
-        f"the data names 60/40\nabove {drawn.resolves_below:.2%}",
+        f"the data names 60/40 the winner\nabove {drawn.settles_above:.2%}",
         (high, 1.0),
         xycoords=("data", "axes fraction"),
         xytext=(-6, -6),
@@ -1007,7 +1008,7 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
         color=INK,
         fontsize=10,
     )
-    placements = ((10, 6, "left", "bottom"), (-10, -8, "right", "top"), (-10, -8, "right", "top"))
+    placements = ((10, 6, "left", "bottom"), (-30, -42, "right", "top"), (-10, -8, "right", "top"))
     for point, (dx, dy, ha, va) in zip(drawn.marks, placements, strict=True):
         ax.plot([point.rate], [point.gap], "o", ms=9, color=ACCENT, zorder=4)
         ax.annotate(
@@ -1020,6 +1021,9 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
             color=INK,
             fontsize=10,
             linespacing=1.35,
+            arrowprops={"arrowstyle": "-", "color": MUTED, "lw": 0.8, "shrinkB": 6}
+            if point.rate == BILL_AVERAGE
+            else None,
         )
     ax.set_xlim(low - RATE_MARGIN, high)
     ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.05])
@@ -1031,16 +1035,16 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
 
     _title(
         fig,
-        "The cash rate decides which portfolio leads, and only rates above "
-        f"{drawn.resolves_below:.2%} settle it",
-        f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, 2026 downloads, both portfolios at "
+        "The assumed cash rate decides which portfolio leads, and t passes "
+        f"−{T_BAR:g} only above {drawn.settles_above:.2%}",
+        f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, downloaded in 2026, both portfolios at "
         "the same volatility. The gap and its t-statistic\nmove in a straight line with the "
         "rate. The shading is where the t-statistic, corrected for day-to-day dependence, is "
         f"beyond −{T_BAR:g}.\n{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month "
-        f"bill rate, not stored with the replication's data. {RISK_FREE:.0%} is the rate Chan "
-        "assumes.",
+        "bill rate, not stored with the replication's data.\n"
+        f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
-    fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.24)
+    fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.27)
     fig.rate_line = drawn
     return _save(fig, out, RATE_FIGURE)
 

@@ -15,6 +15,7 @@ import re
 
 import pytest
 from matplotlib.colors import to_rgba
+from matplotlib.text import Text
 
 from chan.paths import FIGURES_DIR
 from chan.risk_parity import (
@@ -174,7 +175,7 @@ class TestTheText:
 
     def test_the_note_names_the_window_and_both_volatilities(self, figure) -> None:
         note = figure.texts[-1].get_text()
-        assert "SPY and AGG, 2003-09-30 to 2026-09-17, 2026 downloads." in note
+        assert "SPY and AGG, 2003-09-30 to 2026-09-17, downloaded in 2026." in note
         assert "18.55% for SPY and 5.17% for AGG" in note
         assert "share of the portfolio's variance" in note
 
@@ -523,7 +524,7 @@ class TestTheClaimFiguresText:
         lines = claim_figure.texts[-1].get_text().split("\n")
         assert lines == [
             "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.",
-            "SPY and AGG: 2003-09-30 to 2026-09-17, daily, 2026 downloads. 1.74% is the "
+            "SPY and AGG: 2003-09-30 to 2026-09-17, daily, downloaded in 2026. 1.74% is the "
             "St. Louis Fed's average three-month bill rate",
             "(TB3MS) from October 2003 to August 2026, read off the Fed's site and "
             "not stored with the replication's data.",
@@ -768,11 +769,12 @@ class TestTheHurdleFiguresText:
             "Qian's is computed here from his rounded inputs: stocks 15.1%, bonds 4.6%, "
             "correlation 0.2 (Qian, 2005).",
             "SPY and AGG: 18.55% and 5.17%, correlation −0.0002, 2003-09-30 to 2026-09-17, "
-            "2026 downloads. Each multiple",
+            "downloaded in 2026. Each multiple",
             "divides unrounded Sharpe ratios. AGG's multiple meets the hurdle with cash at "
             "1.50%, the rate where the two Sharpe ratios tie.",
             "1.74% is the St. Louis Fed's average three-month bill rate, not stored with the "
-            "replication's data. 4% is the rate Chan assumes.",
+            "replication's data.",
+            "4% is the rate Chan assumes when levering SPY, borrowed here.",
         ]
 
     def test_text_fits_and_nothing_overlaps(self, hurdle_figure) -> None:
@@ -1071,7 +1073,7 @@ class TestTheDecodeFiguresText:
             "The band's edges, −0.01 and +0.37,",
             "are where the faint curves cross the ends of 1.8's rounding. The split is the "
             "Federal Reserve's first rate rise of 2022, on 16 March.",
-            "SPY and AGG: 2003-09-30 to 2026-09-17, 2026 downloads.",
+            "SPY and AGG: 2003-09-30 to 2026-09-17, downloaded in 2026.",
         ]
 
     def test_text_fits_and_nothing_overlaps(self, decode_figure) -> None:
@@ -1128,7 +1130,7 @@ class TestWhatTheRateFigureDraws:
         closed form, reached here through the drawn line."""
         drawn = rate_figure.rate_line
         assert drawn.tie == pytest.approx(0.014977, abs=5e-7)
-        assert drawn.resolves_below == pytest.approx(0.038011, abs=5e-7)
+        assert drawn.settles_above == pytest.approx(0.038011, abs=5e-7)
 
     def test_the_three_marked_rates(self, rate_figure) -> None:
         """At a zero rate risk parity leads by 0.13 with a t of +1.30. At the
@@ -1167,7 +1169,7 @@ class TestWhatTheRateFigureDraws:
         drawn = rate_figure.rate_line
         assert max(p.t for p in drawn.line) < T_BAR
         for point in drawn.line:
-            assert (point.t < -T_BAR) == (point.rate > drawn.resolves_below)
+            assert (point.t < -T_BAR) == (point.rate > drawn.settles_above)
 
 
 class TestTheRatePanel:
@@ -1193,6 +1195,10 @@ class TestTheRatePanel:
             (m.rate, m.gap) for m in drawn.marks
         ]
         assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in marks)
+        (curve,) = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        assert all(d.get_zorder() > curve.get_zorder() and d.get_markersize() >= 8 for d in dots)
+        (zero,) = [line for line in ax.lines if list(line.get_ydata()) == [0, 0]]
+        assert zero.get_linewidth() >= 0.8 and (zero.get_alpha() or 1.0) == 1.0
 
     def test_each_mark_states_its_leader_gap_and_t(self, rate_figure) -> None:
         ax = rate_figure.axes[0]
@@ -1205,9 +1211,13 @@ class TestTheRatePanel:
         for mark, label in zip(rate_figure.rate_line.marks, labels, strict=True):
             assert label.xy == (mark.rate, mark.gap)
         # The first sits above and right of its dot, and the other two below
-        # and left, where the falling line leaves room.
+        # and left, where the falling line leaves room. The bill average sits
+        # 0.24 points from the tie, so its label is set well clear and joined
+        # to its own dot by a leader line.
         assert labels[0].xyann[0] > 0 and labels[0].xyann[1] > 0
         assert all(label.xyann[0] < 0 and label.xyann[1] < 0 for label in labels[1:])
+        assert labels[1].xyann[1] < labels[2].xyann[1]
+        assert [label.arrow_patch is not None for label in labels] == [False, True, False]
         tie = [t for t in ax.texts if t.get_text() == "tie at 1.50%"]
         assert len(tie) == 1 and tie[0].xyann[0] > 0 and tie[0].xyann[1] > 0
 
@@ -1215,17 +1225,27 @@ class TestTheRatePanel:
         ax = rate_figure.axes[0]
         drawn = rate_figure.rate_line
         (shade,) = ax.patches
-        assert shade.get_x() == pytest.approx(drawn.resolves_below, abs=1e-12)
+        assert shade.get_x() == pytest.approx(drawn.settles_above, abs=1e-12)
         assert shade.get_x() + shade.get_width() == pytest.approx(RATE_RANGE[1], abs=1e-12)
         assert 0 < shade.get_alpha() < 0.5
-        texts = _plain_texts(ax)
-        assert "the data names 60/40\nabove 3.80%" in texts
-        assert "risk parity leads" in texts and "60/40 leads" in texts
+        assert shade.get_y() == 0.0 and shade.get_height() == 1.0
+        (names,) = [t for t in ax.texts if t.get_text().startswith("the data names")]
+        assert names.get_text() == "the data names 60/40 the winner\nabove 3.80%"
+        assert names.xy[0] >= drawn.settles_above
+        leads = {
+            t.get_text(): t.get_position()[1] for t in ax.texts if t.get_text().endswith("leads")
+        }
+        assert leads["risk parity leads"] > 0 > leads["60/40 leads"]
 
     def test_the_axes(self, rate_figure) -> None:
+        """The alt text and README quote 0% to 5%, so the range is pinned as a
+        literal, and every drawn gap has to sit inside the vertical limits."""
         ax = rate_figure.axes[0]
+        assert RATE_RANGE == (0.0, 0.05)
         assert ax.get_xlim() == (RATE_RANGE[0] - RATE_MARGIN, RATE_RANGE[1])
         assert ax.get_ylim() == (-0.33, 0.2)
+        low, high = ax.get_ylim()
+        assert all(low < p.gap < high for p in rate_figure.rate_line.line)
         assert ax.get_xlabel() == "assumed cash rate"
         assert ax.get_ylabel() == "risk parity's Sharpe ratio minus 60/40's"
         rate_figure.canvas.draw()
@@ -1242,15 +1262,16 @@ class TestTheRatePanel:
 class TestTheRateFiguresText:
     def test_the_title_and_note(self, rate_figure) -> None:
         assert rate_figure._suptitle.get_text() == (
-            "The cash rate decides which portfolio leads, and only rates above 3.80% settle it"
+            "The assumed cash rate decides which portfolio leads, and t passes −2 only above 3.80%"
         )
         assert rate_figure.texts[-1].get_text().split("\n") == [
-            "SPY and AGG, 2003-09-30 to 2026-09-17, 2026 downloads, both portfolios at the same "
-            "volatility. The gap and its t-statistic",
+            "SPY and AGG, 2003-09-30 to 2026-09-17, downloaded in 2026, both portfolios at the "
+            "same volatility. The gap and its t-statistic",
             "move in a straight line with the rate. The shading is where the t-statistic, "
             "corrected for day-to-day dependence, is beyond −2.",
             "1.74% is the St. Louis Fed's average three-month bill rate, not stored with the "
-            "replication's data. 4% is the rate Chan assumes.",
+            "replication's data.",
+            "4% is the rate Chan assumes when levering SPY, borrowed here.",
         ]
 
     def test_text_fits_and_nothing_overlaps(self, rate_figure) -> None:
@@ -1263,7 +1284,9 @@ class TestTheRateFiguresText:
         pieces = [rate_figure._suptitle, rate_figure.texts[-1], ax.xaxis.label, ax.yaxis.label]
         pieces += [t for t in ax.texts if t.get_text()]
         pieces += [t for t in [*ax.get_xticklabels(), *ax.get_yticklabels()] if t.get_text()]
-        boxes = [(p.get_text(), p.get_window_extent(renderer)) for p in pieces]
+        # Text.get_window_extent measures the words alone. An annotation's own
+        # method adds its leader line, whose box is not text and covers nothing.
+        boxes = [(p.get_text(), Text.get_window_extent(p, renderer)) for p in pieces]
         assert min(box.x0 for _, box in boxes) >= 0
         assert max(box.x1 for _, box in boxes) <= rate_figure.bbox.x1
         clashes = [
