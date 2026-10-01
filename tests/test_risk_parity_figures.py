@@ -1,4 +1,4 @@
-"""The pins for the risk parity post's four figures.
+"""The pins for the risk parity post's five figures.
 
 ``tests/test_risk_parity.py`` holds what the risk parity run computes. This
 file holds that the figures draw those numbers, so a generator that stacked the
@@ -49,8 +49,13 @@ from chan.risk_parity_figures import (
     QIAN_SHARPE_PARITY,
     QIAN_SHARPE_STOCK,
     QIAN_STOCK_VOL,
+    RATE_FIGURE,
+    RATE_MARGIN,
+    RATE_RANGE,
+    RATE_STEPS,
     SPLIT_FIGURE,
     SURFACE,
+    T_BAR,
     decoding,
     full_span,
     full_span_ranking,
@@ -58,8 +63,10 @@ from chan.risk_parity_figures import (
     make_claim_figure,
     make_decode_figure,
     make_hurdle_figure,
+    make_rate_figure,
     make_risk_split_figure,
     qian_ratio_span,
+    rate_line,
     split_bars,
 )
 
@@ -808,7 +815,7 @@ def test_the_committed_hurdle_figure_exists() -> None:
     assert (FIGURES_DIR / HURDLE_FIGURE).is_file()
 
 
-def test_the_command_writes_all_four_and_says_where(
+def test_the_command_writes_all_five_and_says_where(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """``main`` is the redraw command README names, so it has to write every
@@ -821,7 +828,7 @@ def test_the_command_writes_all_four_and_says_where(
     monkeypatch.setattr(shared, "FIGURES_DIR", tmp_path)
     figures.main()
     out = capsys.readouterr().out
-    for name in (SPLIT_FIGURE, CLAIM_FIGURE, HURDLE_FIGURE, DECODE_FIGURE):
+    for name in (SPLIT_FIGURE, CLAIM_FIGURE, HURDLE_FIGURE, DECODE_FIGURE, RATE_FIGURE):
         assert f"wrote {tmp_path / name}" in out
         assert (tmp_path / name).is_file()
 
@@ -1102,3 +1109,195 @@ def test_the_decode_figures_default_draw_reads_the_full_span(tmp_path, decode_fi
 
 def test_the_committed_decode_figure_exists() -> None:
     assert (FIGURES_DIR / DECODE_FIGURE).is_file()
+
+
+# The rate figure, which draws Lesson 4.
+
+
+@pytest.fixture(scope="module")
+def rate_figure(tmp_path_factory: pytest.TempPathFactory, result):
+    out = tmp_path_factory.mktemp("risk_parity_rate") / RATE_FIGURE
+    fig = make_rate_figure(out=out, result=result)
+    fig.written_to = out
+    return fig
+
+
+class TestWhatTheRateFigureDraws:
+    def test_the_tie_and_where_the_data_settles_it(self, rate_figure) -> None:
+        """The same 1.50% and 3.80% ``tests/test_risk_parity.py`` pins in
+        closed form, reached here through the drawn line."""
+        drawn = rate_figure.rate_line
+        assert drawn.tie == pytest.approx(0.014977, abs=5e-7)
+        assert drawn.resolves_below == pytest.approx(0.038011, abs=5e-7)
+
+    def test_the_three_marked_rates(self, rate_figure) -> None:
+        """At a zero rate risk parity leads by 0.13 with a t of +1.30. At the
+        bill average 60/40 leads by 0.02, and at 4% by 0.22 with a t of −2.17."""
+        marks = rate_figure.rate_line.marks
+        assert [m.rate for m in marks] == [0.0, BILL_AVERAGE, RISK_FREE]
+        assert [(m.gap, m.t) for m in marks] == [
+            pytest.approx((0.129838, 1.300398), abs=5e-7),
+            pytest.approx((-0.021007, -0.210392), abs=5e-7),
+            pytest.approx((-0.216931, -2.172682), abs=5e-7),
+        ]
+
+    def test_the_line_is_the_ranking_at_every_rate_it_draws(self, rate_figure) -> None:
+        line = rate_figure.rate_line.line
+        low, high = RATE_RANGE
+        assert len(line) == RATE_STEPS + 1
+        assert (line[0].rate, line[-1].rate) == (low, high)
+        for point in line[:: RATE_STEPS // 5]:
+            ranking = full_span_ranking(point.rate)
+            assert (point.gap, point.t) == (ranking.sharpe_difference, ranking.t_newey_west)
+
+    def test_the_gap_and_the_t_move_in_a_straight_line(self, rate_figure) -> None:
+        """The note says so, and the tie and the 3.80% are roots of lines, so
+        every drawn point has to sit on the line through the two ends."""
+        line = rate_figure.rate_line.line
+        first, last = line[0], line[-1]
+        for point in line:
+            share = (point.rate - first.rate) / (last.rate - first.rate)
+            assert point.gap == pytest.approx(first.gap + share * (last.gap - first.gap), abs=1e-9)
+            assert point.t == pytest.approx(first.t + share * (last.t - first.t), abs=1e-9)
+
+    def test_only_the_shaded_rates_settle_it(self, rate_figure) -> None:
+        """The title says only rates above 3.80% settle the comparison. No
+        drawn rate gives risk parity a t past +2, and every rate whose t is
+        past −2 is inside the shading."""
+        drawn = rate_figure.rate_line
+        assert max(p.t for p in drawn.line) < T_BAR
+        for point in drawn.line:
+            assert (point.t < -T_BAR) == (point.rate > drawn.resolves_below)
+
+
+class TestTheRatePanel:
+    def test_the_line_and_the_zero_line(self, rate_figure) -> None:
+        ax = rate_figure.axes[0]
+        drawn = rate_figure.rate_line
+        (curve,) = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        assert list(curve.get_xdata()) == [p.rate for p in drawn.line]
+        assert list(curve.get_ydata()) == [p.gap for p in drawn.line]
+        assert _rgb(curve.get_color()) == _rgb(ACCENT)
+        zero = [line for line in ax.lines if list(line.get_ydata()) == [0, 0]]
+        assert len(zero) == 1 and _rgb(zero[0].get_color()) == _rgb(INK)
+
+    def test_the_marks_and_the_tie(self, rate_figure) -> None:
+        ax = rate_figure.axes[0]
+        drawn = rate_figure.rate_line
+        dots = _dots(ax)
+        tie, *marks = dots
+        assert (tie.get_xdata()[0], tie.get_ydata()[0]) == (drawn.tie, 0.0)
+        assert _rgb(tie.get_markerfacecolor()) == _rgb(SURFACE)
+        assert _rgb(tie.get_markeredgecolor()) == _rgb(INK)
+        assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in marks] == [
+            (m.rate, m.gap) for m in drawn.marks
+        ]
+        assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in marks)
+
+    def test_each_mark_states_its_leader_gap_and_t(self, rate_figure) -> None:
+        ax = rate_figure.axes[0]
+        labels = [t for t in ax.texts if "ahead by" in t.get_text()]
+        assert [t.get_text() for t in labels] == [
+            "cash at 0%\nrisk parity ahead by 0.13, t = +1.30",
+            "1.74% bill average\n60/40 ahead by 0.02, t = −0.21",
+            "cash at 4%\n60/40 ahead by 0.22, t = −2.17",
+        ]
+        for mark, label in zip(rate_figure.rate_line.marks, labels, strict=True):
+            assert label.xy == (mark.rate, mark.gap)
+        # The first sits above and right of its dot, and the other two below
+        # and left, where the falling line leaves room.
+        assert labels[0].xyann[0] > 0 and labels[0].xyann[1] > 0
+        assert all(label.xyann[0] < 0 and label.xyann[1] < 0 for label in labels[1:])
+        tie = [t for t in ax.texts if t.get_text() == "tie at 1.50%"]
+        assert len(tie) == 1 and tie[0].xyann[0] > 0 and tie[0].xyann[1] > 0
+
+    def test_the_shading_runs_from_the_settling_rate_to_the_edge(self, rate_figure) -> None:
+        ax = rate_figure.axes[0]
+        drawn = rate_figure.rate_line
+        (shade,) = ax.patches
+        assert shade.get_x() == pytest.approx(drawn.resolves_below, abs=1e-12)
+        assert shade.get_x() + shade.get_width() == pytest.approx(RATE_RANGE[1], abs=1e-12)
+        assert 0 < shade.get_alpha() < 0.5
+        texts = _plain_texts(ax)
+        assert "the data names 60/40\nabove 3.80%" in texts
+        assert "risk parity leads" in texts and "60/40 leads" in texts
+
+    def test_the_axes(self, rate_figure) -> None:
+        ax = rate_figure.axes[0]
+        assert ax.get_xlim() == (RATE_RANGE[0] - RATE_MARGIN, RATE_RANGE[1])
+        assert ax.get_ylim() == (-0.33, 0.2)
+        assert ax.get_xlabel() == "assumed cash rate"
+        assert ax.get_ylabel() == "risk parity's Sharpe ratio minus 60/40's"
+        rate_figure.canvas.draw()
+        assert [t.get_text() for t in ax.get_xticklabels()] == [
+            "0%",
+            "1%",
+            "2%",
+            "3%",
+            "4%",
+            "5%",
+        ]
+
+
+class TestTheRateFiguresText:
+    def test_the_title_and_note(self, rate_figure) -> None:
+        assert rate_figure._suptitle.get_text() == (
+            "The cash rate decides which portfolio leads, and only rates above 3.80% settle it"
+        )
+        assert rate_figure.texts[-1].get_text().split("\n") == [
+            "SPY and AGG, 2003-09-30 to 2026-09-17, 2026 downloads, both portfolios at the same "
+            "volatility. The gap and its t-statistic",
+            "move in a straight line with the rate. The shading is where the t-statistic, "
+            "corrected for day-to-day dependence, is beyond −2.",
+            "1.74% is the St. Louis Fed's average three-month bill rate, not stored with the "
+            "replication's data. 4% is the rate Chan assumes.",
+        ]
+
+    def test_text_fits_and_nothing_overlaps(self, rate_figure) -> None:
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(rate_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        ax = rate_figure.axes[0]
+        pieces = [rate_figure._suptitle, rate_figure.texts[-1], ax.xaxis.label, ax.yaxis.label]
+        pieces += [t for t in ax.texts if t.get_text()]
+        pieces += [t for t in [*ax.get_xticklabels(), *ax.get_yticklabels()] if t.get_text()]
+        boxes = [(p.get_text(), p.get_window_extent(renderer)) for p in pieces]
+        assert min(box.x0 for _, box in boxes) >= 0
+        assert max(box.x1 for _, box in boxes) <= rate_figure.bbox.x1
+        clashes = [
+            (a, b)
+            for i, (a, box_a) in enumerate(boxes)
+            for b, box_b in boxes[i + 1 :]
+            if box_a.overlaps(box_b)
+        ]
+        assert clashes == []
+
+    def test_no_label_runs_through_the_line(self, rate_figure) -> None:
+        """An early draw ran the line straight through the bill average's label."""
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(rate_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        ax = rate_figure.axes[0]
+        (curve,) = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        path = curve.get_transform().transform_path(curve.get_path())
+        for text in ax.texts:
+            if text.get_text():
+                box = text.get_window_extent(renderer)
+                assert not path.intersects_bbox(box, filled=False), text.get_text()
+
+    def test_no_label_is_parsed_as_math(self, rate_figure) -> None:
+        for text in [*rate_figure.texts, *rate_figure.axes[0].texts]:
+            assert text.get_parse_math() is False
+
+
+def test_the_rate_figures_default_draw_reads_the_full_span(tmp_path, rate_figure) -> None:
+    fig = make_rate_figure(out=tmp_path / RATE_FIGURE)
+    assert fig.rate_line == rate_figure.rate_line == rate_line()
+
+
+def test_the_committed_rate_figure_exists() -> None:
+    assert (FIGURES_DIR / RATE_FIGURE).is_file()

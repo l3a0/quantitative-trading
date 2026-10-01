@@ -497,7 +497,7 @@ t-statistic of −2 at 3.80% and +1.30 at zero, the later period's −2 at 3.25%
 and the 0.38 gap its weights would leave if computed inside it. It also holds
 the hurdle bonds' Sharpe ratio has to clear, about 0.53 over the whole period
 and about 0.7 in the later period, and AGG's 0.46 and −0.39 times SPY's
-Sharpe ratio at the 1.74% bill average and at 4%. What its four figures draw
+Sharpe ratio at the 1.74% bill average and at 4%. What its five figures draw
 traces to [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
 That includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at
 the 1.74% bill average, the gap of about 0.02 between them and its t-statistic
@@ -507,10 +507,13 @@ Sharpe ratios of 0.45 for SPY and −0.18 for AGG at 4% and of 0.57 and 0.26 at
 the 1.74% bill average. The fourth draws the volatility ratio of about 3.3 in
 Qian's paper, with the 3.24 to 3.33 its rounding allows, beside 3.59, 3.87 and
 2.76 on SPY and AGG, and the leverage curve on each set of weights and on the
-two ends of 23-77's rounding. Those three figures carry Qian's printed numbers,
-listed in group 1, as cited constants.
+two ends of 23-77's rounding. The fifth draws the Sharpe gap across cash rates
+from 0% to 5%, including risk parity's lead of 0.13 at a zero rate, and checks
+that every point it draws lies on one straight line. The second, third and
+fourth figures carry Qian's printed numbers, listed in group 1, as cited
+constants.
 
-All four figures are drawn from the committed SPY and AGG vintages by
+All five figures are drawn from the committed SPY and AGG vintages by
 [src/chan/risk_parity_figures.py](src/chan/risk_parity_figures.py):
 
 1. The capital and risk shares of 60/40 and risk parity on the full span.
@@ -522,6 +525,9 @@ All four figures are drawn from the committed SPY and AGG vintages by
 4. The volatility ratio Qian's weights stand for beside the ratios his paper
    and SPY and AGG give, and the leverage that matches 60/40 against the
    correlation with the band his rounding allows, for Lesson 3.
+5. Risk parity's Sharpe ratio less 60/40's against the assumed cash rate,
+   with the tie, the rates at which the data names 60/40, and the bill average
+   and 4% marked, for Lesson 4.
 
 ```bash
 uv run python -m chan.risk_parity_figures

@@ -125,6 +125,10 @@ The verdict at 4% is also close to the edge of what the data can settle. The t-s
 
 Whether Treasury bills averaged above or below 1.50% from 2003 to 2026 decides which portfolio had the higher Sharpe ratio. Each percentage point of the rate moves the gap by the same amount, so a rate that changed from month to month moves it as its average would. The Federal Reserve Bank of St. Louis publishes the three-month bill rate as series TB3MS, and its monthly average from October 2003 to August 2026, the full calendar months inside the period, is 1.74%. That sits just above the tie. At 1.74%, 60/40’s Sharpe ratio is higher by about 0.02. The t-statistic of −0.21 is far short of the bar, so the data cannot tell the two apart. The replication stores every input it reads with its results so anyone can rerun them, and it has not stored this series yet.
 
+![A falling line of risk parity’s Sharpe ratio minus 60/40’s against the assumed cash rate, from 0% to 5%. It crosses zero at 1.50%. At 0% risk parity leads by 0.13, with a t-statistic of +1.30. At the 1.74% bill average 60/40 leads by 0.02, with a t-statistic of −0.21. At an assumed 4% 60/40 leads by 0.22, with a t-statistic of −2.17, inside the shaded rates above 3.80% where the data can name 60/40 the winner.](../docs/figures/risk_parity_cash_rate.png)
+
+*The rate bills actually paid lands just past the tie. The 4% this post assumes lands just past the rate where the data can name a winner.*
+
 ## Lesson 5: judged on weights from earlier years, risk parity still trails in the later period
 
 60/40’s weights are fixed in advance and use no data. Risk parity computes its weights from measured volatilities. Weights computed from the same years used to score them have already seen every day of the test, which can favour risk parity in a way 60/40 never benefits from.

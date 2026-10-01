@@ -1,4 +1,4 @@
-"""Four figures for the risk parity post, drawn from the committed SPY and AGG vintages.
+"""Five figures for the risk parity post, drawn from the committed SPY and AGG vintages.
 
 1. :func:`make_risk_split_figure` draws Qian's premise, that 60/40 splits
    capital 60 to 40 and risk nowhere near it, on the full common span. It has
@@ -26,11 +26,15 @@
    AGG's over the whole period and on each side of 2022. The other draws the
    leverage that matches 60/40 against the correlation, with the band of
    correlations his rounding allows.
+5. :func:`make_rate_figure` draws Lesson 4. Risk parity's Sharpe ratio less
+   60/40's, against the assumed cash rate, with the tie, the rates at which
+   the data can tell the two apart, and three marked rates: zero, the bill
+   average and the 4 percent the post assumes.
 
 Every number this run measured comes from :mod:`chan.risk_parity`, so a figure
 can only be wrong by drawing the wrong thing, which
 ``tests/test_risk_parity_figures.py`` checks. Qian's numbers are the ones his
-paper prints and are drawn as printed. All four read the committed vintages,
+paper prints and are drawn as printed. All five read the committed vintages,
 so they redraw anywhere the data is::
 
     uv run python -m chan.risk_parity_figures
@@ -78,6 +82,7 @@ SPLIT_FIGURE = "risk_parity_capital_and_risk.png"
 CLAIM_FIGURE = "risk_parity_against_qian.png"
 HURDLE_FIGURE = "risk_parity_bond_hurdle.png"
 DECODE_FIGURE = "risk_parity_ratio_and_correlation.png"
+RATE_FIGURE = "risk_parity_cash_rate.png"
 
 #: Qian's Sharpe ratios for 60/40 and for levered risk parity, Table 2 of
 #: ``research/papers/qian-2005-risk-parity-portfolios.pdf``. Monthly returns on
@@ -887,6 +892,159 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
     return _save(fig, out, DECODE_FIGURE)
 
 
+@dataclass(frozen=True)
+class RatePoint:
+    """The comparison at one assumed cash rate."""
+
+    rate: float
+    gap: float
+    t: float
+
+
+@dataclass(frozen=True)
+class RateLine:
+    """What the rate figure draws, so a test can read it without the axes."""
+
+    line: tuple[RatePoint, ...]
+    marks: tuple[RatePoint, ...]
+    tie: float
+    resolves_below: float
+    start: str
+    end: str
+
+
+#: The cash rates the line runs across, and how finely.
+RATE_RANGE = (0.0, 0.05)
+RATE_STEPS = 50
+
+#: Room left of a zero rate, so the dot marking it is not cut by the axis.
+RATE_MARGIN = 0.0015
+
+#: The t-statistic beyond which the data can tell the two portfolios apart.
+T_BAR = 2.0
+
+
+def _at(rate: float) -> RatePoint:
+    ranking = full_span_ranking(rate)
+    return RatePoint(rate, ranking.sharpe_difference, ranking.t_newey_west)
+
+
+def rate_line(result: WindowResult | None = None) -> RateLine:
+    """The whole period's comparison across assumed cash rates.
+
+    Both the gap and its t-statistic move in a straight line with the rate,
+    so the tie and the rate at which the t reaches the bar are each the root
+    of a line through two of the computed points.
+    """
+    result = result if result is not None else full_span()
+    low, high = RATE_RANGE
+    line = tuple(_at(low + (high - low) * i / RATE_STEPS) for i in range(RATE_STEPS + 1))
+    first, last = line[0], line[-1]
+    gap_slope = (last.gap - first.gap) / (last.rate - first.rate)
+    t_slope = (last.t - first.t) / (last.rate - first.rate)
+    return RateLine(
+        line=line,
+        marks=(_at(0.0), _at(BILL_AVERAGE), _at(RISK_FREE)),
+        tie=first.rate - first.gap / gap_slope,
+        resolves_below=first.rate + (-T_BAR - first.t) / t_slope,
+        start=result.legs.start,
+        end=result.legs.end,
+    )
+
+
+def rate_mark_text(point: RatePoint) -> str:
+    """Which portfolio leads at a marked rate, by how much, and the t."""
+    if point.rate == BILL_AVERAGE:
+        name = f"{point.rate:.2%} bill average"
+    else:
+        name = f"cash at {point.rate:.0%}"
+    leader = "risk parity" if point.gap > 0 else "60/40"
+    return f"{name}\n{leader} ahead by {abs(point.gap):.2f}, t = {point.t:+.2f}".replace("-", "−")
+
+
+def _percent(x: float, _pos: object = None) -> str:
+    return f"{x:.0%}"
+
+
+@_plain_text
+def make_rate_figure(out: Path | None = None, result: WindowResult | None = None) -> Figure:
+    """The Sharpe ratio gap against the assumed cash rate, over the whole period."""
+    drawn = rate_line(result)
+
+    fig = Figure(figsize=(10, 6.0), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    ax = fig.subplots()
+    _style(ax)
+    ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+
+    low, high = RATE_RANGE
+    ax.axvspan(drawn.resolves_below, high, color=MUTED, alpha=0.12, lw=0)
+    ax.annotate(
+        f"the data names 60/40\nabove {drawn.resolves_below:.2%}",
+        (high, 1.0),
+        xycoords=("data", "axes fraction"),
+        xytext=(-6, -6),
+        textcoords="offset points",
+        ha="right",
+        va="top",
+        color=MUTED,
+        fontsize=9.5,
+    )
+    ax.axhline(0.0, color=INK, lw=1, zorder=1)
+    ax.text(low + 0.0008, 0.012, "risk parity leads", color=MUTED, fontsize=9.5, va="bottom")
+    ax.text(low + 0.0008, -0.012, "60/40 leads", color=MUTED, fontsize=9.5, va="top")
+    ax.plot(
+        [p.rate for p in drawn.line], [p.gap for p in drawn.line], color=ACCENT, lw=2.2, zorder=2
+    )
+    ax.plot([drawn.tie], [0.0], "o", ms=9, mfc=SURFACE, mec=INK, mew=1.6, zorder=4)
+    ax.annotate(
+        f"tie at {drawn.tie:.2%}",
+        (drawn.tie, 0.0),
+        xytext=(8, 8),
+        textcoords="offset points",
+        ha="left",
+        va="bottom",
+        color=INK,
+        fontsize=10,
+    )
+    placements = ((10, 6, "left", "bottom"), (-10, -8, "right", "top"), (-10, -8, "right", "top"))
+    for point, (dx, dy, ha, va) in zip(drawn.marks, placements, strict=True):
+        ax.plot([point.rate], [point.gap], "o", ms=9, color=ACCENT, zorder=4)
+        ax.annotate(
+            rate_mark_text(point),
+            (point.rate, point.gap),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            ha=ha,
+            va=va,
+            color=INK,
+            fontsize=10,
+            linespacing=1.35,
+        )
+    ax.set_xlim(low - RATE_MARGIN, high)
+    ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.05])
+    ax.xaxis.set_major_formatter(FuncFormatter(_percent))
+    ax.set_ylim(-0.33, 0.2)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _pos: _signed(y, 1)))
+    ax.set_xlabel("assumed cash rate", color=INK, fontsize=10)
+    ax.set_ylabel("risk parity's Sharpe ratio minus 60/40's", color=INK, fontsize=10)
+
+    _title(
+        fig,
+        "The cash rate decides which portfolio leads, and only rates above "
+        f"{drawn.resolves_below:.2%} settle it",
+        f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, 2026 downloads, both portfolios at "
+        "the same volatility. The gap and its t-statistic\nmove in a straight line with the "
+        "rate. The shading is where the t-statistic, corrected for day-to-day dependence, is "
+        f"beyond −{T_BAR:g}.\n{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month "
+        f"bill rate, not stored with the replication's data. {RISK_FREE:.0%} is the rate Chan "
+        "assumes.",
+    )
+    fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.24)
+    fig.rate_line = drawn
+    return _save(fig, out, RATE_FIGURE)
+
+
 def main() -> None:
     make_risk_split_figure()
     print(f"wrote {FIGURES_DIR / SPLIT_FIGURE}")
@@ -896,6 +1054,8 @@ def main() -> None:
     print(f"wrote {FIGURES_DIR / HURDLE_FIGURE}")
     make_decode_figure()
     print(f"wrote {FIGURES_DIR / DECODE_FIGURE}")
+    make_rate_figure()
+    print(f"wrote {FIGURES_DIR / RATE_FIGURE}")
 
 
 if __name__ == "__main__":
