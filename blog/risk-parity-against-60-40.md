@@ -32,7 +32,21 @@ Risk parity picks the weights that make the two contributions equal. Setting the
 w_1^2 \sigma_1^2 = w_2^2 \sigma_2^2 \quad\Rightarrow\quad w_1 \sigma_1 = w_2 \sigma_2
 ```
 
-So each weight shrinks as its asset’s volatility grows, and an asset twice as volatile gets half the weight. With weights that sum to 1, the stock weight is `σ₂ / (σ₁ + σ₂)`, which is 5.17 divided by the sum of the two, or 21.8%. Bonds get 78.2%.
+So each weight shrinks as its asset’s volatility grows, and an asset twice as volatile gets half the weight. The weights also sum to 1, so putting `1 − w₁` in place of `w₂` and solving for `w₁` gives the stock weight:
+
+```math
+\begin{aligned}
+w_1 \sigma_1 &= (1 - w_1)\, \sigma_2 \\
+w_1 (\sigma_1 + \sigma_2) &= \sigma_2 \\
+w_1 &= \frac{\sigma_2}{\sigma_1 + \sigma_2} = \frac{5.17\%}{18.55\% + 5.17\%} = 21.8\%
+\end{aligned}
+```
+
+Bonds get the rest:
+
+```math
+w_2 = 1 - w_1 = \frac{\sigma_1}{\sigma_1 + \sigma_2} = \frac{18.55\%}{18.55\% + 5.17\%} = 78.2\%
+```
 
 ![Four horizontal bars for SPY and AGG from 2003 to 2026. 60/40 splits capital 60% SPY and 40% AGG and splits risk 96.7% SPY and 3.3% AGG. Risk parity splits capital 21.8% SPY and 78.2% AGG and splits risk 50% each.](../docs/figures/risk_parity_capital_and_risk.png)
 
