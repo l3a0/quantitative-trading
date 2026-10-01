@@ -482,7 +482,7 @@ of its figures are not pinned here.
    hurdle, the whole-period Sharpe ratios of 0.18 and 0.25 that the earlier and
    later periods' weights would give risk parity, the 0.525 and 0.276 in the
    inequality that sets the hurdle, and the Sharpe gap of about 0.13 for risk
-   parity before 2022 at 1.17%, with its t-statistic of +1.11, and the 0.44 of
+   parity in the earlier period at 1.17%, with its t-statistic of +1.11, and the 0.44 of
    the 0.98 difference in bonds' Sharpe ratio that the cash rate accounts for.
 
 The bill-rate averages the post quotes, 1.74% from October 2003 to August
@@ -543,7 +543,7 @@ All seven figures are drawn from the committed SPY and AGG vintages by
 6. The Sharpe ratios of 60/40 and levered risk parity over the whole period,
    before the 2022 rise and after it on the earlier period's weights, and
    after it on weights fitted with hindsight, for Lesson 5.
-7. The hurdle bonds' Sharpe ratio had to clear after 2022, against the
+7. The hurdle bonds' Sharpe ratio had to clear in the later period, against the
    stock-bond correlation, for weights fitted to the period and for the weights
    carried from before, beside AGG's actual ratio, for Lesson 6.
 

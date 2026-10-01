@@ -124,10 +124,17 @@ QIAN_SHARPE_BOND = 0.80
 #: which is the window the bill average covers. A test holds them to the span.
 BILL_MONTHS = ("2003-10", "2026-08")
 
-#: The average of the St. Louis Fed's three-month bill series, TB3MS, over
-#: :data:`BILL_MONTHS`, read from the committed vintage through
-#: :mod:`chan.bill_rates`. It is 1.744 percent, which the post quotes as 1.74.
-BILL_AVERAGE = bill_average(*BILL_MONTHS)
+
+def bill_average_rate() -> float:
+    """The St. Louis Fed's three-month bill average over :data:`BILL_MONTHS`.
+
+    Read from the committed TB3MS vintage through :mod:`chan.bill_rates` each
+    time it is asked for, rather than bound at import, so a redirected
+    ``chan.paths.DATA_DIR`` reaches it the way it reaches every other read.
+    It is 1.744 percent, which the post quotes as 1.74.
+    """
+    return bill_average(*BILL_MONTHS)
+
 
 #: A Sharpe ratio gap smaller than this draws no arrow, because the two dots
 #: already touch and an arrowhead would have no room.
@@ -290,7 +297,7 @@ def full_span_ranking(risk_free: float) -> Ranking:
 def claim(result: WindowResult | None = None) -> Claim:
     """Qian's printed figures beside this run's, on the full span."""
     result = result if result is not None else full_span()
-    at_bills = full_span_ranking(BILL_AVERAGE)
+    at_bills = full_span_ranking(bill_average_rate())
     at_rate = full_span_ranking(RISK_FREE)
     return Claim(
         stock_weight=result.parity.stock_weight,
@@ -305,7 +312,8 @@ def claim(result: WindowResult | None = None) -> Claim:
                 None,
             ),
             SharpePair(
-                f"{STOCK} and {BOND}, 2003 to 2026, cash at the {BILL_AVERAGE:.2%} bill average",
+                f"{STOCK} and {BOND}, 2003 to 2026, cash at the {bill_average_rate():.2%} "
+                "bill average",
                 at_bills.sharpe_benchmark,
                 at_bills.sharpe_parity,
                 at_bills.t_newey_west,
@@ -473,7 +481,7 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
         "Risk parity's weight and leverage land close to Qian's, and its Sharpe ratio lead is gone",
         "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.\n"
         f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, daily, downloaded in 2026. "
-        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate\n"
+        f"{bill_average_rate():.2%} is the St. Louis Fed's average three-month bill rate\n"
         "(TB3MS) from October 2003 to August 2026, from the series committed with the "
         "replication's data.\n"
         f"{RISK_FREE:.0%} is the cash rate Chan assumes elsewhere in the book, above what bills "
@@ -533,7 +541,7 @@ def hurdle_rows(result: WindowResult | None = None) -> tuple[HurdleRow, ...]:
         )
     ]
     for label, rate in (
-        (f"cash at the {BILL_AVERAGE:.2%} bill average", BILL_AVERAGE),
+        (f"cash at the {bill_average_rate():.2%} bill average", bill_average_rate()),
         (f"cash at an assumed {RISK_FREE:.0%}", RISK_FREE),
     ):
         stock, bond = leg_sharpes(legs, risk_free=rate)
@@ -636,8 +644,8 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
         f"{_signed(legs.correlation, 4)}, {legs.start} to {legs.end}, downloaded in 2026. "
         "Each multiple\ndivides unrounded Sharpe ratios. AGG's multiple meets the hurdle with "
         f"cash at {hurdle_rate(legs):.2%}, the rate where the two Sharpe ratios tie.\n"
-        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, committed "
-        "with the replication's data.\n"
+        f"{bill_average_rate():.2%} is the St. Louis Fed's average three-month bill rate, "
+        "committed with the replication's data.\n"
         f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
     fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.41)
@@ -967,7 +975,7 @@ def rate_line(result: WindowResult | None = None) -> RateLine:
     t_slope = (last.t - first.t) / (last.rate - first.rate)
     return RateLine(
         line=line,
-        marks=(_at(0.0), _at(BILL_AVERAGE), _at(RISK_FREE)),
+        marks=(_at(0.0), _at(bill_average_rate()), _at(RISK_FREE)),
         tie=first.rate - first.gap / gap_slope,
         settles_above=first.rate + (-T_BAR - first.t) / t_slope,
         start=result.legs.start,
@@ -977,7 +985,7 @@ def rate_line(result: WindowResult | None = None) -> RateLine:
 
 def rate_mark_text(point: RatePoint) -> str:
     """Which portfolio leads at a marked rate, by how much, and the t."""
-    if point.rate == BILL_AVERAGE:
+    if point.rate == bill_average_rate():
         name = f"{point.rate:.2%} bill average"
     else:
         name = f"cash at {point.rate:.0%}"
@@ -1044,7 +1052,7 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
             fontsize=10,
             linespacing=1.35,
             arrowprops={"arrowstyle": "-", "color": MUTED, "lw": 0.8, "shrinkB": 6}
-            if point.rate == BILL_AVERAGE
+            if point.rate == bill_average_rate()
             else None,
         )
     ax.set_xlim(low - RATE_MARGIN, high)
@@ -1062,7 +1070,7 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
         f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, downloaded in 2026, both portfolios at "
         "the same volatility. The gap and its t-statistic\nmove in a straight line with the "
         "rate. The shading is where the t-statistic, corrected for day-to-day dependence, is "
-        f"beyond −{T_BAR:g}.\n{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month "
+        f"beyond −{T_BAR:g}.\n{bill_average_rate():.2%} is the St. Louis Fed's average three-month "
         "bill rate, committed with the replication's data.\n"
         f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
@@ -1408,9 +1416,9 @@ def correlation_curves() -> CorrelationCurves:
         carried_stock_weight=carried_w[0],
         agg_ratio=agg,
         measured=(
-            ("before 2022", measured_windows["falling rates"].legs.correlation),
+            ("earlier period", measured_windows["falling rates"].legs.correlation),
             ("whole period", measured_windows["full span"].legs.correlation),
-            ("after 2022", legs.correlation),
+            ("later period", legs.correlation),
         ),
         fitted_at_measured=fitted(legs.correlation),
         carried_at_measured=carried(legs.correlation),
@@ -1451,7 +1459,8 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         lw=2,
         zorder=3,
         label=(
-            f"weights fitted with hindsight after 2022 ({_share(drawn.fitted_stock_weight)} stocks)"
+            "weights fitted to the later period with hindsight "
+            f"({_share(drawn.fitted_stock_weight)} stocks)"
         ),
     )
     ax.plot(
@@ -1461,7 +1470,9 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         lw=2,
         ls="--",
         zorder=3,
-        label=f"weights carried from before ({_share(drawn.carried_stock_weight)} stocks)",
+        label=(
+            f"weights carried from the earlier period ({_share(drawn.carried_stock_weight)} stocks)"
+        ),
     )
     ax.axhline(drawn.agg_ratio, color=ACCENT, lw=2, zorder=2)
     ax.annotate(
@@ -1475,9 +1486,9 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         fontsize=10,
     )
     placements = {
-        "before 2022": (-4, -0.86, "right"),
+        "earlier period": (-4, -0.86, "right"),
         "whole period": (-4, -0.97, "right"),
-        "after 2022": (4, -0.86, "left"),
+        "later period": (4, -0.86, "left"),
     }
     for name, rho in drawn.measured:
         ax.axvline(rho, color=MUTED, lw=0.9, ls=":", zorder=1)
@@ -1547,7 +1558,7 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
 
     _title(
         fig,
-        "After 2022, AGG fell short of the hurdle at every correlation these funds showed",
+        "After March 2022, AGG fell short of the hurdle at every correlation these funds showed",
         f"{STOCK} and {BOND} after the Federal Reserve's 16 March 2022 rate rise, {drawn.start} to "
         f"{drawn.end}, downloaded in 2026, at the {RISK_FREE:.0%} cash rate.\n"
         "The hurdle is the multiple of stocks' Sharpe ratio bonds need for levered risk parity to "

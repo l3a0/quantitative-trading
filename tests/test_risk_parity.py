@@ -54,7 +54,6 @@ import pandas as pd
 import pytest
 from ithildincore.stats import newey_west_summary
 
-from chan.bill_rates import average as bill_average
 from chan.risk_parity import (
     BENCHMARK_WEIGHTS,
     BOND,
@@ -1530,11 +1529,12 @@ class TestTheBondSharpeHurdle:
 
     def test_bonds_ratio_to_stocks_at_the_two_rates_the_post_uses(self, measured) -> None:
         """At 4% AGG's Sharpe ratio is about −0.39 times SPY's, and at the
-        1.74% bill average about 0.46 times, both short of 0.53. The bill
-        average is read from the committed TB3MS vintage."""
+        1.74% bill average about 0.46 times, both short of 0.53. The 1.744%
+        is the TB3MS average ``tests/test_bill_rates.py`` pins, typed here
+        because the replication reads no bill series."""
         legs = measured["full span"][0].legs
         ratios = []
-        for rate in (RISK_FREE, bill_average("2003-10", "2026-08")):
+        for rate in (RISK_FREE, 0.01744):
             stock, bond = leg_sharpes(legs, risk_free=rate)
             ratios.append(bond / stock)
         assert ratios == [

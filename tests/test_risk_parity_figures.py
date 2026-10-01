@@ -12,7 +12,7 @@ the reason ``tests/test_regime_figure.py`` gives.
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 from matplotlib.colors import to_rgba
@@ -35,7 +35,6 @@ from chan.risk_parity import (
 )
 from chan.risk_parity_figures import (
     ACCENT,
-    BILL_AVERAGE,
     BILL_MONTHS,
     CLAIM_FIGURE,
     CORRELATION_FIGURE,
@@ -67,6 +66,7 @@ from chan.risk_parity_figures import (
     T_BAR,
     WINDOW_FIGURE,
     WINDOW_XLIM,
+    bill_average_rate,
     correlation_curves,
     decoding,
     full_span,
@@ -313,14 +313,28 @@ class TestWhatTheClaimFigureCompares:
     def test_the_bill_average_is_read_from_the_committed_series(self) -> None:
         """1.744%, the TB3MS average over the calendar months wholly inside the
         run's span, read through ``chan.bill_rates``. The post quotes it as 1.74%."""
-        assert BILL_AVERAGE == average(*BILL_MONTHS)
-        assert BILL_AVERAGE == pytest.approx(0.01744, abs=5e-9)
-        assert f"{BILL_AVERAGE:.2%}" == "1.74%"
+        assert bill_average_rate() == average(*BILL_MONTHS)
+        assert bill_average_rate() == pytest.approx(0.01744, abs=5e-9)
+        assert f"{bill_average_rate():.2%}" == "1.74%"
 
     def test_the_bill_months_are_the_full_calendar_months_inside_the_span(self, result) -> None:
+        """The first month that starts on or after the first day, and the last
+        month that ends on or before the last day."""
         first, last = date.fromisoformat(result.legs.start), date.fromisoformat(result.legs.end)
-        assert first.day != 1 and BILL_MONTHS[0] == f"{first.year}-{first.month + 1:02d}"
-        assert BILL_MONTHS[1] == f"{last.year}-{last.month - 1:02d}"
+        opening = first if first.day == 1 else (first.replace(day=1) + timedelta(days=32))
+        closing = (last + timedelta(days=1)).replace(day=1) - timedelta(days=1)
+        if closing != last:
+            closing = last.replace(day=1) - timedelta(days=1)
+        assert BILL_MONTHS == (f"{opening:%Y-%m}", f"{closing:%Y-%m}")
+
+    def test_the_bill_average_follows_the_data_directory(self, tmp_path, monkeypatch) -> None:
+        """Read at call time, so redirecting the data directory reaches it."""
+        from chan import paths
+        from chan.vintage import VintageUnavailable
+
+        monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
+        with pytest.raises(VintageUnavailable):
+            bill_average_rate()
 
     def test_this_runs_weight_and_leverage(self, claim_figure) -> None:
         drawn = claim_figure.claim
@@ -348,7 +362,9 @@ class TestWhatTheClaimFigureCompares:
         ]
 
     def test_the_drawn_pairs_are_the_rankings_at_each_rate(self, claim_figure) -> None:
-        for pair, rate in zip(claim_figure.claim.pairs[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
+        for pair, rate in zip(
+            claim_figure.claim.pairs[1:], (bill_average_rate(), RISK_FREE), strict=True
+        ):
             ranking = full_span_ranking(rate)
             assert (pair.benchmark, pair.parity, pair.t) == (
                 ranking.sharpe_benchmark,
@@ -672,7 +688,7 @@ class TestWhatTheHurdleFigureCompares:
     def test_this_runs_rows_come_from_the_run(self, hurdle_figure, result) -> None:
         legs = result.legs
         hurdle = bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
-        for row, rate in zip(hurdle_figure.rows[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
+        for row, rate in zip(hurdle_figure.rows[1:], (bill_average_rate(), RISK_FREE), strict=True):
             assert (row.stock_sharpe, row.bond_sharpe) == leg_sharpes(legs, risk_free=rate)
             assert row.hurdle == hurdle
 
@@ -681,7 +697,7 @@ class TestWhatTheHurdleFigureCompares:
         draws at the same rate, and Qian's agrees with his printed pair."""
         rows = hurdle_figure.rows
         assert rows[0].clears == (QIAN_SHARPE_PARITY > QIAN_SHARPE_BENCHMARK)
-        for row, rate in zip(rows[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
+        for row, rate in zip(rows[1:], (bill_average_rate(), RISK_FREE), strict=True):
             assert row.clears == (full_span_ranking(rate).sharpe_difference > 0)
 
     def test_the_title_matches_which_rows_clear_and_by_how_much(self, hurdle_figure) -> None:
@@ -1166,7 +1182,7 @@ class TestWhatTheRateFigureDraws:
         """At a zero rate risk parity leads by 0.13 with a t of +1.30. At the
         bill average 60/40 leads by 0.02, and at 4% by 0.22 with a t of −2.17."""
         marks = rate_figure.rate_line.marks
-        assert [m.rate for m in marks] == [0.0, BILL_AVERAGE, RISK_FREE]
+        assert [m.rate for m in marks] == [0.0, bill_average_rate(), RISK_FREE]
         assert [(m.gap, m.t) for m in marks] == [
             pytest.approx((0.129838, 1.300398), abs=5e-7),
             pytest.approx((-0.021353, -0.213865), abs=5e-7),
@@ -1751,7 +1767,7 @@ class TestWhatTheCorrelationFigureDraws:
         """About 0.70 on fitted weights, as Lesson 6 says, and 0.78 on the
         carried weights the post scores the period on."""
         drawn = correlation_figure.curves
-        assert drawn.measured[-1] == ("after 2022", pytest.approx(0.244222, abs=5e-7))
+        assert drawn.measured[-1] == ("later period", pytest.approx(0.244222, abs=5e-7))
         assert drawn.fitted_at_measured == pytest.approx(0.700772, abs=5e-7)
         assert drawn.carried_at_measured == pytest.approx(0.780545, abs=5e-7)
 
@@ -1773,7 +1789,7 @@ class TestWhatTheCorrelationFigureDraws:
         """No correlation these funds showed brings either hurdle down to AGG."""
         drawn = correlation_figure.curves
         names = [name for name, _ in drawn.measured]
-        assert names == ["before 2022", "whole period", "after 2022"]
+        assert names == ["earlier period", "whole period", "later period"]
         assert [rho for _, rho in drawn.measured] == [
             pytest.approx(-0.068846, abs=5e-7),
             pytest.approx(-0.000215, abs=5e-7),
@@ -1824,11 +1840,11 @@ class TestTheCorrelationPanel:
         assert [line.get_xdata()[0] for line in dotted] == [rho for _, rho in drawn.measured]
         # Each line carries its own label, anchored on it, rather than one block
         # a line ran through.
-        labels = [t for t in ax.texts if t.get_text().startswith(("before", "whole", "after"))]
+        labels = [t for t in ax.texts if t.get_text().startswith(("earlier", "whole", "later"))]
         assert [t.get_text() for t in labels] == [
-            "before 2022, −0.07",
+            "earlier period, −0.07",
             "whole period, −0.0002",
-            "after 2022, +0.24",
+            "later period, +0.24",
         ]
         for label, (_, rho) in zip(labels, drawn.measured, strict=True):
             assert label.xy[0] == rho and label.xyann[0] != 0
@@ -1868,8 +1884,8 @@ class TestTheCorrelationPanel:
     def test_the_legend_names_both_weights(self, correlation_figure) -> None:
         legend = correlation_figure.axes[0].get_legend()
         assert [t.get_text() for t in legend.get_texts()] == [
-            "weights fitted with hindsight after 2022 (26.6% stocks)",
-            "weights carried from before (20.5% stocks)",
+            "weights fitted to the later period with hindsight (26.6% stocks)",
+            "weights carried from the earlier period (20.5% stocks)",
         ]
 
     def test_the_axes(self, correlation_figure) -> None:
@@ -1911,7 +1927,7 @@ class TestTheCorrelationPanel:
 class TestTheCorrelationFiguresText:
     def test_the_title_and_note(self, correlation_figure) -> None:
         assert correlation_figure._suptitle.get_text() == (
-            "After 2022, AGG fell short of the hurdle at every correlation these funds showed"
+            "After March 2022, AGG fell short of the hurdle at every correlation these funds showed"
         )
         assert correlation_figure.texts[-1].get_text().split("\n") == [
             "SPY and AGG after the Federal Reserve's 16 March 2022 rate rise, 2022-03-17 to "
