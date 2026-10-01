@@ -80,6 +80,7 @@ from chan.risk_parity import (
     clip,
     correlation_from_leverage,
     decompose,
+    hurdle_rate,
     leg_sharpes,
     leverage_from_correlation,
     main,
@@ -1565,13 +1566,16 @@ class TestTheBondSharpeHurdle:
         tie = RISK_FREE - ranking.sharpe_difference / per_unit_rate
         stock, bond = leg_sharpes(result.legs, risk_free=tie)
         assert bond / stock == pytest.approx(_hurdle(result.legs), abs=1e-9)
+        assert hurdle_rate(result.legs) == pytest.approx(tie, abs=1e-12)
+        assert hurdle_rate(result.legs) == pytest.approx(0.014977, abs=5e-7)
 
     def test_the_hurdle_reads_no_cash_rate(self) -> None:
         params = inspect.signature(bond_sharpe_hurdle).parameters
         assert "risk_free" not in params
 
     def test_no_hurdle_exists_where_risk_parity_holds_no_more_bonds(self) -> None:
-        """With bonds as volatile as stocks, risk parity is 50/50 and holds
-        fewer bonds than 60/40's 40% would need it to count for more."""
+        """With bonds as volatile as stocks, risk parity is 50/50. Against a
+        20/80 benchmark, its 50% in bonds is less than the benchmark's 80%,
+        so bonds count for less in risk parity and no hurdle exists."""
         with pytest.raises(ValueError, match="no bond Sharpe ratio"):
             bond_sharpe_hurdle(0.15, 0.15, 0.0, benchmark=(0.2, 0.8))

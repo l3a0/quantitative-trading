@@ -469,8 +469,7 @@ of its figures are not pinned here.
    leverage, the 0.98 points a year each point off the rate is worth, risk
    parity's Sharpe ratio moving about twice as far as 60/40's per point, and
    the 2.5 points it takes to close the gap, the 8.36% and −0.91% a year above
-   cash and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4%
-   rate, the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the
+   cash, the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the
    0.71, 0.98 and 0.18 that weight the two funds' Sharpe ratios under a
    correlation near zero, the 0.87 and 0.67 the same arithmetic gives back at
    Qian's inputs, AGG's Sharpe ratio of about −0.46 against SPY's 0.66 in the
@@ -482,9 +481,8 @@ of its figures are not pinned here.
    the three-quarters and 0.12 that split the later period's 0.50 gap between
    the period and the carried weights, and the 0.525 and 0.276 in the inequality
    that sets the hurdle, and the Sharpe gap of about 0.13 for risk parity before
-   2022 at 1.17%, with its t-statistic of +1.11, and the Sharpe ratios of about
-   0.26 for AGG and 0.57 for SPY at the 1.74% bill average, with the 0.44 of
-   the 0.98 difference in bonds' Sharpe ratio that the cash rate accounts for.
+   2022 at 1.17%, with its t-statistic of +1.11, and the 0.44 of the 0.98
+   difference in bonds' Sharpe ratio that the cash rate accounts for.
 3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
    series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from October
    2003 to August 2026, 1.17% from October 2003 to February 2022 and 4.18% from
@@ -504,10 +502,11 @@ Sharpe ratio at the 1.74% bill average and at 4%. What its three figures draw
 traces to [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
 That includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at
 the 1.74% bill average, the gap of about 0.02 between them and its t-statistic
-of −0.21, which the second figure draws, and the hurdle of about two-thirds at
-Qian's inputs and his bonds' 1.45 times stocks', which the third draws. Those
-two figures carry Qian's printed numbers, listed in group 1, as cited
-constants.
+of −0.21, which the second figure draws. The third draws the hurdle of about
+two-thirds at Qian's inputs, his bonds' 1.45 times stocks', and the funds'
+Sharpe ratios of 0.45 for SPY and −0.18 for AGG at 4% and of 0.57 and 0.26 at
+the 1.74% bill average. Those two figures carry Qian's printed numbers,
+listed in group 1, as cited constants.
 
 All three figures are drawn from the committed SPY and AGG vintages by
 [src/chan/risk_parity_figures.py](src/chan/risk_parity_figures.py):

@@ -33,6 +33,7 @@ so they redraw anywhere the data is::
 from __future__ import annotations
 
 from dataclasses import dataclass
+from fractions import Fraction
 from pathlib import Path
 
 from matplotlib.figure import Figure
@@ -54,6 +55,7 @@ from chan.risk_parity import (
     Ranking,
     WindowResult,
     bond_sharpe_hurdle,
+    hurdle_rate,
     leg_sharpes,
     measure_window,
     rank_at_matched_volatility,
@@ -72,7 +74,8 @@ QIAN_SHARPE_BENCHMARK = 0.67
 QIAN_SHARPE_PARITY = 0.87
 
 #: Qian's two legs over the same sample, from the same paper. The volatilities
-#: and the correlation are in the text beside Table 1, and the two Sharpe
+#: and the correlation are on page 1, and the volatilities again in Table 2's
+#: standard deviation row. The two Sharpe
 #: ratios are Table 2's Russell 1000 and Lehman Aggregate columns.
 QIAN_STOCK_VOL = 0.151
 QIAN_BOND_VOL = 0.046
@@ -431,7 +434,8 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
         "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.\n"
         f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, daily, 2026 downloads. "
         f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate\n"
-        "(TB3MS) from October 2003 to August 2026, read off the Fed's site and not stored here.\n"
+        "(TB3MS) from October 2003 to August 2026, read off the Fed's site and not stored "
+        "with the replication's data.\n"
         f"{RISK_FREE:.0%} is the cash rate Chan assumes elsewhere in the book, above what bills "
         "paid on average.\n"
         "t is the t-statistic of risk parity minus 60/40, corrected for day-to-day dependence "
@@ -450,6 +454,9 @@ class HurdleRow:
     stock_sharpe: float
     bond_sharpe: float
     hurdle: float
+    #: Whether the inputs are a source's rounded figures, so the hurdle and the
+    #: multiple carry less precision than the arithmetic prints.
+    approximate: bool = False
 
     @property
     def ratio(self) -> float:
@@ -459,6 +466,16 @@ class HurdleRow:
     @property
     def clears(self) -> bool:
         return self.ratio > self.hurdle
+
+    @property
+    def hurdle_text(self) -> str:
+        if self.approximate:
+            return f"hurdle about {Fraction(self.hurdle).limit_denominator(3)}"
+        return f"hurdle {self.hurdle:.2f}"
+
+    @property
+    def ratio_text(self) -> str:
+        return f"about {self.ratio:.2f}" if self.approximate else _signed(self.ratio)
 
 
 def hurdle_rows(result: WindowResult | None = None) -> tuple[HurdleRow, ...]:
@@ -472,6 +489,7 @@ def hurdle_rows(result: WindowResult | None = None) -> tuple[HurdleRow, ...]:
             QIAN_SHARPE_STOCK,
             QIAN_SHARPE_BOND,
             bond_sharpe_hurdle(QIAN_STOCK_VOL, QIAN_BOND_VOL, QIAN_CORRELATION),
+            approximate=True,
         )
     ]
     for label, rate in (
@@ -494,7 +512,7 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
     rows = hurdle_rows(result)
     legs = result.legs
 
-    fig = Figure(figsize=(10, 6.4), dpi=130)
+    fig = Figure(figsize=(10, 6.9), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     ax = fig.subplots()
     _style(ax)
@@ -511,7 +529,7 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
         )
         ax.plot([row.hurdle, row.hurdle], [y - 0.24, y + 0.24], color=INK, lw=2.2, zorder=3)
         ax.annotate(
-            f"hurdle {row.hurdle:.2f}",
+            row.hurdle_text,
             (row.hurdle, y - 0.24),
             xytext=(0, -3),
             textcoords="offset points",
@@ -521,7 +539,7 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
             fontsize=9.5,
         )
         ax.plot([row.ratio], [y], "o", ms=10, color=ACCENT, zorder=4)
-        _side_label(ax, row.ratio, y, _signed(row.ratio), right=row.ratio >= row.hurdle)
+        _side_label(ax, row.ratio, y, row.ratio_text, right=row.ratio >= row.hurdle)
         ax.text(left + 0.02, y + 0.47, row.label, ha="left", va="center", color=INK, fontsize=10)
         ax.text(
             left + 0.02,
@@ -568,18 +586,20 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
 
     _title(
         fig,
-        "Qian's bonds cleared the hurdle risk parity needs, and AGG's did not",
+        "Qian's bonds cleared the hurdle, and AGG's fell short, narrowly at the bill average",
         "The hurdle is the multiple of stocks' Sharpe ratio at which levered risk parity and 60/40 "
         "earn the same\nSharpe ratio at the same volatility. It depends on the two volatilities "
         "and their correlation, not on the cash rate.\n"
-        f"Qian (2005): stocks {QIAN_STOCK_VOL:.1%}, bonds {QIAN_BOND_VOL:.1%}, correlation "
-        f"{QIAN_CORRELATION:g}. {STOCK} and {BOND}: {legs.stock_vol:.2%} and {legs.bond_vol:.2%}, "
-        f"correlation {_signed(legs.correlation, 4)},\n{legs.start} to {legs.end}, 2026 downloads. "
-        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, "
-        "not stored here.\n"
-        f"{RISK_FREE:.0%} is the cash rate Chan assumes elsewhere in the book.",
+        f"Qian's is computed here from his rounded inputs: stocks {QIAN_STOCK_VOL:.1%}, bonds "
+        f"{QIAN_BOND_VOL:.1%}, correlation {QIAN_CORRELATION:g} (Qian, 2005).\n"
+        f"{STOCK} and {BOND}: {legs.stock_vol:.2%} and {legs.bond_vol:.2%}, correlation "
+        f"{_signed(legs.correlation, 4)}, {legs.start} to {legs.end}, 2026 downloads. "
+        "Each multiple\ndivides unrounded Sharpe ratios. AGG's multiple meets the hurdle with "
+        f"cash at {hurdle_rate(legs):.2%}, the rate where the two Sharpe ratios tie.\n"
+        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, not stored "
+        f"with the replication's data. {RISK_FREE:.0%} is the rate Chan assumes.",
     )
-    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.36)
+    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.38)
     fig.rows = rows
     return _save(fig, out, HURDLE_FIGURE)
 

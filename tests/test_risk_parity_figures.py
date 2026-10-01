@@ -509,7 +509,7 @@ class TestTheClaimFiguresText:
             "SPY and AGG: 2003-09-30 to 2026-09-17, daily, 2026 downloads. 1.74% is the "
             "St. Louis Fed's average three-month bill rate",
             "(TB3MS) from October 2003 to August 2026, read off the Fed's site and "
-            "not stored here.",
+            "not stored with the replication's data.",
             "4% is the cash rate Chan assumes elsewhere in the book, above what bills "
             "paid on average.",
             "t is the t-statistic of risk parity minus 60/40, corrected for day-to-day dependence "
@@ -599,15 +599,17 @@ def _hurdle_ticks(ax) -> list:
 
 class TestWhatTheHurdleFigureCompares:
     def test_qians_legs_are_the_ones_his_paper_prints(self) -> None:
-        """Volatilities and correlation from the text beside Table 1, Sharpe
-        ratios from Table 2's index columns."""
+        """Volatilities and correlation from page 1, with the volatilities
+        again in Table 2's standard deviation row, and Sharpe ratios from
+        Table 2's index columns."""
         assert (QIAN_STOCK_VOL, QIAN_BOND_VOL, QIAN_CORRELATION) == (0.151, 0.046, 0.2)
         assert (QIAN_SHARPE_STOCK, QIAN_SHARPE_BOND) == (0.55, 0.80)
 
     def test_the_three_rows(self, hurdle_figure) -> None:
         """Qian's hurdle is about two-thirds and this run's about 0.53. His
         bonds earned about 1.45 times stocks' Sharpe ratio, and AGG about 0.46
-        times at the bill average and about −0.39 times at 4%."""
+        times at the bill average and about −0.39 times at 4%. Only Qian's row
+        rests on a source's rounded inputs."""
         rows = hurdle_figure.rows
         assert [row.label for row in rows] == [
             "Qian, 1983 to 2004, cash at each month's bill rate",
@@ -625,6 +627,7 @@ class TestWhatTheHurdleFigureCompares:
             pytest.approx(-0.390912, abs=5e-7),
         ]
         assert [row.clears for row in rows] == [True, False, False]
+        assert [row.approximate for row in rows] == [True, False, False]
 
     def test_this_runs_rows_come_from_the_run(self, hurdle_figure, result) -> None:
         legs = result.legs
@@ -641,11 +644,16 @@ class TestWhatTheHurdleFigureCompares:
         for row, rate in zip(rows[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
             assert row.clears == (full_span_ranking(rate).sharpe_difference > 0)
 
-    def test_the_title_matches_which_rows_clear(self, hurdle_figure) -> None:
+    def test_the_title_matches_which_rows_clear_and_by_how_much(self, hurdle_figure) -> None:
+        """AGG misses by under a tenth of stocks' Sharpe ratio at the bill
+        average, which is what narrowly means here, and by more than 0.9 at 4%."""
         assert hurdle_figure._suptitle.get_text() == (
-            "Qian's bonds cleared the hurdle risk parity needs, and AGG's did not"
+            "Qian's bonds cleared the hurdle, and AGG's fell short, narrowly at the bill average"
         )
-        assert [row.clears for row in hurdle_figure.rows] == [True, False, False]
+        rows = hurdle_figure.rows
+        assert [row.clears for row in rows] == [True, False, False]
+        assert 0 < rows[1].hurdle - rows[1].ratio < 0.1
+        assert rows[2].hurdle - rows[2].ratio > 0.9
 
 
 class TestTheHurdlePanel:
@@ -667,13 +675,16 @@ class TestTheHurdlePanel:
             assert zone.get_x() == pytest.approx(row.hurdle, abs=1e-12)
             assert zone.get_x() + zone.get_width() == pytest.approx(HURDLE_XLIM[1], abs=1e-12)
             assert zone.get_y() < y < zone.get_y() + zone.get_height()
+            assert zone.get_height() < 0.4
             assert _rgb(zone.get_facecolor()) == _rgb(GOOD)
+            assert zone.get_alpha() < 0.5
+            assert _rgb(tick.get_color()) == _rgb(INK)
 
     def test_each_dot_and_hurdle_carries_its_value(self, hurdle_figure) -> None:
         ax = hurdle_figure.axes[0]
         texts = _plain_texts(ax)
         assert [t for t in texts if t.startswith("hurdle")] == [
-            "hurdle 0.66",
+            "hurdle about 2/3",
             "hurdle 0.53",
             "hurdle 0.53",
         ]
@@ -683,8 +694,8 @@ class TestTheHurdlePanel:
         for row, y, label in zip(hurdle_figure.rows, ys, hurdle_labels, strict=True):
             assert label.xy == pytest.approx((row.hurdle, y - 0.24), abs=1e-12)
             assert label.get_va() == "top" and label.xyann[1] < 0
-        values = [t for t in ax.texts if re.fullmatch(r"−?\d\.\d\d", t.get_text())]
-        assert [t.get_text() for t in values] == ["1.45", "0.46", "−0.39"]
+        values = [t for t in ax.texts if re.fullmatch(r"(about )?−?\d\.\d\d", t.get_text())]
+        assert [t.get_text() for t in values] == ["about 1.45", "0.46", "−0.39"]
         for row, label in zip(hurdle_figure.rows, values, strict=True):
             assert label.xy[0] == pytest.approx(row.ratio, abs=1e-12)
             outward = row.ratio >= row.hurdle
@@ -723,6 +734,10 @@ class TestTheHurdlePanel:
             "hurdle",
             "risk parity leads",
         ]
+        dot, tick, zone = legend.legend_handles
+        assert _rgb(dot.get_color()) == _rgb(ACCENT)
+        assert _rgb(tick.get_color()) == _rgb(INK)
+        assert _rgb(zone.get_facecolor()) == _rgb(GOOD)
 
 
 class TestTheHurdleFiguresText:
@@ -733,11 +748,14 @@ class TestTheHurdleFiguresText:
             "and 60/40 earn the same",
             "Sharpe ratio at the same volatility. It depends on the two volatilities and their "
             "correlation, not on the cash rate.",
-            "Qian (2005): stocks 15.1%, bonds 4.6%, correlation 0.2. SPY and AGG: 18.55% and "
-            "5.17%, correlation −0.0002,",
-            "2003-09-30 to 2026-09-17, 2026 downloads. 1.74% is the St. Louis Fed's average "
-            "three-month bill rate, not stored here.",
-            "4% is the cash rate Chan assumes elsewhere in the book.",
+            "Qian's is computed here from his rounded inputs: stocks 15.1%, bonds 4.6%, "
+            "correlation 0.2 (Qian, 2005).",
+            "SPY and AGG: 18.55% and 5.17%, correlation −0.0002, 2003-09-30 to 2026-09-17, "
+            "2026 downloads. Each multiple",
+            "divides unrounded Sharpe ratios. AGG's multiple meets the hurdle with cash at "
+            "1.50%, the rate where the two Sharpe ratios tie.",
+            "1.74% is the St. Louis Fed's average three-month bill rate, not stored with the "
+            "replication's data. 4% is the rate Chan assumes.",
         ]
 
     def test_text_fits_and_nothing_overlaps(self, hurdle_figure) -> None:
@@ -778,3 +796,21 @@ class TestTheHurdleFiguresDefaultDraw:
 
 def test_the_committed_hurdle_figure_exists() -> None:
     assert (FIGURES_DIR / HURDLE_FIGURE).is_file()
+
+
+def test_the_command_writes_all_three_and_says_where(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """``main`` is the redraw command README names, so it has to write every
+    committed figure. The save helper lives in ``chan.coin_flip_figures``, so
+    both modules' figure directory is redirected."""
+    import chan.coin_flip_figures as shared
+    import chan.risk_parity_figures as figures
+
+    monkeypatch.setattr(figures, "FIGURES_DIR", tmp_path)
+    monkeypatch.setattr(shared, "FIGURES_DIR", tmp_path)
+    figures.main()
+    out = capsys.readouterr().out
+    for name in (SPLIT_FIGURE, CLAIM_FIGURE, HURDLE_FIGURE):
+        assert f"wrote {tmp_path / name}" in out
+        assert (tmp_path / name).is_file()

@@ -628,6 +628,20 @@ def bond_sharpe_hurdle(
     return (stock * stock_vol / benchmark_vol - parity_count) / (parity_count - bond_count)
 
 
+def hurdle_rate(legs: Legs) -> float:
+    """The cash rate at which bonds' Sharpe ratio, as a multiple of stocks', meets the hurdle.
+
+    The hurdle reads no rate, and the multiple does, so this is where the
+    comparison flips. It solves ``(m_bond - r) * s_stock = h * (m_stock - r) * s_bond``
+    for ``r``, and it is the same rate at which the two Sharpe ratios tie,
+    reached through the legs rather than through the portfolios.
+    """
+    hurdle = bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
+    return (legs.bond_mean * legs.stock_vol - hurdle * legs.stock_mean * legs.bond_vol) / (
+        legs.stock_vol - hurdle * legs.bond_vol
+    )
+
+
 def _affine(weights: tuple[float, float], ratio: float) -> tuple[float, float]:
     """A portfolio's variance as ``constant + slope * correlation``, at unit bond volatility.
 
