@@ -1025,10 +1025,9 @@ to 15 run on 4,647 and 1,130 daily returns against the full span's 5,778, one
 short. A return spans two closes, so the one dated 2022-03-16 runs from the
 2022-03-15 close to the 2022-03-16 close. Row 11's window ends with the return
 dated 2022-03-15 and row 13's starts with the one dated 2022-03-17, so this one
-belongs to neither. It is the decision day itself, and SPY's largest move
-within four trading days either side, +2.2174 percent against AGG's +0.0743
-percent, so it is named
-here rather than left for a reader to notice the counts miss by one.
+belongs to neither. It is the decision day itself, and SPY rose 2.2174 percent
+on it against AGG's 0.0743 percent. So it is named here rather than left for a
+reader to notice the counts miss by one.
 `TestTheTwoSubWindows::test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut`
 holds that day's two returns, so the arithmetic above stays checkable.
 
