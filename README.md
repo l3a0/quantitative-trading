@@ -455,7 +455,8 @@ of its figures are not pinned here.
    carries as cited constants. From Qian's paper, committed at
    [research/papers](research/papers/README.md): the 1983 to 2004 sample, the
    15.1% and 4.6% volatilities, the 0.2 correlation, the 93% risk share, the
-   Sharpe ratios of 0.55, 0.80, 0.67 and 0.87, the bond index's 3.7% a year
+   Sharpe ratios of 0.55 and 0.80, the 0.67 and 0.87 that the second figure
+   carries as cited constants and draws, the bond index's 3.7% a year
    above Treasury bills, the 2 points a year his levered portfolio beat 60/40
    by, his 60/40 volatility of 9.6%, and the condition under which his paper
    says risk parity is mean-variance optimal. The Federal Reserve's near-zero
@@ -483,10 +484,9 @@ of its figures are not pinned here.
    and 0.25 that the earlier and later periods' weights would give risk parity,
    the three-quarters and 0.12 that split the later period's 0.50 gap between
    the period and the carried weights, and the 0.525 and 0.276 in the inequality
-   that sets the hurdle, and the Sharpe gaps of about 0.02 for 60/40 over the
-   whole period at the 1.74% bill average and about 0.13 for risk parity before
-   2022 at 1.17%, with t-statistics of −0.21 and +1.11 at those two
-   rates, and the Sharpe ratios of about 0.26 for AGG and 0.57 for SPY
+   that sets the hurdle, and the Sharpe gap of about 0.13 for risk parity before
+   2022 at 1.17%, with its t-statistic of +1.11, and the Sharpe ratios of about
+   0.26 for AGG and 0.57 for SPY
    at the 1.74% bill average, with the 0.44 of the 0.98 difference in bonds'
    Sharpe ratio that the cash rate accounts for, and the 0.46 times SPY's that
    AGG's 0.26 comes to there.
@@ -502,20 +502,28 @@ Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
 1.50%, 2.45% and −4.43% at which the two Sharpe ratios tie and the full span's
 t-statistic of −2 at 3.80% and +1.30 at zero, the later period's −2 at 3.25%,
-and the 0.38 gap its weights would leave if computed inside it. The shares its
-figure draws trace to
-[tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
+and the 0.38 gap its weights would leave if computed inside it. What its two
+figures draw traces to
+[tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py). That
+includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at the
+1.74% bill average, the gap of about 0.02 between them and its t-statistic of
+−0.21, all of which the second figure draws.
 
-Its one figure, the capital and risk shares of 60/40 and risk parity on the
-full span, is drawn from the committed SPY and AGG vintages by
+Both figures are drawn from the committed SPY and AGG vintages by
 [src/chan/risk_parity_figures.py](src/chan/risk_parity_figures.py):
+
+1. The capital and risk shares of 60/40 and risk parity on the full span.
+2. Risk parity's stock weight and leverage beside Qian's, and the Sharpe ratios
+   of 60/40 and levered risk parity in his data, at the 1.74% bill average and
+   at 4%, for Lesson 1. Qian's figures are drawn as Table 2 of his paper prints
+   them.
 
 ```bash
 uv run python -m chan.risk_parity_figures
 ```
 
-The test file holds what it draws rather than its bytes, for the reason given
-above for the regime map.
+The test file holds what they draw rather than their bytes, for the reason
+given above for the regime map.
 
 ## Where the book's numbers come from
 

@@ -1,28 +1,39 @@
-"""The pins for the risk parity post's figure.
+"""The pins for the risk parity post's two figures.
 
 ``tests/test_risk_parity.py`` holds what the risk parity run computes. This
-file holds that the figure draws those numbers, so a generator that stacked the
-wrong shares or swapped a portfolio's capital for its risk fails even when the
-arithmetic is right. Some numbers repeat here on purpose, because a figure's
-title and labels are prose, and the suite is the authority for every number
-prose quotes. No test compares bytes, for the reason
-``tests/test_regime_figure.py`` gives.
+file holds that the figures draw those numbers, so a generator that stacked the
+wrong shares, swapped a portfolio's capital for its risk, or pointed an arrow
+the wrong way fails even when the arithmetic is right. Some numbers repeat
+here on purpose, because a figure's title and labels are prose, and the suite
+is the authority for every number prose quotes. No test compares bytes, for
+the reason ``tests/test_regime_figure.py`` gives.
 """
 
 from __future__ import annotations
+
+import re
 
 import pytest
 from matplotlib.colors import to_rgba
 
 from chan.paths import FIGURES_DIR
+from chan.risk_parity import BOOK_LEVERAGE, BOOK_WEIGHTS, RISK_FREE
 from chan.risk_parity_figures import (
     ACCENT,
+    BILL_AVERAGE,
+    CLAIM_FIGURE,
     GOOD,
     INK,
     INSIDE_LABEL_MIN,
+    MIN_ARROW,
+    MUTED,
+    QIAN_SHARPE_BENCHMARK,
+    QIAN_SHARPE_PARITY,
     SPLIT_FIGURE,
     SURFACE,
     full_span,
+    full_span_ranking,
+    make_claim_figure,
     make_risk_split_figure,
     split_bars,
 )
@@ -212,3 +223,290 @@ class TestTheDefaultDraw:
 
 def test_the_committed_figure_exists() -> None:
     assert (FIGURES_DIR / SPLIT_FIGURE).is_file()
+
+
+# The claim figure, which draws Lesson 1.
+
+
+@pytest.fixture(scope="module")
+def claim_figure(tmp_path_factory: pytest.TempPathFactory, result):
+    out = tmp_path_factory.mktemp("risk_parity_claim") / CLAIM_FIGURE
+    fig = make_claim_figure(out=out, result=result)
+    fig.written_to = out
+    return fig
+
+
+def _dots(ax) -> list:
+    """The marker lines an axes carries, leaving out reference lines."""
+    return [line for line in ax.lines if line.get_marker() == "o"]
+
+
+def _filled(line) -> bool:
+    return line.get_markerfacecolor() != "none"
+
+
+def _arrows(ax) -> list:
+    return [text for text in ax.texts if getattr(text, "arrow_patch", None) is not None]
+
+
+def _plain_texts(ax) -> list[str]:
+    return [text.get_text() for text in ax.texts if text.get_text()]
+
+
+class TestWhatTheClaimFigureCompares:
+    def test_qians_figures_are_the_ones_his_paper_prints(self) -> None:
+        """Table 2 of the committed paper prints 0.67 for 60/40 and 0.87 for
+        levered risk parity, and the weight and leverage are the book's."""
+        assert (QIAN_SHARPE_BENCHMARK, QIAN_SHARPE_PARITY) == (0.67, 0.87)
+        assert (BOOK_WEIGHTS[0], BOOK_LEVERAGE) == (0.23, 1.8)
+
+    def test_the_bill_average_is_the_one_the_post_quotes(self) -> None:
+        assert BILL_AVERAGE == 0.0174
+
+    def test_this_runs_weight_and_leverage(self, claim_figure) -> None:
+        drawn = claim_figure.claim
+        assert drawn.stock_weight == pytest.approx(0.217821, abs=5e-7)
+        assert drawn.leverage == pytest.approx(1.981188, abs=5e-7)
+        assert (drawn.start, drawn.end) == ("2003-09-30", "2026-09-17")
+
+    def test_the_three_sharpe_pairs(self, claim_figure) -> None:
+        """Qian's pair as printed, then this run's at the bill average and at 4%.
+
+        The 4% pair is the one ``tests/test_risk_parity.py`` pins on the full
+        span. The bill-average pair is what the post's Lesson 4 quotes as a gap
+        of about 0.02 with a t-statistic of −0.21.
+        """
+        pairs = claim_figure.claim.pairs
+        assert [(p.benchmark, p.parity) for p in pairs] == [
+            pytest.approx((0.67, 0.87), abs=1e-12),
+            pytest.approx((0.610815, 0.589809), abs=5e-7),
+            pytest.approx((0.411135, 0.194204), abs=5e-7),
+        ]
+        assert pairs[0].t is None
+        assert [p.t for p in pairs[1:]] == [
+            pytest.approx(-0.210392, abs=5e-7),
+            pytest.approx(-2.172682, abs=5e-7),
+        ]
+
+    def test_the_drawn_pairs_are_the_rankings_at_each_rate(self, claim_figure) -> None:
+        for pair, rate in zip(claim_figure.claim.pairs[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
+            ranking = full_span_ranking(rate)
+            assert (pair.benchmark, pair.parity, pair.t) == (
+                ranking.sharpe_benchmark,
+                ranking.sharpe_parity,
+                ranking.t_newey_west,
+            )
+
+    def test_the_lead_reverses_as_the_title_says(self, claim_figure) -> None:
+        """The title says the Sharpe lead does not land close. Qian's risk
+        parity leads, and this run's trails at both rates."""
+        gaps = [pair.gap for pair in claim_figure.claim.pairs]
+        assert gaps[0] > 0
+        assert all(gap < 0 for gap in gaps[1:])
+
+
+class TestTheWeightAndLeveragePanels:
+    def test_each_dot_sits_at_its_value_on_its_row(self, claim_figure) -> None:
+        weight_ax, leverage_ax = claim_figure.axes[0], claim_figure.axes[1]
+        drawn = claim_figure.claim
+        for ax, values in (
+            (weight_ax, (BOOK_WEIGHTS[0], drawn.stock_weight)),
+            (leverage_ax, (BOOK_LEVERAGE, drawn.leverage)),
+        ):
+            rows = _row_of(ax)
+            dots = _dots(ax)
+            assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in dots] == [
+                pytest.approx((values[0], rows["Qian"]), abs=1e-12),
+                pytest.approx((values[1], rows["SPY and AGG"]), abs=1e-12),
+            ]
+            assert rows["Qian"] > rows["SPY and AGG"]
+            assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in dots)
+
+    def test_each_dot_carries_its_value(self, claim_figure) -> None:
+        assert _plain_texts(claim_figure.axes[0]) == ["23%", "21.8%", "60/40 holds 60%"]
+        assert _plain_texts(claim_figure.axes[1]) == ["1.8", "1.98", "60/40 is unlevered"]
+
+    def test_each_value_label_sits_beside_its_dot(self, claim_figure) -> None:
+        for ax in claim_figure.axes[:2]:
+            dots = _dots(ax)
+            labels = [text for text in ax.texts if text.get_text()][:2]
+            for dot, label in zip(dots, labels, strict=True):
+                assert label.xy == pytest.approx((dot.get_xdata()[0], dot.get_ydata()[0]))
+                assert label.get_ha() == "left"
+
+    def test_the_reference_lines_mark_60_40(self, claim_figure) -> None:
+        for ax, x in ((claim_figure.axes[0], 0.6), (claim_figure.axes[1], 1.0)):
+            references = [line for line in ax.lines if line.get_marker() != "o"]
+            assert len(references) == 1
+            assert list(references[0].get_xdata()) == [x, x]
+            label = [text for text in ax.texts if text.get_text().startswith("60/40")][0]
+            assert label.xy[0] == x
+
+    def test_the_axes_start_at_zero_so_closeness_is_not_exaggerated(self, claim_figure) -> None:
+        weight_ax, leverage_ax = claim_figure.axes[0], claim_figure.axes[1]
+        assert weight_ax.get_xlim() == (0.0, 1.0)
+        assert leverage_ax.get_xlim() == (0.0, 2.5)
+        claim_figure.canvas.draw()
+        assert [t.get_text() for t in weight_ax.get_xticklabels()] == [
+            "0%",
+            "25%",
+            "50%",
+            "75%",
+            "100%",
+        ]
+        assert [t.get_text() for t in leverage_ax.get_xticklabels()] == [
+            "0×",
+            "0.5×",
+            "1×",
+            "1.5×",
+            "2×",
+            "2.5×",
+        ]
+
+
+class TestTheSharpePanel:
+    def test_each_row_draws_60_40_hollow_and_risk_parity_filled(self, claim_figure) -> None:
+        ax = claim_figure.axes[2]
+        dots = _dots(ax)
+        pairs = claim_figure.claim.pairs
+        assert len(dots) == 2 * len(pairs)
+        for i, pair in enumerate(pairs):
+            parity, bench = dots[2 * i], dots[2 * i + 1]
+            assert _filled(parity) and _rgb(parity.get_color()) == _rgb(ACCENT)
+            assert not _filled(bench) and _rgb(bench.get_markeredgecolor()) == _rgb(INK)
+            assert parity.get_xdata()[0] == pair.parity
+            assert bench.get_xdata()[0] == pair.benchmark
+            assert parity.get_ydata()[0] == bench.get_ydata()[0]
+
+    def test_the_rows_run_top_to_bottom_under_their_labels(self, claim_figure) -> None:
+        ax = claim_figure.axes[2]
+        pairs = claim_figure.claim.pairs
+        dots = _dots(ax)
+        rows = [dots[2 * i].get_ydata()[0] for i in range(len(pairs))]
+        assert rows == sorted(rows, reverse=True)
+        for pair, y in zip(pairs, rows, strict=True):
+            label = [t for t in ax.texts if t.get_text() == pair.label][0]
+            assert 0 < label.get_position()[1] - y < 0.5
+
+    def test_the_row_labels(self, claim_figure) -> None:
+        assert [pair.label for pair in claim_figure.claim.pairs] == [
+            "Qian, 1983 to 2004, cash at each month's bill rate",
+            "SPY and AGG, 2003 to 2026, cash at the 1.74% bill average",
+            "SPY and AGG, 2003 to 2026, cash at 4%",
+        ]
+
+    def test_each_row_states_its_leader_gap_and_t(self, claim_figure) -> None:
+        ax = claim_figure.axes[2]
+        gaps = [t for t in ax.texts if "ahead by" in t.get_text()]
+        assert [t.get_text() for t in gaps] == [
+            "risk parity ahead by 0.20",
+            "60/40 ahead by 0.02, t = −0.21",
+            "60/40 ahead by 0.22, t = −2.17",
+        ]
+        dots = _dots(ax)
+        for i, text in enumerate(gaps):
+            assert 0 < dots[2 * i].get_ydata()[0] - text.get_position()[1] < 0.5
+            assert _rgb(text.get_color()) == _rgb(MUTED)
+
+    def test_each_value_label_sits_on_the_outer_side_of_its_dot(self, claim_figure) -> None:
+        ax = claim_figure.axes[2]
+        values = [t for t in ax.texts if re.fullmatch(r"\d\.\d\d", t.get_text())]
+        pairs = claim_figure.claim.pairs
+        assert [t.get_text() for t in values] == [
+            text for p in pairs for text in (f"{p.parity:.2f}", f"{p.benchmark:.2f}")
+        ]
+        assert [t.get_text() for t in values] == ["0.87", "0.67", "0.59", "0.61", "0.19", "0.41"]
+        for i, pair in enumerate(pairs):
+            parity_label, bench_label = values[2 * i], values[2 * i + 1]
+            assert parity_label.xy[0] == pair.parity
+            assert bench_label.xy[0] == pair.benchmark
+            right = pair.parity > pair.benchmark
+            assert parity_label.get_ha() == ("left" if right else "right")
+            assert bench_label.get_ha() == ("right" if right else "left")
+
+    def test_arrows_run_from_60_40_to_risk_parity_where_there_is_room(self, claim_figure) -> None:
+        """The 1.74% row's dots touch, so it draws no arrow, and the other two
+        point the way the lead runs."""
+        ax = claim_figure.axes[2]
+        arrows = _arrows(ax)
+        pairs = [p for p in claim_figure.claim.pairs if abs(p.gap) >= MIN_ARROW]
+        assert len(pairs) == 2
+        assert abs(claim_figure.claim.pairs[1].gap) < MIN_ARROW
+        dots = _dots(ax)
+        rows = {p.label: dots[2 * i].get_ydata()[0] for i, p in enumerate(claim_figure.claim.pairs)}
+        assert [(a.xy, a.xyann) for a in arrows] == [
+            ((p.parity, rows[p.label]), (p.benchmark, rows[p.label])) for p in pairs
+        ]
+
+    def test_the_axis_runs_from_zero_to_one(self, claim_figure) -> None:
+        ax = claim_figure.axes[2]
+        assert ax.get_xlim() == (0.0, 1.0)
+        claim_figure.canvas.draw()
+        assert [t.get_text() for t in ax.get_xticklabels()] == [
+            "0.0",
+            "0.2",
+            "0.4",
+            "0.6",
+            "0.8",
+            "1.0",
+        ]
+
+    def test_the_legend_names_both_portfolios_in_their_markers(self, claim_figure) -> None:
+        legend = claim_figure.axes[2].get_legend()
+        assert [t.get_text() for t in legend.get_texts()] == ["60/40", "risk parity"]
+        bench, parity = legend.legend_handles
+        assert not _filled(bench) and _rgb(bench.get_markeredgecolor()) == _rgb(INK)
+        assert _filled(parity) and _rgb(parity.get_color()) == _rgb(ACCENT)
+
+
+class TestTheClaimFiguresText:
+    def test_the_title_states_the_finding(self, claim_figure) -> None:
+        assert claim_figure._suptitle.get_text() == (
+            "Risk parity's weight and leverage land close to Qian's, "
+            "and its Sharpe ratio lead does not"
+        )
+
+    def test_the_panel_titles(self, claim_figure) -> None:
+        assert [ax.get_title(loc="left") for ax in claim_figure.axes] == [
+            "Risk parity's stock weight",
+            "Leverage to match 60/40's volatility",
+            "Sharpe ratio, from 60/40 to levered risk parity",
+        ]
+
+    def test_the_note_names_both_sources_and_the_unstored_rate(self, claim_figure) -> None:
+        note = claim_figure.texts[-1].get_text()
+        assert "Qian (2005), Table 2" in note
+        assert "SPY and AGG: 2003-09-30 to 2026-09-17, daily, 2026 downloads." in note
+        assert "1.74% is the St. Louis Fed's average three-month bill rate" in note
+        assert "not stored here" in note
+        assert "Newey-West t-statistic of risk parity minus 60/40" in note
+
+    def test_every_text_fits_inside_the_figure(self, claim_figure) -> None:
+        """The note ran off the right edge on an early draw."""
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(claim_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        texts = [*claim_figure.texts, claim_figure._suptitle]
+        texts += [t for ax in claim_figure.axes for t in ax.texts if t.get_text()]
+        right = max(t.get_window_extent(renderer).x1 for t in texts)
+        assert right <= claim_figure.bbox.x1
+
+    def test_no_label_is_parsed_as_math(self, claim_figure) -> None:
+        for text in [*claim_figure.texts, *(t for ax in claim_figure.axes for t in ax.texts)]:
+            assert text.get_parse_math() is False
+
+
+class TestTheClaimFiguresDefaultDraw:
+    def test_the_default_draw_reads_the_full_span(self, tmp_path, claim_figure) -> None:
+        fig = make_claim_figure(out=tmp_path / CLAIM_FIGURE)
+        assert fig.claim == claim_figure.claim
+
+    def test_the_figure_is_written_where_it_is_asked_to_be(self, claim_figure) -> None:
+        assert claim_figure.written_to.is_file()
+        assert claim_figure.written_to.stat().st_size > 0
+
+
+def test_the_committed_claim_figure_exists() -> None:
+    assert (FIGURES_DIR / CLAIM_FIGURE).is_file()
