@@ -54,7 +54,9 @@ from chan.risk_parity import (
     BENCHMARK_WEIGHTS,
     BOND,
     BOOK_LEVERAGE,
+    BOOK_LEVERAGE_ROUNDING,
     BOOK_RATIO_BAND,
+    BOOK_WEIGHT_ROUNDING,
     BOOK_WEIGHTS,
     RISK_FREE,
     STOCK,
@@ -621,12 +623,13 @@ class RatioMark:
 
     label: str
     ratio: float
-    #: Whether the ratio divides a source's rounded volatilities.
-    approximate: bool = False
+    #: The ratios a source's rounded volatilities allow, drawn as a bar in
+    #: place of a dot, or ``None`` where the volatilities were measured here.
+    span: tuple[float, float] | None = None
 
     @property
     def text(self) -> str:
-        return f"about {self.ratio:.2f}" if self.approximate else f"{self.ratio:.2f}"
+        return f"about {self.ratio:.1f}" if self.span is not None else f"{self.ratio:.2f}"
 
 
 @dataclass(frozen=True)
@@ -649,8 +652,25 @@ class Decoding:
     run: LeveragePoint
     qian_printed_correlation: float
     correlation_band: tuple[float, float]
+    #: The stock weights at the two ends of 23-77's rounding, and the two ends
+    #: of 1.8's. The correlation band's edges are where those curves cross
+    #: those leverages.
+    rounding_weights: tuple[float, float]
+    rounding_leverages: tuple[float, float]
     start: str
     end: str
+
+
+#: Half the last printed digit of Qian's volatilities, 15.1% and 4.6%.
+QIAN_VOL_ROUNDING = 0.0005
+
+
+def qian_ratio_span() -> tuple[float, float]:
+    """The volatility ratios Qian's rounded 15.1% and 4.6% allow."""
+    return (
+        (QIAN_STOCK_VOL - QIAN_VOL_ROUNDING) / (QIAN_BOND_VOL + QIAN_VOL_ROUNDING),
+        (QIAN_STOCK_VOL + QIAN_VOL_ROUNDING) / (QIAN_BOND_VOL - QIAN_VOL_ROUNDING),
+    )
 
 
 def decoding(result: WindowResult | None = None) -> Decoding:
@@ -667,10 +687,10 @@ def decoding(result: WindowResult | None = None) -> Decoding:
     return Decoding(
         ratio_band=BOOK_RATIO_BAND,
         ratios=(
-            RatioMark("Qian, 1983 to 2004", QIAN_STOCK_VOL / QIAN_BOND_VOL, approximate=True),
+            RatioMark("Qian, 1983 to 2004", QIAN_STOCK_VOL / QIAN_BOND_VOL, span=qian_ratio_span()),
             RatioMark(f"{STOCK} and {BOND}, 2003 to 2026", legs.vol_ratio),
-            RatioMark(f"{STOCK} and {BOND}, before 2022", windows["falling rates"].vol_ratio),
-            RatioMark(f"{STOCK} and {BOND}, after 2022", windows["rising rates"].vol_ratio),
+            RatioMark(f"{STOCK} and {BOND}, to March 2022", windows["falling rates"].vol_ratio),
+            RatioMark(f"{STOCK} and {BOND}, from March 2022", windows["rising rates"].vol_ratio),
         ),
         qian=LeveragePoint("Qian's 23-77", BOOK_WEIGHTS[0], implied, BOOK_LEVERAGE),
         run=LeveragePoint(
@@ -681,13 +701,22 @@ def decoding(result: WindowResult | None = None) -> Decoding:
         ),
         qian_printed_correlation=QIAN_CORRELATION,
         correlation_band=book_correlation_band(),
+        rounding_weights=(
+            BOOK_WEIGHTS[0] - BOOK_WEIGHT_ROUNDING,
+            BOOK_WEIGHTS[0] + BOOK_WEIGHT_ROUNDING,
+        ),
+        rounding_leverages=(
+            BOOK_LEVERAGE - BOOK_LEVERAGE_ROUNDING,
+            BOOK_LEVERAGE + BOOK_LEVERAGE_ROUNDING,
+        ),
         start=legs.start,
         end=legs.end,
     )
 
 
-#: The correlation range the leverage panel draws.
+#: The correlation range the leverage panel draws, and how finely.
 DECODE_CORRELATIONS = (-0.4, 0.6)
+CURVE_STEPS = 200
 
 
 @_plain_text
@@ -695,7 +724,7 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
     """Qian's weights as a volatility ratio and his leverage as a correlation."""
     drawn = decoding(result)
 
-    fig = Figure(figsize=(10, 6.2), dpi=130)
+    fig = Figure(figsize=(10, 6.6), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     grid = fig.add_gridspec(1, 2, width_ratios=(1, 1.1), wspace=0.28)
     ratio_ax = fig.add_subplot(grid[0, 0])
@@ -705,6 +734,7 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
     ratio_ax.grid(axis="y", visible=False)
     ratio_ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
     low, high = drawn.ratio_band
+    span_low, span_high = drawn.ratios[0].span
     ratio_ax.axvspan(low, high, color=GOOD, alpha=0.16, lw=0)
     ratio_ax.annotate(
         "what 23-77 allows",
@@ -719,8 +749,14 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
     )
     rows = [float(len(drawn.ratios) - 1 - i) for i in range(len(drawn.ratios))]
     for y, mark in zip(rows, drawn.ratios, strict=True):
-        ratio_ax.plot([mark.ratio], [y], "o", ms=9, color=ACCENT, zorder=3)
-        _side_label(ratio_ax, mark.ratio, y, mark.text, right=True)
+        if mark.span is None:
+            ratio_ax.plot([mark.ratio], [y], "o", ms=9, color=ACCENT, zorder=3)
+            _side_label(ratio_ax, mark.ratio, y, mark.text, right=True)
+        else:
+            ratio_ax.plot(
+                list(mark.span), [y, y], color=ACCENT, lw=7, solid_capstyle="butt", zorder=3
+            )
+            _side_label(ratio_ax, mark.span[1], y, mark.text, right=True)
     ratio_ax.set_yticks(rows, [mark.label for mark in drawn.ratios])
     ratio_ax.tick_params(axis="y", colors=INK, labelsize=10, length=0)
     ratio_ax.set_ylim(-0.6, len(drawn.ratios) - 0.2)
@@ -751,7 +787,29 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
         fontsize=9,
     )
     left, right = DECODE_CORRELATIONS
-    grid_points = [left + (right - left) * i / 200 for i in range(201)]
+    grid_points = [left + (right - left) * i / CURVE_STEPS for i in range(CURVE_STEPS + 1)]
+    lev_low, lev_high = drawn.rounding_leverages
+    curve_ax.axhspan(lev_low, lev_high, color=RULE, alpha=0.35, lw=0, zorder=0)
+    curve_ax.annotate(
+        "1.8's rounding",
+        (left, (lev_low + lev_high) / 2),
+        xytext=(5, 0),
+        textcoords="offset points",
+        ha="left",
+        va="center",
+        color=MUTED,
+        fontsize=9,
+    )
+    for i, weight in enumerate(drawn.rounding_weights):
+        curve_ax.plot(
+            grid_points,
+            [leverage_from_correlation(c, weights=(weight, 1.0 - weight)) for c in grid_points],
+            color=INK,
+            alpha=0.35,
+            lw=0.9,
+            zorder=1,
+            label="ends of 23-77's rounding" if i == 0 else None,
+        )
     for point, colour, style, value, offset in (
         (drawn.qian, INK, "-", f"{BOOK_LEVERAGE:g} at {_signed(drawn.qian.correlation)}", -1),
         (
@@ -815,14 +873,16 @@ def make_decode_figure(out: Path | None = None, result: WindowResult | None = No
         "Qian's weights stand for a volatility ratio, and his leverage for a correlation",
         "Risk parity sets each weight times its volatility equal, so 23-77 says stocks were "
         "77/23 times as volatile as bonds.\nWeights that round to 23 and 77 allow "
-        f"{low:.2f} to {high:.2f}. Qian (2005) prints volatilities of {QIAN_STOCK_VOL:.1%} "
-        f"and {QIAN_BOND_VOL:.1%}.\n"
+        f"{low:.2f} to {high:.2f}. Qian's (2005) {QIAN_STOCK_VOL:.1%} and "
+        f"{QIAN_BOND_VOL:.1%} allow {span_low:.2f} to {span_high:.2f} once rounded.\n"
         "Given the weights, the leverage that matches 60/40 depends only on the correlation. "
-        "Letting the weights and the\nleverage vary within their rounding allows correlations "
-        f"from {_signed(band_low, 2)} to {_signed(band_high, 2)}. "
+        "The band's edges, "
+        f"{_signed(band_low, 2)} and +{band_high:.2f},\nare where the faint curves cross the "
+        "ends of 1.8's rounding. "
+        "The split is the Federal Reserve's first rate rise of 2022, on 16 March.\n"
         f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, 2026 downloads.",
     )
-    fig.subplots_adjust(left=0.2, right=0.98, top=0.86, bottom=0.27)
+    fig.subplots_adjust(left=0.235, right=0.98, top=0.87, bottom=0.29)
     fig.decoding = drawn
     return _save(fig, out, DECODE_FIGURE)
 

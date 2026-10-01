@@ -32,6 +32,7 @@ from chan.risk_parity_figures import (
     ACCENT,
     BILL_AVERAGE,
     CLAIM_FIGURE,
+    CURVE_STEPS,
     DECODE_CORRELATIONS,
     DECODE_FIGURE,
     GOOD,
@@ -58,6 +59,7 @@ from chan.risk_parity_figures import (
     make_decode_figure,
     make_hurdle_figure,
     make_risk_split_figure,
+    qian_ratio_span,
     split_bars,
 )
 
@@ -837,16 +839,17 @@ def decode_figure(tmp_path_factory: pytest.TempPathFactory, result):
 
 class TestWhatTheDecodeFigureDraws:
     def test_the_ratio_band_and_the_four_ratios(self, decode_figure) -> None:
-        """Weights rounding to 23-77 allow 3.26 to 3.44. Qian's paper gives
-        about 3.28, inside it, and SPY and AGG give 3.59 over the whole period,
-        3.87 before 2022 and 2.76 after, all outside it."""
+        """Weights rounding to 23-77 allow 3.26 to 3.44. Qian's rounded
+        volatilities allow 3.24 to 3.33, which overlaps that band without
+        sitting inside it. SPY and AGG give 3.59 over the whole period, 3.87 up
+        to March 2022 and 2.76 after, and all three miss both ranges."""
         drawn = decode_figure.decoding
         assert drawn.ratio_band == BOOK_RATIO_BAND
-        assert [(m.label, m.approximate) for m in drawn.ratios] == [
+        assert [(m.label, m.span is not None) for m in drawn.ratios] == [
             ("Qian, 1983 to 2004", True),
             ("SPY and AGG, 2003 to 2026", False),
-            ("SPY and AGG, before 2022", False),
-            ("SPY and AGG, after 2022", False),
+            ("SPY and AGG, to March 2022", False),
+            ("SPY and AGG, from March 2022", False),
         ]
         assert [m.ratio for m in drawn.ratios] == [
             pytest.approx(0.151 / 0.046, abs=1e-12),
@@ -855,7 +858,12 @@ class TestWhatTheDecodeFigureDraws:
             pytest.approx(2.755525, abs=5e-7),
         ]
         low, high = drawn.ratio_band
-        assert [low <= m.ratio <= high for m in drawn.ratios] == [True, False, False, False]
+        span_low, span_high = drawn.ratios[0].span
+        assert (span_low, span_high) == qian_ratio_span()
+        assert (span_low, span_high) == pytest.approx((0.1505 / 0.0465, 0.1515 / 0.0455))
+        assert span_low < low < span_high < high
+        for mark in drawn.ratios[1:]:
+            assert not (min(low, span_low) <= mark.ratio <= max(high, span_high))
         # The two sides of 2022 sit on opposite sides of the band, which Lesson 6 takes up.
         assert drawn.ratios[2].ratio > high and drawn.ratios[3].ratio < low
 
@@ -894,24 +902,31 @@ class TestWhatTheDecodeFigureDraws:
 
 
 class TestTheRatioPanel:
-    def test_each_dot_sits_at_its_ratio_on_its_row(self, decode_figure) -> None:
+    def test_each_ratio_sits_on_its_row_as_a_dot_or_a_bar(self, decode_figure) -> None:
+        """Measured ratios are dots. Qian's, from rounded figures, is a bar
+        across the ratios his rounding allows."""
         ax = decode_figure.axes[0]
         rows = _row_of(ax)
-        dots = _dots(ax)
         marks = decode_figure.decoding.ratios
+        dots = _dots(ax)
         assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in dots] == [
-            pytest.approx((m.ratio, rows[m.label]), abs=1e-12) for m in marks
+            pytest.approx((m.ratio, rows[m.label]), abs=1e-12) for m in marks[1:]
         ]
+        assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in dots)
+        (bar,) = [line for line in ax.lines if line.get_marker() != "o"]
+        assert list(bar.get_xdata()) == pytest.approx(list(marks[0].span), abs=1e-12)
+        assert list(bar.get_ydata()) == [rows[marks[0].label]] * 2
+        assert _rgb(bar.get_color()) == _rgb(ACCENT) and bar.get_linewidth() >= 5
         ys = [rows[m.label] for m in marks]
         assert ys == sorted(ys, reverse=True)
-        assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in dots)
 
     def test_each_dot_carries_its_value_beside_it(self, decode_figure) -> None:
         ax = decode_figure.axes[0]
-        values = [t for t in ax.texts if re.fullmatch(r"(about )?\d\.\d\d", t.get_text())]
-        assert [t.get_text() for t in values] == ["about 3.28", "3.59", "3.87", "2.76"]
+        values = [t for t in ax.texts if re.fullmatch(r"(about )?\d\.\d\d?", t.get_text())]
+        assert [t.get_text() for t in values] == ["about 3.3", "3.59", "3.87", "2.76"]
         for mark, label in zip(decode_figure.decoding.ratios, values, strict=True):
-            assert label.xy[0] == mark.ratio
+            end = mark.span[1] if mark.span is not None else mark.ratio
+            assert label.xy[0] == end
             assert label.get_ha() == "left" and label.xyann[0] > 0
 
     def test_the_band_is_the_rounding_band(self, decode_figure) -> None:
@@ -922,6 +937,7 @@ class TestTheRatioPanel:
             (low, high), abs=1e-12
         )
         assert _rgb(band.get_facecolor()) == _rgb(GOOD)
+        assert 0 < band.get_alpha() < 0.5
         assert "what 23-77 allows" in _plain_texts(ax)
 
     def test_the_axis(self, decode_figure) -> None:
@@ -935,17 +951,49 @@ class TestTheLeveragePanel:
     def test_each_curve_is_the_map_on_its_weights(self, decode_figure) -> None:
         ax = decode_figure.axes[1]
         drawn = decode_figure.decoding
-        curves = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        curves = [line for line in ax.lines if len(line.get_xdata()) > 2][2:]
         assert len(curves) == 2
         for curve, point, style in zip(curves, (drawn.qian, drawn.run), ("-", "--"), strict=True):
             xs, ys = curve.get_xdata(), curve.get_ydata()
             assert (xs[0], xs[-1]) == DECODE_CORRELATIONS
+            assert len(xs) == CURVE_STEPS + 1 and CURVE_STEPS >= 200
             weights = (point.stock_weight, 1.0 - point.stock_weight)
             assert list(ys) == pytest.approx(
                 [leverage_from_correlation(x, weights=weights) for x in xs], abs=1e-12
             )
             assert curve.get_linestyle() == style
         assert _rgb(curves[0].get_color()) == _rgb(INK)
+        assert _rgb(curves[1].get_color()) == _rgb(MUTED)
+
+    def test_the_band_edges_are_where_the_rounding_curves_cross_the_rounded_leverage(
+        self, decode_figure
+    ) -> None:
+        """The band is not read off the solid curve. Its low edge is where the
+        curve for a 23.5% stock weight meets 1.85, and its high edge where the
+        curve for 22.5% meets 1.75, so both rounding curves are drawn."""
+        ax = decode_figure.axes[1]
+        drawn = decode_figure.decoding
+        assert drawn.rounding_weights == pytest.approx((0.225, 0.235), abs=1e-12)
+        assert drawn.rounding_leverages == pytest.approx((1.75, 1.85), abs=1e-12)
+        faint = [line for line in ax.lines if len(line.get_xdata()) > 2][:2]
+        for line, weight in zip(faint, drawn.rounding_weights, strict=True):
+            weights = (weight, 1.0 - weight)
+            assert list(line.get_ydata()) == pytest.approx(
+                [leverage_from_correlation(x, weights=weights) for x in line.get_xdata()],
+                abs=1e-12,
+            )
+            assert _rgb(line.get_color()) == _rgb(INK) and line.get_alpha() < 0.5
+        low, high = drawn.correlation_band
+        w_low, w_high = drawn.rounding_weights
+        l_low, l_high = drawn.rounding_leverages
+        assert leverage_from_correlation(low, weights=(w_high, 1 - w_high)) == pytest.approx(l_high)
+        assert leverage_from_correlation(high, weights=(w_low, 1 - w_low)) == pytest.approx(l_low)
+        spans = [p for p in ax.patches if p.get_width() > 0.9]
+        assert len(spans) == 1
+        assert (spans[0].get_y(), spans[0].get_y() + spans[0].get_height()) == pytest.approx(
+            (l_low, l_high), abs=1e-12
+        )
+        assert "1.8's rounding" in _plain_texts(ax)
 
     def test_each_point_is_drawn_and_labelled(self, decode_figure) -> None:
         ax = decode_figure.axes[1]
@@ -954,19 +1002,24 @@ class TestTheLeveragePanel:
         assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in dots] == [
             pytest.approx((p.correlation, p.leverage), abs=1e-12) for p in (drawn.qian, drawn.run)
         ]
+        assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in dots)
         labels = [t for t in ax.texts if " at " in t.get_text()]
         assert [t.get_text() for t in labels] == ["1.8 at 0.16", "1.98 at −0.0002"]
         for dot, label in zip(dots, labels, strict=True):
             assert label.xy == pytest.approx((dot.get_xdata()[0], dot.get_ydata()[0]))
-            assert label.xyann[0] != 0
+        # Qian's sits below and left of its dot, clear of the curves above it.
+        assert labels[0].xyann[0] < 0 and labels[0].xyann[1] < 0
+        assert labels[1].xyann[0] > 0 and labels[1].xyann[1] > 0
 
     def test_the_band_and_the_printed_correlation(self, decode_figure) -> None:
         ax = decode_figure.axes[1]
-        (band,) = ax.patches
+        (band,) = [p for p in ax.patches if p.get_width() < 0.9]
         low, high = decode_figure.decoding.correlation_band
         assert (band.get_x(), band.get_x() + band.get_width()) == pytest.approx(
             (low, high), abs=1e-12
         )
+        assert _rgb(band.get_facecolor()) == _rgb(GOOD)
+        assert 0 < band.get_alpha() < 0.5
         dotted = [line for line in ax.lines if line.get_linestyle() == ":"]
         assert len(dotted) == 1 and list(dotted[0].get_xdata()) == [0.2, 0.2]
         texts = _plain_texts(ax)
@@ -976,10 +1029,12 @@ class TestTheLeveragePanel:
     def test_the_legend_names_both_curves(self, decode_figure) -> None:
         legend = decode_figure.axes[1].get_legend()
         assert [t.get_text() for t in legend.get_texts()] == [
+            "ends of 23-77's rounding",
             "Qian's 23-77 weights",
             "SPY and AGG's 21.8% weights",
         ]
-        solid, dashed = legend.get_lines()
+        faint, solid, dashed = legend.get_lines()
+        assert faint.get_alpha() < 0.5
         assert solid.get_linestyle() == "-" and dashed.get_linestyle() == "--"
 
     def test_the_axes(self, decode_figure) -> None:
@@ -1003,12 +1058,13 @@ class TestTheDecodeFiguresText:
         assert decode_figure.texts[-1].get_text().split("\n") == [
             "Risk parity sets each weight times its volatility equal, so 23-77 says stocks were "
             "77/23 times as volatile as bonds.",
-            "Weights that round to 23 and 77 allow 3.26 to 3.44. Qian (2005) prints "
-            "volatilities of 15.1% and 4.6%.",
+            "Weights that round to 23 and 77 allow 3.26 to 3.44. Qian's (2005) 15.1% and 4.6% "
+            "allow 3.24 to 3.33 once rounded.",
             "Given the weights, the leverage that matches 60/40 depends only on the correlation. "
-            "Letting the weights and the",
-            "leverage vary within their rounding allows correlations from −0.01 to 0.37. SPY and "
-            "AGG: 2003-09-30 to 2026-09-17, 2026 downloads.",
+            "The band's edges, −0.01 and +0.37,",
+            "are where the faint curves cross the ends of 1.8's rounding. The split is the "
+            "Federal Reserve's first rate rise of 2022, on 16 March.",
+            "SPY and AGG: 2003-09-30 to 2026-09-17, 2026 downloads.",
         ]
 
     def test_text_fits_and_nothing_overlaps(self, decode_figure) -> None:

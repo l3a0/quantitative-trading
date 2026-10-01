@@ -259,6 +259,11 @@ BOOK_VOL_RATIO = BOOK_WEIGHTS[1] / BOOK_WEIGHTS[0]
 #: never read off a two-digit source.
 BOOK_RATIO_BAND = (0.765 / 0.235, 0.775 / 0.225)
 
+#: Half the last printed digit of Qian's weights and of his leverage, so each
+#: printed figure stands for anything within this distance of it.
+BOOK_WEIGHT_ROUNDING = 0.005
+BOOK_LEVERAGE_ROUNDING = 0.05
+
 #: The first increase of the 2022 tightening cycle, which cuts the sub-windows.
 #:
 #: A dated external event rather than anything read from the series under test.
@@ -589,8 +594,11 @@ def book_correlation_band() -> tuple[float, float]:
     stock = BOOK_WEIGHTS[0]
     corners = [
         correlation_from_leverage(leverage, weights=(weight, 1.0 - weight))
-        for weight in (stock - 0.005, stock + 0.005)
-        for leverage in (BOOK_LEVERAGE - 0.05, BOOK_LEVERAGE + 0.05)
+        for weight in (stock - BOOK_WEIGHT_ROUNDING, stock + BOOK_WEIGHT_ROUNDING)
+        for leverage in (
+            BOOK_LEVERAGE - BOOK_LEVERAGE_ROUNDING,
+            BOOK_LEVERAGE + BOOK_LEVERAGE_ROUNDING,
+        )
     ]
     reached = [c for c in corners if c is not None]
     return min(reached), max(reached)

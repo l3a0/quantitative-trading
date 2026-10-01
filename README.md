@@ -461,8 +461,7 @@ of its figures are not pinned here.
    says risk parity is mean-variance optimal. The Federal Reserve's near-zero
    policy rate from December 2008 to December 2015 and from March 2020 to March
    2022, about nine of the 23 years, is a public record rather than anything
-   committed here. The ratio of 3.28 is the quotient of his two volatilities,
-   and the 15-month overlap of the two samples comes from Entry 4.
+   committed here. The 15-month overlap of the two samples comes from Entry 4.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
    about 29 times bonds', the \$43 of SPY, \$155 of AGG and \$98 borrowed per
    \$100 of equity, risk parity being about half as volatile as 60/40 before
@@ -505,9 +504,10 @@ the 1.74% bill average, the gap of about 0.02 between them and its t-statistic
 of −0.21, which the second figure draws. The third draws the hurdle of about
 two-thirds at Qian's inputs, his bonds' 1.45 times stocks', and the funds'
 Sharpe ratios of 0.45 for SPY and −0.18 for AGG at 4% and of 0.57 and 0.26 at
-the 1.74% bill average. The fourth draws the volatility ratios of about 3.28
-in Qian's paper and 3.59, 3.87 and 2.76 on SPY and AGG, and the leverage curve
-on each set of weights. Those three figures carry Qian's printed numbers,
+the 1.74% bill average. The fourth draws the volatility ratio of about 3.3 in
+Qian's paper, with the 3.24 to 3.33 its rounding allows, beside 3.59, 3.87 and
+2.76 on SPY and AGG, and the leverage curve on each set of weights and on the
+two ends of 23-77's rounding. Those three figures carry Qian's printed numbers,
 listed in group 1, as cited constants.
 
 All four figures are drawn from the committed SPY and AGG vintages by

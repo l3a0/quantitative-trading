@@ -93,7 +93,8 @@ which is why they are worth recording as confirmations rather than as changes.
    [src/chan/risk_parity.py](../../src/chan/risk_parity.py) was derived purely
    from the rounding of 23 and 77, with no knowledge of the paper, and it runs
    from 3.2553 to 3.4444. Dividing the two volatilities the paper prints gives
-   3.2826, which lands inside it. That quotient is derived here rather than
+   3.2826, and their own rounding allows 3.2366 to 3.3297, which overlaps the
+   band without sitting inside it. That quotient is derived here rather than
    printed by the paper, which is why it is not in the table above.
 
 ## What it does not settle
