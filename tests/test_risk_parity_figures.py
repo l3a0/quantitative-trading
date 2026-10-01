@@ -1801,8 +1801,8 @@ class TestWhatTheCorrelationFigureDraws:
         carried = (drawn.carried_stock_weight, 1 - drawn.carried_stock_weight)
         at_fitted = hurdle_for_weights(fitted, legs.stock_vol, legs.bond_vol, whole)
         at_carried = hurdle_for_weights(carried, legs.stock_vol, legs.bond_vol, whole)
-        assert at_fitted == pytest.approx(0.560960, abs=5e-6)
-        assert at_carried == pytest.approx(0.676266, abs=5e-6)
+        assert at_fitted == pytest.approx(0.561046, abs=5e-7)
+        assert at_carried == pytest.approx(0.676297, abs=5e-7)
         assert round(at_fitted, 2) > 0.53
 
     def test_the_title_holds_for_every_measured_correlation(self, correlation_figure) -> None:
