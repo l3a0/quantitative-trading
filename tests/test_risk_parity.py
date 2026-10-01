@@ -850,7 +850,7 @@ class TestTheTwoSubWindows:
         to the rising window's first and belongs to neither side. The windows
         therefore cover the span rather than partitioning it, and the word
         matters because the lost day is the day of the first rate rise, on which
-        SPY rose 2.2 percent.
+        SPY gained 2.2 percent.
         """
         full = measured["full span"][0].legs.days
         falling = measured["falling rates"][0].legs.days

@@ -1075,7 +1075,7 @@ def report(
     print(f"One return falls in neither sub-window, the one dated {TIGHTENING_START} itself, which")
     print("is why the two sub-windows hold one day fewer between them than the full span.")
     print("A return spans two closes, so that one straddles the cut and belongs to neither")
-    print("side of it. It covers the day of the first rate rise, on which SPY rose 2.2")
+    print("side of it. It covers the day of the first rate rise, on which SPY gained 2.2")
     print("percent, so it is named here rather than left for a reader to subtract.")
     print()
     for label, _, _ in WINDOWS:
