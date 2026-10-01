@@ -1498,8 +1498,8 @@ class TestWhatTheWindowFigureCompares:
         the 0.50, which is 24% and rounds to a quarter."""
         drawn = window_figure.comparison
         assert window_figure._suptitle.get_text() == (
-            "Risk parity trails most after 2022, and hindsight weights close only "
-            "about a quarter of that gap"
+            "Risk parity trails most in the later period, and hindsight weights close only "
+            "about a quarter of it"
         )
         whole, before, carried, hindsight = drawn.rows
         assert carried.gap < hindsight.gap < min(whole.gap, before.gap)
@@ -1549,15 +1549,16 @@ class TestTheWindowPanel:
     def test_the_row_labels_name_the_weights(self, window_figure) -> None:
         assert [row.label for row in window_figure.comparison.rows] == [
             "Whole period, 2003 to 2026, on weights fitted to the same years (21.8% stocks)",
-            "Before the rise, 2003 to March 2022, on weights fitted to the same years "
+            "Earlier period, 2003 to March 2022, on weights fitted to the same years "
             "(20.5% stocks, leverage 2.15)",
-            "After the rise, March 2022 to 2026, out of sample, on the weights carried from "
-            "before (20.5% stocks)",
-            "After the rise, March 2022 to 2026, with hindsight, on weights fitted to the same "
+            "Later period, March 2022 to 2026, on the weights carried from the earlier period "
+            "(20.5% stocks)",
+            "Later period, March 2022 to 2026, with hindsight, on weights fitted to the same "
             "years (26.6% stocks)",
         ]
         # Three rows are fitted to the years they score, and they say so in the
-        # same words. Only the carried row is out of sample.
+        # same words. Only the carried row is scored on weights that never saw
+        # its years, and it says where they came from.
         labels = [row.label for row in window_figure.comparison.rows]
         assert ["fitted to the same years" in label for label in labels] == [
             True,
@@ -1565,7 +1566,12 @@ class TestTheWindowPanel:
             False,
             True,
         ]
-        assert ["out of sample" in label for label in labels] == [False, False, True, False]
+        assert ["carried from the earlier period" in label for label in labels] == [
+            False,
+            False,
+            True,
+            False,
+        ]
 
     def test_each_row_states_its_leader_gap_and_t(self, window_figure) -> None:
         ax = window_figure.axes[0]
@@ -1573,8 +1579,8 @@ class TestTheWindowPanel:
         assert [t.get_text() for t in gaps] == [
             "60/40 ahead by 0.22, t = −2.17",
             "60/40 ahead by 0.16, t = −1.35",
-            "60/40 ahead by 0.50, t = −2.20 at leverage 1.66, and −1.64 at 2.15, the leverage "
-            "carried from before",
+            "60/40 ahead by 0.50, t = −2.20 at leverage 1.66, and −1.64 at 2.15, carried from the "
+            "earlier period",
             "60/40 ahead by 0.38, so hindsight closes 0.12 of the 0.50",
         ]
         for y, text in zip(_rows_top_to_bottom(window_figure), gaps, strict=True):
@@ -1666,10 +1672,10 @@ class TestTheWindowFiguresText:
         assert window_figure.texts[-1].get_text().split("\n") == [
             "SPY and AGG, 2003-09-30 to 2026-09-17, daily, downloaded in 2026. The split is the "
             "Federal Reserve's first rate rise of 2022,",
-            "on 16 March, so before runs to 2022-03-15 and after from 2022-03-17. Risk parity is "
-            "levered to match 60/40's volatility.",
-            "After the rise, 1.66 does that on the later years. 2.15 matched before, and a trader "
-            "on the day held it, carrying more risk.",
+            "on 16 March, so the earlier period runs to 2022-03-15 and the later from 2022-03-17.",
+            "Risk parity is levered to match 60/40's volatility. In the later period, 1.66 does "
+            "that. 2.15 matched the earlier period,",
+            "and a trader on the day held it, carrying more risk.",
             "t is the Newey-West t-statistic of risk parity minus 60/40, corrected for day-to-day "
             "dependence. Beyond ±2, a gap that size",
             "arises by chance less than 5% of the time. Gaps are computed before rounding. 4% is "

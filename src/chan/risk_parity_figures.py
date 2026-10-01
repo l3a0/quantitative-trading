@@ -1184,14 +1184,14 @@ def window_comparison(
             rankings["full span"],
         ),
         ranked(
-            "Before the rise, 2003 to March 2022, on weights fitted to the same years "
+            "Earlier period, 2003 to March 2022, on weights fitted to the same years "
             f"({stocks(before.parity.stock_weight)}, leverage {earlier.leverage:.2f})",
             before.parity.stock_weight,
             earlier,
         ),
         ranked(
-            "After the rise, March 2022 to 2026, out of sample, on the weights carried from "
-            f"before ({stocks(carried[0])})",
+            "Later period, March 2022 to 2026, on the weights carried from the earlier period "
+            f"({stocks(carried[0])})",
             carried[0],
             rankings["rising rates"],
             extra=(
@@ -1202,7 +1202,7 @@ def window_comparison(
             ),
         ),
         WindowRow(
-            "After the rise, March 2022 to 2026, with hindsight, on weights fitted to the same "
+            "Later period, March 2022 to 2026, with hindsight, on weights fitted to the same "
             f"years ({stocks(own[0])})",
             own[0],
             refitted.sharpe_benchmark,
@@ -1241,7 +1241,7 @@ def window_row_text(drawn: WindowComparison, row: WindowRow) -> str:
         (own_leverage, own_t), (held, held_t) = row.tests
         text += (
             f", t = {_signed(own_t)} at leverage {own_leverage:.2f}, "
-            f"and {_signed(held_t)} at {held:.2f}, the leverage carried from before"
+            f"and {_signed(held_t)} at {held:.2f}, carried from the earlier period"
         )
     if row is drawn.hindsight:
         text += f", so hindsight closes {drawn.closed:.2f} of the {abs(drawn.carried.gap):.2f}"
@@ -1261,7 +1261,7 @@ def make_window_figure(
     """The Sharpe ratios on each side of March 2022, on carried and on hindsight weights."""
     drawn = window_comparison(measured)
 
-    fig = Figure(figsize=(10, 6.9), dpi=130)
+    fig = Figure(figsize=(10, 7.4), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     ax = fig.subplots()
     _style(ax)
@@ -1326,22 +1326,22 @@ def make_window_figure(
     held_leverage, _ = drawn.carried.tests[1]
     _title(
         fig,
-        "Risk parity trails most after 2022, and hindsight weights close only "
-        f"about {quarter_words(drawn.closed_share)} of that gap",
+        "Risk parity trails most in the later period, and hindsight weights close only "
+        f"about {quarter_words(drawn.closed_share)} of it",
         f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, daily, downloaded in 2026. The split "
-        "is the Federal Reserve's first rate rise of 2022,\non 16 March, so before runs to "
-        f"{drawn.before_end} and after from {drawn.after_start}. Risk parity is levered to match "
-        "60/40's volatility.\n"
-        f"After the rise, {carried_leverage:.2f} does that on the later years. "
-        f"{held_leverage:.2f} matched before, and a trader on the day held it, carrying more "
-        "risk.\n"
+        "is the Federal Reserve's first rate rise of 2022,\non 16 March, so the earlier period "
+        f"runs to {drawn.before_end} and the later from {drawn.after_start}.\n"
+        "Risk parity is levered to match 60/40's volatility. "
+        f"In the later period, {carried_leverage:.2f} does that. "
+        f"{held_leverage:.2f} matched the earlier period,\nand a trader on the day held it, "
+        "carrying more risk.\n"
         "t is the Newey-West t-statistic of risk parity minus 60/40, corrected for day-to-day "
         f"dependence. Beyond ±{T_BAR:g}, a gap that size\narises by chance less than 5% of the "
         "time. Gaps are computed before rounding. "
         f"{RISK_FREE:.0%} is the cash rate throughout, the rate Chan\nassumes when levering SPY, "
         "borrowed here.",
     )
-    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.3)
+    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.34)
     fig.comparison = drawn
     return _save(fig, out, WINDOW_FIGURE)
 
