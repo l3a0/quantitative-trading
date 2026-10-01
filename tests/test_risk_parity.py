@@ -488,6 +488,25 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
         for ranking in rankings.values():
             assert (ranking.rate_sensitivity < 0.0) == (ranking.leverage > 1.0)
 
+    def test_the_earlier_period_at_its_own_bill_average(self, measured) -> None:
+        """Bills averaged 1.165% before the 2022 rise, and at that rate risk
+        parity leads by about 0.13 with a t of +1.12, short of the bar. The rate
+        is the TB3MS average ``tests/test_bill_rates.py`` pins, typed here
+        because the replication reads no bill series. A typed 1.17% gave
+        +1.11, which the post once quoted."""
+        result, returns = measured["falling rates"]
+        weights = (result.parity.stock_weight, result.parity.bond_weight)
+        ranking = rank_at_matched_volatility(
+            "falling rates",
+            returns,
+            weights,
+            weight_source="falling rates",
+            in_sample=True,
+            risk_free=103 / 8840,
+        )
+        assert ranking.sharpe_difference == pytest.approx(0.129894, abs=5e-7)
+        assert ranking.t_newey_west == pytest.approx(1.116680, abs=5e-7)
+
     def test_the_rate_at_which_the_two_sharpe_ratios_tie(self, measured, rankings) -> None:
         """1.50 percent on the full span, which the risk parity post quotes.
 

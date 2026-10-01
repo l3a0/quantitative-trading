@@ -481,15 +481,16 @@ of its figures are not pinned here.
    later period and the 1.4 times stocks' by which AGG missed that period's
    hurdle, the whole-period Sharpe ratios of 0.18 and 0.25 that the earlier and
    later periods' weights would give risk parity, the 0.525 and 0.276 in the
-   inequality that sets the hurdle, and the Sharpe gap of about 0.13 for risk
-   parity in the earlier period at 1.17%, with its t-statistic of +1.11, and the 0.44 of
-   the 0.98 difference in bonds' Sharpe ratio that the cash rate accounts for.
+   inequality that sets the hurdle, and the 0.44 of the 0.98 difference in
+   bonds' Sharpe ratio that the cash rate accounts for.
 
 The bill-rate averages the post quotes, 1.74% from October 2003 to August
 2026, 1.17% before the 2022 rise and 4.18% after it, and the 108 months under
 0.25% behind its nine near-zero years, trace to
 [tests/test_bill_rates.py](tests/test_bill_rates.py), which reads them from
-the committed TB3MS vintage.
+the committed TB3MS vintage. At the 1.17% average,
+[tests/test_risk_parity.py](tests/test_risk_parity.py) pins risk parity's lead of
+about 0.13 in the earlier period and its t-statistic of +1.12.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of

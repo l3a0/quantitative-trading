@@ -948,7 +948,8 @@ specification choices rather than measurements, and both push the same way.
    is a specification rather than a rate anyone paid. FRED's TB3MS is
    committed under
    [issue 187](https://github.com/l3a0/quantitative-trading/issues/187), and
-   nothing in this replication reads it. Over this span AGG returned 3.09
+   the run does not read it. Only the post's figures do, for the bill
+   average. Over this span AGG returned 3.09
    percent a year, so the bond leg's excess return is negative and a 78 percent
    bond weight is carrying it. The direction is exact rather than a guess: the
    Sharpe difference moves with the rate by `1 / vol(60/40)` less
@@ -1099,7 +1100,7 @@ charges cash at a Treasury-bill series rather than a constant, which is a
 different deliverable, and the design doc's register already carries the same
 cut for Entry 3's Kelly example. FRED's TB3MS is now committed, under
 [issue 187](https://github.com/l3a0/quantitative-trading/issues/187), and
-nothing in this entry reads it.
+the run does not read it.
 The rate is Chan's constant and the report says so on its own last lines. The
 derivative above says which way a lower rate would push, and it also says how
 far. The difference is linear in the rate, so row 3 ties at an assumed rate of
@@ -1112,8 +1113,10 @@ rate of zero risk parity leads with a t of +1.30, which does not resolve
 either. Row 14's t reaches −2 at 3.25 percent in the same way.
 `test_the_two_resolved_rankings_resolve_only_down_to_a_little_below_4_percent`
 pins all of these. Whether the realised bill rate averaged below 1.50 percent
-over the full span decides row 3's sign to first order, and that is what the
-missing vintage would answer.
+over the full span decides row 3's sign to first order. The committed series
+answers it: TB3MS averaged 1.744 percent over the full calendar months inside
+the span, above the tie, which
+[tests/test_bill_rates.py](../tests/test_bill_rates.py) pins.
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing

@@ -121,7 +121,7 @@ So the run assumes a constant annual rate and declares it as a specification.
 Chan's own 4 percent at location 2858 is the rate ``chan.kelly_leverage``
 pins, and taking it keeps one number across two replications rather than
 inventing a second. FRED's TB3MS bill series is committed under issue 187, and
-nothing here reads it.
+the run does not read it. Only the post's figures do, for the bill average.
 
 Under costless financing on excess returns a Sharpe ratio does not move with
 leverage, so the ranking's sign is settled before the portfolio is levered.
@@ -285,7 +285,7 @@ WINDOWS = (
 #: Chan's constant at location 2858, the rate ``chan.kelly_leverage`` also
 #: reads. The run reads no risk-free series, so this is a declared
 #: specification rather than a rate anyone paid. TB3MS is committed under
-#: issue 187, and nothing in this replication reads it.
+#: issue 187, and the run does not read it. Only the post's figures do.
 RISK_FREE = 0.04
 
 #: Trading days in a year, the annualisation ``chan.kelly_leverage`` set.

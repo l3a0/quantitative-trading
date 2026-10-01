@@ -1848,6 +1848,9 @@ class TestTheCorrelationPanel:
         ]
         for label, (_, rho) in zip(labels, drawn.measured, strict=True):
             assert label.xy[0] == rho and label.xyann[0] != 0
+        # The two close lines at −0.07 and −0.0002 label to their left, and
+        # the +0.24 line to its right, so no label crosses another line.
+        assert [label.xyann[0] > 0 for label in labels] == [False, False, True]
 
     def test_the_marked_points(self, correlation_figure) -> None:
         ax = correlation_figure.axes[0]
