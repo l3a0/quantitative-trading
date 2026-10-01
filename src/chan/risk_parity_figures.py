@@ -1166,20 +1166,20 @@ def window_comparison(
 
     rows = (
         ranked(
-            "Whole period, 2003 to 2026, on weights fitted to it "
+            "Whole period, 2003 to 2026, on weights fitted to the same years "
             f"({stocks(whole.parity.stock_weight)})",
             whole.parity.stock_weight,
             rankings["full span"],
         ),
         ranked(
-            "Before the rise, 2003 to March 2022, on weights fitted to it "
-            f"({stocks(before.parity.stock_weight)})",
+            "Before the rise, 2003 to March 2022, on weights fitted to the same years "
+            f"({stocks(before.parity.stock_weight)}, leverage {earlier.leverage:.2f})",
             before.parity.stock_weight,
             earlier,
         ),
         ranked(
-            "After the rise, March 2022 to 2026, on the earlier period's weights "
-            f"({stocks(carried[0])})",
+            "After the rise, March 2022 to 2026, out of sample, on the weights carried from "
+            f"before ({stocks(carried[0])})",
             carried[0],
             rankings["rising rates"],
             extra=(
@@ -1190,8 +1190,8 @@ def window_comparison(
             ),
         ),
         WindowRow(
-            "After the rise, March 2022 to 2026, on weights fitted to it with hindsight "
-            f"({stocks(own[0])})",
+            "After the rise, March 2022 to 2026, with hindsight, on weights fitted to the same "
+            f"years ({stocks(own[0])})",
             own[0],
             refitted.sharpe_benchmark,
             refitted.sharpe_parity,
@@ -1229,7 +1229,7 @@ def window_row_text(drawn: WindowComparison, row: WindowRow) -> str:
         (own_leverage, own_t), (held, held_t) = row.tests
         text += (
             f", t = {_signed(own_t)} at leverage {own_leverage:.2f}, "
-            f"and {_signed(held_t)} at the earlier {held:.2f}"
+            f"and {_signed(held_t)} at {held:.2f}, the leverage carried from before"
         )
     if row is drawn.hindsight:
         text += f", so hindsight closes {drawn.closed:.2f} of the {abs(drawn.carried.gap):.2f}"
@@ -1318,13 +1318,15 @@ def make_window_figure(
         f"about {quarter_words(drawn.closed_share)} of that gap",
         f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, daily, downloaded in 2026. The split "
         "is the Federal Reserve's first rate rise of 2022,\non 16 March, so before runs to "
-        f"{drawn.before_end} and after from {drawn.after_start}. Risk parity is levered to "
+        f"{drawn.before_end} and after from {drawn.after_start}. Risk parity is levered to match "
         "60/40's volatility.\n"
-        f"After the rise, {carried_leverage:.2f} matches it on the later years, and "
-        f"{held_leverage:.2f} is what matched before, the leverage a trader held on the day.\n"
+        f"After the rise, {carried_leverage:.2f} does that on the later years. "
+        f"{held_leverage:.2f} matched before, and a trader on the day held it, carrying more "
+        "risk.\n"
         "t is the Newey-West t-statistic of risk parity minus 60/40, corrected for day-to-day "
-        "dependence.\n"
-        f"{RISK_FREE:.0%} is the cash rate throughout, the rate Chan assumes when levering SPY, "
+        f"dependence. Beyond ±{T_BAR:g}, a gap that size\narises by chance less than 5% of the "
+        "time. Gaps are computed before rounding. "
+        f"{RISK_FREE:.0%} is the cash rate throughout, the rate Chan\nassumes when levering SPY, "
         "borrowed here.",
     )
     fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.3)

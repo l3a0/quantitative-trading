@@ -1483,6 +1483,9 @@ class TestWhatTheWindowFigureCompares:
         assert drawn.closed == pytest.approx(0.119279, abs=5e-7)
         assert drawn.closed_share == pytest.approx(0.239822, abs=5e-7)
         assert drawn.closed == hindsight.gap - carried.gap
+        # README and the post quote the three-quarters that remains.
+        assert 1 - drawn.closed_share == pytest.approx(0.760178, abs=5e-7)
+        assert quarter_words(1 - drawn.closed_share) == "three-quarters"
 
     def test_quarter_words(self) -> None:
         assert quarter_words(0.239822) == "a quarter"
@@ -1521,12 +1524,24 @@ class TestTheWindowPanel:
 
     def test_the_row_labels_name_the_weights(self, window_figure) -> None:
         assert [row.label for row in window_figure.comparison.rows] == [
-            "Whole period, 2003 to 2026, on weights fitted to it (21.8% stocks)",
-            "Before the rise, 2003 to March 2022, on weights fitted to it (20.5% stocks)",
-            "After the rise, March 2022 to 2026, on the earlier period's weights (20.5% stocks)",
-            "After the rise, March 2022 to 2026, on weights fitted to it with hindsight "
-            "(26.6% stocks)",
+            "Whole period, 2003 to 2026, on weights fitted to the same years (21.8% stocks)",
+            "Before the rise, 2003 to March 2022, on weights fitted to the same years "
+            "(20.5% stocks, leverage 2.15)",
+            "After the rise, March 2022 to 2026, out of sample, on the weights carried from "
+            "before (20.5% stocks)",
+            "After the rise, March 2022 to 2026, with hindsight, on weights fitted to the same "
+            "years (26.6% stocks)",
         ]
+        # Three rows are fitted to the years they score, and they say so in the
+        # same words. Only the carried row is out of sample.
+        labels = [row.label for row in window_figure.comparison.rows]
+        assert ["fitted to the same years" in label for label in labels] == [
+            True,
+            True,
+            False,
+            True,
+        ]
+        assert ["out of sample" in label for label in labels] == [False, False, True, False]
 
     def test_each_row_states_its_leader_gap_and_t(self, window_figure) -> None:
         ax = window_figure.axes[0]
@@ -1534,7 +1549,8 @@ class TestTheWindowPanel:
         assert [t.get_text() for t in gaps] == [
             "60/40 ahead by 0.22, t = −2.17",
             "60/40 ahead by 0.16, t = −1.35",
-            "60/40 ahead by 0.50, t = −2.20 at leverage 1.66, and −1.64 at the earlier 2.15",
+            "60/40 ahead by 0.50, t = −2.20 at leverage 1.66, and −1.64 at 2.15, the leverage "
+            "carried from before",
             "60/40 ahead by 0.38, so hindsight closes 0.12 of the 0.50",
         ]
         for y, text in zip(_rows_top_to_bottom(window_figure), gaps, strict=True):
@@ -1627,13 +1643,14 @@ class TestTheWindowFiguresText:
             "SPY and AGG, 2003-09-30 to 2026-09-17, daily, downloaded in 2026. The split is the "
             "Federal Reserve's first rate rise of 2022,",
             "on 16 March, so before runs to 2022-03-15 and after from 2022-03-17. Risk parity is "
-            "levered to 60/40's volatility.",
-            "After the rise, 1.66 matches it on the later years, and 2.15 is what matched before, "
-            "the leverage a trader held on the day.",
+            "levered to match 60/40's volatility.",
+            "After the rise, 1.66 does that on the later years. 2.15 matched before, and a trader "
+            "on the day held it, carrying more risk.",
             "t is the Newey-West t-statistic of risk parity minus 60/40, corrected for day-to-day "
-            "dependence.",
-            "4% is the cash rate throughout, the rate Chan assumes when levering SPY, "
-            "borrowed here.",
+            "dependence. Beyond ±2, a gap that size",
+            "arises by chance less than 5% of the time. Gaps are computed before rounding. 4% is "
+            "the cash rate throughout, the rate Chan",
+            "assumes when levering SPY, borrowed here.",
         ]
 
     def test_text_fits_and_nothing_overlaps(self, window_figure) -> None:
