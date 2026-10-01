@@ -1075,8 +1075,8 @@ def report(
     print(f"One return falls in neither sub-window, the one dated {TIGHTENING_START} itself, which")
     print("is why the two sub-windows hold one day fewer between them than the full span.")
     print("A return spans two closes, so that one straddles the cut and belongs to neither")
-    print("side of it. It is the decision day, and SPY rose 2.2 percent on it, so it is")
-    print("named here rather than left for a reader to subtract.")
+    print("side of it. It covers the day of the first rate rise, on which SPY rose 2.2")
+    print("percent, so it is named here rather than left for a reader to subtract.")
     print()
     for label, _, _ in WINDOWS:
         _decomposition(measured[label][0], against_the_book=True)

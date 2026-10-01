@@ -849,8 +849,8 @@ class TestTheTwoSubWindows:
         spans two closes, so that one runs from the falling window's last close
         to the rising window's first and belongs to neither side. The windows
         therefore cover the span rather than partitioning it, and the word
-        matters because the lost day is the decision day, on which SPY rose 2.2
-        percent.
+        matters because the lost day is the day of the first rate rise, on which
+        SPY rose 2.2 percent.
         """
         full = measured["full span"][0].legs.days
         falling = measured["falling rates"][0].legs.days
