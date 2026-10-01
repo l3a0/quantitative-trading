@@ -654,6 +654,50 @@ def bond_sharpe_hurdle(
     return (stock * stock_vol / benchmark_vol - parity_count) / (parity_count - bond_count)
 
 
+def hurdle_for_weights(
+    weights: tuple[float, float],
+    stock_vol: float,
+    bond_vol: float,
+    correlation: float,
+    *,
+    benchmark: tuple[float, float] = BENCHMARK_WEIGHTS,
+) -> float:
+    """The bond-to-stock Sharpe ratio at which a portfolio on ``weights`` ties the benchmark.
+
+    :func:`bond_sharpe_hurdle` assumes risk parity's own weights, which make
+    each leg's weight times volatility equal. A portfolio scored on weights
+    carried from another window does not have that property, so this solves
+    the tie for any pair of weights. Each portfolio's Sharpe ratio is
+    ``(w_1 s_1 S_stock + w_2 s_2 S_bond) / s_portfolio``, leverage leaves it
+    alone, and setting the two equal with ``S_bond = h * S_stock`` gives
+    ``h``. On inverse-volatility weights it is :func:`bond_sharpe_hurdle`,
+    which ``tests/test_risk_parity.py`` holds.
+
+    It raises where bonds count for no more in the portfolio than in the
+    benchmark, for the reason :func:`bond_sharpe_hurdle` gives.
+    """
+    stock_w, bond_w = weights
+    stock_b, bond_b = benchmark
+
+    def vol(stock: float, bond: float) -> float:
+        return math.sqrt(
+            stock**2 * stock_vol**2
+            + bond**2 * bond_vol**2
+            + 2.0 * correlation * stock * bond * stock_vol * bond_vol
+        )
+
+    portfolio, bench = vol(stock_w, bond_w), vol(stock_b, bond_b)
+    portfolio_bond, bench_bond = bond_w * bond_vol / portfolio, bond_b * bond_vol / bench
+    if portfolio_bond <= bench_bond:
+        raise ValueError(
+            "bonds count for no more in this portfolio than in the benchmark, so no "
+            "bond Sharpe ratio is a hurdle it has to clear"
+        )
+    return (stock_b * stock_vol / bench - stock_w * stock_vol / portfolio) / (
+        portfolio_bond - bench_bond
+    )
+
+
 def hurdle_rate(legs: Legs) -> float:
     """The cash rate at which bonds' Sharpe ratio, as a multiple of stocks', meets the hurdle.
 

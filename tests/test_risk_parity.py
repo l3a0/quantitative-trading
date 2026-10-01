@@ -81,6 +81,7 @@ from chan.risk_parity import (
     clip,
     correlation_from_leverage,
     decompose,
+    hurdle_for_weights,
     hurdle_rate,
     leg_sharpes,
     leverage_from_correlation,
@@ -1583,3 +1584,42 @@ class TestTheBondSharpeHurdle:
         so bonds count for less in risk parity and no hurdle exists."""
         with pytest.raises(ValueError, match="no bond Sharpe ratio"):
             bond_sharpe_hurdle(0.15, 0.15, 0.0, benchmark=(0.2, 0.8))
+
+
+class TestTheHurdleForAnyWeights:
+    """Lesson 6 needs the hurdle for the weights the later period was scored on,
+    which are the earlier period's and not risk parity's own."""
+
+    def test_on_risk_paritys_own_weights_it_is_the_risk_parity_hurdle(self, measured) -> None:
+        for label, _, _ in WINDOWS:
+            result, _ = measured[label]
+            legs = result.legs
+            weights = (result.parity.stock_weight, result.parity.bond_weight)
+            assert hurdle_for_weights(
+                weights, legs.stock_vol, legs.bond_vol, legs.correlation
+            ) == pytest.approx(_hurdle(legs), abs=1e-12)
+
+    def test_the_carried_weights_face_a_higher_hurdle_after_2022(self, measured) -> None:
+        """About 0.78 at the later period's +0.24, against 0.70 on weights fitted
+        inside it. It crosses zero only near −0.82 and never reaches AGG's
+        −0.69 at any correlation, bottoming out near −0.36 at −1."""
+        early = measured["falling rates"][0].parity
+        legs = measured["rising rates"][0].legs
+        carried = (early.stock_weight, early.bond_weight)
+
+        def hurdle(rho: float) -> float:
+            return hurdle_for_weights(carried, legs.stock_vol, legs.bond_vol, rho)
+
+        assert hurdle(legs.correlation) == pytest.approx(0.780545, abs=5e-7)
+        grid = [-1.0 + i / 1000 for i in range(1501)]
+        values = [hurdle(rho) for rho in grid]
+        assert min(values) == pytest.approx(hurdle(-1.0), abs=1e-12)
+        assert hurdle(-1.0) == pytest.approx(-0.366, abs=5e-4)
+        crossing = next(rho for rho, h in zip(grid, values, strict=True) if h >= 0)
+        assert crossing == pytest.approx(-0.823, abs=1e-3)
+        stock, bond = leg_sharpes(legs)
+        assert min(values) > bond / stock
+
+    def test_no_hurdle_exists_where_bonds_count_for_less(self) -> None:
+        with pytest.raises(ValueError, match="no bond Sharpe ratio"):
+            hurdle_for_weights((0.7, 0.3), 0.15, 0.05, 0.0)

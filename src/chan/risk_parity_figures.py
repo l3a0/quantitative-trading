@@ -1,4 +1,4 @@
-"""Six figures for the risk parity post, drawn from the committed SPY and AGG vintages.
+"""Seven figures for the risk parity post, drawn from the committed SPY and AGG vintages.
 
 1. :func:`make_risk_split_figure` draws Qian's premise, that 60/40 splits
    capital 60 to 40 and risk nowhere near it, on the full common span. It has
@@ -36,10 +36,16 @@
    period also on weights fitted to it with hindsight. The later period's row
    gives the t-statistic at its own leverage and at the earlier period's.
 
+7. :func:`make_correlation_figure` draws Lesson 6. After the 2022 rise, the
+   hurdle bonds' Sharpe ratio had to clear, drawn against the stock-bond
+   correlation for weights fitted to the period and for the weights carried
+   from before, beside AGG's actual ratio to SPY's. It meets the first curve
+   only near a correlation of −0.96 and never meets the second.
+
 Every number this run measured comes from :mod:`chan.risk_parity`, so a figure
 can only be wrong by drawing the wrong thing, which
 ``tests/test_risk_parity_figures.py`` checks. Qian's numbers are the ones his
-paper prints and are drawn as printed. All six read the committed vintages,
+paper prints and are drawn as printed. All seven read the committed vintages,
 so they redraw anywhere the data is::
 
     uv run python -m chan.risk_parity_figures
@@ -77,6 +83,7 @@ from chan.risk_parity import (
     bond_sharpe_hurdle,
     book_correlation_band,
     correlation_from_leverage,
+    hurdle_for_weights,
     hurdle_rate,
     leg_sharpes,
     leverage_from_correlation,
@@ -93,6 +100,7 @@ HURDLE_FIGURE = "risk_parity_bond_hurdle.png"
 DECODE_FIGURE = "risk_parity_ratio_and_correlation.png"
 RATE_FIGURE = "risk_parity_cash_rate.png"
 WINDOW_FIGURE = "risk_parity_by_window.png"
+CORRELATION_FIGURE = "risk_parity_hurdle_by_correlation.png"
 
 #: Qian's Sharpe ratios for 60/40 and for levered risk parity, Table 2 of
 #: ``research/papers/qian-2005-risk-parity-portfolios.pdf``. Monthly returns on
@@ -1324,6 +1332,221 @@ def make_window_figure(
     return _save(fig, out, WINDOW_FIGURE)
 
 
+@dataclass(frozen=True)
+class CorrelationCurves:
+    """What the correlation figure draws, so a test can read it without the axes."""
+
+    correlations: tuple[float, ...]
+    fitted: tuple[float, ...]
+    carried: tuple[float, ...]
+    fitted_stock_weight: float
+    carried_stock_weight: float
+    agg_ratio: float
+    measured: tuple[tuple[str, float], ...]
+    fitted_at_measured: float
+    carried_at_measured: float
+    turns_negative: float
+    meets_agg: float
+    carried_floor: float
+    start: str
+    end: str
+
+
+#: The correlations the curves run across. The curve on weights fitted to the
+#: period divides by zero at exactly −1, where its volatility vanishes, so the
+#: range stops just short of it.
+CORRELATION_RANGE = (-0.995, 0.5)
+CORRELATION_STEPS = 300
+
+
+def _root(f, low: float, high: float) -> float:
+    """Where ``f`` crosses zero between two correlations it brackets."""
+    for _ in range(200):
+        mid = (low + high) / 2
+        if (f(low) < 0) == (f(mid) < 0):
+            low = mid
+        else:
+            high = mid
+    return (low + high) / 2
+
+
+def correlation_curves() -> CorrelationCurves:
+    """The later period's hurdle across correlations, on both sets of weights."""
+    joined = aligned_closes(STOCK, BOND)
+    measured_windows = {
+        label: measure_window(label, joined, start, end)[0] for label, start, end in WINDOWS
+    }
+    late = measured_windows["rising rates"]
+    legs = late.legs
+    fitted_w = (late.parity.stock_weight, late.parity.bond_weight)
+    early = measured_windows["falling rates"].parity
+    carried_w = (early.stock_weight, early.bond_weight)
+
+    def fitted(rho: float) -> float:
+        return hurdle_for_weights(fitted_w, legs.stock_vol, legs.bond_vol, rho)
+
+    def carried(rho: float) -> float:
+        return hurdle_for_weights(carried_w, legs.stock_vol, legs.bond_vol, rho)
+
+    stock, bond = leg_sharpes(legs)
+    agg = bond / stock
+    low, high = CORRELATION_RANGE
+    grid = tuple(low + (high - low) * i / CORRELATION_STEPS for i in range(CORRELATION_STEPS + 1))
+    return CorrelationCurves(
+        correlations=grid,
+        fitted=tuple(fitted(rho) for rho in grid),
+        carried=tuple(carried(rho) for rho in grid),
+        fitted_stock_weight=fitted_w[0],
+        carried_stock_weight=carried_w[0],
+        agg_ratio=agg,
+        measured=(
+            ("before 2022", measured_windows["falling rates"].legs.correlation),
+            ("whole period", measured_windows["full span"].legs.correlation),
+            ("after 2022", legs.correlation),
+        ),
+        fitted_at_measured=fitted(legs.correlation),
+        carried_at_measured=carried(legs.correlation),
+        turns_negative=_root(fitted, low, high),
+        meets_agg=_root(lambda rho: fitted(rho) - agg, low, high),
+        carried_floor=carried(-1.0),
+        start=legs.start,
+        end=legs.end,
+    )
+
+
+def _correlation(rho: float) -> str:
+    """A correlation with its sign, to four places where two would round it to zero."""
+    places = 2 if abs(rho) >= 0.005 else 4
+    return f"{rho:+.{places}f}".replace("-", "−")
+
+
+@_plain_text
+def make_correlation_figure(out: Path | None = None) -> Figure:
+    """The later period's hurdle against the correlation, beside AGG's ratio."""
+    drawn = correlation_curves()
+
+    fig = Figure(figsize=(10, 6.6), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    ax = fig.subplots()
+    _style(ax)
+    ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+
+    low, high = CORRELATION_RANGE
+    ax.axvspan(low, drawn.meets_agg, color=GOOD, alpha=0.16, lw=0)
+    ax.axhline(0.0, color=RULE, lw=1.2, zorder=1)
+    ax.plot(
+        drawn.correlations,
+        drawn.fitted,
+        color=INK,
+        lw=2,
+        zorder=3,
+        label=f"weights fitted after 2022 ({_share(drawn.fitted_stock_weight)} stocks)",
+    )
+    ax.plot(
+        drawn.correlations,
+        drawn.carried,
+        color=MUTED,
+        lw=2,
+        ls="--",
+        zorder=3,
+        label=f"weights carried from before ({_share(drawn.carried_stock_weight)} stocks)",
+    )
+    ax.axhline(drawn.agg_ratio, color=ACCENT, lw=2, zorder=2)
+    ax.annotate(
+        f"AGG's Sharpe ratio, {_signed(drawn.agg_ratio)} times SPY's",
+        (high, drawn.agg_ratio),
+        xytext=(-6, -6),
+        textcoords="offset points",
+        ha="right",
+        va="top",
+        color=INK,
+        fontsize=10,
+    )
+    for _name, rho in drawn.measured:
+        ax.axvline(rho, color=MUTED, lw=0.9, ls=":", zorder=1)
+    after = drawn.measured[-1][1]
+    for value in (drawn.fitted_at_measured, drawn.carried_at_measured):
+        ax.plot([after], [value], "o", ms=8, color=ACCENT, zorder=5)
+    ax.annotate(
+        f"{_signed(drawn.fitted_at_measured)} and {_signed(drawn.carried_at_measured)}\n"
+        f"at {_correlation(after)}",
+        (after, drawn.fitted_at_measured),
+        xytext=(10, -14),
+        textcoords="offset points",
+        ha="left",
+        va="top",
+        color=INK,
+        fontsize=10,
+        linespacing=1.35,
+    )
+    ax.annotate(
+        "measured correlations:\n"
+        + ", ".join(f"{_correlation(rho)} {name}" for name, rho in drawn.measured),
+        (0.0, 1.0),
+        xycoords=("data", "axes fraction"),
+        xytext=(0, -6),
+        textcoords="offset points",
+        ha="center",
+        va="top",
+        color=MUTED,
+        fontsize=9,
+        linespacing=1.35,
+    )
+    ax.plot(
+        [drawn.meets_agg], [drawn.agg_ratio], "o", ms=9, mfc=SURFACE, mec=INK, mew=1.6, zorder=5
+    )
+    ax.annotate(
+        f"meets AGG only\nbelow {_signed(drawn.meets_agg)}",
+        (drawn.meets_agg, drawn.agg_ratio),
+        xytext=(12, -10),
+        textcoords="offset points",
+        ha="left",
+        va="top",
+        color=INK,
+        fontsize=10,
+        linespacing=1.35,
+    )
+    ax.annotate(
+        "risk parity\nwould lead",
+        (low, 1.0),
+        xycoords=("data", "axes fraction"),
+        xytext=(4, -6),
+        textcoords="offset points",
+        ha="left",
+        va="top",
+        color=MUTED,
+        fontsize=9,
+        linespacing=1.3,
+    )
+    ax.set_xlim(low, high)
+    ax.set_xticks([-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: _signed(x, 2)))
+    ax.set_ylim(-1.05, 1.05)
+    ax.set_yticks([-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0])
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _pos: _signed(y, 2)))
+    ax.set_xlabel("stock-bond correlation", color=INK, fontsize=10)
+    ax.set_ylabel("hurdle, as a multiple of stocks' Sharpe ratio", color=INK, fontsize=10)
+    ax.legend(
+        loc="lower right", bbox_to_anchor=(1.0, 0.16), frameon=False, fontsize=9.5, labelcolor=INK
+    )
+
+    _title(
+        fig,
+        "After 2022, no correlation these funds showed would have let risk parity lead",
+        f"{STOCK} and {BOND} after the Federal Reserve's 16 March 2022 rate rise, {drawn.start} to "
+        f"{drawn.end}, downloaded in 2026, at the {RISK_FREE:.0%} cash rate.\n"
+        "The hurdle is the multiple of stocks' Sharpe ratio bonds need for levered risk parity to "
+        "match 60/40 at the same volatility.\n"
+        f"The solid curve turns negative below {_signed(drawn.turns_negative)}. The dashed curve, "
+        "for the weights the post scores this period on, never falls below "
+        f"{_signed(drawn.carried_floor)}.\n"
+        f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
+    )
+    fig.subplots_adjust(left=0.09, right=0.98, top=0.9, bottom=0.27)
+    fig.curves = drawn
+    return _save(fig, out, CORRELATION_FIGURE)
+
+
 def main() -> None:
     make_risk_split_figure()
     print(f"wrote {FIGURES_DIR / SPLIT_FIGURE}")
@@ -1337,6 +1560,8 @@ def main() -> None:
     print(f"wrote {FIGURES_DIR / RATE_FIGURE}")
     make_window_figure()
     print(f"wrote {FIGURES_DIR / WINDOW_FIGURE}")
+    make_correlation_figure()
+    print(f"wrote {FIGURES_DIR / CORRELATION_FIGURE}")
 
 
 if __name__ == "__main__":

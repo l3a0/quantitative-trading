@@ -1,4 +1,4 @@
-"""The pins for the risk parity post's six figures.
+"""The pins for the risk parity post's seven figures.
 
 ``tests/test_risk_parity.py`` holds what the risk parity run computes. This
 file holds that the figures draw those numbers, so a generator that stacked the
@@ -35,6 +35,9 @@ from chan.risk_parity_figures import (
     ACCENT,
     BILL_AVERAGE,
     CLAIM_FIGURE,
+    CORRELATION_FIGURE,
+    CORRELATION_RANGE,
+    CORRELATION_STEPS,
     CURVE_STEPS,
     DECODE_CORRELATIONS,
     DECODE_FIGURE,
@@ -61,11 +64,13 @@ from chan.risk_parity_figures import (
     T_BAR,
     WINDOW_FIGURE,
     WINDOW_XLIM,
+    correlation_curves,
     decoding,
     full_span,
     full_span_ranking,
     hurdle_rows,
     make_claim_figure,
+    make_correlation_figure,
     make_decode_figure,
     make_hurdle_figure,
     make_rate_figure,
@@ -826,7 +831,7 @@ def test_the_committed_hurdle_figure_exists() -> None:
     assert (FIGURES_DIR / HURDLE_FIGURE).is_file()
 
 
-def test_the_command_writes_all_six_and_says_where(
+def test_the_command_writes_all_seven_and_says_where(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """``main`` is the redraw command README names, so it has to write every
@@ -846,6 +851,7 @@ def test_the_command_writes_all_six_and_says_where(
         DECODE_FIGURE,
         RATE_FIGURE,
         WINDOW_FIGURE,
+        CORRELATION_FIGURE,
     ):
         assert f"wrote {tmp_path / name}" in out
         assert (tmp_path / name).is_file()
@@ -1693,3 +1699,231 @@ class TestTheWindowFiguresDefaultDraw:
 
 def test_the_committed_window_figure_exists() -> None:
     assert (FIGURES_DIR / WINDOW_FIGURE).is_file()
+
+
+# The correlation figure, which draws Lesson 6.
+
+
+@pytest.fixture(scope="module")
+def correlation_figure(tmp_path_factory: pytest.TempPathFactory):
+    out = tmp_path_factory.mktemp("risk_parity_correlation") / CORRELATION_FIGURE
+    fig = make_correlation_figure(out=out)
+    fig.written_to = out
+    return fig
+
+
+class TestWhatTheCorrelationFigureDraws:
+    def test_the_two_sets_of_weights_and_agg(self, correlation_figure) -> None:
+        """26.6% stocks fitted after 2022 and the 20.5% carried from before.
+        AGG's Sharpe ratio after 2022 was −0.69 times SPY's at 4%."""
+        drawn = correlation_figure.curves
+        assert drawn.fitted_stock_weight == pytest.approx(0.266274, abs=5e-7)
+        assert drawn.carried_stock_weight == pytest.approx(0.205340, abs=5e-7)
+        assert drawn.agg_ratio == pytest.approx(-0.692039, abs=5e-7)
+        assert (drawn.start, drawn.end) == ("2022-03-17", "2026-09-17")
+
+    def test_the_hurdles_at_the_measured_correlation(self, correlation_figure) -> None:
+        """About 0.70 on fitted weights, as Lesson 6 says, and 0.78 on the
+        carried weights the post scores the period on."""
+        drawn = correlation_figure.curves
+        assert drawn.measured[-1] == ("after 2022", pytest.approx(0.244222, abs=5e-7))
+        assert drawn.fitted_at_measured == pytest.approx(0.700772, abs=5e-7)
+        assert drawn.carried_at_measured == pytest.approx(0.780545, abs=5e-7)
+
+    def test_where_the_fitted_curve_turns_and_meets_agg(self, correlation_figure) -> None:
+        """Negative below about −0.62 and level with AGG only below about −0.96,
+        the two thresholds Lesson 6 quotes."""
+        drawn = correlation_figure.curves
+        assert drawn.turns_negative == pytest.approx(-0.620969, abs=5e-6)
+        assert drawn.meets_agg == pytest.approx(-0.959342, abs=5e-6)
+
+    def test_the_carried_curve_never_reaches_agg(self, correlation_figure) -> None:
+        """Its floor is at a correlation of −1, about −0.37, well above −0.69."""
+        drawn = correlation_figure.curves
+        assert drawn.carried_floor == pytest.approx(-0.365762, abs=5e-6)
+        assert min(drawn.carried) > drawn.carried_floor
+        assert drawn.carried_floor > drawn.agg_ratio
+
+    def test_the_title_holds_for_every_measured_correlation(self, correlation_figure) -> None:
+        """No correlation these funds showed brings either hurdle down to AGG."""
+        drawn = correlation_figure.curves
+        names = [name for name, _ in drawn.measured]
+        assert names == ["before 2022", "whole period", "after 2022"]
+        assert [rho for _, rho in drawn.measured] == [
+            pytest.approx(-0.068846, abs=5e-7),
+            pytest.approx(-0.000215, abs=5e-7),
+            pytest.approx(0.244222, abs=5e-7),
+        ]
+        assert all(rho > drawn.meets_agg for _, rho in drawn.measured)
+
+    def test_the_curves_are_the_hurdles_on_their_weights(self, correlation_figure) -> None:
+        drawn = correlation_figure.curves
+        low, high = CORRELATION_RANGE
+        assert len(drawn.correlations) == CORRELATION_STEPS + 1
+        assert (drawn.correlations[0], drawn.correlations[-1]) == pytest.approx((low, high))
+        assert all(a < b for a, b in zip(drawn.fitted, drawn.fitted[1:], strict=False))
+        assert all(c > f for c, f in zip(drawn.carried, drawn.fitted, strict=True))
+        assert correlation_curves() == drawn
+
+    def test_the_figure_reads_the_same_hurdle_the_risk_parity_tests_hold(
+        self, correlation_figure
+    ) -> None:
+        """At the measured correlation the fitted curve is the risk parity hurdle."""
+        from chan.risk_parity import WINDOWS, measure_window
+        from chan.series import aligned_closes
+
+        label, start, end = WINDOWS[2]
+        legs = measure_window(label, aligned_closes("SPY", "AGG"), start, end)[0].legs
+        assert correlation_figure.curves.fitted_at_measured == pytest.approx(
+            bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation), abs=1e-12
+        )
+
+
+class TestTheCorrelationPanel:
+    def test_the_two_curves_and_the_agg_line(self, correlation_figure) -> None:
+        ax = correlation_figure.axes[0]
+        drawn = correlation_figure.curves
+        solid, dashed = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        assert list(solid.get_xdata()) == list(drawn.correlations)
+        assert list(solid.get_ydata()) == list(drawn.fitted)
+        assert list(dashed.get_ydata()) == list(drawn.carried)
+        assert solid.get_linestyle() == "-" and dashed.get_linestyle() == "--"
+        assert _rgb(solid.get_color()) == _rgb(INK) and _rgb(dashed.get_color()) == _rgb(MUTED)
+        agg = [line for line in ax.lines if list(line.get_ydata()) == [drawn.agg_ratio] * 2]
+        assert len(agg) == 1 and _rgb(agg[0].get_color()) == _rgb(ACCENT)
+
+    def test_the_measured_correlations_are_marked(self, correlation_figure) -> None:
+        ax = correlation_figure.axes[0]
+        drawn = correlation_figure.curves
+        dotted = [line for line in ax.lines if line.get_linestyle() == ":"]
+        assert [line.get_xdata()[0] for line in dotted] == [rho for _, rho in drawn.measured]
+        (listing,) = [t for t in ax.texts if t.get_text().startswith("measured correlations")]
+        assert listing.get_text() == (
+            "measured correlations:\n−0.07 before 2022, −0.0002 whole period, +0.24 after 2022"
+        )
+
+    def test_the_marked_points(self, correlation_figure) -> None:
+        ax = correlation_figure.axes[0]
+        drawn = correlation_figure.curves
+        after = drawn.measured[-1][1]
+        dots = _dots(ax)
+        filled = [d for d in dots if _filled(d) and _rgb(d.get_color()) == _rgb(ACCENT)]
+        assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in filled] == [
+            (after, drawn.fitted_at_measured),
+            (after, drawn.carried_at_measured),
+        ]
+        (meet,) = [d for d in dots if _rgb(d.get_markerfacecolor()) == _rgb(SURFACE)]
+        assert (meet.get_xdata()[0], meet.get_ydata()[0]) == (drawn.meets_agg, drawn.agg_ratio)
+
+    def test_the_labels(self, correlation_figure) -> None:
+        ax = correlation_figure.axes[0]
+        texts = _plain_texts(ax)
+        assert "0.70 and 0.78\nat +0.24" in texts
+        assert "meets AGG only\nbelow −0.96" in texts
+        assert "AGG's Sharpe ratio, −0.69 times SPY's" in texts
+        assert "risk parity\nwould lead" in texts
+        (meet,) = [t for t in ax.texts if t.get_text().startswith("meets AGG")]
+        # Below and right of its point, where the curve has already risen away.
+        assert meet.xyann[0] > 0 and meet.xyann[1] < 0
+
+    def test_the_shading_runs_to_where_the_curve_meets_agg(self, correlation_figure) -> None:
+        ax = correlation_figure.axes[0]
+        (shade,) = ax.patches
+        assert shade.get_x() == pytest.approx(CORRELATION_RANGE[0], abs=1e-12)
+        right = shade.get_x() + shade.get_width()
+        assert right == pytest.approx(correlation_figure.curves.meets_agg, abs=1e-12)
+        assert _rgb(shade.get_facecolor()) == _rgb(GOOD) and 0 < shade.get_alpha() < 0.5
+
+    def test_the_legend_names_both_weights(self, correlation_figure) -> None:
+        legend = correlation_figure.axes[0].get_legend()
+        assert [t.get_text() for t in legend.get_texts()] == [
+            "weights fitted after 2022 (26.6% stocks)",
+            "weights carried from before (20.5% stocks)",
+        ]
+
+    def test_the_axes(self, correlation_figure) -> None:
+        """Ticks every quarter, printed to two places. One place printed 0.75
+        as 0.8, which put AGG's −0.69 line next to a label reading −0.8."""
+        ax = correlation_figure.axes[0]
+        low, high = ax.get_ylim()
+        assert (low, high) == (-1.05, 1.05)
+        drawn = correlation_figure.curves
+        assert all(low < y < high for y in (*drawn.fitted, *drawn.carried, drawn.agg_ratio))
+        correlation_figure.canvas.draw()
+        assert [t.get_text() for t in ax.get_yticklabels()] == [
+            "−1.00",
+            "−0.75",
+            "−0.50",
+            "−0.25",
+            "0.00",
+            "0.25",
+            "0.50",
+            "0.75",
+            "1.00",
+        ]
+        assert ax.get_xlabel() == "stock-bond correlation"
+        assert ax.get_ylabel() == "hurdle, as a multiple of stocks' Sharpe ratio"
+
+
+class TestTheCorrelationFiguresText:
+    def test_the_title_and_note(self, correlation_figure) -> None:
+        assert correlation_figure._suptitle.get_text() == (
+            "After 2022, no correlation these funds showed would have let risk parity lead"
+        )
+        assert correlation_figure.texts[-1].get_text().split("\n") == [
+            "SPY and AGG after the Federal Reserve's 16 March 2022 rate rise, 2022-03-17 to "
+            "2026-09-17, downloaded in 2026, at the 4% cash rate.",
+            "The hurdle is the multiple of stocks' Sharpe ratio bonds need for levered risk "
+            "parity to match 60/40 at the same volatility.",
+            "The solid curve turns negative below −0.62. The dashed curve, for the weights the "
+            "post scores this period on, never falls below −0.37.",
+            "4% is the rate Chan assumes when levering SPY, borrowed here.",
+        ]
+
+    def test_text_fits_and_nothing_overlaps(self, correlation_figure) -> None:
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(correlation_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        ax = correlation_figure.axes[0]
+        pieces = [correlation_figure._suptitle, correlation_figure.texts[-1]]
+        pieces += [ax.xaxis.label, ax.yaxis.label]
+        pieces += [t for t in ax.texts if t.get_text()]
+        pieces += [t for t in [*ax.get_xticklabels(), *ax.get_yticklabels()] if t.get_text()]
+        boxes = [(p.get_text(), Text.get_window_extent(p, renderer)) for p in pieces]
+        boxes.append(("legend", ax.get_legend().get_window_extent(renderer)))
+        assert min(box.x0 for _, box in boxes) >= 0
+        assert max(box.x1 for _, box in boxes) <= correlation_figure.bbox.x1
+        clashes = [
+            (a, b)
+            for i, (a, box_a) in enumerate(boxes)
+            for b, box_b in boxes[i + 1 :]
+            if box_a.overlaps(box_b)
+        ]
+        assert clashes == []
+
+    def test_no_label_runs_through_a_curve(self, correlation_figure) -> None:
+        """Two early labels sat on the curves."""
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(correlation_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        ax = correlation_figure.axes[0]
+        curves = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        for text in ax.texts:
+            if not text.get_text():
+                continue
+            box = Text.get_window_extent(text, renderer)
+            for curve in curves:
+                path = curve.get_transform().transform_path(curve.get_path())
+                assert not path.intersects_bbox(box, filled=False), text.get_text()
+
+    def test_no_label_is_parsed_as_math(self, correlation_figure) -> None:
+        for text in [*correlation_figure.texts, *correlation_figure.axes[0].texts]:
+            assert text.get_parse_math() is False
+
+
+def test_the_committed_correlation_figure_exists() -> None:
+    assert (FIGURES_DIR / CORRELATION_FIGURE).is_file()

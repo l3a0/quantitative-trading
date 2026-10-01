@@ -156,6 +156,10 @@ The volatility ratio fell from 3.87 to 2.76, and the two periods sit on opposite
 
 Even weights computed inside the later period hold only 26.6% stocks, short of 60/40’s 60%, so risk parity still leans on bonds, and its result rests on what AGG earned. AGG averaged 1.16% a year, a Sharpe ratio of about −0.46 against SPY’s 0.66, or about −0.7 times stocks’. For weights computed inside the later period, at its correlation of +0.24, the hurdle was about +0.7 times stocks’, so AGG missed it by about 1.4 times stocks’ Sharpe ratio. A lower correlation lowers the hurdle, and below about −0.6 it turns negative, meaning risk parity could lead even with a bond Sharpe ratio a little below zero. That happens because risk parity’s volatility shrinks faster than 60/40’s as the two funds’ swings cancel. The hurdle would have reached −0.7 only at a correlation below about −0.96, where stocks and bonds move almost exactly opposite each other. The correlations measured here were −0.07 before 2022, +0.24 after it and −0.0002 over the whole period. None comes near −0.96, so none would have put risk parity ahead after 2022.
 
+![The hurdle bonds’ Sharpe ratio had to clear after 2022, as a multiple of stocks’, against the stock-bond correlation from −1 to +0.5. On weights fitted to the period it is 0.70 at the measured +0.24, turns negative below −0.62, and meets AGG’s −0.69 only below −0.96. On the 20.5% stock weights carried from before, which the post scores, it is 0.78 at +0.24 and never falls below −0.37. The measured correlations, −0.07 before 2022, −0.0002 over the whole period and +0.24 after it, are marked.](../docs/figures/risk_parity_hurdle_by_correlation.png)
+
+*AGG’s line stays far below both curves at every correlation these funds showed. On the weights actually carried after 2022, no correlation at all would have closed the gap.*
+
 ## What this replication cannot say
 
 The replication tests Qian’s argument on funds and years it fixed in writing before computing any number. It cannot say three things.
