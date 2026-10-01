@@ -75,6 +75,7 @@ from chan.risk_parity import (
     WindowTooShort,
     _decomposition,
     _header,
+    _variance,
     annualised_covariance,
     bond_sharpe_hurdle,
     book_correlation_band,
@@ -320,6 +321,20 @@ class TestTheTwoLegAlgebra:
         # them. His own printed pair sits well inside.
         assert min(corners.values()) < correlation_from_leverage(BOOK_LEVERAGE)
         assert correlation_from_leverage(BOOK_LEVERAGE) < max(corners.values())
+
+    def test_a_higher_correlation_needs_less_leverage_on_his_weights(self) -> None:
+        """Lesson 3's numbers. From a correlation of 0 to 0.2 on Qian's 23-77,
+        risk parity's variance rises 20% and 60/40's about 8%, so the leverage
+        that matches 60/40 falls from about 1.88 to about 1.78."""
+        ratio = BOOK_WEIGHTS[1] / BOOK_WEIGHTS[0]
+        parity_rise = _variance(BOOK_WEIGHTS, ratio, 0.2) / _variance(BOOK_WEIGHTS, ratio, 0.0)
+        bench_rise = _variance(BENCHMARK_WEIGHTS, ratio, 0.2) / _variance(
+            BENCHMARK_WEIGHTS, ratio, 0.0
+        )
+        assert parity_rise - 1 == pytest.approx(0.20, abs=1e-9)
+        assert bench_rise - 1 == pytest.approx(0.076616, abs=5e-7)
+        assert leverage_from_correlation(0.0) == pytest.approx(1.880845, abs=5e-7)
+        assert leverage_from_correlation(0.2) == pytest.approx(1.781528, abs=5e-7)
 
     @pytest.mark.parametrize("correlation", [-0.6, -0.2, 0.0, 0.3, 0.7])
     def test_the_leverage_map_inverts(self, correlation) -> None:
