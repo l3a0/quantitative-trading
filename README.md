@@ -454,7 +454,7 @@ Kindle location 4684. It draws six lessons from Entry 4 of the replication log:
 the close numbers and the failed claim, bonds earning too little per unit of
 risk beside stocks, the volatility ratio and correlation Qian's two figures
 encode, the cash rate at which the ranking ties, the weights judged on a window
-they did not see, and the inputs moving between the two windows. Three groups
+they did not see, and the inputs moving between the two windows. Two groups
 of its figures are not pinned here.
 
 1. Published figures. Chan's 23-77 and 1.8 and his 4% rate, which the code
@@ -466,8 +466,8 @@ of its figures are not pinned here.
    by, his 60/40 volatility of 9.6%, and the condition under which his paper
    says risk parity is mean-variance optimal. The Federal Reserve's near-zero
    policy rate from December 2008 to December 2015 and from March 2020 to March
-   2022, about nine of the 23 years, is a public record rather than anything
-   committed here. The 15-month overlap of the two samples comes from Entry 4.
+   2022 is a public record rather than anything committed here. The 15-month
+   overlap of the two samples comes from Entry 4.
 2. Arithmetic that no test asserts: stocks' term in 60/40's variance being
    about 29 times bonds', the \$43 of SPY, \$155 of AGG and \$98 borrowed per
    \$100 of equity, risk parity being about half as volatile as 60/40 before
@@ -483,15 +483,13 @@ of its figures are not pinned here.
    later periods' weights would give risk parity, the 0.525 and 0.276 in the
    inequality that sets the hurdle, and the Sharpe gap of about 0.13 for risk
    parity before 2022 at 1.17%, with its t-statistic of +1.11, and the 0.44 of
-   the 0.98
-   difference in bonds' Sharpe ratio that the cash rate accounts for.
-3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
-   series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from October
-   2003 to August 2026, 1.17% from October 2003 to February 2022 and 4.18% from
-   April 2022 to August 2026. The series also holds 108 months under 0.25%,
-   which backs the nine near-zero years in group 1. The post labels these as
-   figures read off the St. Louis Fed's site rather than results, because the
-   premise here is that a figure nobody stored is one nobody can check.
+   the 0.98 difference in bonds' Sharpe ratio that the cash rate accounts for.
+
+The bill-rate averages the post quotes, 1.74% from October 2003 to August
+2026, 1.17% before the 2022 rise and 4.18% after it, and the 108 months under
+0.25% behind its nine near-zero years, trace to
+[tests/test_bill_rates.py](tests/test_bill_rates.py), which reads them from
+the committed TB3MS vintage.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of

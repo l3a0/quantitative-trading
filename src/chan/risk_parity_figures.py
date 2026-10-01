@@ -64,6 +64,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch, Rectangle
 from matplotlib.ticker import FuncFormatter, PercentFormatter
 
+from chan.bill_rates import average as bill_average
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, MUTED, RULE, SURFACE
@@ -119,11 +120,14 @@ QIAN_CORRELATION = 0.2
 QIAN_SHARPE_STOCK = 0.55
 QIAN_SHARPE_BOND = 0.80
 
-#: The average of the St. Louis Fed's three-month bill series, TB3MS, from
-#: October 2003 to August 2026, the full calendar months inside the span. Read
-#: off the Fed's site on 2026-09-30 and not stored here, which is why the
-#: figure's note says so rather than presenting it as a measurement.
-BILL_AVERAGE = 0.0174
+#: The calendar months wholly inside the run's span, 2003-09-30 to 2026-09-17,
+#: which is the window the bill average covers. A test holds them to the span.
+BILL_MONTHS = ("2003-10", "2026-08")
+
+#: The average of the St. Louis Fed's three-month bill series, TB3MS, over
+#: :data:`BILL_MONTHS`, read from the committed vintage through
+#: :mod:`chan.bill_rates`. It is 1.744 percent, which the post quotes as 1.74.
+BILL_AVERAGE = bill_average(*BILL_MONTHS)
 
 #: A Sharpe ratio gap smaller than this draws no arrow, because the two dots
 #: already touch and an arrowhead would have no room.
@@ -470,8 +474,8 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
         "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.\n"
         f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, daily, downloaded in 2026. "
         f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate\n"
-        "(TB3MS) from October 2003 to August 2026, read off the Fed's site and not stored "
-        "with the replication's data.\n"
+        "(TB3MS) from October 2003 to August 2026, from the series committed with the "
+        "replication's data.\n"
         f"{RISK_FREE:.0%} is the cash rate Chan assumes elsewhere in the book, above what bills "
         "paid on average.\n"
         "t is the t-statistic of risk parity minus 60/40, corrected for day-to-day dependence "
@@ -632,7 +636,7 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
         f"{_signed(legs.correlation, 4)}, {legs.start} to {legs.end}, downloaded in 2026. "
         "Each multiple\ndivides unrounded Sharpe ratios. AGG's multiple meets the hurdle with "
         f"cash at {hurdle_rate(legs):.2%}, the rate where the two Sharpe ratios tie.\n"
-        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, not stored "
+        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, committed "
         "with the replication's data.\n"
         f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
@@ -1059,7 +1063,7 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
         "the same volatility. The gap and its t-statistic\nmove in a straight line with the "
         "rate. The shading is where the t-statistic, corrected for day-to-day dependence, is "
         f"beyond −{T_BAR:g}.\n{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month "
-        "bill rate, not stored with the replication's data.\n"
+        "bill rate, committed with the replication's data.\n"
         f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.27)

@@ -12,11 +12,13 @@ the reason ``tests/test_regime_figure.py`` gives.
 from __future__ import annotations
 
 import re
+from datetime import date
 
 import pytest
 from matplotlib.colors import to_rgba
 from matplotlib.text import Text
 
+from chan.bill_rates import average
 from chan.paths import FIGURES_DIR
 from chan.risk_parity import (
     BOOK_LEVERAGE,
@@ -34,6 +36,7 @@ from chan.risk_parity import (
 from chan.risk_parity_figures import (
     ACCENT,
     BILL_AVERAGE,
+    BILL_MONTHS,
     CLAIM_FIGURE,
     CORRELATION_FIGURE,
     CORRELATION_RANGE,
@@ -307,12 +310,17 @@ class TestWhatTheClaimFigureCompares:
         assert (QIAN_SHARPE_BENCHMARK, QIAN_SHARPE_PARITY) == (0.67, 0.87)
         assert (BOOK_WEIGHTS[0], BOOK_LEVERAGE) == (0.23, 1.8)
 
-    def test_the_bill_average_is_the_one_the_post_quotes(self) -> None:
-        """This holds that the code and the post quote the same rate, not that
-        the rate is right. It was read off the St. Louis Fed's TB3MS series and
-        is not stored here, which README's third group of unpinned figures and
-        the figure's own note both say."""
-        assert BILL_AVERAGE == 0.0174
+    def test_the_bill_average_is_read_from_the_committed_series(self) -> None:
+        """1.744%, the TB3MS average over the calendar months wholly inside the
+        run's span, read through ``chan.bill_rates``. The post quotes it as 1.74%."""
+        assert BILL_AVERAGE == average(*BILL_MONTHS)
+        assert BILL_AVERAGE == pytest.approx(0.01744, abs=5e-9)
+        assert f"{BILL_AVERAGE:.2%}" == "1.74%"
+
+    def test_the_bill_months_are_the_full_calendar_months_inside_the_span(self, result) -> None:
+        first, last = date.fromisoformat(result.legs.start), date.fromisoformat(result.legs.end)
+        assert first.day != 1 and BILL_MONTHS[0] == f"{first.year}-{first.month + 1:02d}"
+        assert BILL_MONTHS[1] == f"{last.year}-{last.month - 1:02d}"
 
     def test_this_runs_weight_and_leverage(self, claim_figure) -> None:
         drawn = claim_figure.claim
@@ -330,12 +338,12 @@ class TestWhatTheClaimFigureCompares:
         pairs = claim_figure.claim.pairs
         assert [(p.benchmark, p.parity) for p in pairs] == [
             pytest.approx((0.67, 0.87), abs=1e-12),
-            pytest.approx((0.610815, 0.589809), abs=5e-7),
+            pytest.approx((0.610462, 0.589109), abs=5e-7),
             pytest.approx((0.411135, 0.194204), abs=5e-7),
         ]
         assert pairs[0].t is None
         assert [p.t for p in pairs[1:]] == [
-            pytest.approx(-0.210392, abs=5e-7),
+            pytest.approx(-0.213865, abs=5e-7),
             pytest.approx(-2.172682, abs=5e-7),
         ]
 
@@ -540,8 +548,8 @@ class TestTheClaimFiguresText:
             "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.",
             "SPY and AGG: 2003-09-30 to 2026-09-17, daily, downloaded in 2026. 1.74% is the "
             "St. Louis Fed's average three-month bill rate",
-            "(TB3MS) from October 2003 to August 2026, read off the Fed's site and "
-            "not stored with the replication's data.",
+            "(TB3MS) from October 2003 to August 2026, from the series committed with the "
+            "replication's data.",
             "4% is the cash rate Chan assumes elsewhere in the book, above what bills "
             "paid on average.",
             "t is the t-statistic of risk parity minus 60/40, corrected for day-to-day dependence "
@@ -655,7 +663,7 @@ class TestWhatTheHurdleFigureCompares:
         ]
         assert [row.ratio for row in rows] == [
             pytest.approx(0.80 / 0.55, abs=1e-12),
-            pytest.approx(0.456266, abs=5e-7),
+            pytest.approx(0.455085, abs=5e-7),
             pytest.approx(-0.390912, abs=5e-7),
         ]
         assert [row.clears for row in rows] == [True, False, False]
@@ -786,7 +794,7 @@ class TestTheHurdleFiguresText:
             "downloaded in 2026. Each multiple",
             "divides unrounded Sharpe ratios. AGG's multiple meets the hurdle with cash at "
             "1.50%, the rate where the two Sharpe ratios tie.",
-            "1.74% is the St. Louis Fed's average three-month bill rate, not stored with the "
+            "1.74% is the St. Louis Fed's average three-month bill rate, committed with the "
             "replication's data.",
             "4% is the rate Chan assumes when levering SPY, borrowed here.",
         ]
@@ -1161,7 +1169,7 @@ class TestWhatTheRateFigureDraws:
         assert [m.rate for m in marks] == [0.0, BILL_AVERAGE, RISK_FREE]
         assert [(m.gap, m.t) for m in marks] == [
             pytest.approx((0.129838, 1.300398), abs=5e-7),
-            pytest.approx((-0.021007, -0.210392), abs=5e-7),
+            pytest.approx((-0.021353, -0.213865), abs=5e-7),
             pytest.approx((-0.216931, -2.172682), abs=5e-7),
         ]
 
@@ -1291,7 +1299,7 @@ class TestTheRateFiguresText:
             "same volatility. The gap and its t-statistic",
             "move in a straight line with the rate. The shading is where the t-statistic, "
             "corrected for day-to-day dependence, is beyond −2.",
-            "1.74% is the St. Louis Fed's average three-month bill rate, not stored with the "
+            "1.74% is the St. Louis Fed's average three-month bill rate, committed with the "
             "replication's data.",
             "4% is the rate Chan assumes when levering SPY, borrowed here.",
         ]

@@ -54,6 +54,7 @@ import pandas as pd
 import pytest
 from ithildincore.stats import newey_west_summary
 
+from chan.bill_rates import average as bill_average
 from chan.risk_parity import (
     BENCHMARK_WEIGHTS,
     BOND,
@@ -1529,15 +1530,16 @@ class TestTheBondSharpeHurdle:
 
     def test_bonds_ratio_to_stocks_at_the_two_rates_the_post_uses(self, measured) -> None:
         """At 4% AGG's Sharpe ratio is about −0.39 times SPY's, and at the
-        1.74% bill average about 0.46 times, both short of 0.53."""
+        1.74% bill average about 0.46 times, both short of 0.53. The bill
+        average is read from the committed TB3MS vintage."""
         legs = measured["full span"][0].legs
         ratios = []
-        for rate in (RISK_FREE, 0.0174):
+        for rate in (RISK_FREE, bill_average("2003-10", "2026-08")):
             stock, bond = leg_sharpes(legs, risk_free=rate)
             ratios.append(bond / stock)
         assert ratios == [
             pytest.approx(-0.390912, abs=5e-7),
-            pytest.approx(0.456266, abs=5e-7),
+            pytest.approx(0.455085, abs=5e-7),
         ]
 
     def test_the_hurdle_decides_the_ranking_in_every_window_at_every_rate(self, measured) -> None:
