@@ -51,7 +51,8 @@ why the bytes cannot carry the symbol instead.
 ## What each file is
 
 A vintage is one download of one series, identified by vendor, symbol, span,
-download date, and which price the series carries.
+download date, and which price the series carries, or that it carries a rate
+rather than a price.
 
 | File | Vendor | Symbol | Price | Span | Downloaded |
 | --- | --- | --- | --- | --- | --- |
@@ -66,6 +67,7 @@ download date, and which price the series carries.
 | `spy_chan.csv` | Chan's `example6_2.xls` | SPY | adjusted | 1993-01-29 .. 2007-12-28 | saved 2008-01-29 |
 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
 | `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` | yfinance | AGG | adjusted | 2003-09-29 .. 2026-09-17 | 2026-09-18 |
+| `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` | fred | TB3MS | rate | 1934-01-01 .. 2026-08-01 | 2026-09-30 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -132,6 +134,21 @@ This is the one place that call is written down. The module that reads the
 series points here rather than restating it, because a fact in two places is a
 fact that can drift.
 
+`fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` is the first vintage
+that is not a price. It is the St. Louis Fed's three-month Treasury-bill rate,
+series TB3MS, as FRED's public CSV returned it, one row per month dated the
+first of the month, in percent a year on a secondary-market basis. It is
+recorded under the `rate` basis rather than `raw`, because a rate has no
+adjusted form and a day-over-day ratio says nothing about its scale: the bill
+rate went from 0.02% in October 2015 to 0.12% in November, a sixfold change in
+a month and no change of units. So the scale-break guard does not read it, and
+[tests/test_scale_breaks.py](../tests/test_scale_breaks.py) says why where it
+skips it. [src/chan/bill_rates.py](../src/chan/bill_rates.py) reads it, and the
+risk parity post's bill-rate averages trace to
+[tests/test_bill_rates.py](../tests/test_bill_rates.py).
+[Issue 187](https://github.com/l3a0/quantitative-trading/issues/187) is where
+storing it was decided.
+
 The `*_chan.csv` files are a different kind of source. Each is the
 adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
 from the public mirror at
@@ -165,6 +182,8 @@ Date,
 ```
 
 A recorded vintage carries one header row, `Date,Close`, and nothing else.
+In a `rate` vintage the `Close` column holds the rate, because the recorder
+writes one header for every series it records.
 Two shapes rather than one is deliberate. The three rows above are an artifact
 of one vendor's frame, and writing `Price,Close` at the top of a series some
 other vendor returned would be a claim the file has no business making.

@@ -1,9 +1,9 @@
 """Record a series as a vintage, immutable once written, and resolve one to read.
 
 A vintage is one download of one series, identified by vendor, symbol, span,
-download date, and which price the series carries. Losing one is the failure
-[docs/design.md](../../docs/design.md) is built around: everything else here
-recomputes, and a number whose series nobody kept is a number nobody can
+download date, and which price or rate the series carries. Losing one is the
+failure [docs/design.md](../../docs/design.md) is built around: everything else
+here recomputes, and a number whose series nobody kept is a number nobody can
 check, including its author.
 
 So this module writes two things and refuses rather than overwrite either. The
@@ -55,8 +55,8 @@ identity pinned for it in ``tests/support/committed_vintages.py`` and the
 ``Ticker,`` header row its own bytes carry.
 
 The identity fields are compared as strings, so one source needs one spelling.
-Case is normalised and the price basis is one of the two terms the design doc's
-vocabulary defines, because ``raw`` against ``unadjusted`` would otherwise be
+Case is normalised and the price basis is one of the three terms the design
+doc's vocabulary defines, because ``raw`` against ``unadjusted`` would otherwise be
 two vintages of one download. Which word names a vendor is a convention rather
 than a rule, and the manifest's existing rows are what carry it.
 
@@ -88,9 +88,14 @@ from chan import paths
 MANIFEST_NAME = "vintages.jsonl"
 CHECKSUMS_NAME = "checksums.sha256"
 
-#: The two price bases in the design doc's vocabulary. A third spelling of
-#: either one is a second vintage of the same download.
-PRICE_BASES = ("raw", "adjusted")
+#: The bases in the design doc's vocabulary. Two are prices and one is not. A
+#: ``rate`` vintage holds a series of rates, such as a Treasury-bill yield, as
+#: the vendor publishes it. It has no raw or adjusted form, and a day-over-day
+#: ratio says nothing about its scale, so the scale-break guard in
+#: :mod:`chan.series` does not read it. The field keeps its name, ``price_basis``,
+#: because every committed entry already spells it that way. A fourth spelling
+#: of any of the three is a second vintage of the same download.
+PRICE_BASES = ("raw", "adjusted", "rate")
 
 # A name joins the five identity fields with underscores, so no field may hold
 # one. Beyond that the patterns keep a field from reaching outside the data
