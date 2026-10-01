@@ -1,8 +1,9 @@
 """Pins for the three-month Treasury-bill figures the risk parity post quotes.
 
-This file is the single authority for those figures. The post and README state
-them and derive none of them, and ``src/chan/bill_rates.py`` carries the
-reasoning.
+This file is the single authority for those figures. The risk parity post,
+still on [PR #185](https://github.com/l3a0/quantitative-trading/pull/185),
+quotes them and derives none of them, and ``src/chan/bill_rates.py`` carries
+the reasoning.
 
 Every pin reads one vintage: FRED's TB3MS, downloaded 2026-09-30 and committed
 as ``data/fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv``, 1,112
@@ -70,7 +71,7 @@ class TestTheVintage:
 
     def test_percent_text_becomes_the_decimal_it_names(self) -> None:
         """0.25 in the file is exactly the float 0.0025, which dividing a float does not give
-        for every row. October 2015 is the low the scale-break skip cites."""
+        for every row. October 2015 is the month the scale-break skip cites."""
         rates = dict(monthly_rates())
         assert rates["1934-11"] == 0.0025
         assert rates["2015-10"] == 0.0002

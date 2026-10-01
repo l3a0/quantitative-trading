@@ -90,11 +90,13 @@ CHECKSUMS_NAME = "checksums.sha256"
 
 #: The bases in the design doc's vocabulary. Two are prices and one is not. A
 #: ``rate`` vintage holds a series of rates, such as a Treasury-bill yield, as
-#: the vendor publishes it. It has no raw or adjusted form, and a day-over-day
-#: ratio says nothing about its scale, so the scale-break guard in
-#: :mod:`chan.series` does not read it. The field keeps its name, ``price_basis``,
-#: because every committed entry already spells it that way. A fourth spelling
-#: of any of the three is a second vintage of the same download.
+#: the vendor publishes it, and no scale-break check reads it. The design doc's
+#: **rate** entry says why. :mod:`chan.series` never checks the basis. A rate
+#: cannot reach its guard because ``close_identity`` never names ``rate``, and
+#: the manifest-wide skip is ``price_entries`` in ``tests/test_scale_breaks.py``.
+#: The field keeps its name, ``price_basis``, because every committed entry
+#: already spells it that way. A fourth spelling of any of the three is a
+#: second vintage of the same download.
 PRICE_BASES = ("raw", "adjusted", "rate")
 
 # A name joins the five identity fields with underscores, so no field may hold

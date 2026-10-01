@@ -13,8 +13,8 @@ The vintage is FRED's series TB3MS, recorded under the ``rate`` basis.
 price. In short, each row is one calendar month, dated the first of that month,
 and holds the month's average three-month bill rate in percent a year.
 
-Every value this module returns is a decimal rate a year, so 1.744% comes back
-as 0.01744. A threshold passed in is a decimal too. The file's percent text is
+Every rate this module returns is a decimal a year, so 1.744% comes back as
+0.01744. A threshold passed in is a decimal too. The file's percent text is
 divided by 100 in exact decimal arithmetic before it becomes a float, so a rate
 written ``0.25`` compares equal to a threshold written ``0.0025``. Dividing the
 float instead lands one unit in the last place away for 249 of the 1,112 rows.
@@ -25,9 +25,8 @@ last. Both months must be ones the series holds, and the first must not come
 after the last. Either mistake stops the call with a message rather than
 returning an average over months nobody asked for.
 
-The parse uses the standard library's ``csv`` rather than pandas. A series of
-1,112 numbers needs no frame, and :mod:`chan.vintage`, which this reads
-through, makes the same choice for the same reason.
+The parse uses the standard library's ``csv`` rather than pandas, because a
+series of 1,112 numbers needs no frame.
 """
 
 from __future__ import annotations
@@ -118,8 +117,8 @@ def months_below(
     """How many months in the window had a rate strictly below ``threshold``, a decimal a year.
 
     Strictly, so a month at exactly the threshold is not counted. TB3MS prints
-    two decimal places of a percent, so a threshold of 0.0025 counts months
-    at 0.24% and below.
+    at most two decimal places of a percent, so a threshold of 0.0025 counts
+    months at 0.24% and below.
     """
     return sum(1 for rate in _window(first_month, last_month, data_dir) if rate < threshold)
 

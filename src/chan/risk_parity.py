@@ -115,12 +115,13 @@ what two portfolios did to capital are three quantities in two units.
    turnover, the levered portfolio has more of it plus a borrowing cost, so
    charging nothing favours the portfolio the book is arguing for.
 
-## A Sharpe ratio needs a rate, and no risk-free series is committed
+## A Sharpe ratio needs a rate, and the run reads no risk-free series
 
 So the run assumes a constant annual rate and declares it as a specification.
 Chan's own 4 percent at location 2858 is the rate ``chan.kelly_leverage``
 pins, and taking it keeps one number across two replications rather than
-inventing a second.
+inventing a second. FRED's TB3MS bill series is committed under issue 187, and
+nothing here reads it.
 
 Under costless financing on excess returns a Sharpe ratio does not move with
 leverage, so the ranking's sign is settled before the portfolio is levered.
@@ -277,8 +278,9 @@ WINDOWS = (
 )
 
 #: Chan's constant at location 2858, the rate ``chan.kelly_leverage`` also
-#: reads. No risk-free series is committed, so this is a declared
-#: specification rather than a rate anyone paid.
+#: reads. The run reads no risk-free series, so this is a declared
+#: specification rather than a rate anyone paid. TB3MS is committed under
+#: issue 187, and nothing in this replication reads it.
 RISK_FREE = 0.04
 
 #: Trading days in a year, the annualisation ``chan.kelly_leverage`` set.

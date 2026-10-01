@@ -943,10 +943,13 @@ already in.
 specification choices rather than measurements, and both push the same way.
 
 1. **The risk-free rate is Chan's 4 percent constant, and it is not neutral.**
-   No risk-free series is committed, so the rate is a declared specification
-   rather than a rate anyone paid. Over this span AGG returned 3.09 percent a
-   year, so the bond leg's excess return is negative and a 78 percent bond
-   weight is carrying it. The direction is exact rather than a guess: the
+   The run reads no risk-free series and declares Chan's constant, so the rate
+   is a specification rather than a rate anyone paid. FRED's TB3MS is
+   committed under
+   [issue 187](https://github.com/l3a0/quantitative-trading/issues/187), and
+   nothing in this replication reads it. Over this span AGG returned 3.09
+   percent a year, so the bond leg's excess return is negative and a 78 percent
+   bond weight is carrying it. The direction is exact rather than a guess: the
    Sharpe difference moves with the rate by `1 / vol(60/40)` less
    `1 / vol(risk parity)`, which is negative whenever the unlevered
    risk-parity portfolio is the quieter of the two, and it is on all three
@@ -1088,12 +1091,12 @@ portfolio. Row 3 goes against that portfolio anyway, so the missing cost makes
 the verdict safer rather than shakier, which is the one direction an omission
 is allowed to point without being closed.
 
-**Whether a realised short rate reverses row 3.** That needs the run charged a
-Treasury-bill series rather than a constant, which is a different deliverable,
-and the design doc's register already carries the same cut for Entry 3's Kelly
-example. The series itself is committed since
-[issue 187](https://github.com/l3a0/quantitative-trading/issues/187), as FRED's
-TB3MS, and nothing in this entry reads it.
+**Whether a realised short rate reverses row 3.** That needs a run that
+charges cash at a Treasury-bill series rather than a constant, which is a
+different deliverable, and the design doc's register already carries the same
+cut for Entry 3's Kelly example. FRED's TB3MS is now committed, under
+[issue 187](https://github.com/l3a0/quantitative-trading/issues/187), and
+nothing in this entry reads it.
 The rate is Chan's constant and the report says so on its own last lines. The
 derivative above says which way a lower rate would push, and says nothing about
 whether it would push far enough.
