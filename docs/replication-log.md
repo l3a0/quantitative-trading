@@ -915,9 +915,10 @@ full common span the risk-parity weights are 21.78 to 78.22 against his 23-77,
 and the leverage that matches 60/40's volatility is 1.9812 against his 1.8.
 Rows 1 and 2 are therefore a percentage point and two tenths out. Row 3 is the
 claim those two were printed to support, that the levered risk-parity portfolio
-earns a higher Sharpe ratio at the same risk, and 60/40 wins it by 0.2169 with
-a robust t of −2.17. So this entry is the first here where a published number
-lands close and the claim behind it does not survive.
+earns a higher Sharpe ratio at the same risk, and at Chan's 4 percent rate
+60/40 wins it by 0.2169 with a robust t of −2.17. So this entry is the first
+here where a published number lands close and the claim behind it does not
+survive.
 
 Three rows are replications and twelve are not. Rows 1, 2 and 3 are the three
 things location 4684 prints. The other twelve fall into four groups.
@@ -947,7 +948,8 @@ specification choices rather than measurements, and both push the same way.
    is a specification rather than a rate anyone paid. FRED's TB3MS is
    committed under
    [issue 187](https://github.com/l3a0/quantitative-trading/issues/187), and
-   nothing in this replication reads it. Over this span AGG returned 3.09
+   the run does not read it. Only the post's figures do, for the bill
+   average. Over this span AGG returned 3.09
    percent a year, so the bond leg's excess return is negative and a 78 percent
    bond weight is carrying it. The direction is exact rather than a guess: the
    Sharpe difference moves with the rate by `1 / vol(60/40)` less
@@ -955,7 +957,7 @@ specification choices rather than measurements, and both push the same way.
    risk-parity portfolio is the quieter of the two, and it is on all three
    windows. So a higher assumed rate penalises risk parity and a lower one
    favours it. That derivative is pinned in
-   `TestTheRankingIsBuiltSoLeverageCannotMoveIt`.
+   `TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove`.
 2. **No transaction costs and no financing spread are charged**, because the
    book charges none. The omission points one way: a daily rebalance has
    turnover, the levered portfolio has more of it plus a borrowing cost, so
@@ -1021,10 +1023,12 @@ every trading day. The moments are simple daily returns, the mean scaled by
 **One return falls in neither sub-window and it is the boundary day's.** Rows 11
 to 15 run on 4,647 and 1,130 daily returns against the full span's 5,778, one
 short. A return spans two closes, so the one dated 2022-03-16 runs from the
-falling window's last close to the rising window's first and belongs to neither
-side of the cut. It is the decision day itself, and the largest in its
-neighbourhood at SPY +2.2174 percent against AGG +0.0743 percent, so it is named
-here rather than left for a reader to notice the counts miss by one.
+2022-03-15 close to the 2022-03-16 close. Row 11's window ends with the return
+dated 2022-03-15 and row 13's starts with the one dated 2022-03-17, so this one
+belongs to neither. That return covers the day the Federal Reserve announced
+its first rate rise of 2022. SPY gained 2.2174 percent that day against AGG's
+0.0743 percent. So the return is named here rather than left for a reader to
+notice the counts miss by one.
 `TestTheTwoSubWindows::test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut`
 holds that day's two returns, so the arithmetic above stays checkable.
 
@@ -1034,7 +1038,7 @@ holds that day's two returns, so the arithmetic above stays checkable.
 | --- | --- | --- | --- |
 | 1 | −1 percentage point on the equity leg | reproduced with a gap | Qian's claim is that equalising risk moves the allocation a long way toward bonds, to roughly a quarter equity, and it survives at 21.78 to 78.22. The number misses by a point, and the cause is named and outside the method: the bond proxy. AGG is the aggregate bond exposure his argument describes and it was committed in writing before anything was downloaded, so the proxy explains the gap and was not chosen to close it. Row 4 is why the miss is larger than a point makes it sound. |
 | 2 | +0.2 | reproduced with a gap | His claim is that matching 60/40's risk takes roughly double leverage on the risk-parity portfolio, and 1.9812 survives it. On his printed weights the leverage reads the correlation and nothing else, so this row and row 9 are one measurement stated twice, and the gap is the distance between a correlation near zero and the +0.16 his 1.8 implies. |
-| 3 | none, the source states a claim | did not reproduce | The replication. 60/40 earns the higher Sharpe ratio at matched volatility, by 0.2169, and the window resolves it at a robust t of −2.17. No cause outside the method is available. The vintage explanation that carries Entry 1's rows is about a series nobody holds, and this is a claim about two instruments this repo chose in the open on a span every one of whose days is committed here. What the entry concludes says what the gap is made of. |
+| 3 | none, the source states a claim | did not reproduce | The replication. At the declared 4 percent rate, 60/40 earns the higher Sharpe ratio at matched volatility, by 0.2169, and the window resolves it at a robust t of −2.17. The instruments and the span offer no cause outside the method. The vintage explanation that carries Entry 1's rows is about a series nobody holds, and this is a claim about two instruments this repo chose in the open on a span every one of whose days is committed here. The rate is the one input that stands in for something Qian measured, the Treasury-bill rate he subtracted. The ranking ties at an assumed 1.50 percent and resolves only at rates above 3.80 percent, and What this entry cannot say gives both. What the entry concludes says what the gap is made of. |
 | 4 | none | none, not a replication | Derived from row 1's published pair rather than printed. It is here because it is the quantity the printed weights are a statement about, and because a reader comparing only the weights would call row 1 a near match. |
 | 5 | none | none, not a replication | The book prints no volatilities. The measured ratio of 3.5909 sits outside the 3.26 to 3.44 band row 4 gives, which is the sharper reading of row 1's gap. |
 | 6 | none | none, not a replication | The book prints no correlation. Over the full span the two legs are uncorrelated to three decimals, at −0.0002, which is a coincidence of averaging rather than a stable fact: rows 11 and 13 give −0.0688 and +0.2442. |
@@ -1056,8 +1060,9 @@ Four things, and the first is the one the other three explain.
    percentage point and row 2 by two tenths, which on the five-figure scale
    Entry 3 works at would read as a comfortable reproduction. Row 3 is the
    claim those two were printed to support and 60/40 wins it by 0.2169 of
-   Sharpe, resolved at a robust t of −2.17. That is the reverse of the split
-   Entries 1 and 3 both found, where every number moved and every claim held.
+   Sharpe, resolved at a robust t of −2.17 at the declared 4 percent rate.
+   That is the reverse of the split Entries 1 and 3 both found, where most of
+   the numbers moved and the central claims held.
 2. **The gap is where the return is, not where the risk is.** Row 8 lands on 50
    percent each exactly, so the method did what it says. Row 7 confirms the
    premise it rests on. What fails is the step from a balanced risk split to a
@@ -1065,8 +1070,9 @@ Four things, and the first is the one the other three explain.
    risk to be worth the leverage. Over this span AGG returned 3.09 percent a
    year against the 4 percent rate the specification assumes, so its excess
    return is negative and levering a 78 percent holding of it 1.98 times
-   multiplies that. The rate is a declared choice and the direction it pushes
-   is stated above rather than searched for.
+   multiplies that. The rate is a declared choice. The direction it pushes and
+   the rate at which row 3 ties, 1.50 percent, follow from it in closed form
+   rather than from a search, and What this entry cannot say gives both.
 3. **The out-of-sample window is the worst one, which is the direction that
    matters.** Row 14 is the only ranking whose weights came from outside the
    window they are judged on, and it is the largest loss in the entry.
@@ -1096,10 +1102,23 @@ charges cash at a Treasury-bill series rather than a constant, which is a
 different deliverable, and the design doc's register already carries the same
 cut for Entry 3's Kelly example. FRED's TB3MS is now committed, under
 [issue 187](https://github.com/l3a0/quantitative-trading/issues/187), and
-nothing in this entry reads it.
+the run does not read it.
 The rate is Chan's constant and the report says so on its own last lines. The
-derivative above says which way a lower rate would push, and says nothing about
-whether it would push far enough.
+derivative above says which way a lower rate would push, and it also says how
+far. The difference is linear in the rate, so row 3 ties at an assumed rate of
+1.50 percent, row 12 at 2.45 percent, and row 14 only at −4.43 percent, which
+no positive rate reaches. `test_the_rate_at_which_the_two_sharpe_ratios_tie`
+pins all three. Row 3's robust t is linear in the rate too, and it reaches −2
+at 3.80 percent, so the window resolves the ranking at rates down to 3.80
+percent and at none below, a fifth of a point under the declared rate. At a
+rate of zero risk parity leads with a t of +1.30, which does not resolve
+either. Row 14's t reaches −2 at 3.25 percent in the same way.
+`test_the_two_resolved_rankings_resolve_only_down_to_a_little_below_4_percent`
+pins all of these. Whether the realised bill rate averaged below 1.50 percent
+over the full span decides row 3's sign to first order. The committed series
+answers it: TB3MS averaged 1.744 percent over the full calendar months inside
+the span, above the tie, which
+[tests/test_bill_rates.py](../tests/test_bill_rates.py) pins.
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing
@@ -1170,4 +1189,7 @@ including the rising window's spread from −2.1956 to −1.6422 across the two
 leverages a reader could defend.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/risk-parity-against-60-40.md](../blog/risk-parity-against-60-40.md)
+moves with it, since that essay quotes most of these figures and a few this
+entry does not.

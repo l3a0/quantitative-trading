@@ -8,7 +8,7 @@ durable as whoever is hosting it.
 
 | File | Paper | Author | Date | Read by |
 | --- | --- | --- | --- | --- |
-| [qian-2005-risk-parity-portfolios.pdf](qian-2005-risk-parity-portfolios.pdf) | *Risk Parity Portfolios: Efficient Portfolios Through True Diversification* | Edward Qian | September 2005 | [docs/replication-log.md](../../docs/replication-log.md) Entry 4 |
+| [qian-2005-risk-parity-portfolios.pdf](qian-2005-risk-parity-portfolios.pdf) | *Risk Parity Portfolios: Efficient Portfolios Through True Diversification* | Edward Qian | September 2005 | [docs/replication-log.md](../../docs/replication-log.md) Entry 4 and [blog/risk-parity-against-60-40.md](../../blog/risk-parity-against-60-40.md) |
 
 ## Why the Qian paper is committed rather than linked
 
@@ -49,8 +49,9 @@ on request. The repo owner made that call on 2026-09-18.
 
 ## What it holds
 
-Six pages. The figures below are what Entry 4 reads, quoted at the precision
-the paper prints. Each is stated by the paper rather than computed here. The
+Six pages. The figures below are what Entry 4 and the risk parity post read,
+quoted at the precision the paper prints. The last five rows are the post's
+alone. Each is stated by the paper rather than computed here. The
 one derived number in this file is the volatility ratio two sections down,
 which is a quotient of the two volatilities in this table and is labelled as
 derived where it appears.
@@ -70,6 +71,11 @@ derived where it appears.
 | Leverage to match 60/40's risk | 1.8:1 | page 3 |
 | Sharpe, 60/40 | 0.67 | Table 2 |
 | Sharpe, levered risk parity | 0.87 | Table 2 |
+| Sharpe, stocks | 0.55 | Table 2 |
+| Sharpe, bonds | 0.80 | Table 2 |
+| Bond index's mean excess return | 3.7 percent a year | Table 2 |
+| Levered risk parity against 60/40 at the same risk | ahead by 2 percent a year | page 3, beside Table 4 |
+| When risk parity is mean-variance optimal | when the assets have equal Sharpe ratios and uncorrelated returns | page 3 |
 
 ## Two things it settles that were argued rather than cited
 
@@ -87,7 +93,8 @@ which is why they are worth recording as confirmations rather than as changes.
    [src/chan/risk_parity.py](../../src/chan/risk_parity.py) was derived purely
    from the rounding of 23 and 77, with no knowledge of the paper, and it runs
    from 3.2553 to 3.4444. Dividing the two volatilities the paper prints gives
-   3.2826, which lands inside it. That quotient is derived here rather than
+   3.2826, and their own rounding allows 3.2366 to 3.3297, which overlaps the
+   band without sitting inside it. That quotient is derived here rather than
    printed by the paper, which is why it is not in the table above.
 
 ## What it does not settle

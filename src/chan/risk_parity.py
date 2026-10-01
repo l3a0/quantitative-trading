@@ -121,7 +121,7 @@ So the run assumes a constant annual rate and declares it as a specification.
 Chan's own 4 percent at location 2858 is the rate ``chan.kelly_leverage``
 pins, and taking it keeps one number across two replications rather than
 inventing a second. FRED's TB3MS bill series is committed under issue 187, and
-nothing here reads it.
+the run does not read it. Only the post's figures do, for the bill average.
 
 Under costless financing on excess returns a Sharpe ratio does not move with
 leverage, so the ranking's sign is settled before the portfolio is levered.
@@ -260,6 +260,11 @@ BOOK_VOL_RATIO = BOOK_WEIGHTS[1] / BOOK_WEIGHTS[0]
 #: never read off a two-digit source.
 BOOK_RATIO_BAND = (0.765 / 0.235, 0.775 / 0.225)
 
+#: Half the last printed digit of Qian's weights and of his leverage, so each
+#: printed figure stands for anything within this distance of it.
+BOOK_WEIGHT_ROUNDING = 0.005
+BOOK_LEVERAGE_ROUNDING = 0.05
+
 #: The first increase of the 2022 tightening cycle, which cuts the sub-windows.
 #:
 #: A dated external event rather than anything read from the series under test.
@@ -280,7 +285,7 @@ WINDOWS = (
 #: Chan's constant at location 2858, the rate ``chan.kelly_leverage`` also
 #: reads. The run reads no risk-free series, so this is a declared
 #: specification rather than a rate anyone paid. TB3MS is committed under
-#: issue 187, and nothing in this replication reads it.
+#: issue 187, and the run does not read it. Only the post's figures do.
 RISK_FREE = 0.04
 
 #: Trading days in a year, the annualisation ``chan.kelly_leverage`` set.
@@ -400,7 +405,11 @@ class Ranking:
         It is computed rather than asserted because the rate was declared with
         the windows, so scanning it would spend the sample on a search nothing
         recorded. The derivative says which way a different rate would push
-        without computing a second ranking.
+        without computing a second ranking. Because the difference is linear in
+        the rate, it also says how far: the two Sharpe ratios tie at the rate
+        the ranking was computed at, less ``sharpe_difference / rate_sensitivity``,
+        a closed form that ``tests/test_risk_parity.py`` pins and that chooses
+        nothing.
         """
         return (1.0 - self.leverage) / self.matched_volatility
 
@@ -574,6 +583,135 @@ def correlation_from_leverage(
         return None
     correlation = (bench_const - squared * parity_const) / denominator
     return correlation if -1.0 <= correlation <= 1.0 else None
+
+
+def book_correlation_band() -> tuple[float, float]:
+    """The correlations Qian's 23-77 and 1.8 allow once both roundings vary.
+
+    Two significant figures put the equity weight anywhere in
+    ``[0.225, 0.235)`` and the leverage anywhere in ``[1.75, 1.85)``. The map
+    from leverage to correlation decreases in both, so the band's ends sit at
+    opposite corners of the two intervals.
+    """
+    stock = BOOK_WEIGHTS[0]
+    corners = [
+        correlation_from_leverage(leverage, weights=(weight, 1.0 - weight))
+        for weight in (stock - BOOK_WEIGHT_ROUNDING, stock + BOOK_WEIGHT_ROUNDING)
+        for leverage in (
+            BOOK_LEVERAGE - BOOK_LEVERAGE_ROUNDING,
+            BOOK_LEVERAGE + BOOK_LEVERAGE_ROUNDING,
+        )
+    ]
+    reached = [c for c in corners if c is not None]
+    return min(reached), max(reached)
+
+
+def leg_sharpes(legs: Legs, *, risk_free: float = RISK_FREE) -> tuple[float, float]:
+    """Each leg's Sharpe ratio over the window, stocks then bonds."""
+    return (
+        (legs.stock_mean - risk_free) / legs.stock_vol,
+        (legs.bond_mean - risk_free) / legs.bond_vol,
+    )
+
+
+def bond_sharpe_hurdle(
+    stock_vol: float,
+    bond_vol: float,
+    correlation: float,
+    *,
+    benchmark: tuple[float, float] = BENCHMARK_WEIGHTS,
+) -> float:
+    """The bond-to-stock Sharpe ratio at which risk parity ties the benchmark.
+
+    A leg adds its weight times its volatility times its Sharpe ratio to a
+    portfolio's return above cash. Risk parity makes the two weight-times-
+    volatility products equal, so its Sharpe ratio is
+    ``(S_stock + S_bond) / sqrt(2 * (1 + rho))`` whatever the products are. The
+    benchmark's is ``(w_1 s_1 S_stock + w_2 s_2 S_bond) / s_benchmark``.
+    Setting the two equal with ``S_bond = h * S_stock`` and solving for ``h``
+    gives the hurdle. Leverage leaves both Sharpe ratios alone, so the hurdle
+    holds at matched volatility, and it reads no cash rate, because the rate
+    moves the two legs' Sharpe ratios and not the volatilities.
+
+    Risk parity leads exactly when bonds' ratio to stocks' exceeds the hurdle,
+    provided stocks' Sharpe ratio is positive. The solution needs bonds to
+    count for more in risk parity than in the benchmark, which they do
+    whenever risk parity holds more bonds. Where they do not, no hurdle
+    exists and this raises rather than return a threshold that points the
+    wrong way.
+    """
+    stock, bond = benchmark
+    benchmark_vol = math.sqrt(
+        stock**2 * stock_vol**2
+        + bond**2 * bond_vol**2
+        + 2.0 * correlation * stock * bond * stock_vol * bond_vol
+    )
+    parity_count = 1.0 / math.sqrt(2.0 * (1.0 + correlation))
+    bond_count = bond * bond_vol / benchmark_vol
+    if parity_count <= bond_count:
+        raise ValueError(
+            "bonds count for no more in risk parity than in the benchmark, so no "
+            "bond Sharpe ratio is a hurdle risk parity has to clear"
+        )
+    return (stock * stock_vol / benchmark_vol - parity_count) / (parity_count - bond_count)
+
+
+def hurdle_for_weights(
+    weights: tuple[float, float],
+    stock_vol: float,
+    bond_vol: float,
+    correlation: float,
+    *,
+    benchmark: tuple[float, float] = BENCHMARK_WEIGHTS,
+) -> float:
+    """The bond-to-stock Sharpe ratio at which a portfolio on ``weights`` ties the benchmark.
+
+    :func:`bond_sharpe_hurdle` assumes risk parity's own weights, which make
+    each leg's weight times volatility equal. A portfolio scored on weights
+    carried from another window does not have that property, so this solves
+    the tie for any pair of weights. Each portfolio's Sharpe ratio is
+    ``(w_1 s_1 S_stock + w_2 s_2 S_bond) / s_portfolio``, leverage leaves it
+    alone, and setting the two equal with ``S_bond = h * S_stock`` gives
+    ``h``. On inverse-volatility weights it is :func:`bond_sharpe_hurdle`,
+    which ``tests/test_risk_parity.py`` holds.
+
+    It raises where bonds count for no more in the portfolio than in the
+    benchmark, for the reason :func:`bond_sharpe_hurdle` gives.
+    """
+    stock_w, bond_w = weights
+    stock_b, bond_b = benchmark
+
+    def vol(stock: float, bond: float) -> float:
+        return math.sqrt(
+            stock**2 * stock_vol**2
+            + bond**2 * bond_vol**2
+            + 2.0 * correlation * stock * bond * stock_vol * bond_vol
+        )
+
+    portfolio, bench = vol(stock_w, bond_w), vol(stock_b, bond_b)
+    portfolio_bond, bench_bond = bond_w * bond_vol / portfolio, bond_b * bond_vol / bench
+    if portfolio_bond <= bench_bond:
+        raise ValueError(
+            "bonds count for no more in this portfolio than in the benchmark, so no "
+            "bond Sharpe ratio is a hurdle it has to clear"
+        )
+    return (stock_b * stock_vol / bench - stock_w * stock_vol / portfolio) / (
+        portfolio_bond - bench_bond
+    )
+
+
+def hurdle_rate(legs: Legs) -> float:
+    """The cash rate at which bonds' Sharpe ratio, as a multiple of stocks', meets the hurdle.
+
+    The hurdle reads no rate, and the multiple does, so this is where the
+    comparison flips. It solves ``(m_bond - r) * s_stock = h * (m_stock - r) * s_bond``
+    for ``r``, and it is the same rate at which the two Sharpe ratios tie,
+    reached through the legs rather than through the portfolios.
+    """
+    hurdle = bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
+    return (legs.bond_mean * legs.stock_vol - hurdle * legs.stock_mean * legs.bond_vol) / (
+        legs.stock_vol - hurdle * legs.bond_vol
+    )
 
 
 def _affine(weights: tuple[float, float], ratio: float) -> tuple[float, float]:
@@ -937,8 +1075,8 @@ def report(
     print(f"One return falls in neither sub-window, the one dated {TIGHTENING_START} itself, which")
     print("is why the two sub-windows hold one day fewer between them than the full span.")
     print("A return spans two closes, so that one straddles the cut and belongs to neither")
-    print("side of it. It is the decision day, and it is the largest single day in the")
-    print("neighbourhood, so it is named here rather than left for a reader to subtract.")
+    print("side of it. It covers the day of the first rate rise, on which SPY gained 2.2")
+    print("percent, so it is named here rather than left for a reader to subtract.")
     print()
     for label, _, _ in WINDOWS:
         _decomposition(measured[label][0], against_the_book=True)

@@ -10,7 +10,8 @@ full common span the risk-parity weights are 21.78 to 78.22, about a
 percentage point off his 23-77, and the leverage that matches 60/40's
 volatility is 1.98 against his 1.8. Both are close. The Sharpe ranking is not:
 60/40 beats the levered risk-parity portfolio by 0.2169 on the full span, and
-the robust t on that difference is −2.17, which the window resolves.
+the robust t on that difference is −2.17, which the window resolves at Chan's
+4 percent rate and at no rate below 3.80 percent.
 
 Three kinds of assertion live here and they are not interchangeable.
 
@@ -43,6 +44,7 @@ t came from the pin in ``pyproject.toml`` rather than from either vintage.
 from __future__ import annotations
 
 import contextlib
+import inspect
 import io
 import math
 import re
@@ -73,10 +75,16 @@ from chan.risk_parity import (
     WindowTooShort,
     _decomposition,
     _header,
+    _variance,
     annualised_covariance,
+    bond_sharpe_hurdle,
+    book_correlation_band,
     clip,
     correlation_from_leverage,
     decompose,
+    hurdle_for_weights,
+    hurdle_rate,
+    leg_sharpes,
     leverage_from_correlation,
     main,
     matching_leverage,
@@ -306,10 +314,27 @@ class TestTheTwoLegAlgebra:
         }
         assert min(corners.values()) == pytest.approx(-0.01265, abs=5e-6)
         assert max(corners.values()) == pytest.approx(0.37141, abs=5e-6)
+        assert book_correlation_band() == pytest.approx(
+            (min(corners.values()), max(corners.values())), abs=1e-12
+        )
         # The corners are the extremes, so nothing inside the intervals escapes
         # them. His own printed pair sits well inside.
         assert min(corners.values()) < correlation_from_leverage(BOOK_LEVERAGE)
         assert correlation_from_leverage(BOOK_LEVERAGE) < max(corners.values())
+
+    def test_a_higher_correlation_needs_less_leverage_on_his_weights(self) -> None:
+        """Lesson 3's numbers. From a correlation of 0 to 0.2 on Qian's 23-77,
+        risk parity's variance rises 20% and 60/40's about 8%, so the leverage
+        that matches 60/40 falls from about 1.88 to about 1.78."""
+        ratio = BOOK_WEIGHTS[1] / BOOK_WEIGHTS[0]
+        parity_rise = _variance(BOOK_WEIGHTS, ratio, 0.2) / _variance(BOOK_WEIGHTS, ratio, 0.0)
+        bench_rise = _variance(BENCHMARK_WEIGHTS, ratio, 0.2) / _variance(
+            BENCHMARK_WEIGHTS, ratio, 0.0
+        )
+        assert parity_rise - 1 == pytest.approx(0.20, abs=1e-9)
+        assert bench_rise - 1 == pytest.approx(0.076616, abs=5e-7)
+        assert leverage_from_correlation(0.0) == pytest.approx(1.880845, abs=5e-7)
+        assert leverage_from_correlation(0.2) == pytest.approx(1.781528, abs=5e-7)
 
     @pytest.mark.parametrize("correlation", [-0.6, -0.2, 0.0, 0.3, 0.7])
     def test_the_leverage_map_inverts(self, correlation) -> None:
@@ -478,6 +503,81 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
         for ranking in rankings.values():
             assert (ranking.rate_sensitivity < 0.0) == (ranking.leverage > 1.0)
 
+    def test_the_earlier_period_at_its_own_bill_average(self, measured) -> None:
+        """Bills averaged 1.165% before the 2022 rise, and at that rate risk
+        parity leads by about 0.13 with a t of +1.12, short of the bar. The rate
+        is the TB3MS average ``tests/test_bill_rates.py`` pins, typed here
+        because the run itself reads no bill series and these tests stay off
+        it too. A typed 1.17% gave +1.11, which the post once quoted."""
+        result, returns = measured["falling rates"]
+        weights = (result.parity.stock_weight, result.parity.bond_weight)
+        ranking = rank_at_matched_volatility(
+            "falling rates",
+            returns,
+            weights,
+            weight_source="falling rates",
+            in_sample=True,
+            risk_free=103 / 8840,
+        )
+        assert ranking.sharpe_difference == pytest.approx(0.129894, abs=5e-7)
+        assert ranking.t_newey_west == pytest.approx(1.116680, abs=5e-7)
+
+    def test_the_rate_at_which_the_two_sharpe_ratios_tie(self, measured, rankings) -> None:
+        """1.50 percent on the full span, which the risk parity post quotes.
+
+        The difference is linear in the rate, so the tie sits at the declared
+        rate less the difference divided by the derivative above. That is a
+        closed form rather than a scan, so the declared 4 percent and the
+        verdict at it stay where they are, and the tie says only how far the
+        rate would have to move to reverse the verdict. Recomputing the Sharpe
+        ratios from the returns at that rate lands on zero, which is what says
+        the closed form and the ranking agree. The rising window ties only at a
+        negative rate, so no positive rate reverses it.
+        """
+        expected = {"full span": 0.014977, "falling rates": 0.024509, "rising rates": -0.044329}
+        for label, tie_expected in expected.items():
+            ranking = rankings[label]
+            tie = RISK_FREE - ranking.sharpe_difference / ranking.rate_sensitivity
+            assert tie == pytest.approx(tie_expected, abs=5e-7), label
+            _, returns = measured[label]
+            weights = _weights_used(measured, ranking)
+            assert _sharpe_difference(returns, weights, tie) == pytest.approx(0.0, abs=1e-12), label
+
+    def test_the_two_resolved_rankings_resolve_only_down_to_a_little_below_4_percent(
+        self, measured, rankings
+    ) -> None:
+        """The robust t reaches −2 at 3.80 percent on the full span and 3.25 on
+        the rising window, which the post quotes.
+
+        Moving the rate shifts the daily difference by a constant, ``(1 - leverage)``
+        times the daily rate, and a constant shift leaves the Newey-West standard
+        error alone. So the t is linear in the rate and the crossing is a closed
+        form like the tie above. It only falls as the rate rises, so 60/40's lead
+        resolves at every rate above its crossing and at no rate below it.
+        Recomputing the ranking at each rate checks the closed form. At a rate of
+        zero the full span's t is +1.30 and the rising window's −1.15, so risk
+        parity's lead on the full span never reaches 2 at a non-negative rate.
+        """
+        expected = {"full span": (0.038011, 1.300398), "rising rates": (0.032487, -1.154169)}
+        for label, (crossing_expected, t_at_zero) in expected.items():
+            ranking = rankings[label]
+            _, returns = measured[label]
+            weights = _weights_used(measured, ranking)
+            per_unit_rate = (1.0 - ranking.leverage) * ranking.t_newey_west
+            per_unit_rate /= ranking.mean_difference_annual
+            crossing = RISK_FREE + (-2.0 - ranking.t_newey_west) / per_unit_rate
+            assert crossing == pytest.approx(crossing_expected, abs=5e-7), label
+            for rate, t_expected in ((crossing, -2.0), (0.0, t_at_zero)):
+                moved = rank_at_matched_volatility(
+                    label,
+                    returns,
+                    weights,
+                    weight_source=ranking.weight_source,
+                    in_sample=ranking.in_sample,
+                    risk_free=rate,
+                )
+                assert moved.t_newey_west == pytest.approx(t_expected, abs=5e-6), (label, rate)
+
 
 class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:
     """The one thing separating a ranking from a fitted allocation's ranking."""
@@ -509,8 +609,12 @@ class TestTheWeightsDoNotSeeTheWindowTheyAreJudgedOn:
         )
         # Refitting moves the ranking, which is why it is not done. It moves it
         # in risk parity's favour here, which is the direction that would have
-        # flattered the claim under test.
+        # flattered the claim under test. By how much is pinned too, because the
+        # risk parity post quotes it: the gap narrows from 0.50 to 0.38 and 60/40
+        # still wins, so most of the later period's loss is the period itself.
         assert refitted.sharpe_difference > rising.sharpe_difference
+        assert refitted.sharpe_difference == pytest.approx(-0.378086, abs=5e-7)
+        assert refitted.sharpe_parity == pytest.approx(0.128975, abs=5e-7)
 
     def test_the_other_two_windows_say_in_sample_because_nothing_precedes_them(
         self, rankings
@@ -699,6 +803,10 @@ class TestTheFullSpan:
     def test_the_ranking_goes_against_the_book_and_the_window_resolves_it(self, rankings) -> None:
         """60/40 beats levered risk parity by 0.2169 of Sharpe, robust t −2.17.
 
+        Both at the declared 4 percent rate.
+        ``test_the_rate_at_which_the_two_sharpe_ratios_tie`` and the crossing test
+        beside it say how far the rate would have to move to undo each.
+
         Pinned as the measured difference and its robust t rather than as the
         comparison's result, because a boolean assertion survives any mutation
         that leaves the sign alone.
@@ -741,8 +849,8 @@ class TestTheTwoSubWindows:
         spans two closes, so that one runs from the falling window's last close
         to the rising window's first and belongs to neither side. The windows
         therefore cover the span rather than partitioning it, and the word
-        matters because the lost day is the decision day and the largest in its
-        neighbourhood.
+        matters because the lost day is the day of the first rate rise, on which
+        SPY gained 2.2 percent.
         """
         full = measured["full span"][0].legs.days
         falling = measured["falling rates"][0].legs.days
@@ -1427,3 +1535,154 @@ class TestTheInversionTheReportIsBuiltToShow:
         with contextlib.redirect_stdout(buffer):
             _decomposition(self._result(0.2178), against_the_book=False)
         assert said not in buffer.getvalue()
+
+
+# ============================================================
+# The hurdle bonds' Sharpe ratio has to clear, Lesson 2's rule
+# ============================================================
+
+
+def _hurdle(legs: Legs) -> float:
+    return bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
+
+
+class TestTheBondSharpeHurdle:
+    """Risk parity leads exactly when bonds' Sharpe ratio, as a multiple of
+    stocks', clears a hurdle set by the two volatilities and the correlation.
+    The post's Lesson 2 states the rule and its figure draws it."""
+
+    def test_the_hurdle_in_each_window(self, measured) -> None:
+        """About 0.53 over the whole period, and about 0.7 after 2022 on
+        weights computed inside that period, which Lesson 6 quotes."""
+        hurdles = [_hurdle(measured[label][0].legs) for label, _, _ in WINDOWS]
+        assert hurdles == [
+            pytest.approx(0.526178, abs=5e-7),
+            pytest.approx(0.471020, abs=5e-7),
+            pytest.approx(0.700772, abs=5e-7),
+        ]
+
+    def test_the_multipliers_lesson_2_writes_the_hurdle_from(self, measured) -> None:
+        """Each Sharpe ratio is a sum of the two legs' Sharpe ratios, each
+        multiplied by its weight times its volatility over the portfolio's
+        volatility. Lesson 2 prints the multipliers as 0.71 and 0.71 for risk
+        parity and 0.98 and 0.18 for 60/40, then subtracts them unrounded into
+        ``0.525 S₂ > 0.276 S₁``. Their ratio is the hurdle pinned above."""
+        result, _ = measured["full span"]
+        legs = result.legs
+
+        def multipliers(weights: tuple[float, float]) -> tuple[float, float]:
+            stock = weights[0] * legs.stock_vol
+            bond = weights[1] * legs.bond_vol
+            vol = math.sqrt(stock**2 + bond**2 + 2.0 * legs.correlation * stock * bond)
+            return stock / vol, bond / vol
+
+        parity = multipliers((result.parity.stock_weight, result.parity.bond_weight))
+        benchmark = multipliers(BENCHMARK_WEIGHTS)
+        assert parity == (pytest.approx(0.707183, abs=5e-7), pytest.approx(0.707183, abs=5e-7))
+        assert benchmark == (pytest.approx(0.983237, abs=5e-7), pytest.approx(0.182541, abs=5e-7))
+        bond_side = parity[1] - benchmark[1]
+        stock_side = benchmark[0] - parity[0]
+        assert (bond_side, stock_side) == (
+            pytest.approx(0.524642, abs=5e-7),
+            pytest.approx(0.276055, abs=5e-7),
+        )
+        assert stock_side / bond_side == pytest.approx(_hurdle(legs), abs=1e-12)
+
+    def test_bonds_ratio_to_stocks_at_the_two_rates_the_post_uses(self, measured) -> None:
+        """At 4% AGG's Sharpe ratio is about −0.39 times SPY's, and at the
+        1.74% bill average about 0.46 times, both short of 0.53. The 1.744%
+        is the TB3MS average ``tests/test_bill_rates.py`` pins, typed here
+        because the run itself reads no bill series and these tests stay off it too."""
+        legs = measured["full span"][0].legs
+        ratios = []
+        for rate in (RISK_FREE, 0.01744):
+            stock, bond = leg_sharpes(legs, risk_free=rate)
+            ratios.append(bond / stock)
+        assert ratios == [
+            pytest.approx(-0.390912, abs=5e-7),
+            pytest.approx(0.455085, abs=5e-7),
+        ]
+
+    def test_the_hurdle_decides_the_ranking_in_every_window_at_every_rate(self, measured) -> None:
+        """Clearing the hurdle and leading on Sharpe ratio are the same event,
+        on each window's own weights, at rates on both sides of every tie."""
+        for label, _, _ in WINDOWS:
+            result, returns = measured[label]
+            weights = (result.parity.stock_weight, result.parity.bond_weight)
+            hurdle = _hurdle(result.legs)
+            for rate in (0.0, 0.01, 0.0174, 0.03, RISK_FREE, 0.06):
+                stock, bond = leg_sharpes(result.legs, risk_free=rate)
+                ranking = rank_at_matched_volatility(
+                    label,
+                    returns,
+                    weights,
+                    weight_source=label,
+                    in_sample=True,
+                    risk_free=rate,
+                )
+                assert stock > 0, (label, rate)
+                assert (bond / stock > hurdle) == (ranking.sharpe_difference > 0), (label, rate)
+
+    def test_bonds_sit_on_the_hurdle_at_the_rate_where_the_sharpe_ratios_tie(
+        self, measured, rankings
+    ) -> None:
+        """The same tie as ``test_the_rate_at_which_the_two_sharpe_ratios_tie``,
+        reached through the legs rather than through the portfolios."""
+        result, _ = measured["full span"]
+        ranking = rankings["full span"]
+        per_unit_rate = (1.0 - ranking.leverage) / ranking.matched_volatility
+        tie = RISK_FREE - ranking.sharpe_difference / per_unit_rate
+        stock, bond = leg_sharpes(result.legs, risk_free=tie)
+        assert bond / stock == pytest.approx(_hurdle(result.legs), abs=1e-9)
+        assert hurdle_rate(result.legs) == pytest.approx(tie, abs=1e-12)
+        assert hurdle_rate(result.legs) == pytest.approx(0.014977, abs=5e-7)
+
+    def test_the_hurdle_reads_no_cash_rate(self) -> None:
+        params = inspect.signature(bond_sharpe_hurdle).parameters
+        assert "risk_free" not in params
+
+    def test_no_hurdle_exists_where_risk_parity_holds_no_more_bonds(self) -> None:
+        """With bonds as volatile as stocks, risk parity is 50/50. Against a
+        20/80 benchmark, its 50% in bonds is less than the benchmark's 80%,
+        so bonds count for less in risk parity and no hurdle exists."""
+        with pytest.raises(ValueError, match="no bond Sharpe ratio"):
+            bond_sharpe_hurdle(0.15, 0.15, 0.0, benchmark=(0.2, 0.8))
+
+
+class TestTheHurdleForAnyWeights:
+    """Lesson 6 needs the hurdle for the weights the later period was scored on,
+    which are the earlier period's and not risk parity's own."""
+
+    def test_on_risk_paritys_own_weights_it_is_the_risk_parity_hurdle(self, measured) -> None:
+        for label, _, _ in WINDOWS:
+            result, _ = measured[label]
+            legs = result.legs
+            weights = (result.parity.stock_weight, result.parity.bond_weight)
+            assert hurdle_for_weights(
+                weights, legs.stock_vol, legs.bond_vol, legs.correlation
+            ) == pytest.approx(_hurdle(legs), abs=1e-12)
+
+    def test_the_carried_weights_face_a_higher_hurdle_after_2022(self, measured) -> None:
+        """About 0.78 at the later period's +0.24, against 0.70 on weights fitted
+        inside it. It crosses zero only near −0.82 and never reaches AGG's
+        −0.69 at any correlation, bottoming out near −0.37 at −1."""
+        early = measured["falling rates"][0].parity
+        legs = measured["rising rates"][0].legs
+        carried = (early.stock_weight, early.bond_weight)
+
+        def hurdle(rho: float) -> float:
+            return hurdle_for_weights(carried, legs.stock_vol, legs.bond_vol, rho)
+
+        assert hurdle(legs.correlation) == pytest.approx(0.780545, abs=5e-7)
+        grid = [-1.0 + i / 1000 for i in range(1501)]
+        values = [hurdle(rho) for rho in grid]
+        assert min(values) == pytest.approx(hurdle(-1.0), abs=1e-12)
+        assert hurdle(-1.0) == pytest.approx(-0.366, abs=5e-4)
+        crossing = next(rho for rho, h in zip(grid, values, strict=True) if h >= 0)
+        assert crossing == pytest.approx(-0.823, abs=1e-3)
+        stock, bond = leg_sharpes(legs)
+        assert min(values) > bond / stock
+
+    def test_no_hurdle_exists_where_bonds_count_for_less(self) -> None:
+        with pytest.raises(ValueError, match="no bond Sharpe ratio"):
+            hurdle_for_weights((0.7, 0.3), 0.15, 0.05, 0.0)
