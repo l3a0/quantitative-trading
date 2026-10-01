@@ -1,4 +1,4 @@
-"""Three figures for the risk parity post, drawn from the committed SPY and AGG vintages.
+"""Four figures for the risk parity post, drawn from the committed SPY and AGG vintages.
 
 1. :func:`make_risk_split_figure` draws Qian's premise, that 60/40 splits
    capital 60 to 40 and risk nowhere near it, on the full common span. It has
@@ -20,11 +20,17 @@
    :func:`chan.risk_parity.bond_sharpe_hurdle` computes from the two
    volatilities and the correlation. It draws the same three rows as the
    second figure, each with its hurdle and where bonds landed.
+4. :func:`make_decode_figure` draws Lesson 3. Qian's 23-77 stands for a
+   volatility ratio and his 1.8 for a correlation. One panel sets the ratios
+   his rounded weights allow beside the ratio from his paper and SPY and
+   AGG's over the whole period and on each side of 2022. The other draws the
+   leverage that matches 60/40 against the correlation, with the band of
+   correlations his rounding allows.
 
 Every number this run measured comes from :mod:`chan.risk_parity`, so a figure
 can only be wrong by drawing the wrong thing, which
 ``tests/test_risk_parity_figures.py`` checks. Qian's numbers are the ones his
-paper prints and are drawn as printed. All three read the committed vintages,
+paper prints and are drawn as printed. All four read the committed vintages,
 so they redraw anywhere the data is::
 
     uv run python -m chan.risk_parity_figures
@@ -48,6 +54,7 @@ from chan.risk_parity import (
     BENCHMARK_WEIGHTS,
     BOND,
     BOOK_LEVERAGE,
+    BOOK_RATIO_BAND,
     BOOK_WEIGHTS,
     RISK_FREE,
     STOCK,
@@ -55,8 +62,11 @@ from chan.risk_parity import (
     Ranking,
     WindowResult,
     bond_sharpe_hurdle,
+    book_correlation_band,
+    correlation_from_leverage,
     hurdle_rate,
     leg_sharpes,
+    leverage_from_correlation,
     measure_window,
     rank_at_matched_volatility,
 )
@@ -65,6 +75,7 @@ from chan.series import aligned_closes
 SPLIT_FIGURE = "risk_parity_capital_and_risk.png"
 CLAIM_FIGURE = "risk_parity_against_qian.png"
 HURDLE_FIGURE = "risk_parity_bond_hurdle.png"
+DECODE_FIGURE = "risk_parity_ratio_and_correlation.png"
 
 #: Qian's Sharpe ratios for 60/40 and for levered risk parity, Table 2 of
 #: ``research/papers/qian-2005-risk-parity-portfolios.pdf``. Monthly returns on
@@ -604,6 +615,218 @@ def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = No
     return _save(fig, out, HURDLE_FIGURE)
 
 
+@dataclass(frozen=True)
+class RatioMark:
+    """One row of the ratio panel: a source and the volatility ratio it gives."""
+
+    label: str
+    ratio: float
+    #: Whether the ratio divides a source's rounded volatilities.
+    approximate: bool = False
+
+    @property
+    def text(self) -> str:
+        return f"about {self.ratio:.2f}" if self.approximate else f"{self.ratio:.2f}"
+
+
+@dataclass(frozen=True)
+class LeveragePoint:
+    """A point on a leverage curve: whose weights, the correlation and the leverage."""
+
+    label: str
+    stock_weight: float
+    correlation: float
+    leverage: float
+
+
+@dataclass(frozen=True)
+class Decoding:
+    """What the decode figure draws, so a test can read it without the axes."""
+
+    ratio_band: tuple[float, float]
+    ratios: tuple[RatioMark, ...]
+    qian: LeveragePoint
+    run: LeveragePoint
+    qian_printed_correlation: float
+    correlation_band: tuple[float, float]
+    start: str
+    end: str
+
+
+def decoding(result: WindowResult | None = None) -> Decoding:
+    """Qian's two printed figures read as the market properties they encode."""
+    result = result if result is not None else full_span()
+    joined = aligned_closes(STOCK, BOND)
+    windows = {
+        label: measure_window(label, joined, start, end)[0].legs for label, start, end in WINDOWS
+    }
+    implied = correlation_from_leverage(BOOK_LEVERAGE)
+    if implied is None:
+        raise ValueError("Qian's 1.8 solves to no correlation on his weights")
+    legs = result.legs
+    return Decoding(
+        ratio_band=BOOK_RATIO_BAND,
+        ratios=(
+            RatioMark("Qian, 1983 to 2004", QIAN_STOCK_VOL / QIAN_BOND_VOL, approximate=True),
+            RatioMark(f"{STOCK} and {BOND}, 2003 to 2026", legs.vol_ratio),
+            RatioMark(f"{STOCK} and {BOND}, before 2022", windows["falling rates"].vol_ratio),
+            RatioMark(f"{STOCK} and {BOND}, after 2022", windows["rising rates"].vol_ratio),
+        ),
+        qian=LeveragePoint("Qian's 23-77", BOOK_WEIGHTS[0], implied, BOOK_LEVERAGE),
+        run=LeveragePoint(
+            f"{STOCK} and {BOND}'s {_share(result.parity.stock_weight)}",
+            result.parity.stock_weight,
+            legs.correlation,
+            full_span_ranking(RISK_FREE).leverage,
+        ),
+        qian_printed_correlation=QIAN_CORRELATION,
+        correlation_band=book_correlation_band(),
+        start=legs.start,
+        end=legs.end,
+    )
+
+
+#: The correlation range the leverage panel draws.
+DECODE_CORRELATIONS = (-0.4, 0.6)
+
+
+@_plain_text
+def make_decode_figure(out: Path | None = None, result: WindowResult | None = None) -> Figure:
+    """Qian's weights as a volatility ratio and his leverage as a correlation."""
+    drawn = decoding(result)
+
+    fig = Figure(figsize=(10, 6.2), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    grid = fig.add_gridspec(1, 2, width_ratios=(1, 1.1), wspace=0.28)
+    ratio_ax = fig.add_subplot(grid[0, 0])
+    curve_ax = fig.add_subplot(grid[0, 1])
+
+    _style(ratio_ax)
+    ratio_ax.grid(axis="y", visible=False)
+    ratio_ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+    low, high = drawn.ratio_band
+    ratio_ax.axvspan(low, high, color=GOOD, alpha=0.16, lw=0)
+    ratio_ax.annotate(
+        "what 23-77 allows",
+        ((low + high) / 2, 1.0),
+        xycoords=("data", "axes fraction"),
+        xytext=(0, -3),
+        textcoords="offset points",
+        ha="center",
+        va="top",
+        color=MUTED,
+        fontsize=9,
+    )
+    rows = [float(len(drawn.ratios) - 1 - i) for i in range(len(drawn.ratios))]
+    for y, mark in zip(rows, drawn.ratios, strict=True):
+        ratio_ax.plot([mark.ratio], [y], "o", ms=9, color=ACCENT, zorder=3)
+        _side_label(ratio_ax, mark.ratio, y, mark.text, right=True)
+    ratio_ax.set_yticks(rows, [mark.label for mark in drawn.ratios])
+    ratio_ax.tick_params(axis="y", colors=INK, labelsize=10, length=0)
+    ratio_ax.set_ylim(-0.6, len(drawn.ratios) - 0.2)
+    ratio_ax.set_xlim(2.5, 4.25)
+    ratio_ax.set_xticks([2.5, 3.0, 3.5, 4.0])
+    ratio_ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: f"{x:g}×"))
+    ratio_ax.set_title(
+        "Weights: stocks' volatility over bonds'",
+        loc="left",
+        color=INK,
+        fontsize=10.5,
+        fontweight="bold",
+    )
+
+    _style(curve_ax)
+    curve_ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+    band_low, band_high = drawn.correlation_band
+    curve_ax.axvspan(band_low, band_high, color=GOOD, alpha=0.16, lw=0)
+    curve_ax.annotate(
+        "what 23-77 and 1.8 allow",
+        ((band_low + band_high) / 2, 1.0),
+        xycoords=("data", "axes fraction"),
+        xytext=(0, -3),
+        textcoords="offset points",
+        ha="center",
+        va="top",
+        color=MUTED,
+        fontsize=9,
+    )
+    left, right = DECODE_CORRELATIONS
+    grid_points = [left + (right - left) * i / 200 for i in range(201)]
+    for point, colour, style, value, offset in (
+        (drawn.qian, INK, "-", f"{BOOK_LEVERAGE:g} at {_signed(drawn.qian.correlation)}", -1),
+        (
+            drawn.run,
+            MUTED,
+            "--",
+            f"{drawn.run.leverage:.2f} at {_signed(drawn.run.correlation, 4)}",
+            1,
+        ),
+    ):
+        weights = (point.stock_weight, 1.0 - point.stock_weight)
+        curve = [leverage_from_correlation(c, weights=weights) for c in grid_points]
+        curve_ax.plot(
+            grid_points,
+            curve,
+            color=colour,
+            ls=style,
+            lw=1.6,
+            zorder=2,
+            label=f"{point.label} weights",
+        )
+        curve_ax.plot([point.correlation], [point.leverage], "o", ms=9, color=ACCENT, zorder=4)
+        curve_ax.annotate(
+            value,
+            (point.correlation, point.leverage),
+            xytext=(9 * offset, 6 * offset),
+            textcoords="offset points",
+            ha="left" if offset > 0 else "right",
+            va="bottom" if offset > 0 else "top",
+            color=INK,
+            fontsize=10,
+        )
+    curve_ax.axvline(drawn.qian_printed_correlation, color=MUTED, lw=1, ls=":", zorder=1)
+    curve_ax.annotate(
+        f"his paper prints {drawn.qian_printed_correlation:g}",
+        (drawn.qian_printed_correlation, 0.85),
+        xycoords=("data", "axes fraction"),
+        xytext=(5, 0),
+        textcoords="offset points",
+        ha="left",
+        va="center",
+        color=MUTED,
+        fontsize=9,
+    )
+    curve_ax.legend(loc="lower left", frameon=False, fontsize=9.5, labelcolor=INK)
+    curve_ax.set_xlim(left, right)
+    curve_ax.set_xticks([-0.4, -0.2, 0.0, 0.2, 0.4, 0.6])
+    curve_ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: _signed(x, 1)))
+    curve_ax.set_ylim(1.5, 2.4)
+    curve_ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _pos: f"{x:.1f}×"))
+    curve_ax.set_xlabel("stock-bond correlation", color=INK, fontsize=10)
+    curve_ax.set_title(
+        "Leverage to match 60/40, by correlation",
+        loc="left",
+        color=INK,
+        fontsize=10.5,
+        fontweight="bold",
+    )
+    _title(
+        fig,
+        "Qian's weights stand for a volatility ratio, and his leverage for a correlation",
+        "Risk parity sets each weight times its volatility equal, so 23-77 says stocks were "
+        "77/23 times as volatile as bonds.\nWeights that round to 23 and 77 allow "
+        f"{low:.2f} to {high:.2f}. Qian (2005) prints volatilities of {QIAN_STOCK_VOL:.1%} "
+        f"and {QIAN_BOND_VOL:.1%}.\n"
+        "Given the weights, the leverage that matches 60/40 depends only on the correlation. "
+        "Letting the weights and the\nleverage vary within their rounding allows correlations "
+        f"from {_signed(band_low, 2)} to {_signed(band_high, 2)}. "
+        f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, 2026 downloads.",
+    )
+    fig.subplots_adjust(left=0.2, right=0.98, top=0.86, bottom=0.27)
+    fig.decoding = drawn
+    return _save(fig, out, DECODE_FIGURE)
+
+
 def main() -> None:
     make_risk_split_figure()
     print(f"wrote {FIGURES_DIR / SPLIT_FIGURE}")
@@ -611,6 +834,8 @@ def main() -> None:
     print(f"wrote {FIGURES_DIR / CLAIM_FIGURE}")
     make_hurdle_figure()
     print(f"wrote {FIGURES_DIR / HURDLE_FIGURE}")
+    make_decode_figure()
+    print(f"wrote {FIGURES_DIR / DECODE_FIGURE}")
 
 
 if __name__ == "__main__":

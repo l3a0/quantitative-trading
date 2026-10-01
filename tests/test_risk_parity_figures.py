@@ -1,4 +1,4 @@
-"""The pins for the risk parity post's three figures.
+"""The pins for the risk parity post's four figures.
 
 ``tests/test_risk_parity.py`` holds what the risk parity run computes. This
 file holds that the figures draw those numbers, so a generator that stacked the
@@ -19,15 +19,21 @@ from matplotlib.colors import to_rgba
 from chan.paths import FIGURES_DIR
 from chan.risk_parity import (
     BOOK_LEVERAGE,
+    BOOK_RATIO_BAND,
     BOOK_WEIGHTS,
     RISK_FREE,
     bond_sharpe_hurdle,
+    book_correlation_band,
+    correlation_from_leverage,
     leg_sharpes,
+    leverage_from_correlation,
 )
 from chan.risk_parity_figures import (
     ACCENT,
     BILL_AVERAGE,
     CLAIM_FIGURE,
+    DECODE_CORRELATIONS,
+    DECODE_FIGURE,
     GOOD,
     HURDLE_FIGURE,
     HURDLE_XLIM,
@@ -44,10 +50,12 @@ from chan.risk_parity_figures import (
     QIAN_STOCK_VOL,
     SPLIT_FIGURE,
     SURFACE,
+    decoding,
     full_span,
     full_span_ranking,
     hurdle_rows,
     make_claim_figure,
+    make_decode_figure,
     make_hurdle_figure,
     make_risk_split_figure,
     split_bars,
@@ -798,7 +806,7 @@ def test_the_committed_hurdle_figure_exists() -> None:
     assert (FIGURES_DIR / HURDLE_FIGURE).is_file()
 
 
-def test_the_command_writes_all_three_and_says_where(
+def test_the_command_writes_all_four_and_says_where(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """``main`` is the redraw command README names, so it has to write every
@@ -811,6 +819,230 @@ def test_the_command_writes_all_three_and_says_where(
     monkeypatch.setattr(shared, "FIGURES_DIR", tmp_path)
     figures.main()
     out = capsys.readouterr().out
-    for name in (SPLIT_FIGURE, CLAIM_FIGURE, HURDLE_FIGURE):
+    for name in (SPLIT_FIGURE, CLAIM_FIGURE, HURDLE_FIGURE, DECODE_FIGURE):
         assert f"wrote {tmp_path / name}" in out
         assert (tmp_path / name).is_file()
+
+
+# The decode figure, which draws Lesson 3.
+
+
+@pytest.fixture(scope="module")
+def decode_figure(tmp_path_factory: pytest.TempPathFactory, result):
+    out = tmp_path_factory.mktemp("risk_parity_decode") / DECODE_FIGURE
+    fig = make_decode_figure(out=out, result=result)
+    fig.written_to = out
+    return fig
+
+
+class TestWhatTheDecodeFigureDraws:
+    def test_the_ratio_band_and_the_four_ratios(self, decode_figure) -> None:
+        """Weights rounding to 23-77 allow 3.26 to 3.44. Qian's paper gives
+        about 3.28, inside it, and SPY and AGG give 3.59 over the whole period,
+        3.87 before 2022 and 2.76 after, all outside it."""
+        drawn = decode_figure.decoding
+        assert drawn.ratio_band == BOOK_RATIO_BAND
+        assert [(m.label, m.approximate) for m in drawn.ratios] == [
+            ("Qian, 1983 to 2004", True),
+            ("SPY and AGG, 2003 to 2026", False),
+            ("SPY and AGG, before 2022", False),
+            ("SPY and AGG, after 2022", False),
+        ]
+        assert [m.ratio for m in drawn.ratios] == [
+            pytest.approx(0.151 / 0.046, abs=1e-12),
+            pytest.approx(3.590935, abs=5e-7),
+            pytest.approx(3.869974, abs=5e-7),
+            pytest.approx(2.755525, abs=5e-7),
+        ]
+        low, high = drawn.ratio_band
+        assert [low <= m.ratio <= high for m in drawn.ratios] == [True, False, False, False]
+        # The two sides of 2022 sit on opposite sides of the band, which Lesson 6 takes up.
+        assert drawn.ratios[2].ratio > high and drawn.ratios[3].ratio < low
+
+    def test_the_ratios_are_the_runs(self, decode_figure, result) -> None:
+        assert decode_figure.decoding.ratios[1].ratio == result.legs.vol_ratio
+
+    def test_the_two_leverage_points(self, decode_figure) -> None:
+        """Qian's 1.8 reads as a correlation of 0.16 on his weights, and SPY and
+        AGG sit at 1.98 and −0.0002 on theirs."""
+        drawn = decode_figure.decoding
+        assert (drawn.qian.stock_weight, drawn.qian.leverage) == (BOOK_WEIGHTS[0], BOOK_LEVERAGE)
+        assert drawn.qian.correlation == correlation_from_leverage(BOOK_LEVERAGE)
+        assert drawn.qian.correlation == pytest.approx(0.157879, abs=5e-7)
+        assert drawn.run.stock_weight == pytest.approx(0.217821, abs=5e-7)
+        assert drawn.run.correlation == pytest.approx(-0.000215, abs=5e-7)
+        assert drawn.run.leverage == pytest.approx(1.981188, abs=5e-7)
+        assert drawn.qian_printed_correlation == 0.2
+
+    def test_each_point_sits_on_its_own_curve(self, decode_figure) -> None:
+        """The leverage that matches 60/40 on SPY and AGG's own weights, read
+        off the map at their measured correlation, is the leverage the run
+        measured, so the map and the measurement agree."""
+        drawn = decode_figure.decoding
+        for point in (drawn.qian, drawn.run):
+            weights = (point.stock_weight, 1.0 - point.stock_weight)
+            assert leverage_from_correlation(point.correlation, weights=weights) == pytest.approx(
+                point.leverage, abs=1e-9
+            )
+
+    def test_the_correlation_band(self, decode_figure) -> None:
+        band = decode_figure.decoding.correlation_band
+        assert band == book_correlation_band()
+        assert band == pytest.approx((-0.012650, 0.371407), abs=5e-6)
+        assert band[0] < decode_figure.decoding.qian.correlation < band[1]
+        assert band[0] < decode_figure.decoding.qian_printed_correlation < band[1]
+
+
+class TestTheRatioPanel:
+    def test_each_dot_sits_at_its_ratio_on_its_row(self, decode_figure) -> None:
+        ax = decode_figure.axes[0]
+        rows = _row_of(ax)
+        dots = _dots(ax)
+        marks = decode_figure.decoding.ratios
+        assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in dots] == [
+            pytest.approx((m.ratio, rows[m.label]), abs=1e-12) for m in marks
+        ]
+        ys = [rows[m.label] for m in marks]
+        assert ys == sorted(ys, reverse=True)
+        assert all(_filled(d) and _rgb(d.get_color()) == _rgb(ACCENT) for d in dots)
+
+    def test_each_dot_carries_its_value_beside_it(self, decode_figure) -> None:
+        ax = decode_figure.axes[0]
+        values = [t for t in ax.texts if re.fullmatch(r"(about )?\d\.\d\d", t.get_text())]
+        assert [t.get_text() for t in values] == ["about 3.28", "3.59", "3.87", "2.76"]
+        for mark, label in zip(decode_figure.decoding.ratios, values, strict=True):
+            assert label.xy[0] == mark.ratio
+            assert label.get_ha() == "left" and label.xyann[0] > 0
+
+    def test_the_band_is_the_rounding_band(self, decode_figure) -> None:
+        ax = decode_figure.axes[0]
+        (band,) = ax.patches
+        low, high = BOOK_RATIO_BAND
+        assert (band.get_x(), band.get_x() + band.get_width()) == pytest.approx(
+            (low, high), abs=1e-12
+        )
+        assert _rgb(band.get_facecolor()) == _rgb(GOOD)
+        assert "what 23-77 allows" in _plain_texts(ax)
+
+    def test_the_axis(self, decode_figure) -> None:
+        ax = decode_figure.axes[0]
+        assert ax.get_xlim() == (2.5, 4.25)
+        decode_figure.canvas.draw()
+        assert [t.get_text() for t in ax.get_xticklabels()] == ["2.5×", "3×", "3.5×", "4×"]
+
+
+class TestTheLeveragePanel:
+    def test_each_curve_is_the_map_on_its_weights(self, decode_figure) -> None:
+        ax = decode_figure.axes[1]
+        drawn = decode_figure.decoding
+        curves = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        assert len(curves) == 2
+        for curve, point, style in zip(curves, (drawn.qian, drawn.run), ("-", "--"), strict=True):
+            xs, ys = curve.get_xdata(), curve.get_ydata()
+            assert (xs[0], xs[-1]) == DECODE_CORRELATIONS
+            weights = (point.stock_weight, 1.0 - point.stock_weight)
+            assert list(ys) == pytest.approx(
+                [leverage_from_correlation(x, weights=weights) for x in xs], abs=1e-12
+            )
+            assert curve.get_linestyle() == style
+        assert _rgb(curves[0].get_color()) == _rgb(INK)
+
+    def test_each_point_is_drawn_and_labelled(self, decode_figure) -> None:
+        ax = decode_figure.axes[1]
+        drawn = decode_figure.decoding
+        dots = _dots(ax)
+        assert [(d.get_xdata()[0], d.get_ydata()[0]) for d in dots] == [
+            pytest.approx((p.correlation, p.leverage), abs=1e-12) for p in (drawn.qian, drawn.run)
+        ]
+        labels = [t for t in ax.texts if " at " in t.get_text()]
+        assert [t.get_text() for t in labels] == ["1.8 at 0.16", "1.98 at −0.0002"]
+        for dot, label in zip(dots, labels, strict=True):
+            assert label.xy == pytest.approx((dot.get_xdata()[0], dot.get_ydata()[0]))
+            assert label.xyann[0] != 0
+
+    def test_the_band_and_the_printed_correlation(self, decode_figure) -> None:
+        ax = decode_figure.axes[1]
+        (band,) = ax.patches
+        low, high = decode_figure.decoding.correlation_band
+        assert (band.get_x(), band.get_x() + band.get_width()) == pytest.approx(
+            (low, high), abs=1e-12
+        )
+        dotted = [line for line in ax.lines if line.get_linestyle() == ":"]
+        assert len(dotted) == 1 and list(dotted[0].get_xdata()) == [0.2, 0.2]
+        texts = _plain_texts(ax)
+        assert "what 23-77 and 1.8 allow" in texts
+        assert "his paper prints 0.2" in texts
+
+    def test_the_legend_names_both_curves(self, decode_figure) -> None:
+        legend = decode_figure.axes[1].get_legend()
+        assert [t.get_text() for t in legend.get_texts()] == [
+            "Qian's 23-77 weights",
+            "SPY and AGG's 21.8% weights",
+        ]
+        solid, dashed = legend.get_lines()
+        assert solid.get_linestyle() == "-" and dashed.get_linestyle() == "--"
+
+    def test_the_axes(self, decode_figure) -> None:
+        ax = decode_figure.axes[1]
+        assert ax.get_xlim() == DECODE_CORRELATIONS
+        assert ax.get_ylim() == (1.5, 2.4)
+        assert ax.get_xlabel() == "stock-bond correlation"
+
+
+class TestTheDecodeFiguresText:
+    def test_the_titles(self, decode_figure) -> None:
+        assert decode_figure._suptitle.get_text() == (
+            "Qian's weights stand for a volatility ratio, and his leverage for a correlation"
+        )
+        assert [ax.get_title(loc="left") for ax in decode_figure.axes] == [
+            "Weights: stocks' volatility over bonds'",
+            "Leverage to match 60/40, by correlation",
+        ]
+
+    def test_the_note(self, decode_figure) -> None:
+        assert decode_figure.texts[-1].get_text().split("\n") == [
+            "Risk parity sets each weight times its volatility equal, so 23-77 says stocks were "
+            "77/23 times as volatile as bonds.",
+            "Weights that round to 23 and 77 allow 3.26 to 3.44. Qian (2005) prints "
+            "volatilities of 15.1% and 4.6%.",
+            "Given the weights, the leverage that matches 60/40 depends only on the correlation. "
+            "Letting the weights and the",
+            "leverage vary within their rounding allows correlations from −0.01 to 0.37. SPY and "
+            "AGG: 2003-09-30 to 2026-09-17, 2026 downloads.",
+        ]
+
+    def test_text_fits_and_nothing_overlaps(self, decode_figure) -> None:
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(decode_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        pieces = [decode_figure._suptitle, decode_figure.texts[-1]]
+        for ax in decode_figure.axes:
+            pieces += [ax.title, ax.xaxis.label]
+            pieces += [t for t in ax.texts if t.get_text()]
+            pieces += [t for t in [*ax.get_xticklabels(), *ax.get_yticklabels()] if t.get_text()]
+        boxes = [(p.get_text(), p.get_window_extent(renderer)) for p in pieces]
+        boxes.append(("legend", decode_figure.axes[1].get_legend().get_window_extent(renderer)))
+        assert min(box.x0 for _, box in boxes) >= 0
+        assert max(box.x1 for _, box in boxes) <= decode_figure.bbox.x1
+        clashes = [
+            (a, b)
+            for i, (a, box_a) in enumerate(boxes)
+            for b, box_b in boxes[i + 1 :]
+            if box_a.overlaps(box_b) and a and b
+        ]
+        assert clashes == []
+
+    def test_no_label_is_parsed_as_math(self, decode_figure) -> None:
+        for text in [*decode_figure.texts, *(t for ax in decode_figure.axes for t in ax.texts)]:
+            assert text.get_parse_math() is False
+
+
+def test_the_decode_figures_default_draw_reads_the_full_span(tmp_path, decode_figure) -> None:
+    fig = make_decode_figure(out=tmp_path / DECODE_FIGURE)
+    assert fig.decoding == decode_figure.decoding == decoding()
+
+
+def test_the_committed_decode_figure_exists() -> None:
+    assert (FIGURES_DIR / DECODE_FIGURE).is_file()

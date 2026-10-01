@@ -77,6 +77,7 @@ from chan.risk_parity import (
     _header,
     annualised_covariance,
     bond_sharpe_hurdle,
+    book_correlation_band,
     clip,
     correlation_from_leverage,
     decompose,
@@ -311,6 +312,9 @@ class TestTheTwoLegAlgebra:
         }
         assert min(corners.values()) == pytest.approx(-0.01265, abs=5e-6)
         assert max(corners.values()) == pytest.approx(0.37141, abs=5e-6)
+        assert book_correlation_band() == pytest.approx(
+            (min(corners.values()), max(corners.values())), abs=1e-12
+        )
         # The corners are the extremes, so nothing inside the intervals escapes
         # them. His own printed pair sits well inside.
         assert min(corners.values()) < correlation_from_leverage(BOOK_LEVERAGE)

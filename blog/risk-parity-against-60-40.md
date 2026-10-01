@@ -109,6 +109,10 @@ Risk parity sets `w₁σ₁ = w₂σ₂`, so Qian’s 23-77 says his stocks were
 
 The leverage carries a second hidden input. Once the weights fix the volatility ratio, the leverage that matches 60/40 depends only on the correlation. The shared term is largest relative to the two own terms when those two terms are equal, as risk parity makes them. In 60/40, stocks’ own term is about 29 times bonds’ and dominates the whole sum, shared term included. So a change in correlation moves risk parity’s variance by a larger fraction than it moves 60/40’s. A higher correlation therefore raises risk parity’s volatility proportionally more, and risk parity then needs less leverage to reach 60/40’s. At the volatility ratio his weights imply, 77 / 23, his 1.8 corresponds to a correlation of 0.16, and his paper prints 0.2. That correspondence is loose, though. Letting both his weights and his leverage vary within their rounding puts the correlation anywhere from −0.01 to +0.37, wide enough to include both zero and a clearly positive correlation.
 
+![Two panels. The left one shows stocks’ volatility as a multiple of bonds’. Weights that round to 23 and 77 allow 3.26 to 3.44. Qian’s paper gives about 3.28, inside that band. SPY and AGG give 3.59 from 2003 to 2026, 3.87 before 2022 and 2.76 after, all outside it. The right one shows the leverage that matches 60/40 at each stock-bond correlation. On Qian’s weights, 1.8 corresponds to a correlation of 0.16, his paper prints 0.2, and his rounding allows anything from −0.01 to 0.37. On SPY and AGG’s weights, 1.98 corresponds to their measured −0.0002.](../docs/figures/risk_parity_ratio_and_correlation.png)
+
+*Each of Qian’s two figures reads as one property of the market. SPY and AGG’s volatility ratio falls outside the band his weights allow, on different sides before and after 2022. His 1.8 pins the correlation only loosely.*
+
 So Qian’s 23-77 and 1.8 describe the stocks and bonds of 1983 to 2004 rather than a rule for all time. Lesson 6 shows both inputs moving within the SPY and AGG data.
 
 ## Lesson 4: the assumed cash rate decides which portfolio leads over the whole period

@@ -578,6 +578,24 @@ def correlation_from_leverage(
     return correlation if -1.0 <= correlation <= 1.0 else None
 
 
+def book_correlation_band() -> tuple[float, float]:
+    """The correlations Qian's 23-77 and 1.8 allow once both roundings vary.
+
+    Two significant figures put the equity weight anywhere in
+    ``[0.225, 0.235)`` and the leverage anywhere in ``[1.75, 1.85)``. The map
+    from leverage to correlation decreases in both, so the band's ends sit at
+    opposite corners of the two intervals.
+    """
+    stock = BOOK_WEIGHTS[0]
+    corners = [
+        correlation_from_leverage(leverage, weights=(weight, 1.0 - weight))
+        for weight in (stock - 0.005, stock + 0.005)
+        for leverage in (BOOK_LEVERAGE - 0.05, BOOK_LEVERAGE + 0.05)
+    ]
+    reached = [c for c in corners if c is not None]
+    return min(reached), max(reached)
+
+
 def leg_sharpes(legs: Legs, *, risk_free: float = RISK_FREE) -> tuple[float, float]:
     """Each leg's Sharpe ratio over the window, stocks then bonds."""
     return (
