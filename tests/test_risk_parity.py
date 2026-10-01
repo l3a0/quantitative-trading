@@ -1561,6 +1561,33 @@ class TestTheBondSharpeHurdle:
             pytest.approx(0.700772, abs=5e-7),
         ]
 
+    def test_the_multipliers_lesson_2_writes_the_hurdle_from(self, measured) -> None:
+        """Each Sharpe ratio is a sum of the two legs' Sharpe ratios, each
+        multiplied by its weight times its volatility over the portfolio's
+        volatility. Lesson 2 prints the multipliers as 0.71 and 0.71 for risk
+        parity and 0.98 and 0.18 for 60/40, then subtracts them unrounded into
+        ``0.525 S₂ > 0.276 S₁``. Their ratio is the hurdle pinned above."""
+        result, _ = measured["full span"]
+        legs = result.legs
+
+        def multipliers(weights: tuple[float, float]) -> tuple[float, float]:
+            stock = weights[0] * legs.stock_vol
+            bond = weights[1] * legs.bond_vol
+            vol = math.sqrt(stock**2 + bond**2 + 2.0 * legs.correlation * stock * bond)
+            return stock / vol, bond / vol
+
+        parity = multipliers((result.parity.stock_weight, result.parity.bond_weight))
+        benchmark = multipliers(BENCHMARK_WEIGHTS)
+        assert parity == (pytest.approx(0.707183, abs=5e-7), pytest.approx(0.707183, abs=5e-7))
+        assert benchmark == (pytest.approx(0.983237, abs=5e-7), pytest.approx(0.182541, abs=5e-7))
+        bond_side = parity[1] - benchmark[1]
+        stock_side = benchmark[0] - parity[0]
+        assert (bond_side, stock_side) == (
+            pytest.approx(0.524642, abs=5e-7),
+            pytest.approx(0.276055, abs=5e-7),
+        )
+        assert stock_side / bond_side == pytest.approx(_hurdle(legs), abs=1e-12)
+
     def test_bonds_ratio_to_stocks_at_the_two_rates_the_post_uses(self, measured) -> None:
         """At 4% AGG's Sharpe ratio is about −0.39 times SPY's, and at the
         1.74% bill average about 0.46 times, both short of 0.53. The 1.744%
