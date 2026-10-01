@@ -472,14 +472,14 @@ of its figures are not pinned here.
    about 29 times bonds', the \$43 of SPY, \$155 of AGG and \$98 borrowed per
    \$100 of equity, risk parity being about half as volatile as 60/40 before
    leverage, the 0.98 points a year each point off the rate is worth, risk
-   parity's Sharpe ratio moving about twice as far as 60/40's per point, and
-   the 2.5 points it takes to close the gap, the 8.36% and −0.91% a year above
+   parity's Sharpe ratio moving about twice as far as 60/40's per point, the
+   2.5 points it takes to close the gap, the 8.36% and −0.91% a year above
    cash, the 1.11%, 2.20% and 4.65% the portfolios earn above cash, the 0.87
-   and 0.67 the same arithmetic gives back at Qian's inputs, AGG's Sharpe ratio
-   of about −0.46 against SPY's 0.66 in the later period, the whole-period
-   Sharpe ratios of 0.18 and 0.25 that the earlier and later periods' weights
-   would give risk parity, and the 0.44 of the 0.98 difference in bonds' Sharpe
-   ratio that the cash rate accounts for.
+   and 0.67 that Lesson 2's multipliers give back at Qian's inputs, AGG's
+   Sharpe ratio of about −0.46 against SPY's 0.66 in the later period, the
+   whole-period Sharpe ratios of 0.18 and 0.25 that the earlier and later
+   periods' weights would give risk parity, and the 0.44 of the 0.98
+   difference in bonds' Sharpe ratio that the cash rate accounts for.
 
 The bill-rate averages the post quotes, 1.74% from October 2003 to August
 2026, 1.17% before the 2022 rise and 4.18% after it, and the 108 months under
@@ -489,12 +489,12 @@ the committed TB3MS vintage. On Qian's weights, the 20% and 8% rises in risk
 parity's and 60/40's variance as the correlation goes from 0 to 0.2, and the
 fall in leverage from 1.88 to 1.78, trace to
 `test_a_higher_correlation_needs_less_leverage_on_his_weights` in
-[tests/test_risk_parity.py](tests/test_risk_parity.py). The 0.71, 0.98 and
-0.18 that weight the two funds' Sharpe ratios, and the 0.525 and 0.276 their
-differences give in the inequality that sets the hurdle, trace to
-`test_the_multipliers_lesson_2_writes_the_hurdle_from` in the same file. At
-the 1.17% average, the same file also pins risk parity's lead of about 0.13 in the earlier period and
-its t-statistic of +1.12.
+[tests/test_risk_parity.py](tests/test_risk_parity.py). The multipliers
+0.71, 0.98 and 0.18 that Lesson 2 puts on the two funds' Sharpe ratios, and
+the 0.525 and 0.276 their differences give in the inequality that sets the
+hurdle, trace to `test_the_multipliers_lesson_2_writes_the_hurdle_from` in the
+same file. At the 1.17% average, that file also pins risk parity's lead of
+about 0.13 in the earlier period and its t-statistic of +1.12.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
