@@ -141,6 +141,10 @@ Whether the data can tell the two apart in the later period depends on the lever
 
 The earlier period on its own does not name a winner. 60/40 leads by 0.16, and a t-statistic of −1.35 is within what chance could produce. Its ranking also flips with a smaller cut in the rate. The two portfolios tie at 2.45%, against 1.50% for the whole period. Bills averaged 1.17% over those years. At that rate risk parity’s Sharpe ratio is higher by about 0.13 before 2022. The t-statistic of +1.11 is again short of the bar, so the data cannot tell the two apart.
 
+![Four rows of Sharpe ratios at an assumed 4% cash rate, each an arrow from 60/40 to levered risk parity. Over the whole period, on weights fitted to it with 21.8% in stocks, 60/40 earns 0.41 and risk parity 0.19, a gap of 0.22 with a t-statistic of −2.17. Before the March 2022 rise, on weights fitted to those years with 20.5% in stocks, 60/40 earns 0.38 and risk parity 0.23, a gap of 0.16 with a t-statistic of −1.35. After the rise, on the earlier period’s 20.5% weights, 60/40 earns 0.51 and risk parity 0.01, a gap of 0.50, with a t-statistic of −2.20 at leverage 1.66 and −1.64 at the earlier 2.15. On weights fitted to the later years with hindsight, with 26.6% in stocks, risk parity earns 0.13 against 60/40’s 0.51, a gap of 0.38, so hindsight closes 0.12 of the 0.50, about a quarter.](../docs/figures/risk_parity_by_window.png)
+
+*After March 2022 risk parity trails by 0.50 on the weights a trader held, and weights fitted with hindsight narrow that only to 0.38. The t-statistic clears the bar of 2 at the leverage measured on those years and falls short at the 2.15 a trader held.*
+
 ## Lesson 6: the volatility ratio and the correlation moved across 2022, but AGG’s return decided the ranking after 2022
 
 The volatility ratio and the correlation behind Qian’s figures differ between the two periods, as do the risk-parity weights each period would give on its own data.

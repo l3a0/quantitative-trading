@@ -1,4 +1,4 @@
-"""The pins for the risk parity post's five figures.
+"""The pins for the risk parity post's six figures.
 
 ``tests/test_risk_parity.py`` holds what the risk parity run computes. This
 file holds that the figures draw those numbers, so a generator that stacked the
@@ -28,6 +28,8 @@ from chan.risk_parity import (
     correlation_from_leverage,
     leg_sharpes,
     leverage_from_correlation,
+    rank_at_matched_volatility,
+    rank_the_windows,
 )
 from chan.risk_parity_figures import (
     ACCENT,
@@ -57,6 +59,8 @@ from chan.risk_parity_figures import (
     SPLIT_FIGURE,
     SURFACE,
     T_BAR,
+    WINDOW_FIGURE,
+    WINDOW_XLIM,
     decoding,
     full_span,
     full_span_ranking,
@@ -66,10 +70,15 @@ from chan.risk_parity_figures import (
     make_hurdle_figure,
     make_rate_figure,
     make_risk_split_figure,
+    make_window_figure,
+    measure_the_windows,
     qian_ratio_span,
+    quarter_words,
     rate_line,
     split_bars,
+    window_comparison,
 )
+from tests.test_risk_parity import _t_at_leverage
 
 
 @pytest.fixture(scope="module")
@@ -817,7 +826,7 @@ def test_the_committed_hurdle_figure_exists() -> None:
     assert (FIGURES_DIR / HURDLE_FIGURE).is_file()
 
 
-def test_the_command_writes_all_five_and_says_where(
+def test_the_command_writes_all_six_and_says_where(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """``main`` is the redraw command README names, so it has to write every
@@ -830,7 +839,14 @@ def test_the_command_writes_all_five_and_says_where(
     monkeypatch.setattr(shared, "FIGURES_DIR", tmp_path)
     figures.main()
     out = capsys.readouterr().out
-    for name in (SPLIT_FIGURE, CLAIM_FIGURE, HURDLE_FIGURE, DECODE_FIGURE, RATE_FIGURE):
+    for name in (
+        SPLIT_FIGURE,
+        CLAIM_FIGURE,
+        HURDLE_FIGURE,
+        DECODE_FIGURE,
+        RATE_FIGURE,
+        WINDOW_FIGURE,
+    ):
         assert f"wrote {tmp_path / name}" in out
         assert (tmp_path / name).is_file()
 
@@ -1324,3 +1340,356 @@ def test_the_rate_figures_default_draw_reads_the_full_span(tmp_path, rate_figure
 
 def test_the_committed_rate_figure_exists() -> None:
     assert (FIGURES_DIR / RATE_FIGURE).is_file()
+
+
+# The window figure, which draws Lesson 5.
+
+
+@pytest.fixture(scope="module")
+def measured():
+    return measure_the_windows()
+
+
+@pytest.fixture(scope="module")
+def window_figure(tmp_path_factory: pytest.TempPathFactory, measured):
+    out = tmp_path_factory.mktemp("risk_parity_window") / WINDOW_FIGURE
+    fig = make_window_figure(out=out, measured=measured)
+    fig.written_to = out
+    return fig
+
+
+def _rows_top_to_bottom(fig) -> list[float]:
+    """Each row's height, read off its filled dot."""
+    return [line.get_ydata()[0] for line in _dots(fig.axes[0]) if _filled(line)]
+
+
+class TestWhatTheWindowFigureCompares:
+    def test_the_four_rows(self, window_figure) -> None:
+        """The numbers Lesson 5 quotes at the 4% rate. The whole period 0.41
+        against 0.19 with t −2.17, the years before the rise 0.38 against 0.23
+        with t −1.35, and the years after it 0.51 against 0.01 on the earlier
+        weights, with t −2.20 at leverage 1.66 and −1.64 at the earlier 2.15,
+        and 0.51 against 0.13 on weights fitted to them with hindsight."""
+        rows = window_figure.comparison.rows
+        assert [(row.benchmark, row.parity) for row in rows] == [
+            pytest.approx((0.411135, 0.194204), abs=5e-7),
+            pytest.approx((0.382005, 0.225498), abs=5e-7),
+            pytest.approx((0.507062, 0.009696), abs=5e-7),
+            pytest.approx((0.507062, 0.128975), abs=5e-7),
+        ]
+        assert [row.gap for row in rows] == [
+            pytest.approx(-0.216931, abs=5e-7),
+            pytest.approx(-0.156507, abs=5e-7),
+            pytest.approx(-0.497366, abs=5e-7),
+            pytest.approx(-0.378086, abs=5e-7),
+        ]
+        assert [row.stock_weight for row in rows] == [
+            pytest.approx(0.217821, abs=5e-7),
+            pytest.approx(0.205340, abs=5e-7),
+            pytest.approx(0.205340, abs=5e-7),
+            pytest.approx(0.266274, abs=5e-7),
+        ]
+        assert [len(row.tests) for row in rows] == [1, 1, 2, 0]
+        assert [leverage for row in rows for leverage, _ in row.tests] == [
+            pytest.approx(1.981188, abs=5e-7),
+            pytest.approx(2.147542, abs=5e-7),
+            pytest.approx(1.657157, abs=5e-7),
+            pytest.approx(2.147542, abs=5e-7),
+        ]
+        assert [t for row in rows for _, t in row.tests] == [
+            pytest.approx(-2.172682, abs=5e-7),
+            pytest.approx(-1.345475, abs=5e-7),
+            pytest.approx(-2.195624, abs=5e-7),
+            pytest.approx(-1.642187, abs=5e-7),
+        ]
+        drawn = window_figure.comparison
+        assert (drawn.start, drawn.before_end, drawn.after_start, drawn.end) == (
+            "2003-09-30",
+            "2022-03-15",
+            "2022-03-17",
+            "2026-09-17",
+        )
+
+    def test_the_first_three_rows_are_the_windows_as_ranked(self, window_figure, measured) -> None:
+        """The rows are what ``rank_the_windows`` reports, with the later
+        period ranked on the earlier period's weights."""
+        rankings = rank_the_windows(measured)
+        rows = window_figure.comparison.rows
+        for row, label in zip(
+            rows[:3], ("full span", "falling rates", "rising rates"), strict=True
+        ):
+            ranking = rankings[label]
+            assert (row.benchmark, row.parity) == (ranking.sharpe_benchmark, ranking.sharpe_parity)
+            assert row.tests[0] == (ranking.leverage, ranking.t_newey_west)
+            source = measured[ranking.weight_source][0].parity
+            assert row.stock_weight == source.stock_weight
+        assert rankings["rising rates"].weight_source == "falling rates"
+        assert rankings["rising rates"].in_sample is False
+
+    def test_the_hindsight_row_is_the_refit_the_suite_pins(self, window_figure, measured) -> None:
+        """The same refit as ``test_the_rising_window_is_ranked_on_the_falling_windows_weights``."""
+        own = measured["rising rates"][0].parity
+        _, returns = measured["rising rates"]
+        refitted = rank_at_matched_volatility(
+            "rising rates",
+            returns,
+            (own.stock_weight, own.bond_weight),
+            weight_source="rising rates",
+            in_sample=True,
+        )
+        hindsight = window_figure.comparison.hindsight
+        assert hindsight is window_figure.comparison.rows[3]
+        assert (hindsight.benchmark, hindsight.parity) == (
+            refitted.sharpe_benchmark,
+            refitted.sharpe_parity,
+        )
+        assert hindsight.stock_weight == own.stock_weight
+        assert hindsight.stock_weight != pytest.approx(
+            window_figure.comparison.carried.stock_weight, abs=1e-3
+        )
+
+    def test_the_t_at_the_earlier_leverage_is_the_suites(self, window_figure, measured) -> None:
+        """The post's −1.64 comes from ``tests/test_risk_parity.py``'s path,
+        at the leverage the earlier period measured, and it falls short of 2
+        where the in-window leverage's −2.20 clears it."""
+        rankings = rank_the_windows(measured)
+        carried = window_figure.comparison.carried
+        assert carried is window_figure.comparison.rows[2]
+        _, returns = measured["rising rates"]
+        weights = (carried.stock_weight, 1.0 - carried.stock_weight)
+        held, held_t = carried.tests[1]
+        assert held == rankings["falling rates"].leverage
+        assert held_t == pytest.approx(_t_at_leverage(returns, weights, held), abs=1e-12)
+        assert abs(carried.tests[0][1]) > T_BAR > abs(held_t)
+
+    def test_the_title_matches_what_the_rows_show(self, window_figure) -> None:
+        """Risk parity trails by more after the rise than over the whole period
+        or before it, on either set of weights, and hindsight closes 0.12 of
+        the 0.50, which is 24% and rounds to a quarter."""
+        drawn = window_figure.comparison
+        assert window_figure._suptitle.get_text() == (
+            "Risk parity trails most after 2022, and hindsight weights close only "
+            "about a quarter of that gap"
+        )
+        whole, before, carried, hindsight = drawn.rows
+        assert carried.gap < hindsight.gap < min(whole.gap, before.gap)
+        assert all(row.gap < 0 for row in drawn.rows)
+        assert drawn.closed == pytest.approx(0.119279, abs=5e-7)
+        assert drawn.closed_share == pytest.approx(0.239822, abs=5e-7)
+        assert drawn.closed == hindsight.gap - carried.gap
+
+    def test_quarter_words(self) -> None:
+        assert quarter_words(0.239822) == "a quarter"
+        assert quarter_words(0.5) == "half"
+        assert quarter_words(0.76) == "three-quarters"
+        for share in (0.1, 0.9):
+            with pytest.raises(ValueError):
+                quarter_words(share)
+
+
+class TestTheWindowPanel:
+    def test_each_row_draws_60_40_hollow_and_risk_parity_filled(self, window_figure) -> None:
+        ax = window_figure.axes[0]
+        dots = _dots(ax)
+        rows = window_figure.comparison.rows
+        assert len(dots) == 2 * len(rows)
+        for i, row in enumerate(rows):
+            parity, bench = dots[2 * i], dots[2 * i + 1]
+            assert _filled(parity) and _rgb(parity.get_color()) == _rgb(ACCENT)
+            assert not _filled(bench) and _rgb(bench.get_markeredgecolor()) == _rgb(INK)
+            assert parity.get_xdata()[0] == row.parity
+            assert bench.get_xdata()[0] == row.benchmark
+            assert parity.get_ydata()[0] == bench.get_ydata()[0]
+            assert parity.get_markersize() >= 8 and bench.get_markersize() >= 8
+
+    def test_the_rows_run_top_to_bottom_under_their_labels(self, window_figure) -> None:
+        ax = window_figure.axes[0]
+        rows = window_figure.comparison.rows
+        ys = _rows_top_to_bottom(window_figure)
+        assert ys == sorted(ys, reverse=True) and len(set(ys)) == len(ys)
+        for row, y in zip(rows, ys, strict=True):
+            (label,) = [t for t in ax.texts if t.get_text() == row.label]
+            assert 0 < label.get_position()[1] - y < 0.5
+            assert _rgb(label.get_color()) == _rgb(INK)
+            assert label.get_position()[0] == pytest.approx(WINDOW_XLIM[0] + 0.005, abs=1e-12)
+
+    def test_the_row_labels_name_the_weights(self, window_figure) -> None:
+        assert [row.label for row in window_figure.comparison.rows] == [
+            "Whole period, 2003 to 2026, on weights fitted to it (21.8% stocks)",
+            "Before the rise, 2003 to March 2022, on weights fitted to it (20.5% stocks)",
+            "After the rise, March 2022 to 2026, on the earlier period's weights (20.5% stocks)",
+            "After the rise, March 2022 to 2026, on weights fitted to it with hindsight "
+            "(26.6% stocks)",
+        ]
+
+    def test_each_row_states_its_leader_gap_and_t(self, window_figure) -> None:
+        ax = window_figure.axes[0]
+        gaps = [t for t in ax.texts if "ahead by" in t.get_text()]
+        assert [t.get_text() for t in gaps] == [
+            "60/40 ahead by 0.22, t = −2.17",
+            "60/40 ahead by 0.16, t = −1.35",
+            "60/40 ahead by 0.50, t = −2.20 at leverage 1.66, and −1.64 at the earlier 2.15",
+            "60/40 ahead by 0.38, so hindsight closes 0.12 of the 0.50",
+        ]
+        for y, text in zip(_rows_top_to_bottom(window_figure), gaps, strict=True):
+            assert 0 < y - text.get_position()[1] < 0.5
+            assert _rgb(text.get_color()) == _rgb(MUTED)
+            assert text.get_position()[0] == pytest.approx(WINDOW_XLIM[0] + 0.005, abs=1e-12)
+
+    def test_each_value_label_sits_on_the_outer_side_of_its_dot(self, window_figure) -> None:
+        ax = window_figure.axes[0]
+        values = [t for t in ax.texts if re.fullmatch(r"−?\d\.\d\d", t.get_text())]
+        rows = window_figure.comparison.rows
+        assert [t.get_text() for t in values] == [
+            "0.19",
+            "0.41",
+            "0.23",
+            "0.38",
+            "0.01",
+            "0.51",
+            "0.13",
+            "0.51",
+        ]
+        for i, (row, y) in enumerate(zip(rows, _rows_top_to_bottom(window_figure), strict=True)):
+            parity_label, bench_label = values[2 * i], values[2 * i + 1]
+            assert parity_label.xy == (row.parity, y)
+            assert bench_label.xy == (row.benchmark, y)
+            right = row.parity > row.benchmark
+            assert parity_label.get_ha() == ("left" if right else "right")
+            assert bench_label.get_ha() == ("right" if right else "left")
+            for label in (parity_label, bench_label):
+                assert (label.xyann[0] > 0) == (label.get_ha() == "left")
+                assert label.xyann[0] != 0 and label.xyann[1] == 0
+                assert _rgb(label.get_color()) == _rgb(INK)
+
+    def test_every_row_has_an_arrow_from_60_40_to_risk_parity(self, window_figure) -> None:
+        ax = window_figure.axes[0]
+        rows = window_figure.comparison.rows
+        assert all(abs(row.gap) >= MIN_ARROW for row in rows)
+        arrows = _arrows(ax)
+        ys = _rows_top_to_bottom(window_figure)
+        assert [(a.xy, a.xyann) for a in arrows] == [
+            ((row.parity, y), (row.benchmark, y)) for row, y in zip(rows, ys, strict=True)
+        ]
+        # The head sits at xy, the risk parity end, so the arrow reads from 60/40.
+        assert all(a.arrowprops["arrowstyle"] == "-|>" for a in arrows)
+        assert all(_rgb(a.arrowprops["color"]) == _rgb(INK) for a in arrows)
+
+    def test_the_axis(self, window_figure) -> None:
+        """It starts below zero so the 0.01's label has room on its left."""
+        ax = window_figure.axes[0]
+        assert ax.get_xlim() == WINDOW_XLIM
+        low, high = WINDOW_XLIM
+        assert low < 0
+        for row in window_figure.comparison.rows:
+            assert low < row.parity < high and low < row.benchmark < high
+        ylow, yhigh = ax.get_ylim()
+        assert all(ylow < y < yhigh for y in _rows_top_to_bottom(window_figure))
+        assert ax.get_yticks().size == 0
+        assert ax.get_xlabel() == "Sharpe ratio, from 60/40 to levered risk parity"
+        window_figure.canvas.draw()
+        assert [t.get_text() for t in ax.get_xticklabels()] == ["0.0", "0.2", "0.4", "0.6"]
+
+    def test_the_legend_names_both_portfolios_in_their_markers(self, window_figure) -> None:
+        legend = window_figure.axes[0].get_legend()
+        assert [t.get_text() for t in legend.get_texts()] == ["60/40", "risk parity"]
+        bench, parity = legend.legend_handles
+        assert not _filled(bench) and _rgb(bench.get_markeredgecolor()) == _rgb(INK)
+        assert _filled(parity) and _rgb(parity.get_color()) == _rgb(ACCENT)
+
+
+def _window_text_boxes(fig):
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+    canvas = FigureCanvasAgg(fig)
+    canvas.draw()
+    renderer = canvas.get_renderer()
+    ax = fig.axes[0]
+    pieces = [fig._suptitle, fig.texts[-1], ax.xaxis.label]
+    pieces += [t for t in ax.texts if t.get_text()]
+    pieces += [t for t in ax.get_xticklabels() if t.get_text()]
+    # Text.get_window_extent measures the words alone, so an annotation's
+    # arrow is not counted as part of its label.
+    boxes = [(p.get_text(), Text.get_window_extent(p, renderer)) for p in pieces]
+    boxes.append(("legend", ax.get_legend().get_window_extent(renderer)))
+    return renderer, boxes
+
+
+class TestTheWindowFiguresText:
+    def test_the_note(self, window_figure) -> None:
+        assert window_figure.texts[-1].get_text().split("\n") == [
+            "SPY and AGG, 2003-09-30 to 2026-09-17, daily, downloaded in 2026. The split is the "
+            "Federal Reserve's first rate rise of 2022,",
+            "on 16 March, so before runs to 2022-03-15 and after from 2022-03-17. Risk parity is "
+            "levered to 60/40's volatility.",
+            "After the rise, 1.66 matches it on the later years, and 2.15 is what matched before, "
+            "the leverage a trader held on the day.",
+            "t is the Newey-West t-statistic of risk parity minus 60/40, corrected for day-to-day "
+            "dependence.",
+            "4% is the cash rate throughout, the rate Chan assumes when levering SPY, "
+            "borrowed here.",
+        ]
+
+    def test_text_fits_and_nothing_overlaps(self, window_figure) -> None:
+        _, boxes = _window_text_boxes(window_figure)
+        assert min(box.x0 for _, box in boxes) >= 0
+        assert min(box.y0 for _, box in boxes) >= 0
+        assert max(box.x1 for _, box in boxes) <= window_figure.bbox.x1
+        assert max(box.y1 for _, box in boxes) <= window_figure.bbox.y1
+        clashes = [
+            (a, b)
+            for i, (a, box_a) in enumerate(boxes)
+            for b, box_b in boxes[i + 1 :]
+            if box_a.overlaps(box_b)
+        ]
+        assert clashes == []
+
+    def test_every_label_stays_inside_the_panel(self, window_figure) -> None:
+        """The row labels, gap lines and value labels sit inside the axes,
+        so none of them runs off the panel's left or right edge."""
+        renderer, boxes = _window_text_boxes(window_figure)
+        panel = window_figure.axes[0].get_window_extent(renderer)
+        ax = window_figure.axes[0]
+        inside = {t.get_text() for t in ax.texts if t.get_text()}
+        for name, box in boxes:
+            if name in inside:
+                assert panel.x0 <= box.x0 and box.x1 <= panel.x1, name
+                assert panel.y0 <= box.y0 and box.y1 <= panel.y1, name
+
+    def test_no_label_crosses_an_arrow_or_a_dot(self, window_figure) -> None:
+        """An arrow runs across the middle of each row, between the row's
+        label above and its gap line below."""
+        renderer, boxes = _window_text_boxes(window_figure)
+        ax = window_figure.axes[0]
+        for arrow in _arrows(ax):
+            # The arrows are horizontal, so the box around one is the arrow.
+            shaft = arrow.arrow_patch.get_window_extent(renderer)
+            assert shaft.width > 10 * shaft.height
+            for name, box in boxes:
+                assert not box.overlaps(shaft), name
+        from matplotlib.transforms import Bbox
+
+        for dot in _dots(ax):
+            x, y = ax.transData.transform((dot.get_xdata()[0], dot.get_ydata()[0]))
+            r = dot.get_markersize() / 2 * window_figure.dpi / 72 + dot.get_markeredgewidth()
+            disc = Bbox.from_extents(x - r, y - r, x + r, y + r)
+            for name, box in boxes:
+                assert not box.overlaps(disc), name
+
+    def test_no_label_is_parsed_as_math(self, window_figure) -> None:
+        for text in [*window_figure.texts, *window_figure.axes[0].texts]:
+            assert text.get_parse_math() is False
+
+
+class TestTheWindowFiguresDefaultDraw:
+    def test_the_default_draw_measures_the_declared_windows(self, tmp_path, window_figure) -> None:
+        fig = make_window_figure(out=tmp_path / WINDOW_FIGURE)
+        assert fig.comparison == window_figure.comparison == window_comparison()
+
+    def test_the_figure_is_written_where_it_is_asked_to_be(self, window_figure) -> None:
+        assert window_figure.written_to.is_file()
+        assert window_figure.written_to.stat().st_size > 0
+
+
+def test_the_committed_window_figure_exists() -> None:
+    assert (FIGURES_DIR / WINDOW_FIGURE).is_file()

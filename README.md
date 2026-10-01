@@ -477,9 +477,7 @@ of its figures are not pinned here.
    of about −0.6 below which the hurdle turns negative and the −0.96 below
    which it would fall under AGG's, and the whole-period Sharpe ratios of 0.18
    and 0.25 that the earlier and later periods' weights would give risk parity,
-   the three-quarters and 0.12 that split the later period's 0.50 gap between
-   the period and the carried weights, and the 0.525 and 0.276 in the inequality
-   that sets the hurdle, and the Sharpe gap of about 0.13 for risk parity before
+   and the 0.525 and 0.276 in the inequality that sets the hurdle, and the Sharpe gap of about 0.13 for risk parity before
    2022 at 1.17%, with its t-statistic of +1.11, and the 0.44 of the 0.98
    difference in bonds' Sharpe ratio that the cash rate accounts for.
 3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
@@ -497,7 +495,7 @@ t-statistic of −2 at 3.80% and +1.30 at zero, the later period's −2 at 3.25%
 and the 0.38 gap its weights would leave if computed inside it. It also holds
 the hurdle bonds' Sharpe ratio has to clear, about 0.53 over the whole period
 and about 0.7 in the later period, and AGG's 0.46 and −0.39 times SPY's
-Sharpe ratio at the 1.74% bill average and at 4%. What its five figures draw
+Sharpe ratio at the 1.74% bill average and at 4%. What its six figures draw
 traces to [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
 That includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at
 the 1.74% bill average, the gap of about 0.02 between them and its t-statistic
@@ -509,11 +507,17 @@ Qian's paper, with the 3.24 to 3.33 its rounding allows, beside 3.59, 3.87 and
 2.76 on SPY and AGG, and the leverage curve on each set of weights and on the
 two ends of 23-77's rounding. The fifth draws the Sharpe gap across cash rates
 from 0% to 5%, including risk parity's lead of 0.13 at a zero rate, and checks
-that every point it draws lies on one straight line. The second, third and
+that every point it draws lies on one straight line. The sixth draws the Sharpe
+ratios over the whole period and on each side of the 2022 rise, as the run
+ranks them, with the later period also on weights fitted to it with hindsight.
+That includes the later period's t-statistic of −1.64 at the earlier leverage
+of 2.15, risk parity's Sharpe ratio of 0.13 on the hindsight weights, and the
+0.12 of the later period's 0.50 gap that hindsight closes, about a quarter,
+which leaves the three-quarters the post quotes. The second, third and
 fourth figures carry Qian's printed numbers, listed in group 1, as cited
 constants.
 
-All five figures are drawn from the committed SPY and AGG vintages by
+All six figures are drawn from the committed SPY and AGG vintages by
 [src/chan/risk_parity_figures.py](src/chan/risk_parity_figures.py):
 
 1. The capital and risk shares of 60/40 and risk parity on the full span.
@@ -528,6 +532,9 @@ All five figures are drawn from the committed SPY and AGG vintages by
 5. Risk parity's Sharpe ratio less 60/40's against the assumed cash rate,
    with the tie, the rates at which the data names 60/40, and the bill average
    and 4% marked, for Lesson 4.
+6. The Sharpe ratios of 60/40 and levered risk parity over the whole period,
+   before the 2022 rise and after it on the earlier period's weights, and
+   after it on weights fitted with hindsight, for Lesson 5.
 
 ```bash
 uv run python -m chan.risk_parity_figures

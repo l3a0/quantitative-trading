@@ -1,4 +1,4 @@
-"""Five figures for the risk parity post, drawn from the committed SPY and AGG vintages.
+"""Six figures for the risk parity post, drawn from the committed SPY and AGG vintages.
 
 1. :func:`make_risk_split_figure` draws Qian's premise, that 60/40 splits
    capital 60 to 40 and risk nowhere near it, on the full common span. It has
@@ -30,11 +30,16 @@
    60/40's, against the assumed cash rate, with the tie, the rates at which
    the data can tell the two apart, and three marked rates: zero, the bill
    average and the 4 percent the post assumes.
+6. :func:`make_window_figure` draws Lesson 5. The Sharpe ratios of 60/40 and
+   levered risk parity over the whole period, before the 2022 rise and after
+   it, as :func:`chan.risk_parity.rank_the_windows` ranks them, with the later
+   period also on weights fitted to it with hindsight. The later period's row
+   gives the t-statistic at its own leverage and at the earlier period's.
 
 Every number this run measured comes from :mod:`chan.risk_parity`, so a figure
 can only be wrong by drawing the wrong thing, which
 ``tests/test_risk_parity_figures.py`` checks. Qian's numbers are the ones his
-paper prints and are drawn as printed. All five read the committed vintages,
+paper prints and are drawn as printed. All six read the committed vintages,
 so they redraw anywhere the data is::
 
     uv run python -m chan.risk_parity_figures
@@ -46,6 +51,8 @@ from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
 
+import pandas as pd
+from ithildincore.stats import newey_west_summary
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch, Rectangle
@@ -74,7 +81,9 @@ from chan.risk_parity import (
     leg_sharpes,
     leverage_from_correlation,
     measure_window,
+    portfolio_excess_returns,
     rank_at_matched_volatility,
+    rank_the_windows,
 )
 from chan.series import aligned_closes
 
@@ -83,6 +92,7 @@ CLAIM_FIGURE = "risk_parity_against_qian.png"
 HURDLE_FIGURE = "risk_parity_bond_hurdle.png"
 DECODE_FIGURE = "risk_parity_ratio_and_correlation.png"
 RATE_FIGURE = "risk_parity_cash_rate.png"
+WINDOW_FIGURE = "risk_parity_by_window.png"
 
 #: Qian's Sharpe ratios for 60/40 and for levered risk parity, Table 2 of
 #: ``research/papers/qian-2005-risk-parity-portfolios.pdf``. Monthly returns on
@@ -1049,6 +1059,271 @@ def make_rate_figure(out: Path | None = None, result: WindowResult | None = None
     return _save(fig, out, RATE_FIGURE)
 
 
+@dataclass(frozen=True)
+class WindowRow:
+    """One row of the window figure: which weights, both Sharpe ratios, each t."""
+
+    label: str
+    stock_weight: float
+    benchmark: float
+    parity: float
+    #: Each t-statistic beside the leverage it was measured at, the leverage
+    #: that matches 60/40 inside the row's own years first. Empty where the
+    #: post quotes no t.
+    tests: tuple[tuple[float, float], ...]
+
+    @property
+    def gap(self) -> float:
+        return self.parity - self.benchmark
+
+
+@dataclass(frozen=True)
+class WindowComparison:
+    """What the window figure draws, so a test can read it without the axes.
+
+    The rows run top to bottom: the whole period and the years before the rise,
+    each on weights fitted to the same years, then the years after the rise on
+    the earlier weights and on weights fitted to those years with hindsight.
+    """
+
+    rows: tuple[WindowRow, ...]
+    start: str
+    before_end: str
+    after_start: str
+    end: str
+
+    @property
+    def carried(self) -> WindowRow:
+        return self.rows[2]
+
+    @property
+    def hindsight(self) -> WindowRow:
+        return self.rows[3]
+
+    @property
+    def closed(self) -> float:
+        """How much of the later gap fitting the weights with hindsight closes."""
+        return self.hindsight.gap - self.carried.gap
+
+    @property
+    def closed_share(self) -> float:
+        return self.closed / abs(self.carried.gap)
+
+
+def measure_the_windows() -> dict[str, tuple[WindowResult, pd.DataFrame]]:
+    """Every declared window's decomposition and returns, at the post's rate."""
+    joined = aligned_closes(STOCK, BOND)
+    return {label: measure_window(label, joined, start, end) for label, start, end in WINDOWS}
+
+
+def _t_at_leverage(returns: pd.DataFrame, weights: tuple[float, float], leverage: float) -> float:
+    """The robust t on the daily difference at a leverage the caller supplies.
+
+    The same arithmetic as :func:`chan.risk_parity.rank_at_matched_volatility`
+    with its in-window leverage swapped out, which is how
+    ``tests/test_risk_parity.py`` reaches the post's −1.64. The only leverage
+    passed here is the one the earlier years measured, so nothing is fitted.
+    """
+    parity = portfolio_excess_returns(returns, weights)
+    bench = portfolio_excess_returns(returns, BENCHMARK_WEIGHTS)
+    return newey_west_summary((leverage * parity - bench).to_numpy()).t_newey_west
+
+
+def window_comparison(
+    measured: dict[str, tuple[WindowResult, pd.DataFrame]] | None = None,
+) -> WindowComparison:
+    """The three declared windows as ranked, and the later one refitted with hindsight."""
+    measured = measured if measured is not None else measure_the_windows()
+    rankings = rank_the_windows(measured)
+    earlier = rankings["falling rates"]
+    whole, before, after = (measured[label][0] for label, _, _ in WINDOWS)
+    _, after_returns = measured["rising rates"]
+    carried = (before.parity.stock_weight, before.parity.bond_weight)
+    own = (after.parity.stock_weight, after.parity.bond_weight)
+    refitted = rank_at_matched_volatility(
+        "rising rates", after_returns, own, weight_source="rising rates", in_sample=True
+    )
+
+    def ranked(label: str, weight: float, ranking: Ranking, extra=()) -> WindowRow:
+        return WindowRow(
+            label,
+            weight,
+            ranking.sharpe_benchmark,
+            ranking.sharpe_parity,
+            ((ranking.leverage, ranking.t_newey_west), *extra),
+        )
+
+    def stocks(weight: float) -> str:
+        return f"{_share(weight)} stocks"
+
+    rows = (
+        ranked(
+            "Whole period, 2003 to 2026, on weights fitted to it "
+            f"({stocks(whole.parity.stock_weight)})",
+            whole.parity.stock_weight,
+            rankings["full span"],
+        ),
+        ranked(
+            "Before the rise, 2003 to March 2022, on weights fitted to it "
+            f"({stocks(before.parity.stock_weight)})",
+            before.parity.stock_weight,
+            earlier,
+        ),
+        ranked(
+            "After the rise, March 2022 to 2026, on the earlier period's weights "
+            f"({stocks(carried[0])})",
+            carried[0],
+            rankings["rising rates"],
+            extra=(
+                (
+                    earlier.leverage,
+                    _t_at_leverage(after_returns, carried, earlier.leverage),
+                ),
+            ),
+        ),
+        WindowRow(
+            "After the rise, March 2022 to 2026, on weights fitted to it with hindsight "
+            f"({stocks(own[0])})",
+            own[0],
+            refitted.sharpe_benchmark,
+            refitted.sharpe_parity,
+            (),
+        ),
+    )
+    return WindowComparison(
+        rows=rows,
+        start=whole.legs.start,
+        before_end=before.legs.end,
+        after_start=after.legs.start,
+        end=after.legs.end,
+    )
+
+
+#: The words for the share of the later gap hindsight closes, in quarters.
+QUARTERS = {1: "a quarter", 2: "half", 3: "three-quarters"}
+
+
+def quarter_words(share: float) -> str:
+    """A share between an eighth and seven-eighths, to the nearest quarter."""
+    quarters = round(share * 4)
+    if quarters not in QUARTERS:
+        raise ValueError(f"{share:.2f} rounds to no quarter the title can name")
+    return QUARTERS[quarters]
+
+
+def window_row_text(drawn: WindowComparison, row: WindowRow) -> str:
+    """Which portfolio leads and by how much, with each t and its leverage."""
+    leader = "risk parity" if row.gap > 0 else "60/40"
+    text = f"{leader} ahead by {abs(row.gap):.2f}"
+    if len(row.tests) == 1:
+        text += f", t = {_signed(row.tests[0][1])}"
+    elif row.tests:
+        (own_leverage, own_t), (held, held_t) = row.tests
+        text += (
+            f", t = {_signed(own_t)} at leverage {own_leverage:.2f}, "
+            f"and {_signed(held_t)} at the earlier {held:.2f}"
+        )
+    if row is drawn.hindsight:
+        text += f", so hindsight closes {drawn.closed:.2f} of the {abs(drawn.carried.gap):.2f}"
+    return text
+
+
+#: The window figure's horizontal range. It starts below zero so the label of
+#: a Sharpe ratio near zero has room on its outer side.
+WINDOW_XLIM = (-0.15, 0.7)
+
+
+@_plain_text
+def make_window_figure(
+    out: Path | None = None,
+    measured: dict[str, tuple[WindowResult, pd.DataFrame]] | None = None,
+) -> Figure:
+    """The Sharpe ratios on each side of March 2022, on carried and on hindsight weights."""
+    drawn = window_comparison(measured)
+
+    fig = Figure(figsize=(10, 6.9), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    ax = fig.subplots()
+    _style(ax)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+
+    left, right = WINDOW_XLIM
+    ys = [float(len(drawn.rows) - 1 - i) for i in range(len(drawn.rows))]
+    for y, row in zip(ys, drawn.rows, strict=True):
+        if abs(row.gap) >= MIN_ARROW:
+            ax.annotate(
+                "",
+                xy=(row.parity, y),
+                xytext=(row.benchmark, y),
+                arrowprops={
+                    "arrowstyle": "-|>",
+                    "color": INK,
+                    "lw": 1.6,
+                    "shrinkA": 5,
+                    "shrinkB": 5,
+                    "mutation_scale": 13,
+                },
+                zorder=2,
+            )
+        ax.plot([row.parity], [y], "o", ms=9, color=ACCENT, zorder=3)
+        ax.plot([row.benchmark], [y], "o", ms=9, mfc="none", mec=INK, mew=1.6, zorder=4)
+        parity_right = row.parity > row.benchmark
+        _side_label(ax, row.parity, y, f"{row.parity:.2f}", right=parity_right)
+        _side_label(ax, row.benchmark, y, f"{row.benchmark:.2f}", right=not parity_right)
+        ax.text(left + 0.005, y + 0.27, row.label, ha="left", va="center", color=INK, fontsize=10)
+        ax.text(
+            left + 0.005,
+            y - 0.25,
+            window_row_text(drawn, row),
+            ha="left",
+            va="center",
+            color=MUTED,
+            fontsize=9.5,
+        )
+    ax.set_yticks([])
+    ax.set_ylim(-0.65, len(drawn.rows) - 0.35)
+    ax.set_xlim(left, right)
+    ax.set_xticks([0.0, 0.2, 0.4, 0.6])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: f"{x:.1f}"))
+    ax.set_xlabel("Sharpe ratio, from 60/40 to levered risk parity", color=INK, fontsize=10)
+    ax.legend(
+        handles=[
+            Line2D(
+                [], [], ls="none", marker="o", ms=9, mfc="none", mec=INK, mew=1.6, label="60/40"
+            ),
+            Line2D([], [], ls="none", marker="o", ms=9, color=ACCENT, label="risk parity"),
+        ],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.1),
+        ncol=2,
+        frameon=False,
+        fontsize=10,
+        labelcolor=INK,
+    )
+
+    carried_leverage, _ = drawn.carried.tests[0]
+    held_leverage, _ = drawn.carried.tests[1]
+    _title(
+        fig,
+        "Risk parity trails most after 2022, and hindsight weights close only "
+        f"about {quarter_words(drawn.closed_share)} of that gap",
+        f"{STOCK} and {BOND}, {drawn.start} to {drawn.end}, daily, downloaded in 2026. The split "
+        "is the Federal Reserve's first rate rise of 2022,\non 16 March, so before runs to "
+        f"{drawn.before_end} and after from {drawn.after_start}. Risk parity is levered to "
+        "60/40's volatility.\n"
+        f"After the rise, {carried_leverage:.2f} matches it on the later years, and "
+        f"{held_leverage:.2f} is what matched before, the leverage a trader held on the day.\n"
+        "t is the Newey-West t-statistic of risk parity minus 60/40, corrected for day-to-day "
+        "dependence.\n"
+        f"{RISK_FREE:.0%} is the cash rate throughout, the rate Chan assumes when levering SPY, "
+        "borrowed here.",
+    )
+    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.3)
+    fig.comparison = drawn
+    return _save(fig, out, WINDOW_FIGURE)
+
+
 def main() -> None:
     make_risk_split_figure()
     print(f"wrote {FIGURES_DIR / SPLIT_FIGURE}")
@@ -1060,6 +1335,8 @@ def main() -> None:
     print(f"wrote {FIGURES_DIR / DECODE_FIGURE}")
     make_rate_figure()
     print(f"wrote {FIGURES_DIR / RATE_FIGURE}")
+    make_window_figure()
+    print(f"wrote {FIGURES_DIR / WINDOW_FIGURE}")
 
 
 if __name__ == "__main__":
