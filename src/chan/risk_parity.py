@@ -578,6 +578,56 @@ def correlation_from_leverage(
     return correlation if -1.0 <= correlation <= 1.0 else None
 
 
+def leg_sharpes(legs: Legs, *, risk_free: float = RISK_FREE) -> tuple[float, float]:
+    """Each leg's Sharpe ratio over the window, stocks then bonds."""
+    return (
+        (legs.stock_mean - risk_free) / legs.stock_vol,
+        (legs.bond_mean - risk_free) / legs.bond_vol,
+    )
+
+
+def bond_sharpe_hurdle(
+    stock_vol: float,
+    bond_vol: float,
+    correlation: float,
+    *,
+    benchmark: tuple[float, float] = BENCHMARK_WEIGHTS,
+) -> float:
+    """The bond-to-stock Sharpe ratio at which risk parity ties the benchmark.
+
+    A leg adds its weight times its volatility times its Sharpe ratio to a
+    portfolio's return above cash. Risk parity makes the two weight-times-
+    volatility products equal, so its Sharpe ratio is
+    ``(S_stock + S_bond) / sqrt(2 * (1 + rho))`` whatever the products are. The
+    benchmark's is ``(w_1 s_1 S_stock + w_2 s_2 S_bond) / s_benchmark``.
+    Setting the two equal with ``S_bond = h * S_stock`` and solving for ``h``
+    gives the hurdle. Leverage leaves both Sharpe ratios alone, so the hurdle
+    holds at matched volatility, and it reads no cash rate, because the rate
+    moves the two legs' Sharpe ratios and not the volatilities.
+
+    Risk parity leads exactly when bonds' ratio to stocks' exceeds the hurdle,
+    provided stocks' Sharpe ratio is positive. The solution needs bonds to
+    count for more in risk parity than in the benchmark, which they do
+    whenever risk parity holds more bonds. Where they do not, no hurdle
+    exists and this raises rather than return a threshold that points the
+    wrong way.
+    """
+    stock, bond = benchmark
+    benchmark_vol = math.sqrt(
+        stock**2 * stock_vol**2
+        + bond**2 * bond_vol**2
+        + 2.0 * correlation * stock * bond * stock_vol * bond_vol
+    )
+    parity_count = 1.0 / math.sqrt(2.0 * (1.0 + correlation))
+    bond_count = bond * bond_vol / benchmark_vol
+    if parity_count <= bond_count:
+        raise ValueError(
+            "bonds count for no more in risk parity than in the benchmark, so no "
+            "bond Sharpe ratio is a hurdle risk parity has to clear"
+        )
+    return (stock * stock_vol / benchmark_vol - parity_count) / (parity_count - bond_count)
+
+
 def _affine(weights: tuple[float, float], ratio: float) -> tuple[float, float]:
     """A portfolio's variance as ``constant + slope * correlation``, at unit bond volatility.
 

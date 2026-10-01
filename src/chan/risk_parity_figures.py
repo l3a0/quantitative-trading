@@ -1,4 +1,4 @@
-"""Two figures for the risk parity post, drawn from the committed SPY and AGG vintages.
+"""Three figures for the risk parity post, drawn from the committed SPY and AGG vintages.
 
 1. :func:`make_risk_split_figure` draws Qian's premise, that 60/40 splits
    capital 60 to 40 and risk nowhere near it, on the full common span. It has
@@ -15,11 +15,16 @@
    them to support does not. Its Sharpe panel has three rows: Qian's own pair,
    then this run's pair at the average bill rate and at the 4 percent rate the
    rest of the post assumes.
+3. :func:`make_hurdle_figure` draws Lesson 2. Risk parity leads exactly when
+   bonds' Sharpe ratio, as a multiple of stocks', clears a hurdle that
+   :func:`chan.risk_parity.bond_sharpe_hurdle` computes from the two
+   volatilities and the correlation. It draws the same three rows as the
+   second figure, each with its hurdle and where bonds landed.
 
 Every number this run measured comes from :mod:`chan.risk_parity`, so a figure
 can only be wrong by drawing the wrong thing, which
 ``tests/test_risk_parity_figures.py`` checks. Qian's numbers are the ones his
-paper prints and are drawn as printed. Both figures read the committed vintages,
+paper prints and are drawn as printed. All three read the committed vintages,
 so they redraw anywhere the data is::
 
     uv run python -m chan.risk_parity_figures
@@ -32,7 +37,7 @@ from pathlib import Path
 
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Rectangle
 from matplotlib.ticker import FuncFormatter, PercentFormatter
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
@@ -48,6 +53,8 @@ from chan.risk_parity import (
     WINDOWS,
     Ranking,
     WindowResult,
+    bond_sharpe_hurdle,
+    leg_sharpes,
     measure_window,
     rank_at_matched_volatility,
 )
@@ -55,6 +62,7 @@ from chan.series import aligned_closes
 
 SPLIT_FIGURE = "risk_parity_capital_and_risk.png"
 CLAIM_FIGURE = "risk_parity_against_qian.png"
+HURDLE_FIGURE = "risk_parity_bond_hurdle.png"
 
 #: Qian's Sharpe ratios for 60/40 and for levered risk parity, Table 2 of
 #: ``research/papers/qian-2005-risk-parity-portfolios.pdf``. Monthly returns on
@@ -62,6 +70,15 @@ CLAIM_FIGURE = "risk_parity_against_qian.png"
 #: Treasury-bill rate. Printed to two decimals, and drawn as printed.
 QIAN_SHARPE_BENCHMARK = 0.67
 QIAN_SHARPE_PARITY = 0.87
+
+#: Qian's two legs over the same sample, from the same paper. The volatilities
+#: and the correlation are in the text beside Table 1, and the two Sharpe
+#: ratios are Table 2's Russell 1000 and Lehman Aggregate columns.
+QIAN_STOCK_VOL = 0.151
+QIAN_BOND_VOL = 0.046
+QIAN_CORRELATION = 0.2
+QIAN_SHARPE_STOCK = 0.55
+QIAN_SHARPE_BOND = 0.80
 
 #: The average of the St. Louis Fed's three-month bill series, TB3MS, from
 #: October 2003 to August 2026, the full calendar months inside the span. Read
@@ -425,11 +442,155 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
     return _save(fig, out, CLAIM_FIGURE)
 
 
+@dataclass(frozen=True)
+class HurdleRow:
+    """One row of the hurdle figure: each leg's Sharpe ratio and the hurdle."""
+
+    label: str
+    stock_sharpe: float
+    bond_sharpe: float
+    hurdle: float
+
+    @property
+    def ratio(self) -> float:
+        """Bonds' Sharpe ratio as a multiple of stocks'."""
+        return self.bond_sharpe / self.stock_sharpe
+
+    @property
+    def clears(self) -> bool:
+        return self.ratio > self.hurdle
+
+
+def hurdle_rows(result: WindowResult | None = None) -> tuple[HurdleRow, ...]:
+    """Qian's legs as printed, then this run's at the bill average and at 4%."""
+    result = result if result is not None else full_span()
+    legs = result.legs
+    hurdle = bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
+    rows = [
+        HurdleRow(
+            "Qian, 1983 to 2004, cash at each month's bill rate",
+            QIAN_SHARPE_STOCK,
+            QIAN_SHARPE_BOND,
+            bond_sharpe_hurdle(QIAN_STOCK_VOL, QIAN_BOND_VOL, QIAN_CORRELATION),
+        )
+    ]
+    for label, rate in (
+        (f"cash at the {BILL_AVERAGE:.2%} bill average", BILL_AVERAGE),
+        (f"cash at an assumed {RISK_FREE:.0%}", RISK_FREE),
+    ):
+        stock, bond = leg_sharpes(legs, risk_free=rate)
+        rows.append(HurdleRow(f"{STOCK} and {BOND}, 2003 to 2026, {label}", stock, bond, hurdle))
+    return tuple(rows)
+
+
+#: The hurdle figure's horizontal range, in multiples of stocks' Sharpe ratio.
+HURDLE_XLIM = (-0.6, 1.7)
+
+
+@_plain_text
+def make_hurdle_figure(out: Path | None = None, result: WindowResult | None = None) -> Figure:
+    """Where bonds' Sharpe ratio landed against the hurdle risk parity needs."""
+    result = result if result is not None else full_span()
+    rows = hurdle_rows(result)
+    legs = result.legs
+
+    fig = Figure(figsize=(10, 6.4), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    ax = fig.subplots()
+    _style(ax)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=RULE, lw=0.6, alpha=0.7)
+
+    left, right = HURDLE_XLIM
+    ys = [float(len(rows) - 1 - i) for i in range(len(rows))]
+    for y, row in zip(ys, rows, strict=True):
+        ax.add_patch(
+            Rectangle(
+                (row.hurdle, y - 0.17), right - row.hurdle, 0.34, color=GOOD, alpha=0.16, lw=0
+            )
+        )
+        ax.plot([row.hurdle, row.hurdle], [y - 0.24, y + 0.24], color=INK, lw=2.2, zorder=3)
+        ax.annotate(
+            f"hurdle {row.hurdle:.2f}",
+            (row.hurdle, y - 0.24),
+            xytext=(0, -3),
+            textcoords="offset points",
+            ha="center",
+            va="top",
+            color=INK,
+            fontsize=9.5,
+        )
+        ax.plot([row.ratio], [y], "o", ms=10, color=ACCENT, zorder=4)
+        _side_label(ax, row.ratio, y, _signed(row.ratio), right=row.ratio >= row.hurdle)
+        ax.text(left + 0.02, y + 0.47, row.label, ha="left", va="center", color=INK, fontsize=10)
+        ax.text(
+            left + 0.02,
+            y + 0.29,
+            f"bonds {_signed(row.bond_sharpe)}, stocks {_signed(row.stock_sharpe)}",
+            ha="left",
+            va="center",
+            color=MUTED,
+            fontsize=9.5,
+        )
+
+    ax.axvline(1.0, color=MUTED, lw=1, ls="--", zorder=1)
+    ax.annotate(
+        "equal Sharpe ratios",
+        (1.0, 1.0),
+        xycoords=("data", "axes fraction"),
+        xytext=(5, -2),
+        textcoords="offset points",
+        ha="left",
+        va="top",
+        color=MUTED,
+        fontsize=9,
+    )
+    ax.axvline(0.0, color=RULE, lw=1.2, zorder=1)
+    ax.set_xlim(left, right)
+    ax.set_xticks([-0.5, 0.0, 0.5, 1.0, 1.5])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: _signed(x, 1)))
+    ax.set_xlabel("bonds' Sharpe ratio as a multiple of stocks'", color=INK, fontsize=10)
+    ax.set_yticks([])
+    ax.set_ylim(-0.6, len(rows) - 0.3)
+    ax.legend(
+        handles=[
+            Line2D([], [], ls="none", marker="o", ms=10, color=ACCENT, label="where bonds landed"),
+            Line2D([], [], color=INK, lw=2.2, label="hurdle"),
+            Patch(color=GOOD, alpha=0.16, label="risk parity leads"),
+        ],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.14),
+        ncol=3,
+        frameon=False,
+        fontsize=10,
+        labelcolor=INK,
+    )
+
+    _title(
+        fig,
+        "Qian's bonds cleared the hurdle risk parity needs, and AGG's did not",
+        "The hurdle is the multiple of stocks' Sharpe ratio at which levered risk parity and 60/40 "
+        "earn the same\nSharpe ratio at the same volatility. It depends on the two volatilities "
+        "and their correlation, not on the cash rate.\n"
+        f"Qian (2005): stocks {QIAN_STOCK_VOL:.1%}, bonds {QIAN_BOND_VOL:.1%}, correlation "
+        f"{QIAN_CORRELATION:g}. {STOCK} and {BOND}: {legs.stock_vol:.2%} and {legs.bond_vol:.2%}, "
+        f"correlation {_signed(legs.correlation, 4)},\n{legs.start} to {legs.end}, 2026 downloads. "
+        f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate, "
+        "not stored here.\n"
+        f"{RISK_FREE:.0%} is the cash rate Chan assumes elsewhere in the book.",
+    )
+    fig.subplots_adjust(left=0.03, right=0.98, top=0.9, bottom=0.36)
+    fig.rows = rows
+    return _save(fig, out, HURDLE_FIGURE)
+
+
 def main() -> None:
     make_risk_split_figure()
     print(f"wrote {FIGURES_DIR / SPLIT_FIGURE}")
     make_claim_figure()
     print(f"wrote {FIGURES_DIR / CLAIM_FIGURE}")
+    make_hurdle_figure()
+    print(f"wrote {FIGURES_DIR / HURDLE_FIGURE}")
 
 
 if __name__ == "__main__":

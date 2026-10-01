@@ -44,6 +44,7 @@ t came from the pin in ``pyproject.toml`` rather than from either vintage.
 from __future__ import annotations
 
 import contextlib
+import inspect
 import io
 import math
 import re
@@ -75,9 +76,11 @@ from chan.risk_parity import (
     _decomposition,
     _header,
     annualised_covariance,
+    bond_sharpe_hurdle,
     clip,
     correlation_from_leverage,
     decompose,
+    leg_sharpes,
     leverage_from_correlation,
     main,
     matching_leverage,
@@ -1492,3 +1495,83 @@ class TestTheInversionTheReportIsBuiltToShow:
         with contextlib.redirect_stdout(buffer):
             _decomposition(self._result(0.2178), against_the_book=False)
         assert said not in buffer.getvalue()
+
+
+# ============================================================
+# The hurdle bonds' Sharpe ratio has to clear, Lesson 2's rule
+# ============================================================
+
+
+def _hurdle(legs: Legs) -> float:
+    return bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
+
+
+class TestTheBondSharpeHurdle:
+    """Risk parity leads exactly when bonds' Sharpe ratio, as a multiple of
+    stocks', clears a hurdle set by the two volatilities and the correlation.
+    The post's Lesson 2 states the rule and its figure draws it."""
+
+    def test_the_hurdle_in_each_window(self, measured) -> None:
+        """About 0.53 over the whole period, and about 0.7 after 2022 on
+        weights computed inside that period, which Lesson 6 quotes."""
+        hurdles = [_hurdle(measured[label][0].legs) for label, _, _ in WINDOWS]
+        assert hurdles == [
+            pytest.approx(0.526178, abs=5e-7),
+            pytest.approx(0.471020, abs=5e-7),
+            pytest.approx(0.700772, abs=5e-7),
+        ]
+
+    def test_bonds_ratio_to_stocks_at_the_two_rates_the_post_uses(self, measured) -> None:
+        """At 4% AGG's Sharpe ratio is about −0.39 times SPY's, and at the
+        1.74% bill average about 0.46 times, both short of 0.53."""
+        legs = measured["full span"][0].legs
+        ratios = []
+        for rate in (RISK_FREE, 0.0174):
+            stock, bond = leg_sharpes(legs, risk_free=rate)
+            ratios.append(bond / stock)
+        assert ratios == [
+            pytest.approx(-0.390912, abs=5e-7),
+            pytest.approx(0.456266, abs=5e-7),
+        ]
+
+    def test_the_hurdle_decides_the_ranking_in_every_window_at_every_rate(self, measured) -> None:
+        """Clearing the hurdle and leading on Sharpe ratio are the same event,
+        on each window's own weights, at rates on both sides of every tie."""
+        for label, _, _ in WINDOWS:
+            result, returns = measured[label]
+            weights = (result.parity.stock_weight, result.parity.bond_weight)
+            hurdle = _hurdle(result.legs)
+            for rate in (0.0, 0.01, 0.0174, 0.03, RISK_FREE, 0.06):
+                stock, bond = leg_sharpes(result.legs, risk_free=rate)
+                ranking = rank_at_matched_volatility(
+                    label,
+                    returns,
+                    weights,
+                    weight_source=label,
+                    in_sample=True,
+                    risk_free=rate,
+                )
+                assert stock > 0, (label, rate)
+                assert (bond / stock > hurdle) == (ranking.sharpe_difference > 0), (label, rate)
+
+    def test_bonds_sit_on_the_hurdle_at_the_rate_where_the_sharpe_ratios_tie(
+        self, measured, rankings
+    ) -> None:
+        """The same tie as ``test_the_rate_at_which_the_two_sharpe_ratios_tie``,
+        reached through the legs rather than through the portfolios."""
+        result, _ = measured["full span"]
+        ranking = rankings["full span"]
+        per_unit_rate = (1.0 - ranking.leverage) / ranking.matched_volatility
+        tie = RISK_FREE - ranking.sharpe_difference / per_unit_rate
+        stock, bond = leg_sharpes(result.legs, risk_free=tie)
+        assert bond / stock == pytest.approx(_hurdle(result.legs), abs=1e-9)
+
+    def test_the_hurdle_reads_no_cash_rate(self) -> None:
+        params = inspect.signature(bond_sharpe_hurdle).parameters
+        assert "risk_free" not in params
+
+    def test_no_hurdle_exists_where_risk_parity_holds_no_more_bonds(self) -> None:
+        """With bonds as volatile as stocks, risk parity is 50/50 and holds
+        fewer bonds than 60/40's 40% would need it to count for more."""
+        with pytest.raises(ValueError, match="no bond Sharpe ratio"):
+            bond_sharpe_hurdle(0.15, 0.15, 0.0, benchmark=(0.2, 0.8))

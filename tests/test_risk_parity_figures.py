@@ -1,4 +1,4 @@
-"""The pins for the risk parity post's two figures.
+"""The pins for the risk parity post's three figures.
 
 ``tests/test_risk_parity.py`` holds what the risk parity run computes. This
 file holds that the figures draw those numbers, so a generator that stacked the
@@ -17,23 +17,38 @@ import pytest
 from matplotlib.colors import to_rgba
 
 from chan.paths import FIGURES_DIR
-from chan.risk_parity import BOOK_LEVERAGE, BOOK_WEIGHTS, RISK_FREE
+from chan.risk_parity import (
+    BOOK_LEVERAGE,
+    BOOK_WEIGHTS,
+    RISK_FREE,
+    bond_sharpe_hurdle,
+    leg_sharpes,
+)
 from chan.risk_parity_figures import (
     ACCENT,
     BILL_AVERAGE,
     CLAIM_FIGURE,
     GOOD,
+    HURDLE_FIGURE,
+    HURDLE_XLIM,
     INK,
     INSIDE_LABEL_MIN,
     MIN_ARROW,
     MUTED,
+    QIAN_BOND_VOL,
+    QIAN_CORRELATION,
     QIAN_SHARPE_BENCHMARK,
+    QIAN_SHARPE_BOND,
     QIAN_SHARPE_PARITY,
+    QIAN_SHARPE_STOCK,
+    QIAN_STOCK_VOL,
     SPLIT_FIGURE,
     SURFACE,
     full_span,
     full_span_ranking,
+    hurdle_rows,
     make_claim_figure,
+    make_hurdle_figure,
     make_risk_split_figure,
     split_bars,
 )
@@ -556,3 +571,210 @@ class TestTheClaimFiguresDefaultDraw:
 
 def test_the_committed_claim_figure_exists() -> None:
     assert (FIGURES_DIR / CLAIM_FIGURE).is_file()
+
+
+# The hurdle figure, which draws Lesson 2.
+
+
+@pytest.fixture(scope="module")
+def hurdle_figure(tmp_path_factory: pytest.TempPathFactory, result):
+    out = tmp_path_factory.mktemp("risk_parity_hurdle") / HURDLE_FIGURE
+    fig = make_hurdle_figure(out=out, result=result)
+    fig.written_to = out
+    return fig
+
+
+def _hurdle_ticks(ax) -> list:
+    """The short vertical bars that mark each row's hurdle."""
+    return [
+        line
+        for line in ax.lines
+        if line.get_marker() != "o"
+        and len(line.get_xdata()) == 2
+        and line.get_xdata()[0] == line.get_xdata()[1]
+        and line.get_ydata()[0] != line.get_ydata()[1]
+        and line.get_transform() == ax.transData
+    ]
+
+
+class TestWhatTheHurdleFigureCompares:
+    def test_qians_legs_are_the_ones_his_paper_prints(self) -> None:
+        """Volatilities and correlation from the text beside Table 1, Sharpe
+        ratios from Table 2's index columns."""
+        assert (QIAN_STOCK_VOL, QIAN_BOND_VOL, QIAN_CORRELATION) == (0.151, 0.046, 0.2)
+        assert (QIAN_SHARPE_STOCK, QIAN_SHARPE_BOND) == (0.55, 0.80)
+
+    def test_the_three_rows(self, hurdle_figure) -> None:
+        """Qian's hurdle is about two-thirds and this run's about 0.53. His
+        bonds earned about 1.45 times stocks' Sharpe ratio, and AGG about 0.46
+        times at the bill average and about −0.39 times at 4%."""
+        rows = hurdle_figure.rows
+        assert [row.label for row in rows] == [
+            "Qian, 1983 to 2004, cash at each month's bill rate",
+            "SPY and AGG, 2003 to 2026, cash at the 1.74% bill average",
+            "SPY and AGG, 2003 to 2026, cash at an assumed 4%",
+        ]
+        assert [row.hurdle for row in rows] == [
+            pytest.approx(0.657479, abs=5e-7),
+            pytest.approx(0.526178, abs=5e-7),
+            pytest.approx(0.526178, abs=5e-7),
+        ]
+        assert [row.ratio for row in rows] == [
+            pytest.approx(0.80 / 0.55, abs=1e-12),
+            pytest.approx(0.456266, abs=5e-7),
+            pytest.approx(-0.390912, abs=5e-7),
+        ]
+        assert [row.clears for row in rows] == [True, False, False]
+
+    def test_this_runs_rows_come_from_the_run(self, hurdle_figure, result) -> None:
+        legs = result.legs
+        hurdle = bond_sharpe_hurdle(legs.stock_vol, legs.bond_vol, legs.correlation)
+        for row, rate in zip(hurdle_figure.rows[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
+            assert (row.stock_sharpe, row.bond_sharpe) == leg_sharpes(legs, risk_free=rate)
+            assert row.hurdle == hurdle
+
+    def test_clearing_the_hurdle_is_leading_the_comparison(self, hurdle_figure) -> None:
+        """Each of this run's rows agrees with the ranking the claim figure
+        draws at the same rate, and Qian's agrees with his printed pair."""
+        rows = hurdle_figure.rows
+        assert rows[0].clears == (QIAN_SHARPE_PARITY > QIAN_SHARPE_BENCHMARK)
+        for row, rate in zip(rows[1:], (BILL_AVERAGE, RISK_FREE), strict=True):
+            assert row.clears == (full_span_ranking(rate).sharpe_difference > 0)
+
+    def test_the_title_matches_which_rows_clear(self, hurdle_figure) -> None:
+        assert hurdle_figure._suptitle.get_text() == (
+            "Qian's bonds cleared the hurdle risk parity needs, and AGG's did not"
+        )
+        assert [row.clears for row in hurdle_figure.rows] == [True, False, False]
+
+
+class TestTheHurdlePanel:
+    def test_each_row_draws_its_hurdle_its_dot_and_its_zone(self, hurdle_figure) -> None:
+        ax = hurdle_figure.axes[0]
+        rows = hurdle_figure.rows
+        dots = _dots(ax)
+        ticks = _hurdle_ticks(ax)
+        zones = [p for p in ax.patches]
+        assert len(dots) == len(ticks) == len(zones) == len(rows)
+        ys = [dot.get_ydata()[0] for dot in dots]
+        assert ys == sorted(ys, reverse=True)
+        for row, y, dot, tick, zone in zip(rows, ys, dots, ticks, zones, strict=True):
+            assert dot.get_xdata()[0] == pytest.approx(row.ratio, abs=1e-12)
+            assert _filled(dot) and _rgb(dot.get_color()) == _rgb(ACCENT)
+            assert list(tick.get_xdata()) == pytest.approx([row.hurdle, row.hurdle], abs=1e-12)
+            low, high = tick.get_ydata()
+            assert low < y < high
+            assert zone.get_x() == pytest.approx(row.hurdle, abs=1e-12)
+            assert zone.get_x() + zone.get_width() == pytest.approx(HURDLE_XLIM[1], abs=1e-12)
+            assert zone.get_y() < y < zone.get_y() + zone.get_height()
+            assert _rgb(zone.get_facecolor()) == _rgb(GOOD)
+
+    def test_each_dot_and_hurdle_carries_its_value(self, hurdle_figure) -> None:
+        ax = hurdle_figure.axes[0]
+        texts = _plain_texts(ax)
+        assert [t for t in texts if t.startswith("hurdle")] == [
+            "hurdle 0.66",
+            "hurdle 0.53",
+            "hurdle 0.53",
+        ]
+        # Below its tick, so it stays clear of the row's title and detail lines.
+        hurdle_labels = [t for t in ax.texts if t.get_text().startswith("hurdle")]
+        ys = [dot.get_ydata()[0] for dot in _dots(ax)]
+        for row, y, label in zip(hurdle_figure.rows, ys, hurdle_labels, strict=True):
+            assert label.xy == pytest.approx((row.hurdle, y - 0.24), abs=1e-12)
+            assert label.get_va() == "top" and label.xyann[1] < 0
+        values = [t for t in ax.texts if re.fullmatch(r"−?\d\.\d\d", t.get_text())]
+        assert [t.get_text() for t in values] == ["1.45", "0.46", "−0.39"]
+        for row, label in zip(hurdle_figure.rows, values, strict=True):
+            assert label.xy[0] == pytest.approx(row.ratio, abs=1e-12)
+            outward = row.ratio >= row.hurdle
+            assert label.get_ha() == ("left" if outward else "right")
+            assert (label.xyann[0] > 0) == outward
+
+    def test_each_row_names_its_data_and_both_sharpe_ratios(self, hurdle_figure) -> None:
+        ax = hurdle_figure.axes[0]
+        rows = hurdle_figure.rows
+        details = [t for t in ax.texts if t.get_text().startswith("bonds ")]
+        assert [t.get_text() for t in details] == [
+            "bonds 0.80, stocks 0.55",
+            "bonds 0.26, stocks 0.57",
+            "bonds −0.18, stocks 0.45",
+        ]
+        ys = [dot.get_ydata()[0] for dot in _dots(ax)]
+        for row, y, detail in zip(rows, ys, details, strict=True):
+            label = [t for t in ax.texts if t.get_text() == row.label][0]
+            assert y < detail.get_position()[1] < label.get_position()[1] < y + 0.5
+
+    def test_the_equal_sharpe_line_and_the_axis(self, hurdle_figure) -> None:
+        ax = hurdle_figure.axes[0]
+        dashed = [line for line in ax.lines if line.get_linestyle() == "--"]
+        assert len(dashed) == 1 and list(dashed[0].get_xdata()) == [1.0, 1.0]
+        assert "equal Sharpe ratios" in _plain_texts(ax)
+        assert ax.get_xlim() == HURDLE_XLIM
+        assert ax.get_yticks().size == 0
+        assert ax.get_xlabel() == "bonds' Sharpe ratio as a multiple of stocks'"
+        hurdle_figure.canvas.draw()
+        assert [t.get_text() for t in ax.get_xticklabels()] == ["−0.5", "0.0", "0.5", "1.0", "1.5"]
+
+    def test_the_legend_names_each_mark(self, hurdle_figure) -> None:
+        legend = hurdle_figure.axes[0].get_legend()
+        assert [t.get_text() for t in legend.get_texts()] == [
+            "where bonds landed",
+            "hurdle",
+            "risk parity leads",
+        ]
+
+
+class TestTheHurdleFiguresText:
+    def test_the_note(self, hurdle_figure) -> None:
+        note = hurdle_figure.texts[-1].get_text()
+        assert note.split("\n") == [
+            "The hurdle is the multiple of stocks' Sharpe ratio at which levered risk parity "
+            "and 60/40 earn the same",
+            "Sharpe ratio at the same volatility. It depends on the two volatilities and their "
+            "correlation, not on the cash rate.",
+            "Qian (2005): stocks 15.1%, bonds 4.6%, correlation 0.2. SPY and AGG: 18.55% and "
+            "5.17%, correlation −0.0002,",
+            "2003-09-30 to 2026-09-17, 2026 downloads. 1.74% is the St. Louis Fed's average "
+            "three-month bill rate, not stored here.",
+            "4% is the cash rate Chan assumes elsewhere in the book.",
+        ]
+
+    def test_text_fits_and_nothing_overlaps(self, hurdle_figure) -> None:
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(hurdle_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        ax = hurdle_figure.axes[0]
+        pieces = [hurdle_figure._suptitle, hurdle_figure.texts[-1], ax.xaxis.label]
+        pieces += [t for t in ax.texts if t.get_text()]
+        pieces += [t for t in [*ax.get_xticklabels()] if t.get_text()]
+        boxes = [(p.get_text(), p.get_window_extent(renderer)) for p in pieces]
+        boxes.append(("legend", ax.get_legend().get_window_extent(renderer)))
+        assert max(box.x1 for _, box in boxes) <= hurdle_figure.bbox.x1
+        clashes = [
+            (a, b)
+            for i, (a, box_a) in enumerate(boxes)
+            for b, box_b in boxes[i + 1 :]
+            if box_a.overlaps(box_b)
+        ]
+        assert clashes == []
+
+    def test_no_label_is_parsed_as_math(self, hurdle_figure) -> None:
+        for text in [*hurdle_figure.texts, *hurdle_figure.axes[0].texts]:
+            assert text.get_parse_math() is False
+
+
+class TestTheHurdleFiguresDefaultDraw:
+    def test_the_default_draw_reads_the_full_span(self, tmp_path, hurdle_figure) -> None:
+        fig = make_hurdle_figure(out=tmp_path / HURDLE_FIGURE)
+        assert fig.rows == hurdle_figure.rows == hurdle_rows()
+
+    def test_the_figure_is_written_where_it_is_asked_to_be(self, hurdle_figure) -> None:
+        assert hurdle_figure.written_to.is_file()
+        assert hurdle_figure.written_to.stat().st_size > 0
+
+
+def test_the_committed_hurdle_figure_exists() -> None:
+    assert (FIGURES_DIR / HURDLE_FIGURE).is_file()

@@ -455,8 +455,7 @@ of its figures are not pinned here.
    carries as cited constants. From Qian's paper, committed at
    [research/papers](research/papers/README.md): the 1983 to 2004 sample, the
    15.1% and 4.6% volatilities, the 0.2 correlation, the 93% risk share, the
-   Sharpe ratios of 0.55 and 0.80, the 0.67 and 0.87 that the second figure
-   carries as cited constants and draws, the bond index's 3.7% a year
+   Sharpe ratios of 0.55, 0.80, 0.67 and 0.87, the bond index's 3.7% a year
    above Treasury bills, the 2 points a year his levered portfolio beat 60/40
    by, his 60/40 volatility of 9.6%, and the condition under which his paper
    says risk parity is mean-variance optimal. The Federal Reserve's near-zero
@@ -473,12 +472,10 @@ of its figures are not pinned here.
    cash and the Sharpe ratios of 0.45 and −0.18 the two funds earn at the 4%
    rate, the 1.11%, 2.20% and 4.65% the portfolios earn above cash, and the
    0.71, 0.98 and 0.18 that weight the two funds' Sharpe ratios under a
-   correlation near zero, with the hurdle of about 0.53 they set for bonds
-   against stocks, the hurdle of about two-thirds the same arithmetic gives at
-   Qian's inputs and the 0.87 and 0.67 it gives back there, AGG's Sharpe ratio
-   of about −0.46 against SPY's 0.66 in the later period, about −0.7 times
-   stocks', the hurdle of about 0.7 times stocks' at that period's correlation
-   of +0.24 and the 1.4 times stocks' by which AGG missed it, the correlation
+   correlation near zero, the 0.87 and 0.67 the same arithmetic gives back at
+   Qian's inputs, AGG's Sharpe ratio of about −0.46 against SPY's 0.66 in the
+   later period, about −0.7 times stocks', and the 1.4 times stocks' by which
+   AGG missed that period's hurdle, the correlation
    of about −0.6 below which the hurdle turns negative and the −0.96 below
    which it would fall under AGG's, and the whole-period Sharpe ratios of 0.18
    and 0.25 that the earlier and later periods' weights would give risk parity,
@@ -486,10 +483,8 @@ of its figures are not pinned here.
    the period and the carried weights, and the 0.525 and 0.276 in the inequality
    that sets the hurdle, and the Sharpe gap of about 0.13 for risk parity before
    2022 at 1.17%, with its t-statistic of +1.11, and the Sharpe ratios of about
-   0.26 for AGG and 0.57 for SPY
-   at the 1.74% bill average, with the 0.44 of the 0.98 difference in bonds'
-   Sharpe ratio that the cash rate accounts for, and the 0.46 times SPY's that
-   AGG's 0.26 comes to there.
+   0.26 for AGG and 0.57 for SPY at the 1.74% bill average, with the 0.44 of
+   the 0.98 difference in bonds' Sharpe ratio that the cash rate accounts for.
 3. Averages of the Federal Reserve Bank of St. Louis's monthly three-month bill
    series, TB3MS, downloaded 2026-09-30 and not stored here: 1.74% from October
    2003 to August 2026, 1.17% from October 2003 to February 2022 and 4.18% from
@@ -502,21 +497,27 @@ Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of
 1.50%, 2.45% and −4.43% at which the two Sharpe ratios tie and the full span's
 t-statistic of −2 at 3.80% and +1.30 at zero, the later period's −2 at 3.25%,
-and the 0.38 gap its weights would leave if computed inside it. What its two
-figures draw traces to
-[tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py). That
-includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at the
-1.74% bill average, the gap of about 0.02 between them and its t-statistic of
-−0.21, all of which the second figure draws.
+and the 0.38 gap its weights would leave if computed inside it. It also holds
+the hurdle bonds' Sharpe ratio has to clear, about 0.53 over the whole period
+and about 0.7 in the later period, and AGG's 0.46 and −0.39 times SPY's
+Sharpe ratio at the 1.74% bill average and at 4%. What its three figures draw
+traces to [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
+That includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at
+the 1.74% bill average, the gap of about 0.02 between them and its t-statistic
+of −0.21, which the second figure draws, and the hurdle of about two-thirds at
+Qian's inputs and his bonds' 1.45 times stocks', which the third draws. Those
+two figures carry Qian's printed numbers, listed in group 1, as cited
+constants.
 
-Both figures are drawn from the committed SPY and AGG vintages by
+All three figures are drawn from the committed SPY and AGG vintages by
 [src/chan/risk_parity_figures.py](src/chan/risk_parity_figures.py):
 
 1. The capital and risk shares of 60/40 and risk parity on the full span.
 2. Risk parity's stock weight and leverage beside Qian's, and the Sharpe ratios
    of 60/40 and levered risk parity in his data and on SPY and AGG at the 1.74%
-   bill average and at 4%, for Lesson 1. Qian's figures are drawn as Table 2 of his paper prints
-   them.
+   bill average and at 4%, for Lesson 1.
+3. Bonds' Sharpe ratio as a multiple of stocks' against the hurdle risk parity
+   needs, in the same three rows, for Lesson 2.
 
 ```bash
 uv run python -m chan.risk_parity_figures

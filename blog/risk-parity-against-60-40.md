@@ -99,6 +99,10 @@ At a correlation near zero that is the sum divided by √2. For 60/40, each weig
 
 60/40’s two multipliers add to more than 1 because, with uncorrelated funds, 60/40’s volatility is less than the two funds’ weighted volatilities added together. Stocks’ multiplier sits near 1 because 60/40 is nearly all stock by risk. Subtracting one side from the other, with the unrounded multipliers, shows that risk parity comes out ahead when `0.525 S₂ > 0.276 S₁`, which means bonds’ Sharpe ratio has to be more than about 0.53 times stocks’. AGG’s −0.18 against SPY’s 0.45 falls far short. At Qian’s correlation of 0.2, with his 60/40 volatility of 9.6%, the same arithmetic puts the hurdle at about two-thirds and reproduces his printed 0.87 and 0.67. His bonds’ 0.80 against stocks’ 0.55 clears it easily.
 
+![Three rows on an axis of bonds’ Sharpe ratio as a multiple of stocks’. Qian’s hurdle is 0.66, and his bonds landed at 1.45, inside the zone where risk parity leads. For SPY and AGG the hurdle is 0.53. AGG landed at 0.46 at the 1.74% average bill rate and at −0.39 at an assumed 4% cash rate, both short of it.](../docs/figures/risk_parity_bond_hurdle.png)
+
+*Each tick is the hurdle, the multiple of stocks’ Sharpe ratio that bonds need for levered risk parity to lead 60/40. Qian’s bonds cleared his by a wide margin. AGG fell just short at the 1.74% bills paid on average and far short at 4%.*
+
 ## Lesson 3: Qian’s weights and leverage are really a volatility ratio and a correlation
 
 Risk parity sets `w₁σ₁ = w₂σ₂`, so Qian’s 23-77 says his stocks were 77 / 23, or 3.3 times as volatile as his bonds. Two significant figures is all he printed. Any weights that round to 23 and 77 put the ratio between 3.26 and 3.44. Dividing the two volatilities in his paper gives 3.28, inside that band. On SPY and AGG the ratio is 3.59. So the miss of about a point on the weight is the visible sign that SPY and AGG’s volatility ratio falls outside anything his rounded weights allow.
