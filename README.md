@@ -492,9 +492,10 @@ fall in leverage from 1.88 to 1.78, trace to
 [tests/test_risk_parity.py](tests/test_risk_parity.py). The multipliers
 0.71, 0.98 and 0.18 that Lesson 2 puts on the two funds' Sharpe ratios trace
 to `test_the_multipliers_lesson_2_writes_the_hurdle_from` in the same file. So
-do the 0.525 and 0.276 that subtracting one portfolio's multipliers from the
-other's gives in the inequality that sets the hurdle. At the 1.17% average, that file also pins risk parity's lead of
-about 0.13 in the earlier period and its t-statistic of +1.12.
+do the 0.525 and 0.276 in the inequality that sets the hurdle, which come from
+subtracting one portfolio's multipliers from the other's. At the 1.17%
+average, that file also pins risk parity's lead of about 0.13 in the earlier
+period and its t-statistic of +1.12.
 
 Every other number in the post traces to an assertion in
 [tests/test_risk_parity.py](tests/test_risk_parity.py), including the rates of

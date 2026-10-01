@@ -1023,8 +1023,8 @@ every trading day. The moments are simple daily returns, the mean scaled by
 **One return falls in neither sub-window and it is the boundary day's.** Rows 11
 to 15 run on 4,647 and 1,130 daily returns against the full span's 5,778, one
 short. A return spans two closes, so the one dated 2022-03-16 runs from the
-falling window's last close to the rising window's first and belongs to neither
-side of the cut. It is the decision day itself, and the largest in its
+2022-03-15 close to the 2022-03-16 close and belongs to neither side of the
+cut. It is the decision day itself, and the largest in its
 neighbourhood at SPY +2.2174 percent against AGG +0.0743 percent, so it is named
 here rather than left for a reader to notice the counts miss by one.
 `TestTheTwoSubWindows::test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut`
