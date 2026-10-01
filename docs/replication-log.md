@@ -1027,8 +1027,8 @@ short. A return spans two closes, so the one dated 2022-03-16 runs from the
 dated 2022-03-15 and row 13's starts with the one dated 2022-03-17, so this one
 belongs to neither. That return covers the day the Federal Reserve announced
 its first rate rise of 2022. SPY gained 2.2174 percent that day against AGG's
-0.0743 percent. So it is named here rather than left for a reader to notice
-the counts miss by one.
+0.0743 percent. So the return is named here rather than left for a reader to
+notice the counts miss by one.
 `TestTheTwoSubWindows::test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut`
 holds that day's two returns, so the arithmetic above stays checkable.
 
