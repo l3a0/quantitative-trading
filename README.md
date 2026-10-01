@@ -121,8 +121,8 @@ intersection with `pep_chan.csv` and that starts in 1977.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
-One vintage holds a rate rather than a price, FRED's three-month Treasury-bill
-series, so the scale-break check skips it.
+One vintage, FRED's three-month Treasury-bill series, holds a rate rather than
+a price, so the scale-break check skips it.
 [src/chan/bill_rates.py](src/chan/bill_rates.py) reads it and averages it over
 a window of months, and [tests/test_bill_rates.py](tests/test_bill_rates.py)
 pins what it gives.

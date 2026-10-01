@@ -51,8 +51,7 @@ why the bytes cannot carry the symbol instead.
 ## What each file is
 
 A vintage is one download of one series, identified by vendor, symbol, span,
-download date, and which price the series carries, or that it carries a rate
-rather than a price.
+download date, and which price or rate the series carries.
 
 | File | Vendor | Symbol | Price | Span | Downloaded |
 | --- | --- | --- | --- | --- | --- |
@@ -136,15 +135,18 @@ fact that can drift.
 
 `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` is the first vintage
 that is not a price. It is the St. Louis Fed's three-month Treasury-bill rate,
-series TB3MS, as FRED's public CSV returned it, one row per month dated the
-first of the month, in percent a year on a secondary-market basis. It is
-recorded under the `rate` basis rather than `raw`, because a rate has no
-adjusted form and a day-over-day ratio says nothing about its scale: the bill
-rate went from 0.02% in October 2015 to 0.12% in November, a sixfold change in
-a month and no change of units. So the scale-break guard does not read it, and
-[tests/test_scale_breaks.py](../tests/test_scale_breaks.py) says why where it
-skips it. [src/chan/bill_rates.py](../src/chan/bill_rates.py) reads it, and the
-risk parity post's bill-rate averages trace to
+series TB3MS, in percent a year, one row per month dated the first of the
+month. The values are FRED's, written through `record_vintage`. So the header
+is `Date,Close` rather than FRED's own, and each value is written as a float,
+which drops a trailing zero: FRED's 0.20 is stored as 0.2.
+
+It is recorded under the `rate` basis rather than `raw`, because the
+scale-break guard reads every `raw` series as a price. The **rate** entry in
+the [design doc's vocabulary](../docs/design.md#vocabulary) says why a rate
+cannot be read that way, and
+[tests/test_scale_breaks.py](../tests/test_scale_breaks.py) measures it where
+it skips the series. [src/chan/bill_rates.py](../src/chan/bill_rates.py) reads
+it, and the risk parity post's bill-rate averages trace to
 [tests/test_bill_rates.py](../tests/test_bill_rates.py).
 [Issue 187](https://github.com/l3a0/quantitative-trading/issues/187) is where
 storing it was decided.
