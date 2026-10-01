@@ -514,8 +514,8 @@ Both figures are drawn from the committed SPY and AGG vintages by
 
 1. The capital and risk shares of 60/40 and risk parity on the full span.
 2. Risk parity's stock weight and leverage beside Qian's, and the Sharpe ratios
-   of 60/40 and levered risk parity in his data, at the 1.74% bill average and
-   at 4%, for Lesson 1. Qian's figures are drawn as Table 2 of his paper prints
+   of 60/40 and levered risk parity in his data and on SPY and AGG at the 1.74%
+   bill average and at 4%, for Lesson 1. Qian's figures are drawn as Table 2 of his paper prints
    them.
 
 ```bash

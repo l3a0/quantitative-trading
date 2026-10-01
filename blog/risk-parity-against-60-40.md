@@ -71,7 +71,7 @@ The allocation is about a point off Qian’s and the leverage about 0.2 above hi
 
 Qian offered his weights and leverage in support of the Sharpe ratio claim, and on SPY and AGG that claim fails. At the 4% cash rate, 60/40 earns 0.41 and levered risk parity 0.19, a gap of 0.22 against risk parity. In mean returns above cash, 60/40 earns 2.46 percentage points a year more at the same volatility.
 
-![Three panels comparing Qian’s figures with this replication’s. Risk parity’s stock weight is 23% for Qian and 21.8% for SPY and AGG, both far below 60/40’s 60%. The leverage that matches 60/40’s volatility is 1.8 for Qian and 1.98 for SPY and AGG. The Sharpe ratios of 60/40 and of levered risk parity are 0.67 and 0.87 for Qian, 0.61 and 0.59 for SPY and AGG at the 1.74% average bill rate, and 0.41 and 0.19 at a 4% cash rate.](../docs/figures/risk_parity_against_qian.png)
+![Three panels comparing Qian’s figures with this replication’s. Risk parity’s stock weight is 23% for Qian and 21.8% for SPY and AGG, both far below 60/40’s 60%. The leverage that matches 60/40’s volatility is 1.8 for Qian and 1.98 for SPY and AGG. The Sharpe ratios of 60/40 and of levered risk parity are 0.67 and 0.87 for Qian, 0.61 and 0.59 for SPY and AGG at the 1.74% average bill rate, and 0.41 and 0.19 at an assumed 4% cash rate.](../docs/figures/risk_parity_against_qian.png)
 
 *The weight and leverage land close to Qian’s. Risk parity led 60/40 by 0.20 in his data, trails by 0.02 at the 1.74% bills paid on average, and trails by 0.22 at 4%.*
 

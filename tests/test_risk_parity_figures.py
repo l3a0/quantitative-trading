@@ -261,6 +261,10 @@ class TestWhatTheClaimFigureCompares:
         assert (BOOK_WEIGHTS[0], BOOK_LEVERAGE) == (0.23, 1.8)
 
     def test_the_bill_average_is_the_one_the_post_quotes(self) -> None:
+        """This holds that the code and the post quote the same rate, not that
+        the rate is right. It was read off the St. Louis Fed's TB3MS series and
+        is not stored here, which README's third group of unpinned figures and
+        the figure's own note both say."""
         assert BILL_AVERAGE == 0.0174
 
     def test_this_runs_weight_and_leverage(self, claim_figure) -> None:
@@ -333,6 +337,7 @@ class TestTheWeightAndLeveragePanels:
             for dot, label in zip(dots, labels, strict=True):
                 assert label.xy == pytest.approx((dot.get_xdata()[0], dot.get_ydata()[0]))
                 assert label.get_ha() == "left"
+                assert label.xyann[0] > 0
 
     def test_the_reference_lines_mark_60_40(self, claim_figure) -> None:
         for ax, x in ((claim_figure.axes[0], 0.6), (claim_figure.axes[1], 1.0)):
@@ -342,7 +347,10 @@ class TestTheWeightAndLeveragePanels:
             label = [text for text in ax.texts if text.get_text().startswith("60/40")][0]
             assert label.xy[0] == x
 
-    def test_the_axes_start_at_zero_so_closeness_is_not_exaggerated(self, claim_figure) -> None:
+    def test_the_axes_start_at_zero_and_mark_60_40(self, claim_figure) -> None:
+        """A zero baseline alone would make any two values look close. The
+        60/40 line on each panel is what gives the gap between the dots a
+        scale, 1.2 points of weight against 37 to 60/40's 60%."""
         weight_ax, leverage_ax = claim_figure.axes[0], claim_figure.axes[1]
         assert weight_ax.get_xlim() == (0.0, 1.0)
         assert leverage_ax.get_xlim() == (0.0, 2.5)
@@ -392,7 +400,7 @@ class TestTheSharpePanel:
         assert [pair.label for pair in claim_figure.claim.pairs] == [
             "Qian, 1983 to 2004, cash at each month's bill rate",
             "SPY and AGG, 2003 to 2026, cash at the 1.74% bill average",
-            "SPY and AGG, 2003 to 2026, cash at 4%",
+            "SPY and AGG, 2003 to 2026, cash at an assumed 4%",
         ]
 
     def test_each_row_states_its_leader_gap_and_t(self, claim_figure) -> None:
@@ -423,6 +431,9 @@ class TestTheSharpePanel:
             right = pair.parity > pair.benchmark
             assert parity_label.get_ha() == ("left" if right else "right")
             assert bench_label.get_ha() == ("right" if right else "left")
+            for label in (parity_label, bench_label):
+                assert (label.xyann[0] > 0) == (label.get_ha() == "left")
+                assert label.xyann[0] != 0
 
     def test_arrows_run_from_60_40_to_risk_parity_where_there_is_room(self, claim_figure) -> None:
         """The 1.74% row's dots touch, so it draws no arrow, and the other two
@@ -437,10 +448,13 @@ class TestTheSharpePanel:
         assert [(a.xy, a.xyann) for a in arrows] == [
             ((p.parity, rows[p.label]), (p.benchmark, rows[p.label])) for p in pairs
         ]
+        # The head sits at xy, the risk parity end, so the arrow reads from 60/40.
+        assert all(a.arrowprops["arrowstyle"] == "-|>" for a in arrows)
 
     def test_the_axis_runs_from_zero_to_one(self, claim_figure) -> None:
         ax = claim_figure.axes[2]
         assert ax.get_xlim() == (0.0, 1.0)
+        assert ax.get_yticks().size == 0
         claim_figure.canvas.draw()
         assert [t.get_text() for t in ax.get_xticklabels()] == [
             "0.0",
@@ -463,7 +477,7 @@ class TestTheClaimFiguresText:
     def test_the_title_states_the_finding(self, claim_figure) -> None:
         assert claim_figure._suptitle.get_text() == (
             "Risk parity's weight and leverage land close to Qian's, "
-            "and its Sharpe ratio lead does not"
+            "and its Sharpe ratio lead is gone"
         )
 
     def test_the_panel_titles(self, claim_figure) -> None:
@@ -474,12 +488,19 @@ class TestTheClaimFiguresText:
         ]
 
     def test_the_note_names_both_sources_and_the_unstored_rate(self, claim_figure) -> None:
-        note = claim_figure.texts[-1].get_text()
-        assert "Qian (2005), Table 2" in note
-        assert "SPY and AGG: 2003-09-30 to 2026-09-17, daily, 2026 downloads." in note
-        assert "1.74% is the St. Louis Fed's average three-month bill rate" in note
-        assert "not stored here" in note
-        assert "Newey-West t-statistic of risk parity minus 60/40" in note
+        lines = claim_figure.texts[-1].get_text().split("\n")
+        assert lines == [
+            "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.",
+            "SPY and AGG: 2003-09-30 to 2026-09-17, daily, 2026 downloads. 1.74% is the "
+            "St. Louis Fed's average three-month bill rate",
+            "(TB3MS) from October 2003 to August 2026, read off the Fed's site and "
+            "not stored here.",
+            "4% is the cash rate Chan assumes elsewhere in the book, above what bills "
+            "paid on average.",
+            "t is the t-statistic of risk parity minus 60/40, corrected for day-to-day dependence "
+            "(Newey-West).",
+            "Beyond ±2, a gap that size arises by chance less than 5% of the time.",
+        ]
 
     def test_every_text_fits_inside_the_figure(self, claim_figure) -> None:
         """The note ran off the right edge on an early draw."""
@@ -492,6 +513,31 @@ class TestTheClaimFiguresText:
         texts += [t for ax in claim_figure.axes for t in ax.texts if t.get_text()]
         right = max(t.get_window_extent(renderer).x1 for t in texts)
         assert right <= claim_figure.bbox.x1
+
+    def test_no_two_pieces_of_text_overlap(self, claim_figure) -> None:
+        """Mutation review squeezed the note onto the tick labels, and the
+        panels onto each other, with every other test still passing."""
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+        canvas = FigureCanvasAgg(claim_figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        pieces = [("suptitle", claim_figure._suptitle), ("note", claim_figure.texts[-1])]
+        for i, ax in enumerate(claim_figure.axes):
+            pieces.append((f"title {i}", ax.title))
+            pieces += [(f"text {i} {t.get_text()}", t) for t in ax.texts if t.get_text()]
+            ticks = [*ax.get_xticklabels(), *ax.get_yticklabels()]
+            pieces += [(f"tick {i} {t.get_text()}", t) for t in ticks if t.get_text()]
+        boxes = [(name, artist.get_window_extent(renderer)) for name, artist in pieces]
+        legend = claim_figure.axes[2].get_legend()
+        boxes.append(("legend", legend.get_window_extent(renderer)))
+        clashes = [
+            (a, b)
+            for i, (a, box_a) in enumerate(boxes)
+            for b, box_b in boxes[i + 1 :]
+            if box_a.overlaps(box_b)
+        ]
+        assert clashes == []
 
     def test_no_label_is_parsed_as_math(self, claim_figure) -> None:
         for text in [*claim_figure.texts, *(t for ax in claim_figure.axes for t in ax.texts)]:

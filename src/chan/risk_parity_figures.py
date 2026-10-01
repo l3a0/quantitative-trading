@@ -1,15 +1,20 @@
 """Two figures for the risk parity post, drawn from the committed SPY and AGG vintages.
 
 1. :func:`make_risk_split_figure` draws Qian's premise, that 60/40 splits
-   capital 60 to 40 and risk nowhere near it, on the full common span as four
-   bars: 60/40's capital split, 60/40's risk split, risk parity's capital split
-   and risk parity's risk split.
+   capital 60 to 40 and risk nowhere near it, on the full common span. It has
+   four bars.
+
+   1. 60/40's capital split.
+   2. 60/40's risk split, where the equity leg carries nearly all of it.
+   3. Risk parity's capital split, which moves most of the capital into bonds.
+   4. Risk parity's risk split, which is even.
+
 2. :func:`make_claim_figure` draws Lesson 1 of
    ``blog/risk-parity-against-60-40.md``. Risk parity's stock weight and
    leverage land close to Qian's, while the Sharpe ratio comparison he printed
    them to support does not. Its Sharpe panel has three rows: Qian's own pair,
    then this run's pair at the average bill rate and at the 4 percent rate the
-   rest of the post uses.
+   rest of the post assumes.
 
 Every number this run measured comes from :mod:`chan.risk_parity`, so a figure
 can only be wrong by drawing the wrong thing, which
@@ -246,7 +251,7 @@ def claim(result: WindowResult | None = None) -> Claim:
                 at_bills.t_newey_west,
             ),
             SharpePair(
-                f"{STOCK} and {BOND}, 2003 to 2026, cash at {RISK_FREE:.0%}",
+                f"{STOCK} and {BOND}, 2003 to 2026, cash at an assumed {RISK_FREE:.0%}",
                 at_rate.sharpe_benchmark,
                 at_rate.sharpe_parity,
                 at_rate.t_newey_west,
@@ -318,7 +323,7 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
     """Weight and leverage beside Qian's, then the Sharpe ratios they were meant to win."""
     drawn = claim(result)
 
-    fig = Figure(figsize=(10, 6.2), dpi=130)
+    fig = Figure(figsize=(10, 6.7), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     grid = fig.add_gridspec(2, 2, width_ratios=(1, 1.45), hspace=0.75, wspace=0.12)
     weight_ax = fig.add_subplot(grid[0, 0])
@@ -405,16 +410,17 @@ def make_claim_figure(out: Path | None = None, result: WindowResult | None = Non
 
     _title(
         fig,
-        "Risk parity's weight and leverage land close to Qian's, "
-        "and its Sharpe ratio lead does not",
+        "Risk parity's weight and leverage land close to Qian's, and its Sharpe ratio lead is gone",
         "Qian (2005), Table 2: Russell 1000 and Lehman Aggregate, monthly, 1983 to 2004.\n"
         f"{STOCK} and {BOND}: {drawn.start} to {drawn.end}, daily, 2026 downloads. "
         f"{BILL_AVERAGE:.2%} is the St. Louis Fed's average three-month bill rate\n"
         "(TB3MS) from October 2003 to August 2026, read off the Fed's site and not stored here.\n"
-        "t is the Newey-West t-statistic of risk parity minus 60/40. Beyond ±2, a gap that size "
-        "arises by chance less than 5% of the time.",
+        f"{RISK_FREE:.0%} is the cash rate Chan assumes elsewhere in the book, above what bills "
+        "paid on average.\n"
+        "t is the t-statistic of risk parity minus 60/40, corrected for day-to-day dependence "
+        "(Newey-West).\nBeyond ±2, a gap that size arises by chance less than 5% of the time.",
     )
-    fig.subplots_adjust(left=0.1, right=0.98, top=0.86, bottom=0.29)
+    fig.subplots_adjust(left=0.1, right=0.98, top=0.87, bottom=0.32)
     fig.claim = drawn
     return _save(fig, out, CLAIM_FIGURE)
 
