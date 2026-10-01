@@ -1602,7 +1602,7 @@ class TestTheHurdleForAnyWeights:
     def test_the_carried_weights_face_a_higher_hurdle_after_2022(self, measured) -> None:
         """About 0.78 at the later period's +0.24, against 0.70 on weights fitted
         inside it. It crosses zero only near −0.82 and never reaches AGG's
-        −0.69 at any correlation, bottoming out near −0.36 at −1."""
+        −0.69 at any correlation, bottoming out near −0.37 at −1."""
         early = measured["falling rates"][0].parity
         legs = measured["rising rates"][0].legs
         carried = (early.stock_weight, early.bond_weight)

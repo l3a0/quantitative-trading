@@ -514,9 +514,10 @@ of 2.15, risk parity's Sharpe ratio of 0.13 on the hindsight weights, and the
 0.12 of the later period's 0.50 gap that hindsight closes, about a quarter,
 which leaves the three-quarters the post quotes. The seventh draws the later
 period's hurdle across correlations on both sets of weights: about 0.70 and
-0.78 at the measured +0.24, AGG's −0.69 times SPY's, the −0.62 below which the
-curve on fitted weights turns negative, the −0.96 at which it meets AGG, and the
-−0.37 below which the curve on carried weights never falls. The second, third
+0.78 at the measured +0.24, AGG's −0.69 times SPY's, the correlation of −0.62
+below which the curve on fitted weights turns negative, the correlation of
+−0.96 at which it meets AGG, and the −0.37 times stocks' Sharpe ratio below
+which the curve on carried weights never falls. The second, third
 and fourth figures carry Qian's printed numbers, listed in group 1, as cited
 constants.
 

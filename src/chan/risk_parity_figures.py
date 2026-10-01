@@ -1350,6 +1350,8 @@ class CorrelationCurves:
     turns_negative: float
     meets_agg: float
     carried_floor: float
+    stock_vol: float
+    bond_vol: float
     start: str
     end: str
 
@@ -1411,6 +1413,8 @@ def correlation_curves() -> CorrelationCurves:
         turns_negative=_root(fitted, low, high),
         meets_agg=_root(lambda rho: fitted(rho) - agg, low, high),
         carried_floor=carried(-1.0),
+        stock_vol=legs.stock_vol,
+        bond_vol=legs.bond_vol,
         start=legs.start,
         end=legs.end,
     )
@@ -1427,7 +1431,7 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
     """The later period's hurdle against the correlation, beside AGG's ratio."""
     drawn = correlation_curves()
 
-    fig = Figure(figsize=(10, 6.6), dpi=130)
+    fig = Figure(figsize=(10, 7.0), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     ax = fig.subplots()
     _style(ax)
@@ -1442,7 +1446,9 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         color=INK,
         lw=2,
         zorder=3,
-        label=f"weights fitted after 2022 ({_share(drawn.fitted_stock_weight)} stocks)",
+        label=(
+            f"weights fitted with hindsight after 2022 ({_share(drawn.fitted_stock_weight)} stocks)"
+        ),
     )
     ax.plot(
         drawn.correlations,
@@ -1464,8 +1470,24 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         color=INK,
         fontsize=10,
     )
-    for _name, rho in drawn.measured:
+    placements = {
+        "before 2022": (-4, -0.86, "right"),
+        "whole period": (-4, -0.97, "right"),
+        "after 2022": (4, -0.86, "left"),
+    }
+    for name, rho in drawn.measured:
         ax.axvline(rho, color=MUTED, lw=0.9, ls=":", zorder=1)
+        dx, y, ha = placements[name]
+        ax.annotate(
+            f"{name}, {_correlation(rho)}",
+            (rho, y),
+            xytext=(dx, 0),
+            textcoords="offset points",
+            ha=ha,
+            va="center",
+            color=MUTED,
+            fontsize=9,
+        )
     after = drawn.measured[-1][1]
     for value in (drawn.fitted_at_measured, drawn.carried_at_measured):
         ax.plot([after], [value], "o", ms=8, color=ACCENT, zorder=5)
@@ -1481,24 +1503,11 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         fontsize=10,
         linespacing=1.35,
     )
-    ax.annotate(
-        "measured correlations:\n"
-        + ", ".join(f"{_correlation(rho)} {name}" for name, rho in drawn.measured),
-        (0.0, 1.0),
-        xycoords=("data", "axes fraction"),
-        xytext=(0, -6),
-        textcoords="offset points",
-        ha="center",
-        va="top",
-        color=MUTED,
-        fontsize=9,
-        linespacing=1.35,
-    )
     ax.plot(
         [drawn.meets_agg], [drawn.agg_ratio], "o", ms=9, mfc=SURFACE, mec=INK, mew=1.6, zorder=5
     )
     ax.annotate(
-        f"meets AGG only\nbelow {_signed(drawn.meets_agg)}",
+        f"meets AGG only at\ncorrelations below {_signed(drawn.meets_agg)}",
         (drawn.meets_agg, drawn.agg_ratio),
         xytext=(12, -10),
         textcoords="offset points",
@@ -1509,7 +1518,7 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
         linespacing=1.35,
     )
     ax.annotate(
-        "risk parity\nwould lead",
+        "on hindsight weights,\nrisk parity would lead",
         (low, 1.0),
         xycoords=("data", "axes fraction"),
         xytext=(4, -6),
@@ -1534,17 +1543,20 @@ def make_correlation_figure(out: Path | None = None) -> Figure:
 
     _title(
         fig,
-        "After 2022, no correlation these funds showed would have let risk parity lead",
+        "After 2022, AGG fell short of the hurdle at every correlation these funds showed",
         f"{STOCK} and {BOND} after the Federal Reserve's 16 March 2022 rate rise, {drawn.start} to "
         f"{drawn.end}, downloaded in 2026, at the {RISK_FREE:.0%} cash rate.\n"
         "The hurdle is the multiple of stocks' Sharpe ratio bonds need for levered risk parity to "
         "match 60/40 at the same volatility.\n"
-        f"The solid curve turns negative below {_signed(drawn.turns_negative)}. The dashed curve, "
-        "for the weights the post scores this period on, never falls below "
-        f"{_signed(drawn.carried_floor)}.\n"
+        "Only the correlation varies. Both curves keep the later period's volatilities, "
+        f"{drawn.stock_vol:.2%} for SPY and {drawn.bond_vol:.2%} for AGG,\nand AGG's line is "
+        "its measured ratio. The solid curve turns negative at correlations below "
+        f"{_signed(drawn.turns_negative)}. The dashed\ncurve, for the weights the post scores, "
+        f"never falls below {_signed(drawn.carried_floor)} times stocks' Sharpe ratio, reached "
+        "at −1.\n"
         f"{RISK_FREE:.0%} is the rate Chan assumes when levering SPY, borrowed here.",
     )
-    fig.subplots_adjust(left=0.09, right=0.98, top=0.9, bottom=0.27)
+    fig.subplots_adjust(left=0.09, right=0.98, top=0.9, bottom=0.3)
     fig.curves = drawn
     return _save(fig, out, CORRELATION_FIGURE)
 

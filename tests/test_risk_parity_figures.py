@@ -1814,10 +1814,16 @@ class TestTheCorrelationPanel:
         drawn = correlation_figure.curves
         dotted = [line for line in ax.lines if line.get_linestyle() == ":"]
         assert [line.get_xdata()[0] for line in dotted] == [rho for _, rho in drawn.measured]
-        (listing,) = [t for t in ax.texts if t.get_text().startswith("measured correlations")]
-        assert listing.get_text() == (
-            "measured correlations:\n−0.07 before 2022, −0.0002 whole period, +0.24 after 2022"
-        )
+        # Each line carries its own label, anchored on it, rather than one block
+        # a line ran through.
+        labels = [t for t in ax.texts if t.get_text().startswith(("before", "whole", "after"))]
+        assert [t.get_text() for t in labels] == [
+            "before 2022, −0.07",
+            "whole period, −0.0002",
+            "after 2022, +0.24",
+        ]
+        for label, (_, rho) in zip(labels, drawn.measured, strict=True):
+            assert label.xy[0] == rho and label.xyann[0] != 0
 
     def test_the_marked_points(self, correlation_figure) -> None:
         ax = correlation_figure.axes[0]
@@ -1836,9 +1842,9 @@ class TestTheCorrelationPanel:
         ax = correlation_figure.axes[0]
         texts = _plain_texts(ax)
         assert "0.70 and 0.78\nat +0.24" in texts
-        assert "meets AGG only\nbelow −0.96" in texts
+        assert "meets AGG only at\ncorrelations below −0.96" in texts
         assert "AGG's Sharpe ratio, −0.69 times SPY's" in texts
-        assert "risk parity\nwould lead" in texts
+        assert "on hindsight weights,\nrisk parity would lead" in texts
         (meet,) = [t for t in ax.texts if t.get_text().startswith("meets AGG")]
         # Below and right of its point, where the curve has already risen away.
         assert meet.xyann[0] > 0 and meet.xyann[1] < 0
@@ -1854,7 +1860,7 @@ class TestTheCorrelationPanel:
     def test_the_legend_names_both_weights(self, correlation_figure) -> None:
         legend = correlation_figure.axes[0].get_legend()
         assert [t.get_text() for t in legend.get_texts()] == [
-            "weights fitted after 2022 (26.6% stocks)",
+            "weights fitted with hindsight after 2022 (26.6% stocks)",
             "weights carried from before (20.5% stocks)",
         ]
 
@@ -1880,20 +1886,36 @@ class TestTheCorrelationPanel:
         ]
         assert ax.get_xlabel() == "stock-bond correlation"
         assert ax.get_ylabel() == "hurdle, as a multiple of stocks' Sharpe ratio"
+        # The alt text quotes −1 to +0.5, so the range is pinned as a literal.
+        assert CORRELATION_RANGE == (-0.995, 0.5)
+        assert ax.get_xlim() == (-1.0, 0.5)
+        assert [t.get_text() for t in ax.get_xticklabels()] == [
+            "−1.00",
+            "−0.75",
+            "−0.50",
+            "−0.25",
+            "0.00",
+            "0.25",
+            "0.50",
+        ]
 
 
 class TestTheCorrelationFiguresText:
     def test_the_title_and_note(self, correlation_figure) -> None:
         assert correlation_figure._suptitle.get_text() == (
-            "After 2022, no correlation these funds showed would have let risk parity lead"
+            "After 2022, AGG fell short of the hurdle at every correlation these funds showed"
         )
         assert correlation_figure.texts[-1].get_text().split("\n") == [
             "SPY and AGG after the Federal Reserve's 16 March 2022 rate rise, 2022-03-17 to "
             "2026-09-17, downloaded in 2026, at the 4% cash rate.",
             "The hurdle is the multiple of stocks' Sharpe ratio bonds need for levered risk "
             "parity to match 60/40 at the same volatility.",
-            "The solid curve turns negative below −0.62. The dashed curve, for the weights the "
-            "post scores this period on, never falls below −0.37.",
+            "Only the correlation varies. Both curves keep the later period's volatilities, "
+            "17.12% for SPY and 6.21% for AGG,",
+            "and AGG's line is its measured ratio. The solid curve turns negative at correlations "
+            "below −0.62. The dashed",
+            "curve, for the weights the post scores, never falls below −0.37 times stocks' Sharpe "
+            "ratio, reached at −1.",
             "4% is the rate Chan assumes when levering SPY, borrowed here.",
         ]
 
