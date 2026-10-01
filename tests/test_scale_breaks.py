@@ -97,6 +97,21 @@ def days_of(flagged: list[pd.Timestamp]) -> list[str]:
     return [str(day.date()) for day in flagged]
 
 
+def price_entries(data_dir: Path | None = None) -> list:
+    """Every committed vintage the guard reads, which is every one that holds a price.
+
+    A ``rate`` vintage is skipped by its basis rather than by name. A scale
+    break is a price changing units, a split being the case that prompted the
+    guard, and a day-over-day ratio of a rate near zero is not evidence of
+    that: the three-month bill rate went from 0.02% in October 2015 to 0.12%
+    in November, six times over in a month, and nothing changed units. Read
+    as a price, TB3MS reports dozens of breaks that are not breaks, so the
+    basis decides and a second rate series recorded later is skipped the day
+    it lands.
+    """
+    return [entry for entry in read_manifest(data_dir) if entry.price_basis != "rate"]
+
+
 def breaks_across_the_manifest(data_dir: Path | None = None) -> dict[str, list[str]]:
     """Every committed vintage that changes scale inside itself, keyed by its path.
 
@@ -124,7 +139,7 @@ def breaks_across_the_manifest(data_dir: Path | None = None) -> dict[str, list[s
     [issue 93](https://github.com/l3a0/quantitative-trading/issues/93).
     """
     found = {}
-    for entry in read_manifest(data_dir):
+    for entry in price_entries(data_dir):
         flagged = scale_breaks(_parse_close(read_vintage(entry, data_dir=data_dir), entry.symbol))
         if flagged:
             found[entry.path] = days_of(flagged)
@@ -242,12 +257,25 @@ class TestTheGuardOverTheWholeManifest:
         answered, and that one of them answers with anything.
         """
         swept = {}
-        for entry in read_manifest():
+        for entry in price_entries():
             closes = _parse_close(read_vintage(entry), entry.symbol)
             swept[entry.path] = days_of(scale_breaks(closes))
 
-        assert set(swept) == {entry.path for entry in read_manifest()}
+        assert set(swept) == {entry.path for entry in price_entries()}
         assert {path: days for path, days in swept.items() if days} == KNOWN_BREAKS
+
+    def test_only_rate_vintages_are_left_out_and_the_bill_series_is_one(self) -> None:
+        """The skip is by basis, so this says what it skips today."""
+        skipped = {e.path for e in read_manifest()} - {e.path for e in price_entries()}
+        assert {e.price_basis for e in read_manifest() if e.path in skipped} == {"rate"}
+        assert skipped == {"fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv"}
+
+    def test_a_rate_series_would_report_breaks_if_it_were_read_as_a_price(self) -> None:
+        """Why the skip exists, measured rather than asserted. Read as a price,
+        the bill series' moves near zero clear the bound many times over."""
+        (bills,) = [e for e in read_manifest() if e.price_basis == "rate"]
+        flagged = scale_breaks(_parse_close(read_vintage(bills), bills.symbol))
+        assert len(flagged) > 20
 
 
 class TestItSortsBeforeItDifferences:
@@ -352,11 +380,36 @@ class TestItIteratesTheManifest:
     other case in this file and fails this one.
     """
 
-    def test_a_recorded_ninth_carrying_a_break_is_found(self, committed_copy: Path) -> None:
+    @pytest.mark.parametrize("vendor", ["fred", "yfinance"])
+    def test_a_recorded_rate_series_is_skipped_by_its_basis(
+        self, committed_copy: Path, vendor: str
+    ) -> None:
+        """A second rate series is left out the day it is recorded, with no list to extend.
+
+        Recorded under two vendors, because the basis is what decides and a skip
+        keyed on the vendor that sent the first one would pass with ``fred`` alone.
+        """
+        record_vintage(
+            list(zip(DAYS, HALVES, strict=True)),
+            vendor=vendor,
+            symbol="ZZZ",
+            price_basis="rate",
+            download_date="2026-09-18",
+            data_dir=committed_copy,
+        )
+
+        assert breaks_across_the_manifest(committed_copy) == KNOWN_BREAKS
+
+    @pytest.mark.parametrize("vendor", ["yfinance", "fred"])
+    def test_a_recorded_ninth_carrying_a_break_is_found(
+        self, committed_copy: Path, vendor: str
+    ) -> None:
+        """Found whichever vendor sent it, so a price from the vendor that sent the bill
+        rate is still read for a break."""
         assert not [e for e in read_manifest(committed_copy) if e.symbol == "ZZZ"]
         entry = record_vintage(
             list(zip(DAYS, HALVES, strict=True)),
-            vendor="yfinance",
+            vendor=vendor,
             symbol="ZZZ",
             price_basis="adjusted",
             download_date="2026-09-18",
@@ -625,7 +678,7 @@ class TestTheBoundIsTheOneThatWasMeasured:
         the truncation 0.6832.
         """
         widest, breaks, ratios, kept = 0.0, [], [], []
-        for entry in read_manifest():
+        for entry in price_entries():
             closes = _parse_close(read_vintage(entry), entry.symbol)
             values = closes.to_numpy(dtype=float)
             moves = values[1:] / values[:-1]

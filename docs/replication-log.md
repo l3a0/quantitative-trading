@@ -1088,9 +1088,12 @@ portfolio. Row 3 goes against that portfolio anyway, so the missing cost makes
 the verdict safer rather than shakier, which is the one direction an omission
 is allowed to point without being closed.
 
-**Whether a realised short rate reverses row 3.** That needs a Treasury-bill
-vintage, which is a different symbol and a different deliverable, and the
-design doc's register already carries the same cut for Entry 3's Kelly example.
+**Whether a realised short rate reverses row 3.** That needs the run charged a
+Treasury-bill series rather than a constant, which is a different deliverable,
+and the design doc's register already carries the same cut for Entry 3's Kelly
+example. The series itself is committed since
+[issue 187](https://github.com/l3a0/quantitative-trading/issues/187), as FRED's
+TB3MS, and nothing in this entry reads it.
 The rate is Chan's constant and the report says so on its own last lines. The
 derivative above says which way a lower rate would push, and says nothing about
 whether it would push far enough.

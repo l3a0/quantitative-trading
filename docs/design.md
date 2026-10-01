@@ -53,8 +53,8 @@ authority for what the committed vintages carry.
 
 So the one thing this repo must get right is the vintage. A series used to
 produce a number is committed alongside that number, with the vendor, the
-symbol, the span, the download date, and which price it carries recorded next
-to it. Everything else
+symbol, the span, the download date, and which price or rate it carries
+recorded next to it. Everything else
 here is regenerable. Rerun the analysis and it comes back. Lose the vintage
 and the number becomes an assertion nobody can check, including its author.
 
@@ -467,10 +467,11 @@ candidate for a synonym.
 
 | Term | Definition |
 | --- | --- |
-| **vintage** | One download of one series, identified by vendor, symbol, span, download date, and which price the series carries, committed as a file with a checksum. |
+| **vintage** | One download of one series, identified by vendor, symbol, span, download date, and which price the series carries or that it carries a rate, committed as a file with a checksum. |
 | **raw price** | The as-traded close. Fixed once the day has passed, so it is the same in every vintage. |
 | **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
-| **scale break** | A day on which a committed series changes scale rather than price, meaning a day-over-day close ratio too far from 1 for a price move. The date is the later of the two days, so a window opening on it does not span the break. [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) holds the bound and what the committed vintages carry. |
+| **scale break** | A day on which a committed price series changes scale rather than price, meaning a day-over-day close ratio too far from 1 for a price move. The date is the later of the two days, so a window opening on it does not span the break. [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) holds the bound and what the committed vintages carry. A **rate** vintage is not read for one. |
+| **rate** | The third basis a vintage can carry, beside **raw price** and **adjusted price**. A rate vintage holds a series of rates, such as a Treasury-bill yield, recorded as the vendor publishes it. It has no raw or adjusted form, and the scale-break guard does not read it, because a rate near zero can move sixfold in a month without changing units. |
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
