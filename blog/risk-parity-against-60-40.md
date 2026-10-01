@@ -1,6 +1,6 @@
-# Risk parity’s weights and leverage land close to Qian’s on SPY and AGG, and at a 4% cash rate its claim fails
+# Risk parity’s case against 60/40 turns on the cash rate
 
-*Qian’s method gives 21.8% stocks levered 1.98 times on 2003 to 2026 data, close to his 23% and 1.8. At a 4% cash rate, 60/40 earns more for its risk. At the 1.74% that Treasury bills paid on average, the data cannot tell the two apart.*
+*Qian’s weights and leverage reproduce on SPY and AGG, and the rate charged for cash decides which portfolio earns more for its risk.*
 
 ## Why a close match is not enough
 
