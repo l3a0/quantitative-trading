@@ -310,9 +310,9 @@ class TestTheGuardOverTheWholeManifest:
     """Rule 1. What the committed vintages carry, pinned as a count and as dates.
 
     The cost is not pinned with it, and not quoted either. A wall-clock figure
-    is a property of the machine rather than of this code, which
-    [issue 128](https://github.com/l3a0/quantitative-trading/issues/128) is
-    about. Neither is the
+    is a property of the machine rather than of this code, which is why
+    [issue 128](https://github.com/l3a0/quantitative-trading/issues/128)
+    took the figures out of the docstrings. Neither is the
     number of passes over each series, since asserting one would mean counting
     operations or patching the parse, which is more machinery than the property
     is worth.

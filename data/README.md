@@ -273,11 +273,13 @@ measurements below and the decision behind the shape.
    [`1a71950`](https://github.com/egorpe/EPChan-QuantitativeTrading/tree/1a7195003cf3e85a806e18867e0af547d17ad5c4),
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
-   beside the runs that read them. Measured with `du`, the two directories take
-   74.3 MB of the 76.7 MB `data/` now holds, where it held 2.0 MB before them.
-   The budget proposed on
+   beside the runs that read them. Summed from the sizes git records for each
+   file, the two directories hold 71.9 MB of the 74.3 MB `data/` now holds,
+   where it held 2.0 MB before them. A filesystem's block size makes `du`
+   report more, by an amount that differs between machines. The budget
+   proposed on
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
-   `data/` stays under 100 MB on disk, and a later panel states its own size
+   `data/` stays under 100 MB of file content, and a later panel states its own size
    against that in its issue before it is recorded.
 
    ```text
