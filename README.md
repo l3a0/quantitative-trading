@@ -402,14 +402,16 @@ quoting any of them.
    MATLAB filename this repo cites means the first edition unless stated. The
    revised edition puts both GLD/GDX printouts in one Chapter 7 example, which
    [docs/design.md](docs/design.md) works through.
-7. The p-value of 0.005 that Chan's R run prints. It comes from Hansen's
-   covariate-augmented Dickey-Fuller distribution, which nothing here
-   computes, and the design doc's considered-and-rejected register says why.
+7. The p-value of 0.005, rounded from the 0.004975 Chan's R run prints. It
+   comes from Hansen's covariate-augmented Dickey-Fuller distribution, which
+   assumes a stationary covariate the run did not have. Nothing here computes
+   it, and the design doc's considered-and-rejected register says why.
 
-Chan's −2.4 and −3.2, and the full printouts behind them, are book figures.
-The code carries them as cited constants in `TestChansPythonRun` and
-`TestChansRRunIsACovariateAugmentedDickeyFuller` and asserts the computed
-figures against them. Every other number in it traces to an assertion in
+Chan's −2.4 and −3.2, and the t-statistics, coefficients and hedge printed
+beside them, are book figures. The code carries them as cited constants in
+`TestChansPythonRun` and `TestChansRRunIsACovariateAugmentedDickeyFuller` and
+asserts the computed figures against them. Every other number in the essay
+traces to an assertion in
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py).
 
 [blog/price-spread-mean-reversion.md](blog/price-spread-mean-reversion.md) is a

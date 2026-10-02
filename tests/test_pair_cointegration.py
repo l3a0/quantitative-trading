@@ -645,7 +645,7 @@ class TestLagSettingDetour:
 
 
 class TestChansPythonRun:
-    """Chan's Python run, reproduced on his own files to every digit he printed.
+    """Chan's Python run, reproduced on his own files at every figure he printed.
 
     The book's Python code, at pp. 149 to 150 of the revised edition, calls
     ``coint(df['Adj Close_GLD'], df['Adj Close_GDX'])`` on the first 252 rows
@@ -655,9 +655,11 @@ class TestChansPythonRun:
     -2.4. The owner read the code and the printout on 2026-10-02, and
     issue 168 records the reading, since the book notes hold the prose only.
 
-    This is the same test as the MATLAB run in row 4 of
-    ``docs/replication-log.md``, on the same window, with a different lag
-    count. ``TestLagSettingDetour`` holds that difference on the 2026 closes.
+    It is the test Chan's MATLAB call runs in row 4 of
+    ``docs/replication-log.md``, on the same window with a different lag count,
+    as ``example3_6_1.m`` and the book's code read. That is a reading, since no
+    specification tried here lands MATLAB's -3.18156477 on these files.
+    ``TestLagSettingDetour`` holds the lag difference on the 2026 closes.
 
     Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
     of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
@@ -729,7 +731,7 @@ class TestChansPythonRun:
 
         On the 2026 closes, zero fixed lags give -3.2018 and three give
         -2.4067, which read as Chan's two figures. On his own files the same
-        counts give -3.30 and -2.49, so those matches were a coincidence of
+        counts give -3.2975 and -2.4857, so those matches were a coincidence of
         vintage. One fixed lag gives -3.1780, which rounds to R's -3.2 and is
         a different test from the one R ran, which the next class holds.
         Specification: ``adfuller`` with ``maxlag=k``, ``autolag=None`` and
@@ -751,32 +753,41 @@ class TestChansPythonRun:
 
 
 class TestChansRRunIsACovariateAugmentedDickeyFuller:
-    """Chan's R run, which is Hansen's covariate-augmented Dickey-Fuller test
-    rather than the Engle-Granger test his prose calls it.
+    """Chan's R run, which calls Hansen's covariate-augmented Dickey-Fuller test
+    rather than the Engle-Granger test his prose names, and feeds it an input
+    it was not built for.
 
     The book's R code, at p. 151 of the revised edition, calls
     ``CADFtest(model=GLD~GDX, data=mydata, type="drift", max.lag.X=1,
     subset=trainset)`` on the adjusted closes of ``GLD.txt`` and ``GDX.txt``,
-    intersected on date and forward-filled with ``zoo::na.locf``. Hansen's
-    test fits no hedge ratio. It asks whether GLD alone has a unit root, with
-    GDX entering the regression as a stationary covariate. The printout names
+    intersected on date and forward-filled with ``zoo::na.locf``. Hansen's test
+    (Econometric Theory, 1995) asks whether GLD alone has a unit root, and
+    gains power from a covariate that is itself stationary. The printout names
     the regression: the daily change in GLD on a constant, GLD's lagged level,
     one lagged change of GLD, and GDX today and yesterday. The statistic is the
     t on the lagged level. Chan's prose at location 3806 rounds it to -3.2. The
     owner read the code and the printout on 2026-10-02, and issue 168 records
     the reading.
 
-    Three things follow, and the tests below hold the first two.
+    Four things follow, and the tests below hold the first three.
 
-    1. ``subset=trainset`` had no effect. The printout's 378 residual degrees
-       of freedom are five coefficients on 383 rows, which is all 385 days,
-       not the 252 the Python run uses.
+    1. ``subset=trainset`` did not reach the regression. The printout's 378
+       residual degrees of freedom are five coefficients on 383 rows, which is
+       all 385 days, not the 252 the Python run uses.
     2. The forward-fill changes nothing on these files, because the two share
        every one of GDX's trading days.
-    3. The printed p-value of 0.004975 comes from Hansen's own distribution,
-       which depends on the printed rho-squared of 0.2604, so the statistic is
-       not read against ``EG_CRIT_N2``. Nothing here computes that p-value,
-       and ``docs/design.md``'s considered-and-rejected register says why.
+    3. The covariate went in as GDX's price, which is not stationary. Since
+       b0 * x(t) + b1 * x(t-1) equals b0 * dx(t) + (b0 + b1) * x(t-1), the
+       regression is an error-correction cointegration test in disguise. It
+       carries GDX's lagged price beside GLD's and implies a long-run hedge of
+       -(b0 + b1) / delta. Given GDX's daily change, the stationary input
+       Hansen's test expects, the same regression returns a positive t.
+    4. The printed p-value of 0.004975 comes from Hansen's distribution, which
+       depends on the printed rho-squared of 0.2604 and assumes the stationary
+       covariate this run did not have. ``EG_CRIT_N2`` belongs to the two-step
+       test. So neither says whether -3.24 rejects. Nothing here computes that
+       p-value, and ``docs/design.md``'s considered-and-rejected register says
+       why.
 
     Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
     of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
@@ -828,6 +839,44 @@ class TestChansRRunIsACovariateAugmentedDickeyFuller:
         assert beta == pytest.approx(
             [-0.0757014636, -0.0381733407, 0.0854194365, 0.7542804034, -0.6894163853], abs=1e-9
         )
+
+    def test_the_covariate_went_in_as_a_price(self) -> None:
+        """GDX's price fails to reject a unit root, so it is not the stationary
+        covariate Hansen's test assumes. Written in error-correction form, the
+        regression gives the same t and implies a hedge of 1.6992. Given GDX's
+        daily change instead, it gives +0.3554, which no left-tailed test
+        rejects.
+
+        Specification for the unit-root check: ``adfuller`` on GDX's 385 closes
+        with ``regression='c'`` and ``autolag='aic'``, which picks one lag.
+        """
+        frame = self.r_frame()
+        x = frame["GDX"].to_numpy(dtype=float)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            level = adfuller(x, regression="c", autolag="aic")
+            change = adfuller(np.diff(x), regression="c", autolag="aic")
+        assert (float(level[0]), int(level[2])) == pytest.approx((-1.9258, 1), abs=5e-5)
+        assert float(level[1]) == pytest.approx(0.3200, abs=5e-5)
+        assert float(change[1]) < 0.01
+
+        stat, beta, _rows, _dof = self.cadf(frame)
+        y = frame["GLD"].to_numpy(dtype=float)
+        dy = np.diff(y)
+        dx = np.diff(x)
+        target = dy[1:]
+        ecm = np.column_stack([np.ones(len(target)), y[1:-1], dy[:-1], dx[1:], x[1:-1]])
+        ecm_fit = ols(target, ecm)
+        assert float(ecm_fit.beta[1] / ecm_fit.se[1]) == pytest.approx(stat, abs=1e-9)
+        hedge = -float(beta[3] + beta[4]) / float(beta[1])
+        assert hedge == pytest.approx(1.6992, abs=5e-5)
+        assert hedge == pytest.approx(-float(ecm_fit.beta[4] / ecm_fit.beta[1]), abs=1e-9)
+
+        stationary = np.column_stack(
+            [np.ones(len(target) - 1), y[2:-1], dy[1:-1], dx[2:], dx[1:-1]]
+        )
+        fit = ols(target[1:], stationary)
+        assert float(fit.beta[1] / fit.se[1]) == pytest.approx(0.3554, abs=5e-5)
 
     def test_the_training_subset_was_not_applied(self) -> None:
         """On the 252 days the Python run uses, the same regression gives
