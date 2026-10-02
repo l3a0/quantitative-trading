@@ -1,9 +1,10 @@
-"""The stationary-candidates post's two figures, drawn from the committed vintages.
+"""The stationary-candidates post's three figures, drawn from the committed vintages.
 
 ``blog/stationary-candidates-lessons.md`` teaches that one series and a fitted
-pair are read against different bars, and that one-year windows say little
-about the whole span. The owner chose on 2026-10-02 to give the post a figure
-for each lesson.
+pair are read against different bars, that checking a fit for leftover
+autocorrelation moves its statistic, and that how often one-year windows
+reject says little about the whole test period. The owner chose on 2026-10-02
+to give each of those three lessons a figure.
 
 :func:`make_bars_figure` draws the first as two number lines of t-statistics.
 
@@ -14,19 +15,26 @@ for each lesson.
    statistic in each orientation, and the rate's two statistics drawn again as
    hollow marks, read against the pair's bars.
 
-:func:`make_windows_figure` draws the second as the rolling scans the two
+:func:`make_lags_figure` draws the second as the statistic at every lag count
+up to Schwert's ceiling, filled where the fit's residuals pass the check and
+hollow where they fail, for the rate and for both orientations of the pair.
+
+:func:`make_windows_figure` draws the third as the rolling scans the two
 candidates already run: the rate's one-year windows against the bars for one
 series, and both orientations of the pair against Engle-Granger's, with a dot
-on each window that clears 10% and the whole-span result in each panel's
-title. Issue 16 ruled out a picture of these scans because it invites reading
-one window as a finding. The owner reversed that the same day, and the figure's
-note says what the windows are not, which is the part of the objection it can
-answer. The register row in ``docs/design.md`` records both.
+on each window that clears 10% and the result over the whole test period in
+each panel's title. Issue 16 ruled out a picture of these scans because it
+invites reading one window as a finding. The owner reversed that on
+2026-10-02, after choosing the first figure. The figure's title, panel titles
+and note say what the windows are not, which is the part of the objection it
+can answer. The register row in ``docs/design.md`` records the ruling and both
+reversals.
 
 Every statistic comes from :func:`chan.stationary_candidates.cross_rate` and
 :func:`chan.stationary_candidates.fixed_income`, so a figure can only be wrong
 by drawing the wrong thing, which ``tests/test_stationary_candidates_figures.py``
-checks. Both read the committed vintages, so they redraw anywhere the data is::
+checks. All three read the committed vintages, so they redraw anywhere the
+data is::
 
     uv run python -m chan.stationary_candidates_figures
 """
@@ -42,6 +50,7 @@ from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
 from matplotlib.figure import Figure
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
+from chan.pair_cointegration import ResidualCheck, residual_check
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, RULE, SURFACE
 from chan.series import WindowCrossesScaleBreak
@@ -53,11 +62,13 @@ from chan.stationary_candidates import (
     Orientation,
     cross_rate,
     fixed_income,
+    residuals_pass,
 )
 from chan.vintage import VintageUnavailable
 
 BARS_FIGURE = "stationary_candidates_bars.png"
 WINDOWS_FIGURE = "stationary_candidates_windows.png"
+LAGS_FIGURE = "stationary_candidates_lags.png"
 
 #: The t-statistics the axis spans. The pair's 1% bar, -3.90, is the most
 #: negative thing drawn and IEF on TLT, -2.3168, the least.
@@ -255,7 +266,12 @@ def _bar_lines(ax, table: dict[str, float], name: str) -> None:
 
 
 def _scan(ax, dates, stats, bar: float, colour: str, label: str, gid: str) -> None:
-    """One rolling scan as a line, with a dot on each window past ``bar``."""
+    """One rolling scan as a line, with a dot on each window past ``bar``.
+
+    The dots take the line's own colour. The GLD/GDX regime map paints its
+    rejecting windows green for "cointegrates", and a window past a bar here is
+    exactly what the note says is not a finding, so the dots mark it without
+    praising it."""
     ax.plot(dates, stats, color=colour, lw=1.4, zorder=5, label=label, gid=f"scan-{gid}")
     past = stats < bar
     ax.plot(
@@ -263,7 +279,7 @@ def _scan(ax, dates, stats, bar: float, colour: str, label: str, gid: str) -> No
         stats[past],
         "o",
         ms=4.5,
-        color=GOOD,
+        color=colour,
         mec=SURFACE,
         mew=0.6,
         zorder=6,
@@ -292,7 +308,8 @@ def make_windows_figure(
     _scan(top, rate_dates, rate.scan.adf_stat, ADF_CRIT_CONST["10%"], INK, "CAD/AUD", "cadaud")
     _bar_lines(top, ADF_CRIT_CONST, "adf")
     top.set_title(
-        f"CAD/AUD, one series. The whole span rejects at 5%, at {_t(rate.adf_stat)}.",
+        "CAD/AUD, one series. Over the whole test period the test rejects at 5%, "
+        f"with t = {_t(rate.adf_stat)}.",
         color=INK,
         fontsize=11,
         loc="left",
@@ -312,8 +329,9 @@ def make_windows_figure(
         )
     _bar_lines(bottom, EG_CRIT_N2, "eg")
     bottom.set_title(
-        f"TLT and IEF, a fitted pair. The whole span does not reject even at 10%, "
-        f"at {_t(by[LONG].fit.adf_stat)} and {_t(by[INTERMEDIATE].fit.adf_stat)}.",
+        "TLT and IEF, a fitted pair. Over the whole period it does not reject even at "
+        f"10%: {_t(by[LONG].fit.adf_stat)} for TLT on IEF, "
+        f"{_t(by[INTERMEDIATE].fit.adf_stat)} for IEF on TLT.",
         color=INK,
         fontsize=11,
         loc="left",
@@ -329,14 +347,128 @@ def make_windows_figure(
 
     _title(
         fig,
-        "One-year windows say little about the whole span, in either direction",
-        "Windows of 252 trading days stepped by 21, one lag. Dots mark windows past the 10% bar. "
-        "CADAUD=X log rate and TLT and IEF raw closes,\n"
-        "all downloaded 2026-10-02. A window that clears a bar is one look at the data "
-        "among many, not a finding about the candidate.",
+        "How often one-year windows reject says little about the whole test period",
+        "Windows of 252 trading days stepped by 21, one lag. Dots mark windows past the "
+        f"10% bar.\nCADAUD=X, log of the rate, from {TEST_START}. TLT and IEF raw closes "
+        "from 2002-07-30. All downloaded 2026-10-02.\nA window that clears a bar is one "
+        "look at the data among many, not a finding about the candidate.",
+    )
+    fig.tight_layout(rect=(0, 0.09, 0.9, 0.95))
+    return _save(fig, out, WINDOWS_FIGURE)
+
+
+def lag_sweep(series, ceiling: int, regression: str) -> list[ResidualCheck]:
+    """The fit and its residual check at every lag count from 0 to ``ceiling``.
+
+    The same search :func:`chan.stationary_candidates.first_passing` runs, kept
+    whole rather than stopped at the first pass, so the figure can show what
+    the search walked past.
+    """
+    return [residual_check(series, lags, regression=regression) for lags in range(ceiling + 1)]
+
+
+def _sweep(ax, checks: list[ResidualCheck], colour: str, label: str, gid: str) -> None:
+    """One sweep as a line, with each lag count filled if it passes."""
+    lags = [c.lags for c in checks]
+    stats = [c.adf_stat for c in checks]
+    ax.plot(lags, stats, color=colour, lw=1.1, zorder=4, label=label, gid=f"sweep-{gid}")
+    for passed, face, name in ((True, colour, "pass"), (False, "none", "fail")):
+        picked = [c for c in checks if residuals_pass(c) is passed]
+        ax.plot(
+            [c.lags for c in picked],
+            [c.adf_stat for c in picked],
+            "o",
+            ms=5.5,
+            color=colour,
+            mfc=face,
+            mec=colour,
+            mew=1.2,
+            zorder=5,
+            gid=f"{name}-{gid}",
+        )
+
+
+def _first_pass(ax, checks: list[ResidualCheck], text: str, offset: tuple[float, float]) -> None:
+    first = next(c for c in checks if residuals_pass(c))
+    ax.annotate(
+        text.format(lags=first.lags, t=_t(first.adf_stat)),
+        (first.lags, first.adf_stat),
+        xytext=offset,
+        textcoords="offset points",
+        color=INK,
+        fontsize=9.5,
+        arrowprops={"arrowstyle": "-", "color": MUTED, "lw": 0.8},
+    )
+
+
+@_plain_text
+def make_lags_figure(
+    out: Path | None = None,
+    rate: CrossRate | None = None,
+    orientations: tuple[Orientation, ...] | None = None,
+) -> Figure:
+    """The statistic at every lag count, filled where the residuals pass."""
+    rate = rate if rate is not None else cross_rate()
+    orientations = orientations if orientations is not None else fixed_income()[1]
+    by = {o.dependent: o for o in orientations}
+    rate_checks = lag_sweep(rate.log_rate.to_numpy(float), rate.ceiling, "c")
+    pair_checks = {leg: lag_sweep(by[leg].fit.spread, by[leg].ceiling, "n") for leg in by}
+
+    fig = Figure(figsize=(11, 7.4), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    top, bottom = fig.subplots(2, 1, sharex=True)
+    for ax in (top, bottom):
+        _style(ax)
+
+    _sweep(top, rate_checks, INK, "CAD/AUD", "cadaud")
+    _bar_lines(top, ADF_CRIT_CONST, "adf")
+    _first_pass(top, rate_checks, "first count that passes: {lags} lags, {t}", (30, 48))
+    top.set_title(
+        f"CAD/AUD. The check shrinks the margin: every count up to {rate.ceiling} still "
+        "rejects at 5%.",
+        color=INK,
+        fontsize=11,
+        loc="left",
+    )
+
+    for leg, colour, offset in ((LONG, INK, (-250, -78)), (INTERMEDIATE, ACCENT, (-250, -98))):
+        o = by[leg]
+        name = f"{o.dependent} on {o.independent}"
+        _sweep(
+            bottom,
+            pair_checks[leg],
+            colour,
+            name,
+            f"{o.dependent.lower()}-on-{o.independent.lower()}",
+        )
+        _first_pass(bottom, pair_checks[leg], name + ", first passes at {lags} lags, {t}", offset)
+    _bar_lines(bottom, EG_CRIT_N2, "eg")
+    bottom.set_title(
+        "TLT and IEF. The check strengthens the finding: the first fits that pass sit "
+        "further from the bar.",
+        color=INK,
+        fontsize=11,
+        loc="left",
+    )
+    bottom.legend(
+        loc="upper left", bbox_to_anchor=(1.008, 0.55), frameon=False, fontsize=9, labelcolor=INK
+    )
+    for ax in (top, bottom):
+        ax.set_ylabel("t-statistic", color=INK, fontsize=10)
+    bottom.set_xlabel(
+        "lag count, the number of earlier changes the ADF includes", color=INK, fontsize=10
+    )
+
+    _title(
+        fig,
+        "Checking each fit for leftover autocorrelation moves the statistic",
+        "Each dot is one ADF fit over the whole test period. Filled: its residuals pass "
+        "both halves of the check, a Breusch-Godfrey p-value above 0.10\n"
+        "and all ten autocorrelations inside ±1.96/√n. Hollow: they fail. "
+        "The search stops at Schwert's ceiling, rounded up as statsmodels rounds it.",
     )
     fig.tight_layout(rect=(0, 0.07, 0.9, 0.95))
-    return _save(fig, out, WINDOWS_FIGURE)
+    return _save(fig, out, LAGS_FIGURE)
 
 
 def main() -> None:
@@ -344,6 +476,7 @@ def main() -> None:
         rate, fixed = cross_rate(), fixed_income()
         make_bars_figure(rate=rate, orientations=fixed[1])
         make_windows_figure(rate=rate, fixed=fixed)
+        make_lags_figure(rate=rate, orientations=fixed[1])
     except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
         # The two refusals `chan.stationary_candidates.main` prints. This module
         # reads the same three vintages through the same two calls, so it
@@ -351,6 +484,7 @@ def main() -> None:
         raise SystemExit(str(refusal)) from refusal
     print(f"wrote {FIGURES_DIR / BARS_FIGURE}")
     print(f"wrote {FIGURES_DIR / WINDOWS_FIGURE}")
+    print(f"wrote {FIGURES_DIR / LAGS_FIGURE}")
 
 
 if __name__ == "__main__":

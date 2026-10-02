@@ -688,15 +688,17 @@ before it, and `tests/test_stationary_candidates.py` now pins them.
 2. Both cross-rate statistics falling short of the pair's 5% bar of −3.34.
 3. A one-year window holding about 1.78 half-lives.
 
-Its two figures are drawn from the committed vintages by
+Its three figures are drawn from the committed vintages by
 [src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py).
 
 1. Both sets of bars as number lines, with the cross rate's two statistics on
    the first and the bond pair's on the second, and the cross rate's two
    statistics drawn again against the pair's bars, for Lesson 2.
-2. The two candidates' one-year rolling scans against their bars, the cross
-   rate in one panel and both orientations of the bond pair in the other, with
-   a dot on each window past the 10% bar, for Lesson 4.
+2. The statistic at every lag count up to the ceiling, filled where the fit's
+   residuals pass the check and hollow where they fail, the cross rate in one
+   panel and both orientations of the bond pair in the other, for Lesson 3.
+3. The two candidates' one-year rolling scans against their bars, laid out the
+   same way, with a dot on each window past the 10% bar, for Lesson 4.
 
 ```bash
 uv run python -m chan.stationary_candidates_figures

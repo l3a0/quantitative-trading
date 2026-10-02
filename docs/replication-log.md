@@ -1426,7 +1426,9 @@ guard that would.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
-moves with it, since that post quotes most of these figures.
+moves with it, since that post quotes most of these figures. So do its
+three figures, which `uv run python -m chan.stationary_candidates_figures`
+redraws.
 
 ## Entry 6: the CAD/AUD cross rate, Chan's *Quantitative Trading*
 
@@ -1560,4 +1562,6 @@ question of sizing against a half-life this long, and none of those are here.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
-moves with it, since that post quotes most of these figures.
+moves with it, since that post quotes most of these figures. So do its
+three figures, which `uv run python -m chan.stationary_candidates_figures`
+redraws.

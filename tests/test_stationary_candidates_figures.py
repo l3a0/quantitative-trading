@@ -1,10 +1,11 @@
-"""The pins for the stationary-candidates post's two figures.
+"""The pins for the stationary-candidates post's three figures.
 
 ``tests/test_stationary_candidates.py`` holds what both candidates compute. This
 file holds that the figures draw those numbers against the right bars, so a
 generator that put a statistic on the wrong line or a bar at the wrong value
-fails even when the arithmetic is right. The bars figure comes first, and
-``TestTheWindows`` holds the rolling-scan figure. Some numbers repeat here on purpose,
+fails even when the arithmetic is right. The bars figure comes first,
+``TestTheLags`` holds the lag-count figure, and ``TestTheWindows`` holds the
+rolling-scan figure. Some numbers repeat here on purpose,
 because a figure's labels are prose and the suite is the authority for every
 number prose quotes. No test compares bytes, for the reason
 ``tests/test_regime_figure.py`` gives.
@@ -23,12 +24,13 @@ from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
 from matplotlib.colors import to_rgba
 
 from chan.paths import FIGURES_DIR
-from chan.stationary_candidates import cross_rate, fixed_income
+from chan.stationary_candidates import cross_rate, fixed_income, residuals_pass
 from chan.stationary_candidates_figures import (
     ACCENT,
     BARS_FIGURE,
     GOOD,
     INK,
+    LAGS_FIGURE,
     LEVELS,
     LOST,
     MUTED,
@@ -36,7 +38,9 @@ from chan.stationary_candidates_figures import (
     PAIR_Y,
     WINDOWS_FIGURE,
     X_RANGE,
+    lag_sweep,
     make_bars_figure,
+    make_lags_figure,
     make_windows_figure,
     marks,
 )
@@ -256,8 +260,8 @@ class TestTheText:
             assert text.get_parse_math() is False
 
 
-def test_the_command_draws_both_figures_from_one_read(monkeypatch, capsys) -> None:
-    """Both figures read the same three vintages, so the command reads them
+def test_the_command_draws_every_figure_from_one_read(monkeypatch, capsys) -> None:
+    """The figures read the same three vintages, so the command reads them
     once and hands the same results to each."""
     import chan.stationary_candidates_figures as figures
 
@@ -266,16 +270,18 @@ def test_the_command_draws_both_figures_from_one_read(monkeypatch, capsys) -> No
     monkeypatch.setattr(figures, "fixed_income", lambda: fixed)
     monkeypatch.setattr(figures, "make_bars_figure", lambda **kw: drawn.append(("bars", kw)))
     monkeypatch.setattr(figures, "make_windows_figure", lambda **kw: drawn.append(("windows", kw)))
+    monkeypatch.setattr(figures, "make_lags_figure", lambda **kw: drawn.append(("lags", kw)))
     figures.main()
     assert drawn == [
         ("bars", {"rate": rate, "orientations": fixed[1]}),
         ("windows", {"rate": rate, "fixed": fixed}),
+        ("lags", {"rate": rate, "orientations": fixed[1]}),
     ]
     out = capsys.readouterr().out
-    assert BARS_FIGURE in out and WINDOWS_FIGURE in out
+    assert BARS_FIGURE in out and WINDOWS_FIGURE in out and LAGS_FIGURE in out
 
 
-def test_drawing_writes_the_file_it_is_given(figure, out) -> None:
+def test_drawing_the_bars_figure_writes_the_file_it_is_given(figure, out) -> None:
     assert out.is_file()
 
 
@@ -292,7 +298,7 @@ def test_a_missing_vintage_reaches_the_operator_as_a_line(monkeypatch) -> None:
         figures.main()
 
 
-def test_the_committed_figure_exists() -> None:
+def test_the_committed_bars_figure_exists() -> None:
     assert (FIGURES_DIR / BARS_FIGURE).is_file()
 
 
@@ -358,7 +364,7 @@ class TestTheWindows:
         assert len(dots.get_xdata()) == int(past.sum()) == count
         assert list(dots.get_xdata()) == list(scan.get_xdata()[past])
         assert list(dots.get_ydata()) == list(scan.get_ydata()[past])
-        assert _rgb(dots.get_color()) == _rgb(GOOD)
+        assert _rgb(dots.get_color()) == _rgb(scan.get_color())
 
     @pytest.mark.parametrize(
         ("panel", "name", "table"), [(0, "adf", ADF_CRIT_CONST), (1, "eg", EG_CRIT_N2)]
@@ -381,27 +387,32 @@ class TestTheWindows:
 
     def test_each_panel_title_gives_the_whole_span_result(self, windows) -> None:
         assert windows.axes[0].get_title(loc="left") == (
-            "CAD/AUD, one series. The whole span rejects at 5%, at −3.2136."
+            "CAD/AUD, one series. Over the whole test period the test rejects at 5%, "
+            "with t = −3.2136."
         )
         assert windows.axes[1].get_title(loc="left") == (
-            "TLT and IEF, a fitted pair. The whole span does not reject even at 10%, "
-            "at −2.3887 and −2.3168."
+            "TLT and IEF, a fitted pair. Over the whole period it does not reject even at "
+            "10%: −2.3887 for TLT on IEF, −2.3168 for IEF on TLT."
         )
 
     def test_the_panels_share_one_date_axis(self, windows) -> None:
         top, bottom = windows.axes[:2]
         assert top.get_shared_x_axes().joined(top, bottom)
         assert bottom.get_xlabel() == "date the one-year window ends"
+        assert [ax.get_ylabel() for ax in (top, bottom)] == ["one-year t-statistic"] * 2
 
     def test_the_title_and_note_say_what_a_window_is_not(self, windows) -> None:
         assert windows._suptitle.get_text() == (
-            "One-year windows say little about the whole span, in either direction"
+            "How often one-year windows reject says little about the whole test period"
         )
-        note = windows.texts[-1].get_text()
-        assert note.startswith("Windows of 252 trading days stepped by 21, one lag.")
-        assert "Dots mark windows past the 10% bar." in note
-        assert "all downloaded 2026-10-02." in note
-        assert note.endswith("not a finding about the candidate.")
+        assert windows.texts[-1].get_text() == (
+            "Windows of 252 trading days stepped by 21, one lag. "
+            "Dots mark windows past the 10% bar.\n"
+            "CADAUD=X, log of the rate, from 2007-08-06. "
+            "TLT and IEF raw closes from 2002-07-30. All downloaded 2026-10-02.\n"
+            "A window that clears a bar is one look at the data among many, "
+            "not a finding about the candidate."
+        )
 
     def test_no_label_is_parsed_as_math(self, windows) -> None:
         for ax in windows.axes:
@@ -415,3 +426,124 @@ class TestTheWindows:
 
     def test_the_committed_figure_exists(self) -> None:
         assert (FIGURES_DIR / WINDOWS_FIGURE).is_file()
+
+
+@pytest.fixture(scope="module")
+def lags_out(tmp_path_factory: pytest.TempPathFactory):
+    return tmp_path_factory.mktemp("stationary_lags") / LAGS_FIGURE
+
+
+@pytest.fixture(scope="module")
+def lags(lags_out, measured):
+    rate, orientations = measured
+    return make_lags_figure(out=lags_out, rate=rate, orientations=orientations)
+
+
+@pytest.fixture(scope="module")
+def sweeps(measured):
+    rate, orientations = measured
+    by = {o.dependent: o for o in orientations}
+    return {
+        "cadaud": lag_sweep(rate.log_rate.to_numpy(float), rate.ceiling, "c"),
+        "tlt-on-ief": lag_sweep(by["TLT"].fit.spread, by["TLT"].ceiling, "n"),
+        "ief-on-tlt": lag_sweep(by["IEF"].fit.spread, by["IEF"].ceiling, "n"),
+    }
+
+
+class TestTheLags:
+    """The statistic at every lag count up to the ceiling, for Lesson 3.
+
+    The first passing counts and their statistics repeat
+    ``TestTheCrossRateResidualCheck`` and ``TestTheResidualCheck``, because the
+    figure labels them."""
+
+    def test_the_sweeps_are_the_search_the_candidates_run(self, sweeps, measured) -> None:
+        """Each sweep runs from 0 to its ceiling, and its first passing fit is
+        the one the candidate's own search returns."""
+        rate, orientations = measured
+        by = {o.dependent: o for o in orientations}
+        for gid, ceiling, passing in (
+            ("cadaud", 32, rate.passing),
+            ("tlt-on-ief", 34, by["TLT"].passing),
+            ("ief-on-tlt", 34, by["IEF"].passing),
+        ):
+            checks = sweeps[gid]
+            assert [c.lags for c in checks] == list(range(ceiling + 1))
+            first = next(c for c in checks if residuals_pass(c))
+            assert (first.lags, first.adf_stat) == (passing.lags, passing.adf_stat)
+        assert sweeps["cadaud"][1].adf_stat == pytest.approx(rate.adf_stat, abs=1e-12)
+
+    @pytest.mark.parametrize(
+        ("panel", "gid", "colour"),
+        [(0, "cadaud", INK), (1, "tlt-on-ief", INK), (1, "ief-on-tlt", ACCENT)],
+    )
+    def test_each_lag_count_is_filled_exactly_when_its_residuals_pass(
+        self, lags, sweeps, panel, gid, colour
+    ) -> None:
+        lines = _lines(lags.axes[panel])
+        checks = sweeps[gid]
+        line = lines[f"sweep-{gid}"]
+        assert list(line.get_xdata()) == [c.lags for c in checks]
+        assert list(line.get_ydata()) == [c.adf_stat for c in checks]
+        assert _rgb(line.get_color()) == _rgb(colour)
+        filled, hollow = lines[f"pass-{gid}"], lines[f"fail-{gid}"]
+        assert list(filled.get_xdata()) == [c.lags for c in checks if residuals_pass(c)]
+        assert list(hollow.get_xdata()) == [c.lags for c in checks if not residuals_pass(c)]
+        assert _rgb(filled.get_markerfacecolor()) == _rgb(colour)
+        assert hollow.get_markerfacecolor() == "none"
+        assert _rgb(hollow.get_markeredgecolor()) == _rgb(colour)
+
+    def test_every_rate_fit_rejects_at_5_percent_as_the_panel_title_says(self, sweeps) -> None:
+        stats = [c.adf_stat for c in sweeps["cadaud"]]
+        assert max(stats) < ADF_CRIT_CONST["5%"]
+        assert max(stats) == pytest.approx(-2.8739, abs=5e-5)
+
+    def test_the_first_passing_fits_are_labelled_where_they_sit(self, lags) -> None:
+        labelled = [
+            (t.get_text(), t.xy) for ax in lags.axes[:2] for t in ax.texts if "pass" in t.get_text()
+        ]
+        assert [text for text, _ in labelled] == [
+            "first count that passes: 10 lags, −2.9946",
+            "TLT on IEF, first passes at 31 lags, −1.5677",
+            "IEF on TLT, first passes at 31 lags, −1.5387",
+        ]
+        assert [xy[0] for _, xy in labelled] == [10, 31, 31]
+        assert [round(xy[1], 4) for _, xy in labelled] == [-2.9946, -1.5677, -1.5387]
+
+    @pytest.mark.parametrize(
+        ("panel", "name", "table"), [(0, "adf", ADF_CRIT_CONST), (1, "eg", EG_CRIT_N2)]
+    )
+    def test_each_panel_draws_its_own_bars(self, lags, panel, name, table) -> None:
+        lines = _lines(lags.axes[panel])
+        for level in ("10%", "5%"):
+            assert set(lines[f"bar-{name}-{level}"].get_ydata()) == {table[level]}
+
+    def test_the_text_says_what_each_panel_shows(self, lags) -> None:
+        top, bottom = lags.axes[:2]
+        assert top.get_title(loc="left") == (
+            "CAD/AUD. The check shrinks the margin: every count up to 32 still rejects at 5%."
+        )
+        assert bottom.get_title(loc="left") == (
+            "TLT and IEF. The check strengthens the finding: the first fits that pass sit "
+            "further from the bar."
+        )
+        assert top.get_shared_x_axes().joined(top, bottom)
+        assert bottom.get_xlabel() == "lag count, the number of earlier changes the ADF includes"
+        assert lags._suptitle.get_text() == (
+            "Checking each fit for leftover autocorrelation moves the statistic"
+        )
+        assert lags.texts[-1].get_text() == (
+            "Each dot is one ADF fit over the whole test period. Filled: its residuals pass "
+            "both halves of the check, a Breusch-Godfrey p-value above 0.10\n"
+            "and all ten autocorrelations inside ±1.96/√n. Hollow: they fail. "
+            "The search stops at Schwert's ceiling, rounded up as statsmodels rounds it."
+        )
+        for ax in lags.axes:
+            for text in [*ax.texts, ax._left_title]:
+                assert text.get_parse_math() is False
+
+    def test_drawing_writes_the_file_it_is_given(self, lags, lags_out) -> None:
+        assert lags_out.is_file()
+
+    def test_the_committed_figure_exists(self) -> None:
+        assert (FIGURES_DIR / LAGS_FIGURE).is_file()
