@@ -1072,7 +1072,6 @@ class TestReportNamesItsBasis:
         assert "PEP vintage: pep_chan.csv   chan-xls adjusted, saved 2008-01-23" in out
         assert "downloaded" not in out
 
-
     def test_asking_for_chan_s_as_traded_ko_stops_with_the_reader_s_line(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
@@ -1088,6 +1087,8 @@ class TestReportNamesItsBasis:
         """
         monkeypatch.setattr("sys.argv", ["chan.pair_cointegration", "--ko-pep", "--unadjusted"])
 
-        with pytest.raises(SystemExit, match="no committed vintage is recorded for chan-xls KO raw"):
+        with pytest.raises(
+            SystemExit, match="no committed vintage is recorded for chan-xls KO raw"
+        ):
             main()
         assert "Price basis" not in capsys.readouterr().out
