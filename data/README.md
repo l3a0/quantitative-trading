@@ -23,7 +23,7 @@ recorder takes a download date and builds a name out of it, and a column lifted
 from one of Chan's workbooks has no download date to give it, so the recorder
 cannot write one. A single such column is typed into the record by hand, and a
 whole file of them goes through the third way below. `spy_chan.csv`
-is the first to arrive that way since `chan.vintage` existed, and
+is the first to arrive by hand since `chan.vintage` existed, and
 [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
 that was settled.
 
@@ -460,21 +460,24 @@ a test, so no total is given here.
 
 - Every entry describes the file it names, by its sha256, its row count and
   its span.
-- Every file here has exactly one entry, at any depth.
+- Every CSV file here has exactly one entry, at any depth.
 - `checksums.sha256` is the projection the manifest produces, and regenerating
   it changes nothing.
 - Every hand-written entry, and every stock lifted from Chan's MATLAB files,
   names the series its file's `Ticker,` row carries.
 - The hand-written entries and the lifted sources carry the identity
-  `tests/support/committed_vintages.py` pins for them.
+  `tests/support/committed_vintages.py` pins for them, and each lifted source
+  holds the number of members its pin gives, each at the path its directory
+  and symbol make.
 - Every recorded entry agrees with the name its file took.
-- Every line is the text its own entry would write.
+- Every manifest line is the text its own entry would write.
 - Neither the manifest nor the projection carries a carriage return.
 - The table above states what the manifest states.
-- Every entry carries exactly one kind of date, and a saved date only on a
-  series lifted from one of Chan's own files.
-- Only a series lifted from one of Chan's files names a source workbook, and a
-  download claiming one is refused when the manifest is read.
+- Every entry carries exactly one kind of date, and it is a saved date if and
+  only if the series was lifted from one of Chan's own files.
+- An entry names a source workbook if and only if its series was lifted from
+  one of Chan's files, and a download claiming one is refused when the
+  manifest is read.
 
 The table above is a third telling and is still hand-written. What keeps it
 true is the table assertion in that list, which reads both surfaces and

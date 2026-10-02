@@ -246,9 +246,9 @@ the command would undo both.
 The vintage row count comes from the manifest rather than from counting lines.
 Every hand-placed file and every stock lifted from Chan's MATLAB files carries
 three header lines, `Price,Close` then `Ticker,<SYM>` then `Date,`, widened to
-one cell per field for a lifted stock, while a recorded download carries one,
-so `wc -l` over every file, the two lifted directories included, counts more lines than the manifest records rows. The
-manifest is the authority.
+one cell per field for a lifted stock, while a recorded download carries one, so
+`wc -l` over every file, the lifted directories included, counts more lines than
+the manifest records rows. The manifest is the authority.
 
 Three things decide where an open pull request's card goes, and none is
 guessable.
