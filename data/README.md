@@ -61,8 +61,10 @@ why the bytes cannot carry the symbol instead.
 
 ## What each file is
 
-A vintage is one download of one series, identified by vendor, symbol, span,
-download date, and which price or rate the series carries.
+A vintage is one series as one source held it on one date, identified by
+vendor, symbol, span, that date, and which price or rate the series carries.
+The date is a download date for a series a vendor returned, and a saved date
+for a column lifted from one of Chan's own files.
 
 | File | Vendor | Symbol | Price | Span | Downloaded |
 | --- | --- | --- | --- | --- | --- |
