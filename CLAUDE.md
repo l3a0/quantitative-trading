@@ -307,10 +307,10 @@ what would reopen it. All three triggers have fired, so the owner kept it on
 
 This repo's prose surfaces are every tracked Markdown file, which
 `git ls-files '*.md'` lists, and `docs/gld-gdx-cointegration-lessons.html`. No
-count is given, because each new post or skill moved the last one. That HTML
-file is the sharp case,
-because it is a second rendering of `blog/gld-gdx-cointegration-lessons.md`
-rather than a document of its own, and nothing generates it from the Markdown.
+count is given, because each new post or skill moved the last count. That HTML
+file is the sharp case, because it is a second rendering of
+`blog/gld-gdx-cointegration-lessons.md` rather than a document of its own, and
+nothing generates it from the Markdown.
 
 **The one figure exists in three copies, and two of them are not files.**
 
