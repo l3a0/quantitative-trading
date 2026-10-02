@@ -6,7 +6,7 @@
 
 The Canadian dollar against the Australian dollar gives a test statistic of −3.2136 over nineteen years. Read as one series, that clears the 5% bar of −2.86, and Ernest Chan’s claim that the rate is stationary holds. Read against the bar a fitted pair of prices has to clear, −3.34, the same number falls short. Which bar is right depends on whether anything was fitted before the test ran.
 
-Chan’s *Quantitative Trading* (Chan, 2021) builds its pairs-trading examples around gold against gold miners. Then, at Kindle location 3951, it says stationarity is not limited to the spread between stocks. It names three more places to look:
+Chan’s *Quantitative Trading* (Chan, 2021) builds its pairs-trading examples around gold against gold miners. Then it says stationarity is not limited to the spread between stocks. It names three more places to look:
 
 1. **A currency rate.** The CAD/AUD cross rate “is quite stationary”, Chan writes, “both being commodities currencies”.
 2. **Futures calendar spreads.** A long and a short position in one commodity’s futures, expiring in different months.
