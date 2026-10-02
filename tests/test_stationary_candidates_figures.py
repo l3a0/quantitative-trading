@@ -15,6 +15,8 @@ their shared history, all downloaded 2026-10-02.
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
 from matplotlib.colors import to_rgba
@@ -26,10 +28,12 @@ from chan.stationary_candidates_figures import (
     GOOD,
     LEVELS,
     LOST,
+    MUTED,
     ONE_SERIES_Y,
     PAIR_Y,
     X_RANGE,
     make_bars_figure,
+    marks,
 )
 from chan.vintage import VintageUnavailable
 
@@ -40,8 +44,12 @@ def measured():
 
 
 @pytest.fixture(scope="module")
-def figure(tmp_path_factory: pytest.TempPathFactory, measured):
-    out = tmp_path_factory.mktemp("stationary_figures") / BARS_FIGURE
+def out(tmp_path_factory: pytest.TempPathFactory):
+    return tmp_path_factory.mktemp("stationary_figures") / BARS_FIGURE
+
+
+@pytest.fixture(scope="module")
+def figure(out, measured):
     rate, orientations = measured
     return make_bars_figure(out=out, rate=rate, orientations=orientations)
 
@@ -84,6 +92,26 @@ class TestTheBars:
             "5%\n−3.34",
             "10%\n−3.04",
         ]
+
+    @pytest.mark.parametrize(("name", "y"), [("adf", ONE_SERIES_Y), ("eg", PAIR_Y)])
+    def test_each_line_and_its_shading_sit_at_its_own_height(self, figure, name, y) -> None:
+        artists = _by_gid(figure)
+        rule = artists[f"axis-{name}"]
+        assert tuple(rule.get_xdata()) == X_RANGE
+        assert tuple(rule.get_ydata()) == (y, y)
+        ys = artists[f"shade-{name}"].get_paths()[0].vertices[:, 1]
+        assert ys.min() < y < ys.max()
+        assert _rgb(artists[f"shade-{name}"].get_facecolor()[0]) == _rgb(GOOD)
+
+    def test_the_bars_wear_the_muted_ink_and_their_labels_sit_above_them(self, figure) -> None:
+        artists = _by_gid(figure)
+        anchors = [t.xy for t in figure.axes[0].texts[:6]]
+        expected = []
+        for name, y, table in (("adf", ONE_SERIES_Y, ADF_CRIT_CONST), ("eg", PAIR_Y, EG_CRIT_N2)):
+            for level in LEVELS:
+                assert _rgb(artists[f"bar-{name}-{level}"].get_color()) == _rgb(MUTED)
+                expected.append((table[level], y + 0.16))
+        assert anchors == [pytest.approx(xy) for xy in expected]
 
     @pytest.mark.parametrize(("name", "table"), [("adf", ADF_CRIT_CONST), ("eg", EG_CRIT_N2)])
     def test_the_shading_runs_from_the_left_edge_to_the_five_percent_bar(
@@ -134,6 +162,7 @@ class TestTheMarks:
             mark = artists[gid]
             assert (mark.get_xdata()[0], mark.get_ydata()[0]) == (stat, PAIR_Y)
             assert mark.get_markerfacecolor() == "none"
+            assert _rgb(mark.get_markeredgecolor()) == _rgb(GOOD)
             assert EG_CRIT_N2["5%"] < stat < ADF_CRIT_CONST["5%"]
 
     def test_the_filled_marks_wear_the_verdict_colours(self, figure) -> None:
@@ -151,6 +180,19 @@ class TestTheMarks:
             "IEF on TLT\n−2.3168",
             "CAD/AUD's two, read\nagainst these bars",
         ]
+
+    def test_each_label_is_anchored_at_its_own_mark(self, figure) -> None:
+        labelled = [m for m in figure.marks if m.label]
+        assert len(figure.marks) == 6
+        assert [t.xy for t in figure.axes[0].texts[6:]] == [(m.x, m.y) for m in labelled]
+
+    def test_the_passing_label_reads_the_lag_count_the_run_found(self, measured) -> None:
+        """The real search stops at 10, so a label hard-coding 10 would pass
+        on the real data. A result whose search stopped elsewhere holds it."""
+        rate, orientations = measured
+        moved = dataclasses.replace(rate, passing=dataclasses.replace(rate.passing, lags=7))
+        labels = [m.label for m in marks(moved, orientations)]
+        assert "CAD/AUD, 7 lags\n−2.9946" in labels
 
     def test_every_mark_is_inside_the_axis(self, figure) -> None:
         """The post's alt text quotes the range, so the constant is held by
@@ -174,13 +216,38 @@ class TestTheText:
         assert "TLT and IEF raw closes, 2002-07-30 to 2026-10-01." in note
         assert "All downloaded 2026-10-02." in note
         assert "Shaded: past the 5% bar." in note
-        assert "Hollow: CAD/AUD's two statistics read against the pair's bars" in note
+        assert note.endswith(
+            "Hollow: CAD/AUD's two statistics read against the pair's bars, "
+            "which pay for a fitted hedge ratio."
+        )
+
+    def test_the_axes_show_both_lines_every_bar_and_their_names(self, figure) -> None:
+        ax = figure.axes[0]
+        low, high = ax.get_ylim()
+        assert low < PAIR_Y < ONE_SERIES_Y < high
+        left, right = ax.get_xlim()
+        for table in (ADF_CRIT_CONST, EG_CRIT_N2):
+            assert all(left < table[level] < right for level in LEVELS)
+        ticks = dict(
+            zip(ax.get_yticks(), (t.get_text() for t in ax.get_yticklabels()), strict=True)
+        )
+        assert ticks == {
+            ONE_SERIES_Y: "one series,\nADF with a constant",
+            PAIR_Y: "a fitted pair,\nEngle-Granger",
+        }
+        assert ax.get_xlabel() == (
+            "t-statistic, where further left is stronger evidence of a stationary series or spread"
+        )
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
         """The bar labels carry percent signs, so math parsing stays off the
         way it does for the other figures."""
         for text in [*figure.axes[0].texts, *figure.texts]:
             assert text.get_parse_math() is False
+
+
+def test_drawing_writes_the_file_it_is_given(figure, out) -> None:
+    assert out.is_file()
 
 
 def test_a_missing_vintage_reaches_the_operator_as_a_line(monkeypatch) -> None:
