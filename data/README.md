@@ -253,9 +253,10 @@ name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
 and a `SPY.xls` in the same mirror holds a different series.
 
 Every workbook has its `.xls` checksum recorded beside the run that reads the
-column taken from it. `GLD.xls`, `GDX.xls`, `KO.xls` and `PEP.xls` are in
-[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and
-`example6_2.xls` is in
+column taken from it. The checksums of `GLD.xls`, `GDX.xls`, `KO.xls` and
+`PEP.xls` are in
+[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and that
+of `example6_2.xls` is in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
 The two directories hold Chan's first-edition MATLAB files, one vintage per
@@ -423,10 +424,10 @@ Two files carry that record.
    a single column can hold and a filename cannot.
 
    The workbook is recorded rather than derived from the symbol. Joining the
-   two happens to spell every workbook committed so far and spells the wrong
-   one for a column whose source is named after a chapter's example rather than
-   after a ticker, which is a real file in the same mirror carrying another
-   series. The manifest is the authority for a vintage's provenance, so the
+   two spells the right workbook for every committed column but `spy_chan.csv`,
+   whose source, `example6_2.xls`, is named after a chapter's example rather
+   than after a ticker. The `SPY.xls` the join would give is a real file in the
+   same mirror carrying another series. The manifest is the authority for a vintage's provenance, so the
    fact sits here and the table repeats it.
 
    Both surfaces stating the workbook are hand-typed, which the identity pin in

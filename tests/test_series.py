@@ -312,10 +312,10 @@ class TestWhatTellsTwoDownloadsApart:
 
     An argument named for the download date could name only the downloads,
     because the committed vintages lifted from Ernest Chan's own files carry a
-    saved date instead. A rule that the latest date
-    wins would compare `None` against a string, and where it did work it would
-    let a new download move a pinned number with nothing in the diff to explain
-    it. So the date is explicit and ambiguity stops the run.
+    saved date instead. A rule that the latest date wins would compare `None`
+    against a string, and where it did work it would let a new download move a
+    pinned number with nothing in the diff to explain it. So the date is
+    explicit and ambiguity stops the run.
     """
 
     def test_two_downloads_of_one_series_are_told_apart(self, data_dir: Path) -> None:
