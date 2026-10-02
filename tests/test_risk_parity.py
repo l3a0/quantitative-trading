@@ -783,6 +783,11 @@ class TestTheFullSpan:
         assert parity.stock_risk_share == pytest.approx(0.5, abs=1e-12)
         assert legs.vol_ratio == pytest.approx(3.590935, abs=5e-7)
         assert legs.ratio_inside_the_band is False
+        # The unlevered volatility the essay divides 60/40's into for the
+        # leverage. Equal risk makes each weight-volatility product 4.04
+        # percent, so at a correlation near zero the total is that times √2.
+        assert parity.stock_weight * legs.stock_vol == pytest.approx(0.040400, abs=5e-7)
+        assert parity.volatility == pytest.approx(0.057128, abs=5e-7)
         # The gap a prose surface quotes, at the whole percentage point Qian's
         # own two significant figures support, rounded from the full value.
         assert round((parity.stock_weight - BOOK_WEIGHTS[0]) * 100) == -1
@@ -1564,8 +1569,8 @@ class TestTheBondSharpeHurdle:
     def test_the_multipliers_lesson_2_writes_the_hurdle_from(self, measured) -> None:
         """Each Sharpe ratio is a sum of the two legs' Sharpe ratios, each
         multiplied by its weight times its volatility over the portfolio's
-        volatility. Lesson 2 prints the multipliers as 0.71 and 0.71 for risk
-        parity and 0.98 and 0.18 for 60/40, then subtracts them unrounded into
+        volatility. Lesson 2 prints the multipliers as 0.707 and 0.707 for risk
+        parity and 0.983 and 0.183 for 60/40, then subtracts them unrounded into
         ``0.525 S₂ > 0.276 S₁``. Their ratio is the hurdle pinned above."""
         result, _ = measured["full span"]
         legs = result.legs
