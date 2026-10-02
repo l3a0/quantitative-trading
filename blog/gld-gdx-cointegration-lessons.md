@@ -61,16 +61,18 @@ The trade signal survived. The hedge ratio slipped about two percent, from 1.676
 
 The test ran twice. Once by hand, in fifteen lines of numpy. Once through a standard statistics library. The two agreed to four decimal places. That agreement was the proof that the remaining gap was data, not a bug in the arithmetic.
 
-Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. All three ran the same test on different default settings.
+Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. Python and MATLAB ran the same test with different lag settings, and R ran a different test.
 
 | Setting | Lags | CADF t |
 | --- | --- | --- |
 | Python default (autolag) | 6 | −2.30 |
 | MATLAB spec (fixed) | 1 | −3.09 |
 
-Same data, same library, one setting. Chan's own numbers were −2.4 and −3.2, reproduced here.
+Same data, same library, one setting. Both figures come from the 2026 yfinance closes, and neither lands on the number Chan printed for its run, which is the vintage gap from the section above.
 
-The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into "not cointegrated." More lags do not weaken the statistic steadily, though. Across zero to sixteen lags it rises and falls: −2.41 at three lags, −2.64 at four, −2.99 at thirteen. What holds is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and all three agree.
+Chan's own files do land his two numbers, once each run is read for what it was. His Python run is `coint` at its defaults on his first 252 days. On his saved `GLD.xls` and `GDX.xls` the default picks six lags and returns −2.3591, with a p-value of 0.344, and both agree with the book's printout to within a billionth. His R run is a different test. `CADFtest` is Hansen's covariate-augmented Dickey-Fuller test, which fits no hedge ratio. It asks whether GLD's own price drifts with no level to return to, with GDX added to the regression as a helper series, and it ran on all 385 days rather than the first 252. On his files that regression returns −3.2409, the −3.2 he quotes, and every coefficient the book prints. Its p-value of 0.005 comes from Hansen's own distribution, so −3.2 cannot be read against the Engle-Granger 10% line of −3.04 either. The shared name hides the switch. MATLAB's `cadf` runs the Engle-Granger test, and R's `CADFtest` shares its letters and nothing else. So the comparison Chan read as R corroborating MATLAB against Python set two different tests on two different windows against each other.
+
+The setting is the number of lags the test adds to absorb autocorrelation. Chan's MATLAB call passes one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into "not cointegrated." More lags do not weaken the statistic steadily, though. On the 2026 closes, across zero to sixteen lags it rises and falls: −2.41 at three lags, −2.64 at four, −2.99 at thirteen. What holds there is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and Python agrees with MATLAB.
 
 ### 6. Cointegration is a property of a window, not a pair
 

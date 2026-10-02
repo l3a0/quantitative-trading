@@ -422,18 +422,20 @@
           <h3>An independent implementation separates data bugs from code bugs.</h3>
           <div class="body">
             <p>The test ran twice. Once by hand, in fifteen lines of numpy. Once through a standard statistics library. The two agreed to four decimal places. That agreement was the proof that the remaining gap was data, not a bug in the arithmetic.</p>
-            <p>Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. All three ran the same test on different default settings.</p>
+            <p>Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. Python and MATLAB ran the same test with different lag settings, and R ran a different test.</p>
 
             <div class="aside">
-              <div class="aside-lab">Why they disagreed &middot; GLD/GDX, 252-day window</div>
+              <div class="aside-lab">Why Python and MATLAB disagreed &middot; GLD/GDX, 252-day window</div>
               <div class="aside-grid">
                 <div><span class="an">&minus;2.30</span><span class="al"><b>Python default</b>autolag picks 6 lags</span></div>
                 <div><span class="an">&minus;3.09</span><span class="al"><b>MATLAB spec</b>1 lag, fixed</span></div>
               </div>
-              <p class="aside-note">Same data, same library, one setting. Chan's own numbers were &minus;2.4 and &minus;3.2 &mdash; reproduced here.</p>
+              <p class="aside-note">Same data, same library, one setting. Both figures come from the 2026 yfinance closes, and neither lands on the number Chan printed for its run, which is the vintage gap from the section above.</p>
             </div>
 
-            <p>The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into &ldquo;not cointegrated.&rdquo; More lags do not weaken the statistic steadily, though. Across zero to sixteen lags it rises and falls: &minus;2.41 at three lags, &minus;2.64 at four, &minus;2.99 at thirteen. What holds is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and all three agree.</p>
+            <p>Chan's own files do land his two numbers, once each run is read for what it was. His Python run is <code>coint</code> at its defaults on his first 252 days. On his saved <code>GLD.xls</code> and <code>GDX.xls</code> the default picks six lags and returns &minus;2.3591, with a p-value of 0.344, and both agree with the book's printout to within a billionth. His R run is a different test. <code>CADFtest</code> is Hansen's covariate-augmented Dickey-Fuller test, which fits no hedge ratio. It asks whether GLD's own price drifts with no level to return to, with GDX added to the regression as a helper series, and it ran on all 385 days rather than the first 252. On his files that regression returns &minus;3.2409, the &minus;3.2 he quotes, and every coefficient the book prints. Its p-value of 0.005 comes from Hansen's own distribution, so &minus;3.2 cannot be read against the Engle-Granger 10% line of &minus;3.04 either. The shared name hides the switch. MATLAB's <code>cadf</code> runs the Engle-Granger test, and R's <code>CADFtest</code> shares its letters and nothing else. So the comparison Chan read as R corroborating MATLAB against Python set two different tests on two different windows against each other.</p>
+
+            <p>The setting is the number of lags the test adds to absorb autocorrelation. Chan's MATLAB call passes one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into &ldquo;not cointegrated.&rdquo; More lags do not weaken the statistic steadily, though. On the 2026 closes, across zero to sixteen lags it rises and falls: &minus;2.41 at three lags, &minus;2.64 at four, &minus;2.99 at thirteen. What holds there is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and Python agrees with MATLAB.</p>
           </div>
         </div>
       </article>
