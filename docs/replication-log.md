@@ -17,7 +17,7 @@ and each says so in its own cells.
 3. Row 10 carries no published figure, because the book stops in 2007.
 4. Row 11 covers the two statistics Chan printed from one disagreement.
 
-Entries 2, 3 and 4 carry their own, three, seven and twelve, and they are
+Entries 2, 3 and 4 carry their own, three, eleven and twelve, and they are
 listed in those entries rather than here, because the list is about an entry's
 rows and not about the file.
 
@@ -798,9 +798,9 @@ Four rows chase a claim rather than a number, which is the shape
 [docs/design.md](design.md) names for a source that states a verdict instead of
 a figure. Rows 12 and 27 are Chan's Black Monday conclusion, on the 2026
 download and on his adjusted column, and it survives on both. Rows 15 and 28
-are his time-scale independence, and it fails on both. Row 34 tests the Black
-Monday conclusion a third time, on his as-traded column, where it fails. It
-carries no verdict rather than `did not reproduce`, because rows 12 and 27 test
+are his time-scale independence, and it fails on both. A fifth row, 34, tests
+the Black Monday conclusion a third time, on his as-traded column, where it
+fails. It is not among the four and carries no verdict rather than `did not reproduce`, because rows 12 and 27 test
 his claim on the series he read and row 34 tests it on a series he did not.
 
 Every result here is **exploratory** in the design doc's sense, and this is the
@@ -919,11 +919,11 @@ lines.
 | 26 | −\$24, −\$22, +\$2 and −\$12, in whole dollars because the book prints whole dollars | reproduced with a gap | The claim is that 2.528 times \$100,000 buys about a quarter of a million dollars of SPY and resizes as the chain shows, and it survives. The numbers differ because Chan rounded the leverage to 2.528 before multiplying. Rounding row 22 to the three decimals he printed reproduces the first three figures to the cent and the fourth to the dollar he printed it at, so the cause is named and sits in his arithmetic rather than in his data. |
 | 27 | none, the source states a claim | reproduced | The claim survives on his own data as it does on the 2026 download in row 12. The margin is 0.57 here against 0.60 there, because his leverage is the lower of the two. |
 | 28 | none, the source states a claim | did not reproduce | Row 15's refutation, on the series Chan read. Every monthly rule lands 43 to 47 percent above his daily figure, so the vintage explanation is spent, which is the sharpest case of this verdict the rules above name. |
-| 29 | none | none, not a replication | The book reads one vintage. The row exists because a vendor restates which days a series holds as well as what they are worth, and a silent join would hide the first. Over this span the two vintages hold the same days, so row 30 is a difference in prices rather than in calendars. |
+| 29 | none | none, not a replication | The book reads one vintage. The row exists because a vendor restates which days a series holds as well as what they are worth, and a silent join would hide the first. Over this span the 2026 download and his adjusted column hold the same days, so row 30 is a difference in prices rather than in calendars. |
 | 30 | none | none, not a replication | The book reads one vintage. This row is why rows 1 and 3 to 8 miss while row 2 does not. About ten days near SPY's ex-dividend dates carry more than the whole gap in the mean, and they barely move a standard deviation. |
 | 31 | none | none, not a replication | The book prints nothing from the as-traded close. His `example6_3.m` reads the adjusted column, and this row reads the column beside it in the same workbook. |
-| 32 | none | none, not a replication | The book reads one price basis. The basis is worth a quarter of his leverage, and more than row 27's 0.57 margin over the threshold, which is why the conclusion turns over in row 34. |
-| 33 | none | none, not a replication | The book reads one price basis. The mean moves by 1.68 points and the standard deviation by 0.0265, so the leverage falls with the mean rather than with the risk. SPY has not split, so what separates the two columns is its distributions. |
+| 32 | none | none, not a replication | The book reads one price basis. The basis is worth more than row 27's 0.57 margin over the threshold, which is why the conclusion turns over in row 34. |
+| 33 | none | none, not a replication | The book reads one price basis. The mean moves by 1.68 points and the standard deviation by 0.0265 points, so the leverage falls with the mean rather than with the risk. SPY has not split, so what separates the two columns is its distributions. |
 | 34 | none, the source's claim is about the series he read | none, not a replication | The claim fails on this column. Half-Kelly is 0.9670, below the 0.977040 a 20 percent day allows, so Black Monday's loss would have left it inside the tolerance. Rows 12 and 27 test his claim on the series he read and this row tests it on one he did not, so the verdict there stands. What this row shows is that the price basis decides the verdict rather than shading it. |
 
 ### What the entry concludes
@@ -953,9 +953,10 @@ Five things, and the first is what makes the other four worth reading.
 3. **A verdict can have a threshold, and this one does.** Row 12 is a claim
    rather than a figure, so the entry computes the leverage at which it turns
    over rather than reporting two numbers and leaving a reader to compare them.
-   The margin is 0.60 on a threshold of 1.954079, and the price basis alone is
-   worth 0.59 on Chan's own data, which row 32 computes and row 34 shows
-   turning the verdict over. A replication that reported only "2.5506
+   The margin is 0.60 on a threshold of 1.954079 on the 2026 download and 0.57
+   on Chan's own adjusted column. The price basis alone is worth 0.59 on his
+   data, which row 32 computes, so it spends the whole of his margin and row
+   34 shows the verdict turning over. A replication that reported only "2.5506
    against 1.26" would have looked comfortable.
 4. **The window moves the answer further than the vendor does.** Inside this
    one vintage the leverage runs from a short of 2.82 times equity over 2000 to
@@ -1272,7 +1273,8 @@ span's row 3 clears its threshold by 8.6 percent against an understatement of
 2.7. Closing it properly needs a bootstrapped or Jobson-Korkie standard error,
 which is a second estimator and a different deliverable. The bootstrap is
 quoted here as a measurement taken during review rather than as something this
-suite pins, the way Entry 3 names the figures from Chan's workbook.
+suite pins, the way `README.md`'s `## The write-up` names the figures its
+essays quote and the suite does not hold.
 
 The same estimate is why the ranking's point estimate and its error bar are
 reported as different things. `sharpe_difference` does not move with the

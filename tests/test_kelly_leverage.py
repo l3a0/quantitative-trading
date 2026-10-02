@@ -1538,8 +1538,8 @@ class TestThePriceBasisOnHisOwnWorkbook:
     Chan printed nothing from the as-traded close, so none of these is a
     replication. They exist because the module docstring's fifth choice argues
     that the price basis decides his risk conclusion rather than shading it,
-    and until [issue 192](https://github.com/l3a0/quantitative-trading/issues/192)
-    committed the column that argument quoted a figure nothing here computed.
+    and until issue 192 committed the column that argument quoted a figure
+    nothing here computed.
 
     Vintage: the ``Close`` column of his ``example6_2.xls``, last saved
     2008-01-29, committed as ``data/spy_unadjusted_chan.csv``. Specification:
@@ -1594,8 +1594,8 @@ class TestThePriceBasisOnHisOwnWorkbook:
         points = 100.0 * (his_moments.mean_annual - as_traded.mean_annual)
         assert points == pytest.approx(1.6809079074, abs=5e-10)
         assert round(points, 2) == 1.68
-        assert 100.0 * abs(his_moments.sd_annual - as_traded.sd_annual) == pytest.approx(
-            0.0264627, abs=5e-7
+        assert 100.0 * (as_traded.sd_annual - his_moments.sd_annual) == pytest.approx(
+            0.0264627199, abs=5e-10
         )
 
     def test_the_black_monday_conclusion_reverses_on_the_as_traded_close(

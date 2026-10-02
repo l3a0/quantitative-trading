@@ -252,7 +252,7 @@ mirror at
 The date given is when Chan last saved the workbook, which is the closest thing
 these files have to a download date. Which workbook each column came from is
 recorded too, in the manifest's `source_workbook` field, because a workbook's
-name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
+name is not its column's symbol. Chan's `example6_2.xls` holds SPY's columns,
 and a `SPY.xls` in the same mirror holds a different series.
 
 Every one of them is the adjusted close except `spy_unadjusted_chan.csv`. That
@@ -265,7 +265,7 @@ vendor to have adjusted away, and `scale_breaks` finds nothing on it.
 it to pin Chan's Kelly leverage on the as-traded close, which is the figure
 that shows the price basis deciding his Black Monday conclusion.
 
-Every workbook has its `.xls` checksum recorded beside the run that reads the
+Every workbook has its `.xls` checksum recorded beside the run that reads a
 column taken from it. The checksums of `GLD.xls`, `GDX.xls`, `KO.xls` and
 `PEP.xls` are in
 [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and that
