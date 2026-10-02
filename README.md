@@ -658,9 +658,10 @@ network. Every run after that reads the cache, and no replication reaches a
 network at any point.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
-prose checks it has no rule for run in the test suite: a tilde that can close a
-strikethrough pair, a table delimiter row written tight, a heading quoted in
-prose that no longer exists, and a link whose anchor no heading produces.
+prose checks it has no rule for run in the test suite instead, from
+`tests/test_markdown_hygiene.py`. They catch things like a tilde that can close
+a strikethrough pair, a heading quoted in prose that no longer exists, and an
+issue number written without its link.
 
 ## License
 
