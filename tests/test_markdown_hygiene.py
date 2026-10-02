@@ -1076,22 +1076,62 @@ def _unlinked_references(document: str) -> list[int]:
 
     CLAUDE.md's writing rules ask for every such number in a Markdown file to
     be a link, because GitHub renders a bare `#NN` in a repository file as
-    plain text. Code spans and fences are exempt, since a link inside one
-    breaks it, and so is a double-quoted span, which is a quotation and stays
-    as written. A reference written out in words is held too, including one
-    whose number wraps onto the next line, which is how two of them hid from
-    the first sweep.
+    plain text. Code spans, fences, HTML comments and quotations are exempt,
+    since a link inside code breaks it and a quotation stays as written. A
+    quotation is a straight or curly double-quoted span on one line. A
+    blockquote is not exempt, because nothing marks one as a quotation rather
+    than a note or a GitHub alert.
+
+    A reference written out in words is held too, and so is every number in a
+    run of them. "issues [4](...), 43 and 47" leaves two numbers bare, which is
+    the half-linked list the rule names as failing. A run may wrap onto the
+    next line at any point but never across a blank one. "issues 3-5" is a
+    range of two numbers, while a number opening a date such as 2026-09-18 is
+    not an issue at all.
+
+    Everything blanked keeps its newlines, so the line a finding reports is the
+    line the reference is on. The first version of this check blanked a
+    wrapped link's newline away and reported every later finding one line
+    early.
     """
     import re
 
+    def blank(match: re.Match[str]) -> str:
+        return re.sub(r"[^\n]", " ", match.group(0))
+
     text = blank_code(document)
-    text = re.sub(r"\[[^\]]*\]\([^)]*\)", lambda m: " " * len(m.group(0)), text)
-    text = re.sub(r'"[^"\n]*"', lambda m: " " * len(m.group(0)), text)
-    pattern = re.compile(
-        r"(?<![\w/&])(?:PR )?#\d+\b|\b(?:issues?|PRs?|pull requests?)\s+\d+\b",
+    text = re.sub(r"<!--.*?-->", blank, text, flags=re.DOTALL)
+    text = re.sub(r'"[^"\n]*"|\u201c[^\u201d\n]*\u201d', blank, text)
+
+    word = r"(?:issues?|PRs?|pull requests?)"
+    gap = r"[ \t]*(?:\n[ \t]*)?"
+    space = r"(?:[ \t]+(?:\n[ \t]*)?|[ \t]*\n[ \t]*)"
+    target = r"(?:\([^)\n]*\)|\[[^\]\n]*\])"
+    linked_number = rf"\[\d+\]{target}"
+    number = rf"(?:{linked_number}|\d+(?!\d|-\d\d-\d\d))"
+    join = (
+        rf"(?:[ \t]*,{gap}(?:(?:and|or){space})?"
+        rf"|{space}(?:and|or|through|to){space}|[ \t]*[-\u2013][ \t]*)"
+    )
+    link = re.compile(rf"\[(?:[^\]\n]|\n(?![ \t]*\n))*\]{target}")
+    run = re.compile(
+        rf"(?:\[{word}{gap}\d+\]{target}|\b{word}{gap}{number})(?:{join}{number})*",
         re.IGNORECASE,
     )
-    return [text.count("\n", 0, m.start()) + 1 for m in pattern.finditer(text)]
+    bare_hash = re.compile(r"(?<![\w/&])(?:PR[ \t]?)?#\d+\b|\b(?:PR|issue)#\d+\b", re.IGNORECASE)
+
+    spans = [m.span() for m in link.finditer(text)]
+
+    def linked(pos: int) -> bool:
+        return any(start <= pos < end for start, end in spans)
+
+    hits = [m.start() for m in bare_hash.finditer(text) if not linked(m.start())]
+    for m in run.finditer(text):
+        for token in re.finditer(rf"{linked_number}|(\d+)", m.group(0)):
+            pos = m.start() + token.start(1)
+            if token.group(1) and not linked(pos):
+                hits.append(pos)
+    return sorted(text.count("\n", 0, pos) + 1 for pos in hits)
 
 
 class TestIssueReferencesAreLinked:
@@ -1101,14 +1141,27 @@ class TestIssueReferencesAreLinked:
     def test_a_bare_pull_request_is_flagged(self) -> None:
         assert _unlinked_references("See PR #34.\n") == [1]
 
+    def test_a_pull_request_glued_to_its_number_is_flagged(self) -> None:
+        assert _unlinked_references("See PR#34 and issue#12.\n") == [1, 1]
+
     def test_a_number_in_words_is_flagged(self) -> None:
         assert _unlinked_references("This belongs to issue 10.\n") == [1]
 
     def test_a_number_wrapped_onto_the_next_line_is_flagged(self) -> None:
-        assert _unlinked_references("the page put it ahead of issue\n41 in one place\n") == [1]
+        assert _unlinked_references("the page put it ahead of issue\n41 in one place\n") == [2]
 
-    def test_every_number_in_a_run_is_counted_once_per_phrase(self) -> None:
-        assert _unlinked_references("Pull requests 91 and 92 opened.\n") == [1]
+    def test_every_number_in_a_run_is_flagged(self) -> None:
+        assert _unlinked_references("Pull requests 91 and 92 opened.\n") == [1, 1]
+
+    def test_a_number_after_a_linked_one_in_a_run_is_flagged(self) -> None:
+        assert _unlinked_references("issues [4](https://x/4), 43 and 47\n") == [1, 1]
+
+    def test_a_range_after_a_linked_phrase_is_flagged(self) -> None:
+        assert _unlinked_references("[issues 14](https://x/14) through 18\n") == [1]
+
+    def test_a_fully_linked_run_is_left_alone(self) -> None:
+        document = "issues [4](https://x/4), [43](https://x/43) and [47](https://x/47)\n"
+        assert _unlinked_references(document) == []
 
     def test_a_linked_number_is_left_alone(self) -> None:
         document = (
@@ -1117,13 +1170,70 @@ class TestIssueReferencesAreLinked:
         )
         assert _unlinked_references(document) == []
 
+    def test_a_reference_style_link_is_left_alone(self) -> None:
+        assert _unlinked_references("See [issue 4][i4].\n\n[i4]: https://x/4\n") == []
+
+    def test_a_finding_after_a_wrapped_link_names_its_own_line(self) -> None:
+        assert _unlinked_references("[issue\n52](https://x/52)\nsee issue 4\n") == [3]
+
+    def test_an_unclosed_bracket_does_not_hide_what_follows(self) -> None:
+        assert _unlinked_references("a [draft note\n\nsee issue 4 here\n\n[x](y)\n") == [3]
+
+    def test_a_run_wrapped_after_its_first_number_is_still_read(self) -> None:
+        assert _unlinked_references("issues [4](https://x/4), 43\nand 47\n") == [1, 2]
+
+    def test_a_range_wrapped_before_its_end_is_still_read(self) -> None:
+        assert _unlinked_references("[issues 14](https://x/14) through\n18\n") == [2]
+
+    def test_a_hyphenated_range_flags_both_ends(self) -> None:
+        assert _unlinked_references("issues 3-5\n") == [1, 1]
+
+    def test_a_run_joined_by_or_flags_each_number(self) -> None:
+        assert _unlinked_references("issues 3 or 4\n") == [1, 1]
+
+    def test_a_comma_then_or_flags_each_number(self) -> None:
+        assert _unlinked_references("issues 3, or 4\n") == [1, 1]
+
+    def test_a_comma_list_with_a_final_and_flags_each_number(self) -> None:
+        assert _unlinked_references("issues 3, 4, and 5\n") == [1, 1, 1]
+
+    def test_a_finding_after_a_multiline_comment_names_its_own_line(self) -> None:
+        assert _unlinked_references("<!-- a\nb -->\nissue 4\n") == [3]
+
+    def test_a_link_with_a_title_is_left_alone(self) -> None:
+        assert _unlinked_references('[issue 4](https://x/4 "the title")\n') == []
+
+    def test_a_number_right_after_a_link_is_flagged(self) -> None:
+        assert _unlinked_references("[x](https://x)#4\n") == [1]
+
+    def test_findings_come_back_in_line_order(self) -> None:
+        assert _unlinked_references("issue 4\nsee #5\n") == [1, 2]
+
+    def test_a_word_ending_in_issue_is_not_a_reference(self) -> None:
+        assert _unlinked_references("tissue 4 and https://x/#12\n") == []
+
+    def test_a_run_does_not_bridge_a_blank_line(self) -> None:
+        assert _unlinked_references("## Open issues\n\n1. First\n") == []
+
+    def test_a_date_is_not_an_issue(self) -> None:
+        assert _unlinked_references("the issue 2026-09-18 raised\n") == []
+
     def test_a_code_span_and_a_fence_are_left_alone(self) -> None:
         assert _unlinked_references("Write `Part of #NN` here.\n\n```\nCloses #7\n```\n") == []
 
     def test_a_quotation_is_left_alone(self) -> None:
         assert _unlinked_references('One card read "#27 is planned too" once.\n') == []
 
-    def test_an_anchor_and_a_colour_are_left_alone(self) -> None:
+    def test_a_curly_quotation_is_left_alone(self) -> None:
+        assert _unlinked_references("He wrote \u201csee issue 12\u201d once.\n") == []
+
+    def test_a_blockquote_is_not_a_quotation(self) -> None:
+        assert _unlinked_references("> **Note:** issue 4 is open.\n") == [1]
+
+    def test_an_html_comment_is_left_alone(self) -> None:
+        assert _unlinked_references("<!-- see issue 4 -->\n") == []
+
+    def test_an_anchor_and_an_html_entity_are_left_alone(self) -> None:
         assert _unlinked_references("Jump to x#2 or use &#38; here.\n") == []
 
     def test_every_markdown_file_links_its_issue_references(self) -> None:
