@@ -20,5 +20,9 @@ function mkEl(id) {
 }
 var document = {
   getElementById: function(id){ if(!store[id]) store[id]=mkEl(id); return store[id]; },
-  addEventListener: function(){} };
+  addEventListener: function(){},
+  // The board redraws on every database write, and each redraw after the first
+  // removes the Escape listener the previous one added. A stub without this
+  // throws on the second render, which a page that drew only once never reached.
+  removeEventListener: function(){} };
 var setInterval = function(){ return 0; };

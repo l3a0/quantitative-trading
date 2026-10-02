@@ -56,7 +56,7 @@ the branch to it rather than giving the page a second source of truth. Check
 `closingIssuesReferences` when a pull request opens, and if it is empty and the
 branch means to close something, fix the body before the board is touched.
 
-One block these seven do not maintain, said plainly rather than left to be
+One section these seven do not maintain, said plainly rather than left to be
 discovered. `WORKING` marks a card a session is on right now, which is only
 knowable while a session is running, and every moment above fires when one
 finishes. So the Building column reads zero unless something outside this skill
@@ -93,6 +93,13 @@ stamp. The sections are these.
    anything. It is all that remains of a twenty-paragraph footer that was a
    second telling of what the cards say. Do not grow it back.
 
+Between the strip and the first section sits a banner that is empty while the
+page shows live data. It speaks only when the page is drawing its built-in copy
+or has stopped taking live updates, and it says which and how old the data is.
+The harness has no database, so every harness run prints it as
+`OTHER[source] ... This view cannot reach the live board`. That line is the
+banner working, not a defect.
+
 ## Read the live data before editing anything
 
 Another session may have written since this one last looked, and a copy sitting
@@ -122,20 +129,39 @@ ArtifactData action="batch" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqd
 
 Leave the `__`-prefixed fields out of what is sent, since the database adds
 them. A write against a section that moved since the read is refused with
-`version_mismatch` and writes nothing. Re-read that section, apply the same edit
-to what it holds now, and write again. Never drop the pin to get a write
+`version_mismatch` and writes nothing. A refused batch names only the first
+stale entry, so re-read all six with the same `list` call rather than that one
+section, apply the same edit to what they hold now, splice and run the harness
+again, and write again. Never drop the pin to get a write
 through, because the pin is the only thing standing between two sessions and a
 lost update. That refusal fired on the very first update after the migration:
 another session wrote `board/state` between this skill's read and its write,
 the pinned write was refused, and the re-read showed the other session had
 already written the same figures.
 
+A pin guards only the section it is on. When an edit to one section rests on
+another, such as a `prs` entry written against the `tracker` card it moves,
+include the other section in the same batch, set unchanged with its own pin. A
+session that changed the tracker in between then refuses the whole batch,
+rather than leaving a pull request entry against a card that has moved.
+
 Each document is `{ schema: 1, items: [...] }`, except `board/state`, which is
 `{ schema: 1, main, updatedAt, vintages, suite, notes, issues }`. The page
-adopts a section only when it passes `usableSection`, which asks for the schema,
-the array, a non-empty tracker and the state's fields. So a malformed write
-leaves the last good copy on screen and lights the banner, rather than drawing
-a board from half a write.
+adopts a section only when it passes `usableSection`. That check asks for the
+schema and the state's figures as numbers, and for every field on an item that
+the renderer reads without a guard. The redraw is also wrapped, so a write that
+passes the check but still breaks the drawing code is rolled back to the last
+good data. Either way the banner says live updates stopped and why. Both were
+exercised on 2026-10-02 by driving the page's `connect` with a fake database:
+a tracker item missing `needs`, a state with an empty `suite`, a tracker item
+whose `labels` was a string, and a renderer forced to throw. All four kept the
+last good board and lit the banner, and the next good write went live again.
+
+That is a net under the page, not a replacement for checking. The page can only
+refuse a write after it has landed, and a refused section stays refused for
+every viewer until someone writes a good one. So run the harness on the edited
+readback before writing, which is what catches a bad write before anyone sees
+it.
 
 **Change the page's code only when the rendering has to change.** That is the
 one case that still needs the Artifact tool. Read the live page in full, edit a
@@ -250,7 +276,7 @@ that way. This is a fourth rollup behaviour alongside the three `CLAUDE.md`
 already lists, and it belongs there rather than only here, which
 [issue 87](https://github.com/l3a0/quantitative-trading/issues/87) carries.
 
-### Measure again immediately before publishing
+### Measure again immediately before writing
 
 The figures taken at the start are a claim about the moment the update began,
 and an update takes minutes. Both halves of that gap have already cost something
@@ -283,12 +309,12 @@ written by the session rather than measured, and `issues.tracked` moves only
 when the sibling experiments page does.
 
 The price is one more round of queries per update. What it buys is a gap of
-seconds between the last measurement and the publish rather than a gap the
-length of the whole edit. The gap does not close, because editing the data
-blocks takes its own time and a figure that moved sends the session back to edit
-again.
+seconds between the last measurement and the write rather than a gap the
+length of the whole edit. The gap does not close, because editing the
+documents takes its own time and a figure that moved sends the session back to
+edit again.
 
-Nothing re-derives the page's figures after a publish, so whatever is wrong at
+Nothing re-derives the page's figures after a write, so whatever is wrong at
 that moment stays wrong until the next session runs this. What does read the
 page is the owner, and four rows in the record below were found exactly that
 way.
@@ -319,9 +345,9 @@ One more constant is not in the table because nothing should edit it.
 | `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
 | `FLOW` | the five in-flight stages and the test that assigns a card to one |
-| `LABEL_HUE` | one colour per tracker label, read by the card chips |
+| `LABEL_HUE` | one colour per tracker label, read by the card chips. A new label renders in the faint ink until a code republish adds its colour |
 | `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
-| `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose" |
+| `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose". A new kind prints no phrase until a code republish adds one |
 | `READY_RANK` | the order `build`, `decide` and `plan` sort in, read by the ranking sort |
 
 Three of these carry judgement rather than measurement, so they are where the
@@ -658,7 +684,7 @@ the line it edits, and checks here for a sentence describing the same mechanism.
 ## Finishing
 
 Re-measure the volatile figures first, under **Measure again immediately before
-publishing** above, then write and report in the same reply.
+writing** above, then write and report in the same reply.
 
 1. Each section written and the version it now holds.
 2. Any sentence the execution caught, and what replaced it.
@@ -721,8 +747,10 @@ So an update reports what it found in those two states and stops. What to start,
 and how many at once, is the owner's call. Their ceiling is eight running at
 once, set the same day and not withdrawn, and what argued for a ceiling was
 measured: three concurrent sessions produced two publish refusals inside one
-board update, and each refusal costs a full read of the live page and a merge
-decided part by part. Nothing in this skill starts anything, so the number is
+board update, and each refusal cost a full read of the live page and a merge
+decided part by part. Moving the data into the database on 2026-10-02 removed
+that cost for data updates, so the ceiling now rests on the owner's attention
+rather than on refusals. Nothing in this skill starts anything, so the number is
 recorded here rather than enforced.
 
 One fact from the withdrawn text is about the page rather than about offering,

@@ -40,7 +40,9 @@ def main() -> None:
         if doc.get("schema") != 1:
             sys.exit(f"{name}: schema {doc.get('schema')!r}, expected 1")
         fallback[name] = doc if name == "state" else doc["items"]
-    body = json.dumps(fallback, ensure_ascii=False, separators=(",", ":"))
+    # A "</script>" inside any string would end the page's script early, so
+    # every "<" is written as its JSON escape, which parses to the same text.
+    body = json.dumps(fallback, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     line = f"const FALLBACK = {body};"
     new, count = re.subn(r"^const FALLBACK = .*;$", lambda _: line, page, flags=re.MULTILINE)
     if count != 1:
