@@ -252,10 +252,10 @@ recorded too, in the manifest's `source_workbook` field, because a workbook's
 name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
 and a `SPY.xls` in the same mirror holds a different series.
 
-All five workbooks have their `.xls` checksum recorded beside the run that
-reads the column taken from them. Four are in
+Every workbook has its `.xls` checksum recorded beside the run that reads the
+column taken from it. `GLD.xls`, `GDX.xls`, `KO.xls` and `PEP.xls` are in
 [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and
-`example6_2.xls`'s is in
+`example6_2.xls` is in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
 The two directories hold Chan's first-edition MATLAB files, one vintage per

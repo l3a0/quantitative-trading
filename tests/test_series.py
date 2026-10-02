@@ -141,7 +141,7 @@ def committed_copy(tmp_path: Path) -> Path:
 # pin anybody can keep: the four yfinance files carry full float64 reprs like
 # `56.36000061035156`, and parsing those gives answers that differ in the last
 # bit between a macOS arm64 run and CI's linux x86_64, measured on PR 71 rather
-# than predicted. The five workbook columns carry at most two decimals and
+# than predicted. The workbook columns carry at most two decimals and
 # agree everywhere. `TestTheParseDoesNotDependOnWhereTheBytesCameFrom` below covers
 # what a hash was reaching for.
 COMMITTED = [
@@ -311,8 +311,8 @@ class TestWhatTellsTwoDownloadsApart:
     """Rule 2. The discriminator is a date, read from whichever field carries it.
 
     An argument named for the download date could name only the downloads,
-    because five of the committed vintages are columns lifted from Ernest
-    Chan's workbooks and carry a saved date instead. A rule that the latest date
+    because the committed vintages lifted from Ernest Chan's own files carry a
+    saved date instead. A rule that the latest date
     wins would compare `None` against a string, and where it did work it would
     let a new download move a pinned number with nothing in the diff to explain
     it. So the date is explicit and ambiguity stops the run.

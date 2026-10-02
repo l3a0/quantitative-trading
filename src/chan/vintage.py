@@ -47,7 +47,7 @@ instead of defended in code.
 
 :func:`record_vintage` records only a download. A column lifted from one of
 Ernest Chan's files carries ``saved_date`` and ``source_workbook`` instead,
-because nothing was fetched on the day it carries. The five ``*_chan.csv``
+because nothing was fetched on the day it carries. The ``*_chan.csv``
 columns lifted from his workbooks were typed into the manifest by hand, one line
 each, and ``docs/design.md``'s register carries why the recorder was not given
 a saved-date parameter for them: a second naming convention, and the check that
