@@ -47,7 +47,7 @@ import pandas as pd
 import pytest
 from ithildincore.timeseries import EG_CRIT_N2
 
-from chan.pair_cointegration import engle_granger, residual_check
+from chan.pair_cointegration import ResidualCheck, engle_granger, residual_check
 from chan.series import WindowCrossesScaleBreak, aligned_closes
 from chan.stationary_candidates import (
     INTERMEDIATE,
@@ -78,9 +78,9 @@ class TestTheSpan:
     def test_the_join_keeps_every_day_of_both_legs(
         self, measured: tuple[pd.DataFrame, dict[str, Orientation]]
     ) -> None:
-        """Both funds list on one exchange and began on one day, so the inner
-        join drops nothing and the span is the full history the download
-        returned."""
+        """The vendor's history of both begins on one day and carries the same
+        trading days after it, so the inner join drops nothing and the span is
+        the full history the download returned."""
         closes, _ = measured
         assert len(closes) == 6083
         assert str(closes.index[0].date()) == "2002-07-30"
@@ -125,27 +125,22 @@ class TestBothOrientations:
     def test_neither_orientation_rejects_even_at_ten_percent(
         self, measured: tuple[pd.DataFrame, dict[str, Orientation]], dependent: str
     ) -> None:
-        """The finding. Both statistics sit about two thirds of a unit short of
-        the 10% bar, so the orientation the test would otherwise have chosen
-        decides nothing here."""
-        assert measured[1][dependent].fit.adf_stat > EG_CRIT_N2["10%"]
+        """The finding. The statistics sit 0.65 and 0.72 short of the 10% bar, so
+        the orientation the test would otherwise have chosen decides nothing
+        here."""
+        short = measured[1][dependent].fit.adf_stat - EG_CRIT_N2["10%"]
+        assert short == pytest.approx({"TLT": 0.6513, "IEF": 0.7232}[dependent], abs=5e-5)
 
     def test_the_two_orientations_differ_by_less_than_a_tenth(
         self, measured: tuple[pd.DataFrame, dict[str, Orientation]]
     ) -> None:
-        """On GLD/GDX the two orientations sit about 0.5 apart. Here they sit
-        0.0719 apart, so this pair is not a case where the choice of dependent
-        leg could have turned the finding."""
+        """The two orientations sit 0.0719 apart, so this pair is not a case
+        where the choice of dependent leg could have turned the finding. Entry 5
+        of the replication log quotes the GLD/GDX comparison, measured on issue
+        136 and pinned nowhere, since pinning the engine's asymmetry is issue
+        127's."""
         gap = measured[1]["TLT"].fit.adf_stat - measured[1]["IEF"].fit.adf_stat
         assert gap == pytest.approx(-0.0719, abs=5e-5)
-
-    def test_the_through_origin_hedges_ride_along(
-        self, measured: tuple[pd.DataFrame, dict[str, Orientation]]
-    ) -> None:
-        """Display-only, as on GLD/GDX. They are pinned because the rolling scan
-        reports them window by window."""
-        assert measured[1]["TLT"].fit.origin_hedge == pytest.approx(1.1100, abs=5e-5)
-        assert measured[1]["IEF"].fit.origin_hedge == pytest.approx(0.8925, abs=5e-5)
 
 
 class TestTheResidualCheck:
@@ -219,13 +214,29 @@ class TestTheResidualCheck:
         """On GLD/GDX the band was the half that decided. Here every bar is
         inside it from 9 or 10 lags on, and every fit from there to 30 still
         fails the Breusch-Godfrey test. A pass that read the band alone would
-        stop two dozen lag counts early, at a statistic nearer rejection."""
+        stop 22 and 21 lag counts early, at a statistic nearer rejection."""
         o = measured[1][dependent]
         checks = [residual_check(o.fit.spread, k) for k in range(o.passing.lags)]
         clean = [c.lags for c in checks if not c.outside]
-        assert clean == list(range(self.BAND_CLEARS[dependent], o.passing.lags))
+        first_clean = self.BAND_CLEARS[dependent]
+        assert clean == list(range(first_clean, o.passing.lags))
         assert all(checks[k].breusch_godfrey_p <= 0.10 for k in clean)
         assert not any(residuals_pass(c) for c in checks)
+        assert o.passing.lags - first_clean == {"TLT": 22, "IEF": 21}[dependent]
+        assert checks[first_clean].adf_stat < o.passing.adf_stat
+
+    def test_a_clean_breusch_godfrey_p_does_not_pass_with_a_bar_outside_the_band(self) -> None:
+        """No fit on either pair has a Breusch-Godfrey p above the cut while a
+        bar sits outside the band, so the real data cannot hold the band half
+        of the predicate. These two checks do. Dropping either half lets one of
+        them through."""
+        quiet = np.zeros(10)
+        one_out = quiet.copy()
+        one_out[5] = 0.5  # the band at 400 observations is 1.96 / 20, or 0.098
+        assert ResidualCheck(1, -2.0, 400, one_out, 0.50).outside == [6]
+        assert not residuals_pass(ResidualCheck(1, -2.0, 400, one_out, 0.50))
+        assert not residuals_pass(ResidualCheck(1, -2.0, 400, quiet, 0.05))
+        assert residuals_pass(ResidualCheck(1, -2.0, 400, quiet, 0.50))
 
 
 class TestTheRollingScan:
@@ -268,8 +279,12 @@ class TestTheRollingScan:
         closes, by = measured
         scan = by[dependent].scan
         years = closes.index[scan.end_idx[scan.adf_stat < EG_CRIT_N2["10%"]]].year
-        clustered = int(np.isin(years, [2003, 2004, 2020, 2021]).sum())
+        stretches = [2003, 2004, 2020, 2021]
+        clustered = int(np.isin(years, stretches).sum())
         assert clustered == {"TLT": 30, "IEF": 29}[dependent]
+        assert 2 * clustered > len(years)
+        elsewhere = years[~np.isin(years, stretches)]
+        assert max(np.unique(elsewhere, return_counts=True)[1]) <= 6
 
 
 class TestTheReport:

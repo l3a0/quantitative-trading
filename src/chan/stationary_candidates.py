@@ -148,7 +148,7 @@ def measure_orientation(closes: pd.DataFrame, dependent: str, independent: str) 
     """Fit, check and scan one orientation of an aligned pair."""
     a = closes[dependent].to_numpy(dtype=float)
     b = closes[independent].to_numpy(dtype=float)
-    fit = engle_granger(a, b, lags=LAGS, origin=True)
+    fit = engle_granger(a, b, lags=LAGS)
     ceiling = schwert_ceiling(len(closes))
     return Orientation(
         dependent=dependent,
@@ -172,7 +172,8 @@ def _orientation(o: Orientation) -> None:
     print(f"{o.dependent} on {o.independent}:  {o.dependent} = alpha + beta*{o.independent} + z")
     print(f"  hedge ratio beta = {fit.hedge_ratio:.4f}    intercept alpha = {fit.intercept:.4f}")
     print(
-        f"  Engle-Granger / CADF, {LAGS} lag, no const:  t = {fit.adf_stat:.4f}   "
+        f"  Engle-Granger / CADF (ADF on the residual spread, {LAGS} lag, no const):  "
+        f"t = {fit.adf_stat:.4f}   "
         f"(nobs = {fit.nobs})"
     )
     print(f"  {_verdict(fit.adf_stat, EG_CRIT_N2)}")

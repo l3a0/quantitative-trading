@@ -152,7 +152,8 @@ A fourth piece of machinery came with them. The rolling-window scan in
 across the whole history, which turns a single verdict into a map of when the
 relationship held. Over GLD/GDX only 31 of 231 windows clear even the 10% bar
 and they cluster before 2015, so cointegration here is a property of a window
-rather than of the pair. Nothing outside the tests calls it yet.
+rather than of the pair. `chan.regime_figure` and `chan.stationary_candidates`
+call it, the second for Chan's fixed-income candidate.
 
 Three things follow, and they set what the repo holds.
 

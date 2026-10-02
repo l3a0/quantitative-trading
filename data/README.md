@@ -182,9 +182,9 @@ worth stating rather than leaving a reader to infer.
    other. The download ran after the 2026-10-01 close and returned no
    non-finite close on either leg, so the rule removed nothing and each file
    holds all 6,083 rows the vendor returned.
-3. **The two spans are the same.** Both funds began trading on 2002-07-30, so
-   the pair's common history is each leg's whole history, and `scale_breaks`
-   finds nothing on either.
+3. **The two spans are the same.** The yfinance history of both begins on
+   2002-07-30, so the pair's common history is each leg's whole history, and
+   `scale_breaks` finds nothing on either.
 
 The `*_chan.csv` files are a different kind of source. Each is the
 adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
