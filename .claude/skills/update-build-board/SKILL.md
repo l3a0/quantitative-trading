@@ -38,7 +38,9 @@ that hits one and leaves has made the board wrong, and nothing else notices.
    flag is the only thing that moves a card from waiting on a reviewer to
    waiting on the owner, and it is the column the owner reads first.
 4. **An issue is filed or closed.** That moves `TRACKER` and
-   `STATE.issues.open`, and it is worth an update on its own.
+   `STATE.issues.open`, and it is worth an update on its own. A filed issue's
+   card stays off the board's default view until it has a `NEXT` entry, so
+   decide whether it gets one rather than leaving that to chance.
 5. **A pull request closes unmerged.** In-flight membership asks whether a
    `PRS` entry has `state` of `open`, so nothing removes a card on its own and
    it sits in a review column indefinitely.
@@ -83,7 +85,8 @@ stamp. The sections are these.
    being planned. A card here is drawn once and left out of the build order.
    Two of the five hold a card because a session is on it, and `kind` on the
    `WORKING` entry is what separates a build session from a decompose loop.
-2. **Build order**, four columns by dependency depth, with everything else.
+2. **Build order**, four columns by dependency depth. By default they hold the
+   ranked cards, and with Show all they hold everything not in flight.
    Within a column, cards sort by readiness, then by the priority order, then by
    a measured `after`, then by number, except that a card whose `kind` is
    `deferred` is forced last whatever the rest says. Under it sits a chainbar,
@@ -95,9 +98,11 @@ stamp. The sections are these.
    open issue drawn, the first column ran past fifty cards and the ten ranked
    ones were scattered through it. The Marketlake Build Board made the same cut
    at a hundred and fifty. The choice is kept in the viewer's browser under
-   `qt-board-all` and nowhere else. A deferred card stays hidden even when
-   `NEXT` lists it, because `rankMark` drops it. So a card is on the default view
-   exactly when it has an entry in `NEXT` and no deferral. Adding a `NEXT` entry
+   `qt-board-all` and nowhere else. A card whose `TRACKER` entry has a `kind` of
+   `deferred` stays hidden even when `NEXT` lists it, because `rankMark` drops
+   it. A band of 5 in `NEXT` does not hide a card on its own. So a card in the
+   build-order columns shows by default exactly when `NEXT` lists it and its
+   `kind` is not `deferred`. A card in flight shows either way. Adding a `NEXT` entry
    is how a card gets onto the short view, and that view is what the owner reads
    first.
 3. **One paragraph**, saying the page was measured by hand and cannot poll
@@ -109,9 +114,11 @@ page shows live data. It speaks only when the page is drawing its built-in copy
 or has stopped taking live updates, and it says which and how old the data is.
 The harness has no database, so every harness run prints it as
 `OTHER[source] ... This view cannot reach the live board`. That line is the
-banner working, not a defect. It also prints the count line as
+banner working, not a defect. The default view also prints the count line, as
 `OTHER[more] Showing the N ranked cards. M other open issues are not in the
-priority order.`
+priority order. Show all N+M`, and the Show all view prints it as
+`OTHER[more] Showing all N+M open issues not in flight. Show only the ranked
+cards`.
 
 ## Read the live data before editing anything
 
@@ -356,7 +363,7 @@ One more constant is not in the table because nothing should edit it.
 | `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
 | `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
-| `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
+| `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column, the small number chip on the cards it names, and which cards the default view draws |
 | `FLOW` | the five in-flight stages and the test that assigns a card to one |
 | `LABEL_HUE` | one colour per tracker label, read by the card chips. A new label renders in the faint ink until a code republish adds its colour |
 | `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
@@ -448,11 +455,13 @@ osascript -l JavaScript run.js
 That run draws the default view, which hides every card `NEXT` does not rank.
 Run it a second time with the Show all view, because most of the columns and
 most of the board note only render there. The stub has no `localStorage`, so
-one line before the script supplies a stored choice.
+one line before the script supplies a stored choice. It answers only for the
+page's own key, so a page reading a renamed key draws the short view and the
+run shows it.
 
 ```bash
 (cat "$REPO"/.claude/skills/update-build-board/dom-stub.js
- echo 'var localStorage={getItem:function(){return "1";},setItem:function(){}};'
+ echo 'var localStorage={getItem:function(k){return k==="qt-board-all"?"1":null;},setItem:function(){}};'
  sed -n '/^function s(x)/,$p' run.js | cat board.js -) > run-all.js
 osascript -l JavaScript run-all.js
 ```
@@ -483,8 +492,9 @@ false. Six checks catch most of them.
 
 1. **The totals reconcile.** In-flight cards plus board cards plus the hidden
    count on the `OTHER[more]` line equals open issues, and every card carries
-   its labels. In the Show all run the hidden count is zero, so in-flight plus
-   board cards alone must equal open issues there.
+   its labels. In the Show all run nothing is hidden, so the number on that
+   run's `OTHER[more]` line must equal the board cards, and in-flight plus board
+   cards alone must equal open issues.
 2. **No sentence contradicts another.** The free-card list must not name a card
    that a later sentence says nobody should start.
 3. **Every count matches its own list.** A sentence saying four cards and then
