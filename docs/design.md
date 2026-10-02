@@ -354,11 +354,13 @@ The preference for raw closes rests on GDX, which had paid almost nothing by
 series was the closest surviving proxy for what he read. SPY had been paying
 for fifteen years by the end of his window, and on his own data the difference
 between the two columns is worth a quarter of the answer.
-[docs/replication-log.md](replication-log.md) Entry 3 carries both figures and
-records that nothing here pins either, because nothing here reads his workbook
-yet. The repo holds its adjusted column as `data/spy_chan.csv` and not its
-as-traded one. So reading raw here would not be a
-conservative choice about restatement. It would be a different experiment.
+[docs/replication-log.md](replication-log.md) Entry 3 carries both figures. It
+pins the first, 2.5278, from his adjusted column, which the repo holds as
+`data/spy_chan.csv`. It does not pin the second, 1.9341, because that comes
+from his as-traded column, which the repo does not hold.
+[Issue 192](https://github.com/l3a0/quantitative-trading/issues/192) commits
+that column and pins it. So reading raw here would not be a conservative choice
+about restatement. It would be a different experiment.
 
 It is also not a choice about a number. Chan's own conclusion at Kindle
 location 3083 is that even half-Kelly would not have survived Black Monday, and

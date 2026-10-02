@@ -17,7 +17,7 @@ and each says so in its own cells.
 3. Row 10 carries no published figure, because the book stops in 2007.
 4. Row 11 covers the two statistics Chan printed from one disagreement.
 
-Entries 2, 3 and 4 carry their own, three, three and twelve, and they are
+Entries 2, 3 and 4 carry their own, three, seven and twelve, and they are
 listed in those entries rather than here, because the list is about an entry's
 rows and not about the file.
 
@@ -57,7 +57,7 @@ picking one.
   - [What this repo computed](#what-this-repo-computed-2)
   - [The verdicts](#the-verdicts-2)
   - [What the entry concludes](#what-the-entry-concludes-2)
-  - [Figures from Chan's workbook, which nothing here pins](#figures-from-chans-workbook-which-nothing-here-pins)
+  - [Two figures from Chan's workbook that need a column this repo lacks](#two-figures-from-chans-workbook-that-need-a-column-this-repo-lacks)
   - [What this entry cannot say](#what-this-entry-cannot-say)
 - [Entry 4: risk parity against 60/40, Chan's *Quantitative Trading*](#entry-4-risk-parity-against-6040-chans-quantitative-trading)
   - [What the book printed](#what-the-book-printed-3)
@@ -181,13 +181,13 @@ The vocabulary defines a replication as an attempt to reproduce a specific
 published number. A row with no published number is therefore not a
 replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
-Entry 3's rows 10, 13 and 14, and Entry 4's rows 4 to 15, and each verdict cell
-says so rather than reaching for a fourth value.
+Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
+each verdict cell says so rather than reaching for a fourth value.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
-ranking or a verdict, the claim is what gets pinned. Entry 3's rows 12 and 15
-are both of those, and they take opposite verdicts. So is Entry 4's row 3,
+ranking or a verdict, the claim is what gets pinned. Entry 3's rows 12, 15, 27
+and 28 are all of those, and they split two and two. So is Entry 4's row 3,
 which is the ranking Qian's two printed figures were printed to support.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
@@ -694,45 +694,57 @@ with it, since that post quotes the same pins.
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
 Algorithmic Trading Business*, Example 6.2, with the specification read off his
-own `example6_3.m`. Shipped under
-[issue 14](https://github.com/l3a0/quantitative-trading/issues/14).
+own `example6_3.m`. Rows 1 to 17 shipped under
+[issue 14](https://github.com/l3a0/quantitative-trading/issues/14), and rows 18
+to 30 under [issue 138](https://github.com/l3a0/quantitative-trading/issues/138).
 
-Seventeen rows, all derivable from
+Thirty rows, all derivable from
 [tests/test_kelly_leverage.py](../tests/test_kelly_leverage.py).
 
-**Exactly one figure Chan computed from a series reproduces here, and it is the
-dispersion.** He read SPY through 2007-12-28 on a 2008-vintage adjusted series.
-This reads a 2026 download of the same symbol over the same dates, so rows 1 to
-8 measure how two downloads eighteen years apart differ, with the window held
-fixed. Rows 1 and 3 to 8 all miss, every one of them high. Row 2 lands on the
-two decimals he prints. Dividends paid after his window cannot explain the
-gaps, because they scale every price inside it by one factor and leave every
-return unchanged. Set day by day against his own `data/spy_chan.csv`, the whole
-gap in the mean sits on about ten days on or beside SPY's quarterly ex-dividend
-dates. On the four largest, one download folds nearly a whole quarterly payout
-into the day's return and the other does not, and on the rest it folds in part
-of one. The differences mostly raise the 2026 mean. Elsewhere they are small,
-mostly rounding and a few smaller dividend differences, and together pull back
-less than a tenth of the gap. A few large differences move a mean while barely
-touching a standard deviation. That comparison is measured rather than pinned.
-Reading his own workbook is [issue
-138](https://github.com/l3a0/quantitative-trading/issues/138), and the
-`reproduced` verdict on the rest belongs there.
+**The entry reads two vintages of SPY over Chan's own span, and they disagree
+in one place.**
+
+1. **Rows 1 to 17 read a 2026 download.** He read SPY through 2007-12-28 on a
+   2008-vintage adjusted series, so rows 1 to 8 measure how two downloads
+   eighteen years apart differ, with the window held fixed. Rows 1 and 3 to 8
+   all miss, every one of them high. Row 2, the dispersion, lands on the two
+   decimals he prints.
+2. **Rows 18 to 28 read his own `example6_2.xls`**, committed as
+   `data/spy_chan.csv`. Every figure he computed from a series reproduces from
+   it at the precision he printed it. The one printed figure that does not is
+   row 26's \$252,800, because he rounded the leverage to 2.528 before
+   multiplying.
+
+Rows 29 and 30 set the two vintages day by day against each other, which is
+what says why the first group misses. Dividends paid after his window cannot
+explain it, because they scale every price inside it by one factor and leave
+every return unchanged. The two vintages hold the same 3,758 days, and the
+whole gap in the mean sits on about ten days on or beside SPY's quarterly
+ex-dividend dates. On the four largest, one download folds nearly a whole
+quarterly payout into the day's return and the other does not, and on the rest
+it folds in part of one. The differences mostly raise the 2026 mean. Elsewhere
+they are small, mostly rounding and a few smaller dividend differences, and
+together pull back less than a tenth of the gap. A few large differences move a
+mean while barely touching a standard deviation.
 
 Two more rows reproduce and neither reads a series. Rows 9 and 11 are
 arithmetic on figures the book prints, so nothing could have moved them.
 
-Five rows carry no published figure and say so in their own cells: row 10 is
-this vintage's own account beside the book's, row 13 is the worst day SPY
-actually holds, and rows 14, 16 and 17 are three windows the book does not
-work. Those three are why the window is an argument, and rows 16 and 17 are the
-two that make the case, since between them the leverage runs from a short of
-2.82 times equity to a long of 4.90.
+Seven rows carry no published figure and say so in their own cells.
 
-Two rows chase a claim rather than a number, which is the shape
+- Row 10 is the 2026 download's own account beside the book's.
+- Row 13 is the worst day SPY actually holds.
+- Rows 14, 16 and 17 are three windows the book does not work. Those three are
+  why the window is an argument, and rows 16 and 17 are the two that make the
+  case, since between them the leverage runs from a short of 2.82 times equity
+  to a long of 4.90.
+- Rows 29 and 30 are the two vintages set against each other.
+
+Four rows chase a claim rather than a number, which is the shape
 [docs/design.md](design.md) names for a source that states a verdict instead of
-a figure. Row 12 is Chan's Black Monday conclusion and it survives. Row 15 is
-his time-scale independence and it does not.
+a figure. Rows 12 and 27 are Chan's Black Monday conclusion, on each vintage,
+and it survives on both. Rows 15 and 28 are his time-scale independence, and it
+fails on both.
 
 Every result here is **exploratory** in the design doc's sense, and this is the
 first entry where that matters to a reader rather than to a bookkeeper. Its
@@ -761,6 +773,19 @@ lines.
 | 15 | Kelly's independence of time scale, unlike the Sharpe ratio | a claim rather than a figure | location 2858 |
 | 16 | Kelly leverage over the 2000 to 2002 bear market | none, the book works one window | n/a |
 | 17 | Kelly leverage over the 2003 to 2007 bull market | none, the book works one window | n/a |
+| 18 | SPY mean annual return, on Chan's own workbook | 11.23 percent | location 2858 |
+| 19 | Annualised standard deviation, on Chan's own workbook | 16.91 percent | location 2858 |
+| 20 | Mean excess return, on Chan's own workbook | 7.231 percent | location 2858 |
+| 21 | Sharpe ratio, on Chan's own workbook | 0.4275 | location 2858 |
+| 22 | Optimal Kelly leverage, on Chan's own workbook | 2.528 | location 2858 |
+| 23 | Levered compounded growth rate, on Chan's own workbook | 13.14 percent | locations 2858 and 2869 |
+| 24 | Unlevered compounded growth rate, on Chan's own workbook | 9.8 percent | location 2869 |
+| 25 | Half-Kelly leverage, on Chan's own workbook | 1.26 | location 3083 |
+| 26 | The worked example and the rebalancing chain, on the leverage his own workbook gives | \$252,800, \$227,520, \$74,720 and \$188,892, the same figures as row 9 | locations 2869 and 3021 |
+| 27 | Chan's Black Monday conclusion, on his own workbook | the claim of row 12 | location 3083 |
+| 28 | Kelly's independence of time scale, on his own workbook | the claim of row 15 | location 2858 |
+| 29 | The days the two vintages hold over Chan's span | none, the book reads one vintage | n/a |
+| 30 | The difference in return between the two vintages over Chan's span | none, the book reads one vintage | n/a |
 
 ### What this repo computed
 
@@ -783,6 +808,19 @@ lines.
 | 15 | 1993-01-29 to 2007-12-28 | `f*` recomputed on resampled returns, under three named monthly rules | same file as row 1 | 3.7175 on calendar month-ends, 3.7460 dropping the partial final month, 3.6438 on 21-day blocks, against 2.5506 daily | `TestTimeScaleIndependence::test_resampling_is_what_actually_moves_it` and `::test_the_conclusion_does_not_depend_on_which_monthly_rule_is_picked` |
 | 16 | 2000-01-01 to 2002-12-31 | the same specification as rows 1 to 8 | same file as row 1 | mean −12.5412 percent, sd 24.2032 percent, `f*` −2.8237 | `TestTheWindowMovesItFurtherThanTheVintageDoes::test_the_bear_window_recommends_a_short` |
 | 17 | 2003-01-01 to 2007-12-28 | the same specification as rows 1 to 8 | same file as row 1 | mean 12.2867 percent, sd 13.0081 percent, `f*` 4.8972 | `TestTheWindowMovesItFurtherThanTheVintageDoes::test_the_bull_window_nearly_doubles_it` |
+| 18 | 1993-01-29 to 2007-12-28 | row 1's specification | `spy_chan.csv`, the adjusted-close column of Chan's own `example6_2.xls`, saved 2008-01-29 | 11.2307 percent | `TestEveryFigureHePrintedReproducesFromHisData::test_the_moments` |
+| 19 | 1993-01-29 to 2007-12-28 | row 2's specification | same file as row 18 | 16.9131 percent | `TestEveryFigureHePrintedReproducesFromHisData::test_the_moments` |
+| 20 | 1993-01-29 to 2007-12-28 | row 3's specification | same file as row 18 | 7.2307 percent | `TestEveryFigureHePrintedReproducesFromHisData::test_the_moments` |
+| 21 | 1993-01-29 to 2007-12-28 | row 4's specification | same file as row 18 | 0.427523, against 0.427580 under the population dispersion form | `TestEveryFigureHePrintedReproducesFromHisData::test_the_sharpe_ratio_and_the_dispersion_form_it_decides` |
+| 22 | 1993-01-29 to 2007-12-28 | row 5's specification | same file as row 18 | 2.5278 | `TestEveryFigureHePrintedReproducesFromHisData::test_the_kelly_leverage_and_the_growth_rates` |
+| 23 | 1993-01-29 to 2007-12-28 | row 6's specification | same file as row 18 | 13.1388 percent | `TestEveryFigureHePrintedReproducesFromHisData::test_the_kelly_leverage_and_the_growth_rates` |
+| 24 | 1993-01-29 to 2007-12-28 | row 7's specification | same file as row 18 | 9.8005 percent | `TestEveryFigureHePrintedReproducesFromHisData::test_the_kelly_leverage_and_the_growth_rates` |
+| 25 | 1993-01-29 to 2007-12-28 | row 8's specification | same file as row 18 | 1.2639 | `TestEveryFigureHePrintedReproducesFromHisData::test_the_kelly_leverage_and_the_growth_rates` |
+| 26 | 1993-01-29 to 2007-12-28 | row 9's chain at row 22's leverage | same file as row 18 | \$252,775.87, \$227,498.28, \$74,722.41 and \$188,880.23 | `TestThePrintedPortfolioOnHisExactLeverage::test_his_exact_leverage_buys_less_than_he_printed` and `::test_rounding_the_leverage_is_the_whole_cause` |
+| 27 | 1993-01-29 to 2007-12-28 | row 25 against row 11, which holds exactly while row 22 is above 1.954079 | same file as row 18, for row 22 only | the claim holds, by a margin of 0.57 on the leverage | `TestHisOwnDataOnTheRestOfTheEntry::test_the_black_monday_conclusion_survives_on_his_data` |
+| 28 | 1993-01-29 to 2007-12-28 | row 15's three monthly rules | same file as row 18 | 3.6908 on calendar month-ends, 3.7195 dropping the partial final month, 3.6163 on 21-day blocks, against 2.5278 daily | `TestHisOwnDataOnTheRestOfTheEntry::test_the_time_scale_claim_fails_on_his_own_series` |
+| 29 | 1993-01-29 to 2007-12-28 | the two indexes intersected, with what each side lost counted | row 18's file and row 1's | 3,758 days in each and 3,758 joined, so the join drops nothing from either side | `TestTheTwoVintagesOverChansWindow::test_the_join_drops_nothing_from_either_side` |
+| 30 | 1993-01-29 to 2007-12-28 | simple returns on the joined days, the 2026 download's less Chan's | row 18's file and row 1's | the annual mean differs by 0.0641 percentage points and the standard deviation by 0.0014. The ten largest daily differences carry 108.5 percent of the summed difference, eight raising the 2026 mean and two lowering it, and days in SPY's quarterly dividend months carry 100.4 percent | `TestTheTwoVintagesOverChansWindow::test_the_gap_in_the_mean_and_the_dispersion_that_does_not_move` and `::test_ten_days_carry_the_whole_gap_and_dividend_months_carry_it_too` |
 
 ### The verdicts
 
@@ -805,22 +843,35 @@ lines.
 | 15 | none, the source states a claim | did not reproduce | The claim is true in the reading nobody needs and false in the one they do. Under the annualisation in use the factor cancels between the mean and the variance, so the annualised and per-period ratios agree to floating-point noise, exactly and for any factor. Resampling the returns rather than rescaling their moments moves `f*` by 43 to 47 percent, on all three monthly rules, and those sit within 0.11 of each other. No vintage explanation is available, because the same three rules on Chan's own workbook land 43 to 47 percent above his daily figure too. This is the shape of Entry 1's row 11, where a conclusion about a library turned out to be a conclusion about a default. |
 | 16 | none | none, not a replication | The book works one window. Kelly recommends a short of 2.82 times equity here, because the mean excess return over these three years is negative, and the row exists because that is the case requirement 10 of the issue was written for: a negative leverage is arithmetic rather than a failure, and neither half-Kelly nor the drawdown comparison carries across the sign change. |
 | 17 | none | none, not a replication | The book works one window. Read against row 16 this is the entry's fourth conclusion in two cells: one vintage, one specification, and a leverage running from −2.82 to +4.90 depending only on which years are read. |
+| 18 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints. This is row 1 on the series Chan read, and the gap row 1 carries is gone, which is what names it as the vintage. |
+| 19 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints, as row 2 already was on the 2026 download. |
+| 20 | +0.000 percentage points | reproduced | Exact at the three decimals the book prints. |
+| 21 | +0.0000 | reproduced | Exact at the four decimals the book prints, and only under the sample dispersion form. The population form gives 0.427580, which prints as 0.4276, so this row demonstrates on his own data what row 4 could only argue by analogy. |
+| 22 | +0.000 | reproduced | Exact at the three decimals the book prints. A zero here says Chan's arithmetic is right on Chan's data. It says nothing about whether 2.528 is a leverage anyone should carry, and the report prints that beside the table. |
+| 23 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints. |
+| 24 | +0.0 percentage points | reproduced | Exact at the one decimal the book prints. |
+| 25 | +0.00 | reproduced | Exact at the two decimals the book prints. |
+| 26 | −\$24.13, −\$21.72, +\$2.41 and −\$11.93 | reproduced with a gap | The claim is that 2.528 times \$100,000 buys about a quarter of a million dollars of SPY and resizes as the chain shows, and it survives. The numbers differ because Chan rounded the leverage to 2.528 before multiplying. Rounding row 22 to the three decimals he printed reproduces all four figures to the cent, so the cause is named and sits in his arithmetic rather than in his data. |
+| 27 | none, the source states a claim | reproduced | The claim survives on his own data as it does on the 2026 download in row 12. The margin is 0.57 here against 0.60 there, because his leverage is the lower of the two. |
+| 28 | none, the source states a claim | did not reproduce | Row 15's refutation, on the series Chan read. Every monthly rule lands 43 to 47 percent above his daily figure, so the vintage explanation is spent, which is the sharpest case of this verdict the rules above name. |
+| 29 | none | none, not a replication | The book reads one vintage. The row exists because a vendor restates which days a series holds as well as what they are worth, and a silent join would hide the first. Over this span the two vintages hold the same days, so row 30 is a difference in prices rather than in calendars. |
+| 30 | none | none, not a replication | The book reads one vintage. This row is why rows 1 and 3 to 8 miss while row 2 does not. About ten days near SPY's ex-dividend dates carry more than the whole gap in the mean, and they barely move a standard deviation. |
 
 ### What the entry concludes
 
-Four things, and the first is what makes the other three worth reading.
+Five things, and the first is what makes the other four worth reading.
 
 1. **Seven numbers moved and no claim did.** Every level Chan computed from a
-   series is now higher, by 0.06 percentage points on the mean and 0.023 on the
-   leverage, and every statement those numbers were printed to support still
-   holds on this vintage. That is the same split Entry 1 found on a different
-   pair with a different estimator: a published number and the claim it
-   supports have different shelf lives, and only the number depends on a
-   vintage. What is new here is the one that did not move. The dispersion of
+   series is higher on the 2026 download, by 0.06 percentage points on the mean
+   and 0.023 on the leverage, and every statement those numbers were printed to
+   support still holds on that vintage. That is the same split Entry 1 found on
+   a different pair with a different estimator: a published number and the
+   claim it supports have different shelf lives, and only the number depends on
+   a vintage. What is new here is the one that did not move. The dispersion of
    row 2 reproduces while the mean of row 1 does not, because the two downloads
    differ on about ten days on or beside SPY's quarterly ex-dividend dates,
    mostly raising the 2026 mean, which moves a mean and barely touches a
-   standard deviation.
+   standard deviation. Row 30 measures that rather than arguing it.
 2. **The specification is what rows 4 and 7 really hold.** Two choices are
    invisible on the page and each has a plausible wrong answer that does not
    look wrong. On this vintage the population dispersion form moves the Sharpe
@@ -842,45 +893,45 @@ Four things, and the first is what makes the other three worth reading.
    0.023 in row 5. So a leverage reported with no window named mixes sample
    choice and vendor drift, and neither is recoverable afterwards. That is why
    the window is an argument and why the default is Chan's own.
+5. **On his own data every figure reproduces, and that is all it shows.** Rows
+   18 to 25 land on what Chan printed at the precision he printed it, and row
+   26 misses only by the rounding he did before multiplying. This is the repo's
+   first exact reproduction of a leverage, which makes it the result most
+   likely to be over-read. It is exploratory like everything above it: the
+   sample was spent on a hypothesis Chan chose, so `reproduced` here means his
+   arithmetic is right on his data. It is not evidence that 2.528 is a leverage
+   anyone should carry, and the report prints that sentence beside the table
+   rather than leaving it to this one. It is also the counterpart to Entry 1's
+   row 7 rather than its row 6: the same code, on a vintage that was not lost,
+   reaching the printed number.
 
-### Figures from Chan's workbook, which nothing here pins
+### Two figures from Chan's workbook that need a column this repo lacks
 
-Five quantities quoted in this entry, in
+Two quantities quoted in this entry, in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) and in
-[docs/design.md](design.md), come from Ernest Chan's own `example6_2.xls`,
-whose adjusted column this repo holds as `data/spy_chan.csv` and no
-replication reads yet. They are measurements of his data rather than figures
-he printed, and no assertion in this repo computes any of them. One test cites
-1.9341 to compare it with the threshold. The day-by-day comparison against
-`data/spy_chan.csv` that this entry's intro, rows 1 and 2 and first conclusion
-quote is a sixth measurement of the same kind, run outside the suite. That
-workbook is
-[issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and
-pinning them is what that issue is for.
+[docs/design.md](design.md), are measurements of Chan's own `example6_2.xls`
+that no assertion here computes. Both need its as-traded `Close` column, and
+this repo holds only its adjusted column, as `data/spy_chan.csv`.
+[Issue 192](https://github.com/l3a0/quantitative-trading/issues/192) commits
+that column and pins them. Until it lands, one test cites 1.9341 only to
+compare it with the threshold.
 
 They are named here rather than left to read as asserted, which is the shape
-`README.md`'s `## The write-up` uses for the six figures its essay quotes and
-the suite does not hold.
+`README.md`'s `## The write-up` uses for the figures its essay quotes and the
+suite does not hold.
 
-1. **2.5278 and 1.9341**, his exact leverage on his adjusted close and on his
-   as-traded close. Everything this entry says about the price basis rests on
-   them, including the 0.59 the price basis is worth in the conclusions and the
-   reversal of his own risk conclusion, since 1.9341 is below the 1.954079
-   threshold this repo does compute.
-2. **0.427523 and 0.427580**, his Sharpe ratio under the sample and population
-   dispersion forms. They are why row 4 says only the sample form prints as the
-   0.4275 he published. This repo's own two forms are 5.74e-5 apart on the same
-   quantity, which is pinned, so the argument survives without them and the
-   demonstration on his own data does not.
-3. **\$252,775.87**, his exact leverage times \$100,000 of equity. Row 9 quotes
-   it to say the published \$252,800 is arithmetic on a rounded input.
-4. **1.68 percentage points**, what SPY's distributions are worth in annual
+1. **1.9341**, his leverage on the as-traded close. Everything this entry says
+   about the price basis rests on it beside row 22's 2.5278, including the 0.59
+   the price basis is worth in the third conclusion and the reversal of his own
+   risk conclusion, since 1.9341 is below the 1.954079 threshold this repo does
+   compute.
+2. **1.68 percentage points**, what SPY's distributions are worth in annual
    mean return on his span. `src/chan/kelly_leverage.py` quotes it as the size
    of the price-basis choice.
-5. **The three monthly resampling rules run on his series**, which land 43 to
-   47 percent above his daily figure. Row 15 cites them to say no vintage
-   explanation is available for the claim it refutes. That row's own numbers,
-   on this vintage, are pinned.
+
+The other figures this section used to list now have rows. His exact leverage
+is row 22, his two Sharpe ratios are row 21, his \$252,775.87 is row 26, his
+three monthly rules are row 28, and the day-by-day comparison is rows 29 and 30.
 
 ### What this entry cannot say
 

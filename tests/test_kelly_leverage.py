@@ -5,18 +5,21 @@ about this experiment. ``docs/replication-log.md`` Entry 3 states those numbers
 and derives none of them, and ``src/chan/kelly_leverage.py`` carries the
 reasoning.
 
-**One published figure reproduces here and it is the dispersion.** Chan read
-SPY through 2007-12-28 on a 2008-vintage adjusted series. This reads a 2026
-download of the same symbol over the same dates, so every level below lands
-high and the gaps measure how two downloads eighteen years apart differ rather
-than a method.
-The standard deviation is the exception, at the two decimals the book prints.
-The whole gap in the mean sits on about ten days on or beside SPY's quarterly
-ex-dividend dates, where one download folds in all or part of a payout that
-the other does not, mostly raising the 2026 mean. That moves a mean and barely
-touches a standard deviation. That is
-measured against ``data/spy_chan.csv`` rather than pinned here, and reading his
-own workbook is issue 138.
+**Two vintages are read here, and they are not interchangeable.**
+
+1. **A 2026 download**, which most of this file pins. Chan read SPY through
+   2007-12-28 on a 2008-vintage adjusted series, so every level a modern
+   download gives over the same dates lands high, and the gaps measure how two
+   downloads eighteen years apart differ rather than a method. The standard
+   deviation is the exception, at the two decimals the book prints.
+2. **Chan's own ``example6_2.xls``**, committed as ``data/spy_chan.csv`` and
+   pinned in the section headed for it near the end. Every figure he printed
+   from a series reproduces from it at the precision he printed it, and the
+   two-vintage comparison there is what says why the modern download misses:
+   the whole gap in the mean sits on about ten days on or beside SPY's
+   quarterly ex-dividend dates, where one download folds in all or part of a
+   payout that the other does not, mostly raising the 2026 mean. That moves a
+   mean and barely touches a standard deviation.
 
 Two kinds of assertion live here and they are not interchangeable.
 
@@ -35,7 +38,8 @@ workbook, which is the measurement that reverses his risk conclusion, and no
 committed SPY vintage carries an as-traded column to check it against. The
 module docstring cites it as his figure rather than as one this suite holds.
 Issue 133 says a ``raw`` yfinance vintage is not the as-traded close anyway, so
-recording one would not close it.
+recording one would not close it. Issue 192 commits the workbook's own
+as-traded column and pins the figure against it.
 
 **A red assertion here means the data or this code, never the dependency.**
 Every figure below is a mean, a standard deviation or a minimum computed in
@@ -65,8 +69,10 @@ from chan.kelly_leverage import (
     BOOK_LEVERAGE,
     BOOK_REF,
     BOOK_START,
+    DIVIDEND_MONTHS,
     DRAWDOWN_TOLERANCE,
     EQUITY,
+    LARGEST_DAYS,
     MIN_TRADING_DAYS,
     RISK_FREE,
     SAMPLING_RULES,
@@ -74,6 +80,7 @@ from chan.kelly_leverage import (
     VINTAGE_DATE,
     _worked_example,
     annualised_moments,
+    compare_vintages,
     main,
     rebalance,
     report,
@@ -810,16 +817,35 @@ class TestTheRunAndTheCli:
         assert "3,758 closes, 3,757 daily returns" in out
 
     def test_the_cli_passes_every_argument_through(self, monkeypatch, capsys) -> None:
-        """A dropped argument leaves the report describing a run nobody asked for."""
+        """A dropped argument leaves the report describing a run nobody asked for.
+
+        ``--dated`` is driven here too, and the header's vintage line is what
+        shows it arrived. Without that line the date is an argument the report
+        never mentions, and dropping it is invisible on the one SPY download
+        committed today. ``--chan`` has its own case below, because it reads a
+        different file and the header has to name that one.
+        """
         monkeypatch.setattr(
             "sys.argv",
-            ["chan.kelly_leverage", "--start", BEAR[0], "--end", BEAR[1], "--risk-free", "0.0"],
+            [
+                "chan.kelly_leverage",
+                "--start",
+                BEAR[0],
+                "--end",
+                BEAR[1],
+                "--dated",
+                VINTAGE_DATE,
+                "--risk-free",
+                "0.0",
+            ],
         )
         main()
         out = capsys.readouterr().out
         assert "2000-01-03 .. 2002-12-31" in out
         assert "751 daily returns" in out
         assert "risk-free 0% subtracted" in out
+        assert f"vintage: yfinance_spy_adjusted_1993-01-29_{VINTAGE_DATE}" in out
+        assert f"downloaded {VINTAGE_DATE}" in out
 
     def test_a_window_with_too_few_days_exits_with_a_line(self, monkeypatch) -> None:
         """Not a pandas traceback. The message names the window and the span the
@@ -903,9 +929,10 @@ class TestEveryLabelCarriesItsOwnValue:
         for label, field, as_percent, printed_figure, value, decimals in _PUBLISHED:
             computed = getattr(moments, field) * (100.0 if as_percent else 1.0)
             shown = f"{computed:.4f}%" if as_percent else f"{computed:.4f}"
+            gap = round(computed - value, decimals) + 0.0
             assert (
                 cell(printed, label)
-                == (f"{shown:>12}   {printed_figure:>8}   {computed - value:+.{decimals}f}").strip()
+                == (f"{shown:>12}   {printed_figure:>8}   {gap:+.{decimals}f}").strip()
             )
 
     def test_the_table_is_the_specification_and_so_is_pinned_as_one(self) -> None:
@@ -1072,7 +1099,8 @@ class TestTheReportCarriesEveryCaveatItOwes:
         report(entry, chan_window)
         out = " ".join(capsys.readouterr().out.split())
         assert "the gap column is a vendor-drift measurement and not a reproduction" in out
-        assert "Chan's own workbook is issue 138, not this run" in out
+        assert "Chan's own workbook is the --chan run" in out
+        assert "so the gap column is a reproduction" not in out
 
     def test_the_full_kelly_cost_is_flagged_as_unpublished(self, spy, chan_window, capsys) -> None:
         """It is the one figure in the stress block the book does not print."""
@@ -1212,8 +1240,10 @@ class TestTheCliDefaultsAreTheirOwnPins:
     """``run()``'s defaults and argparse's are two sets of constants.
 
     Every earlier case called ``run()`` directly or passed arguments, so all
-    three argparse defaults could move with the suite green, including
-    ``--risk-free`` to 0.40.
+    of argparse's defaults could move with the suite green, including
+    ``--risk-free`` to 0.40. ``--chan`` and ``--dated`` are held by the case
+    with no arguments, which reads the 2026 download, and by
+    ``TestTheChanFlag``, which shows the date default does not follow it there.
     """
 
     def test_main_with_no_arguments_runs_chans_window_at_the_books_rate(
@@ -1299,3 +1329,332 @@ class TestTheMonthEndCalendar:
         """The case Chan's own span is: 2007-12-28 with the 31st still to trade."""
         closes = self.series(["2007-11-30", "2007-12-28"])
         assert len(resample_close(closes, "month-end-complete")[0]) == 1
+
+
+# ============================================================
+# Chan's own workbook, which reproduces what he printed
+# ============================================================
+
+
+@pytest.fixture(scope="module")
+def chans():
+    """Chan's ``example6_2.xls`` column, resolved with no date.
+
+    One ``chan-xls`` SPY entry exists, so the flags select it on their own.
+    That is the property ``run`` relies on when ``--chan`` arrives without
+    ``--dated``.
+    """
+    return load_vintage("SPY", chan=True)
+
+
+@pytest.fixture(scope="module")
+def his_moments(chans):
+    _, close = chans
+    return annualised_moments(simple_returns(close))
+
+
+class TestChansOwnWorkbook:
+    """What the ``--chan`` run reads, and that it is exactly his window."""
+
+    def test_the_entry_is_his_workbook_column(self, chans) -> None:
+        """A saved date rather than a download date, and the workbook named,
+        because ``SPY.xls`` in the same mirror is a different series."""
+        entry, close = chans
+        assert entry.vendor == "chan-xls"
+        assert entry.symbol == "SPY"
+        assert entry.price_basis == "adjusted"
+        assert entry.saved_date == "2008-01-29"
+        assert entry.download_date is None
+        assert entry.source_workbook == "example6_2.xls"
+        assert entry.path == "spy_chan.csv"
+        assert len(close) == entry.row_count == 3758
+
+    def test_his_series_spans_exactly_the_window_the_module_defaults_to(self, chans) -> None:
+        """``BOOK_START`` and ``BOOK_END`` were read off this file, so the
+        default window selects every row of it and nothing is clipped."""
+        _, close = chans
+        assert str(close.index[0].date()) == BOOK_START
+        assert str(close.index[-1].date()) == BOOK_END
+
+
+class TestEveryFigureHePrintedReproducesFromHisData:
+    """Entry 3's rows 18 to 25. The verdict on each is ``reproduced``.
+
+    That verdict says his arithmetic is right on his data. It says nothing
+    about whether 2.528 is a leverage anyone should carry, which the report
+    prints beside the table rather than leaving to this docstring.
+    """
+
+    def test_the_moments(self, his_moments) -> None:
+        assert his_moments.returns == 3757
+        assert his_moments.mean_annual == pytest.approx(0.1123074733, abs=5e-10)
+        assert his_moments.sd_annual == pytest.approx(0.1691312229, abs=5e-10)
+        assert his_moments.excess_annual == pytest.approx(0.0723074733, abs=5e-10)
+
+    def test_the_sharpe_ratio_and_the_dispersion_form_it_decides(self, chans, his_moments) -> None:
+        """Only the sample form prints as the 0.4275 he published.
+
+        On his own data the population form gives 0.427580, which prints as
+        0.4276, while both forms round to his 2.528. This is the demonstration
+        the modern vintage can only make by analogy, and it is why the Sharpe
+        ratio is pinned tighter than the precision rule asks.
+        """
+        _, close = chans
+        returns = simple_returns(close)
+        population_sd = float(returns.std(ddof=0)) * math.sqrt(TRADING_DAYS)
+        population_sharpe = his_moments.excess_annual / population_sd
+        population_leverage = his_moments.excess_annual / population_sd**2
+        assert his_moments.sharpe == pytest.approx(0.4275229141, abs=5e-7)
+        assert population_sharpe == pytest.approx(0.4275798223, abs=5e-7)
+        assert round(his_moments.sharpe, 4) == 0.4275
+        assert round(population_sharpe, 4) == 0.4276
+        assert round(population_leverage, 3) == round(his_moments.leverage, 3) == 2.528
+
+    def test_the_kelly_leverage_and_the_growth_rates(self, his_moments) -> None:
+        assert his_moments.leverage == pytest.approx(2.5277586649, abs=5e-8)
+        assert his_moments.half_kelly == pytest.approx(1.2638793324, abs=5e-8)
+        assert his_moments.levered_growth == pytest.approx(0.1313879210, abs=5e-10)
+        assert his_moments.unlevered_growth == pytest.approx(0.0980047880, abs=5e-10)
+
+    def test_every_published_figure_reproduces_at_the_precision_he_printed(
+        self, his_moments
+    ) -> None:
+        """The whole of rows 18 to 25 in one assertion, row by row.
+
+        Rounding the computed figure to the book's own decimals gives the
+        book's own figure, on every row of ``_PUBLISHED``. Half of them land
+        below his figure before rounding, which is why the report rounds a gap
+        before signing it.
+        """
+        for label, field, as_percent, _printed, value, decimals in _PUBLISHED:
+            computed = getattr(his_moments, field) * (100.0 if as_percent else 1.0)
+            assert round(computed, decimals) == value, label
+
+
+class TestThePrintedPortfolioOnHisExactLeverage:
+    """Row 26. The one printed figure his own data does not reach."""
+
+    def test_his_exact_leverage_buys_less_than_he_printed(self, his_moments) -> None:
+        """$252,775.87 against $252,800, and the rest of the chain with it."""
+        chain = rebalance(his_moments.leverage)
+        assert chain.portfolio == pytest.approx(252_775.8665, abs=5e-5)
+        assert chain.shocked_portfolio == pytest.approx(227_498.2798, abs=5e-5)
+        assert chain.shocked_equity == pytest.approx(74_722.4134, abs=5e-5)
+        assert chain.resized == pytest.approx(188_880.2278, abs=5e-5)
+        book = rebalance(BOOK_LEVERAGE)
+        assert round(chain.portfolio - book.portfolio, 2) == -24.13
+        assert round(chain.resized - book.resized, 2) == -11.93
+
+    def test_rounding_the_leverage_is_the_whole_cause(self, his_moments) -> None:
+        """His leverage rounded to the three decimals he printed buys exactly
+        what he printed, so nothing in the data is left to explain."""
+        rounded = rebalance(round(his_moments.leverage, 3))
+        assert rounded.portfolio == pytest.approx(252_800.0, abs=5e-7)
+        assert rounded.shocked_portfolio == pytest.approx(227_520.0, abs=5e-7)
+        assert rounded.shocked_equity == pytest.approx(74_720.0, abs=5e-7)
+        assert rounded.resized == pytest.approx(188_892.16, abs=5e-3)
+
+
+class TestHisOwnDataOnTheRestOfTheEntry:
+    """Rows 27 and 28, and the window figures the module docstring quotes."""
+
+    def test_the_black_monday_conclusion_survives_on_his_data(self, chans, his_moments) -> None:
+        """Row 27. Half-Kelly is 1.2639 against the 0.977040 a 20 percent day
+        allows, and his leverage clears the threshold by 0.57."""
+        _, close = chans
+        stress = stress_test(his_moments, simple_returns(close))
+        assert stress.survives is True
+        assert stress.half_kelly == pytest.approx(1.2638793324, abs=5e-8)
+        assert his_moments.leverage - stress.threshold == pytest.approx(0.5737, abs=5e-5)
+        assert stress.worst_day == "1997-10-27"
+        assert stress.worst_loss == pytest.approx(-0.0724744678, abs=5e-10)
+        assert stress.full_kelly_equity_loss == pytest.approx(0.5174321987, abs=5e-10)
+
+    def test_the_time_scale_claim_fails_on_his_own_series(self, chans, his_moments) -> None:
+        """Row 28. Every monthly rule lands 43 to 47 percent above his daily
+        figure, so the vintage explanation is spent and the verdict on the
+        claim does not depend on which vintage was read."""
+        _, close = chans
+        scan = sampling_scan(close)
+        assert scan["month-end"].leverage == pytest.approx(3.6907806516, abs=5e-8)
+        assert scan["month-end-complete"].leverage == pytest.approx(3.7195468280, abs=5e-8)
+        assert scan["block-21"].leverage == pytest.approx(3.6163471560, abs=5e-8)
+        lifts = {
+            rule: scan[rule].leverage / his_moments.leverage - 1.0
+            for rule in ("month-end", "month-end-complete", "block-21")
+        }
+        assert lifts["month-end"] == pytest.approx(0.4601, abs=5e-5)
+        assert lifts["month-end-complete"] == pytest.approx(0.4715, abs=5e-5)
+        assert lifts["block-21"] == pytest.approx(0.4307, abs=5e-5)
+        assert all(0.43 <= round(lift, 2) <= 0.47 for lift in lifts.values())
+
+    def test_the_window_moves_his_leverage_from_a_short_to_nearly_double(self, chans) -> None:
+        """The module docstring's −2.85 and +4.83, which are his data's."""
+        _, close = chans
+        bear = annualised_moments(simple_returns(window(close, *BEAR)))
+        bull = annualised_moments(simple_returns(window(close, *BULL)))
+        assert bear.returns == 751
+        assert bear.leverage == pytest.approx(-2.8454514767, abs=5e-8)
+        assert bull.returns == 1256
+        assert bull.leverage == pytest.approx(4.8292559665, abs=5e-8)
+
+
+class TestTheTwoVintagesOverChansWindow:
+    """Rows 29 and 30, which carry no published figure and no verdict.
+
+    The join is pinned before the difference, because a vendor restates which
+    days a series holds as well as what they are worth. Over this window the
+    two vintages agree on every day, which is what makes the rest a difference
+    in prices rather than a difference in calendars.
+    """
+
+    @pytest.fixture(scope="class")
+    @staticmethod
+    def comparison(chans, chan_window):
+        _, close = chans
+        return compare_vintages(close, chan_window)
+
+    def test_the_join_drops_nothing_from_either_side(self, comparison) -> None:
+        assert comparison.older_days == comparison.newer_days == 3758
+        assert comparison.joined_days == 3758
+        assert comparison.older_dropped == comparison.newer_dropped == 0
+        assert (comparison.joined_start, comparison.joined_end) == (BOOK_START, BOOK_END)
+
+    def test_the_gap_in_the_mean_and_the_dispersion_that_does_not_move(self, comparison) -> None:
+        """0.0641 of a percentage point on the mean, and 0.0014 on the
+        dispersion, which is why only the second reproduces at two decimals."""
+        assert comparison.mean_gap == pytest.approx(0.0006408223, abs=5e-10)
+        assert comparison.older.sd_annual == pytest.approx(0.1691312229, abs=5e-10)
+        assert comparison.newer.sd_annual == pytest.approx(0.1691169493, abs=5e-10)
+
+    def test_ten_days_carry_the_whole_gap_and_dividend_months_carry_it_too(
+        self, comparison
+    ) -> None:
+        """The ten largest daily differences sum to 108 percent of the total,
+        eight raising the 2026 mean and two lowering it, so the other 3,747
+        days pull the other way by about a twelfth. Days in SPY's dividend
+        months carry 100.4 percent."""
+        assert LARGEST_DAYS == 10
+        assert DIVIDEND_MONTHS == (3, 6, 9, 12)
+        assert comparison.largest_share == pytest.approx(1.0847689666, abs=5e-10)
+        assert comparison.largest_raising == 8
+        assert comparison.dividend_month_share == pytest.approx(1.0039062657, abs=5e-10)
+
+    def test_the_mean_gap_is_the_mean_of_the_daily_differences(self, chans, chan_window) -> None:
+        """The two shares divide up the summed difference, so the gap they are
+        shares of has to be that sum annualised rather than a difference of
+        two rounded means."""
+        _, close = chans
+        differences = simple_returns(chan_window) - simple_returns(close)
+        comparison = compare_vintages(close, chan_window)
+        assert comparison.mean_gap == pytest.approx(
+            float(differences.mean()) * TRADING_DAYS, abs=5e-15
+        )
+
+    def test_days_one_side_lacks_are_counted_rather_than_hidden(self) -> None:
+        """A synthetic pair where each side holds a day the other does not.
+        A silent inner join would report both as 0."""
+        days = pd.to_datetime(
+            ["2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12"]
+        )
+        older = pd.Series([10.0, 10.1, 10.2, 10.0, 10.3, 10.4], index=days).drop(days[1])
+        newer = pd.Series([10.0, 10.1, 10.2, 10.0, 10.3, 10.4], index=days).drop(days[4])
+        newer.loc[days[3]] = 10.05
+        comparison = compare_vintages(older, newer)
+        assert comparison.joined_days == 4
+        assert comparison.older_dropped == 1
+        assert comparison.newer_dropped == 1
+
+    def test_a_join_too_short_for_a_dispersion_is_refused_by_name(self) -> None:
+        days = pd.to_datetime(["2026-01-05", "2026-01-06", "2026-01-07"])
+        older = pd.Series([10.0, 10.1, 10.2], index=days)
+        newer = pd.Series([10.0, 10.1], index=days[1:].shift(1, freq="D"))
+        with pytest.raises(ValueError, match="share 1 days"):
+            compare_vintages(older, newer)
+
+
+class TestTheReportOnHisWorkbook:
+    """The caveat, the gap column and the comparison, on the run that reads him."""
+
+    @pytest.fixture(scope="class")
+    @staticmethod
+    def printed():
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            run(chan=True)
+        return buffer.getvalue()
+
+    def test_the_header_names_his_workbook_and_its_saved_date(self, printed) -> None:
+        assert "vintage: spy_chan.csv   chan-xls adjusted, saved 2008-01-29" in printed
+        assert "downloaded" not in printed
+
+    def test_the_gap_column_says_it_is_a_reproduction_and_what_that_does_not_mean(
+        self, printed
+    ) -> None:
+        """Issue 138 asks for the label in the same breath as the figure,
+        because a match invites belief where a gap invites doubt."""
+        out = " ".join(printed.split())
+        assert "read on his own workbook, so the gap column is a reproduction" in out
+        assert "his arithmetic is right on his data" in out
+        assert "nothing about whether a leverage of 2.528 is one anyone should carry" in out
+        assert "vendor-drift measurement" not in out
+
+    def test_every_gap_prints_as_zero_and_none_as_negative_zero(self, printed) -> None:
+        """A gap that rounds to nothing from below would print as -0.000 under
+        plain formatting, which reads as a miss."""
+        for label, _field, _as_percent, _printed, _value, decimals in _PUBLISHED:
+            assert cell(printed, label).endswith(f"+{0.0:.{decimals}f}"), label
+        assert "-0.0" not in printed
+
+    def test_the_comparison_binds_its_figures_to_its_labels(self, printed) -> None:
+        assert cell(printed, "days in this vintage") == "3,758"
+        assert cell(printed, "days in the 2026 download") == "3,758"
+        assert cell(printed, "days both hold") == f"3,758   {BOOK_START} .. {BOOK_END}"
+        assert cell(printed, "dropped from each by the join") == "0 and 0"
+        assert cell(printed, "mean annual return").startswith("11.2307%")
+        assert "11.2307% against 11.2948%, +0.0641 points" in printed
+        assert "16.9131% against 16.9117%" in printed
+        assert cell(printed, "largest 10 daily differences carry").startswith("108.5%")
+        assert cell(printed, "quarterly dividend months carry") == "100.4% of it"
+
+    def test_the_comparison_says_it_is_not_a_replication(self, printed) -> None:
+        out = " ".join(printed.split())
+        assert "carries neither a gap nor a verdict" in out
+
+    def test_the_modern_run_prints_no_comparison(self, capsys) -> None:
+        """It belongs to the run that reads his workbook. The default run has
+        nothing of his to compare against."""
+        run()
+        assert "Against the 2026 download" not in capsys.readouterr().out
+
+
+class TestTheChanFlag:
+    """``--chan`` reads a file whose date is a saved date, not a download date."""
+
+    def test_the_flag_alone_reads_his_workbook(self, monkeypatch, capsys) -> None:
+        """The trap the audit of issue 138 measured. With ``--dated`` defaulting
+        to the download date, this refused with the reader's own message."""
+        monkeypatch.setattr("sys.argv", ["chan.kelly_leverage", "--chan"])
+        main()
+        out = capsys.readouterr().out
+        assert "vintage: spy_chan.csv" in out
+        assert cell(out, "optimal Kelly leverage f*").startswith("2.5278")
+
+    def test_the_flag_and_his_saved_date_together(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr(
+            "sys.argv",
+            ["chan.kelly_leverage", "--chan", "--dated", "2008-01-29", "--start", BULL[0]],
+        )
+        main()
+        out = capsys.readouterr().out
+        assert "saved 2008-01-29" in out
+        assert f"{BULL[0][:4]}-01-02 .. {BOOK_END}" in out
+        assert "no figure below has a published counterpart" in out
+        assert cell(out, "days both hold").startswith("1,257")
+
+    def test_a_download_date_under_the_flag_is_refused_by_the_reader(self, monkeypatch) -> None:
+        """The date names a vintage, and no workbook column carries that one."""
+        monkeypatch.setattr("sys.argv", ["chan.kelly_leverage", "--chan", "--dated", VINTAGE_DATE])
+        with pytest.raises(SystemExit) as exited:
+            main()
+        assert f"chan-xls SPY adjusted dated {VINTAGE_DATE}" in str(exited.value)

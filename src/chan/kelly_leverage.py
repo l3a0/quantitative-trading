@@ -1,4 +1,4 @@
-"""Chan's Kelly leverage on SPY, Example 6.2, against a modern download.
+"""Chan's Kelly leverage on SPY, Example 6.2, on his own workbook and on a modern download.
 
 Box 6.1 argues that a positive expected return can still shrink capital.
 This one puts a number on the other side of that argument. Given a return
@@ -8,25 +8,33 @@ mean **excess** return and ``s`` the annualised standard deviation. Chan works
 it on SPY, gets 2.528, and then asks whether that leverage would have survived
 the worst day the index has had.
 
-**One figure the book prints reproduces here and it is the dispersion.** Chan
-read SPY through 2007-12-28. This reads a 2026 download of the same symbol over
-the same dates, and every level it computes lands high. The standard deviation
-does not. Dividends paid after his window cannot be the cause, because they
-scale every price inside it by one factor and leave every return unchanged.
-Set day by day against Chan's own ``data/spy_chan.csv``, the whole gap in the
-mean sits on about ten days on or beside SPY's quarterly ex-dividend dates. On
-the four largest, one download folds nearly a whole quarterly payout into the
-day's return and the other does not, and on the rest it folds in part of one.
-The differences mostly raise the 2026 mean. Elsewhere they are small, mostly
-rounding and a few smaller dividend differences, and together pull back less
-than a tenth of the gap. A few large differences move a mean and barely touch a
-standard deviation. That comparison is measured rather than pinned. Reading
-his own workbook, and pinning it, is
-[issue 138](https://github.com/l3a0/quantitative-trading/issues/138), and the
-``reproduced`` verdict on the rest belongs there.
-``docs/replication-log.md`` Entry 3 carries this run's verdicts row by row, and
+**It runs on two vintages of SPY, and they answer different questions.**
+
+1. **Chan's own ``example6_2.xls``**, committed as ``data/spy_chan.csv`` and
+   read with ``--chan``. Every figure he printed from a series reproduces from
+   it at the precision he printed it. The one printed figure that does not is
+   $252,800, because he rounded the leverage to 2.528 before multiplying, and
+   his exact leverage buys $252,775.87.
+2. **A 2026 download of the same symbol over the same dates**, which is the
+   default run. Every level it computes lands high and the standard deviation
+   does not. Dividends paid after his window cannot be the cause, because they
+   scale every price inside it by one factor and leave every return unchanged.
+
+Set day by day against each other, the two vintages hold the same 3,758 days
+and the whole gap in the mean sits on about ten days on or beside SPY's
+quarterly ex-dividend dates. On the four largest, one download folds nearly a
+whole quarterly payout into the day's return and the other does not, and on the
+rest it folds in part of one. The differences mostly raise the 2026 mean.
+Elsewhere they are small, mostly rounding and a few smaller dividend
+differences, and together pull back less than a tenth of the gap. A few large
+differences move a mean and barely touch a standard deviation.
+:func:`compare_vintages` is that comparison, and the ``--chan`` run prints it.
+No published figure stands behind it, so it carries neither a gap nor a
+verdict.
+
+``docs/replication-log.md`` Entry 3 carries both runs' verdicts row by row, and
 ``tests/test_kelly_leverage.py`` is the single authority for every number any
-prose surface quotes about it.
+prose surface quotes about either.
 
 Five choices decide the numbers and three of them are invisible on the page.
 Each is read off Chan's own ``example6_3.m``, which implements the multi-asset
@@ -115,7 +123,8 @@ which is picked, and the run reports which reading it is showing.
 
 Usage::
 
-    python -m chan.kelly_leverage                      # Chan's span, the pinned run
+    python -m chan.kelly_leverage                      # Chan's span on the 2026 download
+    python -m chan.kelly_leverage --chan               # Chan's span on his own workbook
     python -m chan.kelly_leverage --start 2000-01-01 --end 2002-12-31
 """
 
@@ -155,6 +164,23 @@ BOOK_END = "2007-12-28"
 # home for that fact is one fewer place for it to drift.
 VINTAGE_DATE = "2026-09-18"
 
+# Chan's own SPY series, read with ``--chan``. ``load_vintage("SPY", chan=True)``
+# names exactly one entry, so the run needs no date to find it, and passing the
+# download date above would refuse it, because a workbook column carries a saved
+# date instead.
+#
+# Provenance: data/spy_chan.csv is the Adj Close column of example6_2.xls, last
+# saved by Ernest Chan 2008-01-29, from the public book-code mirror
+# github.com/egorpe/EPChan-QuantitativeTrading, read at 1a71950. The manifest
+# records the CSV's own sha256 and has no field for the workbook's, so the
+# workbook's is kept here, the way src/chan/pair_cointegration.py keeps the
+# other four.
+#   example6_2.xls sha256 3706d329fdf6fc54b69ec0f522dfe43de262d70a9bad458aa93f0f5d5976d037
+# Take it by that checksum. The same mirror holds a SPY.xls, sha256
+# e4360b6777aa4aa94f85ec0703e7d1939706d6eca4c267105aa9c2ed321d2215, which is a
+# different series over 2001-11-26 to 2007-11-14 and gives a leverage of 1.1371.
+# Nothing about it looks wrong on the way past.
+
 # The book's constants. None of the four is computed from a series, here or in
 # Chan's workbook, so each is quoted rather than derived.
 RISK_FREE = 0.04
@@ -188,6 +214,14 @@ MIN_TRADING_DAYS = 30
 # implied, because "monthly" hides a choice that moves ``f*`` by 0.1 between
 # these three and by 40-odd percent against the daily run.
 SAMPLING_RULES = ("daily", "month-end", "month-end-complete", "block-21")
+
+# SPY pays its dividend quarterly and goes ex in these months. The two-vintage
+# comparison reports how much of the difference in mean return falls in them.
+DIVIDEND_MONTHS = (3, 6, 9, 12)
+
+# How many of the largest daily differences the comparison reports the share
+# of. Ten is the count the measurement on issue 138 found carrying the gap.
+LARGEST_DAYS = 10
 
 # The trading days in one block of the ``block-21`` rule, chosen as the usual
 # count of trading days in a month so the three monthly rules are comparable.
@@ -450,6 +484,78 @@ def sampling_scan(close: pd.Series, *, risk_free: float = RISK_FREE) -> dict[str
     return scan
 
 
+@dataclass(frozen=True)
+class VintageComparison:
+    """Two vintages of one symbol read over one window, day by day.
+
+    Nothing in :mod:`chan.series` joins two vintages of one symbol.
+    ``aligned_closes`` takes two tickers under one price basis and has no
+    ``dated`` argument on purpose, so it cannot say "SPY from this vintage
+    against SPY from that one". This intersects the two indexes itself and
+    keeps what each side lost, because a vendor restates which days a series
+    holds as well as what they are worth. A silent inner join would delete the
+    first half of the measurement.
+
+    ``mean_gap`` is the newer vintage's annualised mean less the older one's,
+    on the returns of the joined days. Because a mean is linear it is also the
+    annualised mean of the daily differences, which is what the two shares
+    divide up. ``largest_share`` is how much of the summed difference the
+    :data:`LARGEST_DAYS` largest daily differences carry, and
+    ``largest_raising`` how many of them raise the newer mean.
+    ``dividend_month_share`` is the share falling in :data:`DIVIDEND_MONTHS`.
+    A share above one means the other days pull the other way.
+    """
+
+    older_days: int
+    newer_days: int
+    joined_days: int
+    joined_start: str
+    joined_end: str
+    older_dropped: int
+    newer_dropped: int
+    older: Moments
+    newer: Moments
+    mean_gap: float
+    largest_share: float
+    largest_raising: int
+    dividend_month_share: float
+
+
+def compare_vintages(
+    older: pd.Series, newer: pd.Series, *, risk_free: float = RISK_FREE
+) -> VintageComparison:
+    """Join two closes of one symbol on the days both hold, and say what moved."""
+    joined = older.index.intersection(newer.index)
+    if len(joined) < 3:
+        raise ValueError(
+            f"the two vintages share {len(joined)} days, and a sample dispersion of their "
+            f"returns needs at least three"
+        )
+    older_returns = simple_returns(older.loc[joined])
+    newer_returns = simple_returns(newer.loc[joined])
+    differences = (newer_returns - older_returns).dropna()
+    total = float(differences.sum())
+    largest = differences.loc[differences.abs().sort_values(ascending=False).index[:LARGEST_DAYS]]
+    in_dividend_months = differences[differences.index.month.isin(DIVIDEND_MONTHS)]
+    older_moments = annualised_moments(older_returns, risk_free=risk_free)
+    newer_moments = annualised_moments(newer_returns, risk_free=risk_free)
+    return VintageComparison(
+        older_days=len(older),
+        newer_days=len(newer),
+        joined_days=len(joined),
+        joined_start=str(joined[0].date()),
+        joined_end=str(joined[-1].date()),
+        older_dropped=len(older) - len(joined),
+        newer_dropped=len(newer) - len(joined),
+        older=older_moments,
+        newer=newer_moments,
+        mean_gap=newer_moments.mean_annual - older_moments.mean_annual,
+        largest_share=float(largest.sum()) / total,
+        largest_raising=int((largest > 0.0).sum()),
+        dividend_month_share=float(in_dividend_months.sum()) / total,
+    )
+
+
 # What the book prints beside each computed figure, and at what precision. The
 # published values are quoted from locations 2858, 2869 and 3083 and are
 # computed nowhere. The decimals are the book's own, which is what decides how
@@ -473,7 +579,11 @@ def _published_row(moments: Moments, row: tuple, against_the_book: bool) -> str:
     shown = f"{scaled:.4f}%" if as_percent else f"{scaled:.4f}"
     if not against_the_book:
         return f"  {label:<31} {shown:>12}"
-    return f"  {label:<31} {shown:>12}   {printed:>8}   {scaled - value:+.{decimals}f}"
+    # Rounded before formatting, and the zero added, so a gap that rounds to
+    # nothing prints as +0.000 rather than -0.000. On Chan's own workbook every
+    # row lands within a rounding of his figure, and half of them from below.
+    gap = round(scaled - value, decimals) + 0.0
+    return f"  {label:<31} {shown:>12}   {printed:>8}   {gap:+.{decimals}f}"
 
 
 def report(
@@ -482,16 +592,25 @@ def report(
     *,
     risk_free: float = RISK_FREE,
     equity: float = EQUITY,
+    comparison: VintageComparison | None = None,
 ) -> None:
     """Print the moments, the worked example, the stress test and the time-scale scan.
 
     ``entry`` is the manifest entry the reader already resolved, so the vintage
     line is the record rather than a fourth surface restating it.
+
+    The caveat over the published table depends on the window and on the
+    vintage both. On Chan's window his own workbook makes the gap column a
+    reproduction and a modern download makes it a vendor-drift measurement, and
+    printing one sentence for both would state a wrong fact about one of them.
+    ``comparison``, when given, is printed before the closing label, and
+    :func:`run` passes one only for his workbook.
     """
     returns = simple_returns(close)
     moments = annualised_moments(returns, risk_free=risk_free)
     start, end = close.index[0].date(), close.index[-1].date()
     against_the_book = (str(start), str(end)) == (BOOK_START, BOOK_END)
+    chans_own = entry.vendor == "chan-xls"
 
     print("Kelly leverage on SPY, Example 6.2 (revised edition, locations 2858, 2869 and 3083)")
     print(f"  {BOOK_REF}")
@@ -506,11 +625,17 @@ def report(
         f"m is the excess return"
     )
     print()
-    if against_the_book:
+    if against_the_book and chans_own:
+        print("This is Chan's own window read on his own workbook, so the gap column is a")
+        print("reproduction. A zero in it says his arithmetic is right on his data, and")
+        print("nothing about whether a leverage of 2.528 is one anyone should carry.")
+        print()
+        print(f"  {'quantity':<31} {'this run':>12}   {'the book':>8}   gap")
+    elif against_the_book:
         print("This is Chan's own window read on a 2026 download, so the gap column is a")
         print("vendor-drift measurement and not a reproduction. He read a 2008-vintage")
         print("download, and the two differ on about ten quarterly dividends.")
-        print("Chan's own workbook is issue 138, not this run.")
+        print("Chan's own workbook is the --chan run.")
         print()
         print(f"  {'quantity':<31} {'this run':>12}   {'the book':>8}   gap")
     else:
@@ -538,6 +663,8 @@ def report(
     _worked_example(moments, equity)
     _stress(stress_test(moments, returns), moments)
     _time_scale(close, moments, risk_free)
+    if comparison is not None:
+        _comparison(comparison)
 
     print("A replication against data is exploratory by construction. The sample was")
     print("spent on a hypothesis Chan chose, so this run says whether his figures")
@@ -546,6 +673,33 @@ def report(
     print("rate anyone paid, and a leverage computed from one sample's moments is a")
     print("reference point rather than a recommendation.")
     print("docs/replication-log.md Entry 3 carries the verdict.")
+
+
+def _comparison(comparison: VintageComparison) -> None:
+    """Requirement 4 of issue 138: the two vintages over one window, side by side."""
+    c = comparison
+    print("Against the 2026 download over the same window. No figure in the book stands")
+    print("behind this comparison, so it carries neither a gap nor a verdict:")
+    print(f"  {'days in this vintage':<36}{c.older_days:>9,}")
+    print(f"  {'days in the 2026 download':<36}{c.newer_days:>9,}")
+    print(f"  {'days both hold':<36}{c.joined_days:>9,}   {c.joined_start} .. {c.joined_end}")
+    print(f"  {'dropped from each by the join':<36}{c.older_dropped:>9,} and {c.newer_dropped:,}")
+    print(
+        f"  {'mean annual return':<36}{c.older.mean_annual:>9.4%} against "
+        f"{c.newer.mean_annual:.4%}, {c.mean_gap * 100:+.4f} points"
+    )
+    print(
+        f"  {'annualised standard deviation':<36}{c.older.sd_annual:>9.4%} against "
+        f"{c.newer.sd_annual:.4%}"
+    )
+    print(
+        f"  {'largest ' + str(LARGEST_DAYS) + ' daily differences carry':<36}"
+        f"{c.largest_share:>9.1%} of the summed difference, {c.largest_raising} of them "
+        f"raising the 2026 mean"
+    )
+    print(f"  {'quarterly dividend months carry':<36}{c.dividend_month_share:>9.1%} of it")
+    print("  A share above 100% means the rest of the days pull the other way.")
+    print()
 
 
 def _worked_example(moments: Moments, equity: float) -> None:
@@ -655,9 +809,17 @@ def main() -> None:
         "--end", default=BOOK_END, help=f"window end, inclusive (default: {BOOK_END})"
     )
     parser.add_argument(
+        "--chan",
+        action="store_true",
+        help="read Chan's own example6_2.xls column rather than a modern download",
+    )
+    parser.add_argument(
         "--dated",
-        default=VINTAGE_DATE,
-        help=f"which SPY download to read, by its date (default: {VINTAGE_DATE})",
+        default=None,
+        help=(
+            f"which SPY vintage to read, by its date (default: the {VINTAGE_DATE} download, "
+            f"or the workbook's saved date under --chan)"
+        ),
     )
     parser.add_argument(
         "--risk-free",
@@ -667,7 +829,13 @@ def main() -> None:
     )
     args = parser.parse_args()
     try:
-        run(start=args.start, end=args.end, dated=args.dated, risk_free=args.risk_free)
+        run(
+            start=args.start,
+            end=args.end,
+            chan=args.chan,
+            dated=args.dated,
+            risk_free=args.risk_free,
+        )
     except VintageUnavailable as unavailable:
         # A refusal that names which vintage and which state is worth nothing at
         # the bottom of a twenty-line pandas traceback. `run` already exits this
@@ -679,19 +847,39 @@ def run(
     *,
     start: str = BOOK_START,
     end: str = BOOK_END,
-    dated: str = VINTAGE_DATE,
+    chan: bool = False,
+    dated: str | None = None,
     risk_free: float = RISK_FREE,
     data_dir: Path | None = None,
 ) -> None:
-    """Read the vintage, clip it to the window, and print the report."""
-    entry, close = load_vintage("SPY", dated=dated, data_dir=data_dir)
-    clipped = close[(close.index >= pd.Timestamp(start)) & (close.index <= pd.Timestamp(end))]
+    """Read the vintage, clip it to the window, and print the report.
+
+    ``dated`` left out means :data:`VINTAGE_DATE` for a download and nothing at
+    all for Chan's workbook. A default of :data:`VINTAGE_DATE` in both cases
+    was the trap: the reader compares it against the workbook's saved date and
+    refuses, so ``--chan`` alone would have stopped every run it was given.
+
+    Under ``chan`` the run also reads the 2026 download over the same window and
+    prints the two side by side, which is what reading his workbook is for.
+    """
+    if dated is None and not chan:
+        dated = VINTAGE_DATE
+    entry, close = load_vintage("SPY", chan=chan, dated=dated, data_dir=data_dir)
+    clipped = _clip(close, start, end)
     if len(clipped) < MIN_TRADING_DAYS:
         raise SystemExit(
             f"only {len(clipped)} trading days in {start}..{end} -- need >= {MIN_TRADING_DAYS} "
             f"(the vintage spans {entry.first_date}..{entry.last_date})"
         )
-    report(entry, clipped, risk_free=risk_free)
+    comparison = None
+    if chan:
+        _, modern = load_vintage("SPY", dated=VINTAGE_DATE, data_dir=data_dir)
+        comparison = compare_vintages(clipped, _clip(modern, start, end), risk_free=risk_free)
+    report(entry, clipped, risk_free=risk_free, comparison=comparison)
+
+
+def _clip(close: pd.Series, start: str, end: str) -> pd.Series:
+    return close[(close.index >= pd.Timestamp(start)) & (close.index <= pd.Timestamp(end))]
 
 
 if __name__ == "__main__":

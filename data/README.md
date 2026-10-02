@@ -86,8 +86,7 @@ by hand, which is why it carries the recorder's five-field name and a single
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
 6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
 leg of Qian's allocation. The other SPY file, `spy_chan.csv`, is a workbook
-column placed by hand and reading it is
-[issue 138](https://github.com/l3a0/quantitative-trading/issues/138).
+column placed by hand, and the Kelly run reads it under `--chan`.
 
 `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` is recorded the
 same way and is the bond leg of that same run. Two things about it are
@@ -161,12 +160,11 @@ recorded too, in the manifest's `source_workbook` field, because a workbook's
 name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
 and a `SPY.xls` in the same mirror holds a different series.
 
-Four of the five workbooks have their `.xls` checksum recorded in
-[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), beside the
-runs that read the columns taken from them. `example6_2.xls` does not, because
-no replication here reads `spy_chan.csv` yet.
-[Issue 138](https://github.com/l3a0/quantitative-trading/issues/138) is what
-adds the run and the checksum together.
+All five workbooks have their `.xls` checksum recorded beside the run that
+reads the column taken from them. Four are in
+[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and
+`example6_2.xls`'s is in
+[src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
 ## Header shape
 
