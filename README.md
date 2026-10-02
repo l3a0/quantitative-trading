@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Six replications run here, all from Chan's *Quantitative Trading*. The first
-two were ported from the sibling
+Seven replications run here, all from Chan's *Quantitative Trading*. The
+first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other four were built here.
+they were first built. The other five were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -83,6 +83,13 @@ they were first built. The other four were built here.
    the first lag count whose residuals pass, against a bar of −2.86, so the
    claim reproduces. Its half-life is 141.6 trading days, and only 23 of 226
    one-year windows reject at 10%.
+7. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
+   losers against the market and shorts its winners. On Chan's own S&P 500
+   file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
+   after 5 basis points a trade, against his printed 0.25 and −3.19, so both
+   reproduce. The second lands only because two quirks of his code are kept,
+   and removing both gives −3.2337. The file holds only the stocks still in the
+   index on 2007-11-23, so every figure is about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -126,7 +133,12 @@ fixed-income number, because the test is not symmetric in its legs and Chan
 names no dependent one. For the cross rate it pins the verdict rule as well as
 the verdict, so a criterion edited after the fact fails a test.
 
-All six replications reach a verdict in
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
+reversal. It pins each figure at four decimals and at the book's two, and it
+pins the −3.1822 a port gives when it skips a NaN the pandas way, because that
+is the mistake that misses Chan's second digit.
+
+All seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, and Entry 6 the cross rate's verdict.
@@ -169,11 +181,10 @@ stock's close, high, low, open and volume, written by
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
-[data/README.md](data/README.md) says what was measured on each file. No
-replication reads them yet.
-[Issue 17](https://github.com/l3a0/quantitative-trading/issues/17) and
-[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) are the ones
-that will.
+[data/README.md](data/README.md) says what was measured on each file. The
+Khandani-Lo reversal reads the S&P 500 file, and
+[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) is the next
+replication that will read them.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -311,6 +322,18 @@ was read against. There is no `--start` or `--end`, because a window option is
 what would let a reader pick one that rejects, and each issue declared exactly
 one window. `--dated` names which `CADAUD=X` download to read and defaults to
 the one the suite pins.
+
+Khandani and Lo's reversal reads Chan's S&P 500 file and takes no argument,
+because his script fixes both the file and the window:
+
+```bash
+uv run python -m chan.khandani_lo
+```
+
+It prints the panel in one line, the window and its day count, and each Sharpe
+ratio beside the book's, naming which quirks of Chan's code each one keeps.
+Khandani and Lo's own 4.47 is printed as a citation, since it was computed on a
+universe this repo does not hold.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

@@ -94,9 +94,14 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: day is the move it looks like. ``data/README.md`` and
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window
-#: crossing a flagged day is for that run to decide, and
-#: [issue 17](https://github.com/l3a0/quantitative-trading/issues/17) and
-#: [issue 18](https://github.com/l3a0/quantitative-trading/issues/18) are where.
+#: crossing a flagged day is for that run to decide.
+#: [Issue 17](https://github.com/l3a0/quantitative-trading/issues/17) decided
+#: it for Example 3.7, and ``chan.khandani_lo``'s docstring says why it does
+#: not call the guard: Chan's rule puts a weight of 0 on every return that is
+#: not finite, and handed the panel the guard answers about something else.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo.py`` runs both of
+#: its answers. [Issue 18](https://github.com/l3a0/quantitative-trading/issues/18)
+#: decides it for its own examples.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
