@@ -89,6 +89,17 @@ stamp. The sections are these.
    `deferred` is forced last whatever the rest says. Under it sits a chainbar,
    which holds a hint until a card is picked and then says what that card waits
    on and what waits on it.
+
+   By default the section draws only the cards `NEXT` ranks, and a line above
+   the columns counts the rest and carries a **Show all** button. With every
+   open issue drawn, the first column ran past fifty cards and the ten ranked
+   ones were scattered through it. The Marketlake Build Board made the same cut
+   at a hundred and fifty. The choice is kept in the viewer's browser under
+   `qt-board-all` and nowhere else. A deferred card stays hidden even when
+   `NEXT` lists it, because `rankMark` drops it. So a card is on the default view
+   exactly when it has an entry in `NEXT` and no deferral. Adding a `NEXT` entry
+   is how a card gets onto the short view, and that view is what the owner reads
+   first.
 3. **One paragraph**, saying the page was measured by hand and cannot poll
    anything. It is all that remains of a twenty-paragraph footer that was a
    second telling of what the cards say. Do not grow it back.
@@ -98,7 +109,9 @@ page shows live data. It speaks only when the page is drawing its built-in copy
 or has stopped taking live updates, and it says which and how old the data is.
 The harness has no database, so every harness run prints it as
 `OTHER[source] ... This view cannot reach the live board`. That line is the
-banner working, not a defect.
+banner working, not a defect. It also prints the count line as
+`OTHER[more] Showing the N ranked cards. M other open issues are not in the
+priority order.`
 
 ## Read the live data before editing anything
 
@@ -432,6 +445,18 @@ JS
 osascript -l JavaScript run.js
 ```
 
+That run draws the default view, which hides every card `NEXT` does not rank.
+Run it a second time with the Show all view, because most of the columns and
+most of the board note only render there. The stub has no `localStorage`, so
+one line before the script supplies a stored choice.
+
+```bash
+(cat "$REPO"/.claude/skills/update-build-board/dom-stub.js
+ echo 'var localStorage={getItem:function(){return "1";},setItem:function(){}};'
+ sed -n '/^function s(x)/,$p' run.js | cat board.js -) > run-all.js
+osascript -l JavaScript run-all.js
+```
+
 `osascript -l JavaScript` is JavaScriptCore, and it is what runs this where no
 `node` is installed. It is macOS only. Anywhere else, run the same two files
 with whatever JavaScript engine is present, because the stub is plain ES5 and
@@ -456,8 +481,10 @@ the harness and read the output. Never write that copy to the database.
 this page has shipped were sentences that rendered perfectly and said something
 false. Six checks catch most of them.
 
-1. **The totals reconcile.** In-flight cards plus board cards equals open issues,
-   and every card carries its labels.
+1. **The totals reconcile.** In-flight cards plus board cards plus the hidden
+   count on the `OTHER[more]` line equals open issues, and every card carries
+   its labels. In the Show all run the hidden count is zero, so in-flight plus
+   board cards alone must equal open issues there.
 2. **No sentence contradicts another.** The free-card list must not name a card
    that a later sentence says nobody should start.
 3. **Every count matches its own list.** A sentence saying four cards and then
