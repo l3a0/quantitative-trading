@@ -24,9 +24,10 @@ rows and not about the file.
 Entry 5 is the one entry that is not a replication. Chan states the claim it
 tests without printing a number, so it carries a finding rather than a verdict,
 and its tables drop the columns that would hold a published figure, a gap and a
-verdict.
+verdict. Entry 6 comes from the same sentence of the book and is a replication,
+because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4 and 5 is **exploratory** in the design doc's
+Every result in Entries 1, 3, 4, 5 and 6 is **exploratory** in the design doc's
 sense. Reproducing a published figure spends the sample on a hypothesis someone
 else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -77,6 +78,12 @@ picking one.
   - [What each row says](#what-each-row-says)
   - [What the entry concludes](#what-the-entry-concludes-4)
   - [What this entry cannot say](#what-this-entry-cannot-say-2)
+- [Entry 6: the CAD/AUD cross rate, Chan's *Quantitative Trading*](#entry-6-the-cadaud-cross-rate-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-4)
+  - [What this repo computed](#what-this-repo-computed-5)
+  - [The verdicts](#the-verdicts-4)
+  - [What the entry concludes](#what-the-entry-concludes-5)
+  - [What this entry cannot say](#what-this-entry-cannot-say-3)
 
 ## How to read an entry
 
@@ -97,7 +104,8 @@ both.
    [tests/test_risk_parity.py](../tests/test_risk_parity.py) holds Entry 4,
    and
    [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py)
-   holds Entry 5.
+   holds Entries 5 and 6, which come from one sentence of the book and share a
+   module.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -199,7 +207,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it.
+than filling it. So are Entry 6's rows 2 to 6.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -213,6 +221,14 @@ portfolios. Chan's fixed-income sentence names none, so what Entry 5 tests is a
 pair of stand-ins this repo chose, and its result is a finding about them
 rather than a verdict on his sentence. His claim is also that such pairs can be
 found, and one pair that fails does not refute that.
+
+Entry 6's row 1 does take it. The same passage gives the CAD/AUD cross rate as
+its example and says the rate "is quite stationary", which is a definite claim
+about one series it names. The owner ruled on 2026-10-02 that the row carries a
+verdict, and the criterion was written on
+[issue 135](https://github.com/l3a0/quantitative-trading/issues/135) before any
+statistic was computed, because a criterion chosen after the number is a
+search.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -1406,6 +1422,138 @@ on every shared day unless one of the two has split by then. Nothing has
 checked that, and
 [issue 139](https://github.com/l3a0/quantitative-trading/issues/139) is the
 guard that would.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 6: the CAD/AUD cross rate, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle location 3951. Shipped
+under [issue 135](https://github.com/l3a0/quantitative-trading/issues/135),
+under the rules
+[issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
+every stationary candidate Chan names there.
+
+Six rows, all derivable from
+[tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
+
+**Chan's claim reproduces.** The log of the rate rejects a unit root at 5%,
+with t −3.2136 at one lag against a bar of −2.86. The one-lag fit leaves
+autocorrelation the critical values do not allow for. The first fit whose
+residuals pass is at 10 lags, and there t is −2.9946, still past the bar. Both
+had to clear it under the criterion
+[issue 135](https://github.com/l3a0/quantitative-trading/issues/135) declared
+before any statistic was computed, and both do. The half-life is 141.6 trading
+days, a little over half a year.
+
+One row is a replication and five are not. Row 1 is the claim, and it takes
+the claim route `### Rows that are not replications` describes. Rows 2 and 3
+are the two statistics the criterion reads, and rows 4 to 6 say what the
+verdict rests on.
+
+Every row reads the same series, vintage and specification, so the three are
+stated once here.
+
+1. **The series.** `CADAUD=X`, yfinance's quote of the rate Chan names, in
+   Australian dollars per Canadian dollar. It is the rate itself rather than a
+   stand-in for a class of instruments, which is what lets row 1 carry a
+   verdict where Entry 5 cannot. The owner confirmed it on 2026-10-02, before
+   anything was downloaded.
+2. **The vintage.** `yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv`,
+   downloaded 2026-10-02. The basis is raw, which for a rate means the vendor's
+   close with no adjustment, because none applies. The test reads from
+   2007-08-06 to 2026-09-30, 4,984 days, because the vendor returned nothing
+   for the 90 weekdays from 2007-04-02 to 2007-08-03 and a lagged regression
+   across that gap would treat four months as one day.
+   [data/README.md](../data/README.md) says how the rows were filtered.
+3. **The specification.** An augmented Dickey-Fuller test with a constant and
+   no trend, on the log of the rate, at one lag, against `ADF_CRIT_CONST`. The
+   residual check fits the same constant and reads ten autocorrelations against
+   the ±1.96/√n band and a Breusch-Godfrey test over the same ten lags at the
+   10% cut, and its search stops at Schwert's ceiling of 32 lags. The scan uses
+   252-day windows stepped by 21. Entry 5 uses the same lag rule and scan, so
+   the two entries read one specification where they can.
+
+Every result here is **exploratory**. The sample was spent on a claim Chan
+stated about one named rate, so the entry says whether that rate was
+stationary over this window and nothing about whether trading it pays.
+
+### What the book printed
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | The CAD/AUD cross rate is quite stationary | the claim, with no figure | Kindle location 3951 |
+| 2 | The ADF statistic at one lag | nothing, the book works no example | n/a |
+| 3 | The residual check, and the first lag count whose residuals pass | nothing | n/a |
+| 4 | The half-life | nothing | n/a |
+| 5 | The test on the rate quoted the other way, and on the level | nothing | n/a |
+| 6 | The rolling scan | nothing | n/a |
+
+### What this repo computed
+
+| # | Window | Specification | Computed | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | 2007-08-06 to 2026-09-30 | rows 2 and 3 read against the declared criterion, both below the 5% bar of −2.86 | both clear it | `TestTheCrossRateVerdict::test_it_is_reproduced` |
+| 2 | 2007-08-06 to 2026-09-30 | ADF on the log of the rate, constant, one lag | t −3.2136 on 4,982 observations, rejecting at 5% | `TestTheCrossRateStatistic::test_the_lag_one_statistic` |
+| 3 | 2007-08-06 to 2026-09-30 | the residual check on the one-lag fit, then the smallest lag count from 0 to 32 whose residuals pass both halves | one lag fails, Breusch-Godfrey p 0.0002 and residual lags 2, 6, 7 and 10 outside the band. The first passing count is 10, t −2.9946, Breusch-Godfrey p 0.6487 | `TestTheCrossRateResidualCheck::test_the_lag_one_fit_fails_it` and `::test_the_first_fit_that_passes_still_rejects` |
+| 4 | 2007-08-06 to 2026-09-30 | OU half-life on the log of the rate | 141.6 trading days | `TestTheCrossRateStatistic::test_the_half_life` |
+| 5 | 2007-08-06 to 2026-09-30 | rows 2 and 3 on the log negated, on the level, and on the inverted level | −3.2136 negated. On the level −3.2944 at one lag and −3.0241 at the first passing count, 10. Inverted, −3.1552 and −2.9734, also at 10 | `TestTheCrossRateStatistic::test_the_quoting_direction_does_not_move_it` and `::test_on_the_level_both_statistics_the_verdict_reads_still_reject` |
+| 6 | 226 windows ending 2008-07-30 to 2026-09-21 | 252-day windows stepped by 21, row 2's test in each | 23 clear 10% and 5 clear 5% | `TestTheCrossRateScan::test_the_counts` |
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | The criterion was declared on the issue before any statistic was computed: the one-lag statistic and the statistic at the first residual-clean lag count both below the 5% bar. They are −3.2136 and −2.9946. Neither clears 1%, at −3.43, so "quite stationary" holds at the level the criterion asks for and no stronger. |
+| 2 | none, not a replication | The headline statistic. Lag 1 was fixed before any number was seen, as the rule [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) set for both candidates. Every count from 0 to the ceiling of 32 also rejects at 5%, the closest being 6 at −2.8739, so the lag rule does not decide the verdict here. `::test_every_lag_up_to_the_ceiling_rejects_at_five_percent` pins that. |
+| 3 | none, not a replication | The one-lag fit leaves autocorrelation, so its statistic is read against critical values that do not apply. The fit that earns them is further from rejecting and still past the bar. Without the constant the check would audit a different regression, whose one-lag statistic is −2.5159 rather than −3.2136 and is read against a different table, so the check would no longer be about this test. |
+| 4 | none, not a replication | The book prints no half-life. At 141.6 trading days a deviation takes a little over half a year to halve, which is a rate that pulls back slowly. |
+| 5 | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
+| 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **Chan's claim reproduces at 5% on a modern download.** Over 2007-2026 the
+   CAD/AUD rate rejects a unit root under the criterion fixed before the
+   statistic was read, on both statistics the criterion names. Every lag count
+   up to the ceiling rejects too, and so does the level in either quoting
+   direction. The log, the constant and the window start were fixed on the
+   issue before any statistic, and none was tried another way except the scale.
+2. **It is a slow reversion, and only the whole window shows it.** A half-life
+   of 141.6 trading days means a deviation takes a little over half a year to
+   halve, and only 23 of 226 one-year windows reject at 10%. Over the full
+   window the rejection holds, and in a year of data it usually does not.
+   Nothing here measures why, so the scan stays a description rather than a
+   second test.
+3. **The residual check moves the statistic and not the verdict.** The one-lag
+   fit fails it, as Entry 5's one-lag fits do, and the first passing fit is at
+   10 lags. That fit still rejects, closer to the bar than the one-lag fit, so
+   here the check narrows the margin rather than reversing anything.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the rate behaved the same before August 2007.** The vendor's history
+starts in July 2005, and the 454 rows before its gap are kept in the vintage
+and not read by the test, so the two years before the window are untested.
+
+**Whether the result survives another vintage.** The vendor does not restate an
+FX close for a corporate action, because a currency has none, but it can fill
+or change its own history, and the 2007 gap is the sign that its history has
+holes. `TestTheCrossRateVintage::test_the_gap_the_start_rests_on_is_in_the_vintage`
+fails if a recorded download fills the gap, so the window cannot quietly move.
+
+**Whether trading the rate pays.** Stationarity is a statement about the
+series. A trade adds costs, carry from the two interest rates, and the
+question of sizing against a half-life this long, and none of those are here.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

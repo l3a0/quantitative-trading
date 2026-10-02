@@ -1,10 +1,12 @@
-"""The pins for Chan's fixed-income stationary candidate, TLT against IEF.
+"""The pins for Chan's stationary candidates: TLT against IEF, and the CAD/AUD rate.
 
 This file is the single authority for every number any prose surface quotes
-about the candidate. ``docs/replication-log.md`` Entry 5 carries the finding
-and points here row by row.
+about either candidate. ``docs/replication-log.md`` Entry 5 carries the
+fixed-income finding and Entry 6 the cross-rate verdict, and each points here
+row by row. The fixed-income classes come first and the cross-rate classes
+follow under their own heading, each stating its vintage and specification.
 
-Every pin below reads one vintage pair and one specification, so both are
+The fixed-income pins read one vintage pair and one specification, so both are
 stated once here rather than in every docstring.
 
 - **Vintage.** ``yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv`` and
@@ -35,35 +37,86 @@ Six classes.
 
 Exploratory, and not a replication. Chan printed no number, so nothing here is
 compared against one. First run on 2026-10-02.
+
+The cross-rate pins read one vintage and one specification too.
+
+- **Vintage.** ``yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv``,
+  yfinance's ``Close`` under ``auto_adjust=False``, downloaded 2026-10-02, less
+  the two rows dated on or after the day before that. Raw basis, which for a
+  rate means the vendor's close untouched.
+- **Specification.** The ADF with a constant and no trend, on the log of the
+  rate, one lag, over the test window from 2007-08-06 to 2026-09-30, 4,984
+  days. The residual check fits the same constant. The rolling scan is
+  252-day windows stepped by 21.
+
+Nine classes and one test.
+
+1. ``TestTheCrossRateVintage``, the file, the window it is read over, and the
+   vendor's gap the window starts after.
+2. ``TestTheCrossRateStatistic``, the lag-1 statistic, its half-life, and that
+   the quoting direction does not move it.
+3. ``TestTheCrossRateResidualCheck``, which asks whether the lag-1 fit earned
+   its critical values. It did not, and the first fit that does still rejects.
+4. ``TestTheCrossRateVerdict``, the rule issue 135 declared and the verdict it
+   gives, reproduced.
+5. ``TestTheCrossRateScan``, the 226 windows.
+6. ``TestTheCrossRateReport``, which holds the vintage line, the null the
+   report names, and the verdict line.
+7. ``TestTheCrossRateRefusals``, which holds that a missing download reaches
+   an operator as a line, and what the command runs with and without an
+   argument.
+8. ``TestTheUnitRootLine``, the null the report names and the level, held at
+   each bar.
+9. ``TestTheCheckFitsTheTermItIsGiven``, the ``regression`` keyword on
+   ``residual_check``, held on a synthetic series.
+
+``test_measuring_reads_from_the_test_start`` holds that measuring a series
+that begins before the window drops those days.
+
+A replication under the claim route, which is still exploratory: the sample
+was spent on a claim Chan stated about one named rate. First run on
+2026-10-02, after the criterion was fixed on issue 135.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import math
 import re
 
 import numpy as np
 import pandas as pd
 import pytest
-from ithildincore.timeseries import EG_CRIT_N2
+from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat, ou_half_life
 
 from chan.pair_cointegration import ResidualCheck, engle_granger, residual_check
-from chan.series import WindowCrossesScaleBreak, aligned_closes
+from chan.series import WindowCrossesScaleBreak, aligned_closes, load_vintage
 from chan.stationary_candidates import (
+    CROSS_RATE,
+    GAP,
     INTERMEDIATE,
     LAGS,
     LONG,
     ORIENTATIONS,
     RESIDUAL_PASS_P,
+    TEST_START,
+    CrossRate,
     Orientation,
     _orientation,
+    cross_rate,
     first_passing,
     fixed_income,
     main,
+    measure_cross_rate,
+    report_cross_rate,
     residuals_pass,
+    rolling_adf,
     run,
+    run_cross_rate,
     schwert_ceiling,
+    unit_root_line,
 )
+from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import committed_copy
 
 TLT_FILE = "yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv"
@@ -267,7 +320,7 @@ class TestTheResidualCheck:
 
         tried: list[int] = []
 
-        def never_passes(spread, lags):
+        def never_passes(spread, lags, **_):
             tried.append(lags)
             return ResidualCheck(lags, 0.0, 400, np.zeros(10), 0.0)
 
@@ -443,3 +496,343 @@ class TestTheRefusals:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert stopped.value.code == 2
+
+
+# ---- the CAD/AUD cross rate ----
+
+CADAUD_FILE = "yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv"
+
+
+@pytest.fixture(scope="module")
+def rate() -> CrossRate:
+    return cross_rate()
+
+
+class TestTheCrossRateVintage:
+    def test_it_reads_the_raw_download_of_2026_10_02(self, rate: CrossRate) -> None:
+        entry = rate.entry
+        assert entry.path == CADAUD_FILE
+        assert (entry.vendor, entry.symbol, entry.price_basis) == ("yfinance", CROSS_RATE, "raw")
+        assert (entry.first_date, entry.last_date) == ("2005-07-04", "2026-09-30")
+        assert entry.row_count == 5438
+        assert entry.download_date == "2026-10-02"
+
+    def test_the_window_starts_after_the_gap_and_runs_to_the_last_row(
+        self, rate: CrossRate
+    ) -> None:
+        days = rate.log_rate.index
+        assert str(days[0].date()) == TEST_START == "2007-08-06"
+        assert str(days[-1].date()) == "2026-09-30"
+        assert len(days) == 4984
+
+    def test_the_gap_the_start_rests_on_is_in_the_vintage(self) -> None:
+        """The window starts where it does because the vendor returned nothing
+        for 90 weekdays. A download that filled the gap would leave the
+        constant standing on nothing, so this fails first."""
+        _, close = load_vintage(CROSS_RATE, unadjusted=True)
+        dates = {str(day.date()) for day in close.index}
+        inside = [d for d in dates if GAP[0] <= d <= GAP[1]]
+        assert inside == []
+        assert "2007-03-30" in dates
+        assert TEST_START in dates
+        weekdays = pd.bdate_range(GAP[0], GAP[1])
+        assert len(weekdays) == 90
+
+    def test_the_default_flags_refuse_it(self) -> None:
+        """The rate is recorded raw, and the default flags ask for adjusted."""
+        with pytest.raises(VintageUnavailable, match="CADAUD=X adjusted"):
+            load_vintage(CROSS_RATE)
+
+
+class TestTheCrossRateStatistic:
+    def test_the_lag_one_statistic(self, rate: CrossRate) -> None:
+        assert rate.adf_stat == pytest.approx(-3.2136, abs=5e-5)
+        assert rate.nobs == 4982
+        assert unit_root_line(rate.adf_stat) == "REJECTS the unit-root null at the 5% level"
+
+    def test_it_is_the_statistic_the_residual_check_fits(self, rate: CrossRate) -> None:
+        """The check audits the same regression the test runs, constant and
+        all. With no constant it checks a different regression, with a
+        different statistic, read against a different table, so the keyword is
+        what makes the check about this test at all."""
+        assert rate.at_lag.adf_stat == pytest.approx(rate.adf_stat, abs=1e-12)
+        values = rate.log_rate.to_numpy()
+        without = residual_check(values, LAGS).adf_stat
+        assert without == pytest.approx(-2.5159, abs=5e-5)
+
+    def test_the_half_life(self, rate: CrossRate) -> None:
+        assert rate.half_life == pytest.approx(141.6, abs=0.05)
+
+    def test_the_quoting_direction_does_not_move_it(self, rate: CrossRate) -> None:
+        """Chan writes CAD/AUD and the vendor quotes AUD per CAD. On the log the
+        two are one series negated, and the test gives one answer. On the level
+        they part, though both still reject at 5% here."""
+        values = rate.log_rate.to_numpy()
+        assert adf_tstat(-values, LAGS)[0] == pytest.approx(rate.adf_stat, abs=1e-9)
+        assert ou_half_life(-values) == pytest.approx(rate.half_life, abs=1e-9)
+        level = adf_tstat(np.exp(values), LAGS)[0]
+        inverse = adf_tstat(np.exp(-values), LAGS)[0]
+        assert level == pytest.approx(-3.2944, abs=5e-5)
+        assert inverse == pytest.approx(-3.1552, abs=5e-5)
+
+    def test_on_the_level_both_statistics_the_verdict_reads_still_reject(
+        self, rate: CrossRate
+    ) -> None:
+        """The scale is claimed not to decide the verdict, which reads two
+        statistics, so both are held on the level in both directions."""
+        values = rate.log_rate.to_numpy()
+        for series, stat in ((np.exp(values), -3.0241), (np.exp(-values), -2.9734)):
+            passing = first_passing(series, rate.ceiling, regression="c")
+            assert passing is not None
+            assert passing.lags == 10
+            assert passing.adf_stat == pytest.approx(stat, abs=5e-5)
+
+    def test_every_lag_up_to_the_ceiling_rejects_at_five_percent(self, rate: CrossRate) -> None:
+        """The headline is lag 1 by rule, and the rule does not decide the
+        verdict here. Every count from 0 to the ceiling of 32 rejects, and the
+        closest is 6, at -2.8739."""
+        values = rate.log_rate.to_numpy()
+        sweep = [adf_tstat(values, lags)[0] for lags in range(rate.ceiling + 1)]
+        assert max(sweep) == pytest.approx(-2.8739, abs=5e-5)
+        assert int(np.argmax(sweep)) == 6
+        assert all(stat < ADF_CRIT_CONST["5%"] for stat in sweep)
+
+
+class TestTheCrossRateResidualCheck:
+    def test_the_ceiling(self, rate: CrossRate) -> None:
+        assert rate.ceiling == schwert_ceiling(4984) == 32
+
+    def test_the_lag_one_fit_fails_it(self, rate: CrossRate) -> None:
+        assert rate.at_lag.breusch_godfrey_p == pytest.approx(0.000186, abs=5e-7)
+        assert rate.at_lag.outside == [2, 6, 7, 10]
+        assert not residuals_pass(rate.at_lag)
+
+    def test_the_first_fit_that_passes_still_rejects(self, rate: CrossRate) -> None:
+        passing = rate.passing
+        assert passing is not None
+        assert passing.lags == 10
+        assert passing.adf_stat == pytest.approx(-2.9946, abs=5e-5)
+        assert passing.breusch_godfrey_p == pytest.approx(0.6487, abs=5e-5)
+        assert passing.outside == []
+        assert unit_root_line(passing.adf_stat) == "REJECTS the unit-root null at the 5% level"
+
+    def test_no_count_below_ten_passes(self, rate: CrossRate) -> None:
+        values = rate.log_rate.to_numpy()
+        for lags in range(10):
+            assert not residuals_pass(residual_check(values, lags, regression="c")), lags
+
+    def test_the_search_fits_a_constant(self, rate: CrossRate) -> None:
+        """Searched without one, the first passing fit is a different
+        regression with a different statistic."""
+        values = rate.log_rate.to_numpy()
+        plain = first_passing(values, rate.ceiling)
+        assert plain is None or plain.adf_stat != pytest.approx(rate.passing.adf_stat, abs=1e-6)
+
+
+def _measured(stat_one: float, stat_passing: float | None) -> CrossRate:
+    """A cross-rate result with only the two statistics the verdict reads set."""
+
+    def check(stat: float, lags: int) -> ResidualCheck:
+        return ResidualCheck(
+            lags=lags,
+            adf_stat=stat,
+            nobs=500,
+            autocorrelation=np.zeros(10),
+            breusch_godfrey_p=0.5,
+        )
+
+    return CrossRate(
+        entry=None,  # type: ignore[arg-type]
+        log_rate=pd.Series(dtype=float),
+        adf_stat=stat_one,
+        nobs=500,
+        at_lag=check(stat_one, 1),
+        ceiling=32,
+        passing=None if stat_passing is None else check(stat_passing, 4),
+        half_life=10.0,
+        scan=rolling_adf(np.zeros(10)),
+    )
+
+
+class TestTheCrossRateVerdict:
+    def test_it_is_reproduced(self, rate: CrossRate) -> None:
+        assert rate.reproduced
+
+    @pytest.mark.parametrize(
+        ("stat_one", "stat_passing", "reproduced"),
+        [
+            (-3.0, -3.0, True),
+            (-2.85, -3.0, False),
+            (-3.0, -2.85, False),
+            (-3.0, None, False),
+            (-2.86, -2.86, False),
+            (-2.86, -3.0, False),
+            (-3.0, -2.86, False),
+            (-2.8601, -2.8601, True),
+        ],
+    )
+    def test_the_rule_reads_both_statistics_at_five_percent(
+        self, stat_one: float, stat_passing: float | None, reproduced: bool
+    ) -> None:
+        """Both must be strictly below -2.86, and a search that found no clean
+        fit is not reproduced however far the lag-1 statistic sits."""
+        assert _measured(stat_one, stat_passing).reproduced is reproduced
+
+
+class TestTheCrossRateScan:
+    def test_the_counts(self, rate: CrossRate) -> None:
+        stats = rate.scan.adf_stat
+        assert len(stats) == 226
+        assert int((stats < ADF_CRIT_CONST["10%"]).sum()) == 23
+        assert int((stats < ADF_CRIT_CONST["5%"]).sum()) == 5
+        assert int(np.isinf(rate.scan.half_life).sum()) == 3
+
+    def test_the_windows_span_the_test_window(self, rate: CrossRate) -> None:
+        days = rate.log_rate.index
+        assert str(days[rate.scan.end_idx[0]].date()) == "2008-07-30"
+        assert str(days[rate.scan.end_idx[-1]].date()) == "2026-09-21"
+
+    def test_each_window_is_the_test_on_its_slice(self, rate: CrossRate) -> None:
+        values = rate.log_rate.to_numpy()
+        end = int(rate.scan.end_idx[10])
+        piece = values[end - 251 : end + 1]
+        assert rate.scan.adf_stat[10] == pytest.approx(adf_tstat(piece, LAGS)[0], abs=1e-12)
+
+    def test_a_series_shorter_than_a_window_has_no_windows(self) -> None:
+        assert len(rolling_adf(np.zeros(251)).adf_stat) == 0
+
+    def test_a_series_exactly_one_window_long_has_one_ending_on_its_last_row(self) -> None:
+        """The real window's length leaves 7 days past the last full step, so
+        it cannot tell whether the final row is reachable. This can."""
+        rng = np.random.default_rng(5)
+        scan = rolling_adf(np.cumsum(rng.normal(size=252)))
+        assert list(scan.end_idx) == [251]
+
+
+class TestTheUnitRootLine:
+    """The line names the most demanding level the statistic is strictly below."""
+
+    def test_a_statistic_on_a_bar_does_not_reject_at_that_bar(self) -> None:
+        assert unit_root_line(ADF_CRIT_CONST["5%"]) == (
+            "REJECTS the unit-root null at the 10% level"
+        )
+        assert unit_root_line(ADF_CRIT_CONST["10%"]) == (
+            "fails to reject the unit-root null at 10%"
+        )
+
+    def test_just_past_a_bar_rejects_there(self) -> None:
+        assert unit_root_line(ADF_CRIT_CONST["1%"] - 1e-9) == (
+            "REJECTS the unit-root null at the 1% level"
+        )
+
+
+class TestTheCrossRateReport:
+    @staticmethod
+    @pytest.fixture(scope="class")
+    def out() -> str:
+        import contextlib
+        import io
+
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            run_cross_rate()
+        return buffer.getvalue()
+
+    def test_it_names_the_basis_and_the_file_and_date(self, out: str) -> None:
+        assert "Price basis: raw, the vendor's close, which no adjustment touches" in out
+        assert f"CADAUD=X vintage: {CADAUD_FILE}   yfinance raw, downloaded 2026-10-02" in out
+        assert "Test window: 2007-08-06 .. 2026-09-30   (N = 4984 days" in out
+
+    def test_it_names_the_unit_root_null_and_never_cointegration(self, out: str) -> None:
+        assert "t = -3.2136" in out
+        assert "REJECTS the unit-root null at the 5% level" in out
+        assert "cointegration" not in out.lower()
+
+    def test_it_prints_the_residual_check_and_the_scan(self, out: str) -> None:
+        assert "lags outside the band: 2, 6, 7, 10" in out
+        assert "first lag count from 0 to 32 whose residuals pass: 10, where t = -2.9946" in out
+        assert "23 of 226 clear the 10% bar, 5 clear 5%" in out
+
+    def test_the_verdict_line_names_the_criterion_and_both_statistics(self, out: str) -> None:
+        assert "Verdict: REPRODUCED." in out
+        assert "both below the 5% bar of -2.86" in out
+        assert "Here they are t = -3.2136 and t = -2.9946." in out
+
+    def test_it_says_exploratory(self, out: str) -> None:
+        assert "A replication against data is exploratory by construction." in out
+
+    def test_a_search_that_finds_nothing_says_so_and_is_not_reproduced(self, capsys) -> None:
+        """The branch the real rate never reaches, built from a result whose
+        search found no residual-clean fit."""
+        m = dataclasses.replace(
+            _measured(-3.0, None),
+            entry=cross_rate().entry,
+            log_rate=pd.Series([0.0], index=pd.DatetimeIndex(["2007-08-06"])),
+            half_life=math.inf,
+        )
+        report_cross_rate(m)
+        out = capsys.readouterr().out
+        assert "no lag count from 0 to 32 leaves residuals that pass" in out
+        assert "Here they are t = -3.0000 and none passes." in out
+        assert "Verdict: DID NOT REPRODUCE." in out
+        assert "half-life undefined" in out
+
+
+class TestTheCrossRateRefusals:
+    def test_a_download_nobody_recorded_reaches_the_operator_as_a_line(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            "sys.argv", ["chan.stationary_candidates", "cross-rate", "--dated", "2026-10-03"]
+        )
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert "CADAUD=X raw dated 2026-10-03" in str(stopped.value)
+
+    def test_no_argument_runs_both_fixed_income_first(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr("sys.argv", ["chan.stationary_candidates"])
+        main()
+        out = capsys.readouterr().out
+        assert out.index("TLT on IEF") < out.index("Chan's CAD/AUD cross rate")
+        assert "Entry 5 carries the finding.\n\nChan's CAD/AUD cross rate" in out
+        assert "Verdict: REPRODUCED." in out
+
+    def test_dated_is_refused_for_the_fixed_income_candidate(self, monkeypatch) -> None:
+        """It names a CADAUD=X download, so accepting it there would read nothing."""
+        monkeypatch.setattr(
+            "sys.argv", ["chan.stationary_candidates", "fixed-income", "--dated", "2026-10-02"]
+        )
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert stopped.value.code == 2
+
+    def test_each_candidate_runs_alone(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr("sys.argv", ["chan.stationary_candidates", "cross-rate"])
+        main()
+        out = capsys.readouterr().out
+        assert "CAD/AUD" in out
+        assert "TLT on IEF" not in out
+
+
+class TestTheCheckFitsTheTermItIsGiven:
+    """``residual_check``'s new keyword, held on a series with a mean far from zero."""
+
+    def test_the_default_is_no_term(self) -> None:
+        rng = np.random.default_rng(3)
+        series = 5.0 + np.cumsum(rng.normal(size=400)) * 0.01
+        assert (
+            residual_check(series, 1).adf_stat == residual_check(series, 1, regression="n").adf_stat
+        )
+
+    def test_a_constant_matches_the_test_with_one(self) -> None:
+        rng = np.random.default_rng(3)
+        series = 5.0 + np.cumsum(rng.normal(size=400)) * 0.01
+        with_constant = residual_check(series, 1, regression="c").adf_stat
+        assert with_constant == pytest.approx(adf_tstat(series, 1, constant=True)[0], abs=1e-12)
+        assert with_constant != pytest.approx(residual_check(series, 1).adf_stat, abs=1e-3)
+
+
+def test_measuring_reads_from_the_test_start(rate: CrossRate) -> None:
+    """Measuring a series that begins before the window drops those days."""
+    _, close = load_vintage(CROSS_RATE, unadjusted=True)
+    again = measure_cross_rate(rate.entry, close)
+    assert len(again.log_rate) == 4984
+    assert math.isclose(again.adf_stat, rate.adf_stat)

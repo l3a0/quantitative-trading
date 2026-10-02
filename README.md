@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Five replications run here, all from Chan's *Quantitative Trading*. The first
+Six replications run here, all from Chan's *Quantitative Trading*. The first
 two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other three were built here.
+they were first built. The other four were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -75,10 +75,18 @@ they were first built. The other three were built here.
    t of −2.17. It is the first entry here where the numbers reproduce and the
    claim does not, which is the reverse of the split the GLD/GDX and Kelly
    entries both found.
+6. The CAD/AUD cross rate, which Chan calls "quite stationary" at Kindle
+   location 3951 without working it. He names the rate itself, so the claim is
+   what gets pinned and it carries a verdict against a criterion fixed before
+   any statistic was read. On `CADAUD=X` over 2007-08-06 to 2026-09-30 the log
+   of the rate rejects a unit root at 5%, at −3.2136 at one lag and −2.9946 at
+   the first lag count whose residuals pass, against a bar of −2.86, so the
+   claim reproduces. Its half-life is 141.6 trading days, and only 23 of 226
+   one-year windows reject at 10%.
 
-One more result runs here, and it is not a sixth replication. At Kindle
-location 3951 Chan names other places a stationary spread should live without
-working any of them, so there is no number of his to reproduce. His
+One more result runs here, and it is not a replication. The same passage names
+other places a stationary spread should live without naming an instrument, so
+there is no number of his to reproduce and no series of his to test. His
 fixed-income candidate, bonds of one issuer at two maturities, is tested on TLT
 against IEF, and the result is a finding rather than a verdict. Over
 2002-07-30 to 2026-10-01 neither orientation rejects the no-cointegration
@@ -113,14 +121,15 @@ alone. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py)
-does it for the fixed-income candidate, and pins both orientations of every
-number, because the test is not symmetric in its legs and Chan names no
-dependent one.
+does it for both stationary candidates. It pins both orientations of every
+fixed-income number, because the test is not symmetric in its legs and Chan
+names no dependent one. For the cross rate it pins the verdict rule as well as
+the verdict, so a criterion edited after the fact fails a test.
 
-All five replications reach a verdict in
+All six replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
-verdict against.
+verdict against, and Entry 6 the cross rate's verdict.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -269,17 +278,22 @@ resolve the ranking says so in a line rather than stopping the run, because a
 sample that cannot settle a sign has not failed at anything. One of the two
 sub-windows is in that position.
 
-The fixed-income candidate reads two series and takes no window:
+Chan's two stationary candidates share one command, and neither takes a
+window:
 
 ```bash
 uv run python -m chan.stationary_candidates
 ```
 
-It prints the full-span test in both orientations, the residual check at one
-lag beside the first lag count whose residuals pass, and the rolling scan each
-way round. There is no `--start` or `--end`, because a window option is what
-would let a reader pick one that rejects, and the full span is the only window
-the issue declared.
+With no argument it runs both, and `fixed-income` or `cross-rate` runs one. The
+fixed-income candidate prints the full-span test in both orientations, the
+residual check at one lag beside the first lag count whose residuals pass, and
+the rolling scan each way round. The cross rate prints the same three for the
+log of `CADAUD=X` over its test window, then the verdict and the criterion it
+was read against. There is no `--start` or `--end`, because a window option is
+what would let a reader pick one that rejects, and each issue declared exactly
+one window. `--dated` names which `CADAUD=X` download to read and defaults to
+the one the suite pins.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

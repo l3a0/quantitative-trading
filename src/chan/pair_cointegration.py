@@ -1,9 +1,10 @@
 """The pair-cointegration engine, and the GLD/GDX and KO/PEP replications it runs.
 
 :func:`engle_granger`, :func:`rolling_cointegration` and :func:`residual_check`
-are also what :mod:`chan.stationary_candidates` imports for Chan's
-fixed-income candidate, which is a finding rather than a replication and lives
-there for the reason ``chan.series`` gives for the parse.
+are also what :mod:`chan.stationary_candidates` imports for Chan's other
+stationary candidates, which live there for the reason ``chan.series`` gives
+for the parse. The fixed-income one is a finding rather than a replication, and
+the CAD/AUD rate uses :func:`residual_check` alone, with a constant.
 
 Reproduces the pair-trading examples in Ernest Chan, *Quantitative Trading*
 (rev. ed.): a hedge-ratio regression, an Engle-Granger / CADF unit-root test on
@@ -321,8 +322,18 @@ def residual_check(
     lags: int,
     horizon: int = RESIDUAL_LAGS,
     bars: int = RESIDUAL_LAGS,
+    *,
+    regression: str = "n",
 ) -> ResidualCheck:
-    """Fit the ADF at a fixed ``lags`` with no deterministic term, and test its residuals.
+    """Fit the ADF at a fixed ``lags`` and test its residuals.
+
+    ``regression`` is the deterministic term, spelled as ``adfuller`` spells it.
+    The default ``"n"`` fits none, which is right for a residual spread because
+    the cointegrating regression already took out its mean, and it is what every
+    GLD/GDX pin was computed with. ``"c"`` fits a constant, which a series
+    tested for stationarity in its own right needs, such as the CAD/AUD rate in
+    :mod:`chan.stationary_candidates`. A check whose term differs from the test
+    it audits is checking a different regression.
 
     The ADF critical values assume the fitted regression leaves residuals with
     no autocorrelation, so this asks whether a given lag count earned them.
@@ -338,7 +349,12 @@ def residual_check(
     band reads, and the same holds for it.
     """
     fit = adfuller(
-        spread, maxlag=lags, autolag=None, regression="n", regresults=True, result_object=True
+        spread,
+        maxlag=lags,
+        autolag=None,
+        regression=regression,
+        regresults=True,
+        result_object=True,
     )
     fitted = fit.resstore.resols
     bg = acorr_breusch_godfrey(fitted, nlags=horizon, result_object=True)
