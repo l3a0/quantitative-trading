@@ -1078,14 +1078,16 @@ def _unlinked_references(document: str) -> list[int]:
     be a link, because GitHub renders a bare `#NN` in a repository file as
     plain text. Code spans, fences, HTML comments and quotations are exempt,
     since a link inside code breaks it and a quotation stays as written. A
-    quotation is a straight or curly double-quoted span on one line, or a
-    blockquote line.
+    quotation is a straight or curly double-quoted span on one line. A
+    blockquote is not exempt, because nothing marks one as a quotation rather
+    than a note or a GitHub alert.
 
     A reference written out in words is held too, and so is every number in a
     run of them. "issues [4](...), 43 and 47" leaves two numbers bare, which is
     the half-linked list the rule names as failing. A run may wrap onto the
-    next line but not across a blank one, and a number followed by a hyphen is
-    a date rather than an issue.
+    next line at any point but never across a blank one. "issues 3-5" is a
+    range of two numbers, while a number opening a date such as 2026-09-18 is
+    not an issue at all.
 
     Everything blanked keeps its newlines, so the line a finding reports is the
     line the reference is on. The first version of this check blanked a
@@ -1099,17 +1101,21 @@ def _unlinked_references(document: str) -> list[int]:
 
     text = blank_code(document)
     text = re.sub(r"<!--.*?-->", blank, text, flags=re.DOTALL)
-    text = re.sub(r"^[ \t]*>.*$", blank, text, flags=re.MULTILINE)
     text = re.sub(r'"[^"\n]*"|\u201c[^\u201d\n]*\u201d', blank, text)
 
     word = r"(?:issues?|PRs?|pull requests?)"
     gap = r"[ \t]*(?:\n[ \t]*)?"
-    linked_number = r"\[\d+\]\([^)\s]*\)"
-    number = rf"(?:{linked_number}|\d+(?![\d-]))"
-    join = r"(?:,[ \t]*(?:and[ \t]+)?|[ \t]+(?:and|or|through|to)[ \t]+)"
-    link = re.compile(r"\[(?:[^\]\n]|\n(?![ \t]*\n))*\](?:\([^)\s]*\)|\[[^\]\n]*\])")
+    space = r"(?:[ \t]+(?:\n[ \t]*)?|[ \t]*\n[ \t]*)"
+    target = r"(?:\([^)\n]*\)|\[[^\]\n]*\])"
+    linked_number = rf"\[\d+\]{target}"
+    number = rf"(?:{linked_number}|\d+(?!\d|-\d\d-\d\d))"
+    join = (
+        rf"(?:[ \t]*,{gap}(?:(?:and|or){space})?"
+        rf"|{space}(?:and|or|through|to){space}|[ \t]*[-\u2013][ \t]*)"
+    )
+    link = re.compile(rf"\[(?:[^\]\n]|\n(?![ \t]*\n))*\]{target}")
     run = re.compile(
-        rf"(?:\[{word}{gap}\d+\]\([^)\s]*\)|\b{word}{gap}{number})(?:{join}{number})*",
+        rf"(?:\[{word}{gap}\d+\]{target}|\b{word}{gap}{number})(?:{join}{number})*",
         re.IGNORECASE,
     )
     bare_hash = re.compile(r"(?<![\w/&])(?:PR[ \t]?)?#\d+\b|\b(?:PR|issue)#\d+\b", re.IGNORECASE)
@@ -1125,7 +1131,7 @@ def _unlinked_references(document: str) -> list[int]:
             pos = m.start() + token.start(1)
             if token.group(1) and not linked(pos):
                 hits.append(pos)
-    return sorted(text.count("\n", 0, pos) + 1 for pos in set(hits))
+    return sorted(text.count("\n", 0, pos) + 1 for pos in hits)
 
 
 class TestIssueReferencesAreLinked:
@@ -1173,6 +1179,39 @@ class TestIssueReferencesAreLinked:
     def test_an_unclosed_bracket_does_not_hide_what_follows(self) -> None:
         assert _unlinked_references("a [draft note\n\nsee issue 4 here\n\n[x](y)\n") == [3]
 
+    def test_a_run_wrapped_after_its_first_number_is_still_read(self) -> None:
+        assert _unlinked_references("issues [4](https://x/4), 43\nand 47\n") == [1, 2]
+
+    def test_a_range_wrapped_before_its_end_is_still_read(self) -> None:
+        assert _unlinked_references("[issues 14](https://x/14) through\n18\n") == [2]
+
+    def test_a_hyphenated_range_flags_both_ends(self) -> None:
+        assert _unlinked_references("issues 3-5\n") == [1, 1]
+
+    def test_a_run_joined_by_or_flags_each_number(self) -> None:
+        assert _unlinked_references("issues 3 or 4\n") == [1, 1]
+
+    def test_a_comma_then_or_flags_each_number(self) -> None:
+        assert _unlinked_references("issues 3, or 4\n") == [1, 1]
+
+    def test_a_comma_list_with_a_final_and_flags_each_number(self) -> None:
+        assert _unlinked_references("issues 3, 4, and 5\n") == [1, 1, 1]
+
+    def test_a_finding_after_a_multiline_comment_names_its_own_line(self) -> None:
+        assert _unlinked_references("<!-- a\nb -->\nissue 4\n") == [3]
+
+    def test_a_link_with_a_title_is_left_alone(self) -> None:
+        assert _unlinked_references('[issue 4](https://x/4 "the title")\n') == []
+
+    def test_a_number_right_after_a_link_is_flagged(self) -> None:
+        assert _unlinked_references("[x](https://x)#4\n") == [1]
+
+    def test_findings_come_back_in_line_order(self) -> None:
+        assert _unlinked_references("issue 4\nsee #5\n") == [1, 2]
+
+    def test_a_word_ending_in_issue_is_not_a_reference(self) -> None:
+        assert _unlinked_references("tissue 4 and https://x/#12\n") == []
+
     def test_a_run_does_not_bridge_a_blank_line(self) -> None:
         assert _unlinked_references("## Open issues\n\n1. First\n") == []
 
@@ -1188,8 +1227,8 @@ class TestIssueReferencesAreLinked:
     def test_a_curly_quotation_is_left_alone(self) -> None:
         assert _unlinked_references("He wrote \u201csee issue 12\u201d once.\n") == []
 
-    def test_a_blockquote_is_left_alone(self) -> None:
-        assert _unlinked_references("> the #1 rule of trading\n") == []
+    def test_a_blockquote_is_not_a_quotation(self) -> None:
+        assert _unlinked_references("> **Note:** issue 4 is open.\n") == [1]
 
     def test_an_html_comment_is_left_alone(self) -> None:
         assert _unlinked_references("<!-- see issue 4 -->\n") == []
