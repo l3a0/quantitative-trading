@@ -54,9 +54,9 @@ jobs:
       - name: Check formatting
         run: uv run ruff format --check
 
-      # The suite includes tests/test_markdown_hygiene.py, which runs the two
-      # prose sweeps CLAUDE.md names. They run here rather than in the docs
-      # job so a local `pytest` catches them too.
+      # The suite includes tests/test_markdown_hygiene.py, which runs the prose
+      # checks CLAUDE.md names. They run here rather than in the docs job so a
+      # local `pytest` catches them too.
       - name: Run the test suite
         run: uv run pytest
 
