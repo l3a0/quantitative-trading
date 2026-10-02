@@ -568,9 +568,16 @@ def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
     lifted file carries a stock's other fields after its close, and
     :func:`load_panel` passes the column of the one it was asked for.
     """
-    raw = pd.read_csv(io.BytesIO(payload), header=None, usecols=[0, column], names=None).set_axis(
-        ["date", "close"], axis=1
-    )
+    if column == 1:
+        # The call every single-series vintage has always been read through,
+        # kept exact. Naming the columns lets a first row of any width parse.
+        raw = pd.read_csv(io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1])
+    else:
+        # A lifted file's first row names all its fields, so its width is the
+        # file's and the column can be picked by position.
+        raw = pd.read_csv(io.BytesIO(payload), header=None, usecols=[0, column]).set_axis(
+            ["date", "close"], axis=1
+        )
     with warnings.catch_warnings():
         # The header rows ("Date", "Ticker") do not parse as dates, and coerce
         # drops them to NaT. pandas warns about the mixed formats, expected here.

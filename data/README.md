@@ -272,7 +272,7 @@ measurements below and the decision behind the shape.
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
    beside the runs that read them. Measured with `du`, the two directories take
-   72.5 MB of the 74.9 MB `data/` now holds, where it held 1.96 MB before them.
+   74.3 MB of the 76.7 MB `data/` now holds, where it held 2.0 MB before them.
    The budget proposed on
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
    `data/` stays under 100 MB on disk, and a later panel states its own size
@@ -285,13 +285,14 @@ measurements below and the decision behind the shape.
 
 2. **Every field is kept, in one file per stock.** Each file carries five
    date-by-stock arrays: `cl`, `hi`, `lo`, `op` and `vol`. Every figure Chan's
-   code prints from them reads `cl`, and the other four exist nowhere this
-   repo controls except the mirror, so the owner decided on 2026-10-02 to
-   commit all five rather than leave four to a mirror that can disappear. They
+   code prints from them reads `cl`, and the other four exist only in the
+   mirror, which this repo does not control, so the owner decided on
+   2026-10-02 to commit all five rather than leave four to a mirror that can
+   disappear. They
    share one file because they are one stock saved once. An open series
    written as a vintage of its own would share vendor, symbol, basis and date
    with the close, and nothing in an entry's identity could tell the two apart.
-   The columns run `Close,High,Low,Open,Volume`, yfinance's own order, which
+   The columns run `Close,High,Low,Open,Volume`, yfinance's default order, which
    keeps the close second, where every reader here takes it. A volume is
    written as the whole number it is, and the `adjusted` basis names the four
    prices rather than the volume.

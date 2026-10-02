@@ -521,14 +521,16 @@ class TestTheBytesAreCheckedAgainstTheRecord:
 
 
 class TestTheParseTakesTwoColumnsAndStaysQuiet:
-    """Two arguments in ``_parse_close`` that every committed vintage leaves inert."""
+    """Two arguments in ``_parse_close`` that the single-series vintages leave inert."""
 
     def test_a_third_column_is_ignored_rather_than_shifting_the_series(
         self, data_dir: Path
     ) -> None:
-        """All eight committed vintages carry two columns, so `usecols` reads as
-        decoration. Without it pandas puts the first column into the index and
-        the close is read out of the wrong field, silently."""
+        """The single-series vintages carry two columns, so for them `usecols`
+        reads as decoration. The 1,100 stocks lifted from Chan's MATLAB files
+        carry six, so for those it decides which field every read gets. Without
+        it pandas puts the first column into the index and the close is read
+        out of the wrong field, silently."""
         entry = place(data_dir, name="one.csv")
         with_volume = b"Date,Close,Volume\n" + b"".join(
             f"{day},{value!r},1000\n".encode() for day, value in SERIES

@@ -1089,6 +1089,11 @@ def _validated_wide_rows(rows: Iterable[tuple], fields: tuple[str, ...]) -> list
     for (day, close), row in zip(closes, materialized, strict=True):
         values: list[float | int] = [close]
         for field, value in zip(fields[1:], row[2:], strict=True):
+            if field == "Volume" and isinstance(value, int) and not isinstance(value, bool):
+                # Kept exact. A float holds every whole number only up to 2**53,
+                # and a volume handed over as an int is already the whole number.
+                values.append(value)
+                continue
             try:
                 number = float(value)
             except (TypeError, ValueError) as unusable:

@@ -1160,9 +1160,11 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     for entry in read_manifest(directory):
         if entry.path not in HAND_WRITTEN and not in_a_lifted_source(entry.path):
             continue
-        cells = (directory / entry.path).read_text(encoding="utf-8").splitlines()[1].split(",")
+        lines = (directory / entry.path).read_text(encoding="utf-8").splitlines()
+        cells = lines[1].split(",")
         assert cells[0] == "Ticker" and len(cells) > 1, entry.path
         assert set(cells[1:]) == {entry.symbol}, entry.path
+        assert len(cells) == len(lines[0].split(",")), entry.path
 
 
 def the_recorded_entries_name_themselves(directory: Path) -> None:
@@ -2272,6 +2274,17 @@ class TestRecordingALiftedSource:
 
         assert read_manifest(data_dir) == []
 
+    def test_a_volume_beyond_what_a_float_holds_is_written_exactly(self, data_dir):
+        (entry,) = vintage.record_lifted_columns(
+            {"KO": [("2026-08-25", 50.0, 51.0, 49.5, 49.75, 2**53 + 1)]},
+            **LIFTED_FROM,
+            fields=vintage.LIFTED_FIELDS,
+            data_dir=data_dir,
+        )
+
+        last = (data_dir / entry.path).read_text(encoding="utf-8").splitlines()[-1]
+        assert last.endswith(f",{2**53 + 1}")
+
     def test_a_volume_that_is_not_a_whole_number_is_refused_rather_than_rounded(self, data_dir):
         with pytest.raises(ValueError, match="the Volume on 2026-08-25 is not a whole number"):
             vintage.record_lifted_columns(
@@ -2344,6 +2357,15 @@ class TestALiftedSourceIsHeld:
         lines = path.read_text(encoding="utf-8").split("\n")
         assert lines[1] == "Ticker,KO,KO,KO,KO,KO"
         lines[1] = "Ticker,KO,KO,KO,PEP,KO"
+        path.write_text("\n".join(lines), encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):
+            the_hand_written_entries_name_their_series(committed)
+
+    def test_a_ticker_row_narrower_than_the_price_row_fails(self, committed):
+        path = committed / "spx_20071123" / "ko.csv"
+        lines = path.read_text(encoding="utf-8").split("\n")
+        lines[1] = "Ticker,KO"
         path.write_text("\n".join(lines), encoding="utf-8")
 
         with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):

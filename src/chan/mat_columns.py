@@ -16,9 +16,9 @@ Three choices are settled here rather than left to whoever runs it.
 
 1. **Every field is kept.** The owner decided on 2026-10-02 to record all five
    arrays rather than the closes alone. The closes are what Chan's printed
-   figures read, and the other four exist nowhere this repo controls except
-   the public mirror the files came from, so a vintage holding only the close
-   would leave them to that mirror. Each stock's file holds all five, which
+   figures read, and the other four exist only in the public mirror the files
+   came from, which this repo does not control, so a vintage holding only the
+   close would leave them to that mirror. Each stock's file holds all five, which
    keeps a stock one vintage. An open series recorded as a vintage of its own
    would share every identity field with the close.
 2. **A missing cell is a missing row.** Chan marks a day a stock has no price
