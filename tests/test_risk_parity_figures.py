@@ -11,6 +11,7 @@ the reason ``tests/test_regime_figure.py`` gives.
 
 from __future__ import annotations
 
+import math
 import re
 from datetime import date, timedelta
 
@@ -21,6 +22,7 @@ from matplotlib.text import Text
 from chan.bill_rates import average
 from chan.paths import FIGURES_DIR
 from chan.risk_parity import (
+    BENCHMARK_WEIGHTS,
     BOOK_LEVERAGE,
     BOOK_RATIO_BAND,
     BOOK_WEIGHTS,
@@ -684,6 +686,33 @@ class TestWhatTheHurdleFigureCompares:
         ]
         assert [row.clears for row in rows] == [True, False, False]
         assert [row.approximate for row in rows] == [True, False, False]
+
+    def test_qians_multipliers_give_his_hurdle_and_his_printed_pair(self) -> None:
+        """Lesson 2 works Qian's hurdle by hand: risk parity's multiplier is
+        1 / √2.4, or 0.645, and 60/40's are 0.944 on stocks and 0.192 on bonds.
+        Their differences give the hurdle of about two-thirds, and the two sums
+        at his 0.55 and 0.80 give his printed 0.87 and 0.67."""
+        stock = BENCHMARK_WEIGHTS[0] * QIAN_STOCK_VOL
+        bond = BENCHMARK_WEIGHTS[1] * QIAN_BOND_VOL
+        vol = math.sqrt(stock**2 + bond**2 + 2.0 * QIAN_CORRELATION * stock * bond)
+        parity = 1.0 / math.sqrt(2.0 * (1.0 + QIAN_CORRELATION))
+        assert round(vol, 3) == 0.096
+        assert (round(parity, 3), round(stock / vol, 3), round(bond / vol, 3)) == (
+            0.645,
+            0.944,
+            0.192,
+        )
+        hurdle = (stock / vol - parity) / (parity - bond / vol)
+        assert hurdle == pytest.approx(
+            bond_sharpe_hurdle(QIAN_STOCK_VOL, QIAN_BOND_VOL, QIAN_CORRELATION), abs=1e-12
+        )
+        assert round(hurdle, 2) == 0.66
+        parity_sharpe = parity * (QIAN_SHARPE_STOCK + QIAN_SHARPE_BOND)
+        benchmark_sharpe = (stock * QIAN_SHARPE_STOCK + bond * QIAN_SHARPE_BOND) / vol
+        assert (round(parity_sharpe, 2), round(benchmark_sharpe, 2)) == (
+            QIAN_SHARPE_PARITY,
+            QIAN_SHARPE_BENCHMARK,
+        )
 
     def test_this_runs_rows_come_from_the_run(self, hurdle_figure, result) -> None:
         legs = result.legs

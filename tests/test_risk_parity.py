@@ -1569,8 +1569,8 @@ class TestTheBondSharpeHurdle:
     def test_the_multipliers_lesson_2_writes_the_hurdle_from(self, measured) -> None:
         """Each Sharpe ratio is a sum of the two legs' Sharpe ratios, each
         multiplied by its weight times its volatility over the portfolio's
-        volatility. Lesson 2 prints the multipliers as 0.71 and 0.71 for risk
-        parity and 0.98 and 0.18 for 60/40, then subtracts them unrounded into
+        volatility. Lesson 2 prints the multipliers as 0.707 and 0.707 for risk
+        parity and 0.983 and 0.183 for 60/40, then subtracts them unrounded into
         ``0.525 S₂ > 0.276 S₁``. Their ratio is the hurdle pinned above."""
         result, _ = measured["full span"]
         legs = result.legs

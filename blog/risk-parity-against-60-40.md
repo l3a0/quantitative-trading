@@ -136,10 +136,36 @@ The hurdle bonds have to clear depends on how much each fund’s Sharpe ratio co
 At a correlation near zero that is the sum divided by √2. For 60/40, each weight times its fund’s volatility, divided by 60/40’s 11.32%, gives how much each fund’s Sharpe ratio counts: 0.6 × 18.55 / 11.32 for stocks and 0.4 × 5.17 / 11.32 for bonds. So:
 
 ```math
-\text{risk parity: } \frac{S_1 + S_2}{\sqrt{2}} \approx 0.71\,S_1 + 0.71\,S_2 \qquad \text{60/40: } 0.98\,S_1 + 0.18\,S_2
+\text{risk parity: } \frac{S_1 + S_2}{\sqrt{2}} \approx 0.707\,S_1 + 0.707\,S_2 \qquad \text{60/40: } 0.983\,S_1 + 0.183\,S_2
 ```
 
-Both pairs of multipliers add to more than 1 because, with uncorrelated funds, each portfolio’s volatility is less than its two funds’ weighted volatilities added together. In 60/40, stocks’ multiplier sits near 1 because the portfolio is nearly all stock by risk. Subtracting one side from the other, with the unrounded multipliers, shows that risk parity comes out ahead when `0.525 S₂ > 0.276 S₁`, which means bonds’ Sharpe ratio has to be more than about 0.53 times stocks’. AGG’s −0.18 against SPY’s 0.45 falls far short. At Qian’s correlation of 0.2, with his 60/40 volatility of 9.6%, the same arithmetic puts the hurdle at about two-thirds and reproduces his printed 0.87 and 0.67. His bonds’ 0.80 against stocks’ 0.55 clears it easily.
+Both pairs of multipliers add to more than 1 because, with uncorrelated funds, each portfolio’s volatility is less than its two funds’ weighted volatilities added together. In 60/40, stocks’ multiplier sits near 1 because the portfolio is nearly all stock by risk.
+
+Risk parity comes out ahead when its sum is the larger of the two. Moving each fund’s terms to one side gives:
+
+```math
+0.707\,S_1 + 0.707\,S_2 > 0.983\,S_1 + 0.183\,S_2 \quad\Rightarrow\quad (0.707 - 0.183)\,S_2 > (0.983 - 0.707)\,S_1
+```
+
+Stocks count for more in 60/40, so risk parity starts 0.276 behind for each unit of stocks’ Sharpe ratio. Bonds count for more in risk parity, so each unit of bonds’ Sharpe ratio wins back 0.525. Both figures come from the multipliers before rounding, which is why the rounded ones give 0.524 for the second. So risk parity leads when `0.525 S₂ > 0.276 S₁`. SPY’s Sharpe ratio is positive, so dividing both sides by it keeps the inequality’s direction and turns the comparison into a ratio:
+
+```math
+\frac{S_2}{S_1} > \frac{0.276}{0.525} = 0.53
+```
+
+So bonds’ Sharpe ratio has to be more than about 0.53 times stocks’. AGG’s −0.18 against SPY’s 0.45 falls far short.
+
+Qian’s data goes through the same arithmetic with his own inputs. His correlation of 0.2 lowers risk parity’s multiplier to 1 / √2.4, or 0.645, on each fund. His 15.1% and 4.6% volatilities and his 60/40 volatility of 9.6% give 60/40 multipliers of 0.6 × 15.1 / 9.6, or 0.944, on stocks and 0.4 × 4.6 / 9.6, or 0.192, on bonds. The hurdle is then:
+
+```math
+\frac{S_2}{S_1} > \frac{0.944 - 0.645}{0.645 - 0.192} = 0.66
+```
+
+That is about two-thirds. His bonds’ 0.80 against stocks’ 0.55 is a ratio of about 1.45, which clears it easily. The same two sums also reproduce his printed Sharpe ratios, which confirms they describe his calculation:
+
+```math
+\text{risk parity: } 0.645\,(0.55 + 0.80) = 0.87 \qquad \text{60/40: } 0.944 \times 0.55 + 0.192 \times 0.80 = 0.67
+```
 
 ![Three rows on an axis of bonds’ Sharpe ratio as a multiple of stocks’. Qian’s hurdle is about two-thirds, and his bonds landed at about 1.45, inside the zone where risk parity leads. For SPY and AGG the hurdle is 0.53. AGG landed at 0.46 at the 1.74% bill average, just short of it, and at −0.39 at an assumed 4% cash rate, far short.](../docs/figures/risk_parity_bond_hurdle.png)
 
