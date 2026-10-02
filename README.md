@@ -502,12 +502,16 @@ groups of its figures are not pinned here.
    spread between the bear and bull windows, the variance of 0.0286 and the
    factor of about 35 it multiplies an error in the mean by, the worst SPY day
    being about a third of Black Monday, and twice Kelly carrying about five
-   times SPY's swings. The 43 to 47% that monthly sampling adds is held by a
-   test only as a band of 42 to 48%.
+   times SPY's swings. The 43 to 47% that monthly sampling adds on the 2026
+   download is held by a test only as a band of 42 to 48%. On Chan's own
+   workbook the same 43 to 47% is asserted as written.
 
 Every other number in the post traces to an assertion in
-[tests/test_kelly_leverage.py](tests/test_kelly_leverage.py), apart from the
-numbers read off the growth formula, which trace to
+[tests/test_kelly_leverage.py](tests/test_kelly_leverage.py). That includes
+every figure the post quotes from the adjusted column of Chan's own workbook,
+and the table's middle column, which is that column's figures rounded to the
+decimals he printed and is held by `test_every_published_figure_reproduces_at_the_precision_he_printed`.
+The exceptions are the numbers read off the growth formula, which trace to
 [tests/test_kelly_figures.py](tests/test_kelly_figures.py). Those include the
 10.98% half-Kelly keeps and the 5.10 of twice Kelly, which the figure prints,
 and the 5.60 at which growth reaches zero and the 5.43% the bull window's 4.90
