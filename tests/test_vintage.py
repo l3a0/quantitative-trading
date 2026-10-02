@@ -1876,8 +1876,8 @@ class TestARecordedVintageIsHeldToo:
     committed tree and remembering to put it back.
 
     Name what the copy does not cover. The rest of the suite reads `DATA_DIR`
-    through names bound at import, so "the whole suite is green against a real
-    new vintage" is still a claim this cannot make. What it holds is the three
+    through names bound at import, so "the whole suite is green after a real
+    recording" is still a claim this cannot make. What it holds is the three
     assertions that were measured red, plus the check that replaces what the
     scoping gives up. The full run was done by hand once, on the pull request
     that built this.
@@ -1886,8 +1886,8 @@ class TestARecordedVintageIsHeldToo:
     than by an accident. `data/README.md`'s table is prose nothing derives, so
     holding it to the manifest means a new recorded vintage is red until somebody
     writes its row. `test_a_new_recorded_vintage_needs_a_table_row` below is where the
-    suite states that cost, rather than leaving it for whoever records the first
-    real one to discover.
+    suite states that cost, rather than leaving it for whoever records the next
+    one to discover.
     """
 
     @pytest.fixture

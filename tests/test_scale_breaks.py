@@ -460,7 +460,7 @@ class TestItIteratesTheManifest:
 
     ``COMMITTED`` in ``tests/test_series.py`` is a hand-written list somebody
     extends, and ``TestTheCommittedManifest`` iterates ``read_manifest()``
-    instead. The guard follows the second, so this records a new one carrying a
+    instead. The guard follows the second, so this records a new vintage carrying a
     break and asks whether the scan found it. A hand-written list passes every
     other case in this file and fails this one.
     """
