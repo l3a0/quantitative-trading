@@ -97,7 +97,7 @@ from chan.vintage import (
 #: It catches a 2:1 at 0.5000, a 3:1 at 0.3333 and a 1:10 reverse at 10.0, and
 #: it misses a 3:2 at 0.6667, a 5:4 at 0.8000 and a 1:1.5 reverse at 1.5. So it
 #: is a floor on known contamination rather than a guarantee. A volatile
-#: small-cap moves 0.75 on ordinary news, so what carries forward to a ninth
+#: small-cap moves 0.75 on ordinary news, so what carries forward to the next
 #: vintage is the derivation rather than the number: measure the envelope over
 #: what the manifest holds and leave a margin.
 #:

@@ -175,7 +175,7 @@ VINTAGE_DATE = "2026-09-18"
 # github.com/egorpe/EPChan-QuantitativeTrading, read at 1a71950. The manifest
 # records the CSV's own sha256 and has no field for the workbook's, so the
 # workbook's is kept here, the way src/chan/pair_cointegration.py keeps the
-# other four.
+# others.
 #   example6_2.xls sha256 3706d329fdf6fc54b69ec0f522dfe43de262d70a9bad458aa93f0f5d5976d037
 # Take it by that checksum. The same mirror holds a SPY.xls, sha256
 # e4360b6777aa4aa94f85ec0703e7d1939706d6eca4c267105aa9c2ed321d2215, which is a

@@ -15,7 +15,7 @@ convention ``tests/test_vintage.py`` states for itself against issue 1.
 This is its own file rather than more of ``tests/test_series.py``, whose
 subject is which vintage a run resolves and that it is that one, or of
 ``tests/test_vintage.py``, whose every case is driven by a synthetic series.
-A guard over the committed eight is neither, and the repo's shape is one file
+A guard over every committed price vintage is neither, and the repo's shape is one file
 per concern.
 
 Every refusal is asserted on its message and not only on its type. Absent,
@@ -230,13 +230,13 @@ def payload_of(rows: list[tuple[str, str]]) -> bytes:
     Text rather than a float, because two of the cases below need a close no
     float can carry: a value ``_parse_close`` coerces to NaN, and a negative
     one. Neither survives ``record_vintage``, which is why these are written
-    into a manifest by hand the way the eight committed ones were.
+    into a manifest by hand the way the hand-written vintages were.
     """
     return ("Date,Close\n" + "".join(f"{day},{close}\n" for day, close in rows)).encode("utf-8")
 
 
 def place(directory: Path, *, name: str, rows: list[tuple[str, str]]) -> None:
-    """Leave one vintage in ``directory``, the way the eight were left in ``data/``."""
+    """Leave one vintage in ``directory``, the way the hand-written ones were left in ``data/``."""
     payload = payload_of(rows)
     days = [day for day, _ in rows]
     entry = {
@@ -288,7 +288,7 @@ def data_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def committed_copy(tmp_path: Path) -> Path:
-    """The eight committed vintages, copied, so a case may break one."""
+    """The committed vintages, copied, so a case may break one."""
     return copy_the_committed_tree(tmp_path)
 
 
@@ -329,13 +329,11 @@ class TestTheGuardOverTheWholeManifest:
         """Said as its own case, because a guard that read one file would pass the count.
 
         The clean vintages are counted off the manifest rather than listed.
-        Naming them would be the hand-written list of eight this guard exists
-        not to be, and it would fail on the day a ninth lands whether or not
-        that ninth changes scale. A ninth is on a branch already, recording a
-        SPY download for
-        [issue 14](https://github.com/l3a0/quantitative-trading/issues/14). The
-        claim here is that every price entry the manifest holds was read and
-        answered, and that one of them answers with anything.
+        Naming them would be the hand-written list this guard exists not to be,
+        and it would fail on the day the next vintage lands whether or not that
+        one changes scale. The claim here is that every price entry the
+        manifest holds was read and answered, and that only the pinned ones
+        answer with anything.
         """
         swept = {}
         for entry in price_entries():
@@ -417,7 +415,10 @@ class TestANonFiniteRatioIsReportedNotSkipped:
     """
 
     def test_a_nan_close_is_flagged_on_both_days_it_touches(self, data_dir: Path) -> None:
-        """``_parse_close`` coerces an unparseable value to NaN, which the eight predate."""
+        """``_parse_close`` coerces an unparseable value to NaN.
+
+        No committed vintage holds one, so the case writes its own.
+        """
         place(
             data_dir,
             name="unreadable.csv",
@@ -458,11 +459,11 @@ class TestANonFiniteRatioIsReportedNotSkipped:
 
 
 class TestItIteratesTheManifest:
-    """Rule 4. A ninth vintage is covered on the day it is recorded.
+    """Rule 4. A new vintage is covered on the day it is recorded.
 
     ``COMMITTED`` in ``tests/test_series.py`` is a hand-written list somebody
     extends, and ``TestTheCommittedManifest`` iterates ``read_manifest()``
-    instead. The guard follows the second, so this records a ninth carrying a
+    instead. The guard follows the second, so this records a new vintage carrying a
     break and asks whether the scan found it. A hand-written list passes every
     other case in this file and fails this one.
     """
@@ -488,7 +489,7 @@ class TestItIteratesTheManifest:
         assert breaks_across_the_manifest(committed_copy) == EVERY_FLAG
 
     @pytest.mark.parametrize("vendor", ["yfinance", "fred"])
-    def test_a_recorded_ninth_carrying_a_break_is_found(
+    def test_a_new_recorded_vintage_carrying_a_break_is_found(
         self, committed_copy: Path, vendor: str
     ) -> None:
         """Found whichever vendor sent it, so a price from the vendor that sent the bill
@@ -719,7 +720,7 @@ class TestTheRefusalIsAType:
 
 
 class TestTheBoundIsTheOneThatWasMeasured:
-    """The envelope the eight committed vintages actually span, run rather than quoted.
+    """The envelope the single-series vintages actually span, run rather than quoted.
 
     The bound is computed from 1.6 rather than typed as 0.4700, because a price
     ratio is multiplicative and ``[0.6, 1.6]`` is asymmetric by 0.0408 in log
@@ -740,7 +741,11 @@ class TestTheBoundIsTheOneThatWasMeasured:
         assert days_of(scale_breaks(falling)) == ["2026-01-05"]
 
     def test_black_monday_is_not_a_scale_break(self) -> None:
-        """The widest legitimate move across all eight, at 0.7521, in the same file."""
+        """The widest legitimate move across the single-series vintages, at 0.7521.
+
+        It is in ``ko_chan.csv``. The margin test below says why the stocks
+        lifted from Chan's MATLAB files are not held to it.
+        """
         _, closes = load_vintage("KO", chan=True)
 
         assert "1987-10-19" not in days_of(scale_breaks(closes))
@@ -754,7 +759,7 @@ class TestTheBoundIsTheOneThatWasMeasured:
         assert scale_breaks(closes, bound=math.log(2.0)) == []
 
     def test_the_committed_ratios_leave_a_margin_on_both_sides(self) -> None:
-        """What carries forward to a ninth vintage is this derivation, not the number.
+        """What carries forward to the next vintage is this derivation, not the number.
 
         Every number the prose quotes about the envelope is derived here, which
         is the single-authority rule. ``docs/design.md``'s register and

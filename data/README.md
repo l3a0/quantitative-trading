@@ -20,9 +20,10 @@ with no network.
 
 The second way is by hand, and it did not stop when the recorder arrived. The
 recorder takes a download date and builds a name out of it, and a column lifted
-from one of Chan's workbooks has no download date to give it, so nothing can
-record one. Every such column is typed into the record by hand. `spy_chan.csv`
-is the first to arrive that way since `chan.vintage` existed, and
+from one of Chan's workbooks has no download date to give it, so the recorder
+cannot write one. A single such column is typed into the record by hand, and a
+whole file of them goes through the third way below. `spy_chan.csv`
+is the first to arrive by hand since `chan.vintage` existed, and
 [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
 that was settled.
 
@@ -251,10 +252,11 @@ recorded too, in the manifest's `source_workbook` field, because a workbook's
 name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
 and a `SPY.xls` in the same mirror holds a different series.
 
-All five workbooks have their `.xls` checksum recorded beside the run that
-reads the column taken from them. Four are in
-[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and
-`example6_2.xls`'s is in
+Every workbook has its `.xls` checksum recorded beside the run that reads the
+column taken from it. The checksums of `GLD.xls`, `GDX.xls`, `KO.xls` and
+`PEP.xls` are in
+[src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and that
+of `example6_2.xls` is in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
 The two directories hold Chan's first-edition MATLAB files, one vintage per
@@ -422,10 +424,10 @@ Two files carry that record.
    a single column can hold and a filename cannot.
 
    The workbook is recorded rather than derived from the symbol. Joining the
-   two happens to spell every workbook committed so far and spells the wrong
-   one for a column whose source is named after a chapter's example rather than
-   after a ticker, which is a real file in the same mirror carrying another
-   series. The manifest is the authority for a vintage's provenance, so the
+   two spells the right workbook for every committed column but `spy_chan.csv`,
+   whose source, `example6_2.xls`, is named after a chapter's example rather
+   than after a ticker. The `SPY.xls` the join would give is a real file in the
+   same mirror carrying another series. The manifest is the authority for a vintage's provenance, so the
    fact sits here and the table repeats it.
 
    Both surfaces stating the workbook are hand-typed, which the identity pin in
@@ -435,33 +437,51 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its 1,115 lines were written by hand, six by the recorder and 1,100
-   by `record_lifted_columns`. Eight of the nine were here before the recorder
-   existed, and `spy_chan.csv`'s was typed because the recorder cannot write a
-   saved date. More will be, for as long as a replication reaches for another
-   of Chan's workbook columns.
+   Its hand-written lines are the eight that were here before the recorder
+   existed and `spy_chan.csv`'s, which was typed because the recorder cannot
+   write a saved date. Every other line was written by code, a download by
+   `record_vintage` and a stock lifted from Chan's MATLAB files by
+   `record_lifted_columns`. More lines will be typed by hand for as long as a
+   replication reaches for another of Chan's workbook columns.
 
-   That sentence is corrected here rather than left to
-   [issue 132](https://github.com/l3a0/quantitative-trading/issues/132)'s
-   sweep, which owns the wider class. It was true until the AGG vintage below
-   arrived, so the change that recorded that vintage is what made it false, and
-   the sweep's own measurement counts the statements saying "eight" and "four"
-   and would not find one saying "ten". It went stale a second time when TB3MS
-   made the count twelve, and the change recording TLT and IEF is what
-   corrected it. The change lifting Chan's two MATLAB files moved it again.
+   An earlier version of this paragraph counted every line in the manifest,
+   and each change that recorded a vintage made it false again.
+   [Issue 132](https://github.com/l3a0/quantitative-trading/issues/132), the
+   sweep of prose that counts the committed vintages, is why it names the
+   hand-written lines instead. Only a hand-typed workbook column changes that
+   set, and that is the change that would also write the line.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.
 
 `TestTheCommittedManifest` in
-[tests/test_vintage.py](../tests/test_vintage.py) fails on five states: when an
-entry stops describing the file it names, when a file here has no entry, when
-the projection stops matching the record, when one of the hand-written entries
-above stops carrying the identity it was given, and when a recorded entry stops
-agreeing with the name its file took.
+[tests/test_vintage.py](../tests/test_vintage.py) fails when any of these stops
+holding. The class is the authority for the list, which grows whenever it gains
+a test, so no total is given here.
+
+- Every entry describes the file it names, by its sha256, its row count and
+  its span.
+- Every CSV file here has exactly one entry, at any depth.
+- `checksums.sha256` is the projection the manifest produces, and regenerating
+  it changes nothing.
+- Every hand-written entry, and every stock lifted from Chan's MATLAB files,
+  names the series its file's `Ticker,` row carries.
+- The hand-written entries and the lifted sources carry the identity
+  `tests/support/committed_vintages.py` pins for them, and each lifted source
+  holds the number of members its pin gives, each at the path its directory
+  and symbol make.
+- Every recorded entry agrees with the name its file took.
+- Every manifest line is the text its own entry would write.
+- Neither the manifest nor the projection carries a carriage return.
+- The table above states what the manifest states.
+- Every entry carries exactly one kind of date, and it is a saved date if and
+  only if the series was lifted from one of Chan's own files.
+- An entry names a source workbook if and only if its series was lifted from
+  one of Chan's files, and a download claiming one is refused when the
+  manifest is read.
 
 The table above is a third telling and is still hand-written. What keeps it
-true is another assertion in the same class, which reads both surfaces and
+true is the table assertion in that list, which reads both surfaces and
 holds every row to the entry for the file it names. Every column is held, and
 a cell that stops agreeing fails and says which path, which column, what the
 cell says and what the entry gives. So does a row the manifest records nothing

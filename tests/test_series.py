@@ -141,7 +141,7 @@ def committed_copy(tmp_path: Path) -> Path:
 # pin anybody can keep: the four yfinance files carry full float64 reprs like
 # `56.36000061035156`, and parsing those gives answers that differ in the last
 # bit between a macOS arm64 run and CI's linux x86_64, measured on PR 71 rather
-# than predicted. The five workbook columns carry at most two decimals and
+# than predicted. The workbook columns carry at most two decimals and
 # agree everywhere. `TestTheParseDoesNotDependOnWhereTheBytesCameFrom` below covers
 # what a hash was reaching for.
 COMMITTED = [
@@ -261,8 +261,8 @@ def the_reader_reaches_every_hand_written_vintage(directory: Path) -> None:
     reader is taught to read it, which is a decision rather than an omission.
 
     It takes a directory rather than reading the committed one through a name
-    bound at import, so `TestARecordedNinthLeavesTheReaderAlone` can run it
-    against a copy that has a ninth vintage in it.
+    bound at import, so `TestANewRecordedVintageLeavesTheReaderAlone` can run it
+    against a copy that has a new vintage in it.
     """
     resolved = {
         load_vintage(ticker, **flags, data_dir=directory)[0].path for ticker, flags, *_ in COMMITTED
@@ -311,11 +311,11 @@ class TestWhatTellsTwoDownloadsApart:
     """Rule 2. The discriminator is a date, read from whichever field carries it.
 
     An argument named for the download date could name only the downloads,
-    because five of the committed vintages are columns lifted from Ernest
-    Chan's workbooks and carry a saved date instead. A rule that the latest date
-    wins would compare `None` against a string, and where it did work it would
-    let a new download move a pinned number with nothing in the diff to explain
-    it. So the date is explicit and ambiguity stops the run.
+    because the committed vintages lifted from Ernest Chan's own files carry a
+    saved date instead. A rule that the latest date wins would compare `None`
+    against a string, and where it did work it would let a new download move a
+    pinned number with nothing in the diff to explain it. So the date is
+    explicit and ambiguity stops the run.
     """
 
     def test_two_downloads_of_one_series_are_told_apart(self, data_dir: Path) -> None:
@@ -1043,7 +1043,7 @@ class TestTheDataDirectoryThreadsAllTheWayDown:
             load_close("GLD", data_dir=data_dir)
 
 
-class TestARecordedNinthLeavesTheReaderAlone:
+class TestANewRecordedVintageLeavesTheReaderAlone:
     """Issue 51's first completion condition, for the assertion this file owns.
 
     The other two it scopes are in `tests/test_vintage.py`, and
@@ -1054,7 +1054,7 @@ class TestARecordedNinthLeavesTheReaderAlone:
     """
 
     @pytest.fixture
-    def with_a_ninth(self, committed_copy: Path) -> Path:
+    def with_a_new_vintage(self, committed_copy: Path) -> Path:
         """The committed tree, copied, with a series it does not carry recorded into it.
 
         The symbol is asserted unused rather than assumed so. A committed
@@ -1073,23 +1073,23 @@ class TestARecordedNinthLeavesTheReaderAlone:
         )
         return committed_copy
 
-    def test_a_ninth_vintage_does_not_break_the_count_over_the_hand_written_ones(
-        self, with_a_ninth: Path
+    def test_a_new_vintage_does_not_break_the_count_over_the_hand_written_ones(
+        self, with_a_new_vintage: Path
     ) -> None:
-        recorded = {entry.path for entry in read_manifest(with_a_ninth)}
+        recorded = {entry.path for entry in read_manifest(with_a_new_vintage)}
 
         assert set(HAND_WRITTEN) < recorded
-        the_reader_reaches_every_hand_written_vintage(with_a_ninth)
+        the_reader_reaches_every_hand_written_vintage(with_a_new_vintage)
 
-    def test_a_ninth_vintage_is_reachable_under_its_own_name(self, with_a_ninth: Path) -> None:
-        """The scoping has to leave the ninth readable, not merely uncomplained about."""
-        entry, values = load_vintage("ZZZ", data_dir=with_a_ninth)
+    def test_a_new_vintage_is_reachable_under_its_own_name(self, with_a_new_vintage: Path) -> None:
+        """The scoping has to leave the new vintage readable, not merely uncomplained about."""
+        entry, values = load_vintage("ZZZ", data_dir=with_a_new_vintage)
 
         assert entry.path.startswith("yfinance_zzz_adjusted_")
         assert len(values) == len(SERIES)
 
     def test_a_hand_written_vintage_the_reader_cannot_reach_still_stops_the_case(
-        self, with_a_ninth: Path
+        self, with_a_new_vintage: Path
     ) -> None:
         """A map going partial surfaces as a refusal rather than as a count.
 
@@ -1099,13 +1099,13 @@ class TestARecordedNinthLeavesTheReaderAlone:
         the refusal and not an `AssertionError`. Both stop the case, and the
         refusal names which vintage, which the count could not.
         """
-        rewrite_entry(with_a_ninth, "ko_chan.csv", price_basis="raw")
+        rewrite_entry(with_a_new_vintage, "ko_chan.csv", price_basis="raw")
 
         with pytest.raises(VintageUnavailable, match="chan-xls KO adjusted"):
-            the_reader_reaches_every_hand_written_vintage(with_a_ninth)
+            the_reader_reaches_every_hand_written_vintage(with_a_new_vintage)
 
     def test_a_hand_written_vintage_reached_under_another_name_fails_the_comparison(
-        self, with_a_ninth: Path
+        self, with_a_new_vintage: Path
     ) -> None:
         """The case above stops before the comparison, so this one drives it.
 
@@ -1115,11 +1115,13 @@ class TestARecordedNinthLeavesTheReaderAlone:
         committed vintage carries. The reader resolves it and the bytes still verify,
         so the run gets as far as comparing, and the two sides disagree.
         """
-        shutil.copyfile(with_a_ninth / "gld_chan.csv", with_a_ninth / "gld_chan_moved.csv")
-        rewrite_entry(with_a_ninth, "gld_chan.csv", path="gld_chan_moved.csv")
+        shutil.copyfile(
+            with_a_new_vintage / "gld_chan.csv", with_a_new_vintage / "gld_chan_moved.csv"
+        )
+        rewrite_entry(with_a_new_vintage, "gld_chan.csv", path="gld_chan_moved.csv")
 
         with pytest.raises(AssertionError):
-            the_reader_reaches_every_hand_written_vintage(with_a_ninth)
+            the_reader_reaches_every_hand_written_vintage(with_a_new_vintage)
 
 
 #: A source of three columns. The middle one misses a day, so the panel's index

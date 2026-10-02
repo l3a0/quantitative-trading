@@ -60,7 +60,7 @@ from chan.vintage import MANIFEST_NAME, VintageEntry
 #: Path to ``(vendor, symbol, price_basis, download_date, saved_date,
 #: source_workbook)``.
 #:
-#: The five ``*_chan.csv`` entries carry a saved date and no download date,
+#: The ``*_chan.csv`` entries carry a saved date and no download date,
 #: because they are columns lifted from Ernest Chan's workbooks and nothing
 #: was fetched on that day. They carry the workbook for the same reason, and
 #: it is pinned here rather than left to the table alone because both surfaces
@@ -125,7 +125,7 @@ def identity_of(
 
     Five of the six say what a reader is looking at. ``source_workbook`` says
     where the bytes came from instead, and it is pinned beside them because
-    nothing else in the tree fails a hand edit to it. Four of the five ``.xls``
+    nothing else in the tree fails a hand edit to it. Most of the ``.xls``
     names here happen to be their columns' symbols, which is what
     [issue 152](https://github.com/l3a0/quantitative-trading/issues/152) stopped
     deriving. Reading them off a list rather than joining them is the point, and
