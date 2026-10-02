@@ -69,6 +69,7 @@ download date, and which price or rate the series carries.
 | `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` | fred | TB3MS | rate | 1934-01-01 .. 2026-08-01 | 2026-09-30 |
 | `yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | TLT | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | IEF | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
+| `yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv` | yfinance | CADAUD=X | raw | 2005-07-04 .. 2026-09-30 | 2026-10-02 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -186,6 +187,46 @@ worth stating rather than leaving a reader to infer.
    2002-07-30, so the pair's common history is each leg's whole history, and
    `scale_breaks` finds nothing on either.
 
+`yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv` is the
+Canadian dollar priced in Australian dollars, the cross rate Chan calls "quite
+stationary" at Kindle location 3951.
+[src/chan/stationary_candidates.py](../src/chan/stationary_candidates.py)
+reads it, and
+[issue 135](https://github.com/l3a0/quantitative-trading/issues/135) is where
+the symbol, the rows and the span were settled before anything was recorded.
+It is the first committed symbol carrying `=`, which `SYMBOL_PATTERN` admits
+for currency pairs. Four things about it are worth stating rather than leaving
+a reader to infer.
+
+1. **It is a raw rate, and this is the call that produced it.**
+
+   ```python
+   yfinance.download("CADAUD=X", period="max", interval="1d", auto_adjust=False, actions=False)
+   ```
+
+   It ran against yfinance 1.7.0 on 2026-10-02, outside the package, with the
+   `Close` column handed to the recorder and each date taken from the index as
+   returned. A cross rate is never adjusted: a read-only probe the same day
+   found `Adj Close` equal to `Close` on every row, and the same `Close` under
+   either `auto_adjust`. It is recorded under `raw` rather than `rate`, because
+   `close_identity` reaches `raw` through `unadjusted=True` and the scale-break
+   guard reads it as the price it is. The issue carries the full argument.
+2. **Two rows were dropped, by date.** The vendor dates an FX bar on the London
+   calendar and returns the download day's bar as a live, finite quote, which
+   the recorder's refusal of a non-finite close cannot catch. So the rule fixed
+   on the issue drops every row dated on or after the day before the download
+   date. The download returned 5,440 rows ending 2026-10-02, the rule dropped
+   2026-10-01 and 2026-10-02, and the file holds the other 5,438. No other
+   close was non-finite.
+3. **Nothing else was edited.** The vendor's own gaps stay, so does every
+   repeated or stale quote, and no day was filled. The largest gap runs from
+   2007-04-02 to 2007-08-03, 90 weekdays with no row. The test reads from
+   2007-08-06 so no regression spans it, and
+   [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py)
+   pins the gap so the reason for that start cannot quietly stop being true.
+4. **`scale_breaks` finds nothing on it.** Its largest day-over-day move is a
+   small fraction of the bound, so a flagged day would be a bad print.
+
 The `*_chan.csv` files are a different kind of source. Each is the
 adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
 from the public mirror at
@@ -286,7 +327,7 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its fourteen lines were written by hand. Eight were here before the
+   Nine of its fifteen lines were written by hand. Eight were here before the
    recorder existed, and `spy_chan.csv`'s was typed because the recorder cannot
    write a saved date. More will be, for as long as a replication reaches for
    another of Chan's workbook columns.

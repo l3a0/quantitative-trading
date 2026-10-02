@@ -1,12 +1,19 @@
 """Chan's other stationary candidates, tested on committed vintages.
 
-Having worked GLD against GDX, Chan names three more places a stationary
-spread should live, at Kindle location 3951. He names them rather than working
-them, so there is no published figure to match, and what this module produces
-is a finding on whether his claim holds for the stand-ins this repo chose.
+Having worked GLD against GDX, Chan names three more places stationarity
+should live, at Kindle location 3951. He names them rather than working them,
+so there is no published figure to match.
 [Issue 16](https://github.com/l3a0/quantitative-trading/issues/16) carries the
 rules every candidate obeys, and each candidate's own issue carries its scope.
-One candidate runs here today.
+Two candidates run here today, and they produce different kinds of result.
+
+**The CAD/AUD cross rate is a replication.** Chan names the series itself and
+says it "is quite stationary", which is a definite claim about one named rate.
+The owner ruled on 2026-10-02 that it takes the claim route, so it carries a
+verdict against a criterion
+[issue 135](https://github.com/l3a0/quantitative-trading/issues/135) declared
+before any statistic was computed. Its section below says what that criterion
+is and why each specification choice was made.
 
 **The fixed-income pair.** Chan's sentence is that one can "long and short
 bonds by the same issuer but of different maturities". TLT holds Treasuries
@@ -45,16 +52,45 @@ one can move a borderline statistic across a critical value.
 The command line takes no window. A window option is the knob that would let a
 reader pick one that rejects, and the full span is the only one declared.
 
-The result is exploratory. The sample was spent on a claim Chan stated and on
-stand-ins this repo chose, so it can say whether these two funds cointegrate
-over this span and nothing about bonds in general. It is not a replication,
-because Chan printed no number, and the word for its conclusion is a finding.
-``docs/replication-log.md`` Entry 5 carries it, and
-``tests/test_stationary_candidates.py`` is the single authority for every
-number any prose surface quotes about it.
+The fixed-income result is exploratory. The sample was spent on a claim Chan
+stated and on stand-ins this repo chose, so it can say whether these two funds
+cointegrate over this span and nothing about bonds in general. It is not a
+replication, because Chan printed no number and named no instrument, and the
+word for its conclusion is a finding. ``docs/replication-log.md`` Entry 5
+carries it.
+
+**The cross rate** is ``CADAUD=X``, yfinance's quote of the rate Chan names,
+tested as one series with nothing estimated from it. So it is an augmented
+Dickey-Fuller test against ``ADF_CRIT_CONST``, whose 5% bar is -2.86, and not
+the pair engine, whose residual-based bar pays for a hedge ratio this test
+never fits. Three specification choices are fixed here.
+
+1. **The scale is the log.** ``CADAUD=X`` quotes Australian dollars per
+   Canadian dollar and Chan writes CAD/AUD without saying which way round. The
+   test on the log gives one answer in either direction, and the test on the
+   level does not.
+2. **The lag is 1**, with the residual check beside it and the same search to
+   :func:`schwert_ceiling` the pair uses, so both candidates in this module read
+   one rule. The check fits a constant here, because the test does.
+3. **The deterministic term is a constant and no trend**, because Chan's claim
+   is that the level is stationary.
+
+The test reads from :data:`TEST_START`, the first row after a 90-weekday gap in
+the vendor's history, so no lagged regression treats four months as one day.
+The vintage keeps the rows before the gap. The verdict is "reproduced" when the
+statistic at lag 1 and the statistic at the first lag count whose residuals
+pass are both below the 5% bar, and "did not reproduce" otherwise, including
+when no count up to the ceiling passes. The rolling scan and the half-life are
+reported beside it and decide nothing. ``docs/replication-log.md`` Entry 6
+carries the verdict.
+
+Both results are exploratory, and ``tests/test_stationary_candidates.py`` is
+the single authority for every number any prose surface quotes about either.
 
 Usage:
-    python -m chan.stationary_candidates
+    python -m chan.stationary_candidates                # both candidates
+    python -m chan.stationary_candidates fixed-income
+    python -m chan.stationary_candidates cross-rate
 """
 
 from __future__ import annotations
@@ -66,7 +102,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from ithildincore.timeseries import EG_CRIT_N2
+from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat, ou_half_life
 from numpy.typing import NDArray
 
 from chan.pair_cointegration import (
@@ -78,8 +114,8 @@ from chan.pair_cointegration import (
     residual_check,
     rolling_cointegration,
 )
-from chan.series import WindowCrossesScaleBreak, aligned_closes, vintage_line
-from chan.vintage import VintageUnavailable
+from chan.series import WindowCrossesScaleBreak, aligned_closes, load_vintage, vintage_line
+from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The two stand-ins, long maturity first. Neither is the dependent leg until
 #: :data:`ORIENTATIONS` says so.
@@ -118,14 +154,18 @@ def residuals_pass(check: ResidualCheck) -> bool:
     return check.breusch_godfrey_p > RESIDUAL_PASS_P and not check.outside
 
 
-def first_passing(spread: NDArray[np.float64], ceiling: int) -> ResidualCheck | None:
+def first_passing(
+    spread: NDArray[np.float64], ceiling: int, *, regression: str = "n"
+) -> ResidualCheck | None:
     """The fit at the smallest lag count up to ``ceiling`` whose residuals pass.
 
     ``None`` when none does, which is a result rather than a reason to search
-    further.
+    further. ``regression`` is passed to
+    :func:`chan.pair_cointegration.residual_check`, so a series tested with a
+    constant is searched with one.
     """
     for lags in range(ceiling + 1):
-        check = residual_check(spread, lags)
+        check = residual_check(spread, lags, regression=regression)
         if residuals_pass(check):
             return check
     return None
@@ -245,16 +285,231 @@ def run(*, data_dir: Path | None = None) -> None:
     report(closes, orientations)
 
 
+# ---- the CAD/AUD cross rate ----
+
+#: yfinance's quote of the rate Chan names, Australian dollars per Canadian dollar.
+CROSS_RATE = "CADAUD=X"
+
+#: The download the pins were computed from. A second download of the rate
+#: would otherwise make the run refuse and name both, which is right for a
+#: caller who did not say which, and wrong for the run whose numbers the suite
+#: pins. ``chan.kelly_leverage`` names its SPY vintage the same way.
+CROSS_RATE_DATED = "2026-10-02"
+
+#: The first row after the 90 weekdays the vendor returned nothing for. A
+#: constant rather than a search for the gap, so a later download that fills
+#: the gap cannot move the window with nothing in the diff to say so.
+TEST_START = "2007-08-06"
+
+#: The gap :data:`TEST_START` steps over, inclusive. The suite holds the
+#: vintage to it, because the reason for the start is a fact about the rows.
+GAP = ("2007-04-02", "2007-08-03")
+
+#: The level the verdict is read at, fixed in issue 135 before any statistic.
+VERDICT_LEVEL = "5%"
+
+CROSS_RATE_REF = "Kindle location 3951: the CAD/AUD cross-currency rate is quite stationary"
+
+
+@dataclass(frozen=True)
+class RollingADF:
+    """The ADF statistic and OU half-life on each window of one series."""
+
+    end_idx: NDArray[np.int64]
+    adf_stat: NDArray[np.float64]
+    half_life: NDArray[np.float64]
+
+
+def rolling_adf(
+    series: NDArray[np.float64], *, window: int = WINDOW, step: int = STEP, lags: int = LAGS
+) -> RollingADF:
+    """Slide a fixed window across one series and run the ADF with a constant in each.
+
+    The univariate counterpart of
+    :func:`chan.pair_cointegration.rolling_cointegration`, on the same window
+    and step so the scans are comparable. A series shorter than ``window``
+    yields no windows and raises nothing, which is why the command line takes
+    no window of its own.
+    """
+    ends: list[int] = []
+    stats: list[float] = []
+    halves: list[float] = []
+    for e in range(window, len(series) + 1, step):
+        piece = series[e - window : e]
+        ends.append(e - 1)
+        stats.append(adf_tstat(piece, lags, constant=True)[0])
+        halves.append(ou_half_life(piece))
+    return RollingADF(
+        end_idx=np.array(ends, dtype=np.int64),
+        adf_stat=np.array(stats, dtype=np.float64),
+        half_life=np.array(halves, dtype=np.float64),
+    )
+
+
+@dataclass(frozen=True)
+class CrossRate:
+    """Every number the cross-rate test produces, with the vintage behind it."""
+
+    entry: VintageEntry
+    log_rate: pd.Series
+    adf_stat: float
+    nobs: int
+    at_lag: ResidualCheck
+    ceiling: int
+    passing: ResidualCheck | None
+    half_life: float
+    scan: RollingADF
+
+    @property
+    def reproduced(self) -> bool:
+        """Whether Chan's claim holds under the criterion issue 135 declared."""
+        bar = ADF_CRIT_CONST[VERDICT_LEVEL]
+        return self.adf_stat < bar and self.passing is not None and self.passing.adf_stat < bar
+
+
+def measure_cross_rate(entry: VintageEntry, close: pd.Series) -> CrossRate:
+    """Clip a rate to the test window, take its log, and run every test on it."""
+    window = close.loc[close.index >= pd.Timestamp(TEST_START)]
+    log_rate = np.log(window)
+    values = log_rate.to_numpy(dtype=float)
+    stat, nobs = adf_tstat(values, LAGS, constant=True)
+    ceiling = schwert_ceiling(len(values))
+    return CrossRate(
+        entry=entry,
+        log_rate=log_rate,
+        adf_stat=stat,
+        nobs=nobs,
+        at_lag=residual_check(values, LAGS, regression="c"),
+        ceiling=ceiling,
+        passing=first_passing(values, ceiling, regression="c"),
+        half_life=ou_half_life(values),
+        scan=rolling_adf(values),
+    )
+
+
+def cross_rate(*, dated: str = CROSS_RATE_DATED, data_dir: Path | None = None) -> CrossRate:
+    """Read the raw CADAUD=X vintage and measure it.
+
+    ``unadjusted=True`` is what names the ``raw`` basis the rate is recorded
+    under. The default flags ask for an adjusted series this repo does not hold
+    for the rate, and refuse.
+    """
+    entry, close = load_vintage(CROSS_RATE, unadjusted=True, dated=dated, data_dir=data_dir)
+    return measure_cross_rate(entry, close)
+
+
+def unit_root_line(stat: float) -> str:
+    """The most demanding level at which ``stat`` rejects a unit root.
+
+    Written for this test rather than borrowed from
+    :func:`chan.pair_cointegration._verdict`, which names the no-cointegration
+    null. This test fits no hedge ratio, so there is no cointegration in it.
+    """
+    for level in ("1%", "5%", "10%"):
+        if stat < ADF_CRIT_CONST[level]:
+            return f"REJECTS the unit-root null at the {level} level"
+    return "fails to reject the unit-root null at 10%"
+
+
+def report_cross_rate(m: CrossRate) -> None:
+    """Print the cross-rate verdict with the vintage, window and criterion behind it."""
+    days = m.log_rate.index
+    crit = ADF_CRIT_CONST
+    bar = crit[VERDICT_LEVEL]
+    print(
+        "Chan's CAD/AUD cross rate -- daily closes   "
+        "(replication; see tests/test_stationary_candidates.py)"
+    )
+    print(f"  Claim: {CROSS_RATE_REF}")
+    print(f"  Series: {CROSS_RATE}, Australian dollars per Canadian dollar, on the log scale")
+    print("  Price basis: raw, the vendor's close, which no adjustment touches")
+    print(f"  {CROSS_RATE} vintage: {vintage_line(m.entry)}")
+    print(
+        f"  Test window: {days[0].date()} .. {days[-1].date()}   (N = {len(days)} days, "
+        f"starting after the vendor's gap from {GAP[0]} to {GAP[1]})"
+    )
+    print(
+        f"  ADF crit (constant, no trend):  1% {crit['1%']}   5% {crit['5%']}   10% {crit['10%']}"
+    )
+    print()
+    print(f"  ADF on log(rate), {LAGS} lag, constant:  t = {m.adf_stat:.4f}   (nobs = {m.nobs})")
+    print(f"  {unit_root_line(m.adf_stat)}")
+    if math.isinf(m.half_life):
+        print("  rate does not mean-revert (non-negative OU slope) -- half-life undefined")
+    else:
+        print(f"  half-life = {m.half_life:.1f} trading days")
+    outside = ", ".join(str(lag) for lag in m.at_lag.outside) or "none"
+    print(
+        f"  residual check at {LAGS} lag:  Breusch-Godfrey p = {m.at_lag.breusch_godfrey_p:.4f}, "
+        f"lags outside the band: {outside}"
+    )
+    if m.passing is None:
+        print(f"  no lag count from 0 to {m.ceiling} leaves residuals that pass")
+    else:
+        print(
+            f"  first lag count from 0 to {m.ceiling} whose residuals pass: {m.passing.lags}, "
+            f"where t = {m.passing.adf_stat:.4f}"
+        )
+        print(f"    {unit_root_line(m.passing.adf_stat)}")
+    stats = m.scan.adf_stat
+    print(
+        f"  rolling scan, {WINDOW}-day windows stepped by {STEP}:  "
+        f"{int((stats < crit['10%']).sum())} of {len(stats)} clear the 10% bar, "
+        f"{int((stats < crit['5%']).sum())} clear 5%"
+    )
+    print()
+    passing = "none passes" if m.passing is None else f"t = {m.passing.adf_stat:.4f}"
+    print(
+        f"Verdict: {'REPRODUCED' if m.reproduced else 'DID NOT REPRODUCE'}. The criterion, "
+        f"declared before any statistic, is that the lag-{LAGS} statistic and the statistic at"
+    )
+    print(
+        f"the first residual-clean lag count are both below the {VERDICT_LEVEL} bar of {bar}. "
+        f"Here they are t = {m.adf_stat:.4f} and {passing}."
+    )
+    print("The rolling scan and the half-life describe the window and decide nothing.")
+    print()
+    print("A replication against data is exploratory by construction. The sample was spent")
+    print("on a claim Chan stated about one named rate, so this says whether that rate was")
+    print("stationary over this window and nothing about whether trading it would pay.")
+    print("docs/replication-log.md Entry 6 carries the verdict.")
+
+
+def run_cross_rate(*, dated: str = CROSS_RATE_DATED, data_dir: Path | None = None) -> None:
+    """Measure the cross rate and print the report."""
+    report_cross_rate(cross_rate(dated=dated, data_dir=data_dir))
+
+
+CANDIDATES = ("fixed-income", "cross-rate")
+
+
 def main() -> None:
-    argparse.ArgumentParser(
-        description="Chan's fixed-income stationary candidate, TLT against IEF, on committed "
-        "raw vintages. It takes no window, because the full span is the only one declared."
-    ).parse_args()
+    parser = argparse.ArgumentParser(
+        description="Chan's stationary candidates at Kindle location 3951, on committed "
+        "vintages. Neither takes a window, because each declared exactly one."
+    )
+    parser.add_argument(
+        "candidate",
+        nargs="?",
+        choices=CANDIDATES,
+        help="which candidate to run (default: both)",
+    )
+    parser.add_argument(
+        "--dated",
+        default=CROSS_RATE_DATED,
+        help=f"which {CROSS_RATE} download to read, by its date (default: {CROSS_RATE_DATED})",
+    )
+    args = parser.parse_args()
     try:
-        run()
+        if args.candidate in (None, "fixed-income"):
+            run()
+        if args.candidate is None:
+            print()
+        if args.candidate in (None, "cross-rate"):
+            run_cross_rate(dated=args.dated)
     except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
-        # Both are raised inside the join, and a refusal naming which vintage
-        # or which dates is worth nothing at the bottom of a pandas traceback.
+        # Both are raised while reading, and a refusal naming which vintage or
+        # which dates is worth nothing at the bottom of a pandas traceback.
         # `chan.risk_parity.main` records what happened when a module reading
         # a pair named only the first.
         raise SystemExit(str(refusal)) from refusal
