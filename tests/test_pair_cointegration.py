@@ -1028,18 +1028,15 @@ class TestResidualCheckOnChansFiles:
         assert check.breusch_godfrey_p == pytest.approx(bg_p, abs=5e-5)
         assert check.outside == outside
 
-    def test_the_lag_six_bar_stays_outside_at_the_books_lag_count(
-        self, spread: np.ndarray
-    ) -> None:
+    def test_the_lag_six_bar_stays_outside_at_the_books_lag_count(self, spread: np.ndarray) -> None:
         """The bar the caveat in ``TestResidualCheck``'s vintage was about. On
-        Chan's files it sits further outside the same band, not inside it."""
+        Chan's files it stays outside the same band, at 0.1659 against the 2026
+        closes' 0.1668, so the other vintage moves it slightly and not inside."""
         check = residual_check(spread, 1)
         assert check.band == pytest.approx(0.1240, abs=5e-5)
         assert float(check.autocorrelation[5]) == pytest.approx(0.1659, abs=5e-5)
 
-    def test_the_books_lag_count_fails_at_every_horizon_from_two(
-        self, spread: np.ndarray
-    ) -> None:
+    def test_the_books_lag_count_fails_at_every_horizon_from_two(self, spread: np.ndarray) -> None:
         def fails(k: int) -> list[int]:
             return [
                 h

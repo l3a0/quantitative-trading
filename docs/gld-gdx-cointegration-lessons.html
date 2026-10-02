@@ -320,7 +320,7 @@
 
   <main>
     <section>
-      <p class="disc correction">Correction, 2026-10-02. An earlier version of this post called the pair cointegrated with better than 90% confidence and left it there. That verdict holds only at the one lag Chan used. A check of what each fit leaves in its residuals, added to detour 5, found that the one-lag fit leaves autocorrelation the test's critical values assume away. On Chan's 252-day window the first fit with clean residuals does not reject. On his full 385-day window it still rejects at better than 90%. The ledger, detours 4 and 6 and the closing table now say which lag each verdict rests on. Detour 5 also now says that Chan's R run was a different test, Hansen's covariate-augmented Dickey-Fuller test, rather than a third run of the one his MATLAB and Python code ran.</p>
+      <p class="disc correction">Correction, 2026-10-02. An earlier version of this post called the pair cointegrated with better than 90% confidence and left it there. That verdict was reached at the one lag Chan used. A check of what each fit leaves in its residuals, added to detour 5, found that the one-lag fit leaves autocorrelation the test's critical values assume away. On Chan's 252-day window the first fit with clean residuals does not reject. On his full 385-day window it still rejects at better than 90%. Both checks are exploratory. The ledger, detours 4 and 6 and the closing table now say which lag each verdict rests on. Detour 5 also now says that Chan's R run was a different test, Hansen's covariate-augmented Dickey-Fuller test, rather than a third run of the one his MATLAB and Python code ran.</p>
       <p class="lead">Ernest Chan's <em>Quantitative Trading</em> opens its pairs-trading chapter with an example. Buy gold, short the gold miners, and the two prices tend to drift back toward each other.</p>
       <p>The book runs a <strong>cointegration test</strong> on the pair. That is a statistical check for whether a long-short combination of two prices stays range-bound instead of wandering off on its own. It reports two numbers:</p>
       <ol class="numbers">
@@ -449,7 +449,7 @@
           <div class="lesson-no">06</div>
           <h3>Cointegration is a property of a window, not a pair.</h3>
           <div class="body">
-            <p>The last detour outlives the reproduction. Over Chan's full window, which ends in November 2007, gold and gold miners tested as cointegrated at better than 90%, even once the residuals were clean. Run the same test over 2006 to 2026 and it falls apart.</p>
+            <p>The last detour outlives the reproduction. Over Chan's own windows, which end by November 2007, gold and gold miners tested as cointegrated at the one lag he used, and detour 5 says how much of that survives a check of the residuals. Run the same test over 2006 to 2026 and it falls apart.</p>
             <p>The statistic drops to <span class="tick">&minus;1.45</span>, well short of significance. The spread's half-life balloons from 10 days to over 800. The miners detached from gold somewhere in the 2010s and never fully came back.</p>
 
             <div class="decay" aria-label="Test statistic then versus now">

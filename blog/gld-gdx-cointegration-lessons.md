@@ -2,7 +2,7 @@
 
 The published hedge ratio in a 2009 quant-trading book never reproduced exactly, no matter whose data went in. The reason is a data-vintage story, not a mistake. The pair itself had a shelf life.
 
-*Correction, 2026-10-02. An earlier version of this post called the pair cointegrated with better than 90% confidence and left it there. That verdict holds only at the one lag Chan used. A check of what each fit leaves in its residuals, added to detour 5, found that the one-lag fit leaves autocorrelation the test's critical values assume away. On Chan's 252-day window the first fit with clean residuals does not reject. On his full 385-day window it still rejects at better than 90%. The ledger, detours 4 and 6 and the closing table now say which lag each verdict rests on. Detour 5 also now says that Chan's R run was a different test, Hansen's covariate-augmented Dickey-Fuller test, rather than a third run of the one his MATLAB and Python code ran.*
+*Correction, 2026-10-02. An earlier version of this post called the pair cointegrated with better than 90% confidence and left it there. That verdict was reached at the one lag Chan used. A check of what each fit leaves in its residuals, added to detour 5, found that the one-lag fit leaves autocorrelation the test's critical values assume away. On Chan's 252-day window the first fit with clean residuals does not reject. On his full 385-day window it still rejects at better than 90%. Both checks are exploratory. The ledger, detours 4 and 6 and the closing table now say which lag each verdict rests on. Detour 5 also now says that Chan's R run was a different test, Hansen's covariate-augmented Dickey-Fuller test, rather than a third run of the one his MATLAB and Python code ran.*
 
 Ernest Chan's *Quantitative Trading* opens its pairs-trading chapter with an example. Buy gold, short the gold miners, and the two prices tend to drift back toward each other.
 
@@ -57,7 +57,7 @@ Anchoring the series at a fixed start, instead of today, sidesteps the drift. Th
 
 ### 4. Separate what moved with the vintage from what did not
 
-Not everything drifted. The hedge ratio moved with the data vintage. The **half-life**, which is how long the spread takes to close half its gap, reproduced at about 10 days, matching the book. So did the verdict at Chan's own setting of one lag. The spread is cointegrated with better than 90% confidence. Detour 5 shows how much that setting decides.
+Not everything drifted. The hedge ratio moved with the data vintage. The **half-life**, which is how long the spread takes to close half its gap, reproduced at about 10 days, matching the book. So did the verdict at Chan's own setting of one lag: the spread is cointegrated with better than 90% confidence. Detour 5 shows how much that setting decides.
 
 The hedge ratio slipped about two percent, from 1.6766 to 1.6379. The half-life held across both vintages, and so did the verdict at one lag.
 
@@ -82,7 +82,7 @@ Agreement settles the tooling question and leaves a second one open, which is ho
 
 ### 6. Cointegration is a property of a window, not a pair
 
-The last detour outlives the reproduction. Over Chan's full window, which ends in November 2007, gold and gold miners tested as cointegrated at better than 90%, even once the residuals were clean. Run the same test over 2006 to 2026 and it falls apart.
+The last detour outlives the reproduction. Over Chan's own windows, which end by November 2007, gold and gold miners tested as cointegrated at the one lag he used, and detour 5 says how much of that survives a check of the residuals. Run the same test over 2006 to 2026 and it falls apart.
 
 The statistic drops to −1.45, well short of significance. The spread's half-life balloons from 10 days to over 800. The miners detached from gold somewhere in the 2010s and never fully came back.
 
