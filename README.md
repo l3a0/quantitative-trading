@@ -73,6 +73,16 @@ they were first built. The other three were built here.
    claim does not, which is the reverse of the split the GLD/GDX and Kelly
    entries both found.
 
+One more result runs here, and it is not a sixth replication. At Kindle
+location 3951 Chan names other places a stationary spread should live without
+working any of them, so there is no number of his to reproduce. His
+fixed-income candidate, bonds of one issuer at two maturities, is tested on TLT
+against IEF, and the result is a finding rather than a verdict. Over
+2002-07-30 to 2026-10-01 neither orientation rejects the no-cointegration
+null, at −2.3887 and −2.3168 against a 10% bar of −3.04, and the residual check
+moves both further from rejecting rather than closer. It is exploratory, and it
+says nothing about bonds beyond these two funds.
+
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
 them is derived. The two blog posts about the pairs are the exceptions, and
@@ -99,8 +109,15 @@ one Sharpe ratio exceeds another survives any mutation that leaves the sign
 alone. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 
-All five reach a verdict in
-[docs/replication-log.md](docs/replication-log.md), row by row.
+[tests/test_stationary_candidates.py](tests/test_stationary_candidates.py)
+does it for the fixed-income candidate, and pins both orientations of every
+number, because the test is not symmetric in its legs and Chan names no
+dependent one.
+
+All five replications reach a verdict in
+[docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
+carries the fixed-income finding, which has no published number to reach a
+verdict against.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -236,6 +253,18 @@ difference with a robust t-statistic beside it. A window whose robust t cannot
 resolve the ranking says so in a line rather than stopping the run, because a
 sample that cannot settle a sign has not failed at anything. One of the two
 sub-windows is in that position.
+
+The fixed-income candidate reads two series and takes no window:
+
+```bash
+uv run python -m chan.stationary_candidates
+```
+
+It prints the full-span test in both orientations, the residual check at one
+lag beside the first lag count whose residuals pass, and the rolling scan each
+way round. There is no `--start` or `--end`, because a window option is what
+would let a reader pick one that rejects, and the full span is the only window
+the issue declared.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

@@ -67,6 +67,8 @@ download date, and which price or rate the series carries.
 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
 | `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` | yfinance | AGG | adjusted | 2003-09-29 .. 2026-09-17 | 2026-09-18 |
 | `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` | fred | TB3MS | rate | 1934-01-01 .. 2026-08-01 | 2026-09-30 |
+| `yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | TLT | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
+| `yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | IEF | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -150,6 +152,39 @@ it, and the risk parity post's bill-rate averages trace to
 [tests/test_bill_rates.py](../tests/test_bill_rates.py).
 [Issue 187](https://github.com/l3a0/quantitative-trading/issues/187) is where
 storing it was decided.
+
+`yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` and
+`yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` are the two legs of
+Chan's fixed-income candidate, which
+[src/chan/stationary_candidates.py](../src/chan/stationary_candidates.py)
+reads. TLT holds Treasuries maturing in twenty years or more and IEF holds
+Treasuries maturing in seven to ten, and
+[issue 136](https://github.com/l3a0/quantitative-trading/issues/136) is where
+both were named before anything was downloaded. Three things about them are
+worth stating rather than leaving a reader to infer.
+
+1. **They are the raw basis, and this is the call that produced it.** Raw here
+   means adjusted for splits and not for dividends, which on yfinance is the
+   `Close` column when `auto_adjust` is off, not that call's `Adj Close`.
+
+   ```python
+   yfinance.download("TLT", period="max", interval="1d", auto_adjust=False, actions=False)
+   yfinance.download("IEF", period="max", interval="1d", auto_adjust=False, actions=False)
+   ```
+
+   Both ran against yfinance 1.7.0 on 2026-10-02, outside the package, with
+   the `Close` column handed to the recorder. The two columns differed on every
+   day but the last, so the column recorded is not the adjusted one. That check
+   ran at download time against a column this repo does not commit, so nothing
+   here can run it again.
+2. **Nothing was dropped.** The rule settled on the issue before the download
+   was to drop a non-finite close on the download date itself and stop on any
+   other. The download ran after the 2026-10-01 close and returned no
+   non-finite close on either leg, so the rule removed nothing and each file
+   holds all 6,083 rows the vendor returned.
+3. **The two spans are the same.** The yfinance history of both begins on
+   2002-07-30, so the pair's common history is each leg's whole history, and
+   `scale_breaks` finds nothing on either.
 
 The `*_chan.csv` files are a different kind of source. Each is the
 adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
@@ -251,7 +286,7 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its eleven lines were written by hand. Eight were here before the
+   Nine of its fourteen lines were written by hand. Eight were here before the
    recorder existed, and `spy_chan.csv`'s was typed because the recorder cannot
    write a saved date. More will be, for as long as a replication reaches for
    another of Chan's workbook columns.
@@ -261,7 +296,9 @@ Two files carry that record.
    sweep, which owns the wider class. It was true until the AGG vintage below
    arrived, so the change that recorded that vintage is what made it false, and
    the sweep's own measurement counts the statements saying "eight" and "four"
-   and would not find one saying "ten".
+   and would not find one saying "ten". It went stale a second time when TB3MS
+   made the count twelve, and the change recording TLT and IEF is what
+   corrected it.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.
