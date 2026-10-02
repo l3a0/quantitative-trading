@@ -117,13 +117,15 @@ The other two scans show the same gap from the other side. TLT and IEF never rej
 
 None of those windows is a finding. A scan describes the span it covers, and a window that happens to reject is one of many looks at the same data.
 
-A year is also short for a reversion this slow, since a 252-day window holds about 1.78 half-lives. A simulation measured how much that costs, on a specification written down before any number was computed. It generated 1,000 series that truly revert with a 141.6-day half-life, each as long as the rate’s test period, and ran the rate’s scan on every one:
+A year is also short for a reversion this slow, since a 252-day window holds about 1.78 half-lives. A simulation measured how much that costs, on a specification written down before any number was computed. It generated 1,000 series that truly revert with a 141.6-day half-life, each as long as the rate’s test period, and ran the rate’s scan on every one. It reported three things:
 
 1. **One-year windows rarely reject.** On average 27.0 of the 226 windows cleared 10%, or 12.0%, and 388 of the 1,000 series had 23 or fewer, as CAD/AUD does.
 2. **The whole period almost always rejects.** The same test over each whole series rejected at 5% in 968 of the 1,000.
-3. **At 5% the rate sits low.** The simulated series cleared 5% in 14.0 windows on average, and only 73 of the 1,000 had 5 or fewer, as CAD/AUD does.
+3. **The 5% bar shows the same.** The simulated series cleared 5% in 14.0 windows on average.
 
-So a series that certainly reverts at this speed rejects over its whole span and in few of its single years, which is what CAD/AUD shows at 10%. The model has neither the rate’s fat tails nor its changing volatility. It shows that slow reversion alone can produce this few rejecting windows, and it does not show that slow reversion is why the rate’s windows reject so rarely.
+A series that does not revert at all clears the 10% bar in about one window in ten, because that is what a 10% bar means. A series that certainly reverts at CAD/AUD’s speed clears it in 12.0%. So a year of data barely separates the two, and only the whole period does. CAD/AUD’s 23 windows fit either kind of series, and its whole-period rejection is the evidence that it reverts.
+
+One figure was added after the results were seen rather than declared before, and it cuts the other way: only 73 of the 1,000 simulated series cleared 5% in 5 or fewer windows, as CAD/AUD does. The model has neither the rate’s fat tails nor its changing volatility, and a half-life estimated from 4,984 days tends to read short, so the rate may revert more slowly than 141.6 days suggests. The simulation shows that a slowly reverting series can reject in this few windows. It does not show why the rate’s windows reject so rarely.
 
 ## Lesson 5: each choice that could turn the answer was fixed in advance or checked both ways
 

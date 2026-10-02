@@ -429,7 +429,7 @@ class WindowPower:
     whole_rejects5: NDArray[np.bool_]
 
     def share_of_windows(self, level: str) -> float:
-        counts = self.clear10 if level == "10%" else self.clear5
+        counts = {"10%": self.clear10, "5%": self.clear5}[level]
         return float(counts.mean() / self.windows)
 
 

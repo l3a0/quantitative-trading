@@ -908,8 +908,9 @@ class TestTheWindowPower:
 
     def test_a_long_path_reverts_at_the_rate_s_half_life(self, rate: CrossRate) -> None:
         """Measured the way the rate's is, two million simulated days give the
-        half-life back. A path as short as the test window reads it less
-        precisely, which is the sampling the scan is meant to show."""
+        half-life back. A path as short as the test window reads it short as
+        well as loosely, which is why Entry 6 says the rate's true reversion
+        may be slower than its estimate."""
         long = simulated_paths(rate.half_life, 2_000_000, 1, POWER_SEED)[0]
         assert ou_half_life(long) == pytest.approx(141.5863, abs=5e-5)
         assert ou_half_life(long) == pytest.approx(rate.half_life, rel=1e-3)
@@ -926,12 +927,14 @@ class TestTheWindowPower:
         assert power.share_of_windows("10%") == pytest.approx(0.1197, abs=5e-5)
         assert power.clear5.mean() == pytest.approx(14.003, abs=5e-4)
         assert power.share_of_windows("5%") == pytest.approx(0.0620, abs=5e-5)
+        with pytest.raises(KeyError):
+            power.share_of_windows("1%")
 
     def test_where_the_rate_s_counts_fall_among_the_paths(self, power, rate: CrossRate) -> None:
         """388 of the 1,000 paths have 23 or fewer windows past 10%, so the
-        rate's count sits near the middle. 73 have 5 or fewer past 5%, so at
-        that bar the rate rejects in fewer windows than most stationary
-        paths do."""
+        rate's count sits near the middle. The 73 with 5 or fewer past 5% was
+        not in the declared specification. It was added after the results
+        were seen, and every surface that quotes it says so."""
         stats = rate.scan.adf_stat
         observed10 = int((stats < ADF_CRIT_CONST["10%"]).sum())
         observed5 = int((stats < ADF_CRIT_CONST["5%"]).sum())
