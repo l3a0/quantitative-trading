@@ -265,7 +265,11 @@ which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
 stood on 2008-01-14. His Example 7.6 loads `IJR_20080131`, which the mirror
 does not hold, and its third printed return is the trade into January 2008,
 whose month end this file stops short of. So this file can give Example 7.6's
-first two returns and not its third. Each holds only the companies
+first two returns and not its third.
+[`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads both
+directories, and
+[issue 225](https://github.com/l3a0/quantitative-trading/issues/225) carries
+reaching the third. Each holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
