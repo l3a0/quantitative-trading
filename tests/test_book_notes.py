@@ -1,10 +1,11 @@
 """The book notes' counts, held by the suite rather than by their own prose.
 
-A note is quoted material, so nothing edits it by hand and the prose sweeps
-skip it. That leaves one failure with nothing watching for it: a re-extraction
-that silently returns fewer highlights than the last one. The file would still
-read correctly, its header would still claim a number, and the count in
-``research/book-notes/README.md`` would still say what it always said.
+A note is quoted material, so nothing edits it by hand. The prose sweeps read
+it, but none of them counts anything. That leaves one failure with nothing
+watching for it: a re-extraction that silently returns fewer highlights than
+the last one. The file would still read correctly, its header would still claim
+a number, and the count in ``research/book-notes/README.md`` would still say
+what it always said.
 
 So the counts are asserted three ways here: the entries actually in the file,
 the counts the file's own header claims, and the total the README's table

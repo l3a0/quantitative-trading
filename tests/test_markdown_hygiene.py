@@ -992,8 +992,11 @@ def test_every_fragment_link_resolves_to_a_heading() -> None:
 
 
 # --- The cross-surface layer ---------------------------------------------------
-# CLAUDE.md's sweep policy, executed. Two of its three sweeps have nothing to
-# check here yet, so the assertions below say so rather than passing vacuously.
+# CLAUDE.md's sweep policy, executed. The template's sweeps for line anchors
+# and for line numbers written in prose run here as one pattern, which has
+# nothing to find, and its test keeps it that way. The figure sweeps do have
+# something to find, and they assert that they found it rather than passing on
+# an empty match.
 
 FIGURE = REPO_ROOT / "docs" / "figures" / "reproduction_regime_map.png"
 ESSAY_HTML = REPO_ROOT / "docs" / "gld-gdx-cointegration-lessons.html"
