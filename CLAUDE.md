@@ -305,8 +305,10 @@ It was deferred on a count of zero and
 what would reopen it. All three triggers have fired, so the owner kept it on
 2026-09-18 and this is where it lives.
 
-This repo has ten prose surfaces: nine Markdown files and
-`docs/gld-gdx-cointegration-lessons.html`. That HTML file is the sharp case,
+This repo's prose surfaces are every tracked Markdown file, which
+`git ls-files '*.md'` lists, and `docs/gld-gdx-cointegration-lessons.html`. No
+count is given, because each new post or skill moved the last one. That HTML
+file is the sharp case,
 because it is a second rendering of `blog/gld-gdx-cointegration-lessons.md`
 rather than a document of its own, and nothing generates it from the Markdown.
 
