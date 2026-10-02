@@ -83,8 +83,10 @@ The vintage keeps the rows before the gap. The verdict is "reproduced" when the
 statistic at lag 1 and the statistic at the first lag count whose residuals
 pass are both below the 5% bar, and "did not reproduce" otherwise, including
 when no count up to the ceiling passes. The rolling scan and the half-life are
-reported beside it and decide nothing. ``docs/replication-log.md`` Entry 6
-carries the verdict.
+reported beside it and decide nothing. :func:`window_power` measures what the
+scan can see: it runs the same scan over simulated series that truly revert at
+the rate's half-life, on a specification declared on issue 212 before it ran.
+``docs/replication-log.md`` Entry 6 carries the verdict.
 
 Both results are exploratory, and ``tests/test_stationary_candidates.py`` is
 the single authority for every number any prose surface quotes about either.
@@ -399,6 +401,85 @@ def cross_rate(*, dated: str = CROSS_RATE_DATED, data_dir: Path | None = None) -
     """
     entry, close = load_vintage(CROSS_RATE, unadjusted=True, dated=dated, data_dir=data_dir)
     return measure_cross_rate(entry, close)
+
+
+#: The seed and path count of the window-power simulation, declared on issue 212
+#: before any number was computed.
+POWER_SEED = 20261002
+POWER_PATHS = 1000
+
+
+@dataclass(frozen=True)
+class WindowPower:
+    """How often a series that truly reverts rejects in the rate's scan.
+
+    Each path is a Gaussian AR(1) with mean zero and ``phi = 1 - ln 2 / h``,
+    which is the reversion speed :func:`ou_half_life` reads as a half-life of
+    ``h``. It starts from the stationary distribution, runs as long as the
+    rate's test window, and is scanned the way the rate is. The arrays hold one
+    entry per path.
+    """
+
+    half_life: float
+    phi: float
+    length: int
+    windows: int
+    clear10: NDArray[np.int64]
+    clear5: NDArray[np.int64]
+    whole_rejects5: NDArray[np.bool_]
+
+    def share_of_windows(self, level: str) -> float:
+        counts = self.clear10 if level == "10%" else self.clear5
+        return float(counts.mean() / self.windows)
+
+
+def simulated_paths(half_life: float, length: int, paths: int, seed: int) -> NDArray[np.float64]:
+    """``paths`` AR(1) series of ``length`` days, one per row.
+
+    The innovation scale is 1 because the ADF statistic does not depend on it.
+    The first value is drawn from the stationary distribution, so no burn-in is
+    needed and every day of a path is a day of a stationary series.
+    """
+    phi = 1.0 - math.log(2.0) / half_life
+    rng = np.random.default_rng(seed)
+    shocks = rng.standard_normal((paths, length))
+    z = np.empty((paths, length))
+    z[:, 0] = shocks[:, 0] / math.sqrt(1.0 - phi**2)
+    for t in range(1, length):
+        z[:, t] = phi * z[:, t - 1] + shocks[:, t]
+    return z
+
+
+def window_power(
+    half_life: float, length: int, *, paths: int = POWER_PATHS, seed: int = POWER_SEED
+) -> WindowPower:
+    """Scan simulated stationary series the way the rate's scan runs.
+
+    The windows are :func:`rolling_adf`'s, 252 days stepped by 21 at one lag
+    with a constant, and so is the statistic. Only the statistic is computed,
+    because the half-life ``rolling_adf`` also fits in each window would double
+    the run time and the simulation reports nothing about it.
+    ``tests/test_stationary_candidates.py`` holds that the two agree.
+    """
+    z = simulated_paths(half_life, length, paths, seed)
+    ends = range(WINDOW, length + 1, STEP)
+    clear10 = np.empty(paths, dtype=np.int64)
+    clear5 = np.empty(paths, dtype=np.int64)
+    whole = np.empty(paths, dtype=bool)
+    for i, path in enumerate(z):
+        stats = np.array([adf_tstat(path[e - WINDOW : e], LAGS, constant=True)[0] for e in ends])
+        clear10[i] = int((stats < ADF_CRIT_CONST["10%"]).sum())
+        clear5[i] = int((stats < ADF_CRIT_CONST["5%"]).sum())
+        whole[i] = adf_tstat(path, LAGS, constant=True)[0] < ADF_CRIT_CONST["5%"]
+    return WindowPower(
+        half_life=half_life,
+        phi=1.0 - math.log(2.0) / half_life,
+        length=length,
+        windows=len(ends),
+        clear10=clear10,
+        clear5=clear5,
+        whole_rejects5=whole,
+    )
 
 
 def unit_root_line(stat: float) -> str:

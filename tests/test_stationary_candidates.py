@@ -49,7 +49,7 @@ The cross-rate pins read one vintage and one specification too.
   days. The residual check fits the same constant. The rolling scan is
   252-day windows stepped by 21.
 
-Nine classes and one test.
+Ten classes and one test.
 
 1. ``TestTheCrossRateVintage``, the file, the window it is read over, and the
    vendor's gap the window starts after.
@@ -69,6 +69,9 @@ Nine classes and one test.
    each bar.
 9. ``TestTheCheckFitsTheTermItIsGiven``, the ``regression`` keyword on
    ``residual_check``, held on a synthetic series.
+10. ``TestTheWindowPower``, the simulation issue 212 declared before it ran:
+    how often a series that truly reverts at the rate's half-life rejects in
+    the rate's scan.
 
 ``test_measuring_reads_from_the_test_start`` holds that measuring a series
 that begins before the window drops those days.
@@ -98,6 +101,8 @@ from chan.stationary_candidates import (
     LAGS,
     LONG,
     ORIENTATIONS,
+    POWER_PATHS,
+    POWER_SEED,
     RESIDUAL_PASS_P,
     TEST_START,
     WINDOW,
@@ -115,7 +120,9 @@ from chan.stationary_candidates import (
     run,
     run_cross_rate,
     schwert_ceiling,
+    simulated_paths,
     unit_root_line,
+    window_power,
 )
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import committed_copy
@@ -861,3 +868,78 @@ def test_measuring_reads_from_the_test_start(rate: CrossRate) -> None:
     again = measure_cross_rate(rate.entry, close)
     assert len(again.log_rate) == 4984
     assert math.isclose(again.adf_stat, rate.adf_stat)
+
+
+@pytest.fixture(scope="module")
+def power(rate: CrossRate):
+    return window_power(rate.half_life, len(rate.log_rate))
+
+
+class TestTheWindowPower:
+    """How often a series that truly reverts rejects in the rate's scan.
+
+    The specification was declared on issue 212 before any number was
+    computed: a Gaussian AR(1) reverting at the half-life the rate's own
+    estimate gives, 1,000 paths as long as its test window from seed
+    20261002, scanned as the rate is. It answers the hypothesis Lesson 4 of
+    the blog post offered for why so few of the rate's windows reject. It does
+    not show that slow reversion is the reason, because the model has neither
+    the rate's fat tails nor its changing volatility. Exploratory. Takes about
+    half a minute.
+    """
+
+    def test_the_declared_specification(self, power, rate: CrossRate) -> None:
+        assert (POWER_SEED, POWER_PATHS) == (20261002, 1000)
+        assert power.half_life == rate.half_life
+        assert power.phi == pytest.approx(1 - math.log(2) / rate.half_life, abs=1e-15)
+        assert power.length == 4984
+        assert power.windows == 226 == len(rate.scan.adf_stat)
+        assert len(power.clear10) == len(power.clear5) == len(power.whole_rejects5) == 1000
+
+    def test_the_scan_is_the_rate_s_scan(self, rate: CrossRate) -> None:
+        """The simulation computes only the statistic, for speed, so it is held
+        to the scan the rate runs on the first simulated path."""
+        path = simulated_paths(rate.half_life, len(rate.log_rate), 1, POWER_SEED)[0]
+        stats = rolling_adf(path).adf_stat
+        one = window_power(rate.half_life, len(rate.log_rate), paths=1)
+        assert one.clear10[0] == int((stats < ADF_CRIT_CONST["10%"]).sum())
+        assert one.clear5[0] == int((stats < ADF_CRIT_CONST["5%"]).sum())
+        assert one.whole_rejects5[0] == (adf_tstat(path, LAGS)[0] < ADF_CRIT_CONST["5%"])
+
+    def test_a_long_path_reverts_at_the_rate_s_half_life(self, rate: CrossRate) -> None:
+        """Measured the way the rate's is, two million simulated days give the
+        half-life back. A path as short as the test window reads it less
+        precisely, which is the sampling the scan is meant to show."""
+        long = simulated_paths(rate.half_life, 2_000_000, 1, POWER_SEED)[0]
+        assert ou_half_life(long) == pytest.approx(141.5863, abs=5e-5)
+        assert ou_half_life(long) == pytest.approx(rate.half_life, rel=1e-3)
+
+    def test_each_path_starts_from_the_stationary_distribution(self, rate: CrossRate) -> None:
+        phi = 1 - math.log(2) / rate.half_life
+        first = simulated_paths(rate.half_life, 2, 1000, POWER_SEED)[:, 0]
+        assert first.var() == pytest.approx(1 / (1 - phi**2), rel=0.1)
+
+    def test_a_stationary_series_rejects_in_about_one_window_in_eight(self, power) -> None:
+        """At 10% the mean is 27.042 windows of 226, 12.0%, against the
+        rate's 23. At 5% it is 14.003, 6.2%, against the rate's 5."""
+        assert power.clear10.mean() == pytest.approx(27.042, abs=5e-4)
+        assert power.share_of_windows("10%") == pytest.approx(0.1197, abs=5e-5)
+        assert power.clear5.mean() == pytest.approx(14.003, abs=5e-4)
+        assert power.share_of_windows("5%") == pytest.approx(0.0620, abs=5e-5)
+
+    def test_where_the_rate_s_counts_fall_among_the_paths(self, power, rate: CrossRate) -> None:
+        """388 of the 1,000 paths have 23 or fewer windows past 10%, so the
+        rate's count sits near the middle. 73 have 5 or fewer past 5%, so at
+        that bar the rate rejects in fewer windows than most stationary
+        paths do."""
+        stats = rate.scan.adf_stat
+        observed10 = int((stats < ADF_CRIT_CONST["10%"]).sum())
+        observed5 = int((stats < ADF_CRIT_CONST["5%"]).sum())
+        assert (observed10, observed5) == (23, 5)
+        assert int((power.clear10 <= observed10).sum()) == 388
+        assert int((power.clear5 <= observed5).sum()) == 73
+
+    def test_the_whole_window_test_almost_always_rejects(self, power) -> None:
+        """968 of 1,000 paths reject at 5% over all 4,984 days, so the whole
+        test period has the power one year lacks."""
+        assert int(power.whole_rejects5.sum()) == 968

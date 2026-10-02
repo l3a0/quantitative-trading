@@ -115,7 +115,15 @@ The other two scans show the same gap from the other side. TLT and IEF never rej
 
 *Dots mark the windows past the 10% bar. For CAD/AUD the test rejects over the whole test period and in few one-year windows. For TLT and IEF it rejects in more windows and never over the whole period.*
 
-None of those windows is a finding. A scan describes the span it covers, and a window that happens to reject is one of many looks at the same data. Nothing in the repository measures why so few CAD/AUD windows reject. One hypothesis is that a year is too short to see a reversion this slow, since a 252-day window holds about 1.78 half-lives. A simulated series with a 141.6-day half-life would show how often such a window rejects, and until something runs it the reason stays open.
+None of those windows is a finding. A scan describes the span it covers, and a window that happens to reject is one of many looks at the same data.
+
+A year is also short for a reversion this slow, since a 252-day window holds about 1.78 half-lives. A simulation measured how much that costs, on a specification written down before any number was computed. It generated 1,000 series that truly revert with a 141.6-day half-life, each as long as the rate’s test period, and ran the rate’s scan on every one:
+
+1. **One-year windows rarely reject.** On average 27.0 of the 226 windows cleared 10%, or 12.0%, and 388 of the 1,000 series had 23 or fewer, as CAD/AUD does.
+2. **The whole period almost always rejects.** The same test over each whole series rejected at 5% in 968 of the 1,000.
+3. **At 5% the rate sits low.** The simulated series cleared 5% in 14.0 windows on average, and only 73 of the 1,000 had 5 or fewer, as CAD/AUD does.
+
+So a series that certainly reverts at this speed rejects over its whole span and in few of its single years, which is what CAD/AUD shows at 10%. The model has neither the rate’s fat tails nor its changing volatility. It shows that slow reversion alone can produce this few rejecting windows, and it does not show that slow reversion is why the rate’s windows reject so rarely.
 
 ## Lesson 5: each choice that could turn the answer was fixed in advance or checked both ways
 

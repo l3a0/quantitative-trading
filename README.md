@@ -681,12 +681,17 @@ apart from what it sets beside them from GLD/GDX. The full-span −1.45 and
 833.5 days, the 31 of 231 windows and the plain ADF table trace to
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py), and the
 5,099 days behind GLD/GDX's ceiling of 33 to
-[tests/test_series.py](tests/test_series.py). Three of its numbers had no pin
-before it, and `tests/test_stationary_candidates.py` now pins them.
+[tests/test_series.py](tests/test_series.py). Four groups of its numbers had
+no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 
 1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
 2. Both cross-rate statistics falling short of the pair's 5% bar of −3.34.
 3. A one-year window holding about 1.78 half-lives.
+4. The window-power simulation behind Lesson 4: 1,000 series that truly
+   revert at the rate's half-life, scanned as the rate is, on a specification
+   [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) fixed
+   before it ran. `TestTheWindowPower` holds its counts. It takes about half a
+   minute of the suite's run.
 
 Its three figures are drawn from the committed vintages by
 [src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py).
