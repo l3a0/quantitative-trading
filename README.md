@@ -146,9 +146,11 @@ legs were downloaded 72 days apart.
 Bytes that verify are still not a series it is safe to compute across. The same
 module reads each committed price series against itself day over day and reports any
 day it changed scale rather than price, and a run whose window spans one stops
-instead of printing a number. Two days of `ko_chan.csv` are reported today and
-nothing computes across them, because the KO/PEP replication reads the
-intersection with `pep_chan.csv` and that starts in 1977.
+instead of printing a number. Among the single-series vintages, two days of
+`ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
+replication reads the intersection with `pep_chan.csv` and that starts in 1977.
+The columns lifted from Chan's MATLAB files, below, report 62 more, most of
+them real moves in single stocks.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -157,6 +159,21 @@ a price, so the scale-break check skips it.
 [src/chan/bill_rates.py](src/chan/bill_rates.py) reads it and averages it over
 a window of months, and [tests/test_bill_rates.py](tests/test_bill_rates.py)
 pins what it gives.
+
+Two of Chan's own files are cross-sections rather than series: the S&P 500 as
+it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14. Each is
+committed as one vintage per stock, 1,100 between them, each holding the
+stock's close, high, low, open and volume, written by
+`src/chan/mat_columns.py` under a directory per file.
+`chan.series.load_panel` reads a whole file back as one date-by-stock frame
+and checks every member's bytes on the way.
+[Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
+shape was decided, and
+[data/README.md](data/README.md) says what was measured on each file. No
+replication reads them yet.
+[Issue 17](https://github.com/l3a0/quantitative-trading/issues/17) and
+[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) are the ones
+that will.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.

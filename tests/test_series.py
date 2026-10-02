@@ -27,19 +27,28 @@ import shutil
 import sys
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from chan import paths, series, vintage
 from chan.paths import DATA_DIR
-from chan.series import aligned_closes, close_identity, load_close, load_vintage
+from chan.series import (
+    aligned_closes,
+    close_identity,
+    load_close,
+    load_panel,
+    load_vintage,
+    panel_line,
+)
 from chan.vintage import (
     MANIFEST_NAME,
     VintageEntry,
     VintageUnavailable,
     read_manifest,
+    record_lifted_columns,
     record_vintage,
 )
-from tests.support.committed_vintages import HAND_WRITTEN, rewrite_entry
+from tests.support.committed_vintages import HAND_WRITTEN, LIFTED_SOURCES, rewrite_entry
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 
 # Root ignores mode bits, so a file at mode 000 opens and the case reads as a
@@ -512,14 +521,16 @@ class TestTheBytesAreCheckedAgainstTheRecord:
 
 
 class TestTheParseTakesTwoColumnsAndStaysQuiet:
-    """Two arguments in ``_parse_close`` that every committed vintage leaves inert."""
+    """Two arguments in ``_parse_close`` that the single-series vintages leave inert."""
 
     def test_a_third_column_is_ignored_rather_than_shifting_the_series(
         self, data_dir: Path
     ) -> None:
-        """All eight committed vintages carry two columns, so `usecols` reads as
-        decoration. Without it pandas puts the first column into the index and
-        the close is read out of the wrong field, silently."""
+        """The single-series vintages carry two columns, so for them `usecols`
+        reads as decoration. The 1,100 stocks lifted from Chan's MATLAB files
+        carry six, so for those it decides which field every read gets. Without
+        it pandas puts the first column into the index and the close is read
+        out of the wrong field, silently."""
         entry = place(data_dir, name="one.csv")
         with_volume = b"Date,Close,Volume\n" + b"".join(
             f"{day},{value!r},1000\n".encode() for day, value in SERIES
@@ -822,6 +833,37 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
 
         assert "could not be listed" in str(refused.value)
 
+    def test_a_stray_file_inside_a_subdirectory_is_named_by_its_path(self, data_dir: Path) -> None:
+        """A lifted source's members sit in a directory of their own, so the scan reaches in.
+
+        A listing of the top level alone would go quiet exactly where 1,100 of
+        the committed vintages live.
+        """
+        place(data_dir, name="recorded.csv", symbol="AAA")
+        (data_dir / "spx").mkdir()
+        (data_dir / "spx" / "stray.csv").write_bytes(payload_of(SERIES))
+
+        with pytest.raises(VintageUnavailable) as refused:
+            load_close("ZZZ", data_dir=data_dir)
+
+        assert "No entry names spx/stray.csv either" in str(refused.value)
+
+    @NOT_ROOT
+    def test_a_subdirectory_that_cannot_be_listed_does_not_answer_nothing_unrecorded(
+        self, data_dir: Path
+    ) -> None:
+        """``os.walk`` reports a directory it cannot list rather than raising, so it is asked."""
+        place(data_dir, name="recorded.csv", symbol="AAA")
+        (data_dir / "spx").mkdir()
+        (data_dir / "spx").chmod(0o300)
+        try:
+            with pytest.raises(VintageUnavailable) as refused:
+                load_close("ZZZ", data_dir=data_dir)
+        finally:
+            (data_dir / "spx").chmod(0o700)
+
+        assert "could not be listed" in str(refused.value)
+
     def test_a_subdirectory_is_not_reported_as_an_unrecorded_series(self, data_dir: Path) -> None:
         """A glob matches a directory whose name ends in .csv, and reporting one
         as an uncommitted download sends the reader looking for a file."""
@@ -1078,3 +1120,219 @@ class TestARecordedNinthLeavesTheReaderAlone:
 
         with pytest.raises(AssertionError):
             the_reader_reaches_every_hand_written_vintage(with_a_ninth)
+
+
+#: A source of three columns. The middle one misses a day, so the panel's index
+#: has to come from the union of the members rather than from any one of them.
+COLUMNS = {
+    "BBB": [("2026-01-02", 20.0), ("2026-01-06", 21.0)],
+    "AAA": [("2026-01-02", 10.0), ("2026-01-05", 11.0), ("2026-01-06", 12.5)],
+    "CCC": [("2026-01-05", 30.0), ("2026-01-06", 31.0)],
+}
+LIFTED_FROM = dict(
+    vendor="chan-mat", price_basis="adjusted", saved_date="2026-01-07", source_file="SRC.mat"
+)
+
+
+class TestAPanelIsOneSourceReadOnce:
+    """``load_panel``, which puts a source's per-stock vintages back into one frame."""
+
+    @pytest.fixture
+    def lifted(self, data_dir: Path) -> Path:
+        record_lifted_columns(COLUMNS, **LIFTED_FROM, data_dir=data_dir)
+        return data_dir
+
+    def test_the_panel_is_the_members_on_the_union_of_their_days(self, lifted: Path) -> None:
+        members, panel = load_panel("SRC.mat", data_dir=lifted)
+
+        assert [entry.symbol for entry in members] == ["AAA", "BBB", "CCC"]
+        assert list(panel.columns) == ["AAA", "BBB", "CCC"]
+        assert [str(day.date()) for day in panel.index] == [
+            "2026-01-02",
+            "2026-01-05",
+            "2026-01-06",
+        ]
+        assert panel.loc["2026-01-05", "AAA"] == 11.0
+        assert panel["BBB"].isna().tolist() == [False, True, False]
+        assert panel["CCC"].isna().tolist() == [True, False, False]
+
+    def test_the_columns_are_sorted_whatever_order_the_manifest_holds(self, lifted: Path) -> None:
+        """The writer appends in symbol order, so only a reordered manifest tests the sort."""
+        manifest = lifted / MANIFEST_NAME
+        lines = manifest.read_text(encoding="utf-8").splitlines()
+        manifest.write_text("".join(line + "\n" for line in reversed(lines)), encoding="utf-8")
+
+        members, panel = load_panel("SRC.mat", data_dir=lifted)
+
+        assert [entry.symbol for entry in members] == ["AAA", "BBB", "CCC"]
+        assert list(panel.columns) == ["AAA", "BBB", "CCC"]
+
+    def test_the_manifest_is_read_once_for_the_whole_source(
+        self, lifted: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        reads = []
+        real = series.read_manifest
+        monkeypatch.setattr(series, "read_manifest", lambda d=None: reads.append(d) or real(d))
+
+        load_panel("SRC.mat", data_dir=lifted)
+
+        assert len(reads) == 1
+
+    def test_every_member_is_hashed_before_it_is_parsed(self, lifted: Path) -> None:
+        member = lifted / "src" / "bbb.csv"
+        member.write_bytes(member.read_bytes().replace(b"21.0", b"21.5"))
+
+        with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
+            load_panel("SRC.mat", data_dir=lifted)
+
+    def test_a_source_nothing_was_lifted_from_names_itself(self, lifted: Path) -> None:
+        with pytest.raises(VintageUnavailable, match="no committed vintage is lifted from X.mat"):
+            load_panel("X.mat", data_dir=lifted)
+
+    @pytest.mark.parametrize(
+        ("field", "value", "shown"),
+        [
+            ("vendor", "chan-xls", "chan-xls adjusted 2026-01-07"),
+            ("price_basis", "raw", "chan-mat raw 2026-01-07"),
+            ("saved_date", "2026-01-08", "chan-mat adjusted 2026-01-08"),
+        ],
+    )
+    def test_members_that_disagree_on_what_they_are_are_refused(
+        self, lifted: Path, field: str, value: str, shown: str
+    ) -> None:
+        rewrite_entry(lifted, "src/ccc.csv", **{field: value})
+
+        with pytest.raises(VintageUnavailable) as refused:
+            load_panel("SRC.mat", data_dir=lifted)
+
+        message = str(refused.value)
+        assert "the 3 vintages lifted from SRC.mat disagree" in message
+        assert shown in message
+
+    def test_two_members_holding_one_symbol_are_refused(self, lifted: Path) -> None:
+        rewrite_entry(lifted, "src/ccc.csv", symbol="BBB")
+
+        with pytest.raises(VintageUnavailable, match="more than one vintage for BBB"):
+            load_panel("SRC.mat", data_dir=lifted)
+
+    def test_an_unreadable_manifest_reaches_a_caller_as_the_reader_s_refusal(
+        self, lifted: Path
+    ) -> None:
+        (lifted / MANIFEST_NAME).write_text("not json\n", encoding="utf-8")
+
+        with pytest.raises(VintageUnavailable, match="SRC.mat cannot be"):
+            load_panel("SRC.mat", data_dir=lifted)
+
+    def test_a_field_other_than_the_close_is_read_from_its_own_column(self, data_dir: Path) -> None:
+        wide = {
+            "AAA": [
+                ("2026-01-02", 10.0, 10.5, 9.5, 9.75, 100),
+                ("2026-01-05", 11.0, 11.5, 10.5, 10.75, 200),
+            ],
+            "BBB": [("2026-01-05", 20.0, 20.5, 19.5, 19.75, 300)],
+        }
+        record_lifted_columns(
+            wide,
+            **LIFTED_FROM,
+            fields=("Close", "High", "Low", "Open", "Volume"),
+            data_dir=data_dir,
+        )
+
+        _, opens = load_panel("SRC.mat", field="Open", data_dir=data_dir)
+        _, volumes = load_panel("SRC.mat", field="Volume", data_dir=data_dir)
+        _, closes = load_panel("SRC.mat", data_dir=data_dir)
+
+        assert opens["AAA"].tolist() == [9.75, 10.75]
+        assert volumes.loc["2026-01-05"].tolist() == [200.0, 300.0]
+        assert closes["AAA"].tolist() == [10.0, 11.0]
+        assert opens["BBB"].isna().tolist() == [True, False]
+
+    def test_a_field_a_member_does_not_carry_is_refused_by_name(self, lifted: Path) -> None:
+        with pytest.raises(VintageUnavailable, match="src/aaa.csv carries no Open column"):
+            load_panel("SRC.mat", field="Open", data_dir=lifted)
+
+    def test_a_report_names_the_panel_in_one_line(self, lifted: Path) -> None:
+        members, _ = load_panel("SRC.mat", data_dir=lifted)
+
+        assert panel_line(members) == (
+            "src/   chan-mat adjusted, saved 2026-01-07, 3 members lifted from SRC.mat"
+        )
+
+
+class TestTheCommittedPanelsAreChansArrays:
+    """The two sources issue 88 committed, read back whole.
+
+    The conversion checked each panel against the ``.mat`` it came from, cell
+    for cell and NaN for NaN, and printed so. The ``.mat`` files are not
+    committed, so these pin what that check saw in figures the committed bytes
+    still carry: each array's shape, its count of priced cells, and the splice
+    in the WYN column that a return computed off the grid would misread.
+    """
+
+    @pytest.mark.parametrize(
+        ("source", "days", "members", "priced", "first", "last"),
+        [
+            ("SPX_20071123.mat", 2024, 500, 966_884, "1999-11-24", "2007-11-23"),
+            ("IJR_20080114.mat", 1006, 600, 589_660, "2004-01-15", "2008-01-14"),
+        ],
+    )
+    def test_each_panel_has_the_shape_and_the_priced_cells_of_chan_s_array(
+        self, source: str, days: int, members: int, priced: int, first: str, last: str
+    ) -> None:
+        entries, panel = load_panel(source)
+
+        assert panel.shape == (days, members)
+        assert int(panel.notna().to_numpy().sum()) == priced
+        assert (str(panel.index[0].date()), str(panel.index[-1].date())) == (first, last)
+        assert len(entries) == LIFTED_SOURCES[source][4]
+        assert panel.notna().any(axis=1).all()
+        assert panel.iloc[-1].notna().all(), "every member is priced on the day the file was cut"
+
+    @pytest.mark.parametrize("source", ["SPX_20071123.mat", "IJR_20080114.mat"])
+    def test_every_field_is_priced_on_exactly_the_days_the_close_is(self, source: str) -> None:
+        """Chan's arrays share one NaN pattern, so every field's panel has the close's."""
+        _, closes = load_panel(source)
+        for field in ("High", "Low", "Open", "Volume"):
+            _, panel = load_panel(source, field=field)
+            assert panel.shape == closes.shape, field
+            assert (panel.notna() == closes.notna()).all().all(), field
+
+    def test_ko_s_last_day_carries_all_five_fields(self) -> None:
+        """One row pinned whole, so a field read from the wrong column fails by value."""
+        day = "2007-11-23"
+        read = {
+            field: load_panel("SPX_20071123.mat", field=field)[1].loc[day, "KO"]
+            for field in ("Close", "High", "Low", "Open", "Volume")
+        }
+
+        assert read == {
+            "Close": 62.3,
+            "High": 62.75,
+            "Low": 61.92,
+            "Open": 62.54,
+            "Volume": 4723058.0,
+        }
+
+    def test_the_wyn_column_carries_two_companies_across_a_gap(self) -> None:
+        _, panel = load_panel("SPX_20071123.mat")
+        wyn = panel["WYN"]
+        priced = wyn.dropna()
+        before = priced[priced.index < "2006-08-01"]
+
+        assert before.iloc[-1] == 0.26
+        assert wyn.loc["2006-08-01"] == 31.85
+        assert wyn.loc["2006-07-31":"2006-07-31"].isna().all()
+        assert (
+            panel.index.get_loc(pd.Timestamp("2006-08-01")) - panel.index.get_loc(before.index[-1])
+            == 952
+        )
+
+    def test_each_panel_names_itself_in_one_line(self) -> None:
+        assert panel_line(load_panel("SPX_20071123.mat")[0]) == (
+            "spx_20071123/   chan-mat adjusted, saved 2007-11-24, "
+            "500 members lifted from SPX_20071123.mat"
+        )
+        assert panel_line(load_panel("IJR_20080114.mat")[0]) == (
+            "ijr_20080114/   chan-mat adjusted, saved 2008-01-15, "
+            "600 members lifted from IJR_20080114.mat"
+        )

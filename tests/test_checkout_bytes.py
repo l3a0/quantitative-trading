@@ -11,8 +11,9 @@ tracked file under `data/` differs from its committed blob, and
 because the list it parses was rewritten too.
 
 A runner on ubuntu never reproduces that rewrite, so no case below reads its own
-working tree. The first asks `git cat-file --filters` what a converting checkout
-would write, under a `core.autocrlf` it sets rather than inherits. The others
+working tree. The first has `git checkout-index` write what a converting
+checkout would write into a scratch directory, under a `core.autocrlf` it sets
+rather than inherits. The others
 read the index, which no platform's checkout touches. All three answer the same
 everywhere.
 
@@ -45,6 +46,7 @@ nothing to compare against.
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
 
 from chan.paths import DATA_DIR, REPO_ROOT
 
@@ -70,10 +72,10 @@ CONTROL = "README.md"
 NESTED_PROBE = f"{DATA_PREFIX}/nested/probe.csv"
 
 
-def _git(*arguments: str) -> bytes:
+def _git(*arguments: str, given: bytes | None = None) -> bytes:
     """Run git at the repository root, raising with the command when it fails."""
     command = ["git", "-C", str(REPO_ROOT), *arguments]
-    result = subprocess.run(command, capture_output=True, check=False)
+    result = subprocess.run(command, input=given, capture_output=True, check=False)
     if result.returncode != 0:
         message = result.stderr.decode("utf-8", "replace").strip()
         raise RuntimeError(f"{' '.join(command)} failed in {REPO_ROOT}: {message}")
@@ -95,15 +97,68 @@ def _committed_data_paths() -> list[str]:
     return paths
 
 
-def _checkout_bytes(path: str) -> bytes:
-    """What a checkout carrying git's Windows default would write for `path`.
+def _staged_blobs(*paths: str) -> dict[str, str]:
+    """The blob each path holds in the index, which is what a clone would receive."""
+    listing = _git("ls-files", "-z", "--stage", "--", *paths).decode("utf-8")
+    blobs = {}
+    for record in listing.split("\0"):
+        if record:
+            meta, path = record.split("\t", 1)
+            blobs[path] = meta.split()[1]
+    return blobs
 
-    The control below and the sweep share this, on purpose. A control reached
-    by its own call proves the conversion is switched on somewhere rather than
-    in the comparison that matters, so dropping the forced setting out of the
-    sweep would leave the control green.
+
+def _committed_bytes(*paths: str) -> dict[str, bytes]:
+    """What the index holds for each path, read in one `git cat-file --batch` run.
+
+    One process for the whole sweep rather than one per path. Unfiltered, the
+    size each header reports is the size of the content that follows it, so
+    the output splits cleanly. Under `--filters` it does not: the header keeps
+    the stored size while the content is the converted one, 37,542 against
+    38,229 bytes for `README.md` as it stood at `d7993f7`, which is why the
+    converting half below goes through a checkout instead.
     """
-    return _git("-c", "core.autocrlf=true", "cat-file", "--filters", f":{path}")
+    blobs = _staged_blobs(*paths)
+    asked = [blobs[path] for path in paths]
+    output = _git("cat-file", "--batch", given="".join(blob + "\n" for blob in asked).encode())
+    contents, at = {}, 0
+    for path in paths:
+        end = output.index(b"\n", at)
+        header = output[at:end].decode("utf-8").split()
+        if len(header) != 3:
+            raise RuntimeError(f"git cat-file could not read {path}: {' '.join(header)}")
+        size = int(header[2])
+        contents[path] = output[end + 1 : end + 1 + size]
+        at = end + 1 + size + 1
+    return contents
+
+
+def _checkout_bytes(scratch: Path, *paths: str) -> dict[str, bytes]:
+    """What a checkout carrying git's Windows default writes for each path.
+
+    `git checkout-index` performs that checkout into `scratch` rather than
+    being asked what it would write, so the conversion under test is the one a
+    clone runs. It takes every path in one process. The sweep used to ask
+    `git cat-file --filters` once per path, two processes a path, which was
+    0.81 s over the fifteen single-series vintages and 41.39 s
+    once the 1,100 columns lifted from Chan's `.mat` files were in the index,
+    measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
+
+    The control below and the sweep share this call, on purpose. A control
+    reached by its own call proves the conversion is switched on somewhere
+    rather than in the comparison that matters, so dropping the forced setting
+    out of the sweep would leave the control green.
+    """
+    _git(
+        "-c",
+        "core.autocrlf=true",
+        "checkout-index",
+        "-z",
+        "--stdin",
+        f"--prefix={scratch}/",
+        given="".join(path + "\0" for path in paths).encode("utf-8"),
+    )
+    return {path: (scratch / path).read_bytes() for path in paths}
 
 
 def _attribute_states(attribute: str, *paths: str) -> dict[str, str]:
@@ -117,17 +172,19 @@ def _attribute_states(attribute: str, *paths: str) -> dict[str, str]:
     return states
 
 
-def test_a_checkout_converting_line_endings_still_writes_the_committed_bytes() -> None:
+def test_a_checkout_converting_line_endings_still_writes_the_committed_bytes(
+    tmp_path: Path,
+) -> None:
     paths = _committed_data_paths()
-    assert _checkout_bytes(CONTROL) != _git("cat-file", "blob", f":{CONTROL}"), (
+    written = _checkout_bytes(tmp_path, CONTROL, *paths)
+    stored = _committed_bytes(CONTROL, *paths)
+    assert written[CONTROL] != stored[CONTROL], (
         f"a converting checkout leaves {CONTROL} unchanged, so the comparison below is "
         f"asserting nothing. Either the forced core.autocrlf is no longer reaching git, or "
         f"a rule now covers {CONTROL} as well, in which case pick a control outside it."
     )
 
-    rewritten = [
-        path for path in paths if _checkout_bytes(path) != _git("cat-file", "blob", f":{path}")
-    ]
+    rewritten = [path for path in paths if written[path] != stored[path]]
 
     named = ", ".join(rewritten)
     assert not rewritten, (
@@ -180,7 +237,7 @@ def test_the_rule_lives_in_a_blob_a_clone_receives() -> None:
     """Git resolves an attribute from files a clone never gets.
 
     `.git/info/attributes` and `core.attributesFile` both feed `check-attr` and
-    `cat-file --filters`, and neither is cloned. Measured: moving the rule into
+    `checkout-index`, and neither is cloned. Measured: moving the rule into
     `.git/info/attributes` leaves the two cases above green while a clone made
     from that tree fails every vintage. So the rule has to be read out of the
     index rather than asked of git.

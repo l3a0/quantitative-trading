@@ -11,7 +11,7 @@ here instead of there. It does not live in :mod:`chan.pair_cointegration`
 either, which is a Chapter 7 replication, and every experiment that reads a
 series would then import a chapter to open a file.
 
-Two sources, told apart by what the manifest records rather than by a filename.
+Three sources, told apart by what the manifest records rather than by a filename.
 
 - The yfinance set, the default. ``adjusted`` carries Yahoo's
   dividend-adjusted close, and ``raw`` carries the as-traded close when
@@ -19,6 +19,8 @@ Two sources, told apart by what the manifest records rather than by a filename.
 - Chan's book-companion set, with ``chan=True``. Those entries carry the
   vendor ``chan-xls`` and are the adjusted-close column of Chan's own ``.xls``
   for that symbol.
+- Chan's two MATLAB cross-sections, under the vendor ``chan-mat``, which
+  :func:`load_panel` reads a whole file at a time and no ticker flag names.
 
 The basis decides the levels. GLD pays no distributions, so its adjusted close
 already equals its raw close, while GDX's dividends put today's adjusted
@@ -38,15 +40,22 @@ committed vintage can change scale partway through, and the record says
 nothing about it, so :func:`scale_breaks` reads each series against itself day
 over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
-Two days of ``ko_chan.csv`` are flagged today and nothing computes across
-them, which is what says the guard reports a real thing rather than a
-hypothetical.
+Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
+which is what says the guard reports a real thing rather than a hypothetical.
+The columns lifted from Chan's MATLAB files carry 62 more flagged days, most of
+them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
+of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands
 back both manifest entries, so this module reads two series as well as one.
 It sat in :mod:`chan.pair_cointegration` until
 [issue 122](https://github.com/l3a0/quantitative-trading/issues/122), and it
 is here for the reason the paragraph above gives for the parse.
+
+:func:`load_panel` reads a whole source file's columns as one date-by-symbol
+frame, which is how Chan's cross-sectional examples read his ``.mat`` files.
+[Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
+those as one vintage per stock, and the panel is what puts them back together.
 """
 
 from __future__ import annotations
@@ -60,7 +69,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from chan.vintage import VintageEntry, read_vintage, resolve_vintage
+from chan.vintage import (
+    VintageEntry,
+    VintageUnavailable,
+    read_manifest,
+    read_vintage,
+    resolve_vintage,
+)
 
 #: A day-over-day price ratio further than this from 1, in log terms, is a scale break.
 #:
@@ -194,6 +209,92 @@ def vintage_line(entry: VintageEntry) -> str:
     """
     return (
         f"{entry.path}   {entry.vendor} {entry.price_basis}, {entry.obtained_verb} {entry.obtained}"
+    )
+
+
+def load_panel(
+    source_file: str, *, field: str = "Close", data_dir: Path | None = None
+) -> tuple[list[VintageEntry], pd.DataFrame]:
+    """Every stock lifted from one source file, as a date-by-symbol frame of one field.
+
+    ``field`` is a name from :data:`chan.vintage.LIFTED_FIELDS`, the close by
+    default. A member's file names its fields in its first row, and a member
+    that does not carry the one asked for is refused by name rather than read
+    as a column of NaN.
+
+    The members are the entries whose ``source_workbook`` names the file, and
+    they come back sorted by symbol, which is the frame's column order too.
+    Both of Chan's ``.mat`` files already hold their columns in that order,
+    measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
+
+    The manifest is read once. Resolving each member by its identity fields
+    would read it once per member, and at 1,115 entries that measured 4.2 s
+    for the 500 members of the S&P 500 file, against 0.03 s for hashing their
+    bytes. Every member is still read through :func:`read_vintage`, so each one
+    is hashed against its entry before it is parsed.
+
+    The frame's index is the union of the members' dates. A member's file holds
+    only the days its source priced it, so a day it was not priced is NaN here,
+    which is what the source held. Compute returns on this frame rather than on
+    one member's own rows. Two of the S&P 500 file's columns each hold two
+    companies under one symbol across a gap, and a return taken over a member's
+    own rows reads that gap as one day's move.
+
+    A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
+    A source naming no entry, members disagreeing on the vendor, basis or date
+    they carry, and two members holding one symbol are three different states,
+    and the message says which fired.
+    """
+    try:
+        entries = read_manifest(data_dir)
+    except (OSError, ValueError) as unreadable:
+        raise VintageUnavailable(
+            f"the vintage manifest could not be read, so {source_file} cannot be: {unreadable}"
+        ) from unreadable
+
+    members = sorted(
+        (entry for entry in entries if entry.source_workbook == source_file),
+        key=lambda entry: entry.symbol,
+    )
+    if not members:
+        raise VintageUnavailable(f"no committed vintage is lifted from {source_file}")
+    carried = sorted({(entry.vendor, entry.price_basis, entry.obtained) for entry in members})
+    if len(carried) > 1:
+        raise VintageUnavailable(
+            f"the {len(members)} vintages lifted from {source_file} disagree on what they are: "
+            f"{'; '.join(' '.join(each) for each in carried)}. One source was saved once, so "
+            f"its columns carry one vendor, one basis and one date."
+        )
+    symbols = [entry.symbol for entry in members]
+    repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
+    if repeated:
+        raise VintageUnavailable(
+            f"{source_file} has more than one vintage for {', '.join(repeated)}, so the panel "
+            f"cannot say which is the column"
+        )
+
+    columns = {}
+    for entry in members:
+        payload = read_vintage(entry, data_dir=data_dir)
+        columns[entry.symbol] = _parse_close(
+            payload, entry.symbol, column=_column_of(payload, field, entry.path)
+        )
+    # The columns keep the dict's order, which is the members' sorted order.
+    return members, pd.DataFrame(columns).sort_index()
+
+
+def panel_line(members: Sequence[VintageEntry]) -> str:
+    """A panel as a report prints it, in one line rather than one per member.
+
+    :func:`vintage_line` names one file. A panel of 500 would print 500 of
+    those, so this names the directory, the count, and the vendor, basis and
+    date every member shares, which :func:`load_panel` has already checked.
+    """
+    first = members[0]
+    directory = first.path.rsplit("/", 1)[0] if "/" in first.path else first.path
+    return (
+        f"{directory}/   {first.vendor} {first.price_basis}, {first.obtained_verb} "
+        f"{first.obtained}, {len(members)} members lifted from {first.source_workbook}"
     )
 
 
@@ -433,21 +534,50 @@ def _dates(days: pd.DatetimeIndex) -> str:
     return ", ".join(str(day.date()) for day in days)
 
 
-def _parse_close(payload: bytes, ticker: str) -> pd.Series:
+def _column_of(payload: bytes, field: str, path: str) -> int:
+    """Which column of a vintage's bytes holds ``field``.
+
+    The close is the second column in every vintage here, whatever header it
+    carries, so it needs no lookup. Any other field is found in the first row,
+    which a lifted file writes as ``Price,`` followed by its fields.
+    """
+    if field == "Close":
+        return 1
+    first = payload.split(b"\n", 1)[0].decode("utf-8").split(",")
+    if first[0] != "Price" or field not in first[1:]:
+        raise VintageUnavailable(f"{path} carries no {field} column, only {', '.join(first[1:])}")
+    return first.index(field)
+
+
+def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
     """The series held in ``payload``, which is the buffer that was hashed.
 
     Parsing from the bytes rather than reopening the path is what makes one
     read answer both questions. Replacing the file between the hash and the
     parse then cannot change what comes back.
 
-    The hand-written vintages carry a three-row header (Price/Close,
-    Ticker/SYM, Date/blank), which is yfinance's multi-index frame and the
-    shape the workbook columns were written into, and a recorded one carries a
-    single ``Date,Close``. Rather than hard-code a skip count, every leading
+    The hand-written vintages and the columns ``record_lifted_columns`` writes
+    carry a three-row header (Price/Close, Ticker/SYM, Date/blank), which is
+    yfinance's multi-index frame and the shape the workbook columns were
+    written into, and one ``record_vintage`` writes carries a single
+    ``Date,Close``. Rather than hard-code a skip count, every leading
     row whose first field is not a parseable date is dropped, so either shape
     loads.
+
+    ``column`` is which column holds the values, the close's by default. A
+    lifted file carries a stock's other fields after its close, and
+    :func:`load_panel` passes the column of the one it was asked for.
     """
-    raw = pd.read_csv(io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1])
+    if column == 1:
+        # The call every single-series vintage has always been read through,
+        # kept exact. Naming the columns lets a first row of any width parse.
+        raw = pd.read_csv(io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1])
+    else:
+        # A lifted file's first row names all its fields, so its width is the
+        # file's and the column can be picked by position.
+        raw = pd.read_csv(io.BytesIO(payload), header=None, usecols=[0, column]).set_axis(
+            ["date", "close"], axis=1
+        )
     with warnings.catch_warnings():
         # The header rows ("Date", "Ticker") do not parse as dates, and coerce
         # drops them to NaT. pandas warns about the mixed formats, expected here.

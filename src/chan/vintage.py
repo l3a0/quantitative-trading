@@ -43,16 +43,25 @@ below does not, because it replaces the whole manifest. Nothing runs this
 concurrently and nothing is planned to, so the assumption is written down here
 instead of defended in code.
 
-Only a download is recorded. The committed ``*_chan.csv`` vintages carry
-``saved_date`` and ``source_workbook`` because they are columns lifted from
-Ernest Chan's workbooks, and no caller can produce one of those through this
-module. Reading them back is supported and writing one is not, which stays a
-decision now that ``spy_chan.csv`` has arrived and shown that such a vintage
-still gets typed in by hand. ``docs/design.md``'s register carries the price a
-saved-date parameter would charge, which is a second naming convention and the
-check that asserts the first one. What holds a hand-typed line instead is the
-identity pinned for it in ``tests/support/committed_vintages.py`` and the
-``Ticker,`` header row its own bytes carry.
+:func:`record_vintage` records only a download. A column lifted from one of
+Ernest Chan's files carries ``saved_date`` and ``source_workbook`` instead,
+because nothing was fetched on the day it carries. The five ``*_chan.csv``
+columns lifted from his workbooks were typed into the manifest by hand, one line
+each, and ``docs/design.md``'s register carries why the recorder was not given
+a saved-date parameter for them: a second naming convention, and the check that
+asserts the first one, bought to save one typed line per workbook column.
+
+:func:`record_lifted_columns` is the second writer, and it exists because that
+price stopped being one line per column.
+[Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) needed the
+500 columns of Chan's S&P 500 file and the 600 of his S&P 600 file, and the
+owner decided on 2026-10-02 that entries at that count are written by code. It
+writes a whole source in one call, under a directory named for the source file,
+so it needs no naming convention ``vintage_filename`` has to share. It takes
+rows, like the recorder, so reading a ``.mat`` file stays outside this module
+and :mod:`chan.mat_columns` does it. What holds a lifted line is the identity
+pinned for its source in ``tests/support/committed_vintages.py``, or for a
+workbook column its path, and the ``Ticker,`` header row its own bytes carry.
 
 The identity fields are compared as strings, so one source needs one spelling.
 Case is normalised and the price basis is one of the three terms the design
@@ -78,7 +87,7 @@ import math
 import os
 import re
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import MISSING, asdict, dataclass, fields
 from datetime import date
 from pathlib import Path
@@ -115,6 +124,23 @@ PRICE_BASES = ("raw", "adjusted", "rate")
 VENDOR_PATTERN = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 SYMBOL_PATTERN = re.compile(r"^[A-Z0-9^][A-Z0-9.=^-]*$")
 
+# The directory a lifted source's columns land in, which is the source file's
+# stem lowercased. An underscore is allowed here, unlike in a vendor, because
+# nothing joins this name with others. Everything else follows the reasoning
+# above: no separator, no whitespace, and a first character that cannot start
+# a path reaching out of the data directory.
+SOURCE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+
+#: The fields a lifted row may carry, in the order its file writes them.
+#:
+#: It is the order yfinance's multi-index frame writes one ticker's fields in,
+#: which is the header shape every hand-placed vintage already carries, and it
+#: puts the close in the second column. Every reader here takes the close from
+#: there, so a file holding all five reads exactly as a file holding the close
+#: alone. A lifted source names the fields it carries, and they must be a run of
+#: these in this order starting at the close.
+LIFTED_FIELDS = ("Close", "High", "Low", "Open", "Volume")
+
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -147,10 +173,11 @@ class VintageEntry:
     """One line of ``data/vintages.jsonl``.
 
     Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
-    one it is holds an ISO calendar date. A download carries the first. The
-    ``*_chan.csv`` files carry the second, because their date is when Ernest
-    Chan last saved the workbook a column was lifted from and nothing was
-    fetched on that day. Putting a save date in a field named for a download
+    one it is holds an ISO calendar date. A download carries the first. A
+    column lifted from one of Ernest Chan's files carries the second, the
+    ``*_chan.csv`` workbook columns and the members of the two ``.mat``
+    directories alike, because its date is when Chan last saved the file and
+    nothing was fetched on that day. Putting a save date in a field named for a download
     would hand the next reader a wrong fact in the field that identifies the
     vintage.
 
@@ -163,8 +190,8 @@ class VintageEntry:
     the three is also what makes their ``str`` annotations true of an entry read
     back, since the line is free to hold a list where the class says a string.
 
-    ``source_workbook`` names the spreadsheet a column was lifted from, and the
-    ``*_chan.csv`` entries are the only ones carrying it. It is recorded
+    ``source_workbook`` names the file a column was lifted from, and only those
+    lifted columns carry it. It is recorded
     rather than derived because a symbol does not carry it. Chan's
     ``example6_2.xls`` holds a SPY column, and a ``SPY.xls`` in the same mirror
     holds a different series, so a filename joined from the symbol would name a
@@ -189,8 +216,15 @@ class VintageEntry:
     table, which states the same workbook in the same spelling, and the
     assertion in ``tests/test_vintage.py`` that compares the two.
 
+    The name says spreadsheet and the field holds any file a column was lifted
+    from. The 1,100 columns lifted from Chan's two MATLAB files carry
+    ``SPX_20071123.mat`` or ``IJR_20080114.mat`` here. Renaming the field would
+    rewrite every committed line to say the same thing, so the name stays and
+    this paragraph widens it.
+
     Like ``saved_date``, it is a field :func:`record_vintage` can never write,
     since the recorder takes rows and a download date and no workbook at all.
+    :func:`record_lifted_columns` writes both.
 
     The span is not checked here, because nothing in ``src/`` reads it. The path
     is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
@@ -469,6 +503,144 @@ def record_vintage(
     return entry
 
 
+def record_lifted_columns(
+    columns: Mapping[str, Iterable[tuple]],
+    *,
+    vendor: str,
+    price_basis: str,
+    saved_date: str,
+    source_file: str,
+    fields: Sequence[str] = ("Close",),
+    data_dir: Path | None = None,
+) -> list[VintageEntry]:
+    """Write every stock in one source file as a vintage, or refuse and leave no trace.
+
+    ``columns`` maps each symbol to its rows. A row is an ISO date followed by
+    one value per name in ``fields``, which defaults to the close alone, so a
+    close-only row is the pair :func:`record_vintage` takes. A day the source
+    did not price is a missing row rather than a NaN the rows would refuse.
+    ``saved_date`` is when the source was saved, and ``source_file`` is its
+    name, which every entry carries as ``source_workbook``.
+
+    One file holds every field of one stock, so a stock is one vintage however
+    many fields it carries. An open series written as a vintage of its own
+    would share vendor, symbol, basis and date with the close, and nothing in
+    an entry's identity could tell the two apart. ``price_basis`` names the
+    prices. A volume is written as the source holds it, as a whole number, and
+    a value in it that is not one is refused rather than rounded.
+
+    Each column lands at ``<source>/<symbol>.csv``, where ``<source>`` is the
+    file's stem and both are lowercased, so ``SPX_20071123.mat``'s KO column is
+    ``spx_20071123/ko.csv``. A directory per source keeps its members from
+    sitting beside the README, and it keeps a member from taking a name another
+    vintage holds, such as ``ko_chan.csv``. The file carries the three-row
+    header the hand-placed vintages carry, widened to its fields, so its
+    ``Ticker,`` row names the stock its bytes hold.
+
+    The order follows :func:`record_vintage`'s, one source at a time.
+
+    1. Everything is checked before anything is written. A source the manifest
+       already names, a path it already holds and a directory already on disk
+       are each refused by name, so a second run is refused rather than
+       producing a second copy of part of a universe.
+    2. Every entry is appended in one write, before any file. A crash then
+       leaves entries with no files, which a verifier reports, rather than
+       files with no entries.
+    3. The files are written and each is checked against the hash its entry
+       records.
+    4. Any failure removes the files this call wrote, the directory it made and
+       the entries it appended, so a rerun starts from the record as it was.
+    5. ``data/checksums.sha256`` is regenerated once, at the end, rather than
+       once per member, which at 600 members is the difference between one read
+       of the manifest and 600.
+    """
+    directory = paths.DATA_DIR if data_dir is None else data_dir
+    _validated_date(saved_date, "saved date")
+    source = _validated_source(source_file)
+    fields = _validated_fields(fields, source_file)
+
+    entries, payloads = [], []
+    for symbol in sorted(columns):
+        try:
+            rows = _validated_wide_rows(columns[symbol], fields)
+        except ValueError as refused:
+            # The rows' own refusals name a date and not the column, and a
+            # source holds hundreds of them, so the symbol is what says where.
+            raise ValueError(f"{source_file} {symbol}: {refused}") from refused
+        held_vendor, held_symbol, held_basis = _validated_identity(vendor, symbol, price_basis)
+        days = [row[0] for row in rows]
+        payload = _serialize_lifted(held_symbol, fields, rows)
+        entries.append(
+            VintageEntry(
+                vendor=held_vendor,
+                symbol=held_symbol,
+                price_basis=held_basis,
+                first_date=min(days),
+                last_date=max(days),
+                path=f"{source}/{held_symbol.lower()}.csv",
+                row_count=len(rows),
+                sha256=hashlib.sha256(payload).hexdigest(),
+                saved_date=saved_date,
+                source_workbook=source_file,
+            )
+        )
+        payloads.append(payload)
+
+    if not entries:
+        raise ValueError(f"{source_file}: a source with no columns records nothing")
+    repeated = sorted(
+        path for path, seen in Counter(entry.path for entry in entries).items() if seen > 1
+    )
+    if repeated:
+        raise ValueError(
+            f"{source_file}: two symbols lower to one path, so one would overwrite the other: "
+            f"{', '.join(repeated)}"
+        )
+
+    recorded = read_manifest(directory)
+    if any(entry.source_workbook == source_file for entry in recorded):
+        raise VintageRefused(f"{source_file}: the manifest already holds entries lifted from it")
+    taken = sorted({entry.path for entry in recorded} & {entry.path for entry in entries})
+    if taken:
+        raise VintageRefused(f"{taken[0]}: the manifest already holds an entry for it")
+    target = directory / source
+    if target.exists():
+        raise VintageRefused(f"{source}: the directory is already on disk with no manifest entry")
+
+    _append_entries(directory, entries)
+    written: list[Path] = []
+    made: list[Path] = []
+    try:
+        target.mkdir()
+        made.append(target)
+        for entry, payload in zip(entries, payloads, strict=True):
+            path = directory / entry.path
+            _write_new_file(path, payload)
+            written.append(path)
+            if hashlib.sha256(path.read_bytes()).hexdigest() != entry.sha256:
+                raise OSError(
+                    f"{entry.path}: the file on disk does not match the bytes that were hashed"
+                )
+    except FileExistsError as claimed:
+        _undo_lifted(directory, entries, written, made)
+        raise VintageRefused(
+            f"{source}: a path was taken before the write could claim it"
+        ) from claimed
+    except BaseException:
+        _undo_lifted(directory, entries, written, made)
+        raise
+
+    try:
+        write_checksums(directory)
+    except OSError as unwritable:
+        raise OSError(
+            f"{source_file}: the {len(entries)} vintages are recorded and verified, and "
+            f"{CHECKSUMS_NAME} could not be regenerated from the manifest. Recording them again "
+            f"will be refused, which is right. Regenerate the projection instead."
+        ) from unwritable
+    return entries
+
+
 def write_checksums(data_dir: Path | None = None) -> None:
     """Regenerate ``data/checksums.sha256`` from the manifest.
 
@@ -744,12 +916,24 @@ def _unrecorded(directory: Path, entries: list[VintageEntry]) -> list[str] | Non
     download reaching a result, so "nothing is unrecorded" and "the scan could
     not run" must not be the same answer. A directory that is traversable but
     not readable reaches the second: the manifest still opens by name and the
-    glob still fails.
+    listing still fails.
+
+    It walks the whole tree, because a source's columns sit in a directory of
+    their own. A listing of the top level alone would stop seeing a stray file
+    beside them, which is this detector going quiet where the members live.
+    ``os.walk`` reports a directory it cannot list to ``onerror`` rather than
+    raising, so a failure anywhere in the walk is collected and turned into
+    ``None`` rather than read as nothing found.
     """
     recorded = {entry.path for entry in entries}
-    try:
-        present = sorted(found.name for found in directory.iterdir() if found.is_file())
-    except OSError:
+    unlisted: list[OSError] = []
+    present = sorted(
+        (Path(root) / name).relative_to(directory).as_posix()
+        for root, _, names in os.walk(directory, onerror=unlisted.append)
+        for name in names
+        if (Path(root) / name).is_file()
+    )
+    if unlisted:
         return None
     return [name for name in present if name.endswith(".csv") and name not in recorded]
 
@@ -853,6 +1037,106 @@ def _serialize(rows: list[tuple[str, float]]) -> bytes:
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
+def _validated_source(source_file: str) -> str:
+    """The directory a source's columns land in, or a refusal naming the file.
+
+    A bare filename, because the name is recorded in every entry and a path
+    would record where somebody's copy sat. The stem becomes a directory under
+    ``data/``, so it obeys :data:`SOURCE_PATTERN`.
+    """
+    if not isinstance(source_file, str) or Path(source_file).name != source_file:
+        raise ValueError(f"source file {source_file!r} is not a bare filename")
+    stem = Path(source_file).stem.lower()
+    if not SOURCE_PATTERN.match(stem):
+        raise ValueError(f"source file {source_file!r} carries a character a path cannot")
+    return stem
+
+
+def _validated_fields(fields: Sequence[str], source_file: str) -> tuple[str, ...]:
+    """The fields a source carries, or a refusal saying why they cannot be written.
+
+    A run of :data:`LIFTED_FIELDS` from the close onwards, so the close is
+    always the second column and the order is the one the header shape comes
+    from.
+    """
+    held = tuple(fields)
+    if held != LIFTED_FIELDS[: len(held)] or not held:
+        raise ValueError(
+            f"{source_file}: fields {held!r} are not a run of {LIFTED_FIELDS} starting at "
+            f"the close, which is the column every reader takes"
+        )
+    return held
+
+
+def _validated_wide_rows(rows: Iterable[tuple], fields: tuple[str, ...]) -> list[tuple]:
+    """Each row as its date and its values, after the checks a close is held to.
+
+    The date and the close go through :func:`_validated_rows`, so a lifted
+    close is refused for exactly what a recorded one is. Every other price must
+    be a finite number too. A volume must be a whole number, because a volume
+    written as ``1200.0`` claims a precision the source never held and one
+    written from ``1200.5`` would have to be rounded by somebody.
+    """
+    materialized = [tuple(row) for row in rows]
+    for row in materialized:
+        if len(row) != 1 + len(fields):
+            raise ValueError(
+                f"a row carries {len(row) - 1} values and the source names {len(fields)} fields: "
+                f"{row!r}"
+            )
+    closes = _validated_rows((row[0], row[1]) for row in materialized)
+    wide = []
+    for (day, close), row in zip(closes, materialized, strict=True):
+        values: list[float | int] = [close]
+        for field, value in zip(fields[1:], row[2:], strict=True):
+            if field == "Volume" and isinstance(value, int) and not isinstance(value, bool):
+                # Kept exact. A float holds every whole number only up to 2**53,
+                # and a volume handed over as an int is already the whole number.
+                values.append(value)
+                continue
+            try:
+                number = float(value)
+            except (TypeError, ValueError) as unusable:
+                raise ValueError(f"the {field} on {day} is not a number: {value!r}") from unusable
+            if not math.isfinite(number):
+                raise ValueError(f"the {field} on {day} is not a finite number: {value!r}")
+            if field == "Volume":
+                if not number.is_integer():
+                    raise ValueError(f"the Volume on {day} is not a whole number: {value!r}")
+                values.append(int(number))
+            else:
+                values.append(number)
+        wide.append((day, *values))
+    return wide
+
+
+def _serialize_lifted(symbol: str, fields: tuple[str, ...], rows: list[tuple]) -> bytes:
+    """A lifted stock's bytes: the three-row header, then one line per day.
+
+    The header is yfinance's multi-index shape, which the hand-placed vintages
+    carry, widened to the stock's fields: a row naming the fields, a row
+    naming the ticker once per field, and a row naming the date column. That
+    is what puts the symbol in the bytes, and ``tests/test_vintage.py`` reads it
+    back against the entry. With the close alone the three rows are byte for
+    byte the ones every ``*_chan.csv`` file carries.
+
+    A price is written as :func:`_serialize` writes a close, and a volume as
+    the whole number it is.
+    """
+    lines = [
+        ",".join(["Price", *fields]),
+        ",".join(["Ticker", *[symbol] * len(fields)]),
+        "Date" + "," * len(fields),
+    ]
+    lines.extend(",".join([day, *(_cell(value) for value in values)]) for day, *values in rows)
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def _cell(value: float | int) -> str:
+    """One value as a lifted file writes it: a whole volume plainly, a price by ``repr``."""
+    return str(value) if isinstance(value, int) else repr(value)
+
+
 def _append_entry(data_dir: Path, entry: VintageEntry) -> None:
     """Add one line, after making sure the file ends in one.
 
@@ -860,12 +1144,38 @@ def _append_entry(data_dir: Path, entry: VintageEntry) -> None:
     glued onto it. That loses both lines rather than one, and leaves the file
     unreadable to everything that opens it afterwards, including the rollback.
     """
+    _append_entries(data_dir, [entry])
+
+
+def _append_entries(data_dir: Path, entries: list[VintageEntry]) -> None:
+    """Add every line in one write, which is what :func:`_append_entry` does for one."""
     manifest = _manifest_path(data_dir)
     existing = manifest.read_bytes()
     with open(manifest, "ab") as handle:
         if existing and not existing.endswith(b"\n"):
             handle.write(b"\n")
-        handle.write((entry.as_json() + "\n").encode("utf-8"))
+        handle.write("".join(entry.as_json() + "\n" for entry in entries).encode("utf-8"))
+
+
+def _undo_lifted(
+    data_dir: Path, entries: list[VintageEntry], written: list[Path], made: list[Path]
+) -> None:
+    """Take a failed source back out: its files, its directory, then its entries.
+
+    Only what this call wrote is removed, so a file or a directory another
+    writer claimed first is left where it is. ``made`` holds the directory only
+    once this call's own ``mkdir`` succeeded, and it goes only if it is empty
+    afterwards. The entries go last and together, compared on the whole entry
+    as :func:`_drop_entry` does.
+    """
+    for path in written:
+        path.unlink(missing_ok=True)
+    for directory in made:
+        try:
+            directory.rmdir()
+        except OSError:
+            pass
+    _rewrite_manifest(data_dir, [kept for kept in read_manifest(data_dir) if kept not in entries])
 
 
 def _drop_entry(data_dir: Path, entry: VintageEntry) -> None:

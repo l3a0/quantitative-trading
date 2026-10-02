@@ -35,8 +35,10 @@ from chan.vintage import (
 )
 from tests.support.committed_vintages import (
     HAND_WRITTEN,
+    LIFTED_SOURCES,
     committed_copy,
     identity_of,
+    in_a_lifted_source,
     rewrite_entry,
 )
 from tests.support.vintage_table import (
@@ -1092,6 +1094,41 @@ def the_hand_written_identities_are_pinned(directory: Path) -> None:
         assert path in by_path, path
         assert identity_of(by_path[path]) == pinned, path
 
+    the_lifted_sources_are_pinned(directory)
+
+
+def the_lifted_sources_are_pinned(directory: Path) -> None:
+    """Every member of a lifted source carries what its source's pin says, and all are there.
+
+    The members are found two ways, by the directory their path sits in and by
+    the source their entry names, and the union is what is held. A member
+    edited to name another source still sits in its directory, and one moved to
+    another directory still names its source, so either edit fails here rather
+    than taking the member out of the set being checked.
+
+    The count is what notices a member dropped with its file, which leaves no
+    entry naming a missing file and nothing else for the suite to find.
+    """
+    entries = read_manifest(directory)
+    for source, (vendor, basis, saved, folder, count) in LIFTED_SOURCES.items():
+        members = [
+            entry
+            for entry in entries
+            if entry.source_workbook == source or entry.path.startswith(f"{folder}/")
+        ]
+        assert len(members) == count, (
+            f"{source}: the pin says {count} members and the manifest holds {len(members)}"
+        )
+        for entry in members:
+            assert (
+                entry.vendor,
+                entry.price_basis,
+                entry.download_date,
+                entry.saved_date,
+                entry.source_workbook,
+            ) == (vendor, basis, None, saved, source), entry.path
+            assert entry.path == f"{folder}/{entry.symbol.lower()}.csv", entry.path
+
 
 def the_hand_written_entries_name_their_series(directory: Path) -> None:
     """The hash, the row count and the span say nothing about which series it is.
@@ -1108,9 +1145,12 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     by `the_recorded_entries_name_themselves` instead, out of the path.
 
     This is what covers a workbook column, which is the reason `spy_chan.csv`
-    joined `HAND_WRITTEN` rather than being left outside it. The check skips
-    any entry not in that set, so a workbook column left out would be covered
-    here not at all.
+    joined `HAND_WRITTEN` rather than being left outside it. It covers every
+    column lifted from a source `LIFTED_SOURCES` pins too, because
+    `record_lifted_columns` writes the same header, widened to one cell per
+    field, so the row reads `Ticker,KO,KO,KO,KO,KO` and every cell after the
+    first must name the entry's symbol. The check skips any entry in neither,
+    so a lifted column left out would be covered here not at all.
 
     The symbol compared is the entry's rather than the one `HAND_WRITTEN` pins,
     which is what keeps this a second hold rather than a restatement of the
@@ -1118,10 +1158,13 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     and pass over a manifest naming a series its file does not carry.
     """
     for entry in read_manifest(directory):
-        if entry.path not in HAND_WRITTEN:
+        if entry.path not in HAND_WRITTEN and not in_a_lifted_source(entry.path):
             continue
-        header = (directory / entry.path).read_text(encoding="utf-8").splitlines()[1]
-        assert header == f"Ticker,{entry.symbol}", entry.path
+        lines = (directory / entry.path).read_text(encoding="utf-8").splitlines()
+        cells = lines[1].split(",")
+        assert cells[0] == "Ticker" and len(cells) > 1, entry.path
+        assert set(cells[1:]) == {entry.symbol}, entry.path
+        assert len(cells) == len(lines[0].split(",")), entry.path
 
 
 def the_recorded_entries_name_themselves(directory: Path) -> None:
@@ -1156,10 +1199,12 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
        vintage and the next one arrives by hand too.
        [Issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is
        where that was settled, and `docs/design.md`'s register carries why the
-       recorder was not taught to write a saved date instead.
+       recorder was not taught to write a saved date instead. A column lifted
+       by `record_lifted_columns` is skipped by the directory it sits in, which
+       `LIFTED_SOURCES` pins, rather than by a list of its paths.
     """
     for entry in read_manifest(directory):
-        if entry.path in HAND_WRITTEN:
+        if entry.path in HAND_WRITTEN or in_a_lifted_source(entry.path):
             continue
         assert entry.download_date is not None, f"{entry.path} carries no download date"
         assert entry.path == vintage_filename(
@@ -1204,32 +1249,93 @@ def the_table_and_the_manifest_agree(directory: Path) -> None:
     the table gives every other filename.
     """
     rows = read_table(directory)
-    entries = {entry.path: entry for entry in read_manifest(directory)}
+    owed = _rows_the_manifest_owes(read_manifest(directory))
 
-    for path in entries:
+    for path in owed:
         assert path in rows, f"{path}: the manifest records it and the table has no row for it"
     for path in rows:
-        assert path in entries, f"{path}: the table has a row for it and the manifest records none"
+        assert path in owed, f"{path}: the table has a row for it and the manifest records none"
 
-    for path, entry in entries.items():
-        for column, stated, given in (
-            ("File", rows[path]["File"], f"`{entry.path}`"),
-            ("Vendor", rows[path]["Vendor"], _vendor_cell(entry)),
-            ("Symbol", rows[path]["Symbol"], entry.symbol),
-            ("Price", rows[path]["Price"], entry.price_basis),
-            ("Span", rows[path]["Span"], f"{entry.first_date} .. {entry.last_date}"),
-            ("Downloaded", rows[path]["Downloaded"], _date_cell(entry)),
-        ):
+    for path, cells in owed.items():
+        for column, given in cells.items():
+            stated = rows[path][column]
             assert stated == given, (
                 f"{path}: the table's {column} cell says {stated!r} where the entry gives {given!r}"
             )
+
+
+def _rows_the_manifest_owes(entries: list[VintageEntry]) -> dict[str, dict[str, str]]:
+    """The cells the table must hold, keyed by what its File cell names.
+
+    A vintage at the top of `data/` gets a row of its own. Every vintage in a
+    directory shares one row, keyed by the directory, because a source lifted as
+    one vintage per column puts hundreds of them there and a table of 1,100 rows
+    is the hand-written surface [issue
+    88](https://github.com/l3a0/quantitative-trading/issues/88) set out not to
+    build. That row states what every member shares: the vendor cell, the basis
+    and the date, each of which must be one value across the directory or the
+    failure names the directory and the values. The Symbol cell holds the member
+    count and the Span cell the earliest and latest date any member carries.
+    The directory is read off the manifest rather than off `LIFTED_SOURCES`, so
+    this check stays a comparison of two surfaces rather than of one against a
+    pin.
+    """
+    groups: dict[str, list[VintageEntry]] = {}
+    for entry in entries:
+        folder, _, _ = entry.path.rpartition("/")
+        groups.setdefault(f"{folder}/" if folder else entry.path, []).append(entry)
+
+    owed = {}
+    for key, members in groups.items():
+        if not key.endswith("/"):
+            (entry,) = members
+            owed[key] = {
+                "File": f"`{entry.path}`",
+                "Vendor": _vendor_cell(entry),
+                "Symbol": entry.symbol,
+                "Price": entry.price_basis,
+                "Span": f"{entry.first_date} .. {entry.last_date}",
+                "Downloaded": _date_cell(entry),
+            }
+            continue
+        shared = {}
+        for column, cell in (
+            ("Vendor", _vendor_cell),
+            ("Price", lambda entry: entry.price_basis),
+            ("Downloaded", _date_cell),
+        ):
+            values = sorted({cell(entry) for entry in members})
+            assert len(values) == 1, (
+                f"{key}: its {len(members)} vintages give {len(values)} values for the "
+                f"{column} cell, so one row cannot state them: {', '.join(values)}"
+            )
+            shared[column] = values[0]
+        owed[key] = {
+            "File": f"`{key}`",
+            "Vendor": shared["Vendor"],
+            "Symbol": f"{len(members)} members",
+            "Price": shared["Price"],
+            "Span": (
+                f"{min(entry.first_date for entry in members)} .. "
+                f"{max(entry.last_date for entry in members)}"
+            ),
+            "Downloaded": shared["Downloaded"],
+        }
+    return owed
+
+
+#: The vendors a column lifted from one of Chan's own files carries, whose
+#: Vendor cell names the file rather than the vendor: his workbooks and his
+#: MATLAB files.
+CHANS_VENDORS = ("chan-xls", "chan-mat")
 
 
 def _vendor_cell(entry: VintageEntry) -> str:
     """The Vendor cell the table writes for one entry.
 
     The two surfaces disagree here by spelling rather than by fact. The manifest
-    writes `chan-xls` in the vendor field and the workbook in `source_workbook`,
+    writes `chan-xls` or `chan-mat` in the vendor field and the source file in
+    `source_workbook`,
     and the table writes the workbook, which is the pair in a form one cell can
     hold.
 
@@ -1248,18 +1354,19 @@ def _vendor_cell(entry: VintageEntry) -> str:
     Vendor column's expected value comes from the entry like every other, so
     `where the entry gives` still says where it came from.
 
-    A `chan-xls` entry carrying no workbook fails here by naming itself, rather
+    An entry under either of Chan's vendors carrying no workbook fails here by
+    naming itself, rather
     than writing a cell holding the word `None`.
     `the_table_and_the_manifest_agree`'s docstring says a failure there is an
     instruction to whoever writes the row, and this is the same instruction one
     step earlier: the manifest line is what has to say which spreadsheet the
     column came from.
     """
-    if entry.vendor != "chan-xls":
+    if entry.vendor not in CHANS_VENDORS:
         return entry.vendor
     assert entry.source_workbook is not None, (
-        f"{entry.path}: the entry names vendor 'chan-xls' and no source workbook, so nothing "
-        f"says which of Chan's spreadsheets the column came from"
+        f"{entry.path}: the entry names vendor {entry.vendor!r} and no source workbook, so "
+        f"nothing says which of Chan's files the column came from"
     )
     return f"Chan's `{entry.source_workbook}`"
 
@@ -1277,6 +1384,16 @@ def _date_cell(entry: VintageEntry) -> str:
     if entry.download_date is not None:
         return entry.obtained
     return f"{entry.obtained_verb} {entry.obtained}"
+
+
+def _lifted_from_chan(path: str) -> bool:
+    """Whether a committed path is a column lifted from one of Chan's own files.
+
+    Read off the path, because the two cases using it hold the date fields and
+    the workbook field to it, and a predicate reading either field would agree
+    with any edit to it.
+    """
+    return path.endswith("_chan.csv") or in_a_lifted_source(path)
 
 
 class TestTheCommittedManifest:
@@ -1303,7 +1420,10 @@ class TestTheCommittedManifest:
     def test_every_committed_series_has_exactly_one_entry(self):
         """A file with no entry is how an uncommitted download reaches a result."""
         recorded = [entry.path for entry in read_manifest()]
-        on_disk = sorted(path.name for path in DATA_DIR.glob("*.csv"))
+        # Every depth, because a lifted source's columns sit in a directory of
+        # their own, and a listing of the top level would stop seeing a stray
+        # file beside them. `_unrecorded` in `chan.vintage` walks the same way.
+        on_disk = sorted(path.relative_to(DATA_DIR).as_posix() for path in DATA_DIR.rglob("*.csv"))
 
         assert sorted(recorded) == on_disk
         assert len(set(recorded)) == len(recorded)
@@ -1380,9 +1500,9 @@ class TestTheCommittedManifest:
         the_table_and_the_manifest_agree(DATA_DIR)
 
     def test_an_entry_carries_one_kind_of_date(self):
-        """The four `*_chan.csv` files were saved, not downloaded.
+        """The `*_chan.csv` files and the columns of Chan's `.mat` files were saved.
 
-        Their date is when Ernest Chan last saved the workbook a column was
+        Their date is when Ernest Chan last saved the file a column was
         lifted from. A save date in a field named for a download is a wrong
         fact in the field that identifies the vintage, so those four carry
         their own field and the rest carry a download date.
@@ -1391,7 +1511,7 @@ class TestTheCommittedManifest:
 
         for name, entry in by_path.items():
             assert (entry.download_date is None) != (entry.saved_date is None), name
-            assert (entry.saved_date is not None) == name.endswith("_chan.csv"), name
+            assert (entry.saved_date is not None) == _lifted_from_chan(name), name
 
     def test_only_a_workbook_column_names_a_source_workbook(self):
         """A series a vendor returned did not come out of a spreadsheet.
@@ -1408,7 +1528,7 @@ class TestTheCommittedManifest:
         existing.
         """
         for name, entry in {e.path: e for e in read_manifest()}.items():
-            assert (entry.source_workbook is not None) == name.endswith("_chan.csv"), name
+            assert (entry.source_workbook is not None) == _lifted_from_chan(name), name
 
     def test_a_download_that_claims_a_workbook_is_refused_on_the_way_back(self, tmp_path):
         """The rule bites on read, not only on the lines committed today.
@@ -1416,7 +1536,7 @@ class TestTheCommittedManifest:
         Driven against a copy, because the state under test is a manifest line
         this repo does not hold and must never hold. A download carrying a
         workbook would otherwise read back clean: `_vendor_cell` returns the
-        bare vendor for anything that is not `chan-xls`, so the table check
+        bare vendor for anything outside `CHANS_VENDORS`, so the table check
         never reaches the field, and `as_json` writes it back unchanged.
         """
         directory = committed_copy(tmp_path)
@@ -1927,3 +2047,347 @@ class TestARecordedVintageIsHeldToo:
         """
         with pytest.raises(AssertionError, match="absent.csv"):
             rewrite_entry(with_a_ninth, "absent.csv", vendor="acme")
+
+
+#: A source of three columns, the smallest set carrying a column with a missing
+#: day, a symbol the writer has to lowercase for its path, and the dot a class
+#: share carries.
+LIFTED = {
+    "ko": [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)],
+    "BF.B": [("2026-08-25", 70.5), ("2026-08-27", 71.0)],
+    "AAPL": [("2026-08-26", 20.0), ("2026-08-27", 21.0)],
+}
+LIFTED_FROM = dict(
+    vendor="chan-mat", price_basis="adjusted", saved_date="2026-08-28", source_file="SRC_1.mat"
+)
+
+
+class TestRecordingALiftedSource:
+    """`record_lifted_columns`, which writes a whole source of saved columns at once.
+
+    [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) built it
+    for Chan's two MATLAB files, 1,100 columns between them. Its rules are
+    `record_vintage`'s rules at the scale of a source: check everything first,
+    append the entries before the files, and take the whole source back out
+    on any failure.
+    """
+
+    def test_each_column_lands_under_its_source_with_its_symbol_in_the_bytes(self, data_dir):
+        entries = vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert [entry.path for entry in entries] == [
+            "src_1/aapl.csv",
+            "src_1/bf.b.csv",
+            "src_1/ko.csv",
+        ]
+        assert read_manifest(data_dir) == entries
+        (ko,) = [entry for entry in entries if entry.symbol == "KO"]
+        assert (ko.vendor, ko.price_basis, ko.download_date, ko.saved_date) == (
+            "chan-mat",
+            "adjusted",
+            None,
+            "2026-08-28",
+        )
+        assert ko.source_workbook == "SRC_1.mat"
+        assert (data_dir / "src_1" / "bf.b.csv").read_bytes() == (
+            b"Price,Close\nTicker,BF.B\nDate,\n2026-08-25,70.5\n2026-08-27,71.0\n"
+        )
+        assert (ko.first_date, ko.last_date, ko.row_count) == ("2026-08-25", "2026-08-27", 3)
+
+    def test_the_projection_names_every_member_once_it_is_done(self, data_dir):
+        entries = vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        projection = (data_dir / CHECKSUMS_NAME).read_text(encoding="utf-8")
+        assert projection == "".join(f"{e.sha256}  {e.path}\n" for e in entries)
+
+    def test_the_projection_is_regenerated_once_rather_than_per_member(self, data_dir, monkeypatch):
+        calls = []
+        real = vintage.write_checksums
+        monkeypatch.setattr(vintage, "write_checksums", lambda d=None: calls.append(real(d)))
+
+        vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert len(calls) == 1
+
+    def test_every_entry_is_appended_before_any_file_is_written(self, data_dir, monkeypatch):
+        """A crash part way must leave entries with no files, never files with no entries."""
+        seen = []
+        real = vintage._write_new_file
+
+        def watching(path, payload):
+            seen.append(len(manifest_lines(data_dir)))
+            real(path, payload)
+
+        monkeypatch.setattr(vintage, "_write_new_file", watching)
+        vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert seen == [3, 3, 3]
+
+    def test_a_failure_part_way_takes_the_whole_source_back_out(self, data_dir, monkeypatch):
+        earlier = record_vintage(ROWS, **SOURCE, data_dir=data_dir)
+        manifest_before = (data_dir / MANIFEST_NAME).read_bytes()
+        projection_before = (data_dir / CHECKSUMS_NAME).read_bytes()
+        real, written = vintage._write_new_file, []
+
+        def failing_on_the_second(path, payload):
+            if written:
+                raise OSError("the disk filled")
+            real(path, payload)
+            written.append(path)
+
+        monkeypatch.setattr(vintage, "_write_new_file", failing_on_the_second)
+        with pytest.raises(OSError, match="the disk filled"):
+            vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert written and not written[0].exists()
+        assert not (data_dir / "src_1").exists()
+        assert (data_dir / MANIFEST_NAME).read_bytes() == manifest_before
+        assert (data_dir / CHECKSUMS_NAME).read_bytes() == projection_before
+        assert read_manifest(data_dir) == [earlier]
+
+    def test_a_second_run_is_refused_before_anything_is_written(self, data_dir):
+        vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+        manifest_before = (data_dir / MANIFEST_NAME).read_bytes()
+
+        with pytest.raises(VintageRefused, match="SRC_1.mat: the manifest already holds"):
+            vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert (data_dir / MANIFEST_NAME).read_bytes() == manifest_before
+
+    def test_a_directory_already_on_disk_is_refused_and_left_alone(self, data_dir):
+        (data_dir / "src_1").mkdir()
+        (data_dir / "src_1" / "ko.csv").write_bytes(b"somebody's file\n")
+
+        with pytest.raises(VintageRefused, match="src_1: the directory is already on disk"):
+            vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert (data_dir / "src_1" / "ko.csv").read_bytes() == b"somebody's file\n"
+        assert read_manifest(data_dir) == []
+
+    def test_a_path_another_source_holds_is_refused(self, data_dir):
+        vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+        renamed = {**LIFTED_FROM, "source_file": "src_1.MAT"}
+
+        with pytest.raises(VintageRefused, match="src_1/aapl.csv: the manifest already holds"):
+            vintage.record_lifted_columns(LIFTED, **renamed, data_dir=data_dir)
+
+    def test_a_path_taken_during_the_write_is_refused_and_destroys_nothing(
+        self, data_dir, monkeypatch
+    ):
+        real = vintage._write_new_file
+
+        def someone_else_gets_there_first(path, payload):
+            if path.name == "ko.csv":
+                path.write_bytes(b"the other writer's file\n")
+            real(path, payload)
+
+        monkeypatch.setattr(vintage, "_write_new_file", someone_else_gets_there_first)
+        with pytest.raises(VintageRefused, match="a path was taken"):
+            vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert (data_dir / "src_1" / "ko.csv").read_bytes() == b"the other writer's file\n"
+        assert not (data_dir / "src_1" / "aapl.csv").exists()
+        assert read_manifest(data_dir) == []
+
+    def test_a_directory_another_writer_made_first_is_left_where_it_is(self, data_dir, monkeypatch):
+        """The refusal's undo removes only what this call made."""
+        real = Path.mkdir
+
+        def someone_else_makes_it_first(path, *arguments, **options):
+            if path.name == "src_1":
+                real(path)
+            real(path, *arguments, **options)
+
+        monkeypatch.setattr(Path, "mkdir", someone_else_makes_it_first)
+        with pytest.raises(VintageRefused, match="a path was taken"):
+            vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert (data_dir / "src_1").is_dir()
+        assert read_manifest(data_dir) == []
+
+    @pytest.mark.parametrize(
+        ("source_file", "reason"),
+        [("dir/SRC.mat", "not a bare filename"), ("_SRC.mat", "a character a path cannot")],
+    )
+    def test_a_source_name_that_is_not_a_plain_file_is_refused(self, data_dir, source_file, reason):
+        with pytest.raises(ValueError, match=reason):
+            vintage.record_lifted_columns(
+                LIFTED, **{**LIFTED_FROM, "source_file": source_file}, data_dir=data_dir
+            )
+
+    def test_two_symbols_that_lower_to_one_path_are_refused(self, data_dir):
+        columns = {"BRK.B": LIFTED["ko"], "BRK.b": LIFTED["ko"]}
+
+        with pytest.raises(ValueError, match="one would overwrite the other: src_1/brk.b.csv"):
+            vintage.record_lifted_columns(columns, **LIFTED_FROM, data_dir=data_dir)
+
+    def test_a_refused_row_names_the_column_and_the_source(self, data_dir):
+        columns = {**LIFTED, "XOM": [("2026-08-25", float("nan"))]}
+
+        with pytest.raises(ValueError, match="SRC_1.mat XOM: the close on 2026-08-25"):
+            vintage.record_lifted_columns(columns, **LIFTED_FROM, data_dir=data_dir)
+
+        assert read_manifest(data_dir) == []
+
+    def test_a_stock_carrying_every_field_is_one_file_with_the_volume_whole(self, data_dir):
+        rows = {"KO": [("2026-08-25", 50.0, 51.0, 49.5, 49.75, 1200.0)]}
+        fields = ("Close", "High", "Low", "Open", "Volume")
+
+        (entry,) = vintage.record_lifted_columns(
+            rows, **LIFTED_FROM, fields=fields, data_dir=data_dir
+        )
+
+        assert entry.path == "src_1/ko.csv"
+        assert (data_dir / entry.path).read_bytes() == (
+            b"Price,Close,High,Low,Open,Volume\nTicker,KO,KO,KO,KO,KO\nDate,,,,,\n"
+            b"2026-08-25,50.0,51.0,49.5,49.75,1200\n"
+        )
+
+    @pytest.mark.parametrize(
+        "fields", [("Open", "Close"), ("Close", "Open"), ("Close", "High", "High"), ()]
+    )
+    def test_fields_that_are_not_a_run_from_the_close_are_refused(self, data_dir, fields):
+        """The close must be the second column, which is where every reader takes it."""
+        with pytest.raises(ValueError, match="starting at the close"):
+            vintage.record_lifted_columns(
+                {"KO": [("2026-08-25", *range(len(fields)))]},
+                **LIFTED_FROM,
+                fields=fields,
+                data_dir=data_dir,
+            )
+
+    @pytest.mark.parametrize(
+        ("row", "reason"),
+        [
+            (("2026-08-25", 50.0, 51.0), "a row carries 2 values and the source names 3"),
+            (("2026-08-25", 50.0, 51.0, float("nan")), "the Low on 2026-08-25 is not a finite"),
+            (("2026-08-25", 50.0, "high", 49.0), "the High on 2026-08-25 is not a number"),
+        ],
+    )
+    def test_a_wide_row_that_cannot_be_written_names_the_stock_and_the_field(
+        self, data_dir, row, reason
+    ):
+        with pytest.raises(ValueError, match=f"SRC_1.mat KO: {reason}"):
+            vintage.record_lifted_columns(
+                {"KO": [row]}, **LIFTED_FROM, fields=("Close", "High", "Low"), data_dir=data_dir
+            )
+
+        assert read_manifest(data_dir) == []
+
+    def test_a_volume_beyond_what_a_float_holds_is_written_exactly(self, data_dir):
+        (entry,) = vintage.record_lifted_columns(
+            {"KO": [("2026-08-25", 50.0, 51.0, 49.5, 49.75, 2**53 + 1)]},
+            **LIFTED_FROM,
+            fields=vintage.LIFTED_FIELDS,
+            data_dir=data_dir,
+        )
+
+        last = (data_dir / entry.path).read_text(encoding="utf-8").splitlines()[-1]
+        assert last.endswith(f",{2**53 + 1}")
+
+    def test_a_volume_that_is_not_a_whole_number_is_refused_rather_than_rounded(self, data_dir):
+        with pytest.raises(ValueError, match="the Volume on 2026-08-25 is not a whole number"):
+            vintage.record_lifted_columns(
+                {"KO": [("2026-08-25", 50.0, 51.0, 49.5, 49.75, 1200.5)]},
+                **LIFTED_FROM,
+                fields=vintage.LIFTED_FIELDS,
+                data_dir=data_dir,
+            )
+
+    def test_a_source_with_no_columns_records_nothing(self, data_dir):
+        with pytest.raises(ValueError, match="no columns"):
+            vintage.record_lifted_columns({}, **LIFTED_FROM, data_dir=data_dir)
+
+
+class TestALiftedSourceIsHeld:
+    """What the per-source pin catches in the committed tree, driven against a copy.
+
+    `LIFTED_SOURCES` holds each of Chan's two `.mat` files to one tuple rather
+    than 1,100. These cases show that one tuple still fails on an edit to any
+    member, and that the table's one row per source fails on a member that
+    stops agreeing with the others.
+    """
+
+    @pytest.fixture
+    def committed(self, tmp_path):
+        directory = committed_copy(tmp_path)
+        the_lifted_sources_are_pinned(directory)
+        the_table_and_the_manifest_agree(directory)
+        return directory
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("vendor", "chan-xls"),
+            ("price_basis", "raw"),
+            ("saved_date", "2007-11-25"),
+            ("source_workbook", "IJR_20080114.mat"),
+            ("symbol", "XOM"),
+        ],
+    )
+    def test_an_edit_to_one_member_fails_the_pin(self, committed, field, value):
+        rewrite_entry(committed, "spx_20071123/ko.csv", **{field: value})
+
+        with pytest.raises(AssertionError, match="spx_20071123/ko.csv|SPX_20071123|IJR"):
+            the_lifted_sources_are_pinned(committed)
+
+    def test_a_member_dropped_with_its_file_fails_the_count(self, committed):
+        manifest = committed / MANIFEST_NAME
+        kept = [
+            line
+            for line in manifest.read_text(encoding="utf-8").splitlines()
+            if json.loads(line)["path"] != "ijr_20080114/cbu.csv"
+        ]
+        manifest.write_text("".join(line + "\n" for line in kept), encoding="utf-8")
+        (committed / "ijr_20080114" / "cbu.csv").unlink()
+
+        with pytest.raises(AssertionError, match="the pin says 600 members"):
+            the_lifted_sources_are_pinned(committed)
+
+    def test_a_member_renamed_to_a_series_its_file_does_not_hold_fails(self, committed):
+        """The `Ticker,` row is read from the bytes, so it holds the symbol apart from the pin."""
+        rewrite_entry(committed, "spx_20071123/ko.csv", symbol="PEP")
+
+        with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):
+            the_hand_written_entries_name_their_series(committed)
+
+    def test_a_member_whose_ticker_row_names_another_stock_in_one_field_fails(self, committed):
+        """Every cell of the widened row is read, not only the first."""
+        path = committed / "spx_20071123" / "ko.csv"
+        lines = path.read_text(encoding="utf-8").split("\n")
+        assert lines[1] == "Ticker,KO,KO,KO,KO,KO"
+        lines[1] = "Ticker,KO,KO,KO,PEP,KO"
+        path.write_text("\n".join(lines), encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):
+            the_hand_written_entries_name_their_series(committed)
+
+    def test_a_ticker_row_narrower_than_the_price_row_fails(self, committed):
+        path = committed / "spx_20071123" / "ko.csv"
+        lines = path.read_text(encoding="utf-8").split("\n")
+        lines[1] = "Ticker,KO"
+        path.write_text("\n".join(lines), encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):
+            the_hand_written_entries_name_their_series(committed)
+
+    def test_a_member_disagreeing_with_its_row_fails_and_names_the_directory(self, committed):
+        rewrite_entry(committed, "spx_20071123/ko.csv", price_basis="raw")
+
+        with pytest.raises(AssertionError, match="spx_20071123/: its 500 vintages give 2"):
+            the_table_and_the_manifest_agree(committed)
+
+    def test_a_member_count_the_row_does_not_state_fails(self, committed):
+        rewrite_row(committed, "spx_20071123/", symbol="499 members")
+
+        with pytest.raises(AssertionError, match="spx_20071123/: the table's Symbol cell"):
+            the_table_and_the_manifest_agree(committed)
+
+    def test_a_lifted_member_is_not_held_to_the_recorder_s_name(self, committed):
+        """It is skipped by its directory, so the recorder's check stays green over it."""
+        the_recorded_entries_name_themselves(committed)
+
+    def test_a_pinned_source_lives_where_its_pin_says(self):
+        assert {pin[3] for pin in LIFTED_SOURCES.values()} == {
+            path.name for path in DATA_DIR.iterdir() if path.is_dir()
+        }
