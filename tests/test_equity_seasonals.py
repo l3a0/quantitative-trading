@@ -161,7 +161,7 @@ class TestJanuaryMatlab:
 
     def test_the_decile_is_rounded_half_away_from_zero(self, ijr) -> None:
         trades = january_effect(ijr, MATLAB_JANUARY).trades
-        assert [(t.ranked, t.decile) for t in trades] == [(578, 58), (592, 59)]
+        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [(578, 58, 58), (592, 59, 59)]
 
     def test_rounding_the_decile_down_moves_january_2006(self, ijr) -> None:
         floored = january_effect(ijr, replace(MATLAB_JANUARY, decile_size=np.floor))
@@ -197,8 +197,24 @@ class TestJanuaryPython:
         assert_reproduces(effect.trades[1].ret, -0.00364117175573088, "-0.003641", ".6f")
         assert effect.unreached == (pd.Timestamp("2007-12-31"),)
 
+    def test_the_winners_slice_holds_two_fewer_than_the_decile(self, ijr) -> None:
+        trades = january_effect(ijr, PYTHON_JANUARY).trades
+        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [(579, 58, 56), (593, 59, 57)]
+
+    def test_the_forward_fill_ranks_one_more_stock_and_moves_no_return(self, ijr) -> None:
+        """PMC has no close in 2005 or 2006, and pandas before 3.0 ranks it on a return of 0.
+
+        Without the fill the script ranks 578 and 592, the MATLAB counts, and the
+        decile sizes and both returns are unchanged.
+        """
+        unpadded = january_effect(ijr, replace(PYTHON_JANUARY, pads_year_ends=False))
+        assert [t.ranked for t in unpadded.trades] == [578, 592]
+        assert returns_of(unpadded) == pytest.approx(
+            returns_of(january_effect(ijr, PYTHON_JANUARY)), abs=1e-15
+        )
+
     def test_the_full_decile_gives_the_first_editions_figures(self, ijr) -> None:
-        """So on this file the two editions' printouts differ by the winners' slice alone."""
+        """On this file the two editions' printouts differ by the winners' slice alone."""
         full = january_effect(ijr, replace(PYTHON_JANUARY, winners=Winners.DECILE))
         matlab = january_effect(ijr, MATLAB_JANUARY)
         assert returns_of(full) == pytest.approx(returns_of(matlab), abs=1e-15)
@@ -213,7 +229,7 @@ class TestJanuaryR:
         assert_reproduces(trades[1].ret, -0.006796429884419337, "-0.0068", ".4f")
 
     def test_no_decile_on_this_file_lands_on_a_half(self, ijr) -> None:
-        """Which is why R's half-to-even and MATLAB's half-away agree here."""
+        """No decile lands on a half, so R's rounding and MATLAB's pick the same stocks."""
         for trade in january_effect(ijr, R_JANUARY).trades:
             assert (trade.ranked / 10) % 1 != 0.5
 
@@ -260,6 +276,39 @@ class TestHestonSadkaFirstEdition:
             replace(FIRST_EDITION_MATLAB, per_position=True, empty_month_is_nan=True, dropped=13),
         )
         assert per.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
+
+
+class TestTheShapesTheScaleBreakCommentNames:
+    """What the comment above ``FLAGGED_IN_CHANS_MAT_FILES`` says about Example 7.7."""
+
+    def test_aapls_flagged_day_is_a_month_end(self, spx) -> None:
+        ends = spx.index[seasonals._row_month_ends(spx.index)]
+        assert pd.Timestamp("2000-09-29") in ends
+
+    @pytest.mark.parametrize("rules", [FIRST_EDITION_MATLAB, PYTHON_HESTON_SADKA])
+    @pytest.mark.parametrize("symbol", ["WYN", "DFS"])
+    def test_no_monthly_return_spans_a_shared_symbols_gap(self, spx, rules, symbol) -> None:
+        """The gap is hundreds of NaN days, and no finite monthly return reaches across it.
+
+        A single missing day inside a month is ordinary and is not the gap, so
+        the test looks for the long run rather than for any NaN.
+        """
+        if rules.per_stock_period_ends:
+            ends = spx.resample("ME").last().iloc[:-1]
+        else:
+            ends = spx.iloc[seasonals._row_month_ends(spx.index)]
+        returned = ends[symbol].pct_change(fill_method=None)
+        missing = spx[symbol].isna().to_numpy()
+        runs, run = [], 0
+        for gone in missing:
+            run = run + 1 if gone else 0
+            runs.append(run)
+        longest = pd.Series(runs, index=spx.index)
+        assert longest.max() >= 300
+        for when in returned.index[np.isfinite(returned.to_numpy())]:
+            start = ends.index[ends.index.get_loc(when) - 1]
+            inside = longest[(longest.index > start) & (longest.index <= when)]
+            assert inside.max() < 20, f"{symbol} {when.date()} spans the gap"
 
 
 class TestHestonSadkaRevisedMatlab:

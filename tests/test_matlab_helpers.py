@@ -1,11 +1,11 @@
 """The cases that separate each of Chan's MATLAB helpers from the numpy default.
 
-Each helper in :mod:`chan.matlab_helpers` exists because the default it
-replaces moves a printed figure. So every class here holds at least one input
-on which the two disagree, and asserts the default's answer beside the
-helper's, so a helper quietly swapped for the default fails rather than
-agreeing on easy inputs. The figure each one moves is pinned in
-``tests/test_equity_seasonals.py``.
+Every class here holds at least one input on which a helper and the numpy
+default disagree, and asserts the default's answer beside the helper's. So a
+helper quietly swapped for the default fails rather than agreeing on easy
+inputs. Where a helper moves a figure Chan prints, that figure is pinned in
+``tests/test_equity_seasonals.py``, and the module docstring of
+:mod:`chan.matlab_helpers` says which helpers those are.
 """
 
 from __future__ import annotations
@@ -71,6 +71,10 @@ class TestSmartstd:
     def test_a_column_with_nothing_finite_is_nan(self) -> None:
         assert math.isnan(smartstd([NAN, NAN, NAN]))
 
+    def test_one_value_has_a_spread_of_zero_as_in_matlab(self) -> None:
+        assert smartstd([5.0]) == 0.0
+        np.testing.assert_array_equal(smartstd(np.array([[5.0, NAN]]), axis=0), [0.0, NAN])
+
 
 class TestShifts:
     def test_backshift_moves_rows_later_and_pads_with_nan(self) -> None:
@@ -86,6 +90,11 @@ class TestShifts:
     def test_a_shift_of_zero_returns_the_rows_unmoved(self) -> None:
         np.testing.assert_array_equal(backshift(0, [1.0, 2.0]), [1.0, 2.0])
         np.testing.assert_array_equal(fwdshift(0, [1.0, 2.0]), [1.0, 2.0])
+
+    @pytest.mark.parametrize("shift", [backshift, fwdshift])
+    def test_a_shift_longer_than_the_rows_is_refused(self, shift) -> None:
+        with pytest.raises(ValueError, match="longer than the 3 given"):
+            shift(5, [1.0, 2.0, 3.0])
 
     @pytest.mark.parametrize("shift", [backshift, fwdshift])
     def test_a_negative_shift_is_refused_by_name(self, shift) -> None:
@@ -107,7 +116,14 @@ class TestMatlabSort:
 class TestRoundHalfAway:
     @pytest.mark.parametrize(
         ("value", "matlab", "numpy"),
-        [(0.5, 1.0, 0.0), (2.5, 3.0, 2.0), (57.8, 58.0, 58.0), (-2.5, -3.0, -2.0)],
+        [
+            (0.5, 1.0, 0.0),
+            (2.5, 3.0, 2.0),
+            (57.8, 58.0, 58.0),
+            (-2.5, -3.0, -2.0),
+            (0.49999999999999994, 0.0, 0.0),
+            (2.0**52 + 1, 2.0**52 + 1, 2.0**52 + 1),
+        ],
     )
     def test_a_half_goes_away_from_zero_where_numpy_goes_to_even(
         self, value: float, matlab: float, numpy: float

@@ -17,8 +17,8 @@ and each says so in its own cells.
 3. Row 10 carries no published figure, because the book stops in 2007.
 4. Row 11 covers the two statistics Chan printed from one disagreement.
 
-Entries 2, 3 and 4 carry their own, three, seven and twelve, and they are
-listed in those entries rather than here, because the list is about an entry's
+Entries 2, 3, 4, 6 and 7 carry their own, three, seven, twelve, five and six,
+and they are listed in those entries rather than here, because the list is about an entry's
 rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -1600,12 +1600,12 @@ own script applies, and the issue records the figure each rule gives when it is
 changed.
 
 Chan publishes both strategies as already dead, so reproducing them checks
-whether a documented disappearance is visible in data a reader can get. On his
-own files it is, in the sense that every printout loses money. What the files
-cannot show is the 13 percent before 2002 that the disappearance is measured
-against.
+whether a documented disappearance is visible in data a reader can get. Every
+printout's whole-period figure is negative on his files, as he printed it. What
+the files cannot show is the 13 percent before 2002 that a disappearance would
+be measured against, so this entry gives no verdict on one.
 
-Every row reads one of two vintages, and every row names which.
+Each example reads one of two vintages.
 
 1. **Example 7.6** reads `data/ijr_20080114/`, the 600 S&P 600 members lifted
    from Chan's `IJR_20080114.mat`, vendor `chan-mat`, recorded as
@@ -1625,11 +1625,20 @@ printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 
 Two of the four printouts have no code in this repo. The owner read the revised
 edition's MATLAB and R figures from the Kindle book on 2026-10-02, and the
-session that built this entry could not open it. So the rules rows 9, 10, 13
-and 14 run are readings that reproduce the printed figures, not transcriptions
-of the printed code.
+session that built this entry could not open it. So rows 9, 10, 13 and 14 run
+rules that reproduce the printed figures, not transcriptions of the printed
+code. Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on
+the same kind of inference: the figures match the first edition's, so its
+rules are assumed.
 [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
-them against the book.
+the 7.7 readings against the book.
+
+Those rows say less than the others, and their verdicts should be read that
+way. Each reading was found by trying combinations of rule choices until the
+printed digits landed, so its match holds by construction. What the verdict
+records is that the printed figure is reachable from the committed vintage
+under rules a script could plausibly hold. It does not record that the printed
+code holds them, and [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) may move these rows.
 
 Every result here is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
@@ -1669,17 +1678,17 @@ which tables every figure the revised edition prints for both examples.
 
 | # | Printout's rules | Computed | Gap, computed minus published | Assertion |
 | --- | --- | --- | --- | --- |
-| 1 | `MATLAB_JANUARY`: month-ends by row, decile rounded half away from zero, 58 of 578 each side | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_two_reachable_januaries_reproduce` |
-| 2 | as row 1, 59 of 592 each side | −0.0068 | 0.0000 | as row 1 |
-| 3 | `PYTHON_JANUARY`: each stock's last priced day, winners' slice of `topN - 2` that leaves out the best | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_two_reachable_januaries_reproduce` |
+| 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_two_reachable_januaries_reproduce` |
+| 2 | as row 1, 59 long and 59 short of 592 ranked | −0.0068 | 0.0000 | as row 1 |
+| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_two_reachable_januaries_reproduce` |
 | 4 | as row 3 | −0.003641 | 0.000000 | as row 3 |
 | 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_two_reachable_januaries_reproduce` |
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
-| 7 | `FIRST_EDITION_MATLAB`: month-ends by row, the mixed-order mask, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
+| 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
 | 8 | as row 7 | −0.1055 | 0.0000 | as row 7 |
-| 9 | `REVISED_MATLAB`: each stock masked on its own close, each month divided by its positions, statistics from the thirteenth month | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
+| 9 | `REVISED_MATLAB`: each stock kept only if its own close exists, each month divided by its positions, statistics from the thirteenth month | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
 | 10 | as row 9 | −0.1243 | 0.0000 | as row 9 |
-| 11 | `PYTHON_HESTON_SADKA`: each stock's last priced day, masked on its own return, 83 months, standard deviation over n | −0.012679 | 0.000000 | `TestHestonSadkaPython::test_both_figures_reproduce` |
+| 11 | `PYTHON_HESTON_SADKA`: each stock's last priced day, kept only if its own return exists, 83 months, standard deviation over n | −0.012679 | 0.000000 | `TestHestonSadkaPython::test_both_figures_reproduce` |
 | 12 | as row 11 | −0.122247 | 0.000000 | as row 11 |
 | 13 | `R_HESTON_SADKA`: row 9's selection with half-to-even rounding, 83 months, standard deviation over n − 1 | −0.01139674 | 0.00000000 | `TestHestonSadkaR::test_both_figures_reproduce` |
 | 14 | as row 13 | −0.1095098 | 0.0000000 | as row 13 |
@@ -1696,19 +1705,19 @@ printed precision, and the gap is zero at that precision.
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | The script cannot run on this file as written. The file holds four December year-ends and four January month-ends, the script drops the first January, and its own check that each January follows its December then compares three dates against four. Pairing each year-end with the January after it inside the file reaches the first two holdings. Rounding the decile down instead gives −0.0234. |
+| 1 | reproduced | The script cannot run on this file as written. The file holds four December year-ends and four January month-ends. The script drops the first January. Its check that each January follows its December then compares three dates against four. Pairing each year-end with the January after it inside the file reaches the first two holdings. Rounding the decile down instead gives −0.0234. |
 | 2 | reproduced | as row 1 |
-| 3 | reproduced | Taking the full top decile instead gives rows 1 and 2 to every digit, so on this file the two editions differ by the winners' slice alone. |
+| 3 | reproduced | Taking the full top decile instead gives rows 1 and 2 to every digit, so on this file the two editions differ by the winners' slice alone. Without the forward fill the script ranks 578, as MATLAB does, and the return does not move. |
 | 4 | reproduced | as row 3 |
-| 5 | reproduced | No decile on this file lands on a half, so R's rounding and MATLAB's give the same stocks. |
+| 5 | reproduced | Inferred rules, as the entry's opening says. No decile on this file lands on a half, so R's rounding and MATLAB's give the same stocks. |
 | 6 | reproduced | as row 5 |
-| 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Masking each stock by its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
+| 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
 | 8 | reproduced | Skipping the NaN month in the standard deviation instead of counting it as zero gives −0.1049. |
-| 9 | reproduced | A reading, not transcribed code. As the owner read the printed code, it masks on a daily row of a 96-row array and cannot run. Keeping the first edition's mixed-order mask in the minimal repair gives −0.0120 and does not print. Masking each stock on its own return also prints −0.0129, so four decimals do not choose the mask. Row 13's digits do. |
+| 9 | reproduced | A reading, not transcribed code. As the owner read the printed code, it reads a daily row of a 96-row array and cannot run. Keeping the first edition's sorted-against-columns rule in the minimal repair gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so four decimals do not choose between the two. Row 13's digits choose the close for R, and the owner read the MATLAB as reading the close too. |
 | 10 | reproduced | A reading, as row 9. Dropping 13 months and dividing by n also prints −0.1243, so [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) decides between the two against the printed code. Keeping the first twelve months instead gives −0.1330. |
 | 11 | reproduced | Taking one shared row per month instead gives −0.012917. |
 | 12 | reproduced | Dividing by n − 1 instead gives −0.121508. |
-| 13 | reproduced | A reading, as row 9, and the tightest of them, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and masking on each stock's own return gives −0.0117146. |
+| 13 | reproduced | A reading, as row 9, and the tightest of them, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
 | 14 | reproduced | Dividing by n instead gives −0.1101755. |
 | 15 | none, not a replication | Heston and Sadka's 13 percent is from their own sample, which this file does not reach. It has 13 months before 2002 after the twelve-month lookback, and they lost. |
 | 16 | none, not a replication | as row 15 |
@@ -1719,21 +1728,24 @@ printed precision, and the gap is zero at that precision.
 
 Three things.
 
-1. **Every reachable figure reproduces, and only under its own script's rules.**
-   The fourteen rows land at the precision each printout gives, and the rules
-   that land them are not the strategy as described. A mask that mixes sorted
-   order with column order, a monthly sum, months with no position counted as
-   zero, a standard deviation that counts a NaN month as zero, and a winners'
-   slice that leaves out the best stock each move a printed figure.
+1. **Every reachable figure reproduces, and not under the strategy as
+   described.** The fourteen rows land at the precision each printout gives.
+   Each of these five rules moves a printed figure, and none is in the
+   description:
+   1. keeping or dropping a stock on another stock's close,
+   2. a monthly sum rather than a mean over positions,
+   3. months with no position counted as zero in the mean,
+   4. a standard deviation that counts a NaN month as zero,
+   5. a winners' slice that leaves out the best stock.
 2. **The four Heston and Sadka printouts disagree on units and agree on sign.**
    The first edition's −0.9167 is a sum over positions. The revised edition
    divides by the positions, and its three printouts land between −0.0114 and
    −0.0129 a year. All four lose money on this file.
-3. **On this file the loss is in the months before 2002.** Rows 15 to 18 show
-   the 13 months before 2002 returning −0.145387 a year and the 70 after
-   returning 0.011967. That is the opposite of a 13 percent effect fading.
-   It is a finding about survivors over one short window, with no verdict,
-   and it does not refute Heston and Sadka, whose sample this file does not
+3. **Under the revised Python's rules, the loss sits before 2002.** Rows 15
+   to 18 show the 13 months before 2002 returning −0.145387 a year and the 70
+   after returning 0.011967. Only that printout's rules were split. It is a
+   finding about survivors over one short window, with no verdict, and it
+   says nothing about Heston and Sadka, whose sample this file does not
    reach.
 
 ### The third January return the committed file cannot reach
@@ -1744,10 +1756,10 @@ that January after failing in 2006 and 2007. `IJR_20080114.mat` ends on
 2008-01-14, so no printout's rules can compute it here, and the two Januaries
 this entry reproduces are the two that lost.
 
-This takes the shape Entry 3's
-`### Two figures from Chan's workbook that need a column this repo lacks` set,
-a section rather than rows, because the log has no row state for a published
-figure with no computed value.
+This follows the shape that Entry 3's section
+`### Two figures from Chan's workbook that need a column this repo lacks` set.
+It is a section rather than rows, because the log has no row state for a
+published figure with no computed value.
 
 1. **0.0881**, printed by the MATLAB in both editions and by the revised R.
 2. **0.088486**, printed by the revised Python.
@@ -1769,7 +1781,8 @@ is where the 13 percent is tested on a panel that still holds the companies
 that left.
 
 **Whether the revised MATLAB and R rows are the printed code.** They reproduce
-every digit printed, and for the MATLAB more than one reading does.
+every digit printed, and for the MATLAB more than one reading does. R's
+Example 7.6 rounding is assumed from what the owner read of its 7.7.
 [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) carries
 the check.
 

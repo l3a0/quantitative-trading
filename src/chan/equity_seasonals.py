@@ -20,7 +20,7 @@ held. Buy the best tenth and short the worst tenth for that month.
 
 The book prints each example in up to three languages, and the editions differ.
 :data:`JANUARY_RULES` and :data:`HESTON_SADKA_RULES` hold one entry per
-printout, each naming the rules that make its figures land. A builder who writes
+printout, each naming what that printout's script does. A builder who writes
 the strategy from its description will not land on them, and
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18) records the
 second figure each rule produces when it is changed.
@@ -37,20 +37,24 @@ Four sources, all of them Chan's.
    all five match.
 3. The revised edition's MATLAB, whose figures the owner read from the revised
    Kindle edition on 2026-10-02. Its code was not transcribed into this repo,
-   so the rules :data:`REVISED_MATLAB` applies are a reading that reproduces
-   the printed figures rather than a copy of the printed code.
+   so :data:`REVISED_MATLAB` is a reading that reproduces the printed figures
+   rather than a copy of the printed code. Several readings print the same
+   four decimals, and the tests pin two of them.
 4. The revised edition's R, read the same way. Its 7.7 figures are printed to
-   seven significant digits, which pins its rules more tightly than any other
-   printout. The revised MATLAB's four decimals are reached by masking each
-   stock on its own close or on its own return, and R's seven digits are
-   reached only by the close, which is also what the owner read the MATLAB
-   indexing.
+   seven significant digits, and among the readings tried only masking each
+   stock on its own close reaches them. That chooses R's mask and not the
+   MATLAB's. The owner also read the MATLAB as indexing the close, which is
+   why :data:`REVISED_MATLAB` uses it.
+
+Both editions' MATLAB and the revised R print the same two reachable Example
+7.6 returns, so the rules for those are the first edition's, with R's rounding
+taken from what the owner read of its Example 7.7.
 
 Three limits, each stated where it applies.
 
 1. Both files hold only the companies in their index on the day Chan saved
-   them, carried backwards. A verdict of "disappeared" here is a verdict on
-   survivors.
+   them, carried backwards. Whatever these files show about a disappearance,
+   they show it about survivors.
    [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196) is
    where the effect is tested on the rest.
 2. ``IJR_20080114.mat`` ends on 2008-01-14. Chan's third January return,
@@ -83,7 +87,14 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from chan.matlab_helpers import lag1, matlab_sort, round_half_away, smartmean, smartstd
+from chan.matlab_helpers import (
+    lag1,
+    matlab_sort,
+    round_half_away,
+    smartmean,
+    smartstd,
+    smartsum,
+)
 from chan.series import load_panel, panel_line
 from chan.vintage import VintageUnavailable
 
@@ -126,6 +137,8 @@ class JanuaryRules:
     per_stock_period_ends: bool
     decile_size: Callable[[float], float]
     winners: Winners
+    #: Forward-fill the year-end closes before ranking, as pandas' old default did.
+    pads_year_ends: bool
     #: How the source prints a figure, as a format spec. MATLAB's ``%7.4f``
     #: is ``.4f``, the Python's ``%f`` is ``.6f``, and R's default print
     #: keeps seven significant digits, which is ``.7g``.
@@ -139,7 +152,10 @@ class JanuaryTrade:
     entered: pd.Timestamp
     exited: pd.Timestamp
     ranked: int
-    decile: int
+    #: The losers held long, which is the decile size.
+    longs: int
+    #: The winners held short. The revised Python's slice holds two fewer.
+    shorts: int
     ret: float
 
 
@@ -167,7 +183,7 @@ def _rank_and_trade(
     annual: NDArray[np.float64],
     january: NDArray[np.float64],
     rules: JanuaryRules,
-) -> tuple[int, int, float]:
+) -> tuple[int, int, int, float]:
     has = np.flatnonzero(np.isfinite(annual))
     order = has[matlab_sort(annual[has])]
     top = int(rules.decile_size(len(order) / 10))
@@ -177,7 +193,7 @@ def _rank_and_trade(
     else:
         winners = order[np.arange(-top + 1, -1)]
     ret = (smartmean(january[losers]) - smartmean(january[winners])) / 2 - 2 * ONE_WAY_COST
-    return len(order), top, float(ret)
+    return len(order), len(losers), len(winners), float(ret)
 
 
 def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
@@ -193,6 +209,11 @@ def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
             day.year: row for day, row in zip(januaries.index, januaries.to_numpy(), strict=True)
         }
         year_end_rows = year_ends.to_numpy()
+        # The script's ``pct_change()`` names no fill method, and every pandas
+        # before 3.0 then forward-fills. So a stock with no close in a year is
+        # ranked on a return of 0 against its last one. The January return
+        # reads the unfilled year-end, as the script's ``eoyPrice.values`` does.
+        ranked_rows = year_ends.ffill().to_numpy() if rules.pads_year_ends else year_end_rows
         exit_day = {day.year: day for day in januaries.index}
     else:
         ends = _row_month_ends(days)
@@ -200,25 +221,28 @@ def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
         jan_rows = [row for row in ends if days[row].month == 1]
         year_end_days = [days[row] for row in decembers]
         year_end_rows = closes.to_numpy()[decembers]
+        ranked_rows = year_end_rows
         jan_by_year = {days[row].year: closes.to_numpy()[row] for row in jan_rows}
         exit_day = {days[row].year: days[row] for row in jan_rows}
 
     trades, unreached = [], []
     for y in range(1, len(year_end_days)):
         entered = year_end_days[y]
-        before, at = year_end_rows[y - 1], year_end_rows[y]
-        annual = (at - before) / before
+        before, now = ranked_rows[y - 1], ranked_rows[y]
+        annual = (now - before) / before
+        at = year_end_rows[y]
         if entered.year + 1 not in jan_by_year:
             unreached.append(entered)
             continue
         january = (jan_by_year[entered.year + 1] - at) / at
-        ranked, decile, ret = _rank_and_trade(annual, january, rules)
+        ranked, longs, shorts, ret = _rank_and_trade(annual, january, rules)
         trades.append(
             JanuaryTrade(
                 entered=entered,
                 exited=exit_day[entered.year + 1],
                 ranked=ranked,
-                decile=decile,
+                longs=longs,
+                shorts=shorts,
                 ret=ret,
             )
         )
@@ -233,16 +257,19 @@ MATLAB_JANUARY = JanuaryRules(
     per_stock_period_ends=False,
     decile_size=round_half_away,
     winners=Winners.DECILE,
+    pads_year_ends=False,
     printed=".4f",
 )
 
 #: R's ``round`` sends a half to the even neighbour, which is what numpy's
-#: does. No decile on this file lands on a half, so it gives MATLAB's figures.
+#: does. The owner read that rule in R's Example 7.7, and it is assumed here.
+#: No decile on this file lands on a half, so it gives MATLAB's figures either way.
 R_JANUARY = JanuaryRules(
     source="Example 7.6 in R, revised edition",
     per_stock_period_ends=False,
     decile_size=np.round,
     winners=Winners.DECILE,
+    pads_year_ends=False,
     printed=".4f",
 )
 
@@ -251,6 +278,7 @@ PYTHON_JANUARY = JanuaryRules(
     per_stock_period_ends=True,
     decile_size=np.round,
     winners=Winners.PYTHON_SLICE,
+    pads_year_ends=True,
     printed=".6f",
 )
 
@@ -352,10 +380,7 @@ def monthly_returns(closes: pd.DataFrame, rules: HestonSadkaRules) -> pd.Series:
             positions[held, chosen[len(chosen) - top :]] = 1
 
     held_then = lag1(positions)
-    earned = held_then * ret
-    finite = np.isfinite(earned)
-    total = np.where(finite, earned, 0.0).sum(axis=1)
-    total[~finite.any(axis=1)] = np.nan
+    total = smartsum(held_then * ret, axis=1)
     if rules.per_position:
         count = np.where(np.isfinite(held_then), np.abs(held_then), 0.0).sum(axis=1)
         if rules.empty_month_is_nan:
@@ -404,8 +429,11 @@ FIRST_EDITION_MATLAB = HestonSadkaRules(
 #: figures. Its code was not transcribed into this repo. The owner read that it
 #: divides by the number of positions and masks on ``cl(monthEnds(m-1), :)``
 #: after ``cl`` has been cut to its month-end rows, which cannot run as printed.
-#: This reading keeps Chan's helpers, lets MATLAB's 0/0 make a month with no
-#: position NaN, and starts the statistics at the thirteenth month.
+#: This reading lets MATLAB's 0/0 make a month with no position NaN, starts the
+#: statistics at the thirteenth month, and takes them with ``smartmean`` and
+#: ``smartstd``. It is one of several that print both figures, and
+#: [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
+#: it against the printed code.
 REVISED_MATLAB = HestonSadkaRules(
     source="Example 7.7 in MATLAB, revised edition",
     per_stock_period_ends=False,
@@ -488,7 +516,7 @@ def report_january(members, closes: pd.DataFrame) -> None:
             print(
                 f"    entered {trade.entered.date()} exited {trade.exited.date()}: "
                 f"{_figure(trade.ret, rules.printed)}   "
-                f"({trade.decile} of {trade.ranked} each side)"
+                f"({trade.longs} long and {trade.shorts} short of {trade.ranked} ranked)"
             )
         for entered in result.unreached:
             print(
