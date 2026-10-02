@@ -1,4 +1,9 @@
-"""The GLD/GDX and KO/PEP cointegration replications from Chan's book.
+"""The pair-cointegration engine, and the GLD/GDX and KO/PEP replications it runs.
+
+:func:`engle_granger`, :func:`rolling_cointegration` and :func:`residual_check`
+are also what :mod:`chan.stationary_candidates` imports for Chan's
+fixed-income candidate, which is a finding rather than a replication and lives
+there for the reason ``chan.series`` gives for the parse.
 
 Reproduces the pair-trading examples in Ernest Chan, *Quantitative Trading*
 (rev. ed.): a hedge-ratio regression, an Engle-Granger / CADF unit-root test on

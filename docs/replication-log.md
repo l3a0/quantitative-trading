@@ -4,8 +4,8 @@ A replication is finished when it reaches a verdict. Until then the repo holds
 a reproduced experiment, which is a number sitting next to another number with
 nobody saying what the pair means.
 
-This file is where the verdicts live. One entry per replication, and one row
-per published result, carrying the five parts
+This file is where the verdicts live. One entry per replication, apart from
+the one exception the paragraphs below name, and one row per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
 vintage, what this repo computed, the gap, and the verdict. A row usually
 matches one published figure to one computation. Four of Entry 1's rows do not,
@@ -21,10 +21,16 @@ Entries 2, 3 and 4 carry their own, three, seven and twelve, and they are
 listed in those entries rather than here, because the list is about an entry's
 rows and not about the file.
 
-Every result in Entries 1, 3 and 4 is **exploratory** in the design doc's
+Entry 5 is the one entry that is not a replication. Chan states the claim it
+tests without printing a number, so it carries a finding rather than a verdict,
+and its tables drop the columns that would hold a published figure, a gap and a
+verdict.
+
+Every result in Entries 1, 3, 4 and 5 is **exploratory** in the design doc's
 sense. Reproducing a published figure spends the sample on a hypothesis someone
-else already chose, so an entry can say whether the number reproduces and
-nothing about whether the trade works today. Entry 2 spends no sample at all
+else already chose, and testing a claim the source states does the same, so an
+entry can say whether the number reproduces or the claim holds on its vintage
+and nothing about whether the trade works today. Entry 2 spends no sample at all
 and is outside that label and its opposite both, which it states rather than
 picking one.
 
@@ -65,6 +71,12 @@ picking one.
   - [The verdicts](#the-verdicts-3)
   - [What the entry concludes](#what-the-entry-concludes-3)
   - [What this entry cannot say](#what-this-entry-cannot-say-1)
+- [Entry 5: the fixed-income candidate, Chan's *Quantitative Trading*](#entry-5-the-fixed-income-candidate-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated)
+  - [What this repo computed](#what-this-repo-computed-4)
+  - [What each row says](#what-each-row-says)
+  - [What the entry concludes](#what-the-entry-concludes-4)
+  - [What this entry cannot say](#what-this-entry-cannot-say-2)
 
 ## How to read an entry
 
@@ -81,8 +93,11 @@ both.
    [tests/test_coin_flip_growth.py](../tests/test_coin_flip_growth.py) holds
    Entry 2, and
    [tests/test_kelly_leverage.py](../tests/test_kelly_leverage.py) holds
-   Entry 3, and
-   [tests/test_risk_parity.py](../tests/test_risk_parity.py) holds Entry 4.
+   Entry 3,
+   [tests/test_risk_parity.py](../tests/test_risk_parity.py) holds Entry 4,
+   and
+   [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py)
+   holds Entry 5.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -182,13 +197,22 @@ published number. A row with no published number is therefore not a
 replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
-each verdict cell says so rather than reaching for a fourth value.
+each verdict cell says so rather than reaching for a fourth value. Every row of
+Entry 5 is in that position too, so that entry drops the verdict column rather
+than filling it.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
 ranking or a verdict, the claim is what gets pinned. Entry 3's rows 12, 15, 27
 and 28 are all of those, and they split two and two. So is Entry 4's row 3,
 which is the ranking Qian's two printed figures were printed to support.
+
+Entry 5's claim does not take that route. Each claim above is about an
+instrument its source names, SPY in Chan's Example 6.2 and Qian's own
+portfolios. Chan's fixed-income sentence names none, so what Entry 5 tests is a
+pair of stand-ins this repo chose, and its result is a finding about them
+rather than a verdict on his sentence. His claim is also that such pairs can be
+found, and one pair that fails does not refute that.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -482,7 +506,7 @@ these rows at all.
    statistic by 0.0042, well inside every `abs=1e-2` pin, and the one test that
    fails is `TestLagSettingDetour::test_fixed_lag_reproduces_the_book`, whose
    `abs=5e-4` pin on −3.0875 is tight enough to catch it. Forcing the term to
-   `ct` fails eleven tests. Issue 10's body says all three terms leave the
+   `ct` fails eleven tests. [Issue 10](https://github.com/l3a0/quantitative-trading/issues/10)'s body says all three terms leave the
    suite green, which running them does not bear out, and that correction is
    recorded on the issue.
 3. `_verdict` has no test either, and reversing its level order so that every
@@ -493,7 +517,7 @@ these rows at all.
 
 So a row saying the statistic rejects at the 5% level traces to a real
 assertion, and the one thing that assertion would not notice is the critical
-table moving underneath it. Closing that pin belongs to issue 10 rather than to
+table moving underneath it. Closing that pin belongs to [issue 10](https://github.com/l3a0/quantitative-trading/issues/10) rather than to
 this entry.
 
 ### The chapter labels are first-edition shorthand
@@ -1179,7 +1203,7 @@ the span, above the tie, which
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing
-on issue 15 before any number was seen. Rows 1 and 2 are therefore a test of the
+on [issue 15](https://github.com/l3a0/quantitative-trading/issues/15) before any number was seen. Rows 1 and 2 are therefore a test of the
 argument on the instruments and the period this repo picked rather than of his.
 
 Chan calls the source "not publicly distributed" and it is on PanAgora's own
@@ -1213,14 +1237,14 @@ are worth stating here rather than leaving to those cards.
 3. **His equity leg is the Russell 1000 and SPY is not that.** It is the S&P
    500, which is a narrower index, and nothing here has measured what the
    substitution costs. IWB tracks the Russell 1000 and shares this entry's own
-   window, so that one is measurable on free data and is issue 160.
+   window, so that one is measurable on free data and is [issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
 
 His bond index settles the proxy ruling from the source rather than from
 argument. The paper's disclosure describes the Lehman Aggregate as roughly
 6,000 bonds with an approximate average maturity of ten years. The paper never
 says duration and average maturity is not duration, so the reading that this is
 an intermediate rather than a long-duration index is this repo's and not his.
-It is the reading issue 15 took when it chose AGG over TLT, before any of this
+It is the reading [issue 15](https://github.com/l3a0/quantitative-trading/issues/15) took when it chose AGG over TLT, before any of this
 was read, and a maturity the source states is better evidence for it than the
 argument it had.
 
@@ -1250,3 +1274,138 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/risk-parity-against-60-40.md](../blog/risk-parity-against-60-40.md)
 moves with it, since that essay quotes most of these figures and a few this
 entry does not.
+
+## Entry 5: the fixed-income candidate, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle location 3951. Shipped
+under [issue 136](https://github.com/l3a0/quantitative-trading/issues/136),
+under the rules
+[issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
+every stationary candidate Chan names there.
+
+This entry is not a replication. Chan states that "fixed-income instruments
+can be found to be cointegrating", and that one can long and short bonds by
+the same issuer at different maturities, but he works no example and prints no
+number. So the entry carries a finding rather than a verdict, and its tables
+drop the published-figure, gap and verdict columns, because no row has
+anything to put in them. `### Rows that are not replications` above says why
+the route that lets a stated claim carry a verdict does not reach this one.
+
+Six rows, all derivable from
+[tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
+
+**TLT and IEF do not cointegrate over their shared history, in either
+orientation.** With TLT as the dependent leg the statistic is −2.3887, and with
+IEF it is −2.3168, both against a 10% bar of −3.04. The one-lag fits leave
+autocorrelation the critical values do not allow for. The first fit whose
+residuals pass is at 31 lags in both orientations, and there the statistics are
+−1.5677 and −1.5387, further from rejecting. The rolling scan finds 56 and 51 of
+278 one-year windows clearing 10%, and just over half of those end in 2003-04
+or 2020-21.
+
+Every row reads the same stand-ins, vintages and specification, so the three
+are stated once here.
+
+1. **The stand-ins.** TLT, which holds Treasuries maturing in twenty years or
+   more, and IEF, which holds Treasuries maturing in seven to ten. They are
+   one issuer at two maturities, and the step between them and Chan's
+   sentence is that each is a rolling basket rather than a bond. Both were
+   named on the issue before anything was downloaded, and the owner confirmed
+   them on 2026-09-18.
+2. **The vintages.** `yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv`
+   and `yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv`, both
+   downloaded 2026-10-02. The basis is raw on both legs, meaning adjusted for
+   splits and not for dividends. Most of a bond fund's return is its
+   distributions, so an adjusted pair would drift apart by what the two
+   maturities pay rather than by anything about whether their prices are
+   tied.
+3. **The specification.** The with-intercept Engle-Granger regression in
+   levels, one ADF lag, over the full common span of 6,083 days. Both
+   orientations are reported, because the test is not symmetric and Chan names
+   no dependent leg. The residual check reads ten autocorrelations against the
+   ±1.96/√n band and a Breusch-Godfrey test over the same ten lags at the 10%
+   cut, and its search stops at Schwert's ceiling of 34 lags. The scan uses
+   252-day windows stepped by 21.
+
+Every result here is **exploratory**. The sample was spent on a claim Chan
+stated and on stand-ins this repo chose for it, so the entry says whether
+these two funds cointegrate over this span and nothing about bonds in general.
+
+### What the book stated
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | The claim | fixed-income instruments can be found to be cointegrating, long and short bonds by the same issuer at different maturities | Kindle location 3951 |
+| 2 | TLT on IEF, full span | nothing, the book works no example | n/a |
+| 3 | IEF on TLT, full span | nothing | n/a |
+| 4 | The residual check at one lag, both orientations | nothing | n/a |
+| 5 | The first lag count whose residuals pass, both orientations | nothing | n/a |
+| 6 | The rolling scan, both orientations | nothing | n/a |
+
+### What this repo computed
+
+| # | Window | Specification | Computed | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | 2002-07-30 to 2026-10-01 | rows 2 and 3 read together | neither orientation rejects at 10% | `TestBothOrientations::test_neither_orientation_rejects_even_at_ten_percent` |
+| 2 | 2002-07-30 to 2026-10-01 | TLT = α + β·IEF + z, ADF at one lag on z | hedge 1.8632, intercept −74.8326, t −2.3887 on 6,081 observations, half-life 333.2 days | `TestBothOrientations::test_the_fit` |
+| 3 | 2002-07-30 to 2026-10-01 | IEF = α + β·TLT + z, ADF at one lag on z | hedge 0.4771, intercept 46.6023, t −2.3168 on 6,081 observations, half-life 376.4 days | `TestBothOrientations::test_the_fit` |
+| 4 | 2002-07-30 to 2026-10-01 | the residual check on each one-lag fit | Breusch-Godfrey p 0.0000 both ways, autocorrelations outside the band at residual lags 2 to 10 for TLT on IEF, and at 2 to 10 except 6 for IEF on TLT | `TestTheResidualCheck::test_the_one_lag_fit_fails_it` |
+| 5 | 2002-07-30 to 2026-10-01 | the smallest lag count from 0 to 34 whose residuals pass both halves | 31 both ways, t −1.5677 and −1.5387, Breusch-Godfrey p 0.1352 and 0.3223 | `TestTheResidualCheck::test_the_first_fit_that_passes_is_further_from_rejecting` |
+| 6 | 278 windows ending 2003-07-29 to 2026-09-11 | 252-day windows stepped by 21, one ADF lag | 56 and 51 clear 10%, 33 and 29 clear 5%, 30 and 29 of the 10% windows end in 2003-04 or 2020-21 | `TestTheRollingScan::test_the_counts` and `::test_rejections_cluster_in_two_stretches` |
+
+### What each row says
+
+| # | Why it is here |
+| --- | --- |
+| 1 | The finding. Chan's claim does not hold for this pair over this span. A stand-in that fails keeps its failure as the result, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule, so no other pair of funds is tried in its place. |
+| 2 | The statistic is 0.65 short of the 10% bar, and row 3's is 0.72 short. The half-life of 333.2 trading days is more than a year, which is a spread that barely pulls back at all. |
+| 3 | The other orientation, 0.0719 away from row 2, so this is a pair where the choice of dependent leg could not have turned the finding. On GLD/GDX's full raw history the two orientations sit 0.5352 apart, at −1.2893 and −1.8245. That comparison was measured on [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) and nothing in this suite pins it, because pinning the engine's asymmetry is [issue 127](https://github.com/l3a0/quantitative-trading/issues/127). |
+| 4 | The one-lag fits leave autocorrelation at nearly every residual lag, so their statistics are read against critical values that do not apply. |
+| 5 | The first fits whose residuals pass are further from rejecting than the one-lag fits, so the check strengthens the finding rather than weakening it. On GLD/GDX the band was the half of the check that decided. Here every autocorrelation is inside the band from 9 lags for TLT on IEF and from 10 for IEF on TLT, and the Breusch-Godfrey half is what holds the passing count at 31. `::test_the_breusch_godfrey_half_is_what_holds_the_count_at_31` pins that. |
+| 6 | A description of the span, not a second finding. About one window in five clears 10% each way round. On GLD/GDX's raw history `TestRollingRegime` pins 31 of 231 for GLD on GDX, about one in seven, and pins no figure for the other orientation. No window that rejects is promoted to a claim about the pair, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. |
+
+### What the entry concludes
+
+Three things, and the first is the finding.
+
+1. **On these two funds, Chan's claim does not hold.** Both orientations fall
+   short of the 10% bar, and the fits the residual check allows fall further
+   short. That is evidence against TLT and IEF being cointegrated over
+   2002-2026. It is not evidence against the claim Chan made, which is that
+   such pairs can be found.
+2. **The scan finds stretches, not a relationship.** About a fifth of the
+   one-year windows reject, and just over half of those end in 2003-04 or
+   2020-21, with the rest scattered across the other years. A pair trade sized
+   on one of those stretches would have been sized on a window, which is the
+   shape `TestRollingRegime` pins for GLD/GDX.
+3. **The residual check matters more on a long span than on a short one.** The
+   Chapter windows of Entry 1 first pass at 6 and 10 lags. This 6,083-day span
+   first passes at 31, and it is the Breusch-Godfrey test rather than the band
+   that holds it there. The ceiling on that search was fixed before anything
+   was downloaded, so the 31 was found rather than chosen.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether individual bonds behave the way the funds do.** Each fund is a
+rolling basket held near a constant maturity, while a bond's own maturity
+shrinks every day until it stops trading. Chan's sentence is about bonds, and
+these are funds that trade like stocks and have free daily history. Treasury
+futures and individual bonds both need data this repo does not hold.
+
+**Whether the yields behind these prices are cointegrated.** That is a related
+question, whether the gap between long and intermediate yields stays put. It is a different claim from Chan's, because a yield cannot
+be bought or sold, and it would need its own issue and its own stand-in named
+before any data is read.
+
+**Whether the finding survives another vintage.** These are raw closes, which
+a vendor restates only when a fund splits, so a later download should match
+on every shared day unless one of the two has split by then. Nothing has
+checked that, and
+[issue 139](https://github.com/l3a0/quantitative-trading/issues/139) is the
+guard that would.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
