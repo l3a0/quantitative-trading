@@ -20,8 +20,9 @@ with no network.
 
 The second way is by hand, and it did not stop when the recorder arrived. The
 recorder takes a download date and builds a name out of it, and a column lifted
-from one of Chan's workbooks has no download date to give it, so nothing can
-record one. Every such column is typed into the record by hand. `spy_chan.csv`
+from one of Chan's workbooks has no download date to give it, so the recorder
+cannot write one. A single such column is typed into the record by hand, and a
+whole file of them goes through the third way below. `spy_chan.csv`
 is the first to arrive that way since `chan.vintage` existed, and
 [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
 that was settled.
@@ -453,14 +454,30 @@ Two files carry that record.
    surface anyone has to remember to update.
 
 `TestTheCommittedManifest` in
-[tests/test_vintage.py](../tests/test_vintage.py) fails on five states: when an
-entry stops describing the file it names, when a file here has no entry, when
-the projection stops matching the record, when one of the hand-written entries
-above stops carrying the identity it was given, and when a recorded entry stops
-agreeing with the name its file took.
+[tests/test_vintage.py](../tests/test_vintage.py) fails when any of these stops
+holding. The class is the authority for the list, which grows whenever it gains
+a test, so no total is given here.
+
+- Every entry describes the file it names, by its sha256, its row count and
+  its span.
+- Every file here has exactly one entry, at any depth.
+- `checksums.sha256` is the projection the manifest produces, and regenerating
+  it changes nothing.
+- Every hand-written entry, and every stock lifted from Chan's MATLAB files,
+  names the series its file's `Ticker,` row carries.
+- The hand-written entries and the lifted sources carry the identity
+  `tests/support/committed_vintages.py` pins for them.
+- Every recorded entry agrees with the name its file took.
+- Every line is the text its own entry would write.
+- Neither the manifest nor the projection carries a carriage return.
+- The table above states what the manifest states.
+- Every entry carries exactly one kind of date, and a saved date only on a
+  series lifted from one of Chan's own files.
+- Only a series lifted from one of Chan's files names a source workbook, and a
+  download claiming one is refused when the manifest is read.
 
 The table above is a third telling and is still hand-written. What keeps it
-true is another assertion in the same class, which reads both surfaces and
+true is the table assertion in that list, which reads both surfaces and
 holds every row to the entry for the file it names. Every column is held, and
 a cell that stops agreeing fails and says which path, which column, what the
 cell says and what the entry gives. So does a row the manifest records nothing

@@ -230,13 +230,13 @@ def payload_of(rows: list[tuple[str, str]]) -> bytes:
     Text rather than a float, because two of the cases below need a close no
     float can carry: a value ``_parse_close`` coerces to NaN, and a negative
     one. Neither survives ``record_vintage``, which is why these are written
-    into a manifest by hand the way the eight committed ones were.
+    into a manifest by hand the way the hand-written vintages were.
     """
     return ("Date,Close\n" + "".join(f"{day},{close}\n" for day, close in rows)).encode("utf-8")
 
 
 def place(directory: Path, *, name: str, rows: list[tuple[str, str]]) -> None:
-    """Leave one vintage in ``directory``, the way the eight were left in ``data/``."""
+    """Leave one vintage in ``directory``, the way the hand-written ones were left in ``data/``."""
     payload = payload_of(rows)
     days = [day for day, _ in rows]
     entry = {
@@ -415,7 +415,10 @@ class TestANonFiniteRatioIsReportedNotSkipped:
     """
 
     def test_a_nan_close_is_flagged_on_both_days_it_touches(self, data_dir: Path) -> None:
-        """``_parse_close`` coerces an unparseable value to NaN, which the eight predate."""
+        """``_parse_close`` coerces an unparseable value to NaN.
+
+        No committed vintage holds one, so the case writes its own.
+        """
         place(
             data_dir,
             name="unreadable.csv",
