@@ -310,7 +310,7 @@ class TestTheResidualCheck:
 
         tried: list[int] = []
 
-        def never_passes(spread, lags):
+        def never_passes(spread, lags, **_):
             tried.append(lags)
             return ResidualCheck(lags, 0.0, 400, np.zeros(10), 0.0)
 
