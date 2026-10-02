@@ -206,9 +206,9 @@ a reader to infer.
 
    It ran against yfinance 1.7.0 on 2026-10-02, outside the package, with the
    `Close` column handed to the recorder and each date taken from the index as
-   returned. A cross rate is never adjusted: a read-only probe the same day
-   found `Adj Close` equal to `Close` on every row, and the same `Close` under
-   either `auto_adjust`. It is recorded under `raw` rather than `rate`, because
+   returned. A currency has no splits or dividends to adjust for, and on this
+   series a read-only probe the same day found `Adj Close` equal to `Close` on
+   every row, and the same `Close` under either `auto_adjust`. It is recorded under `raw` rather than `rate`, because
    `close_identity` reaches `raw` through `unadjusted=True` and the scale-break
    guard reads it as the price it is. The issue carries the full argument.
 2. **Two rows were dropped, by date.** The vendor dates an FX bar on the London

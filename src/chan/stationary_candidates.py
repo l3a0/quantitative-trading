@@ -49,8 +49,10 @@ one can move a borderline statistic across a critical value.
    so the two are comparable. The scan describes the whole span. No window that
    happens to reject is a finding on its own.
 
-The command line takes no window. A window option is the knob that would let a
-reader pick one that rejects, and the full span is the only one declared.
+The command line takes no window for either candidate. A window option is the
+knob that would let a reader pick one that rejects, and each candidate's issue
+declared exactly one: the full common span here, and :data:`TEST_START` to the
+last row for the cross rate.
 
 The fixed-income result is exploratory. The sample was spent on a claim Chan
 stated and on stand-ins this repo chose, so it can say whether these two funds
@@ -133,6 +135,7 @@ STEP = 21
 #: white-noise band.
 RESIDUAL_PASS_P = 0.10
 
+#: The fixed-income candidate's claim. The cross rate's is :data:`CROSS_RATE_REF`.
 BOOK_REF = "Kindle location 3951: fixed-income instruments can be found to be cointegrating"
 
 
@@ -496,17 +499,22 @@ def main() -> None:
     )
     parser.add_argument(
         "--dated",
-        default=CROSS_RATE_DATED,
+        default=None,
         help=f"which {CROSS_RATE} download to read, by its date (default: {CROSS_RATE_DATED})",
     )
     args = parser.parse_args()
+    if args.dated is not None and args.candidate == "fixed-income":
+        # Accepting it and reading nothing would let a reader believe a date
+        # moved the fixed-income numbers.
+        parser.error("--dated names a CADAUD=X download and applies only to cross-rate")
+    dated = CROSS_RATE_DATED if args.dated is None else args.dated
     try:
         if args.candidate in (None, "fixed-income"):
             run()
         if args.candidate is None:
             print()
         if args.candidate in (None, "cross-rate"):
-            run_cross_rate(dated=args.dated)
+            run_cross_rate(dated=dated)
     except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
         # Both are raised while reading, and a refusal naming which vintage or
         # which dates is worth nothing at the bottom of a pandas traceback.

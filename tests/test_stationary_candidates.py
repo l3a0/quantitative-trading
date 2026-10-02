@@ -49,7 +49,7 @@ The cross-rate pins read one vintage and one specification too.
   days. The residual check fits the same constant. The rolling scan is
   252-day windows stepped by 21.
 
-Seven classes.
+Eight classes and one test.
 
 1. ``TestTheCrossRateVintage``, the file, the window it is read over, and the
    vendor's gap the window starts after.
@@ -63,7 +63,13 @@ Seven classes.
 6. ``TestTheCrossRateReport``, which holds the vintage line, the null the
    report names, and the verdict line.
 7. ``TestTheCrossRateRefusals``, which holds that a missing download reaches
-   an operator as a line.
+   an operator as a line, and what the command runs with and without an
+   argument.
+8. ``TestTheCheckFitsTheTermItIsGiven``, the ``regression`` keyword on
+   ``residual_check``, held on a synthetic series.
+
+``test_measuring_reads_from_the_test_start`` holds that measuring a series
+that begins before the window drops those days.
 
 A replication under the claim route, which is still exploratory: the sample
 was spent on a claim Chan stated about one named rate. First run on
@@ -542,14 +548,13 @@ class TestTheCrossRateStatistic:
 
     def test_it_is_the_statistic_the_residual_check_fits(self, rate: CrossRate) -> None:
         """The check audits the same regression the test runs, constant and
-        all. With no constant it checks a different fit, whose statistic does
-        not even clear the 10% bar, so the keyword is what makes the check
-        about this test at all."""
+        all. With no constant it checks a different regression, with a
+        different statistic, read against a different table, so the keyword is
+        what makes the check about this test at all."""
         assert rate.at_lag.adf_stat == pytest.approx(rate.adf_stat, abs=1e-12)
         values = rate.log_rate.to_numpy()
         without = residual_check(values, LAGS).adf_stat
         assert without == pytest.approx(-2.5159, abs=5e-5)
-        assert without > ADF_CRIT_CONST["10%"]
 
     def test_the_half_life(self, rate: CrossRate) -> None:
         assert rate.half_life == pytest.approx(141.6, abs=0.05)
@@ -566,11 +571,24 @@ class TestTheCrossRateStatistic:
         assert level == pytest.approx(-3.2944, abs=5e-5)
         assert inverse == pytest.approx(-3.1552, abs=5e-5)
 
-    def test_every_lag_from_zero_to_twelve_rejects_at_five_percent(self, rate: CrossRate) -> None:
-        """The headline is lag 1 by rule, and the rule does not decide the
-        verdict here. The closest count is 6, at -2.8739."""
+    def test_on_the_level_both_statistics_the_verdict_reads_still_reject(
+        self, rate: CrossRate
+    ) -> None:
+        """The scale is claimed not to decide the verdict, which reads two
+        statistics, so both are held on the level in both directions."""
         values = rate.log_rate.to_numpy()
-        sweep = [adf_tstat(values, lags)[0] for lags in range(13)]
+        for series, stat in ((np.exp(values), -3.0241), (np.exp(-values), -2.9734)):
+            passing = first_passing(series, rate.ceiling, regression="c")
+            assert passing is not None
+            assert passing.lags == 10
+            assert passing.adf_stat == pytest.approx(stat, abs=5e-5)
+
+    def test_every_lag_up_to_the_ceiling_rejects_at_five_percent(self, rate: CrossRate) -> None:
+        """The headline is lag 1 by rule, and the rule does not decide the
+        verdict here. Every count from 0 to the ceiling of 32 rejects, and the
+        closest is 6, at -2.8739."""
+        values = rate.log_rate.to_numpy()
+        sweep = [adf_tstat(values, lags)[0] for lags in range(rate.ceiling + 1)]
         assert max(sweep) == pytest.approx(-2.8739, abs=5e-5)
         assert int(np.argmax(sweep)) == 6
         assert all(stat < ADF_CRIT_CONST["5%"] for stat in sweep)
@@ -644,6 +662,8 @@ class TestTheCrossRateVerdict:
             (-3.0, -2.85, False),
             (-3.0, None, False),
             (-2.86, -2.86, False),
+            (-2.86, -3.0, False),
+            (-3.0, -2.86, False),
             (-2.8601, -2.8601, True),
         ],
     )
@@ -722,6 +742,22 @@ class TestTheCrossRateRefusals:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert "CADAUD=X raw dated 2026-10-03" in str(stopped.value)
+
+    def test_no_argument_runs_both_fixed_income_first(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr("sys.argv", ["chan.stationary_candidates"])
+        main()
+        out = capsys.readouterr().out
+        assert out.index("TLT on IEF") < out.index("Chan's CAD/AUD cross rate")
+        assert "Verdict: REPRODUCED." in out
+
+    def test_dated_is_refused_for_the_fixed_income_candidate(self, monkeypatch) -> None:
+        """It names a CADAUD=X download, so accepting it there would read nothing."""
+        monkeypatch.setattr(
+            "sys.argv", ["chan.stationary_candidates", "fixed-income", "--dated", "2026-10-02"]
+        )
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert stopped.value.code == 2
 
     def test_each_candidate_runs_alone(self, monkeypatch, capsys) -> None:
         monkeypatch.setattr("sys.argv", ["chan.stationary_candidates", "cross-rate"])

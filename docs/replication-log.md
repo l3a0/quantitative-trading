@@ -1424,14 +1424,18 @@ stationary over this window and nothing about whether trading it pays.
 
 ### What the book printed
 
-| # | Row | Published figure | Where the book prints it |
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
 | --- | --- | --- | --- |
-| 1 | The CAD/AUD cross rate is quite stationary | a claim rather than a figure | Kindle location 3951 |
-| 2 | The ADF statistic at one lag | none, the book works no example | n/a |
-| 3 | The residual check, and the first lag count whose residuals pass | none | n/a |
-| 4 | The half-life | none | n/a |
-| 5 | The test on the rate quoted the other way, and on the level | none | n/a |
-| 6 | The rolling scan | none | n/a |
+| 1 | The CAD/AUD cross rate is quite stationary | the claim, with no figure | Kindle location 3951 |
+| 2 | The ADF statistic at one lag | nothing, the book works no example | n/a |
+| 3 | The residual check, and the first lag count whose residuals pass | nothing | n/a |
+| 4 | The half-life | nothing | n/a |
+| 5 | The test on the rate quoted the other way, and on the level | nothing | n/a |
+| 6 | The rolling scan | nothing | n/a |
 
 ### What this repo computed
 
@@ -1441,19 +1445,19 @@ stationary over this window and nothing about whether trading it pays.
 | 2 | 2007-08-06 to 2026-09-30 | ADF on the log of the rate, constant, one lag | t −3.2136 on 4,982 observations, rejecting at 5% | `TestTheCrossRateStatistic::test_the_lag_one_statistic` |
 | 3 | 2007-08-06 to 2026-09-30 | the residual check on the one-lag fit, then the smallest lag count from 0 to 32 whose residuals pass both halves | one lag fails, Breusch-Godfrey p 0.0002 and residual lags 2, 6, 7 and 10 outside the band. The first passing count is 10, t −2.9946, Breusch-Godfrey p 0.6487 | `TestTheCrossRateResidualCheck::test_the_lag_one_fit_fails_it` and `::test_the_first_fit_that_passes_still_rejects` |
 | 4 | 2007-08-06 to 2026-09-30 | OU half-life on the log of the rate | 141.6 trading days | `TestTheCrossRateStatistic::test_the_half_life` |
-| 5 | 2007-08-06 to 2026-09-30 | row 2's test on the log negated, on the level, and on the inverted level | −3.2136 negated, −3.2944 on the level, −3.1552 inverted | `TestTheCrossRateStatistic::test_the_quoting_direction_does_not_move_it` |
+| 5 | 2007-08-06 to 2026-09-30 | rows 2 and 3 on the log negated, on the level, and on the inverted level | −3.2136 negated. On the level −3.2944 at one lag and −3.0241 at the first passing count, 10. Inverted, −3.1552 and −2.9734, also at 10 | `TestTheCrossRateStatistic::test_the_quoting_direction_does_not_move_it` and `::test_on_the_level_both_statistics_the_verdict_reads_still_reject` |
 | 6 | 226 windows ending 2008-07-30 to 2026-09-21 | 252-day windows stepped by 21, row 2's test in each | 23 clear 10% and 5 clear 5% | `TestTheCrossRateScan::test_the_counts` |
 
 ### The verdicts
 
-| # | Gap, computed minus published | Verdict | Why |
-| --- | --- | --- | --- |
-| 1 | none, the source states a claim | reproduced | The criterion was declared on the issue before any statistic was computed: the one-lag statistic and the statistic at the first residual-clean lag count both below the 5% bar. They are −3.2136 and −2.9946. Neither clears 1%, at −3.43, so "quite stationary" holds at the level the criterion asks for and no stronger. |
-| 2 | none | none, not a replication | The headline statistic. Lag 1 was fixed before any number was seen, as the rule [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) set for both candidates. Every count from 0 to 12 also rejects at 5%, the closest being 6 at −2.8739, so the lag rule does not decide the verdict here. `::test_every_lag_from_zero_to_twelve_rejects_at_five_percent` pins that. |
-| 3 | none | none, not a replication | The one-lag fit leaves autocorrelation, so its statistic is read against critical values that do not apply. The fit that earns them is further from rejecting and still past the bar. Without the constant the check would audit a different regression, whose one-lag statistic is −2.5159 and does not clear even 10%. |
-| 4 | none | none, not a replication | The book prints no half-life. 141.6 trading days is a rate that pulls back slowly. A half-life of that length is one reason a one-year window has little power, which row 6 shows. |
-| 5 | none | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, at −3.2944 and −3.1552, and both still reject at 5%, so the scale did not decide the verdict either. |
-| 6 | none | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives, so a window that fails to reject says little, and no window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | The criterion was declared on the issue before any statistic was computed: the one-lag statistic and the statistic at the first residual-clean lag count both below the 5% bar. They are −3.2136 and −2.9946. Neither clears 1%, at −3.43, so "quite stationary" holds at the level the criterion asks for and no stronger. |
+| 2 | none, not a replication | The headline statistic. Lag 1 was fixed before any number was seen, as the rule [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) set for both candidates. Every count from 0 to the ceiling of 32 also rejects at 5%, the closest being 6 at −2.8739, so the lag rule does not decide the verdict here. `::test_every_lag_up_to_the_ceiling_rejects_at_five_percent` pins that. |
+| 3 | none, not a replication | The one-lag fit leaves autocorrelation, so its statistic is read against critical values that do not apply. The fit that earns them is further from rejecting and still past the bar. Without the constant the check would audit a different regression, whose one-lag statistic is −2.5159 rather than −3.2136 and is read against a different table, so the check would no longer be about this test. |
+| 4 | none, not a replication | The book prints no half-life. At 141.6 trading days a deviation takes a little over half a year to halve, which is a rate that pulls back slowly. |
+| 5 | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
+| 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
 
 ### What the entry concludes
 
@@ -1461,20 +1465,20 @@ Three things, and the first is the verdict.
 
 1. **Chan's claim reproduces at 5% on a modern download.** Over 2007-2026 the
    CAD/AUD rate rejects a unit root under the criterion fixed before the
-   statistic was read, on both statistics the criterion names. The one input
-   the replication chose freely, the lag, does not decide it, and neither does
-   the quoting direction or the scale.
+   statistic was read, on both statistics the criterion names. Every lag count
+   up to the ceiling rejects too, and so does the level in either quoting
+   direction. The log, the constant and the window start were fixed on the
+   issue before any statistic, and none was tried another way except the scale.
 2. **It is a slow reversion, and only the whole window shows it.** A half-life
-   of 141.6 trading days means a deviation takes most of a year to halve, and
-   only 23 of 226 one-year windows reject at 10%. Over the full window the
-   rejection holds, and in a year of data it usually does not. That is the
-   pattern a mean-reverting series with a long half-life produces, and it is
-   why the scan is a description rather than a second test.
+   of 141.6 trading days means a deviation takes a little over half a year to
+   halve, and only 23 of 226 one-year windows reject at 10%. Over the full
+   window the rejection holds, and in a year of data it usually does not.
+   Nothing here measures why, so the scan stays a description rather than a
+   second test.
 3. **The residual check moves the statistic and not the verdict.** The one-lag
    fit fails it, as Entry 5's one-lag fits do, and the first passing fit is at
-   10 lags. That fit still rejects, so here the check
-   narrows the margin from 0.35 below the bar to 0.13 rather than reversing
-   anything.
+   10 lags. That fit still rejects, closer to the bar than the one-lag fit, so
+   here the check narrows the margin rather than reversing anything.
 
 ### What this entry cannot say
 
