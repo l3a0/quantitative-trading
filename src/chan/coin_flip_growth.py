@@ -29,9 +29,10 @@ whole source.
 
 **This experiment reads no vintage.** Every other replication here commits the
 series it ran on, because a vendor restates an adjusted price without
-announcing it. A gamble has no vendor and no download date, so there is
-nothing to restate and nothing to commit. That is why it could be built before
-the vintage recorder exists.
+announcing it, except ``survivorship_bias``, which reads the tables the book
+prints and so has nothing a vendor could restate either. A gamble has no vendor
+and no download date, so there is nothing to restate and nothing to commit.
+That is why it could be built before the vintage recorder exists.
 
 **The pins are closed form, and the simulation cannot carry them.** Every
 figure the book prints follows from the payoffs alone. The per-flip standard

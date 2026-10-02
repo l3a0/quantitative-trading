@@ -49,17 +49,18 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Six replications run here, all from Chan's *Quantitative Trading*. The first
+Seven replications run here, all from Chan's *Quantitative Trading*. The first
 two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other four were built here.
+they were first built. The other five were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
    returns yet does not cointegrate in levels.
 3. The coin-flip gamble, Box 6.1, where the expected return of a round is
-   positive and the growth rate of capital is negative. It is the one
-   replication here that reads no series at all, so it has no vintage to name.
+   positive and the growth rate of capital is negative. It reads nothing at
+   all, so it has no vintage to name. The survivorship toy, item 7, is the only
+   other replication with no vintage, because it reads tables the book prints.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
    maximises compounded growth and then whether that much would have survived
    the worst day the index has had. Every level Chan computed from a series
@@ -83,6 +84,15 @@ they were first built. The other four were built here.
    the first lag count whose residuals pass, against a bar of −2.86, so the
    claim reproduces. Its half-life is 141.6 trading days, and only 23 of 226
    one-year windows reject at 10%.
+7. Chan's toy strategy for survivorship bias, Example 3.3 in the revised
+   edition, which buys the ten cheapest of the 1,000 largest stocks and holds
+   them for 2001. It runs on the two tables of picks the book prints, one from
+   a survivorship-free database and one from a database holding only
+   survivors. Equal capital reproduces Chan's −42 and 388 percent as −41.72 and
+   387.88. Neoforma's 10-K shows that NEOF's row spans a 1-for-10 reverse
+   split, and with NEOF on one share basis the survivor-only return is 100.91
+   percent. The loss against a gain survives that correction, and the printed
+   388 still reproduces from the table as printed.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -126,10 +136,17 @@ fixed-income number, because the test is not symmetric in its legs and Chan
 names no dependent one. For the cross rate it pins the verdict rule as well as
 the verdict, so a criterion edited after the fact fails a test.
 
-All six replications reach a verdict in
+[tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
+the survivorship toy, and pins equal shares beside the book's equal capital,
+because a pin on the right number alone holds a number rather than a choice. Its
+tolerance is tight enough that moving any printed cell by one unit in its last
+digit fails a test, so it holds the two tables as well as the arithmetic.
+
+All seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
-verdict against, and Entry 6 the cross rate's verdict.
+verdict against, Entry 6 the cross rate's verdict, and Entry 7 the
+survivorship toy's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -311,6 +328,19 @@ was read against. There is no `--start` or `--end`, because a window option is
 what would let a reader pick one that rejects, and each issue declared exactly
 one window. `--dated` names which `CADAUD=X` download to read and defaults to
 the one the suite pins.
+
+Chan's survivorship toy reads the two tables the book prints and takes no
+option:
+
+```bash
+uv run python -m chan.survivorship_bias
+```
+
+It prints both portfolios' returns under equal capital beside the figures the
+book prints, the equal-shares near miss, and the survivor-only return again
+with NEOF's start price put on the basis of its 2001 reverse split. Its vintage
+line reads `none, the book's printed tables`, and its window line names the
+book's dates.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

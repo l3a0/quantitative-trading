@@ -12,6 +12,7 @@ issue's own statement of what it waits on.
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
   - [The one replication that reads nothing](#the-one-replication-that-reads-nothing)
+  - [A replication that reads the book's own tables](#a-replication-that-reads-the-books-own-tables)
   - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
@@ -342,6 +343,51 @@ demonstration, sized from a measurement rather than from taste.
 heading that says why no simulated number is pinned against the book, which is
 where that entry's numbers belong.
 
+### A replication that reads the book's own tables
+
+Chan's toy strategy for survivorship bias, Example 3.3 in the revised edition,
+runs on two ten-row tables the book prints and on nothing else. One is what a
+survivorship-free database picks and the other what a database of survivors
+picks instead.
+[src/chan/survivorship_bias.py](../src/chan/survivorship_bias.py) holds both
+tables and works the returns, and
+[tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) is the
+authority for every number quoted about it.
+[docs/replication-log.md](replication-log.md) Entry 7 carries the two figures
+the book prints and the verdict on each, which is where those numbers belong.
+
+Four things follow, and they are where this case parts from the coin flip.
+
+1. **The inputs are not a vintage, and the vocabulary is extended rather than
+   stretched.** A vintage is a series a vendor was asked for or a column lifted
+   from one of Chan's own files, and a table printed in a book is neither. A
+   printed number cannot be restated by a vendor, so what pins it is the
+   edition, which [research/book-notes](../research/book-notes/README.md)
+   already records. So the definition of a replication gains a third case,
+   inputs the source itself prints, and the vintage column reads
+   `none, the book's printed tables`. The price is that the twenty rows sit in
+   code rather than beside the other committed data, so
+   [data/README.md](../data/README.md) does not list them and the module's
+   docstring is where a reader finds their source.
+2. **The vintage cell names no price basis.** Every committed vintage says
+   whether its prices are raw or adjusted. The book does not say whether its
+   database adjusted for splits, and at least one row shows a split it did not
+   adjust for, so writing either word would assert something nobody measured.
+3. **It keeps a window.** The coin flip has no window in any row, so its
+   column was dropped. This toy reads no series, but the book fixes the dates,
+   so every row has a window to hold and the column stays.
+4. **Having no vintage does not put the inputs beyond question.** The coin
+   flip's verdict was knowable before the work started, because nothing could
+   move its number. The same is true of a printed table's arithmetic. What this
+   case adds is that a printed row can still be checked against something
+   outside the book, and the one row that was checked against a company filing
+   compares a price before a reverse split with one after it. That is a
+   finding about Chan's table rather than a failure to reproduce it, and the
+   log entry carries it beside the figure it qualifies.
+
+Neither epistemic label reaches it, for the coin flip's reason: reproducing the
+arithmetic on a printed table spends no sample.
+
 ### The first time the fallback clause fires
 
 `## What this repo is for` ends by saying to prefer a series that cannot be
@@ -427,9 +473,13 @@ record nothing could read back.
 Each experiment pins the figures the book prints, at the precision the book
 prints them, naming its vintage and its window. An experiment that reads no
 series names neither and says so, rather than leaving the column blank, because
-a blank reads as an omission. A column with nothing to hold in any row is
-dropped instead, which is why the coin flip's computed table has five columns
-where the pair entry's has six.
+a blank reads as an omission. The exception is an experiment whose source fixes
+the dates without supplying a series, which names its window and says it has no
+vintage. Chan's survivorship toy is that case, and
+[A replication that reads the book's own tables](#a-replication-that-reads-the-books-own-tables)
+says why. A column with nothing to hold in any row is dropped instead, which is
+why the coin flip's computed table has five columns where the pair entry's has
+six.
 
 Where the book states a ranking or a verdict rather than a figure, the claim is
 what gets pinned. Inventing a digit the source does not carry would be worse
@@ -474,7 +524,7 @@ candidate for a synonym.
 | **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
 | **scale break** | A day on which a committed price series changes scale rather than price, meaning a day-over-day close ratio too far from 1 for a price move. The date is the later of the two days, so a window opening on it does not span the break. [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) holds the bound and what the committed vintages carry. The guard skips a **rate** vintage. |
 | **rate** | The third basis a vintage can carry, beside **raw price** and **adjusted price**. A rate vintage holds a series of rates, such as a Treasury-bill yield, recorded as the vendor publishes it. It has no raw or adjusted form, and the scale-break guard does not read it, because a rate near zero can move sixfold in a month without changing units. |
-| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, or against no data at all where the source's own number needs none. |
+| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, against inputs the source itself prints, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
 | **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. Nothing else in this repo is called a manifest. |
