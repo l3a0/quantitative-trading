@@ -2,6 +2,8 @@
 
 The published hedge ratio in a 2009 quant-trading book never reproduced exactly, no matter whose data went in. The reason is a data-vintage story, not a mistake. The pair itself had a shelf life.
 
+*Correction, 2026-10-02. An earlier version of this post called the pair cointegrated with better than 90% confidence and left it there. That verdict holds only at the one lag Chan used. A check of what each fit leaves in its residuals, added to detour 5, found that the one-lag fit leaves autocorrelation the test's critical values assume away. On Chan's 252-day window the first fit with clean residuals does not reject. On his full 385-day window it still rejects at better than 90%. The ledger, detours 4 and 6 and the closing table now say which lag each verdict rests on. Detour 5 also now says that Chan's R run was a different test, Hansen's covariate-augmented Dickey-Fuller test, rather than a third run of the one his MATLAB and Python code ran.*
+
 Ernest Chan's *Quantitative Trading* opens its pairs-trading chapter with an example. Buy gold, short the gold miners, and the two prices tend to drift back toward each other.
 
 The book runs a **cointegration test** on the pair. That is a statistical check for whether a long-short combination of two prices stays range-bound instead of wandering off on its own. It reports two numbers:
@@ -18,7 +20,9 @@ Here is the ledger of what reproduced and what didn't, then the six detours that
 | Hedge ratio (through-origin) | 1.6766 → 1.6379 | vintage drift |
 | CADF test statistic (full / training) | −3.36 / −3.18 → −3.45 / −3.09 | reproduced |
 | Mean-reversion half-life | \~10 days → \~10 days | reproduced |
-| Cointegration verdict | >90% conf. → rejects null | reproduced |
+| Cointegration verdict | >90% conf. → rejects null at one lag | reproduced at one lag |
+
+The verdict reproduces at the one lag Chan used. Detour 5 says what is left of it once that lag is checked.
 
 ## Six detours
 
@@ -51,11 +55,11 @@ Anchoring the series at a fixed start, instead of today, sidesteps the drift. Th
 | Book, 2007 vintage | 1.6766 | not reproducible from any modern download |
 | Everyone since | \~1.6379 | independent reproductions converge here, this one included |
 
-### 4. Separate the fragile estimate from the robust conclusion
+### 4. Separate what moved with the vintage from what did not
 
-Not everything drifted. The hedge ratio moved with the data vintage. The **half-life**, which is how long the spread takes to close half its gap, reproduced at about 10 days, matching the book. So did the verdict. The spread is cointegrated with better than 90% confidence.
+Not everything drifted. The hedge ratio moved with the data vintage. The **half-life**, which is how long the spread takes to close half its gap, reproduced at about 10 days, matching the book. So did the verdict at Chan's own setting of one lag. The spread is cointegrated with better than 90% confidence. Detour 5 shows how much that setting decides.
 
-The trade signal survived. The hedge ratio slipped about two percent, from 1.6766 to 1.6379, while the half-life and the verdict held.
+The hedge ratio slipped about two percent, from 1.6766 to 1.6379. The half-life held across both vintages, and so did the verdict at one lag.
 
 ### 5. An independent implementation separates data bugs from code bugs
 
@@ -74,35 +78,37 @@ Chan's own files do land his two numbers, once each run is read for what it was.
 
 The setting is the number of lags the test adds to absorb autocorrelation. Chan's MATLAB call passes one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into "not cointegrated." More lags do not weaken the statistic steadily, though. On the 2026 closes, across zero to sixteen lags it rises and falls: −2.41 at three lags, −2.64 at four, −2.99 at thirteen. What holds there is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and Python agrees with MATLAB.
 
+Agreement settles the tooling question and leaves a second one open, which is how many lags the test is entitled to. Its critical values assume each fit leaves no autocorrelation in its residuals, the day-to-day errors the fit cannot explain. A residual check asks whether any is left. It reads ten residual autocorrelations against a white-noise band, and runs a **Breusch-Godfrey test** over the same ten lags, a test built for residuals from a regression that carries lagged terms. At one lag, Chan's MATLAB setting, the residuals fail on both vintages, with a Breusch-Godfrey p of 0.0421 on the 2026 closes and 0.0460 on Chan's files. Six lags is the first count whose residuals pass on both, and there the statistic is −2.30 on the 2026 closes and −2.3591 on Chan's files, neither of which rejects. Six is also the count Python's default picked, so the run Chan distrusted is the one whose residuals pass. On the 252-day window, then, the evidence for cointegration rests on a fit whose residuals the test's tables do not cover. That is an absence of evidence rather than evidence against, because the test has little power on 245 observations. The full 385-day window comes out the other way. Its one-lag fit fails the check too, but the first fit that passes, at ten lags, still rejects at better than 90%, at −3.30 on the 2026 closes, and Chan's files give the same verdict. Both checks are exploratory. They were run after the lag sweep above had been seen, so they say where to look and settle nothing. [How to test whether a price spread mean-reverts](price-spread-mean-reversion.md#what-lag-to-use) draws what each lag count leaves behind.
+
 ### 6. Cointegration is a property of a window, not a pair
 
-The last detour outlives the reproduction. Gold and gold miners cointegrated cleanly from 2006 to 2008. Run the same test over 2006 to 2026 and it falls apart.
+The last detour outlives the reproduction. Over Chan's full window, which ends in November 2007, gold and gold miners tested as cointegrated at better than 90%, even once the residuals were clean. Run the same test over 2006 to 2026 and it falls apart.
 
 The statistic drops to −1.45, well short of significance. The spread's half-life balloons from 10 days to over 800. The miners detached from gold somewhere in the 2010s and never fully came back.
 
 | Window | t-statistic | Verdict |
 | --- | --- | --- |
-| 2006–2008 | −3.18 | cointegrated |
+| 2006–2008 | −3.18 | cointegrated at one lag |
 | 2006–2026 | −1.45 | not cointegrated |
 
-The relationship the book documented was real. It also had a shelf life.
+The relationship the book documented held on its own window. It also had a shelf life.
 
 The two-window table is the compressed version. The full picture is a rolling test. Slide a one-year window across the whole history and compute the statistic in each. Where it dips below the 10% critical line, the pair cointegrates in that window.
 
 [![Two-panel regime map of GLD versus GDX from 2007 to 2026. The top panel plots the rolling one-year CADF t-statistic, which dips below the −3.04 critical line only in scattered windows clustered in the early years. The bottom panel shows Chan's through-origin hedge drifting upward from about 1.64 to a peak near 6.6 around 2016.](../docs/figures/reproduction_regime_map.png)](../docs/figures/reproduction_regime_map.png)
 
-*Rolling one-year cointegration test on as-traded GLD/GDX closes, 2007–2026. Green bands mark the windows that clear the 10% critical value (−3.04). Only 31 of 231 windows clear it, and they cluster before 2015. Below, Chan's through-origin hedge drifts from \~1.64 to above 4, so there is no single ratio a fixed pair trade could have held.*
+*Rolling one-year cointegration test on as-traded GLD/GDX closes, 2007–2026. Green bands mark the windows that clear the 10% critical value (−3.04). Only 31 of 231 windows clear it, and they cluster before 2015. Below, Chan's through-origin hedge drifts from \~1.64 to above 4, so there is no single ratio a fixed pair trade could have held. Every window is tested at one lag, Chan's setting, and none has had the residual check.*
 
 Cointegration flickers on and off, and just 31 of the 231 windows clear even the 10% bar. They cluster in the early years, around Chan's own window. In the decade from 2015, only 10 of 139 windows reject. The lower panel shows why the fixed trade was doomed regardless. The hedge that balances the spread climbs from Chan's \~1.64 to above 4, and briefly past 6. There was never one ratio to hold.
 
 ## The two runs, reproduced
 
-| Run | Window | Hedge (origin) | CADF t | Verdict |
-| --- | --- | --- | --- | --- |
-| Ch. 7 full | 2006-05 – 2007-11 | 1.6766 → 1.6379 | −3.36 → −3.45 | \~95% |
-| Ch. 3 (p.63) | first 252 days | none → 1.6283 | −3.18 → −3.09 | \~90% |
+| Run | Window | Hedge (origin) | CADF t | Verdict | Residuals clean |
+| --- | --- | --- | --- | --- | --- |
+| Ch. 7 full | 2006-05 – 2007-11 | 1.6766 → 1.6379 | −3.36 → −3.45 | \~95% | 10 lags, −3.30, \~90% |
+| Ch. 3 (p.63) | first 252 days | none → 1.6283 | −3.18 → −3.09 | \~90% | 6 lags, −2.30, no rejection |
 
-*Exploratory reproduction, not investment advice. Figures are from a from-scratch Python re-run on yfinance data and will not match the book to the last digit, by design.*
+*Exploratory reproduction, not investment advice. Figures are from a from-scratch Python re-run on yfinance data and will not match the book to the last digit, by design. The last column is the residual check from detour 5, which is exploratory too.*
 
 ## So what
 

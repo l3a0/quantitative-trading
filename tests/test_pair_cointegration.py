@@ -36,8 +36,9 @@ replications themselves.
 7. ``TestResidualCheck``, which asks which of those settings the test is
    entitled to, by checking what each lag count leaves in the residuals.
    Exploratory, and ``docs/figures/adf_residual_autocorrelation.png`` is the
-   picture of it. ``TestResidualCheckChapter7`` asks the same of the longer
-   window, on the yfinance closes and on Chan's own files.
+   picture of it. ``TestResidualCheckOnChansFiles`` repeats it on Chan's own
+   files, and ``TestResidualCheckChapter7`` asks the same of the longer window,
+   on the yfinance closes and on Chan's own files.
 8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
    premise one download date can show: GDX's adjusted 2006 closes sit below
    its raw ones, and GLD's do not move at all.
@@ -970,6 +971,102 @@ class TestResidualCheck:
 
         assert [passes(k) for k in range(7)] == [False] * 6 + [True]
         assert residual_check(spread, 6).adf_stat > EG_CRIT_N2["10%"]
+
+
+class TestResidualCheckOnChansFiles:
+    """The Chapter 3 residual check again, on the files Chan's figures land on.
+
+    ``TestResidualCheck`` runs on the 2026 closes, where the one-lag fit's
+    lag-6 autocorrelation sits outside the band by little enough that a
+    different vintage could move it inside. Chan's own files are the vintage
+    that matters, because ``TestChansPythonRun`` reproduces his Python printout
+    on them. The shape holds there. The one-lag fit fails both halves of the
+    check, six lags is the first count that passes, and the test does not
+    reject at six. The six-lag fit is also the one ``coint`` runs at its
+    defaults, so the statistic Chan distrusted is the one whose residuals pass.
+
+    Exploratory, for the reason ``TestResidualCheck`` gives, and run after it
+    had been seen.
+
+    Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
+    of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
+    Specification: the with-intercept residual spread over 2006-05-23 to
+    2007-05-23, 252 rows, tested by ``adfuller`` at a fixed lag count with
+    ``regression='n'``, with the band and the Breusch-Godfrey horizon at
+    :data:`~chan.pair_cointegration.RESIDUAL_LAGS`. First pinned on 2026-10-02.
+    """
+
+    #: Per lag count: observations, ADF statistic, Breusch-Godfrey p, and the
+    #: residual lags that fall outside the band.
+    PINNED = {
+        0: (251, -3.2975, 0.1263, [6]),
+        1: (250, -3.1780, 0.0460, [6]),
+        2: (249, -2.7187, 0.0731, [3, 6]),
+        3: (248, -2.4857, 0.0047, [6]),
+        4: (247, -2.7241, 0.0072, [6]),
+        5: (246, -2.2571, 0.0621, [6]),
+        6: (245, -2.3591, 0.8284, []),
+    }
+
+    @staticmethod
+    @pytest.fixture(scope="class")
+    def closes() -> pd.DataFrame:
+        return aligned_closes("GLD", "GDX", chan=True, start=BOOK_START, end=BOOK_TRAIN_END)
+
+    @staticmethod
+    @pytest.fixture(scope="class")
+    def spread(closes: pd.DataFrame) -> np.ndarray:
+        return engle_granger(closes["GLD"].to_numpy(float), closes["GDX"].to_numpy(float)).spread
+
+    @pytest.mark.parametrize("lags", sorted(PINNED))
+    def test_the_fit_and_its_residuals(self, spread: np.ndarray, lags: int) -> None:
+        nobs, stat, bg_p, outside = self.PINNED[lags]
+        check = residual_check(spread, lags)
+
+        assert check.nobs == nobs
+        assert check.adf_stat == pytest.approx(stat, abs=5e-5)
+        assert check.breusch_godfrey_p == pytest.approx(bg_p, abs=5e-5)
+        assert check.outside == outside
+
+    def test_the_lag_six_bar_stays_outside_at_the_books_lag_count(
+        self, spread: np.ndarray
+    ) -> None:
+        """The bar the caveat in ``TestResidualCheck``'s vintage was about. On
+        Chan's files it sits further outside the same band, not inside it."""
+        check = residual_check(spread, 1)
+        assert check.band == pytest.approx(0.1240, abs=5e-5)
+        assert float(check.autocorrelation[5]) == pytest.approx(0.1659, abs=5e-5)
+
+    def test_the_books_lag_count_fails_at_every_horizon_from_two(
+        self, spread: np.ndarray
+    ) -> None:
+        def fails(k: int) -> list[int]:
+            return [
+                h
+                for h in range(1, RESIDUAL_LAGS + 1)
+                if residual_check(spread, k, horizon=h).breusch_godfrey_p < 0.10
+            ]
+
+        assert fails(1) == list(range(2, 11))
+        assert fails(6) == []
+
+    def test_six_is_the_first_lag_count_whose_residuals_pass(self, spread: np.ndarray) -> None:
+        def passes(k: int) -> bool:
+            check = residual_check(spread, k)
+            return check.breusch_godfrey_p > 0.10 and not check.outside
+
+        assert [passes(k) for k in range(7)] == [False] * 6 + [True]
+        assert residual_check(spread, 1).adf_stat < EG_CRIT_N2["10%"]
+        assert residual_check(spread, 6).adf_stat > EG_CRIT_N2["10%"]
+
+    def test_the_passing_fit_is_the_one_coint_runs(
+        self, closes: pd.DataFrame, spread: np.ndarray
+    ) -> None:
+        """Chan's Python run picks six lags by AIC, so its printed statistic is
+        the six-lag fit's, to the last digit."""
+        stat = coint(closes["GLD"], closes["GDX"])[0]
+        assert residual_check(spread, 6).adf_stat == pytest.approx(stat, abs=1e-12)
+        assert stat == pytest.approx(TestChansPythonRun.BOOK_T, abs=1e-9)
 
 
 class TestResidualCheckChapter7:
