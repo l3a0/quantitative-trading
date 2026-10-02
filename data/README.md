@@ -435,20 +435,19 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its 1,115 lines were written by hand, six by the recorder and 1,100
-   by `record_lifted_columns`. Eight of the nine were here before the recorder
-   existed, and `spy_chan.csv`'s was typed because the recorder cannot write a
-   saved date. More will be, for as long as a replication reaches for another
-   of Chan's workbook columns.
+   Its hand-written lines are the eight that were here before the recorder
+   existed and `spy_chan.csv`'s, which was typed because the recorder cannot
+   write a saved date. Every other line was written by code, a download by
+   `record_vintage` and a stock lifted from Chan's MATLAB files by
+   `record_lifted_columns`. More lines will be typed by hand for as long as a
+   replication reaches for another of Chan's workbook columns.
 
-   That sentence is corrected here rather than left to
-   [issue 132](https://github.com/l3a0/quantitative-trading/issues/132)'s
-   sweep, which owns the wider class. It was true until the AGG vintage below
-   arrived, so the change that recorded that vintage is what made it false, and
-   the sweep's own measurement counts the statements saying "eight" and "four"
-   and would not find one saying "ten". It went stale a second time when TB3MS
-   made the count twelve, and the change recording TLT and IEF is what
-   corrected it. The change lifting Chan's two MATLAB files moved it again.
+   An earlier version of this paragraph counted every line in the manifest,
+   and each change that recorded a vintage made it false again.
+   [Issue 132](https://github.com/l3a0/quantitative-trading/issues/132), the
+   sweep of prose that counts the committed vintages, is why it names the
+   hand-written lines instead. Only a hand-typed workbook column changes that
+   set, and that is the change that would also write the line.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.
