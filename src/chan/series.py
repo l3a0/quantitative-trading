@@ -47,6 +47,11 @@ back both manifest entries, so this module reads two series as well as one.
 It sat in :mod:`chan.pair_cointegration` until
 [issue 122](https://github.com/l3a0/quantitative-trading/issues/122), and it
 is here for the reason the paragraph above gives for the parse.
+
+:func:`load_panel` reads a whole source file's columns as one date-by-symbol
+frame, which is how Chan's cross-sectional examples read his ``.mat`` files.
+[Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
+those as one vintage per stock, and the panel is what puts them back together.
 """
 
 from __future__ import annotations
@@ -60,7 +65,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from chan.vintage import VintageEntry, read_vintage, resolve_vintage
+from chan.vintage import (
+    VintageEntry,
+    VintageUnavailable,
+    read_manifest,
+    read_vintage,
+    resolve_vintage,
+)
 
 #: A day-over-day price ratio further than this from 1, in log terms, is a scale break.
 #:
@@ -194,6 +205,85 @@ def vintage_line(entry: VintageEntry) -> str:
     """
     return (
         f"{entry.path}   {entry.vendor} {entry.price_basis}, {entry.obtained_verb} {entry.obtained}"
+    )
+
+
+def load_panel(
+    source_file: str, *, data_dir: Path | None = None
+) -> tuple[list[VintageEntry], pd.DataFrame]:
+    """Every column lifted from one source file, as a date-by-symbol frame of closes.
+
+    The members are the entries whose ``source_workbook`` names the file, and
+    they come back sorted by symbol, which is the frame's column order too.
+    Both of Chan's ``.mat`` files already hold their columns in that order,
+    measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
+
+    The manifest is read once. Resolving each member by its identity fields
+    would read it once per member, and at 1,115 entries that measured 4.2 s
+    for the 500 members of the S&P 500 file, against 0.03 s for hashing their
+    bytes. Every member is still read through :func:`read_vintage`, so each one
+    is hashed against its entry before it is parsed.
+
+    The frame's index is the union of the members' dates. A member's file holds
+    only the days its source priced it, so a day it was not priced is NaN here,
+    which is what the source held. Compute returns on this frame rather than on
+    one member's own rows. Two of the S&P 500 file's columns each hold two
+    companies under one symbol across a gap, and a return taken over a member's
+    own rows reads that gap as one day's move.
+
+    A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
+    A source naming no entry, members disagreeing on the vendor, basis or date
+    they carry, and two members holding one symbol are three different states,
+    and the message says which fired.
+    """
+    try:
+        entries = read_manifest(data_dir)
+    except (OSError, ValueError) as unreadable:
+        raise VintageUnavailable(
+            f"the vintage manifest could not be read, so {source_file} cannot be: {unreadable}"
+        ) from unreadable
+
+    members = sorted(
+        (entry for entry in entries if entry.source_workbook == source_file),
+        key=lambda entry: entry.symbol,
+    )
+    if not members:
+        raise VintageUnavailable(f"no committed vintage is lifted from {source_file}")
+    carried = sorted({(entry.vendor, entry.price_basis, entry.obtained) for entry in members})
+    if len(carried) > 1:
+        raise VintageUnavailable(
+            f"the {len(members)} vintages lifted from {source_file} disagree on what they are: "
+            f"{'; '.join(' '.join(each) for each in carried)}. One source was saved once, so "
+            f"its columns carry one vendor, one basis and one date."
+        )
+    symbols = [entry.symbol for entry in members]
+    repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
+    if repeated:
+        raise VintageUnavailable(
+            f"{source_file} has more than one vintage for {', '.join(repeated)}, so the panel "
+            f"cannot say which is the column"
+        )
+
+    columns = {
+        entry.symbol: _parse_close(read_vintage(entry, data_dir=data_dir), entry.symbol)
+        for entry in members
+    }
+    # The columns keep the dict's order, which is the members' sorted order.
+    return members, pd.DataFrame(columns).sort_index()
+
+
+def panel_line(members: Sequence[VintageEntry]) -> str:
+    """A panel as a report prints it, in one line rather than one per member.
+
+    :func:`vintage_line` names one file. A panel of 500 would print 500 of
+    those, so this names the directory, the count, and the vendor, basis and
+    date every member shares, which :func:`load_panel` has already checked.
+    """
+    first = members[0]
+    directory = first.path.rsplit("/", 1)[0] if "/" in first.path else first.path
+    return (
+        f"{directory}/   {first.vendor} {first.price_basis}, {first.obtained_verb} "
+        f"{first.obtained}, {len(members)} members lifted from {first.source_workbook}"
     )
 
 

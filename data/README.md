@@ -11,7 +11,7 @@ would move the pinned numbers and fail the suite, which is the behaviour that
 makes the pins worth having. Replacing a file is therefore a deliberate act
 with a visible cost, not a refresh.
 
-A vintage arrives one of two ways, and which one decides what holds it.
+A vintage arrives one of three ways, and which one decides what holds it.
 `chan.vintage.record_vintage` writes the file and appends its entry, and
 refuses to overwrite either, so recording a series is a recorded act and
 replacing one is not an act the recorder performs at all. It does not download.
@@ -25,6 +25,14 @@ record one. Every such column is typed into the record by hand. `spy_chan.csv`
 is the first to arrive that way since `chan.vintage` existed, and
 [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
 that was settled.
+
+The third way is `chan.vintage.record_lifted_columns`, which writes every
+column of one of Chan's files at once, each as its own vintage carrying the
+date the file was saved. It exists because typing stopped being one line per
+column. Chan's two MATLAB files hold 1,100 columns between them, and
+[issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where the
+owner decided on 2026-10-02 that entries at that count are written by code.
+`python -m chan.mat_columns` reads a `.mat` file and hands its closes over.
 
 A recorded vintage's name is load-bearing. The recorder builds it by joining
 the five identity fields, so the vendor, symbol, price basis, span and download
@@ -70,6 +78,8 @@ download date, and which price or rate the series carries.
 | `yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | TLT | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | IEF | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv` | yfinance | CADAUD=X | raw | 2005-07-04 .. 2026-09-30 | 2026-10-02 |
+| `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
+| `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -242,11 +252,68 @@ reads the column taken from them. Four are in
 `example6_2.xls`'s is in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
+The two directories are the closes in Chan's first-edition MATLAB files, one
+vintage per stock. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
+which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
+stood on 2008-01-14, which his Example 7.6 reads. Each holds only the companies
+still in its index on that day, carried backwards, so a figure computed from
+either is a figure about survivors.
+[Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
+measurements below and the decision behind the shape.
+
+1. **Where they came from.** The same mirror, at commit
+   [`1a71950`](https://github.com/egorpe/EPChan-QuantitativeTrading/tree/1a7195003cf3e85a806e18867e0af547d17ad5c4),
+   which ships each as a `.zip`. The `.mat` files inside are not committed, and
+   their sha256 is recorded here instead, the way the workbooks' is recorded
+   beside the runs that read them.
+
+   ```text
+   8d3ccbbd2c95b1ea342dfd5f953075f24c0df561efc9c6cc2cce651294ee73dc  SPX_20071123.mat
+   a30f6560988b7d0774d0258569ef2c4ef8d6a416e94c64da48a9cec9e8c76d28  IJR_20080114.mat
+   ```
+
+2. **Closes only.** Each file also carries opens, highs, lows and volumes. Every
+   figure Chan's code prints from them reads the closes, and an open series
+   would share every identity field with the close series of the same stock,
+   so the owner decided on 2026-10-02 to record closes alone.
+   [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) holds
+   the one step that would need opens.
+3. **A missing close is a missing row.** Chan marks a day a stock has no price
+   with NaN, and a vintage refuses one, so each file holds only the days its
+   stock was priced. Nothing is lost. No trading day in either file lacks a
+   close in every column, so `chan.series.load_panel` rebuilds Chan's array by
+   putting every member on the union of their dates, and the conversion
+   checked that it did, NaN for NaN, before anything was committed. Compute
+   returns on that panel rather than on one file's own rows. `spx_20071123/wyn.csv`
+   holds two companies under one symbol, 952 trading days apart, closing at
+   0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
+   same across 400 days to 2007-07-02.
+4. **The date is the save.** It comes from each file's MAT header, which
+   records when the file was created. That is a day after the date in each
+   name, because the name carries the last trading day.
+5. **Both are recorded as `adjusted`, and neither says how.** The S&P 500 file
+   is split-adjusted, as AAPL across its 2005-02-28 split shows, and its KO
+   column sits below KO's raw close by amounts that do not reconcile with
+   dividends alone, measured in
+   [the survivorship comment on issue 88](https://github.com/l3a0/quantitative-trading/issues/88#issuecomment-5945872363). The S&P 600
+   file was measured for this commit, on the ratio of each open to the close
+   before it. Across 589,021 consecutive pairs, one sits within 0.01 of a
+   two-for-one split, CBU on 2004-04-13, against none of 961,582 in the S&P 500
+   file. Unadjusted small caps over four years would show dozens, so the file is
+   split-adjusted, and CBU's day is a likely exception nobody here has
+   verified.
+6. **The scale-break guard flags 62 days in 52 of the 1,100.** They are pinned
+   by path and day in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+   Most are real moves, such as AAPL falling to 0.4813 of its close on
+   2000-09-29, and two are the splices in point 3. Five sit within 0.02 of a
+   split ratio, AAPL, AES and AYE in the S&P 500 file and CBU and INSP in the
+   S&P 600 file, and whether any of them is an unadjusted split is not known.
+
 ## Header shape
 
 The files placed by hand above carry a three-row header before the data. The
 shape is yfinance's multi-index frame, and the workbook columns were written
-into it too. What that buys, whether or not anybody meant it at the time, is
+into it too, as is every column `record_lifted_columns` writes. What that buys, whether or not anybody meant it at the time, is
 that the symbol sits in the bytes where a check can read it back, and
 `tests/test_vintage.py` now does:
 
@@ -325,10 +392,11 @@ Two files carry that record.
    The record also refuses a downloaded vintage claiming a workbook, because a
    series a vendor returned did not come out of a spreadsheet.
 
-   Nine of its fifteen lines were written by hand. Eight were here before the
-   recorder existed, and `spy_chan.csv`'s was typed because the recorder cannot
-   write a saved date. More will be, for as long as a replication reaches for
-   another of Chan's workbook columns.
+   Nine of its 1,115 lines were written by hand, six by the recorder and 1,100
+   by `record_lifted_columns`. Eight of the nine were here before the recorder
+   existed, and `spy_chan.csv`'s was typed because the recorder cannot write a
+   saved date. More will be, for as long as a replication reaches for another
+   of Chan's workbook columns.
 
    That sentence is corrected here rather than left to
    [issue 132](https://github.com/l3a0/quantitative-trading/issues/132)'s
@@ -337,7 +405,7 @@ Two files carry that record.
    the sweep's own measurement counts the statements saying "eight" and "four"
    and would not find one saying "ten". It went stale a second time when TB3MS
    made the count twelve, and the change recording TLT and IEF is what
-   corrected it.
+   corrected it. The change lifting Chan's two MATLAB files moved it again.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.
@@ -357,3 +425,12 @@ cell says and what the entry gives. So does a row the manifest records nothing
 for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
+
+A directory gets one row rather than one per file, so the 1,100 lifted columns
+are two rows. The row states what every file in it shares, which is the
+vendor, the basis and the date, along with how many members it holds and the
+earliest and latest day any of them carries. Its members must agree on the
+three shared cells, or the failure names the directory and the values. What
+holds each member's own identity is the pin for its source in
+[tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
+which also counts the members.

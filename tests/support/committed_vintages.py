@@ -76,6 +76,40 @@ HAND_WRITTEN = {
 }
 
 
+#: Each source lifted as one vintage per column, to what every one of its members carries.
+#:
+#: Source file to ``(vendor, price_basis, saved_date, directory, members)``.
+#: [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
+#: Chan's two ``.mat`` files this way, 1,100 columns between them, and pinning
+#: each column by path would be 1,100 hand-typed tuples saying the same four
+#: things. One source was saved once, so its members share a vendor, a basis
+#: and a date, and the pin says each once. The member count is what notices a
+#: column dropped from the manifest along with its file.
+#:
+#: The symbol is not pinned, for the reason the ``Ticker,`` paragraph above
+#: gives: each member's own bytes carry it, and a member's path is its
+#: directory and its symbol lowercased.
+#:
+#: It sits beside :data:`HAND_WRITTEN` rather than inside it. That map is
+#: keyed by path, and ``tests/test_series.py`` compares its keys against the
+#: manifest's paths.
+LIFTED_SOURCES = {
+    "SPX_20071123.mat": ("chan-mat", "adjusted", "2007-11-24", "spx_20071123", 500),
+    "IJR_20080114.mat": ("chan-mat", "adjusted", "2008-01-15", "ijr_20080114", 600),
+}
+
+
+def in_a_lifted_source(path: str) -> bool:
+    """Whether ``path`` sits in the directory of a source :data:`LIFTED_SOURCES` pins.
+
+    Read off the path rather than off ``source_workbook``, because two of the
+    checks that use it hold that field and the date fields to the path, and a
+    predicate reading the field under test would agree with any edit to it.
+    """
+    directory, _, name = path.rpartition("/")
+    return bool(name) and directory in {pin[3] for pin in LIFTED_SOURCES.values()}
+
+
 def identity_of(
     entry: VintageEntry,
 ) -> tuple[str, str, str, str | None, str | None, str | None]:

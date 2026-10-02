@@ -55,7 +55,7 @@ from chan.vintage import (
     record_vintage,
 )
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
-from tests.support.committed_vintages import rewrite_entry
+from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 
 #: The breaks the eight committed vintages carry today, recorded rather than failing.
 #:
@@ -75,6 +75,84 @@ from tests.support.committed_vintages import rewrite_entry
 #: Recording the fact beside the data is
 #: [issue 108](https://github.com/l3a0/quantitative-trading/issues/108).
 KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
+
+#: What the guard flags in the 1,100 columns lifted from Chan's two MATLAB files.
+#:
+#: Pinned by path and day rather than as a count, so a day that stops being
+#: flagged fails as surely as a new one. These are flags rather than known
+#: breaks. The bound was fitted to the single-series vintages, and its own
+#: comment in ``chan.series`` says a volatile small cap moves 0.75 on ordinary
+#: news, which is what most of these are: AAPL at 0.4813 on 2000-09-29 and the
+#: energy names of July 2002 among them.
+#:
+#: Two are not price moves at all. ``spx_20071123/wyn.csv`` and
+#: ``spx_20071123/dfs.csv`` each hold two companies under one symbol across a
+#: gap of 952 and 400 trading days, and a member's own rows read that gap as
+#: one day. Five sit within 0.02 of a split ratio, AAPL, AES and AYE here and
+#: CBU and INSP in the S&P 600 file, and whether any is an unadjusted split is
+#: not known. ``data/README.md`` and
+#: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
+#: the measurements. Whether a run reading one of these files refuses a window
+#: crossing a flagged day is for that run to decide, and
+#: [issue 17](https://github.com/l3a0/quantitative-trading/issues/17) and
+#: [issue 18](https://github.com/l3a0/quantitative-trading/issues/18) are where.
+FLAGGED_IN_CHANS_MAT_FILES = {
+    "ijr_20080114/agp.csv": ["2005-09-29"],
+    "ijr_20080114/bbx.csv": ["2007-10-26"],
+    "ijr_20080114/bcsi.csv": ["2006-02-06"],
+    "ijr_20080114/blti.csv": ["2007-11-06"],
+    "ijr_20080114/cbm.csv": ["2007-05-04"],
+    "ijr_20080114/cbu.csv": ["2004-04-13"],
+    "ijr_20080114/cybx.csv": ["2004-06-16", "2004-08-12"],
+    "ijr_20080114/ditc.csv": ["2005-05-27"],
+    "ijr_20080114/insp.csv": ["2008-01-09"],
+    "ijr_20080114/ivac.csv": ["2004-07-13"],
+    "ijr_20080114/mag.csv": ["2005-05-04"],
+    "ijr_20080114/matk.csv": ["2005-04-28"],
+    "ijr_20080114/moh.csv": ["2005-07-21"],
+    "ijr_20080114/odsy.csv": ["2004-10-18"],
+    "ijr_20080114/pmc.csv": ["2007-08-01"],
+    "ijr_20080114/poss.csv": ["2004-08-24"],
+    "ijr_20080114/rgr.csv": ["2007-10-25"],
+    "ijr_20080114/scur.csv": ["2006-07-12"],
+    "spx_20071123/aapl.csv": ["2000-09-29"],
+    "spx_20071123/aes.csv": ["2001-09-26"],
+    "spx_20071123/anf.csv": ["2000-02-16"],
+    "spx_20071123/aye.csv": ["2002-10-08"],
+    "spx_20071123/bby.csv": ["2000-11-09"],
+    "spx_20071123/biib.csv": ["2005-02-28"],
+    "spx_20071123/brl.csv": ["2000-08-09"],
+    "spx_20071123/ca.csv": ["2000-07-05"],
+    "spx_20071123/ci.csv": ["2002-10-25"],
+    "spx_20071123/cnp.csv": ["2002-07-23", "2002-07-25"],
+    "spx_20071123/cof.csv": ["2002-07-17"],
+    "spx_20071123/cpwr.csv": ["2000-04-12"],
+    "spx_20071123/csc.csv": ["2001-03-16"],
+    "spx_20071123/ctxs.csv": ["2000-06-12"],
+    "spx_20071123/dfs.csv": ["2007-07-02"],
+    "spx_20071123/duk.csv": ["2001-01-29"],
+    "spx_20071123/dyn.csv": ["2002-07-23", "2002-07-25", "2002-07-29", "2002-11-19"],
+    "spx_20071123/eds.csv": ["2002-09-19"],
+    "spx_20071123/etfc.csv": ["2007-11-12"],
+    "spx_20071123/etn.csv": ["2001-01-02"],
+    "spx_20071123/gas.csv": ["2002-07-19"],
+    "spx_20071123/hal.csv": ["2001-12-07"],
+    "spx_20071123/novl.csv": ["2000-05-03"],
+    "spx_20071123/q.csv": ["2002-06-26"],
+    "spx_20071123/see.csv": ["2002-07-30"],
+    "spx_20071123/thc.csv": ["2002-11-08"],
+    "spx_20071123/tie.csv": ["2001-09-17"],
+    "spx_20071123/uis.csv": ["2000-06-29"],
+    "spx_20071123/unm.csv": ["2000-02-10"],
+    "spx_20071123/vrsn.csv": ["2002-04-26"],
+    "spx_20071123/wfr.csv": ["2001-08-10", "2001-09-28", "2001-10-01"],
+    "spx_20071123/wmb.csv": ["2002-07-22", "2002-07-23", "2002-07-29"],
+    "spx_20071123/wpi.csv": ["2001-11-13"],
+    "spx_20071123/wyn.csv": ["2001-09-17", "2006-08-01"],
+}
+
+#: Every day the guard flags across the manifest.
+EVERY_FLAG = {**KNOWN_BREAKS, **FLAGGED_IN_CHANS_MAT_FILES}
 
 #: A series that halves partway through, and its date index.
 #:
@@ -237,13 +315,14 @@ class TestTheGuardOverTheWholeManifest:
     is worth.
     """
 
-    def test_the_whole_manifest_flags_exactly_the_two_known_breaks(self) -> None:
+    def test_the_whole_manifest_flags_exactly_the_pinned_days(self) -> None:
         found = breaks_across_the_manifest()
 
-        assert found == KNOWN_BREAKS
-        assert sum(len(days) for days in found.values()) == 2
+        assert found == EVERY_FLAG
+        assert sum(len(days) for days in found.values()) == 64
+        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 52
 
-    def test_every_committed_price_vintage_is_read_and_only_one_reports(self) -> None:
+    def test_every_committed_price_vintage_is_read_and_only_the_pinned_ones_report(self) -> None:
         """Said as its own case, because a guard that read one file would pass the count.
 
         The clean vintages are counted off the manifest rather than listed.
@@ -261,7 +340,7 @@ class TestTheGuardOverTheWholeManifest:
             swept[entry.path] = days_of(scale_breaks(closes))
 
         assert set(swept) == {entry.path for entry in price_entries()}
-        assert {path: days for path, days in swept.items() if days} == KNOWN_BREAKS
+        assert {path: days for path, days in swept.items() if days} == EVERY_FLAG
 
     def test_only_rate_vintages_are_left_out_and_the_bill_series_is_one(self) -> None:
         """The skip is by basis, so this says what it skips today."""
@@ -403,7 +482,7 @@ class TestItIteratesTheManifest:
             data_dir=committed_copy,
         )
 
-        assert breaks_across_the_manifest(committed_copy) == KNOWN_BREAKS
+        assert breaks_across_the_manifest(committed_copy) == EVERY_FLAG
 
     @pytest.mark.parametrize("vendor", ["yfinance", "fred"])
     def test_a_recorded_ninth_carrying_a_break_is_found(
@@ -423,7 +502,7 @@ class TestItIteratesTheManifest:
 
         found = breaks_across_the_manifest(committed_copy)
 
-        assert found == {**KNOWN_BREAKS, entry.path: ["2026-01-06"]}
+        assert found == {**EVERY_FLAG, entry.path: ["2026-01-06"]}
 
 
 class TestAWindowThatCrossesABreakStops:
@@ -681,9 +760,17 @@ class TestTheBoundIsTheOneThatWasMeasured:
         smaller break is 0.68329 and rounds to 0.6833, where
         [issue 3](https://github.com/l3a0/quantitative-trading/issues/3) prints
         the truncation 0.6832.
+
+        It reads the single-series vintages the bound was fitted to and skips
+        the columns lifted from Chan's MATLAB files, whose flags
+        ``FLAGGED_IN_CHANS_MAT_FILES`` pins instead. Holding them to an envelope
+        fitted to the single-series vintages, mostly funds and indexes, would
+        assert that a small cap never moves 40 percent in a day.
         """
         widest, breaks, ratios, kept = 0.0, [], [], []
         for entry in price_entries():
+            if in_a_lifted_source(entry.path):
+                continue
             closes = _parse_close(read_vintage(entry), entry.symbol)
             values = closes.to_numpy(dtype=float)
             moves = values[1:] / values[:-1]
