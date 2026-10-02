@@ -482,8 +482,9 @@ The test file holds what each figure draws rather than its bytes, for the
 reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
-post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
-Entry 3 of the replication log.
+post, about Example 6.2's Kelly leverage on SPY. It draws seven lessons,
+numbered here as the post numbers them. Lesson 6 comes from the growth formula
+and the other six from Entry 3 of the replication log.
 
 1. The gap from Chan's figures, which is gone on his own `example6_2.xls` and
    sits on ten days on or beside SPY's quarterly ex-dividend dates.
@@ -491,10 +492,10 @@ Entry 3 of the replication log.
 3. Rebalancing at a constant leverage.
 4. The stress test's threshold, and the price series that reverses it.
 5. The window.
-6. The return frequency.
+6. Overbetting past the Kelly leverage.
+7. The return frequency.
 
-A seventh, Lesson 6 in the post, on overbetting past the Kelly leverage, comes
-from the growth formula. Two groups of its figures are not pinned here.
+Two groups of its figures are not pinned here.
 
 1. Chan's inputs: the 4% risk-free rate, the \$100,000 of equity and 10% fall
    of the worked example, and the 20.47% Black Monday loss and 20% tolerance of
@@ -524,13 +525,14 @@ those are worth naming, because each reads Chan's own workbook.
    its 3,758 days to the \$252,775.87 its unrounded leverage buys. That
    includes the 43 to 47% that monthly sampling adds, which a test asserts as
    written on this column.
-3. The figures from its as-traded column: the leverage of 1.9341, the 0.59 and
-   1.68 points between the two columns, the 0.0200 by which the as-traded
-   leverage misses the threshold and its half-Kelly of 0.9670.
+3. The figures from its as-traded column: the leverage of 1.9341, the 0.59 it
+   sits below the adjusted leverage, the 1.68 points between the two columns'
+   mean returns, the 0.020 by which it misses the threshold and its half-Kelly
+   of 0.9670.
    `TestThePriceBasisOnHisOwnWorkbook` holds them.
 
-The exceptions are the numbers read off the growth formula, which trace to
-[tests/test_kelly_figures.py](tests/test_kelly_figures.py). Those include the
+The numbers read off the growth formula trace to
+[tests/test_kelly_figures.py](tests/test_kelly_figures.py) instead. They include the
 10.98% half-Kelly keeps and the 5.10 of twice Kelly, which the figure prints,
 and the 5.60 at which growth reaches zero and the 5.43% the bull window's 4.90
 earns on Chan's window, which it does not.

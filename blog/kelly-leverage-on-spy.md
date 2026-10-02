@@ -6,7 +6,7 @@
 
 Ernest Chan’s *Quantitative Trading* (Chan, 2021) works the Kelly formula on SPY, the exchange-traded fund that tracks the S&P 500, in Example 6.2 of Chapter 6. Over SPY’s history from January 1993 to 28 December 2007, he finds that the leverage that makes capital grow fastest is 2.528 times equity. A trader with \$100,000 would hold \$252,800 of SPY.
 
-His own spreadsheet for the example, `example6_2.xls`, gives back that 2.528 and every other figure in his table. A 2026 download of the same fund over the same dates gives 2.551. Reading only 2000 to 2002 from that download gives −2.82, which is a short. Reading only 2003 to 28 December 2007 gives 4.90. The years chosen move the answer farthest.
+His own spreadsheet for the example, `example6_2.xls`, gives back that 2.528 and every other figure in the table below. A 2026 download of the same fund over the same dates gives 2.551. Reading only 2000 to 2002 from that download gives −2.82, which is a short. Reading only 2003 to 28 December 2007 gives 4.90. The years chosen move the answer farthest.
 
 This post walks through the formula and seven lessons from reproducing Chan’s example in code. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -58,7 +58,7 @@ With `S` at 0.4313, `S²/2` is 9.30%, so capital compounds at 4% plus 9.30%, whi
 
 *The growth formula on Chan’s 1993 to 2007 dates. Past the peak, growth falls as fast as it rose, so overshooting the Kelly leverage by some amount costs as much growth as undershooting it by that amount.*
 
-Here are Chan’s figures beside the ones this replication computes on the same **window**, meaning the same span of dates. The middle column comes from his spreadsheet, rounded to the decimals he printed. The right column comes from the 2026 download:
+Here are Chan’s figures beside the ones this replication computes on the same **window**, meaning the same span of dates. The middle column is his spreadsheet, rounded to the decimals he printed, and the right column is the 2026 download:
 
 ```math
 \begin{array}{l|r|r|r}
@@ -78,9 +78,9 @@ Here are Chan’s figures beside the ones this replication computes on the same 
 
 Nearly every figure computed from the 2026 download lands slightly above Chan’s. The mean is 0.06 percentage points higher, the Sharpe ratio 0.0038 higher and the leverage 0.023 higher. The standard deviation is the one figure that matches, at the two decimals Chan prints. The conclusions those numbers support still hold. SPY returned about 11% a year over his window, the growth-maximising leverage is about two and a half, and levering to it lifts growth above the unlevered rate.
 
-His spreadsheet also says where the gap starts. `example6_2.xls` is a spreadsheet he last saved on 29 January 2008, holding SPY’s daily prices over his window. Chan read its **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. Computed from that column, every figure in the table lands on the one he printed, at the precision he printed it. So his arithmetic is right, and the gap belongs to the data.
+His spreadsheet also says where the gap starts. `example6_2.xls`, last saved on 29 January 2008, holds SPY’s daily prices over his window. Chan read its **adjusted close**, a price series rewritten so that a dividend does not show up as a drop in price. Computed from that column, every figure in the table lands on the one he printed, at the precision he printed it. So his arithmetic is right, and the gap belongs to the data.
 
-The two series hold the same 3,758 trading days, so the gap is in the prices rather than in the calendar. Dividends paid after 2007 cannot explain it either. Adjusting for a later dividend scales every earlier price by one factor, which leaves every return unchanged. The gap sits instead on a handful of days. The ten days on which the two series’ returns differ most carry 108.5% of the gap in the mean, so the other days together pull it slightly the other way. Each of the ten falls on the third Friday of March, June, September or December, or on the trading day after. Those Fridays are SPY’s quarterly **ex-dividend dates**, the first day a buyer of the fund no longer receives the coming dividend. A few large differences move a mean while barely touching a standard deviation, which is why the standard deviation still matches.
+The 2026 download and his adjusted close hold the same 3,758 trading days, so the gap is in the prices rather than in the calendar. Dividends paid after 2007 cannot explain it either. Adjusting for a later dividend scales every earlier price by one factor, which leaves every return unchanged. The gap sits instead on a handful of days. The ten days on which the two series’ returns differ most carry 108.5% of the gap in the mean, so the other days together pull it slightly the other way. Each of the ten falls on the third Friday of March, June, September or December, or on the trading day after. Those Fridays are SPY’s quarterly **ex-dividend dates**, the first day a buyer of the fund no longer receives the coming dividend. A few large differences move a mean while barely touching a standard deviation, which is why the standard deviation still matches.
 
 ## Lesson 2: the formula hides two choices, and each wrong answer looks right
 
@@ -99,13 +99,13 @@ To get back to 2.528 times equity, the account has to shrink the position to \$1
 
 The same arithmetic runs the other way after a gain, when rebalancing buys. An account held at a constant leverage above 1 sells after losses and buys after gains, which is the **behaviour of a momentum trader**, whatever the strategy underneath. In a fall followed by a recovery, it sells near the low and buys back higher.
 
-Chan’s rounding starts before the chain does. His spreadsheet gives a leverage of 2.5278 to four decimals. Unrounded, that leverage buys \$252,775.87 of SPY with \$100,000, which is \$24 less than he printed. Rounding the leverage to 2.528 before multiplying gives his \$252,800 to the cent. The dollar figures in this chain are the only printed figures his data does not give exactly, and the cause is the order of his arithmetic rather than the data.
+On his spreadsheet the unrounded leverage buys \$252,775.87 of SPY with \$100,000, which is \$24 less than he printed. Rounding that leverage to 2.528 before multiplying gives his \$252,800 to the cent. So the dollar figures in this chain are the only printed figures his series does not give exactly, and the cause is the order of his arithmetic.
 
 ## Lesson 4: the stress test has a threshold, and it sits close
 
 Chan then asks whether the Kelly leverage would have survived Black Monday, 19 October 1987, when the S&P 500 fell 20.47% in a day. If a trader can tolerate losing 20% of equity in one day, the leverage that allows is 0.20 divided by 0.2047, or 0.977. Chan calls it “about 1”. Half-Kelly is 1.26 in his figures. Since 1.26 is above 0.977, he concludes that even half-Kelly would not have survived that day. At full Kelly on this download, a repeat of Black Monday would cost 52.21% of equity.
 
-The conclusion holds while half the Kelly leverage exceeds 0.977, which means while the full leverage exceeds 1.954. This download gives 2.551, a margin of 0.60, and his spreadsheet gives 2.5278, a margin of 0.57. Chan computed his figures from the adjusted close. His spreadsheet also carries the **as-traded close**, the price as it printed each day with no such adjustment. Computed from that column, the leverage is 1.9341, which is 0.59 below the 2.5278 of his adjusted column and 0.0200 below the 1.954 threshold. Half of it is 0.9670, under the 0.977 a 20% day allows, so the choice of price series alone reverses his conclusion. The difference sits in the mean. The adjusted close’s mean annual return is 1.68 percentage points higher, while the standard deviation barely moves.
+The conclusion holds while half the Kelly leverage exceeds 0.977, which means while the full leverage exceeds 1.954. This download gives 2.551, a margin of 0.60, and his spreadsheet gives 2.5278, a margin of 0.57. Chan computed his figures from the adjusted close. His spreadsheet also carries the **as-traded close**, the price as it printed each day with no such adjustment. Computed from that column, the leverage is 1.9341, which is 0.59 below his adjusted figure and 0.020 below the 1.954 threshold. Half of it is 0.9670, under the 0.977 a 20% day allows, so the choice of price series alone reverses his conclusion. That 0.59 sits in the mean. The adjusted close’s mean annual return is 1.68 percentage points higher, while the standard deviation barely moves.
 
 The 20.47% needs two cautions.
 
@@ -149,7 +149,7 @@ The question that matters is whether monthly returns give the same answer as dai
 2. Month-end closes with the unfinished last month dropped give 3.75.
 3. Blocks of 21 trading days give 3.64.
 
-All three sit near 3.7, which is 43 to 47% above the 2.551 from daily returns. Which monthly definition is picked barely matters, while monthly against daily matters a great deal. Chan’s spreadsheet shows the same difference. Its three monthly definitions give 3.69, 3.72 and 3.62, again 43 to 47% above his daily 2.528. Why SPY’s monthly returns imply a larger leverage is outside what this replication tests. What it does show is that the return frequency is a choice, and a reported Kelly leverage should name it along with the window.
+All three sit near 3.7, which is 43 to 47% above the 2.551 from daily returns. Which monthly definition is picked barely matters, while monthly against daily matters a great deal. Chan’s spreadsheet shows the same difference. On it, the same three definitions give 3.69, 3.72 and 3.62, again 43 to 47% above his daily 2.528. Why SPY’s monthly returns imply a larger leverage is outside what this replication tests. What it does show is that the return frequency is a choice, and a reported Kelly leverage should name it along with the window.
 
 ## What this means for a trader
 
