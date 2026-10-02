@@ -52,7 +52,7 @@ response the bytes are. It is pinned for the same reason, and because for
 ``gld_20yr_prices.csv`` and ``gdx_20yr_prices.csv`` it was typed from a
 measurement rather than from a call anyone wrote down, which
 ``TestWhichColumnTheHandPlacedAdjustedVintagesHold`` in
-``tests/test_vintage.py`` is what backs. Every other entry here pins ``None``,
+``tests/test_scale_breaks.py`` is what backs. Every other entry here pins ``None``,
 so the field turning up on a workbook column fails here too.
 """
 
@@ -62,10 +62,7 @@ import json
 import shutil
 from pathlib import Path
 
-import pandas as pd
-
 from chan.paths import DATA_DIR
-from chan.series import load_vintage
 from chan.vintage import MANIFEST_NAME, VintageEntry
 
 #: Path to ``(vendor, symbol, price_basis, download_date, saved_date,
@@ -220,19 +217,3 @@ def committed_copy(tmp_path: Path) -> Path:
     directory = tmp_path / "committed"
     shutil.copytree(DATA_DIR, directory)
     return directory
-
-
-def adjusted_against_raw(symbol: str) -> pd.DataFrame:
-    """A symbol's committed adjusted and raw yfinance closes, on the days both carry.
-
-    Two checks read this pair for different reasons. One divides the columns to
-    price a cut scale-break detector, and the other compares them to say which
-    column an adjusted file holds. Both load it here, so the two cannot come to
-    read different pairs while each still looks right.
-
-    The columns are ``adjusted`` and ``raw``, and a row is kept only where both
-    hold a close, which is the inner join of the two dated series.
-    """
-    adjusted = load_vintage(symbol)[1].rename("adjusted")
-    raw = load_vintage(symbol, unadjusted=True)[1].rename("raw")
-    return pd.concat([adjusted, raw], axis=1, join="inner").dropna()

@@ -54,12 +54,9 @@ from chan.vintage import (
     read_vintage,
     record_vintage,
 )
-from tests.support.committed_vintages import (
-    adjusted_against_raw,
-    in_a_lifted_source,
-    rewrite_entry,
-)
+from tests.support.committed_pairs import adjusted_against_raw
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
+from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 
 #: The breaks the single-series vintages carry, recorded rather than failing.
 #:
@@ -829,3 +826,46 @@ class TestWhyTheComparisonDetectorWasCut:
 
         assert round(widest, 4) == 0.0163
         assert widest < 1 - math.exp(-SCALE_BREAK_BOUND)
+
+
+class TestWhichColumnTheHandPlacedAdjustedVintagesHold:
+    """GLD's and GDX's calls were never written down, so their bytes answer instead.
+
+    Both adjusted files were downloaded before anything here recorded a call,
+    so the `vendor_column` their lines carry was typed from this comparison
+    rather than from a call. Each has a raw twin from the same vendor, which is
+    yfinance's split-only `Close`. A close carrying the dividends sits below
+    that twin on every day before the last ex-dividend date in the file and
+    equals it from that date on, because the adjustment is a factor applied
+    backwards from each payment. A split-only close mislabelled as adjusted
+    equals its twin everywhere instead.
+
+    That last sentence is also true of a fund that pays nothing, which is GLD.
+    So GLD's comparison cannot say which column it holds, and says instead that
+    the two columns are one series for this file and the route cannot move a
+    number read from it.
+
+    The pair is loaded through `adjusted_against_raw`, which is what
+    `TestWhyTheComparisonDetectorWasCut` above reads, so the two cannot come to
+    compare different series. It sits here rather than in
+    `tests/test_vintage.py` because that file tests `chan.vintage`, which keeps
+    to the standard library so its tests do not import pandas, and this reads
+    series.
+    """
+
+    def test_gld_s_adjusted_vintage_equals_its_raw_twin_on_every_shared_day(self):
+        both = adjusted_against_raw("GLD")
+
+        assert len(both) == 5030
+        assert (both.adjusted == both.raw).all()
+
+    def test_gdx_s_sits_below_its_raw_twin_before_its_last_ex_date_and_equals_it_after(self):
+        both = adjusted_against_raw("GDX")
+        last_ex_date = pd.Timestamp("2025-12-22")
+        before = both[both.index < last_ex_date]
+        after = both[both.index >= last_ex_date]
+
+        assert len(both) == 5099
+        assert (before.adjusted < before.raw).all()
+        assert (after.adjusted == after.raw).all()
+        assert (len(before), len(after)) == (4928, 171)

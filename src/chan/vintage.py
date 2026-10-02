@@ -209,7 +209,7 @@ class VintageEntry:
     vendor returned, and allowing one anywhere would let a line claim a series a
     vendor returned came out of a spreadsheet. That is a provenance claim in the
     field that says where a series came from, written permanently into a record
-    nothing rewrites. It is stated against ``saved_date`` rather than against
+    whose committed fields nothing changes. It is stated against ``saved_date`` rather than against
     the vendor, because which word names a vendor is a convention this module
     does not enforce, while the date fields are already an invariant it does.
 
@@ -339,7 +339,7 @@ class VintageEntry:
         return "downloaded" if self.download_date is not None else "saved"
 
     def as_json(self) -> str:
-        """The entry as one JSON object, with the unset date field left out.
+        """The entry as one JSON object, with every unset field left out.
 
         Keys are sorted, so a line's text is decided by the entry rather than by
         the order the fields happen to be declared in.
@@ -876,12 +876,12 @@ def _wrong_shape(parsed: object) -> str | None:
     known = {field.name for field in fields(VintageEntry)}
     # A field with a default is not required on the line, which covers the two
     # date fields, since `__post_init__` takes exactly one of the two and
-    # `as_json` writes only the one that is set, and `source_workbook`, which
-    # only a workbook column carries. That third one is the case this comment
-    # used to predict: naming the optional fields here instead would have
-    # refused the module's own output the first time `VintageEntry` gained
-    # another, and reading the required set off `dataclasses.fields` is why
-    # adding it refused nothing.
+    # `as_json` writes only the one that is set, and the provenance fields,
+    # which only some lines carry. `source_workbook` was the case this comment
+    # used to predict, and `vendor_column` the second: naming the optional
+    # fields here instead would have refused the module's own output the first
+    # time `VintageEntry` gained another, and reading the required set off
+    # `dataclasses.fields` is why adding either refused nothing.
     required = {
         field.name
         for field in fields(VintageEntry)

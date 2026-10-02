@@ -139,8 +139,9 @@ see it happen, because it takes rows rather than the call that produced them.
 So every `adjusted` yfinance line in the manifest carries a `vendor_column`
 field naming the column and the argument that selected it, and
 [tests/test_vintage.py](../tests/test_vintage.py) fails when one does not, or
-when it names the split-only column. All four of those lines read
-`Close, auto_adjust=True`, and two kinds of evidence stand behind the value.
+when it names anything but one of the two spellings of the both-adjustments
+close. Each such line reads `Close, auto_adjust=True` today, and two kinds of
+evidence stand behind the value.
 
 1. **SPY and AGG carry the call made when they were recorded.** It was
 
@@ -152,15 +153,21 @@ when it names the split-only column. All four of those lines read
    run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to
    the recorder in each case. The field holds the column and its argument, and
    this paragraph holds the rest of the call.
-2. **GLD and GDX carry what their bytes show.** Nobody wrote their calls down,
-   so the field was filled from a comparison against the raw twin beside each,
-   which `tests/test_vintage.py` pins. GDX's adjusted file sits below its raw
-   twin on every shared day before 2025-12-22, its last ex-dividend date in the
-   file, and equals it from that day on. That is the shape a close carrying the
-   dividends takes, so the file is the both-adjustments column. GLD's equals its
+2. **GLD and GDX carry an inference that their bytes bound.** Nobody wrote
+   their calls down. A comparison against the raw twin beside each, which
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins, says what
+   the bytes can. GDX's adjusted file sits below its raw twin on every shared
+   day before 2025-12-22 and equals it from that day on, which is where the
+   last dividend in the file goes ex. That is the shape a close carrying the
+   dividends takes, so the file is the both-adjustments close. GLD's equals its
    raw twin on every shared day, because GLD pays no distributions and has not
-   split, so both columns are one series for this file and the route cannot
-   move a number read from it.
+   split, so its bytes cannot tell any column apart and the route cannot move a
+   number read from it. Which of the two spellings each call took is not in
+   the bytes. `Close, auto_adjust=True` is the likely one, because the sibling
+   repository's `pipeline/download_prices.py` at `477c594` calls
+   `yfinance.download` without `auto_adjust`, whose default is `True`, and that
+   script's naming matches these files. That is an inference from a filename
+   rather than a record.
 
 The distinction is not cosmetic. On Chan's own data the dividends are worth a
 quarter of the answer Example 6.2 computes, and
@@ -170,9 +177,9 @@ fund's return is mostly its distributions, so a raw AGG series would strip out
 most of what that leg earns and make every return and Sharpe figure computed
 from it wrong.
 
-The module that reads these series points at the manifest line and at this
-paragraph rather than restating either, because a fact in two places is a fact
-that can drift.
+[src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py), which reads the
+SPY download, points at the manifest line and at this paragraph rather than
+restating either, because a fact in two places is a fact that can drift.
 
 `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` is the first vintage
 that is not a price. It is the St. Louis Fed's three-month Treasury-bill rate,

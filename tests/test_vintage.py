@@ -19,7 +19,6 @@ import json
 import sys
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from chan import vintage
@@ -37,7 +36,6 @@ from chan.vintage import (
 from tests.support.committed_vintages import (
     HAND_WRITTEN,
     LIFTED_SOURCES,
-    adjusted_against_raw,
     committed_copy,
     identity_of,
     in_a_lifted_source,
@@ -1145,7 +1143,8 @@ def the_lifted_sources_are_pinned(directory: Path) -> None:
                 entry.download_date,
                 entry.saved_date,
                 entry.source_workbook,
-            ) == (vendor, basis, None, saved, source), entry.path
+                entry.vendor_column,
+            ) == (vendor, basis, None, saved, source, None), entry.path
             assert entry.path == f"{folder}/{entry.symbol.lower()}.csv", entry.path
 
 
@@ -1411,6 +1410,7 @@ def _date_cell(entry: VintageEntry) -> str:
 #: under `auto_adjust=False`, carries splits and not dividends, which is what
 #: this repo records as `raw`.
 BOTH_ADJUSTMENTS = ("Close, auto_adjust=True", "Adj Close, auto_adjust=False")
+SPLIT_ONLY = "Close, auto_adjust=False"
 
 
 def the_adjusted_yfinance_entries_name_their_column(directory: Path) -> None:
@@ -1436,9 +1436,13 @@ def the_adjusted_yfinance_entries_name_their_column(directory: Path) -> None:
             f"yfinance.download(..., auto_adjust=True) and its Close was handed over, and "
             f"say so in data/README.md beside the call."
         )
-        assert entry.vendor_column in BOTH_ADJUSTMENTS, (
-            f"{entry.path}: {entry.vendor_column!r} is not a column carrying the dividends, "
+        assert entry.vendor_column != SPLIT_ONLY, (
+            f"{entry.path}: {SPLIT_ONLY!r} is the column carrying splits and not dividends, "
             f"so the series is not adjusted. A split-only Close is recorded as raw."
+        )
+        assert entry.vendor_column in BOTH_ADJUSTMENTS, (
+            f"{entry.path}: {entry.vendor_column!r} is not one of the spellings of the "
+            f"both-adjustments close, which are {', '.join(map(repr, BOTH_ADJUSTMENTS))}"
         )
 
 
@@ -1576,7 +1580,7 @@ class TestTheCommittedManifest:
         the case above holds the date fields. What it catches here is a hand
         edit putting a workbook on a downloaded line, which states a false
         source in the field that says where a series came from, in a record
-        nothing rewrites.
+        whose committed fields nothing changes.
 
         `read_manifest` refuses such a line before this runs, so a broken
         manifest fails as a refusal rather than here. This is what says the
@@ -1976,6 +1980,11 @@ class TestARecordedVintageIsHeldToo:
     writes its row. `test_a_new_recorded_vintage_needs_a_table_row` below is where the
     suite states that cost, rather than leaving it for whoever records the next
     one to discover.
+
+    An `adjusted` yfinance recording carries a second cost, the column it holds,
+    which only the caller can name. The fixture below records one without it,
+    and `test_a_new_adjusted_yfinance_recording_needs_its_column` states that
+    cost the same way.
     """
 
     @pytest.fixture
@@ -2001,6 +2010,13 @@ class TestARecordedVintageIsHeldToo:
         assert entry.path == NEW_VINTAGE_NAME
         return directory
 
+    def test_a_new_adjusted_yfinance_recording_needs_its_column(self, with_a_new_vintage):
+        with pytest.raises(AssertionError, match=f"{NEW_VINTAGE_NAME}: .*vendor_column="):
+            the_adjusted_yfinance_entries_name_their_column(with_a_new_vintage)
+
+        rewrite_entry(with_a_new_vintage, NEW_VINTAGE_NAME, vendor_column=BOTH_ADJUSTMENTS[0])
+        the_adjusted_yfinance_entries_name_their_column(with_a_new_vintage)
+
     def test_a_new_recorded_vintage_leaves_the_three_scoped_assertions_green(
         self, with_a_new_vintage
     ):
@@ -2020,6 +2036,8 @@ class TestARecordedVintageIsHeldToo:
             ("gdx_20yr_prices.csv", "price_basis", "raw"),
             ("gdx_20yr_prices.csv", "download_date", "2026-09-18"),
             ("ko_chan.csv", "saved_date", "2008-01-24"),
+            ("gdx_20yr_prices.csv", "vendor_column", "Adj Close, auto_adjust=False"),
+            ("ko_chan.csv", "vendor_column", "Close, auto_adjust=True"),
         ],
     )
     def test_a_hand_edit_to_a_hand_written_entry_still_fails(
@@ -2485,43 +2503,3 @@ class TestALiftedSourceIsHeld:
         assert {pin[3] for pin in LIFTED_SOURCES.values()} == {
             path.name for path in DATA_DIR.iterdir() if path.is_dir()
         }
-
-
-class TestWhichColumnTheHandPlacedAdjustedVintagesHold:
-    """GLD's and GDX's calls were never written down, so their bytes answer instead.
-
-    Both adjusted files were downloaded before anything here recorded a call,
-    so the `vendor_column` their lines carry was typed from this comparison
-    rather than from a call. Each has a raw twin from the same vendor, which is
-    yfinance's split-only `Close`. A close carrying the dividends sits below
-    that twin on every day before the last ex-dividend date in the file and
-    equals it from that date on, because the adjustment is a factor applied
-    backwards from each payment. A split-only close mislabelled as adjusted
-    equals its twin everywhere instead.
-
-    That last sentence is also true of a fund that pays nothing, which is GLD.
-    So GLD's comparison cannot say which column it holds, and says instead that
-    the two columns are one series for this file and the route cannot move a
-    number read from it.
-
-    The pair is loaded through `adjusted_against_raw`, which is what
-    `TestWhyTheComparisonDetectorWasCut` in `tests/test_scale_breaks.py` reads,
-    so the two cannot come to compare different series.
-    """
-
-    def test_gld_s_adjusted_vintage_equals_its_raw_twin_on_every_shared_day(self):
-        both = adjusted_against_raw("GLD")
-
-        assert len(both) == 5030
-        assert (both.adjusted == both.raw).all()
-
-    def test_gdx_s_sits_below_its_raw_twin_before_its_last_ex_date_and_equals_it_after(self):
-        both = adjusted_against_raw("GDX")
-        last_ex_date = pd.Timestamp("2025-12-22")
-        before = both[both.index < last_ex_date]
-        after = both[both.index >= last_ex_date]
-
-        assert len(both) == 5099
-        assert (before.adjusted < before.raw).all()
-        assert (after.adjusted == after.raw).all()
-        assert (len(before), len(after)) == (4928, 171)
