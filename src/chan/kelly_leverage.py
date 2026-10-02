@@ -22,15 +22,15 @@ the worst day the index has had.
 
 Set day by day against each other, the two vintages hold the same 3,758 days
 and the whole gap in the mean sits on about ten days on or beside SPY's
-quarterly ex-dividend dates. On the four largest, one download folds nearly a
-whole quarterly payout into the day's return and the other does not, and on the
-rest it folds in part of one. The differences mostly raise the 2026 mean.
-Elsewhere they are small, mostly rounding and a few smaller dividend
-differences, and together pull back less than a tenth of the gap. A few large
-differences move a mean and barely touch a standard deviation.
+quarterly ex-dividend dates. The differences mostly raise the 2026 mean, and
+the rest of the days together pull back less than a tenth of the gap. A few
+large differences move a mean and barely touch a standard deviation.
 :func:`compare_vintages` is that comparison, and the ``--chan`` run prints it.
 No published figure stands behind it, so it carries neither a gap nor a
-verdict.
+verdict. Two finer descriptions are measured on issue 138 rather than pinned:
+on the four largest days one download folds nearly a whole quarterly payout
+into the day's return and the other does not, and outside the ten the
+differences are mostly rounding.
 
 ``docs/replication-log.md`` Entry 3 carries both runs' verdicts row by row, and
 ``tests/test_kelly_leverage.py`` is the single authority for every number any
@@ -147,7 +147,8 @@ from chan.vintage import VintageUnavailable
 BOOK_START = "1993-01-29"
 BOOK_END = "2007-12-28"
 
-# The SPY vintage this experiment reads, named by the date it was downloaded.
+# The modern SPY vintage this experiment reads by default, named by the date it
+# was downloaded.
 # The date was written in from the outset against issue 15 recording a second
 # SPY adjusted download, because two of those make ``load_close("SPY")`` refuse
 # and name the candidates. That issue shipped reading this file instead, so the
@@ -496,14 +497,21 @@ class VintageComparison:
     holds as well as what they are worth. A silent inner join would delete the
     first half of the measurement.
 
-    ``mean_gap`` is the newer vintage's annualised mean less the older one's,
-    on the returns of the joined days. Because a mean is linear it is also the
-    annualised mean of the daily differences, which is what the two shares
-    divide up. ``largest_share`` is how much of the summed difference the
-    :data:`LARGEST_DAYS` largest daily differences carry, and
-    ``largest_raising`` how many of them raise the newer mean.
-    ``dividend_month_share`` is the share falling in :data:`DIVIDEND_MONTHS`.
-    A share above one means the other days pull the other way.
+    Both sides' moments and every daily difference are taken on one set of
+    days: those on which both vintages carry a finite return. Without that, a
+    missing close on one side moved its moments and not the other's, and
+    ``mean_gap`` stopped being the thing the shares divide up.
+
+    ``mean_gap`` is the newer vintage's annualised mean less the older one's on
+    those days. Because a mean is linear it is also the annualised mean of the
+    daily differences, which is what the two shares divide up.
+    ``largest_share`` is how much of the summed difference the
+    :data:`LARGEST_DAYS` largest daily differences carry, ``largest_days`` is
+    which days they are, and ``largest_raising`` is how many of them raise the
+    newer mean. ``dividend_month_share`` is the share falling in
+    :data:`DIVIDEND_MONTHS`. A share outside 0 to 1 means the other days pull
+    the other way, and both shares are ``nan`` when the differences sum to
+    exactly zero, since there is then nothing to share out.
     """
 
     older_days: int
@@ -517,6 +525,7 @@ class VintageComparison:
     newer: Moments
     mean_gap: float
     largest_share: float
+    largest_days: tuple[str, ...]
     largest_raising: int
     dividend_month_share: float
 
@@ -525,17 +534,26 @@ def compare_vintages(
     older: pd.Series, newer: pd.Series, *, risk_free: float = RISK_FREE
 ) -> VintageComparison:
     """Join two closes of one symbol on the days both hold, and say what moved."""
+    for name, close in (("older", older), ("newer", newer)):
+        if not close.index.is_unique:
+            raise ValueError(
+                f"the {name} vintage repeats a date, so a join cannot say which close is its own"
+            )
     joined = older.index.intersection(newer.index)
-    if len(joined) < 3:
-        raise ValueError(
-            f"the two vintages share {len(joined)} days, and a sample dispersion of their "
-            f"returns needs at least three"
-        )
     older_returns = simple_returns(older.loc[joined])
     newer_returns = simple_returns(newer.loc[joined])
-    differences = (newer_returns - older_returns).dropna()
+    common = older_returns.index.intersection(newer_returns.index)
+    if len(common) < 2:
+        raise ValueError(
+            f"the two vintages share {len(common)} days with a return on both sides, and a "
+            f"sample dispersion needs at least two"
+        )
+    older_returns, newer_returns = older_returns.loc[common], newer_returns.loc[common]
+    differences = newer_returns - older_returns
     total = float(differences.sum())
-    largest = differences.loc[differences.abs().sort_values(ascending=False).index[:LARGEST_DAYS]]
+    largest = differences.loc[
+        differences.abs().sort_values(ascending=False, kind="stable").index[:LARGEST_DAYS]
+    ]
     in_dividend_months = differences[differences.index.month.isin(DIVIDEND_MONTHS)]
     older_moments = annualised_moments(older_returns, risk_free=risk_free)
     newer_moments = annualised_moments(newer_returns, risk_free=risk_free)
@@ -550,9 +568,10 @@ def compare_vintages(
         older=older_moments,
         newer=newer_moments,
         mean_gap=newer_moments.mean_annual - older_moments.mean_annual,
-        largest_share=float(largest.sum()) / total,
+        largest_share=float(largest.sum()) / total if total else float("nan"),
+        largest_days=tuple(str(day.date()) for day in largest.index),
         largest_raising=int((largest > 0.0).sum()),
-        dividend_month_share=float(in_dividend_months.sum()) / total,
+        dividend_month_share=float(in_dividend_months.sum()) / total if total else float("nan"),
     )
 
 
@@ -581,7 +600,8 @@ def _published_row(moments: Moments, row: tuple, against_the_book: bool) -> str:
         return f"  {label:<31} {shown:>12}"
     # Rounded before formatting, and the zero added, so a gap that rounds to
     # nothing prints as +0.000 rather than -0.000. On Chan's own workbook every
-    # row lands within a rounding of his figure, and half of them from below.
+    # row lands within a rounding of his figure, and three of the eight from
+    # below.
     gap = round(scaled - value, decimals) + 0.0
     return f"  {label:<31} {shown:>12}   {printed:>8}   {gap:+.{decimals}f}"
 
@@ -593,6 +613,7 @@ def report(
     risk_free: float = RISK_FREE,
     equity: float = EQUITY,
     comparison: VintageComparison | None = None,
+    compared=None,
 ) -> None:
     """Print the moments, the worked example, the stress test and the time-scale scan.
 
@@ -603,14 +624,21 @@ def report(
     vintage both. On Chan's window his own workbook makes the gap column a
     reproduction and a modern download makes it a vendor-drift measurement, and
     printing one sentence for both would state a wrong fact about one of them.
-    ``comparison``, when given, is printed before the closing label, and
-    :func:`run` passes one only for his workbook.
+    ``comparison``, when given with ``compared``, the entry it was read
+    against, is printed before the closing label, and :func:`run` passes one
+    only for his workbook.
+
+    A rate other than the book's 4 percent moves every figure but the
+    dispersion, so on Chan's window the gap column then measures the rate as
+    well as whatever else differs. The caveat says so rather than calling the
+    column a reproduction or a vendor-drift measurement, which it is not.
     """
     returns = simple_returns(close)
     moments = annualised_moments(returns, risk_free=risk_free)
     start, end = close.index[0].date(), close.index[-1].date()
     against_the_book = (str(start), str(end)) == (BOOK_START, BOOK_END)
     chans_own = entry.vendor == "chan-xls"
+    books_rate = risk_free == RISK_FREE
 
     print("Kelly leverage on SPY, Example 6.2 (revised edition, locations 2858, 2869 and 3083)")
     print(f"  {BOOK_REF}")
@@ -625,7 +653,15 @@ def report(
         f"m is the excess return"
     )
     print()
-    if against_the_book and chans_own:
+    if against_the_book and not books_rate:
+        print(f"This is Chan's own window at a risk-free rate of {risk_free:.2%} rather than his")
+        print(
+            f"{RISK_FREE:.0%}, so the gap column measures what the rate moves as well as anything"
+        )
+        print("else, and is neither a reproduction nor a vendor-drift measurement.")
+        print()
+        print(f"  {'quantity':<31} {'this run':>12}   {'the book':>8}   gap")
+    elif against_the_book and chans_own:
         print("This is Chan's own window read on his own workbook, so the gap column is a")
         print("reproduction. A zero in it says his arithmetic is right on his data, and")
         print("nothing about whether a leverage of 2.528 is one anyone should carry.")
@@ -663,8 +699,8 @@ def report(
     _worked_example(moments, equity)
     _stress(stress_test(moments, returns), moments)
     _time_scale(close, moments, risk_free)
-    if comparison is not None:
-        _comparison(comparison)
+    if comparison is not None and compared is not None:
+        _comparison(entry, compared, comparison)
 
     print("A replication against data is exploratory by construction. The sample was")
     print("spent on a hypothesis Chan chose, so this run says whether his figures")
@@ -675,13 +711,20 @@ def report(
     print("docs/replication-log.md Entry 3 carries the verdict.")
 
 
-def _comparison(comparison: VintageComparison) -> None:
-    """Requirement 4 of issue 138: the two vintages over one window, side by side."""
+def _comparison(entry, compared, comparison: VintageComparison) -> None:
+    """Requirement 4 of issue 138: the two vintages over one window, side by side.
+
+    Each vintage's recorded span comes from its manifest entry, and the day
+    counts from the window, so a reader can tell a day the window excluded from
+    a day the vendor's series does not hold.
+    """
     c = comparison
     print("Against the 2026 download over the same window. No figure in the book stands")
     print("behind this comparison, so it carries neither a gap nor a verdict:")
-    print(f"  {'days in this vintage':<36}{c.older_days:>9,}")
-    print(f"  {'days in the 2026 download':<36}{c.newer_days:>9,}")
+    for label, held in (("this vintage", entry), ("the 2026 download", compared)):
+        print(f"  {label:<36}{held.path}, recorded {held.first_date} .. {held.last_date}")
+    print(f"  {'days in the window, this vintage':<36}{c.older_days:>9,}")
+    print(f"  {'days in the window, 2026 download':<36}{c.newer_days:>9,}")
     print(f"  {'days both hold':<36}{c.joined_days:>9,}   {c.joined_start} .. {c.joined_end}")
     print(f"  {'dropped from each by the join':<36}{c.older_dropped:>9,} and {c.newer_dropped:,}")
     print(
@@ -698,7 +741,8 @@ def _comparison(comparison: VintageComparison) -> None:
         f"raising the 2026 mean"
     )
     print(f"  {'quarterly dividend months carry':<36}{c.dividend_month_share:>9.1%} of it")
-    print("  A share above 100% means the rest of the days pull the other way.")
+    print("  A share outside 0% to 100% means the rest of the days pull the other way,")
+    print("  and nan means the daily differences sum to zero, leaving nothing to share.")
     print()
 
 
@@ -818,7 +862,7 @@ def main() -> None:
         default=None,
         help=(
             f"which SPY vintage to read, by its date (default: the {VINTAGE_DATE} download, "
-            f"or the workbook's saved date under --chan)"
+            f"or no date under --chan, which finds his one workbook column)"
         ),
     )
     parser.add_argument(
@@ -859,8 +903,13 @@ def run(
     was the trap: the reader compares it against the workbook's saved date and
     refuses, so ``--chan`` alone would have stopped every run it was given.
 
-    Under ``chan`` the run also reads the 2026 download over the same window and
-    prints the two side by side, which is what reading his workbook is for.
+    Under ``chan`` the run also reads the 2026 download over the same days and
+    prints the two side by side, which is what reading his workbook is for. So
+    ``--chan`` needs that download committed as well, and is refused by the
+    reader's own message if it is not. The download is clipped to the days his
+    clipped series spans rather than to the window asked for, so a window
+    reaching past 2007-12-28 does not count days his workbook never held as
+    days the join dropped.
     """
     if dated is None and not chan:
         dated = VINTAGE_DATE
@@ -871,11 +920,12 @@ def run(
             f"only {len(clipped)} trading days in {start}..{end} -- need >= {MIN_TRADING_DAYS} "
             f"(the vintage spans {entry.first_date}..{entry.last_date})"
         )
-    comparison = None
+    comparison, compared = None, None
     if chan:
-        _, modern = load_vintage("SPY", dated=VINTAGE_DATE, data_dir=data_dir)
-        comparison = compare_vintages(clipped, _clip(modern, start, end), risk_free=risk_free)
-    report(entry, clipped, risk_free=risk_free, comparison=comparison)
+        compared, modern = load_vintage("SPY", dated=VINTAGE_DATE, data_dir=data_dir)
+        span = (str(clipped.index[0].date()), str(clipped.index[-1].date()))
+        comparison = compare_vintages(clipped, _clip(modern, *span), risk_free=risk_free)
+    report(entry, clipped, risk_free=risk_free, comparison=comparison, compared=compared)
 
 
 def _clip(close: pd.Series, start: str, end: str) -> pd.Series:

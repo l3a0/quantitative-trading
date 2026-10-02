@@ -66,8 +66,8 @@ they were first built. The other three were built here.
    lands high on a modern download and every claim behind those numbers still
    holds, and the entry is about that split. On his own workbook every one of
    those levels reproduces at the precision he printed, and setting the two
-   series day by day against each other puts the whole gap on about ten
-   ex-dividend days.
+   series day by day against each other puts the whole gap on about ten days
+   on or beside SPY's quarterly ex-dividend dates.
 5. Edward Qian's risk parity against the classic 60/40, reported at Kindle
    location 4684, on SPY and AGG. Both figures Chan prints land close and the
    claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
@@ -196,7 +196,7 @@ prints the standard error beside the estimate either way, and says outright
 when a size is too small to resolve the sign, which is a line a reader sees
 rather than an exception, because at that size nothing has failed.
 
-The Kelly run reads one series and takes a window:
+The Kelly run reads one series, or two under `--chan`, and takes a window:
 
 ```bash
 uv run python -m chan.kelly_leverage
@@ -216,9 +216,10 @@ gap in the mean that its ten largest days and SPY's dividend months carry.
 `--start` and `--end` move the window, and the report drops the published
 column on any other window rather than printing a comparison against figures
 that came from his. `--dated` picks a vintage by its date, which matters the
-day a second SPY download arrives. Left out, it means the 2026 download, or the
-workbook's saved date under `--chan`. `--risk-free` moves the book's 4 percent
-constant.
+day a second SPY download arrives. Left out, it means the 2026 download, or no
+date under `--chan`, which finds his one workbook column. `--risk-free` moves
+the book's 4 percent constant, and on Chan's window the report then says the
+gap column measures the rate as well as anything else.
 
 It prints the moments against the book's, the worked example on this vintage's
 leverage beside the book's own rounded 2.528, the Black Monday comparison with

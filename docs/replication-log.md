@@ -720,12 +720,18 @@ what says why the first group misses. Dividends paid after his window cannot
 explain it, because they scale every price inside it by one factor and leave
 every return unchanged. The two vintages hold the same 3,758 days, and the
 whole gap in the mean sits on about ten days on or beside SPY's quarterly
-ex-dividend dates. On the four largest, one download folds nearly a whole
+ex-dividend dates. The differences mostly raise the 2026 mean, and the rest of
+the days together pull back less than a tenth of the gap. A few large
+differences move a mean while barely touching a standard deviation. Row 30 pins
+all of that, including that each of the ten falls on a quarter-end month's
+third Friday or the trading day after.
+
+Two finer descriptions are measured on
+[issue 138](https://github.com/l3a0/quantitative-trading/issues/138) rather
+than pinned. On the four largest days, one download folds nearly a whole
 quarterly payout into the day's return and the other does not, and on the rest
-it folds in part of one. The differences mostly raise the 2026 mean. Elsewhere
-they are small, mostly rounding and a few smaller dividend differences, and
-together pull back less than a tenth of the gap. A few large differences move a
-mean while barely touching a standard deviation.
+of the ten it folds in part of one. Outside the ten, the differences are mostly
+rounding and a few smaller dividend differences.
 
 Two more rows reproduce and neither reads a series. Rows 9 and 11 are
 arithmetic on figures the book prints, so nothing could have moved them.
@@ -820,7 +826,7 @@ lines.
 | 27 | 1993-01-29 to 2007-12-28 | row 25 against row 11, which holds exactly while row 22 is above 1.954079 | same file as row 18, for row 22 only | the claim holds, by a margin of 0.57 on the leverage | `TestHisOwnDataOnTheRestOfTheEntry::test_the_black_monday_conclusion_survives_on_his_data` |
 | 28 | 1993-01-29 to 2007-12-28 | row 15's three monthly rules | same file as row 18 | 3.6908 on calendar month-ends, 3.7195 dropping the partial final month, 3.6163 on 21-day blocks, against 2.5278 daily | `TestHisOwnDataOnTheRestOfTheEntry::test_the_time_scale_claim_fails_on_his_own_series` |
 | 29 | 1993-01-29 to 2007-12-28 | the two indexes intersected, with what each side lost counted | row 18's file and row 1's | 3,758 days in each and 3,758 joined, so the join drops nothing from either side | `TestTheTwoVintagesOverChansWindow::test_the_join_drops_nothing_from_either_side` |
-| 30 | 1993-01-29 to 2007-12-28 | simple returns on the joined days, the 2026 download's less Chan's | row 18's file and row 1's | the annual mean differs by 0.0641 percentage points and the standard deviation by 0.0014. The ten largest daily differences carry 108.5 percent of the summed difference, eight raising the 2026 mean and two lowering it, and days in SPY's quarterly dividend months carry 100.4 percent | `TestTheTwoVintagesOverChansWindow::test_the_gap_in_the_mean_and_the_dispersion_that_does_not_move` and `::test_ten_days_carry_the_whole_gap_and_dividend_months_carry_it_too` |
+| 30 | 1993-01-29 to 2007-12-28 | simple returns on the joined days, the 2026 download's less Chan's | row 18's file and row 1's | the annual mean differs by 0.0641 percentage points and the standard deviation by 0.0014. The ten largest daily differences carry 108.5 percent of the summed difference, eight raising the 2026 mean and two lowering it. Each of the ten falls on a quarter-end month's third Friday or the trading day after, and days in SPY's quarterly dividend months carry 100.4 percent | `TestTheTwoVintagesOverChansWindow::test_the_gap_in_the_mean_and_the_dispersion_that_does_not_move`, `::test_ten_days_carry_the_whole_gap_and_dividend_months_carry_it_too` and `::test_the_ten_days_are_all_quarterly_ex_dividend_days` |
 
 ### The verdicts
 
@@ -847,11 +853,11 @@ lines.
 | 19 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints, as row 2 already was on the 2026 download. |
 | 20 | +0.000 percentage points | reproduced | Exact at the three decimals the book prints. |
 | 21 | +0.0000 | reproduced | Exact at the four decimals the book prints, and only under the sample dispersion form. The population form gives 0.427580, which prints as 0.4276, so this row demonstrates on his own data what row 4 could only argue by analogy. |
-| 22 | +0.000 | reproduced | Exact at the three decimals the book prints. A zero here says Chan's arithmetic is right on Chan's data. It says nothing about whether 2.528 is a leverage anyone should carry, and the report prints that beside the table. |
+| 22 | +0.000 | reproduced | Exact at the three decimals the book prints. A zero here says Chan's arithmetic is right on Chan's data. It says nothing about whether 2.528 is a leverage anyone should carry, and the report prints that above the table. |
 | 23 | +0.00 percentage points | reproduced | Exact at the two decimals the book prints. |
 | 24 | +0.0 percentage points | reproduced | Exact at the one decimal the book prints. |
 | 25 | +0.00 | reproduced | Exact at the two decimals the book prints. |
-| 26 | −\$24.13, −\$21.72, +\$2.41 and −\$11.93 | reproduced with a gap | The claim is that 2.528 times \$100,000 buys about a quarter of a million dollars of SPY and resizes as the chain shows, and it survives. The numbers differ because Chan rounded the leverage to 2.528 before multiplying. Rounding row 22 to the three decimals he printed reproduces all four figures to the cent, so the cause is named and sits in his arithmetic rather than in his data. |
+| 26 | −\$24, −\$22, +\$2 and −\$12, in whole dollars because the book prints whole dollars | reproduced with a gap | The claim is that 2.528 times \$100,000 buys about a quarter of a million dollars of SPY and resizes as the chain shows, and it survives. The numbers differ because Chan rounded the leverage to 2.528 before multiplying. Rounding row 22 to the three decimals he printed reproduces the first three figures to the cent and the fourth to the dollar he printed it at, so the cause is named and sits in his arithmetic rather than in his data. |
 | 27 | none, the source states a claim | reproduced | The claim survives on his own data as it does on the 2026 download in row 12. The margin is 0.57 here against 0.60 there, because his leverage is the lower of the two. |
 | 28 | none, the source states a claim | did not reproduce | Row 15's refutation, on the series Chan read. Every monthly rule lands 43 to 47 percent above his daily figure, so the vintage explanation is spent, which is the sharpest case of this verdict the rules above name. |
 | 29 | none | none, not a replication | The book reads one vintage. The row exists because a vendor restates which days a series holds as well as what they are worth, and a silent join would hide the first. Over this span the two vintages hold the same days, so row 30 is a difference in prices rather than in calendars. |
@@ -900,7 +906,7 @@ Five things, and the first is what makes the other four worth reading.
    likely to be over-read. It is exploratory like everything above it: the
    sample was spent on a hypothesis Chan chose, so `reproduced` here means his
    arithmetic is right on his data. It is not evidence that 2.528 is a leverage
-   anyone should carry, and the report prints that sentence beside the table
+   anyone should carry, and the report prints that sentence above the table
    rather than leaving it to this one. It is also the counterpart to Entry 1's
    row 7 rather than its row 6: the same code, on a vintage that was not lost,
    reaching the printed number.
@@ -948,8 +954,8 @@ and leave every gap above unattributable to either.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/kelly-leverage-on-spy.md](../blog/kelly-leverage-on-spy.md) moves with
-it, since that essay quotes most of these figures and a few this entry does not
-carry.
+it, since that essay quotes most of the figures in rows 1 to 17 and a few this
+entry does not carry.
 
 ## Entry 4: risk parity against 60/40, Chan's *Quantitative Trading*
 
