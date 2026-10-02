@@ -12,7 +12,7 @@ Chan’s *Quantitative Trading* (Chan, 2021) builds its pairs-trading examples a
 2. **Futures calendar spreads.** A long and a short position in one commodity’s futures, expiring in different months.
 3. **Bonds of one issuer at two maturities.** Chan writes that “fixed-income instruments can be found to be cointegrating”, long one maturity and short another.
 
-He names them without working any of them, so he prints no number to match. This repository tested the first and the third. The CAD/AUD rate holds. The bond pair, tested on two Treasury funds, shows no evidence of it. The futures spread needs contract-level prices with the roll between contracts intact, which cost money and are not in the repository yet, so it waits on [issue 137](https://github.com/l3a0/quantitative-trading/issues/137).
+He names them without working any of them, so he prints no number to match. This repository tested the first and the third. The CAD/AUD rate holds. The bond pair, tested on two Treasury funds, shows no evidence of it. The futures spread needs contract-level prices with the roll between contracts intact, which cost money and are not in the repository yet.
 
 Two earlier posts covered the machinery in more depth. [How to test whether a price spread mean-reverts](https://baowebdev.substack.com/p/how-to-test-whether-a-price-spread) builds the tests step by step, and [Lessons from testing GLD/GDX for cointegration](https://baowebdev.substack.com/p/lessons-from-testing-gldgdx-for-cointegration) shows a pair whose relationship came and went. This post draws five lessons from what the two new tests add. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
