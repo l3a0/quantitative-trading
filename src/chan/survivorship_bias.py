@@ -2,10 +2,10 @@
 
 Survivorship bias is what a backtest suffers when its database keeps only the
 stocks that are still trading. Chan warns at Kindle location 1012 that it hits
-a strategy buying cheap stocks hardest, because some stocks are cheap because
-the company is about to fail. A database of survivors drops exactly those, so
-the backtest buys the cheap stocks that recovered and never the ones that went
-to zero. He points the reader to a toy strategy that shows it, and this module
+a strategy buying cheap stocks especially, because some stocks are cheap
+because the company is about to fail. A database of survivors drops exactly
+those, so the backtest buys the cheap stocks that survived and never the ones
+that were delisted. He points the reader to a toy strategy that shows it, and this module
 works that toy.
 
 The strategy buys the 10 lowest-priced stocks among the 1,000 largest by market
@@ -216,8 +216,8 @@ def main() -> None:
         f"  survivors only, NEOF on one share basis  = "
         f"{equal_capital_return(one_share_basis(SURVIVOR_PICKS)):+.2%}"
     )
-    print("  The loss against a gain survives the correction. The size of the")
-    print("  printed gap does not.")
+    print("  The loss against a gain survives the correction. The printed 388")
+    print("  percent still reproduces from the table as printed.")
     print()
     print("A replication is exploratory when a sample was spent looking. This one")
     print("spends none, so neither that label nor its opposite reaches it.")

@@ -13,10 +13,11 @@ is none, the book's printed tables.
 The pins sit at ``abs=1e-9``, which is far tighter than the two decimals of a
 percent the log quotes. The inputs are exact printed decimals with no vendor
 noise, so the arithmetic has nothing else to absorb, and the tight tolerance is
-what lets the suite hold the tables themselves. Moving any one printed cell by
-one unit in its last digit shifts one of the two book figures by at least
-1.38e-6, measured over all forty cells, the smallest being RAZF's start price.
-A pin at ``abs=5e-5`` would let most such edits pass.
+what lets the suite hold the tables themselves. A sweep over all forty printed
+cells, run when these pins were written and not asserted here, found that
+moving any one by a unit in its last digit shifts a book figure by at least
+1.38e-6, the smallest being RAZF's start price, and fails a test. A pin at
+``abs=5e-5`` would let 14 of those forty edits pass, measured by the same sweep.
 """
 
 from __future__ import annotations
@@ -25,7 +26,6 @@ import pytest
 
 from chan.survivorship_bias import (
     BOOK_REF,
-    NEOF_REVERSE_SPLIT,
     SURVIVOR_PICKS,
     UNBIASED_PICKS,
     UNBIASED_TOP_PRICE,
@@ -153,15 +153,22 @@ class TestTheReverseSplit:
         assert got == pytest.approx(SURVIVOR_ONE_BASIS, abs=TOL)
         assert got > 0 > equal_capital_return(UNBIASED_PICKS)
 
-    def test_the_split_factor_is_the_filing_ratio(self) -> None:
-        assert NEOF_REVERSE_SPLIT == 10
-
     def test_only_neof_moves(self) -> None:
         adjusted = one_share_basis(SURVIVOR_PICKS)
 
         moved = [a.symbol for a, p in zip(adjusted, SURVIVOR_PICKS, strict=True) if a != p]
         assert moved == ["NEOF"]
         assert one_share_basis(UNBIASED_PICKS) == UNBIASED_PICKS
+
+    def test_the_start_price_moves_and_the_end_price_stays(self) -> None:
+        """Dividing the end price by the split ratio gives the same return, so
+        no figure tells the two apart. The module says the 1/2/2001 price is
+        the one that predates the split, and this holds that it is the one
+        moved."""
+        (neof,) = [p for p in one_share_basis(SURVIVOR_PICKS) if p.symbol == "NEOF"]
+
+        assert neof.start == pytest.approx(8.75, abs=TOL)
+        assert neof.end == 27.9
 
 
 class TestTheReport:
@@ -173,6 +180,7 @@ class TestTheReport:
 
         assert lines[1].strip() == BOOK_REF
         assert "  vintage: none, the book's printed tables" in lines
+        assert "  window: the close on 1/2/2001 to the close on 1/2/2002" in lines
 
     def test_it_prints_the_figures_it_labels(self, capsys: pytest.CaptureFixture[str]) -> None:
         main()

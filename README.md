@@ -139,8 +139,9 @@ the verdict, so a criterion edited after the fact fails a test.
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
 because a pin on the right number alone holds a number rather than a choice. Its
-tolerance is tight enough that moving any printed cell by one unit in its last
-digit fails a test, so it holds the two tables as well as the arithmetic.
+tolerance is tight enough to hold the two tables as well as the arithmetic: a
+sweep run when the pins were written found that moving any printed cell by one
+unit in its last digit fails a test.
 
 All seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there

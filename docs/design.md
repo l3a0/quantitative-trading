@@ -211,13 +211,15 @@ do not already say. What changes is that they are now declared as
 first-edition shorthand rather than left to look like the book's own
 structure. Every citation of a chapter, a page, an example number or a MATLAB
 filename in this repo means the 2009 first edition unless it says otherwise.
-Box 6.1, the coin-flip gamble, is the one that says otherwise. It is a
+Two say otherwise. Box 6.1, the coin-flip gamble, is the first. It is a
 revised-edition sidebar titled "Loss aversion is not a behavioral bias", which
 the 2009 edition could not hold because it quotes Kahneman's 2011 book, so the
 first-edition mirror has no file for it. This repo called it Example 6.1 until
 2026-09-29, misreading the box's own sentence at location 3186, "As Example 6.1
 shows". That sentence cites a separate, earlier example for the continuous
-approximation, and the owner corrected the label against the book.
+approximation, and the owner corrected the label against the book. Example 3.3,
+Chan's survivorship toy, is the second. Its label comes from the revised
+edition, and whether the 2009 edition numbers it the same way was not checked.
 
 One thing this does not settle, and the difference matters. `-3.357` appears
 nowhere in the committed highlights, and neither does a window label for the
@@ -369,8 +371,8 @@ Four things follow, and they are where this case parts from the coin flip.
    code rather than beside the other committed data, so
    [data/README.md](../data/README.md) does not list them and the module's
    docstring is where a reader finds their source.
-2. **The vintage cell names no price basis.** Every committed vintage says
-   whether its prices are raw or adjusted. The book does not say whether its
+2. **The vintage cell names no price basis.** Every committed vintage names
+   its basis. The book does not say whether its
    database adjusted for splits, and at least one row shows a split it did not
    adjust for, so writing either word would assert something nobody measured.
 3. **It keeps a window.** The coin flip has no window in any row, so its

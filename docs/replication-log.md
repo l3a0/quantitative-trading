@@ -17,8 +17,8 @@ and each says so in its own cells.
 3. Row 10 carries no published figure, because the book stops in 2007.
 4. Row 11 covers the two statistics Chan printed from one disagreement.
 
-Entries 2, 3, 4 and 7 carry their own, three, seven, twelve and three, and
-they are listed in those entries rather than here, because the list is about an
+Entries 2, 3, 4, 6 and 7 carry their own, three, seven, twelve, five and
+three, and they are listed in those entries rather than here, because the list is about an
 entry's rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -603,7 +603,7 @@ bias". Shipped under
 [issue 13](https://github.com/l3a0/quantitative-trading/issues/13).
 
 The label is a revised-edition one, and this entry declares it because the
-repo reads every other one as first-edition. The gamble sits in Box 6.1 of
+repo reads a label as first-edition unless it says otherwise. The gamble sits in Box 6.1 of
 Chapter 6, a sidebar the 2009 edition could not hold because it quotes
 Kahneman's 2011 book. The box cites a separate Example 6.1 at Kindle location
 3186, "As Example 6.1 shows", for the continuous approximation it uses. This
@@ -1589,7 +1589,7 @@ at the close on 1/2/2002. The book prints two tables of ten picks.
    continues up the price ranking past the nine stocks it never held.
 
 The label is a revised-edition one, and this entry declares it because the
-repo reads every other example number as first-edition. Whether the 2009
+repo reads an example number as first-edition unless it says otherwise. Whether the 2009
 edition numbers this example 3.3 and prints the same tables was not checked.
 The first-edition code mirror this repo cites elsewhere holds no file for it
 among its Chapter 3 files, so the printed tables are the whole source.
@@ -1632,16 +1632,16 @@ Reproducing the arithmetic on a printed table spends no sample.
 | # | Window | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 1/2/2001 to 1/2/2002 | mean of the ten per-stock returns, end over start less one, each delisted stock at its terminal price | none, the book's printed tables | −41.72 percent | `TestBookFigures::test_the_survivorship_free_portfolio_loses_42_percent` |
-| 2 | 1/2/2001 to 1/2/2002 | the same mean over the survivor-only picks | none, the book's printed tables | 387.88 percent, of which NEOF carries 308.86 points | `TestBookFigures::test_the_survivor_only_portfolio_gains_388_percent` and `TestTheReverseSplit::test_neof_carries_most_of_the_survivor_only_return` |
+| 2 | 1/2/2001 to 1/2/2002 | the same mean over the survivor-only picks | none, the book's printed tables | 387.88 percent | `TestBookFigures::test_the_survivor_only_portfolio_gains_388_percent` |
 | 3 | 1/2/2001 to 1/2/2002 | one share of each, the sum of end prices over the sum of start prices less one | none, the book's printed tables | −47.62 percent | `TestTheNearMiss::test_equal_shares_on_the_survivorship_free_picks` |
 | 4 | 1/2/2001 to 1/2/2002 | the same over the survivor-only picks | none, the book's printed tables | 373.17 percent | `TestTheNearMiss::test_equal_shares_on_the_survivor_picks` |
-| 5 | 1/2/2001 to 1/2/2002 | row 2's mean with NEOF's start price multiplied by 10, the ratio of its 2001 reverse split | none, the book's printed tables | 100.91 percent | `TestTheReverseSplit::test_on_one_share_basis_the_survivor_portfolio_still_gains` |
+| 5 | 1/2/2001 to 1/2/2002 | row 2's mean with NEOF's start price multiplied by 10, the ratio of its 2001 reverse split | none, the book's printed tables | 100.91 percent. As printed, NEOF carries 308.86 of row 2's 387.88 points | `TestTheReverseSplit::test_on_one_share_basis_the_survivor_portfolio_still_gains` and `::test_neof_carries_most_of_the_survivor_only_return` |
 
 ### The verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a trader running this strategy on the stocks actually available would have lost money. The equal-capital mean rounds to his figure, and nine of the ten picks were delisted, so the claim survives. |
+| 1 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a trader running this strategy on the stocks actually available would have lost money. The equal-capital mean is negative and rounds to his figure, so the claim survives. |
 | 2 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a survivor-only backtest turns that loss into a large gain. The figure reproduces from his table as printed. Most of it rests on NEOF's row, which compares a price before a reverse split with a price after it, and row 5 puts it on one basis. The claim survives there at a gain against a loss, so the verdict stays with the figure, as Entry 1's row 11 does, and this column carries the qualification. |
 | 3 | none | none, not a replication | The book specifies equal capital. The row exists so the specification is held rather than the number: buying one share of each gives −47.62 percent, which does not round to −42. |
 | 4 | none | none, not a replication | The same near miss on the second table. It gives 373.17 percent, which does not round to 388. The two misses together are what rule the weighting out. |
@@ -1663,9 +1663,10 @@ Three things, and the first is why the verdicts carry less than they look.
    share bases.** NEOF contributes 308.86 of the 387.88 points. With its start
    price on the basis of its reverse split, the survivor-only portfolio returns
    100.91 percent. The lesson survives, since −41.72 against 100.91 is still a
-   loss against a gain, but the printed gap is larger than the table supports.
-   That is a finding about Chan's table, and it does not change what the table
-   as printed reproduces to.
+   loss against a gain, but the difference between the two portfolios is much
+   smaller once NEOF's row is on one share basis. That is a finding about
+   Chan's table, and it does not change what the table as printed reproduces
+   to.
 
 Chan tells the same toy a second time. The sibling repository's notes on his
 *Algorithmic Trading*, at location 704 in

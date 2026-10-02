@@ -27,10 +27,10 @@ book. The first-edition code mirror this repo cites elsewhere carries
 no companion file to check the arithmetic against. The printed prose is the
 whole source.
 
-**This experiment reads no vintage.** Every other replication here commits the
-series it ran on, because a vendor restates an adjusted price without
-announcing it, except ``survivorship_bias``, which reads the tables the book
-prints and so has nothing a vendor could restate either. A gamble has no vendor
+**This experiment reads no vintage.** Every other replication here except
+``survivorship_bias`` commits the series it ran on, because a vendor restates
+an adjusted price without announcing it. That module reads the tables the book
+prints, so it has nothing a vendor could restate either. A gamble has no vendor
 and no download date, so there is nothing to restate and nothing to commit.
 That is why it could be built before the vintage recorder exists.
 
