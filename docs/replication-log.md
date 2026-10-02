@@ -482,7 +482,7 @@ these rows at all.
    statistic by 0.0042, well inside every `abs=1e-2` pin, and the one test that
    fails is `TestLagSettingDetour::test_fixed_lag_reproduces_the_book`, whose
    `abs=5e-4` pin on −3.0875 is tight enough to catch it. Forcing the term to
-   `ct` fails eleven tests. Issue 10's body says all three terms leave the
+   `ct` fails eleven tests. [Issue 10](https://github.com/l3a0/quantitative-trading/issues/10)'s body says all three terms leave the
    suite green, which running them does not bear out, and that correction is
    recorded on the issue.
 3. `_verdict` has no test either, and reversing its level order so that every
@@ -493,7 +493,7 @@ these rows at all.
 
 So a row saying the statistic rejects at the 5% level traces to a real
 assertion, and the one thing that assertion would not notice is the critical
-table moving underneath it. Closing that pin belongs to issue 10 rather than to
+table moving underneath it. Closing that pin belongs to [issue 10](https://github.com/l3a0/quantitative-trading/issues/10) rather than to
 this entry.
 
 ### The chapter labels are first-edition shorthand
@@ -1122,7 +1122,7 @@ the span, above the tie, which
 
 **Whether Qian's own instruments and span reproduce his numbers.** Chan names
 neither, so SPY and AGG and this window are this repo's choice, fixed in writing
-on issue 15 before any number was seen. Rows 1 and 2 are therefore a test of the
+on [issue 15](https://github.com/l3a0/quantitative-trading/issues/15) before any number was seen. Rows 1 and 2 are therefore a test of the
 argument on the instruments and the period this repo picked rather than of his.
 
 Chan calls the source "not publicly distributed" and it is on PanAgora's own
@@ -1156,14 +1156,14 @@ are worth stating here rather than leaving to those cards.
 3. **His equity leg is the Russell 1000 and SPY is not that.** It is the S&P
    500, which is a narrower index, and nothing here has measured what the
    substitution costs. IWB tracks the Russell 1000 and shares this entry's own
-   window, so that one is measurable on free data and is issue 160.
+   window, so that one is measurable on free data and is [issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
 
 His bond index settles the proxy ruling from the source rather than from
 argument. The paper's disclosure describes the Lehman Aggregate as roughly
 6,000 bonds with an approximate average maturity of ten years. The paper never
 says duration and average maturity is not duration, so the reading that this is
 an intermediate rather than a long-duration index is this repo's and not his.
-It is the reading issue 15 took when it chose AGG over TLT, before any of this
+It is the reading [issue 15](https://github.com/l3a0/quantitative-trading/issues/15) took when it chose AGG over TLT, before any of this
 was read, and a maturity the source states is better evidence for it than the
 argument it had.
 
