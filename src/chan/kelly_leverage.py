@@ -924,7 +924,9 @@ def run(
     if chan:
         compared, modern = load_vintage("SPY", dated=VINTAGE_DATE, data_dir=data_dir)
         span = (str(clipped.index[0].date()), str(clipped.index[-1].date()))
-        comparison = compare_vintages(clipped, _clip(modern, *span), risk_free=risk_free)
+        # No rate passed: the comparison prints means and dispersions, and
+        # neither depends on one, so passing ``risk_free`` here held nothing.
+        comparison = compare_vintages(clipped, _clip(modern, *span))
     report(entry, clipped, risk_free=risk_free, comparison=comparison, compared=compared)
 
 
