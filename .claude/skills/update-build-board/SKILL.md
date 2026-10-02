@@ -1,15 +1,24 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board artifact whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. Needs the Artifact tool. Answering what to take next is a read and does not on its own call for a republish.
+description: Update the Quantitative Trading Build Board whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. The board's data lives in the artifact's database, so an update is a pinned ArtifactData write, and the Artifact tool is needed only to change the page's code. Answering what to take next is a read and does not on its own call for a write.
 ---
 
 # Update the build board
 
 The board is a private artifact at `https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW`.
 It cannot read the disk or poll GitHub, so every number on it was measured by
-hand and baked in. That is why this skill exists. A page that cannot refresh
-itself goes wrong silently, and the only thing between it and a confident lie is
-the procedure below.
+hand. That is why this skill exists. A page that cannot refresh itself goes
+wrong silently, and the only thing between it and a confident lie is the
+procedure below.
+
+The numbers live in the artifact's database rather than in the page, one
+document per section in the `board` collection. The page subscribes to all six
+and redraws on every write. Before 2026-10-02 they were baked into the page, so
+every update republished the whole page, and three concurrent sessions produced
+two publish refusals inside one update, each costing a full read of a page of
+two thousand lines and a merge decided part by part. Now an update writes only
+the section it changes, pinned to the version it read, and a write that lost a
+race is refused rather than overwriting the winner.
 
 Two sibling pages are not covered here. The experiments page is
 `9eXVcuzxSpqi6S3kBQbwgc` and the gap ledger is `YZHWFfB7AiqrwcaK7F7SCS`. Report
@@ -84,21 +93,55 @@ stamp. The sections are these.
    anything. It is all that remains of a twenty-paragraph footer that was a
    second telling of what the cards say. Do not grow it back.
 
-## Read the live artifact before editing anything
+## Read the live data before editing anything
 
-Another session may have republished since this one last saw the page, and a
-publish over a version nobody read is refused. A copy sitting in a scratchpad is
-a guess about what is published.
+Another session may have written since this one last looked, and a copy sitting
+in a scratchpad is a guess about what is stored. So read all six documents into
+a scratch directory, never the repo root, because nothing read here belongs in a
+commit.
 
 ```text
-Artifact action="read" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW"
+ArtifactData action="list" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW"
+             collection="board" out_dir="<scratch>/readback"
 ```
 
-Save what comes back to a scratch file. The rest of this page calls it
-`qt-board.html` and works in a scratch directory rather than the repo root,
-because the verification step writes two intermediate files and neither belongs
-in a commit. Edit that copy, then publish it with the same `url`, which keeps
-the link, and a short `label` naming the change.
+That writes `readback/board/<section>.json` for each of `state`, `prs`,
+`working`, `planned`, `next` and `tracker`, and the result names each one's
+`version`. Edit the files for the sections that change and leave the rest
+alone.
+
+**Write each changed section pinned to the version it was read at.** Use one
+`batch` when more than one section changes, so they land together or not at
+all.
+
+```text
+ArtifactData action="batch" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW"
+  writes=[{op:"set", collection:"board", doc_id:"prs",
+           file_path:"<scratch>/readback/board/prs.json", if_version:<read version>}, ...]
+```
+
+Leave the `__`-prefixed fields out of what is sent, since the database adds
+them. A write against a section that moved since the read is refused with
+`version_mismatch` and writes nothing. Re-read that section, apply the same edit
+to what it holds now, and write again. Never drop the pin to get a write
+through, because the pin is the only thing standing between two sessions and a
+lost update. That refusal fired on the very first update after the migration:
+another session wrote `board/state` between this skill's read and its write,
+the pinned write was refused, and the re-read showed the other session had
+already written the same figures.
+
+Each document is `{ schema: 1, items: [...] }`, except `board/state`, which is
+`{ schema: 1, main, updatedAt, vintages, suite, notes, issues }`. The page
+adopts a section only when it passes `usableSection`, which asks for the schema,
+the array, a non-empty tracker and the state's fields. So a malformed write
+leaves the last good copy on screen and lights the banner, rather than drawing
+a board from half a write.
+
+**Change the page's code only when the rendering has to change.** That is the
+one case that still needs the Artifact tool. Read the live page in full, edit a
+scratch copy called `qt-board.html`, refresh its built-in copy with
+`with-db.py` below, and publish to the same `url` with a short `label`. Omit
+`capabilities` so the stored `db` declaration carries forward.
 
 ## Measure everything, recall nothing
 
@@ -250,14 +293,14 @@ that moment stays wrong until the next session runs this. What does read the
 page is the owner, and four rows in the record below were found exactly that
 way.
 
-## The data blocks, and what each owns
+## The data, and what each part owns
 
-Everything the page says comes from the blocks below. They are not adjacent:
-`STATE`, `PRS`, `WORKING`, `PLANNED` and `NEXT` sit together near the top,
-`TRACKER` is about a third of the way down, and the rest are near the code that
-reads them. Find each by name rather than by scrolling. Change the data. Never
-hand-write a sentence stating a number the data already carries, because that
-sentence outlives the number.
+Everything the page says comes from the six database sections and the
+constants below. The page loads each section into the variable of the same name
+in capitals, so `board/prs` becomes `PRS`, and the rest of this file uses those
+names. The constants live in the page's code. Change the data. Never hand-write
+a sentence stating a number the data already carries, because that sentence
+outlives the number.
 
 Two of them hold rendered prose rather than values. `COLS` carries every
 build-order column heading and subtitle, and `KINDWORD` carries the phrase a
@@ -267,14 +310,14 @@ one of those.
 One more constant is not in the table because nothing should edit it.
 `NEXT_SORTED` is `NEXT` put in order, and it is derived on every load.
 
-| Block | Holds |
+| Part | Holds |
 | --- | --- |
-| `STATE` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
-| `PRS` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
-| `WORKING` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
-| `PLANNED` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
-| `TRACKER` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
-| `NEXT` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
+| `STATE`, from `board/state` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
+| `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
+| `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
+| `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
+| `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
+| `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column and the small number chip on the cards it names |
 | `FLOW` | the five in-flight stages and the test that assigns a card to one |
 | `LABEL_HUE` | one colour per tracker label, read by the card chips |
 | `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
@@ -309,8 +352,19 @@ thinking goes.
 A parse check is not enough, because a comma dropped inside a nested array still
 parses. The page has no suite, so running it is the only check there is.
 
-Run it from the scratch directory holding `qt-board.html`, with `$REPO` set to
-this checkout.
+The harness runs the page's script with no database, so on its own it checks
+the copy built into the page rather than the live data. So splice the documents
+just read into a copy of the page first. Fetch the page's code once with the
+Artifact tool's `read` if the scratch directory has none, then run this from
+the scratch directory, with `$REPO` set to this checkout.
+
+```bash
+python3 "$REPO"/.claude/skills/update-build-board/with-db.py qt-board.html readback/board > live.html
+mv live.html qt-board.html
+```
+
+Run that again after editing the readback files, so the harness reads what is
+about to be written rather than what was read.
 
 ```bash
 python3 -c "
@@ -368,9 +422,9 @@ state it is in between batches and every time a session opens the first branch
 of one. The flow note collapses to a sentence, the flow legend loses two
 entries, and the footer's decay clause disappears entirely. That clause is where
 check 5's conjunction lives, so on an empty board the sentence it warns about
-cannot be read at all. Where a change touches that code, add an entry to `PRS`
-in the scratch copy, run the harness, read the output, and take the entry out
-again before publishing.
+cannot be read at all. Where a change touches that code, add an entry to a
+scratch copy of `readback/board/prs.json`, splice it in with `with-db.py`, run
+the harness and read the output. Never write that copy to the database.
 
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something
@@ -383,7 +437,7 @@ false. Six checks catch most of them.
 3. **Every count matches its own list.** A sentence saying four cards and then
    naming three is the prose and the data disagreeing.
 4. **No figure is typed into a sentence.** Every number the page renders should
-   come from the data blocks, so that changing the data changes the page. This
+   come from the data, so that changing the data changes the page. This
    holds today and did not always: the footer used to carry twenty paragraphs of
    hand-written prose, and one update left four stale figures in it at once.
    Deleting that prose is what made this check cheap, so the thing to watch for
@@ -604,22 +658,21 @@ the line it edits, and checks here for a sentence describing the same mechanism.
 ## Finishing
 
 Re-measure the volatile figures first, under **Measure again immediately before
-publishing** above, then publish and report in the same reply.
+publishing** above, then write and report in the same reply.
 
-1. The version number and what moved.
+1. Each section written and the version it now holds.
 2. Any sentence the execution caught, and what replaced it.
 3. What is still stale, including the two sibling pages.
 
-If a publish is refused because the artifact moved, do not force it. Read the
-live version, merge onto it, and publish again. Forcing discards somebody's work.
+If a write is refused with `version_mismatch`, do not drop the pin. Re-read that
+section, redo the edit on what it holds now, and write again. A section another
+session already brought to the same figures needs no write at all.
 
-This fires often now that the update is every session's job, and three
-concurrent sessions produced two refusals inside one update. The refusal
-hands over the live source. Read all of it, and decide which side is newer part
-by part rather than for the file as a whole, because the two can differ: that
-time the other session had improved the rendering code while this one held newer
-measurements, so the data moved onto their file. Resending a file unchanged
-reverts whatever the other session did.
+A renderer republish can still be refused because the page moved. Do not force
+it. The refusal hands over the live source. Read all of it, merge the code
+changes part by part, and publish again. Resending a file unchanged reverts
+whatever the other session did. Data never travels in a republish now, so the
+only conflict left there is between two sessions both changing the code.
 
 ### Offering a task per idle card was tried and withdrawn
 
