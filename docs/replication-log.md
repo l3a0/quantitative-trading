@@ -1424,7 +1424,9 @@ checked that, and
 guard that would.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
+moves with it, since that post quotes most of these figures.
 
 ## Entry 6: the CAD/AUD cross rate, Chan's *Quantitative Trading*
 
@@ -1556,4 +1558,6 @@ series. A trade adds costs, carry from the two interest rates, and the
 question of sizing against a half-life this long, and none of those are here.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
+moves with it, since that post quotes most of these figures.

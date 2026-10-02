@@ -35,6 +35,7 @@ from matplotlib.figure import Figure
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import GOOD, INK, LOST, MUTED, RULE, SURFACE
+from chan.series import WindowCrossesScaleBreak
 from chan.stationary_candidates import (
     INTERMEDIATE,
     LONG,
@@ -44,6 +45,7 @@ from chan.stationary_candidates import (
     cross_rate,
     fixed_income,
 )
+from chan.vintage import VintageUnavailable
 
 BARS_FIGURE = "stationary_candidates_bars.png"
 
@@ -116,7 +118,7 @@ def marks(rate: CrossRate, orientations: tuple[Orientation, ...]) -> list[Mark]:
             PAIR_Y,
             GOOD,
             True,
-            "CAD/AUD's two,\nread as a pair",
+            "CAD/AUD's two, read\nagainst these bars",
             (-86, -40),
         ),
     ]
@@ -212,7 +214,7 @@ def make_bars_figure(
     )
     _title(
         fig,
-        "CAD/AUD clears the bar for one series and would miss the bar for a fitted pair",
+        "CAD/AUD clears the one-series bar at 5%, and the same statistics fall short of the pair's",
         f"CADAUD=X, log of the rate, {TEST_START} to 2026-09-30. TLT and IEF raw closes, "
         "2002-07-30 to 2026-10-01. All downloaded 2026-10-02.\n"
         "Shaded: past the 5% bar. Hollow: CAD/AUD's two statistics read against the "
@@ -224,7 +226,13 @@ def make_bars_figure(
 
 
 def main() -> None:
-    make_bars_figure()
+    try:
+        make_bars_figure()
+    except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
+        # The two refusals `chan.stationary_candidates.main` prints. This module
+        # reads the same three vintages through the same two calls, so it
+        # catches them the same way rather than ending in a traceback.
+        raise SystemExit(str(refusal)) from refusal
     print(f"wrote {FIGURES_DIR / BARS_FIGURE}")
 
 

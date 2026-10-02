@@ -643,14 +643,21 @@ The test file holds what they draw rather than their bytes, for the reason
 given above for the regime map.
 
 [blog/stationary-candidates-lessons.md](blog/stationary-candidates-lessons.md)
-is a sixth post, about the two stationary candidates Chan names at Kindle
+is a sixth post, about the two of Chan's three stationary candidates at Kindle
 location 3951 that run here, the CAD/AUD cross rate and the bond pair tested on
-TLT and IEF. It draws five lessons from Entries 5 and 6 of the replication log:
-a named series carrying a verdict where a class of instruments carries a
-finding, one series and a fitted pair being read against different bars, the
-residual check strengthening one result and narrowing the other, the whole span
-against one year, and the choices fixed before any statistic. Three groups of
-its figures are not pinned here.
+TLT and IEF. It draws five lessons from Entries 5 and 6 of the replication log.
+
+1. A named series carries a verdict, while a class of instruments tested on
+   stand-ins carries a finding.
+2. One series and a fitted pair are read against different bars, and on the
+   cross rate the bar decides the verdict.
+3. The check for leftover autocorrelation strengthens the bond pair's finding
+   and shrinks the cross rate's margin.
+4. How often one-year windows reject says little about the whole span.
+5. Each choice that could turn the answer was fixed in advance or checked both
+   ways.
+
+Four groups of its figures are not pinned here.
 
 1. Chan's words. "Quite stationary", "both being commodities currencies" and
    "fixed-income instruments can be found to be cointegrating" are quoted from
@@ -659,23 +666,32 @@ its figures are not pinned here.
    or more and IEF seven to ten are the funds' descriptions, not derivable from
    committed closes. That a cross rate is, in logs, a spread between two dollar
    rates with its hedge ratio fixed at one is an identity no test states.
-3. Arithmetic that no test asserts. A half-life of 141.6 trading days being a
-   little over half a year, a 21-day step being a month, and the history before
-   the 2007 gap being two years.
+3. Arithmetic that no test asserts. Nothing states that 2007-08-06 to
+   2026-09-30 is nineteen years, that the vendor's 90-weekday gap is four
+   months, that a half-life of 141.6 trading days is a little over half a year,
+   that a 21-day step is a month, or that the history before the gap is a
+   little under two years.
+4. Its references. The seven citations, and the rules the post attributes to
+   them, such as Schwert's ceiling and the Breusch-Godfrey test, are cited
+   rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
-apart from the GLD/GDX figures it sets beside them, −1.45, 833.5 days, 31 of
-231 windows and the plain ADF table, which trace to
-[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py). The three
-it needed that nothing pinned before it, the bars of the ADF with a constant,
-both cross-rate statistics missing the pair's 5% bar, and a one-year window
-holding about 1.78 half-lives, are pinned in the same file.
+apart from what it sets beside them from GLD/GDX. The full-span −1.45 and
+833.5 days, the 31 of 231 windows and the plain ADF table trace to
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py), and the
+5,099 days behind GLD/GDX's ceiling of 33 to
+[tests/test_series.py](tests/test_series.py). Three of its numbers had no pin
+before it, and `tests/test_stationary_candidates.py` now pins them.
 
-Its one figure draws both tables of bars as number lines, with the cross rate's
+1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
+2. Both cross-rate statistics falling short of the pair's 5% bar of −3.34.
+3. A one-year window holding about 1.78 half-lives.
+
+Its one figure draws both sets of bars as number lines, with the cross rate's
 two statistics on the first and the bond pair's on the second, and the cross
-rate's drawn again against the pair's bars. It is drawn from the committed
-vintages by
+rate's two statistics drawn again against the pair's bars. It is drawn from the
+committed vintages by
 [src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py):
 
 ```bash

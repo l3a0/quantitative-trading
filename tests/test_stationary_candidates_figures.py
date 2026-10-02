@@ -31,6 +31,7 @@ from chan.stationary_candidates_figures import (
     X_RANGE,
     make_bars_figure,
 )
+from chan.vintage import VintageUnavailable
 
 
 @pytest.fixture(scope="module")
@@ -148,10 +149,14 @@ class TestTheMarks:
             "CAD/AUD, 10 lags\n−2.9946",
             "TLT on IEF\n−2.3887",
             "IEF on TLT\n−2.3168",
-            "CAD/AUD's two,\nread as a pair",
+            "CAD/AUD's two, read\nagainst these bars",
         ]
 
     def test_every_mark_is_inside_the_axis(self, figure) -> None:
+        """The post's alt text quotes the range, so the constant is held by
+        value as well as by what it has to contain."""
+        assert X_RANGE == (-4.1, -2.0)
+        assert figure.axes[0].get_xlim() == X_RANGE
         for mark in figure.marks:
             assert X_RANGE[0] < mark.x < X_RANGE[1]
 
@@ -159,7 +164,8 @@ class TestTheMarks:
 class TestTheText:
     def test_the_title_states_the_finding(self, figure) -> None:
         assert figure._suptitle.get_text() == (
-            "CAD/AUD clears the bar for one series and would miss the bar for a fitted pair"
+            "CAD/AUD clears the one-series bar at 5%, "
+            "and the same statistics fall short of the pair's"
         )
 
     def test_the_note_names_the_vintages_and_what_the_marks_mean(self, figure) -> None:
@@ -175,6 +181,19 @@ class TestTheText:
         way it does for the other figures."""
         for text in [*figure.axes[0].texts, *figure.texts]:
             assert text.get_parse_math() is False
+
+
+def test_a_missing_vintage_reaches_the_operator_as_a_line(monkeypatch) -> None:
+    """The command reads the same vintages as the candidates' own, so a
+    missing download ends in the refusal's own sentence, not a traceback."""
+    import chan.stationary_candidates_figures as figures
+
+    def refuse(*_, **__):
+        raise VintageUnavailable("no CADAUD=X vintage recorded")
+
+    monkeypatch.setattr(figures, "cross_rate", refuse)
+    with pytest.raises(SystemExit, match="no CADAUD=X vintage recorded"):
+        figures.main()
 
 
 def test_the_committed_figure_exists() -> None:
