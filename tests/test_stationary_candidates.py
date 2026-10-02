@@ -58,10 +58,10 @@ Nine classes and one test.
 3. ``TestTheCrossRateResidualCheck``, which asks whether the lag-1 fit earned
    its critical values. It did not, and the first fit that does still rejects.
 4. ``TestTheCrossRateVerdict``, the rule issue 135 declared and the verdict it
-   gives, reproduced.
-5. ``TestTheCrossRateScan``, the 226 windows.
-6. ``TestTheCrossRateReport``, which holds the vintage line, the null the
-   report names, and the verdict line.
+   gives, reproduced, and that the pair's bars would have refused it.
+5. ``TestTheCrossRateScan``, the 226 windows, and how many half-lives one holds.
+6. ``TestTheCrossRateReport``, which holds the vintage line, the bars, the null
+   the report names, and the verdict line.
 7. ``TestTheCrossRateRefusals``, which holds that a missing download reaches
    an operator as a line, and what the command runs with and without an
    argument.
@@ -100,6 +100,7 @@ from chan.stationary_candidates import (
     ORIENTATIONS,
     RESIDUAL_PASS_P,
     TEST_START,
+    WINDOW,
     CrossRate,
     Orientation,
     _orientation,
@@ -678,6 +679,17 @@ class TestTheCrossRateVerdict:
         fit is not reproduced however far the lag-1 statistic sits."""
         assert _measured(stat_one, stat_passing).reproduced is reproduced
 
+    def test_the_pair_bar_would_refuse_both_statistics(self, rate: CrossRate) -> None:
+        """The rate is one series with nothing fitted, so it is read against
+        the ADF's bars. Read against Engle-Granger's, which pay for a fitted
+        hedge ratio, both statistics the verdict reads miss at 5%, so the table
+        decides the verdict. The blog post's Lesson 2 and its figure quote it.
+        At 10% the two part: the lag-1 statistic clears the pair's -3.04 and
+        the residual-clean one does not."""
+        both = (rate.adf_stat, rate.passing.adf_stat)
+        assert all(EG_CRIT_N2["5%"] < s < ADF_CRIT_CONST["5%"] for s in both)
+        assert rate.adf_stat < EG_CRIT_N2["10%"] < rate.passing.adf_stat
+
 
 class TestTheCrossRateScan:
     def test_the_counts(self, rate: CrossRate) -> None:
@@ -686,6 +698,14 @@ class TestTheCrossRateScan:
         assert int((stats < ADF_CRIT_CONST["10%"]).sum()) == 23
         assert int((stats < ADF_CRIT_CONST["5%"]).sum()) == 5
         assert int(np.isinf(rate.scan.half_life).sum()) == 3
+
+    def test_a_window_holds_under_two_half_lives(self, rate: CrossRate) -> None:
+        """The blog post offers this as a hypothesis for why so few windows
+        reject, and nothing here measures whether it is the reason. A window of
+        252 days against a half-life of 141.6 is about 1.78 half-lives."""
+        assert WINDOW == 252
+        assert WINDOW < 2 * rate.half_life
+        assert WINDOW / rate.half_life == pytest.approx(1.78, abs=5e-3)
 
     def test_the_windows_span_the_test_window(self, rate: CrossRate) -> None:
         days = rate.log_rate.index
@@ -752,6 +772,11 @@ class TestTheCrossRateReport:
         assert "lags outside the band: 2, 6, 7, 10" in out
         assert "first lag count from 0 to 32 whose residuals pass: 10, where t = -2.9946" in out
         assert "23 of 226 clear the 10% bar, 5 clear 5%" in out
+
+    def test_it_prints_the_one_series_bars(self, out: str) -> None:
+        """The table the verdict is read against. The blog post quotes all
+        three, and the 10% and 1% values are held nowhere else in this file."""
+        assert "ADF crit (constant, no trend):  1% -3.43   5% -2.86   10% -2.57" in out
 
     def test_the_verdict_line_names_the_criterion_and_both_statistics(self, out: str) -> None:
         assert "Verdict: REPRODUCED." in out

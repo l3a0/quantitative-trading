@@ -174,6 +174,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/kelly-leverage-on-spy.md",
         "blog/price-spread-mean-reversion.md",
         "blog/risk-parity-against-60-40.md",
+        "blog/stationary-candidates-lessons.md",
         "research/book-notes/README.md",
         "research/book-notes/quantitative-trading.md",
         "research/papers/README.md",
