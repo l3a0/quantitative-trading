@@ -54,7 +54,9 @@ from chan.stationary_candidates import (
     LAGS,
     LONG,
     ORIENTATIONS,
+    RESIDUAL_PASS_P,
     Orientation,
+    _orientation,
     first_passing,
     fixed_income,
     main,
@@ -238,6 +240,42 @@ class TestTheResidualCheck:
         assert not residuals_pass(ResidualCheck(1, -2.0, 400, quiet, 0.05))
         assert residuals_pass(ResidualCheck(1, -2.0, 400, quiet, 0.50))
 
+    def test_the_cut_is_ten_percent_and_a_p_on_it_fails(self) -> None:
+        """The cut Entry 1 uses. TLT's passing p is 0.1352, so a cut moved
+        anywhere below that leaves every pin above green, and only this holds
+        it."""
+        quiet = np.zeros(10)
+        assert RESIDUAL_PASS_P == 0.10
+        assert not residuals_pass(ResidualCheck(1, -2.0, 400, quiet, 0.10))
+        assert residuals_pass(ResidualCheck(1, -2.0, 400, quiet, 0.1001))
+
+    def test_the_search_starts_at_zero_lags(self) -> None:
+        """Zero lags never passes on either pair, so the real data cannot hold
+        the start of the range. Seeded white noise passes there."""
+        found = first_passing(np.random.default_rng(0).standard_normal(2000), 5)
+        assert found is not None
+        assert found.lags == 0
+
+    def test_the_search_reaches_the_ceiling_it_reports(
+        self, measured: tuple[pd.DataFrame, dict[str, Orientation]], monkeypatch
+    ) -> None:
+        """The first pass at 31 sits below the ceiling of 34, so the real data
+        cannot tell a search stopping at 33 from one reaching 34. A check that
+        never passes makes the search run to its end, and the last lag it tries
+        has to be the ceiling the report prints."""
+        import chan.stationary_candidates as candidates
+
+        tried: list[int] = []
+
+        def never_passes(spread, lags):
+            tried.append(lags)
+            return ResidualCheck(lags, 0.0, 400, np.zeros(10), 0.0)
+
+        monkeypatch.setattr(candidates, "residual_check", never_passes)
+        o = candidates.measure_orientation(measured[0], LONG, INTERMEDIATE)
+        assert o.passing is None
+        assert max(tried) == o.ceiling == 34
+
 
 class TestTheRollingScan:
     """The 278 one-year windows each way round. They describe the span, and no
@@ -318,6 +356,41 @@ class TestTheReport:
         assert "first lag count from 0 to 34 whose residuals pass: 31, where t = -1.5677" in out
         assert "56 of 278 clear the 10% bar, 33 clear 5%" in out
         assert "51 of 278 clear the 10% bar, 29 clear 5%" in out
+
+    def test_the_header_and_the_lines_that_print_constants(self, out: str) -> None:
+        assert "MacKinnon crit (N=2, const, asymptotic):  1% -3.9   5% -3.34   10% -3.04" in out
+        assert "(N = 6083 trading days)" in out
+        assert "half-life = 333.2 trading days" in out
+        assert "half-life = 376.4 trading days" in out
+        assert "residual check at 1 lag:  Breusch-Godfrey p = 0.0000" in out
+
+    def test_each_statistic_carries_its_own_reading(self, out: str) -> None:
+        """Four statistics print, the one-lag fit and the first passing fit each
+        way round, and each is read against the table under it."""
+        readings = [
+            line.strip()
+            for line in out.splitlines()
+            if "cointegration" in line and ("REJECTS" in line or "fails to reject" in line)
+        ]
+        assert readings == ["fails to reject -- no evidence of cointegration"] * 4
+
+    def test_a_spread_that_never_reverts_and_a_search_that_finds_nothing_say_so(
+        self, measured: tuple[pd.DataFrame, dict[str, Orientation]], capsys
+    ) -> None:
+        """Neither branch is reached on this pair, so each is driven with the
+        real fit and one field replaced."""
+        import dataclasses
+
+        o = measured[1]["TLT"]
+        fit = dataclasses.replace(o.fit, half_life=math.inf)
+        _orientation(dataclasses.replace(o, fit=fit, passing=None))
+        printed = capsys.readouterr().out
+        assert (
+            "spread does not mean-revert (non-negative OU slope) -- half-life undefined" in printed
+        )
+        assert "no lag count from 0 to 34 leaves residuals that pass" in printed
+        assert "half-life =" not in printed
+        assert "whose residuals pass:" not in printed
 
     def test_it_says_exploratory(self, out: str) -> None:
         assert "This is exploratory." in out
