@@ -288,7 +288,7 @@ def data_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def committed_copy(tmp_path: Path) -> Path:
-    """The eight committed vintages, copied, so a case may break one."""
+    """The committed vintages, copied, so a case may break one."""
     return copy_the_committed_tree(tmp_path)
 
 
@@ -719,7 +719,7 @@ class TestTheRefusalIsAType:
 
 
 class TestTheBoundIsTheOneThatWasMeasured:
-    """The envelope the eight committed vintages actually span, run rather than quoted.
+    """The envelope the single-series vintages actually span, run rather than quoted.
 
     The bound is computed from 1.6 rather than typed as 0.4700, because a price
     ratio is multiplicative and ``[0.6, 1.6]`` is asymmetric by 0.0408 in log
@@ -740,7 +740,12 @@ class TestTheBoundIsTheOneThatWasMeasured:
         assert days_of(scale_breaks(falling)) == ["2026-01-05"]
 
     def test_black_monday_is_not_a_scale_break(self) -> None:
-        """The widest legitimate move across all eight, at 0.7521, in the same file."""
+        """The widest legitimate move across the single-series vintages, at 0.7521, in KO's.
+
+        The stocks lifted from Chan's MATLAB files move further on ordinary news,
+        which is why the margin test below reads the single-series vintages
+        alone.
+        """
         _, closes = load_vintage("KO", chan=True)
 
         assert "1987-10-19" not in days_of(scale_breaks(closes))
