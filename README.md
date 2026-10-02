@@ -684,9 +684,11 @@ issue number written without its link.
 
 The code is released under the [MIT License](LICENSE), so anyone may reuse it,
 including commercially, as long as the copyright notice travels with it. The
-committed price vintages under `data/` are downloads from their vendors, and
-the licence covers this repo's own work rather than granting any right the
-vendors did not.
+committed vintages under `data/` come from elsewhere. Some are downloads from
+their vendors, and most are lifted from Ernest Chan's own book-companion files
+in a public mirror that carries no licence of its own.
+The licence covers this repo's own work rather than granting any right those
+sources did not.
 
 ## Where this came from
 

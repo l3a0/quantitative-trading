@@ -6,7 +6,7 @@ number computed from bytes nobody recorded is a number nobody can check.
 
 This module is the reading half of :mod:`chan.vintage`. That one resolves an
 entry and verifies its bytes on the standard library alone, which is what keeps
-its own suite at 0.09 s. Parsing a series costs pandas, so the parse lives
+its own tests from importing pandas. Parsing a series costs pandas, so the parse lives
 here instead of there. It does not live in :mod:`chan.pair_cointegration`
 either, which is a Chapter 7 replication, and every experiment that reads a
 series would then import a chapter to open a file.
@@ -228,10 +228,10 @@ def load_panel(
     measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
 
     The manifest is read once. Resolving each member by its identity fields
-    would read it once per member, and at 1,115 entries that measured 4.2 s
-    for the 500 members of the S&P 500 file, against 0.03 s for hashing their
-    bytes. Every member is still read through :func:`read_vintage`, so each one
-    is hashed against its entry before it is parsed.
+    would read and validate all 1,115 of its lines once per member, 500 times
+    for the S&P 500 file, where reading it once validates each line once. Every
+    member is still read through :func:`read_vintage`, so each one is hashed
+    against its entry before it is parsed.
 
     The frame's index is the union of the members' dates. A member's file holds
     only the days its source priced it, so a day it was not priced is NaN here,

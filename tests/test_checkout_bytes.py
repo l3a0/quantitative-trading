@@ -139,10 +139,10 @@ def _checkout_bytes(scratch: Path, *paths: str) -> dict[str, bytes]:
     `git checkout-index` performs that checkout into `scratch` rather than
     being asked what it would write, so the conversion under test is the one a
     clone runs. It takes every path in one process. The sweep used to ask
-    `git cat-file --filters` once per path, two processes a path, which was
-    0.81 s over the fifteen single-series vintages and 41.39 s
-    once the 1,100 columns lifted from Chan's `.mat` files were in the index,
-    measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
+    `git cat-file --filters` once per path, two processes a path, so the 1,100
+    stocks lifted from Chan's `.mat` files in
+    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) took it
+    from 18 paths under `data/` to 1,118, and from 36 processes to 2,236.
 
     The control below and the sweep share this call, on purpose. A control
     reached by its own call proves the conversion is switched on somewhere

@@ -309,10 +309,10 @@ def halved(committed_copy: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 class TestTheGuardOverTheWholeManifest:
     """Rule 1. What the committed vintages carry, pinned as a count and as dates.
 
-    The cost is not pinned with it. A wall-clock figure is a property of the
-    machine rather than of this code, measured at 46.4 ms over the first eight
-    vintages and at 2.03 s once the 1,100 columns lifted from Chan's MATLAB
-    files were in the manifest. Neither is the
+    The cost is not pinned with it, and not quoted either. A wall-clock figure
+    is a property of the machine rather than of this code, which is why
+    [issue 128](https://github.com/l3a0/quantitative-trading/issues/128)
+    took the figures out of the docstrings. Neither is the
     number of passes over each series, since asserting one would mean counting
     operations or patching the parse, which is more machinery than the property
     is worth.

@@ -61,8 +61,10 @@ why the bytes cannot carry the symbol instead.
 
 ## What each file is
 
-A vintage is one download of one series, identified by vendor, symbol, span,
-download date, and which price or rate the series carries.
+A vintage is one series as one source held it on one date, identified by
+vendor, symbol, span, that date, and which price or rate the series carries.
+The date is a download date for a series a vendor returned, and a saved date
+for a column lifted from one of Chan's own files.
 
 | File | Vendor | Symbol | Price | Span | Downloaded |
 | --- | --- | --- | --- | --- | --- |
@@ -271,11 +273,13 @@ measurements below and the decision behind the shape.
    [`1a71950`](https://github.com/egorpe/EPChan-QuantitativeTrading/tree/1a7195003cf3e85a806e18867e0af547d17ad5c4),
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
-   beside the runs that read them. Measured with `du`, the two directories take
-   74.3 MB of the 76.7 MB `data/` now holds, where it held 2.0 MB before them.
-   The budget proposed on
+   beside the runs that read them. Summed from the sizes git records for each
+   file, the two directories hold 71.9 MB of the 74.3 MB `data/` now holds,
+   where it held 2.0 MB before them. A filesystem's block size makes `du`
+   report more, by an amount that differs between machines. The budget
+   proposed on
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
-   `data/` stays under 100 MB on disk, and a later panel states its own size
+   `data/` stays under 100 MB of file content, and a later panel states its own size
    against that in its issue before it is recorded.
 
    ```text
@@ -409,12 +413,13 @@ Two files carry that record.
 1. [vintages.jsonl](vintages.jsonl) is the record. One JSON object per line,
    naming each vintage's vendor, symbol, price basis, span, date, path, row
    count and sha256. A line carries `download_date` when a vendor was asked for
-   the series and `saved_date` for the five lifted from Chan's workbooks, whose
-   date is when he last saved one rather than when anything was fetched. Those
-   lines name their vendor `chan-xls` and carry a `source_workbook` field
-   holding the spreadsheet the column was lifted from. The table's
-   "Chan's `GLD.xls`" is that pair written as one cell, which is what a single
-   column can hold and a filename cannot.
+   the series and `saved_date` for a series lifted from one of Chan's own
+   files, whose date is when he last saved that file rather than when anything
+   was fetched. Those lines name their vendor `chan-xls` for a workbook column
+   and `chan-mat` for a stock from one of his MATLAB files, and carry a
+   `source_workbook` field holding the file the series was lifted from. The
+   table's "Chan's `GLD.xls`" is that pair written as one cell, which is what
+   a single column can hold and a filename cannot.
 
    The workbook is recorded rather than derived from the symbol. Joining the
    two happens to spell every workbook committed so far and spells the wrong

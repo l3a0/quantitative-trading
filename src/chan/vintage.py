@@ -1,7 +1,9 @@
 """Record a series as a vintage, immutable once written, and resolve one to read.
 
-A vintage is one download of one series, identified by vendor, symbol, span,
-download date, and which price or rate the series carries. Losing one is the
+A vintage is one series as one source held it on one date, identified by
+vendor, symbol, span, that date, and which price or rate the series carries.
+The date is when the series was downloaded, or when Ernest Chan saved the file
+a column was lifted from, and ``VintageEntry`` carries exactly one of the two. Losing one is the
 failure [docs/design.md](../../docs/design.md) is built around: everything else
 here recomputes, and a number whose series nobody kept is a number nobody can
 check, including its author.
@@ -744,9 +746,10 @@ def read_vintage(entry: VintageEntry, data_dir: Path | None = None) -> bytes:
     the path checks one read and uses another, which is the look-then-act shape
     :func:`record_vintage` already rejected on the writing side.
 
-    Nothing is cached. Hashing all eight committed vintages takes 0.9 ms
-    against a 5 s suite, so a cache would save nothing measurable and would add
-    a second answer to the question of what is on disk right now.
+    Nothing is cached. A cache would be a second answer to the question of
+    what is on disk right now, and what it would save is one hash of a file the
+    run is about to parse anyway. A hash is one pass over the bytes the parse
+    also reads before it builds a series out of them.
     """
     path = _directory(data_dir) / entry.path
     try:
