@@ -15,7 +15,7 @@ convention ``tests/test_vintage.py`` states for itself against issue 1.
 This is its own file rather than more of ``tests/test_series.py``, whose
 subject is which vintage a run resolves and that it is that one, or of
 ``tests/test_vintage.py``, whose every case is driven by a synthetic series.
-A guard over the committed eight is neither, and the repo's shape is one file
+A guard over every committed price vintage is neither, and the repo's shape is one file
 per concern.
 
 Every refusal is asserted on its message and not only on its type. Absent,
@@ -329,13 +329,11 @@ class TestTheGuardOverTheWholeManifest:
         """Said as its own case, because a guard that read one file would pass the count.
 
         The clean vintages are counted off the manifest rather than listed.
-        Naming them would be the hand-written list of eight this guard exists
-        not to be, and it would fail on the day a ninth lands whether or not
-        that ninth changes scale. A ninth is on a branch already, recording a
-        SPY download for
-        [issue 14](https://github.com/l3a0/quantitative-trading/issues/14). The
-        claim here is that every price entry the manifest holds was read and
-        answered, and that one of them answers with anything.
+        Naming them would be the hand-written list this guard exists not to be,
+        and it would fail on the day the next vintage lands whether or not that
+        one changes scale. The claim here is that every price entry the
+        manifest holds was read and answered, and that only the pinned ones
+        answer with anything.
         """
         swept = {}
         for entry in price_entries():
@@ -740,11 +738,10 @@ class TestTheBoundIsTheOneThatWasMeasured:
         assert days_of(scale_breaks(falling)) == ["2026-01-05"]
 
     def test_black_monday_is_not_a_scale_break(self) -> None:
-        """The widest legitimate move across the single-series vintages, at 0.7521, in KO's.
+        """The widest legitimate move across the single-series vintages, at 0.7521.
 
-        The stocks lifted from Chan's MATLAB files move further on ordinary news,
-        which is why the margin test below reads the single-series vintages
-        alone.
+        It is in ``ko_chan.csv``. The margin test below says why the stocks
+        lifted from Chan's MATLAB files are not held to it.
         """
         _, closes = load_vintage("KO", chan=True)
 
@@ -759,7 +756,7 @@ class TestTheBoundIsTheOneThatWasMeasured:
         assert scale_breaks(closes, bound=math.log(2.0)) == []
 
     def test_the_committed_ratios_leave_a_margin_on_both_sides(self) -> None:
-        """What carries forward to a ninth vintage is this derivation, not the number.
+        """What carries forward to the next vintage is this derivation, not the number.
 
         Every number the prose quotes about the envelope is derived here, which
         is the single-authority rule. ``docs/design.md``'s register and
