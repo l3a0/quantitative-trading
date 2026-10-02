@@ -229,9 +229,9 @@ def load_panel(
 
     The manifest is read once. Resolving each member by its identity fields
     would read and validate all 1,115 of its lines once per member, 500 times
-    for the S&P 500 file, where hashing each member's bytes reads one file
-    once. Every member is still read through :func:`read_vintage`, so each one
-    is hashed against its entry before it is parsed.
+    for the S&P 500 file, where reading it once validates each line once. Every
+    member is still read through :func:`read_vintage`, so each one is hashed
+    against its entry before it is parsed.
 
     The frame's index is the union of the members' dates. A member's file holds
     only the days its source priced it, so a day it was not priced is NaN here,

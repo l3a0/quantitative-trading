@@ -413,12 +413,13 @@ Two files carry that record.
 1. [vintages.jsonl](vintages.jsonl) is the record. One JSON object per line,
    naming each vintage's vendor, symbol, price basis, span, date, path, row
    count and sha256. A line carries `download_date` when a vendor was asked for
-   the series and `saved_date` for the five lifted from Chan's workbooks, whose
-   date is when he last saved one rather than when anything was fetched. Those
-   lines name their vendor `chan-xls` and carry a `source_workbook` field
-   holding the spreadsheet the column was lifted from. The table's
-   "Chan's `GLD.xls`" is that pair written as one cell, which is what a single
-   column can hold and a filename cannot.
+   the series and `saved_date` for a series lifted from one of Chan's own
+   files, whose date is when he last saved that file rather than when anything
+   was fetched. Those lines name their vendor `chan-xls` for a workbook column
+   and `chan-mat` for a stock from one of his MATLAB files, and carry a
+   `source_workbook` field holding the file the series was lifted from. The
+   table's "Chan's `GLD.xls`" is that pair written as one cell, which is what
+   a single column can hold and a filename cannot.
 
    The workbook is recorded rather than derived from the symbol. Joining the
    two happens to spell every workbook committed so far and spells the wrong
