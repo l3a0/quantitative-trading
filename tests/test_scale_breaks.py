@@ -54,8 +54,12 @@ from chan.vintage import (
     read_vintage,
     record_vintage,
 )
+from tests.support.committed_vintages import (
+    adjusted_against_raw,
+    in_a_lifted_source,
+    rewrite_entry,
+)
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
-from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 
 #: The breaks the single-series vintages carry, recorded rather than failing.
 #:
@@ -819,14 +823,8 @@ class TestWhyTheComparisonDetectorWasCut:
     def test_dividing_gdx_adjusted_by_gdx_raw_moves_too_little_to_detect_anything(
         self,
     ) -> None:
-        adjusted = load_vintage("GDX")[1]
-        raw = load_vintage("GDX", unadjusted=True)[1]
-
-        ratio = (
-            pd.concat([adjusted, raw], axis=1, join="inner")
-            .dropna()
-            .pipe(lambda both: both.iloc[:, 0] / both.iloc[:, 1])
-        )
+        both = adjusted_against_raw("GDX")
+        ratio = both.adjusted / both.raw
         widest = float(ratio.diff().abs().max())
 
         assert round(widest, 4) == 0.0163

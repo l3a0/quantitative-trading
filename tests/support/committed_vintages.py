@@ -26,7 +26,7 @@ workbooks, which carries a saved date and no download date, cannot be recorded
 and still arrives by hand. A whole source of them is written by
 ``record_lifted_columns`` instead and pinned in :data:`LIFTED_SOURCES`.
 
-Six fields are pinned, keyed by the path that names the file. Five are the
+Seven fields are pinned, keyed by the path that names the file. Five are the
 identity, meaning what a reader is looking at, and four of those are
 confirmable from nothing at all: a hash says the bytes did not move and says
 nothing about which vendor sent them, on what day, or which price they carry.
@@ -46,6 +46,14 @@ The sixth is ``source_workbook``, which says where the bytes came from rather
 than what they are. It is pinned with the identity because it is hand-typed on
 both surfaces that state it, so the two agreeing says nothing about either
 being right.
+
+The seventh is ``vendor_column``, which says which column of the vendor's
+response the bytes are. It is pinned for the same reason, and because for
+``gld_20yr_prices.csv`` and ``gdx_20yr_prices.csv`` it was typed from a
+measurement rather than from a call anyone wrote down, which
+``TestWhichColumnTheHandPlacedAdjustedVintagesHold`` in
+``tests/test_vintage.py`` is what backs. Every other entry here pins ``None``,
+so the field turning up on a workbook column fails here too.
 """
 
 from __future__ import annotations
@@ -54,11 +62,14 @@ import json
 import shutil
 from pathlib import Path
 
+import pandas as pd
+
 from chan.paths import DATA_DIR
+from chan.series import load_vintage
 from chan.vintage import MANIFEST_NAME, VintageEntry
 
 #: Path to ``(vendor, symbol, price_basis, download_date, saved_date,
-#: source_workbook)``.
+#: source_workbook, vendor_column)``.
 #:
 #: The ``*_chan.csv`` entries carry a saved date and no download date,
 #: because they are columns lifted from Ernest Chan's workbooks and nothing
@@ -68,16 +79,40 @@ from chan.vintage import MANIFEST_NAME, VintageEntry
 #: ``data/README.md`` together agrees with itself, so the check comparing the
 #: two passes and only a pin fails it.
 HAND_WRITTEN = {
-    "gld_20yr_prices.csv": ("yfinance", "GLD", "adjusted", "2026-06-16", None, None),
-    "gld_20yr_prices_unadjusted.csv": ("yfinance", "GLD", "raw", "2026-08-27", None, None),
-    "gdx_20yr_prices.csv": ("yfinance", "GDX", "adjusted", "2026-08-27", None, None),
-    "gdx_20yr_prices_unadjusted.csv": ("yfinance", "GDX", "raw", "2026-08-27", None, None),
-    "gld_chan.csv": ("chan-xls", "GLD", "adjusted", None, "2007-12-02", "GLD.xls"),
-    "gdx_chan.csv": ("chan-xls", "GDX", "adjusted", None, "2007-12-02", "GDX.xls"),
-    "ko_chan.csv": ("chan-xls", "KO", "adjusted", None, "2008-01-23", "KO.xls"),
-    "pep_chan.csv": ("chan-xls", "PEP", "adjusted", None, "2008-01-23", "PEP.xls"),
-    "spy_chan.csv": ("chan-xls", "SPY", "adjusted", None, "2008-01-29", "example6_2.xls"),
-    "spy_unadjusted_chan.csv": ("chan-xls", "SPY", "raw", None, "2008-01-29", "example6_2.xls"),
+    "gld_20yr_prices.csv": (
+        "yfinance",
+        "GLD",
+        "adjusted",
+        "2026-06-16",
+        None,
+        None,
+        "Close, auto_adjust=True",
+    ),
+    "gld_20yr_prices_unadjusted.csv": ("yfinance", "GLD", "raw", "2026-08-27", None, None, None),
+    "gdx_20yr_prices.csv": (
+        "yfinance",
+        "GDX",
+        "adjusted",
+        "2026-08-27",
+        None,
+        None,
+        "Close, auto_adjust=True",
+    ),
+    "gdx_20yr_prices_unadjusted.csv": ("yfinance", "GDX", "raw", "2026-08-27", None, None, None),
+    "gld_chan.csv": ("chan-xls", "GLD", "adjusted", None, "2007-12-02", "GLD.xls", None),
+    "gdx_chan.csv": ("chan-xls", "GDX", "adjusted", None, "2007-12-02", "GDX.xls", None),
+    "ko_chan.csv": ("chan-xls", "KO", "adjusted", None, "2008-01-23", "KO.xls", None),
+    "pep_chan.csv": ("chan-xls", "PEP", "adjusted", None, "2008-01-23", "PEP.xls", None),
+    "spy_chan.csv": ("chan-xls", "SPY", "adjusted", None, "2008-01-29", "example6_2.xls", None),
+    "spy_unadjusted_chan.csv": (
+        "chan-xls",
+        "SPY",
+        "raw",
+        None,
+        "2008-01-29",
+        "example6_2.xls",
+        None,
+    ),
 }
 
 
@@ -117,16 +152,17 @@ def in_a_lifted_source(path: str) -> bool:
 
 def identity_of(
     entry: VintageEntry,
-) -> tuple[str, str, str, str | None, str | None, str | None]:
-    """The six fields :data:`HAND_WRITTEN` pins, read off an entry.
+) -> tuple[str, str, str, str | None, str | None, str | None, str | None]:
+    """The seven fields :data:`HAND_WRITTEN` pins, read off an entry.
 
     Written here rather than at each call site so the tuple's order is decided
     once. A pin compared against a tuple assembled in a different order fails
     on fields that agree.
 
-    Five of the six say what a reader is looking at. ``source_workbook`` says
-    where the bytes came from instead, and it is pinned beside them because
-    nothing else in the tree fails a hand edit to it. Most of the ``.xls``
+    Five of the seven say what a reader is looking at. ``source_workbook`` and
+    ``vendor_column`` say where the bytes came from instead, and they are
+    pinned beside them because nothing else in the tree fails a hand edit to
+    either. Most of the ``.xls``
     names here happen to be their columns' symbols, which is what
     [issue 152](https://github.com/l3a0/quantitative-trading/issues/152) stopped
     deriving. Reading them off a list rather than joining them is the point, and
@@ -140,6 +176,7 @@ def identity_of(
         entry.download_date,
         entry.saved_date,
         entry.source_workbook,
+        entry.vendor_column,
     )
 
 
@@ -183,3 +220,19 @@ def committed_copy(tmp_path: Path) -> Path:
     directory = tmp_path / "committed"
     shutil.copytree(DATA_DIR, directory)
     return directory
+
+
+def adjusted_against_raw(symbol: str) -> pd.DataFrame:
+    """A symbol's committed adjusted and raw yfinance closes, on the days both carry.
+
+    Two checks read this pair for different reasons. One divides the columns to
+    price a cut scale-break detector, and the other compares them to say which
+    column an adjusted file holds. Both load it here, so the two cannot come to
+    read different pairs while each still looks right.
+
+    The columns are ``adjusted`` and ``raw``, and a row is kept only where both
+    hold a close, which is the inner join of the two dated series.
+    """
+    adjusted = load_vintage(symbol)[1].rename("adjusted")
+    raw = load_vintage(symbol, unadjusted=True)[1].rename("raw")
+    return pd.concat([adjusted, raw], axis=1, join="inner").dropna()
