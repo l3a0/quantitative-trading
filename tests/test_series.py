@@ -1221,6 +1221,34 @@ class TestAPanelIsOneSourceReadOnce:
         with pytest.raises(VintageUnavailable, match="SRC.mat cannot be"):
             load_panel("SRC.mat", data_dir=lifted)
 
+    def test_a_field_other_than_the_close_is_read_from_its_own_column(self, data_dir: Path) -> None:
+        wide = {
+            "AAA": [
+                ("2026-01-02", 10.0, 10.5, 9.5, 9.75, 100),
+                ("2026-01-05", 11.0, 11.5, 10.5, 10.75, 200),
+            ],
+            "BBB": [("2026-01-05", 20.0, 20.5, 19.5, 19.75, 300)],
+        }
+        record_lifted_columns(
+            wide,
+            **LIFTED_FROM,
+            fields=("Close", "High", "Low", "Open", "Volume"),
+            data_dir=data_dir,
+        )
+
+        _, opens = load_panel("SRC.mat", field="Open", data_dir=data_dir)
+        _, volumes = load_panel("SRC.mat", field="Volume", data_dir=data_dir)
+        _, closes = load_panel("SRC.mat", data_dir=data_dir)
+
+        assert opens["AAA"].tolist() == [9.75, 10.75]
+        assert volumes.loc["2026-01-05"].tolist() == [200.0, 300.0]
+        assert closes["AAA"].tolist() == [10.0, 11.0]
+        assert opens["BBB"].isna().tolist() == [True, False]
+
+    def test_a_field_a_member_does_not_carry_is_refused_by_name(self, lifted: Path) -> None:
+        with pytest.raises(VintageUnavailable, match="src/aaa.csv carries no Open column"):
+            load_panel("SRC.mat", field="Open", data_dir=lifted)
+
     def test_a_report_names_the_panel_in_one_line(self, lifted: Path) -> None:
         members, _ = load_panel("SRC.mat", data_dir=lifted)
 
@@ -1257,6 +1285,31 @@ class TestTheCommittedPanelsAreChansArrays:
         assert len(entries) == LIFTED_SOURCES[source][4]
         assert panel.notna().any(axis=1).all()
         assert panel.iloc[-1].notna().all(), "every member is priced on the day the file was cut"
+
+    @pytest.mark.parametrize("source", ["SPX_20071123.mat", "IJR_20080114.mat"])
+    def test_every_field_is_priced_on_exactly_the_days_the_close_is(self, source: str) -> None:
+        """Chan's arrays share one NaN pattern, so every field's panel has the close's."""
+        _, closes = load_panel(source)
+        for field in ("High", "Low", "Open", "Volume"):
+            _, panel = load_panel(source, field=field)
+            assert panel.shape == closes.shape, field
+            assert (panel.notna() == closes.notna()).all().all(), field
+
+    def test_ko_s_last_day_carries_all_five_fields(self) -> None:
+        """One row pinned whole, so a field read from the wrong column fails by value."""
+        day = "2007-11-23"
+        read = {
+            field: load_panel("SPX_20071123.mat", field=field)[1].loc[day, "KO"]
+            for field in ("Close", "High", "Low", "Open", "Volume")
+        }
+
+        assert read == {
+            "Close": 62.3,
+            "High": 62.75,
+            "Low": 61.92,
+            "Open": 62.54,
+            "Volume": 4723058.0,
+        }
 
     def test_the_wyn_column_carries_two_companies_across_a_gap(self) -> None:
         _, panel = load_panel("SPX_20071123.mat")

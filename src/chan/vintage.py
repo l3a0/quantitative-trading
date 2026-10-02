@@ -87,7 +87,7 @@ import math
 import os
 import re
 from collections import Counter
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import MISSING, asdict, dataclass, fields
 from datetime import date
 from pathlib import Path
@@ -130,6 +130,16 @@ SYMBOL_PATTERN = re.compile(r"^[A-Z0-9^][A-Z0-9.=^-]*$")
 # above: no separator, no whitespace, and a first character that cannot start
 # a path reaching out of the data directory.
 SOURCE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+
+#: The fields a lifted row may carry, in the order its file writes them.
+#:
+#: It is the order yfinance's multi-index frame writes one ticker's fields in,
+#: which is the header shape every hand-placed vintage already carries, and it
+#: puts the close in the second column. Every reader here takes the close from
+#: there, so a file holding all five reads exactly as a file holding the close
+#: alone. A lifted source names the fields it carries, and they must be a run of
+#: these in this order starting at the close.
+LIFTED_FIELDS = ("Close", "High", "Low", "Open", "Volume")
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -494,29 +504,38 @@ def record_vintage(
 
 
 def record_lifted_columns(
-    columns: Mapping[str, Iterable[tuple[str, float]]],
+    columns: Mapping[str, Iterable[tuple]],
     *,
     vendor: str,
     price_basis: str,
     saved_date: str,
     source_file: str,
+    fields: Sequence[str] = ("Close",),
     data_dir: Path | None = None,
 ) -> list[VintageEntry]:
-    """Write every column of one source file as a vintage, or refuse and leave no trace.
+    """Write every stock in one source file as a vintage, or refuse and leave no trace.
 
-    ``columns`` maps each symbol to its rows, which pair an ISO date with a
-    close exactly as :func:`record_vintage` takes them, so a missing cell is a
-    missing row rather than a NaN the rows would refuse. ``saved_date`` is when
-    the source was saved, and ``source_file`` is its name, which every entry
-    carries as ``source_workbook``.
+    ``columns`` maps each symbol to its rows. A row is an ISO date followed by
+    one value per name in ``fields``, which defaults to the close alone, so a
+    close-only row is the pair :func:`record_vintage` takes. A day the source
+    did not price is a missing row rather than a NaN the rows would refuse.
+    ``saved_date`` is when the source was saved, and ``source_file`` is its
+    name, which every entry carries as ``source_workbook``.
+
+    One file holds every field of one stock, so a stock is one vintage however
+    many fields it carries. An open series written as a vintage of its own
+    would share vendor, symbol, basis and date with the close, and nothing in
+    an entry's identity could tell the two apart. ``price_basis`` names the
+    prices. A volume is written as the source holds it, as a whole number, and
+    a value in it that is not one is refused rather than rounded.
 
     Each column lands at ``<source>/<symbol>.csv``, where ``<source>`` is the
     file's stem and both are lowercased, so ``SPX_20071123.mat``'s KO column is
     ``spx_20071123/ko.csv``. A directory per source keeps its members from
     sitting beside the README, and it keeps a member from taking a name another
     vintage holds, such as ``ko_chan.csv``. The file carries the three-row
-    header the hand-placed vintages carry, so its ``Ticker,`` row names the
-    series its bytes hold.
+    header the hand-placed vintages carry, widened to its fields, so its
+    ``Ticker,`` row names the stock its bytes hold.
 
     The order follows :func:`record_vintage`'s, one source at a time.
 
@@ -538,18 +557,19 @@ def record_lifted_columns(
     directory = paths.DATA_DIR if data_dir is None else data_dir
     _validated_date(saved_date, "saved date")
     source = _validated_source(source_file)
+    fields = _validated_fields(fields, source_file)
 
     entries, payloads = [], []
     for symbol in sorted(columns):
         try:
-            rows = _validated_rows(columns[symbol])
+            rows = _validated_wide_rows(columns[symbol], fields)
         except ValueError as refused:
             # The rows' own refusals name a date and not the column, and a
             # source holds hundreds of them, so the symbol is what says where.
             raise ValueError(f"{source_file} {symbol}: {refused}") from refused
         held_vendor, held_symbol, held_basis = _validated_identity(vendor, symbol, price_basis)
-        days = [day for day, _ in rows]
-        payload = _serialize_lifted(held_symbol, rows)
+        days = [row[0] for row in rows]
+        payload = _serialize_lifted(held_symbol, fields, rows)
         entries.append(
             VintageEntry(
                 vendor=held_vendor,
@@ -1032,17 +1052,84 @@ def _validated_source(source_file: str) -> str:
     return stem
 
 
-def _serialize_lifted(symbol: str, rows: list[tuple[str, float]]) -> bytes:
-    """A lifted column's bytes: the three-row header, then the series.
+def _validated_fields(fields: Sequence[str], source_file: str) -> tuple[str, ...]:
+    """The fields a source carries, or a refusal saying why they cannot be written.
 
-    The header is the one the hand-placed vintages carry, which is what puts
-    the symbol in the bytes. ``tests/test_vintage.py`` reads it back against the
-    entry, the same check every ``*_chan.csv`` file is held to. A close is
-    written as :func:`_serialize` writes one.
+    A run of :data:`LIFTED_FIELDS` from the close onwards, so the close is
+    always the second column and the order is the one the header shape comes
+    from.
     """
-    lines = ["Price,Close", f"Ticker,{symbol}", "Date,"]
-    lines.extend(f"{day},{value!r}" for day, value in rows)
+    held = tuple(fields)
+    if held != LIFTED_FIELDS[: len(held)] or not held:
+        raise ValueError(
+            f"{source_file}: fields {held!r} are not a run of {LIFTED_FIELDS} starting at "
+            f"the close, which is the column every reader takes"
+        )
+    return held
+
+
+def _validated_wide_rows(rows: Iterable[tuple], fields: tuple[str, ...]) -> list[tuple]:
+    """Each row as its date and its values, after the checks a close is held to.
+
+    The date and the close go through :func:`_validated_rows`, so a lifted
+    close is refused for exactly what a recorded one is. Every other price must
+    be a finite number too. A volume must be a whole number, because a volume
+    written as ``1200.0`` claims a precision the source never held and one
+    written from ``1200.5`` would have to be rounded by somebody.
+    """
+    materialized = [tuple(row) for row in rows]
+    for row in materialized:
+        if len(row) != 1 + len(fields):
+            raise ValueError(
+                f"a row carries {len(row) - 1} values and the source names {len(fields)} fields: "
+                f"{row!r}"
+            )
+    closes = _validated_rows((row[0], row[1]) for row in materialized)
+    wide = []
+    for (day, close), row in zip(closes, materialized, strict=True):
+        values: list[float | int] = [close]
+        for field, value in zip(fields[1:], row[2:], strict=True):
+            try:
+                number = float(value)
+            except (TypeError, ValueError) as unusable:
+                raise ValueError(f"the {field} on {day} is not a number: {value!r}") from unusable
+            if not math.isfinite(number):
+                raise ValueError(f"the {field} on {day} is not a finite number: {value!r}")
+            if field == "Volume":
+                if not number.is_integer():
+                    raise ValueError(f"the Volume on {day} is not a whole number: {value!r}")
+                values.append(int(number))
+            else:
+                values.append(number)
+        wide.append((day, *values))
+    return wide
+
+
+def _serialize_lifted(symbol: str, fields: tuple[str, ...], rows: list[tuple]) -> bytes:
+    """A lifted stock's bytes: the three-row header, then one line per day.
+
+    The header is yfinance's multi-index shape, which the hand-placed vintages
+    carry, widened to the stock's fields: a row naming the fields, a row
+    naming the ticker once per field, and a row naming the date column. That
+    is what puts the symbol in the bytes, and ``tests/test_vintage.py`` reads it
+    back against the entry. With the close alone the three rows are byte for
+    byte the ones every ``*_chan.csv`` file carries.
+
+    A price is written as :func:`_serialize` writes a close, and a volume as
+    the whole number it is.
+    """
+    lines = [
+        ",".join(["Price", *fields]),
+        ",".join(["Ticker", *[symbol] * len(fields)]),
+        "Date" + "," * len(fields),
+    ]
+    lines.extend(",".join([day, *(_cell(value) for value in values)]) for day, *values in rows)
     return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def _cell(value: float | int) -> str:
+    """One value as a lifted file writes it: a whole volume plainly, a price by ``repr``."""
+    return str(value) if isinstance(value, int) else repr(value)
 
 
 def _append_entry(data_dir: Path, entry: VintageEntry) -> None:

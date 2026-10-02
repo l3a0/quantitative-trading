@@ -1,40 +1,41 @@
-"""Record the closes in one of Ernest Chan's MATLAB files as one vintage per stock.
+"""Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
 
 Chan's cross-sectional examples read two files from his first-edition code: the
 S&P 500 as it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14.
-Each holds a date-by-stock array of closes, and
+Each holds date-by-stock arrays of closes, highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
 file of a new shape.
 
 This module is the half that needs scipy. It reads the ``.mat`` bytes, turns
-each column into rows, and hands them to
+each stock into rows, and hands them to
 :func:`chan.vintage.record_lifted_columns`, which owns the write order, the
 refusals and the rollback and stays on the standard library.
 
 Three choices are settled here rather than left to whoever runs it.
 
-1. **Closes only.** Each file carries ``op``, ``hi``, ``lo`` and ``vol`` beside
-   ``cl``, and every figure Chan's code prints from these two files reads
-   ``cl`` alone. An open series per stock would share every identity field
-   with that stock's closes, so the owner decided on 2026-10-02 to record
-   closes and nothing else.
-   [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) holds
-   the one step that would need opens.
+1. **Every field is kept.** The owner decided on 2026-10-02 to record all five
+   arrays rather than the closes alone. The closes are what Chan's printed
+   figures read, and the other four exist nowhere this repo controls except
+   the public mirror the files came from, so a vintage holding only the close
+   would leave them to that mirror. Each stock's file holds all five, which
+   keeps a stock one vintage. An open series recorded as a vintage of its own
+   would share every identity field with the close.
 2. **A missing cell is a missing row.** Chan marks a day a stock has no price
-   with NaN, and a vintage refuses one. Dropping those cells loses nothing,
-   because no day in either file lacks a close in every column, so the union
-   of the members' dates is the file's own day list and
+   with NaN in every field at once, and a vintage refuses one. Dropping those
+   rows loses nothing, because no day in either file lacks a close in every
+   column, so the union of the members' dates is the file's own day list and
    :func:`chan.series.load_panel` rebuilds every NaN by reindexing onto it.
-   :func:`round_trip_differs` is the check that says so for the file at hand.
+   :func:`round_trip_differs` is the check that says so, field by field, for
+   the file at hand.
 3. **The saved date is the header's.** A MAT file's 116-byte text header
    records when it was created, and that is the date the vintage carries. It
    is a day after the date in each file's name, because the name carries the
    last trading day and the header carries the save.
 
 The price basis is the caller's to state, because nothing in the file says
-it. ``data/README.md`` records what was measured for each file and why it is
-recorded as ``adjusted``.
+it, and it names the four prices. ``data/README.md`` records what was measured
+for each file and why it is recorded as ``adjusted``.
 
 Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``. The
 files are not committed, so a run needs a local copy taken from the mirror at
@@ -55,6 +56,7 @@ import numpy as np
 import scipy.io
 
 from chan.vintage import (
+    LIFTED_FIELDS,
     PRICE_BASES,
     VintageEntry,
     VintageRefused,
@@ -92,15 +94,20 @@ def saved_date_of(payload: bytes) -> str:
     return datetime.strptime(created, "%a %b %d %H:%M:%S %Y").date().isoformat()
 
 
-def read_closes(payload: bytes) -> tuple[list[str], list[str], np.ndarray]:
-    """The file's trading days as ISO dates, its symbols, and its date-by-symbol closes.
+#: Each field a lifted file carries, to the array in Chan's file that holds it.
+ARRAYS = {"Close": "cl", "High": "hi", "Low": "lo", "Open": "op", "Volume": "vol"}
 
-    The three arrays are checked against each other before anything is
-    returned, because a mismatch here would put one stock's closes under
+
+def read_arrays(payload: bytes) -> tuple[list[str], list[str], dict[str, np.ndarray]]:
+    """The file's trading days as ISO dates, its symbols, and each field's array.
+
+    The arrays are checked against the days and the symbols before anything is
+    returned, because a mismatch here would put one stock's prices under
     another's name with every hash verifying.
     """
-    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=["tday", "stocks", "cl"])
-    missing = sorted({"tday", "stocks", "cl"} - held.keys())
+    wanted = ["tday", "stocks", *ARRAYS.values()]
+    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=wanted)
+    missing = [name for name in wanted if name not in held]
     if missing:
         raise ValueError(f"the file carries no {', '.join(missing)}")
 
@@ -112,30 +119,52 @@ def read_closes(payload: bytes) -> tuple[list[str], list[str], np.ndarray]:
     if repeated:
         raise ValueError(f"the file names a symbol more than once: {', '.join(repeated)}")
 
-    closes = np.asarray(held["cl"], dtype=float)
-    if closes.shape != (len(days), len(symbols)):
-        raise ValueError(
-            f"cl is {closes.shape[0]} by {closes.shape[1]} and the file carries "
-            f"{len(days)} days and {len(symbols)} symbols"
-        )
-    return days, symbols, closes
+    arrays = {}
+    for field, name in ARRAYS.items():
+        array = np.asarray(held[name], dtype=float)
+        if array.shape != (len(days), len(symbols)):
+            raise ValueError(
+                f"{name} is {array.shape[0]} by {array.shape[1]} and the file carries "
+                f"{len(days)} days and {len(symbols)} symbols"
+            )
+        arrays[field] = array
+    return days, symbols, arrays
 
 
 def columns_of(
-    days: list[str], symbols: list[str], closes: np.ndarray
-) -> dict[str, list[tuple[str, float]]]:
-    """Each symbol's rows, holding only the days the file prices it on."""
+    days: list[str], symbols: list[str], arrays: dict[str, np.ndarray]
+) -> dict[str, list[tuple]]:
+    """Each symbol's rows, one per day the file prices it, carrying every field.
+
+    A day is priced when its close is. Every other field must be present on
+    exactly those days, because a row cannot hold a missing open and a day
+    with an open and no close has nowhere to go. Both of Chan's files hold
+    that, measured on issue 88, and a file that does not is refused naming the
+    first stock and day that break it.
+    """
+    closes = arrays["Close"]
     columns = {}
     for index, symbol in enumerate(symbols):
         priced = np.isfinite(closes[:, index])
-        columns[symbol] = [(days[day], float(closes[day, index])) for day in np.flatnonzero(priced)]
+        for field in LIFTED_FIELDS[1:]:
+            held = np.isfinite(arrays[field][:, index])
+            if not np.array_equal(held, priced):
+                day = days[int(np.flatnonzero(held != priced)[0])]
+                raise ValueError(
+                    f"{symbol}'s {field} and close disagree on whether {day} was priced, so "
+                    f"no row can hold that day"
+                )
+        columns[symbol] = [
+            (days[day], *(float(arrays[field][day, index]) for field in LIFTED_FIELDS))
+            for day in np.flatnonzero(priced)
+        ]
     return columns
 
 
-def record_mat_closes(
+def record_mat_file(
     path: Path, *, price_basis: str, data_dir: Path | None = None
 ) -> list[VintageEntry]:
-    """Record every close column in ``path`` as its own vintage, under :data:`VENDOR`.
+    """Record every stock in ``path`` as its own vintage, under :data:`VENDOR`.
 
     A file holding a day with no close in any column is refused before
     anything is written. The panel rebuilds a file's days from the union of
@@ -144,59 +173,64 @@ def record_mat_closes(
     recorded.
     """
     payload = Path(path).read_bytes()
-    days, symbols, closes = read_closes(payload)
-    unpriced = [day for day, row in zip(days, closes, strict=True) if not np.isfinite(row).any()]
+    days, symbols, arrays = read_arrays(payload)
+    unpriced = [
+        day for day, row in zip(days, arrays["Close"], strict=True) if not np.isfinite(row).any()
+    ]
     if unpriced:
         raise ValueError(
             f"{Path(path).name} prices no column on {', '.join(unpriced)}, so the per-stock "
             f"files could not give that day back"
         )
     return record_lifted_columns(
-        columns_of(days, symbols, closes),
+        columns_of(days, symbols, arrays),
         vendor=VENDOR,
         price_basis=price_basis,
         saved_date=saved_date_of(payload),
         source_file=Path(path).name,
+        fields=LIFTED_FIELDS,
         data_dir=data_dir,
     )
 
 
 def round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | None:
-    """Why the recorded panel is not the file's ``cl`` array, or ``None`` when it is.
+    """Why the recorded panels are not the file's arrays, or ``None`` when they are.
 
-    The panel is rebuilt by :func:`chan.series.load_panel` from the committed
-    bytes alone, so this is the check that dropping the NaN cells lost nothing.
-    It needs the ``.mat``, which is not committed, so it runs where the file was
-    recorded, the way the TLT and IEF column check ran at download time.
+    Each field's panel is rebuilt by :func:`chan.series.load_panel` from the
+    committed bytes alone, so this is the check that dropping the NaN rows lost
+    nothing. It needs the ``.mat``, which is not committed, so it runs where the
+    file was recorded, the way the TLT and IEF column check ran at download
+    time.
 
     The comparison is exact, and the panel is parsed by ``_parse_close``, whose
-    pandas parser can land a long close one unit in its last digit away from
-    the value written. Chan's two files hold closes of eight characters at
-    most and read back exactly. A file of full-precision closes would be
+    pandas parser can land a long value one unit in its last digit away from
+    the one written, which is
+    [issue 211](https://github.com/l3a0/quantitative-trading/issues/211). Chan's
+    two files read back exactly. A file of full-precision prices would be
     reported as differing although its bytes are right, which is the safe
     direction for this check to be wrong in.
     """
     from chan.series import load_panel
 
     payload = Path(path).read_bytes()
-    days, symbols, closes = read_closes(payload)
-    _, panel = load_panel(Path(path).name, data_dir=data_dir)
-
-    if [str(day.date()) for day in panel.index] != days:
-        return "the panel's days are not the file's trading days"
+    days, symbols, arrays = read_arrays(payload)
     spelled = [symbol.upper() for symbol in symbols]
-    if list(panel.columns) != sorted(spelled):
-        return "the panel's symbols are not the file's"
-    order = [spelled.index(symbol) for symbol in panel.columns]
-    if not np.array_equal(panel.to_numpy(dtype=float), closes[:, order], equal_nan=True):
-        return "the panel's closes are not the file's cl array"
+    for field in LIFTED_FIELDS:
+        _, panel = load_panel(Path(path).name, field=field, data_dir=data_dir)
+        if [str(day.date()) for day in panel.index] != days:
+            return "the panel's days are not the file's trading days"
+        if list(panel.columns) != sorted(spelled):
+            return "the panel's symbols are not the file's"
+        order = [spelled.index(symbol) for symbol in panel.columns]
+        if not np.array_equal(panel.to_numpy(dtype=float), arrays[field][:, order], equal_nan=True):
+            return f"the panel's {field} is not the file's {ARRAYS[field]} array"
     return None
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m chan.mat_columns",
-        description="Record the closes in one of Chan's .mat files as one vintage per stock.",
+        description="Record one of Chan's .mat files as one vintage per stock.",
     )
     parser.add_argument("path", type=Path, help="a local copy of the .mat file")
     parser.add_argument("--price-basis", required=True, choices=PRICE_BASES)
@@ -204,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sha256 = hashlib.sha256(arguments.path.read_bytes()).hexdigest()
     try:
-        entries = record_mat_closes(arguments.path, price_basis=arguments.price_basis)
+        entries = record_mat_file(arguments.path, price_basis=arguments.price_basis)
     except (VintageRefused, ValueError) as refused:
         print(f"{arguments.path.name}: not recorded. {refused}", file=sys.stderr)
         return 1
@@ -212,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     rows = sum(entry.row_count for entry in entries)
     print(f"{arguments.path.name}   sha256 {sha256}")
     print(
-        f"recorded {len(entries)} vintages, {rows} closes, under "
+        f"recorded {len(entries)} vintages, {rows} rows of {', '.join(LIFTED_FIELDS)}, under "
         f"{entries[0].path.split('/')[0]}/, saved {entries[0].saved_date}"
     )
     differs = round_trip_differs(arguments.path)
@@ -224,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    print("round trip: the panel read back is the file's cl array, NaN for NaN")
+    print("round trip: every field read back is the file's array, NaN for NaN")
     return 0
 
 

@@ -162,7 +162,8 @@ pins what it gives.
 
 Two of Chan's own files are cross-sections rather than series: the S&P 500 as
 it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14. Each is
-committed as one vintage per stock, 1,100 between them, written by
+committed as one vintage per stock, 1,100 between them, each holding the
+stock's close, high, low, open and volume, written by
 `src/chan/mat_columns.py` under a directory per file.
 `chan.series.load_panel` reads a whole file back as one date-by-stock frame
 and checks every member's bytes on the way.

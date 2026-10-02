@@ -255,8 +255,8 @@ reads the column taken from them. Four are in
 `example6_2.xls`'s is in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
-The two directories are the closes in Chan's first-edition MATLAB files, one
-vintage per stock. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
+The two directories hold Chan's first-edition MATLAB files, one vintage per
+stock, each carrying that stock's close, high, low, open and volume. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
 which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
 stood on 2008-01-14. His Example 7.6 loads `IJR_20080131`, which the mirror
 does not hold, and its third printed return is the trade into January 2008,
@@ -272,27 +272,37 @@ measurements below and the decision behind the shape.
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
    beside the runs that read them. Measured with `du`, the two directories take
-   30.3 MB of the 32.7 MB `data/` now holds, where it held 1.96 MB before them. The budget proposed on
-   [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that `data/` stays under 100 MB on disk, and a later panel states its
-   own size against that in its issue before it is recorded.
+   72.5 MB of the 74.9 MB `data/` now holds, where it held 1.96 MB before them.
+   The budget proposed on
+   [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
+   `data/` stays under 100 MB on disk, and a later panel states its own size
+   against that in its issue before it is recorded.
 
    ```text
    8d3ccbbd2c95b1ea342dfd5f953075f24c0df561efc9c6cc2cce651294ee73dc  SPX_20071123.mat
    a30f6560988b7d0774d0258569ef2c4ef8d6a416e94c64da48a9cec9e8c76d28  IJR_20080114.mat
    ```
 
-2. **Closes only.** Each file also carries opens, highs, lows and volumes. Every
-   figure Chan's code prints from them reads the closes, and an open series
-   would share every identity field with the close series of the same stock,
-   so the owner decided on 2026-10-02 to record closes alone.
-   [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) holds
-   the one step that would need opens.
-3. **A missing close is a missing row.** Chan marks a day a stock has no price
-   with NaN, and a vintage refuses one, so each file holds only the days its
-   stock was priced. Nothing is lost. No trading day in either file lacks a
-   close in every column, so `chan.series.load_panel` rebuilds Chan's array by
-   putting every member on the union of their dates, and the conversion
-   checked that it did, NaN for NaN, before anything was committed. Compute
+2. **Every field is kept, in one file per stock.** Each file carries five
+   date-by-stock arrays: `cl`, `hi`, `lo`, `op` and `vol`. Every figure Chan's
+   code prints from them reads `cl`, and the other four exist nowhere this
+   repo controls except the mirror, so the owner decided on 2026-10-02 to
+   commit all five rather than leave four to a mirror that can disappear. They
+   share one file because they are one stock saved once. An open series
+   written as a vintage of its own would share vendor, symbol, basis and date
+   with the close, and nothing in an entry's identity could tell the two apart.
+   The columns run `Close,High,Low,Open,Volume`, yfinance's own order, which
+   keeps the close second, where every reader here takes it. A volume is
+   written as the whole number it is, and the `adjusted` basis names the four
+   prices rather than the volume.
+   [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) is the
+   first step that reads the opens.
+3. **A day without a price is a missing row.** Chan marks a day a stock has no
+   price with NaN in all five arrays at once, and a vintage refuses one, so
+   each file holds only the days its stock was priced. Nothing is lost. No trading day in either file lacks a
+   close in every column, so `chan.series.load_panel` rebuilds each of Chan's
+   arrays by putting every member on the union of their dates, and the
+   conversion checked all five, NaN for NaN, before anything was committed. Compute
    returns on that panel rather than on one file's own rows. `spx_20071123/wyn.csv`
    holds two companies under one symbol, 952 trading days apart, closing at
    0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
@@ -315,7 +325,7 @@ measurements below and the decision behind the shape.
    far more than one two-for-one gap, which is an expectation rather than a
    measurement. So the file is recorded as split-adjusted, and CBU's day is a
    likely exception nobody here has verified.
-6. **The scale-break guard flags 62 days in 52 of the 1,100.** They are pinned
+6. **The scale-break guard flags 62 days in 52 of the 1,100, on the close.** They are pinned
    by path and day in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
    A flag is a day's close below 0.625 or above 1.6 times the one before. Most
    are real moves, such as AAPL falling to 0.4813 of its close on 2000-09-29,
@@ -333,7 +343,9 @@ measurements below and the decision behind the shape.
 
 The files placed by hand above carry a three-row header before the data. The
 shape is yfinance's multi-index frame, and the workbook columns were written
-into it too, as is every column `record_lifted_columns` writes. What that buys, whether or not anybody meant it at the time, is
+into it too, as is every stock `record_lifted_columns` writes. A stock lifted
+with all five fields widens it to one cell per field, so its first two rows
+read `Price,Close,High,Low,Open,Volume` and `Ticker,KO,KO,KO,KO,KO`. What that buys, whether or not anybody meant it at the time, is
 that the symbol sits in the bytes where a check can read it back, and
 `tests/test_vintage.py` now does:
 

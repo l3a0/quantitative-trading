@@ -1147,8 +1147,10 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     This is what covers a workbook column, which is the reason `spy_chan.csv`
     joined `HAND_WRITTEN` rather than being left outside it. It covers every
     column lifted from a source `LIFTED_SOURCES` pins too, because
-    `record_lifted_columns` writes the same header. The check skips any entry
-    in neither, so a lifted column left out would be covered here not at all.
+    `record_lifted_columns` writes the same header, widened to one cell per
+    field, so the row reads `Ticker,KO,KO,KO,KO,KO` and every cell after the
+    first must name the entry's symbol. The check skips any entry in neither,
+    so a lifted column left out would be covered here not at all.
 
     The symbol compared is the entry's rather than the one `HAND_WRITTEN` pins,
     which is what keeps this a second hold rather than a restatement of the
@@ -1158,8 +1160,9 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     for entry in read_manifest(directory):
         if entry.path not in HAND_WRITTEN and not in_a_lifted_source(entry.path):
             continue
-        header = (directory / entry.path).read_text(encoding="utf-8").splitlines()[1]
-        assert header == f"Ticker,{entry.symbol}", entry.path
+        cells = (directory / entry.path).read_text(encoding="utf-8").splitlines()[1].split(",")
+        assert cells[0] == "Ticker" and len(cells) > 1, entry.path
+        assert set(cells[1:]) == {entry.symbol}, entry.path
 
 
 def the_recorded_entries_name_themselves(directory: Path) -> None:
@@ -2224,6 +2227,60 @@ class TestRecordingALiftedSource:
 
         assert read_manifest(data_dir) == []
 
+    def test_a_stock_carrying_every_field_is_one_file_with_the_volume_whole(self, data_dir):
+        rows = {"KO": [("2026-08-25", 50.0, 51.0, 49.5, 49.75, 1200.0)]}
+        fields = ("Close", "High", "Low", "Open", "Volume")
+
+        (entry,) = vintage.record_lifted_columns(
+            rows, **LIFTED_FROM, fields=fields, data_dir=data_dir
+        )
+
+        assert entry.path == "src_1/ko.csv"
+        assert (data_dir / entry.path).read_bytes() == (
+            b"Price,Close,High,Low,Open,Volume\nTicker,KO,KO,KO,KO,KO\nDate,,,,,\n"
+            b"2026-08-25,50.0,51.0,49.5,49.75,1200\n"
+        )
+
+    @pytest.mark.parametrize(
+        "fields", [("Open", "Close"), ("Close", "Open"), ("Close", "High", "High"), ()]
+    )
+    def test_fields_that_are_not_a_run_from_the_close_are_refused(self, data_dir, fields):
+        """The close must be the second column, which is where every reader takes it."""
+        with pytest.raises(ValueError, match="starting at the close"):
+            vintage.record_lifted_columns(
+                {"KO": [("2026-08-25", *range(len(fields)))]},
+                **LIFTED_FROM,
+                fields=fields,
+                data_dir=data_dir,
+            )
+
+    @pytest.mark.parametrize(
+        ("row", "reason"),
+        [
+            (("2026-08-25", 50.0, 51.0), "a row carries 2 values and the source names 3"),
+            (("2026-08-25", 50.0, 51.0, float("nan")), "the Low on 2026-08-25 is not a finite"),
+            (("2026-08-25", 50.0, "high", 49.0), "the High on 2026-08-25 is not a number"),
+        ],
+    )
+    def test_a_wide_row_that_cannot_be_written_names_the_stock_and_the_field(
+        self, data_dir, row, reason
+    ):
+        with pytest.raises(ValueError, match=f"SRC_1.mat KO: {reason}"):
+            vintage.record_lifted_columns(
+                {"KO": [row]}, **LIFTED_FROM, fields=("Close", "High", "Low"), data_dir=data_dir
+            )
+
+        assert read_manifest(data_dir) == []
+
+    def test_a_volume_that_is_not_a_whole_number_is_refused_rather_than_rounded(self, data_dir):
+        with pytest.raises(ValueError, match="the Volume on 2026-08-25 is not a whole number"):
+            vintage.record_lifted_columns(
+                {"KO": [("2026-08-25", 50.0, 51.0, 49.5, 49.75, 1200.5)]},
+                **LIFTED_FROM,
+                fields=vintage.LIFTED_FIELDS,
+                data_dir=data_dir,
+            )
+
     def test_a_source_with_no_columns_records_nothing(self, data_dir):
         with pytest.raises(ValueError, match="no columns"):
             vintage.record_lifted_columns({}, **LIFTED_FROM, data_dir=data_dir)
@@ -2277,6 +2334,17 @@ class TestALiftedSourceIsHeld:
     def test_a_member_renamed_to_a_series_its_file_does_not_hold_fails(self, committed):
         """The `Ticker,` row is read from the bytes, so it holds the symbol apart from the pin."""
         rewrite_entry(committed, "spx_20071123/ko.csv", symbol="PEP")
+
+        with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):
+            the_hand_written_entries_name_their_series(committed)
+
+    def test_a_member_whose_ticker_row_names_another_stock_in_one_field_fails(self, committed):
+        """Every cell of the widened row is read, not only the first."""
+        path = committed / "spx_20071123" / "ko.csv"
+        lines = path.read_text(encoding="utf-8").split("\n")
+        assert lines[1] == "Ticker,KO,KO,KO,KO,KO"
+        lines[1] = "Ticker,KO,KO,KO,PEP,KO"
+        path.write_text("\n".join(lines), encoding="utf-8")
 
         with pytest.raises(AssertionError, match="spx_20071123/ko.csv"):
             the_hand_written_entries_name_their_series(committed)

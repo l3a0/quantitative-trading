@@ -18,27 +18,47 @@ import scipy.io
 
 from chan import mat_columns
 from chan.mat_columns import (
+    ARRAYS,
     VENDOR,
     columns_of,
-    read_closes,
-    record_mat_closes,
+    read_arrays,
+    record_mat_file,
     round_trip_differs,
     saved_date_of,
 )
 from chan.series import load_panel
-from chan.vintage import MANIFEST_NAME, read_manifest
+from chan.vintage import LIFTED_FIELDS, MANIFEST_NAME, read_manifest
 from tests.support.committed_vintages import rewrite_entry
 
 CREATED = "Sat Nov 24 13:12:39 2007"
 DAYS = [20071119, 20071120, 20071121, 20071123]
 SYMBOLS = ["AA", "BF.B", "KO"]
 NAN = float("nan")
-CLOSES = [
-    [30.0, NAN, 60.0],
-    [31.0, 70.0, NAN],
-    [NAN, 71.0, 61.0],
-    [32.5, 72.0, 62.3],
-]
+CLOSES = np.array(
+    [
+        [30.0, NAN, 60.0],
+        [31.0, 70.0, NAN],
+        [NAN, 71.0, 61.0],
+        [32.5, 72.0, 62.3],
+    ]
+)
+
+
+def arrays_from(closes: np.ndarray) -> dict[str, np.ndarray]:
+    """Five arrays the way Chan's files hold them, NaN together on an unpriced day.
+
+    The other fields are derived from the close so that every one differs from
+    every other, which is what lets a case notice a field read from the wrong
+    column.
+    """
+    volume = np.where(np.isnan(closes), NAN, np.arange(closes.size).reshape(closes.shape) * 100.0)
+    return {
+        "cl": closes,
+        "hi": closes + 1.25,
+        "lo": closes - 0.75,
+        "op": closes + 0.5,
+        "vol": volume,
+    }
 
 
 def mat_bytes(
@@ -46,10 +66,10 @@ def mat_bytes(
     created: str = CREATED,
     days: list[int] = DAYS,
     symbols: list[str] = SYMBOLS,
-    closes: list[list[float]] = CLOSES,
+    arrays: dict[str, np.ndarray] | None = None,
     omit: tuple[str, ...] = (),
 ) -> bytes:
-    """A MATLAB 5 file holding ``tday``, ``stocks`` and ``cl`` the way Chan's do.
+    """A MATLAB 5 file holding ``tday``, ``stocks`` and the five arrays the way Chan's do.
 
     ``stocks`` is a cell array of strings, written as an object array, and the
     header's first 116 bytes are replaced with one carrying ``created``.
@@ -60,7 +80,7 @@ def mat_bytes(
     held = {
         "tday": np.array(days, dtype=np.int32).reshape(-1, 1),
         "stocks": stocks,
-        "cl": np.array(closes, dtype=float),
+        **(arrays_from(CLOSES) if arrays is None else arrays),
     }
     buffer = io.BytesIO()
     scipy.io.savemat(buffer, {key: value for key, value in held.items() if key not in omit})
@@ -101,49 +121,71 @@ class TestTheHeaderGivesTheSavedDate:
             saved_date_of(payload)
 
 
-class TestTheThreeArraysAreCheckedAgainstEachOther:
-    def test_the_days_the_symbols_and_the_closes_come_back_together(self) -> None:
-        days, symbols, closes = read_closes(mat_bytes())
+class TestTheArraysAreCheckedAgainstEachOther:
+    def test_the_days_the_symbols_and_every_field_come_back_together(self) -> None:
+        days, symbols, arrays = read_arrays(mat_bytes())
 
         assert days == ["2007-11-19", "2007-11-20", "2007-11-21", "2007-11-23"]
         assert symbols == SYMBOLS
-        assert closes.shape == (4, 3)
+        assert list(arrays) == list(LIFTED_FIELDS)
+        assert all(array.shape == (4, 3) for array in arrays.values())
+        assert np.array_equal(arrays["Open"], CLOSES + 0.5, equal_nan=True)
 
-    def test_a_missing_array_is_named(self) -> None:
-        with pytest.raises(ValueError, match="carries no cl"):
-            read_closes(mat_bytes(omit=("cl",)))
+    @pytest.mark.parametrize("name", ["cl", "op", "vol"])
+    def test_a_missing_array_is_named(self, name: str) -> None:
+        with pytest.raises(ValueError, match=f"carries no {name}"):
+            read_arrays(mat_bytes(omit=(name,)))
 
     def test_days_out_of_order_are_refused(self) -> None:
         with pytest.raises(ValueError, match="not strictly increasing"):
-            read_closes(mat_bytes(days=[20071119, 20071121, 20071120, 20071123]))
+            read_arrays(mat_bytes(days=[20071119, 20071121, 20071120, 20071123]))
 
     def test_a_symbol_named_twice_is_refused(self) -> None:
         with pytest.raises(ValueError, match="more than once: AA"):
-            read_closes(mat_bytes(symbols=["AA", "AA", "KO"]))
+            read_arrays(mat_bytes(symbols=["AA", "AA", "KO"]))
 
-    def test_closes_that_do_not_fit_the_days_and_symbols_are_refused(self) -> None:
-        with pytest.raises(ValueError, match="cl is 4 by 3 and the file carries 4 days and 2"):
-            read_closes(mat_bytes(symbols=["AA", "KO"]))
+    def test_an_array_that_does_not_fit_the_days_and_symbols_is_refused(self) -> None:
+        arrays = {**arrays_from(CLOSES), "hi": (CLOSES + 1.25)[:, :2]}
+
+        with pytest.raises(ValueError, match="hi is 4 by 2 and the file carries 4 days and 3"):
+            read_arrays(mat_bytes(arrays=arrays))
 
 
 class TestAMissingCellIsAMissingRow:
-    def test_each_column_holds_only_the_days_it_was_priced(self) -> None:
-        columns = columns_of(*read_closes(mat_bytes()))
+    def test_each_stock_holds_only_the_days_it_was_priced_with_every_field(self) -> None:
+        columns = columns_of(*read_arrays(mat_bytes()))
 
-        assert columns["AA"] == [("2007-11-19", 30.0), ("2007-11-20", 31.0), ("2007-11-23", 32.5)]
-        assert columns["BF.B"] == [
-            ("2007-11-20", 70.0),
-            ("2007-11-21", 71.0),
-            ("2007-11-23", 72.0),
+        assert columns["AA"] == [
+            ("2007-11-19", 30.0, 31.25, 29.25, 30.5, 0.0),
+            ("2007-11-20", 31.0, 32.25, 30.25, 31.5, 300.0),
+            ("2007-11-23", 32.5, 33.75, 31.75, 33.0, 900.0),
         ]
-        assert [day for day, _ in columns["KO"]] == ["2007-11-19", "2007-11-21", "2007-11-23"]
+        assert [row[0] for row in columns["KO"]] == ["2007-11-19", "2007-11-21", "2007-11-23"]
+
+    def test_a_field_priced_on_a_day_the_close_is_not_is_refused(self) -> None:
+        arrays = arrays_from(CLOSES)
+        arrays["op"] = arrays["op"].copy()
+        arrays["op"][1, 2] = 60.5
+
+        with pytest.raises(ValueError, match="KO's Open and close disagree on whether 2007-11-20"):
+            columns_of(*read_arrays(mat_bytes(arrays=arrays)))
+
+    def test_a_field_missing_on_a_day_the_close_is_priced_is_refused(self) -> None:
+        arrays = arrays_from(CLOSES)
+        arrays["vol"] = arrays["vol"].copy()
+        arrays["vol"][0, 0] = NAN
+
+        with pytest.raises(
+            ValueError, match="AA's Volume and close disagree on whether 2007-11-19"
+        ):
+            columns_of(*read_arrays(mat_bytes(arrays=arrays)))
 
 
 class TestRecordingAFile:
-    def test_every_column_is_recorded_under_the_vendor_with_the_header_s_date(
+    def test_every_stock_is_recorded_under_the_vendor_with_the_header_s_date(
         self, mat: Path, data_dir: Path
     ) -> None:
-        entries = record_mat_closes(mat, price_basis="adjusted", data_dir=data_dir)
+        entries = record_mat_file(mat, price_basis="adjusted", data_dir=data_dir)
 
         assert [entry.path for entry in entries] == [
             "spx_20071123/aa.csv",
@@ -155,15 +197,31 @@ class TestRecordingAFile:
         }
         assert read_manifest(data_dir) == entries
 
+    def test_a_stock_s_file_holds_every_field_with_the_volume_whole(
+        self, mat: Path, data_dir: Path
+    ) -> None:
+        record_mat_file(mat, price_basis="adjusted", data_dir=data_dir)
+
+        assert (data_dir / "spx_20071123" / "aa.csv").read_bytes() == (
+            b"Price,Close,High,Low,Open,Volume\n"
+            b"Ticker,AA,AA,AA,AA,AA\n"
+            b"Date,,,,,\n"
+            b"2007-11-19,30.0,31.25,29.25,30.5,0\n"
+            b"2007-11-20,31.0,32.25,30.25,31.5,300\n"
+            b"2007-11-23,32.5,33.75,31.75,33.0,900\n"
+        )
+
     def test_a_day_priced_in_no_column_is_refused_before_anything_is_written(
         self, tmp_path: Path, data_dir: Path
     ) -> None:
         """The panel rebuilds days from its members, so such a day could never come back."""
+        closes = CLOSES.copy()
+        closes[1] = NAN
         path = tmp_path / "SPX_20071123.mat"
-        path.write_bytes(mat_bytes(closes=[CLOSES[0], [NAN, NAN, NAN], *CLOSES[2:]]))
+        path.write_bytes(mat_bytes(arrays=arrays_from(closes)))
 
         with pytest.raises(ValueError, match="prices no column on 2007-11-20"):
-            record_mat_closes(path, price_basis="adjusted", data_dir=data_dir)
+            record_mat_file(path, price_basis="adjusted", data_dir=data_dir)
 
         assert read_manifest(data_dir) == []
         assert not (data_dir / "spx_20071123").exists()
@@ -174,7 +232,7 @@ class TestRecordingAFile:
         """The entries uppercase a symbol, so the check compares against that spelling."""
         path = tmp_path / "SPX_20071123.mat"
         path.write_bytes(mat_bytes(symbols=["aa", "bf.b", "ko"]))
-        record_mat_closes(path, price_basis="adjusted", data_dir=data_dir)
+        record_mat_file(path, price_basis="adjusted", data_dir=data_dir)
 
         assert round_trip_differs(path, data_dir=data_dir) is None
 
@@ -182,29 +240,35 @@ class TestRecordingAFile:
         """KO and PEP are in the S&P 500 file and already committed from his workbooks."""
         assert VENDOR == "chan-mat"
 
-    def test_the_round_trip_finds_the_file_s_array_and_says_nothing(
+    def test_the_round_trip_finds_every_array_and_says_nothing(
         self, mat: Path, data_dir: Path
     ) -> None:
-        record_mat_closes(mat, price_basis="adjusted", data_dir=data_dir)
+        record_mat_file(mat, price_basis="adjusted", data_dir=data_dir)
 
         assert round_trip_differs(mat, data_dir=data_dir) is None
-        _, panel = load_panel("SPX_20071123.mat", data_dir=data_dir)
-        assert np.array_equal(panel.to_numpy(), np.array(CLOSES), equal_nan=True)
+        for field, name in ARRAYS.items():
+            _, panel = load_panel("SPX_20071123.mat", field=field, data_dir=data_dir)
+            assert np.array_equal(panel.to_numpy(), arrays_from(CLOSES)[name], equal_nan=True)
 
     def test_the_round_trip_says_when_a_member_is_missing(self, mat: Path, data_dir: Path) -> None:
-        record_mat_closes(mat, price_basis="adjusted", data_dir=data_dir)
+        record_mat_file(mat, price_basis="adjusted", data_dir=data_dir)
         rewrite_entry(data_dir, "spx_20071123/ko.csv", source_workbook="OTHER.mat")
 
         assert (
             round_trip_differs(mat, data_dir=data_dir) == "the panel's symbols are not the file's"
         )
 
-    def test_the_round_trip_says_when_a_close_moved(self, mat: Path, data_dir: Path) -> None:
-        record_mat_closes(mat, price_basis="adjusted", data_dir=data_dir)
-        mat.write_bytes(mat_bytes(closes=[[*row[:2], row[2] * 2] for row in CLOSES]))
+    @pytest.mark.parametrize(("field", "name"), [("Close", "cl"), ("Low", "lo"), ("Volume", "vol")])
+    def test_the_round_trip_names_the_field_that_moved(
+        self, mat: Path, data_dir: Path, field: str, name: str
+    ) -> None:
+        record_mat_file(mat, price_basis="adjusted", data_dir=data_dir)
+        arrays = arrays_from(CLOSES)
+        arrays[name] = arrays[name] * 2
+        mat.write_bytes(mat_bytes(arrays=arrays))
 
         assert round_trip_differs(mat, data_dir=data_dir) == (
-            "the panel's closes are not the file's cl array"
+            f"the panel's {field} is not the file's {name} array"
         )
 
 
@@ -224,9 +288,10 @@ class TestTheCommandLine:
         printed = capsys.readouterr().out.splitlines()
         assert printed[0].startswith("SPX_20071123.mat   sha256 ")
         assert printed[1] == (
-            "recorded 3 vintages, 9 closes, under spx_20071123/, saved 2007-11-24"
+            "recorded 3 vintages, 9 rows of Close, High, Low, Open, Volume, under "
+            "spx_20071123/, saved 2007-11-24"
         )
-        assert printed[2].startswith("round trip: the panel read back is the file's cl array")
+        assert printed[2] == "round trip: every field read back is the file's array, NaN for NaN"
 
     def test_a_second_run_is_refused_in_one_line(
         self, mat: Path, in_data_dir: Path, capsys: pytest.CaptureFixture[str]

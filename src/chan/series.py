@@ -213,9 +213,14 @@ def vintage_line(entry: VintageEntry) -> str:
 
 
 def load_panel(
-    source_file: str, *, data_dir: Path | None = None
+    source_file: str, *, field: str = "Close", data_dir: Path | None = None
 ) -> tuple[list[VintageEntry], pd.DataFrame]:
-    """Every column lifted from one source file, as a date-by-symbol frame of closes.
+    """Every stock lifted from one source file, as a date-by-symbol frame of one field.
+
+    ``field`` is a name from :data:`chan.vintage.LIFTED_FIELDS`, the close by
+    default. A member's file names its fields in its first row, and a member
+    that does not carry the one asked for is refused by name rather than read
+    as a column of NaN.
 
     The members are the entries whose ``source_workbook`` names the file, and
     they come back sorted by symbol, which is the frame's column order too.
@@ -268,10 +273,12 @@ def load_panel(
             f"cannot say which is the column"
         )
 
-    columns = {
-        entry.symbol: _parse_close(read_vintage(entry, data_dir=data_dir), entry.symbol)
-        for entry in members
-    }
+    columns = {}
+    for entry in members:
+        payload = read_vintage(entry, data_dir=data_dir)
+        columns[entry.symbol] = _parse_close(
+            payload, entry.symbol, column=_column_of(payload, field, entry.path)
+        )
     # The columns keep the dict's order, which is the members' sorted order.
     return members, pd.DataFrame(columns).sort_index()
 
@@ -527,7 +534,22 @@ def _dates(days: pd.DatetimeIndex) -> str:
     return ", ".join(str(day.date()) for day in days)
 
 
-def _parse_close(payload: bytes, ticker: str) -> pd.Series:
+def _column_of(payload: bytes, field: str, path: str) -> int:
+    """Which column of a vintage's bytes holds ``field``.
+
+    The close is the second column in every vintage here, whatever header it
+    carries, so it needs no lookup. Any other field is found in the first row,
+    which a lifted file writes as ``Price,`` followed by its fields.
+    """
+    if field == "Close":
+        return 1
+    first = payload.split(b"\n", 1)[0].decode("utf-8").split(",")
+    if first[0] != "Price" or field not in first[1:]:
+        raise VintageUnavailable(f"{path} carries no {field} column, only {', '.join(first[1:])}")
+    return first.index(field)
+
+
+def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
     """The series held in ``payload``, which is the buffer that was hashed.
 
     Parsing from the bytes rather than reopening the path is what makes one
@@ -541,8 +563,14 @@ def _parse_close(payload: bytes, ticker: str) -> pd.Series:
     ``Date,Close``. Rather than hard-code a skip count, every leading
     row whose first field is not a parseable date is dropped, so either shape
     loads.
+
+    ``column`` is which column holds the values, the close's by default. A
+    lifted file carries a stock's other fields after its close, and
+    :func:`load_panel` passes the column of the one it was asked for.
     """
-    raw = pd.read_csv(io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1])
+    raw = pd.read_csv(io.BytesIO(payload), header=None, usecols=[0, column], names=None).set_axis(
+        ["date", "close"], axis=1
+    )
     with warnings.catch_warnings():
         # The header rows ("Date", "Ticker") do not parse as dates, and coerce
         # drops them to NaT. pandas warns about the mixed formats, expected here.
