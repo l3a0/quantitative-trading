@@ -1,9 +1,10 @@
-"""The pins for the stationary-candidates post's figure.
+"""The pins for the stationary-candidates post's two figures.
 
 ``tests/test_stationary_candidates.py`` holds what both candidates compute. This
-file holds that the figure draws those numbers against the right bars, so a
+file holds that the figures draw those numbers against the right bars, so a
 generator that put a statistic on the wrong line or a bar at the wrong value
-fails even when the arithmetic is right. Some numbers repeat here on purpose,
+fails even when the arithmetic is right. The bars figure comes first, and
+``TestTheWindows`` holds the rolling-scan figure. Some numbers repeat here on purpose,
 because a figure's labels are prose and the suite is the authority for every
 number prose quotes. No test compares bytes, for the reason
 ``tests/test_regime_figure.py`` gives.
@@ -24,23 +25,32 @@ from matplotlib.colors import to_rgba
 from chan.paths import FIGURES_DIR
 from chan.stationary_candidates import cross_rate, fixed_income
 from chan.stationary_candidates_figures import (
+    ACCENT,
     BARS_FIGURE,
     GOOD,
+    INK,
     LEVELS,
     LOST,
     MUTED,
     ONE_SERIES_Y,
     PAIR_Y,
+    WINDOWS_FIGURE,
     X_RANGE,
     make_bars_figure,
+    make_windows_figure,
     marks,
 )
 from chan.vintage import VintageUnavailable
 
 
 @pytest.fixture(scope="module")
-def measured():
-    return cross_rate(), fixed_income()[1]
+def fixed():
+    return fixed_income()
+
+
+@pytest.fixture(scope="module")
+def measured(fixed):
+    return cross_rate(), fixed[1]
 
 
 @pytest.fixture(scope="module")
@@ -246,6 +256,25 @@ class TestTheText:
             assert text.get_parse_math() is False
 
 
+def test_the_command_draws_both_figures_from_one_read(monkeypatch, capsys) -> None:
+    """Both figures read the same three vintages, so the command reads them
+    once and hands the same results to each."""
+    import chan.stationary_candidates_figures as figures
+
+    rate, fixed, drawn = object(), (None, ("orientations",)), []
+    monkeypatch.setattr(figures, "cross_rate", lambda: rate)
+    monkeypatch.setattr(figures, "fixed_income", lambda: fixed)
+    monkeypatch.setattr(figures, "make_bars_figure", lambda **kw: drawn.append(("bars", kw)))
+    monkeypatch.setattr(figures, "make_windows_figure", lambda **kw: drawn.append(("windows", kw)))
+    figures.main()
+    assert drawn == [
+        ("bars", {"rate": rate, "orientations": fixed[1]}),
+        ("windows", {"rate": rate, "fixed": fixed}),
+    ]
+    out = capsys.readouterr().out
+    assert BARS_FIGURE in out and WINDOWS_FIGURE in out
+
+
 def test_drawing_writes_the_file_it_is_given(figure, out) -> None:
     assert out.is_file()
 
@@ -265,3 +294,124 @@ def test_a_missing_vintage_reaches_the_operator_as_a_line(monkeypatch) -> None:
 
 def test_the_committed_figure_exists() -> None:
     assert (FIGURES_DIR / BARS_FIGURE).is_file()
+
+
+@pytest.fixture(scope="module")
+def windows_out(tmp_path_factory: pytest.TempPathFactory):
+    return tmp_path_factory.mktemp("stationary_windows") / WINDOWS_FIGURE
+
+
+@pytest.fixture(scope="module")
+def windows(windows_out, measured, fixed):
+    return make_windows_figure(out=windows_out, rate=measured[0], fixed=fixed)
+
+
+def _lines(ax) -> dict:
+    return {line.get_gid(): line for line in ax.lines if line.get_gid()}
+
+
+class TestTheWindows:
+    """The rolling scans the two candidates already run, drawn on one date axis.
+
+    The counts repeat ``TestTheCrossRateScan::test_the_counts`` and
+    ``TestTheRollingScan::test_the_counts``, because the post's Lesson 4 quotes
+    them beside this figure."""
+
+    def test_the_rate_panel_draws_the_rate_s_scan_at_its_window_ends(
+        self, windows, measured
+    ) -> None:
+        rate, _ = measured
+        line = _lines(windows.axes[0])["scan-cadaud"]
+        dates = rate.log_rate.index[rate.scan.end_idx]
+        assert list(line.get_ydata()) == list(rate.scan.adf_stat)
+        assert list(line.get_xdata()) == list(dates)
+        assert str(dates[0].date()) == "2008-07-30"
+        assert _rgb(line.get_color()) == _rgb(INK)
+
+    def test_the_pair_panel_draws_both_orientations(self, windows, fixed) -> None:
+        closes, orientations = fixed
+        lines = _lines(windows.axes[1])
+        for o, gid, colour in (
+            (orientations[0], "scan-tlt-on-ief", INK),
+            (orientations[1], "scan-ief-on-tlt", ACCENT),
+        ):
+            line = lines[gid]
+            assert list(line.get_ydata()) == list(o.scan.adf_stat)
+            assert list(line.get_xdata()) == list(closes.index[o.scan.end_idx])
+            assert line.get_label() == f"{o.dependent} on {o.independent}"
+            assert _rgb(line.get_color()) == _rgb(colour)
+
+    @pytest.mark.parametrize(
+        ("panel", "gid", "bar", "count"),
+        [
+            (0, "cadaud", ADF_CRIT_CONST["10%"], 23),
+            (1, "tlt-on-ief", EG_CRIT_N2["10%"], 56),
+            (1, "ief-on-tlt", EG_CRIT_N2["10%"], 51),
+        ],
+    )
+    def test_a_dot_marks_each_window_past_the_10_percent_bar(
+        self, windows, panel, gid, bar, count
+    ) -> None:
+        lines = _lines(windows.axes[panel])
+        scan, dots = lines[f"scan-{gid}"], lines[f"clears-{gid}"]
+        past = scan.get_ydata() < bar
+        assert len(dots.get_xdata()) == int(past.sum()) == count
+        assert list(dots.get_xdata()) == list(scan.get_xdata()[past])
+        assert list(dots.get_ydata()) == list(scan.get_ydata()[past])
+        assert _rgb(dots.get_color()) == _rgb(GOOD)
+
+    @pytest.mark.parametrize(
+        ("panel", "name", "table"), [(0, "adf", ADF_CRIT_CONST), (1, "eg", EG_CRIT_N2)]
+    )
+    def test_each_panel_draws_its_own_bars(self, windows, panel, name, table) -> None:
+        ax = windows.axes[panel]
+        lines = _lines(ax)
+        for level, style in (("10%", "--"), ("5%", ":")):
+            bar = lines[f"bar-{name}-{level}"]
+            assert set(bar.get_ydata()) == {table[level]}
+            assert bar.get_linestyle() == style
+            assert _rgb(bar.get_color()) == _rgb(LOST)
+        assert f"bar-{'eg' if name == 'adf' else 'adf'}-10%" not in lines
+
+    def test_the_bar_labels_name_each_level(self, windows) -> None:
+        assert [t.get_text() for t in windows.axes[0].texts] == ["10%  −2.57", "5%  −2.86"]
+        assert [t.get_text() for t in windows.axes[1].texts] == ["10%  −3.04", "5%  −3.34"]
+        for ax in windows.axes:
+            assert [t.get_verticalalignment() for t in ax.texts] == ["bottom", "top"]
+
+    def test_each_panel_title_gives_the_whole_span_result(self, windows) -> None:
+        assert windows.axes[0].get_title(loc="left") == (
+            "CAD/AUD, one series. The whole span rejects at 5%, at −3.2136."
+        )
+        assert windows.axes[1].get_title(loc="left") == (
+            "TLT and IEF, a fitted pair. The whole span does not reject even at 10%, "
+            "at −2.3887 and −2.3168."
+        )
+
+    def test_the_panels_share_one_date_axis(self, windows) -> None:
+        top, bottom = windows.axes[:2]
+        assert top.get_shared_x_axes().joined(top, bottom)
+        assert bottom.get_xlabel() == "date the one-year window ends"
+
+    def test_the_title_and_note_say_what_a_window_is_not(self, windows) -> None:
+        assert windows._suptitle.get_text() == (
+            "One-year windows say little about the whole span, in either direction"
+        )
+        note = windows.texts[-1].get_text()
+        assert note.startswith("Windows of 252 trading days stepped by 21, one lag.")
+        assert "Dots mark windows past the 10% bar." in note
+        assert "all downloaded 2026-10-02." in note
+        assert note.endswith("not a finding about the candidate.")
+
+    def test_no_label_is_parsed_as_math(self, windows) -> None:
+        for ax in windows.axes:
+            for text in [*ax.texts, ax.title, ax._left_title]:
+                assert text.get_parse_math() is False
+        for text in windows.texts:
+            assert text.get_parse_math() is False
+
+    def test_drawing_writes_the_file_it_is_given(self, windows, windows_out) -> None:
+        assert windows_out.is_file()
+
+    def test_the_committed_figure_exists(self) -> None:
+        assert (FIGURES_DIR / WINDOWS_FIGURE).is_file()

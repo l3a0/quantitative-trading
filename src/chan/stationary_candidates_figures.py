@@ -1,9 +1,11 @@
-"""A figure for the stationary-candidates post, drawn from the committed vintages.
+"""The stationary-candidates post's two figures, drawn from the committed vintages.
 
 ``blog/stationary-candidates-lessons.md`` teaches that one series and a fitted
-pair are read against different bars. The owner chose on 2026-10-02 to give
-the post one figure, and :func:`make_bars_figure` draws that lesson as two
-number lines of t-statistics.
+pair are read against different bars, and that one-year windows say little
+about the whole span. The owner chose on 2026-10-02 to give the post a figure
+for each lesson.
+
+:func:`make_bars_figure` draws the first as two number lines of t-statistics.
 
 1. **One series.** The bars of the ADF with a constant, ``ADF_CRIT_CONST``,
    with the CAD/AUD rate's statistic at one lag and at the first lag count
@@ -12,14 +14,19 @@ number lines of t-statistics.
    statistic in each orientation, and the rate's two statistics drawn again as
    hollow marks, read against the pair's bars.
 
+:func:`make_windows_figure` draws the second as the rolling scans the two
+candidates already run: the rate's one-year windows against the bars for one
+series, and both orientations of the pair against Engle-Granger's, with a dot
+on each window that clears 10% and the whole-span result in each panel's
+title. Issue 16 ruled out a picture of these scans because it invites reading
+one window as a finding. The owner reversed that the same day, and the figure's
+note says what the windows are not, which is the part of the objection it can
+answer. The register row in ``docs/design.md`` records both.
+
 Every statistic comes from :func:`chan.stationary_candidates.cross_rate` and
-:func:`chan.stationary_candidates.fixed_income`, so the figure can only be
-wrong by drawing the wrong thing, which
-``tests/test_stationary_candidates_figures.py`` checks. It draws no rolling
-scan. Issue 16 ruled out a figure for these candidates because a picture of a
-scan invites reading one window as a finding, and the register row in
-``docs/design.md`` records why this one is different. It reads the committed
-vintages, so it redraws anywhere the data is::
+:func:`chan.stationary_candidates.fixed_income`, so a figure can only be wrong
+by drawing the wrong thing, which ``tests/test_stationary_candidates_figures.py``
+checks. Both read the committed vintages, so they redraw anywhere the data is::
 
     uv run python -m chan.stationary_candidates_figures
 """
@@ -29,12 +36,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+import matplotlib.dates as mdates
+import pandas as pd
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
 from matplotlib.figure import Figure
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import GOOD, INK, LOST, MUTED, RULE, SURFACE
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, RULE, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.stationary_candidates import (
     INTERMEDIATE,
@@ -48,6 +57,7 @@ from chan.stationary_candidates import (
 from chan.vintage import VintageUnavailable
 
 BARS_FIGURE = "stationary_candidates_bars.png"
+WINDOWS_FIGURE = "stationary_candidates_windows.png"
 
 #: The t-statistics the axis spans. The pair's 1% bar, -3.90, is the most
 #: negative thing drawn and IEF on TLT, -2.3168, the least.
@@ -225,15 +235,122 @@ def make_bars_figure(
     return _save(fig, out, BARS_FIGURE)
 
 
+def _bar_lines(ax, table: dict[str, float], name: str) -> None:
+    """The 10% and 5% bars as horizontal lines, labelled in the right margin."""
+    # Above the 10% line and below the 5% one, so the two labels part even
+    # where the lines sit close, the way the GLD/GDX regime map places them.
+    for level, style, va in (("10%", "--", "bottom"), ("5%", ":", "top")):
+        y = table[level]
+        ax.axhline(y, color=LOST, lw=1.1, ls=style, zorder=4, gid=f"bar-{name}-{level}")
+        ax.text(
+            1.012,
+            y,
+            f"{level}  {_t(y, 2)}",
+            color=LOST,
+            transform=ax.get_yaxis_transform(),
+            fontsize=8.5,
+            va=va,
+            ha="left",
+        )
+
+
+def _scan(ax, dates, stats, bar: float, colour: str, label: str, gid: str) -> None:
+    """One rolling scan as a line, with a dot on each window past ``bar``."""
+    ax.plot(dates, stats, color=colour, lw=1.4, zorder=5, label=label, gid=f"scan-{gid}")
+    past = stats < bar
+    ax.plot(
+        dates[past],
+        stats[past],
+        "o",
+        ms=4.5,
+        color=GOOD,
+        mec=SURFACE,
+        mew=0.6,
+        zorder=6,
+        gid=f"clears-{gid}",
+    )
+
+
+@_plain_text
+def make_windows_figure(
+    out: Path | None = None,
+    rate: CrossRate | None = None,
+    fixed: tuple[pd.DataFrame, tuple[Orientation, ...]] | None = None,
+) -> Figure:
+    """The two candidates' rolling scans, one panel each, on one date axis."""
+    rate = rate if rate is not None else cross_rate()
+    closes, orientations = fixed if fixed is not None else fixed_income()
+    by = {o.dependent: o for o in orientations}
+
+    fig = Figure(figsize=(11, 7.4), dpi=130)
+    fig.patch.set_facecolor(SURFACE)
+    top, bottom = fig.subplots(2, 1, sharex=True)
+    for ax in (top, bottom):
+        _style(ax)
+
+    rate_dates = rate.log_rate.index[rate.scan.end_idx]
+    _scan(top, rate_dates, rate.scan.adf_stat, ADF_CRIT_CONST["10%"], INK, "CAD/AUD", "cadaud")
+    _bar_lines(top, ADF_CRIT_CONST, "adf")
+    top.set_title(
+        f"CAD/AUD, one series. The whole span rejects at 5%, at {_t(rate.adf_stat)}.",
+        color=INK,
+        fontsize=11,
+        loc="left",
+    )
+
+    pair_dates = closes.index[by[LONG].scan.end_idx]
+    for leg, colour in ((LONG, INK), (INTERMEDIATE, ACCENT)):
+        o = by[leg]
+        _scan(
+            bottom,
+            pair_dates,
+            o.scan.adf_stat,
+            EG_CRIT_N2["10%"],
+            colour,
+            f"{o.dependent} on {o.independent}",
+            f"{o.dependent.lower()}-on-{o.independent.lower()}",
+        )
+    _bar_lines(bottom, EG_CRIT_N2, "eg")
+    bottom.set_title(
+        f"TLT and IEF, a fitted pair. The whole span does not reject even at 10%, "
+        f"at {_t(by[LONG].fit.adf_stat)} and {_t(by[INTERMEDIATE].fit.adf_stat)}.",
+        color=INK,
+        fontsize=11,
+        loc="left",
+    )
+    bottom.legend(
+        loc="upper left", bbox_to_anchor=(1.008, 0.7), frameon=False, fontsize=9, labelcolor=INK
+    )
+    for ax in (top, bottom):
+        ax.set_ylabel("one-year t-statistic", color=INK, fontsize=10)
+    bottom.set_xlabel("date the one-year window ends", color=INK, fontsize=10)
+    bottom.xaxis.set_major_locator(mdates.YearLocator(2))
+    bottom.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+
+    _title(
+        fig,
+        "One-year windows say little about the whole span, in either direction",
+        "Windows of 252 trading days stepped by 21, one lag. Dots mark windows past the 10% bar. "
+        "CADAUD=X log rate and TLT and IEF raw closes,\n"
+        "all downloaded 2026-10-02. A window that clears a bar is one look at the data "
+        "among many, not a finding about the candidate.",
+    )
+    fig.tight_layout(rect=(0, 0.07, 0.9, 0.95))
+    return _save(fig, out, WINDOWS_FIGURE)
+
+
 def main() -> None:
     try:
-        make_bars_figure()
+        rate, fixed = cross_rate(), fixed_income()
+        make_bars_figure(rate=rate, orientations=fixed[1])
+        make_windows_figure(rate=rate, fixed=fixed)
     except (VintageUnavailable, WindowCrossesScaleBreak) as refusal:
         # The two refusals `chan.stationary_candidates.main` prints. This module
         # reads the same three vintages through the same two calls, so it
         # catches them the same way rather than ending in a traceback.
         raise SystemExit(str(refusal)) from refusal
     print(f"wrote {FIGURES_DIR / BARS_FIGURE}")
+    print(f"wrote {FIGURES_DIR / WINDOWS_FIGURE}")
 
 
 if __name__ == "__main__":

@@ -107,6 +107,10 @@ CAD/AUD’s half-life is 141.6 trading days, so a gap from its average takes a l
 
 The other two scans show the same gap from the other side. TLT and IEF never reject over their whole history, yet 56 of their 278 one-year windows clear 10% with TLT regressed on IEF, and 51 with IEF on TLT. Just over half of those end in 2003-04 or 2020-21. GLD/GDX fails over 2006 to 2026 on dividend-adjusted closes, at −1.45 with a half-life of 833.5 days, while 31 of its 231 one-year windows on raw closes clear 10%. How often one-year windows reject says little about the whole span, in either direction.
 
+![Two panels of one-year rolling t-statistics, plotted against the date each window ends. The upper panel shows CAD/AUD from 2008 to 2026 against the one-series bars of −2.57 at 10% and −2.86 at 5%, and 23 of its 226 windows clear 10%. The lower panel shows TLT regressed on IEF and IEF regressed on TLT from 2003 to 2026 against the pair’s bars of −3.04 and −3.34. Of their 278 windows, 56 and 51 clear 10%, and just over half of those end in 2003-04 or 2020-21.](../docs/figures/stationary_candidates_windows.png)
+
+*Dots mark the windows past the 10% bar. CAD/AUD rejects over its whole span and in few of its one-year windows. TLT and IEF reject in more of theirs and never over the whole span.*
+
 None of those windows is a finding. A scan describes the span it covers, and a window that happens to reject is one of many looks at the same data. Nothing in the repository measures why so few CAD/AUD windows reject. One hypothesis is that a year is too short to see a reversion this slow, since a 252-day window holds about 1.78 half-lives. A simulated series with a 141.6-day half-life would show how often such a window rejects, and until something runs it the reason stays open.
 
 ## Lesson 5: each choice that could turn the answer was fixed in advance or checked both ways
