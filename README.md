@@ -64,7 +64,10 @@ they were first built. The other four were built here.
    maximises compounded growth and then whether that much would have survived
    the worst day the index has had. Every level Chan computed from a series
    lands high on a modern download and every claim behind those numbers still
-   holds, and the entry is about that split.
+   holds, and the entry is about that split. On his own workbook every one of
+   those levels reproduces at the precision he printed, and setting the two
+   series day by day against each other puts the whole gap on about ten days
+   on or beside SPY's quarterly ex-dividend dates.
 5. Edward Qian's risk parity against the classic 60/40, reported at Kindle
    location 4684, on SPY and AGG. Both figures Chan prints land close and the
    claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
@@ -219,18 +222,30 @@ prints the standard error beside the estimate either way, and says outright
 when a size is too small to resolve the sign, which is a line a reader sees
 rather than an exception, because at that size nothing has failed.
 
-The Kelly run reads one series and takes a window:
+The Kelly run reads one series, or two under `--chan`, and takes a window:
 
 ```bash
 uv run python -m chan.kelly_leverage
 ```
 
-The default is Chan's own span, 1993-01-29 to 2007-12-28, held fixed so the
-vintage is the only thing that differs from his. `--start` and `--end` move it,
-and the report drops the published column on any other window rather than
-printing a comparison against figures that came from his. `--dated` picks which
-SPY download to read, which matters the day a second one arrives, and
-`--risk-free` moves the book's 4 percent constant.
+The default is Chan's own span, 1993-01-29 to 2007-12-28, read on a 2026
+download and held fixed so the vintage is the only thing that differs from his.
+`--chan` reads his own workbook instead:
+
+```bash
+uv run python -m chan.kelly_leverage --chan
+```
+
+That run reproduces his printed figures and then prints the two vintages side
+by side over the same window, with the days each one holds and the share of the
+gap in the mean that its ten largest days and SPY's dividend months carry.
+`--start` and `--end` move the window, and the report drops the published
+column on any other window rather than printing a comparison against figures
+that came from his. `--dated` picks a vintage by its date, which matters the
+day a second SPY download arrives. Left out, it means the 2026 download, or no
+date under `--chan`, which finds his one workbook column. `--risk-free` moves
+the book's 4 percent constant, and on Chan's window the report then says the
+gap column measures the rate as well as anything else.
 
 It prints the moments against the book's, the worked example on this vintage's
 leverage beside the book's own rounded 2.528, the Black Monday comparison with
@@ -284,6 +299,11 @@ Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
 `TestGldGdxChanArchive` is where it lives.
+
+His SPY workbook gets `--chan` for the opposite reason. It reproduces every
+figure he printed from a series, so reading it is the result rather than a
+footnote to one, and it is the run that explains why the modern download
+misses.
 
 The residual check behind the lag setting has a figure of its own. It draws
 what each ADF lag count leaves in the residuals on the Chapter 3 window, which
@@ -460,7 +480,7 @@ groups of its figures are not pinned here.
    constants and computes none of them.
 2. The leverage of 1.93 on Chan's as-traded close. It comes from his
    workbook's as-traded column, which this repo does not hold, and
-   [issue 138](https://github.com/l3a0/quantitative-trading/issues/138) is
+   [issue 192](https://github.com/l3a0/quantitative-trading/issues/192) is
    where it would be pinned. A test cites it only to compare it with the
    threshold.
 3. Arithmetic that no test asserts: the 99% a 10% loss and a 10% gain leave,
