@@ -70,12 +70,14 @@ from chan.khandani_lo import (
     plain_sharpe,
     reversal,
     reversal_weights,
+    run,
     smartmean,
     smartstd,
     smartsum,
     trading_cost,
 )
 from chan.series import WindowCrossesScaleBreak, load_panel, refuse_window_crossing_a_break
+from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
 # --- the committed file --------------------------------------------------------
@@ -129,7 +131,7 @@ class TestTheFigures:
         assert round(result.after_costs, 2) == BOOK_AFTER_COSTS == -3.19
 
     def test_after_costs_with_both_quirks_removed(self, result: Reversal) -> None:
-        """No figure in the book. Slightly worse than Chan's, by 0.0453."""
+        """No figure in the book. A little below Chan's figure in row 2."""
         assert result.after_costs_charged == pytest.approx(-3.2337, abs=5e-5)
 
     def test_the_constants_are_the_scripts(self) -> None:
@@ -162,8 +164,8 @@ class TestTheScaleBreakDecision:
     """Why the module does not call the single-series guard, run rather than asserted.
 
     The comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in
-    ``tests/test_scale_breaks.py`` leaves the decision to this run, and the
-    module docstring makes it. These hold the two answers the guard gives, and
+    ``tests/test_scale_breaks.py`` leaves the decision to this run, and
+    ``chan.khandani_lo``'s docstring makes it. These hold the two answers the guard gives, and
     that neither is about this run, because the rule never weights the day it
     would care about.
     """
@@ -214,6 +216,7 @@ class TestTheReport:
         assert "0.2510   0.25" in out
         assert "-3.1884  -3.19" in out
         assert "-3.2337   none" in out
+        assert "Khandani and Lo report 4.47 for 2006" in out
         assert "survivors" in out
 
     def test_a_missing_vintage_reaches_the_reader_as_one_line(self, monkeypatch, tmp_path) -> None:
@@ -221,6 +224,20 @@ class TestTheReport:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert "SPX_20071123.mat cannot be" in str(stopped.value)
+
+    def test_run_reads_the_directory_it_is_given(self, tmp_path) -> None:
+        with pytest.raises(VintageUnavailable, match="SPX_20071123.mat cannot be"):
+            run(tmp_path)
+
+    def test_any_other_failure_keeps_its_traceback(self, monkeypatch) -> None:
+        """Only a refusal is turned into one line. A bug still surfaces as itself."""
+
+        def broken(*_args, **_kwargs):
+            raise RuntimeError("a bug, not a refusal")
+
+        monkeypatch.setattr("chan.khandani_lo.load_panel", broken)
+        with pytest.raises(RuntimeError, match="a bug, not a refusal"):
+            main()
 
 
 # --- a panel small enough to work by hand ------------------------------------------
@@ -283,6 +300,12 @@ class TestTheRuleByHand:
         assert np.isnan(got.pnl_after_costs[0])
         assert np.isfinite(got.pnl_after_costs[1:]).all()
 
+    def test_both_bounds_are_inclusive(self) -> None:
+        """Chan's window drops a day only when it falls before the start or after the end."""
+        frame = pd.DataFrame(HAND, index=HAND_DAYS, columns=["A", "B", "C"])
+        got = reversal(frame, start="2006-01-03", end="2006-01-04")
+        assert [str(day.date()) for day in got.days] == ["2006-01-03", "2006-01-04"]
+
 
 class TestTheHelpers:
     """The MATLAB helpers, against the behaviour of their ``.m`` files."""
@@ -300,6 +323,14 @@ class TestTheHelpers:
     def test_smartmean_skips(self) -> None:
         got = smartmean(np.array([[np.nan], [1.0], [3.0]]), axis=0)
         assert got.tolist() == [2.0]
+
+    def test_smartmean_of_one_value_is_that_value(self) -> None:
+        assert smartmean(np.array([[np.nan, 4.0]]), axis=1).tolist() == [4.0]
+
+    def test_an_empty_slice_is_nan_for_the_mean_and_the_deviation(self) -> None:
+        empty = np.array([[np.nan], [np.inf]])
+        assert np.isnan(smartmean(empty, axis=0)).all()
+        assert np.isnan(smartstd(empty, axis=0)).all()
 
     def test_smartstd_counts_a_nan_as_zero(self) -> None:
         """MATLAB's ``std`` over ``[0, 1, 3]``, not over ``[1, 3]``."""

@@ -6,7 +6,8 @@ for 2006, at Kindle location 2099. Chan reruns it on the S&P 500 and gets
 0.25, at location 2137, then charges 5 basis points a trade and gets −3.19, at
 location 2233. The lesson is the collapse. A cost a large-cap trader pays every
 day turns a small edge into a large loss, and Chan's explanation at location
-2137 is that Khandani and Lo's returns came from small and microcap stocks.
+2137 is that most of Khandani and Lo's returns came from small and microcap
+stocks.
 
 Nothing here reproduces 4.47. It was computed on a universe this repo does not
 hold, so it is printed as the paper's figure and asserted nowhere.
@@ -33,8 +34,10 @@ On the full panel, before any window is cut:
    return, skipping a product that is not finite.
 
 The weights sum to zero across stocks every day and are not scaled to a unit of
-gross exposure. Both Sharpe ratios are unchanged by that scale, because the
-profit and the cost scale together. The cost is 5 basis points on each side of
+gross exposure. Multiplying every weight by one constant leaves both Sharpe
+ratios unchanged, because the profit and the cost scale together. Scaling each
+day to a unit of gross exposure is a different rule, because the factor then
+changes from day to day, and it moves both figures. The cost is 5 basis points on each side of
 a change in weight, ``0.0005 · Σ|w[t] − w[t−1]|``, which is location 998's
 convention that a round trip is two transactions. The Sharpe ratio is
 ``√252 · mean / std`` with no risk-free rate subtracted.
@@ -49,8 +52,8 @@ convention that a round trip is two transactions. The Sharpe ratio is
    deviation is taken over all 251 rows with a 0 in the first, while the mean
    is taken over the other 250.
 
-A port that skips the NaN in both, the way pandas does, lands on −3.18 and
-misses Chan's second digit. ``tests/test_khandani_lo.py`` pins what each
+A port that skips the NaN in both, the way pandas does, lands on −3.1822 and
+misses Chan's −3.19 at the two decimals he printed. ``tests/test_khandani_lo.py`` pins what each
 specification gives, and :func:`reversal` returns both Chan's figures and the
 after-cost figure with both quirks removed, so the distance between them is
 printed rather than argued.
@@ -66,10 +69,11 @@ survivorship is priced.
 
 **The scale-break guard is not called, and that was decided here.**
 :func:`chan.series.refuse_window_crossing_a_break` reads single series, and
-handed this panel it answers about something other than this run. Given the
-panel's columns it refuses, because ten stocks have a NaN close inside 2006.
-Given each member's own rows it passes, because WYN, which holds two companies
-under one symbol, has no row in 2006 before its 2006-08-01 restart. Chan's rule
+neither answer it gives on this panel is about a scale break this run computes
+across. Given the panel's columns it refuses, because ten stocks have a NaN
+close inside 2006 and it cannot read the days beside one. Given each member's
+own rows it passes, because WYN, which holds two companies under one symbol,
+has no row in 2006 before its 2006-08-01 restart. Chan's rule
 already puts a weight of 0 on every return that is not finite. WYN's
 2006-07-31 is NaN on the panel's grid, so its 2006-08-01 return is NaN and
 never enters a weight. That is why returns are computed on the panel rather
@@ -97,7 +101,8 @@ from chan.vintage import VintageUnavailable
 #
 # Each follows the .m file of the same name at the mirror commit above. They
 # take a 2-D array and an axis, the way MATLAB's take a matrix and a dimension,
-# and a 1-D series is passed as a column.
+# and a 1-D series is passed as a column. smartstd is the one that departs from
+# its .m file off the path this module uses, and its docstring says how.
 
 
 def lag1(x: np.ndarray) -> np.ndarray:
@@ -128,6 +133,14 @@ def smartstd(x: np.ndarray, axis: int) -> np.ndarray:
 
     MATLAB's ``std`` divides by n − 1, so ``ddof=1``. This is the quirk the
     module docstring names. Only a slice with no finite value at all is NaN.
+
+    Two departures from the ``.m`` file, neither reached by a column of more
+    than one value, which is the only shape this module passes.
+
+    1. ``smartstd.m`` calls ``std(x)`` without its ``dim``, so MATLAB takes
+       the deviation down each column whatever dimension is asked for. This
+       honours ``axis``.
+    2. MATLAB's ``std`` of a single value is 0. With ``ddof=1`` this gives NaN.
     """
     has_data = np.isfinite(x)
     spread = np.where(has_data, x, 0.0).std(axis=axis, ddof=1)

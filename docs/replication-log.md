@@ -1601,10 +1601,11 @@ two.
    here computes it and it takes no verdict. Chan's figure is about the S&P
    500, and the distance between his 0.25 and their 4.47 is his point rather
    than a gap.
-2. **Chan's explanation**, that their returns came from small and microcap
-   stocks. It is a claim about a universe this run does not read. Location
-   2236 leaves rerunning the rule on the S&P 400 and S&P 600 as an exercise,
-   which is the direct test of it, and nothing here runs that.
+2. **Chan's explanation**, that most of their returns came from small and
+   microcap stocks. It is a claim about a universe this run does not read.
+   Location 2236, at the end of Example 3.8, leaves rerunning the strategy on
+   the S&P 400 and S&P 600 as an exercise, which would test it, and nothing
+   here runs that.
 
 Every row reads the same vintage, window and specification, so the three are
 stated once here.
@@ -1664,7 +1665,7 @@ holds the −3.1822 a pandas port gives, and that it misses −3.19.
 | --- | --- | --- | --- |
 | 1 | 0.00 | reproduced | Chan's claim is that the rule earns a mediocre Sharpe ratio on the S&P 500 in 2006, far below Khandani and Lo's. On his own file and his own code it lands on his figure at the two decimals he printed. |
 | 2 | 0.00 | reproduced | The claim is that 5 basis points a trade turns that small edge into a large loss, and it survives at his printed precision. It lands there only with both quirks of his code kept, which is the specification the figure came from rather than a choice made to close a gap. |
-| 3 | none | none, not a replication | Chan prints no figure for it. It is here because it is what the rule gives with nothing in the arithmetic depending on how a NaN is handled, and it says the quirks moved Chan's figure by about 0.05 in his favour without moving the claim. |
+| 3 | none | none, not a replication | Chan prints no figure for it. It is here because it is the after-cost figure with the first day charged, so its series holds no NaN for the deviation to count as 0. It lands a little below Chan's figure, so the two quirks moved his figure in his favour without moving the claim. |
 
 ### What the entry concludes
 
@@ -1672,18 +1673,18 @@ Three things, and the first is the verdict.
 
 1. **Both figures reproduce on Chan's own file.** The vintage explanation that
    carries Entry 1's misses is not needed here, because the file is his and
-   the code is his. What the entry adds is that his second figure depends on
-   how his helpers treat one NaN, so a careful port of the formula alone
-   misses it.
-2. **The cost is the whole story at this size.** A Sharpe ratio of 0.25 before
-   costs and about −3.2 after is a rule whose daily edge is smaller than the
-   cost of rebalancing into it every day. Removing the quirks makes the
-   after-cost figure slightly worse, not better.
-3. **The universe is survivors, and that usually flatters a rule that buys
-   losers.** A stock that fell and kept falling until it left the index is not
-   in the file, so the losers the rule buys are ones that stayed. That is the
-   usual direction of the bias for a reversal rule, and it is an argument
-   rather than a measurement here.
+   the code transcribes his script. What the entry adds
+   is that his second figure depends on how his helpers treat one NaN, so a
+   careful port of the formula alone misses it.
+2. **On the S&P 500 the daily cost is larger than the daily edge.** A Sharpe
+   ratio of 0.2510 before costs and −3.1884 after is a rule whose average
+   daily profit is smaller than the average cost of rebalancing into it every
+   day. Removing the quirks makes the after-cost figure slightly worse, not
+   better.
+3. **The universe is survivors, and nothing here measures what that cost.**
+   Every stock that left the S&P 500 before 2007-11-23 is missing, whether it
+   failed or was taken over, so neither the size nor the sign of the effect on
+   either figure is known.
    [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) is
    what would measure it.
 
@@ -1696,10 +1697,10 @@ this repo does not hold, so it stays a cited number.
 
 **Whether Chan's explanation holds.** The rule on small caps is the test of
 it, and Chan leaves that as an exercise. The S&P 600 file under
-`ijr_20080114/` spans 2006, and running the rule on it would be a search
-rather than a replication, because Chan prints no figure for it.
+`ijr_20080114/` spans 2006, and running the rule on it would be a finding with
+no published figure to check, like Entry 5, rather than a replication.
 
-**What survivorship cost.** The usual direction is argued above, and its size is not measured.
+**What survivorship cost.** Neither its size nor its sign is measured.
 
 **What trading at the open gives.** That is Example 3.8, and
 [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) carries

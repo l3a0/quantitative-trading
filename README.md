@@ -87,8 +87,10 @@ they were first built. The other five were built here.
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
    after 5 basis points a trade, against his printed 0.25 and −3.19, so both
-   reproduce. The second lands only because two quirks of his code are kept,
-   and removing both gives −3.2337. The file holds only the stocks still in the
+   reproduce. The second lands only because two quirks of his code are kept.
+   His script never charges the first day's rebalance, which leaves that day's
+   profit missing, and his standard deviation counts the missing day as 0
+   while his mean skips it. Removing both gives −3.2337. The file holds only the stocks still in the
    index on 2007-11-23, so every figure is about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
@@ -134,9 +136,10 @@ names no dependent one. For the cross rate it pins the verdict rule as well as
 the verdict, so a criterion edited after the fact fails a test.
 
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
-reversal. It pins each figure at four decimals and at the book's two, and it
-pins the −3.1822 a port gives when it skips a NaN the pandas way, because that
-is the mistake that misses Chan's second digit.
+reversal. It pins Chan's two figures at four decimals and at the book's two,
+and the figure with both quirks removed at four. It also pins the −3.1822 a
+port gives when it skips the missing day in the standard deviation as well as
+the mean, because that is the mistake that misses Chan's −3.19.
 
 All seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -162,7 +165,11 @@ instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
 The columns lifted from Chan's MATLAB files, below, report 62 more, most of
-them real moves in single stocks.
+them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
+one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
+it reads a panel rather than one series and its rule never weights a return
+that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
+called there.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -183,8 +190,9 @@ and checks every member's bytes on the way.
 shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
 Khandani-Lo reversal reads the S&P 500 file, and
-[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) is the next
-replication that will read them.
+[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) and
+[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) also read
+them.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
