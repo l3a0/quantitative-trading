@@ -7,7 +7,7 @@ read it. ``TestTheCommittedManifest`` checks the manifest still describes the
 vintages this repo ships, ``TestTheTableIsHeldToTheManifest`` breaks a
 copy of the tree to show what each disagreement between the manifest and
 ``data/README.md``'s table costs, and ``TestARecordedVintageIsHeldToo`` copies
-the tree, records a ninth into the copy and runs the assertions issue 51
+the tree, records a new vintage into the copy and runs the assertions issue 51
 scoped against a directory that has one.
 
 The order the cases appear in is the order the rules appear on
@@ -57,7 +57,7 @@ ROWS = [("2026-08-25", 50.0), ("2026-08-26", 51.25), ("2026-08-27", 52.0)]
 SOURCE = dict(vendor="yfinance", symbol="GDX", price_basis="raw", download_date="2026-08-27")
 RECORDED_NAME = "yfinance_gdx_raw_2026-08-25_2026-08-27_dl2026-08-27.csv"
 RECORDED_ON_29 = "yfinance_gdx_raw_2026-08-25_2026-08-27_dl2026-08-29.csv"
-NINTH_NAME = "yfinance_zzz_adjusted_2026-08-25_2026-08-27_dl2026-09-17.csv"
+NEW_VINTAGE_NAME = "yfinance_zzz_adjusted_2026-08-25_2026-08-27_dl2026-09-17.csv"
 
 
 @pytest.fixture
@@ -1233,7 +1233,7 @@ def the_table_and_the_manifest_agree(directory: Path) -> None:
     row per vintage rather than as nothing to check.
 
     The message names the path, the column and both values, because a failure
-    here is an instruction. Recording a ninth vintage leaves this red until
+    here is an instruction. Recording a new vintage leaves this red until
     somebody writes the row, and whoever reads the failure is the person who has
     to write it.
 
@@ -1625,7 +1625,7 @@ class TestTheTableIsHeldToTheManifest:
 
         The message is asserted rather than the raise alone. A failure naming
         only the path would leave whoever reads it to diff two files to find out
-        which cell moved, and the row that goes red on a ninth vintage is read
+        which cell moved, and the row that goes red on a new vintage is read
         by somebody who has to write one.
         """
         recorded = read_table(committed)[HELD][KEYWORDS[column]]
@@ -1867,7 +1867,7 @@ class TestTheTableIsHeldToTheManifest:
 
 
 class TestARecordedVintageIsHeldToo:
-    """A ninth vintage passes the scoped assertions, and a wrong one does not.
+    """A new recorded vintage passes the scoped assertions, and a wrong one does not.
 
     This is the mechanical check for issue 51's first completion condition,
     which is that recording a vintage into `data/` leaves the suite green.
@@ -1877,22 +1877,22 @@ class TestARecordedVintageIsHeldToo:
 
     Name what the copy does not cover. The rest of the suite reads `DATA_DIR`
     through names bound at import, so "the whole suite is green against a real
-    ninth" is still a claim this cannot make. What it holds is the three
+    new vintage" is still a claim this cannot make. What it holds is the three
     assertions that were measured red, plus the check that replaces what the
     scoping gives up. The full run was done by hand once, on the pull request
     that built this.
 
     That completion condition is now partly taken back, and by one check rather
     than by an accident. `data/README.md`'s table is prose nothing derives, so
-    holding it to the manifest means a recorded ninth is red until somebody
-    writes its row. `test_a_recorded_ninth_needs_a_table_row` below is where the
+    holding it to the manifest means a new recorded vintage is red until somebody
+    writes its row. `test_a_new_recorded_vintage_needs_a_table_row` below is where the
     suite states that cost, rather than leaving it for whoever records the first
     real one to discover.
     """
 
     @pytest.fixture
-    def with_a_ninth(self, tmp_path):
-        """The committed tree, copied, with a ninth recorded into the copy.
+    def with_a_new_vintage(self, tmp_path):
+        """The committed tree, copied, with a new vintage recorded into the copy.
 
         A series the committed set does not carry. A second download of one it
         does is a different failure with a different owner, which is
@@ -1910,17 +1910,19 @@ class TestARecordedVintageIsHeldToo:
             data_dir=directory,
         )
 
-        assert entry.path == NINTH_NAME
+        assert entry.path == NEW_VINTAGE_NAME
         return directory
 
-    def test_a_recorded_ninth_leaves_the_three_scoped_assertions_green(self, with_a_ninth):
-        recorded = [entry.path for entry in read_manifest(with_a_ninth)]
+    def test_a_new_recorded_vintage_leaves_the_three_scoped_assertions_green(
+        self, with_a_new_vintage
+    ):
+        recorded = [entry.path for entry in read_manifest(with_a_new_vintage)]
 
-        assert NINTH_NAME in recorded
+        assert NEW_VINTAGE_NAME in recorded
         assert set(HAND_WRITTEN) <= set(recorded)
-        the_hand_written_identities_are_pinned(with_a_ninth)
-        the_hand_written_entries_name_their_series(with_a_ninth)
-        the_recorded_entries_name_themselves(with_a_ninth)
+        the_hand_written_identities_are_pinned(with_a_new_vintage)
+        the_hand_written_entries_name_their_series(with_a_new_vintage)
+        the_recorded_entries_name_themselves(with_a_new_vintage)
 
     @pytest.mark.parametrize(
         ("path", "field", "value"),
@@ -1933,7 +1935,7 @@ class TestARecordedVintageIsHeldToo:
         ],
     )
     def test_a_hand_edit_to_a_hand_written_entry_still_fails(
-        self, with_a_ninth, path, field, value
+        self, with_a_new_vintage, path, field, value
     ):
         """Scoping to the hand-written set must not stop that set being held.
 
@@ -1941,14 +1943,14 @@ class TestARecordedVintageIsHeldToo:
         is the state the scoping was for and a pin that only held against the
         committed set would not have been scoped at all.
         """
-        rewrite_entry(with_a_ninth, path, **{field: value})
+        rewrite_entry(with_a_new_vintage, path, **{field: value})
 
         with pytest.raises(AssertionError):
-            the_hand_written_identities_are_pinned(with_a_ninth)
+            the_hand_written_identities_are_pinned(with_a_new_vintage)
 
-    def test_a_hand_written_entry_dropped_from_the_manifest_still_fails(self, with_a_ninth):
+    def test_a_hand_written_entry_dropped_from_the_manifest_still_fails(self, with_a_new_vintage):
         """Set equality caught an absence by counting. A paths pin has to ask."""
-        manifest = with_a_ninth / MANIFEST_NAME
+        manifest = with_a_new_vintage / MANIFEST_NAME
         kept = [
             line
             for line in manifest.read_text(encoding="utf-8").splitlines()
@@ -1957,16 +1959,16 @@ class TestARecordedVintageIsHeldToo:
         manifest.write_text("".join(line + "\n" for line in kept), encoding="utf-8")
 
         with pytest.raises(AssertionError):
-            the_hand_written_identities_are_pinned(with_a_ninth)
+            the_hand_written_identities_are_pinned(with_a_new_vintage)
 
     def test_a_hand_written_entry_renamed_to_a_series_its_file_does_not_hold_still_fails(
-        self, with_a_ninth
+        self, with_a_new_vintage
     ):
         """The `Ticker,` row is derived from the file, so the symbol has two holds."""
-        rewrite_entry(with_a_ninth, "gld_chan.csv", symbol="KO")
+        rewrite_entry(with_a_new_vintage, "gld_chan.csv", symbol="KO")
 
         with pytest.raises(AssertionError):
-            the_hand_written_entries_name_their_series(with_a_ninth)
+            the_hand_written_entries_name_their_series(with_a_new_vintage)
 
     @pytest.mark.parametrize(
         ("field", "value"),
@@ -1979,7 +1981,9 @@ class TestARecordedVintageIsHeldToo:
             ("last_date", "2026-08-28"),
         ],
     )
-    def test_a_recorded_entry_that_names_the_wrong_thing_fails(self, with_a_ninth, field, value):
+    def test_a_recorded_entry_that_names_the_wrong_thing_fails(
+        self, with_a_new_vintage, field, value
+    ):
         """Every field the comparison reads, so no half of it can go tautological.
 
         Four of these are the fields no other test covers once the scoping
@@ -1996,12 +2000,12 @@ class TestARecordedVintageIsHeldToo:
         every entry, and that test reads the committed directory rather than
         this copy.
         """
-        rewrite_entry(with_a_ninth, NINTH_NAME, **{field: value})
+        rewrite_entry(with_a_new_vintage, NEW_VINTAGE_NAME, **{field: value})
 
         with pytest.raises(AssertionError):
-            the_recorded_entries_name_themselves(with_a_ninth)
+            the_recorded_entries_name_themselves(with_a_new_vintage)
 
-    def test_a_recorded_entry_carrying_a_saved_date_fails(self, with_a_ninth):
+    def test_a_recorded_entry_carrying_a_saved_date_fails(self, with_a_new_vintage):
         """`vintage_filename` takes a download date and does not refuse `None`.
 
         Handed one it returns a name ending `dlNone.csv` rather than raising,
@@ -2009,26 +2013,28 @@ class TestARecordedVintageIsHeldToo:
         through `record_vintage`, which validates the date before it writes,
         and this is the state a hand-edited line produces.
         """
-        rewrite_entry(with_a_ninth, NINTH_NAME, download_date=None, saved_date="2026-09-17")
+        rewrite_entry(
+            with_a_new_vintage, NEW_VINTAGE_NAME, download_date=None, saved_date="2026-09-17"
+        )
 
         with pytest.raises(AssertionError, match="carries no download date"):
-            the_recorded_entries_name_themselves(with_a_ninth)
+            the_recorded_entries_name_themselves(with_a_new_vintage)
 
-    def test_a_recorded_ninth_needs_a_table_row(self, with_a_ninth):
+    def test_a_new_recorded_vintage_needs_a_table_row(self, with_a_new_vintage):
         """Recording into `data/` is red until the table describes what is there.
 
         One disagreement rather than a cascade, which the second half is what
         says: the committed rows still agree on all five fields, so writing the
-        ninth row is the whole of what a recording costs on this surface. The
+        new vintage's row is the whole of what a recording costs on this surface. The
         row is written here in the table's own spelling, which is also the
         worked example of what the failure asks an operator for.
         """
-        with pytest.raises(AssertionError, match=NINTH_NAME):
-            the_table_and_the_manifest_agree(with_a_ninth)
+        with pytest.raises(AssertionError, match=NEW_VINTAGE_NAME):
+            the_table_and_the_manifest_agree(with_a_new_vintage)
 
         add_row(
-            with_a_ninth,
-            file=f"`{NINTH_NAME}`",
+            with_a_new_vintage,
+            file=f"`{NEW_VINTAGE_NAME}`",
             vendor="yfinance",
             symbol="ZZZ",
             price="adjusted",
@@ -2036,9 +2042,9 @@ class TestARecordedVintageIsHeldToo:
             downloaded="2026-09-17",
         )
 
-        the_table_and_the_manifest_agree(with_a_ninth)
+        the_table_and_the_manifest_agree(with_a_new_vintage)
 
-    def test_rewriting_an_entry_no_manifest_line_names_is_refused(self, with_a_ninth):
+    def test_rewriting_an_entry_no_manifest_line_names_is_refused(self, with_a_new_vintage):
         """A negative case is only negative while its edit lands.
 
         A mistyped path would leave the manifest untouched, and the case using
@@ -2046,7 +2052,7 @@ class TestARecordedVintageIsHeldToo:
         edited. The guard is what makes the second failure say so.
         """
         with pytest.raises(AssertionError, match="absent.csv"):
-            rewrite_entry(with_a_ninth, "absent.csv", vendor="acme")
+            rewrite_entry(with_a_new_vintage, "absent.csv", vendor="acme")
 
 
 #: A source of three columns, the smallest set carrying a column with a missing

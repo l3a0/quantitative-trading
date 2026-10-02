@@ -456,11 +456,11 @@ class TestANonFiniteRatioIsReportedNotSkipped:
 
 
 class TestItIteratesTheManifest:
-    """Rule 4. A ninth vintage is covered on the day it is recorded.
+    """Rule 4. A new vintage is covered on the day it is recorded.
 
     ``COMMITTED`` in ``tests/test_series.py`` is a hand-written list somebody
     extends, and ``TestTheCommittedManifest`` iterates ``read_manifest()``
-    instead. The guard follows the second, so this records a ninth carrying a
+    instead. The guard follows the second, so this records a new one carrying a
     break and asks whether the scan found it. A hand-written list passes every
     other case in this file and fails this one.
     """
@@ -486,7 +486,7 @@ class TestItIteratesTheManifest:
         assert breaks_across_the_manifest(committed_copy) == EVERY_FLAG
 
     @pytest.mark.parametrize("vendor", ["yfinance", "fred"])
-    def test_a_recorded_ninth_carrying_a_break_is_found(
+    def test_a_new_recorded_vintage_carrying_a_break_is_found(
         self, committed_copy: Path, vendor: str
     ) -> None:
         """Found whichever vendor sent it, so a price from the vendor that sent the bill
