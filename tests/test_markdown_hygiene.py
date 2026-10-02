@@ -1069,3 +1069,67 @@ class TestTheFigureHasThreeCopies:
             if pattern.search(line)
         ]
         assert not offenders, "line references in prose: " + ", ".join(offenders)
+
+
+def _unlinked_references(document: str) -> list[int]:
+    """The line of every issue or pull request number left as plain text.
+
+    CLAUDE.md's writing rules ask for every such number in a Markdown file to
+    be a link, because GitHub renders a bare `#NN` in a repository file as
+    plain text. Code spans and fences are exempt, since a link inside one
+    breaks it, and so is a double-quoted span, which is a quotation and stays
+    as written. A reference written out in words is held too, including one
+    whose number wraps onto the next line, which is how two of them hid from
+    the first sweep.
+    """
+    import re
+
+    text = blank_code(document)
+    text = re.sub(r"\[[^\]]*\]\([^)]*\)", lambda m: " " * len(m.group(0)), text)
+    text = re.sub(r'"[^"\n]*"', lambda m: " " * len(m.group(0)), text)
+    pattern = re.compile(
+        r"(?<![\w/&])(?:PR )?#\d+\b|\b(?:issues?|PRs?|pull requests?)\s+\d+\b",
+        re.IGNORECASE,
+    )
+    return [text.count("\n", 0, m.start()) + 1 for m in pattern.finditer(text)]
+
+
+class TestIssueReferencesAreLinked:
+    def test_a_bare_number_is_flagged(self) -> None:
+        assert _unlinked_references("Closed by #12 last week.\n") == [1]
+
+    def test_a_bare_pull_request_is_flagged(self) -> None:
+        assert _unlinked_references("See PR #34.\n") == [1]
+
+    def test_a_number_in_words_is_flagged(self) -> None:
+        assert _unlinked_references("This belongs to issue 10.\n") == [1]
+
+    def test_a_number_wrapped_onto_the_next_line_is_flagged(self) -> None:
+        assert _unlinked_references("the page put it ahead of issue\n41 in one place\n") == [1]
+
+    def test_every_number_in_a_run_is_counted_once_per_phrase(self) -> None:
+        assert _unlinked_references("Pull requests 91 and 92 opened.\n") == [1]
+
+    def test_a_linked_number_is_left_alone(self) -> None:
+        document = (
+            "[#12](https://github.com/o/r/issues/12) and "
+            "[issue\n52](https://github.com/o/r/issues/52)\n"
+        )
+        assert _unlinked_references(document) == []
+
+    def test_a_code_span_and_a_fence_are_left_alone(self) -> None:
+        assert _unlinked_references("Write `Part of #NN` here.\n\n```\nCloses #7\n```\n") == []
+
+    def test_a_quotation_is_left_alone(self) -> None:
+        assert _unlinked_references('One card read "#27 is planned too" once.\n') == []
+
+    def test_an_anchor_and_a_colour_are_left_alone(self) -> None:
+        assert _unlinked_references("Jump to x#2 or use &#38; here.\n") == []
+
+    def test_every_markdown_file_links_its_issue_references(self) -> None:
+        offenders = [
+            f"{path.relative_to(REPO_ROOT)}:{n}"
+            for path in markdown_files(REPO_ROOT)
+            for n in _unlinked_references(path.read_text("utf-8"))
+        ]
+        assert not offenders, "unlinked issue or pull request numbers: " + ", ".join(offenders)

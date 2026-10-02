@@ -118,8 +118,8 @@ count next to the commit, so a figure from another tree is attributed to a tree
 that never produced it. `git worktree add --detach <dir> origin/main` gives a
 clean one, and removing it afterwards is part of the same step.
 
-That one is worth reading twice, because its cover story arrived on its own. PR
-90 merged twenty minutes later and made 243 right for `main`, so a session
+That one is worth reading twice, because its cover story arrived on its own.
+[PR 90](https://github.com/l3a0/quantitative-trading/pull/90) merged twenty minutes later and made 243 right for `main`, so a session
 checking the number afterwards would have found it correct and left the method
 that produced it in place.
 
@@ -174,7 +174,7 @@ to tell a plain keyword from one inside a code span. It catches the opposite
 slip too: a sentence written to say a pull request closes nothing registered a
 link anyway, because the keyword parses wherever it sits.
 
-That query is eventually consistent. On pull request 94 it reported nothing
+That query is eventually consistent. On [pull request 94](https://github.com/l3a0/quantitative-trading/pull/94) it reported nothing
 seconds after the body gained its closing keyword and reported the link on the
 next call, so a session that reads it once and acts on the empty result rewrites
 a body that was already right. Read it a second time before concluding the
@@ -213,13 +213,13 @@ The figures taken at the start are a claim about the moment the update began,
 and an update takes minutes. Both halves of that gap have already cost something
 inside one session.
 
-1. **A rollup settled underneath the edit.** Pull request 90 read five checks
+1. **A rollup settled underneath the edit.** [Pull request 90](https://github.com/l3a0/quantitative-trading/pull/90) read five checks
    still running on the first pass and six green on the last. Publishing the
    first reading would have said a branch was not ready when it was. The set of
    runs is not fixed either: `CodeQL` had not been created when the first read
    ran, so a session that reads the runs once is reading a set that is still
    growing.
-2. **Two pull requests opened during the edit.** Pull requests 91 and 92 did not
+2. **Two pull requests opened during the edit.** Pull requests [91](https://github.com/l3a0/quantitative-trading/pull/91) and [92](https://github.com/l3a0/quantitative-trading/pull/92) did not
    exist when that update started. By the time it was ready to publish they had
    emptied the Building column and moved two cards a whole stage each.
 
@@ -287,11 +287,11 @@ thinking goes.
 1. **`needs` against `after`.** `needs` is a hard blocker and moves a card into a
    deeper column. `after` is an ordering somebody measured that nothing
    enforces, so it leaves the card where it is and sorts it below what it names.
-   Issue 83 carries `after: [51]` because its own body measures the split: three
-   of the failures a second download causes belong to issue 51 and the rest do
+   [Issue 83](https://github.com/l3a0/quantitative-trading/issues/83) carries `after: [51]` because its own body measures the split: three
+   of the failures a second download causes belong to [issue 51](https://github.com/l3a0/quantitative-trading/issues/51) and the rest do
    not, so it can be built first while the suite stays red until 51 lands. Using
    `needs` there would have said something false. The first card to carry one was
-   issue 2, on a measurement about a Windows clone, and both it and the card it
+   [issue 2](https://github.com/l3a0/quantitative-trading/issues/2), on a measurement about a Windows clone, and both it and the card it
    named have since merged, which is what an `after` is for.
 2. **`PLANNED` means a decompose loop exited**, on a pass that did not reduce
    the body. Not that a body looks thorough. Check the issue for the verdict
@@ -424,8 +424,8 @@ than something new.
    as free to pick up, two sentences before the page said nobody should start
    it. Subtract everything already carried, not only the case you remembered.
 5. **Two sorts that agree today.** The grid sorted by issue number while the
-   ranking sorted by a measured argument, so the page put issue 2 ahead of issue
-   41 in one place and behind it in another. There is now one `cardOrder`
+   ranking sorted by a measured argument, so the page put [issue 2](https://github.com/l3a0/quantitative-trading/issues/2) ahead of
+   [issue 41](https://github.com/l3a0/quantitative-trading/issues/41) in one place and behind it in another. There is now one `cardOrder`
    comparator, and every column that draws cards calls it. Keep it that way.
    The ranking section itself is gone, which is defect 9.
 6. **A legend describing cards that are not under it.** It began as a fixed list
@@ -492,7 +492,7 @@ and the ones a harness cannot see.
 12. **Two fixes that each worked, contradicting each other.** A priority chip
     was added to the cards when the ranking section was deleted, and separately
     the sort was changed to force a deferred card last because one had been
-    sitting fourth in a column of twenty-five. Together they gave issue 10 a
+    sitting fourth in a column of twenty-five. Together they gave [issue 10](https://github.com/l3a0/quantitative-trading/issues/10) a
     chip reading 6 above a position reading last, which is two answers to one
     question. The chip is dropped on a deferred card, because the ranking holds
     one only to record that it is deliberately not being done, and the dashed
