@@ -990,7 +990,7 @@ and leave every gap above unattributable to either.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/kelly-leverage-on-spy.md](../blog/kelly-leverage-on-spy.md) moves with
-it, since that essay quotes most of the figures in rows 1 to 17 and a few this
+it, since that essay quotes most of the figures in rows 1 to 34 and a few this
 entry does not carry.
 
 ## Entry 4: risk parity against 60/40, Chan's *Quantitative Trading*
