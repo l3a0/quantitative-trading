@@ -377,7 +377,15 @@ class TestTheWindows:
             assert set(bar.get_ydata()) == {table[level]}
             assert bar.get_linestyle() == style
             assert _rgb(bar.get_color()) == _rgb(LOST)
-        assert f"bar-{'eg' if name == 'adf' else 'adf'}-10%" not in lines
+        assert {g for g in lines if g.startswith("bar-")} == {f"bar-{name}-10%", f"bar-{name}-5%"}
+
+    def test_the_legend_names_each_orientation_in_its_line_s_colour(self, windows) -> None:
+        legend = windows.axes[1].get_legend()
+        named = {
+            t.get_text(): _rgb(h.get_color())
+            for t, h in zip(legend.get_texts(), legend.legend_handles, strict=True)
+        }
+        assert named == {"TLT on IEF": _rgb(INK), "IEF on TLT": _rgb(ACCENT)}
 
     def test_the_bar_labels_name_each_level(self, windows) -> None:
         assert [t.get_text() for t in windows.axes[0].texts] == ["10%  −2.57", "5%  −2.86"]
@@ -391,8 +399,8 @@ class TestTheWindows:
             "with t = −3.2136."
         )
         assert windows.axes[1].get_title(loc="left") == (
-            "TLT and IEF, a fitted pair. Over the whole period it does not reject even at "
-            "10%: −2.3887 for TLT on IEF, −2.3168 for IEF on TLT."
+            "TLT and IEF, a fitted pair. Over the whole period it does not reject even at 10%:\n"
+            "−2.3887 for TLT on IEF, −2.3168 for IEF on TLT."
         )
 
     def test_the_panels_share_one_date_axis(self, windows) -> None:
@@ -487,8 +495,12 @@ class TestTheLags:
         assert list(line.get_ydata()) == [c.adf_stat for c in checks]
         assert _rgb(line.get_color()) == _rgb(colour)
         filled, hollow = lines[f"pass-{gid}"], lines[f"fail-{gid}"]
-        assert list(filled.get_xdata()) == [c.lags for c in checks if residuals_pass(c)]
-        assert list(hollow.get_xdata()) == [c.lags for c in checks if not residuals_pass(c)]
+        passed = [c for c in checks if residuals_pass(c)]
+        failed = [c for c in checks if not residuals_pass(c)]
+        assert list(filled.get_xdata()) == [c.lags for c in passed]
+        assert list(filled.get_ydata()) == [c.adf_stat for c in passed]
+        assert list(hollow.get_xdata()) == [c.lags for c in failed]
+        assert list(hollow.get_ydata()) == [c.adf_stat for c in failed]
         assert _rgb(filled.get_markerfacecolor()) == _rgb(colour)
         assert hollow.get_markerfacecolor() == "none"
         assert _rgb(hollow.get_markeredgecolor()) == _rgb(colour)
@@ -498,12 +510,25 @@ class TestTheLags:
         assert max(stats) < ADF_CRIT_CONST["5%"]
         assert max(stats) == pytest.approx(-2.8739, abs=5e-5)
 
+    def test_the_rate_fails_the_check_below_10_lags_and_again_at_23_to_25(self, sweeps) -> None:
+        """The post's alt text names both stretches of hollow dots."""
+        failed = [c.lags for c in sweeps["cadaud"] if not residuals_pass(c)]
+        assert failed == [*range(10), 23, 24, 25]
+
+    def test_no_pair_fit_reaches_the_10_percent_bar_as_the_panel_title_says(self, sweeps) -> None:
+        """The lowest statistic in either sweep is the one-lag fit's."""
+        for gid, one_lag in (("tlt-on-ief", -2.3887), ("ief-on-tlt", -2.3168)):
+            stats = [c.adf_stat for c in sweeps[gid]]
+            assert min(stats) > EG_CRIT_N2["10%"]
+            assert min(stats) == pytest.approx(one_lag, abs=5e-5) == stats[1]
+            assert [c.lags for c in sweeps[gid] if residuals_pass(c)] == [31, 32, 33, 34]
+
     def test_the_first_passing_fits_are_labelled_where_they_sit(self, lags) -> None:
         labelled = [
             (t.get_text(), t.xy) for ax in lags.axes[:2] for t in ax.texts if "pass" in t.get_text()
         ]
         assert [text for text, _ in labelled] == [
-            "first count that passes: 10 lags, −2.9946",
+            "CAD/AUD, first passes at 10 lags, −2.9946",
             "TLT on IEF, first passes at 31 lags, −1.5677",
             "IEF on TLT, first passes at 31 lags, −1.5387",
         ]
@@ -517,20 +542,31 @@ class TestTheLags:
         lines = _lines(lags.axes[panel])
         for level in ("10%", "5%"):
             assert set(lines[f"bar-{name}-{level}"].get_ydata()) == {table[level]}
+        assert {g for g in lines if g.startswith("bar-")} == {f"bar-{name}-10%", f"bar-{name}-5%"}
+
+    def test_the_legend_names_each_orientation_in_its_line_s_colour(self, lags) -> None:
+        legend = lags.axes[1].get_legend()
+        named = {
+            t.get_text(): _rgb(h.get_color())
+            for t, h in zip(legend.get_texts(), legend.legend_handles, strict=True)
+        }
+        assert named == {"TLT on IEF": _rgb(INK), "IEF on TLT": _rgb(ACCENT)}
 
     def test_the_text_says_what_each_panel_shows(self, lags) -> None:
         top, bottom = lags.axes[:2]
         assert top.get_title(loc="left") == (
-            "CAD/AUD. The check shrinks the margin: every count up to 32 still rejects at 5%."
+            "CAD/AUD. The first fit that passes sits nearer the 5% bar, and every count up to "
+            "32 still rejects at 5%."
         )
         assert bottom.get_title(loc="left") == (
-            "TLT and IEF. The check strengthens the finding: the first fits that pass sit "
-            "further from the bar."
+            "TLT and IEF. The first fits that pass sit further from both bars than the one-lag "
+            "fits, and no count reaches the 10% bar."
         )
+        assert [ax.get_ylabel() for ax in (top, bottom)] == ["t-statistic"] * 2
         assert top.get_shared_x_axes().joined(top, bottom)
         assert bottom.get_xlabel() == "lag count, the number of earlier changes the ADF includes"
         assert lags._suptitle.get_text() == (
-            "Checking each fit for leftover autocorrelation moves the statistic"
+            "The check for leftover autocorrelation decides which lag count's statistic is read"
         )
         assert lags.texts[-1].get_text() == (
             "Each dot is one ADF fit over the whole test period. Filled: its residuals pass "

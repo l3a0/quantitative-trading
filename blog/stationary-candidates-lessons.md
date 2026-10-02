@@ -101,9 +101,9 @@ The two halves of the check did different work here. Every autocorrelation is in
 
 The search for a passing lag count needs a ceiling, or it becomes a hunt for the lag count that gives the wanted answer. Schwert’s rule, 12·(n/100)^(1/4), rounded up the way the statsmodels library rounds it, sets the ceiling from the sample size before any statistic is read. It gives 34 lags at TLT and IEF’s 6,083 days, 32 at the rate’s 4,984 and 33 at GLD/GDX’s 5,099. Long histories push the ceiling up, and on the bond pair the first pass landed close to it.
 
-![Two panels of ADF t-statistics against the lag count, with one dot per lag count. The upper panel shows CAD/AUD at every count from 0 to 32, all below the 5% bar of −2.86. Its dots are hollow from 0 to 9 lags, where the residuals fail the check, and the first filled dot is at 10 lags, at −2.9946. The lower panel shows TLT regressed on IEF and IEF regressed on TLT at every count from 0 to 34, against the pair’s bars of −3.04 and −3.34. Their dots stay hollow until 31 lags, where the statistics are −1.5677 and −1.5387, higher than at one lag.](../docs/figures/stationary_candidates_lags.png)
+![Two panels of ADF t-statistics against the lag count, with one dot per lag count. The upper panel shows CAD/AUD at every count from 0 to 32, all below the 5% bar of −2.86. Its dots are hollow from 0 to 9 lags, where the residuals fail the check, and the first filled dot is at 10 lags, at −2.9946. Three more are hollow, at 23 to 25 lags. The lower panel shows TLT regressed on IEF and IEF regressed on TLT at every count from 0 to 34, against the pair’s bars of −3.04 and −3.34. No count reaches the 10% bar. Their dots stay hollow until 31 lags, where the statistics are −1.5677 and −1.5387, higher than at one lag.](../docs/figures/stationary_candidates_lags.png)
 
-*Filled dots are fits whose residuals pass the check. On CAD/AUD the first one still clears the 5% bar. On TLT and IEF it sits further from the bars than the one-lag fit does.*
+*Filled dots are fits whose residuals pass the check. On CAD/AUD the first one still clears the 5% bar. On TLT and IEF they sit further from the bars than the one-lag fits do.*
 
 ## Lesson 4: a rate that tests stationary over nineteen years rarely does so within one year
 

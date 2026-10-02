@@ -329,8 +329,8 @@ def make_windows_figure(
         )
     _bar_lines(bottom, EG_CRIT_N2, "eg")
     bottom.set_title(
-        "TLT and IEF, a fitted pair. Over the whole period it does not reject even at "
-        f"10%: {_t(by[LONG].fit.adf_stat)} for TLT on IEF, "
+        "TLT and IEF, a fitted pair. Over the whole period it does not reject even at 10%:\n"
+        f"{_t(by[LONG].fit.adf_stat)} for TLT on IEF, "
         f"{_t(by[INTERMEDIATE].fit.adf_stat)} for IEF on TLT.",
         color=INK,
         fontsize=11,
@@ -367,7 +367,9 @@ def lag_sweep(series, ceiling: int, regression: str) -> list[ResidualCheck]:
     return [residual_check(series, lags, regression=regression) for lags in range(ceiling + 1)]
 
 
-def _sweep(ax, checks: list[ResidualCheck], colour: str, label: str, gid: str) -> None:
+def _sweep(
+    ax, checks: list[ResidualCheck], colour: str, label: str, gid: str, ms: float = 5.5
+) -> None:
     """One sweep as a line, with each lag count filled if it passes."""
     lags = [c.lags for c in checks]
     stats = [c.adf_stat for c in checks]
@@ -378,7 +380,7 @@ def _sweep(ax, checks: list[ResidualCheck], colour: str, label: str, gid: str) -
             [c.lags for c in picked],
             [c.adf_stat for c in picked],
             "o",
-            ms=5.5,
+            ms=ms,
             color=colour,
             mfc=face,
             mec=colour,
@@ -388,16 +390,28 @@ def _sweep(ax, checks: list[ResidualCheck], colour: str, label: str, gid: str) -
         )
 
 
-def _first_pass(ax, checks: list[ResidualCheck], text: str, offset: tuple[float, float]) -> None:
+def _first_pass(
+    ax, checks: list[ResidualCheck], text: str, offset: tuple[float, float], below: bool = False
+) -> None:
+    """Label the first passing fit.
+
+    ``below`` sets the label under and to the left of the point, joined by a
+    leader that runs across and then straight up. A straight leader from there
+    would cross the hollow dot one lag count earlier and read as pointing at
+    it, which is how the pair's labels first came out."""
     first = next(c for c in checks if residuals_pass(c))
+    arrow = {"arrowstyle": "-", "color": MUTED, "lw": 0.8}
+    if below:
+        arrow |= {"connectionstyle": "angle,angleA=0,angleB=90,rad=0", "relpos": (1.0, 0.5)}
     ax.annotate(
         text.format(lags=first.lags, t=_t(first.adf_stat)),
         (first.lags, first.adf_stat),
         xytext=offset,
         textcoords="offset points",
+        ha="right" if below else "left",
         color=INK,
         fontsize=9.5,
-        arrowprops={"arrowstyle": "-", "color": MUTED, "lw": 0.8},
+        arrowprops=arrow,
     )
 
 
@@ -422,16 +436,21 @@ def make_lags_figure(
 
     _sweep(top, rate_checks, INK, "CAD/AUD", "cadaud")
     _bar_lines(top, ADF_CRIT_CONST, "adf")
-    _first_pass(top, rate_checks, "first count that passes: {lags} lags, {t}", (30, 48))
+    _first_pass(top, rate_checks, "CAD/AUD, first passes at {lags} lags, {t}", (30, 48))
     top.set_title(
-        f"CAD/AUD. The check shrinks the margin: every count up to {rate.ceiling} still "
-        "rejects at 5%.",
+        "CAD/AUD. The first fit that passes sits nearer the 5% bar, and every count up to "
+        f"{rate.ceiling} still rejects at 5%.",
         color=INK,
         fontsize=11,
         loc="left",
     )
 
-    for leg, colour, offset in ((LONG, INK, (-250, -78)), (INTERMEDIATE, ACCENT, (-250, -98))):
+    # TLT's dots are drawn larger and first, so IEF's sit inside them and both
+    # show where the two sweeps all but coincide.
+    for leg, colour, offset, ms in (
+        (LONG, INK, (-14, -78), 7.5),
+        (INTERMEDIATE, ACCENT, (-14, -98), 4.5),
+    ):
         o = by[leg]
         name = f"{o.dependent} on {o.independent}"
         _sweep(
@@ -440,12 +459,15 @@ def make_lags_figure(
             colour,
             name,
             f"{o.dependent.lower()}-on-{o.independent.lower()}",
+            ms,
         )
-        _first_pass(bottom, pair_checks[leg], name + ", first passes at {lags} lags, {t}", offset)
+        _first_pass(
+            bottom, pair_checks[leg], name + ", first passes at {lags} lags, {t}", offset, True
+        )
     _bar_lines(bottom, EG_CRIT_N2, "eg")
     bottom.set_title(
-        "TLT and IEF. The check strengthens the finding: the first fits that pass sit "
-        "further from the bar.",
+        "TLT and IEF. The first fits that pass sit further from both bars than the one-lag "
+        "fits, and no count reaches the 10% bar.",
         color=INK,
         fontsize=11,
         loc="left",
@@ -461,7 +483,7 @@ def make_lags_figure(
 
     _title(
         fig,
-        "Checking each fit for leftover autocorrelation moves the statistic",
+        "The check for leftover autocorrelation decides which lag count's statistic is read",
         "Each dot is one ADF fit over the whole test period. Filled: its residuals pass "
         "both halves of the check, a Breusch-Godfrey p-value above 0.10\n"
         "and all ten autocorrelations inside ±1.96/√n. Hollow: they fail. "
