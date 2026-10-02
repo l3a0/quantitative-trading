@@ -49,7 +49,7 @@ The cross-rate pins read one vintage and one specification too.
   days. The residual check fits the same constant. The rolling scan is
   252-day windows stepped by 21.
 
-Eight classes and one test.
+Nine classes and one test.
 
 1. ``TestTheCrossRateVintage``, the file, the window it is read over, and the
    vendor's gap the window starts after.
@@ -65,7 +65,9 @@ Eight classes and one test.
 7. ``TestTheCrossRateRefusals``, which holds that a missing download reaches
    an operator as a line, and what the command runs with and without an
    argument.
-8. ``TestTheCheckFitsTheTermItIsGiven``, the ``regression`` keyword on
+8. ``TestTheUnitRootLine``, the null the report names and the level, held at
+   each bar.
+9. ``TestTheCheckFitsTheTermItIsGiven``, the ``regression`` keyword on
    ``residual_check``, held on a synthetic series.
 
 ``test_measuring_reads_from_the_test_start`` holds that measuring a series
@@ -78,6 +80,7 @@ was spent on a claim Chan stated about one named rate. First run on
 
 from __future__ import annotations
 
+import dataclasses
 import math
 import re
 
@@ -105,6 +108,7 @@ from chan.stationary_candidates import (
     fixed_income,
     main,
     measure_cross_rate,
+    report_cross_rate,
     residuals_pass,
     rolling_adf,
     run,
@@ -697,6 +701,30 @@ class TestTheCrossRateScan:
     def test_a_series_shorter_than_a_window_has_no_windows(self) -> None:
         assert len(rolling_adf(np.zeros(251)).adf_stat) == 0
 
+    def test_a_series_exactly_one_window_long_has_one_ending_on_its_last_row(self) -> None:
+        """The real window's length leaves 7 days past the last full step, so
+        it cannot tell whether the final row is reachable. This can."""
+        rng = np.random.default_rng(5)
+        scan = rolling_adf(np.cumsum(rng.normal(size=252)))
+        assert list(scan.end_idx) == [251]
+
+
+class TestTheUnitRootLine:
+    """The line names the most demanding level the statistic is strictly below."""
+
+    def test_a_statistic_on_a_bar_does_not_reject_at_that_bar(self) -> None:
+        assert unit_root_line(ADF_CRIT_CONST["5%"]) == (
+            "REJECTS the unit-root null at the 10% level"
+        )
+        assert unit_root_line(ADF_CRIT_CONST["10%"]) == (
+            "fails to reject the unit-root null at 10%"
+        )
+
+    def test_just_past_a_bar_rejects_there(self) -> None:
+        assert unit_root_line(ADF_CRIT_CONST["1%"] - 1e-9) == (
+            "REJECTS the unit-root null at the 1% level"
+        )
+
 
 class TestTheCrossRateReport:
     @staticmethod
@@ -733,6 +761,22 @@ class TestTheCrossRateReport:
     def test_it_says_exploratory(self, out: str) -> None:
         assert "A replication against data is exploratory by construction." in out
 
+    def test_a_search_that_finds_nothing_says_so_and_is_not_reproduced(self, capsys) -> None:
+        """The branch the real rate never reaches, built from a result whose
+        search found no residual-clean fit."""
+        m = dataclasses.replace(
+            _measured(-3.0, None),
+            entry=cross_rate().entry,
+            log_rate=pd.Series([0.0], index=pd.DatetimeIndex(["2007-08-06"])),
+            half_life=math.inf,
+        )
+        report_cross_rate(m)
+        out = capsys.readouterr().out
+        assert "no lag count from 0 to 32 leaves residuals that pass" in out
+        assert "Here they are t = -3.0000 and none passes." in out
+        assert "Verdict: DID NOT REPRODUCE." in out
+        assert "half-life undefined" in out
+
 
 class TestTheCrossRateRefusals:
     def test_a_download_nobody_recorded_reaches_the_operator_as_a_line(self, monkeypatch) -> None:
@@ -748,6 +792,7 @@ class TestTheCrossRateRefusals:
         main()
         out = capsys.readouterr().out
         assert out.index("TLT on IEF") < out.index("Chan's CAD/AUD cross rate")
+        assert "Entry 5 carries the finding.\n\nChan's CAD/AUD cross rate" in out
         assert "Verdict: REPRODUCED." in out
 
     def test_dated_is_refused_for_the_fixed_income_candidate(self, monkeypatch) -> None:
