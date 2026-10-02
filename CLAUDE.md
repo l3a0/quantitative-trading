@@ -434,8 +434,8 @@ So a session that changes any of these updates it: a decompose loop's verdict, a
 
 Two limits are worth stating rather than leaving a reader to infer.
 
-1. The board is a private artifact on the owner's account. A session without access to it, or without the tool that publishes it, cannot do this and should say so in its handover rather than treat the rule as failed.
-2. What argues for the rule is one measured failure rather than a comparison. An update run against figures carried in a session's head shipped 39 open issues when a query said 40, which is why the skill leads with reading the live page and re-measuring. Nothing has yet measured what a stale board costs a reader, so the rule is a convention this repo keeps rather than a cost it has priced.
+1. The board is a private artifact on the owner's account, and its figures live in that artifact's database. A session without access to it, or without the `ArtifactData` tool that writes the database, cannot do this and should say so in its handover rather than treat the rule as failed.
+2. What argues for the rule is one measured failure rather than a comparison. An update run against figures carried in a session's head shipped 39 open issues when a query said 40, which is why the skill leads with reading the live data and re-measuring. Nothing has yet measured what a stale board costs a reader, so the rule is a convention this repo keeps rather than a cost it has priced.
 
 ## Research pins
 
