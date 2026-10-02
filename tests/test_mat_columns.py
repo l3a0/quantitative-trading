@@ -155,6 +155,29 @@ class TestRecordingAFile:
         }
         assert read_manifest(data_dir) == entries
 
+    def test_a_day_priced_in_no_column_is_refused_before_anything_is_written(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        """The panel rebuilds days from its members, so such a day could never come back."""
+        path = tmp_path / "SPX_20071123.mat"
+        path.write_bytes(mat_bytes(closes=[CLOSES[0], [NAN, NAN, NAN], *CLOSES[2:]]))
+
+        with pytest.raises(ValueError, match="prices no column on 2007-11-20"):
+            record_mat_closes(path, price_basis="adjusted", data_dir=data_dir)
+
+        assert read_manifest(data_dir) == []
+        assert not (data_dir / "spx_20071123").exists()
+
+    def test_symbols_the_file_spells_in_lowercase_round_trip(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        """The entries uppercase a symbol, so the check compares against that spelling."""
+        path = tmp_path / "SPX_20071123.mat"
+        path.write_bytes(mat_bytes(symbols=["aa", "bf.b", "ko"]))
+        record_mat_closes(path, price_basis="adjusted", data_dir=data_dir)
+
+        assert round_trip_differs(path, data_dir=data_dir) is None
+
     def test_the_vendor_is_not_the_workbooks_one(self) -> None:
         """KO and PEP are in the S&P 500 file and already committed from his workbooks."""
         assert VENDOR == "chan-mat"

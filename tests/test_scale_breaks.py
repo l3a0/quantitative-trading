@@ -57,7 +57,7 @@ from chan.vintage import (
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 
-#: The breaks the eight committed vintages carry today, recorded rather than failing.
+#: The breaks the single-series vintages carry, recorded rather than failing.
 #:
 #: Two day-over-day moves in ``ko_chan.csv`` are near-exact halvings, 1.0100 to
 #: 0.5100 across 1965-02-19 at a ratio of 0.5050 and 1.0700 to 0.5400 across
@@ -80,17 +80,18 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #:
 #: Pinned by path and day rather than as a count, so a day that stops being
 #: flagged fails as surely as a new one. These are flags rather than known
-#: breaks. The bound was fitted to the single-series vintages, and its own
-#: comment in ``chan.series`` says a volatile small cap moves 0.75 on ordinary
-#: news, which is what most of these are: AAPL at 0.4813 on 2000-09-29 and the
+#: breaks. Each is a close below 0.625 or above 1.6 times the one before, a
+#: bound fitted to the single-series vintages, and most are real moves in
+#: single stocks: AAPL at 0.4813 on 2000-09-29, its profit-warning day, and the
 #: energy names of July 2002 among them.
 #:
 #: Two are not price moves at all. ``spx_20071123/wyn.csv`` and
 #: ``spx_20071123/dfs.csv`` each hold two companies under one symbol across a
 #: gap of 952 and 400 trading days, and a member's own rows read that gap as
-#: one day. Five sit within 0.02 of a split ratio, AAPL, AES and AYE here and
-#: CBU and INSP in the S&P 600 file, and whether any is an unadjusted split is
-#: not known. ``data/README.md`` and
+#: one day. Four sit within 0.02 of a two-for-one split, and whether any is
+#: an unadjusted split is not known: AES and AYE here, and CBU and INSP in the
+#: S&P 600 file. AAPL's column absorbs its June 2000 split with no jump, so its
+#: day is the move it looks like. ``data/README.md`` and
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window
 #: crossing a flagged day is for that run to decide, and
@@ -306,10 +307,12 @@ def halved(committed_copy: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 class TestTheGuardOverTheWholeManifest:
-    """Rule 1. What the eight committed vintages carry, pinned as a count and as dates.
+    """Rule 1. What the committed vintages carry, pinned as a count and as dates.
 
     The cost is not pinned with it. A wall-clock figure is a property of the
-    machine rather than of this code, measured at 46.4 ms here. Neither is the
+    machine rather than of this code, measured at 46.4 ms over the first eight
+    vintages and at 2.03 s once the 1,100 columns lifted from Chan's MATLAB
+    files were in the manifest. Neither is the
     number of passes over each series, since asserting one would mean counting
     operations or patching the parse, which is more machinery than the property
     is worth.

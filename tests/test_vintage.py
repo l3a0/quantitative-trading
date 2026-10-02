@@ -1329,7 +1329,8 @@ def _vendor_cell(entry: VintageEntry) -> str:
     """The Vendor cell the table writes for one entry.
 
     The two surfaces disagree here by spelling rather than by fact. The manifest
-    writes `chan-xls` in the vendor field and the workbook in `source_workbook`,
+    writes `chan-xls` or `chan-mat` in the vendor field and the source file in
+    `source_workbook`,
     and the table writes the workbook, which is the pair in a form one cell can
     hold.
 
@@ -1348,7 +1349,8 @@ def _vendor_cell(entry: VintageEntry) -> str:
     Vendor column's expected value comes from the entry like every other, so
     `where the entry gives` still says where it came from.
 
-    A `chan-xls` entry carrying no workbook fails here by naming itself, rather
+    An entry under either of Chan's vendors carrying no workbook fails here by
+    naming itself, rather
     than writing a cell holding the word `None`.
     `the_table_and_the_manifest_agree`'s docstring says a failure there is an
     instruction to whoever writes the row, and this is the same instruction one
@@ -1529,7 +1531,7 @@ class TestTheCommittedManifest:
         Driven against a copy, because the state under test is a manifest line
         this repo does not hold and must never hold. A download carrying a
         workbook would otherwise read back clean: `_vendor_cell` returns the
-        bare vendor for anything that is not `chan-xls`, so the table check
+        bare vendor for anything outside `CHANS_VENDORS`, so the table check
         never reaches the field, and `as_json` writes it back unchanged.
         """
         directory = committed_copy(tmp_path)
@@ -2180,6 +2182,22 @@ class TestRecordingALiftedSource:
 
         assert (data_dir / "src_1" / "ko.csv").read_bytes() == b"the other writer's file\n"
         assert not (data_dir / "src_1" / "aapl.csv").exists()
+        assert read_manifest(data_dir) == []
+
+    def test_a_directory_another_writer_made_first_is_left_where_it_is(self, data_dir, monkeypatch):
+        """The refusal's undo removes only what this call made."""
+        real = Path.mkdir
+
+        def someone_else_makes_it_first(path, *arguments, **options):
+            if path.name == "src_1":
+                real(path)
+            real(path, *arguments, **options)
+
+        monkeypatch.setattr(Path, "mkdir", someone_else_makes_it_first)
+        with pytest.raises(VintageRefused, match="a path was taken"):
+            vintage.record_lifted_columns(LIFTED, **LIFTED_FROM, data_dir=data_dir)
+
+        assert (data_dir / "src_1").is_dir()
         assert read_manifest(data_dir) == []
 
     @pytest.mark.parametrize(

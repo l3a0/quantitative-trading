@@ -115,7 +115,7 @@ def _committed_bytes(*paths: str) -> dict[str, bytes]:
     size each header reports is the size of the content that follows it, so
     the output splits cleanly. Under `--filters` it does not: the header keeps
     the stored size while the content is the converted one, 37,542 against
-    38,229 bytes for `README.md` when this was written, which is why the
+    38,229 bytes for `README.md` as it stood at `d7993f7`, which is why the
     converting half below goes through a checkout instead.
     """
     blobs = _staged_blobs(*paths)
@@ -139,8 +139,8 @@ def _checkout_bytes(scratch: Path, *paths: str) -> dict[str, bytes]:
     `git checkout-index` performs that checkout into `scratch` rather than
     being asked what it would write, so the conversion under test is the one a
     clone runs. It takes every path in one process. The sweep used to ask
-    `git cat-file --filters` once per path, two processes a path at about 13 ms
-    each, which was 0.81 s over the fifteen single-series vintages and 41.39 s
+    `git cat-file --filters` once per path, two processes a path, which was
+    0.81 s over the fifteen single-series vintages and 41.39 s
     once the 1,100 columns lifted from Chan's `.mat` files were in the index,
     measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
 

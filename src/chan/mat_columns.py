@@ -135,9 +135,22 @@ def columns_of(
 def record_mat_closes(
     path: Path, *, price_basis: str, data_dir: Path | None = None
 ) -> list[VintageEntry]:
-    """Record every close column in ``path`` as its own vintage, under :data:`VENDOR`."""
+    """Record every close column in ``path`` as its own vintage, under :data:`VENDOR`.
+
+    A file holding a day with no close in any column is refused before
+    anything is written. The panel rebuilds a file's days from the union of
+    its members' dates, so such a day would vanish from it, and
+    :func:`round_trip_differs` would only say so once every member had been
+    recorded.
+    """
     payload = Path(path).read_bytes()
     days, symbols, closes = read_closes(payload)
+    unpriced = [day for day, row in zip(days, closes, strict=True) if not np.isfinite(row).any()]
+    if unpriced:
+        raise ValueError(
+            f"{Path(path).name} prices no column on {', '.join(unpriced)}, so the per-stock "
+            f"files could not give that day back"
+        )
     return record_lifted_columns(
         columns_of(days, symbols, closes),
         vendor=VENDOR,
@@ -155,6 +168,13 @@ def round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | Non
     bytes alone, so this is the check that dropping the NaN cells lost nothing.
     It needs the ``.mat``, which is not committed, so it runs where the file was
     recorded, the way the TLT and IEF column check ran at download time.
+
+    The comparison is exact, and the panel is parsed by ``_parse_close``, whose
+    pandas parser can land a long close one unit in its last digit away from
+    the value written. Chan's two files hold closes of eight characters at
+    most and read back exactly. A file of full-precision closes would be
+    reported as differing although its bytes are right, which is the safe
+    direction for this check to be wrong in.
     """
     from chan.series import load_panel
 
@@ -164,9 +184,10 @@ def round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | Non
 
     if [str(day.date()) for day in panel.index] != days:
         return "the panel's days are not the file's trading days"
-    if list(panel.columns) != sorted(symbols):
+    spelled = [symbol.upper() for symbol in symbols]
+    if list(panel.columns) != sorted(spelled):
         return "the panel's symbols are not the file's"
-    order = [symbols.index(symbol) for symbol in panel.columns]
+    order = [spelled.index(symbol) for symbol in panel.columns]
     if not np.array_equal(panel.to_numpy(dtype=float), closes[:, order], equal_nan=True):
         return "the panel's closes are not the file's cl array"
     return None
@@ -196,7 +217,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     differs = round_trip_differs(arguments.path)
     if differs is not None:
-        print(f"round trip failed: {differs}", file=sys.stderr)
+        print(
+            f"round trip failed: {differs}. The vintages are recorded, so review them before "
+            f"committing, or take them back out with `git checkout -- data/` and by removing "
+            f"{entries[0].path.split('/')[0]}/.",
+            file=sys.stderr,
+        )
         return 1
     print("round trip: the panel read back is the file's cl array, NaN for NaN")
     return 0

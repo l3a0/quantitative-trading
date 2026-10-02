@@ -1,10 +1,13 @@
-"""Which manifest entries were typed by hand, and what their identity is.
+"""Which manifest entries no recorder wrote, and what their identity is.
 
-Two test modules need the same answer to one question, so it is written once
-here. ``tests/test_vintage.py`` holds the hand-written entries to their pinned
-identity, and ``tests/test_series.py`` counts the reader's map against the same
-set. Spelling it twice would let a new vintage satisfy one file and not the
-other, and nothing would say which spelling was right.
+That covers two sets. :data:`HAND_WRITTEN` is the lines typed by hand, and
+:data:`LIFTED_SOURCES` is the sources whose columns ``record_lifted_columns``
+wrote, one vintage per column. Several test modules need the same answer to one
+question, so it is written once here. ``tests/test_vintage.py`` holds the
+hand-written entries to their pinned identity, and ``tests/test_series.py``
+counts the reader's map against the same set. Spelling it twice would let a new
+vintage satisfy one file and not the other, and nothing would say which
+spelling was right.
 
 Hand-written means no code wrote the manifest line. That is the whole reason
 the set needs naming. A hand-written line has no generator to check it against,
@@ -18,9 +21,10 @@ The set was called ``BACKFILLED`` until
 the ninth. Nothing else about the set moved, because the two are the same
 question for everything that predates the recorder, and they part only on a
 line typed after it. :func:`chan.vintage.record_vintage` takes a download date
-and builds a name out of it, so a column lifted from one of Chan's workbooks,
-which carries a saved date and no download date, cannot be recorded at all and
-still arrives by hand.
+and builds a name out of it, so a single column lifted from one of Chan's
+workbooks, which carries a saved date and no download date, cannot be recorded
+and still arrives by hand. A whole source of them is written by
+``record_lifted_columns`` instead and pinned in :data:`LIFTED_SOURCES`.
 
 Six fields are pinned, keyed by the path that names the file. Five are the
 identity, meaning what a reader is looking at, and four of those are

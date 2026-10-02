@@ -163,10 +163,11 @@ class VintageEntry:
     """One line of ``data/vintages.jsonl``.
 
     Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
-    one it is holds an ISO calendar date. A download carries the first. The
-    ``*_chan.csv`` files carry the second, because their date is when Ernest
-    Chan last saved the workbook a column was lifted from and nothing was
-    fetched on that day. Putting a save date in a field named for a download
+    one it is holds an ISO calendar date. A download carries the first. A
+    column lifted from one of Ernest Chan's files carries the second, the
+    ``*_chan.csv`` workbook columns and the members of the two ``.mat``
+    directories alike, because its date is when Chan last saved the file and
+    nothing was fetched on that day. Putting a save date in a field named for a download
     would hand the next reader a wrong fact in the field that identifies the
     vintage.
 
@@ -179,8 +180,8 @@ class VintageEntry:
     the three is also what makes their ``str`` annotations true of an entry read
     back, since the line is free to hold a list where the class says a string.
 
-    ``source_workbook`` names the spreadsheet a column was lifted from, and the
-    ``*_chan.csv`` entries are the only ones carrying it. It is recorded
+    ``source_workbook`` names the file a column was lifted from, and only those
+    lifted columns carry it. It is recorded
     rather than derived because a symbol does not carry it. Chan's
     ``example6_2.xls`` holds a SPY column, and a ``SPY.xls`` in the same mirror
     holds a different series, so a filename joined from the symbol would name a
@@ -587,9 +588,11 @@ def record_lifted_columns(
         raise VintageRefused(f"{source}: the directory is already on disk with no manifest entry")
 
     _append_entries(directory, entries)
-    written = []
+    written: list[Path] = []
+    made: list[Path] = []
     try:
         target.mkdir()
+        made.append(target)
         for entry, payload in zip(entries, payloads, strict=True):
             path = directory / entry.path
             _write_new_file(path, payload)
@@ -599,12 +602,12 @@ def record_lifted_columns(
                     f"{entry.path}: the file on disk does not match the bytes that were hashed"
                 )
     except FileExistsError as claimed:
-        _undo_lifted(directory, entries, written, target)
+        _undo_lifted(directory, entries, written, made)
         raise VintageRefused(
             f"{source}: a path was taken before the write could claim it"
         ) from claimed
     except BaseException:
-        _undo_lifted(directory, entries, written, target)
+        _undo_lifted(directory, entries, written, made)
         raise
 
     try:
@@ -1063,21 +1066,23 @@ def _append_entries(data_dir: Path, entries: list[VintageEntry]) -> None:
 
 
 def _undo_lifted(
-    data_dir: Path, entries: list[VintageEntry], written: list[Path], target: Path
+    data_dir: Path, entries: list[VintageEntry], written: list[Path], made: list[Path]
 ) -> None:
     """Take a failed source back out: its files, its directory, then its entries.
 
-    Only the files this call wrote are removed, so a file another writer
-    claimed first is left where it is. The directory goes only if it is empty
-    afterwards, for the same reason. The entries go last and together, compared
-    on the whole entry as :func:`_drop_entry` does.
+    Only what this call wrote is removed, so a file or a directory another
+    writer claimed first is left where it is. ``made`` holds the directory only
+    once this call's own ``mkdir`` succeeded, and it goes only if it is empty
+    afterwards. The entries go last and together, compared on the whole entry
+    as :func:`_drop_entry` does.
     """
     for path in written:
         path.unlink(missing_ok=True)
-    try:
-        target.rmdir()
-    except OSError:
-        pass
+    for directory in made:
+        try:
+            directory.rmdir()
+        except OSError:
+            pass
     _rewrite_manifest(data_dir, [kept for kept in read_manifest(data_dir) if kept not in entries])
 
 

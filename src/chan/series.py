@@ -11,7 +11,7 @@ here instead of there. It does not live in :mod:`chan.pair_cointegration`
 either, which is a Chapter 7 replication, and every experiment that reads a
 series would then import a chapter to open a file.
 
-Two sources, told apart by what the manifest records rather than by a filename.
+Three sources, told apart by what the manifest records rather than by a filename.
 
 - The yfinance set, the default. ``adjusted`` carries Yahoo's
   dividend-adjusted close, and ``raw`` carries the as-traded close when
@@ -19,6 +19,8 @@ Two sources, told apart by what the manifest records rather than by a filename.
 - Chan's book-companion set, with ``chan=True``. Those entries carry the
   vendor ``chan-xls`` and are the adjusted-close column of Chan's own ``.xls``
   for that symbol.
+- Chan's two MATLAB cross-sections, under the vendor ``chan-mat``, which
+  :func:`load_panel` reads a whole file at a time and no ticker flag names.
 
 The basis decides the levels. GLD pays no distributions, so its adjusted close
 already equals its raw close, while GDX's dividends put today's adjusted
@@ -38,9 +40,11 @@ committed vintage can change scale partway through, and the record says
 nothing about it, so :func:`scale_breaks` reads each series against itself day
 over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
-Two days of ``ko_chan.csv`` are flagged today and nothing computes across
-them, which is what says the guard reports a real thing rather than a
-hypothetical.
+Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
+which is what says the guard reports a real thing rather than a hypothetical.
+The columns lifted from Chan's MATLAB files carry 62 more flagged days, most of
+them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
+of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands
 back both manifest entries, so this module reads two series as well as one.
@@ -530,10 +534,11 @@ def _parse_close(payload: bytes, ticker: str) -> pd.Series:
     read answer both questions. Replacing the file between the hash and the
     parse then cannot change what comes back.
 
-    The hand-written vintages carry a three-row header (Price/Close,
-    Ticker/SYM, Date/blank), which is yfinance's multi-index frame and the
-    shape the workbook columns were written into, and a recorded one carries a
-    single ``Date,Close``. Rather than hard-code a skip count, every leading
+    The hand-written vintages and the columns ``record_lifted_columns`` writes
+    carry a three-row header (Price/Close, Ticker/SYM, Date/blank), which is
+    yfinance's multi-index frame and the shape the workbook columns were
+    written into, and one ``record_vintage`` writes carries a single
+    ``Date,Close``. Rather than hard-code a skip count, every leading
     row whose first field is not a parseable date is dropped, so either shape
     loads.
     """

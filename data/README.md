@@ -18,7 +18,7 @@ replacing one is not an act the recorder performs at all. It does not download.
 A caller hands it rows, which is what keeps every rule it enforces testable
 with no network.
 
-The other way is by hand, and it did not stop when the recorder arrived. The
+The second way is by hand, and it did not stop when the recorder arrived. The
 recorder takes a download date and builds a name out of it, and a column lifted
 from one of Chan's workbooks has no download date to give it, so nothing can
 record one. Every such column is typed into the record by hand. `spy_chan.csv`
@@ -42,10 +42,13 @@ the name its file took. Renaming such a file fails the suite either way.
 Renaming the file alone leaves an entry naming nothing, and renaming the entry
 with it makes the fields and the name disagree. The hand-written files above
 are exempt, because nothing built their names out of their fields and so
-nothing can compare the two. What holds a hand-written entry instead is the
-identity pinned for it in
+nothing can compare the two, and so are the lifted columns, which take their
+source's directory and their symbol rather than the recorder's join. What holds
+a hand-written entry instead is the identity pinned for it in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
-and its own `Ticker,` header row, which names the series its bytes carry.
+what holds a lifted column is the pin for its source in the same file, and
+both carry their own `Ticker,` header row, which names the series their bytes
+carry.
 
 That check is what stands between a recorded entry and a file it does not
 describe, and it is worth saying what it does not do. It compares the record
@@ -255,7 +258,10 @@ reads the column taken from them. Four are in
 The two directories are the closes in Chan's first-edition MATLAB files, one
 vintage per stock. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
 which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
-stood on 2008-01-14, which his Example 7.6 reads. Each holds only the companies
+stood on 2008-01-14. His Example 7.6 loads `IJR_20080131`, which the mirror
+does not hold, and its third printed return is the trade into January 2008,
+whose month end this file stops short of. So this file can give Example 7.6's
+first two returns and not its third. Each holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
@@ -265,7 +271,10 @@ measurements below and the decision behind the shape.
    [`1a71950`](https://github.com/egorpe/EPChan-QuantitativeTrading/tree/1a7195003cf3e85a806e18867e0af547d17ad5c4),
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
-   beside the runs that read them.
+   beside the runs that read them. Measured with `du`, the two directories take
+   30.3 MB of the 32.7 MB `data/` now holds, where it held 1.96 MB before them. The budget proposed on
+   [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that `data/` stays under 100 MB on disk, and a later panel states its
+   own size against that in its issue before it is recorded.
 
    ```text
    8d3ccbbd2c95b1ea342dfd5f953075f24c0df561efc9c6cc2cce651294ee73dc  SPX_20071123.mat
@@ -299,15 +308,26 @@ measurements below and the decision behind the shape.
    file was measured for this commit, on the ratio of each open to the close
    before it. Across 589,021 consecutive pairs, one sits within 0.01 of a
    two-for-one split, CBU on 2004-04-13, against none of 961,582 in the S&P 500
-   file. Unadjusted small caps over four years would show dozens, so the file is
-   split-adjusted, and CBU's day is a likely exception nobody here has
-   verified.
+   file. Four sit within 0.01 of a three-for-two split, against ten in the S&P
+   500 file, which is split-adjusted, so a ratio near two thirds is not on its
+   own a sign of an unadjusted split.
+   Six hundred unadjusted small caps over four years would be expected to show
+   far more than one two-for-one gap, which is an expectation rather than a
+   measurement. So the file is recorded as split-adjusted, and CBU's day is a
+   likely exception nobody here has verified.
 6. **The scale-break guard flags 62 days in 52 of the 1,100.** They are pinned
    by path and day in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
-   Most are real moves, such as AAPL falling to 0.4813 of its close on
-   2000-09-29, and two are the splices in point 3. Five sit within 0.02 of a
-   split ratio, AAPL, AES and AYE in the S&P 500 file and CBU and INSP in the
-   S&P 600 file, and whether any of them is an unadjusted split is not known.
+   A flag is a day's close below 0.625 or above 1.6 times the one before. Most
+   are real moves, such as AAPL falling to 0.4813 of its close on 2000-09-29,
+   its profit-warning day, in a column that absorbs its June 2000 split with
+   no jump. Two are the splices in point 3. Four more sit within 0.02 of a
+   two-for-one split, and whether any of them is an unadjusted split is not
+   known.
+
+   1. AES on 2001-09-26, in the S&P 500 file.
+   2. AYE on 2002-10-08, in the S&P 500 file.
+   3. CBU on 2004-04-13, in the S&P 600 file.
+   4. INSP on 2008-01-09, in the S&P 600 file.
 
 ## Header shape
 
@@ -324,12 +344,17 @@ Date,
 2004-11-18,44.380001068115234
 ```
 
-A recorded vintage carries one header row, `Date,Close`, and nothing else.
+A vintage `record_vintage` writes carries one header row, `Date,Close`, and
+nothing else.
 In a `rate` vintage the `Close` column holds the rate, because the recorder
 writes one header for every series it records.
 Two shapes rather than one is deliberate. The three rows above are an artifact
 of one vendor's frame, and writing `Price,Close` at the top of a series some
-other vendor returned would be a claim the file has no business making.
+other vendor returned would be a claim the file has no business making. The
+columns lifted from Chan's own files take the three-row shape anyway, the
+workbook columns since before the recorder existed and the MATLAB columns
+because they are held by the same check: the `Ticker,` row is what names the
+series in the bytes, and none of them came from the recorder.
 
 `load_close` drops every leading row whose first field does not parse as a
 date, so it reads either shape and does not depend on a row count.
