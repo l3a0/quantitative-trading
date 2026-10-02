@@ -62,7 +62,9 @@ Kelly for the next example, rather than guessed from the printed figures.
    ``adjcls1=num1(:, end)``, commented "the adjusted close prices", and the
    choice moves the answer by a quarter. On his workbook's ``Close`` column the
    leverage falls to 1.9341 from 2.5278, which crosses the threshold below and
-   reverses his own risk conclusion.
+   reverses his own risk conclusion. That column is committed as
+   ``data/spy_unadjusted_chan.csv``, and ``tests/test_kelly_leverage.py`` pins
+   the figure against it.
 
 **The price basis runs against this repo's own default, and that is
 deliberate.** ``docs/design.md`` says to prefer a series that cannot be
@@ -166,16 +168,19 @@ BOOK_END = "2007-12-28"
 VINTAGE_DATE = "2026-09-18"
 
 # Chan's own SPY series, read with ``--chan``. ``load_vintage("SPY", chan=True)``
-# names exactly one entry, so the run needs no date to find it, and passing the
-# download date above would refuse it, because a workbook column carries a saved
-# date instead.
+# names exactly one entry, because it asks for the adjusted basis and the
+# workbook's other column is recorded as raw. Both carry one saved date, so the
+# basis is what tells them apart and the run needs no date to find this one.
+# Passing the download date above would refuse it, because a workbook column
+# carries a saved date instead.
 #
-# Provenance: data/spy_chan.csv is the Adj Close column of example6_2.xls, last
-# saved by Ernest Chan 2008-01-29, from the public book-code mirror
-# github.com/egorpe/EPChan-QuantitativeTrading, read at 1a71950. The manifest
-# records the CSV's own sha256 and has no field for the workbook's, so the
-# workbook's is kept here, the way src/chan/pair_cointegration.py keeps the
-# others.
+# Provenance: data/spy_chan.csv is the Adj Close column of example6_2.xls, and
+# data/spy_unadjusted_chan.csv is its Close column, which only the tests read.
+# Chan last saved the workbook 2008-01-29. It comes from the public book-code
+# mirror github.com/egorpe/EPChan-QuantitativeTrading, read at 1a71950. The
+# manifest records each CSV's own sha256 and has no field for the workbook's,
+# so the workbook's is kept here, the way src/chan/pair_cointegration.py keeps
+# the others.
 #   example6_2.xls sha256 3706d329fdf6fc54b69ec0f522dfe43de262d70a9bad458aa93f0f5d5976d037
 # Take it by that checksum. The same mirror holds a SPY.xls, sha256
 # e4360b6777aa4aa94f85ec0703e7d1939706d6eca4c267105aa9c2ed321d2215, which is a
@@ -862,7 +867,7 @@ def main() -> None:
         default=None,
         help=(
             f"which SPY vintage to read, by its date (default: the {VINTAGE_DATE} download, "
-            f"or no date under --chan, which finds his one workbook column)"
+            f"or no date under --chan, which finds his adjusted workbook column)"
         ),
     )
     parser.add_argument(

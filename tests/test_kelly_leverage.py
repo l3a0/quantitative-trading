@@ -5,7 +5,7 @@ about this experiment. ``docs/replication-log.md`` Entry 3 states those numbers
 and derives none of them, and ``src/chan/kelly_leverage.py`` carries the
 reasoning.
 
-**Two vintages are read here, and they are not interchangeable.**
+**Three vintages are read here, and they are not interchangeable.**
 
 1. **A 2026 download**, which most of this file pins. Chan read SPY through
    2007-12-28 on a 2008-vintage adjusted series, so every level a modern
@@ -21,6 +21,10 @@ reasoning.
    mean and barely touches a standard deviation. That one download folds in
    all or part of a payout the other does not, on those days, is measured on
    issue 138 rather than pinned here.
+3. **The same workbook's as-traded ``Close``**, committed as
+   ``data/spy_unadjusted_chan.csv`` and read only by the section headed for
+   the price basis. It shares the adjusted column's calendar and saved date,
+   so what it changes is the basis and nothing else.
 
 Two kinds of assertion live here and they are not interchangeable.
 
@@ -33,14 +37,13 @@ Two kinds of assertion live here and they are not interchangeable.
    the leverage's printed precision passes on either and only the Sharpe ratio
    decides.
 
-**One choice is not pinned here and saying so is the point.** The adjusted
-close against the as-traded close moves the leverage by a quarter on Chan's own
-workbook, which is the measurement that reverses his risk conclusion, and no
-committed SPY vintage carries an as-traded column to check it against. The
-module docstring cites it as his figure rather than as one this suite holds.
-Issue 133 says a ``raw`` yfinance vintage is not the as-traded close anyway, so
-recording one would not close it. Issue 192 commits the workbook's own
-as-traded column and pins the figure against it.
+**The price basis is pinned on his own workbook, and only there.** The
+adjusted close against the as-traded close moves the leverage by a quarter on
+Chan's data, which is the measurement that reverses his risk conclusion.
+``TestThePriceBasisOnHisOwnWorkbook`` computes it from the two columns of
+``example6_2.xls``, which is what issue 192 committed the second one for. No
+yfinance vintage stands in for it, because issue 133 says a ``raw`` yfinance
+vintage is not the as-traded close.
 
 **A red assertion here means the data or this code, never the dependency.**
 Every figure below is a mean, a standard deviation or a minimum computed in
@@ -520,13 +523,13 @@ class TestTheStressTest:
         """Chan's conclusion holds exactly while ``f*`` is above 1.954079.
 
         The margin is thinner than 2.55 against 1.95 sounds. On his own
-        workbook the as-traded close gives 1.9341, which is below the threshold
-        and reverses the conclusion, so the price basis alone spends it.
+        workbook the as-traded close lands below the threshold and reverses the
+        conclusion, so the price basis alone spends it.
+        ``TestThePriceBasisOnHisOwnWorkbook`` computes that from his column.
         """
         assert stress.threshold == pytest.approx(1.9540791402, abs=5e-10)
         assert stress.half_kelly == pytest.approx(1.2752956613, abs=5e-8)
         assert stress.survives is True
-        assert 1.9341 < stress.threshold
 
     def test_the_verdict_turns_over_at_the_threshold_and_not_before(self, chan_window) -> None:
         """A boundary held on both sides, because a one-sided pin passes on a
@@ -1347,13 +1350,21 @@ class TestTheMonthEndCalendar:
 
 @pytest.fixture(scope="module")
 def chans():
-    """Chan's ``example6_2.xls`` column, resolved with no date.
+    """Chan's ``example6_2.xls`` adjusted column, resolved with no date.
 
-    One ``chan-xls`` SPY entry exists, so the flags select it on their own.
-    That is the property ``run`` relies on when ``--chan`` arrives without
-    ``--dated``.
+    Two ``chan-xls`` SPY entries exist, one per price basis, and both carry the
+    workbook's saved date, so no date could tell them apart. The flags still
+    select one, because ``chan`` without ``unadjusted`` asks for the adjusted
+    basis. That is the property ``run`` relies on when ``--chan`` arrives
+    without ``--dated``.
     """
     return load_vintage("SPY", chan=True)
+
+
+@pytest.fixture(scope="module")
+def chans_as_traded():
+    """The same workbook's as-traded ``Close`` column, selected by its basis."""
+    return load_vintage("SPY", chan=True, unadjusted=True)
 
 
 @pytest.fixture(scope="module")
@@ -1519,6 +1530,94 @@ class TestHisOwnDataOnTheRestOfTheEntry:
         assert bear.leverage == pytest.approx(-2.8454514767, abs=5e-8)
         assert bull.returns == 1256
         assert bull.leverage == pytest.approx(4.8292559665, abs=5e-8)
+
+
+class TestThePriceBasisOnHisOwnWorkbook:
+    """Rows 31 to 34, which read his as-traded column and carry no published figure.
+
+    Chan printed nothing from the as-traded close, so none of these is a
+    replication. They exist because the module docstring's fifth choice argues
+    that the price basis decides his risk conclusion rather than shading it,
+    and until [issue 192](https://github.com/l3a0/quantitative-trading/issues/192)
+    committed the column that argument quoted a figure nothing here computed.
+
+    Vintage: the ``Close`` column of his ``example6_2.xls``, last saved
+    2008-01-29, committed as ``data/spy_unadjusted_chan.csv``. Specification:
+    the same simple daily returns, sample dispersion, 252-day annualisation
+    and 4 percent risk-free rate as rows 18 to 28, over his whole window.
+    """
+
+    def test_the_entry_is_his_workbook_s_close_column(self, chans, chans_as_traded) -> None:
+        """Same workbook, same saved date and same calendar as ``spy_chan.csv``,
+        so the price basis is the only thing the two entries disagree on."""
+        entry, close = chans_as_traded
+        assert entry.vendor == "chan-xls"
+        assert entry.symbol == "SPY"
+        assert entry.price_basis == "raw"
+        assert entry.saved_date == "2008-01-29"
+        assert entry.download_date is None
+        assert entry.source_workbook == "example6_2.xls"
+        assert entry.path == "spy_unadjusted_chan.csv"
+        assert len(close) == entry.row_count == 3758
+        assert close.index.equals(chans[1].index)
+
+    def test_the_as_traded_leverage_and_the_moments_beneath_it(self, chans_as_traded) -> None:
+        """Row 31. 1.9341, from a mean of 9.5498 percent on 16.9396 percent."""
+        _, close = chans_as_traded
+        moments = annualised_moments(simple_returns(close))
+        assert moments.returns == 3757
+        assert moments.leverage == pytest.approx(1.9340820046, abs=5e-10)
+        assert moments.mean_annual == pytest.approx(0.0954983942, abs=5e-10)
+        assert moments.sd_annual == pytest.approx(0.1693958501, abs=5e-10)
+
+    def test_the_price_basis_is_worth_0_59_on_the_leverage(
+        self, chans_as_traded, his_moments
+    ) -> None:
+        """Row 32. Row 22's 2.5278 less row 31's 1.9341, computed from both columns."""
+        _, close = chans_as_traded
+        as_traded = annualised_moments(simple_returns(close))
+        gap = his_moments.leverage - as_traded.leverage
+        assert gap == pytest.approx(0.5936766603, abs=5e-10)
+        assert round(gap, 2) == 0.59
+
+    def test_the_price_basis_is_worth_1_68_points_on_the_mean(
+        self, chans_as_traded, his_moments
+    ) -> None:
+        """Row 33. The mean moves and the dispersion barely does.
+
+        Row 18's mean less row 31's, in percentage points. The standard
+        deviations differ by 0.0265 points, which is why the leverage moves
+        with the mean and not with the risk.
+        """
+        _, close = chans_as_traded
+        as_traded = annualised_moments(simple_returns(close))
+        points = 100.0 * (his_moments.mean_annual - as_traded.mean_annual)
+        assert points == pytest.approx(1.6809079074, abs=5e-10)
+        assert round(points, 2) == 1.68
+        assert 100.0 * abs(his_moments.sd_annual - as_traded.sd_annual) == pytest.approx(
+            0.0264627, abs=5e-7
+        )
+
+    def test_the_black_monday_conclusion_reverses_on_the_as_traded_close(
+        self, chans, chans_as_traded, his_moments
+    ) -> None:
+        """Row 34. His adjusted column keeps the conclusion and his as-traded one turns it over.
+
+        Both verdicts sit in one test, so the reversal is one assertion rather
+        than two pins a reader has to set side by side. The as-traded leverage
+        falls 0.0200 short of the 1.954079 threshold, and half of it, 0.9670,
+        is below the 0.977040 a 20 percent day allows.
+        """
+        _, adjusted = chans
+        _, close = chans_as_traded
+        as_traded = annualised_moments(simple_returns(close))
+        kept = stress_test(his_moments, simple_returns(adjusted))
+        reversed_ = stress_test(as_traded, simple_returns(close))
+        assert (kept.survives, reversed_.survives) == (True, False)
+        assert reversed_.threshold == kept.threshold
+        assert reversed_.threshold - as_traded.leverage == pytest.approx(0.0199971356, abs=5e-10)
+        assert reversed_.half_kelly == pytest.approx(0.9670410023, abs=5e-10)
+        assert reversed_.half_kelly < reversed_.allowed_leverage
 
 
 class TestTheTwoVintagesOverChansWindow:

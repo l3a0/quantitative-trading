@@ -77,6 +77,7 @@ HAND_WRITTEN = {
     "ko_chan.csv": ("chan-xls", "KO", "adjusted", None, "2008-01-23", "KO.xls"),
     "pep_chan.csv": ("chan-xls", "PEP", "adjusted", None, "2008-01-23", "PEP.xls"),
     "spy_chan.csv": ("chan-xls", "SPY", "adjusted", None, "2008-01-29", "example6_2.xls"),
+    "spy_unadjusted_chan.csv": ("chan-xls", "SPY", "raw", None, "2008-01-29", "example6_2.xls"),
 }
 
 

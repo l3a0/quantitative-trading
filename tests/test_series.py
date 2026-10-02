@@ -234,6 +234,17 @@ COMMITTED = [
         147.3,
         345323.98,
     ),
+    (
+        "SPY",
+        {"chan": True, "unadjusted": True},
+        "spy_unadjusted_chan.csv",
+        3758,
+        "1993-01-29",
+        "2007-12-28",
+        43.94,
+        147.3,
+        380256.12,
+    ),
 ]
 
 
@@ -247,13 +258,13 @@ def the_reader_reaches_every_hand_written_vintage(directory: Path) -> None:
     manifest. A recorded vintage is not in `COMMITTED`, so counting it on one
     side and not the other would fail this the moment `data/` gains a recorded
     series while saying nothing about whether the map is partial. The left-hand
-    side keeps its own count in `len(resolved) == 9`.
+    side keeps its own count in `len(resolved) == 10`.
 
     Name what that gives up. Comparing against the whole manifest also failed
     when an entry was reachable by no reader argument at all, and comparing
     against the hand-written set does not. `record_vintage` takes any vendor matching
-    `VENDOR_PATTERN` while `close_identity` asks for three pairs, so a vintage
-    recorded under a fourth is committed, hashed and green while nothing can
+    `VENDOR_PATTERN` while `close_identity` asks for four pairs, so a vintage
+    recorded under any other is committed, hashed and green while nothing can
     open it. That state could not exist before, because no ninth vintage could
     be recorded at all, and
     [issue 96](https://github.com/l3a0/quantitative-trading/issues/96) owns it.
@@ -271,7 +282,7 @@ def the_reader_reaches_every_hand_written_vintage(directory: Path) -> None:
     assert resolved == {
         entry.path for entry in read_manifest(directory) if entry.path in HAND_WRITTEN
     }
-    assert len(resolved) == 9
+    assert len(resolved) == 10
 
 
 class TestTheCommittedSeriesStillReadAsTheyDid:
@@ -393,21 +404,34 @@ class TestWhatTellsTwoDownloadsApart:
             load_close("ZZZ", dated="2026-06-17", data_dir=data_dir)
 
 
-class TestTheChanSetIgnoresUnadjusted:
-    """Rule 3. The docstring's promise is kept rather than overturned.
+class TestTheChanSetReadsUnadjustedToo:
+    """Rule 3. ``unadjusted`` picks the basis under ``chan`` as it does without it.
 
-    Chan's workbooks hold one price column per symbol and it is the adjusted
-    one, so `(chan-xls, raw)` matches no manifest entry and never will. A lookup
-    that trusted the triple would turn a silently ignored argument into a
-    refusal naming a vintage nobody meant to ask for.
+    This overturns a promise the rule used to keep. It said Chan's workbooks
+    hold one price column per symbol and it is the adjusted one, so
+    `(chan-xls, raw)` would never name an entry, and a lookup that trusted the
+    triple would turn a silently ignored argument into a refusal naming a
+    vintage nobody asked for. `example6_2.xls` holds SPY's as-traded `Close`
+    beside its `Adj Close`, and
+    [issue 192](https://github.com/l3a0/quantitative-trading/issues/192)
+    committed it, so the triple names something for SPY. For every other
+    symbol the ask is for a column this repo does not hold, and refusing it is
+    the reader working rather than a surprise, because the caller is no longer
+    told the flag is ignored.
     """
 
-    def test_the_flag_is_ignored_rather_than_refused(self) -> None:
-        with_flag = load_close("GLD", chan=True, unadjusted=True)
-        without = load_close("GLD", chan=True)
+    def test_the_flag_reads_spy_s_as_traded_column(self) -> None:
+        entry, as_traded = load_vintage("SPY", chan=True, unadjusted=True)
+        adjusted = load_close("SPY", chan=True)
 
-        assert len(with_flag) == 764
-        assert with_flag.equals(without)
+        assert entry.path == "spy_unadjusted_chan.csv"
+        assert entry.price_basis == "raw"
+        assert as_traded.index.equals(adjusted.index)
+        assert not as_traded.equals(adjusted)
+
+    def test_the_flag_is_refused_for_a_symbol_with_no_as_traded_column(self) -> None:
+        with pytest.raises(VintageUnavailable, match="chan-xls GLD raw"):
+            load_close("GLD", chan=True, unadjusted=True)
 
     def test_a_lower_case_ticker_resolves_and_is_named_upper(self) -> None:
         """Both entry points take a ticker string and normalise it, and every
@@ -419,7 +443,8 @@ class TestTheChanSetIgnoresUnadjusted:
         assert lower.equals(upper)
 
     def test_the_identity_says_so_where_the_lookup_is_built(self) -> None:
-        assert close_identity("GLD", chan=True, unadjusted=True) == ("chan-xls", "adjusted")
+        assert close_identity("GLD", chan=True, unadjusted=True) == ("chan-xls", "raw")
+        assert close_identity("GLD", chan=True) == ("chan-xls", "adjusted")
         assert close_identity("GLD", unadjusted=True) == ("yfinance", "raw")
         assert close_identity("GLD") == ("yfinance", "adjusted")
 

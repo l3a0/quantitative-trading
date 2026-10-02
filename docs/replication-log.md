@@ -64,7 +64,6 @@ picking one.
   - [What this repo computed](#what-this-repo-computed-2)
   - [The verdicts](#the-verdicts-2)
   - [What the entry concludes](#what-the-entry-concludes-2)
-  - [Two figures from Chan's workbook that need a column this repo lacks](#two-figures-from-chans-workbook-that-need-a-column-this-repo-lacks)
   - [What this entry cannot say](#what-this-entry-cannot-say)
 - [Entry 4: risk parity against 60/40, Chan's *Quantitative Trading*](#entry-4-risk-parity-against-6040-chans-quantitative-trading)
   - [What the book printed](#what-the-book-printed-3)
@@ -204,7 +203,7 @@ The vocabulary defines a replication as an attempt to reproduce a specific
 published number. A row with no published number is therefore not a
 replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
-Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
+Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 15, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6.
@@ -735,14 +734,15 @@ with it, since that post quotes the same pins.
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
 Algorithmic Trading Business*, Example 6.2, with the specification read off his
 own `example6_3.m`. Rows 1 to 17 shipped under
-[issue 14](https://github.com/l3a0/quantitative-trading/issues/14), and rows 18
-to 30 under [issue 138](https://github.com/l3a0/quantitative-trading/issues/138).
+[issue 14](https://github.com/l3a0/quantitative-trading/issues/14), rows 18 to
+30 under [issue 138](https://github.com/l3a0/quantitative-trading/issues/138),
+and rows 31 to 34 under
+[issue 192](https://github.com/l3a0/quantitative-trading/issues/192).
 
-Thirty rows, all derivable from
+Thirty-four rows, all derivable from
 [tests/test_kelly_leverage.py](../tests/test_kelly_leverage.py).
 
-**The entry reads two vintages of SPY over Chan's own span, and they disagree
-in one place.**
+**The entry reads three vintages of SPY over Chan's own span.**
 
 1. **Rows 1 to 17 read a 2026 download.** He read SPY through 2007-12-28 on a
    2008-vintage adjusted series, so rows 1 to 8 measure how two downloads
@@ -754,11 +754,16 @@ in one place.**
    it at the precision he printed it. The one printed figure that does not is
    row 26's \$252,800, because he rounded the leverage to 2.528 before
    multiplying.
+3. **Rows 31 to 34 read the same workbook's as-traded `Close`**, committed as
+   `data/spy_unadjusted_chan.csv`. Chan printed nothing from it. It shares the
+   adjusted column's days and saved date, so it changes the price basis and
+   nothing else, and on his data that is enough to reverse his risk
+   conclusion.
 
-Rows 29 and 30 set the two vintages day by day against each other, which is
-what says why the first group misses. Dividends paid after his window cannot
+Rows 29 and 30 set the first two day by day against each other, which is what
+says why the first group misses. Dividends paid after his window cannot
 explain it, because they scale every price inside it by one factor and leave
-every return unchanged. The two vintages hold the same 3,758 days, and the
+every return unchanged. Those two hold the same 3,758 days, and the
 whole gap in the mean sits on about ten days on or beside SPY's quarterly
 ex-dividend dates. The differences mostly raise the 2026 mean, and the rest of
 the days together pull back less than a tenth of the gap. A few large
@@ -776,7 +781,7 @@ rounding and a few smaller dividend differences.
 Two more rows reproduce and neither reads a series. Rows 9 and 11 are
 arithmetic on figures the book prints, so nothing could have moved them.
 
-Seven rows carry no published figure and say so in their own cells.
+Eleven rows carry no published figure and say so in their own cells.
 
 - Row 10 is the 2026 download's own account beside the book's.
 - Row 13 is the worst day SPY actually holds.
@@ -784,13 +789,19 @@ Seven rows carry no published figure and say so in their own cells.
   why the window is an argument, and rows 16 and 17 are the two that make the
   case, since between them the leverage runs from a short of 2.82 times equity
   to a long of 4.90.
-- Rows 29 and 30 are the two vintages set against each other.
+- Rows 29 and 30 are the first two vintages set against each other.
+- Rows 31 to 34 read the as-traded column, which Chan printed nothing from.
+  Row 34 is his Black Monday claim tested on that column, and it is not a
+  replication because his claim is about the series he read.
 
 Four rows chase a claim rather than a number, which is the shape
 [docs/design.md](design.md) names for a source that states a verdict instead of
-a figure. Rows 12 and 27 are Chan's Black Monday conclusion, on each vintage,
-and it survives on both. Rows 15 and 28 are his time-scale independence, and it
-fails on both.
+a figure. Rows 12 and 27 are Chan's Black Monday conclusion, on the 2026
+download and on his adjusted column, and it survives on both. Rows 15 and 28
+are his time-scale independence, and it fails on both. Row 34 tests the Black
+Monday conclusion a third time, on his as-traded column, where it fails. It
+carries no verdict rather than `did not reproduce`, because rows 12 and 27 test
+his claim on the series he read and row 34 tests it on a series he did not.
 
 Every result here is **exploratory** in the design doc's sense, and this is the
 first entry where that matters to a reader rather than to a bookkeeper. Its
@@ -830,8 +841,12 @@ lines.
 | 26 | The worked example and the rebalancing chain, on the leverage his own workbook gives | \$252,800, \$227,520, \$74,720 and \$188,892, the same figures as row 9 | locations 2869 and 3021 |
 | 27 | Chan's Black Monday conclusion, on his own workbook | the claim of row 12 | location 3083 |
 | 28 | Kelly's independence of time scale, on his own workbook | the claim of row 15 | location 2858 |
-| 29 | The days the two vintages hold over Chan's span | none, the book reads one vintage | n/a |
-| 30 | The difference in return between the two vintages over Chan's span | none, the book reads one vintage | n/a |
+| 29 | The days the 2026 download and Chan's adjusted column hold over his span | none, the book reads one vintage | n/a |
+| 30 | The difference in return between those two over Chan's span | none, the book reads one vintage | n/a |
+| 31 | Optimal Kelly leverage, on Chan's own as-traded close | none, the book reads only the adjusted close | n/a |
+| 32 | What the price basis is worth on the leverage | none, the book reads one price basis | n/a |
+| 33 | What the price basis is worth on the mean annual return | none, the book reads one price basis | n/a |
+| 34 | Chan's Black Monday conclusion, on his own as-traded close | the claim of row 12, on a series he did not read | location 3083 |
 
 ### What this repo computed
 
@@ -867,6 +882,10 @@ lines.
 | 28 | 1993-01-29 to 2007-12-28 | row 15's three monthly rules | same file as row 18 | 3.6908 on calendar month-ends, 3.7195 dropping the partial final month, 3.6163 on 21-day blocks, against 2.5278 daily | `TestHisOwnDataOnTheRestOfTheEntry::test_the_time_scale_claim_fails_on_his_own_series` |
 | 29 | 1993-01-29 to 2007-12-28 | the two indexes intersected, with what each side lost counted | row 18's file and row 1's | 3,758 days in each and 3,758 joined, so the join drops nothing from either side | `TestTheTwoVintagesOverChansWindow::test_the_join_drops_nothing_from_either_side` |
 | 30 | 1993-01-29 to 2007-12-28 | simple returns on the joined days, the 2026 download's less Chan's | row 18's file and row 1's | the annual mean differs by 0.0641 percentage points and the standard deviation by 0.0014. The ten largest daily differences carry 108.5 percent of the summed difference, eight raising the 2026 mean and two lowering it. Each of the ten falls on a quarter-end month's third Friday or the trading day after, and days in SPY's quarterly dividend months carry 100.4 percent | `TestTheTwoVintagesOverChansWindow::test_the_gap_in_the_mean_and_the_dispersion_that_does_not_move`, `::test_ten_days_carry_the_whole_gap_and_dividend_months_carry_it_too` and `::test_the_ten_days_are_all_quarterly_ex_dividend_days` |
+| 31 | 1993-01-29 to 2007-12-28 | row 5's specification | `spy_unadjusted_chan.csv`, the as-traded `Close` column of Chan's own `example6_2.xls`, saved 2008-01-29 | 1.9341, from a mean of 9.5498 percent and a standard deviation of 16.9396 percent | `TestThePriceBasisOnHisOwnWorkbook::test_the_entry_is_his_workbook_s_close_column` and `::test_the_as_traded_leverage_and_the_moments_beneath_it` |
+| 32 | 1993-01-29 to 2007-12-28 | row 22 less row 31 | row 18's file and row 31's | 0.5937 | `TestThePriceBasisOnHisOwnWorkbook::test_the_price_basis_is_worth_0_59_on_the_leverage` |
+| 33 | 1993-01-29 to 2007-12-28 | row 18 less row 31's mean, in percentage points | row 18's file and row 31's | 1.6809 percentage points, against 0.0265 on the standard deviation | `TestThePriceBasisOnHisOwnWorkbook::test_the_price_basis_is_worth_1_68_points_on_the_mean` |
+| 34 | 1993-01-29 to 2007-12-28 | row 31 halved against row 11, which holds exactly while row 31 is above 1.954079 | row 31's file, with row 18's beside it for the adjusted verdict | the claim fails, 0.0200 short of the threshold on the leverage, with half-Kelly at 0.9670 | `TestThePriceBasisOnHisOwnWorkbook::test_the_black_monday_conclusion_reverses_on_the_as_traded_close` |
 
 ### The verdicts
 
@@ -883,7 +902,7 @@ lines.
 | 9 | \$0 on all four figures | reproduced | Every number in the chain is arithmetic on the book's own rounded 2.528. Nothing reads a series, so nothing could have moved. Chan's printed \$252,800 is itself derived from that rounded input: the exact leverage he computed buys \$252,775.87, which is the one printed figure his own workbook misses. |
 | 10 | none | none, not a replication | The book works one leverage. The row exists so \$255,059.13 is not read against \$252,800 as a failure to reproduce: it is a different account, and the difference is row 5's gap times \$100,000. |
 | 11 | not statable, the source gives one significant figure | reproduced | Chan prints "about 1" and 0.20 divided by 0.2047 is 0.977040. Both operands are his. |
-| 12 | none, the source states a claim | reproduced | The claim is that even half-Kelly would not have survived Black Monday, and it survives on this vintage. It is thinner than 2.5506 against 1.954079 sounds: on Chan's own workbook the as-traded close gives a leverage of 1.9341, below the threshold, so the price basis alone reverses his conclusion. That is why this repo's usual preference for a series that cannot be restated is set aside here and the adjusted close is read. |
+| 12 | none, the source states a claim | reproduced | The claim is that even half-Kelly would not have survived Black Monday, and it survives on this vintage. It is thinner than 2.5506 against 1.954079 sounds: on Chan's own workbook the as-traded close gives a leverage of 1.9341, below the threshold, so the price basis alone reverses his conclusion, which rows 31 and 34 compute. That is why this repo's usual preference for a series that cannot be restated is set aside here and the adjusted close is read. |
 | 13 | none | none, not a replication | SPY's first bar is 1993-01-29 and Black Monday is 1987-10-19, so no SPY vintage of any span can check the book's 20.47 percent. The worst day this window holds is 7.2473 percent, about a third of it, and the row exists so the two are not read as one number. |
 | 14 | none | none, not a replication | The book stops in 2007. What the row shows is that nineteen more years of SPY lower the leverage to 2.3281 while leaving the Sharpe ratio at 0.4315, within 0.0002 of the shorter window's. The dispersion rose and the ratio did not move, which is the shape of a claim that has aged better than its number. |
 | 15 | none, the source states a claim | did not reproduce | The claim is true in the reading nobody needs and false in the one they do. Under the annualisation in use the factor cancels between the mean and the variance, so the annualised and per-period ratios agree to floating-point noise, exactly and for any factor. Resampling the returns rather than rescaling their moments moves `f*` by 43 to 47 percent, on all three monthly rules, and those sit within 0.11 of each other. No vintage explanation is available, because the same three rules on Chan's own workbook land 43 to 47 percent above his daily figure too. This is the shape of Entry 1's row 11, where a conclusion about a library turned out to be a conclusion about a default. |
@@ -902,6 +921,10 @@ lines.
 | 28 | none, the source states a claim | did not reproduce | Row 15's refutation, on the series Chan read. Every monthly rule lands 43 to 47 percent above his daily figure, so the vintage explanation is spent, which is the sharpest case of this verdict the rules above name. |
 | 29 | none | none, not a replication | The book reads one vintage. The row exists because a vendor restates which days a series holds as well as what they are worth, and a silent join would hide the first. Over this span the two vintages hold the same days, so row 30 is a difference in prices rather than in calendars. |
 | 30 | none | none, not a replication | The book reads one vintage. This row is why rows 1 and 3 to 8 miss while row 2 does not. About ten days near SPY's ex-dividend dates carry more than the whole gap in the mean, and they barely move a standard deviation. |
+| 31 | none | none, not a replication | The book prints nothing from the as-traded close. His `example6_3.m` reads the adjusted column, and this row reads the column beside it in the same workbook. |
+| 32 | none | none, not a replication | The book reads one price basis. The basis is worth a quarter of his leverage, and more than row 27's 0.57 margin over the threshold, which is why the conclusion turns over in row 34. |
+| 33 | none | none, not a replication | The book reads one price basis. The mean moves by 1.68 points and the standard deviation by 0.0265, so the leverage falls with the mean rather than with the risk. SPY has not split, so what separates the two columns is its distributions. |
+| 34 | none, the source's claim is about the series he read | none, not a replication | The claim fails on this column. Half-Kelly is 0.9670, below the 0.977040 a 20 percent day allows, so Black Monday's loss would have left it inside the tolerance. Rows 12 and 27 test his claim on the series he read and this row tests it on one he did not, so the verdict there stands. What this row shows is that the price basis decides the verdict rather than shading it. |
 
 ### What the entry concludes
 
@@ -931,7 +954,8 @@ Five things, and the first is what makes the other four worth reading.
    rather than a figure, so the entry computes the leverage at which it turns
    over rather than reporting two numbers and leaving a reader to compare them.
    The margin is 0.60 on a threshold of 1.954079, and the price basis alone is
-   worth 0.59 on Chan's own data. A replication that reported only "2.5506
+   worth 0.59 on Chan's own data, which row 32 computes and row 34 shows
+   turning the verdict over. A replication that reported only "2.5506
    against 1.26" would have looked comfortable.
 4. **The window moves the answer further than the vendor does.** Inside this
    one vintage the leverage runs from a short of 2.82 times equity over 2000 to
@@ -950,34 +974,6 @@ Five things, and the first is what makes the other four worth reading.
    rather than leaving it to this one. It is also the counterpart to Entry 1's
    row 7 rather than its row 6: the same code, on a vintage that was not lost,
    reaching the printed number.
-
-### Two figures from Chan's workbook that need a column this repo lacks
-
-Two quantities quoted in this entry, in
-[src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) and in
-[docs/design.md](design.md), are measurements of Chan's own `example6_2.xls`
-that no assertion here computes. Both need its as-traded `Close` column, and
-this repo holds only its adjusted column, as `data/spy_chan.csv`.
-[Issue 192](https://github.com/l3a0/quantitative-trading/issues/192) commits
-that column and pins them. Until it lands, one test cites 1.9341 only to
-compare it with the threshold.
-
-They are named here rather than left to read as asserted, which is the shape
-`README.md`'s `## The write-up` uses for the figures its essay quotes and the
-suite does not hold.
-
-1. **1.9341**, his leverage on the as-traded close. Everything this entry says
-   about the price basis rests on it beside row 22's 2.5278, including the 0.59
-   the price basis is worth in the third conclusion and the reversal of his own
-   risk conclusion, since 1.9341 is below the 1.954079 threshold this repo does
-   compute.
-2. **1.68 percentage points**, what SPY's distributions are worth in annual
-   mean return on his span. `src/chan/kelly_leverage.py` quotes it as the size
-   of the price-basis choice.
-
-The other figures this section used to list now have rows. His exact leverage
-is row 22, his two Sharpe ratios are row 21, his \$252,775.87 is row 26, his
-three monthly rules are row 28, and the day-by-day comparison is rows 29 and 30.
 
 ### What this entry cannot say
 
