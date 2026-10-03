@@ -138,9 +138,11 @@ both.
    module,
    [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds
    Entry 7, [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
-   Entries 8 and 10, which are Examples 3.7 and 3.8 and share a module, and
+   Entries 8 and 10, which are Examples 3.7 and 3.8 and share a module,
    [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
-   Entry 9.
+   Entry 9, and
+   [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
+   holds Entry 11.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -254,7 +256,11 @@ which is the ranking Qian's two printed figures were printed to support.
 Entry 10's row 1 is one too, for the reason Entry 6's row 1 below is: the
 claim is about one strategy the book names, and its criterion was declared on
 [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) before
-any figure was computed.
+any figure was computed. Entry 11's row 3 is one as well. The sidebar's claim
+names one trade, and its criterion, a profit in every year from 1995 to 2008,
+was written on
+[issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any
+trade was computed.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -2359,8 +2365,8 @@ under [issue 19](https://github.com/l3a0/quantitative-trading/issues/19).
 Ten rows, all derivable from
 [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py).
 
-**Both natural gas figures reproduce, and the gasoline count reproduces with a
-gap the data explains.** Chan says commodity seasonal trades still pay where
+**Both natural gas figures reproduce under the reading the issue pinned, and
+the gasoline count agrees with the book on every year the file can read.** Chan says commodity seasonal trades still pay where
 the equity ones have died, and gives two. Gasoline buys the May contract at the
 close of April 13 and sells at the close of April 25. Natural gas buys the June
 contract at the close of February 25 and sells at the close of April 15.
@@ -2384,9 +2390,14 @@ they are stated here.
    RBOB gasoline, from 2006, and `eia_rngc2`, `eia_rngc3` and `eia_rngc4` for
    natural gas. [data/README.md](../data/README.md) says what each holds. Each
    file numbers contracts by expiry, so the run maps a date to the file that
-   holds the May or June contract, and the expiry rule behind that map gives
-   the exchange's own last trading day for all 16 contracts checked, March to
-   June of 2017, 2018, 2021 and 2024.
+   holds the May or June contract. The expiry rule behind that map gives the
+   last trading day the Massive futures API recorded for all 16 contracts
+   checked, March to June of 2017, 2018, 2021 and 2024. Those 16 dates were read
+   from the API on 2026-10-03 and are pinned as a measurement, because nothing
+   in this repo can read them again. Before mid-1997 contracts stopped trading
+   five or six days before delivery rather than three, which the files'
+   handovers show, and the rule follows them. That moves the 1996 and 1997
+   entries to contract 3 and changes neither year's sign.
 2. **Profitable** means the exit settlement strictly above the entry, on one
    contract, with no costs.
 3. **A missing row stays missing.** A year whose trade date has no row in its
@@ -2427,13 +2438,13 @@ nothing about whether either trade pays today.
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | −3 profitable years, all 3 unreadable | reproduced with a gap | The rule on the issue asked for exactly 19, and the run shows 16. The cause is named and outside the method: EIA's harbor gasoline file holds no row on 1997-04-14, 1998-04-24 or 1999-04-23, each a trading day, and the run neither fills a row nor moves a date. Every readable year agrees with the book, because the 2 losses are the 2 that 21 less 19 allows. |
+| 1 | −3 profitable years, all 3 unreadable | reproduced with a gap | The criterion the issue pinned, exactly 19, fails at 16. The verdict was taken afterwards under this file's rule, and the issue records that. The file bounds the count between 16 and 19 rather than settling it. The cause is named and outside the method: EIA's harbor gasoline file holds no row on 1997-04-14, 1998-04-24 or 1999-04-23, each a trading day, and the run neither fills a row nor moves a date. Every readable year agrees with the book, because the 2 losses are the 2 that 21 less 19 allows. |
 | 2 | none | none, not a replication | The book says which years were out of sample and prints no count for them. 7 of the 9 were profitable, and the two losses of row 1 both fall among them. |
-| 3 | none, the source states a claim | reproduced with a gap | The claim holds on every readable year, with no loss from 1995 to 2008. The 3 unreadable years are row 1's, so the gap has the same cause. Read as 1995 to 2007 instead, it gives no loss and 10 profitable. |
+| 3 | none, the source states a claim | reproduced with a gap | The criterion the issue pinned, a profit in every year, cannot be met with 3 years unreadable, and the verdict was taken afterwards on the same footing as row 1. The claim holds on every readable year, with no loss from 1995 to 2008. Read as 1995 to 2007 instead, it gives no loss and 10 profitable. |
 | 4 | 0 | reproduced | Under the reading pinned on the issue, both figures written for the 2008 first edition and counted from 1995. |
 | 5 | 0 | reproduced | The same reading. The two figures differ by the one year between the main text and the sidebar. |
 | 6 | none | none, not a replication | A claim with no figure, and the issue declared no criterion for it. The halves are 15 of 15 and 7 of 15. |
-| 7 | none | none, not a replication | 1994 is profitable too, so counting from the files' first year makes both runs one longer. The book's figures match only a count from 1995, the year the gasoline sidebar names as its start. |
+| 7 | none | none, not a replication | 1994 is profitable too, so counting from the files' first year makes both runs one longer. With runs ending in 2007 and 2008, only a count from 1995 matches, the year the gasoline sidebar names as its start. Counted from 1994, runs of 13 and 14 end in 2006 and 2007 instead. |
 | 8 | none | none, not a replication | The older contract's file has no row on 2006's entry day, so the side row cannot say whether the switch to RBOB decides 2006. |
 | 9 | none | none, not a replication | In 10 years the entry falls on the March contract's last trading day, so the file read depends on contract 1 keeping an expiring contract on its last day. The files show that convention in 2014 and 2019. Reading contract 3 instead flips no year, so the convention cannot move a verdict. |
 | 10 | none | none, not a replication | After the book, gasoline profits in 3 of 8 years and natural gas in 4 of 8, its 2016 to 2023 share of row 6. |
@@ -2442,16 +2453,18 @@ nothing about whether either trade pays today.
 
 Three things.
 
-1. **Natural gas reproduces exactly.** Every year from 1995 to 2008 is
-   profitable, which gives the main text's 13 and the sidebar's 14 once both
-   are read as first-edition figures counted from 1995.
+1. **Natural gas reproduces under the pinned reading.** Every year from 1995
+   to 2008 is profitable, which gives the main text's 13 and the sidebar's 14
+   once both are read as first-edition figures counted from 1995. 2009 is a
+   loss, so neither figure can be a run ending in the revised edition's years.
 2. **Gasoline agrees with the book on every year the file can read.** 1995 to
    2015 holds the 2 losing years 19 of 21 allows and no third. The three
    unreadable years are gaps in EIA's file, not losses.
-3. **Both trades fade after the years Chan read.** Natural gas wins 15 of 15
-   through 2008 and 7 of 15 after, which agrees with his remark at location
-   4632. Gasoline wins 3 of 8 from 2016 to 2023, after the run the book
-   reports.
+3. **In this exploratory record, both trades win fewer years after the years
+   Chan read.** Natural gas wins 15 of 15 through 2008 and 7 of 15 after, which
+   agrees with his remark at location 4632. Gasoline wins 3 of 8 from 2016 to
+   2023. Eight years with no costs charged can show the change and cannot
+   measure it.
 
 ### What this entry cannot say
 
@@ -2461,13 +2474,16 @@ Four things.
 of them, and no other committed source covers the contract then. A source
 holding each named contract's settlements would settle them.
 
-**Whether Chan read the same contracts.** The sidebar names RB, a symbol RBOB
-has carried since 2005, so his series before then must have held the older
-contract, and the run assumes so. His data vendor is not named.
+**Whether Chan read the same contracts.** The sidebar names RB and glosses it
+as the unleaded gasoline futures. Before RBOB began trading in October 2005,
+his series presumably held the older contract, and the run assumes so. His
+data vendor is not named.
 
 **Which year each natural gas figure was written in.** Neither passage says,
 and the reading pinned on the issue is a hypothesis that both are
-first-edition figures. Its fit is evidence for it rather than proof.
+first-edition figures counted from 1995. The files rule out a run ending in
+the revised edition's years, because 2009 is a loss. They cannot pick the
+start year, because 1994 is profitable too.
 
 **Whether either trade pays after costs.** No commission, slippage or margin is
 charged, as the rule on the issue states.

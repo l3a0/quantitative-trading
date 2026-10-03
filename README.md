@@ -134,10 +134,10 @@ they were first built. The other nine were built here.
     and the June natural gas contract from February 25 to April 15. On EIA's
     NYMEX settlements, natural gas is profitable in every year from 1995 to
     2008, which reproduces both the main text's 13 consecutive years and the
-    sidebar's 14. Gasoline from 1995 to 2015 holds the 2 losing years that
+    sidebar's 14, read as first-edition figures counted from 1995. Gasoline from 1995 to 2015 holds the 2 losing years that
     Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
     EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
-    fade after the years he read. Every figure is exploratory.
+    win fewer years after the years he read. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so

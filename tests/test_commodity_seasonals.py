@@ -23,15 +23,18 @@ from chan.commodity_seasonals import (
     NG_YEARS,
     RBOB_GASOLINE,
     RUN_START,
+    Trade,
     easter,
     gasoline_symbol,
     gasoline_trade,
     gasoline_trades,
     is_trading_day,
     june_contract_number,
+    main,
     natural_gas_trade,
     natural_gas_trades,
     ng_last_trade,
+    ng_lead_days,
     on_or_after,
     on_or_before,
     profitable_count,
@@ -58,6 +61,13 @@ class TestTheCalendar:
     )
     def test_easter(self, year: int, sunday: date) -> None:
         assert easter(year) == sunday
+
+    @pytest.mark.parametrize(
+        "closed", [date(2018, 1, 15), date(2018, 7, 4), date(2001, 9, 11), date(2005, 12, 26)]
+    )
+    def test_holidays_and_closures_away_from_the_trades(self, closed: date) -> None:
+        """No trade date reads these, so only this case holds the calendar to the exchange's."""
+        assert not is_trading_day(closed)
 
     def test_good_friday_is_closed_and_the_day_before_is_open(self) -> None:
         assert not is_trading_day(date(2022, 4, 15))
@@ -125,6 +135,43 @@ class TestTheNaturalGasExpiries:
         one, two = settlements(NATURAL_GAS[1])[1], settlements(NATURAL_GAS[2])[1]
         assert abs(one[after] - two[last]) < abs(one[after] - one[last])
 
+    @staticmethod
+    def handover_fit(last: date) -> Decimal:
+        """How much better a handover after ``last`` fits the files than no handover.
+
+        The spreads between neighbouring files on the next trading day are set
+        against the spreads one file further up on ``last``, which a handover
+        predicts, and against the same files' spreads, which no handover
+        predicts. A negative value says the handover fits better.
+        """
+        files = {n: settlements(NATURAL_GAS[n])[1] for n in (1, 2, 3, 4)}
+        nxt = on_or_after(date.fromordinal(last.toordinal() + 1))
+
+        def spread(day: date, n: int) -> Decimal:
+            return files[n][day] - files[n + 1][day]
+
+        moved = sum(abs(spread(nxt, n) - spread(last, n + 1)) for n in (1, 2))
+        stayed = sum(abs(spread(nxt, n) - spread(last, n)) for n in (1, 2))
+        return moved - stayed
+
+    def test_the_lead_time_by_era(self) -> None:
+        assert [ng_lead_days(1996, 1), ng_lead_days(1996, 2)] == [6, 5]
+        assert [ng_lead_days(1997, 5), ng_lead_days(1997, 6)] == [5, 3]
+
+    def test_the_march_1996_handover_fits_five_days_and_not_three(self) -> None:
+        """The handover a three-day rule predicts, after 1996-02-27, is not in the files."""
+        assert ng_last_trade(1996, 3) == date(1996, 2, 23)
+        assert self.handover_fit(date(1996, 2, 23)) == Decimal("-0.284")
+        assert self.handover_fit(date(1996, 2, 27)) == Decimal("0.068")
+
+    def test_the_1996_and_1997_entries_read_contract_3(self) -> None:
+        for year, price in ((1996, Decimal("2.033")), (1997, Decimal("1.930"))):
+            trade = natural_gas_trade(year)
+            assert (trade.entry_symbol, trade.entry_price) == (NATURAL_GAS[3], price)
+
+    def test_nixon_s_funeral_closed_the_exchange(self) -> None:
+        assert not is_trading_day(date(1994, 4, 27))
+
     def test_june_s_number_through_the_spring(self) -> None:
         assert june_contract_number(date(2018, 2, 26)) == 4  # March's own last day
         assert june_contract_number(date(2018, 2, 27)) == 3
@@ -168,7 +215,9 @@ class TestGasoline:
             assert is_trading_day(gap)
             assert gap not in rows
 
-    def test_two_settlements(self) -> None:
+    def test_three_settlements(self) -> None:
+        harbor = gasoline_trade(2005)
+        assert (harbor.entry_price, harbor.exit_price) == (Decimal("1.484"), Decimal("1.651"))
         worst = gasoline_trade(2012)
         assert (worst.entry_price, worst.exit_price) == (Decimal("3.346"), Decimal("3.156"))
         assert gasoline_trade(2008).change == Decimal("0.232")
@@ -188,7 +237,8 @@ class TestNaturalGas:
             2019: loss, 2020: loss, 2021: loss, 2022: profit, 2023: loss,
         }  # fmt: skip
 
-    def test_two_settlements(self) -> None:
+    def test_three_settlements(self) -> None:
+        assert natural_gas_trade(1996).change == Decimal("0.308")
         assert natural_gas_trade(2008).change == Decimal("1.006")
         assert natural_gas_trade(2022).change == Decimal("2.895")
 
@@ -201,9 +251,24 @@ class TestNaturalGas:
         runs = runs_ending(GAS)
         assert (runs[2007], runs[2008]) == (14, 15)
 
-    def test_a_missing_year_breaks_a_run(self) -> None:
-        trades = [gasoline_trade(year) for year in (1995, 1996, 1997, 2000)]
+    def test_a_missing_year_breaks_a_run_in_any_order(self) -> None:
+        trades = [gasoline_trade(year) for year in (2000, 1997, 1996, 1995)]
         assert runs_ending(trades) == {1995: 1, 1996: 2, 1997: 0, 2000: 1}
+
+    def test_the_exit_reads_contract_2(self) -> None:
+        assert natural_gas_trade(2018).exit_symbol == NATURAL_GAS[2]
+
+    def test_a_zero_change_is_not_a_profit(self) -> None:
+        flat = Trade(
+            year=2000,
+            entry_day=date(2000, 2, 25),
+            exit_day=date(2000, 4, 14),
+            entry_symbol=NATURAL_GAS[4],
+            exit_symbol=NATURAL_GAS[2],
+            entry_price=Decimal("2.500"),
+            exit_price=Decimal("2.5"),
+        )
+        assert flat.change == 0 and flat.profitable is False
 
 
 class TestTheVerdicts:
@@ -242,3 +307,12 @@ class TestTheVerdicts:
         gas = [trade for trade in GAS if trade.year >= 2016]
         assert (profitable_count(gasoline), len(gasoline)) == (3, 8)
         assert (profitable_count(gas), len(gas)) == (4, 8)
+
+
+def test_the_report_prints_the_derived_counts(capsys: pytest.CaptureFixture[str]) -> None:
+    """The printed lines carry the same figures the verdicts read, beside the book's."""
+    main()
+    out = capsys.readouterr().out
+    assert "1995 to 2015: 16 of 21 profitable   (the book prints 19 of 21)" in out
+    assert "the run ending in 2007: 13   (the main text prints 13)" in out
+    assert "the run ending in 2008: 14   (the sidebar prints 14)" in out

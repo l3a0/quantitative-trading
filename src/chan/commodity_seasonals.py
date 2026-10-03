@@ -28,10 +28,12 @@ numbered file holds the May or June contract on a given day. The May gasoline
 contract is contract 1 on both gasoline dates, because it trades until the last
 business day of April. The June natural gas contract is contract 4 or 3 at the
 entry, depending on whether the March contract has expired, and contract 2 at
-the exit. :func:`ng_last_trade` gives each expiry.
-``tests/test_commodity_seasonals.py`` checks it against the exchange's own last
-trading days for the years the Massive futures API covers, and against the
-files, which keep an expiring contract in contract 1 on its last day.
+the exit. :func:`ng_last_trade` gives each expiry. Today a contract stops three
+trading days before delivery, and before mid-1997 it stopped five or six days
+before, which :data:`NG_LEAD_DAYS` records.
+``tests/test_commodity_seasonals.py`` checks it against the last trading days
+the Massive futures API recorded for four years, and against the files, which
+keep an expiring contract in contract 1 on its last day.
 
 **The gasoline contract changes in 2006.** RBOB futures began trading in
 October 2005, so the run reads New York Harbor regular gasoline through 2005
@@ -89,12 +91,14 @@ GASOLINE_EXIT = (4, 25)
 NG_ENTRY = (2, 25)
 NG_EXIT = (4, 15)
 
-#: Days NYMEX closed outside its holiday rules. None falls between February 20
-#: and April 30, so none can move a date this module reads, and they are listed
-#: so the calendar is the exchange's rather than one tuned to these trades.
+#: Days NYMEX closed outside its holiday rules. The only one between February
+#: 20 and April 30 is 1994-04-27, Richard Nixon's funeral, which moves the May
+#: 1994 natural gas expiry and no trade date. They are listed so the calendar is
+#: the exchange's rather than one tuned to these trades.
 UNSCHEDULED_CLOSURES = frozenset(
     date.fromisoformat(day)
     for day in (
+        "1994-04-27",
         "2001-09-11",
         "2001-09-12",
         "2001-09-13",
@@ -217,11 +221,28 @@ def on_or_before(day: date) -> date:
     return day
 
 
+#: How many trading days before delivery a natural gas contract stopped
+#: trading, by the first delivery month each count applies to. Three is the
+#: rule today and the one issue 19 first pinned. The files show the March 1996
+#: and March 1997 contracts stopping earlier: on 1996-02-26 each numbered file
+#: continues the next one's settlement from 1996-02-23, the handover a five-day
+#: rule predicts and a three-day rule does not. The boundaries are measured from
+#: the files' handovers, where the curve is steep enough to show one, and the
+#: review that found them recorded the measurement on the pull request.
+NG_LEAD_DAYS = ((date(1990, 1, 1), 6), (date(1996, 2, 1), 5), (date(1997, 6, 1), 3))
+
+
+def ng_lead_days(year: int, delivery_month: int) -> int:
+    """How many trading days before delivery the contract's trading stopped."""
+    first = date(year, delivery_month, 1)
+    return [days for start, days in NG_LEAD_DAYS if start <= first][-1]
+
+
 def ng_last_trade(year: int, delivery_month: int) -> date:
-    """A natural gas contract's last trading day, three business days before delivery starts."""
+    """A natural gas contract's last trading day, ``ng_lead_days`` before delivery starts."""
     day = date(year, delivery_month, 1)
-    counted = 0
-    while counted < 3:
+    counted, lead = 0, ng_lead_days(year, delivery_month)
+    while counted < lead:
         day -= timedelta(days=1)
         if is_trading_day(day):
             counted += 1
