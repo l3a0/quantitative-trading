@@ -92,7 +92,7 @@ from chan.matlab_helpers import (
     matlab_sort,
     round_half_away,
     smartmean,
-    smartstd,
+    smartstd_first_edition,
     smartsum,
 )
 from chan.series import load_panel, panel_line
@@ -395,7 +395,7 @@ def summarize(returns: pd.Series, rules: HestonSadkaRules) -> tuple[float, float
     """The annualised mean and Sharpe ratio, on twelve months a year and no risk-free rate."""
     kept = returns.to_numpy()[rules.dropped :]
     if rules.statistic is Statistic.SMART:
-        mean, std = smartmean(kept), smartstd(kept)
+        mean, std = smartmean(kept), smartstd_first_edition(kept)
     elif rules.statistic is Statistic.NUMPY:
         mean, std = np.nanmean(kept), np.nanstd(kept)
     else:

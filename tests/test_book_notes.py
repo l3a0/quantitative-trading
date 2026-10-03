@@ -31,6 +31,7 @@ NOTES_DIR = Path(__file__).resolve().parents[1] / "research" / "book-notes"
 # the authority for them, rather than a consistency check that would pass just
 # as happily if every surface drifted together.
 EXPECTED_HIGHLIGHTS = {
+    "algorithmic-trading.md": 301,
     "quantitative-trading.md": 235,
 }
 
@@ -38,13 +39,20 @@ EXPECTED_HIGHLIGHTS = {
 # the Cloud Reader. A truncated re-extraction could hold its total and lose
 # these, since a recovered highlight is the fragile kind.
 EXPECTED_RECOVERED = {
+    "algorithmic-trading.md": 223,
     "quantitative-trading.md": 57,
 }
 
 ENTRY = re.compile(r"^### Location ", re.MULTILINE)
 RECOVERED_ENTRY = re.compile(r"^### Location .*↻ recovered", re.MULTILINE)
 HEADER_COUNT = re.compile(r"^(\d+) highlights\b", re.MULTILINE)
-HEADER_RECOVERED = re.compile(r"^\d+ highlights\b.*?(\d+) of these were cut off", re.MULTILINE)
+# The header can count its recovered entries in two clauses. The Algorithmic
+# Trading note says 83 "were cut off" and 140 more were "hidden entirely", and
+# all 223 carry the tag, so reading the first clause alone would hold 83.
+HEADER_RECOVERED = re.compile(
+    r"^\d+ highlights\b.*?(\d+) of these were cut off(?:[^.]*?\band (\d+) hidden entirely)?",
+    re.MULTILINE,
+)
 
 
 @pytest.mark.parametrize("name", sorted(EXPECTED_HIGHLIGHTS))
@@ -71,8 +79,9 @@ def test_the_note_holds_the_recovered_highlights_it_claims(name: str) -> None:
     text = (NOTES_DIR / name).read_text(encoding="utf-8")
     header = HEADER_RECOVERED.search(text)
     assert header is not None, f"{name} has no 'N of these were cut off' claim"
+    claimed = int(header.group(1)) + int(header.group(2) or 0)
     assert len(RECOVERED_ENTRY.findall(text)) == EXPECTED_RECOVERED[name]
-    assert int(header.group(1)) == EXPECTED_RECOVERED[name]
+    assert claimed == EXPECTED_RECOVERED[name]
 
 
 @pytest.mark.parametrize("name", sorted(EXPECTED_HIGHLIGHTS))

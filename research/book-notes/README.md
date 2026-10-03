@@ -1,16 +1,23 @@
 # Book notes
 
-Kindle highlights from the book this repo replicates, quoted verbatim and cited
-by Kindle location.
+Kindle highlights from the books this repo replicates, quoted verbatim and
+cited by Kindle location.
 
 | Note | Book | Edition | Highlights |
 | --- | --- | --- | --- |
+| [algorithmic-trading.md](algorithmic-trading.md) | *Algorithmic Trading: Winning Strategies and Their Rationale* | 1st, Wiley, 2013 | 301 |
 | [quantitative-trading.md](quantitative-trading.md) | *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* | 2nd (Revised), Wiley, 2021 | 235 |
 
-The file came from the sibling
+Both files came from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, byte for
-byte. That repo also holds notes for Chan's *Algorithmic Trading* and for four
-other authors. They stayed there, because nothing here replicates those books.
+byte. The *Algorithmic Trading* note is that repo's
+`research/book-notes/algorithmic-trading.md` at `7612281`, and it landed here
+with [PR #261](https://github.com/l3a0/quantitative-trading/pull/261), with
+nothing changed on the way over. It came because
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20) replicates
+that book's Example 7.2, which is the first replication here from Chan's second
+book. The sibling also holds notes for four other authors. They stayed there,
+because nothing here replicates those books.
 
 Mind the edition. These notes are the revised second edition of 2021, while
 this repo's citations of chapter and page numbers come from the first edition
@@ -83,10 +90,17 @@ the exemption next to what it governs. The three rules it relaxes are minor
 style checks, and every other markdownlint rule still applies here.
 
 The prose sweeps in `tests/test_markdown_hygiene.py` do still read this
-directory, including the note itself, because the note happens to contain
-nothing any of them objects to. If a future re-extraction or a second note
-introduces something they flag, the fix is an exemption written down here, not
-an edit to the quotation.
+directory, notes included. When a note trips one, the fix is an exemption
+written down here, not an edit to the quotation.
+
+One exemption stands. The *Algorithmic Trading* note quotes Chan's pointer to a
+Kalman filter package at location 1726, and the URL he prints,
+`www.cs.ubc.ca/~murphyk/Software/Kalman/kalman.html`, carries a tilde glued to
+a slash. The tilde sweep flags that shape, because it can close a
+strikethrough. Escaping it would edit the book's text, so
+`QUOTED_IN_A_NOTE` in the hygiene tests excuses that exact URL and nothing
+else. Every other character of the line is still swept, and a test fails if
+the exemption ever stops being needed.
 
 ## Copyright
 
