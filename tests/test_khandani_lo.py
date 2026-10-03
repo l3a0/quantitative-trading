@@ -1,7 +1,7 @@
 """The pins for Khandani and Lo's linear reversal, Chan's Example 3.7.
 
 This file is the single authority for every number any prose surface quotes
-about the reversal. ``docs/replication-log.md`` Entry 7 carries the verdicts
+about the reversal. ``docs/replication-log.md`` Entry 8 carries the verdicts
 and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so

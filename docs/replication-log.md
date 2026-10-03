@@ -17,9 +17,9 @@ and each says so in its own cells.
 3. Row 10 carries no published figure, because the book stops in 2007.
 4. Row 11 covers the two statistics Chan printed from one disagreement.
 
-Entries 2, 3, 4, 6 and 7 carry their own, three, seven, twelve, five and six,
-and they are listed in those entries rather than here, because the list is about an entry's
-rows and not about the file.
+Entries 2, 3, 4, 6, 7 and 8 carry their own, three, seven, twelve, five, six
+and one, and they are listed in those entries rather than here, because the
+list is about an entry's rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
 tests without printing a number, so it carries a finding rather than a verdict,
