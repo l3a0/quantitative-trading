@@ -18,8 +18,8 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7 and 8 carry their own, three, seven, twelve, five, six
-and one, and they are listed in those entries rather than here, because the
+Entries 2, 3, 4, 6, 7, 8 and 9 carry their own, three, seven, twelve, five,
+six, one and three, and they are listed in those entries rather than here, because the
 list is about an entry's rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -32,9 +32,9 @@ Every result in Entries 1, 3, 4, 5, 6, 7 and 8 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
-and nothing about whether the trade works today. Entry 2 spends no sample at all
-and is outside that label and its opposite both, which it states rather than
-picking one.
+and nothing about whether the trade works today. Entries 2 and 9 spend no
+sample at all and are outside that label and its opposite both, which each
+states rather than picking one.
 
 ## Contents
 
@@ -98,6 +98,12 @@ picking one.
   - [The verdicts](#the-verdicts-6)
   - [What the entry concludes](#what-the-entry-concludes-7)
   - [What this entry cannot say](#what-this-entry-cannot-say-5)
+- [Entry 9: the survivorship toy, Chan's *Quantitative Trading*](#entry-9-the-survivorship-toy-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-7)
+  - [What this repo computed](#what-this-repo-computed-8)
+  - [The verdicts](#the-verdicts-7)
+  - [What the entry concludes](#what-the-entry-concludes-8)
+  - [What this entry cannot say](#what-this-entry-cannot-say-6)
 
 ## How to read an entry
 
@@ -120,8 +126,10 @@ both.
    holds Entries 5 and 6, which come from one sentence of the book and share a
    module,
    [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds
-   Entry 7, and [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
-   Entry 8.
+   Entry 7, [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
+   Entry 8, and
+   [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
+   Entry 9.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -223,8 +231,8 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18 and
-Entry 8's row 3.
+than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
+Entry 8's row 3, and Entry 9's rows 3 to 5.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -271,7 +279,9 @@ Three things about the shape are deliberate.
   coin-flip game is synthetic. It has no vendor and no download date, so the
   column that makes a row checkable has nothing to hold. Such a row writes
   `none, synthetic` rather than going blank, because a blank cell reads as an
-  omission. Every row of Entry 2 does.
+  omission. Every row of Entry 2 does. Entry 9 reads the tables Chan prints,
+  which have a source and no vendor, so its rows write
+  `none, the book's printed tables` instead.
 - **A column with nothing to hold in any row is dropped rather than filled.**
   Entry 1's computed table carries a Window column, because a window is what
   selects the rows a vintage is read over. A gamble has no window in any row,
@@ -631,7 +641,7 @@ bias". Shipped under
 [issue 13](https://github.com/l3a0/quantitative-trading/issues/13).
 
 The label is a revised-edition one, and this entry declares it because the
-repo reads every other one as first-edition. The gamble sits in Box 6.1 of
+repo reads a label as first-edition unless it says otherwise. The gamble sits in Box 6.1 of
 Chapter 6, a sidebar the 2009 edition could not hold because it quotes
 Kahneman's 2011 book. The box cites a separate Example 6.1 at Kindle location
 3186, "As Example 6.1 shows", for the continuous approximation it uses. This
@@ -1964,6 +1974,134 @@ no published figure to check, like Entry 5, rather than a replication.
 **What trading at the open gives.** That is Example 3.8, and
 [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) carries
 it.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 9: the survivorship toy, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Example 3.3, between the
+highlights at Kindle locations 1423 and 1474. Shipped under
+[issue 213](https://github.com/l3a0/quantitative-trading/issues/213).
+
+Chan warns at location 1012 that a database holding only surviving stocks
+inflates a backtest that buys cheap stocks, because some stocks are cheap
+because the company is about to fail. Example 3.3 is the toy he points to. It
+buys the 10 lowest-priced stocks among the 1,000 largest by market
+capitalisation at the close on 1/2/2001, with equal capital in each, and sells
+at the close on 1/2/2002. The book prints two tables of ten picks.
+
+1. **The survivorship-free picks.** Nine of the ten were delisted during the
+   year, so the book gives each a terminal price, the last price traded on or
+   before 1/2/2002. Only MDM has a close on that date.
+2. **The survivor-only picks.** A database holding only survivors keeps MDM and
+   continues up the price ranking past the nine stocks it never held.
+
+The label is a revised-edition one, and this entry declares it because the
+repo reads an example number as first-edition unless it says otherwise. Whether the 2009
+edition numbers this example 3.3 and prints the same tables was not checked.
+The first-edition code mirror this repo cites elsewhere holds no file for it
+among its Chapter 3 files, so the printed tables are the whole source.
+
+Five rows, all derivable from
+[tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py). Rows 1
+and 2 are the two figures the book prints. Rows 3 and 4 are the equal-shares
+near miss on each table, and row 5 is the survivor-only figure with NEOF on one
+share basis. Those three carry no published figure and say so in their own
+cells.
+
+**The vintage column says `none, the book's printed tables` in every row.** The
+twenty rows are copied from the book into
+[src/chan/survivorship_bias.py](../src/chan/survivorship_bias.py), whose
+docstring names their source, and nothing was downloaded. A printed number
+cannot be restated by a vendor, so the edition is what pins it.
+[docs/design.md](design.md#a-replication-that-reads-the-books-own-tables) says
+why that is not a vintage. The cell names no price basis, because the book does
+not say whether its database adjusted for splits, and row 5 shows that at least
+one row was not adjusted.
+
+**The window column stays.** Entry 2 dropped it because a gamble has no window,
+and this toy has one in every row, because the book fixes the dates.
+
+Neither epistemic label reaches this entry, for the reason Entry 2 gives.
+Reproducing the arithmetic on a printed table spends no sample.
+
+### What the book printed
+
+| # | Row | Published figure | Where the book prints it |
+| --- | --- | --- | --- |
+| 1 | Survivorship-free portfolio, equal capital | −42 percent, the return Chan says a trader would actually have had | Kindle location 1471 |
+| 2 | Survivor-only portfolio, equal capital | 388 percent, which Chan calls fictitious | Kindle location 1471 |
+| 3 | Survivorship-free portfolio, equal shares | none, the book specifies equal capital | n/a |
+| 4 | Survivor-only portfolio, equal shares | none, the book specifies equal capital | n/a |
+| 5 | Survivor-only portfolio with NEOF on one share basis | none, the book prints NEOF's row as it stands | n/a |
+
+### What this repo computed
+
+| # | Window | Specification | Vintage | Computed | Assertion |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 1/2/2001 to 1/2/2002 | mean of the ten per-stock returns, end over start less one, each delisted stock at its terminal price | none, the book's printed tables | −41.72 percent | `TestBookFigures::test_the_survivorship_free_portfolio_loses_42_percent` |
+| 2 | 1/2/2001 to 1/2/2002 | the same mean over the survivor-only picks | none, the book's printed tables | 387.88 percent | `TestBookFigures::test_the_survivor_only_portfolio_gains_388_percent` |
+| 3 | 1/2/2001 to 1/2/2002 | one share of each, the sum of end prices over the sum of start prices less one | none, the book's printed tables | −47.62 percent | `TestTheNearMiss::test_equal_shares_on_the_survivorship_free_picks` |
+| 4 | 1/2/2001 to 1/2/2002 | the same over the survivor-only picks | none, the book's printed tables | 373.17 percent | `TestTheNearMiss::test_equal_shares_on_the_survivor_picks` |
+| 5 | 1/2/2001 to 1/2/2002 | row 2's mean with NEOF's start price multiplied by 10, the ratio of its 2001 reverse split | none, the book's printed tables | 100.91 percent. As printed, NEOF carries 308.86 of row 2's 387.88 points | `TestTheReverseSplit::test_on_one_share_basis_the_survivor_portfolio_still_gains` and `::test_neof_carries_most_of_the_survivor_only_return` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a trader running this strategy on the stocks actually available would have lost money. The equal-capital mean is negative and rounds to his figure, so the claim survives. |
+| 2 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a survivor-only backtest turns that loss into a large gain. The figure reproduces from his table as printed. Most of it rests on NEOF's row, which compares a price before a reverse split with a price after it, and row 5 puts it on one basis. The claim survives there at a gain against a loss, so the verdict stays with the figure, as Entry 1's row 11 does, and this column carries the qualification. |
+| 3 | none | none, not a replication | The book specifies equal capital. The row exists so the specification is held rather than the number: buying one share of each gives −47.62 percent, which does not round to −42. |
+| 4 | none | none, not a replication | The same near miss on the second table. It gives 373.17 percent, which does not round to 388. The two misses together are what rule the weighting out. |
+| 5 | none | none, not a replication | The book prints NEOF's row unadjusted. Neoforma's FY2001 10-K, [on EDGAR](https://www.sec.gov/Archives/edgar/data/1096219/000101287002001537/d10k.htm), states a 1-for-10 reverse split effective 2001-08-27 and restates its quarterly price tables for it, so 0.875 is a price before the split and 27.9 a price after it. On one basis the survivor-only portfolio still gains, which is the claim row 2 supports, and by far less than the printed figure. |
+
+### What the entry concludes
+
+Three things, and the first is why the verdicts carry less than they look.
+
+1. **The verdicts were knowable before the work started.** As with Entry 2,
+   nothing can move a printed table's arithmetic, so rows 1 and 2 could only
+   reproduce once the right weighting was found. The work is worth the
+   specification it settles and the row it checked against an outside source.
+2. **The book prints no formula, so the weighting is what rows 1 to 4 hold.**
+   Equal capital reproduces both figures, and equal shares misses both. Both
+   are pinned, because an assertion on the right figure alone would hold a
+   number rather than a choice.
+3. **One stock carries most of the fictitious return, and its row mixes two
+   share bases.** NEOF contributes 308.86 of the 387.88 points. With its start
+   price on the basis of its reverse split, the survivor-only portfolio returns
+   100.91 percent. The lesson survives, since −41.72 against 100.91 is still a
+   loss against a gain, but the difference between the two portfolios is much
+   smaller once NEOF's row is on one share basis. That is a finding about
+   Chan's table, and it does not change what the table as printed reproduces
+   to.
+
+Chan tells the same toy a second time. The sibling repository's notes on his
+*Algorithmic Trading*, at location 704 in
+[research/book-notes/algorithmic-trading.md](https://github.com/l3a0/trading-strategies/blob/477c594/research/book-notes/algorithmic-trading.md),
+give the same 388 percent but describe the honest outcome as "almost 100
+percent loss" rather than −42 percent. That is the same author with a
+different number, cited here as the sibling's note and not reproduced.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the picks are right.** The universe of 1,000 stocks is not printed,
+so the selection step cannot be re-run. Re-running it would need the 1,000
+largest US stocks as they stood on 2001-01-02, delisted ones included, which is
+bought data. No issue is filed for it, because both printed figures sit
+downstream of the picks.
+
+**Whether the other nineteen rows sit on one share basis.** Only NEOF was
+checked against a filing. The rest are taken as printed, so row 5 corrects the
+one row known to mix two bases and claims nothing about the others.
+
+**Whether buying cheap stocks pays.** The toy shows what a survivor-only
+database does to a backtest. It runs one year on ten stocks and is not a test
+of the strategy.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
