@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6 and 7 carry their own, three, seven, twelve, five and six,
-and they are listed in those entries rather than here, because the list is about an entry's
-rows and not about the file.
+Entries 2, 3, 4, 6, 7 and 8 carry their own, three, seven, twelve, five, six
+and one, and they are listed in those entries rather than here, because the
+list is about an entry's rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
 tests without printing a number, so it carries a finding rather than a verdict,
@@ -28,9 +28,9 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6 and 7 is **exploratory** in the design doc's
-sense. Reproducing a published figure spends the sample on a hypothesis someone
-else already chose, and testing a claim the source states does the same, so an
+Every result in Entries 1, 3, 4, 5, 6, 7 and 8 is **exploratory** in the design
+doc's sense. Reproducing a published figure spends the sample on a hypothesis
+someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
 and nothing about whether the trade works today. Entry 2 spends no sample at all
 and is outside that label and its opposite both, which it states rather than
@@ -92,6 +92,12 @@ picking one.
   - [What the entry concludes](#what-the-entry-concludes-6)
   - [The third January return the committed file cannot reach](#the-third-january-return-the-committed-file-cannot-reach)
   - [What this entry cannot say](#what-this-entry-cannot-say-4)
+- [Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*](#entry-8-the-khandani-lo-reversal-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-6)
+  - [What this repo computed](#what-this-repo-computed-7)
+  - [The verdicts](#the-verdicts-6)
+  - [What the entry concludes](#what-the-entry-concludes-7)
+  - [What this entry cannot say](#what-this-entry-cannot-say-5)
 
 ## How to read an entry
 
@@ -112,9 +118,10 @@ both.
    [tests/test_risk_parity.py](../tests/test_risk_parity.py) holds Entry 4,
    [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py)
    holds Entries 5 and 6, which come from one sentence of the book and share a
-   module, and
+   module,
    [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds
-   Entry 7.
+   Entry 7, and [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
+   Entry 8.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -216,7 +223,8 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 6 and Entry 7's rows 15 to 18.
+than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18 and
+Entry 8's row 3.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -322,7 +330,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 1977-01-03 to 2008-01-18 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 7 | −2.14 | `TestKoPepNonCointegration::test_fails_to_cointegrate` |
 | 9 | 1977-01-03 to 2008-01-18 | Pearson correlation of daily returns, returns divided by the earlier price, two-sided significance on n−2 degrees of freedom | same two files as row 7 | 0.48492, with t = 49.0707 | `TestKoPepNonCointegration::test_returns_are_correlated` |
 | 10 | 2006-06-19 to 2026-06-16 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | `gld_20yr_prices.csv`, downloaded 2026-06-16, and `gdx_20yr_prices.csv`, downloaded 2026-08-27, both Yahoo dividend-adjusted. Two files and two dates, so naming one of them cannot re-derive the row | −1.45, with a half-life of 833.5 | `TestGldGdxReproduction::test_full_span_fails_to_reject` |
-| 11 | 2006-05-23 to 2007-05-23 for the Python run and the lag sweep, 2006-05-23 to 2007-11-30 for the R run | Python: `statsmodels` `coint` at its defaults, which is the Engle-Granger test on the with-intercept residual spread at the lag `autolag='aic'` picks. R: Hansen's covariate-augmented Dickey-Fuller regression, the daily change in GLD by OLS on a constant, GLD's lagged level, one lagged change of GLD, and GDX today and yesterday, with the t on the lagged level. The lag sweep: row 4's spread at `autolag='aic'` and at every fixed lag from 0 to 16 | two vintages, run separately: `gld_chan.csv` and `gdx_chan.csv`, saved 2007-12-02, for both of Chan's runs, and the two raw yfinance files of row 1 for the sweep | On Chan's files, −2.3591 at 6 lags with p = 0.3444, and −3.2409 on 378 residual degrees of freedom. On the yfinance raw closes, −2.2979 at 6 lags and −3.0875 at 1 lag, and the sweep clears −3.04 only at 0 and 1 lags | `TestChansPythonRun::test_coint_at_its_defaults_lands_the_printout` and `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout` for Chan's files, and `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict`, `::test_fixed_lag_reproduces_the_book` and `::test_the_statistic_is_not_monotone_in_the_lag` for the yfinance raw closes |
+| 11 | 2006-05-23 to 2007-05-23 for the Python run and the lag sweep, 2006-05-23 to 2007-11-30 for the R run | Python: `statsmodels` `coint` at its defaults, which is the Engle-Granger test on the with-intercept residual spread at the lag `autolag='aic'` picks. R: Hansen's covariate-augmented Dickey-Fuller regression, the daily change in GLD by OLS on a constant, GLD's lagged level, one lagged change of GLD, and GDX today and yesterday, with the t on the lagged level. GDX enters as its price, so the regression is an error-correction cointegration test whose coefficients imply a hedge. The lag sweep: row 4's spread at `autolag='aic'` and at every fixed lag from 0 to 16 | two vintages, run separately: `gld_chan.csv` and `gdx_chan.csv`, saved 2007-12-02, for both of Chan's runs, and the two raw yfinance files of row 1 for the sweep | On Chan's files, −2.3591 at 6 lags with p = 0.3444, and −3.2409 on 378 residual degrees of freedom, with an implied hedge of 1.6992, and +0.3554 when GDX's daily change replaces its price. On the yfinance raw closes, −2.2979 at 6 lags and −3.0875 at 1 lag, and the sweep clears −3.04 only at 0 and 1 lags | `TestChansPythonRun::test_coint_at_its_defaults_lands_the_printout` and `::test_the_default_picks_six_lags`, and `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout`, `::test_the_covariate_went_in_as_a_price` and `::test_the_training_subset_was_not_applied` for Chan's files, and `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict`, `::test_fixed_lag_reproduces_the_book` and `::test_the_statistic_is_not_monotone_in_the_lag` for the yfinance raw closes |
 
 ### The verdicts
 
@@ -338,7 +346,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 0.00 | reproduced | Chan's claim is that the pair does not cointegrate. The computed statistic sits well above `EG_CRIT_N2`'s 10% value of −3.04, so it fails to reject and the claim survives. |
 | 9 | 0.0000 at four decimals | reproduced | Chan's claim is that the correlation is statistically significant. It clears the 5% level two-sided by a wide margin. Together with row 8 this is the demonstration that correlation and cointegration are different things. |
 | 10 | none | none, not a replication | The book stops in 2007, so there is no published figure. What the row shows is the shelf life: the statistic fails to reject at 10% and the half-life runs to 833.5 days against the about 10 of row 5. |
-| 11 | 0.0000 at four decimals on Chan's files, against both full printouts. On the yfinance raw closes, +0.1 against his −2.4 | reproduced | Both printouts reproduce on Chan's files, and the verdict rests there. The yfinance gap is the vintage gap of row 1. The claim each figure supports survives: Python's p of 0.3444 fails to reject at 10%, and R's printed p of 0.005 rejects. That second p comes from Hansen's distribution, which nothing here computes, so the R run's rejection is quoted rather than recomputed and its t is never read against `EG_CRIT_N2`. The conclusion Chan draws does not survive. He concludes that Python's statistics and econometrics packages are not to be trusted. Python and MATLAB ran one test on one window and differ only in the lag count, and R ran a different test on a longer window, so the disagreement says nothing about Python's packages. Three earlier readings are killed by `TestChansPythonRun::test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans`. Zero and three fixed lags read as −3.2 and −2.4 on the yfinance closes and give −3.2975 and −2.4857 on Chan's, and one fixed lag gives −3.1780, which rounds to −3.2 from a different test. |
+| 11 | 0.0000 at four decimals on Chan's files, against both printed t-statistics. On the yfinance raw closes, +0.1 against his −2.4 | reproduced | Every figure both runs print reproduces on Chan's files at the precision printed, apart from R's p-value and its ρ², and the verdict rests there. The yfinance gap is the vintage gap of row 1. The Python claim survives: its p of 0.3444 fails to reject at 10%. The R claim is not settled by its own printout. Its p of 0.004975 comes from Hansen's distribution, which assumes a stationary covariate, and the code passed GDX's price, which fails to reject a unit root. That makes the regression an error-correction cointegration test, so neither Hansen's table nor `EG_CRIT_N2` is its critical value, and nothing here supplies one. Given GDX's daily change, the input Hansen's test is built for, the t is +0.3554, which rejects nothing. The conclusion Chan draws does not survive. He concludes that Python's statistics and econometrics packages are not to be trusted. Python and MATLAB ran one test on one window and differ only in the lag count, and R ran a different test on a longer window with an input it was not built for, so the disagreement says nothing about Python's packages. `TestChansPythonRun::test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans` kills three earlier readings: zero fixed lags, which give −3.2018 on the yfinance closes and −3.2975 on Chan's, three fixed lags, which give −2.4067 against −2.4857, and one fixed lag, whose −3.1780 rounds to R's −3.2 but comes from a different test than R ran. |
 
 ### What the entry concludes
 
@@ -355,15 +363,17 @@ Four things, in the order of how much they cost to learn.
    that still exists.
 3. **Chan's conclusion about Python is refuted by his own numbers.** Row 11 is
    the most useful verdict here. His −2.4 and his −3.2 both reproduce on his
-   own files, to within a billionth of the full printouts, and they come from
-   two different tests on two different windows. His Python run is the
+   own files, each t-statistic to within a billionth, and they come from two
+   different tests on two different windows. His Python run is the
    Engle-Granger test on 252 days, with `autolag='aic'` picking six lags. His
-   R run is Hansen's covariate-augmented Dickey-Fuller test on all 385 days.
-   MATLAB ran the Engle-Granger test on the same 252 days as Python, with one
-   lag passed as an argument, so against MATLAB what separates Python is the
-   lag count. On the yfinance raw closes the statistic does not weaken
-   steadily as lags are added, since it is more negative at four lags than at
-   three. The verdict is what holds there: zero or one lag clears the 10% line
+   R run calls Hansen's covariate-augmented Dickey-Fuller test on all 385
+   days and passes GDX's price where the test expects a stationary series, so
+   its printed p-value does not settle whether it rejects. Chan's MATLAB call,
+   as `example3_6_1.m` reads, runs the Engle-Granger test on the same 252 days
+   as Python with one lag passed as an argument, so against MATLAB what
+   separates Python is the lag count. On the yfinance raw closes the
+   statistic does not weaken steadily as lags are added, since it is more
+   negative at four lags than at three. The verdict is what holds there: zero or one lag clears the 10% line
    and every count from two to sixteen misses it. A conclusion about a library
    turns out to be a conclusion about a default and about which test ran.
    Which lag count the test is entitled to is a separate question, taken up
@@ -1809,6 +1819,151 @@ the check.
 **What happened after 2007.** After Example 7.7 the revised edition says the
 most recent five years give even worse average returns. Neither file reaches
 those years, so nothing here reads that claim.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Example 3.7, Kindle locations
+2099, 2137 and 2233. Shipped under
+[issue 17](https://github.com/l3a0/quantitative-trading/issues/17).
+
+Three computed rows, all derivable from
+[tests/test_khandani_lo.py](../tests/test_khandani_lo.py).
+
+**Both of Chan's figures reproduce at the precision he printed.** The rule buys
+the stocks that fell most against the market yesterday and shorts the ones that
+rose most. On his own S&P 500 file over 2006 it earns a Sharpe ratio of 0.2510
+before costs, against his 0.25, and −3.1884 after 5 basis points a trade,
+against his −3.19. A cost a large-cap trader pays every day turns a small edge
+into a large loss, and that collapse is the lesson the example was printed to
+teach.
+
+The second figure reproduces only because two quirks of Chan's code are kept.
+His script never charges the first day's rebalance, which leaves that day's
+after-cost profit as NaN. His `smartstd` then counts that NaN as 0 while his
+`smartmean` skips it. A port that skips the NaN in both, the way pandas does,
+gives −3.1822 and misses −3.19 by one unit. Row 3 removes both quirks and
+gives −3.2337, a little worse than Chan printed.
+
+Two rows are replications and one is not. Rows 1 and 2 are the two figures
+Chan prints. Row 3 is the same run with both quirks removed, which Chan prints
+no figure for, so it carries no verdict.
+
+Two figures from the book have a row in the first table and none in the other
+two.
+
+1. **Khandani and Lo's 4.47**, the Sharpe ratio they report for 2006. It was
+   computed on their own universe, which this repo does not hold, so nothing
+   here computes it and it takes no verdict. Chan's figure is about the S&P
+   500, and the distance between his 0.25 and their 4.47 is his point rather
+   than a gap.
+2. **Chan's explanation**, that most of their returns came from small and
+   microcap stocks. It is a claim about a universe this run does not read.
+   Location 2236, at the end of Example 3.8, leaves rerunning the strategy on
+   the S&P 400 and S&P 600 as an exercise, which would test it, and nothing
+   here runs that.
+
+Every row reads the same vintage, window and specification, so the three are
+stated once here.
+
+1. **The vintage.** `spx_20071123/`, the 500 stocks of Chan's
+   `SPX_20071123.mat`, lifted one vintage per stock, saved 2007-11-24, and read
+   back as one frame through `chan.series.load_panel`.
+   [data/README.md](../data/README.md) says where the file came from. It is
+   the S&P 500 as it stood on 2007-11-23, carried backwards, so a company that
+   left the index before then is absent. Of the 500, 491 are priced on the
+   window's first day and 495 on its last. **Every figure here is about
+   survivors.** [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198)
+   is where the same rule runs on the index as it stood in 2006, and
+   [issue 213](https://github.com/l3a0/quantitative-trading/issues/213) is
+   Chan's own demonstration of what survivorship does.
+2. **The window.** 2006-01-03 to 2006-12-29, 251 trading days. Returns,
+   weights and profit are computed on the whole file and only then cut, so the
+   window's first profit uses the weights from the day before it.
+3. **The specification.** Chan's `example3_7.m`, read in the mirror
+   [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading)
+   at `1a71950`. A stock's weight is minus its return less the equal-weighted
+   market's, divided by the count of stocks with a close that day, and 0 where
+   either day's close is missing. The weights are held for one day and sum to
+   zero across stocks. The cost is 5 basis points on each side of a change in
+   weight, which is location 998's convention that a round trip is two
+   transactions. The Sharpe ratio is √252 times the mean over the standard
+   deviation, with no risk-free rate subtracted.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 sample on a rule somebody else chose, so the entry says whether his
+numbers reproduce on his file and nothing about whether the rule pays today.
+
+### What the book printed
+
+| # | Row | Published figure | Where the book prints it |
+| --- | --- | --- | --- |
+| 1 | Sharpe ratio on the S&P 500 in 2006, before costs | 0.25 | Kindle location 2137, and again at 2233 |
+| 2 | Sharpe ratio after 5 basis points a trade | −3.19 | location 2233 |
+| 3 | Sharpe ratio after costs, with the first day charged and nothing zero-filled | none, the book prints no such figure | n/a |
+| 4 | Khandani and Lo's Sharpe ratio for 2006, on their own universe | 4.47 | location 2099 |
+| 5 | Chan's explanation of the drop | that most of their returns came from small and microcap stocks, a claim rather than a figure | location 2137 |
+
+### What this repo computed
+
+| # | Window | Specification | Computed | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | 2006-01-03 to 2006-12-29 | Chan's rule before costs, his `sharpe` | 0.2510 | `TestTheFigures::test_before_costs` |
+| 2 | 2006-01-03 to 2006-12-29 | Chan's rule after costs, his `sharpeminustcost`, with the first day uncharged and its NaN counted as 0 in the deviation | −3.1884 | `TestTheFigures::test_after_costs_with_both_quirks` |
+| 3 | 2006-01-03 to 2006-12-29 | row 2 with the first day charged from the weights before the window, so no day is NaN | −3.2337 | `TestTheFigures::test_after_costs_with_both_quirks_removed` |
+
+`TestTheQuirksMoveTheFigure::test_dropping_the_nan_misses_chans_second_digit`
+holds the −3.1822 a pandas port gives, and that it misses −3.19.
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.00 | reproduced | Chan's claim is that the rule earns a mediocre Sharpe ratio on the S&P 500 in 2006, far below Khandani and Lo's. On his own file and his own code it lands on his figure at the two decimals he printed. |
+| 2 | 0.00 | reproduced | The claim is that 5 basis points a trade turns that small edge into a large loss, and it survives at his printed precision. It lands there only with both quirks of his code kept, which is the specification the figure came from rather than a choice made to close a gap. |
+| 3 | none | none, not a replication | Chan prints no figure for it. It is here because it is the after-cost figure with the first day charged, so its series holds no NaN for the deviation to count as 0. It lands a little below Chan's figure, so the two quirks moved his figure in his favour without moving the claim. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **Both figures reproduce on Chan's own file.** The vintage explanation that
+   carries Entry 1's misses is not needed here, because the file is his and
+   the code transcribes his script. What the entry adds
+   is that his second figure depends on how his helpers treat one NaN, so a
+   careful port of the formula alone misses it.
+2. **On the S&P 500 the daily cost is larger than the daily edge.** A Sharpe
+   ratio of 0.2510 before costs and −3.1884 after is a rule whose average
+   daily profit is smaller than the average cost of rebalancing into it every
+   day. Removing the quirks makes the after-cost figure slightly worse, not
+   better.
+3. **The universe is survivors, and nothing here measures what that cost.**
+   Every stock that left the S&P 500 before 2007-11-23 is missing, whether it
+   failed or was taken over, so neither the size nor the sign of the effect on
+   either figure is known.
+   [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) is
+   what would measure it.
+
+### What this entry cannot say
+
+Four things.
+
+**Whether Khandani and Lo's figure reproduces.** It was computed on a universe
+this repo does not hold, so it stays a cited number.
+
+**Whether Chan's explanation holds.** The rule on small caps is the test of
+it, and Chan leaves that as an exercise. The S&P 600 file under
+`ijr_20080114/` spans 2006, and running the rule on it would be a finding with
+no published figure to check, like Entry 5, rather than a replication.
+
+**What survivorship cost.** Neither its size nor its sign is measured.
+
+**What trading at the open gives.** That is Example 3.8, and
+[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) carries
+it.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
