@@ -1002,46 +1002,59 @@ holds what they draw rather than their bytes, for the reason given above for
 the regime map.
 
 [blog/survivorship-and-transaction-costs.md](blog/survivorship-and-transaction-costs.md)
-is a seventh post, about Chapter 3's two warnings about a backtest: the
-Khandani-Lo reversal, Example 3.7, which loses its edge to trading costs, and
-Chan's survivorship toy, Example 3.3. It draws five lessons from Entries 8 and
-9 of the replication log.
+is a seventh post, about Chapter 3's warnings about a backtest: the
+Khandani-Lo reversal, Example 3.7, which loses its edge to trading costs,
+Chan's survivorship toy, Example 3.3, and Example 3.8, the reversal traded at
+the open. It draws seven lessons from Entries 8, 9 and 10 of the replication
+log.
 
 1. On the S&P 500 a day's cost is larger than a day's profit.
 2. Matching −3.19 means matching how Chan's code handles one missing day.
 3. A database of survivors turns a loss into a large gain.
 4. The book's own table mixes two kinds of share in NEOF's row.
 5. The toy cannot measure survivorship's effect on the reversal.
+6. On the book's rule, trading at the open misses Chan's claim after costs,
+   while his notebook's own figures reproduce.
+7. One column of Chan's file, WYN's, joins two stretches of prices, and the
+   notebook reads the gap as one day's move.
 
-Four groups of its figures are not pinned here.
+Four groups of its figures are not pinned here. Its page numbers are the
+revised edition's, read in the Kindle Cloud Reader on 2026-10-03.
 
-1. Chan's words. "Fictitious" from location 1471, the 5 basis points of
-   location 998, the futures rule at about 3 before costs and −3 after 1 basis
-   point at location 1004, the mechanism at location 1012, the small and
-   microcap explanation at location 2137, "mediocre" from location 2233, the
-   exercise on the S&P 400 and S&P 600 that closes Example 3.8 at location
-   2236, and Example 3.8's "very positive", which the owner read at p. 78 and
+1. Chan's words. "Of less than 1 is not suitable" from p. 23, the 5 basis
+   points of p. 25, the mechanism and the futures rule at about 3 before costs
+   and −3 after 1 basis point, both on p. 26, "fictitious" from p. 44, the
+   small and microcap explanation on p. 74, and from p. 78 "mediocre", "the
+   only change", the exercise on the S&P 400 and S&P 600 that closes Example
+   3.8, and Example 3.8's "very positive". The last is not among the
+   committed highlights, and
    [issue 206](https://github.com/l3a0/quantitative-trading/issues/206)
-   records and which is not among the committed highlights.
+   records where the owner read it.
 2. Facts outside the committed data. Neoforma's 1-for-10 reverse split
    effective 27 August 2001, from its 10-K. Khandani and Lo's 4.47, which the
-   post quotes as Chan reports it at location 2099, and the stocks it was
-   computed on. That EQ, NYX, WU and WYN began trading during
-   2006, where the suite pins only that they are the four stocks priced on the
-   window's last day and not its first.
+   post quotes as Chan reports it on p. 72, and the stocks it was computed on.
+   That older versions of pandas filled a gap with the last price by default,
+   which is how the post explains the notebook's fill. The repost of Chan's
+   notebooks at pinhaocheng/epchan-quant_trading_Python_codes `5fcab61`,
+   where the four printouts were read. The suite pins their values, not where
+   they were read.
 3. Chan's *Algorithmic Trading*, cited through
    [its committed notes](research/book-notes/algorithmic-trading.md):
    his argument at location 432 that survivorship flatters a long-short
    reversal by less than a buy-only rule, and his second telling of the toy at
    location 704, with "almost 100 percent loss".
-4. Arithmetic no test asserts: that −3.1822 rounds to −3.18, and that a
-   41.72% loss against a 100.91% gain is still a loss turned into a gain.
+4. Arithmetic no test asserts: that −3.1822 rounds to −3.18, that a
+   41.72% loss against a 100.91% gain is still a loss turned into a gain,
+   that a return of 121.5 is a gain of over 12,000 percent, and that 952
+   trading days is years.
 
 Every other number in the post traces to an assertion in
-[tests/test_khandani_lo.py](tests/test_khandani_lo.py) or
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py),
+[tests/test_series.py](tests/test_series.py) for WYN's 0.26, 31.85 and 952
+trading days, or
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py), or to
 [tests/test_survivorship_and_costs_figures.py](tests/test_survivorship_and_costs_figures.py)
-for the two figures' own numbers. Four groups had no pin before it.
+for the two figures' own numbers. Five groups had no pin before it.
 
 1. What an average day of the reversal earns, costs, trades and swings, as a
    share of the window's mean gross position, and that √252 times the average
@@ -1054,6 +1067,10 @@ for the two figures' own numbers. Four groups had no pin before it.
    which `TestTheVintage` holds.
 4. Where each running total ends and NEOF's 21.89 points on one share basis,
    which the figure tests hold.
+5. That both of the notebook's figures on the opens clear 1.0, that its
+   figure after costs still clears 1.0 without the fill or without WYN, and
+   that charging the first day leaves the book's rule below 1.0. Two tests in
+   `TestTheVerdicts` hold them.
 
 Its two figures are drawn by
 [src/chan/survivorship_and_costs_figures.py](src/chan/survivorship_and_costs_figures.py),

@@ -2282,8 +2282,9 @@ companies under one symbol, 952 trading days apart, and the fill reads that gap
 as a single day's move on 2006-08-01: a return of 121.5 on the closes and
 127.65 on the opens, gains of over 12,000 percent. On the closes the fill
 lifts rule A from 0.4179 to 0.9578 before costs, and dropping WYN alone gives
-0.4268. On the opens it pulls rule A down, from 4.8606 to 2.3818, and dropping
-WYN alone gives 4.8508.
+0.4268. On the opens it pulls rule A's figure before costs down, from 4.8606 to
+2.3818, and dropping WYN alone gives 4.8508. After costs on the opens it
+pushes the figure up, from 1.0335 to 1.3997.
 
 Five rows are replications and eight are not. Row 1 is the claim, which takes
 the claim route `### Rows that are not replications` describes, and rows 2 to
@@ -2401,7 +2402,9 @@ Entry 8 says.
 the S&P 600 file.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/survivorship-and-transaction-costs.md](../blog/survivorship-and-transaction-costs.md)
+moves with it, since that post's Lessons 6 and 7 quote these figures.
 
 ## Entry 11: the commodity seasonals, Chan's *Quantitative Trading*
 
