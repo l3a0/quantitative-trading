@@ -175,6 +175,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/price-spread-mean-reversion.md",
         "blog/risk-parity-against-60-40.md",
         "blog/stationary-candidates-lessons.md",
+        "blog/survivorship-and-transaction-costs.md",
         "research/book-notes/README.md",
         "research/book-notes/quantitative-trading.md",
         "research/papers/README.md",
@@ -509,6 +510,12 @@ def test_a_slug_drops_punctuation_and_emphasis() -> None:
     assert slug("Entry 1: GLD/GDX and KO/PEP, Chan's *Quantitative Trading*") == (
         "entry-1-gldgdx-and-kopep-chans-quantitative-trading"
     )
+
+
+def test_a_slug_drops_a_code_spans_backticks() -> None:
+    # The price-spread post's "What does `γ` do?" is the heading this holds.
+    # GitHub renders its anchor as what-does-γ-do, the same as with a bare γ.
+    assert slug("What does `γ` do?") == slug("What does γ do?") == "what-does-γ-do"
 
 
 def test_a_slug_keeps_digits_underscores_and_hyphens() -> None:
@@ -1055,6 +1062,7 @@ class TestTheFigureHasThreeCopies:
             "coin-toss-expected-value-vs-growth.md",
             "price-spread-mean-reversion.md",
             "stationary-candidates-lessons.md",
+            "survivorship-and-transaction-costs.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()

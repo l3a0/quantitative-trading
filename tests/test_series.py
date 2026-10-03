@@ -22,6 +22,7 @@ to catch.
 from __future__ import annotations
 
 import hashlib
+import math
 import os
 import shutil
 import sys
@@ -602,6 +603,80 @@ class TestTheParseTakesTwoColumnsAndStaysQuiet:
         assert [str(warning.message) for warning in raised] == []
 
 
+class TestTheParseReturnsTheNumberTheTextSpells:
+    """A verified vintage is only worth its hash if the reader hands back its bytes.
+
+    [Issue 211](https://github.com/l3a0/quantitative-trading/issues/211) found
+    the reader landing a long value one unit off in its last digit, so a series
+    could hash to its record and still not be what the file says. Python's
+    ``float`` is the reference, because it returns the nearest float to the
+    decimal written, which is what the recorder's ``repr`` wrote out.
+    """
+
+    def test_the_value_issue_211_found_reads_back_exactly(self) -> None:
+        """The synthetic close the review of PR 210 found, which came back as
+        ``912.7555772777216``."""
+        payload = b"Date,Close\n2020-01-02,912.7555772777217\n"
+
+        values = series._parse_close(payload, "ZZZ")
+
+        assert values.iloc[0] == float("912.7555772777217")
+
+    def test_a_file_with_no_header_row_reads_back_exactly_too(self) -> None:
+        """With no header row ``read_csv`` would type the column as numbers
+        itself, through a parser that misreads the same value, so the reader
+        asks it for text whatever the file's shape."""
+        payload = b"2020-01-02,1.5\n2020-01-03,912.7555772777217\n"
+
+        values = series._parse_close(payload, "ZZZ")
+
+        assert list(values) == [1.5, float("912.7555772777217")]
+
+    def test_a_cell_that_is_not_a_number_still_reads_as_nan(self) -> None:
+        """The exact parse keeps the old reader's answer for text that is not a
+        number, NaN beside its neighbours, rather than stopping the read. The
+        text is one pandas does not already read as missing, the way it reads
+        ``n/a``, so the cell reaches the parse rather than arriving as NaN.
+        An empty cell sits beside the word, because the cell-by-cell path has to
+        keep a day for each, and the long value has to come back exact on that
+        path too."""
+        payload = (
+            b"Date,Close\n2020-01-02,10.5\n2020-01-03,halted\n2020-01-06,\n"
+            b"2020-01-07,912.7555772777217\n"
+        )
+
+        values = series._parse_close(payload, "ZZZ")
+
+        assert values.dtype == "float64"
+        assert len(values) == 4
+        assert values.iloc[0] == 10.5
+        assert math.isnan(values.iloc[1])
+        assert math.isnan(values.iloc[2])
+        assert values.iloc[3] == float("912.7555772777217")
+
+    def test_every_committed_column_reads_back_as_its_text(self) -> None:
+        """Every field of every committed vintage, not only the close, because a
+        lifted file's other fields go through the same parse."""
+        misread = {}
+        for entry in read_manifest():
+            payload = (DATA_DIR / entry.path).read_bytes()
+            lines = payload.decode("utf-8").splitlines()
+            first = lines[0].split(",")
+            columns = range(1, len(first)) if first[0] == "Price" else [1]
+            rows = [line.split(",") for line in lines if line[:1].isdigit()]
+            for column in columns:
+                expected = [float(row[column]) for row in sorted(rows)]
+                read = list(series._parse_close(payload, entry.symbol, column=column))
+                if len(read) != len(expected):
+                    misread[(entry.path, column)] = "a different number of rows"
+                elif read != expected:
+                    misread[(entry.path, column)] = sum(
+                        a != b for a, b in zip(read, expected, strict=True)
+                    )
+
+        assert misread == {}
+
+
 class TestTheParseDoesNotDependOnWhereTheBytesCameFrom:
     """Rule 5's other half. The buffer and the path must parse to one series.
 
@@ -626,7 +701,7 @@ class TestTheParseDoesNotDependOnWhereTheBytesCameFrom:
             dates = pd.to_datetime(from_path["date"], errors="coerce")
         mask = dates.notna()
         expected = pd.Series(
-            pd.to_numeric(from_path["close"][mask], errors="coerce").to_numpy(dtype=float),
+            from_path["close"][mask].astype("float64").to_numpy(),
             index=pd.DatetimeIndex(dates[mask]),
             name=ticker.upper(),
         ).sort_index()
