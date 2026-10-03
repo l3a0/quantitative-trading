@@ -20,8 +20,9 @@ Three sources, told apart by what the manifest records rather than by a filename
   vendor ``chan-xls`` and are the adjusted-close column of Chan's own ``.xls``
   for that symbol. SPY's workbook also gives its as-traded ``Close``, which
   ``unadjusted=True`` reads, and no other symbol has one.
-- Chan's two MATLAB cross-sections, under the vendor ``chan-mat``, which
+- Chan's MATLAB cross-sections, under the vendor ``chan-mat``, which
   :func:`load_panel` reads a whole file at a time and no ticker flag names.
+  Three hold prices and one holds earnings flags under the ``event`` basis.
 
 The basis decides the levels. GLD pays no distributions, so its adjusted close
 already equals its raw close, while GDX's dividends put today's adjusted
@@ -43,7 +44,7 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB files carry 62 more flagged days, most of
+The columns lifted from Chan's MATLAB price files carry 92 more flagged days, most of
 them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
 of them.
 
@@ -71,6 +72,7 @@ import numpy as np
 import pandas as pd
 
 from chan.vintage import (
+    EVENT_FIELDS,
     VintageEntry,
     VintageUnavailable,
     read_manifest,
@@ -232,14 +234,17 @@ def load_panel(
     """Every stock lifted from one source file, as a date-by-symbol frame of one field.
 
     ``field`` is a name from :data:`chan.vintage.LIFTED_FIELDS`, the close by
-    default. A member's file names its fields in its first row, and a member
-    that does not carry the one asked for is refused by name rather than read
-    as a column of NaN.
+    default, or from :data:`chan.vintage.EVENT_FIELDS` for a source of flags. A
+    member's file names its fields in its first row, and a member that does not
+    carry the one asked for is refused by name rather than read as a column of
+    NaN.
 
     The members are the entries whose ``source_workbook`` names the file, and
     they come back sorted by symbol, which is the frame's column order too.
-    Both of Chan's ``.mat`` files already hold their columns in that order,
-    measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
+    Chan's ``.mat`` files already hold their columns in that order, measured
+    for his first two on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88)
+    and for the two book-two files on
+    [issue 250](https://github.com/l3a0/quantitative-trading/issues/250).
 
     The manifest is read once. Resolving each member by its identity fields
     would read and validate every one of its lines once per member, 500 times
@@ -256,8 +261,9 @@ def load_panel(
 
     A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
     A source naming no entry, members disagreeing on the vendor, basis or date
-    they carry, and two members holding one symbol are three different states,
-    and the message says which fired.
+    they carry, a close asked of a source of flags, and two members
+    holding one symbol are four different states, and the message says which
+    fired.
     """
     try:
         entries = read_manifest(data_dir)
@@ -278,6 +284,15 @@ def load_panel(
             f"the {len(members)} vintages lifted from {source_file} disagree on what they are: "
             f"{'; '.join(' '.join(each) for each in carried)}. One source was saved once, so "
             f"its columns carry one vendor, one basis and one date."
+        )
+    if field == "Close" and members[0].price_basis == "event":
+        # Every vintage's second column answers to "Close" without its header
+        # being read, so a source of flags would otherwise come back labelled
+        # as closes with nothing to say it was not. A rate is different: its
+        # value is the one written in the Close column, so it still reads.
+        raise VintageUnavailable(
+            f"{source_file} holds event flags rather than prices, so it has no close. Ask "
+            f"for its {EVENT_FIELDS[0]} field by name."
         )
     symbols = [entry.symbol for entry in members]
     repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})

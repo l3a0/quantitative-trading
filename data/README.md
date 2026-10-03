@@ -30,7 +30,7 @@ that was settled.
 The third way is `chan.vintage.record_lifted_columns`, which writes every
 column of one of Chan's files at once, each as its own vintage carrying the
 date the file was saved. It exists because typing stopped being one line per
-column. Chan's two MATLAB files hold 1,100 columns between them, and
+column. Chan's first two MATLAB files held 1,100 columns between them, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where the
 owner decided on 2026-10-02 that entries at that count are written by code.
 `python -m chan.mat_columns` reads a `.mat` file and hands its closes over.
@@ -63,7 +63,7 @@ why the bytes cannot carry the symbol instead.
 ## What each file is
 
 A vintage is one series as one source held it on one date, identified by
-vendor, symbol, span, that date, and which price or rate the series carries.
+vendor, symbol, span, that date, and which price, rate or event the series carries.
 The date is a download date for a series a vendor returned, and a saved date
 for a column lifted from one of Chan's own files.
 
@@ -99,6 +99,8 @@ for a column lifted from one of Chan's own files.
 | `eia_rngc4_raw_1993-12-20_2024-04-05_dl2026-10-02.csv` | eia | RNGC4 | raw | 1993-12-20 .. 2024-04-05 | 2026-10-02 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
+| `inputdataohlcdaily_stocks_20120424/` | Chan's `inputDataOHLCDaily_stocks_20120424.mat` | 497 members | adjusted | 2006-05-11 .. 2012-04-24 | saved 2012-04-25 |
+| `earnannfile/` | Chan's `earnannFile.mat` | 497 members | event | 2011-01-03 .. 2012-04-24 | saved 2012-05-15 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -360,12 +362,12 @@ column taken from it. The checksums of `GLD.xls`, `GDX.xls`, `KO.xls` and
 of `example6_2.xls` is in
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py).
 
-The two directories hold Chan's first-edition MATLAB files, one vintage per
+The first two directories hold Chan's first-edition MATLAB files, one vintage per
 stock, each carrying that stock's close, high, low, open and volume. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
 which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
 stood on 2008-01-14.
-[src/chan/khandani_lo.py](../src/chan/khandani_lo.py) reads the first for
-Example 3.7. His Example 7.6 loads `IJR_20080131`, which the mirror
+[src/chan/khandani_lo.py](../src/chan/khandani_lo.py) reads the first's
+closes for Example 3.7 and its opens for Example 3.8. His Example 7.6 loads `IJR_20080131`, which the mirror
 does not hold, and its third printed return is the trade into January 2008,
 whose month end this file stops short of. So this file can give Example 7.6's
 first two returns and not its third.
@@ -383,13 +385,14 @@ measurements below and the decision behind the shape.
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
    beside the runs that read them. Summed from the sizes git records for each
-   file, the two directories hold 71.9 MB, and `data/` held 74.3 MB once they
-   landed, where it held 2.0 MB before them. A filesystem's block size makes `du`
+   file, the two directories held 71.9 MB of the 74.3 MB `data/` held when
+   they were committed, where it held 2.0 MB before them. A filesystem's block size makes `du`
    report more, by an amount that differs between machines. The budget
    proposed on
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
    `data/` stays under 100 MB of file content, and a later panel states its own size
-   against that in its issue before it is recorded.
+   against that in its issue before it is recorded. Point 5 of the book-two
+   list below raises it.
 
    ```text
    8d3ccbbd2c95b1ea342dfd5f953075f24c0df561efc9c6cc2cce651294ee73dc  SPX_20071123.mat
@@ -410,7 +413,13 @@ measurements below and the decision behind the shape.
    written as the whole number it is, and the `adjusted` basis names the four
    prices rather than the volume.
    [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) is the
-   first step that reads the opens.
+   first step that reads the opens, for Example 3.8 in `chan.khandani_lo`.
+   Chan's Python notebook for that example reads `SPX_op_20071123.txt`, and its
+   twin for Example 3.7 reads `SPX_20071123.txt`. Neither is committed. Both
+   are reposted at Delta-Pion/Financial-Prediction-Research-RM `d47c2e1`, and
+   measured on that issue at `7150afb` each matches its panel cell for cell, NaN for NaN, to
+   a largest relative difference of 2.0e-16, so they are the same series as
+   the file recorded here and not a second vintage of it.
 3. **A day without a price is a missing row.** Chan marks a day a stock has no
    price with NaN in all five arrays at once, and a vintage refuses one, so
    each file holds only the days its stock was priced. Nothing is lost. No trading day in either file lacks a
@@ -452,6 +461,58 @@ measurements below and the decision behind the shape.
    2. AYE on 2002-10-08, in the S&P 500 file.
    3. CBU on 2004-04-13, in the S&P 600 file.
    4. INSP on 2008-01-09, in the S&P 600 file.
+
+The other two directories hold the two files of Chan's second book, *Algorithmic
+Trading*, that his Example 7.2 reads.
+[Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) reproduces
+that example. `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held
+it on 2012-04-24, with the same five fields per stock as the first two
+directories. `earnannfile/` holds his earnings-announcement flags for the same
+497 stocks, a 0 or 1 for each trading day. Like the first two, the price file
+holds only the companies still in the index on its date, so a figure computed
+from it is a figure about survivors.
+[Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) carries the
+measurements below.
+
+1. **Where they came from.** Two public mirrors of Chan's book-two code hold
+   both files with identical git blob hashes:
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview)
+   at `e4bc46f`, under `public/img/book2/`, and
+   [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
+   at `4567024`, under `archived/matlab/`. Neither carries a licence, which
+   README's licence paragraph already covers. The `.mat` files are not
+   committed, and their sha256 is recorded here.
+
+   ```text
+   4a62f5851de9962b72c6b135d4f4addc3cb13ff1ce28afe45defceb47c318849  inputDataOHLCDaily_stocks_20120424.mat
+   16cfebaa1ee0eecd606543ee0c18ebbd8b85c7e48fe7fbd26ede36242ab27679  earnannFile.mat
+   ```
+
+2. **The prices are recorded as `adjusted`, for splits at least.** Across
+   734,022 ratios of an open to the close before it, none sits within 0.01 of
+   a two-for-one or a three-for-two split. NVDA's three-for-two split on
+   2007-09-11 and CMI's two-for-one on 2008-01-02 both pass with no jump.
+   Whether the file is adjusted for dividends was not measured.
+3. **The flags are a basis of their own, kept for every day.** A flag is not a
+   price, so its vintages carry the `event` basis and one field, `Flag`, written
+   as the whole number it is. Each stock keeps all 330 days from 2011-01-03 to
+   2012-04-24, zeros included, rather than only its announcements. Chan's code
+   cuts its prices to the flag file's own days before taking a return, and the
+   first flag falls on 2011-01-05. A file of announcements alone would start
+   two days late, which moves the reproduction off every figure Chan printed.
+   `chan.mat_columns.flag_round_trip_differs` rebuilt the 330 by 497 array from
+   the committed bytes and found it identical, day for day.
+4. **The scale-break guard flags 30 days in 17 of the 497, on the close.** Every
+   one falls between 2007 and 2009, most are banks and insurers in the 2008
+   crisis, such as AIG on 2008-09-15, and none sits near a split. None falls in
+   the 2011 and 2012 window Example 7.2 trades. They are pinned beside the
+   others in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+5. **The size budget is raised.** The two directories hold 32.01 MB, which
+   takes `data/` from 74.41 MB to 106.86 MB of file content. The owner decided
+   on 2026-10-03 to commit the whole price file rather than stay under the
+   100 MB budget, because the mirrors are the only free copies, and raised the
+   budget so that `data/` stays under 150 MB of file content. A later panel
+   still states its own size against that in its issue before it is recorded.
 
 ## Header shape
 
@@ -601,8 +662,8 @@ for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
 
-A directory gets one row rather than one per file, so the 1,100 lifted columns
-are two rows. The row states what every file in it shares, which is the
+A directory gets one row rather than one per file, so the 2,094 lifted columns
+are four rows. The row states what every file in it shares, which is the
 vendor, the basis and the date, along with how many members it holds and the
 earliest and latest day any of them carries. Its members must agree on the
 three shared cells, or the failure names the directory and the values. What

@@ -49,6 +49,7 @@ from chan.series import (
 )
 from chan.vintage import (
     MANIFEST_NAME,
+    PRICES,
     VintageUnavailable,
     read_manifest,
     read_vintage,
@@ -77,7 +78,7 @@ from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 #: [issue 108](https://github.com/l3a0/quantitative-trading/issues/108).
 KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 
-#: What the guard flags in the 1,100 columns lifted from Chan's two MATLAB files.
+#: What the guard flags in the 1,597 price columns lifted from Chan's three MATLAB price files.
 #:
 #: Pinned by path and day rather than as a count, so a day that stops being
 #: flagged fails as surely as a new one. These are flags rather than known
@@ -92,7 +93,11 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: one day. Four sit within 0.02 of a two-for-one split, and whether any is
 #: an unadjusted split is not known: AES and AYE here, and CBU and INSP in the
 #: S&P 600 file. AAPL's column absorbs its June 2000 split with no jump, so its
-#: day is the move it looks like. ``data/README.md`` and
+#: day is the move it looks like. The book-two S&P 500 file adds 30 days in 17
+#: stocks, every one between 2007 and 2009 and most of them banks and insurers
+#: in the 2008 crisis, such as AIG on 2008-09-15. None falls in the 2011 and 2012
+#: window Example 7.2 trades, and none sits near a split, measured on
+#: [issue 250](https://github.com/l3a0/quantitative-trading/issues/250). ``data/README.md`` and
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window
 #: crossing a flagged day is for that run to decide.
@@ -103,7 +108,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: not finite, and handed the panel the guard refuses over ten missing closes
 #: rather than over any scale break.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo.py`` runs both of
-#: its answers.
+#: its answers, on the closes and on the opens.
+#:
+#: [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206)
+#: inherited that decision for Example 3.8's rule B, which reads the opens with
+#: the same rule and the same NaN mask. Its rule A, Chan's Python notebook,
+#: fills each gap with the last price and so reads WYN's restart as a return of
+#: 121.5 on the closes and 127.65 on the opens. That is the notebook's own
+#: computation rather than a window to refuse, and ``TestRuleAOnTheCloses`` and
+#: ``TestRuleAOnTheOpens`` in the same file pin it.
 #:
 #: [Issue 18](https://github.com/l3a0/quantitative-trading/issues/18) decided
 #: that ``chan.equity_seasonals`` refuses no window for Examples 7.6 and 7.7. Its
@@ -133,6 +146,36 @@ FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/poss.csv": ["2004-08-24"],
     "ijr_20080114/rgr.csv": ["2007-10-25"],
     "ijr_20080114/scur.csv": ["2006-07-12"],
+    "inputdataohlcdaily_stocks_20120424/aig.csv": [
+        "2008-09-15",
+        "2008-09-17",
+        "2009-03-16",
+        "2009-08-05",
+    ],
+    "inputdataohlcdaily_stocks_20120424/c.csv": ["2009-02-27"],
+    "inputdataohlcdaily_stocks_20120424/cah.csv": ["2009-09-02"],
+    "inputdataohlcdaily_stocks_20120424/cbg.csv": ["2009-03-25"],
+    "inputdataohlcdaily_stocks_20120424/cvh.csv": ["2008-10-22"],
+    "inputdataohlcdaily_stocks_20120424/etfc.csv": ["2007-11-12"],
+    "inputdataohlcdaily_stocks_20120424/fitb.csv": ["2008-09-29", "2009-02-06"],
+    "inputdataohlcdaily_stocks_20120424/gnw.csv": [
+        "2008-09-19",
+        "2008-09-29",
+        "2008-09-30",
+        "2008-10-13",
+        "2008-11-07",
+        "2008-11-11",
+        "2008-11-24",
+    ],
+    "inputdataohlcdaily_stocks_20120424/har.csv": ["2008-01-14"],
+    "inputdataohlcdaily_stocks_20120424/hig.csv": ["2008-10-30", "2008-12-05"],
+    "inputdataohlcdaily_stocks_20120424/lnc.csv": ["2008-11-19", "2009-03-30"],
+    "inputdataohlcdaily_stocks_20120424/mos.csv": ["2008-10-02"],
+    "inputdataohlcdaily_stocks_20120424/ms.csv": ["2008-10-13"],
+    "inputdataohlcdaily_stocks_20120424/pnc.csv": ["2009-01-20"],
+    "inputdataohlcdaily_stocks_20120424/rf.csv": ["2008-09-29"],
+    "inputdataohlcdaily_stocks_20120424/stt.csv": ["2009-01-20"],
+    "inputdataohlcdaily_stocks_20120424/xl.csv": ["2008-10-09", "2009-02-11"],
     "spx_20071123/aapl.csv": ["2000-09-29"],
     "spx_20071123/aes.csv": ["2001-09-26"],
     "spx_20071123/anf.csv": ["2000-02-16"],
@@ -196,14 +239,15 @@ def days_of(flagged: list[pd.Timestamp]) -> list[str]:
 def price_entries(data_dir: Path | None = None) -> list:
     """Every committed vintage the guard reads, which is every one that holds a price.
 
-    A ``rate`` vintage is skipped by its basis rather than by name, so a second
-    rate series recorded later is skipped the day it lands. A scale break is a
-    price changing units, such as a split. The design doc's **rate** entry
-    says why a rate cannot be read that way, and
+    A vintage is kept by its basis rather than by name, so a second rate series
+    or a second source of flags recorded later is skipped the day it lands. A
+    scale break is a price changing units, such as a split. The design doc's
+    **rate** entry says why a rate cannot be read that way, and
     ``test_a_rate_series_would_report_breaks_if_it_were_read_as_a_price``
-    measures it on the committed bill series.
+    measures it on the committed bill series. An ``event`` vintage holds 0 and
+    1, which is not a price at all.
     """
-    return [entry for entry in read_manifest(data_dir) if entry.price_basis != "rate"]
+    return [entry for entry in read_manifest(data_dir) if entry.price_basis in PRICES]
 
 
 def breaks_across_the_manifest(data_dir: Path | None = None) -> dict[str, list[str]]:
@@ -339,8 +383,8 @@ class TestTheGuardOverTheWholeManifest:
         found = breaks_across_the_manifest()
 
         assert found == EVERY_FLAG
-        assert sum(len(days) for days in found.values()) == 64
-        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 52
+        assert sum(len(days) for days in found.values()) == 94
+        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 69
 
     def test_every_committed_price_vintage_is_read_and_only_the_pinned_ones_report(self) -> None:
         """Said as its own case, because a guard that read one file would pass the count.
@@ -360,11 +404,15 @@ class TestTheGuardOverTheWholeManifest:
         assert set(swept) == {entry.path for entry in price_entries()}
         assert {path: days for path, days in swept.items() if days} == EVERY_FLAG
 
-    def test_only_rate_vintages_are_left_out_and_the_bill_series_is_one(self) -> None:
-        """The skip is by basis, so this says what it skips today."""
+    def test_only_vintages_that_hold_no_price_are_left_out(self) -> None:
+        """The skip is by basis, so this says what it skips today: the bill series
+        and Chan's 497 earnings flags."""
         skipped = {e.path for e in read_manifest()} - {e.path for e in price_entries()}
-        assert {e.price_basis for e in read_manifest() if e.path in skipped} == {"rate"}
-        assert skipped == {"fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv"}
+        assert {e.price_basis for e in read_manifest() if e.path in skipped} == {"rate", "event"}
+        assert {path for path in skipped if not path.startswith("earnannfile/")} == {
+            "fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv"
+        }
+        assert len([path for path in skipped if path.startswith("earnannfile/")]) == 497
 
     def test_a_rate_series_would_report_breaks_if_it_were_read_as_a_price(self) -> None:
         """Why the skip exists, measured rather than asserted.
