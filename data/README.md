@@ -303,8 +303,8 @@ The two directories hold Chan's first-edition MATLAB files, one vintage per
 stock, each carrying that stock's close, high, low, open and volume. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
 which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
 stood on 2008-01-14.
-[src/chan/khandani_lo.py](../src/chan/khandani_lo.py) reads the first for
-Example 3.7. His Example 7.6 loads `IJR_20080131`, which the mirror
+[src/chan/khandani_lo.py](../src/chan/khandani_lo.py) reads the first's
+closes for Example 3.7 and its opens for Example 3.8. His Example 7.6 loads `IJR_20080131`, which the mirror
 does not hold, and its third printed return is the trade into January 2008,
 whose month end this file stops short of. So this file can give Example 7.6's
 first two returns and not its third.
@@ -349,7 +349,13 @@ measurements below and the decision behind the shape.
    written as the whole number it is, and the `adjusted` basis names the four
    prices rather than the volume.
    [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) is the
-   first step that reads the opens.
+   first step that reads the opens, for Example 3.8 in `chan.khandani_lo`.
+   Chan's Python notebook for that example reads `SPX_op_20071123.txt`, and its
+   twin for Example 3.7 reads `SPX_20071123.txt`. Neither is committed. Both
+   are reposted at Delta-Pion/Financial-Prediction-Research-RM `d47c2e1`, and
+   measured on that issue at `7150afb` each matches its panel cell for cell, NaN for NaN, to
+   a largest relative difference of 2.0e-16, so they are the same series as
+   the file recorded here and not a second vintage of it.
 3. **A day without a price is a missing row.** Chan marks a day a stock has no
    price with NaN in all five arrays at once, and a vintage refuses one, so
    each file holds only the days its stock was priced. Nothing is lost. No trading day in either file lacks a

@@ -14,7 +14,7 @@ Two of them move a figure Examples 7.6 and 7.7 print, and
 
 The rest are Chan's helpers as his scripts call them. :func:`smartmean`,
 :func:`smartsum`, :func:`lag1` and :func:`matlab_sort` run in Example 7.7,
-and the first three run in Example 3.7 in :mod:`chan.khandani_lo` too.
+and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
 :func:`backshift` runs through :func:`lag1`. :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
@@ -45,7 +45,7 @@ What each one does:
   to the even neighbour instead, which is what R's ``round`` does.
 
 They are a module of their own rather than private to one replication,
-because Example 3.7 calls the same helpers on the same file.
+because Examples 3.7 and 3.8 call the same helpers on the same file.
 """
 
 from __future__ import annotations
