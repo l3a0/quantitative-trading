@@ -761,9 +761,10 @@ class TestTheBoundIsTheOneThatWasMeasured:
         """The widest legitimate move in a stock or fund vintage, at 0.7521.
 
         It is in ``ko_chan.csv``. It was the widest in the whole envelope until
-        the EIA futures vintages landed, and the margin test below pins the two
-        futures days that now sit outside it. That test also says why the stocks
-        lifted from Chan's MATLAB files are not held to the envelope.
+        the EIA futures vintages landed. Several futures days now sit outside
+        it, and the margin test below pins the widest fall and the widest rise
+        among them. That test also says why the stocks lifted from Chan's MATLAB
+        files are not held to the envelope.
         """
         _, closes = load_vintage("KO", chan=True)
 
@@ -797,10 +798,17 @@ class TestTheBoundIsTheOneThatWasMeasured:
         The twelve EIA futures vintages moved both ends of the envelope. The
         widest fall is now 0.6810, RBOB gasoline's first contract on
         2020-03-23, and the widest rise is 1.4648, natural gas's first contract
-        on 2022-01-27. Before them the two ends were Black Monday's 0.7521 in
-        ``ko_chan.csv`` and 1.2654, and the widest magnitude was 0.2849.
+        on 2022-01-27. Without them the two ends are Black Monday's 0.7521 in
+        ``ko_chan.csv`` and 1.2654, and the widest magnitude is 0.2849, which
+        the case pins too so the stock and fund envelope stays derived. The
+        range also holds days on which a futures file's contract rolled, which
+        compare two contracts rather than one price, so it is a range of what
+        the bound must let through rather than of price moves alone.
+
+        Moving the envelope moved which other bounds would serve, and the last
+        assertions pin the example ``chan.series`` gives.
         """
-        widest, breaks, ratios, kept = 0.0, [], [], []
+        widest, breaks, ratios, kept, kept_without_futures = 0.0, [], [], [], []
         for entry in price_entries():
             if in_a_lifted_source(entry.path):
                 continue
@@ -813,12 +821,21 @@ class TestTheBoundIsTheOneThatWasMeasured:
             breaks.extend(magnitudes[flagged])
             ratios.extend(moves[flagged])
             kept.extend(moves[~flagged])
+            if entry.vendor != "eia":
+                kept_without_futures.extend(moves[~flagged])
 
         assert round(widest, 4) == 0.3842
         assert (round(min(kept), 4), round(max(kept), 4)) == (0.6810, 1.4648)
         assert [round(float(one), 4) for one in sorted(breaks)] == [0.6833, 0.6838]
         assert sorted(round(float(one), 4) for one in ratios) == [0.5047, 0.5050]
         assert widest < SCALE_BREAK_BOUND < min(breaks)
+
+        stocks_and_funds = (min(kept_without_futures), max(kept_without_futures))
+        assert tuple(round(one, 4) for one in stocks_and_funds) == (0.7521, 1.2654)
+        assert round(max(abs(math.log(one)) for one in stocks_and_funds), 4) == 0.2849
+
+        assert widest < math.log(1.5) and math.log(1.9) < min(breaks)
+        assert math.log(1.45) < widest
 
     def test_a_band_of_endpoints_would_judge_the_same_move_two_ways(self) -> None:
         """The 0.0408 the register quotes, derived rather than restated.

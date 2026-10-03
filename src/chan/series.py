@@ -92,12 +92,15 @@ from chan.vintage import (
 #: file's two breaks were excluded. The twelve EIA futures vintages widened the
 #: envelope. Across the single-series price vintages the widest fall is now
 #: 0.6810, RBOB gasoline's first contract on 2020-03-23, and the widest rise is
-#: 1.4648, natural gas's first contract on 2022-01-27, so every real move sits
-#: inside ``|log r| <= 0.3842``. The two breaks sit at 0.6833 and 0.6838.
-#: Anything between those two leaves the breaks caught and every real move
-#: alone, which is why ``log(1.5)`` and ``log(1.9)`` would also serve and
-#: ``log(1.45)`` would not. ``tests/test_scale_breaks.py`` derives each of
-#: these.
+#: 1.4648, natural gas's first contract on 2022-01-27, so every committed move
+#: sits inside ``|log r| <= 0.3842``. That range also holds days on which a
+#: futures file's contract rolled, such as ``RNGC4`` on 2018-11-29, which
+#: compare two contracts rather than one price but still have to pass. The two
+#: breaks sit at 0.6833 and 0.6838. Anything between those two leaves the
+#: breaks caught and every other day alone, which is why ``log(1.5)`` and
+#: ``log(1.9)`` would also serve and ``log(1.45)`` would not.
+#: ``tests/test_scale_breaks.py`` derives each of these figures, the 0.7521
+#: included.
 #:
 #: It catches a 2:1 at 0.5000, a 3:1 at 0.3333 and a 1:10 reverse at 10.0, and
 #: it misses a 3:2 at 0.6667, a 5:4 at 0.8000 and a 1:1.5 reverse at 1.5. So it
@@ -239,7 +242,7 @@ def load_panel(
     measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
 
     The manifest is read once. Resolving each member by its identity fields
-    would read and validate all 1,115 of its lines once per member, 500 times
+    would read and validate every one of its lines once per member, 500 times
     for the S&P 500 file, where reading it once validates each line once. Every
     member is still read through :func:`read_vintage`, so each one is hashed
     against its entry before it is parsed.

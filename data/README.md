@@ -314,16 +314,24 @@ to infer.
    as stored. Every row was kept, because no settlement was blank or non-finite
    and no date repeated. EIA prints a settlement to three decimal places. For
    natural gas that matches the exchange's settlement tick today, and for RBOB
-   it is ten times coarser than today's tick of $0.0001 a gallon.
-4. **Nothing past 2024-04-05 will arrive from this source.** EIA stopped
-   updating all twelve series on that date. Years after it need another vendor,
-   which the issue names.
-5. **Contracts of one product do not hold the same days.** RBOB's four files
-   span the same 2005-10-03 to 2024-04-05 and hold 4,609, 4,618, 4,625 and
-   4,623 rows. No day was filled, so a run pairing two contracts reads only the
-   days both hold. `scale_breaks` finds nothing on any of the twelve, though
-   they widened the range of ordinary daily moves the bound was fitted to,
-   which [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins.
+   it is ten times coarser than today's tick of $0.0001 a gallon. The recorder
+   writes each value as a float, which drops a trailing zero, so EIA's 0.510 is
+   stored as 0.51.
+4. **No row after 2024-04-05 will arrive from this source.** Each RBOB and
+   natural gas workbook names 2024-04-05 as its latest data, and EIA's pages
+   have added no row since. The four New York Harbor files end in 2006, between
+   2006-09-29 and 2006-12-29, because RBOB replaced that contract. Years after
+   2024 need another vendor, which the issue names.
+5. **Nothing was filled here, and EIA filled some days itself.** Contracts of
+   one product do not hold the same days. RBOB's four files span the same
+   2005-10-03 to 2024-04-05 and hold 4,609, 4,618, 4,625 and 4,623 rows, so a
+   run pairing two contracts reads only the days both hold. The natural gas
+   files go the other way on exchange holidays. They carry rows such as
+   2018-01-01, 2018-03-30 and 2018-12-25 that repeat the day before's
+   settlement exactly, and the files keep them, so a return across one of those
+   days reads as zero. `scale_breaks` finds nothing on any of the twelve,
+   though they widened the range of ordinary daily moves the bound was fitted
+   to, which [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins.
 
 The `*_chan.csv` files are a different kind of source. Each is one price
 column of Ernest Chan's own book-companion spreadsheet, taken from the public
@@ -375,8 +383,8 @@ measurements below and the decision behind the shape.
    which ships each as a `.zip`. The `.mat` files inside are not committed, and
    their sha256 is recorded here instead, the way the workbooks' is recorded
    beside the runs that read them. Summed from the sizes git records for each
-   file, the two directories hold 71.9 MB of the 74.3 MB `data/` now holds,
-   where it held 2.0 MB before them. A filesystem's block size makes `du`
+   file, the two directories hold 71.9 MB, and `data/` held 74.3 MB once they
+   landed, where it held 2.0 MB before them. A filesystem's block size makes `du`
    report more, by an amount that differs between machines. The budget
    proposed on
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
