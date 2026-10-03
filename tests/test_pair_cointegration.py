@@ -982,18 +982,55 @@ class TestAdjustedCloseMovesWithTheDownloadDate:
     same 2006 trading day reads lower in the adjusted series than in the raw
     one. Two vintages taken at different dates would show the series moving
     under itself, which is issue 4's remaining half and needs the recorder.
-    This is the weaker claim that the committed files already support, and
-    ``blog/gld-gdx-cointegration-lessons.md`` quotes the gap it measures.
+    This is the weaker claim that the committed files already support.
+
+    Four prose surfaces quote the gap as about 15%, so a re-pin here moves all
+    four. ``src/chan/series.py`` and the first test below say it against raw.
+    ``docs/design.md``, ``blog/gld-gdx-cointegration-lessons.md`` and
+    ``docs/gld-gdx-cointegration-lessons.html`` say it against the number Chan
+    saw, which the second test measures on his own file.
     """
 
     def test_gdx_2006_adjusted_sits_about_fifteen_percent_below_raw(self) -> None:
+        """Vintages: ``gdx_20yr_prices.csv`` against
+        ``gdx_20yr_prices_unadjusted.csv``. Specification: the mean of adjusted
+        over raw, less one, on the 155 rows they share in 2006, 2006-05-22 to
+        2006-12-29. The prose rounds it to a whole percent, so that rounding is
+        asserted too."""
         raw = load_close("GDX", unadjusted=True)
         adjusted = load_close("GDX")
         shared = raw.index.intersection(adjusted.index)
         gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
 
-        assert len(gap) > 0
+        assert len(gap) == 155
         assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-4)
+        assert round(float(gap.mean()) * 100) == -15
+
+    def test_gdx_2006_adjusted_sits_about_fifteen_percent_below_chans_own_file(self) -> None:
+        """The design doc and the post compare today's adjusted price with the
+        one Chan saw, not with raw. This measures that comparison directly, and
+        the sentence beside it, that Chan's adjusted close was near raw.
+
+        Vintages: ``gdx_20yr_prices.csv`` and ``gdx_20yr_prices_unadjusted.csv``
+        against ``gdx_chan.csv``, the adjusted-close column of Chan's companion
+        .xls, last saved 2007-12-02. Specification: the 385 rows all three
+        share, 2006-05-23 to 2007-11-30. The gap is the mean of the 154 rows in
+        2006. Chan's file sits at most 0.0030 below raw, because GDX had paid
+        little by the day he saved it, so nearly all of the 15% was paid
+        afterwards. First pinned on 2026-10-02.
+        """
+        raw = load_close("GDX", unadjusted=True)
+        adjusted = load_close("GDX")
+        chan = load_close("GDX", chan=True)
+        shared = adjusted.index.intersection(chan.index).intersection(raw.index)
+        gap = (adjusted.loc[shared] / chan.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
+        chan_from_raw = raw.loc[shared] / chan.loc[shared] - 1.0
+
+        assert len(shared) == 385
+        assert len(gap) == 154
+        assert float(gap.mean()) == pytest.approx(-0.1489, abs=5e-5)
+        assert round(float(gap.mean()) * 100) == -15
+        assert float(chan_from_raw.abs().max()) == pytest.approx(0.0030, abs=5e-5)
 
     def test_gld_pays_nothing_so_its_two_series_do_not_part(self) -> None:
         """GLD is the control. It pays no distribution, so the adjustment has
