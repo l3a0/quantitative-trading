@@ -450,10 +450,16 @@ At the first lag count whose residuals pass, the test does not reject, so the
 Chapter 3 window gives no evidence of cointegration on this vintage. That is an
 absence of evidence rather than evidence against. The ADF has little power on
 245 observations, and a failure to reject is what a weakly cointegrated pair
-would also produce. Two more things keep the result small.
+would also produce. Two more things bear on how far the result reaches.
 
 1. At one lag the lag-6 autocorrelation is 0.1668 against a band of 0.1240, on
-   250 observations, so a different vintage could move it inside.
+   250 observations, near enough the edge that a different vintage could move
+   it inside. Chan's own files, the vintage his Python printout reproduces on,
+   do not. There the bar is 0.1659 against the same band, the one-lag fit
+   fails Breusch-Godfrey with a p of 0.0460, and six lags is again the first
+   count that passes, at −2.3591, which does not reject. That six-lag fit is
+   the one `coint` runs at its defaults, so the statistic Chan printed and
+   distrusted is the one whose residuals pass.
 2. At the 5% cut, Breusch-Godfrey alone passes the fits at zero, two and five
    lags as well, and still fails one lag. What keeps those three out is the
    lag-6 bar outside the band, and the band is the pointwise check.
@@ -489,8 +495,9 @@ that bar stays outside even a band widened for reading ten bars at once,
 2.807/√n. This check is exploratory too, and it was run after the Chapter 3
 result had been seen.
 
-`TestResidualCheck` and `TestResidualCheckChapter7` in
-`tests/test_pair_cointegration.py` pin every number in this section.
+`TestResidualCheck`, `TestResidualCheckOnChansFiles` and
+`TestResidualCheckChapter7` in `tests/test_pair_cointegration.py` pin every
+number in this section.
 `src/chan/lag_residual_figure.py` redraws the figure, and
 `tests/test_lag_residual_figure.py` holds that it draws what the check
 computes.
