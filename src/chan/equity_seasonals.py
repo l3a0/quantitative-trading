@@ -442,7 +442,7 @@ FIRST_EDITION_MATLAB = HestonSadkaRules(
 #: The rest is as printed. The decile takes the floor, each month is divided by
 #: the number of positions, so a month with none is MATLAB's 0/0, and
 #: ``ret(1:13)=[]`` drops 13 months before ``smartmean`` and ``smartstd``.
-#: No page prints ``smartstd`` itself. Book two's, which skips a NaN month and
+#: Pp. 179 to 181 do not print ``smartstd`` itself. Book two's, which skips a NaN month and
 #: divides by n, prints Chan's -0.1243, and the first edition's prints -0.1236,
 #: so the choice of book two's is inferred from the digits rather than read.
 REVISED_MATLAB = HestonSadkaRules(

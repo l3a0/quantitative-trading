@@ -25,7 +25,7 @@ are these.
 3. The revised edition's MATLAB and R, printed on pp. 179 and 181 of the
    revised Kindle edition, which the owner read on 2026-10-02 and 2026-10-03.
    [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes
-   the expressions that decide each rule. The R runs as printed. The MATLAB
+   the expressions that decide each rule. The R needs no repair. The MATLAB
    needs one repair to run, which :data:`chan.equity_seasonals.REVISED_MATLAB`
    names, and which ``smartstd`` it calls is inferred from the digits it
    prints.
@@ -318,7 +318,7 @@ class TestHestonSadkaRevisedMatlab:
 
     The listing cuts ``cl`` to its month-end rows and then masks on
     ``cl(monthEnds(m-1), :)``, which cannot run. The repair reads ``cl(m-1, :)``.
-    The page does not print ``smartstd``, so these tests also hold which of
+    Pp. 179 to 181 do not print ``smartstd``, so these tests also hold which of
     Chan's two prints his digits.
     """
 
@@ -432,6 +432,12 @@ class TestHestonSadkaR:
         result = heston_sadka(spx, R_HESTON_SADKA)
         assert_reproduces(result.annual_return, -0.011396742529215827, "-0.01139674", ".7g")
         assert_reproduces(result.sharpe, -0.10950975118870672, "-0.1095098", ".7g")
+
+    def test_a_month_with_no_position_is_nan_as_rs_0_over_0_gives(self, spx) -> None:
+        """Every such month is dropped, so this holds the rule and moves no figure."""
+        returns = monthly_returns(spx, R_HESTON_SADKA).to_numpy()
+        assert np.isnan(returns[: R_HESTON_SADKA.dropped]).all()
+        assert np.isfinite(returns[R_HESTON_SADKA.dropped :]).all()
 
     def test_rounding_half_away_from_zero_does_not_print(self, spx) -> None:
         away = heston_sadka(spx, replace(R_HESTON_SADKA, decile_size=round_half_away))

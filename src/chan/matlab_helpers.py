@@ -5,12 +5,14 @@ wrote himself, and on two behaviours of MATLAB that numpy does not share. Each
 lives here once, with the case that separates it from the numpy default held by
 ``tests/test_matlab_helpers.py``.
 
-Two of them move a figure Examples 7.6 and 7.7 print, and
+Three of them move a figure Examples 7.6 and 7.7 print, and
 ``tests/test_equity_seasonals.py`` pins what each move gives.
 
 1. :func:`smartstd_first_edition`'s zero-fill moves the first edition's 7.7
    Sharpe ratio.
-2. :func:`round_half_away` moves the first edition's January 2006 return,
+2. :func:`smartstd_book_two` moves the revised edition's 7.7 Sharpe ratio,
+   against :func:`smartstd_first_edition`.
+3. :func:`round_half_away` moves the first edition's January 2006 return,
    against the floor.
 
 Chan's two books ship two different ``smartstd`` files under one name, and
@@ -18,7 +20,7 @@ each is what its own printouts imply, so both live here under names that say
 which book each belongs to. :func:`smartstd_first_edition` is *Quantitative
 Trading*'s. :func:`smartstd_book_two` is *Algorithmic Trading*'s, and choosing
 it over the first edition's moves a figure Example 7.2 prints, which
-``tests/test_pead.py`` pins.
+``tests/test_pead.py`` pins, and the revised Example 7.7 Sharpe ratio above.
 
 The rest are Chan's helpers as his scripts call them. :func:`smartmean`,
 :func:`smartsum`, :func:`lag1` and :func:`matlab_sort` run in Example 7.7,
@@ -59,7 +61,9 @@ They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
 **Book two's helpers.** Three come from Chan's *Algorithmic Trading* code
-rather than his first edition's. :mod:`chan.pead` is their one caller.
+rather than his first edition's. :mod:`chan.pead` calls all three, and
+:mod:`chan.equity_seasonals` calls :func:`smartstd_book_two` for the revised
+edition's Example 7.7.
 
 - :func:`smartstd_book_two` skips each non-finite entry and divides by n, the
   count of finite entries, rather than n - 1.

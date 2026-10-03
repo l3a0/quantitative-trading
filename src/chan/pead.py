@@ -62,7 +62,8 @@ number of announcements a day is predictable. Nothing here measures that.
 
 **The helper choice moves a printed digit.** ``smartstd`` here is book two's,
 which skips a NaN and divides by n. The first edition's, which
-:mod:`chan.khandani_lo` and :mod:`chan.equity_seasonals` use, zero-fills and
+:mod:`chan.khandani_lo` and the first edition's Example 7.7 in
+:mod:`chan.equity_seasonals` use, zero-fills and
 divides by n − 1, and with it the arithmetic return becomes 0.066833, which
 prints as 0.0668 rather than Chan's 0.0667. ``tests/test_pead.py`` pins both.
 :mod:`chan.matlab_helpers` says what each ``smartstd`` does and where each
