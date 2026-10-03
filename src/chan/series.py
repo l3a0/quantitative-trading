@@ -86,14 +86,18 @@ from chan.vintage import (
 #: 1.613 would flag, and the guard would answer differently on a series and on
 #: the same series reversed.
 #:
-#: The number is fitted to what the manifest holds. Measured at ``e9860fb``
-#: over the eight committed vintages with the two ``ko_chan.csv`` breaks
-#: excluded, the widest legitimate move is 0.7521, Black Monday in that same
-#: file, and the widest the other way is 1.2654, so every real move sits inside
-#: ``|log r| <= 0.2849``. The two breaks sit at 0.6833 and 0.6838. Anything
-#: between those two leaves the breaks caught and Black Monday alone, which is
-#: why ``log(1.4)`` and ``log(1.35)`` would also serve and ``log(1.3)`` would
-#: not.
+#: The number is fitted to what the manifest holds. It was first measured at
+#: ``e9860fb`` over the eight vintages committed then, where the widest
+#: legitimate move was 0.7521, Black Monday in ``ko_chan.csv``, once that
+#: file's two breaks were excluded. The twelve EIA futures vintages widened the
+#: envelope. Across the single-series price vintages the widest fall is now
+#: 0.6810, RBOB gasoline's first contract on 2020-03-23, and the widest rise is
+#: 1.4648, natural gas's first contract on 2022-01-27, so every real move sits
+#: inside ``|log r| <= 0.3842``. The two breaks sit at 0.6833 and 0.6838.
+#: Anything between those two leaves the breaks caught and every real move
+#: alone, which is why ``log(1.5)`` and ``log(1.9)`` would also serve and
+#: ``log(1.45)`` would not. ``tests/test_scale_breaks.py`` derives each of
+#: these.
 #:
 #: It catches a 2:1 at 0.5000, a 3:1 at 0.3333 and a 1:10 reverse at 10.0, and
 #: it misses a 3:2 at 0.6667, a 5:4 at 0.8000 and a 1:1.5 reverse at 1.5. So it

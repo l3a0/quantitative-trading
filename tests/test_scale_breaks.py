@@ -758,10 +758,12 @@ class TestTheBoundIsTheOneThatWasMeasured:
         assert days_of(scale_breaks(falling)) == ["2026-01-05"]
 
     def test_black_monday_is_not_a_scale_break(self) -> None:
-        """The widest legitimate move across the single-series vintages, at 0.7521.
+        """The widest legitimate move in a stock or fund vintage, at 0.7521.
 
-        It is in ``ko_chan.csv``. The margin test below says why the stocks
-        lifted from Chan's MATLAB files are not held to it.
+        It is in ``ko_chan.csv``. It was the widest in the whole envelope until
+        the EIA futures vintages landed, and the margin test below pins the two
+        futures days that now sit outside it. That test also says why the stocks
+        lifted from Chan's MATLAB files are not held to the envelope.
         """
         _, closes = load_vintage("KO", chan=True)
 
@@ -789,8 +791,14 @@ class TestTheBoundIsTheOneThatWasMeasured:
         It reads the single-series vintages the bound was fitted to and skips
         the columns lifted from Chan's MATLAB files, whose flags
         ``FLAGGED_IN_CHANS_MAT_FILES`` pins instead. Holding them to an envelope
-        fitted to the single-series vintages, mostly funds and indexes, would
-        assert that a small cap never moves 40 percent in a day.
+        fitted to the single-series vintages, mostly funds, indexes and
+        futures, would assert that a small cap never moves 40 percent in a day.
+
+        The twelve EIA futures vintages moved both ends of the envelope. The
+        widest fall is now 0.6810, RBOB gasoline's first contract on
+        2020-03-23, and the widest rise is 1.4648, natural gas's first contract
+        on 2022-01-27. Before them the two ends were Black Monday's 0.7521 in
+        ``ko_chan.csv`` and 1.2654, and the widest magnitude was 0.2849.
         """
         widest, breaks, ratios, kept = 0.0, [], [], []
         for entry in price_entries():
@@ -806,8 +814,8 @@ class TestTheBoundIsTheOneThatWasMeasured:
             ratios.extend(moves[flagged])
             kept.extend(moves[~flagged])
 
-        assert round(widest, 4) == 0.2849
-        assert (round(min(kept), 4), round(max(kept), 4)) == (0.7521, 1.2654)
+        assert round(widest, 4) == 0.3842
+        assert (round(min(kept), 4), round(max(kept), 4)) == (0.6810, 1.4648)
         assert [round(float(one), 4) for one in sorted(breaks)] == [0.6833, 0.6838]
         assert sorted(round(float(one), 4) for one in ratios) == [0.5047, 0.5050]
         assert widest < SCALE_BREAK_BOUND < min(breaks)

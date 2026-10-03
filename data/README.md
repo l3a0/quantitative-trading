@@ -85,6 +85,18 @@ for a column lifted from one of Chan's own files.
 | `yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | TLT | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | IEF | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv` | yfinance | CADAUD=X | raw | 2005-07-04 .. 2026-09-30 | 2026-10-02 |
+| `eia_eer-epmrr-pe1-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv` | eia | EER-EPMRR-PE1-Y35NY-DPG | raw | 2005-10-03 .. 2024-04-05 | 2026-10-02 |
+| `eia_eer-epmrr-pe2-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv` | eia | EER-EPMRR-PE2-Y35NY-DPG | raw | 2005-10-03 .. 2024-04-05 | 2026-10-02 |
+| `eia_eer-epmrr-pe3-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv` | eia | EER-EPMRR-PE3-Y35NY-DPG | raw | 2005-10-03 .. 2024-04-05 | 2026-10-02 |
+| `eia_eer-epmrr-pe4-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv` | eia | EER-EPMRR-PE4-Y35NY-DPG | raw | 2005-10-03 .. 2024-04-05 | 2026-10-02 |
+| `eia_eer-epmr-pe1-y35ny-dpg_raw_1985-01-02_2006-12-29_dl2026-10-02.csv` | eia | EER-EPMR-PE1-Y35NY-DPG | raw | 1985-01-02 .. 2006-12-29 | 2026-10-02 |
+| `eia_eer-epmr-pe2-y35ny-dpg_raw_1994-01-20_2006-11-29_dl2026-10-02.csv` | eia | EER-EPMR-PE2-Y35NY-DPG | raw | 1994-01-20 .. 2006-11-29 | 2026-10-02 |
+| `eia_eer-epmr-pe3-y35ny-dpg_raw_1984-12-03_2006-10-31_dl2026-10-02.csv` | eia | EER-EPMR-PE3-Y35NY-DPG | raw | 1984-12-03 .. 2006-10-31 | 2026-10-02 |
+| `eia_eer-epmr-pe4-y35ny-dpg_raw_1994-01-28_2006-09-29_dl2026-10-02.csv` | eia | EER-EPMR-PE4-Y35NY-DPG | raw | 1994-01-28 .. 2006-09-29 | 2026-10-02 |
+| `eia_rngc1_raw_1994-01-13_2024-04-05_dl2026-10-02.csv` | eia | RNGC1 | raw | 1994-01-13 .. 2024-04-05 | 2026-10-02 |
+| `eia_rngc2_raw_1994-01-12_2024-04-05_dl2026-10-02.csv` | eia | RNGC2 | raw | 1994-01-12 .. 2024-04-05 | 2026-10-02 |
+| `eia_rngc3_raw_1994-01-19_2024-04-05_dl2026-10-02.csv` | eia | RNGC3 | raw | 1994-01-19 .. 2024-04-05 | 2026-10-02 |
+| `eia_rngc4_raw_1993-12-20_2024-04-05_dl2026-10-02.csv` | eia | RNGC4 | raw | 1993-12-20 .. 2024-04-05 | 2026-10-02 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
 
@@ -271,6 +283,47 @@ a reader to infer.
    pins the gap so the reason for that start cannot quietly stop being true.
 4. **`scale_breaks` finds nothing on it.** Its largest day-over-day move is a
    small fraction of the bound, so a flagged day would be a bad print.
+
+The twelve `eia_` files are NYMEX futures settlement prices as the US Energy
+Information Administration publishes them, contracts 1 to 4 of three products.
+They are what [issue 19](https://github.com/l3a0/quantitative-trading/issues/19)
+needs to check Chan's two commodity seasonals, gasoline in April and natural gas
+from February to April, and the owner decided on 2026-10-02 that they may be
+committed. Five things about them are worth stating rather than leaving a reader
+to infer.
+
+1. **Each file is a chain of contracts.** Contract 1 is whichever contract
+   expires next, so on an expiry day a file's next close belongs to a different
+   contract, and the day-over-day ratio across it compares two instruments. The
+   issue says how a run maps a contract number back to a named contract.
+2. **The symbol names the product.**
+   - `EER-EPMR-PE1-Y35NY-DPG` to `PE4` are New York Harbor regular gasoline,
+     the contract RBOB replaced, in dollars a gallon.
+   - `EER-EPMRR-PE1-Y35NY-DPG` to `PE4` are RBOB gasoline, in dollars a gallon.
+   - `RNGC1` to `RNGC4` are Henry Hub natural gas, in dollars per million Btu.
+
+   Each symbol is EIA's own series id with every underscore written as a
+   hyphen, because a recorded vintage's name joins its identity fields with
+   underscores and so no field may hold one. The natural gas ids carry none and
+   are unchanged.
+3. **This is how they were fetched.** Each came on 2026-10-02 from EIA's daily
+   workbook, `https://www.eia.gov/dnav/pet/hist_xls/<id>d.xls` for gasoline and
+   `https://www.eia.gov/dnav/ng/hist_xls/<id>d.xls` for natural gas, read
+   outside the package. The script read the sheet `Data 1` with `xlrd`, took
+   each date from its Excel serial, and handed each settlement to the recorder
+   as stored. Every row was kept, because no settlement was blank or non-finite
+   and no date repeated. EIA prints a settlement to three decimal places. For
+   natural gas that matches the exchange's settlement tick today, and for RBOB
+   it is ten times coarser than today's tick of $0.0001 a gallon.
+4. **Nothing past 2024-04-05 will arrive from this source.** EIA stopped
+   updating all twelve series on that date. Years after it need another vendor,
+   which the issue names.
+5. **Contracts of one product do not hold the same days.** RBOB's four files
+   span the same 2005-10-03 to 2024-04-05 and hold 4,609, 4,618, 4,625 and
+   4,623 rows. No day was filled, so a run pairing two contracts reads only the
+   days both hold. `scale_breaks` finds nothing on any of the twelve, though
+   they widened the range of ordinary daily moves the bound was fitted to,
+   which [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins.
 
 The `*_chan.csv` files are a different kind of source. Each is one price
 column of Ernest Chan's own book-companion spreadsheet, taken from the public
