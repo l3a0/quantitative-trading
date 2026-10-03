@@ -309,7 +309,8 @@ class Statistic(Enum):
     #: zero, dividing by n - 1.
     SMART = "smart"
     #: ``smartmean`` and *Algorithmic Trading*'s ``smartstd``, which skips a NaN month and
-    #: divides by n.
+    #: divides by n. That is what ``NUMPY`` computes on anything but an infinite entry,
+    #: and the member is kept to say which of Chan's helpers the code calls.
     SMART_BOOK_TWO = "smart-book-two"
     #: ``np.nanmean`` and ``np.nanstd``, which divides by n.
     NUMPY = "numpy"
