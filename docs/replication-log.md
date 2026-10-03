@@ -1424,7 +1424,11 @@ checked that, and
 guard that would.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
+moves with it, since that post quotes most of these figures. So do its
+three figures, which `uv run python -m chan.stationary_candidates_figures`
+redraws.
 
 ## Entry 6: the CAD/AUD cross rate, Chan's *Quantitative Trading*
 
@@ -1435,7 +1439,7 @@ under the rules
 [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
 every stationary candidate Chan names there.
 
-Six rows, all derivable from
+Seven rows, all derivable from
 [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
 
 **Chan's claim reproduces.** The log of the rate rejects a unit root at 5%,
@@ -1447,10 +1451,10 @@ had to clear it under the criterion
 before any statistic was computed, and both do. The half-life is 141.6 trading
 days, a little over half a year.
 
-One row is a replication and five are not. Row 1 is the claim, and it takes
+One row is a replication and six are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
-are the two statistics the criterion reads, and rows 4 to 6 say what the
-verdict rests on.
+are the two statistics the criterion reads, rows 4 to 6 say what the verdict
+rests on, and row 7 measures what row 6 can see.
 
 Every row reads the same series, vintage and specification, so the three are
 stated once here.
@@ -1493,6 +1497,7 @@ columns have nothing to hold in any row and are dropped, under
 | 4 | The half-life | nothing | n/a |
 | 5 | The test on the rate quoted the other way, and on the level | nothing | n/a |
 | 6 | The rolling scan | nothing | n/a |
+| 7 | How often a series that truly reverts at row 4's half-life rejects in row 6's scan | nothing | n/a |
 
 ### What this repo computed
 
@@ -1504,6 +1509,7 @@ columns have nothing to hold in any row and are dropped, under
 | 4 | 2007-08-06 to 2026-09-30 | OU half-life on the log of the rate | 141.6 trading days | `TestTheCrossRateStatistic::test_the_half_life` |
 | 5 | 2007-08-06 to 2026-09-30 | rows 2 and 3 on the log negated, on the level, and on the inverted level | −3.2136 negated. On the level −3.2944 at one lag and −3.0241 at the first passing count, 10. Inverted, −3.1552 and −2.9734, also at 10 | `TestTheCrossRateStatistic::test_the_quoting_direction_does_not_move_it` and `::test_on_the_level_both_statistics_the_verdict_reads_still_reject` |
 | 6 | 226 windows ending 2008-07-30 to 2026-09-21 | 252-day windows stepped by 21, row 2's test in each | 23 clear 10% and 5 clear 5% | `TestTheCrossRateScan::test_the_counts` |
+| 7 | 1,000 simulated paths of 4,984 days | a Gaussian AR(1) reverting at row 4's half-life, from the stationary distribution, seed 20261002, scanned as row 6 is. Declared on [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) before any number was computed | 27.0 of 226 windows clear 10% on average, 12.0%, and 14.0 clear 5%, 6.2%. 388 paths have 23 or fewer past 10%. 968 reject at 5% over the whole path. Added after the results were seen, not declared: 73 have 5 or fewer past 5% | `TestTheWindowPower` |
 
 ### The verdicts
 
@@ -1515,6 +1521,7 @@ columns have nothing to hold in any row and are dropped, under
 | 4 | none, not a replication | The book prints no half-life. At 141.6 trading days a deviation takes a little over half a year to halve, which is a rate that pulls back slowly. |
 | 5 | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
 | 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
+| 7 | none, not a replication | A measure of row 6's power. A series that certainly reverts this slowly clears 10% in 12.0% of its windows, against about one in ten for a series that does not revert at all, which is what a 10% bar means. So row 6 barely separates the two, and only the whole span does: it rejects at 5% in 968 of 1,000 paths. Row 6's 23 sits near the middle of the simulated counts. At 5% only 73 paths have 5 or fewer, as the rate does, a number added after the results were seen. The model has neither the rate's fat tails nor its changing volatility, and a half-life estimated from 4,984 days reads short, so the true reversion may be slower than row 4's. This shows that slow reversion can produce so few rejecting windows, and not that it is why the rate does. Exploratory. |
 
 ### What the entry concludes
 
@@ -1530,8 +1537,13 @@ Three things, and the first is the verdict.
    of 141.6 trading days means a deviation takes a little over half a year to
    halve, and only 23 of 226 one-year windows reject at 10%. Over the full
    window the rejection holds, and in a year of data it usually does not.
-   Nothing here measures why, so the scan stays a description rather than a
-   second test.
+   Row 7 measures what a year of data can see. A simulated series that truly
+   reverts at this half-life clears 10% in 12.0% of its one-year windows,
+   against about one in ten for a series that does not revert, and rejects
+   over its whole span in 968 of 1,000 paths. So the windows barely tell the
+   two apart, the rate's 23 can come from either, and the whole-window
+   rejection is what separates them. At 5% the rate's 5 windows are fewer
+   than most simulated paths give, which row 7 reports and does not explain.
 3. **The residual check moves the statistic and not the verdict.** The one-lag
    fit fails it, as Entry 5's one-lag fits do, and the first passing fit is at
    10 lags. That fit still rejects, closer to the bar than the one-lag fit, so
@@ -1556,4 +1568,8 @@ series. A trade adds costs, carry from the two interest rates, and the
 question of sizing against a half-life this long, and none of those are here.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
+moves with it, since that post quotes most of these figures. So do its
+three figures, which `uv run python -m chan.stationary_candidates_figures`
+redraws.
