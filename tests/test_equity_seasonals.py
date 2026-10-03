@@ -22,11 +22,13 @@ are these.
    ``1a71950`` in egorpe/EPChan-QuantitativeTrading.
 2. The revised edition's Python, ``example7_6.py`` and ``example7_7.py`` at
    ``653cf92`` in liujiantong/epchan_books.
-3. The revised edition's MATLAB and R, whose figures the owner read from the
-   revised Kindle edition on 2026-10-02. Their code is not in the repo, so the
-   rules pinned for them are readings that reproduce the printed figures.
-   [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
-   them against the printed code.
+3. The revised edition's MATLAB and R, printed on pp. 179 and 181 of the
+   revised Kindle edition, which the owner read on 2026-10-02 and 2026-10-03.
+   [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes
+   the expressions that decide each rule. The R runs as printed. The MATLAB
+   needs one repair to run, which :data:`chan.equity_seasonals.REVISED_MATLAB`
+   names, and which ``smartstd`` it calls is inferred from the digits it
+   prints.
 
 Every reproduced figure is asserted twice. Its full value is held at
 ``abs=1e-9``, and its rounding is held at the precision its source prints. Two
@@ -312,18 +314,18 @@ class TestTheShapesTheScaleBreakCommentNames:
 
 
 class TestHestonSadkaRevisedMatlab:
-    """Example 7.7 in the revised edition's MATLAB, under a reading that reproduces it.
+    """Example 7.7 in the revised edition's MATLAB, as printed on p. 179 with one repair.
 
-    The code was not transcribed. The owner read that it cuts ``cl`` to its
-    month-end rows and then masks on ``cl(monthEnds(m-1), :)``, which cannot
-    run, so these tests hold what does reproduce the printed pair and what
-    does not.
+    The listing cuts ``cl`` to its month-end rows and then masks on
+    ``cl(monthEnds(m-1), :)``, which cannot run. The repair reads ``cl(m-1, :)``.
+    The page does not print ``smartstd``, so these tests also hold which of
+    Chan's two prints his digits.
     """
 
     def test_both_figures_reproduce(self, spx) -> None:
         result = heston_sadka(spx, REVISED_MATLAB)
-        assert_reproduces(result.annual_return, -0.012922703586771993, "-0.0129", ".4f")
-        assert_reproduces(result.sharpe, -0.12433986572716507, "-0.1243", ".4f")
+        assert_reproduces(result.annual_return, -0.012922703586771995, "-0.0129", ".4f")
+        assert_reproduces(result.sharpe, -0.12434081928195095, "-0.1243", ".4f")
 
     def test_the_printed_index_is_out_of_range_on_the_first_pass(self, spx) -> None:
         """``monthEnds(12)`` is a daily row, and the cut ``cl`` holds 96 rows."""
@@ -331,39 +333,72 @@ class TestHestonSadkaRevisedMatlab:
         assert len(ends) == 96
         assert ends[11] + 1 == 237
 
+    def test_it_drops_thirteen_months_as_printed(self, spx) -> None:
+        """``ret(1:13)=[]`` leaves 83 months, from the end of December 2000."""
+        kept = monthly_returns(spx, REVISED_MATLAB).iloc[REVISED_MATLAB.dropped :]
+        assert len(kept) == 83
+        assert kept.index[0] == pd.Timestamp("2000-12-29")
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+
+    def test_every_month_the_drop_removes_holds_no_position(self, spx) -> None:
+        """So book two's ``smartstd`` skips them all, and the drop count moves no figure.
+
+        Only the count of kept months above holds the 13.
+        """
+        returns = monthly_returns(spx, REVISED_MATLAB).to_numpy()
+        assert np.isnan(returns[:13]).all()
+        assert np.isfinite(returns[13:]).all()
+        for dropped in (0, 12):
+            other = heston_sadka(spx, replace(REVISED_MATLAB, dropped=dropped))
+            assert other.sharpe == pytest.approx(-0.12434081928195095, abs=1e-15)
+
+    def test_the_first_editions_smartstd_does_not_print(self, spx) -> None:
+        """It prints -0.1236, so the revised code's ``smartstd`` is book two's.
+
+        R's ``sd`` gives the same figure here, because no NaN month is left
+        after the drop and both divide by n - 1.
+        """
+        for statistic in (Statistic.SMART, Statistic.R):
+            other = heston_sadka(spx, replace(REVISED_MATLAB, statistic=statistic))
+            assert other.sharpe == pytest.approx(-0.12358950835964105, abs=1e-9)
+            assert format(other.sharpe, ".4f") == "-0.1236"
+
+    @pytest.mark.parametrize(
+        ("dropped", "full", "printed"),
+        [
+            (0, -0.133014381355165, "-0.1330"),
+            (12, -0.12433986572716507, "-0.1243"),
+            (13, -0.12358950835964105, "-0.1236"),
+        ],
+    )
+    def test_the_first_editions_smartstd_reads_every_month_it_is_given(
+        self, spx, dropped, full, printed
+    ) -> None:
+        """It counts each month with no position as zero, so the drop count moves its figure.
+
+        Dropping 12 also prints -0.1243. That was the reading pinned before the
+        printed code was read, and it lands by counting the one empty month it
+        keeps as zero, which ``ret(1:13)=[]`` never gives it.
+        """
+        other = heston_sadka(
+            spx, replace(REVISED_MATLAB, dropped=dropped, statistic=Statistic.SMART)
+        )
+        assert other.annual_return == pytest.approx(-0.012922703586771993, abs=1e-9)
+        assert_reproduces(other.sharpe, full, printed, ".4f")
+
     def test_the_minimal_repair_keeping_the_first_editions_mask_does_not_print(self, spx) -> None:
         repaired = heston_sadka(spx, replace(REVISED_MATLAB, mask=Mask.SORTED_AGAINST_COLUMNS))
-        assert repaired.annual_return == pytest.approx(-0.011980550862626744, abs=1e-9)
-        assert repaired.sharpe == pytest.approx(-0.11333444252086018, abs=1e-9)
+        assert repaired.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
+        assert repaired.sharpe == pytest.approx(-0.11333516462421217, abs=1e-9)
         assert format(repaired.annual_return, ".4f") != "-0.0129"
 
-    def test_dropping_thirteen_months_and_dividing_by_n_also_prints(self, spx) -> None:
-        """The alternative reading issue 226 settles against the printed code."""
-        alternative = heston_sadka(
-            spx,
-            replace(
-                REVISED_MATLAB, empty_month_is_nan=False, dropped=13, statistic=Statistic.NUMPY
-            ),
-        )
-        assert alternative.annual_return == pytest.approx(-0.012922703586771995, abs=1e-9)
-        assert alternative.sharpe == pytest.approx(-0.12434081928195095, abs=1e-9)
-        assert format(alternative.sharpe, ".4f") == "-0.1243"
-
     def test_masking_on_each_stocks_own_return_also_prints(self, spx) -> None:
-        """So four decimals do not identify the mask, and R's seven digits do."""
+        """So four decimals do not identify the mask, and the printed code does."""
         own_return = heston_sadka(spx, replace(REVISED_MATLAB, mask=Mask.OWN_RETURN))
         assert own_return.annual_return == pytest.approx(-0.012917299005454961, abs=1e-9)
-        assert own_return.sharpe == pytest.approx(-0.12426012002647847, abs=1e-9)
+        assert own_return.sharpe == pytest.approx(-0.12426107174773211, abs=1e-9)
         assert format(own_return.annual_return, ".4f") == "-0.0129"
         assert format(own_return.sharpe, ".4f") == "-0.1243"
-
-    def test_keeping_the_first_twelve_months_does_not_print(self, spx) -> None:
-        kept = heston_sadka(spx, replace(REVISED_MATLAB, dropped=0))
-        assert kept.sharpe == pytest.approx(-0.133014381355165, abs=1e-9)
-
-    def test_dividing_by_n_minus_one_after_dropping_thirteen_does_not_print(self, spx) -> None:
-        sample = heston_sadka(spx, replace(REVISED_MATLAB, dropped=13, statistic=Statistic.R))
-        assert sample.sharpe == pytest.approx(-0.12358950835964105, abs=1e-9)
 
 
 class TestHestonSadkaPython:
@@ -391,7 +426,7 @@ class TestHestonSadkaPython:
 
 
 class TestHestonSadkaR:
-    """Example 7.7 in the revised edition's R, read so that every printed digit lands."""
+    """Example 7.7 in the revised edition's R, as printed on p. 181."""
 
     def test_both_figures_reproduce(self, spx) -> None:
         result = heston_sadka(spx, R_HESTON_SADKA)

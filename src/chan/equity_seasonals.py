@@ -35,20 +35,18 @@ Four sources, all of them Chan's.
    ``653cf92``: ``example7_6.py`` and ``example7_7.py``. The owner checked
    their printed figures against the revised Kindle edition on 2026-10-02 and
    all five match.
-3. The revised edition's MATLAB, whose figures the owner read from the revised
-   Kindle edition on 2026-10-02. Its code was not transcribed into this repo,
-   so :data:`REVISED_MATLAB` is a reading that reproduces the printed figures
-   rather than a copy of the printed code. Several readings print the same
-   four decimals, and the tests pin two of them.
-4. The revised edition's R, read the same way. Its 7.7 figures are printed to
-   seven significant digits, and among the readings tried only masking each
-   stock on its own close reaches them. That chooses R's mask and not the
-   MATLAB's. The owner also read the MATLAB as indexing the close, which is
-   why :data:`REVISED_MATLAB` uses it.
+3. The revised edition's MATLAB, printed on p. 179 of the revised Kindle
+   edition. The owner read its figures on 2026-10-02 and its code on
+   2026-10-03, and
+   [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes
+   the expressions that decide each rule. :data:`REVISED_MATLAB` is that code
+   with one repair, which its comment names.
+4. The revised edition's R, printed on p. 181 and read the same way.
+   :data:`R_HESTON_SADKA` follows it with no change.
 
 Both editions' MATLAB and the revised R print the same two reachable Example
 7.6 returns, so the rules for those are the first edition's, with R's rounding
-taken from what the owner read of its Example 7.7.
+taken from its Example 7.7 code.
 
 Three limits, each stated where it applies.
 
@@ -92,6 +90,7 @@ from chan.matlab_helpers import (
     matlab_sort,
     round_half_away,
     smartmean,
+    smartstd_book_two,
     smartstd_first_edition,
     smartsum,
 )
@@ -306,8 +305,12 @@ class Mask(Enum):
 class Statistic(Enum):
     """How the monthly returns become a mean and a standard deviation."""
 
-    #: ``smartmean`` skips a NaN month and ``smartstd`` counts it as zero, dividing by n - 1.
+    #: ``smartmean`` skips a NaN month and the first edition's ``smartstd`` counts it as
+    #: zero, dividing by n - 1.
     SMART = "smart"
+    #: ``smartmean`` and *Algorithmic Trading*'s ``smartstd``, which skips a NaN month and
+    #: divides by n.
+    SMART_BOOK_TWO = "smart-book-two"
     #: ``np.nanmean`` and ``np.nanstd``, which divides by n.
     NUMPY = "numpy"
     #: R's ``mean`` and ``sd``, which divides by n - 1, on months with no NaN left.
@@ -326,7 +329,7 @@ class HestonSadkaRules:
     #: leaves it a sum, in units of summed positions rather than of capital.
     per_position: bool
     #: Where ``per_position`` is set, what a month holding nothing returns:
-    #: NaN, as MATLAB's 0/0 gives, or 0, as the Python's capital of 1 gives.
+    #: NaN, as MATLAB's and R's 0/0 gives, or 0, as the Python's capital of 1 gives.
     empty_month_is_nan: bool
     #: How many leading months are dropped before the statistics.
     dropped: int
@@ -396,6 +399,8 @@ def summarize(returns: pd.Series, rules: HestonSadkaRules) -> tuple[float, float
     kept = returns.to_numpy()[rules.dropped :]
     if rules.statistic is Statistic.SMART:
         mean, std = smartmean(kept), smartstd_first_edition(kept)
+    elif rules.statistic is Statistic.SMART_BOOK_TWO:
+        mean, std = smartmean(kept), smartstd_book_two(kept)
     elif rules.statistic is Statistic.NUMPY:
         mean, std = np.nanmean(kept), np.nanstd(kept)
     else:
@@ -425,15 +430,21 @@ FIRST_EDITION_MATLAB = HestonSadkaRules(
     printed=".4f",
 )
 
-#: A reading of the revised edition's MATLAB that reproduces both its printed
-#: figures. Its code was not transcribed into this repo. The owner read that it
-#: divides by the number of positions and masks on ``cl(monthEnds(m-1), :)``
-#: after ``cl`` has been cut to its month-end rows, which cannot run as printed.
-#: This reading lets MATLAB's 0/0 make a month with no position NaN, starts the
-#: statistics at the thirteenth month, and takes them with ``smartmean`` and
-#: ``smartstd``. It is one of several that print both figures, and
-#: [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
-#: it against the printed code.
+#: The revised edition's MATLAB as printed on p. 179, with one repair. The
+#: listing cuts ``cl`` to its month-end rows and then masks on
+#: ``cl(monthEnds(m-1), :)``, which asks a 96-row array for a daily row number
+#: and stops on the first pass. The repair reads ``cl(m-1, :)``, the month-end
+#: row the cut array holds. The mask removes the stocks it finds by column,
+#: through ``setdiff(sortIndex, badData, 'stable')``, so the repair keeps each
+#: stock on its own close rather than bringing back the first edition's
+#: sorted-against-columns rule.
+#:
+#: The rest is as printed. The decile takes the floor, each month is divided by
+#: the number of positions, so a month with none is MATLAB's 0/0, and
+#: ``ret(1:13)=[]`` drops 13 months before ``smartmean`` and ``smartstd``.
+#: No page prints ``smartstd`` itself. Book two's, which skips a NaN month and
+#: divides by n, prints Chan's -0.1243, and the first edition's prints -0.1236,
+#: so the choice of book two's is inferred from the digits rather than read.
 REVISED_MATLAB = HestonSadkaRules(
     source="Example 7.7 in MATLAB, revised edition",
     per_stock_period_ends=False,
@@ -441,8 +452,8 @@ REVISED_MATLAB = HestonSadkaRules(
     decile_size=np.floor,
     per_position=True,
     empty_month_is_nan=True,
-    dropped=12,
-    statistic=Statistic.SMART,
+    dropped=13,
+    statistic=Statistic.SMART_BOOK_TWO,
     printed=".4f",
 )
 
@@ -458,16 +469,19 @@ PYTHON_HESTON_SADKA = HestonSadkaRules(
     printed=".6f",
 )
 
-#: A reading of the revised edition's R that reproduces both its printed
-#: figures to every digit printed. The owner read that it rounds the decile
-#: size where MATLAB and Python take the floor, and that it uses R's ``sd``.
+#: The revised edition's R as printed on p. 181, with no change. It drops a
+#: stock with no return a year earlier through ``order(..., na.last = NA)``,
+#: masks each stock on its own close at the month-end, and rounds the decile
+#: with R's ``round``, which sends a half to the even neighbour. Each month is
+#: divided by its positions, so a month with none is R's 0/0. ``ret[-(1:13)]``
+#: drops 13 months before ``mean`` and ``sd`` with ``na.rm=TRUE``.
 R_HESTON_SADKA = HestonSadkaRules(
     source="Example 7.7 in R, revised edition",
     per_stock_period_ends=False,
     mask=Mask.OWN_CLOSE,
     decile_size=np.round,
     per_position=True,
-    empty_month_is_nan=False,
+    empty_month_is_nan=True,
     dropped=13,
     statistic=Statistic.R,
     printed=".7g",

@@ -97,8 +97,9 @@ they were first built. The other ten were built here.
    year-on-year rotation on his S&P 500 file. He prints them in the first
    edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
    fourteen figures his files reach reproduce to the digits printed. None
-   lands from the strategy as described. The revised MATLAB and R code is not
-   in the repo, so their rules are readings that reproduce the printed figures.
+   lands from the strategy as described. The revised MATLAB and R rules follow
+   the code the book prints, with one index repaired so the MATLAB runs, and
+   the MATLAB's `smartstd` is inferred from the digits it prints.
    The first edition's −0.9167 a year is a sum over positions rather than a
    return on capital, and the revised edition's three annual returns land
    between −0.0114 and −0.0129 a year. Example 7.6's third January,
