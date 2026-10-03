@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Ten replications run here, all from Chan's *Quantitative Trading*. The
+Eleven replications run here, all from Chan's *Quantitative Trading*. The
 first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other eight were built here.
+they were first built. The other nine were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -129,6 +129,15 @@ they were first built. The other eight were built here.
     121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
     0.9578 rather than the book's 0.25. Every figure is exploratory and about
     survivors.
+11. Chan's two commodity seasonal trades, which he says still pay where the
+    equity ones have died: the May gasoline contract from April 13 to April 25,
+    and the June natural gas contract from February 25 to April 15. On EIA's
+    NYMEX settlements, natural gas is profitable in every year from 1995 to
+    2008, which reproduces both the main text's 13 consecutive years and the
+    sidebar's 14. Gasoline from 1995 to 2015 holds the 2 losing years that
+    Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
+    EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
+    fade after the years he read. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -201,12 +210,20 @@ sweep run when the pins were written found that moving any printed cell by one
 unit in its last digit fails a test. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 
-All ten replications reach a verdict in
+[tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) does it
+for the commodity seasonals. It pins every year's outcome for both trades,
+rather than only the counts, so a calendar error that swaps a profit for a loss
+fails a test even where the count survives. It also pins the natural gas
+expiry rule against the exchange's own last trading days, and each date Good
+Friday moved.
+
+All eleven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
-toy's and Entry 10 the reversal at the open's.
+toy's, Entry 10 the reversal at the open's and Entry 11 the commodity
+seasonals'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -247,10 +264,10 @@ pins what it gives.
 Twelve vintages hold NYMEX futures settlement prices as the US Energy
 Information Administration publishes them: contracts 1 to 4 of RBOB gasoline,
 of the New York Harbor gasoline contract it replaced, and of Henry Hub natural
-gas. Nothing reads them yet. They are committed ahead of the run
-[issue 19](https://github.com/l3a0/quantitative-trading/issues/19) describes,
-which reads five of them, and the issue records the owner's decision to commit
-them. [data/README.md](data/README.md) says what each file holds.
+gas. `src/chan/commodity_seasonals.py` reads five of them for
+[issue 19](https://github.com/l3a0/quantitative-trading/issues/19), and the
+issue records the owner's decision to commit all twelve.
+[data/README.md](data/README.md) says what each file holds.
 
 Four of Chan's own files are cross-sections rather than series. Three hold
 prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 as it stood on
@@ -460,6 +477,17 @@ book prints, the equal-shares near miss, and the survivor-only return again
 with NEOF's start price put on the basis of its 2001 reverse split. Its vintage
 line reads `none, the book's printed tables`, and its window line names the
 book's dates.
+
+Chan's commodity seasonals read EIA's settlements and take no option:
+
+```bash
+uv run python -m chan.commodity_seasonals
+```
+
+It prints every year's trade for both contracts, with its dates, settlements
+and the numbered file each price came from, then the counts the book prints
+beside its own. A year whose trade date has no row in its file prints as
+missing rather than moving to another day.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
