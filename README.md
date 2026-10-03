@@ -66,7 +66,11 @@ they were first built. The other nine were built here.
    the worst day the index has had. Most of the levels Chan computed from a
    series land high on a modern download, and the standard deviation
    reproduces at the two decimals he printed. Every claim behind those numbers
-   still holds, and the entry is about that split. On his own workbook every one of
+   but one still holds, and the entry is about that split. The exception is
+   Chan's claim that the Kelly leverage, unlike the Sharpe ratio, does not
+   depend on the time scale. Rows 15 and 28 of the entry record it as
+   `did not reproduce`, on the 2026 download and on his own workbook alike, so
+   its failure owes nothing to the download. On his own workbook every one of
    those levels reproduces at the precision he printed, and setting the two
    series day by day against each other puts the whole gap on about ten days
    on or beside SPY's quarterly ex-dividend dates.

@@ -1001,10 +1001,14 @@ lines.
 
 Five things, and the first is what makes the other four worth reading.
 
-1. **Seven numbers moved and no claim did.** Every level Chan computed from a
-   series except the dispersion is higher on the 2026 download, by 0.06
-   percentage points on the mean and 0.023 on the leverage, and every statement those numbers were printed to
-   support still holds on that vintage. That is the same split Entry 1 found on
+1. **Seven numbers moved and every claim but one held.** Every level Chan
+   computed from a series except the dispersion is higher on the 2026 download,
+   by 0.06 percentage points on the mean and 0.023 on the leverage, and every
+   statement those numbers were printed to support still holds on that vintage
+   except one. The exception is his claim that the Kelly leverage does not
+   depend on the time scale, which rows 15 and 28 record as `did not reproduce`
+   on this vintage and on his own workbook alike, so its failure owes nothing
+   to the vintage. That is the same split Entry 1 found on
    a different pair with a different estimator: a published number and the
    claim it supports have different shelf lives, and only the number depends on
    a vintage. What is new here is the one that did not move. The dispersion of
