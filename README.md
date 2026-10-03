@@ -788,7 +788,15 @@ t-statistic of −2 at 3.80% and +1.30 at zero, the later period's −2 at 3.25%
 and the 0.38 gap its weights would leave if computed inside it. It also holds
 the hurdle bonds' Sharpe ratio has to clear, about 0.53 over the whole period
 and about 0.7 in the later period, and AGG's 0.46 and −0.39 times SPY's
-Sharpe ratio at the 1.74% bill average and at 4%. What its seven figures draw
+Sharpe ratio at the 1.74% bill average and at 4%. The IWB figures in "What
+this replication cannot say" trace to `TestIWBInPlaceOfSPY` in the same file,
+which reads `yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv`
+against the same AGG vintage. That covers IWB's 18.47% volatility, its 3.58
+volatility ratio, its 21.9% stock weight and 1.98 leverage, the Sharpe ratios
+of 0.41 and 0.20 at 4% with their gap of 0.22 and t-statistic of −2.16, the tie
+at 1.51%, which a separate assertion holds to its rounding, the gap of 0.02 and
+t-statistic of −0.21 at the bill average, and the swap's changes of −0.0001,
+−0.0008 and +0.0105 with their t-statistics of +0.29, +0.06 and +0.98. What its seven figures draw
 traces to [tests/test_risk_parity_figures.py](tests/test_risk_parity_figures.py).
 That includes the Sharpe ratios of 0.61 for 60/40 and 0.59 for risk parity at
 the 1.74% bill average, the gap of about 0.02 between them and its t-statistic

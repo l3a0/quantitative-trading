@@ -84,7 +84,7 @@ Matching the volatilities turns the Sharpe comparison into a return comparison. 
 
 Leverage scales a portfolio’s return above cash and its volatility by the same factor, so it leaves the Sharpe ratio unchanged. Levering risk parity therefore cannot change which one wins. What leverage does is let an investor who wants 60/40’s risk take it through risk parity’s mix instead, and that pays off exactly when the unlevered mix already has the higher Sharpe ratio.
 
-Here are Qian’s figures beside the ones this replication computes. Qian (2005) used monthly returns on the Russell 1000 stock index and the Lehman Aggregate Bond Index from 1983 to 2004. He measured returns above the three-month Treasury-bill rate paid in each month, while this replication measures them above a fixed 4%. The two columns therefore cover different years, different stock indices and different cash rates.
+Here are Qian’s figures beside the ones this replication computes. Qian (2005) used monthly returns on the Russell 1000 stock index and the Lehman Aggregate Bond Index from 1983 to 2004. He measured returns above the three-month Treasury-bill rate paid in each month, while this replication measures them above a fixed 4%. The two columns therefore cover different years, different stock indices and different cash rates. “What this replication cannot say” measures what the different stock index cost, and it barely moves the result.
 
 ```math
 \begin{array}{l|r|r}
@@ -246,9 +246,13 @@ The portfolio actually scored kept the earlier 20.5% stocks, and its hurdle was 
 
 ## What this replication cannot say
 
-The replication tests Qian’s argument on funds and years it fixed in writing before computing any number. It cannot say three things.
+The replication tests Qian’s argument on funds and years it fixed in writing before computing any number.
 
-1. **Whether Qian’s own data reproduces his numbers.** He used the Russell 1000 from 1983 to 2004, and this replication uses SPY, which tracks the S&P 500, from 2003 on. AGG tracks his bond index but only opened in 2003. The two data sets overlap by at most 15 months.
+One of those choices can be priced. Qian read the Russell 1000, and SPY tracks the S&P 500. IWB is a fund that tracks the Russell 1000 itself, so running the same calculation on IWB and AGG, over the same days and at the same rates, measures what using SPY cost. It cost almost nothing. On Yahoo Finance’s dividend-adjusted IWB closes, downloaded on 3 October 2026, stocks’ volatility is 18.47% against SPY’s 18.55%. The volatility ratio of 3.58 sits outside the 3.26 to 3.44 that Qian’s weights allow, as SPY’s 3.59 does. Risk parity puts 21.9% in stocks against 21.8%, and the leverage is 1.98 on both. At 4%, 60/40 earns 0.41 and levered risk parity 0.20, a gap of 0.22 computed before rounding, with a t-statistic of −2.16 against SPY’s −2.17. The two Sharpe ratios tie at 1.51% against 1.50%, so at the 1.74% bill average 60/40 still leads by 0.02, with a t-statistic of −0.21, as on SPY. Swapping the fund moves risk parity’s Sharpe ratio less 60/40’s by −0.0001 over the whole period, −0.0008 in the earlier period and +0.0105 in the later one, against SPY’s gap there of 0.50. Applying Lesson 1’s t-statistic to the daily difference between the IWB comparison and the SPY one asks whether IWB’s gap departs from SPY’s by more than chance. It comes to +0.29, +0.06 and +0.98, far short of 2 in every period. No period changes which portfolio leads or whether the data can name a winner. SPY stays the fund every other figure in this post is computed on, because it was fixed in writing before any number was seen, and promoting IWB after seeing its numbers would be choosing a fund for its result. IWB is a measurement beside the replication rather than a second one.
+
+It cannot say three things.
+
+1. **Whether Qian’s own data reproduces his numbers.** He used data from 1983 to 2004, and this replication starts in 2003. AGG tracks his bond index but only opened in 2003, and the IWB history used above starts in May 2000, so neither fund reaches his years. The two data sets overlap by at most 15 months. The stock index barely moved the result, so his years are the difference left untested.
 2. **Whether costs change the result.** The book charges no trading costs and no borrowing spread above the cash rate, so neither does the replication. Both would hurt the levered risk-parity portfolio more than 60/40, so charging them could only move the result toward 60/40.
 3. **Which allocation anyone should hold.** A replication uses its data to check someone else’s claim. It says whether the claim held on these funds over these years, and nothing about the next twenty years.
 
