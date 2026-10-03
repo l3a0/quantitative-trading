@@ -34,7 +34,8 @@
    levered risk parity over the whole period, before the 2022 rise and after
    it, as :func:`chan.risk_parity.rank_the_windows` ranks them, with the later
    period also on weights fitted to it with hindsight. The later period's row
-   gives the t-statistic at its own leverage and at the earlier period's.
+   gives the t-statistic at the leverage measured on the later period, on the
+   earlier period's weights, and at the earlier period's leverage.
 
 7. :func:`make_correlation_figure` draws Lesson 6. After the 2022 rise, the
    hurdle bonds' Sharpe ratio had to clear, drawn against the stock-bond

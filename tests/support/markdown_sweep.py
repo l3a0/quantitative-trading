@@ -412,9 +412,11 @@ def slug(text: str) -> str:
 
     Lowercase, drop what is neither alphanumeric nor a space, hyphen or
     underscore, then hyphenate the spaces. Inline markup is not stripped
-    first, because no heading in this repo carries a backtick or a link and a
-    normaliser for markup nothing has is a path nothing exercises. Emphasis
-    markers fall out anyway, since an asterisk is not alphanumeric.
+    first. Emphasis markers and code-span backticks fall out anyway, since
+    neither an asterisk nor a backtick is alphanumeric, and GitHub drops both
+    when it builds the anchor. A link would not fall out, since its URL is
+    alphanumeric, but no heading in this repo carries one, and a normaliser
+    for markup nothing has is a path nothing exercises.
     """
     kept = [c for c in text.strip().lower() if c.isalnum() or c in " -_"]
     return "".join(kept).replace(" ", "-")
