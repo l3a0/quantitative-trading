@@ -454,6 +454,11 @@ class TestTheYearsInsideTheSplit:
     First run on 2026-10-03.
     """
 
+    def test_it_reads_the_83_kept_months(self, kept) -> None:
+        assert len(kept) == 83
+        assert kept.index[0] == pd.Timestamp("2000-12-31")
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+
     def test_2002_and_2006(self, kept) -> None:
         years = kept.groupby(kept.index.year).sum()
         assert years[2002] == pytest.approx(0.22273245297832958, abs=1e-9)
@@ -463,6 +468,8 @@ class TestTheYearsInsideTheSplit:
     def test_the_years_swing_wider_than_the_halves_differ(self, spx, kept) -> None:
         years = kept.groupby(kept.index.year).sum()
         before, after = split_at(heston_sadka(spx, PYTHON_HESTON_SADKA), PYTHON_HESTON_SADKA)
+        assert years[2002] - years[2006] == pytest.approx(0.35464347755594144, abs=1e-9)
+        assert after[1] - before[1] == pytest.approx(0.15735417776401822, abs=1e-9)
         assert years[2002] - years[2006] > after[1] - before[1]
 
     def test_the_running_sum_peaks_in_january_2006(self, kept) -> None:
