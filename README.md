@@ -613,27 +613,30 @@ other number in the post traces to an assertion in
 is a third post, about the coin-flip gamble rather than either pair. It draws
 six lessons from Box 6.1 on expected value against the compound growth
 rate of capital. The growth-maximising stake it quotes is pinned beside the
-rest, in `TestTheStakeDecidesTheSign`. Four groups of its figures are not pinned here.
+rest, in `TestTheStakeDecidesTheSign`. SPY's mean annual return of 11.23% and
+its unlevered growth rate of 9.8%, Chan's at Kindle location 2869, are pinned
+in [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py) instead. That
+file carries both as cited constants, and
+`test_every_published_figure_reproduces_at_the_precision_he_printed` asserts
+that his own `example6_2.xls` rounds to each at the decimals he printed.
+Three groups of its figures are not pinned here.
 
-1. SPY's mean annual return of 11.23% and its unlevered growth rate of 9.8%,
-   and the 1.43-percentage-point gap between them. All three are Chan's, at
-   Kindle location 2869. [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py)
-   cites the first two as book figures and computes its own on a modern
-   vintage.
-2. A stock moving 1% up or down each minute loses about half a basis point a
+1. A stock moving 1% up or down each minute loses about half a basis point a
    minute. That is Chan's, at location 2822, and no test computes it.
-3. One head and one tail leave 0.999 of the capital, a tenth of a percent
+2. One head and one tail leave 0.999 of the capital, a tenth of a percent
    lost every two rounds, and the worked \$1,110, \$111 and \$999 of that pair. The
    two-round table of \$810.00, \$999.00 and \$1,232.10 is the same kind, and
    so is Chan's own \$2,000 account that wins \$220 or loses \$200. All of it
    is arithmetic on the two pinned multipliers, 1.11 and 0.90, and no test
    asserts it.
-4. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
+3. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
    its docstring and does not assert the percentage. Lesson 2's 6% gap at ten
    rounds is the same kind, the pinned ratio of 1.06 written as a percentage.
    So are Lesson 4's multiple of 3.11, the pinned \$3,111 divided by \$1,000,
    and Lesson 6's "a fifth of the growth", the pinned standard error of
-   1.05e-4 set against the growth of about 0.0005.
+   1.05e-4 set against the growth of about 0.0005. So is the
+   1.43-percentage-point gap between SPY's two figures, the pinned 11.23%
+   less the pinned 9.8%.
 
 Every other number in the post traces to an assertion in
 [tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers
