@@ -636,14 +636,23 @@ class TestTheParseReturnsTheNumberTheTextSpells:
         """The exact parse keeps the old reader's answer for text that is not a
         number, NaN beside its neighbours, rather than stopping the read. The
         text is one pandas does not already read as missing, the way it reads
-        ``n/a``, so the cell reaches the parse rather than arriving as NaN."""
-        payload = b"Date,Close\n2020-01-02,10.5\n2020-01-03,halted\n2020-01-06,912.7555772777217\n"
+        ``n/a``, so the cell reaches the parse rather than arriving as NaN.
+        An empty cell sits beside the word, because the cell-by-cell path has to
+        keep a day for each, and the long value has to come back exact on that
+        path too."""
+        payload = (
+            b"Date,Close\n2020-01-02,10.5\n2020-01-03,halted\n2020-01-06,\n"
+            b"2020-01-07,912.7555772777217\n"
+        )
 
         values = series._parse_close(payload, "ZZZ")
 
+        assert values.dtype == "float64"
+        assert len(values) == 4
         assert values.iloc[0] == 10.5
         assert math.isnan(values.iloc[1])
-        assert values.iloc[2] == float("912.7555772777217")
+        assert math.isnan(values.iloc[2])
+        assert values.iloc[3] == float("912.7555772777217")
 
     def test_every_committed_column_reads_back_as_its_text(self) -> None:
         """Every field of every committed vintage, not only the close, because a
