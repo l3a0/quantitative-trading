@@ -244,6 +244,10 @@ A row with no published *number* can still be a replication, which is the case
 ranking or a verdict, the claim is what gets pinned. Entry 3's rows 12, 15, 27
 and 28 are all of those, and they split two and two. So is Entry 4's row 3,
 which is the ranking Qian's two printed figures were printed to support.
+Entry 10's row 1 is one too, for the reason Entry 6's row 1 below is: the
+claim is about one strategy the book names, and its criterion was declared on
+[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) before
+any figure was computed.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -1972,13 +1976,14 @@ this repo does not hold, so it stays a cited number.
 it, and Chan leaves that as an exercise. The S&P 600 file under
 `ijr_20080114/` spans 2006, and running the rule on it would be a finding with
 no published figure to check, like Entry 5, rather than a replication.
+[Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) runs it.
 
 **What survivorship cost.** Neither its size nor its sign is measured.
 
 **What trading at the open gives.** That is Example 3.8, and Entry 10
 carries it. Entry 10 also reproduces Chan's Python notebook for this example,
 which prints 0.9578 and −2.1617 rather than 0.25 and −3.19, because its rule
-differs from `example3_7.m` in five ways and its forward-fill reads WYN's gap
+differs from `example3_7.m` in six ways and its forward-fill reads WYN's gap
 as one day's move.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
@@ -2121,7 +2126,7 @@ notebook `example3_8.ipynb` the book points to. Shipped under
 
 The label is a revised-edition one, and this entry declares it because the
 repo reads an example number as first-edition unless it says otherwise. The
-first-edition mirror holds `example3_7.m` and no file for this example, so
+first-edition mirror holds `example3_7.m` and no file for this example, and
 whether the 2009 edition carries it was not checked.
 
 Thirteen rows, all derivable from
@@ -2144,18 +2149,21 @@ finding.
    rule Entry 8 reproduces. Chan's sentence at p. 78 recalls that strategy's
    0.25 and −3.19 and calls updating at the open "the only change", so rule B
    carries the claim.
-2. **Rule A is the notebook as written.** It forward-fills each gap before
-   taking returns, scales each day's weights to a gross exposure of 1,
-   zeroes no stock for a missing price, divides its deviation by n, and
-   charges nothing on the first day. Its Example 3.7 twin prints 0.9578 and
-   −2.1617 rather than the book's 0.25 and −3.19, and rows 4 and 5 reproduce
-   both on the closes.
+2. **Rule A is the notebook as written.** It forward-fills before taking
+   returns, carrying each stock's last price into a gap. It scales each day's
+   weights to a gross exposure of 1, zeroes no stock for a missing price,
+   divides its deviation by n, charges nothing on the first day, and charges
+   no change in weight beside a missing one. Its Example 3.7 twin prints
+   0.9578 and −2.1617 rather than the book's 0.25 and −3.19, and rows 4 and 5
+   reproduce both on the closes.
 
 The forward-fill is what separates them most. `spx_20071123/wyn.csv` holds two
-companies under one symbol, and the fill reads the 952-day gap between them as
-a single day's return of 121.5 on 2006-08-01. On the closes that one return
-lifts rule A from 0.4179 to 0.9578 before costs. On the opens it pulls rule A
-down, from 4.8606 to 2.3818.
+companies under one symbol, 952 trading days apart, and the fill reads that gap
+as a single day's move on 2006-08-01: a return of 121.5 on the closes and
+127.65 on the opens, gains of over 12,000 percent. On the closes the fill
+lifts rule A from 0.4179 to 0.9578 before costs, and dropping WYN alone gives
+0.4268. On the opens it pulls rule A down, from 4.8606 to 2.3818, and dropping
+WYN alone gives 4.8508.
 
 Five rows are replications and eight are not. Row 1 is the claim, which takes
 the claim route `### Rows that are not replications` describes, and rows 2 to
@@ -2170,7 +2178,8 @@ once here.
    `field="Open"`, or the default close where a row says closes. Chan's
    notebooks read `SPX_op_20071123.txt` and `SPX_20071123.txt` instead, which
    this repo does not commit. Measured on
-   [issue 206](https://github.com/l3a0/quantitative-trading/issues/206), each
+   [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) at
+   `7150afb`, each
    matches its panel cell for cell, NaN for NaN, to a largest relative
    difference of 2.0e-16, so the two are one series and nothing here can
    re-measure that. **Every figure here is about survivors**, for the reason
@@ -2190,7 +2199,7 @@ at the open pays today.
 
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
-| 1 | Both Sharpe ratios, before and after costs, at the open | "both very positive", a claim rather than a figure | p. 78. Not among the committed highlights, [research/book-notes/README.md](../research/book-notes/README.md) records |
+| 1 | Both Sharpe ratios, before and after costs, at the open | "both very positive", a claim rather than a figure | p. 78. Not among the committed highlights, as [research/book-notes/README.md](../research/book-notes/README.md) records |
 | 2 | The notebook's Sharpe ratio before costs | 2.381759409645483 | `example3_8.ipynb`, as reposted at pinhaocheng/epchan-quant_trading_Python_codes `5fcab61` |
 | 3 | The notebook's Sharpe ratio after costs | 1.3996944546182997 | the same |
 | 4 | The Example 3.7 notebook's Sharpe ratio before costs, on the closes | 0.957785681010386 | `example3_7.ipynb`, the same repost |
@@ -2225,13 +2234,13 @@ at the open pays today.
 | 4 | 0.0000 | reproduced | Rule A's control. Without it a transcription that leaned on pandas' current `pct_change`, which no longer fills gaps, would give row 12's 0.4179 and look plausible. |
 | 5 | 0.0000 | reproduced | The same. |
 | 6 | none | none, not a replication | Half of what row 1 reads. Updating at the open lifts the figure before costs from Entry 8's 0.2510 to 4.4202. |
-| 7 | none | none, not a replication | The half that fails. The cost of rebalancing every day still takes most of the edge. |
+| 7 | none | none, not a replication | The half that fails. Charging 5 basis points a side takes the figure from row 6's 4.4202 to 0.7834. |
 | 8 | none | none, not a replication | Charging the first day moves the figure up rather than down here, and it stays below 1.0, so the quirks do not decide row 1. |
 | 9 | none | none, not a replication | What the open recovered against Example 3.7 after costs. It turns a large loss into a small gain. |
-| 10 | none | none, not a replication | The forward-fill is pandas 0.24's default, not a rule Chan wrote. Without it rule A clears 1.0 after costs, by 0.0335. |
-| 11 | none | none, not a replication | Dropping only WYN lands within 0.01 of row 10 on both figures, so on the opens WYN's splice is nearly all of what the fill does. |
-| 12 | none | none, not a replication | The same pair on the closes. There the splice lifts the figure rather than lowering it, which is most of why Chan's Python and MATLAB disagree on Example 3.7. |
-| 13 | none | none, not a replication | The before-cost figures clear a bar that one year of data can support, and the after-cost figures do not, so 2006 alone does not show at 95 percent confidence that either rule earns anything after costs. |
+| 10 | none | none, not a replication | The forward-fill is pandas 0.24's default, which the notebook's bare `pct_change()` inherits rather than asks for. Without it rule A's after-cost figure is 1.0335, above 1.0. |
+| 11 | none | none, not a replication | Dropping only WYN gives 4.8508 against row 10's 4.8606, and 1.0357 against 1.0335, so on the opens WYN's gap carries most of what the fill does. |
+| 12 | none | none, not a replication | The same pair on the closes. There WYN's gap lifts the figure rather than lowering it, and dropping WYN alone brings rule A from row 4's 0.9578 to 0.4268, near the 0.4179 it gives without the fill. |
+| 13 | none | none, not a replication | The two before-cost figures clear the bar and the two after-cost figures do not. Chan states the estimate behind it as 95 percent confidence over 681 days, and scaling it to one year is this repo's step, so the row decides nothing. |
 
 ### What the entry concludes
 
@@ -2243,14 +2252,15 @@ Three things, and the first is the verdict.
    asks both to clear 1.0, and the after-cost figure does not.
 2. **Chan's notebook reproduces exactly and computes something else.** Its
    figures land at four decimals on both examples, and both of its Example
-   3.8 figures clear 1.0. But it differs from the MATLAB in five ways, and on
-   Example 3.7 it prints 0.9578 where the book prints 0.25, so the book's text
-   and its code describe different strategies.
-3. **One splice moves rule A on both fields, in opposite directions.** A
-   gap-respecting read of WYN, by dropping the fill or dropping WYN, gives
-   0.42 to 0.43 before costs on the closes and 4.85 to 4.86 on the opens. Rule
-   A's after-cost figure on the opens clears 1.0 either way, by 0.0335 and
-   0.0357, which is closer to the line than rule B's figure is below it.
+   3.8 figures clear 1.0. But it differs from the MATLAB in six ways, and on
+   Example 3.7 it prints 0.9578 where the book prints 0.25, so it is not the
+   strategy behind 0.25 and −3.19 with one change, which is what the book's
+   sentence describes.
+3. **WYN's gap moves rule A on both fields, in opposite directions.** Reading
+   it as a gap rather than a move, by dropping the fill or dropping WYN, gives
+   0.4179 to 0.4268 before costs on the closes and 4.8508 to 4.8606 on the
+   opens. Rule A's after-cost figure on the opens stays above 1.0 either way,
+   at 1.0335 and 1.0357.
 
 ### What this entry cannot say
 

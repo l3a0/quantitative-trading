@@ -459,6 +459,12 @@ class TestRuleAOnTheOpens:
         assert variation.without_splice.before_costs == pytest.approx(4.8508, abs=5e-5)
         assert variation.without_splice.after_costs == pytest.approx(1.0357, abs=5e-5)
 
+    def test_the_fill_reads_wyns_gap_as_one_days_move(self, open_panel) -> None:
+        """0.26 before the gap and 33.45 after it, a return of 127.65 on 2006-08-01."""
+        _, opens = open_panel
+        filled = opens.ffill().pct_change(fill_method=None)
+        assert filled.loc["2006-08-01", SPLICED_SYMBOL] == pytest.approx(127.65, abs=5e-3)
+
     def test_no_day_is_nan(self, variation: OpenVariation) -> None:
         assert np.isfinite(variation.notebook.pnl_after_costs).all()
         assert len(variation.notebook.days) == 251
@@ -538,6 +544,8 @@ class TestTheClaimRule:
         assert matches_notebook(near, NOTEBOOK_38_BEFORE, NOTEBOOK_38_AFTER)
         off = NotebookReversal(days, np.array([]), np.array([]), 2.38176, 1.39975)
         assert not matches_notebook(off, NOTEBOOK_38_BEFORE, NOTEBOOK_38_AFTER)
+        before_off = NotebookReversal(days, np.array([]), np.array([]), 2.38186, 1.39965)
+        assert not matches_notebook(before_off, NOTEBOOK_38_BEFORE, NOTEBOOK_38_AFTER)
 
 
 class TestTheOpenReport:
@@ -549,13 +557,19 @@ class TestTheOpenReport:
         assert "500 members lifted from SPX_20071123.mat, the Open column" in out
         assert "2.3818    2.3818" in out
         assert "1.3997    1.3997" in out
-        assert "4.8606      none" in out
+        for label, value in [
+            ("Before costs, no forward-fill", "4.8606"),
+            ("After 5 bp a side, no forward-fill", "1.0335"),
+            ("Before costs, without WYN", "4.8508"),
+            ("After 5 bp a side, without WYN", "1.0357"),
+        ]:
+            assert f"  {label:<62} {value:>8}      none" in out
         assert "Verdict: REPRODUCED." in out
         assert "4.4202  very positive" in out
         assert "0.7834  very positive" in out
         assert "0.8293           none" in out
-        assert "DOES NOT HOLD. Before costs clears it and the other half does not" in out
-        assert "One-year bar 1.6472" in out
+        assert "DOES NOT HOLD. Before costs clears 1.0 and the other half does not" in out
+        assert "One-year bar 1.6472, Chan's 1 over 681 days scaled to 251." in out
         assert "Clearing it: rule A before costs, rule B before costs." in out
         assert "survivors" in out
         assert "Exploratory." in out
@@ -577,8 +591,9 @@ class TestTheOpenReport:
         ("before", "after", "said"),
         [
             (1.2, 1.1, "HOLDS."),
-            (0.4, 1.1, "DOES NOT HOLD. After costs clears it and the other half does not"),
-            (0.4, 0.3, "DOES NOT HOLD. Neither half clears it"),
+            (1.0, 0.5, "DOES NOT HOLD. Before costs clears 1.0 and the other half does not"),
+            (0.4, 1.1, "DOES NOT HOLD. After costs clears 1.0 and the other half does not"),
+            (0.4, 0.3, "DOES NOT HOLD. Neither half clears 1.0"),
         ],
     )
     def test_each_claim_verdict_is_said(
@@ -586,6 +601,14 @@ class TestTheOpenReport:
     ) -> None:
         report_at_open(open_panel[0], _with_rule_b(variation, before, after))
         assert said in capsys.readouterr().out
+
+    def test_a_notebook_figure_that_misses_is_said(self, capsys, variation, open_panel) -> None:
+        missed = dataclasses.replace(
+            variation,
+            notebook=dataclasses.replace(variation.notebook, after_costs=1.3990),
+        )
+        report_at_open(open_panel[0], missed)
+        assert "Verdict: DID NOT REPRODUCE." in capsys.readouterr().out
 
     def test_a_missing_vintage_reaches_the_reader_as_one_line(self, monkeypatch, tmp_path) -> None:
         monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
@@ -629,6 +652,37 @@ class TestRuleAByHand:
         want = [np.nansum(weights[i - 1] * returns[i]) for i in (2, 3)]
         assert got.pnl[1:] == pytest.approx(want, abs=1e-15)
         assert got.pnl[0] == 0.0
+
+    def test_a_window_on_the_first_row_earns_zero_that_day(self) -> None:
+        """Every return on the frame's first row is NaN, so its weights and profit are 0.
+
+        The notebook sets that row's weights to 0 rather than leaving them NaN,
+        so moving into day 1's weights, a gross of 1, is charged.
+        """
+        got = notebook_reversal(HAND_A, start="2005-12-29", end="2006-01-04")
+        assert got.pnl[0] == 0.0
+        assert len(got.days) == 4
+        assert got.pnl[1] - got.pnl_after_costs[1] == pytest.approx(ONE_WAY_COST, abs=1e-15)
+
+    def test_a_flat_day_holds_nothing_and_moving_out_of_it_is_charged(self) -> None:
+        """Every stock moving alike leaves no deviation, so the day's weights are all 0.
+
+        Day 1 moves all three by 10 percent, so its gross is 0 and its weights
+        stay 0 rather than becoming NaN. Day 2's weights are the first held, so
+        the cost on day 2 is the whole of their gross, 1, at 5 basis points.
+        """
+        flat = pd.DataFrame(
+            {
+                "A": [10.0, 11.0, 12.1, 12.1],
+                "B": [20.0, 22.0, 22.0, 24.2],
+                "C": [5.0, 5.5, 5.5, 5.5],
+            },
+            index=pd.to_datetime(["2006-01-03", "2006-01-04", "2006-01-05", "2006-01-06"]),
+        )
+        got = notebook_reversal(flat, start="2006-01-03", end="2006-01-06")
+        assert got.pnl[1] == 0.0
+        assert got.pnl_after_costs[1] == 0.0
+        assert got.pnl[2] - got.pnl_after_costs[2] == pytest.approx(ONE_WAY_COST, abs=1e-15)
 
     def test_the_first_days_cost_is_zero_and_the_deviation_divides_by_n(self) -> None:
         got = notebook_reversal(HAND_A, start="2005-12-30", end="2006-01-04")

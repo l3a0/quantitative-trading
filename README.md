@@ -122,7 +122,9 @@ they were first built. The other eight were built here.
     the run. Chan's own Python notebook computes a different rule and prints
     2.3818 and 1.3997, which reproduce. The notebook fills each gap with the
     last price, so it reads WYN's change of company as a one-day return of
-    121.5, and on Example 3.7 it prints 0.9578 rather than the book's 0.25.
+    121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
+    0.9578 rather than the book's 0.25. Every figure is exploratory and about
+    survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -219,9 +221,10 @@ them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
 one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
 that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
-called there. Example 3.8's second rule, Chan's Python notebook, fills the gap
-and reads it as a return of 121.5, because that is what his notebook computed,
-and the entry reports what the figures are without it.
+called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
+reads it as a return of 121.5 on the closes and 127.65 on the opens, because
+that is what his notebook computed, and the entry reports what the figures are
+without it.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 

@@ -12,8 +12,8 @@ stocks.
 Nothing here reproduces 4.47. It was computed on a universe this repo does not
 hold, so it is printed as the paper's figure and asserted nowhere.
 
-**The transcription.** Every step is Chan's ``example3_7.m`` and the four
-helpers it calls, read in the mirror
+**The transcription.** Every step of Example 3.7, and of Example 3.8's rule B
+below, is Chan's ``example3_7.m`` and the four helpers it calls, read in the mirror
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading)
 at ``1a7195003cf3e85a806e18867e0af547d17ad5c4``. The four helpers come from
 :mod:`chan.matlab_helpers`, under their MATLAB names, which
@@ -94,13 +94,14 @@ the reasoning behind running two rules on the opens.
 2. **Rule A is the notebook as written**, :func:`notebook_reversal`. It printed
    the published figures, 2.3818 and 1.3997 at four decimals, and its Example
    3.7 twin printed 0.9578 and −2.1617 rather than the book's 0.25 and −3.19.
-   Its five departures from rule B are listed on the function.
+   Its six departures from rule B are listed on the function.
 
-Rule A forward-fills before taking returns, so it reads WYN's gap between two
-companies as one day's move, a return of 121.5 on the closes. That is the
+Rule A forward-fills before taking returns, carrying each stock's last price
+into a gap, so it reads WYN's gap between two companies as one day's move: a
+return of 121.5 on the closes and 127.65 on the opens. That is the
 transcription rather than a defect, and the report prints rule A without the
 forward-fill and without WYN beside it, so a reader sees how much of Chan's
-figure the splice carries.
+figure that gap carries.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 sample on a rule somebody else chose, so the run says whether his numbers
@@ -301,7 +302,7 @@ def notebook_reversal(
     """Rule A: the reversal as Chan's Python notebooks compute it.
 
     Each line transcribes a cell of ``example3_8.ipynb``, which is
-    ``example3_7.ipynb`` reading the opens. Five things differ from
+    ``example3_7.ipynb`` reading the opens. Six things differ from
     :func:`reversal`, and each moves the figure.
 
     1. **Returns are taken after a forward-fill.** The notebook's
@@ -313,12 +314,18 @@ def notebook_reversal(
     2. **Each day's weights are scaled to a gross exposure of 1**, divided by
        the sum of their absolute values rather than by the count of stocks
        priced.
-    3. **No stock is zeroed for a missing price.** After the fill only a stock
-       not yet priced has a NaN return, and ``np.nansum`` skips its products.
-       A day whose weights are all 0 stays at 0.
+    3. **No stock is zeroed for a missing price.** After the fill a stock has a
+       NaN return only before its first price and on that first day, and
+       ``np.nansum`` skips its products. A day whose weights are all 0 stays
+       at 0.
     4. **The deviation divides by n**, because the notebook calls ``np.std``.
     5. **The first day's cost is 0 rather than NaN**, because ``np.nansum`` of
        a row of NaN is 0. So neither of Example 3.7's two quirks applies.
+    6. **No change in weight beside a NaN weight is charged**, because
+       ``abs(w - NaN)`` is NaN and ``np.nansum`` skips it. :func:`reversal`
+       holds 0 in those cells and charges the move to or from it. With the
+       fill this skips the entry cost of a stock first priced inside 2006, and
+       without it the cost at every gap.
     """
     prices = frame.ffill() if fill else frame
     returns_frame = prices.pct_change(fill_method=None)
@@ -471,8 +478,8 @@ def report_at_open(members, variation: OpenVariation) -> None:
         f"{NOTEBOOK_DECIMALS} decimals."
     )
     print(
-        f"  The forward-fill reads {SPLICED_SYMBOL}'s gap between two companies as one day's "
-        "move, so the two rows without it decide nothing."
+        f"  The four rows without a notebook figure show what the forward-fill and "
+        f"{SPLICED_SYMBOL}'s gap between two companies carry, and decide nothing."
     )
     print()
     print("Rule B, Example 3.7's MATLAB with the open in place of the close")
@@ -486,12 +493,13 @@ def report_at_open(members, variation: OpenVariation) -> None:
         print(f"  {label:<62} {value:>8.4f}  {book:>13}")
     halves = (("Before costs", b.before_costs), ("After costs", b.after_costs))
     cleared = [half for half, value in halves if value >= VERY_POSITIVE]
+    line = f"{VERY_POSITIVE:.1f}"
     if variation.claim_holds:
         verdict = "HOLDS"
     elif cleared:
-        verdict = f"DOES NOT HOLD. {cleared[0]} clears it and the other half does not"
+        verdict = f"DOES NOT HOLD. {cleared[0]} clears {line} and the other half does not"
     else:
-        verdict = "DOES NOT HOLD. Neither half clears it"
+        verdict = f"DOES NOT HOLD. Neither half clears {line}"
     print(
         f'  Claim, "both {BOOK_OPEN_CLAIM}": {verdict}. Both figures must be at least '
         f"{VERY_POSITIVE:.1f}, unrounded, declared before any figure on the opens was computed."

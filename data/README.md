@@ -353,7 +353,7 @@ measurements below and the decision behind the shape.
    Chan's Python notebook for that example reads `SPX_op_20071123.txt`, and its
    twin for Example 3.7 reads `SPX_20071123.txt`. Neither is committed. Both
    are reposted at Delta-Pion/Financial-Prediction-Research-RM `d47c2e1`, and
-   measured on that issue each matches its panel cell for cell, NaN for NaN, to
+   measured on that issue at `7150afb` each matches its panel cell for cell, NaN for NaN, to
    a largest relative difference of 2.0e-16, so they are the same series as
    the file recorded here and not a second vintage of it.
 3. **A day without a price is a missing row.** Chan marks a day a stock has no
