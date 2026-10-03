@@ -1834,7 +1834,8 @@ class TestIWBInPlaceOfSPY:
         """The identity fields, so a re-download cannot answer to these pins.
 
         The risk parity post quotes the download date, 3 October 2026, and the
-        first date's month, May 2000, which is why IWB cannot reach Qian's sample.
+        first date's month, May 2000, which is why IWB cannot reach back to the
+        1983 start of Qian's sample.
         """
         stock_entry, bond_entry = joined_iwb.attrs["vintages"]
         assert stock_entry.path == IWB_VINTAGE
