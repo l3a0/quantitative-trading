@@ -61,16 +61,22 @@ The trade signal survived. The hedge ratio slipped about two percent, from 1.676
 
 The test ran twice. Once by hand, in fifteen lines of numpy. Once through a standard statistics library. The two agreed to four decimal places. That agreement was the proof that the remaining gap was data, not a bug in the arithmetic.
 
-Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. All three ran the same test on different default settings.
+Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. Python and MATLAB ran the same test with different lag settings, and R ran a different test.
 
 | Setting | Lags | CADF t |
 | --- | --- | --- |
 | Python default (autolag) | 6 | −2.30 |
 | MATLAB spec (fixed) | 1 | −3.09 |
 
-Same data, same library, one setting. Chan's own numbers were −2.4 and −3.2, reproduced here.
+Same data, same library, one setting. Both figures come from the 2026 yfinance closes, and neither lands on the number Chan printed for its run, which is the vintage gap from section 3.
 
-The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into "not cointegrated." More lags do not weaken the statistic steadily, though. Across zero to sixteen lags it rises and falls: −2.41 at three lags, −2.64 at four, −2.99 at thirteen. What holds is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and all three agree.
+Chan's own files do land his two numbers, once the book's code shows what each run was. His Python run is `coint` at its defaults on his first 252 days. On his saved `GLD.xls` and `GDX.xls` the default picks six lags and returns −2.3591, with a p-value of 0.3444, and both agree with the book's printout to within a billionth.
+
+`CADFtest`, which his R code calls, runs the covariate-augmented Dickey-Fuller test Bruce Hansen published in 1995. It asks whether GLD's own price drifts with no level to return to, and it gains power from a helper series that holds steady around a fixed level, such as GDX's daily change. Chan's code passed GDX's price instead, which does drift. That turns the regression into a cointegration test of another kind, one that carries GDX's price beside GLD's and implies a hedge of about 1.70. It also ran on all 385 days rather than the first 252. On his files the regression returns −3.2409, the −3.2 he quotes, and every coefficient the book prints. Its printed p-value of 0.005 comes from Hansen's distribution, which assumes the steady helper series this run did not have. The 10% line of −3.04 belongs to the two-step Engle-Granger test. So neither says whether −3.2 rejects. Given GDX's daily change, the input Hansen's test is built for, the same regression returns +0.36, which rejects nothing.
+
+Both names abbreviate an augmented Dickey-Fuller test. MATLAB's `cadf` tests the residuals of a cointegrating regression, which is the Engle-Granger test. R's `CADFtest` is covariate-augmented. So when Chan read R as siding with MATLAB against Python, he was comparing a different test, run on a different window, with an input it was not built for.
+
+The setting that separates Python from MATLAB is the number of lags the test adds to absorb autocorrelation. Chan's MATLAB call passes one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into "not cointegrated." More lags do not weaken the statistic steadily, though. On the 2026 closes, across zero to sixteen lags it rises and falls: −2.41 at three lags, −2.64 at four, −2.99 at thirteen. What holds there is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and Python agrees with MATLAB.
 
 ### 6. Cointegration is a property of a window, not a pair
 
@@ -108,4 +114,4 @@ When backtesting from a paper or a book, budget more time for data provenance th
 
 The clean version of this project would have printed 1.6766 and moved on. The messy version shows how a published number ages. The method holds. The data drifts. And the relationship itself can quietly dissolve. Reproducing a result is less about matching digits than understanding why they move.
 
-*Reproduced with a numpy-only Engle-Granger / CADF test, cross-checked against statsmodels. What is committed here is the statsmodels-backed port of that test, so the second implementation the cross-check used is not in this tree. The port is open source: [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading), with the [pair engine](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pair_cointegration.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pair_cointegration.py). Source: Ernest P. Chan, Quantitative Trading, rev. ed., `example7_2.m` and `example3_6_1.m`, GLD & GDX daily closes.*
+*Reproduced with a numpy-only Engle-Granger / CADF test, cross-checked against statsmodels. What is committed here is the statsmodels-backed port of that test, so the second implementation the cross-check used is not in this tree. The port is open source: [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading), with the [pair engine](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pair_cointegration.py) and its [pinned tests](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pair_cointegration.py). Source: Ernest P. Chan, Quantitative Trading, rev. ed., `example7_2.m` and `example3_6_1.m`, and the Python and R code at pp. 149 to 151, GLD & GDX daily closes.*

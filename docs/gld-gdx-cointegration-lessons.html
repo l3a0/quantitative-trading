@@ -422,18 +422,24 @@
           <h3>An independent implementation separates data bugs from code bugs.</h3>
           <div class="body">
             <p>The test ran twice. Once by hand, in fifteen lines of numpy. Once through a standard statistics library. The two agreed to four decimal places. That agreement was the proof that the remaining gap was data, not a bug in the arithmetic.</p>
-            <p>Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. All three ran the same test on different default settings.</p>
+            <p>Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. Python and MATLAB ran the same test with different lag settings, and R ran a different test.</p>
 
             <div class="aside">
-              <div class="aside-lab">Why they disagreed &middot; GLD/GDX, 252-day window</div>
+              <div class="aside-lab">Why Python and MATLAB disagreed &middot; GLD/GDX, 252-day window</div>
               <div class="aside-grid">
                 <div><span class="an">&minus;2.30</span><span class="al"><b>Python default</b>autolag picks 6 lags</span></div>
                 <div><span class="an">&minus;3.09</span><span class="al"><b>MATLAB spec</b>1 lag, fixed</span></div>
               </div>
-              <p class="aside-note">Same data, same library, one setting. Chan's own numbers were &minus;2.4 and &minus;3.2 &mdash; reproduced here.</p>
+              <p class="aside-note">Same data, same library, one setting. Both figures come from the 2026 yfinance closes, and neither lands on the number Chan printed for its run, which is the vintage gap from section 3.</p>
             </div>
 
-            <p>The setting is the number of lags the test adds to absorb autocorrelation. MATLAB fixes it at one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into &ldquo;not cointegrated.&rdquo; More lags do not weaken the statistic steadily, though. Across zero to sixteen lags it rises and falls: &minus;2.41 at three lags, &minus;2.64 at four, &minus;2.99 at thirteen. What holds is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and all three agree.</p>
+            <p>Chan's own files do land his two numbers, once the book's code shows what each run was. His Python run is <span class="tick">coint</span> at its defaults on his first 252 days. On his saved <span class="tick">GLD.xls</span> and <span class="tick">GDX.xls</span> the default picks six lags and returns &minus;2.3591, with a p-value of 0.3444, and both agree with the book's printout to within a billionth.</p>
+
+            <p><span class="tick">CADFtest</span>, which his R code calls, runs the covariate-augmented Dickey-Fuller test Bruce Hansen published in 1995. It asks whether GLD's own price drifts with no level to return to, and it gains power from a helper series that holds steady around a fixed level, such as GDX's daily change. Chan's code passed GDX's price instead, which does drift. That turns the regression into a cointegration test of another kind, one that carries GDX's price beside GLD's and implies a hedge of about 1.70. It also ran on all 385 days rather than the first 252. On his files the regression returns &minus;3.2409, the &minus;3.2 he quotes, and every coefficient the book prints. Its printed p-value of 0.005 comes from Hansen's distribution, which assumes the steady helper series this run did not have. The 10% line of &minus;3.04 belongs to the two-step Engle-Granger test. So neither says whether &minus;3.2 rejects. Given GDX's daily change, the input Hansen's test is built for, the same regression returns +0.36, which rejects nothing.</p>
+
+            <p>Both names abbreviate an augmented Dickey-Fuller test. MATLAB's <span class="tick">cadf</span> tests the residuals of a cointegrating regression, which is the Engle-Granger test. R's <span class="tick">CADFtest</span> is covariate-augmented. So when Chan read R as siding with MATLAB against Python, he was comparing a different test, run on a different window, with an input it was not built for.</p>
+
+            <p>The setting that separates Python from MATLAB is the number of lags the test adds to absorb autocorrelation. Chan's MATLAB call passes one. Python's default reads it from the data, and on the shorter window it chose six. Six was enough to push Python's result across the line into &ldquo;not cointegrated.&rdquo; More lags do not weaken the statistic steadily, though. On the 2026 closes, across zero to sixteen lags it rises and falls: &minus;2.41 at three lags, &minus;2.64 at four, &minus;2.99 at thirteen. What holds there is the verdict. Zero or one lag clears the 10% line, and every count from two to sixteen misses it. Pin the lag and Python agrees with MATLAB.</p>
           </div>
         </div>
       </article>
@@ -500,7 +506,7 @@
     <footer>
       <div class="src">Reproduced with a numpy-only Engle-Granger / CADF test, cross-checked against statsmodels. What is committed here is the statsmodels-backed port of that test, so the second implementation the cross-check used is not in this tree.</div>
       <div>The port is open source: <a href="https://github.com/l3a0/quantitative-trading">l3a0/quantitative-trading</a> &middot; <a href="https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pair_cointegration.py">pair engine</a> &middot; <a href="https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pair_cointegration.py">pinned tests</a>.</div>
-      <div>Source: Ernest P. Chan, <i>Quantitative Trading</i>, rev. ed. &middot; example7_2.m and example3_6_1.m &middot; GLD &amp; GDX daily closes.</div>
+      <div>Source: Ernest P. Chan, <i>Quantitative Trading</i>, rev. ed. &middot; example7_2.m and example3_6_1.m, and the Python and R code at pp. 149 to 151 &middot; GLD &amp; GDX daily closes.</div>
     </footer>
   </main>
 </div>

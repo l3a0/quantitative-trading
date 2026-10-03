@@ -135,11 +135,20 @@ Each one earns its place by answering an objection the GLD/GDX gap invites.
    daily returns at 0.4849 and do not cointegrate in levels.
 3. **The lag setting behind Chan's Python verdict.** Chan reports that Python
    disagreed with MATLAB and R on this pair and concludes Python's statistics
-   packages cannot be trusted. The packages are fine. `statsmodels` reads the
-   lag count off the data by default and picks six on the short window, where
-   MATLAB and R fix it at one, and six lags carry the statistic back across the
-   10% line. A conclusion about a library turned out to be a conclusion about a
-   default. Which lag count the test is entitled to is a different question,
+   packages cannot be trusted. The packages are fine. Against MATLAB the
+   disagreement is a lag count. `statsmodels` reads the count off the data by
+   default and picks six on the short window, where Chan's MATLAB call passes
+   one, and six lags carry the statistic back across the 10% line. A
+   conclusion about a library turned out to be a conclusion about a default.
+   His R run is a different test. The book's R code calls `CADFtest`,
+   Hansen's covariate-augmented Dickey-Fuller test, on all 385 days rather
+   than the 252, and passes GDX's price where the test expects a stationary
+   series. That makes the regression an error-correction cointegration test
+   whose printed p-value comes from a distribution that does not apply. On
+   Chan's own files every figure both runs print reproduces at the precision
+   printed, apart from R's p-value and its ρ², and the two t-statistics agree
+   to within a billionth. Which lag count the Engle-Granger test is entitled
+   to is a different question,
    and an exploratory residual check bears on it where a sweep cannot. That
    check is the second figure in `docs/figures`, added on the owner's request
    on 2026-09-27. It earns the place a number cannot take, because it shows
@@ -511,6 +520,7 @@ change that cuts it.
 | Downloading a series at run time | It is the failure this repo exists to prevent. A run that fetches its own data produces a number nobody can reproduce, because the next fetch returns a different series. A run reads a committed vintage or it does not run. |
 | The sibling repo's price-fetch script | Nothing here regenerates a committed vintage, on purpose. A re-download returns a different series, which moves the pinned numbers and fails the suite, so replacing a vintage stays a deliberate act with a visible cost. [data/README.md](../data/README.md) states the same next to the files it governs. This cut the script and not the work. [src/chan/vintage.py](../src/chan/vintage.py) records a series as a vintage and keeps the download outside itself, so every rule it carries is exercised with no network. |
 | Recomputing a published number in prose | Prose states numbers and never derives them. A doc that recomputes a figure is a second implementation of the calculation, and the two drift without either looking wrong. The test is the single authority. |
+| Recomputing the p-value of Chan's R run | The book's R output prints p = 0.004975 from Hansen's covariate-augmented Dickey-Fuller distribution, and its t-statistic and every coefficient already reproduce on Chan's files. That distribution assumes a stationary covariate, and Chan's code passed GDX's price, which `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_covariate_went_in_as_a_price` shows is not stationary. So a recomputed p-value would reproduce a figure that does not apply to the run. Recomputing it would also need two things no dependency here carries: the R package `CADFtest`'s table of response surfaces in ρ², from Costantini, Lupi and Popp (2007), and the long-run covariance estimate from the `sandwich` package that the package computes ρ² with. Porting the table brings GPL code into an MIT repository, and calling R through `rpy2` adds a runtime dependency and a second language to CI. The essay quotes 0.005 as Chan's and README names it unpinned. Decided under [issue 168](https://github.com/l3a0/quantitative-trading/issues/168). |
 | The sibling's blog essay on the GLD/GDX reproduction, cut then reversed | Cut because it is that repo's write-up, and copying it would put a second prose surface here quoting numbers the test suite already owns. The owner reversed that on 2026-09-17 and the essay is at [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md). The price the cut named is now real and is paid rather than avoided: every figure the piece quotes had to be pinned or named as unpinned, and re-pinning one moves four surfaces instead of two. The verdict an essay does not reach is now written down separately, in [docs/replication-log.md](replication-log.md), which makes a fifth. A second post, [blog/price-spread-mean-reversion.md](../blog/price-spread-mean-reversion.md), quotes many of the same figures and makes a sixth. [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md) sets GLD/GDX's full-span statistic, its half-life, its window count and the plain ADF bars beside the stationary candidates, and makes a seventh. |
 | The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
 | The regime-map figure and its generator, cut then reversed | Cut because the scan behind the figure was already pinned, so the picture is presentation rather than a result, and an image nothing regenerates is an artifact nobody can check. The owner reversed that on 2026-09-17. The objection is answered rather than ignored: [src/chan/regime_figure.py](../src/chan/regime_figure.py) draws the figure from the committed vintages, and [tests/test_regime_figure.py](../tests/test_regime_figure.py) pins that it draws the scan `TestRollingRegime` computes. It does not compare bytes, because a PNG carries the matplotlib version that rendered it. The image still counts as a checked-in generated artifact for [issue 6](https://github.com/l3a0/quantitative-trading/issues/6). |

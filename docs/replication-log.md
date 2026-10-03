@@ -15,7 +15,8 @@ and each says so in its own cells.
    with-intercept slope.
 2. Row 5 reproduces one published figure from two vintages at once.
 3. Row 10 carries no published figure, because the book stops in 2007.
-4. Row 11 covers the two statistics Chan printed from one disagreement.
+4. Row 11 covers the two statistics Chan printed from what he read as one
+   disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7 and 8 carry their own, three, seven, twelve, five, six
 and one, and they are listed in those entries rather than here, because the
@@ -313,7 +314,7 @@ Eleven rows, and all of them are derivable from
 | 8 | KO/PEP CADF statistic | −2.14258438, quoted in `KOPEP_REF` as −2.14 and reported as not cointegrating | no location, absence recorded in the book notes, value kept in `KOPEP_REF` |
 | 9 | KO/PEP daily-return correlation | 0.4849, reported as statistically significant | Kindle location 3838 |
 | 10 | GLD/GDX CADF statistic, full modern span | none, the book stops in 2007 | n/a |
-| 11 | Chan's Python-versus-MATLAB disagreement | −2.4 from his Python run and −3.2 from his R run, against the −3.18156477 of row 4 | Kindle locations 3755 and 3806 |
+| 11 | Chan's Python-versus-MATLAB disagreement, with his R run read as the tiebreak | −2.4 from his Python run, printed in full as t = −2.3591268376687244 with p = 0.3444494880427884 and a through-origin hedge of 1.631009, and −3.2 from his R run, printed in full as t = −3.240868894 with p = 0.004975, against the −3.18156477 of row 4 | Kindle locations 3755 and 3806 for the prose. The code and the full printouts are at pp. 149 to 151 of the revised edition, read by the owner on 2026-10-02 and recorded on [issue 168](https://github.com/l3a0/quantitative-trading/issues/168) rather than in the book notes |
 
 ### What this repo computed
 
@@ -329,7 +330,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 1977-01-03 to 2008-01-18 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 7 | −2.14 | `TestKoPepNonCointegration::test_fails_to_cointegrate` |
 | 9 | 1977-01-03 to 2008-01-18 | Pearson correlation of daily returns, returns divided by the earlier price, two-sided significance on n−2 degrees of freedom | same two files as row 7 | 0.48492, with t = 49.0707 | `TestKoPepNonCointegration::test_returns_are_correlated` |
 | 10 | 2006-06-19 to 2026-06-16 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | `gld_20yr_prices.csv`, downloaded 2026-06-16, and `gdx_20yr_prices.csv`, downloaded 2026-08-27, both Yahoo dividend-adjusted. Two files and two dates, so naming one of them cannot re-derive the row | −1.45, with a half-life of 833.5 | `TestGldGdxReproduction::test_full_span_fails_to_reject` |
-| 11 | 2006-05-23 to 2007-05-23 | the same residual spread as row 4, tested twice: once at `autolag='aic'`, which picks 6 lags, and once at the fixed lag of 1 that MATLAB and R use. A sweep behind it repeats the fixed-lag test at every lag from 0 to 16 | same two files as row 1 | −2.2979 at 6 lags and −3.0875 at 1 lag. The sweep clears −3.04 only at 0 and 1 lags | `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict` and `::test_fixed_lag_reproduces_the_book`, with `::test_the_statistic_is_not_monotone_in_the_lag` pinning the fixed-lag sweep from 0 to 16 |
+| 11 | 2006-05-23 to 2007-05-23 for the Python run and the lag sweep, 2006-05-23 to 2007-11-30 for the R run | Python: `statsmodels` `coint` at its defaults, which is the Engle-Granger test on the with-intercept residual spread at the lag `autolag='aic'` picks. R: Hansen's covariate-augmented Dickey-Fuller regression, the daily change in GLD by OLS on a constant, GLD's lagged level, one lagged change of GLD, and GDX today and yesterday, with the t on the lagged level. GDX enters as its price, so the regression is an error-correction cointegration test whose coefficients imply a hedge. The lag sweep: row 4's spread at `autolag='aic'` and at every fixed lag from 0 to 16 | two vintages, run separately: `gld_chan.csv` and `gdx_chan.csv`, saved 2007-12-02, for both of Chan's runs, and the two raw yfinance files of row 1 for the sweep | On Chan's files, −2.3591 at 6 lags with p = 0.3444, and −3.2409 on 378 residual degrees of freedom, with an implied hedge of 1.6992, and +0.3554 when GDX's daily change replaces its price. On the yfinance raw closes, −2.2979 at 6 lags and −3.0875 at 1 lag, and the sweep clears −3.04 only at 0 and 1 lags | `TestChansPythonRun::test_coint_at_its_defaults_lands_the_printout` and `::test_the_default_picks_six_lags`, and `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout`, `::test_the_covariate_went_in_as_a_price` and `::test_the_training_subset_was_not_applied` for Chan's files, and `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict`, `::test_fixed_lag_reproduces_the_book` and `::test_the_statistic_is_not_monotone_in_the_lag` for the yfinance raw closes |
 
 ### The verdicts
 
@@ -345,7 +346,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 0.00 | reproduced | Chan's claim is that the pair does not cointegrate. The computed statistic sits well above `EG_CRIT_N2`'s 10% value of −3.04, so it fails to reject and the claim survives. |
 | 9 | 0.0000 at four decimals | reproduced | Chan's claim is that the correlation is statistically significant. It clears the 5% level two-sided by a wide margin. Together with row 8 this is the demonstration that correlation and cointegration are different things. |
 | 10 | none | none, not a replication | The book stops in 2007, so there is no published figure. What the row shows is the shelf life: the statistic fails to reject at 10% and the half-life runs to 833.5 days against the about 10 of row 5. |
-| 11 | +0.1 against his −2.4, and +0.1 against his −3.2 | reproduced | Both of Chan's figures reproduce, and the conclusion he draws from them does not. He concludes that Python's statistics and econometrics packages are not to be trusted. One Python library produces both statistics here, and the only thing separating them is which lag the test uses. |
+| 11 | 0.0000 at four decimals on Chan's files, against both printed t-statistics. On the yfinance raw closes, +0.1 against his −2.4 | reproduced | Every figure both runs print reproduces on Chan's files at the precision printed, apart from R's p-value and its ρ², and the verdict rests there. The yfinance gap is the vintage gap of row 1. The Python claim survives: its p of 0.3444 fails to reject at 10%. The R claim is not settled by its own printout. Its p of 0.004975 comes from Hansen's distribution, which assumes a stationary covariate, and the code passed GDX's price, which fails to reject a unit root. That makes the regression an error-correction cointegration test, so neither Hansen's table nor `EG_CRIT_N2` is its critical value, and nothing here supplies one. Given GDX's daily change, the input Hansen's test is built for, the t is +0.3554, which rejects nothing. The conclusion Chan draws does not survive. He concludes that Python's statistics and econometrics packages are not to be trusted. Python and MATLAB ran one test on one window and differ only in the lag count, and R ran a different test on a longer window with an input it was not built for, so the disagreement says nothing about Python's packages. `TestChansPythonRun::test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans` kills three earlier readings: zero fixed lags, which give −3.2018 on the yfinance closes and −3.2975 on Chan's, three fixed lags, which give −2.4067 against −2.4857, and one fixed lag, whose −3.1780 rounds to R's −3.2 but comes from a different test than R ran. |
 
 ### What the entry concludes
 
@@ -361,14 +362,22 @@ Four things, in the order of how much they cost to learn.
    simply wrong, and it puts the 2007 book-run series beyond reach of any file
    that still exists.
 3. **Chan's conclusion about Python is refuted by his own numbers.** Row 11 is
-   the most useful verdict here. His −2.4 and his −3.2 both reproduce, from one
-   library, on one window, on one spread. What separates them is
-   `autolag='aic'` picking six lags where MATLAB and R fix one. The statistic
-   does not weaken steadily as lags are added, since it is more negative at
-   four lags than at three. The verdict is what holds: zero or one lag clears
-   the 10% line and every count from two to sixteen misses it. A conclusion about
-   a library turns out to be a conclusion about a default. Which lag count the
-   test is entitled to is a separate question, taken up under
+   the most useful verdict here. His −2.4 and his −3.2 both reproduce on his
+   own files, each t-statistic to within a billionth, and they come from two
+   different tests on two different windows. His Python run is the
+   Engle-Granger test on 252 days, with `autolag='aic'` picking six lags. His
+   R run calls Hansen's covariate-augmented Dickey-Fuller test on all 385
+   days and passes GDX's price where the test expects a stationary series, so
+   its printed p-value does not settle whether it rejects. Chan's MATLAB call,
+   as `example3_6_1.m` reads, runs the Engle-Granger test on the same 252 days
+   as Python with one lag passed as an argument, so against MATLAB what
+   separates Python is the lag count. On the yfinance raw closes the
+   statistic does not weaken steadily as lags are added, since it is more
+   negative at four lags than at three. The verdict is what holds there: zero or one lag clears the 10% line
+   and every count from two to sixteen misses it. A conclusion about a library
+   turns out to be a conclusion about a default and about which test ran.
+   Which lag count the test is entitled to is a separate question, taken up
+   under
    [Which lag count the residuals allow](#which-lag-count-the-residuals-allow).
 4. **The relationship itself has expired.** Row 10 is not a replication and is
    the reason the entry does not end on a match.
@@ -506,12 +515,18 @@ row computes.
 - Row 5's half-life is an AR(1) regression on the same spreads as rows 3 and 6.
 - Row 9 is neither. It runs on 7834 daily returns with 7832 degrees of freedom,
   which is what its pinned t of 49.0707 carries.
-- Row 11 is two runs and two counts. The fixed-lag run has the 250 observations
-  of row 4. The `autolag='aic'` run drops five more to its six lags and has
-  245, which the suite does not assert, because
-  `test_the_default_lag_choice_flips_the_verdict` pins the lag and the statistic
-  and discards the count. The sweep drops one observation per lag, from 251
-  at 0 lags to 235 at 16, and the suite does not assert those counts either.
+- Row 11 holds several runs, each with its own count. On the yfinance raw
+  closes, the fixed-lag run has the 250 observations of row 4. The
+  `autolag='aic'` run drops five more to its six lags and has 245, which the
+  suite does not assert there, because
+  `test_the_default_lag_choice_flips_the_verdict` pins the lag and the
+  statistic and discards the count. The sweep drops one observation per lag,
+  from 251 at 0 lags to 235 at 16, and the suite does not assert those counts
+  either. On Chan's files the Python run also has 245, which
+  `TestChansPythonRun::test_the_default_picks_six_lags` asserts, and the R
+  regression has 383 rows and 378 residual degrees of freedom, which
+  `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout`
+  asserts.
 
 **Which sense of verdict.** The same run prints `Verdict: REJECTS the
 no-cointegration null`, which is the statistical sense: what the test concluded

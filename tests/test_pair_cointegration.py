@@ -28,7 +28,11 @@ replications themselves.
    vintage. The verdict survives; only the hedge drifted.
 6. ``TestLagSettingDetour``, the third GLD/GDX result in the book. Chan reports
    that Python disagreed with MATLAB and R on the verdict and concludes Python
-   cannot be trusted for this. The disagreement is a setting, and this pins it.
+   cannot be trusted for this. Against MATLAB the disagreement is a lag
+   setting, and this pins it on the 2026 closes. ``TestChansPythonRun`` and
+   ``TestChansRRunIsACovariateAugmentedDickeyFuller`` reproduce both of his
+   printouts on his own files, and the second shows his R run was a different
+   test on a longer window.
 7. ``TestResidualCheck``, which asks which of those settings the test is
    entitled to, by checking what each lag count leaves in the residuals.
    Exploratory, and ``docs/figures/adf_residual_autocorrelation.png`` is the
@@ -80,7 +84,7 @@ import pandas as pd
 import pytest
 from ithildincore.timeseries import EG_CRIT_N2, adf_tstat, ols
 from statsmodels.tsa.adfvalues import mackinnoncrit
-from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import adfuller, coint
 
 from chan.pair_cointegration import (
     BOOK_END,
@@ -519,18 +523,21 @@ class TestLagSettingDetour:
 
     Chan reports that his Python run disagreed with his MATLAB and R runs on
     whether GLD/GDX cointegrate, and concludes that Python's statistics and
-    econometrics packages are not to be trusted. The packages are fine. All
-    three ran the same test under different defaults.
+    econometrics packages are not to be trusted. The packages are fine. Python
+    and MATLAB ran the same test with different lag settings, and R ran a
+    different test, which ``TestChansRRunIsACovariateAugmentedDickeyFuller``
+    holds.
 
     ``statsmodels`` defaults to ``autolag='aic'``, which reads the lag count
-    off the data. On the Chapter 3 window it picks six, where MATLAB and R fix
-    the lag at one. Six carries the statistic back across the 10% line, which
-    is the whole disagreement.
+    off the data. On the Chapter 3 window it picks six, where Chan's MATLAB
+    call passes one. Six carries the statistic back across the 10% line, which
+    is the whole disagreement between those two.
 
-    The statistic does not drift steadily toward zero as lags are added. It
-    rises and falls: weaker at three lags than at four, and back near the line
-    at thirteen. What the lag setting decides is the verdict, which clears 10%
-    at zero and one lag and misses it at every count from two to sixteen.
+    On the 2026 yfinance closes this class reads, the statistic does not drift
+    steadily toward zero as lags are added. It rises and falls: weaker at three
+    lags than at four, and back near the line at thirteen. What the lag setting
+    decides is the verdict, which clears 10% at zero and one lag and misses it
+    at every count from two to sixteen.
     ``test_the_statistic_is_not_monotone_in_the_lag`` pins that shape.
 
     Without this pin the claim lives only in a module docstring, and a docstring
@@ -547,8 +554,8 @@ class TestLagSettingDetour:
         return engle_granger(a, b, lags=1, origin=True).spread
 
     def test_fixed_lag_reproduces_the_book(self, spread: np.ndarray) -> None:
-        """At the fixed lag MATLAB and R use, the pair rejects at 10%, which is
-        the verdict the book reports."""
+        """At the fixed lag Chan's MATLAB call passes, the pair rejects at
+        10%, which is the verdict the book reports for that run."""
         stat, _nobs = adf_tstat(spread, lags=1, constant=False)
         assert stat == pytest.approx(-3.0875, abs=5e-4)
         assert stat < EG_CRIT_N2["10%"]
@@ -635,6 +642,261 @@ class TestLagSettingDetour:
         # line, and every count from two to sixteen misses it.
         assert all(sweep[k] < EG_CRIT_N2["10%"] for k in (0, 1))
         assert all(sweep[k] > EG_CRIT_N2["10%"] for k in range(2, 17))
+
+
+class TestChansPythonRun:
+    """Chan's Python run, reproduced on his own files at every figure he printed.
+
+    The book's Python code, at pp. 149 to 150 of the revised edition, calls
+    ``coint(df['Adj Close_GLD'], df['Adj Close_GDX'])`` on the first 252 rows
+    of ``GLD.xls`` and ``GDX.xls`` merged on date, with no lag argument. So it is
+    the Engle-Granger test at ``statsmodels``' defaults, which choose the lag by
+    ``autolag='aic'``. His prose at Kindle location 3755 rounds the printed t to
+    -2.4. The owner read the code and the printout on 2026-10-02, and
+    issue 168 records the reading, since the book notes hold the prose only.
+
+    It is the test Chan's MATLAB call runs in row 4 of
+    ``docs/replication-log.md``, on the same window with a different lag count,
+    as ``example3_6_1.m`` and the book's code read. That is a reading, since no
+    specification tried here lands MATLAB's -3.18156477 on these files.
+    ``TestLagSettingDetour`` holds the lag difference on the 2026 closes.
+
+    Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
+    of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
+    Specification: 2006-05-23 to 2007-05-23, 252 rows, ``coint`` at its
+    defaults, which fits GLD on GDX with an intercept and runs ``adfuller`` on
+    the residuals with ``regression='n'``. First pinned on 2026-10-02.
+    """
+
+    #: The t-statistic, p-value and through-origin hedge the book's Python
+    #: output prints at pp. 149 to 150, and the -2.4 its prose quotes at
+    #: location 3755. Cited, never computed.
+    BOOK_T = -2.3591268376687244
+    BOOK_P = 0.3444494880427884
+    BOOK_HEDGE = 1.631009
+    BOOK_PROSE_T = -2.4
+
+    @staticmethod
+    @pytest.fixture(scope="class")
+    def closes() -> pd.DataFrame:
+        return aligned_closes("GLD", "GDX", chan=True, start=BOOK_START, end=BOOK_TRAIN_END)
+
+    def test_coint_at_its_defaults_lands_the_printout(self, closes: pd.DataFrame) -> None:
+        """The t and the p land within a billionth of the printout, and the
+        statistic fails to reject at 10%, which is the verdict Chan reports.
+        A second call returns the same value."""
+        assert len(closes) == 252
+        stat, pvalue, _crit = coint(closes["GLD"], closes["GDX"])
+        assert stat == pytest.approx(self.BOOK_T, abs=1e-9)
+        assert pvalue == pytest.approx(self.BOOK_P, abs=1e-9)
+        assert round(stat, 1) == self.BOOK_PROSE_T
+        assert pvalue > 0.10
+        assert coint(closes["GLD"], closes["GDX"])[0] == stat
+
+    def test_the_default_picks_six_lags(self, closes: pd.DataFrame) -> None:
+        """``coint``'s statistic is ``adfuller`` at ``autolag='aic'`` on the
+        with-intercept residual spread, which picks six lags and keeps 245 of
+        the 252 rows."""
+        a = closes["GLD"].to_numpy(dtype=float)
+        b = closes["GDX"].to_numpy(dtype=float)
+        spread = engle_granger(a, b, lags=1, origin=True).spread
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            result = adfuller(spread, autolag="aic", regression="n")
+        assert (int(result[2]), int(result[3])) == (6, 245)
+        assert float(result[0]) == pytest.approx(coint(closes["GLD"], closes["GDX"])[0], abs=1e-12)
+
+    def test_the_through_origin_hedge_lands_the_printout(self, closes: pd.DataFrame) -> None:
+        """The printed 1.631009 is the through-origin slope at six decimals."""
+        a = closes["GLD"].to_numpy(dtype=float)
+        b = closes["GDX"].to_numpy(dtype=float)
+        hedge = engle_granger(a, b, lags=1, origin=True).origin_hedge
+        assert hedge is not None
+        assert hedge == pytest.approx(1.63100895, abs=5e-9)
+        assert round(hedge, 6) == self.BOOK_HEDGE
+
+    def test_the_code_comment_quotes_the_full_window(self) -> None:
+        """The code's comment says the p-value is "only 1.8%" while its output
+        prints 0.344. ``coint`` at its defaults over all 385 days gives 0.0184,
+        so the comment comes from a run on the whole file."""
+        closes = aligned_closes("GLD", "GDX", chan=True)
+        assert len(closes) == 385
+        _stat, pvalue, _crit = coint(closes["GLD"], closes["GDX"])
+        assert pvalue == pytest.approx(0.0184, abs=5e-5)
+
+    def test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans(
+        self, closes: pd.DataFrame
+    ) -> None:
+        """The null result behind the old reading of -2.4 and -3.2.
+
+        On the 2026 closes, zero fixed lags give -3.2018 and three give
+        -2.4067, which read as Chan's two figures. On his own files the same
+        counts give -3.2975 and -2.4857, so those matches were a coincidence of
+        vintage. One fixed lag gives -3.1780, which rounds to R's -3.2 and is
+        a different test from the one R ran, which the next class holds.
+        Specification: ``adfuller`` with ``maxlag=k``, ``autolag=None`` and
+        ``regression='n'`` on the same spread as above.
+        """
+        a = closes["GLD"].to_numpy(dtype=float)
+        b = closes["GDX"].to_numpy(dtype=float)
+        spread = engle_granger(a, b, lags=1, origin=True).spread
+
+        def stat_at(k: int) -> float:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                return float(adfuller(spread, maxlag=k, autolag=None, regression="n")[0])
+
+        assert [stat_at(k) for k in (0, 1, 3)] == pytest.approx(
+            [-3.2975, -3.1780, -2.4857], abs=5e-4
+        )
+        assert [round(stat_at(k), 1) for k in (0, 1, 3)] == [-3.3, -3.2, -2.5]
+
+
+class TestChansRRunIsACovariateAugmentedDickeyFuller:
+    """Chan's R run, which calls Hansen's covariate-augmented Dickey-Fuller test
+    rather than the Engle-Granger test his prose names, and feeds it an input
+    it was not built for.
+
+    The book's R code, at p. 151 of the revised edition, calls
+    ``CADFtest(model=GLD~GDX, data=mydata, type="drift", max.lag.X=1,
+    subset=trainset)`` on the adjusted closes of ``GLD.txt`` and ``GDX.txt``,
+    intersected on date and forward-filled with ``zoo::na.locf``. Hansen's test
+    (Econometric Theory, 1995) asks whether GLD alone has a unit root, and
+    gains power from a covariate that is itself stationary. The printout names
+    the regression: the daily change in GLD on a constant, GLD's lagged level,
+    one lagged change of GLD, and GDX today and yesterday. The statistic is the
+    t on the lagged level. Chan's prose at location 3806 rounds it to -3.2. The
+    owner read the code and the printout on 2026-10-02, and issue 168 records
+    the reading.
+
+    Four things follow, and the tests below hold the first three.
+
+    1. ``subset=trainset`` did not reach the regression. The printout's 378
+       residual degrees of freedom are five coefficients on 383 rows, which is
+       all 385 days, not the 252 the Python run uses.
+    2. The forward-fill changes nothing on these files, because the two share
+       every one of GDX's trading days.
+    3. The covariate went in as GDX's price, which is not stationary. Since
+       b0 * x(t) + b1 * x(t-1) equals b0 * dx(t) + (b0 + b1) * x(t-1), the
+       regression is an error-correction cointegration test in disguise. It
+       carries GDX's lagged price beside GLD's and implies a long-run hedge of
+       -(b0 + b1) / delta. Given GDX's daily change, the stationary input
+       Hansen's test expects, the same regression returns a positive t.
+    4. The printed p-value of 0.004975 comes from Hansen's distribution, which
+       depends on the printed rho-squared of 0.2604 and assumes the stationary
+       covariate this run did not have. ``EG_CRIT_N2`` belongs to the two-step
+       test. So neither says whether -3.24 rejects. Nothing here computes that
+       p-value, and ``docs/design.md``'s considered-and-rejected register says
+       why.
+
+    Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
+    of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
+    Specification: the regression above by OLS over 2006-05-23 to 2007-11-30.
+    First pinned on 2026-10-02.
+    """
+
+    #: The t-statistic the book's R output prints at p. 151, the five
+    #: coefficients in the order of the regression above, and the -3.2 its
+    #: prose quotes at location 3806. Cited, never computed.
+    BOOK_T = -3.240868894
+    BOOK_COEFS = (-0.07570, -0.03817, 0.08542, 0.75428, -0.68942)
+    BOOK_DF = 378
+    BOOK_PROSE_T = -3.2
+
+    @staticmethod
+    def r_frame() -> pd.DataFrame:
+        """GLD and GDX as the R code builds them: intersected, then filled."""
+        both = pd.concat(
+            [load_close("GLD", chan=True), load_close("GDX", chan=True)], axis=1, join="inner"
+        )
+        both.columns = ["GLD", "GDX"]
+        return both.ffill()
+
+    @staticmethod
+    def cadf(frame: pd.DataFrame) -> tuple[float, np.ndarray, int, int]:
+        """The t on the lagged level, the coefficients, the rows and the
+        residual degrees of freedom of Hansen's regression with one lag of the
+        tested series' change and the covariate at lags 0 and 1."""
+        y = frame["GLD"].to_numpy(dtype=float)
+        x = frame["GDX"].to_numpy(dtype=float)
+        dy = np.diff(y)
+        target = dy[1:]
+        regressors = np.column_stack([np.ones(len(target)), y[1:-1], dy[:-1], x[2:], x[1:-1]])
+        fit = ols(target, regressors)
+        rows, k = regressors.shape
+        return float(fit.beta[1] / fit.se[1]), fit.beta, rows, rows - k
+
+    def test_the_regression_lands_the_printout(self) -> None:
+        """All 385 days land the printed t within a billionth and every
+        printed coefficient at its five decimals."""
+        frame = self.r_frame()
+        assert len(frame) == 385
+        stat, beta, rows, dof = self.cadf(frame)
+        assert stat == pytest.approx(self.BOOK_T, abs=1e-9)
+        assert round(stat, 1) == self.BOOK_PROSE_T
+        assert (rows, dof) == (383, self.BOOK_DF)
+        assert tuple(round(float(b), 5) for b in beta) == self.BOOK_COEFS
+        assert beta == pytest.approx(
+            [-0.0757014636, -0.0381733407, 0.0854194365, 0.7542804034, -0.6894163853], abs=1e-9
+        )
+
+    def test_the_covariate_went_in_as_a_price(self) -> None:
+        """GDX's price fails to reject a unit root, so it is not the stationary
+        covariate Hansen's test assumes. Written in error-correction form, the
+        regression gives the same t and implies a hedge of 1.6992. Given GDX's
+        daily change instead, it gives +0.3554, which no left-tailed test
+        rejects.
+
+        Specification for the unit-root check: ``adfuller`` on GDX's 385 closes
+        with ``regression='c'`` and ``autolag='aic'``, which picks one lag.
+        """
+        frame = self.r_frame()
+        x = frame["GDX"].to_numpy(dtype=float)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            level = adfuller(x, regression="c", autolag="aic")
+            change = adfuller(np.diff(x), regression="c", autolag="aic")
+        assert (float(level[0]), int(level[2])) == pytest.approx((-1.9258, 1), abs=5e-5)
+        assert float(level[1]) == pytest.approx(0.3200, abs=5e-5)
+        assert float(change[1]) < 0.01
+
+        stat, beta, _rows, _dof = self.cadf(frame)
+        y = frame["GLD"].to_numpy(dtype=float)
+        dy = np.diff(y)
+        dx = np.diff(x)
+        target = dy[1:]
+        ecm = np.column_stack([np.ones(len(target)), y[1:-1], dy[:-1], dx[1:], x[1:-1]])
+        ecm_fit = ols(target, ecm)
+        assert float(ecm_fit.beta[1] / ecm_fit.se[1]) == pytest.approx(stat, abs=1e-9)
+        hedge = -float(beta[3] + beta[4]) / float(beta[1])
+        assert hedge == pytest.approx(1.6992, abs=5e-5)
+        assert hedge == pytest.approx(-float(ecm_fit.beta[4] / ecm_fit.beta[1]), abs=1e-9)
+
+        stationary = np.column_stack(
+            [np.ones(len(target) - 1), y[2:-1], dy[1:-1], dx[2:], dx[1:-1]]
+        )
+        fit = ols(target[1:], stationary)
+        assert float(fit.beta[1] / fit.se[1]) == pytest.approx(0.3554, abs=5e-5)
+
+    def test_the_training_subset_was_not_applied(self) -> None:
+        """On the 252 days the Python run uses, the same regression gives
+        -3.2032 on 245 degrees of freedom, which misses the printout."""
+        stat, _beta, rows, dof = self.cadf(self.r_frame().loc[:BOOK_TRAIN_END])
+        assert (rows, dof) == (250, 245)
+        assert stat == pytest.approx(-3.2032228155, abs=1e-9)
+        assert abs(stat - self.BOOK_T) > 0.03
+
+    def test_the_forward_fill_changes_nothing_on_these_files(self) -> None:
+        """The intersection has no gap to fill, and even an outer join filled
+        forward returns the same 385 rows."""
+        gld = load_close("GLD", chan=True)
+        gdx = load_close("GDX", chan=True)
+        inner = pd.concat([gld, gdx], axis=1, join="inner")
+        outer = pd.concat([gld, gdx], axis=1, join="outer").ffill().dropna()
+        assert not inner.isna().to_numpy().any()
+        assert len(gld) > len(inner) == len(gdx) == 385
+        pd.testing.assert_frame_equal(outer, inner, check_freq=False)
+        pd.testing.assert_frame_equal(self.r_frame(), inner.set_axis(["GLD", "GDX"], axis=1))
 
 
 class TestResidualCheck:
