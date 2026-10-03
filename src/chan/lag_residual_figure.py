@@ -21,9 +21,9 @@ The picture shows which lag is missing, which a p-value cannot. A single
 autocorrelation at lag 6 survives every fit short of six lags, and the fit at
 one lag, which is the lag Chan passed to ``cadf`` and the book's
 specification, fails the Breusch-Godfrey test at 10%. This is exploratory: the
-sample was spent looking, the band is pointwise, and a lag-6 autocorrelation
-that sits just outside it on 250 observations is what a different vintage
-could move inside.
+sample was spent looking, the band is pointwise, and the lag-6
+autocorrelation sits just outside it on 250 observations. Chan's own files
+leave it outside too, which ``TestResidualCheckOnChansFiles`` pins.
 
 It reads the committed vintages through the same code the replication uses, so
 it fetches nothing. ``TestResidualCheck`` in

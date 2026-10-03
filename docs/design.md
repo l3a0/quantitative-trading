@@ -12,6 +12,7 @@ issue's own statement of what it waits on.
   - [Three more results came across with it](#three-more-results-came-across-with-it)
   - [The estimators live outside this repo](#the-estimators-live-outside-this-repo)
   - [The one replication that reads nothing](#the-one-replication-that-reads-nothing)
+  - [A replication that reads the book's own tables](#a-replication-that-reads-the-books-own-tables)
   - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
@@ -135,11 +136,20 @@ Each one earns its place by answering an objection the GLD/GDX gap invites.
    daily returns at 0.4849 and do not cointegrate in levels.
 3. **The lag setting behind Chan's Python verdict.** Chan reports that Python
    disagreed with MATLAB and R on this pair and concludes Python's statistics
-   packages cannot be trusted. The packages are fine. `statsmodels` reads the
-   lag count off the data by default and picks six on the short window, where
-   MATLAB and R fix it at one, and six lags carry the statistic back across the
-   10% line. A conclusion about a library turned out to be a conclusion about a
-   default. Which lag count the test is entitled to is a different question,
+   packages cannot be trusted. The packages are fine. Against MATLAB the
+   disagreement is a lag count. `statsmodels` reads the count off the data by
+   default and picks six on the short window, where Chan's MATLAB call passes
+   one, and six lags carry the statistic back across the 10% line. A
+   conclusion about a library turned out to be a conclusion about a default.
+   His R run is a different test. The book's R code calls `CADFtest`,
+   Hansen's covariate-augmented Dickey-Fuller test, on all 385 days rather
+   than the 252, and passes GDX's price where the test expects a stationary
+   series. That makes the regression an error-correction cointegration test
+   whose printed p-value comes from a distribution that does not apply. On
+   Chan's own files every figure both runs print reproduces at the precision
+   printed, apart from R's p-value and its ρ², and the two t-statistics agree
+   to within a billionth. Which lag count the Engle-Granger test is entitled
+   to is a different question,
    and an exploratory residual check bears on it where a sweep cannot. That
    check is the second figure in `docs/figures`, added on the owner's request
    on 2026-09-27. It earns the place a number cannot take, because it shows
@@ -210,13 +220,15 @@ do not already say. What changes is that they are now declared as
 first-edition shorthand rather than left to look like the book's own
 structure. Every citation of a chapter, a page, an example number or a MATLAB
 filename in this repo means the 2009 first edition unless it says otherwise.
-Box 6.1, the coin-flip gamble, is the one that says otherwise. It is a
-revised-edition sidebar titled "Loss aversion is not a behavioral bias", which
-the 2009 edition could not hold because it quotes Kahneman's 2011 book, so the
-first-edition mirror has no file for it. This repo called it Example 6.1 until
+Box 6.1, the coin-flip gamble, says otherwise, because its label exists only
+in the revised edition. It is a revised-edition sidebar titled "Loss aversion
+is not a behavioral bias", which the 2009 edition could not hold because it
+quotes Kahneman's 2011 book, so the first-edition mirror has no file for it. This repo called it Example 6.1 until
 2026-09-29, misreading the box's own sentence at location 3186, "As Example 6.1
 shows". That sentence cites a separate, earlier example for the continuous
-approximation, and the owner corrected the label against the book.
+approximation, and the owner corrected the label against the book. Example 3.3,
+Chan's survivorship toy, also says otherwise. Its label comes from the revised
+edition, and whether the 2009 edition numbers it the same way was not checked.
 
 One thing this does not settle, and the difference matters. `-3.357` appears
 nowhere in the committed highlights, and neither does a window label for the
@@ -342,6 +354,51 @@ demonstration, sized from a measurement rather than from taste.
 heading that says why no simulated number is pinned against the book, which is
 where that entry's numbers belong.
 
+### A replication that reads the book's own tables
+
+Chan's toy strategy for survivorship bias, Example 3.3 in the revised edition,
+runs on two ten-row tables the book prints and on nothing else. One is what a
+survivorship-free database picks and the other what a database of survivors
+picks instead.
+[src/chan/survivorship_bias.py](../src/chan/survivorship_bias.py) holds both
+tables and works the returns, and
+[tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) is the
+authority for every number quoted about it.
+[docs/replication-log.md](replication-log.md) Entry 9 carries the two figures
+the book prints and the verdict on each, which is where those numbers belong.
+
+Four things follow, and they are where this case parts from the coin flip.
+
+1. **The inputs are not a vintage, and the vocabulary is extended rather than
+   stretched.** A vintage is a series a vendor was asked for or a column lifted
+   from one of Chan's own files, and a table printed in a book is neither. A
+   printed number cannot be restated by a vendor, so what pins it is the
+   edition, which [research/book-notes](../research/book-notes/README.md)
+   already records. So the definition of a replication gains a third case,
+   inputs the source itself prints, and the vintage column reads
+   `none, the book's printed tables`. The price is that the twenty rows sit in
+   code rather than beside the other committed data, so
+   [data/README.md](../data/README.md) does not list them and the module's
+   docstring is where a reader finds their source.
+2. **The vintage cell names no price basis.** Every committed vintage names
+   its basis. The book does not say whether its
+   database adjusted for splits, and at least one row shows a split it did not
+   adjust for, so writing either word would assert something nobody measured.
+3. **It keeps a window.** The coin flip has no window in any row, so its
+   column was dropped. This toy reads no series, but the book fixes the dates,
+   so every row has a window to hold and the column stays.
+4. **Having no vintage does not put the inputs beyond question.** The coin
+   flip's verdict was knowable before the work started, because nothing could
+   move its number. The same is true of a printed table's arithmetic. What this
+   case adds is that a printed row can still be checked against something
+   outside the book, and the one row that was checked against a company filing
+   compares a price before a reverse split with one after it. That is a
+   finding about Chan's table rather than a failure to reproduce it, and the
+   log entry carries it beside the figure it qualifies.
+
+Neither epistemic label reaches it, for the coin flip's reason: reproducing the
+arithmetic on a printed table spends no sample.
+
 ### The first time the fallback clause fires
 
 `## What this repo is for` ends by saying to prefer a series that cannot be
@@ -427,9 +484,13 @@ record nothing could read back.
 Each experiment pins the figures the book prints, at the precision the book
 prints them, naming its vintage and its window. An experiment that reads no
 series names neither and says so, rather than leaving the column blank, because
-a blank reads as an omission. A column with nothing to hold in any row is
-dropped instead, which is why the coin flip's computed table has five columns
-where the pair entry's has six.
+a blank reads as an omission. The exception is an experiment whose source fixes
+the dates without supplying a series, which names its window and says it has no
+vintage. Chan's survivorship toy is that case, and
+[A replication that reads the book's own tables](#a-replication-that-reads-the-books-own-tables)
+says why. A column with nothing to hold in any row is dropped instead, which is
+why the coin flip's computed table has five columns where the pair entry's has
+six.
 
 Where the book states a ranking or a verdict rather than a figure, the claim is
 what gets pinned. Inventing a digit the source does not carry would be worse
@@ -474,7 +535,7 @@ candidate for a synonym.
 | **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
 | **scale break** | A day on which a committed price series changes scale rather than price, meaning a day-over-day close ratio too far from 1 for a price move. The date is the later of the two days, so a window opening on it does not span the break. [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) holds the bound and what the committed vintages carry. The guard skips a **rate** vintage. |
 | **rate** | The third basis a vintage can carry, beside **raw price** and **adjusted price**. A rate vintage holds a series of rates, such as a Treasury-bill yield, recorded as the vendor publishes it. It has no raw or adjusted form, and the scale-break guard does not read it, because a rate near zero can move sixfold in a month without changing units. |
-| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, or against no data at all where the source's own number needs none. |
+| **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, against inputs the source itself prints, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
 | **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. Nothing else in this repo is called a manifest. |
@@ -511,6 +572,7 @@ change that cuts it.
 | Downloading a series at run time | It is the failure this repo exists to prevent. A run that fetches its own data produces a number nobody can reproduce, because the next fetch returns a different series. A run reads a committed vintage or it does not run. |
 | The sibling repo's price-fetch script | Nothing here regenerates a committed vintage, on purpose. A re-download returns a different series, which moves the pinned numbers and fails the suite, so replacing a vintage stays a deliberate act with a visible cost. [data/README.md](../data/README.md) states the same next to the files it governs. This cut the script and not the work. [src/chan/vintage.py](../src/chan/vintage.py) records a series as a vintage and keeps the download outside itself, so every rule it carries is exercised with no network. |
 | Recomputing a published number in prose | Prose states numbers and never derives them. A doc that recomputes a figure is a second implementation of the calculation, and the two drift without either looking wrong. The test is the single authority. |
+| Recomputing the p-value of Chan's R run | The book's R output prints p = 0.004975 from Hansen's covariate-augmented Dickey-Fuller distribution, and its t-statistic and every coefficient already reproduce on Chan's files. That distribution assumes a stationary covariate, and Chan's code passed GDX's price, which `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_covariate_went_in_as_a_price` shows is not stationary. So a recomputed p-value would reproduce a figure that does not apply to the run. Recomputing it would also need two things no dependency here carries: the R package `CADFtest`'s table of response surfaces in ρ², from Costantini, Lupi and Popp (2007), and the long-run covariance estimate from the `sandwich` package that the package computes ρ² with. Porting the table brings GPL code into an MIT repository, and calling R through `rpy2` adds a runtime dependency and a second language to CI. The essay quotes 0.005 as Chan's and README names it unpinned. Decided under [issue 168](https://github.com/l3a0/quantitative-trading/issues/168). |
 | The sibling's blog essay on the GLD/GDX reproduction, cut then reversed | Cut because it is that repo's write-up, and copying it would put a second prose surface here quoting numbers the test suite already owns. The owner reversed that on 2026-09-17 and the essay is at [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md). The price the cut named is now real and is paid rather than avoided: every figure the piece quotes had to be pinned or named as unpinned, and re-pinning one moves four surfaces instead of two. The verdict an essay does not reach is now written down separately, in [docs/replication-log.md](replication-log.md), which makes a fifth. A second post, [blog/price-spread-mean-reversion.md](../blog/price-spread-mean-reversion.md), quotes many of the same figures and makes a sixth. [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md) sets GLD/GDX's full-span statistic, its half-life, its window count and the plain ADF bars beside the stationary candidates, and makes a seventh. |
 | The sibling's catalog of unbuilt Chan experiments | It is a plan for work nobody has started, and the tracker is authoritative for unbuilt scope. A catalog in a doc competes with the issues and goes stale the moment one of them moves. |
 | The regime-map figure and its generator, cut then reversed | Cut because the scan behind the figure was already pinned, so the picture is presentation rather than a result, and an image nothing regenerates is an artifact nobody can check. The owner reversed that on 2026-09-17. The objection is answered rather than ignored: [src/chan/regime_figure.py](../src/chan/regime_figure.py) draws the figure from the committed vintages, and [tests/test_regime_figure.py](../tests/test_regime_figure.py) pins that it draws the scan `TestRollingRegime` computes. It does not compare bytes, because a PNG carries the matplotlib version that rendered it. The image still counts as a checked-in generated artifact for [issue 6](https://github.com/l3a0/quantitative-trading/issues/6). |

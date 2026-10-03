@@ -15,10 +15,11 @@ and each says so in its own cells.
    with-intercept slope.
 2. Row 5 reproduces one published figure from two vintages at once.
 3. Row 10 carries no published figure, because the book stops in 2007.
-4. Row 11 covers the two statistics Chan printed from one disagreement.
+4. Row 11 covers the two statistics Chan printed from what he read as one
+   disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7 and 8 carry their own, three, eleven, twelve, five, six
-and one, and they are listed in those entries rather than here, because the
+Entries 2, 3, 4, 6, 7, 8 and 9 carry their own, three, eleven, twelve, five,
+six, one and three, and they are listed in those entries rather than here, because the
 list is about an entry's rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,9 +32,9 @@ Every result in Entries 1, 3, 4, 5, 6, 7 and 8 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
-and nothing about whether the trade works today. Entry 2 spends no sample at all
-and is outside that label and its opposite both, which it states rather than
-picking one.
+and nothing about whether the trade works today. Entries 2 and 9 spend no
+sample at all and are outside that label and its opposite both, which each
+states rather than picking one.
 
 ## Contents
 
@@ -96,6 +97,12 @@ picking one.
   - [The verdicts](#the-verdicts-6)
   - [What the entry concludes](#what-the-entry-concludes-7)
   - [What this entry cannot say](#what-this-entry-cannot-say-5)
+- [Entry 9: the survivorship toy, Chan's *Quantitative Trading*](#entry-9-the-survivorship-toy-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-7)
+  - [What this repo computed](#what-this-repo-computed-8)
+  - [The verdicts](#the-verdicts-7)
+  - [What the entry concludes](#what-the-entry-concludes-8)
+  - [What this entry cannot say](#what-this-entry-cannot-say-6)
 
 ## How to read an entry
 
@@ -118,8 +125,10 @@ both.
    holds Entries 5 and 6, which come from one sentence of the book and share a
    module,
    [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds
-   Entry 7, and [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
-   Entry 8.
+   Entry 7, [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
+   Entry 8, and
+   [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
+   Entry 9.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -221,8 +230,8 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 15, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18 and
-Entry 8's row 3.
+than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
+Entry 8's row 3, and Entry 9's rows 3 to 5.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -269,7 +278,9 @@ Three things about the shape are deliberate.
   coin-flip game is synthetic. It has no vendor and no download date, so the
   column that makes a row checkable has nothing to hold. Such a row writes
   `none, synthetic` rather than going blank, because a blank cell reads as an
-  omission. Every row of Entry 2 does.
+  omission. Every row of Entry 2 does. Entry 9 reads the tables Chan prints,
+  which have a source and no vendor, so its rows write
+  `none, the book's printed tables` instead.
 - **A column with nothing to hold in any row is dropped rather than filled.**
   Entry 1's computed table carries a Window column, because a window is what
   selects the rows a vintage is read over. A gamble has no window in any row,
@@ -312,7 +323,7 @@ Eleven rows, and all of them are derivable from
 | 8 | KO/PEP CADF statistic | −2.14258438, quoted in `KOPEP_REF` as −2.14 and reported as not cointegrating | no location, absence recorded in the book notes, value kept in `KOPEP_REF` |
 | 9 | KO/PEP daily-return correlation | 0.4849, reported as statistically significant | Kindle location 3838 |
 | 10 | GLD/GDX CADF statistic, full modern span | none, the book stops in 2007 | n/a |
-| 11 | Chan's Python-versus-MATLAB disagreement | −2.4 from his Python run and −3.2 from his R run, against the −3.18156477 of row 4 | Kindle locations 3755 and 3806 |
+| 11 | Chan's Python-versus-MATLAB disagreement, with his R run read as the tiebreak | −2.4 from his Python run, printed in full as t = −2.3591268376687244 with p = 0.3444494880427884 and a through-origin hedge of 1.631009, and −3.2 from his R run, printed in full as t = −3.240868894 with p = 0.004975, against the −3.18156477 of row 4 | Kindle locations 3755 and 3806 for the prose. The code and the full printouts are at pp. 149 to 151 of the revised edition, read by the owner on 2026-10-02 and recorded on [issue 168](https://github.com/l3a0/quantitative-trading/issues/168) rather than in the book notes |
 
 ### What this repo computed
 
@@ -328,7 +339,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 1977-01-03 to 2008-01-18 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | same two files as row 7 | −2.14 | `TestKoPepNonCointegration::test_fails_to_cointegrate` |
 | 9 | 1977-01-03 to 2008-01-18 | Pearson correlation of daily returns, returns divided by the earlier price, two-sided significance on n−2 degrees of freedom | same two files as row 7 | 0.48492, with t = 49.0707 | `TestKoPepNonCointegration::test_returns_are_correlated` |
 | 10 | 2006-06-19 to 2026-06-16 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | `gld_20yr_prices.csv`, downloaded 2026-06-16, and `gdx_20yr_prices.csv`, downloaded 2026-08-27, both Yahoo dividend-adjusted. Two files and two dates, so naming one of them cannot re-derive the row | −1.45, with a half-life of 833.5 | `TestGldGdxReproduction::test_full_span_fails_to_reject` |
-| 11 | 2006-05-23 to 2007-05-23 | the same residual spread as row 4, tested twice: once at `autolag='aic'`, which picks 6 lags, and once at the fixed lag of 1 that MATLAB and R use. A sweep behind it repeats the fixed-lag test at every lag from 0 to 16 | same two files as row 1 | −2.2979 at 6 lags and −3.0875 at 1 lag. The sweep clears −3.04 only at 0 and 1 lags | `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict` and `::test_fixed_lag_reproduces_the_book`, with `::test_the_statistic_is_not_monotone_in_the_lag` pinning the fixed-lag sweep from 0 to 16 |
+| 11 | 2006-05-23 to 2007-05-23 for the Python run and the lag sweep, 2006-05-23 to 2007-11-30 for the R run | Python: `statsmodels` `coint` at its defaults, which is the Engle-Granger test on the with-intercept residual spread at the lag `autolag='aic'` picks. R: Hansen's covariate-augmented Dickey-Fuller regression, the daily change in GLD by OLS on a constant, GLD's lagged level, one lagged change of GLD, and GDX today and yesterday, with the t on the lagged level. GDX enters as its price, so the regression is an error-correction cointegration test whose coefficients imply a hedge. The lag sweep: row 4's spread at `autolag='aic'` and at every fixed lag from 0 to 16 | two vintages, run separately: `gld_chan.csv` and `gdx_chan.csv`, saved 2007-12-02, for both of Chan's runs, and the two raw yfinance files of row 1 for the sweep | On Chan's files, −2.3591 at 6 lags with p = 0.3444, and −3.2409 on 378 residual degrees of freedom, with an implied hedge of 1.6992, and +0.3554 when GDX's daily change replaces its price. On the yfinance raw closes, −2.2979 at 6 lags and −3.0875 at 1 lag, and the sweep clears −3.04 only at 0 and 1 lags | `TestChansPythonRun::test_coint_at_its_defaults_lands_the_printout` and `::test_the_default_picks_six_lags`, and `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout`, `::test_the_covariate_went_in_as_a_price` and `::test_the_training_subset_was_not_applied` for Chan's files, and `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict`, `::test_fixed_lag_reproduces_the_book` and `::test_the_statistic_is_not_monotone_in_the_lag` for the yfinance raw closes |
 
 ### The verdicts
 
@@ -344,7 +355,7 @@ Eleven rows, and all of them are derivable from
 | 8 | 0.00 | reproduced | Chan's claim is that the pair does not cointegrate. The computed statistic sits well above `EG_CRIT_N2`'s 10% value of −3.04, so it fails to reject and the claim survives. |
 | 9 | 0.0000 at four decimals | reproduced | Chan's claim is that the correlation is statistically significant. It clears the 5% level two-sided by a wide margin. Together with row 8 this is the demonstration that correlation and cointegration are different things. |
 | 10 | none | none, not a replication | The book stops in 2007, so there is no published figure. What the row shows is the shelf life: the statistic fails to reject at 10% and the half-life runs to 833.5 days against the about 10 of row 5. |
-| 11 | +0.1 against his −2.4, and +0.1 against his −3.2 | reproduced | Both of Chan's figures reproduce, and the conclusion he draws from them does not. He concludes that Python's statistics and econometrics packages are not to be trusted. One Python library produces both statistics here, and the only thing separating them is which lag the test uses. |
+| 11 | 0.0000 at four decimals on Chan's files, against both printed t-statistics. On the yfinance raw closes, +0.1 against his −2.4 | reproduced | Every figure both runs print reproduces on Chan's files at the precision printed, apart from R's p-value and its ρ², and the verdict rests there. The yfinance gap is the vintage gap of row 1. The Python claim survives: its p of 0.3444 fails to reject at 10%. The R claim is not settled by its own printout. Its p of 0.004975 comes from Hansen's distribution, which assumes a stationary covariate, and the code passed GDX's price, which fails to reject a unit root. That makes the regression an error-correction cointegration test, so neither Hansen's table nor `EG_CRIT_N2` is its critical value, and nothing here supplies one. Given GDX's daily change, the input Hansen's test is built for, the t is +0.3554, which rejects nothing. The conclusion Chan draws does not survive. He concludes that Python's statistics and econometrics packages are not to be trusted. Python and MATLAB ran one test on one window and differ only in the lag count, and R ran a different test on a longer window with an input it was not built for, so the disagreement says nothing about Python's packages. `TestChansPythonRun::test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans` kills three earlier readings: zero fixed lags, which give −3.2018 on the yfinance closes and −3.2975 on Chan's, three fixed lags, which give −2.4067 against −2.4857, and one fixed lag, whose −3.1780 rounds to R's −3.2 but comes from a different test than R ran. |
 
 ### What the entry concludes
 
@@ -360,14 +371,22 @@ Four things, in the order of how much they cost to learn.
    simply wrong, and it puts the 2007 book-run series beyond reach of any file
    that still exists.
 3. **Chan's conclusion about Python is refuted by his own numbers.** Row 11 is
-   the most useful verdict here. His −2.4 and his −3.2 both reproduce, from one
-   library, on one window, on one spread. What separates them is
-   `autolag='aic'` picking six lags where MATLAB and R fix one. The statistic
-   does not weaken steadily as lags are added, since it is more negative at
-   four lags than at three. The verdict is what holds: zero or one lag clears
-   the 10% line and every count from two to sixteen misses it. A conclusion about
-   a library turns out to be a conclusion about a default. Which lag count the
-   test is entitled to is a separate question, taken up under
+   the most useful verdict here. His −2.4 and his −3.2 both reproduce on his
+   own files, each t-statistic to within a billionth, and they come from two
+   different tests on two different windows. His Python run is the
+   Engle-Granger test on 252 days, with `autolag='aic'` picking six lags. His
+   R run calls Hansen's covariate-augmented Dickey-Fuller test on all 385
+   days and passes GDX's price where the test expects a stationary series, so
+   its printed p-value does not settle whether it rejects. Chan's MATLAB call,
+   as `example3_6_1.m` reads, runs the Engle-Granger test on the same 252 days
+   as Python with one lag passed as an argument, so against MATLAB what
+   separates Python is the lag count. On the yfinance raw closes the
+   statistic does not weaken steadily as lags are added, since it is more
+   negative at four lags than at three. The verdict is what holds there: zero or one lag clears the 10% line
+   and every count from two to sixteen misses it. A conclusion about a library
+   turns out to be a conclusion about a default and about which test ran.
+   Which lag count the test is entitled to is a separate question, taken up
+   under
    [Which lag count the residuals allow](#which-lag-count-the-residuals-allow).
 4. **The relationship itself has expired.** Row 10 is not a replication and is
    the reason the entry does not end on a match.
@@ -440,10 +459,16 @@ At the first lag count whose residuals pass, the test does not reject, so the
 Chapter 3 window gives no evidence of cointegration on this vintage. That is an
 absence of evidence rather than evidence against. The ADF has little power on
 245 observations, and a failure to reject is what a weakly cointegrated pair
-would also produce. Two more things keep the result small.
+would also produce. Two more things bear on how far the result reaches.
 
 1. At one lag the lag-6 autocorrelation is 0.1668 against a band of 0.1240, on
-   250 observations, so a different vintage could move it inside.
+   250 observations, near enough the edge that a different vintage could move
+   it inside. Chan's own files, the vintage his Python printout reproduces on,
+   do not. There the bar is 0.1659 against the same band, the one-lag fit
+   fails Breusch-Godfrey with a p of 0.0460, and six lags is again the first
+   count that passes, at −2.3591, which does not reject. That six-lag fit is
+   the one `coint` runs at its defaults, so the statistic Chan printed and
+   distrusted is the one whose residuals pass.
 2. At the 5% cut, Breusch-Godfrey alone passes the fits at zero, two and five
    lags as well, and still fails one lag. What keeps those three out is the
    lag-6 bar outside the band, and the band is the pointwise check.
@@ -479,8 +504,9 @@ that bar stays outside even a band widened for reading ten bars at once,
 2.807/√n. This check is exploratory too, and it was run after the Chapter 3
 result had been seen.
 
-`TestResidualCheck` and `TestResidualCheckChapter7` in
-`tests/test_pair_cointegration.py` pin every number in this section.
+`TestResidualCheck`, `TestResidualCheckOnChansFiles` and
+`TestResidualCheckChapter7` in `tests/test_pair_cointegration.py` pin every
+number in this section.
 `src/chan/lag_residual_figure.py` redraws the figure, and
 `tests/test_lag_residual_figure.py` holds that it draws what the check
 computes.
@@ -505,12 +531,18 @@ row computes.
 - Row 5's half-life is an AR(1) regression on the same spreads as rows 3 and 6.
 - Row 9 is neither. It runs on 7834 daily returns with 7832 degrees of freedom,
   which is what its pinned t of 49.0707 carries.
-- Row 11 is two runs and two counts. The fixed-lag run has the 250 observations
-  of row 4. The `autolag='aic'` run drops five more to its six lags and has
-  245, which the suite does not assert, because
-  `test_the_default_lag_choice_flips_the_verdict` pins the lag and the statistic
-  and discards the count. The sweep drops one observation per lag, from 251
-  at 0 lags to 235 at 16, and the suite does not assert those counts either.
+- Row 11 holds several runs, each with its own count. On the yfinance raw
+  closes, the fixed-lag run has the 250 observations of row 4. The
+  `autolag='aic'` run drops five more to its six lags and has 245, which the
+  suite does not assert there, because
+  `test_the_default_lag_choice_flips_the_verdict` pins the lag and the
+  statistic and discards the count. The sweep drops one observation per lag,
+  from 251 at 0 lags to 235 at 16, and the suite does not assert those counts
+  either. On Chan's files the Python run also has 245, which
+  `TestChansPythonRun::test_the_default_picks_six_lags` asserts, and the R
+  regression has 383 rows and 378 residual degrees of freedom, which
+  `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout`
+  asserts.
 
 **Which sense of verdict.** The same run prints `Verdict: REJECTS the
 no-cointegration null`, which is the statistical sense: what the test concluded
@@ -608,7 +640,7 @@ bias". Shipped under
 [issue 13](https://github.com/l3a0/quantitative-trading/issues/13).
 
 The label is a revised-edition one, and this entry declares it because the
-repo reads every other one as first-edition. The gamble sits in Box 6.1 of
+repo reads a label as first-edition unless it says otherwise. The gamble sits in Box 6.1 of
 Chapter 6, a sidebar the 2009 edition could not hold because it quotes
 Kahneman's 2011 book. The box cites a separate Example 6.1 at Kindle location
 3186, "As Example 6.1 shows", for the continuous approximation it uses. This
@@ -1940,6 +1972,134 @@ no published figure to check, like Entry 5, rather than a replication.
 **What trading at the open gives.** That is Example 3.8, and
 [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) carries
 it.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 9: the survivorship toy, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Example 3.3, between the
+highlights at Kindle locations 1423 and 1474. Shipped under
+[issue 213](https://github.com/l3a0/quantitative-trading/issues/213).
+
+Chan warns at location 1012 that a database holding only surviving stocks
+inflates a backtest that buys cheap stocks, because some stocks are cheap
+because the company is about to fail. Example 3.3 is the toy he points to. It
+buys the 10 lowest-priced stocks among the 1,000 largest by market
+capitalisation at the close on 1/2/2001, with equal capital in each, and sells
+at the close on 1/2/2002. The book prints two tables of ten picks.
+
+1. **The survivorship-free picks.** Nine of the ten were delisted during the
+   year, so the book gives each a terminal price, the last price traded on or
+   before 1/2/2002. Only MDM has a close on that date.
+2. **The survivor-only picks.** A database holding only survivors keeps MDM and
+   continues up the price ranking past the nine stocks it never held.
+
+The label is a revised-edition one, and this entry declares it because the
+repo reads an example number as first-edition unless it says otherwise. Whether the 2009
+edition numbers this example 3.3 and prints the same tables was not checked.
+The first-edition code mirror this repo cites elsewhere holds no file for it
+among its Chapter 3 files, so the printed tables are the whole source.
+
+Five rows, all derivable from
+[tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py). Rows 1
+and 2 are the two figures the book prints. Rows 3 and 4 are the equal-shares
+near miss on each table, and row 5 is the survivor-only figure with NEOF on one
+share basis. Those three carry no published figure and say so in their own
+cells.
+
+**The vintage column says `none, the book's printed tables` in every row.** The
+twenty rows are copied from the book into
+[src/chan/survivorship_bias.py](../src/chan/survivorship_bias.py), whose
+docstring names their source, and nothing was downloaded. A printed number
+cannot be restated by a vendor, so the edition is what pins it.
+[docs/design.md](design.md#a-replication-that-reads-the-books-own-tables) says
+why that is not a vintage. The cell names no price basis, because the book does
+not say whether its database adjusted for splits, and row 5 shows that at least
+one row was not adjusted.
+
+**The window column stays.** Entry 2 dropped it because a gamble has no window,
+and this toy has one in every row, because the book fixes the dates.
+
+Neither epistemic label reaches this entry, for the reason Entry 2 gives.
+Reproducing the arithmetic on a printed table spends no sample.
+
+### What the book printed
+
+| # | Row | Published figure | Where the book prints it |
+| --- | --- | --- | --- |
+| 1 | Survivorship-free portfolio, equal capital | −42 percent, the return Chan says a trader would actually have had | Kindle location 1471 |
+| 2 | Survivor-only portfolio, equal capital | 388 percent, which Chan calls fictitious | Kindle location 1471 |
+| 3 | Survivorship-free portfolio, equal shares | none, the book specifies equal capital | n/a |
+| 4 | Survivor-only portfolio, equal shares | none, the book specifies equal capital | n/a |
+| 5 | Survivor-only portfolio with NEOF on one share basis | none, the book prints NEOF's row as it stands | n/a |
+
+### What this repo computed
+
+| # | Window | Specification | Vintage | Computed | Assertion |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 1/2/2001 to 1/2/2002 | mean of the ten per-stock returns, end over start less one, each delisted stock at its terminal price | none, the book's printed tables | −41.72 percent | `TestBookFigures::test_the_survivorship_free_portfolio_loses_42_percent` |
+| 2 | 1/2/2001 to 1/2/2002 | the same mean over the survivor-only picks | none, the book's printed tables | 387.88 percent | `TestBookFigures::test_the_survivor_only_portfolio_gains_388_percent` |
+| 3 | 1/2/2001 to 1/2/2002 | one share of each, the sum of end prices over the sum of start prices less one | none, the book's printed tables | −47.62 percent | `TestTheNearMiss::test_equal_shares_on_the_survivorship_free_picks` |
+| 4 | 1/2/2001 to 1/2/2002 | the same over the survivor-only picks | none, the book's printed tables | 373.17 percent | `TestTheNearMiss::test_equal_shares_on_the_survivor_picks` |
+| 5 | 1/2/2001 to 1/2/2002 | row 2's mean with NEOF's start price multiplied by 10, the ratio of its 2001 reverse split | none, the book's printed tables | 100.91 percent. As printed, NEOF carries 308.86 of row 2's 387.88 points | `TestTheReverseSplit::test_on_one_share_basis_the_survivor_portfolio_still_gains` and `::test_neof_carries_most_of_the_survivor_only_return` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a trader running this strategy on the stocks actually available would have lost money. The equal-capital mean is negative and rounds to his figure, so the claim survives. |
+| 2 | 0 at the whole percent the book prints | reproduced | Chan's claim is that a survivor-only backtest turns that loss into a large gain. The figure reproduces from his table as printed. Most of it rests on NEOF's row, which compares a price before a reverse split with a price after it, and row 5 puts it on one basis. The claim survives there at a gain against a loss, so the verdict stays with the figure, as Entry 1's row 11 does, and this column carries the qualification. |
+| 3 | none | none, not a replication | The book specifies equal capital. The row exists so the specification is held rather than the number: buying one share of each gives −47.62 percent, which does not round to −42. |
+| 4 | none | none, not a replication | The same near miss on the second table. It gives 373.17 percent, which does not round to 388. The two misses together are what rule the weighting out. |
+| 5 | none | none, not a replication | The book prints NEOF's row unadjusted. Neoforma's FY2001 10-K, [on EDGAR](https://www.sec.gov/Archives/edgar/data/1096219/000101287002001537/d10k.htm), states a 1-for-10 reverse split effective 2001-08-27 and restates its quarterly price tables for it, so 0.875 is a price before the split and 27.9 a price after it. On one basis the survivor-only portfolio still gains, which is the claim row 2 supports, and by far less than the printed figure. |
+
+### What the entry concludes
+
+Three things, and the first is why the verdicts carry less than they look.
+
+1. **The verdicts were knowable before the work started.** As with Entry 2,
+   nothing can move a printed table's arithmetic, so rows 1 and 2 could only
+   reproduce once the right weighting was found. The work is worth the
+   specification it settles and the row it checked against an outside source.
+2. **The book prints no formula, so the weighting is what rows 1 to 4 hold.**
+   Equal capital reproduces both figures, and equal shares misses both. Both
+   are pinned, because an assertion on the right figure alone would hold a
+   number rather than a choice.
+3. **One stock carries most of the fictitious return, and its row mixes two
+   share bases.** NEOF contributes 308.86 of the 387.88 points. With its start
+   price on the basis of its reverse split, the survivor-only portfolio returns
+   100.91 percent. The lesson survives, since −41.72 against 100.91 is still a
+   loss against a gain, but the difference between the two portfolios is much
+   smaller once NEOF's row is on one share basis. That is a finding about
+   Chan's table, and it does not change what the table as printed reproduces
+   to.
+
+Chan tells the same toy a second time. The sibling repository's notes on his
+*Algorithmic Trading*, at location 704 in
+[research/book-notes/algorithmic-trading.md](https://github.com/l3a0/trading-strategies/blob/477c594/research/book-notes/algorithmic-trading.md),
+give the same 388 percent but describe the honest outcome as "almost 100
+percent loss" rather than −42 percent. That is the same author with a
+different number, cited here as the sibling's note and not reproduced.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the picks are right.** The universe of 1,000 stocks is not printed,
+so the selection step cannot be re-run. Re-running it would need the 1,000
+largest US stocks as they stood on 2001-01-02, delisted ones included, which is
+bought data. No issue is filed for it, because both printed figures sit
+downstream of the picks.
+
+**Whether the other nineteen rows sit on one share basis.** Only NEOF was
+checked against a filing. The rest are taken as printed, so row 5 corrects the
+one row known to mix two bases and claims nothing about the others.
+
+**Whether buying cheap stocks pays.** The toy shows what a survivor-only
+database does to a backtest. It runs one year on ten stocks and is not a test
+of the strategy.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
