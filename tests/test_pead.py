@@ -49,6 +49,8 @@ from chan import matlab_helpers, pead
 from chan.matlab_helpers import smart_moving_std, smartstd_first_edition
 from chan.pead import (
     BOOK_APR_PERCENT,
+    BOOK_LEVERAGE,
+    BOOK_LEVERED_PERCENT,
     BOOK_SHARPE,
     DENOMINATOR,
     ENTRY,
@@ -168,6 +170,12 @@ class TestTheFigures:
         assert f"{drift.sharpe:4.2f}" == SCRIPT_SHARPE == "1.49", SPEC
         assert round(drift.sharpe, 1) == BOOK_SHARPE == 1.5, SPEC
 
+    def test_levered_four_times_it_is_close_to_27_percent(self, drift: Drift) -> None:
+        """Location 3024: levered "at least four times", "close to 27 percent"."""
+        assert drift.levered == pytest.approx(0.266970, abs=5e-7), SPEC
+        assert BOOK_LEVERAGE == 4
+        assert round(100 * drift.levered) == BOOK_LEVERED_PERCENT == 27, SPEC
+
     def test_the_compounded_apr(self, drift: Drift) -> None:
         """``prod(1 + ret)^(252/330) − 1``. ``pead.m`` prints 0.0680 and the book nothing."""
         assert drift.compounded_apr == pytest.approx(0.067952, abs=5e-7), SPEC
@@ -241,6 +249,7 @@ class TestTheRun:
             ("Arithmetic annual return", ["0.066743", "0.0667", "6.7", "percent"]),
             ("Sharpe ratio", ["1.4909", "1.49", "1.5"]),
             ("Compounded APR", ["0.067952", "0.0680"]),
+            ("Levered 4 times", ["0.266970", "27", "percent"]),
             ("Maximum drawdown  ", ["-0.026052"]),
             ("Maximum drawdown duration", ["109"]),
         ):

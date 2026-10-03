@@ -19,9 +19,9 @@ that book's Example 7.2, which is the first replication here from Chan's second
 book. The sibling also holds notes for four other authors. They stayed there,
 because nothing here replicates those books.
 
-Mind the edition. These notes are the revised second edition of 2021, while
-this repo's citations of chapter and page numbers come from the first edition
-of 2009. The two are not interchangeable, and these notes are what showed it:
+Mind the edition. The *Quantitative Trading* notes are the revised second
+edition of 2021, while this repo's citations of chapter and page numbers for
+that book come from the first edition of 2009. The two are not interchangeable, and these notes are what showed it:
 the GLD/GDX chapter labels this repo uses throughout turn out to be
 first-edition shorthand, because in this edition both printouts belong to one
 Chapter 7 example and Chapter 3 defers the analysis at location 1862.
@@ -43,6 +43,11 @@ figures their four printouts give is here, the third January's 0.0881 and
 and commit that prints it, or to the owner's reading of the revised edition
 recorded on
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931).
+
+*Algorithmic Trading*'s Example 7.2 is the opposite case. Its two book
+figures, its denominator of 30 and its levered 27 percent all sit at location
+3024, while the figures its script prints sit in `pead.m` and nowhere in the
+book. The replication log's Entry 12 traces each to one or the other.
 
 Example 3.8 is absent in both ways. Its setup sentence at location 2233 and
 its closing exercise at 2236 are here, and the sentence carrying its result,

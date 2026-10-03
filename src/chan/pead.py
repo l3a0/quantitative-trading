@@ -51,6 +51,15 @@ every trade at one thirtieth of its capital and leaves the rest idle.
    longest duration in days, from book two's ``calculateMaxDD``, printed as
    −0.026052 and 109.
 
+The book adds a sixth that the script does not print. Levered four times, the
+strategy's "annualized average return" is "close to 27 percent", which is four
+times the arithmetic figure, and :attr:`Drift.levered` carries it.
+
+Chan names the price of his 30 himself at location 3024: it is "a certain
+degree of look-ahead bias", because the most positions on one day is known
+only once the window has been seen. He argues the bias is small because the
+number of announcements a day is predictable. Nothing here measures that.
+
 **The helper choice moves a printed digit.** ``smartstd`` here is book two's,
 which skips a NaN and divides by n. The first edition's, which
 :mod:`chan.khandani_lo` and :mod:`chan.equity_seasonals` use, zero-fills and
@@ -132,6 +141,11 @@ TRADING_DAYS = 252
 #: What the book prints at location 3024. The APR is the arithmetic figure.
 BOOK_APR_PERCENT = 6.7
 BOOK_SHARPE = 1.5
+#: Location 3024 again: levered "at least four times", the strategy gives "an
+#: annualized average return of close to 27 percent". That is four times the
+#: arithmetic figure, since leverage multiplies every day's return.
+BOOK_LEVERAGE = 4
+BOOK_LEVERED_PERCENT = 27
 
 #: What ``pead.m`` prints, in its comment lines, at the precision its
 #: ``fprintf`` formats give each figure.
@@ -161,6 +175,11 @@ class Drift:
     compounded_apr: float
     max_drawdown: float
     max_drawdown_days: int
+
+    @property
+    def levered(self) -> float:
+        """The arithmetic annual return at the book's leverage of four."""
+        return BOOK_LEVERAGE * self.arithmetic_annual
 
     @property
     def trades(self) -> int:
@@ -308,6 +327,13 @@ def report(prices: list[VintageEntry], announcements: list[VintageEntry], drift:
             f"{drift.sharpe:4.2f}",
             SCRIPT_SHARPE,
             f"{BOOK_SHARPE}",
+        ),
+        (
+            f"Levered {BOOK_LEVERAGE} times, {TRADING_DAYS} x mean",
+            f"{drift.levered:.6f}",
+            "none",
+            "none",
+            f"{BOOK_LEVERED_PERCENT} percent",
         ),
         (
             "Compounded APR",
