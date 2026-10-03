@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11 and 12 carry their own, three, eleven,
-twelve, five, six, one, three, eight, six and two, and they are listed in those
-entries rather than here, because the list is about an entry's rows and not
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12 and 13 carry their own, three, eleven,
+twelve, five, six, one, three, eight, six, two and seven, and they are listed in
+those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -29,7 +29,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11 and 12 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12 and 13 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -122,6 +122,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-10)
   - [What the entry concludes](#what-the-entry-concludes-11)
   - [What this entry cannot say](#what-this-entry-cannot-say-9)
+- [Entry 13: the market and momentum factors, Chan's *Quantitative Trading*](#entry-13-the-market-and-momentum-factors-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-1)
+  - [What this repo computed](#what-this-repo-computed-12)
+  - [The verdicts](#the-verdicts-11)
+  - [What the entry concludes](#what-the-entry-concludes-12)
+  - [What this entry cannot say](#what-this-entry-cannot-say-10)
 
 ## How to read an entry
 
@@ -149,8 +155,10 @@ both.
    [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
    Entry 9,
    [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
-   holds Entry 11, and [tests/test_pead.py](../tests/test_pead.py) holds
-   Entry 12.
+   holds Entry 11, [tests/test_pead.py](../tests/test_pead.py) holds
+   Entry 12, and
+   [tests/test_momentum_factor.py](../tests/test_momentum_factor.py) holds
+   Entry 13.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -259,7 +267,7 @@ each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
-rows 2 and 6 to 10, and Entry 12's rows 10 and 11.
+rows 2 and 6 to 10, Entry 12's rows 10 and 11, and Entry 13's rows 3 to 9.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -273,7 +281,12 @@ any figure was computed. Entry 11's row 3 is one as well. The sidebar's claim
 names one trade, and its criterion, a profit in every year from 1995 to 2008,
 was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any
-trade was computed.
+trade was computed. Entry 13's rows 1 and 2 are two more. Location 4014's claim
+is about factors, and the section names both MKT and WML, so each is a
+definite case of it. Their criterion was written on
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22), and the
+owner ruled that each factor carries its own verdict, both before any
+autocorrelation was computed.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -2666,6 +2679,169 @@ round trip inside one day.
 
 **How large the look-ahead in the 30 is.** Chan argues it is small because the
 number of announcements a day is predictable, and nothing here tests that.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 13: the market and momentum factors, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle locations 3978, 4004
+and 4014. Shipped under
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22). Every
+location is the revised edition's. Whether the first edition carries the
+sentences at 4004 and 4014 was not checked.
+
+Nine rows, all derivable from
+[tests/test_momentum_factor.py](../tests/test_momentum_factor.py).
+
+**The claim holds for the market factor and does not hold for the momentum
+factor.** Chan says at location 4014 that "often factor returns are more
+stable than individual stock returns", that they "exhibit stronger serial
+autocorrelations than individual stock's returns", and so "have momentum".
+That persistence is what lets this period's factor return stand in for the
+next. Two of the factors his section names need only prices. MKT, the market
+factor of location 3978, is the index's return over the bill rate. WML, winners
+minus losers, defined at location 4004, longs the stocks whose past return was
+positive and shorts those whose past return was negative. Over 83 months,
+MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099, against a median
+of −0.0392 across the 446 stocks priced in every month. MKT is above 0 and
+above the median stock. WML is below both.
+
+Two rows are claims and seven are not replications. Rows 1 and 2 take the
+claim route `### Rows that are not replications` describes, one per factor.
+Rows 3 to 9 are the figures the issue reports beside the verdicts, which
+decide nothing.
+
+Every rule was fixed on
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22) on
+2026-10-03, before any autocorrelation was computed. The owner ruled the same
+day, also before, that each factor carries its own verdict with Chan's "often"
+quoted beside it and that no combined verdict is formed. Four of the rules
+carry the result, so they are stated here.
+
+1. **The vintages.** `spx_20071123/`, the 500 stocks of Chan's
+   `SPX_20071123.mat`, saved 2007-11-24, read through `chan.series.load_panel`.
+   `spy_chan.csv`, the adjusted-close column of his `example6_2.xls`, saved
+   2008-01-29. FRED's TB3MS, downloaded 2026-09-30.
+   [data/README.md](../data/README.md) says what each holds.
+2. **The construction.** The month-ends are the panel's rows whose next row
+   falls in another month, Chan's own rule, which gives 96 from 1999-11-30 to
+   2007-10-31. At month-end t a stock's past return runs from its close at
+   t − 12 to its close at t − 1, skipping the latest month as French's
+   momentum factor does. A positive past return makes a winner and a negative
+   one a loser. A stock enters only with a finite close at all 14 month-ends
+   from t − 12 to t + 1, which leaves 442 to 494 at each formation. Each leg is
+   equally weighted, held one month, and charged no costs. MKT is SPY's
+   month-end to month-end return less that month's TB3MS over 12. The
+   holding months run from December 2000 to October 2007, 83 of them.
+3. **The statistic.** `pandas.Series.autocorr(lag=1)` on each series of 83
+   monthly returns, which is the correlation of the 82 pairs of one month's
+   return with the month before. The comparison set is every stock with a
+   finite return in all 83 months, 446 of them, and their median stands for
+   "individual stock's returns".
+4. **The criterion.** The claim holds for a factor when its autocorrelation is
+   above 0 and above the median stock's, both compared unrounded. Monthly is
+   the only frequency computed, because the factors are re-formed monthly.
+
+**Every figure touching the stocks is about survivors.** The panel is the
+S&P 500 as it stood on 2007-11-23, carried backwards. That reaches WML's two
+legs in opposite directions, and which dominates is not measured here.
+
+1. **The loser leg** lacks the stocks that fell and then left the index, so
+   it holds losers that recovered enough to stay. That pushes WML down.
+2. **The winner leg** lacks past winners that later collapsed out of the
+   index. That pushes WML up.
+
+MKT reads SPY, which held the index as it stood each day, so it carries no
+survivorship.
+
+Every result here is **exploratory**. Testing a claim someone else chose
+spends the 2000 to 2007 sample on it, so the entry says whether the claim
+holds on this file and nothing about factor momentum today.
+
+### What the book stated
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | MKT has stronger serial autocorrelation than single stocks, so it has momentum | the claim, "often", with no figure | location 4014, MKT defined at location 3978 |
+| 2 | WML has stronger serial autocorrelation than single stocks, so it has momentum | the same claim | location 4014, WML defined at location 4004 |
+| 3 to 9 | each factor's autocorrelation and percentile, the stocks' quartiles, the band, each factor's mean and t-statistic, and the legs | nothing, the book works no example | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | MKT's autocorrelation against 0 and against the median stock's, unrounded | 0.0675, above 0 and above −0.0392 | `TestTheVerdicts::test_mkt_holds_above_zero_and_above_the_median_stock` |
+| 2 | WML's autocorrelation against the same two | −0.1099, below 0 and below −0.0392 | `TestTheVerdicts::test_wml_does_not_hold_on_either_half` |
+| 3 | MKT's lag-1 autocorrelation, and the percent of the 446 stocks strictly below it | 0.0675, 80.7175, which is 360 stocks | `TestTheFigures::test_mkts_autocorrelation` and `::test_each_factors_percentile_among_the_stocks` |
+| 4 | WML's lag-1 autocorrelation, and the same percent | −0.1099, 27.8027, which is 124 stocks | `TestTheFigures::test_wmls_autocorrelation` and `::test_each_factors_percentile_among_the_stocks` |
+| 5 | the 446 stocks' lag-1 autocorrelations, lower quartile, median and upper quartile | −0.1198, −0.0392 and 0.0402 | `TestTheFigures::test_the_stocks_quartiles` |
+| 6 | ±1.96/√83, and which factors fall outside it | 0.2151, neither | `TestTheBand::test_the_band_is_1_96_over_root_83` and `::test_neither_factor_falls_outside_it` |
+| 7 | MKT's mean monthly return times 12, and its plain t-statistic | 0.0185 and 0.3660 | `TestTheFigures::test_each_factors_annual_mean_and_t_statistic` |
+| 8 | WML's mean monthly return times 12, and its plain t-statistic | 0.0241 and 0.4505 | `TestTheFigures::test_each_factors_annual_mean_and_t_statistic` |
+| 9 | the eligible stocks, the winner leg and the loser leg, fewest and most over the 83 formations | 442 to 494 eligible, so 6 to 58 excluded for a missing close. Winners 79 to 468, losers 11 to 397 | `TestTheLegs::test_442_to_494_stocks_are_eligible` and `::test_the_winner_and_loser_legs_sizes` |
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | The claim holds for MKT, which Chan says factors "often" show. Its autocorrelation is above 0 and above the median stock's, under the criterion declared on the issue before any autocorrelation was computed. It sits at 0.0675, inside row 6's band, so a series with no autocorrelation would land there often, and this verdict could be noise. |
+| 2 | did not reproduce | The claim does not hold for WML, on either half: its autocorrelation is below 0 and below the median stock's. Chan says factors "often" behave this way, and the owner's ruling judges each factor on its own, so this does not refute "often" and is not outweighed by row 1. The run reads Chan's own file through the construction fixed on the issue, so no cause outside the method is available for the verdict. The panel's survivorship is named above, and nothing here argues which way it moves an autocorrelation. |
+| 3 | none, not a replication | MKT sits at the 80.7175th percentile of the stocks, above 360 of 446. |
+| 4 | none, not a replication | WML sits at the 27.8027th percentile, above 124 of 446, so it is less persistent than most single stocks on this file. |
+| 5 | none, not a replication | The median stock's autocorrelation is negative, so on this file any factor above 0 is also above the median stock, and the half of the criterion against 0 is the one that decides. |
+| 6 | none, not a replication | Under a series with no autocorrelation, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
+| 7 | none, not a replication | MKT earned 1.85 percent a year over the bill, at a t-statistic of 0.3660, which no test would distinguish from zero. |
+| 8 | none, not a replication | WML earned 2.41 percent a year at a t-statistic of 0.4505, also indistinguishable from zero. Survivorship moves a mean before it moves an autocorrelation, so this row carries the survivor-only label most loudly. |
+| 9 | none, not a replication | Every formation has both legs, so the refusal for an empty leg never fires. At its smallest the loser leg holds 11 stocks, so WML's return that month rests on few short positions. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **On this file the claim holds for the market factor and not for the
+   momentum factor.** MKT's autocorrelation is positive and above the median
+   stock's. WML's is negative and below the median stock's. Chan's "often"
+   allows a factor that does not persist, and this file holds one of each.
+2. **Neither autocorrelation is far from zero.** Both sit inside the band a
+   series with no autocorrelation stays inside 95 percent of the time, so 83
+   months cannot tell MKT's 0.0675 from no persistence at all. The verdict in
+   row 1 is what the declared criterion says, and row 6 says how little it
+   rests on.
+3. **The median stock is a low bar on this file.** The median stock's lag-1
+   autocorrelation is −0.0392 and the upper quartile is 0.0402, so any factor
+   above 0 also beats the median stock, and the comparison with single stocks
+   decided neither verdict. The comparison set is survivors, so how low the
+   bar sits is a fact about this panel.
+
+### What this entry cannot say
+
+Four things.
+
+**What survivorship does to WML.** The panel lacks the stocks that left the
+index before 2007-11-23, and the two legs lose different ones.
+[Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) waits on
+a panel of the index as it stood each day, which would measure it.
+
+**Whether the factors persist at another frequency.** Only monthly returns
+were computed, by the rule on the issue, so a daily autocorrelation was not
+tried after the monthly one was seen.
+
+**Whether French's published factors agree.** Kenneth French's library
+publishes a market and a momentum factor built on every listed stock.
+[Issue 274](https://github.com/l3a0/quantitative-trading/issues/274) records
+that library as a vintage, and the skip here matches its momentum factor's so
+the two can be set side by side.
+
+**What the other two factors of location 3978 do.** SMB and HML need market
+capitalisation and book value at each date, which this repo does not hold.
+[Issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries
+them.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

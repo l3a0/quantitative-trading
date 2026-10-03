@@ -95,7 +95,7 @@ from chan.matlab_helpers import (
     smartstd_first_edition,
     smartsum,
 )
-from chan.series import load_panel, panel_line
+from chan.series import load_panel, panel_line, row_month_ends
 from chan.vintage import VintageUnavailable
 
 #: The S&P 600 small-cap file Example 7.6 reads. Chan's script loads
@@ -169,16 +169,6 @@ class JanuaryEffect:
     file_end: pd.Timestamp
 
 
-def _row_month_ends(days: pd.DatetimeIndex) -> NDArray[np.intp]:
-    """The rows whose next row falls in another month.
-
-    The final row is never one, because the next row does not exist. That is
-    how Chan's scripts find a month-end, by row rather than by calendar.
-    """
-    months = days.month.to_numpy()
-    return np.flatnonzero(months[:-1] != months[1:])
-
-
 def _rank_and_trade(
     annual: NDArray[np.float64],
     january: NDArray[np.float64],
@@ -216,7 +206,7 @@ def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
         ranked_rows = year_ends.ffill().to_numpy() if rules.pads_year_ends else year_end_rows
         exit_day = {day.year: day for day in januaries.index}
     else:
-        ends = _row_month_ends(days)
+        ends = row_month_ends(days)
         decembers = [row for row in ends if days[row].month == 12]
         jan_rows = [row for row in ends if days[row].month == 1]
         year_end_days = [days[row] for row in decembers]
@@ -355,7 +345,7 @@ def monthly_returns(closes: pd.DataFrame, rules: HestonSadkaRules) -> pd.Series:
         # The final month is dropped, because the file ends before it does.
         ends = closes.resample("ME").last().iloc[:-1]
     else:
-        ends = closes.iloc[_row_month_ends(closes.index)]
+        ends = closes.iloc[row_month_ends(closes.index)]
     level = ends.to_numpy()
     previous = lag1(level)
     ret = (level - previous) / previous

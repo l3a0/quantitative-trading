@@ -414,7 +414,10 @@ first two returns and not its third.
 [`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads both
 directories, and
 [issue 225](https://github.com/l3a0/quantitative-trading/issues/225) is where
-the third gets computed. Each holds only the companies
+the third gets computed.
+[`chan.momentum_factor`](../src/chan/momentum_factor.py) reads the first's
+closes to build the momentum factor and the stocks it is compared against, for
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22). Each holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the

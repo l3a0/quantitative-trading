@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twelve replications run here, eleven from Chan's *Quantitative Trading* and
+Thirteen replications run here, twelve from Chan's *Quantitative Trading* and
 one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other ten were built here.
+they were first built. The other eleven were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -152,6 +152,19 @@ they were first built. The other ten were built here.
     two's `smartstd` is what lands the first of those. The first edition's, which
     shares its name, gives 0.066833 and misses Chan's printed digit. Every
     figure is exploratory and about survivors.
+13. The market and momentum factors, built on Chan's S&P 500 file to test his
+    claim at Kindle location 4014 of the revised edition that factor returns
+    "often" have stronger serial autocorrelation than single stocks', so they
+    have momentum. MKT is SPY's monthly return over the three-month bill, and
+    WML longs the stocks whose past eleven months, skipping the latest, rose
+    and shorts those that fell. Over the 83 months from December 2000 to
+    October 2007, MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099,
+    against a median of −0.0392 across the 446 stocks priced in every month.
+    The claim holds for MKT and does not hold for WML, which is below 0 and
+    below the median stock. Neither factor's estimate is outside the 0.2151
+    band that a series with no autocorrelation stays inside 95 percent of the
+    time, so MKT's verdict could be noise. Every figure is exploratory, and WML
+    and the stocks' figures are about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -238,13 +251,20 @@ first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
 miss.
 
-All twelve replications reach a verdict in
+[tests/test_momentum_factor.py](tests/test_momentum_factor.py) does it for the
+market and momentum factors. It pins the calendar, the legs, both factors'
+autocorrelations and the stocks' quartiles, and one verdict per factor. Its
+`test_the_formations_last_close_is_the_month_before` holds the skip, so a
+lookback that runs to the formation's own close fails a test.
+
+All thirteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
-seasonals' and Entry 12 post-earnings drift's.
+seasonals', Entry 12 post-earnings drift's and Entry 13 the market and
+momentum factors'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -524,6 +544,19 @@ It prints both sources in a line each, the window, the rule, the busiest day
 beside the 30 Chan divides by, and each figure beside what `pead.m` and the
 book print. It refuses to run if the two files name different stocks, because
 the script pairs their columns by position.
+
+The market and momentum factors read Chan's S&P 500 file, his SPY column and
+the bills, and take no option, because the issue fixed the construction and
+the window before any return was computed:
+
+```bash
+uv run python -m chan.momentum_factor
+```
+
+It prints the three vintages, the window, the eligible stocks and the legs,
+each factor's lag-1 autocorrelation beside the stocks' quartiles, a verdict per
+factor, and the band beside them. It refuses to run if a month's winner or
+loser leg is empty, and names the month.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
