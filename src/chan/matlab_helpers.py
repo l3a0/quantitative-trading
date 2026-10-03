@@ -14,9 +14,11 @@ Two of them move a figure Examples 7.6 and 7.7 print, and
 
 The rest are Chan's helpers as his scripts call them. :func:`smartmean`,
 :func:`smartsum`, :func:`lag1` and :func:`matlab_sort` run in Example 7.7,
-and :func:`backshift` and :func:`fwdshift` are here for [issue 17](https://github.com/l3a0/quantitative-trading/issues/17),
-which reads the same S&P 500 file. Reversing the tie order in
-:func:`matlab_sort` moves no printed figure on these files.
+and the first three run in Example 3.7 in :mod:`chan.khandani_lo` too.
+:func:`backshift` runs through :func:`lag1`. :func:`fwdshift` has no caller
+yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
+finds month-ends by comparing each row with the next instead. Reversing the
+tie order in :func:`matlab_sort` moves no printed figure on these files.
 
 The source is Chan's first-edition mirror,
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading)
