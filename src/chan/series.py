@@ -54,6 +54,12 @@ It sat in :mod:`chan.pair_cointegration` until
 [issue 122](https://github.com/l3a0/quantitative-trading/issues/122), and it
 is here for the reason the paragraph above gives for the parse.
 
+:func:`vintage_overlap` sets two vintages of one series against each other on
+the days both hold, and :func:`departures` names the days they disagree. Where
+the scale-break guard reads one series against itself, this reads a later
+download against an earlier one, which is the only way to see a vendor rewrite
+history between the two. It lives here for the same reason the guard does.
+
 :func:`load_panel` reads a whole source file's columns as one date-by-symbol
 frame, which is how Chan's cross-sectional examples read his ``.mat`` files.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
@@ -556,6 +562,120 @@ def aligned_closes(
         )
     joined.attrs["vintages"] = (entry_a, entry_b)
     return joined
+
+
+def vintage_overlap(
+    older: tuple[VintageEntry, pd.Series],
+    newer: tuple[VintageEntry, pd.Series],
+) -> pd.DataFrame:
+    """Two vintages of one series side by side on the days both hold.
+
+    The frame has three columns, ``older``, ``newer`` and ``ratio``, the last
+    being newer over older, and the two entries ride on
+    ``DataFrame.attrs["vintages"]`` in that order, the way :func:`aligned_closes`
+    hands back its two. An earlier vintage is committed bytes that no vendor
+    restatement can reach, so setting a later download against it is what says
+    whether the vendor rewrote the history in between.
+
+    It compares levels rather than returns, which is why it is not
+    :func:`chan.kelly_leverage.compare_vintages`. A split falling between two
+    downloads rescales the whole earlier history by one factor. Every
+    day-over-day return is unchanged, so a comparison of returns reads it as
+    agreement, while the ratio here sits at that factor on every shared day.
+    :func:`scale_breaks` misses it too, because neither series has a step. It
+    is the one check that sees a split between downloads.
+
+    Three pairs are refused rather than compared, because each would hand back
+    a frame that could be read as agreement or as a break when it is neither.
+
+    1. Two price bases. An adjusted close drifts from a raw one by every
+       dividend between them, by construction, so the ratio would report the
+       dividends as a restatement.
+    2. Two symbols, which are two series rather than two vintages of one.
+    3. A pair sharing no day, where an empty frame holds no departure and so
+       reads as agreement.
+
+    A vintage repeating a date is refused too, because the join could not say
+    which close is its own.
+
+    Nothing reads this from :func:`aligned_closes`, on purpose. A disagreement
+    between two vintages contaminates neither, since each is consistent with
+    itself. What it gates is re-pinning a number against a newer vintage, and
+    wiring it into a run's refusal would stop a correct replication because a
+    different vintage exists. [Issue
+    139](https://github.com/l3a0/quantitative-trading/issues/139) carries that
+    reasoning.
+    """
+    (older_entry, older_close), (newer_entry, newer_close) = older, newer
+    if older_entry.symbol != newer_entry.symbol:
+        raise ValueError(
+            f"{older_entry.path} holds {older_entry.symbol} and {newer_entry.path} holds "
+            f"{newer_entry.symbol}, which are two series rather than two vintages of one"
+        )
+    if older_entry.price_basis != newer_entry.price_basis:
+        raise ValueError(
+            f"{older_entry.path} carries the {older_entry.price_basis} basis and "
+            f"{newer_entry.path} the {newer_entry.price_basis} one. A ratio between them "
+            f"measures the adjustment, not a restatement, so they are not compared."
+        )
+    for entry, close in older, newer:
+        if not close.index.is_unique:
+            raise ValueError(
+                f"{entry.path} repeats a date, so a join cannot say which close is its own"
+            )
+    shared = older_close.index.intersection(newer_close.index).sort_values()
+    if shared.empty:
+        raise ValueError(
+            f"{older_entry.path} and {newer_entry.path} share no day, and no day compared is "
+            f"not the same answer as every day agreeing"
+        )
+    old, new = older_close.loc[shared], newer_close.loc[shared]
+    with warnings.catch_warnings():
+        # A zero close divides by zero, and the ratio it leaves is reported as
+        # a departure by `departures` rather than skipped here.
+        warnings.simplefilter("ignore", RuntimeWarning)
+        ratio = new.to_numpy(dtype=float) / old.to_numpy(dtype=float)
+    overlap = pd.DataFrame(
+        {"older": old.to_numpy(), "newer": new.to_numpy(), "ratio": ratio}, index=shared
+    )
+    overlap.attrs["vintages"] = (older_entry, newer_entry)
+    return overlap
+
+
+def departures(overlap: pd.DataFrame, *, tolerance: float) -> pd.DataFrame:
+    """The rows of :func:`vintage_overlap` on which the two vintages disagree.
+
+    ``tolerance`` is the largest difference in price units that still counts
+    as the same close. Two vintages printed at different precisions cannot
+    agree more closely than half a unit in the last digit the coarser one
+    prints, so that is what a caller passes. Chan's workbooks print cents and
+    yfinance prints a binary float, so a pair of those agrees to within 0.005.
+    A tolerance in price units rather than in log ratio is what states that
+    precision directly, since a half cent is a smaller fraction of a dearer
+    price.
+
+    A ratio that is not a finite positive number is a departure whatever the
+    difference, because "agree" and "could not tell" must not be the same
+    answer, which is the rule :func:`scale_breaks` carries. Three such ratios
+    arise from finite inputs: a zero denominator, a NaN, and a negative close,
+    whose ratio is negative even where the two differ by less than the
+    tolerance.
+
+    The comparison is written as the negation of the agreeing case, so a NaN
+    close, whose difference is NaN and fails every comparison, lands here
+    rather than passing.
+
+    The tolerance is widened by four units in the last place of the larger
+    close, which is what a float subtraction can lose. Without it a difference
+    that is exactly half a cent on paper lands a hair above it. Measured on
+    SPY's two raw vintages, 58 days where Chan's file rounds a price in eighths
+    up to the cent differ by 0.0050000000000026, and each would be reported.
+    """
+    newer, older = overlap["newer"], overlap["older"]
+    slack = 4.0 * np.spacing(np.maximum(newer.abs(), older.abs()))
+    ratio = overlap["ratio"]
+    agrees = ((newer - older).abs() <= tolerance + slack) & (ratio > 0.0) & np.isfinite(ratio)
+    return overlap.loc[~agrees]
 
 
 def _dates(days: pd.DatetimeIndex) -> str:

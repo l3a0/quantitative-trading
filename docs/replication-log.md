@@ -1567,11 +1567,16 @@ be bought or sold, and it would need its own issue and its own stand-in named
 before any data is read.
 
 **Whether the finding survives another vintage.** These are raw closes, which
-a vendor restates only when a fund splits, so a later download should match
-on every shared day unless one of the two has split by then. Nothing has
-checked that, and
-[issue 139](https://github.com/l3a0/quantitative-trading/issues/139) is the
-guard that would.
+a vendor should restate only when a fund splits, so a later download should
+match on every shared day unless one of the two has split by then. SPY shows
+that is not quite safe. Its two raw vintages, Chan's 2008 file and a 2026
+yfinance download, disagree on 2 of the 3,758 days they share with no split
+between them, which
+[tests/test_vintage_overlap.py](../tests/test_vintage_overlap.py) pins. The
+comparison
+[issue 139](https://github.com/l3a0/quantitative-trading/issues/139) built,
+`chan.series.vintage_overlap`, is what would check TLT and IEF, and no second
+download of either is committed.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

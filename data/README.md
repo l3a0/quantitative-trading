@@ -99,6 +99,7 @@ for a column lifted from one of Chan's own files.
 | `eia_rngc4_raw_1993-12-20_2024-04-05_dl2026-10-02.csv` | eia | RNGC4 | raw | 1993-12-20 .. 2024-04-05 | 2026-10-02 |
 | `yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | adjusted | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
 | `yfinance_iwb_raw_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | raw | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
+| `yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv` | yfinance | SPY | raw | 1993-01-29 .. 2026-10-02 | 2026-10-03 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
 | `inputdataohlcdaily_stocks_20120424/` | Chan's `inputDataOHLCDaily_stocks_20120424.mat` | 497 members | adjusted | 2006-05-11 .. 2012-04-24 | saved 2012-04-25 |
@@ -121,8 +122,8 @@ by hand, which is why it carries the recorder's five-field name and a single
 `Date,Close` header. It is read by
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
 6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
-leg of Qian's allocation. The other two SPY files are workbook columns
-placed by hand. The Kelly run reads `spy_chan.csv` under `--chan`, and
+leg of Qian's allocation. Two of the other SPY files are workbook columns
+placed by hand, and the third is a raw download described below. The Kelly run reads `spy_chan.csv` under `--chan`, and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.
 
@@ -374,6 +375,42 @@ leaving a reader to infer.
    close carrying the dividends takes against its twin, the form GDX's
    comparison above takes. The adjusted file sits below the raw one on every day
    before 2026-09-15 and equals it from then on.
+
+`yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv` is SPY's raw close,
+recorded to check the design doc's claim that a raw price is the same in every
+vintage. It is set against `spy_unadjusted_chan.csv`, Chan's as-traded close,
+on the 3,758 days the two share, and
+[tests/test_vintage_overlap.py](../tests/test_vintage_overlap.py) pins what
+that comparison finds.
+[Issue 139](https://github.com/l3a0/quantitative-trading/issues/139) asked for
+it. Three things about it are worth stating rather than leaving a reader to
+infer.
+
+1. **This is the call.**
+
+   ```python
+   yfinance.download("SPY", period="max", interval="1d", auto_adjust=False, actions=False)
+   ```
+
+   It ran against yfinance 1.7.0 on 2026-10-03, after the 2026-10-02 close,
+   outside the package. Its `Close` is the file, which carries splits and not
+   dividends. SPY has never split, so here that is the as-traded close. The
+   call returned no non-finite close, so the file holds all 8,477 rows the
+   vendor returned. Its `Adj Close` is not committed, because a second
+   yfinance `adjusted` SPY entry would be a second download of one committed
+   series, which
+   [issue 83](https://github.com/l3a0/quantitative-trading/issues/83) is about.
+2. **It is not a second download of anything committed.** No yfinance `raw`
+   SPY entry existed before it, so the reader's arguments still name one entry
+   each, and no case needs a date to read it.
+3. **It departs from Chan's file on two days.** On 2006-08-07 Chan's file
+   reads 127.95 and this one 127.90, and on 2007-05-21 they read 152.61 and
+   152.54. Neither is a split, a dividend or the rounding of a price quoted in
+   eighths, which accounts for every other difference. On 2006-08-07 the same
+   call returned an `Open` equal to that `Close` to the cent, a column this
+   repo does not commit. That is the shape of a close filled from the open,
+   and it says nothing about which vendor holds the right number. No third
+   source was available to settle either day.
 
 The `*_chan.csv` files are a different kind of source. Each is one price
 column of Ernest Chan's own book-companion spreadsheet, taken from the public

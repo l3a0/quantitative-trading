@@ -277,6 +277,14 @@ price, over its 2011 and 2012 window, and nothing there needs refusing.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
+A series checked against itself cannot show a vendor rewriting history between
+two downloads, so the same module also sets two vintages of one series against
+each other on the days both hold. SPY's raw close as Chan saved it in 2008 and
+as yfinance returned it in 2026 agree to the half cent on all but 2 of 3,758
+shared days, and
+[tests/test_vintage_overlap.py](tests/test_vintage_overlap.py) pins both the
+agreement and the two days.
+
 One vintage, FRED's three-month Treasury-bill series, holds a rate rather than
 a price, so the scale-break check skips it.
 [src/chan/bill_rates.py](src/chan/bill_rates.py) reads it and averages it over
