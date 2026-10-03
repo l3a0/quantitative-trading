@@ -160,11 +160,11 @@ BOOK_END = "2007-12-28"
 #
 # Provenance: recorded through :func:`chan.vintage.record_vintage` from a
 # yfinance download of the both-adjustments close, splits and dividends folded
-# in. ``data/README.md`` names the exact call, and it is named there rather
-# than here because yfinance returns two different series under the word
-# adjusted, which is
-# [issue 125](https://github.com/l3a0/quantitative-trading/issues/125), and one
-# home for that fact is one fewer place for it to drift.
+# in. The manifest line's ``vendor_column`` names the column and the argument
+# that selected it, and ``data/README.md`` names the rest of the call. Neither
+# is restated here. A split-only ``Close`` recorded as adjusted is the mislabel
+# the field asks the caller to rule out, and one home for each fact is one
+# fewer place for it to drift.
 VINTAGE_DATE = "2026-09-18"
 
 # Chan's own SPY series, read with ``--chan``. ``load_vintage("SPY", chan=True)``

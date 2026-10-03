@@ -128,31 +128,58 @@ worth stating rather than leaving a reader to infer from the span.
    anything was downloaded, because it is the aggregate bond exposure Qian's
    argument describes, and the span is whatever that choice returned.
 
-**Which "adjusted" it is, stated here because the word names two series.**
-yfinance returns a `Close` carrying both splits and dividends under
-`auto_adjust=True`, and under `auto_adjust=False` a split-only `Close` beside an
-`Adj Close` that carries both. The manifest records all of them as `adjusted`,
-which [issue 125](https://github.com/l3a0/quantitative-trading/issues/125) is
-about. The SPY and AGG files above both carry the both-adjustments series,
-from
+**Which "adjusted" it is.** yfinance hands back two closes a vintage could
+record. `Close` under `auto_adjust=True` carries both splits and dividends. It
+is `Adj Close` under `auto_adjust=False` renamed, so those two routes give the
+same values. `Close` under `auto_adjust=False` carries splits and not
+dividends, which is what this repo records as `raw`. What can go wrong is that
+split-only `Close` handed to the recorder as `adjusted`, and the recorder cannot
+see it happen, because it takes rows rather than the call that produced them.
 
-```python
-yfinance.download("SPY", period="max", interval="1d", auto_adjust=True, actions=False)
-yfinance.download("AGG", period="max", interval="1d", auto_adjust=True, actions=False)
-```
+So every `adjusted` yfinance line in the manifest carries a `vendor_column`
+field naming the column and the argument that selected it, and
+[tests/test_vintage.py](../tests/test_vintage.py) fails when one does not, or
+when it names anything but one of the two spellings of the both-adjustments
+close. Each such line reads `Close, auto_adjust=True` today, and two kinds of
+evidence stand behind the value.
 
-run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to the
-recorder in each case. The distinction is not cosmetic. On Chan's own data the
-dividends are worth a quarter of the answer Example 6.2 computes, and
+1. **SPY and AGG carry the call made when they were recorded.** It was
+
+   ```python
+   yfinance.download("SPY", period="max", interval="1d", auto_adjust=True, actions=False)
+   yfinance.download("AGG", period="max", interval="1d", auto_adjust=True, actions=False)
+   ```
+
+   run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to
+   the recorder in each case. The field holds the column and its argument, and
+   this paragraph holds the rest of the call.
+2. **GLD and GDX carry an inference that their bytes bound.** Nobody wrote
+   their calls down. A comparison against the raw twin beside each, which
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins, says what
+   the bytes can. GDX's adjusted file sits below its raw twin on every shared
+   day before 2025-12-22 and equals it from that day on, which is where the
+   last dividend in the file goes ex. That is the shape a close carrying the
+   dividends takes, so the file is the both-adjustments close. GLD's equals its
+   raw twin on every shared day, because GLD pays no distributions and has not
+   split, so its bytes cannot tell any column apart and the route cannot move a
+   number read from it. Which of the two spellings each call took is not in
+   the bytes. `Close, auto_adjust=True` is the likely one, because the sibling
+   repository's `pipeline/download_prices.py` at `477c594` calls
+   `yfinance.download` without `auto_adjust`, whose default is `True`, and that
+   script's naming matches these files. That is an inference from a filename
+   rather than a record.
+
+The distinction is not cosmetic. On Chan's own data the dividends are worth a
+quarter of the answer Example 6.2 computes, and
 [docs/design.md](../docs/design.md) carries why that decides which basis a
 replication reads. It decides even more on the bond leg. An aggregate bond
 fund's return is mostly its distributions, so a raw AGG series would strip out
 most of what that leg earns and make every return and Sharpe figure computed
 from it wrong.
 
-This is the one place that call is written down. The module that reads the
-series points here rather than restating it, because a fact in two places is a
-fact that can drift.
+[src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py), which reads the
+SPY download, points at the manifest line and at this paragraph rather than
+restating either, because a fact in two places is a fact that can drift.
 
 `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` is the first vintage
 that is not a price. It is the St. Louis Fed's three-month Treasury-bill rate,
@@ -440,7 +467,10 @@ Two files carry that record.
    and `chan-mat` for a stock from one of his MATLAB files, and carry a
    `source_workbook` field holding the file the series was lifted from. The
    table's "Chan's `GLD.xls`" is that pair written as one cell, which is what
-   a single column can hold and a filename cannot.
+   a single column can hold and a filename cannot. An `adjusted` yfinance line
+   carries a `vendor_column` field instead, naming the column of yfinance's
+   response its series is, for the reason given above beside the SPY and AGG
+   calls.
 
    The workbook is recorded rather than derived from the symbol. Joining the
    two spells the right workbook for every committed column but the two SPY

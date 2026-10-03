@@ -209,7 +209,7 @@ class VintageEntry:
     vendor returned, and allowing one anywhere would let a line claim a series a
     vendor returned came out of a spreadsheet. That is a provenance claim in the
     field that says where a series came from, written permanently into a record
-    nothing rewrites. It is stated against ``saved_date`` rather than against
+    whose committed fields nothing changes. It is stated against ``saved_date`` rather than against
     the vendor, because which word names a vendor is a convention this module
     does not enforce, while the date fields are already an invariant it does.
 
@@ -228,6 +228,32 @@ class VintageEntry:
     since the recorder takes rows and a download date and no workbook at all.
     :func:`record_lifted_columns` writes both.
 
+    ``vendor_column`` names the column of the vendor's response a series was
+    taken from, with the argument that selected it, such as ``Close,
+    auto_adjust=True``. It exists for one mislabel. yfinance returns a close
+    carrying splits and dividends and a close carrying splits alone, and the
+    split-only one handed to the recorder as ``adjusted`` would strip the
+    dividends from every return computed off it. Nothing here can see that
+    happen, because :func:`record_vintage` takes rows and never the call that
+    produced them. So the caller states the call, and the line is where it
+    lands, because a reader of the manifest or of the entry a load hands back
+    sees it there. It is the same claim a sentence in ``data/README.md`` would
+    make, held in a stricter place, and it is no more checked than the
+    sentence would be.
+
+    It is provenance rather than identity, like ``source_workbook``. It is not
+    in :func:`vintage_filename`, and :func:`resolve_vintage` does not match it.
+    Putting it in the identity would split nothing real, because yfinance's two
+    routes to the both-adjustments close, ``Close`` under ``auto_adjust=True``
+    and ``Adj Close`` under ``auto_adjust=False``, return the same values.
+
+    Which lines must carry it is not checked here either. The rule is that
+    every ``adjusted`` yfinance line does, and that is a rule stated against
+    the vendor, which this module declines to enforce for the reason the
+    ``source_workbook`` paragraphs give. ``tests/test_vintage.py`` holds the
+    committed manifest to it instead, so a line written without it fails a test
+    that names the file, rather than being refused on the way back.
+
     The span is not checked here, because nothing in ``src/`` reads it. The path
     is [issue 2](https://github.com/l3a0/quantitative-trading/issues/2).
     """
@@ -243,6 +269,7 @@ class VintageEntry:
     download_date: str | None = None
     saved_date: str | None = None
     source_workbook: str | None = None
+    vendor_column: str | None = None
 
     def __post_init__(self) -> None:
         if (self.download_date is None) == (self.saved_date is None):
@@ -312,7 +339,7 @@ class VintageEntry:
         return "downloaded" if self.download_date is not None else "saved"
 
     def as_json(self) -> str:
-        """The entry as one JSON object, with the unset date field left out.
+        """The entry as one JSON object, with every unset field left out.
 
         Keys are sorted, so a line's text is decided by the entry rather than by
         the order the fields happen to be declared in.
@@ -414,6 +441,7 @@ def record_vintage(
     symbol: str,
     price_basis: str,
     download_date: str,
+    vendor_column: str | None = None,
     data_dir: Path | None = None,
 ) -> VintageEntry:
     """Write ``rows`` as a vintage and record it, or refuse and leave no trace.
@@ -422,6 +450,10 @@ def record_vintage(
     given. The download date comes from the caller because this function does
     not fetch, so it cannot know when a fetch happened, and reading a clock
     would make the field that identifies the vintage differ on every run.
+    ``vendor_column`` comes from the caller for the same reason, and an
+    ``adjusted`` yfinance download passes it, because the column a close came
+    from is a fact about the call and the call happened somewhere else.
+    :class:`VintageEntry` says what it holds and why it is not required here.
 
     Once the file verifies, the vintage is recorded and nothing undoes it. The
     projection into ``data/checksums.sha256`` is regenerated after that, and a
@@ -469,6 +501,7 @@ def record_vintage(
         path=name,
         row_count=len(rows),
         sha256=hashlib.sha256(payload).hexdigest(),
+        vendor_column=vendor_column,
     )
 
     _append_entry(directory, entry)
@@ -843,12 +876,12 @@ def _wrong_shape(parsed: object) -> str | None:
     known = {field.name for field in fields(VintageEntry)}
     # A field with a default is not required on the line, which covers the two
     # date fields, since `__post_init__` takes exactly one of the two and
-    # `as_json` writes only the one that is set, and `source_workbook`, which
-    # only a workbook column carries. That third one is the case this comment
-    # used to predict: naming the optional fields here instead would have
-    # refused the module's own output the first time `VintageEntry` gained
-    # another, and reading the required set off `dataclasses.fields` is why
-    # adding it refused nothing.
+    # `as_json` writes only the one that is set, and the provenance fields,
+    # which only some lines carry. `source_workbook` was the case this comment
+    # used to predict, and `vendor_column` the second: naming the optional
+    # fields here instead would have refused the module's own output the first
+    # time `VintageEntry` gained another, and reading the required set off
+    # `dataclasses.fields` is why adding either refused nothing.
     required = {
         field.name
         for field in fields(VintageEntry)

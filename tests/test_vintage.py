@@ -137,6 +137,23 @@ class TestRecordingAVintage:
         assert written[0] == "Date,Close"
         assert committed[:3] == ["Price,Close", "Ticker,GDX", "Date,"]
 
+    def test_the_vendor_column_reads_back_and_names_nothing(self, data_dir):
+        """It is written on the line and read back, and the path does not carry it.
+
+        Provenance rather than identity, like `source_workbook`, so the name a
+        download takes is the one it takes without the field. A name that
+        carried it would split one series into two vintages over a spelling,
+        since yfinance's two routes to the both-adjustments close return the
+        same values.
+        """
+        column = "Close, auto_adjust=True"
+        entry = record_vintage(ROWS, data_dir=data_dir, vendor_column=column, **SOURCE)
+
+        assert entry.vendor_column == column
+        assert entry.path == RECORDED_NAME
+        assert read_manifest(data_dir) == [entry]
+        assert json.loads(manifest_lines(data_dir)[0])["vendor_column"] == column
+
     def test_the_manifest_keeps_the_order_entries_were_written_in(self, data_dir):
         """`read_manifest` promises write order, and the rollback rewrites the file."""
         first = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
@@ -1126,7 +1143,8 @@ def the_lifted_sources_are_pinned(directory: Path) -> None:
                 entry.download_date,
                 entry.saved_date,
                 entry.source_workbook,
-            ) == (vendor, basis, None, saved, source), entry.path
+                entry.vendor_column,
+            ) == (vendor, basis, None, saved, source, None), entry.path
             assert entry.path == f"{folder}/{entry.symbol.lower()}.csv", entry.path
 
 
@@ -1386,6 +1404,48 @@ def _date_cell(entry: VintageEntry) -> str:
     return f"{entry.obtained_verb} {entry.obtained}"
 
 
+#: The two spellings of yfinance's both-adjustments close. `Close` under
+#: `auto_adjust=True` is `Adj Close` under `auto_adjust=False` renamed, so the
+#: two return the same values. The third column a call can hand over, `Close`
+#: under `auto_adjust=False`, carries splits and not dividends, which is what
+#: this repo records as `raw`.
+BOTH_ADJUSTMENTS = ("Close, auto_adjust=True", "Adj Close, auto_adjust=False")
+SPLIT_ONLY = "Close, auto_adjust=False"
+
+
+def the_adjusted_yfinance_entries_name_their_column(directory: Path) -> None:
+    """Every `adjusted` yfinance entry says which column it holds, and it carries dividends.
+
+    `VintageEntry` cannot require the field on these lines, because the rule
+    is stated against a vendor and the module enforces nothing against one. So
+    this is where it holds. A recorded download that left the field out fails
+    here rather than reading back clean, and the message is the fix rather than
+    a set difference, since the session meeting it is recording a new vintage
+    and has the call in front of it.
+
+    The field is typed by the caller, so this cannot see a mislabel the caller
+    did not admit to. What it catches is a line that admits it, a split-only
+    `Close` recorded as `adjusted`, and a line that says nothing.
+    """
+    for entry in read_manifest(directory):
+        if (entry.vendor, entry.price_basis) != ("yfinance", "adjusted"):
+            continue
+        assert entry.vendor_column is not None, (
+            f"{entry.path}: an adjusted yfinance vintage names the column it holds. Pass "
+            f"vendor_column={BOTH_ADJUSTMENTS[0]!r} to record_vintage when the call was "
+            f"yfinance.download(..., auto_adjust=True) and its Close was handed over, and "
+            f"say so in data/README.md beside the call."
+        )
+        assert entry.vendor_column != SPLIT_ONLY, (
+            f"{entry.path}: {SPLIT_ONLY!r} is the column carrying splits and not dividends, "
+            f"so the series is not adjusted. A split-only Close is recorded as raw."
+        )
+        assert entry.vendor_column in BOTH_ADJUSTMENTS, (
+            f"{entry.path}: {entry.vendor_column!r} is not one of the spellings of the "
+            f"both-adjustments close, which are {', '.join(map(repr, BOTH_ADJUSTMENTS))}"
+        )
+
+
 def _lifted_from_chan(path: str) -> bool:
     """Whether a committed path is a column lifted from one of Chan's own files.
 
@@ -1520,7 +1580,7 @@ class TestTheCommittedManifest:
         the case above holds the date fields. What it catches here is a hand
         edit putting a workbook on a downloaded line, which states a false
         source in the field that says where a series came from, in a record
-        nothing rewrites.
+        whose committed fields nothing changes.
 
         `read_manifest` refuses such a line before this runs, so a broken
         manifest fails as a refusal rather than here. This is what says the
@@ -1529,6 +1589,38 @@ class TestTheCommittedManifest:
         """
         for name, entry in {e.path: e for e in read_manifest()}.items():
             assert (entry.source_workbook is not None) == _lifted_from_chan(name), name
+
+    def test_every_adjusted_yfinance_vintage_names_a_column_carrying_the_dividends(self):
+        the_adjusted_yfinance_entries_name_their_column(DATA_DIR)
+
+    def test_an_adjusted_yfinance_vintage_without_its_column_fails_and_names_the_fix(
+        self, tmp_path
+    ):
+        """The state a new recording reaches if it leaves the field out.
+
+        Driven against a copy, because the committed record holds the field on
+        every line this reads. Recorded entries are what lose it, since only a
+        caller can supply it, so a recorded one is what is stripped here.
+        """
+        directory = committed_copy(tmp_path)
+        named = "yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv"
+        rewrite_entry(directory, named, vendor_column=None)
+
+        with pytest.raises(AssertionError, match=f"{named}: .*vendor_column=") as failed:
+            the_adjusted_yfinance_entries_name_their_column(directory)
+
+        assert "record_vintage" in str(failed.value)
+
+    def test_an_adjusted_yfinance_vintage_naming_a_split_only_column_fails(self, tmp_path):
+        directory = committed_copy(tmp_path)
+        rewrite_entry(
+            directory,
+            "yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv",
+            vendor_column="Close, auto_adjust=False",
+        )
+
+        with pytest.raises(AssertionError, match="recorded as raw"):
+            the_adjusted_yfinance_entries_name_their_column(directory)
 
     def test_a_download_that_claims_a_workbook_is_refused_on_the_way_back(self, tmp_path):
         """The rule bites on read, not only on the lines committed today.
@@ -1888,6 +1980,11 @@ class TestARecordedVintageIsHeldToo:
     writes its row. `test_a_new_recorded_vintage_needs_a_table_row` below is where the
     suite states that cost, rather than leaving it for whoever records the next
     one to discover.
+
+    An `adjusted` yfinance recording carries a second cost, the column it holds,
+    which only the caller can name. The fixture below records one without it,
+    and `test_a_new_adjusted_yfinance_recording_needs_its_column` states that
+    cost the same way.
     """
 
     @pytest.fixture
@@ -1913,6 +2010,13 @@ class TestARecordedVintageIsHeldToo:
         assert entry.path == NEW_VINTAGE_NAME
         return directory
 
+    def test_a_new_adjusted_yfinance_recording_needs_its_column(self, with_a_new_vintage):
+        with pytest.raises(AssertionError, match=f"{NEW_VINTAGE_NAME}: .*vendor_column="):
+            the_adjusted_yfinance_entries_name_their_column(with_a_new_vintage)
+
+        rewrite_entry(with_a_new_vintage, NEW_VINTAGE_NAME, vendor_column=BOTH_ADJUSTMENTS[0])
+        the_adjusted_yfinance_entries_name_their_column(with_a_new_vintage)
+
     def test_a_new_recorded_vintage_leaves_the_three_scoped_assertions_green(
         self, with_a_new_vintage
     ):
@@ -1932,6 +2036,8 @@ class TestARecordedVintageIsHeldToo:
             ("gdx_20yr_prices.csv", "price_basis", "raw"),
             ("gdx_20yr_prices.csv", "download_date", "2026-09-18"),
             ("ko_chan.csv", "saved_date", "2008-01-24"),
+            ("gdx_20yr_prices.csv", "vendor_column", "Adj Close, auto_adjust=False"),
+            ("ko_chan.csv", "vendor_column", "Close, auto_adjust=True"),
         ],
     )
     def test_a_hand_edit_to_a_hand_written_entry_still_fails(
