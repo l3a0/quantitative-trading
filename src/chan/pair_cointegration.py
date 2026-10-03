@@ -191,9 +191,10 @@ def engle_granger(
     The test always uses the statistically standard with-intercept form: fit
     ``a = alpha + beta*b + z``, run the ADF on the mean-zero residual ``z``
     with no deterministic term, compared to the with-constant N=2 critical
-    values, and measure the OU half-life. This is what Chan's
-    ``cadf(GLD, GDX, 0, 1)`` computes, and its t-stat and half-life match the
-    book.
+    values, and measure the OU half-life. This is the test Chan's
+    ``cadf(GLD, GDX, 0, 1)`` runs, apart from one detail of how ``cadf``
+    forms its ADF regression, which :func:`lesage_cadf` reproduces. At one lag
+    on Chan's own files the detail moves the t-statistic by 0.0035.
 
     ``origin=True`` additionally reports a through-origin hedge ratio from a
     separate no-constant OLS, which is Chan's ``ols(GLD, GDX)`` and the source
@@ -215,6 +216,47 @@ def engle_granger(
         half_life=ou_half_life(spread),
         origin_hedge=origin_hedge,
     )
+
+
+def lesage_cadf(
+    y: NDArray[np.float64], x: NDArray[np.float64], lags: int = 1
+) -> tuple[float, float, int]:
+    """The t-statistic, AR(1) estimate and observation count of LeSage's
+    ``cadf(y, x, 0, lags)``.
+
+    ``cadf`` is the function in James LeSage's Spatial Econometrics Toolbox
+    that Chan's ``example3_6_1.m`` calls. With its second argument at 0 it
+    demeans both legs, fits ``y`` on ``x``, and runs an ADF regression on the
+    residual. That regression differs from :func:`engle_granger`'s in three
+    steps, which together are the whole difference between the two.
+
+    1. The coefficients come from the demeaned regressors and the demeaned
+       change, which works like a constant in the ADF regression.
+    2. The residual variance divides by the rows less the regressor count, so
+       that constant costs no degree of freedom.
+    3. The covariance multiplies that variance by the inverse of the raw,
+       un-demeaned regressors' cross-product.
+
+    ``cadf.m`` is not committed here, so this is a reconstruction of it, and
+    what vouches for it is that it lands Chan's printout. On his own
+    ``gld_chan.csv`` and ``gdx_chan.csv`` over the Chapter 3 window it returns
+    the -3.18156477 and the -0.070038 he printed at Kindle location 3718.
+    ``TestChansPythonRun`` pins both, and shows that changing step 3 alone
+    misses.
+    """
+    y = y - y.mean()
+    x = x - x.mean()
+    resid = y - x * float(x @ y) / float(x @ x)
+    dep = np.diff(resid)
+    columns = [resid[:-1]] + [np.r_[np.zeros(k), dep[:-k]] for k in range(1, lags + 1)]
+    z = np.column_stack(columns)[lags:]
+    dep = dep[lags:]
+    z_centred = z - z.mean(axis=0)
+    beta = np.linalg.lstsq(z_centred, dep - dep.mean(), rcond=None)[0]
+    res = dep - dep.mean() - z_centred @ beta
+    variance = float(res @ res) / (len(dep) - z.shape[1])
+    covariance = variance * np.linalg.inv(z.T @ z)
+    return float(beta[0] / math.sqrt(covariance[0, 0])), float(beta[0]), len(dep)
 
 
 def return_correlation(
