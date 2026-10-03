@@ -28,9 +28,10 @@ numbered file holds the May or June contract on a given day. The May gasoline
 contract is contract 1 on both gasoline dates, because it trades until the last
 business day of April. The June natural gas contract is contract 4 or 3 at the
 entry, depending on whether the March contract has expired, and contract 2 at
-the exit. :func:`ng_last_trade` gives each expiry. Today a contract stops three
-trading days before delivery, and before mid-1997 it stopped five or six days
-before, which :data:`NG_LEAD_DAYS` records.
+the exit. :func:`chan.futures.ng_last_trade` gives each expiry. Today a
+contract stops three trading days before delivery, and before mid-1997 it
+stopped five or six days before, which :data:`chan.futures.NG_LEAD_DAYS`
+records.
 ``tests/test_commodity_seasonals.py`` checks it against the last trading days
 the Massive futures API recorded for four years, and against the files, which
 keep an expiring contract in contract 1 on its last day.
@@ -42,39 +43,48 @@ when asked, which the run prints as a side row.
 
 **The calendar is computed rather than read from the files.** The natural gas
 files carry exchange holidays as rows repeating the day before's settlement, so
-a row's presence does not say the exchange was open. :func:`is_trading_day`
-uses NYMEX's holiday rules instead. Of those holidays only Good Friday can land
-on a date this module reads.
+a row's presence does not say the exchange was open.
+:func:`chan.futures.is_trading_day` uses NYMEX's holiday rules instead. Of
+those holidays only Good Friday can land on a date this module reads. The
+calendar and the expiry rules live in :mod:`chan.futures`, because the
+calendar-spread test reads them too.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
 the same history the run reads, so the run says whether his counts reproduce
 and nothing about whether either trade pays today.
 
-The parse uses the standard library's ``csv`` and ``decimal``, as
-:mod:`chan.bill_rates` does. A settlement is compared exactly as its file spells
-it, so a zero change reads as zero rather than as a float's rounding.
+A settlement is a ``Decimal`` as its file spells it, which
+:func:`chan.futures.settlements` reads, so a zero change reads as zero rather
+than as a float's rounding.
 """
 
 from __future__ import annotations
 
-import csv
-import io
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
-from functools import cache
 from pathlib import Path
 
+# The calendar and the expiry rules moved to chan.futures. The three names
+# aliased to themselves are imported only so Entry 11's tests, which import them
+# from here, did not have to move.
+from chan.futures import (
+    contract_number,
+    last_business_day,
+    ng_last_trade,
+    on_or_after,
+    on_or_before,
+    settlements,
+)
+from chan.futures import easter as easter
+from chan.futures import is_trading_day as is_trading_day
+from chan.futures import ng_lead_days as ng_lead_days
 from chan.series import vintage_line
-from chan.vintage import VintageEntry, read_vintage, resolve_vintage
 
 BOOK_REF = (
     "Chan, Quantitative Trading, revised edition, Kindle locations 4529 to 4632 "
     "and the two sidebars at 4536 and 4590"
 )
-
-VENDOR = "eia"
-PRICE_BASIS = "raw"
 
 #: New York Harbor regular gasoline, the contract RBOB replaced, contract 1.
 HARBOR_GASOLINE = "EER-EPMR-PE1-Y35NY-DPG"
@@ -90,26 +100,6 @@ GASOLINE_ENTRY = (4, 13)
 GASOLINE_EXIT = (4, 25)
 NG_ENTRY = (2, 25)
 NG_EXIT = (4, 15)
-
-#: Days NYMEX closed outside its holiday rules. The only one between February
-#: 20 and April 30 is 1994-04-27, Richard Nixon's funeral, which moves the May
-#: 1994 natural gas expiry and no trade date. They are listed so the calendar is
-#: the exchange's rather than one tuned to these trades.
-UNSCHEDULED_CLOSURES = frozenset(
-    date.fromisoformat(day)
-    for day in (
-        "1994-04-27",
-        "2001-09-11",
-        "2001-09-12",
-        "2001-09-13",
-        "2001-09-14",
-        "2004-06-11",
-        "2007-01-02",
-        "2012-10-29",
-        "2012-10-30",
-        "2018-12-05",
-    )
-)
 
 
 @dataclass(frozen=True)
@@ -141,144 +131,13 @@ class Trade:
         return None if change is None else change > 0
 
 
-def easter(year: int) -> date:
-    """Western Easter Sunday, by the anonymous Gregorian algorithm."""
-    a = year % 19
-    b, c = divmod(year, 100)
-    d, e = divmod(b, 4)
-    f = (b + 8) // 25
-    g = (b - f + 1) // 3
-    h = (19 * a + b - d - g + 15) % 30
-    i, k = divmod(c, 4)
-    m = (32 + 2 * e + 2 * i - h - k) % 7
-    n = (a + 11 * h + 22 * m) // 451
-    month, day = divmod(h + m - 7 * n + 114, 31)
-    return date(year, month, day + 1)
-
-
-def good_friday(year: int) -> date:
-    return easter(year) - timedelta(days=2)
-
-
-def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
-    """The ``n``th ``weekday`` of the month, Monday being 0, or the last when ``n`` is -1."""
-    if n == -1:
-        last = date(year, month + 1, 1) - timedelta(days=1) if month < 12 else date(year, 12, 31)
-        return last - timedelta(days=(last.weekday() - weekday) % 7)
-    first = date(year, month, 1)
-    return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
-
-
-def _observed(day: date) -> date | None:
-    """The weekday a fixed-date holiday is observed on, or ``None`` for New Year on a Saturday.
-
-    A Saturday holiday moves to the Friday before and a Sunday one to the
-    Monday after, except New Year's Day on a Saturday, which the exchange does
-    not move back into the old year.
-    """
-    if day.weekday() == 5:
-        return None if (day.month, day.day) == (1, 1) else day - timedelta(days=1)
-    if day.weekday() == 6:
-        return day + timedelta(days=1)
-    return day
-
-
-@cache
-def nymex_holidays(year: int) -> frozenset[date]:
-    """NYMEX's full-day holidays in ``year``, on the weekdays the exchange observed them."""
-    fixed = [_observed(date(year, month, day)) for month, day in ((1, 1), (7, 4), (12, 25))]
-    floating = [
-        _nth_weekday(year, 2, 0, 3),  # Presidents' Day
-        good_friday(year),
-        _nth_weekday(year, 5, 0, -1),  # Memorial Day
-        _nth_weekday(year, 9, 0, 1),  # Labor Day
-        _nth_weekday(year, 11, 3, 4),  # Thanksgiving
-    ]
-    if year >= 1998:
-        floating.append(_nth_weekday(year, 1, 0, 3))  # Martin Luther King Jr. Day
-    return frozenset(day for day in fixed + floating if day is not None)
-
-
-def is_trading_day(day: date) -> bool:
-    return (
-        day.weekday() < 5
-        and day not in nymex_holidays(day.year)
-        and day not in UNSCHEDULED_CLOSURES
-    )
-
-
-def on_or_after(day: date) -> date:
-    """The day itself if the exchange was open, else the next day it was."""
-    while not is_trading_day(day):
-        day += timedelta(days=1)
-    return day
-
-
-def on_or_before(day: date) -> date:
-    """The day itself if the exchange was open, else the last day before it that was."""
-    while not is_trading_day(day):
-        day -= timedelta(days=1)
-    return day
-
-
-#: How many trading days before delivery a natural gas contract stopped
-#: trading, by the first delivery month each count applies to. Three is the
-#: rule today and the one issue 19 first pinned. The files show the March 1996
-#: and March 1997 contracts stopping earlier: on 1996-02-26 each numbered file
-#: continues the next one's settlement from 1996-02-23, the handover a five-day
-#: rule predicts and a three-day rule does not. The boundaries are measured from
-#: the files' handovers, where the curve is steep enough to show one, and the
-#: review that found them recorded the measurement on the pull request.
-NG_LEAD_DAYS = ((date(1990, 1, 1), 6), (date(1996, 2, 1), 5), (date(1997, 6, 1), 3))
-
-
-def ng_lead_days(year: int, delivery_month: int) -> int:
-    """How many trading days before delivery the contract's trading stopped."""
-    first = date(year, delivery_month, 1)
-    return [days for start, days in NG_LEAD_DAYS if start <= first][-1]
-
-
-def ng_last_trade(year: int, delivery_month: int) -> date:
-    """A natural gas contract's last trading day, ``ng_lead_days`` before delivery starts."""
-    day = date(year, delivery_month, 1)
-    counted, lead = 0, ng_lead_days(year, delivery_month)
-    while counted < lead:
-        day -= timedelta(days=1)
-        if is_trading_day(day):
-            counted += 1
-    return day
-
-
-def last_business_day(year: int, month: int) -> date:
-    """The last trading day of a month, when a gasoline contract for the next month expires."""
-    following = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
-    return on_or_before(following - timedelta(days=1))
-
-
 def june_contract_number(day: date) -> int:
     """Which numbered natural gas file holds the June contract on ``day``, in February to May.
 
-    Contract 1 is the earliest contract still trading, and a contract still
-    trades on its own last day, so June's number is one more than the count of
-    the March, April and May contracts that have not yet expired.
+    :func:`chan.futures.contract_number` counts the earlier contracts still
+    trading, and a contract still trades on its own last day.
     """
-    earlier = sum(1 for month in (3, 4, 5) if day <= ng_last_trade(day.year, month))
-    return 1 + earlier
-
-
-@cache
-def settlements(
-    symbol: str, *, data_dir: Path | None = None
-) -> tuple[VintageEntry, dict[date, Decimal]]:
-    """A committed EIA vintage's entry and its settlements by day, read only after they verify."""
-    entry = resolve_vintage(
-        vendor=VENDOR, symbol=symbol, price_basis=PRICE_BASIS, data_dir=data_dir
-    )
-    reader = csv.reader(io.StringIO(read_vintage(entry, data_dir=data_dir).decode("utf-8")))
-    header = next(reader, None)
-    if header != ["Date", "Close"]:
-        raise ValueError(f"{entry.path}: the header reads {header!r}, not ['Date', 'Close']")
-    return entry, {date.fromisoformat(day): Decimal(value) for day, value in reader}
+    return contract_number(day, day.year, 6, ng_last_trade)
 
 
 def _price(symbol: str, day: date, data_dir: Path | None) -> Decimal | None:

@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twelve replications run here, eleven from Chan's *Quantitative Trading* and
+Thirteen replications run here, twelve from Chan's *Quantitative Trading* and
 one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other ten were built here.
+they were first built. The other eleven were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -152,6 +152,16 @@ they were first built. The other ten were built here.
     two's `smartstd` is what lands the first of those. The first edition's, which
     shares its name, gives 0.066833 and misses Chan's printed digit. Every
     figure is exploratory and about survivors.
+13. Chan's calendar spreads, which he calls "the simplest examples of
+    cointegrating futures pairs" at Kindle location 3951. Every adjacent pair
+    of delivery months is tested on EIA's nearest four contracts, 360 for
+    natural gas and 220 for RBOB gasoline, over the 39 to 59 days both
+    contracts of a pair sit there. A pair rejects when Engle-Granger clears the
+    10% bar in both orientations. Each commodity is judged as one batch against
+    the 975th of 1,000 simulated shares under no cointegration, a bar declared
+    before any statistic. Natural gas reproduces, with 57 of 360 pairs against
+    a bar of 19. RBOB reproduces by one pair, with 14 of 220 against a bar of
+    13. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -190,12 +200,14 @@ alone. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py)
-does it for both stationary candidates. It pins both orientations of every
+does it for all three stationary candidates. It pins both orientations of every
 fixed-income number, because the test is not symmetric in its legs and Chan
 names no dependent one. For the cross rate it pins the verdict rule as well as
-the verdict, so a criterion edited after the fact fails a test. The blog post
-about them is the exception, and what it says that nothing here asserts is
-listed below.
+the verdict, so a criterion edited after the fact fails a test. For the
+calendar spreads it pins how often the files hand over on the day each expiry
+rule says and on a day either side, so a rule moved by one day fails a test.
+The blog post about them is the exception, and what it says that nothing here
+asserts is listed below.
 
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
 the equity seasonals. It pins every printout's figures at its own printed
@@ -238,13 +250,14 @@ first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
 miss.
 
-All twelve replications reach a verdict in
+All thirteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
-seasonals' and Entry 12 post-earnings drift's.
+seasonals', Entry 12 post-earnings drift's and Entry 13 the calendar
+spreads'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -289,6 +302,10 @@ of the New York Harbor gasoline contract it replaced, and of Henry Hub natural
 gas. `src/chan/commodity_seasonals.py` reads five of them for
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19), and the
 issue records the owner's decision to commit all twelve.
+`src/chan/stationary_candidates.py` reads eight, every natural gas and RBOB
+file, for [issue 137](https://github.com/l3a0/quantitative-trading/issues/137).
+`src/chan/futures.py` holds the exchange calendar and the expiry rules both
+read.
 [data/README.md](data/README.md) says what each file holds.
 
 Four of Chan's own files are cross-sections rather than series. Three hold
@@ -437,22 +454,27 @@ resolve the ranking says so in a line rather than stopping the run, because a
 sample that cannot settle a sign has not failed at anything. One of the two
 sub-windows is in that position.
 
-Chan's two stationary candidates share one command, and neither takes a
+Chan's three stationary candidates share one command, and none takes a
 window:
 
 ```bash
 uv run python -m chan.stationary_candidates
 ```
 
-With no argument it runs both, and `fixed-income` or `cross-rate` runs one. The
+With no argument it runs all three, and `fixed-income`, `cross-rate` or
+`calendar-spread` runs one. The
 fixed-income candidate prints the full-span test in both orientations, the
 residual check at one lag beside the first lag count whose residuals pass, and
 the rolling scan each way round. The cross rate prints the same three for the
 log of `CADAUD=X` over its test window, then the verdict and the criterion it
-was read against. There is no `--start` or `--end`, because a window option is
-what would let a reader pick one that rejects, and each issue declared exactly
-one window. `--dated` names which `CADAUD=X` download to read and defaults to
-the one the suite pins.
+was read against. The calendar spreads print, for each commodity, how many pairs
+reject in both orientations, the null's bar, the verdict, and the rows that
+describe the batch and decide nothing. Both simulations run each time, and the
+command takes about seven seconds. There is no `--start` or `--end`, because a
+window option is what would let a reader pick one that rejects, and each issue
+declared exactly one window. `--dated` names which `CADAUD=X` download to read,
+defaults to the one the suite pins, and is refused when the candidate named is
+one of the other two.
 
 Chan's equity seasonals are one command, and they take no option:
 
@@ -897,9 +919,11 @@ The test file holds what they draw rather than their bytes, for the reason
 given above for the regime map.
 
 [blog/stationary-candidates-lessons.md](blog/stationary-candidates-lessons.md)
-is a sixth post, about the two of Chan's three stationary candidates at Kindle
-location 3951 that run here, the CAD/AUD cross rate and the bond pair tested on
-TLT and IEF. It draws five lessons from Entries 5 and 6 of the replication log.
+is a sixth post, about two of Chan's three stationary candidates at Kindle
+location 3951, the CAD/AUD cross rate and the bond pair tested on TLT and IEF.
+It draws five lessons from Entries 5 and 6 of the replication log. Its opening
+and its close also state the third candidate's verdicts, the calendar spreads
+of Entry 13, which `TestTheCalendarSpreadVerdicts` holds.
 
 1. A named series carries a verdict, while a class of instruments tested on
    stand-ins carries a finding.
