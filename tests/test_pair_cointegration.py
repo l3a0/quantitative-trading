@@ -29,10 +29,11 @@ replications themselves.
 6. ``TestLagSettingDetour``, the third GLD/GDX result in the book. Chan reports
    that Python disagreed with MATLAB and R on the verdict and concludes Python
    cannot be trusted for this. Against MATLAB the disagreement is a lag
-   setting, and this pins it on the 2026 closes. ``TestChansPythonRun`` and
-   ``TestChansRRunIsACovariateAugmentedDickeyFuller`` reproduce both of his
-   printouts on his own files, and the second shows his R run was a different
-   test on a longer window.
+   setting, apart from a detail of ``cadf``'s regression worth 0.0035 at one
+   lag, and this pins it on the 2026 closes. ``TestChansPythonRun`` reproduces
+   his Python and MATLAB printouts on his own files, and
+   ``TestChansRRunIsACovariateAugmentedDickeyFuller`` reproduces his R
+   printout and shows that run was a different test on a longer window.
 7. ``TestResidualCheck``, which asks which of those settings the test is
    entitled to, by checking what each lag count leaves in the residuals.
    Exploratory, and ``docs/figures/adf_residual_autocorrelation.png`` is the
@@ -95,6 +96,7 @@ from chan.pair_cointegration import (
     CointResult,
     RollingCoint,
     engle_granger,
+    lesage_cadf,
     main,
     residual_check,
     return_correlation,
@@ -526,14 +528,17 @@ class TestLagSettingDetour:
     Chan reports that his Python run disagreed with his MATLAB and R runs on
     whether GLD/GDX cointegrate, and concludes that Python's statistics and
     econometrics packages are not to be trusted. The packages are fine. Python
-    and MATLAB ran the same test with different lag settings, and R ran a
+    and MATLAB ran the same test with different lag settings, up to a detail of
+    how ``cadf`` forms its regression, and R ran a
     different test, which ``TestChansRRunIsACovariateAugmentedDickeyFuller``
     holds.
 
     ``statsmodels`` defaults to ``autolag='aic'``, which reads the lag count
     off the data. On the Chapter 3 window it picks six, where Chan's MATLAB
     call passes one. Six carries the statistic back across the 10% line, which
-    is the whole disagreement between those two.
+    is the disagreement between those two. A detail of ``cadf``'s own
+    regression moves the one-lag statistic by a further 0.0035 on Chan's files,
+    which ``TestChansPythonRun`` pins, and changes no verdict.
 
     On the 2026 yfinance closes this class reads, the statistic does not drift
     steadily toward zero as lags are added. It rises and falls: weaker at three
@@ -561,6 +566,22 @@ class TestLagSettingDetour:
         stat, _nobs = adf_tstat(spread, lags=1, constant=False)
         assert stat == pytest.approx(-3.0875, abs=5e-4)
         assert stat < EG_CRIT_N2["10%"]
+
+    def test_cadfs_own_regression_leaves_the_verdict_alone(self, spread: np.ndarray) -> None:
+        """Row 4 under the regression ``cadf`` itself runs, which row 12
+        reproduces on Chan's files. It gives -3.0908 on these closes, 0.0032
+        more negative than row 4's figure and still past both 10% values, and
+        widens the margin against MATLAB's printed -3.082 from 0.0055 to
+        0.0088."""
+        df = aligned_closes("GLD", "GDX", start=BOOK_START, end=BOOK_TRAIN_END, unadjusted=True)
+        stat, _ar1, nobs = lesage_cadf(df["GLD"].to_numpy(float), df["GDX"].to_numpy(float))
+        port, _nobs = adf_tstat(spread, lags=1, constant=False)
+        assert nobs == 250
+        assert stat == pytest.approx(-3.0908, abs=5e-5)
+        assert round(stat - port, 4) == -0.0032
+        assert stat < TestChansPythonRun.MATLAB_10PCT < EG_CRIT_N2["10%"]
+        assert round(port - TestChansPythonRun.MATLAB_10PCT, 4) == -0.0055
+        assert round(stat - TestChansPythonRun.MATLAB_10PCT, 4) == -0.0088
 
     def test_the_default_lag_choice_flips_the_verdict(self, spread: np.ndarray) -> None:
         """Letting statsmodels pick the lag reverses the conclusion on the same
@@ -659,9 +680,12 @@ class TestChansPythonRun:
 
     It is the test Chan's MATLAB call runs in row 4 of
     ``docs/replication-log.md``, on the same window with a different lag count,
-    as ``example3_6_1.m`` and the book's code read. That is a reading, since no
-    specification tried here lands MATLAB's -3.18156477 on these files.
-    ``TestLagSettingDetour`` holds the lag difference on the 2026 closes.
+    as ``example3_6_1.m`` and the book's code read, apart from one detail of
+    ``cadf``'s regression. ``test_cadfs_own_regression_lands_matlabs_printout``
+    reproduces MATLAB's -3.18156477 on these files, and
+    ``test_the_port_misses_cadf_by_one_detail_of_its_regression`` says what the
+    detail is. ``TestLagSettingDetour`` holds the lag difference on the 2026
+    closes.
 
     Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
     of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
@@ -752,6 +776,103 @@ class TestChansPythonRun:
             [-3.2975, -3.1780, -2.4857], abs=5e-4
         )
         assert [round(stat_at(k), 1) for k in (0, 1, 3)] == [-3.3, -3.2, -2.5]
+
+    #: What Chan's MATLAB ``cadf`` printed for this window at Kindle location
+    #: 3718: the t-statistic, the AR(1) estimate beside it, and the 10% critical
+    #: value. Cited, never computed. The 5% value is
+    #: ``TestResidualCheckChapter7.MATLAB_5PCT``.
+    MATLAB_T = -3.18156477
+    MATLAB_AR1 = -0.070038
+    MATLAB_10PCT = -3.082
+
+    def test_cadfs_own_regression_lands_matlabs_printout(self, closes: pd.DataFrame) -> None:
+        """Row 12 of Entry 1: MATLAB's run, reproduced on Chan's own files.
+
+        :func:`~chan.pair_cointegration.lesage_cadf` at one lag returns the
+        printed t-statistic at all eight decimals and the printed AR(1)
+        estimate at all six, and the statistic lands the band Chan reports,
+        past the 10% value and short of the 5% one under both tables.
+
+        Specification: ``cadf(GLD, GDX, 0, 1)`` as ``example3_6_1.m`` calls
+        it, over 2006-05-23 to 2007-05-23, 250 ADF observations. Vintage as
+        the class. First pinned on 2026-10-03.
+        """
+        a = closes["GLD"].to_numpy(dtype=float)
+        b = closes["GDX"].to_numpy(dtype=float)
+        stat, ar1, nobs = lesage_cadf(a, b, lags=1)
+
+        assert nobs == 250
+        assert stat == pytest.approx(self.MATLAB_T, abs=5e-9)
+        assert round(ar1, 6) == self.MATLAB_AR1
+        assert EG_CRIT_N2["5%"] < stat < EG_CRIT_N2["10%"]
+        assert TestResidualCheckChapter7.MATLAB_5PCT < stat < self.MATLAB_10PCT
+        assert round(stat - EG_CRIT_N2["10%"], 4) == -0.1416
+        assert round(stat - self.MATLAB_10PCT, 4) == -0.0996
+
+    def test_the_port_misses_cadf_by_one_detail_of_its_regression(
+        self, closes: pd.DataFrame
+    ) -> None:
+        """What separates the port's one-lag statistic from MATLAB's.
+
+        ``adfuller`` with ``regression='n'``, which is what
+        :func:`~chan.pair_cointegration.engle_granger` and ``coint`` run,
+        gives -3.1780 on the same spread, +0.0035 from the printout. With
+        ``regression='c'`` the coefficient matches ``cadf``'s at every digit
+        printed and the statistic is -3.1749, so what is left is how ``cadf``
+        forms the standard error. Computing its covariance from the demeaned
+        regressors, the one step a textbook ADF does differently, gives -3.18133078
+        and misses the printout. The through-origin spread is not the input:
+        it gives -3.8851.
+
+        The gap is +0.0035 from the engine's value and +0.0036 from the
+        four-decimal one, which is the rounding the replication log's
+        precision rule forbids. Issue 232 quoted the second.
+        """
+        a = closes["GLD"].to_numpy(dtype=float)
+        b = closes["GDX"].to_numpy(dtype=float)
+        fit = engle_granger(a, b, lags=1, origin=True)
+        assert fit.origin_hedge is not None
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            port = adfuller(fit.spread, maxlag=1, autolag=None, regression="n", regresults=True)
+            constant = adfuller(fit.spread, maxlag=1, autolag=None, regression="c", regresults=True)
+            through_origin = float(
+                adfuller(a - fit.origin_hedge * b, maxlag=1, autolag=None, regression="n")[0]
+            )
+        stat = float(port[0])
+
+        assert int(port[-1].resols.nobs) == 250
+        assert stat == pytest.approx(-3.1780, abs=5e-5)
+        assert round(stat - self.MATLAB_T, 4) == 0.0035
+        assert round(round(stat, 4) - self.MATLAB_T, 4) == 0.0036
+
+        assert float(constant[0]) == pytest.approx(-3.1749, abs=5e-5)
+        assert round(float(constant[-1].resols.params[0]), 6) == self.MATLAB_AR1
+
+        # cadf with its covariance taken from the demeaned regressors instead.
+        dep = np.diff(fit.spread)[1:]
+        z = np.column_stack([fit.spread[1:-1], np.diff(fit.spread)[:-1]])
+        z_centred = z - z.mean(axis=0)
+        beta = np.linalg.lstsq(z_centred, dep - dep.mean(), rcond=None)[0]
+        res = dep - dep.mean() - z_centred @ beta
+        cov = float(res @ res) / (len(dep) - 2) * np.linalg.inv(z_centred.T @ z_centred)
+        assert beta[0] / math.sqrt(cov[0, 0]) == pytest.approx(-3.18133078, abs=5e-9)
+
+        assert through_origin == pytest.approx(-3.8851, abs=5e-5)
+
+        # Lagged differences line up as cadf.m's lag and trimr leave them: at
+        # every lag count cadf's coefficient is the textbook ADF-with-constant
+        # one, so only the standard error differs.
+        for lags in (2, 3, 6):
+            _stat, coefficient, nobs = lesage_cadf(a, b, lags=lags)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                textbook = adfuller(
+                    fit.spread, maxlag=lags, autolag=None, regression="c", regresults=True
+                )[-1].resols
+            assert nobs == int(textbook.nobs)
+            assert coefficient == pytest.approx(float(textbook.params[0]), abs=1e-12)
 
 
 class TestChansRRunIsACovariateAugmentedDickeyFuller:

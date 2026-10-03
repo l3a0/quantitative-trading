@@ -573,7 +573,11 @@ quoting any of them.
    Chapter 7 window. Both are Chan's, and neither is among the committed
    highlights. They live in a code comment.
 5. The two-window table gives −3.18 for 2006 to 2008. That is Chan's printed
-   figure, not a window this repo computes. The runs here give −3.45 and −3.09.
+   figure, not a window this repo computes. The runs here give −3.45 and −3.09
+   on the yfinance raw closes. On Chan's own files, a reconstruction of
+   MATLAB's `cadf` gives −3.18156477 for the Chapter 3 window, his printed
+   figure to all eight decimals, which row 12 of the replication log's
+   Entry 1 records.
 6. The piece dates the book to 2009 and names first-edition chapters. That is
    consistent rather than confused, and it now says so: every chapter, page and
    MATLAB filename this repo cites means the first edition unless stated. The
