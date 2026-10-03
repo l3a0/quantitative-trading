@@ -18,8 +18,8 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3 and 4 carry their own, three, seven and twelve, and they are
-listed in those entries rather than here, because the list is about an entry's
+Entries 2, 3, 4, 6 and 7 carry their own, three, seven, twelve, five and six,
+and they are listed in those entries rather than here, because the list is about an entry's
 rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -28,7 +28,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5 and 6 is **exploratory** in the design doc's
+Every result in Entries 1, 3, 4, 5, 6 and 7 is **exploratory** in the design doc's
 sense. Reproducing a published figure spends the sample on a hypothesis someone
 else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -85,6 +85,13 @@ picking one.
   - [The verdicts](#the-verdicts-4)
   - [What the entry concludes](#what-the-entry-concludes-5)
   - [What this entry cannot say](#what-this-entry-cannot-say-3)
+- [Entry 7: the equity seasonals, Chan's *Quantitative Trading*](#entry-7-the-equity-seasonals-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-5)
+  - [What this repo computed](#what-this-repo-computed-6)
+  - [The verdicts](#the-verdicts-5)
+  - [What the entry concludes](#what-the-entry-concludes-6)
+  - [The third January return the committed file cannot reach](#the-third-january-return-the-committed-file-cannot-reach)
+  - [What this entry cannot say](#what-this-entry-cannot-say-4)
 
 ## How to read an entry
 
@@ -103,10 +110,11 @@ both.
    [tests/test_kelly_leverage.py](../tests/test_kelly_leverage.py) holds
    Entry 3,
    [tests/test_risk_parity.py](../tests/test_risk_parity.py) holds Entry 4,
-   and
    [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py)
    holds Entries 5 and 6, which come from one sentence of the book and share a
-   module.
+   module, and
+   [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds
+   Entry 7.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -208,7 +216,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17, 29 and 30, and Entry 4's rows 4 to 15, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 6.
+than filling it. So are Entry 6's rows 2 to 6 and Entry 7's rows 15 to 18.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -1439,7 +1447,11 @@ checked that, and
 guard that would.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
+moves with it, since that post quotes most of these figures. So do its
+three figures, which `uv run python -m chan.stationary_candidates_figures`
+redraws.
 
 ## Entry 6: the CAD/AUD cross rate, Chan's *Quantitative Trading*
 
@@ -1450,7 +1462,7 @@ under the rules
 [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
 every stationary candidate Chan names there.
 
-Six rows, all derivable from
+Seven rows, all derivable from
 [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
 
 **Chan's claim reproduces.** The log of the rate rejects a unit root at 5%,
@@ -1462,10 +1474,10 @@ had to clear it under the criterion
 before any statistic was computed, and both do. The half-life is 141.6 trading
 days, a little over half a year.
 
-One row is a replication and five are not. Row 1 is the claim, and it takes
+One row is a replication and six are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
-are the two statistics the criterion reads, and rows 4 to 6 say what the
-verdict rests on.
+are the two statistics the criterion reads, rows 4 to 6 say what the verdict
+rests on, and row 7 measures what row 6 can see.
 
 Every row reads the same series, vintage and specification, so the three are
 stated once here.
@@ -1508,6 +1520,7 @@ columns have nothing to hold in any row and are dropped, under
 | 4 | The half-life | nothing | n/a |
 | 5 | The test on the rate quoted the other way, and on the level | nothing | n/a |
 | 6 | The rolling scan | nothing | n/a |
+| 7 | How often a series that truly reverts at row 4's half-life rejects in row 6's scan | nothing | n/a |
 
 ### What this repo computed
 
@@ -1519,6 +1532,7 @@ columns have nothing to hold in any row and are dropped, under
 | 4 | 2007-08-06 to 2026-09-30 | OU half-life on the log of the rate | 141.6 trading days | `TestTheCrossRateStatistic::test_the_half_life` |
 | 5 | 2007-08-06 to 2026-09-30 | rows 2 and 3 on the log negated, on the level, and on the inverted level | −3.2136 negated. On the level −3.2944 at one lag and −3.0241 at the first passing count, 10. Inverted, −3.1552 and −2.9734, also at 10 | `TestTheCrossRateStatistic::test_the_quoting_direction_does_not_move_it` and `::test_on_the_level_both_statistics_the_verdict_reads_still_reject` |
 | 6 | 226 windows ending 2008-07-30 to 2026-09-21 | 252-day windows stepped by 21, row 2's test in each | 23 clear 10% and 5 clear 5% | `TestTheCrossRateScan::test_the_counts` |
+| 7 | 1,000 simulated paths of 4,984 days | a Gaussian AR(1) reverting at row 4's half-life, from the stationary distribution, seed 20261002, scanned as row 6 is. Declared on [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) before any number was computed | 27.0 of 226 windows clear 10% on average, 12.0%, and 14.0 clear 5%, 6.2%. 388 paths have 23 or fewer past 10%. 968 reject at 5% over the whole path. Added after the results were seen, not declared: 73 have 5 or fewer past 5% | `TestTheWindowPower` |
 
 ### The verdicts
 
@@ -1530,6 +1544,7 @@ columns have nothing to hold in any row and are dropped, under
 | 4 | none, not a replication | The book prints no half-life. At 141.6 trading days a deviation takes a little over half a year to halve, which is a rate that pulls back slowly. |
 | 5 | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
 | 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
+| 7 | none, not a replication | A measure of row 6's power. A series that certainly reverts this slowly clears 10% in 12.0% of its windows, against about one in ten for a series that does not revert at all, which is what a 10% bar means. So row 6 barely separates the two, and only the whole span does: it rejects at 5% in 968 of 1,000 paths. Row 6's 23 sits near the middle of the simulated counts. At 5% only 73 paths have 5 or fewer, as the rate does, a number added after the results were seen. The model has neither the rate's fat tails nor its changing volatility, and a half-life estimated from 4,984 days reads short, so the true reversion may be slower than row 4's. This shows that slow reversion can produce so few rejecting windows, and not that it is why the rate does. Exploratory. |
 
 ### What the entry concludes
 
@@ -1545,8 +1560,13 @@ Three things, and the first is the verdict.
    of 141.6 trading days means a deviation takes a little over half a year to
    halve, and only 23 of 226 one-year windows reject at 10%. Over the full
    window the rejection holds, and in a year of data it usually does not.
-   Nothing here measures why, so the scan stays a description rather than a
-   second test.
+   Row 7 measures what a year of data can see. A simulated series that truly
+   reverts at this half-life clears 10% in 12.0% of its one-year windows,
+   against about one in ten for a series that does not revert, and rejects
+   over its whole span in 968 of 1,000 paths. So the windows barely tell the
+   two apart, the rate's 23 can come from either, and the whole-window
+   rejection is what separates them. At 5% the rate's 5 windows are fewer
+   than most simulated paths give, which row 7 reports and does not explain.
 3. **The residual check moves the statistic and not the verdict.** The one-lag
    fit fails it, as Entry 5's one-lag fits do, and the first passing fit is at
    10 lags. That fit still rejects, closer to the bar than the one-lag fit, so
@@ -1569,6 +1589,221 @@ fails if a recorded download fills the gap, so the window cannot quietly move.
 **Whether trading the rate pays.** Stationarity is a statement about the
 series. A trade adds costs, carry from the two interest rates, and the
 question of sizing against a half-life this long, and none of those are here.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit, and
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
+moves with it, since that post quotes most of these figures. So do its
+three figures, which `uv run python -m chan.stationary_candidates_figures`
+redraws.
+
+## Entry 7: the equity seasonals, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, Examples 7.6 and 7.7, in both editions. Shipped
+under [issue 18](https://github.com/l3a0/quantitative-trading/issues/18).
+
+Eighteen rows, all derivable from
+[tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
+
+**Every figure the committed files reach reproduces, in every printout.** Chan
+prints these two examples in four ways: the first edition's MATLAB, and the
+revised edition's MATLAB, Python and R. Fourteen printed figures need only data
+this repo holds, and all fourteen land on the digits their source prints. None
+of them lands from the strategy's description alone. Each needs the rules its
+own script applies, and the issue records the figure each rule gives when it is
+changed.
+
+Chan publishes both strategies as already dead, so reproducing them checks
+whether a documented disappearance is visible in data a reader can get. Every
+printout's whole-period figure is negative on his files, as he printed it. What
+the files cannot show is the 13 percent before 2002 that a disappearance would
+be measured against, so this entry gives no verdict on one.
+
+Each example reads one of two vintages.
+
+1. **Example 7.6** reads `data/ijr_20080114/`, the 600 S&P 600 members lifted
+   from Chan's `IJR_20080114.mat`, vendor `chan-mat`, recorded as
+   split-adjusted, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14.
+2. **Example 7.7** reads `data/spx_20071123/`, the 500 S&P 500 members lifted
+   from `SPX_20071123.mat`, the same vendor and basis, saved 2007-11-24,
+   spanning 1999-11-24 to 2007-11-23.
+
+[data/README.md](../data/README.md) holds both. Each file holds only the
+companies in its index on the day Chan saved it, carried backwards, which is
+the first thing this entry cannot get past.
+
+The specification is the script. Rows 1 to 6 are Example 7.6, rows 7 to 14 are
+Example 7.7, and rows 15 to 18 split one of them at 2002. Each row names the
+printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
+`JANUARY_RULES` and `HESTON_SADKA_RULES`.
+
+Two of the four printouts have no code in this repo. The owner read the revised
+edition's MATLAB and R figures from the Kindle book on 2026-10-02, and the
+session that built this entry could not open it. So rows 9, 10, 13 and 14 run
+rules that reproduce the printed figures, not transcriptions of the printed
+code. Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on
+the same kind of inference: the figures match the first edition's, so its
+rules are assumed.
+[Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
+the 7.7 readings against the book.
+
+Those rows say less than the others, and their verdicts should be read that
+way. Each reading was found by trying combinations of rule choices until the
+printed digits landed, so its match holds by construction. What the verdict
+records is that the printed figure is reachable from the committed vintage
+under rules a script could plausibly hold. It does not record that the printed
+code holds them, and [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) may move these rows.
+
+Every result here is **exploratory**. A replication spends the sample on a
+hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
+"disappeared" was written down.
+
+### What the book printed
+
+| # | Row | Published | Where |
+| --- | --- | --- | --- |
+| 1 | 7.6, entered 2005-12-30, MATLAB in both editions | −0.0244 | `example7_6.m` at `1a71950`, printed in its closing comment. The revised edition prints the same figure, which the owner read on 2026-10-02 |
+| 2 | 7.6, entered 2006-12-29, MATLAB in both editions | −0.0068 | as row 1 |
+| 3 | 7.6, exited 2006-01-31, revised Python | −0.023853 | `example7_6.py` at `653cf92` in liujiantong/epchan_books, printed in its closing comment |
+| 4 | 7.6, exited 2007-01-31, revised Python | −0.003641 | as row 3 |
+| 5 | 7.6, January 2006, revised R | −0.0244 | the revised Kindle edition, as the owner read it on 2026-10-02 |
+| 6 | 7.6, January 2007, revised R | −0.0068 | as row 5 |
+| 7 | 7.7 average annual return, first-edition MATLAB | −0.9167 | `example7_7.m` at `1a71950`, printed in its closing comment |
+| 8 | 7.7 Sharpe ratio, first-edition MATLAB | −0.1055 | as row 7 |
+| 9 | 7.7 average annual return, revised MATLAB | −0.0129 | as row 5 |
+| 10 | 7.7 Sharpe ratio, revised MATLAB | −0.1243 | as row 5 |
+| 11 | 7.7 average annual return, revised Python | −0.012679 | `example7_7.py` at `653cf92`, printed in its closing comment |
+| 12 | 7.7 Sharpe ratio, revised Python | −0.122247 | as row 11 |
+| 13 | 7.7 average annual return, revised R | −0.01139674 | as row 5 |
+| 14 | 7.7 Sharpe ratio, revised R | −0.1095098 | as row 5 |
+| 15 | 7.7 annual return before 2002 | more than 13 percent, Heston and Sadka's sample rather than this file | Kindle location 4425 |
+| 16 | 7.7 Sharpe ratio before 2002 | nothing | n/a |
+| 17 | 7.7 annual return from 2002 | the effect "has disappeared since then" | Kindle location 4425 |
+| 18 | 7.7 Sharpe ratio from 2002 | nothing | n/a |
+
+None of rows 1 to 14 is among the committed highlights, because each is printed
+beside code rather than in a sentence somebody marked.
+[research/book-notes/README.md](../research/book-notes/README.md) records that
+absence. Rows 5, 6, 9, 10, 13 and 14 trace to
+[the owner's comment on issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931),
+which tables every figure the revised edition prints for both examples.
+
+### What this repo computed
+
+| # | Printout's rules | Computed | Gap, computed minus published | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_two_reachable_januaries_reproduce` |
+| 2 | as row 1, 59 long and 59 short of 592 ranked | −0.0068 | 0.0000 | as row 1 |
+| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_two_reachable_januaries_reproduce` |
+| 4 | as row 3 | −0.003641 | 0.000000 | as row 3 |
+| 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_two_reachable_januaries_reproduce` |
+| 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
+| 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
+| 8 | as row 7 | −0.1055 | 0.0000 | as row 7 |
+| 9 | `REVISED_MATLAB`: each stock kept only if its own close exists, each month divided by its positions, statistics from the thirteenth month | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
+| 10 | as row 9 | −0.1243 | 0.0000 | as row 9 |
+| 11 | `PYTHON_HESTON_SADKA`: each stock's last priced day, kept only if its own return exists, 83 months, standard deviation over n | −0.012679 | 0.000000 | `TestHestonSadkaPython::test_both_figures_reproduce` |
+| 12 | as row 11 | −0.122247 | 0.000000 | as row 11 |
+| 13 | `R_HESTON_SADKA`: row 9's selection with half-to-even rounding, 83 months, standard deviation over n − 1 | −0.01139674 | 0.00000000 | `TestHestonSadkaR::test_both_figures_reproduce` |
+| 14 | as row 13 | −0.1095098 | 0.0000000 | as row 13 |
+| 15 | row 11's months from 2000-12-31 to 2001-12-31, 13 of them | −0.145387 | none, not a replication | `TestTheSplitAt2002::test_the_two_halves` |
+| 16 | as row 15 | −0.859993 | none | as row 15 |
+| 17 | row 11's months from 2002-01-31 to 2007-10-31, 70 of them | 0.011967 | none, not a replication | as row 15 |
+| 18 | as row 17 | 0.141777 | none | as row 15 |
+
+Each of rows 1 to 14 is asserted twice: its full value at `abs=1e-9`, and its
+rounding at the precision its source prints. So the computed column quotes the
+printed precision, and the gap is zero at that precision.
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | The script cannot run on this file as written. The file holds four December year-ends and four January month-ends. The script drops the first January. Its check that each January follows its December then compares three dates against four. Pairing each year-end with the January after it inside the file reaches the first two holdings. Rounding the decile down instead gives −0.0234. |
+| 2 | reproduced | as row 1 |
+| 3 | reproduced | Taking the full top decile instead gives rows 1 and 2 to every digit, so on this file the two editions differ by the winners' slice alone. Without the forward fill the script ranks 578, as MATLAB does, and the return does not move. |
+| 4 | reproduced | as row 3 |
+| 5 | reproduced | Inferred rules, as the entry's opening says. No decile on this file lands on a half, so R's rounding and MATLAB's give the same stocks. |
+| 6 | reproduced | as row 5 |
+| 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
+| 8 | reproduced | Skipping the NaN month in the standard deviation instead of counting it as zero gives −0.1049. |
+| 9 | reproduced | A reading, not transcribed code. As the owner read the printed code, it reads a daily row of a 96-row array and cannot run. Keeping the first edition's sorted-against-columns rule in the minimal repair gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so four decimals do not choose between the two. Row 13's digits choose the close for R, and the owner read the MATLAB as reading the close too. |
+| 10 | reproduced | A reading, as row 9. Dropping 13 months and dividing by n also prints −0.1243, so [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) decides between the two against the printed code. Keeping the first twelve months instead gives −0.1330. |
+| 11 | reproduced | Taking one shared row per month instead gives −0.012917. |
+| 12 | reproduced | Dividing by n − 1 instead gives −0.121508. |
+| 13 | reproduced | A reading, as row 9, and the tightest of them, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
+| 14 | reproduced | Dividing by n instead gives −0.1101755. |
+| 15 | none, not a replication | Heston and Sadka's 13 percent is from their own sample, which this file does not reach. It has 13 months before 2002 after the twelve-month lookback, and they lost. |
+| 16 | none, not a replication | as row 15 |
+| 17 | none, not a replication | Location 4425's claim is a verdict, and `### Rows that are not replications` would let it be pinned as one. It is not, because Entry 6's rule wants the criterion written before any statistic, and these were computed first. |
+| 18 | none, not a replication | as row 17 |
+
+### What the entry concludes
+
+Three things.
+
+1. **Every reachable figure reproduces, and not under the strategy as
+   described.** The fourteen rows land at the precision each printout gives.
+   Each of these five rules moves a printed figure, and none is in the
+   description:
+   1. keeping or dropping a stock on another stock's close,
+   2. a monthly sum rather than a mean over positions,
+   3. months with no position counted as zero in the mean,
+   4. a standard deviation that counts a NaN month as zero,
+   5. a winners' slice that leaves out the best stock.
+2. **The four Heston and Sadka printouts disagree on units and agree on sign.**
+   The first edition's −0.9167 is a sum over positions. The revised edition
+   divides by the positions, and its three printouts land between −0.0114 and
+   −0.0129 a year. All four lose money on this file.
+3. **Under the revised Python's rules, the loss sits before 2002.** Rows 15
+   to 18 show the 13 months before 2002 returning −0.145387 a year and the 70
+   after returning 0.011967. Only that printout's rules were split. It is a
+   finding about survivors over one short window, with no verdict, and it
+   says nothing about Heston and Sadka, whose sample this file does not
+   reach.
+
+### The third January return the committed file cannot reach
+
+Chan's third Example 7.6 holding was entered at the close of 2007-12-31 and
+closed on 2008-01-31. The book's text says the strategy "worked wonderfully"
+that January after failing in 2006 and 2007. `IJR_20080114.mat` ends on
+2008-01-14, so no printout's rules can compute it here, and the two Januaries
+this entry reproduces are the two that lost.
+
+This follows the shape that Entry 3's section
+`### Two figures from Chan's workbook that need a column this repo lacks` set.
+It is a section rather than rows, because the log has no row state for a
+published figure with no computed value.
+
+1. **0.0881**, printed by the MATLAB in both editions and by the revised R.
+2. **0.088486**, printed by the revised Python.
+
+`TestJanuaryMatlab::test_the_third_january_is_not_reached` holds that the
+file's last day is 2008-01-14 and that 2007-12-31 is the only ranked year-end
+left unreached.
+[Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) carries
+reaching it and the owner question it waits on.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the effect existed before 2002.** Both files hold only the companies
+still in their index on the day Chan saved them, and the S&P 500 file starts
+in November 1999. [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196)
+is where the 13 percent is tested on a panel that still holds the companies
+that left.
+
+**Whether the revised MATLAB and R rows are the printed code.** They reproduce
+every digit printed, and for the MATLAB more than one reading does. R's
+Example 7.6 rounding is assumed from what the owner read of its 7.7.
+[Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) carries
+the check.
+
+**What happened after 2007.** After Example 7.7 the revised edition says the
+most recent five years give even worse average returns. Neither file reaches
+those years, so nothing here reads that claim.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
