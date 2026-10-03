@@ -567,16 +567,20 @@ class TestLagSettingDetour:
         assert stat == pytest.approx(-3.0875, abs=5e-4)
         assert stat < EG_CRIT_N2["10%"]
 
-    def test_cadfs_own_regression_leaves_the_verdict_alone(self) -> None:
+    def test_cadfs_own_regression_leaves_the_verdict_alone(self, spread: np.ndarray) -> None:
         """Row 4 under the regression ``cadf`` itself runs, which row 12
-        reproduces on Chan's files. It gives -3.0908 on these closes, still
-        past both 10% values, and widens the margin against MATLAB's printed
-        -3.082 from 0.0055 to 0.0088."""
+        reproduces on Chan's files. It gives -3.0908 on these closes, 0.0032
+        more negative than row 4's figure and still past both 10% values, and
+        widens the margin against MATLAB's printed -3.082 from 0.0055 to
+        0.0088."""
         df = aligned_closes("GLD", "GDX", start=BOOK_START, end=BOOK_TRAIN_END, unadjusted=True)
         stat, _ar1, nobs = lesage_cadf(df["GLD"].to_numpy(float), df["GDX"].to_numpy(float))
+        port, _nobs = adf_tstat(spread, lags=1, constant=False)
         assert nobs == 250
         assert stat == pytest.approx(-3.0908, abs=5e-5)
+        assert round(stat - port, 4) == -0.0032
         assert stat < TestChansPythonRun.MATLAB_10PCT < EG_CRIT_N2["10%"]
+        assert round(port - TestChansPythonRun.MATLAB_10PCT, 4) == -0.0055
         assert round(stat - TestChansPythonRun.MATLAB_10PCT, 4) == -0.0088
 
     def test_the_default_lag_choice_flips_the_verdict(self, spread: np.ndarray) -> None:
@@ -856,6 +860,19 @@ class TestChansPythonRun:
         assert beta[0] / math.sqrt(cov[0, 0]) == pytest.approx(-3.18133078, abs=5e-9)
 
         assert through_origin == pytest.approx(-3.8851, abs=5e-5)
+
+        # Lagged differences line up as cadf.m's lag and trimr leave them: at
+        # every lag count cadf's coefficient is the textbook ADF-with-constant
+        # one, so only the standard error differs.
+        for lags in (2, 3, 6):
+            _stat, coefficient, nobs = lesage_cadf(a, b, lags=lags)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                textbook = adfuller(
+                    fit.spread, maxlag=lags, autolag=None, regression="c", regresults=True
+                )[-1].resols
+            assert nobs == int(textbook.nobs)
+            assert coefficient == pytest.approx(float(textbook.params[0]), abs=1e-12)
 
 
 class TestChansRRunIsACovariateAugmentedDickeyFuller:

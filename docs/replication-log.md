@@ -400,8 +400,12 @@ Four things, in the order of how much they cost to learn.
 2. **Chan's own saved data misses his own printed hedge.** Row 6 is the
    receipt. It removes the obvious reply to row 1, that the reproduction is
    simply wrong, and it puts the 2007 book-run series beyond reach of any file
-   that still exists. The miss is particular to the hedge. Row 12 lands his
-   Chapter 3 statistic on the same files to all eight decimals printed.
+   that still exists. Row 12 lands his Chapter 3 statistic on the same files to
+   all eight decimals printed. His Chapter 7 statistic is not in the same
+   position: those files give −3.52 over the Chapter 7 window against the
+   −3.357 he printed, which no row carries yet, and
+   [issue 268](https://github.com/l3a0/quantitative-trading/issues/268) asks
+   why.
 3. **Chan's conclusion about Python is refuted by his own numbers.** Row 11 is
    the most useful verdict here. His −2.4 and his −3.2 both reproduce on his
    own files, each t-statistic to within a billionth, and they come from two
@@ -412,9 +416,10 @@ Four things, in the order of how much they cost to learn.
    its printed p-value does not settle whether it rejects. Chan's MATLAB call,
    as `example3_6_1.m` reads, runs the Engle-Granger test on the same 252 days
    as Python with one lag passed as an argument, so against MATLAB what
-   separates Python is the lag count. Row 12 reproduces that MATLAB call on his
-   files, so all three printouts reproduce there. A detail of how `cadf` forms
-   its regression adds 0.0035 at one lag and changes no verdict. On the
+   separates Python is mostly the lag count. Row 12 reproduces that MATLAB call
+   on his files, so all three printouts reproduce there. The rest is a detail
+   of how `cadf` forms its regression, which makes MATLAB's one-lag statistic
+   0.0035 more negative than the port's and changes no verdict. On the
    yfinance raw closes the statistic does not weaken steadily as lags are added, since it is more
    negative at four lags than at three. The verdict is what holds there: zero or one lag clears the 10% line
    and every count from two to sixteen misses it. A conclusion about a library
