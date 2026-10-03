@@ -1823,10 +1823,10 @@ class TestIWBInPlaceOfSPY:
     choosing a proxy for its result. The book prints no IWB figure, so every
     row these pins back reads "none, not a replication".
 
-    The rule for what the proxy cost was declared on
-    [issue 160](https://github.com/l3a0/quantitative-trading/issues/160) before
-    any IWB number existed, and ``test_what_the_proxy_cost`` holds its five
-    answers. The swap moves no verdict.
+    [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) declared
+    the rule for what the proxy cost before any IWB number existed, and
+    ``test_what_the_proxy_cost`` holds its five answers. The swap moves no
+    verdict.
     """
 
     def test_the_iwb_entry_is_the_download_this_card_names(self, joined_iwb) -> None:
@@ -1856,7 +1856,7 @@ class TestIWBInPlaceOfSPY:
         assert agg.index.difference(load_close(IWB).index).empty
 
     def test_the_leg_moments_on_iwb(self, measured_iwb) -> None:
-        """Rows 16's moments, full span. IWB's 18.4710 percent against SPY's 18.5472."""
+        """Row 16's moments, full span. IWB's 18.4710 percent against SPY's 18.5472."""
         legs = measured_iwb["full span"][0].legs
         assert (legs.start, legs.end, legs.days) == ("2003-09-30", "2026-09-17", 5778)
         assert legs.stock_vol == pytest.approx(0.184710, abs=5e-7)
@@ -1905,7 +1905,7 @@ class TestIWBInPlaceOfSPY:
         The falling window is ranked on weights fitted inside it, 20.61 percent
         stocks, at a leverage of 2.1484. The rising window is ranked on those
         same weights from before it, at 1.6532. On its own 26.64 percent the
-        matching leverage is 1.5468, which is row 2's specification there and
+        matching leverage is 1.5467, which is row 2's specification there and
         the figure to set against 2.1484 and Qian's 1.8. Row 15 states SPY's
         three in the same words.
         """
@@ -1965,7 +1965,7 @@ class TestIWBInPlaceOfSPY:
         At the bill average, typed as a fraction the way
         ``test_the_earlier_period_at_its_own_bill_average`` types its rate,
         60/40 still leads, 0.6136 against 0.5928, by 0.0208 at a robust t of
-        −0.21. So row 3's sign at the rate bills paid is the same on IWB as on
+        −0.2071. So row 3's sign at the rate bills paid is the same on IWB as on
         SPY, and neither resolves there.
         """
         ranking = rankings_iwb["full span"]
@@ -1996,7 +1996,8 @@ class TestIWBInPlaceOfSPY:
            −0.0008 and +0.0105, and the mean difference by +0.0113, +0.0023 and
            +0.1122 percent a year.
         2. Whether the size is noise. The robust t on ``d_IWB(t) − d_SPY(t)`` is
-           +0.29, +0.06 and +0.98, so no window tells the two instruments apart.
+           +0.2939, +0.0557 and +0.9764, so no window tells the two instruments
+           apart.
            That t belongs to the change in the mean difference, not to the
            change in the Sharpe difference.
         3. Whether a verdict moved. No window changes sign or resolution.
@@ -2046,7 +2047,7 @@ class TestIWBInPlaceOfSPY:
         assert full.swapped_tie < 0.01744 and full.declared_tie < 0.01744
 
     def test_a_moved_verdict_is_reported_as_moved(self, measured) -> None:
-        """The flag the fourth answer reads, held on a case that does move.
+        """The flag the third answer reads, held on a case that does move.
 
         Swapping a window's ranking for one at a rate far enough below its tie
         flips its sign, so a :class:`ProxyCost` built from the two must say the
@@ -2071,6 +2072,34 @@ class TestIWBInPlaceOfSPY:
             lag=0,
         )
         assert cost.verdict_moved is True
+
+    def test_two_windows_on_different_days_are_refused_rather_than_mispaired(
+        self, measured, measured_iwb
+    ) -> None:
+        """Dropping one day from IWB's join stops the comparison and names the day.
+
+        Pairing on the shared days would line a two-day return on one leg against
+        a one-day return on the other. On the full span with 2010-06-15 gone,
+        that pairing turns the paired mean negative while the change in the mean
+        difference stays positive, so the t would belong to nothing.
+        """
+        gone = pd.Timestamp("2010-06-15")
+        thinned = aligned_closes(IWB, BOND)
+        thinned = thinned.loc[thinned.index != gone]
+        swapped = {
+            label: measure_window(label, thinned, start, end) for label, start, end in WINDOWS
+        }
+        with pytest.raises(ValueError, match="2010-06-15"):
+            proxy_cost(measured, swapped)
+
+    def test_an_assumed_rate_off_the_declared_one_is_named_as_off_it(self) -> None:
+        """The size heading prints the rate the run used, not Chan's constant."""
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            run(stock=IWB, risk_free=0.02)
+        text = buffer.getvalue()
+        assert "1. The size, at the 2% rate this run assumed, off the reproduction" in text
+        assert "at the declared 4% rate" not in text
 
     def test_ranking_series_is_the_series_the_ranking_summarises(self, measured) -> None:
         """One construction feeds the ranking and the comparison, so the two cannot drift.

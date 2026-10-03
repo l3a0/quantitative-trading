@@ -297,8 +297,8 @@ leaving a reader to infer.
    manifest line carries `vendor_column` as `Close, auto_adjust=True`. The
    second call's `Close` is the raw file, which carries splits and not
    dividends. The second call's `Adj Close` matched the first call's `Close` on
-   every row to within 0.00013, which is the "two routes, one series" claim
-   above, checked at download time against a column this repo does not commit.
+   every row to within 0.00013, which is the claim above that the two routes
+   give the same values, checked at download time against a column this repo does not commit.
 2. **Nothing was dropped.** The download ran on a Saturday and returned no
    non-finite close on either call, so each file holds all 6,632 rows the
    vendor returned.

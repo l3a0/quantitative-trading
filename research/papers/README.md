@@ -18,8 +18,9 @@ together are the whole argument for keeping a copy.
 
 1. **It is the only published counterpart four of Entry 4's rows have.**
    Chan prints an allocation, a leverage and a ranking, and no returns, no
-   volatilities and no correlation, so twelve of that entry's fifteen rows carry
-   "none, not a replication". The paper does better on six of those twelve, and
+   volatilities and no correlation, so twelve of rows 1 to 15, the rows on
+   SPY, carry "none, not a replication". The paper does better on six of those
+   twelve, and
    the six are not alike.
 
    - **Four carry a printed figure.** Row 5 the two leg volatilities, row 6 the
@@ -106,8 +107,8 @@ second has an open card that is the authority for what it is.
    tracks the S&P 500. IWB tracks his index, and Entry 4's rows 16 to 21 run it
    beside SPY on Entry 4's window, where the swap moved no verdict. That
    prices the instrument and not his sample, which is the second item.
-   [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) is
-   where the comparison's rule was declared.
+   [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160)
+   declared the comparison's rule.
 2. **The sample.** His is 1983 to 2004 and Entry 4's is 2003 to 2026.
    [Issue 161](https://github.com/l3a0/quantitative-trading/issues/161).
 

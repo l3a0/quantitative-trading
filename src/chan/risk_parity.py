@@ -1,4 +1,4 @@
-"""Qian's risk parity against the classic 60/40, on SPY and AGG.
+"""Qian's risk parity against the classic 60/40, on SPY and AGG, with IWB beside SPY.
 
 Chan reports Edward Qian's argument that a 60/40 split between stocks and
 bonds is not the balanced portfolio its labels suggest. Capital is split 60 to
@@ -212,8 +212,8 @@ the rule for that comparison before any IWB number existed, and
 
 SPY stays the default and the declared reproduction. Promoting IWB after its
 numbers were seen would choose a proxy because of what it made a number do,
-which is what the proxy rule above forbids. So an IWB figure is reported beside
-the SPY figure it answers rather than replacing it.
+which is what the proxy rule above forbids. So the report prints an IWB figure
+beside the SPY figure it answers rather than in place of it.
 
 Usage::
 
@@ -1038,9 +1038,14 @@ def proxy_cost(
 
     Both arguments are :func:`measure_window` outputs keyed by window, one per
     stock leg. Each is ranked as :func:`rank_the_windows` ranks it, and the
-    paired t reads :func:`ranking_series` for both on the days the two windows
-    share, so a day one leg traded and the other did not drops out of the
-    pairing rather than lining up two different days.
+    paired t reads :func:`ranking_series` for both, day by day.
+
+    The two windows must hold the same days, and a pair that does not is
+    refused by naming the first day that differs. Dropping the unshared day
+    would not repair the pairing, because the next return on the leg that
+    skipped it spans two closes while the other spans one, and the paired mean
+    would stop being the change in the mean difference. IWB and SPY hold the
+    same days against AGG, which ``tests/test_risk_parity.py`` asserts.
 
     The tie rate is the assumed rate at which a window's two Sharpe ratios
     tie, the closed form ``risk_free - sharpe_difference / rate_sensitivity``
@@ -1054,8 +1059,14 @@ def proxy_cost(
     for label in declared:
         before = ranking_series(declared[label][1], declared_weights[label][0], risk_free=risk_free)
         after = ranking_series(swapped[label][1], swapped_weights[label][0], risk_free=risk_free)
-        common = before.index.intersection(after.index)
-        summary = newey_west_summary((after.loc[common] - before.loc[common]).to_numpy())
+        if not before.index.equals(after.index):
+            differ = before.index.symmetric_difference(after.index)
+            first = differ[0].date() if len(differ) else "an order"
+            raise ValueError(
+                f"the {label} window holds different days on the two stock legs, first "
+                f"{first}, so their daily returns cannot be paired"
+            )
+        summary = newey_west_summary((after - before).to_numpy())
         old, new = declared_rankings[label], swapped_rankings[label]
         costs[label] = ProxyCost(
             label=label,
@@ -1234,7 +1245,12 @@ def _ranking(ranking: Ranking, *, against_the_book: bool) -> None:
     print()
 
 
-def _proxy_cost(costs: dict[str, ProxyCost], declared: pd.DataFrame, swapped: pd.DataFrame) -> None:
+def _proxy_cost(
+    costs: dict[str, ProxyCost],
+    declared: pd.DataFrame,
+    swapped: pd.DataFrame,
+    risk_free: float = RISK_FREE,
+) -> None:
     """Issue 160's five answers, each window's swapped figure against its declared one."""
     old, new = declared.columns[0], swapped.columns[0]
     old_entry, new_entry = declared.attrs["vintages"][0], swapped.attrs["vintages"][0]
@@ -1245,7 +1261,10 @@ def _proxy_cost(costs: dict[str, ProxyCost], declared: pd.DataFrame, swapped: pd
     print("  Each leg runs on its own weights and its own leverage.")
     print(f"  Every change below is {new} less {old}.")
     print()
-    print(f"  1. The size, at the declared {RISK_FREE:.0%} rate")
+    if risk_free == RISK_FREE:
+        print(f"  1. The size, at the declared {risk_free:.0%} rate")
+    else:
+        print(f"  1. The size, at the {risk_free:.0%} rate this run assumed, off the reproduction")
     print(
         f"    {'':<16}{'Sharpe 60/40':>14}{'Sharpe parity':>15}{'difference':>12}{'mean diff':>11}"
     )
@@ -1361,7 +1380,7 @@ def report(
             label: measure_window(label, declared, start, end, risk_free=risk_free)
             for label, start, end in WINDOWS
         }
-        _proxy_cost(proxy_cost(before, measured, risk_free=risk_free), declared, joined)
+        _proxy_cost(proxy_cost(before, measured, risk_free=risk_free), declared, joined, risk_free)
 
     if extra is not None:
         label, start, end = extra

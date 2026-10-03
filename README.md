@@ -77,7 +77,9 @@ they were first built. The other seven were built here.
    t of −2.17. It is the first entry here where the numbers reproduce and the
    claim does not, which is the reverse of the split the GLD/GDX and Kelly
    entries both found. Swapping SPY for IWB, which tracks the Russell 1000
-   index Qian read, moves no verdict on any of the three windows.
+   index Qian read, moves no verdict on any of the three windows. That swap is
+   a measurement beside the replication rather than a replication, because
+   the book prints no IWB figure.
 6. The CAD/AUD cross rate, which Chan calls "quite stationary" at Kindle
    location 3951 without working it. He names the rate itself, so the claim is
    what gets pinned and it carries a verdict against a criterion fixed before
