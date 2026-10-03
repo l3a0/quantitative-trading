@@ -229,6 +229,9 @@ shows". That sentence cites a separate, earlier example for the continuous
 approximation, and the owner corrected the label against the book. Example 3.3,
 Chan's survivorship toy, also says otherwise. Its label comes from the revised
 edition, and whether the 2009 edition numbers it the same way was not checked.
+Example 3.8, the reversal updated at the open, says otherwise too. It is on
+p. 78 of the revised edition, the first-edition mirror holds no file for it,
+and whether the 2009 edition carries it was not checked.
 
 One thing this does not settle, and the difference matters. `-3.357` appears
 nowhere in the committed highlights, and neither does a window label for the

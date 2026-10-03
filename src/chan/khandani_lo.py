@@ -1,4 +1,4 @@
-"""Khandani and Lo's linear reversal on Chan's S&P 500 file, Example 3.7.
+"""Khandani and Lo's linear reversal on Chan's S&P 500 file, Examples 3.7 and 3.8.
 
 The rule buys the stocks that fell most against the market yesterday and
 shorts the ones that rose most. Khandani and Lo report a Sharpe ratio of 4.47
@@ -22,7 +22,8 @@ Examples 7.6 and 7.7 on the same file. This module passes them a column with
 ``axis=0`` or a panel with ``axis=1``, which are the shapes on which they
 match the ``.m`` files.
 
-On the full panel, before any window is cut:
+On the full panel, before any window is cut, where ``cl`` is the close and
+Example 3.8 puts the open in its place:
 
 1. ``ret = (cl − lag1(cl)) / lag1(cl)``.
 2. The market's return each day is the mean of the finite returns that day.
@@ -78,15 +79,38 @@ already puts a weight of 0 on every return that is not finite. WYN's
 never enters a weight. That is why returns are computed on the panel rather
 than on one member's rows, as ``load_panel`` says.
 
-The variation that trades at the open is Example 3.8, and
+**Example 3.8 updates the positions at the open instead of the close.** It is
+a revised-edition label, on p. 78, and the first-edition mirror has no file for
+it. The book prints no figure, only that the Sharpe ratios before and after
+costs are "both very positive". Chan's ``example3_8.ipynb`` prints two, and
 [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) carries
-it. Every result here is exploratory. Reproducing Chan's figures spends the
-2006 sample on a rule somebody else chose, so the run says whether his numbers
+the reasoning behind running two rules on the opens.
+
+1. **Rule B is the rule above with the open in place of the close**, which is
+   :func:`reversal` handed the open frame. Chan's sentence calls Example 3.8
+   the strategy that printed 0.25 and −3.19 with one change, so rule B carries
+   his claim. It holds when both figures are at least 1.0, unrounded, his own
+   line for a strategy worth trading on its own, on p. 23.
+2. **Rule A is the notebook as written**, :func:`notebook_reversal`. It printed
+   the published figures, 2.3818 and 1.3997 at four decimals, and its Example
+   3.7 twin printed 0.9578 and −2.1617 rather than the book's 0.25 and −3.19.
+   Its five departures from rule B are listed on the function.
+
+Rule A forward-fills before taking returns, so it reads WYN's gap between two
+companies as one day's move, a return of 121.5 on the closes. That is the
+transcription rather than a defect, and the report prints rule A without the
+forward-fill and without WYN beside it, so a reader sees how much of Chan's
+figure the splice carries.
+
+Every result here is exploratory. Reproducing Chan's figures spends the 2006
+sample on a rule somebody else chose, so the run says whether his numbers
 reproduce on his file and nothing about whether the rule pays today.
 """
 
 from __future__ import annotations
 
+import argparse
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -117,15 +141,49 @@ BOOK_BEFORE_COSTS = 0.25
 #: Chan's figure after 5 basis points a trade, location 2233.
 BOOK_AFTER_COSTS = -3.19
 
+#: Where Example 3.8's notebook was read. The book points to
+#: ``example3_8.ipynb``, and six public reposts of it agree, five byte for byte.
+NOTEBOOK_SOURCE = (
+    "example3_8.ipynb, as reposted at pinhaocheng/epchan-quant_trading_Python_codes 5fcab61"
+)
+#: What Chan's notebooks print, at full precision. Example 3.7's twin first,
+#: which is rule A's control on the closes, then Example 3.8.
+NOTEBOOK_37_BEFORE = 0.957785681010386
+NOTEBOOK_37_AFTER = -2.1617433718962276
+NOTEBOOK_38_BEFORE = 2.381759409645483
+NOTEBOOK_38_AFTER = 1.3996944546182997
+#: How many decimals a reproduction of a notebook figure must match, the four
+#: every reversal pin carries.
+NOTEBOOK_DECIMALS = 4
 
-def daily_returns(closes: np.ndarray) -> np.ndarray:
-    """Step 1: each stock's return on each day, NaN where either close is missing."""
-    previous = lag1(closes)
+#: The book's words for Example 3.8's two figures, p. 78.
+BOOK_OPEN_CLAIM = "very positive"
+#: What "very positive" must clear, both figures and unrounded. Chan's own line
+#: for a strategy worth trading on its own, p. 23. The owner confirmed it on
+#: issue 206 on 2026-10-02, before any figure on the opens was computed.
+VERY_POSITIVE = 1.0
+
+#: Chan's minimum-backtest estimate on p. 61: a Sharpe ratio of 1 over 681 daily
+#: points gives 95 percent confidence that the true one is at least 0.
+BAR_SHARPE = 1.0
+BAR_POINTS = 681
+#: That bar scaled to the window's 251 days, with the bar falling as one over
+#: the square root of the sample. Reported, and it decides nothing.
+ONE_YEAR_BAR = BAR_SHARPE * math.sqrt(BAR_POINTS / 251)
+
+#: The symbol that holds two companies across a gap ending inside 2006, on
+#: 2006-08-01. DFS holds two as well, but its gap ends in 2007.
+SPLICED_SYMBOL = "WYN"
+
+
+def daily_returns(prices: np.ndarray) -> np.ndarray:
+    """Step 1: each stock's return on each day, NaN where either price is missing."""
+    previous = lag1(prices)
     with np.errstate(invalid="ignore", divide="ignore"):
-        return (closes - previous) / previous
+        return (prices - previous) / previous
 
 
-def reversal_weights(closes: np.ndarray) -> np.ndarray:
+def reversal_weights(prices: np.ndarray) -> np.ndarray:
     """Steps 2 to 4: minus each stock's return against the market, over the priced count.
 
     ``n`` counts a stock priced today and not yesterday, which has no return
@@ -133,11 +191,11 @@ def reversal_weights(closes: np.ndarray) -> np.ndarray:
     to 0. That is ``example3_7.m`` exactly, and it makes the weights a little
     smaller on a day a stock enters than a count of returns would.
     """
-    returns = daily_returns(closes)
+    returns = daily_returns(prices)
     market = smartmean(returns, axis=1)
-    priced = smartsum(np.isfinite(closes).astype(float), axis=1)
+    priced = smartsum(np.isfinite(prices).astype(float), axis=1)
     weights = -(returns - market[:, None]) / priced[:, None]
-    weights[~np.isfinite(closes) | ~np.isfinite(lag1(closes))] = 0.0
+    weights[~np.isfinite(prices) | ~np.isfinite(lag1(prices))] = 0.0
     return weights
 
 
@@ -192,16 +250,18 @@ class Reversal:
 
 
 def reversal(frame: pd.DataFrame, *, start: str = WINDOW_START, end: str = WINDOW_END) -> Reversal:
-    """Run Example 3.7 on a date-by-stock frame of closes, over ``start`` to ``end``.
+    """Run Example 3.7's rule on a date-by-stock frame of prices, over ``start`` to ``end``.
 
-    Everything up to the profit is computed on the whole frame and only then
-    cut, so the window's first profit uses the weights from the day before it.
-    The weights are cut before they are differenced for Chan's cost, which is
-    the first quirk. The charged figure differences them before the cut.
+    Handed the closes it is Example 3.7, and handed the opens it is Example
+    3.8's rule B. Everything up to the profit is computed on the whole frame
+    and only then cut, so the window's first profit uses the weights from the
+    day before it. The weights are cut before they are differenced for Chan's
+    cost, which is the first quirk. The charged figure differences them before
+    the cut.
     """
-    closes = frame.to_numpy(dtype=float)
-    returns = daily_returns(closes)
-    weights = reversal_weights(closes)
+    prices = frame.to_numpy(dtype=float)
+    returns = daily_returns(prices)
+    weights = reversal_weights(prices)
     pnl = daily_pnl(weights, returns)
 
     inside = (frame.index >= pd.Timestamp(start)) & (frame.index <= pd.Timestamp(end))
@@ -215,6 +275,123 @@ def reversal(frame: pd.DataFrame, *, start: str = WINDOW_START, end: str = WINDO
         before_costs=chan_sharpe(pnl),
         after_costs=chan_sharpe(after_costs),
         after_costs_charged=plain_sharpe(charged),
+    )
+
+
+@dataclass(frozen=True)
+class NotebookReversal:
+    """What one window of rule A gives, Chan's ``example3_8.ipynb`` as written.
+
+    ``pnl`` is the profit before costs and ``pnl_after_costs`` the profit after
+    them. Neither holds a NaN, because the notebook sums with ``np.nansum``.
+    Rule A has no figure with a quirk removed, so this is not a
+    :class:`Reversal`.
+    """
+
+    days: pd.DatetimeIndex
+    pnl: np.ndarray
+    pnl_after_costs: np.ndarray
+    before_costs: float
+    after_costs: float
+
+
+def notebook_reversal(
+    frame: pd.DataFrame, *, start: str = WINDOW_START, end: str = WINDOW_END, fill: bool = True
+) -> NotebookReversal:
+    """Rule A: the reversal as Chan's Python notebooks compute it.
+
+    Each line transcribes a cell of ``example3_8.ipynb``, which is
+    ``example3_7.ipynb`` reading the opens. Five things differ from
+    :func:`reversal`, and each moves the figure.
+
+    1. **Returns are taken after a forward-fill.** The notebook's
+       ``df.pct_change()`` ran under pandas 0.24, which filled each gap with
+       the last price first. A stock missing for a day earns 0 that day, and a
+       gap of any length is read as one day's move. pandas 3 no longer fills
+       by default, so the fill is written out. ``fill=False`` leaves it out,
+       which is the variant the report prints beside it.
+    2. **Each day's weights are scaled to a gross exposure of 1**, divided by
+       the sum of their absolute values rather than by the count of stocks
+       priced.
+    3. **No stock is zeroed for a missing price.** After the fill only a stock
+       not yet priced has a NaN return, and ``np.nansum`` skips its products.
+       A day whose weights are all 0 stays at 0.
+    4. **The deviation divides by n**, because the notebook calls ``np.std``.
+    5. **The first day's cost is 0 rather than NaN**, because ``np.nansum`` of
+       a row of NaN is 0. So neither of Example 3.7's two quirks applies.
+    """
+    prices = frame.ffill() if fill else frame
+    returns_frame = prices.pct_change(fill_method=None)
+    returns = returns_frame.to_numpy(dtype=float)
+    market = returns_frame.mean(axis=1).to_numpy(dtype=float)
+    weights = -(returns - market[:, None])
+    gross = np.nansum(np.abs(weights), axis=1)
+    weights[gross == 0] = 0.0
+    gross[gross == 0] = 1.0
+    weights = weights / gross[:, None]
+    pnl = np.nansum(lag1(weights) * returns, axis=1)
+
+    inside = (frame.index >= pd.Timestamp(start)) & (frame.index <= pd.Timestamp(end))
+    pnl = pnl[inside]
+    held = weights[inside]
+    after_costs = pnl - np.nansum(np.abs(held - lag1(held)), axis=1) * ONE_WAY_COST
+    return NotebookReversal(
+        days=frame.index[inside],
+        pnl=pnl,
+        pnl_after_costs=after_costs,
+        before_costs=_numpy_sharpe(pnl),
+        after_costs=_numpy_sharpe(after_costs),
+    )
+
+
+def _numpy_sharpe(daily: np.ndarray) -> float:
+    """``np.sqrt(252)*np.mean(x)/np.std(x)``, the notebook's ratio, dividing by n."""
+    return float(np.sqrt(TRADING_DAYS) * daily.mean() / daily.std())
+
+
+def matches_notebook(result: NotebookReversal, before: float, after: float) -> bool:
+    """Whether both figures round to the notebook's at :data:`NOTEBOOK_DECIMALS`."""
+    return round(result.before_costs, NOTEBOOK_DECIMALS) == round(
+        before, NOTEBOOK_DECIMALS
+    ) and round(result.after_costs, NOTEBOOK_DECIMALS) == round(after, NOTEBOOK_DECIMALS)
+
+
+def claim_holds(result: Reversal) -> bool:
+    """Whether "both very positive" holds: both of Chan's figures at least 1.0, unrounded."""
+    return result.before_costs >= VERY_POSITIVE and result.after_costs >= VERY_POSITIVE
+
+
+@dataclass(frozen=True)
+class OpenVariation:
+    """Example 3.8 on the opens: rule B, rule A, and rule A's two variants.
+
+    ``rule_b`` is :func:`reversal` on the opens and carries the claim.
+    ``notebook`` is :func:`notebook_reversal` and carries the published
+    figures. ``unfilled`` drops the forward-fill and ``without_splice`` drops
+    WYN, and neither decides anything.
+    """
+
+    rule_b: Reversal
+    notebook: NotebookReversal
+    unfilled: NotebookReversal
+    without_splice: NotebookReversal
+
+    @property
+    def figures_reproduced(self) -> bool:
+        return matches_notebook(self.notebook, NOTEBOOK_38_BEFORE, NOTEBOOK_38_AFTER)
+
+    @property
+    def claim_holds(self) -> bool:
+        return claim_holds(self.rule_b)
+
+
+def open_variation(frame: pd.DataFrame) -> OpenVariation:
+    """Run both rules of Example 3.8 on a date-by-stock frame of opens."""
+    return OpenVariation(
+        rule_b=reversal(frame),
+        notebook=notebook_reversal(frame),
+        unfilled=notebook_reversal(frame, fill=False),
+        without_splice=notebook_reversal(frame.drop(columns=[SPLICED_SYMBOL])),
     )
 
 
@@ -258,8 +435,105 @@ def report(members, result: Reversal) -> None:
     )
 
 
-def run(data_dir: Path | None = None) -> Reversal:
-    """Read the panel, run the rule on Chan's window, and print the report."""
+def report_at_open(members, variation: OpenVariation) -> None:
+    """Print Example 3.8: both rules, the notebook's figures, both verdicts and the bar.
+
+    It is a report of its own rather than a branch inside :func:`report`, so
+    Example 3.7's printed lines stay exactly as they were, the way
+    ``chan.stationary_candidates`` gives its claim-route verdict its own report.
+    """
+    a, b = variation.notebook, variation.rule_b
+    cost = f"{ONE_WAY_COST * 1e4:.0f} bp a side"
+    print("Khandani and Lo's linear reversal at the open, Chan's Example 3.8 (revised edition)")
+    print(f"  vintage  {panel_line(members)}, the Open column")
+    print(
+        f"  window   {b.days[0].date()} to {b.days[-1].date()}, "
+        f"{len(b.days)} trading days, positions updated at the open"
+    )
+    print(f"  Sharpe   sqrt({TRADING_DAYS}) * mean / std, no risk-free rate")
+    print()
+    print(f"Rule A, Chan's notebook as written: {NOTEBOOK_SOURCE}")
+    print("  returns after a forward-fill, weights scaled to a gross exposure of 1, std over n")
+    print(f"  {'Specification':<62} {'Sharpe':>8}  {'Notebook':>8}")
+    rows_a = [
+        ("Before costs", a.before_costs, f"{NOTEBOOK_38_BEFORE:.4f}"),
+        (f"After {cost}", a.after_costs, f"{NOTEBOOK_38_AFTER:.4f}"),
+        ("Before costs, no forward-fill", variation.unfilled.before_costs, "none"),
+        (f"After {cost}, no forward-fill", variation.unfilled.after_costs, "none"),
+        (f"Before costs, without {SPLICED_SYMBOL}", variation.without_splice.before_costs, "none"),
+        (f"After {cost}, without {SPLICED_SYMBOL}", variation.without_splice.after_costs, "none"),
+    ]
+    for label, value, book in rows_a:
+        print(f"  {label:<62} {value:>8.4f}  {book:>8}")
+    word = "REPRODUCED" if variation.figures_reproduced else "DID NOT REPRODUCE"
+    print(
+        f"  Verdict: {word}. Both figures must round to the notebook's at "
+        f"{NOTEBOOK_DECIMALS} decimals."
+    )
+    print(
+        f"  The forward-fill reads {SPLICED_SYMBOL}'s gap between two companies as one day's "
+        "move, so the two rows without it decide nothing."
+    )
+    print()
+    print("Rule B, Example 3.7's MATLAB with the open in place of the close")
+    print(f"  {'Specification':<62} {'Sharpe':>8}  {'Book':>13}")
+    rows_b = [
+        ("Before costs, Chan's rule", b.before_costs, BOOK_OPEN_CLAIM),
+        (f"After {cost}, first day uncharged, NaN zero-filled", b.after_costs, BOOK_OPEN_CLAIM),
+        (f"After {cost}, first day charged, nothing zero-filled", b.after_costs_charged, "none"),
+    ]
+    for label, value, book in rows_b:
+        print(f"  {label:<62} {value:>8.4f}  {book:>13}")
+    halves = (("Before costs", b.before_costs), ("After costs", b.after_costs))
+    cleared = [half for half, value in halves if value >= VERY_POSITIVE]
+    if variation.claim_holds:
+        verdict = "HOLDS"
+    elif cleared:
+        verdict = f"DOES NOT HOLD. {cleared[0]} clears it and the other half does not"
+    else:
+        verdict = "DOES NOT HOLD. Neither half clears it"
+    print(
+        f'  Claim, "both {BOOK_OPEN_CLAIM}": {verdict}. Both figures must be at least '
+        f"{VERY_POSITIVE:.1f}, unrounded, declared before any figure on the opens was computed."
+    )
+    print()
+    figures = {
+        "rule A before costs": a.before_costs,
+        "rule A after costs": a.after_costs,
+        "rule B before costs": b.before_costs,
+        "rule B after costs": b.after_costs,
+    }
+    clearing = [name for name, value in figures.items() if value >= ONE_YEAR_BAR]
+    print(
+        f"  One-year bar {ONE_YEAR_BAR:.4f}, Chan's {BAR_SHARPE:.0f} over {BAR_POINTS} days "
+        f"scaled to {len(b.days)}. Decides nothing. Clearing it: {', '.join(clearing) or 'none'}."
+    )
+    print(
+        "  The panel holds only the stocks still in the index on 2007-11-23, "
+        "so every figure above is about survivors."
+    )
+    print(
+        "  Exploratory. Reproducing Chan's figures spends the 2006 sample on a rule somebody "
+        "else chose, so this says whether"
+    )
+    print(
+        "  his numbers reproduce on his file and nothing about whether trading at the open "
+        "pays. docs/replication-log.md Entry 10 carries the verdicts."
+    )
+
+
+def run(data_dir: Path | None = None, *, at_open: bool = False) -> Reversal | OpenVariation:
+    """Read the panel, run Chan's window, and print the report.
+
+    ``at_open`` reads the opens and runs Example 3.8. A boolean rather than a
+    field name, because ``load_panel`` accepts any of five fields and only the
+    close and the open have an example behind them.
+    """
+    if at_open:
+        members, frame = load_panel(SOURCE_FILE, field="Open", data_dir=data_dir)
+        variation = open_variation(frame)
+        report_at_open(members, variation)
+        return variation
     members, frame = load_panel(SOURCE_FILE, data_dir=data_dir)
     result = reversal(frame)
     report(members, result)
@@ -267,8 +541,18 @@ def run(data_dir: Path | None = None) -> Reversal:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Khandani and Lo's linear reversal on Chan's S&P 500 file, Example 3.7, "
+        "or Example 3.8 at the open"
+    )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="update the positions at the open, Example 3.8 in the revised edition",
+    )
+    args = parser.parse_args()
     try:
-        run()
+        run(at_open=args.open)
     except VintageUnavailable as unavailable:
         # A refusal that names the source is worth nothing at the bottom of a
         # pandas traceback, so it reaches the reader as one line, the way

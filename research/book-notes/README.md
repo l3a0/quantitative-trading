@@ -37,6 +37,15 @@ and commit that prints it, or to the owner's reading of the revised edition
 recorded on
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931).
 
+Example 3.8 is absent in both ways. Its setup sentence at location 2233 and
+its closing exercise at 2236 are here, and the sentence carrying its result,
+that both Sharpe ratios turn "very positive", is not. That sentence traces to
+the owner's reading of p. 78, recorded on
+[issue 17](https://github.com/l3a0/quantitative-trading/issues/17#issuecomment-5960534071).
+The four figures Chan's notebooks print for Examples 3.7 and 3.8 are not here
+either, because the book prints none of them. The replication log's Entry 10
+traces each to the notebook and the repost it was read at.
+
 A second kind of absence turns up in Example 6.2, and it costs more than a
 missing figure. Every number that example prints is here. Its levered growth
 formula is not, because the book renders that equation as an image at location
