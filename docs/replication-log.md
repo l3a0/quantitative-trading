@@ -363,9 +363,9 @@ Four things, in the order of how much they cost to learn.
    its printed p-value does not settle whether it rejects. Chan's MATLAB call,
    as `example3_6_1.m` reads, runs the Engle-Granger test on the same 252 days
    as Python with one lag passed as an argument, so against MATLAB what
-   separates Python is the lag count. On the yfinance raw closes the statistic does not weaken
-   steadily as lags are added, since it is more negative at four lags than at
-   three. The verdict is what holds there: zero or one lag clears the 10% line
+   separates Python is the lag count. On the yfinance raw closes the
+   statistic does not weaken steadily as lags are added, since it is more
+   negative at four lags than at three. The verdict is what holds there: zero or one lag clears the 10% line
    and every count from two to sixteen misses it. A conclusion about a library
    turns out to be a conclusion about a default and about which test ran.
    Which lag count the test is entitled to is a separate question, taken up
