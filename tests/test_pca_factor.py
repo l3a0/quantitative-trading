@@ -34,6 +34,8 @@ rule he chose. It first ran here on 2026-10-03.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -58,6 +60,7 @@ from chan.pca_factor import (
     TOP_N,
     TRADING_DAYS,
     Results,
+    Run,
     agreement,
     compute,
     first_edition_expected,
@@ -308,6 +311,37 @@ class TestTheReport:
             "Exploratory.",
         ):
             assert line in out, line
+        for figure in (
+            "-1.8014",
+            "0.0180",
+            "0.1869",
+            "0.0408",
+            "0.5851",
+            "0.0414",
+            "0.5908",
+            "0.0543",
+            "0.6699",
+            "0.0417",
+            "0.5945",
+            "-2.4156",
+            "0.2441",
+            "14.14%",
+        ):
+            assert figure in out, figure
+
+    def test_the_r_verdict_holds_if_either_reading_lands(
+        self, results: Results, panel, capsys
+    ) -> None:
+        """The report says "under either reading", so one reading landing is enough."""
+        members, closes = panel
+        landed = replace(
+            results.r_filled,
+            annual=float(R_PRINTS[0]),
+            stdev=float(R_PRINTS[1]),
+            sharpe=float(R_PRINTS[2]),
+        )
+        report(members, closes, replace(results, r_filled=landed))
+        assert "revised R              reproduced" in capsys.readouterr().out
 
     def test_run_reads_the_file_once_and_reports(
         self, results: Results, monkeypatch, capsys
@@ -395,4 +429,18 @@ class TestTheRules:
     def test_within_holds_a_figure_to_17_digits(self) -> None:
         assert DIGITS_17 == 1e-12
         assert within((0.1 + 3e-13,), ("0.1",))
+        assert within((0.1 - 3e-13,), ("0.1",))
         assert not within((0.1 + 3e-12,), ("0.1",))
+        assert not within((0.1 - 3e-12,), ("0.1",))
+
+    def test_agreement_counts_only_days_both_hold_a_book(self) -> None:
+        """Each run holds a book on a day the other does not, and those days are left out."""
+        a = np.array([[1.0, -1.0, 0.0], [1.0, -1.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, -1.0]])
+        b = np.array([[0.0, 0.0, 0.0], [1.0, -1.0, 0.0], [1.0, -1.0, 0.0], [1.0, -1.0, 0.0]])
+        first = Run("a", a, np.zeros(4), 0.0, 0.0, 0.0)
+        second = Run("b", b, np.zeros(4), 0.0, 0.0, 0.0)
+        together = agreement(first, second)
+        assert (together.days, together.identical) == (2, 1)
+        assert together.share == pytest.approx(0.75)
+        assert together.fewest_differing == 0
+        assert agreement(second, first).days == 2
