@@ -1359,18 +1359,87 @@ class TestAdjustedCloseMovesWithTheDownloadDate:
     same 2006 trading day reads lower in the adjusted series than in the raw
     one. Two vintages taken at different dates would show the series moving
     under itself, which is issue 4's remaining half and needs the recorder.
-    This is the weaker claim that the committed files already support, and
-    ``blog/gld-gdx-cointegration-lessons.md`` quotes the gap it measures.
+    This is the weaker claim that the committed files already support.
+
+    Four prose surfaces quote the gap as about 15%, so a re-pin here moves all
+    four. ``src/chan/series.py`` says it against raw, which the first test
+    below measures. ``docs/design.md``, ``blog/gld-gdx-cointegration-lessons.md``
+    and ``docs/gld-gdx-cointegration-lessons.html`` say it against the number
+    Chan saw, which the second measures on his own file. The prose rounds both
+    to a whole percent.
     """
 
     def test_gdx_2006_adjusted_sits_about_fifteen_percent_below_raw(self) -> None:
+        """Vintages: ``gdx_20yr_prices.csv`` against
+        ``gdx_20yr_prices_unadjusted.csv``, both downloaded from yfinance on
+        2026-08-27. Specification: the mean of adjusted over raw, less one, on
+        the 155 rows they share in 2006, 2006-05-22 to 2006-12-29."""
         raw = load_close("GDX", unadjusted=True)
         adjusted = load_close("GDX")
         shared = raw.index.intersection(adjusted.index)
         gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
 
-        assert len(gap) > 0
-        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-4)
+        assert len(gap) == 155
+        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-5)
+
+    def test_gdx_adjusted_sits_about_fifteen_percent_below_chans_own_file(self) -> None:
+        """The design doc and the post compare today's adjusted price with the
+        one Chan saw rather than with raw, so this measures that comparison
+        directly.
+
+        Vintages: ``gdx_20yr_prices.csv``, downloaded from yfinance on
+        2026-08-27, against ``gdx_chan.csv``, the adjusted-close column of
+        Chan's companion .xls, last saved 2007-12-02. Specification: adjusted
+        over Chan's file, less one, on every row they share, 2006-05-23 to
+        2007-11-30. The gap is flat across that span, so its mean is the gap
+        on any 2006 day the prose could mean. First pinned on 2026-10-02.
+        """
+        adjusted = load_close("GDX")
+        chan = load_close("GDX", chan=True)
+        shared = adjusted.index.intersection(chan.index)
+        gap = adjusted.loc[shared] / chan.loc[shared] - 1.0
+
+        assert float(gap.mean()) == pytest.approx(-0.1489, abs=5e-5)
+        assert float(gap.max() - gap.min()) < 3e-4
+
+    def test_chans_gdx_file_holds_one_dividend_step_off_raw(self) -> None:
+        """Chan's file is what the prose means by an adjusted close near raw.
+        It sits a little below raw until 2006-12-20 and on raw from 2006-12-21,
+        the day yfinance's adjusted series takes its first dividend step. So
+        his file folds in that one distribution and nothing later, and the rest
+        of the 15% is distributions that went ex after he saved it.
+
+        Six surfaces state the near-raw claim in words rather than a number,
+        so a re-pin here is checked against them.
+
+        1. ``src/chan/series.py``, its module docstring.
+        2. ``src/chan/pair_cointegration.py``, its module docstring.
+        3. ``src/chan/pair_cointegration.py``, the comment above ``BOOK_START``.
+        4. ``src/chan/kelly_leverage.py``, its module docstring.
+        5. ``docs/design.md``, under "The first time the fallback clause fires".
+        6. ``blog/gld-gdx-cointegration-lessons.md`` and its HTML copy.
+
+        Vintages: ``gdx_20yr_prices_unadjusted.csv`` and ``gdx_20yr_prices.csv``,
+        downloaded from yfinance on 2026-08-27, against ``gdx_chan.csv``, last
+        saved 2007-12-02. Specification: raw over Chan's file, less one, on
+        every row they share, split at 2006-12-21. The step is the first day
+        adjusted over raw moves by more than 1e-4. First pinned on 2026-10-02.
+        """
+        raw = load_close("GDX", unadjusted=True)
+        adjusted = load_close("GDX")
+        chan = load_close("GDX", chan=True)
+        both = raw.index.intersection(adjusted.index)
+        steps = (adjusted.loc[both] / raw.loc[both]).diff().abs()
+        shared = raw.index.intersection(chan.index)
+        above = raw.loc[shared] / chan.loc[shared] - 1.0
+        before = above.loc[:"2006-12-20"]
+        after = above.loc["2006-12-21":]
+
+        assert str(steps[steps > 1e-4].index[0].date()) == "2006-12-21"
+        assert len(before) == 148
+        assert float(before.min()) > 0.0
+        assert float(before.max()) == pytest.approx(0.0030, abs=5e-5)
+        assert float(after.abs().max()) < 1e-6
 
     def test_gld_pays_nothing_so_its_two_series_do_not_part(self) -> None:
         """GLD is the control. It pays no distribution, so the adjustment has
