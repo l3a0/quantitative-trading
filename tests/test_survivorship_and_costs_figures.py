@@ -18,6 +18,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from matplotlib.colors import to_rgba
+from matplotlib.dates import date2num
 
 from chan.khandani_lo import daily_book
 from chan.paths import FIGURES_DIR
@@ -119,6 +120,98 @@ class TestTheRunningTotals:
         assert "Sharpe ratio 0.2510 before costs and −3.2337 after." in note
 
 
+class TestWhereTheCostFigureDrawsIt:
+    """The geometry, so a figure that drew the right numbers in the wrong
+    place, on the wrong dates or behind a misread axis still fails."""
+
+    def test_each_line_runs_forward_over_the_windows_own_days(self, costs, result) -> None:
+        assert cumulative(result).days.equals(result.days)
+        lines = _lines(costs.axes[0])
+        for gid in ("before", "after"):
+            assert list(lines[gid].get_xdata()) == list(result.days)
+
+    def test_the_axes_hold_every_point_and_read_in_percent(self, costs) -> None:
+        ax, totals = costs.axes[0], costs.totals
+        low, high = ax.get_ylim()
+        assert low < min(totals.after.min(), totals.before.min())
+        assert high > max(totals.after.max(), totals.before.max())
+        start, end = ax.get_xlim()
+        assert start <= date2num(totals.days[0]) and end >= date2num(totals.days[-1])
+        assert ax.yaxis.get_major_formatter().xmax == 1.0
+
+    def test_each_end_mark_and_label_sits_on_its_lines_last_day(self, costs) -> None:
+        ax, totals = costs.axes[0], costs.totals
+        marks = [line for line in ax.lines if len(line.get_xdata()) == 1]
+        last = totals.days[-1]
+        assert [(m.get_xdata()[0], m.get_ydata()[0]) for m in marks] == [
+            (last, totals.before[-1]),
+            (last, totals.after[-1]),
+        ]
+        assert [_rgb(m.get_color()) for m in marks] == [_rgb(GOOD), _rgb(LOST)]
+        assert [text.xy for text in ax.texts] == [
+            (last, totals.before[-1]),
+            (last, totals.after[-1]),
+        ]
+
+
+class TestWhereTheToyFigureDrawsIt:
+    """Which row each bar and label sits on, read from the drawn figure."""
+
+    def test_the_rows_carry_the_three_labels_top_to_bottom(self, toy) -> None:
+        assert [bar.label for bar in toy.bars] == [
+            "survivorship-free picks,\nwhat a trader got",
+            "survivor-only picks,\nas the book prints them",
+            "survivor-only picks,\nNEOF on one share basis",
+        ]
+        ax = toy.axes[0]
+        ticks = sorted(
+            zip(ax.get_yticks(), [t.get_text() for t in ax.get_yticklabels()], strict=True)
+        )
+        assert [label for _, label in reversed(ticks)] == [bar.label for bar in toy.bars]
+
+    def test_each_bars_segments_share_the_row_its_label_names(self, toy) -> None:
+        ax = toy.axes[0]
+        rows = {
+            label: y
+            for y, label in zip(
+                ax.get_yticks(), [t.get_text() for t in ax.get_yticklabels()], strict=True
+            )
+        }
+        centre = {
+            gid: [p.get_y() + p.get_height() / 2 for p in ax.patches if p.get_gid() == gid]
+            for gid in ("loss", "others", "neof")
+        }
+        labels = [bar.label for bar in toy.bars]
+        assert centre["loss"] == [pytest.approx(rows[labels[0]])]
+        assert centre["others"] == pytest.approx([rows[labels[1]], rows[labels[2]]])
+        assert centre["neof"] == pytest.approx([rows[labels[1]], rows[labels[2]]])
+
+    def test_each_total_label_sits_at_its_own_bars_end(self, toy) -> None:
+        ax = toy.axes[0]
+        rows = sorted(ax.get_yticks(), reverse=True)
+        totals = [t for t in ax.texts if t.get_text().endswith("%")]
+        assert [t.xy for t in totals] == [
+            pytest.approx((max(bar.total, 0.0), y)) for bar, y in zip(toy.bars, rows, strict=True)
+        ]
+
+    def test_the_other_nine_label_sits_in_the_middle_of_its_segment(self, toy) -> None:
+        ax = toy.axes[0]
+        rows = sorted(ax.get_yticks(), reverse=True)
+        labels = [t for t in ax.texts if t.get_text() == "the other nine"]
+        assert [t.xy for t in labels] == [
+            pytest.approx((bar.others / 2, y))
+            for bar, y in zip(toy.bars, rows, strict=True)
+            if bar.neof
+        ]
+
+    def test_the_axis_holds_every_bar_and_reads_in_percent(self, toy) -> None:
+        ax = toy.axes[0]
+        low, high = ax.get_xlim()
+        assert low < min(bar.total for bar in toy.bars)
+        assert high > max(bar.total for bar in toy.bars)
+        assert ax.xaxis.get_major_formatter().xmax == 1.0
+
+
 class TestTheToyBars:
     """The two printed tables, and the second with NEOF on one share basis."""
 
@@ -211,7 +304,8 @@ def test_the_command_draws_the_toy_first_and_the_costs_from_one_read(monkeypatch
     figures.main()
     assert drawn == [("toy", {}), ("costs", {"result": result})]
     out = capsys.readouterr().out
-    assert TOY_FIGURE in out and CUMULATIVE_FIGURE in out
+    assert f"wrote {FIGURES_DIR / TOY_FIGURE}" in out
+    assert f"wrote {FIGURES_DIR / CUMULATIVE_FIGURE}" in out
 
 
 def test_a_missing_vintage_reaches_the_operator_as_a_line_after_the_toy(monkeypatch) -> None:
