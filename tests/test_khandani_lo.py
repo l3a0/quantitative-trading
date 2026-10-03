@@ -542,7 +542,8 @@ class TestRuleAOnTheOpens:
         assert variation.unfilled.after_costs == pytest.approx(1.0335, abs=5e-5)
 
     def test_without_wyn(self, variation: OpenVariation) -> None:
-        """On the opens the splice lowers both figures, where on the closes it raises them."""
+        """On the opens WYN's gap lowers the figure before costs and raises the
+        one after costs, where on the closes it raises the figure before costs."""
         assert variation.without_splice.before_costs == pytest.approx(4.8508, abs=5e-5)
         assert variation.without_splice.after_costs == pytest.approx(1.0357, abs=5e-5)
 
@@ -594,12 +595,18 @@ class TestTheVerdicts:
         self, variation: OpenVariation
     ) -> None:
         """Rule A clears 1.0 on both figures, and after costs without the fill
-        or without WYN too, so WYN's gap decides neither verdict. Charging the
-        first day leaves rule B below 1.0, so Chan's quirks do not decide it."""
+        or without WYN too, so reading WYN's gap as a gap does not move rule A
+        across the line. The point pins above already imply each comparison,
+        and this states them against ``VERY_POSITIVE`` because the post does."""
         a = variation.notebook
         assert a.before_costs >= VERY_POSITIVE and a.after_costs >= VERY_POSITIVE
         assert variation.unfilled.after_costs >= VERY_POSITIVE
         assert variation.without_splice.after_costs >= VERY_POSITIVE
+
+    def test_charging_the_first_day_leaves_rule_b_below_the_line(
+        self, variation: OpenVariation
+    ) -> None:
+        """Removing both of Chan's quirks gives 0.8293, so they do not decide the claim."""
         assert variation.rule_b.after_costs_charged < VERY_POSITIVE
 
     def test_which_figures_clear_the_one_year_bar(self, variation: OpenVariation) -> None:

@@ -988,8 +988,8 @@ Four groups of its figures are not pinned here. Its page numbers are the
 revised edition's, read in the Kindle Cloud Reader on 2026-10-03.
 
 1. Chan's words. "Of less than 1 is not suitable" from p. 23, the 5 basis
-   points of p. 25, the futures rule at about 3 before costs and −3 after 1
-   basis point and the mechanism, both on p. 26, "fictitious" from p. 44, the
+   points of p. 25, the mechanism and the futures rule at about 3 before costs
+   and −3 after 1 basis point, both on p. 26, "fictitious" from p. 44, the
    small and microcap explanation on p. 74, and from p. 78 "mediocre", "the
    only change", the exercise on the S&P 400 and S&P 600 that closes Example
    3.8, and Example 3.8's "very positive". The last is not among the
@@ -1002,8 +1002,8 @@ revised edition's, read in the Kindle Cloud Reader on 2026-10-03.
    That older versions of pandas filled a gap with the last price by default,
    which is how the post explains the notebook's fill. The repost of Chan's
    notebooks at pinhaocheng/epchan-quant_trading_Python_codes `5fcab61`,
-   where the four printouts were read, while the suite pins the printouts
-   themselves.
+   where the four printouts were read. The suite pins their values, not where
+   they were read.
 3. Chan's *Algorithmic Trading*, cited through
    [its committed notes](research/book-notes/algorithmic-trading.md):
    his argument at location 432 that survivorship flatters a long-short
@@ -1033,11 +1033,10 @@ for the two figures' own numbers. Five groups had no pin before it.
    which `TestTheVintage` holds.
 4. Where each running total ends and NEOF's 21.89 points on one share basis,
    which the figure tests hold.
-5. That both of the notebook's figures at the open clear 1.0, and its figure
-   after costs does without the fill or without WYN too, while charging the
-   first day leaves the book's rule below 1.0.
-   `TestTheVerdicts::test_the_notebook_clears_the_line_whichever_way_wyns_gap_is_read`
-   holds them.
+5. That both of the notebook's figures on the opens clear 1.0, that its
+   figure after costs still clears 1.0 without the fill or without WYN, and
+   that charging the first day leaves the book's rule below 1.0. Two tests in
+   `TestTheVerdicts` hold them.
 
 Its two figures are drawn by
 [src/chan/survivorship_and_costs_figures.py](src/chan/survivorship_and_costs_figures.py),
