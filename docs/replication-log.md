@@ -165,22 +165,25 @@ Row 8 is therefore quoted at the two decimals `KOPEP_REF` records, and not at
 the −2.14258438 that the docstring of `test_fails_to_cointegrate` also carries.
 A docstring is not an authority for a number. Row 4 looks like the opposite
 call and is not: its eight-digit figure is quoted because the book prints it,
-at location 3718.
+at location 3718. Row 12 quotes the same figure for the same reason.
 
 ### What precision a number is quoted at
 
 A computed number is quoted at the precision its assertion holds, never past it.
 
-The four CADF statistics are pinned at `abs=1e-2`, so they are quoted at two
-decimals even though the engine returns four. The hedge ratios are pinned at
-`abs=5e-4` and are quoted at four. The Chapter 3 statistic is the exception:
-`TestLagSettingDetour::test_fixed_lag_reproduces_the_book` holds that same
-statistic at `abs=5e-4`, so row 4 quotes −3.0875 and cites that assertion
-rather than the two-decimal pin on the same quantity.
+The CADF statistics of rows 3, 4, 8 and 10 are pinned at `abs=1e-2`, so they
+are quoted at two decimals even though the engine returns four. The hedge
+ratios are pinned at `abs=5e-4` and are quoted at four. The Chapter 3 statistic
+is the exception: `TestLagSettingDetour::test_fixed_lag_reproduces_the_book`
+holds that same statistic at `abs=5e-4`, so row 4 quotes −3.0875 and cites that
+assertion rather than the two-decimal pin on the same quantity. Row 12, the
+same statistic on Chan's own files, has no two-decimal pin at all and is held
+at `abs=5e-4` too, so it quotes −3.1780.
 
 That exception carries weight. Row 4's verdict turns on a margin of 0.0055
 against Chan's own printed critical values, and at two decimals the margin
-would print as 0.01, nearly double the real one.
+would print as 0.01, nearly double the real one. Row 12's verdict turns on a
+gap of +0.0035, which two decimals would print as 0.00, a match.
 
 Two quantities are derived rather than stated: a gap, which the vocabulary
 defines as exactly that difference, and a rejection margin, which is a
@@ -197,7 +200,10 @@ A gap is stated at the precision both sides support, which is the coarser of
 the two, and it is rounded from the engine's full value rather than from the
 quoted one. Subtracting two already-rounded numbers moves a gap by up to a full
 unit of the last digit, which is how Entry 1's row 3 gap of −0.10 would
-otherwise print as −0.09. Row numbers restart per entry, so a reference to one
+otherwise print as −0.09. Its row 12 gap of +0.0035 would print as +0.0036 the
+same way, which is the figure
+[issue 232](https://github.com/l3a0/quantitative-trading/issues/232) first
+quoted. Row numbers restart per entry, so a reference to one
 outside its own entry names the entry too.
 
 ### How a verdict is chosen
@@ -229,6 +235,15 @@ Nothing is left to blame, which is the harder failure and the worse verdict.
 The rule also settles the two CADF rows, which carry gaps of −0.10 and +0.0940
 and still reproduce. Chan's claim is that the pair rejects the no-cointegration
 null at a stated level. Both rows reject at that level, so the claim survives.
+
+Rows 4 and 12 part the way rows 1 and 6 do. Both run the Chapter 3 statistic
+through one specification and both land the level Chan states. Row 4 reads a
+modern download and misses by +0.0940, a distance the vintage explains. Row 12
+reads Chan's own files and misses by +0.0035, a distance nothing outside the
+method explains, so the smaller miss takes the worse verdict. The claim
+surviving does not rescue it, because the third verdict asks only whether the
+number differs with no cause available, and row 6 already applied it to a
+figure whose claim survives elsewhere in this entry.
 
 Two more verdict values suggest themselves and are not adopted. `reproduced
 exactly` is not needed, because a gap of 0.0000 already says it in the column
@@ -329,7 +344,7 @@ the digit and GLD/GDX is the pair with the gap, so an entry carrying either
 alone would report only matches or only misses. The design doc's
 considered-and-rejected register cuts the first of those outright.
 
-Eleven rows, and all of them are derivable from
+Twelve rows, and all of them are derivable from
 [tests/test_pair_cointegration.py](../tests/test_pair_cointegration.py).
 
 ### What the book printed
@@ -347,6 +362,7 @@ Eleven rows, and all of them are derivable from
 | 9 | KO/PEP daily-return correlation | 0.4849, reported as statistically significant | Kindle location 3838 |
 | 10 | GLD/GDX CADF statistic, full modern span | none, the book stops in 2007 | n/a |
 | 11 | Chan's Python-versus-MATLAB disagreement, with his R run read as the tiebreak | −2.4 from his Python run, printed in full as t = −2.3591268376687244 with p = 0.3444494880427884 and a through-origin hedge of 1.631009, and −3.2 from his R run, printed in full as t = −3.240868894 with p = 0.004975, against the −3.18156477 of row 4 | Kindle locations 3755 and 3806 for the prose. The code and the full printouts are at pp. 149 to 151 of the revised edition, read by the owner on 2026-10-02 and recorded on [issue 168](https://github.com/l3a0/quantitative-trading/issues/168) rather than in the book notes |
+| 12 | GLD/GDX CADF statistic from Chan's own archive, Chapter 3 window | −3.18156477, the same figure as row 4, printed beside an AR(1) estimate of −0.070038 | Kindle location 3718 |
 
 ### What this repo computed
 
@@ -363,6 +379,7 @@ Eleven rows, and all of them are derivable from
 | 9 | 1977-01-03 to 2008-01-18 | Pearson correlation of daily returns, returns divided by the earlier price, two-sided significance on n−2 degrees of freedom | same two files as row 7 | 0.48492, with t = 49.0707 | `TestKoPepNonCointegration::test_returns_are_correlated` |
 | 10 | 2006-06-19 to 2026-06-16 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term | `gld_20yr_prices.csv`, downloaded 2026-06-16, and `gdx_20yr_prices.csv`, downloaded 2026-08-27, both Yahoo dividend-adjusted. Two files and two dates, so naming one of them cannot re-derive the row | −1.45, with a half-life of 833.5 | `TestGldGdxReproduction::test_full_span_fails_to_reject` |
 | 11 | 2006-05-23 to 2007-05-23 for the Python run and the lag sweep, 2006-05-23 to 2007-11-30 for the R run | Python: `statsmodels` `coint` at its defaults, which is the Engle-Granger test on the with-intercept residual spread at the lag `autolag='aic'` picks. R: Hansen's covariate-augmented Dickey-Fuller regression, the daily change in GLD by OLS on a constant, GLD's lagged level, one lagged change of GLD, and GDX today and yesterday, with the t on the lagged level. GDX enters as its price, so the regression is an error-correction cointegration test whose coefficients imply a hedge. The lag sweep: row 4's spread at `autolag='aic'` and at every fixed lag from 0 to 16 | two vintages, run separately: `gld_chan.csv` and `gdx_chan.csv`, saved 2007-12-02, for both of Chan's runs, and the two raw yfinance files of row 1 for the sweep | On Chan's files, −2.3591 at 6 lags with p = 0.3444, and −3.2409 on 378 residual degrees of freedom, with an implied hedge of 1.6992, and +0.3554 when GDX's daily change replaces its price. On the yfinance raw closes, −2.2979 at 6 lags and −3.0875 at 1 lag, and the sweep clears −3.04 only at 0 and 1 lags | `TestChansPythonRun::test_coint_at_its_defaults_lands_the_printout` and `::test_the_default_picks_six_lags`, and `TestChansRRunIsACovariateAugmentedDickeyFuller::test_the_regression_lands_the_printout`, `::test_the_covariate_went_in_as_a_price` and `::test_the_training_subset_was_not_applied` for Chan's files, and `TestLagSettingDetour::test_the_default_lag_choice_flips_the_verdict`, `::test_fixed_lag_reproduces_the_book` and `::test_the_statistic_is_not_monotone_in_the_lag` for the yfinance raw closes |
+| 12 | 2006-05-23 to 2007-05-23 | ADF at a fixed lag of 1 on the with-intercept residual spread, no deterministic term, the same specification as row 4 | `gld_chan.csv` and `gdx_chan.csv`, the adjusted-close columns of Chan's own `GLD.xls` and `GDX.xls`, saved 2007-12-02 | −3.1780, with an AR(1) estimate of −0.069969 | `TestChansPythonRun::test_one_fixed_lag_lands_matlabs_band_and_misses_its_digits`, and `::test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans` and `TestResidualCheckOnChansFiles::test_the_fit_and_its_residuals` for the statistic alone |
 
 ### The verdicts
 
@@ -371,7 +388,7 @@ Eleven rows, and all of them are derivable from
 | 1 | −0.0387 | reproduced with a gap | The claim survives on rows 3 and 4, which reject the no-cointegration null. The number does not, and the cause is named and outside the method: Chan read a 2007-vintage adjusted series, and nineteen years of GDX distributions have rescaled that history since, so no modern download reaches it. |
 | 2 | none | none, not a replication | The book prints no with-intercept slope, so there is nothing to reproduce. The row exists so that 1.3905 is not read against 1.6766, which would compare two specifications rather than two vintages. |
 | 3 | −0.10 | reproduced | Chan reports better than 95% confidence. The computed statistic clears the 5% critical value under both tables in play, −3.34 from `EG_CRIT_N2` in the tree and −3.380 from the MATLAB printout quoted at location 3718, so the level he states survives. That printout is from his Chapter 3 run, and these are asymptotic values, so reading it across to this window is sound. |
-| 4 | +0.0940 | reproduced | Chan reports better than 90% and not 95%, which is exactly the band the computed statistic lands in. It clears the 10% value and misses the 5% one under both tables. The margin is what the verdict rests on, and the two tables disagree about how thin it is: −0.0475 against `EG_CRIT_N2`'s −3.04, which is the only critical table in the tree, and −0.0055 against the −3.082 his MATLAB printed at location 3718, which survives only as quoted highlight text. Same verdict, and under his table the margin is smaller by a factor of 8.6. This row cites `EG_CRIT_N2` as the table it used. |
+| 4 | +0.0940 | reproduced | Chan reports better than 90% and not 95%, which is exactly the band the computed statistic lands in. It clears the 10% value and misses the 5% one under both tables. The margin is what the verdict rests on, and the two tables disagree about how thin it is: −0.0475 against `EG_CRIT_N2`'s −3.04, which is the only critical table in the tree, and −0.0055 against the −3.082 his MATLAB printed at location 3718, which survives only as quoted highlight text. Same verdict, and under his table the margin is smaller by a factor of 8.6. This row cites `EG_CRIT_N2` as the table it used. Row 12 runs the same specification on Chan's own files. |
 | 5 | not statable, the source gives one significant figure | reproduced | Both computations land on about 10 days. Two vintages that disagree on the hedge agree on the half-life, which is the evidence for which of the two estimates is fragile. |
 | 6 | −0.0371 | did not reproduce | A smaller distance than row 1 and a worse verdict, because the vintage explanation is spent. This is Chan's own saved spreadsheet, re-run through his own specification, missing the number he printed from it. The 2007 book-run series is a state no surviving file carries, his included. |
 | 7 | 0.0000 | reproduced | The same code, on a vintage that was not lost, lands on the printed digits. This is the counterpart to row 1 and the reason the GLD/GDX gap is a vintage story rather than a broken implementation. |
@@ -379,20 +396,25 @@ Eleven rows, and all of them are derivable from
 | 9 | 0.0000 at four decimals | reproduced | Chan's claim is that the correlation is statistically significant. It clears the 5% level two-sided by a wide margin. Together with row 8 this is the demonstration that correlation and cointegration are different things. |
 | 10 | none | none, not a replication | The book stops in 2007, so there is no published figure. What the row shows is the shelf life: the statistic fails to reject at 10% and the half-life runs to 833.5 days against the about 10 of row 5. |
 | 11 | 0.0000 at four decimals on Chan's files, against both printed t-statistics. On the yfinance raw closes, +0.1 against his −2.4 | reproduced | Every figure both runs print reproduces on Chan's files at the precision printed, apart from R's p-value and its ρ², and the verdict rests there. The yfinance gap is the vintage gap of row 1. The Python claim survives: its p of 0.3444 fails to reject at 10%. The R claim is not settled by its own printout. Its p of 0.004975 comes from Hansen's distribution, which assumes a stationary covariate, and the code passed GDX's price, which fails to reject a unit root. That makes the regression an error-correction cointegration test, so neither Hansen's table nor `EG_CRIT_N2` is its critical value, and nothing here supplies one. Given GDX's daily change, the input Hansen's test is built for, the t is +0.3554, which rejects nothing. The conclusion Chan draws does not survive. He concludes that Python's statistics and econometrics packages are not to be trusted. Python and MATLAB ran one test on one window and differ only in the lag count, and R ran a different test on a longer window with an input it was not built for, so the disagreement says nothing about Python's packages. `TestChansPythonRun::test_the_fixed_lags_that_matched_the_2026_closes_miss_on_chans` kills three earlier readings: zero fixed lags, which give −3.2018 on the yfinance closes and −3.2975 on Chan's, three fixed lags, which give −2.4067 against −2.4857, and one fixed lag, whose −3.1780 rounds to R's −3.2 but comes from a different test than R ran. |
+| 12 | +0.0035 | did not reproduce | The claim survives and the number does not, on the files where the vintage explanation is spent. Chan reports better than 90% and not 95%, and the statistic lands in that band under both tables. It clears `EG_CRIT_N2`'s −3.04 by 0.1380 and the −3.082 his MATLAB printed by 0.0960, and misses both 5% values. The number misses his eight digits by +0.0035, and the AR(1) estimate printed beside them misses by +0.000069, so the difference is not in the standard error alone. This is row 6's position: Chan's own saved files, run through the specification `example3_6_1.m` reads, missing a figure he printed. Two causes are possible and neither is established. `cadf` may differ from the Python port in a detail not yet found, or the saved files may differ from the series MATLAB read. No specification tried lands the figure: a constant in the ADF regression gives −3.1749 and the through-origin spread gives −3.8851. The one-lag fit fails the residual check on these files, with a Breusch-Godfrey p of 0.0460 and residual lag 6 outside the band. That limits what the rejection supports, as it does for row 4, and leaves the verdict alone, which rests on the digits. |
 
 ### What the entry concludes
 
 Four things, in the order of how much they cost to learn.
 
-1. **The pair's verdict reproduced and its hedge ratio did not.** Rows 3, 4
-   and 8 land the rejection levels Chan states, row 5 lands his half-life, and
-   row 9 lands his correlation. Rows 1 and 6 miss his hedge. A published number
-   and the claim it supports have different shelf lives, and only the number
-   depends on a vintage.
-2. **Chan's own saved data misses his own printed figure.** Row 6 is the
-   receipt. It removes the obvious reply to row 1, that the reproduction is
-   simply wrong, and it puts the 2007 book-run series beyond reach of any file
-   that still exists.
+1. **The pair's verdict reproduced and its hedge ratio did not.** Rows 3, 4,
+   8 and 12 land the rejection levels Chan states, row 5 lands his half-life,
+   and row 9 lands his correlation. Rows 1 and 6 miss his hedge. A published
+   number and the claim it supports have different shelf lives, and only the
+   number depends on a vintage.
+2. **Chan's own saved data misses his own printed figures.** Row 6 is the
+   receipt for the hedge. It removes the obvious reply to row 1, that the
+   reproduction is simply wrong, and it puts the 2007 book-run series beyond
+   reach of any file that still exists. Row 12 is the receipt for the Chapter 3
+   statistic. His files land the band he reports and miss his −3.18156477 by
+   +0.0035. They are also the files his Python and R printouts reproduce on, to
+   within a billionth, which says those two runs read them and says nothing
+   about which series his MATLAB read.
 3. **Chan's conclusion about Python is refuted by his own numbers.** Row 11 is
    the most useful verdict here. His −2.4 and his −3.2 both reproduce on his
    own files, each t-statistic to within a billionth, and they come from two
@@ -403,8 +425,9 @@ Four things, in the order of how much they cost to learn.
    its printed p-value does not settle whether it rejects. Chan's MATLAB call,
    as `example3_6_1.m` reads, runs the Engle-Granger test on the same 252 days
    as Python with one lag passed as an argument, so against MATLAB what
-   separates Python is the lag count. On the yfinance raw closes the
-   statistic does not weaken steadily as lags are added, since it is more
+   separates Python is the lag count. That is a reading rather than a
+   reproduction, since row 12 misses MATLAB's digits on the same files. On the
+   yfinance raw closes the statistic does not weaken steadily as lags are added, since it is more
    negative at four lags than at three. The verdict is what holds there: zero or one lag clears the 10% line
    and every count from two to sixteen misses it. A conclusion about a library
    turns out to be a conclusion about a default and about which test ran.
@@ -418,7 +441,10 @@ Every computed figure here agrees with
 [blog/gld-gdx-cointegration-lessons.md](../blog/gld-gdx-cointegration-lessons.md),
 which carries a four-row summary of the same comparison and compresses the two
 CADF windows into one cell. The two-run table's published figures agree too,
-and one of them took a correction to get there.
+and one of them took a correction to get there. Row 12 has no counterpart in
+the essay, whose fifth detour puts the one-lag miss down to the vintage alone.
+[Issue 262](https://github.com/l3a0/quantitative-trading/issues/262) carries
+that correction.
 
 That essay's two-run table once gave the published hedge as 1.6766 on its
 Chapter 3 row as well as its Chapter 7 row. The book prints 1.6766 for the
@@ -491,7 +517,9 @@ would also produce. Two more things bear on how far the result reaches.
    fails Breusch-Godfrey with a p of 0.0460, and six lags is again the first
    count that passes, at −2.3591, which does not reject. That six-lag fit is
    the one `coint` runs at its defaults, so the statistic Chan printed and
-   distrusted is the one whose residuals pass.
+   distrusted is the one whose residuals pass. The failed one-lag fit is row
+   12's, and the failure bears on what its rejection supports rather than on
+   its verdict, which rests on the digits.
 2. At the 5% cut, Breusch-Godfrey alone passes the fits at zero, two and five
    lags as well, and still fails one lag. What keeps those three out is the
    lag-6 bar outside the band, and the band is the pointwise check.
@@ -549,8 +577,8 @@ row computes.
 - A hedge ratio is an OLS fit over every aligned trading day: 385 for rows 1, 2
   and 6, and 7835 for row 7. The suite asserts none of these four.
 - A CADF statistic is an ADF fit, two observations shorter at the fixed lag of
-  1 that these rows use: 383 for row 3, 250 for row 4, 7833 for row 8, and 5028
-  for row 10. The suite pins all four.
+  1 that these rows use: 383 for row 3, 250 for rows 4 and 12, 7833 for row 8,
+  and 5028 for row 10. The suite pins all five.
 - Row 5's half-life is an AR(1) regression on the same spreads as rows 3 and 6.
 - Row 9 is neither. It runs on 7834 daily returns with 7832 degrees of freedom,
   which is what its pinned t of 49.0707 carries.

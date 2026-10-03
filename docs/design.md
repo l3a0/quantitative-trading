@@ -141,6 +141,10 @@ Each one earns its place by answering an objection the GLD/GDX gap invites.
    default and picks six on the short window, where Chan's MATLAB call passes
    one, and six lags carry the statistic back across the 10% line. A
    conclusion about a library turned out to be a conclusion about a default.
+   That MATLAB ran this test at one lag is a reading of `example3_6_1.m`, since
+   on Chan's own files one lag gives −3.1780 against MATLAB's printed
+   −3.18156477, which row 12 of the replication log's Entry 1 records as not
+   reproduced.
    His R run is a different test. The book's R code calls `CADFtest`,
    Hansen's covariate-augmented Dickey-Fuller test, on all 385 days rather
    than the 252, and passes GDX's price where the test expects a stationary

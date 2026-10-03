@@ -660,8 +660,9 @@ class TestChansPythonRun:
     It is the test Chan's MATLAB call runs in row 4 of
     ``docs/replication-log.md``, on the same window with a different lag count,
     as ``example3_6_1.m`` and the book's code read. That is a reading, since no
-    specification tried here lands MATLAB's -3.18156477 on these files.
-    ``TestLagSettingDetour`` holds the lag difference on the 2026 closes.
+    specification tried here lands MATLAB's -3.18156477 on these files, and
+    ``test_one_fixed_lag_lands_matlabs_band_and_misses_its_digits`` pins the
+    miss. ``TestLagSettingDetour`` holds the lag difference on the 2026 closes.
 
     Vintage: ``gld_chan.csv`` and ``gdx_chan.csv``, the adjusted-close columns
     of Chan's companion ``GLD.xls`` and ``GDX.xls``, last saved 2007-12-02.
@@ -752,6 +753,67 @@ class TestChansPythonRun:
             [-3.2975, -3.1780, -2.4857], abs=5e-4
         )
         assert [round(stat_at(k), 1) for k in (0, 1, 3)] == [-3.3, -3.2, -2.5]
+
+    #: What Chan's MATLAB ``cadf`` printed for this window at Kindle location
+    #: 3718: the t-statistic, the AR(1) estimate beside it, and the 10% critical
+    #: value. Cited, never computed. The 5% value is
+    #: ``TestResidualCheckChapter7.MATLAB_5PCT``.
+    MATLAB_T = -3.18156477
+    MATLAB_AR1 = -0.070038
+    MATLAB_10PCT = -3.082
+
+    def test_one_fixed_lag_lands_matlabs_band_and_misses_its_digits(
+        self, closes: pd.DataFrame
+    ) -> None:
+        """Row 12 of Entry 1: MATLAB's specification on Chan's own files.
+
+        One fixed lag gives -3.1780, which lands in the band Chan reports,
+        past the 10% value and short of the 5% one under both tables. It
+        misses the printed -3.18156477 by +0.0035, and the AR(1) estimate
+        printed beside it misses too, at -0.069969 against -0.070038, so the
+        difference is not in the standard error alone. Two more
+        specifications land further away: a constant in the ADF regression
+        gives -3.1749, and the through-origin spread gives -3.8851.
+
+        The gap is +0.0035 from the engine's value and +0.0036 from the
+        four-decimal one, which is the rounding the replication log's
+        precision rule forbids. Issue 232 quoted the second.
+
+        Specification: ``adfuller`` with ``maxlag=1``, ``autolag=None`` and
+        ``regression='n'`` on the with-intercept residual spread, 250
+        observations. Vintage as the class. First pinned on 2026-10-03.
+        """
+        a = closes["GLD"].to_numpy(dtype=float)
+        b = closes["GDX"].to_numpy(dtype=float)
+        fit = engle_granger(a, b, lags=1, origin=True)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            result = adfuller(fit.spread, maxlag=1, autolag=None, regression="n", regresults=True)
+            with_constant = float(adfuller(fit.spread, maxlag=1, autolag=None, regression="c")[0])
+            assert fit.origin_hedge is not None
+            through_origin = float(
+                adfuller(a - fit.origin_hedge * b, maxlag=1, autolag=None, regression="n")[0]
+            )
+        stat, resols = float(result[0]), result[-1].resols
+        nobs, ar1 = int(resols.nobs), float(resols.params[0])
+
+        assert nobs == 250
+        assert stat == pytest.approx(-3.1780, abs=5e-4)
+        assert EG_CRIT_N2["5%"] < stat < EG_CRIT_N2["10%"]
+        assert TestResidualCheckChapter7.MATLAB_5PCT < stat < self.MATLAB_10PCT
+        assert stat - EG_CRIT_N2["10%"] == pytest.approx(-0.1380, abs=5e-4)
+        assert stat - self.MATLAB_10PCT == pytest.approx(-0.0960, abs=5e-4)
+
+        assert abs(stat - self.MATLAB_T) > 5e-4
+        assert round(stat - self.MATLAB_T, 4) == 0.0035
+        assert round(round(stat, 4) - self.MATLAB_T, 4) == 0.0036
+
+        assert ar1 == pytest.approx(-0.069969, abs=5e-7)
+        assert round(ar1 - self.MATLAB_AR1, 6) == 0.000069
+
+        assert with_constant == pytest.approx(-3.1749, abs=5e-4)
+        assert through_origin == pytest.approx(-3.8851, abs=5e-4)
 
 
 class TestChansRRunIsACovariateAugmentedDickeyFuller:
