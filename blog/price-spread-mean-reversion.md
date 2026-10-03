@@ -199,7 +199,7 @@ t & \Delta z_t & z_{t-1} & \Delta z_{t-1} & \Delta z_{t-2} \\ \hline
 
 Then estimate `γ`, `φ₁` and `φ₂` from the above data with an OLS regression.
 
-##### What does γ do?
+##### What does `γ` do?
 
 `γ` is the mean reversion coefficient.
 
