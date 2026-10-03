@@ -1,10 +1,12 @@
 """The pins for Khandani and Lo's linear reversal, Chan's Examples 3.7 and 3.8.
 
 This file is the single authority for every number any prose surface quotes
-about the reversal, with one exception. ``blog/survivorship-and-transaction-costs.md``
-also quotes where its running-profit figure ends, which
-``tests/test_survivorship_and_costs_figures.py`` holds, and README lists what
-the post says that nothing pins. ``docs/replication-log.md`` Entry 8 carries
+about the reversal, with two exceptions, both in
+``blog/survivorship-and-transaction-costs.md``. The post quotes where its
+running-profit figure ends, which ``tests/test_survivorship_and_costs_figures.py``
+holds. It also quotes WYN's 0.26, 31.85 and 952 trading days, which
+``tests/test_series.py`` holds as a fact about the committed panel. README
+lists what the post says that nothing pins. ``docs/replication-log.md`` Entry 8 carries
 Example 3.7's verdicts and Entry 10 carries Example 3.8's, and each points here
 row by row. Example 3.8's pins are under ``the open-price variation`` below,
 and that section states its own rules.
@@ -587,6 +589,18 @@ class TestTheVerdicts:
         assert not variation.claim_holds
         assert variation.rule_b.before_costs >= VERY_POSITIVE
         assert variation.rule_b.after_costs < VERY_POSITIVE
+
+    def test_the_notebook_clears_the_line_whichever_way_wyns_gap_is_read(
+        self, variation: OpenVariation
+    ) -> None:
+        """Rule A clears 1.0 on both figures, and after costs without the fill
+        or without WYN too, so WYN's gap decides neither verdict. Charging the
+        first day leaves rule B below 1.0, so Chan's quirks do not decide it."""
+        a = variation.notebook
+        assert a.before_costs >= VERY_POSITIVE and a.after_costs >= VERY_POSITIVE
+        assert variation.unfilled.after_costs >= VERY_POSITIVE
+        assert variation.without_splice.after_costs >= VERY_POSITIVE
+        assert variation.rule_b.after_costs_charged < VERY_POSITIVE
 
     def test_which_figures_clear_the_one_year_bar(self, variation: OpenVariation) -> None:
         a, b = variation.notebook, variation.rule_b

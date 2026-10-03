@@ -2388,7 +2388,9 @@ Entry 8 says.
 the S&P 600 file.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/survivorship-and-transaction-costs.md](../blog/survivorship-and-transaction-costs.md)
+moves with it, since that post's Lessons 6 and 7 quote these figures.
 
 ## Entry 11: the commodity seasonals, Chan's *Quantitative Trading*
 
