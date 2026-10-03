@@ -1,8 +1,11 @@
 """The pins for Khandani and Lo's linear reversal, Chan's Example 3.7.
 
 This file is the single authority for every number any prose surface quotes
-about the reversal. ``docs/replication-log.md`` Entry 8 carries the verdicts
-and points here row by row.
+about the reversal, with one exception. ``blog/survivorship-and-transaction-costs.md``
+also quotes where its running-profit figure ends, which
+``tests/test_survivorship_and_costs_figures.py`` holds, and README lists what
+the post says that nothing pins. ``docs/replication-log.md`` Entry 8 carries
+the verdicts and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here rather than in every docstring.
@@ -125,8 +128,9 @@ class TestTheVintage:
         assert frame.loc["2006-12-29"].notna().sum() == 495
 
     def test_no_stock_leaves_during_the_window_and_four_join(self, panel) -> None:
-        """Survivors only, so the count can grow and never shrink. The four
-        that join began trading during 2006."""
+        """No stock priced on the first day is missing on the last, which a
+        file of survivors guarantees. The four that join began trading during
+        2006."""
         _, frame = panel
         first, last = frame.loc["2006-01-03"].notna(), frame.loc["2006-12-29"].notna()
         assert list(frame.columns[first & ~last]) == []
@@ -224,6 +228,17 @@ class TestTheQuirksMoveTheFigure:
         dropped = math.sqrt(TRADING_DAYS) * kept.mean() / kept.std(ddof=1)
         assert dropped == pytest.approx(-3.1822, abs=5e-5)
         assert round(dropped, 2) != BOOK_AFTER_COSTS
+
+    def test_numpys_nan_functions_land_on_chans_digit_by_another_route(
+        self, result: Reversal
+    ) -> None:
+        """``np.nanmean`` and ``np.nanstd`` also skip the NaN in both, but the
+        deviation divides by n rather than n − 1, which lands on −3.19 with
+        neither quirk. So the second digit turns on the divisor as well."""
+        after = result.pnl_after_costs
+        numpy_port = math.sqrt(TRADING_DAYS) * np.nanmean(after) / np.nanstd(after)
+        assert numpy_port == pytest.approx(-3.1886, abs=5e-5)
+        assert round(numpy_port, 2) == BOOK_AFTER_COSTS
 
 
 class TestTheScaleBreakDecision:

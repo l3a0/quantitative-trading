@@ -55,7 +55,9 @@ A port that skips the NaN in both, the way pandas does, lands on −3.1822 and
 misses Chan's −3.19 at the two decimals he printed. ``tests/test_khandani_lo.py`` pins what each
 specification gives, and :func:`reversal` returns both Chan's figures and the
 after-cost figure with both quirks removed, so the distance between them is
-printed rather than argued.
+printed rather than argued. :func:`daily_book` states the third figure's
+average day as a share of the position held, which is how
+``blog/survivorship-and-transaction-costs.md`` explains it.
 
 **The vintage.** ``spx_20071123/``, the 500 stocks of Chan's
 ``SPX_20071123.mat``, read as one frame through
@@ -248,9 +250,11 @@ class DailyBook:
     Chan's weights, which he never scales. Every other field is a daily mean
     or deviation divided by that one constant, so each reads as a fraction of
     the position held. A constant divisor leaves both Sharpe ratios where they
-    were, which is why it is the window's mean rather than each day's own
-    position: dividing each day by its own would be the different rule the
-    module docstring describes, and would move both figures.
+    were, which is why the profit and the swings divide by the window's mean
+    rather than each day's own position: dividing each day by its own would be
+    the different rule the module docstring describes, and would move both
+    figures. The turnover takes the same divisor so that it times
+    ``ONE_WAY_COST`` is exactly the cost.
 
     1. ``profit``, the mean daily profit before costs.
     2. ``cost``, the mean daily cost, first day charged.

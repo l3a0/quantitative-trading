@@ -256,7 +256,8 @@ def make_toy_figure(out: Path | None = None) -> Figure:
     )
     _title(
         fig,
-        "A database of survivors turns a 42% loss into a 388% gain, most of it from one row",
+        f"A database of survivors turns a {-bars[0].total:.0%} loss into a "
+        f"{bars[1].total:.0%} gain, most of it from one row",
         f"Chan's Example 3.3, revised edition: the ten cheapest of the 1,000 largest stocks, "
         f"{START_DATE} to {END_DATE}, from the book's two printed tables.\n"
         f"NEOF's start price predates a 1-for-{NEOF_REVERSE_SPLIT} reverse split and its end "
@@ -273,9 +274,9 @@ def main() -> None:
     try:
         result = chan_window_result()
     except VintageUnavailable as unavailable:
-        # The refusal chan.khandani_lo.main prints, caught the same way, so a
-        # missing S&P 500 file reaches the reader as one line after the toy's
-        # figure, which reads nothing, has already been drawn.
+        # Caught the way chan.khandani_lo.main catches it. The toy's figure
+        # reads no file and is already drawn, so a missing S&P 500 file costs
+        # one line of output rather than a traceback.
         raise SystemExit(str(unavailable)) from unavailable
     make_cumulative_figure(result=result)
     print(f"wrote {FIGURES_DIR / CUMULATIVE_FIGURE}")
