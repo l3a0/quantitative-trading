@@ -211,14 +211,14 @@ do not already say. What changes is that they are now declared as
 first-edition shorthand rather than left to look like the book's own
 structure. Every citation of a chapter, a page, an example number or a MATLAB
 filename in this repo means the 2009 first edition unless it says otherwise.
-Two say otherwise. Box 6.1, the coin-flip gamble, is the first. It is a
-revised-edition sidebar titled "Loss aversion is not a behavioral bias", which
-the 2009 edition could not hold because it quotes Kahneman's 2011 book, so the
-first-edition mirror has no file for it. This repo called it Example 6.1 until
+Box 6.1, the coin-flip gamble, says otherwise, because its label exists only
+in the revised edition. It is a revised-edition sidebar titled "Loss aversion
+is not a behavioral bias", which the 2009 edition could not hold because it
+quotes Kahneman's 2011 book, so the first-edition mirror has no file for it. This repo called it Example 6.1 until
 2026-09-29, misreading the box's own sentence at location 3186, "As Example 6.1
 shows". That sentence cites a separate, earlier example for the continuous
 approximation, and the owner corrected the label against the book. Example 3.3,
-Chan's survivorship toy, is the second. Its label comes from the revised
+Chan's survivorship toy, also says otherwise. Its label comes from the revised
 edition, and whether the 2009 edition numbers it the same way was not checked.
 
 One thing this does not settle, and the difference matters. `-3.357` appears
@@ -355,7 +355,7 @@ picks instead.
 tables and works the returns, and
 [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) is the
 authority for every number quoted about it.
-[docs/replication-log.md](replication-log.md) Entry 8 carries the two figures
+[docs/replication-log.md](replication-log.md) Entry 9 carries the two figures
 the book prints and the verdict on each, which is where those numbers belong.
 
 Four things follow, and they are where this case parts from the coin flip.

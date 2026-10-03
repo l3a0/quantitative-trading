@@ -49,17 +49,17 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Eight replications run here, all from Chan's *Quantitative Trading*. The first
-two were ported from the sibling
+Nine replications run here, all from Chan's *Quantitative Trading*. The
+first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other six were built here.
+they were first built. The other seven were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
    returns yet does not cointegrate in levels.
 3. The coin-flip gamble, Box 6.1, where the expected return of a round is
    positive and the growth rate of capital is negative. It reads nothing at
-   all, so it has no vintage to name. The survivorship toy, item 8, is the only
+   all, so it has no vintage to name. The survivorship toy, item 9, is the only
    other replication with no vintage, because it reads tables the book prints.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
    maximises compounded growth and then whether that much would have survived
@@ -96,7 +96,17 @@ they were first built. The other six were built here.
    between −0.0114 and −0.0129 a year. Example 7.6's third January,
    the one that made money, needs a file running to 2008-01-31 that this repo
    does not hold.
-8. Chan's toy strategy for survivorship bias, Example 3.3 in the revised
+8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
+   losers against the market and shorts its winners. On Chan's own S&P 500
+   file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
+   after 5 basis points a trade, against his printed 0.25 and −3.19, so both
+   reproduce. The second lands only because two quirks of his code are kept.
+   His script never charges the first day's rebalance, which leaves that day's
+   profit missing, and his standard deviation counts the missing day as 0
+   while his mean skips it. Removing both gives −3.2337. The file holds only
+   the stocks still in the index on 2007-11-23, so every figure is about
+   survivors.
+9. Chan's toy strategy for survivorship bias, Example 3.3 in the revised
    edition, which buys the ten cheapest of the 1,000 largest stocks and holds
    them for 2001. It runs on the two tables of picks the book prints, one from
    a survivorship-free database and one from a database holding only
@@ -155,6 +165,12 @@ the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
 builder who corrects his code fails a test rather than moving a pin.
 
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
+reversal. It pins Chan's two figures at four decimals and at the book's two,
+and the figure with both quirks removed at four. It also pins the −3.1822 a
+port gives when it skips the missing day in the standard deviation as well as
+the mean, because that is the mistake that misses Chan's −3.19.
+
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
 because a pin on the right number alone holds a number rather than a choice. Its
@@ -162,11 +178,12 @@ tolerance is tight enough to hold the two tables as well as the arithmetic: a
 sweep run when the pins were written found that moving any printed cell by one
 unit in its last digit fails a test.
 
-All eight replications reach a verdict in
+All nine replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
-seasonals', and Entry 8 the survivorship toy's.
+seasonals', Entry 8 the Khandani-Lo reversal's and Entry 9 the survivorship
+toy's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -187,7 +204,11 @@ instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
 The columns lifted from Chan's MATLAB files, below, report 62 more, most of
-them real moves in single stocks.
+them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
+one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
+it reads a panel rather than one series and its rule never weights a return
+that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
+called there.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -207,9 +228,9 @@ and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
-equity seasonals read both, and
-[issue 17](https://github.com/l3a0/quantitative-trading/issues/17) will read
-the S&P 500 file.
+equity seasonals read both, the Khandani-Lo reversal reads the S&P 500 file,
+and [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) will
+read that file's opens.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -359,6 +380,18 @@ printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
 January the file ends before is printed as not computable with the date the
 file ends, and the 2002 split of the revised Python prints under a line saying
 it carries no verdict.
+
+Khandani and Lo's reversal reads Chan's S&P 500 file and takes no argument,
+because his script fixes both the file and the window:
+
+```bash
+uv run python -m chan.khandani_lo
+```
+
+It prints the panel in one line, the window and its day count, and each Sharpe
+ratio beside the book's, naming which quirks of Chan's code each one keeps.
+Khandani and Lo's own 4.47 is printed as a citation, since it was computed on a
+universe this repo does not hold.
 
 Chan's survivorship toy reads the two tables the book prints and takes no
 option:

@@ -70,7 +70,7 @@ was printed to support, that a survivor-only backtest turns a loss into a gain,
 survives the correction.
 
 ``tests/test_survivorship_bias.py`` is the single authority for every number
-quoted about this experiment, and ``docs/replication-log.md`` Entry 8 carries
+quoted about this experiment, and ``docs/replication-log.md`` Entry 9 carries
 the verdict.
 
 Usage::
@@ -221,7 +221,7 @@ def main() -> None:
     print()
     print("A replication is exploratory when a sample was spent looking. This one")
     print("spends none, so neither that label nor its opposite reaches it.")
-    print("docs/replication-log.md Entry 8 carries the verdict.")
+    print("docs/replication-log.md Entry 9 carries the verdict.")
 
 
 if __name__ == "__main__":
