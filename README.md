@@ -63,9 +63,10 @@ they were first built. The other eight were built here.
    other replication with no vintage, because it reads tables the book prints.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
    maximises compounded growth and then whether that much would have survived
-   the worst day the index has had. Every level Chan computed from a series
-   lands high on a modern download and every claim behind those numbers still
-   holds, and the entry is about that split. On his own workbook every one of
+   the worst day the index has had. Most of the levels Chan computed from a
+   series land high on a modern download, and the standard deviation
+   reproduces at the two decimals he printed. Every claim behind those numbers
+   still holds, and the entry is about that split. On his own workbook every one of
    those levels reproduces at the precision he printed, and setting the two
    series day by day against each other puts the whole gap on about ten days
    on or beside SPY's quarterly ex-dividend dates.
