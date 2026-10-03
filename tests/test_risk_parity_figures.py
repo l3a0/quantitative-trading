@@ -1510,7 +1510,7 @@ class TestWhatTheWindowFigureCompares:
     def test_the_t_at_the_earlier_leverage_is_the_suites(self, window_figure, measured) -> None:
         """The post's −1.64 comes from ``tests/test_risk_parity.py``'s path,
         at the leverage the earlier period measured, and it falls short of 2
-        where the in-window leverage's −2.20 clears it."""
+        where the −2.20 at the leverage measured inside the window clears it."""
         rankings = rank_the_windows(measured)
         carried = window_figure.comparison.carried
         assert carried is window_figure.comparison.rows[2]

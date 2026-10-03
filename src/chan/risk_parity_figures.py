@@ -1140,7 +1140,7 @@ def _t_at_leverage(returns: pd.DataFrame, weights: tuple[float, float], leverage
     """The robust t on the daily difference at a leverage the caller supplies.
 
     The same arithmetic as :func:`chan.risk_parity.rank_at_matched_volatility`
-    with its in-window leverage swapped out, which is how
+    with the leverage it measures inside the window swapped out, which is how
     ``tests/test_risk_parity.py`` reaches the post's −1.64. The only leverage
     passed here is the one the earlier years measured, so nothing is fitted.
     """

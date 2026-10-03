@@ -1129,7 +1129,7 @@ should hold.
 | 12 | The ranking on the falling-rates window | none, the book works no window | n/a |
 | 13 | Risk-parity weights and volatility ratio, rising-rates window | none, the book works no window | n/a |
 | 14 | The ranking on the rising-rates window, on weights from before it | none, the book works no window | n/a |
-| 15 | The leverage that matches 60/40's volatility, both sub-windows | none, the book works no window | n/a |
+| 15 | The leverage that matches 60/40's volatility, both sub-windows, on each window's own weights and on the weights row 14 carries | none, the book works no window | n/a |
 
 ### What this repo computed
 
@@ -1160,7 +1160,7 @@ every trading day. The moments are simple daily returns, the mean scaled by
 | 12 | 2003-09-30 to 2022-03-15 | the row 2, 3, 9 and 10 specifications, on weights fitted inside the window because nothing precedes it | leverage 2.1475, implying −0.3299 on his weights, Sharpe 0.3820 against 0.2255, difference −0.1565, mean difference −1.7777 percent a year, robust t −1.3455 at lag 9 | `TestTheTwoSubWindows::test_the_falling_rates_window` |
 | 13 | 2022-03-17 to 2026-09-17 | the row 1, 5, 7 and 8 specifications, recomputed inside the window | 26.63 to 73.37, SPY 17.1193 percent, AGG 6.2127 percent, ratio 2.7555, correlation +0.2442, 60/40 risk 90.0043 and 9.9957 percent, risk parity 50 percent each | `TestTheTwoSubWindows::test_the_rising_rates_window` |
 | 14 | 2022-03-17 to 2026-09-17 | the row 3, 9 and 10 specifications, on the row 11 weights, which are strictly earlier data | implying +0.5689 on his weights, Sharpe 0.5071 against 0.0097, difference −0.4974, a mean difference of −5.5417 percent a year, robust t −2.1956 at lag 6 | `TestTheTwoSubWindows::test_the_rising_rates_window` |
-| 15 | the two windows of rows 11 and 13 | the row 2 specification | 2.1475 falling, 1.6572 rising | `TestTheTwoSubWindows::test_the_falling_rates_window` and `::test_the_rising_rates_window` |
+| 15 | the two windows of rows 11 and 13 | the row 2 specification, on each window's own weights, and on the rising window also on the row 11 weights row 14 is ranked on | 2.1475 falling on its own 20.53 percent stocks, 1.5495 rising on its own 26.63 percent, and 1.6572 rising on the falling window's 20.53 percent | `TestTheTwoSubWindows::test_the_falling_rates_window`, `::test_the_rising_rates_window` and `::test_each_leverage_in_row_15_names_the_weights_it_was_measured_on` |
 
 **One return falls in neither sub-window and it is the boundary day's.** Rows 11
 to 15 run on 4,647 and 1,130 daily returns against the full span's 5,778, one
@@ -1186,13 +1186,13 @@ holds that day's two returns, so the arithmetic above stays checkable.
 | 6 | none | none, not a replication | The book prints no correlation. Over the full span the two legs are uncorrelated to three decimals, at −0.0002, which is a coincidence of averaging rather than a stable fact: rows 11 and 13 give −0.0688 and +0.2442. |
 | 7 | none | none, not a replication | Qian's premise, measured. 60 percent of the capital carries 96.67 percent of the risk, so 60/40 is nearly an all-equity portfolio in risk terms and the labels say otherwise. This row is why rows 1 and 2 are worth chasing at all. |
 | 8 | none | none, not a replication | Exactly 50 percent each, which is what says the weights of row 1 are the risk-parity weights rather than something near them. |
-| 9 | none | none, not a replication | Row 2 in the unit his 1.8 is really about. It is not the measured correlation of row 6 and the two are kept apart, because the map is read on his printed weights and this run's weights are not his. No claim is made about recovering the correlation Qian measured. His 1.8 carries two significant figures and so do his weights, and letting both roundings vary at once opens the band to −0.01265 through +0.37141, which is most of the range a stock-bond correlation occupies. |
+| 9 | none | none, not a replication | Row 2 in the unit his 1.8 is really about. It is not the measured correlation of row 6 and the two are kept apart, because the map is read on his printed weights and this run's weights are not his. No claim is made about recovering the correlation Qian measured. His 1.8 carries two significant figures and so do his weights, and letting both roundings vary at once opens the band to −0.01265 through +0.37141, wide enough to hold both zero and a clearly positive correlation. It still does not hold every correlation this pair has shown. Rows 6 and 13 measure −0.0002 and +0.2442, inside it, and row 11 measures −0.0688, below it. |
 | 10 | none | none, not a replication | The book prints no Sharpe ratio, only the ranking of row 3. Both are stated because a ranking reported as a sign hides its size, and 0.4111 against 0.1942 is not a near miss. |
 | 11 | none | none, not a replication | The book works no window. The bond leg is at its quietest here, so the volatility ratio reaches 3.8700 and risk parity holds the least equity it holds anywhere in this entry. |
 | 12 | none | none, not a replication | The book works no window. The robust t is −1.3455, so this window does not resolve its own ranking and nothing is read off the sign. Its weights are fitted inside it, because nothing precedes it, and the row says so rather than letting it pass as the out-of-sample row 14. |
 | 13 | none | none, not a replication | The book works no window. The bond leg's volatility rises to 6.2127 percent and the ratio falls to 2.7555, which moves the risk-parity weights toward stocks, to 26.63 percent. They do not pass 60, so risk parity still holds less equity than 60/40 and the correction the book argues for still points the same way. |
 | 14 | none | none, not a replication | The book works no window. This is the only ranking here whose weights did not see the window they are judged on, and it is the worst of the three for risk parity, at −0.4974 with a robust t of −2.1956. Refitting the weights inside the window moves it in risk parity's favour, which is why it is not done. |
-| 15 | none | none, not a replication | The book works no window. The leverage runs from 2.1475 to 1.6572 across the two, on one pair and one specification, which is what says 1.8 is a regime measurement rather than a constant. |
+| 15 | none | none, not a replication | The book works no window. On row 2's specification, each window's own weights, the leverage runs from 2.1475 to 1.5495, one on each side of his 1.8, which is what says 1.8 is a regime measurement rather than a constant. The 1.6572 row 14 ranks at is the rising window on the falling window's weights, so setting it against 2.1475 holds the weights fixed and moves only the window. That move is the larger part of the fall to 1.5495, and refitting the weights to the rising window takes it the rest of the way. |
 
 ### What the entry concludes
 
@@ -1220,13 +1220,18 @@ Four things, and the first is the one the other three explain.
    window they are judged on, and it is the largest loss in the entry.
    Refitting inside the window would have improved it, which is the bias the
    separation exists to remove.
-4. **The volatility ratio is a regime measurement rather than a constant.**
-   Rows 5, 11 and 13 give 3.5909, 3.8700 and 2.7555 against Qian's implied 3.3,
-   and the two sub-windows straddle the band from opposite sides. So the
-   quantity his 23-77 encodes moved by a third inside one pair of instruments,
-   and an allocation derived from it inherits that. This is the same shape as
-   Entry 3's fourth conclusion, where the window moved the leverage further
-   than the vendor did.
+4. **The volatility ratio and the leverage are regime measurements rather
+   than constants.** Rows 5, 11 and 13 give 3.5909, 3.8700 and 2.7555 against
+   Qian's implied 3.3, and the two sub-windows straddle the band from opposite
+   sides. So the quantity his 23-77 encodes moved by a third inside one pair of
+   instruments, and an allocation derived from it inherits that. The leverage
+   follows. Row 15 gives 2.1475 before the boundary and 1.5495 after, each on
+   that window's own weights, which straddle his 1.8 the same way. Its third
+   figure, 1.6572, is the later window on the earlier window's weights, so it
+   measures a change of window alone and is not the leverage the later
+   window's own risk parity needs. This is the same shape as Entry 3's fourth
+   conclusion, where the window moved the leverage further than the vendor
+   did.
 
 ### What this entry cannot say
 

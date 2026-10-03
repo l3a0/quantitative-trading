@@ -294,8 +294,8 @@ class TestTheTwoLegAlgebra:
         assert correlation_from_leverage(1.75) == pytest.approx(0.2783, abs=5e-5)
         assert correlation_from_leverage(1.85) == pytest.approx(0.0557, abs=5e-5)
 
-    def test_allowing_for_both_of_his_roundings_opens_the_band_a_long_way(self) -> None:
-        """Roughly −0.01 through +0.37, which is most of the range the pair occupies.
+    def test_allowing_for_both_of_his_roundings_opens_the_band_a_long_way(self, measured) -> None:
+        """Roughly −0.01 through +0.37, wide enough to hold zero and a clearly positive one.
 
         Qian printed two significant figures on the leverage and two on the
         weights. The map is monotone decreasing in both, so the band's ends sit
@@ -321,6 +321,16 @@ class TestTheTwoLegAlgebra:
         # them. His own printed pair sits well inside.
         assert min(corners.values()) < correlation_from_leverage(BOOK_LEVERAGE)
         assert correlation_from_leverage(BOOK_LEVERAGE) < max(corners.values())
+        # Wide, and still not every correlation this pair has shown. The full
+        # span's and the rising window's sit inside it, and the falling
+        # window's −0.0688 falls below it.
+        low, high = book_correlation_band()
+        measured_correlations = {
+            label: result.legs.correlation for label, (result, _) in measured.items()
+        }
+        assert low <= measured_correlations["full span"] <= high
+        assert low <= measured_correlations["rising rates"] <= high
+        assert measured_correlations["falling rates"] < low
 
     def test_a_higher_correlation_needs_less_leverage_on_his_weights(self) -> None:
         """Lesson 3's numbers. From a correlation of 0 to 0.2 on Qian's 23-77,
@@ -408,14 +418,15 @@ class TestTheRankingIsBuiltOnAPointEstimateLeverageCannotMove:
         """The half the invariance above does not cover, pinned rather than glossed.
 
         ``newey_west_summary`` reads ``leverage * parity - bench``, so the
-        robust t is a function of a leverage the ranked window supplied. On the
-        rising window the in-window leverage gives −2.1956 and the falling
-        window's, which is the only one available at the boundary, gives
-        −1.6422. Those sit on opposite sides of the threshold
+        robust t is a function of a leverage the ranked window supplied. The
+        rising window is ranked on the falling window's weights. On those
+        weights the leverage measured inside the rising window gives −2.1956
+        and the falling window's, which is the only one available at the
+        boundary, gives −1.6422. Those sit on opposite sides of the threshold
         :attr:`Ranking.resolved` reports against, so this is the sharpest case
         rather than a rounding.
 
-        The in-window leverage is still the right one, because it is what makes
+        The leverage measured inside the window is still the right one, because it is what makes
         the matched-volatility identity exact and so what the error bar is
         attached to. What this case removes is the reading that the choice was
         free.
@@ -952,6 +963,59 @@ class TestTheTwoSubWindows:
         assert ranking.t_newey_west == pytest.approx(-2.195624, abs=5e-7)
         assert ranking.lag == 6
         assert ranking.resolved is True
+
+    def test_each_leverage_in_row_15_names_the_weights_it_was_measured_on(
+        self, measured, rankings
+    ) -> None:
+        """2.1475 and 1.5495 on each window's own weights, and 1.6572 on carried ones.
+
+        Vintages: ``yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv``
+        and ``yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv``, both
+        yfinance's both-adjustments close, downloaded 2026-09-18. Specification:
+        :func:`matching_leverage`, the sample standard deviation of 60/40's daily
+        excess returns over the risk-parity portfolio's, constant weights
+        rebalanced daily.
+
+        The two rankings above report a leverage each, and only the falling
+        window's is on weights fitted inside it. The rising window is ranked on
+        the falling window's 20.53 percent stocks, so its 1.6572 is that window
+        on weights from before it. On its own 26.63 percent the matching
+        leverage is 1.5495, which is the figure row 2's specification gives
+        there and the one to set against 2.1475 and Qian's 1.8.
+
+        Setting 2.1475 against 1.6572 holds the weights fixed and moves only
+        the window. That move is the larger part of the fall to 1.5495, and
+        refitting the weights takes it the rest of the way.
+        """
+        falling, falling_returns = measured["falling rates"]
+        rising, rising_returns = measured["rising rates"]
+        falling_own = (falling.parity.stock_weight, falling.parity.bond_weight)
+        rising_own = (rising.parity.stock_weight, rising.parity.bond_weight)
+
+        before = rankings["falling rates"]
+        assert before.weight_source == "falling rates"
+        assert matching_leverage(falling_returns, falling_own) == pytest.approx(
+            before.leverage, abs=1e-12
+        )
+
+        carried = rankings["rising rates"]
+        assert carried.weight_source == "falling rates"
+        assert matching_leverage(rising_returns, falling_own) == pytest.approx(
+            carried.leverage, abs=1e-12
+        )
+
+        after = matching_leverage(rising_returns, rising_own)
+        assert after == pytest.approx(1.549502, abs=5e-7)
+        # On a window's own inverse-volatility weights the leverage reads that
+        # window's correlation and nothing else, so the map gives it too.
+        assert after == pytest.approx(
+            leverage_from_correlation(rising.legs.correlation, weights=rising_own), abs=1e-9
+        )
+
+        # One on each side of his 1.8, on the specification his 1.8 is.
+        assert after < BOOK_LEVERAGE < before.leverage
+        # The window alone moves it further than the refit does.
+        assert before.leverage - carried.leverage > carried.leverage - after
 
     def test_the_ratio_misses_qians_band_on_every_window_and_from_both_sides(
         self, measured
