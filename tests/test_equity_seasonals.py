@@ -439,6 +439,43 @@ class TestTheSplitAt2002:
         ]
 
 
+@pytest.fixture(scope="module")
+def kept(spx) -> pd.Series:
+    """The revised Python's 83 kept months, the series the split and the figure read."""
+    return monthly_returns(spx, PYTHON_HESTON_SADKA).iloc[PYTHON_HESTON_SADKA.dropped :]
+
+
+class TestTheYearsInsideTheSplit:
+    """Exploratory, with no verdict, like the split they sit inside.
+
+    The calendar-year sums of the revised Python's kept months, which the post's
+    Lesson 3 quotes beside its figure of the running sum. A year's sum is twelve
+    times its mean, so it is in the same units as each half's annual return.
+    First run on 2026-10-03.
+    """
+
+    def test_it_reads_the_83_kept_months(self, kept) -> None:
+        assert len(kept) == 83
+        assert kept.index[0] == pd.Timestamp("2000-12-31")
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+
+    def test_2002_and_2006(self, kept) -> None:
+        years = kept.groupby(kept.index.year).sum()
+        assert years[2002] == pytest.approx(0.22273245297832958, abs=1e-9)
+        assert years[2006] == pytest.approx(-0.13191102457761186, abs=1e-9)
+        assert [format(years[y], ".4f") for y in (2002, 2006)] == ["0.2227", "-0.1319"]
+
+    def test_the_years_swing_wider_than_the_halves_differ(self, spx, kept) -> None:
+        years = kept.groupby(kept.index.year).sum()
+        before, after = split_at(heston_sadka(spx, PYTHON_HESTON_SADKA), PYTHON_HESTON_SADKA)
+        assert years[2002] - years[2006] == pytest.approx(0.35464347755594144, abs=1e-9)
+        assert after[1] - before[1] == pytest.approx(0.15735417776401822, abs=1e-9)
+        assert years[2002] - years[2006] > after[1] - before[1]
+
+    def test_the_running_sum_peaks_in_january_2006(self, kept) -> None:
+        assert kept.cumsum().idxmax() == pd.Timestamp("2006-01-31")
+
+
 class TestTheReport:
     def test_every_figure_prints_beside_its_panel(self, capsys) -> None:
         seasonals.run()

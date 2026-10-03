@@ -1844,7 +1844,10 @@ most recent five years give even worse average returns. Neither file reaches
 those years, so nothing here reads that claim.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/equity-seasonals-lessons.md](../blog/equity-seasonals-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.equity_seasonals_figures` redraws.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
 
