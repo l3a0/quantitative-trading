@@ -15,13 +15,12 @@ hold, so it is printed as the paper's figure and asserted nowhere.
 **The transcription.** Every step is Chan's ``example3_7.m`` and the four
 helpers it calls, read in the mirror
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading)
-at ``1a7195003cf3e85a806e18867e0af547d17ad5c4``. The helpers are written here
-as :func:`lag1`, :func:`smartmean`, :func:`smartsum` and :func:`smartstd`,
-under their MATLAB names so the two can be read side by side. They sit in one
-block that imports only ``numpy`` and reads nothing else in this module, so
-[issue 18](https://github.com/l3a0/quantitative-trading/issues/18), which
-needs the same four, can move them into a module of their own without
-changing them.
+at ``1a7195003cf3e85a806e18867e0af547d17ad5c4``. The four helpers come from
+:mod:`chan.matlab_helpers`, under their MATLAB names, which
+[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) built for
+Examples 7.6 and 7.7 on the same file. This module passes them a column with
+``axis=0`` or a panel with ``axis=1``, which are the shapes on which they
+match the ``.m`` files.
 
 On the full panel, before any window is cut:
 
@@ -94,60 +93,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from chan.matlab_helpers import lag1, smartmean, smartstd, smartsum
 from chan.series import load_panel, panel_line
 from chan.vintage import VintageUnavailable
-
-# --- Chan's MATLAB helpers ---------------------------------------------------
-#
-# Each follows the .m file of the same name at the mirror commit above. They
-# take a 2-D array and an axis, the way MATLAB's take a matrix and a dimension,
-# and a 1-D series is passed as a column. smartstd is the one that departs from
-# its .m file off the path this module uses, and its docstring says how.
-
-
-def lag1(x: np.ndarray) -> np.ndarray:
-    """``lag1.m``: every row moved down one, with NaN in the first."""
-    lagged = np.full(x.shape, np.nan)
-    lagged[1:] = x[:-1]
-    return lagged
-
-
-def smartsum(x: np.ndarray, axis: int) -> np.ndarray:
-    """``smartsum.m``: the sum of the finite values, and NaN where there are none."""
-    has_data = np.isfinite(x)
-    total = np.where(has_data, x, 0.0).sum(axis=axis)
-    return np.where(has_data.any(axis=axis), total, np.nan)
-
-
-def smartmean(x: np.ndarray, axis: int) -> np.ndarray:
-    """``smartmean.m``: the mean of the finite values, and NaN where there are none."""
-    has_data = np.isfinite(x)
-    count = has_data.sum(axis=axis)
-    total = np.where(has_data, x, 0.0).sum(axis=axis)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        return np.where(count > 0, total / count, np.nan)
-
-
-def smartstd(x: np.ndarray, axis: int) -> np.ndarray:
-    """``smartstd.m``: a value that is not finite counts as 0, it is not skipped.
-
-    MATLAB's ``std`` divides by n − 1, so ``ddof=1``. This is the quirk the
-    module docstring names. Only a slice with no finite value at all is NaN.
-
-    Two departures from the ``.m`` file, neither reached by a column of more
-    than one value, which is the only shape this module passes.
-
-    1. ``smartstd.m`` calls ``std(x)`` without its ``dim``, so MATLAB takes
-       the deviation down each column whatever dimension is asked for. This
-       honours ``axis``.
-    2. MATLAB's ``std`` of a single value is 0. With ``ddof=1`` this gives NaN.
-    """
-    has_data = np.isfinite(x)
-    spread = np.where(has_data, x, 0.0).std(axis=axis, ddof=1)
-    return np.where(has_data.any(axis=axis), spread, np.nan)
-
-
-# --- Example 3.7 -------------------------------------------------------------
 
 SOURCE_FILE = "SPX_20071123.mat"
 

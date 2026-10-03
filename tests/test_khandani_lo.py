@@ -65,15 +65,11 @@ from chan.khandani_lo import (
     chan_sharpe,
     daily_pnl,
     daily_returns,
-    lag1,
     main,
     plain_sharpe,
     reversal,
     reversal_weights,
     run,
-    smartmean,
-    smartstd,
-    smartsum,
     trading_cost,
 )
 from chan.series import WindowCrossesScaleBreak, load_panel, refuse_window_crossing_a_break
@@ -307,35 +303,11 @@ class TestTheRuleByHand:
         assert [str(day.date()) for day in got.days] == ["2006-01-03", "2006-01-04"]
 
 
-class TestTheHelpers:
-    """The MATLAB helpers, against the behaviour of their ``.m`` files."""
+class TestTheSharpeRatios:
+    """Chan's mix of the two helpers, and the plain ratio the third figure uses.
 
-    def test_lag1_moves_down_and_fills_nan(self) -> None:
-        lagged = lag1(np.array([[1.0, 2.0], [3.0, 4.0]]))
-        assert np.isnan(lagged[0]).all()
-        assert lagged[1].tolist() == [1.0, 2.0]
-
-    def test_smartsum_skips_and_an_empty_row_is_nan(self) -> None:
-        got = smartsum(np.array([[1.0, np.nan], [np.nan, np.nan]]), axis=1)
-        assert got[0] == 1.0
-        assert np.isnan(got[1])
-
-    def test_smartmean_skips(self) -> None:
-        got = smartmean(np.array([[np.nan], [1.0], [3.0]]), axis=0)
-        assert got.tolist() == [2.0]
-
-    def test_smartmean_of_one_value_is_that_value(self) -> None:
-        assert smartmean(np.array([[np.nan, 4.0]]), axis=1).tolist() == [4.0]
-
-    def test_an_empty_slice_is_nan_for_the_mean_and_the_deviation(self) -> None:
-        empty = np.array([[np.nan], [np.inf]])
-        assert np.isnan(smartmean(empty, axis=0)).all()
-        assert np.isnan(smartstd(empty, axis=0)).all()
-
-    def test_smartstd_counts_a_nan_as_zero(self) -> None:
-        """MATLAB's ``std`` over ``[0, 1, 3]``, not over ``[1, 3]``."""
-        got = smartstd(np.array([[np.nan], [1.0], [3.0]]), axis=0)
-        assert got[0] == pytest.approx(np.std([0.0, 1.0, 3.0], ddof=1), abs=1e-15)
+    ``tests/test_matlab_helpers.py`` holds the helpers themselves.
+    """
 
     def test_chans_sharpe_mixes_the_two(self) -> None:
         daily = np.array([np.nan, 1.0, 3.0])

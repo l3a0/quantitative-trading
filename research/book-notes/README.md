@@ -30,6 +30,13 @@ of 1.0114 and its statistic of -2.14 are not: a highlight covers the sentences
 somebody marked, which is a different set from the numbers a replication ends
 up chasing. Where a figure is here, this is where it traces to.
 
+Examples 7.6 and 7.7 are absent the same way, and more completely. None of the
+figures their four printouts give is here, the third January's 0.0881 and
+0.088486 included, because every one is printed beside code. The replication log's Entry 7 traces each to the script
+and commit that prints it, or to the owner's reading of the revised edition
+recorded on
+[issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931).
+
 A second kind of absence turns up in Example 6.2, and it costs more than a
 missing figure. Every number that example prints is here. Its levered growth
 formula is not, because the book renders that equation as an image at location
