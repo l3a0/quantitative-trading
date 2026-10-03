@@ -44,6 +44,7 @@ t came from the pin in ``pyproject.toml`` rather than from either vintage.
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import inspect
 import io
 import math
@@ -2047,31 +2048,44 @@ class TestIWBInPlaceOfSPY:
         assert full.swapped_tie < 0.01744 and full.declared_tie < 0.01744
 
     def test_a_moved_verdict_is_reported_as_moved(self, measured) -> None:
-        """The flag the third answer reads, held on a case that does move.
+        """The flag the third answer reads, held on each half of the rule.
 
-        Swapping a window's ranking for one at a rate far enough below its tie
-        flips its sign, so a :class:`ProxyCost` built from the two must say the
-        verdict moved. Without this the flag is only ever seen reading False.
+        The rule moves a verdict when the sign changes or when the resolution
+        does, so each half gets a case where only it changes. A single case
+        that changed both would pass with either half deleted, which a
+        mutation run showed. The rankings are the full span's own, edited
+        with ``dataclasses.replace``, so nothing else about them moves.
         """
         declared = rank_the_windows(measured)["full span"]
-        flipped = rank_the_windows(measured, risk_free=0.0)["full span"]
-        assert (declared.sharpe_difference < 0) != (flipped.sharpe_difference < 0)
-        legs = measured["full span"][0].legs
-        cost = ProxyCost(
-            label="full span",
-            declared=declared,
-            swapped=flipped,
-            declared_legs=legs,
-            swapped_legs=legs,
-            declared_tie=0.0,
-            swapped_tie=0.0,
-            days=0,
-            mean_change_annual=0.0,
-            t_naive=0.0,
-            t_newey_west=0.0,
-            lag=0,
+        assert declared.sharpe_difference < 0 and declared.resolved is True
+        sign_only = dataclasses.replace(
+            declared,
+            sharpe_difference=-declared.sharpe_difference,
+            t_newey_west=-declared.t_newey_west,
         )
-        assert cost.verdict_moved is True
+        resolution_only = dataclasses.replace(declared, t_newey_west=-1.5)
+        assert sign_only.resolved is True and resolution_only.resolved is False
+        legs = measured["full span"][0].legs
+
+        def cost(swapped: Ranking) -> ProxyCost:
+            return ProxyCost(
+                label="full span",
+                declared=declared,
+                swapped=swapped,
+                declared_legs=legs,
+                swapped_legs=legs,
+                declared_tie=0.0,
+                swapped_tie=0.0,
+                days=0,
+                mean_change_annual=0.0,
+                t_naive=0.0,
+                t_newey_west=0.0,
+                lag=0,
+            )
+
+        assert cost(sign_only).verdict_moved is True
+        assert cost(resolution_only).verdict_moved is True
+        assert cost(declared).verdict_moved is False
 
     def test_two_windows_on_different_days_are_refused_rather_than_mispaired(
         self, measured, measured_iwb
@@ -2154,6 +2168,8 @@ class TestIWBInPlaceOfSPY:
             assert heading in cost, heading
         assert "The swap moved no verdict." in cost
         assert "IWB 1.51% against SPY 1.50%" in cost
+        assert "full span       IWB 3.5762, outside, against SPY 3.5909" in cost
+        assert "rising rates    IWB 2.7536, outside, against SPY 2.7555" in cost
         assert "rising rates    mean +0.1122% a year, robust t  +0.9764 at lag 6" in cost
 
     def test_the_stock_leg_is_a_declared_choice(self, monkeypatch, capsys) -> None:
