@@ -579,15 +579,17 @@ def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
     :func:`_exact_numbers` says how.
     """
     if column == 1:
-        # The call every single-series vintage has always been read through,
-        # kept exact. Naming the columns lets a first row of any width parse.
-        raw = pd.read_csv(io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1])
+        # The call every single-series vintage has always been read through.
+        # Naming the columns lets a first row of any width parse.
+        raw = pd.read_csv(
+            io.BytesIO(payload), header=None, names=["date", "close"], usecols=[0, 1], dtype=str
+        )
     else:
         # A lifted file's first row names all its fields, so its width is the
         # file's and the column can be picked by position.
-        raw = pd.read_csv(io.BytesIO(payload), header=None, usecols=[0, column]).set_axis(
-            ["date", "close"], axis=1
-        )
+        raw = pd.read_csv(
+            io.BytesIO(payload), header=None, usecols=[0, column], dtype=str
+        ).set_axis(["date", "close"], axis=1)
     with warnings.catch_warnings():
         # The header rows ("Date", "Ticker") do not parse as dates, and coerce
         # drops them to NaT. pandas warns about the mixed formats, expected here.
@@ -605,8 +607,11 @@ def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
 def _exact_numbers(cells: pd.Series) -> np.ndarray:
     """Each cell as the float its text spells, NaN where the text is not a number.
 
-    Every column reaches here as text, because each vintage's header rows put
-    words above its numbers. ``pd.to_numeric`` parses that text with a fast
+    Every column reaches here as text, because :func:`_parse_close` asks
+    ``read_csv`` for text. A vintage's header rows would make it text anyway,
+    and asking keeps a file with no header row from being typed as numbers by
+    ``read_csv``'s own parser, which misreads the same values.
+    ``pd.to_numeric`` parses that text with a fast
     parser that does not round-trip, so a long value such as
     ``912.7555772777217`` came back one unit off in its last digit. At
     ``7ddf15a`` that was 8,104 values in 9 committed vintages, which

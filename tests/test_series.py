@@ -622,6 +622,16 @@ class TestTheParseReturnsTheNumberTheTextSpells:
 
         assert values.iloc[0] == float("912.7555772777217")
 
+    def test_a_file_with_no_header_row_reads_back_exactly_too(self) -> None:
+        """With no header row ``read_csv`` would type the column as numbers
+        itself, through a parser that misreads the same value, so the reader
+        asks it for text whatever the file's shape."""
+        payload = b"2020-01-02,1.5\n2020-01-03,912.7555772777217\n"
+
+        values = series._parse_close(payload, "ZZZ")
+
+        assert list(values) == [1.5, float("912.7555772777217")]
+
     def test_a_cell_that_is_not_a_number_still_reads_as_nan(self) -> None:
         """The exact parse keeps the old reader's answer for text that is not a
         number, NaN beside its neighbours, rather than stopping the read. The
