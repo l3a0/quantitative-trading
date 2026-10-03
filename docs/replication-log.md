@@ -1961,8 +1961,10 @@ Three things, and the first is the verdict.
 2. **On the S&P 500 the daily cost is larger than the daily edge.** A Sharpe
    ratio of 0.2510 before costs and −3.1884 after is a rule whose average
    daily profit is smaller than the average cost of rebalancing into it every
-   day. Removing the quirks makes the after-cost figure slightly worse, not
-   better.
+   day. On the specification of row 3, the average day's cost is 13.7453
+   times its average profit. The rule trades 1.4505 times its average gross
+   position a day. `TestWhatAnAverageDayCosts` holds both. Removing the
+   quirks makes the after-cost figure slightly worse, not better.
 3. **The universe is survivors, and nothing here measures what that cost.**
    Every stock that left the S&P 500 before 2007-11-23 is missing, whether it
    failed or was taken over, so neither the size nor the sign of the effect on
@@ -1992,7 +1994,11 @@ differs from `example3_7.m` in six ways and its forward-fill reads WYN's gap
 as one day's move.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/survivorship-and-transaction-costs.md](../blog/survivorship-and-transaction-costs.md)
+moves with it, since that post quotes most of these figures. So does its
+running-profit figure, which `uv run python -m chan.survivorship_and_costs_figures`
+redraws.
 
 ## Entry 9: the survivorship toy, Chan's *Quantitative Trading*
 
@@ -2120,7 +2126,11 @@ database does to a backtest. It runs one year on ten stocks and is not a test
 of the strategy.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/survivorship-and-transaction-costs.md](../blog/survivorship-and-transaction-costs.md)
+moves with it, since that post quotes most of these figures. So does its
+figure of the three portfolios' returns, which
+`uv run python -m chan.survivorship_and_costs_figures` redraws.
 
 ## Entry 10: the Khandani-Lo reversal at the open, Chan's *Quantitative Trading*
 

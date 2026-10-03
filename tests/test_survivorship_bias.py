@@ -1,7 +1,10 @@
 """Pins for Chan's toy strategy for survivorship bias, Example 3.3.
 
 This file is the single authority for every number any prose surface quotes
-about this experiment. ``docs/replication-log.md`` Entry 9 states those numbers
+about this experiment, with one exception. ``blog/survivorship-and-transaction-costs.md``
+also quotes NEOF's share on one share basis, which
+``tests/test_survivorship_and_costs_figures.py`` holds, and README lists what
+the post says that nothing pins. ``docs/replication-log.md`` Entry 9 states those numbers
 and derives none of them, and ``src/chan/survivorship_bias.py`` carries the
 reasoning.
 

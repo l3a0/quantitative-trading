@@ -1,10 +1,13 @@
 """The pins for Khandani and Lo's linear reversal, Chan's Examples 3.7 and 3.8.
 
 This file is the single authority for every number any prose surface quotes
-about the reversal. ``docs/replication-log.md`` Entry 8 carries Example 3.7's
-verdicts and Entry 10 carries Example 3.8's, and each points here row by row.
-Example 3.8's pins are under ``the open-price variation`` below, and that
-section states its own rules.
+about the reversal, with one exception. ``blog/survivorship-and-transaction-costs.md``
+also quotes where its running-profit figure ends, which
+``tests/test_survivorship_and_costs_figures.py`` holds, and README lists what
+the post says that nothing pins. ``docs/replication-log.md`` Entry 8 carries
+Example 3.7's verdicts and Entry 10 carries Example 3.8's, and each points here
+row by row. Example 3.8's pins are under ``the open-price variation`` below,
+and that section states its own rules.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here rather than in every docstring.
@@ -37,6 +40,11 @@ the pin ``docs/design.md``'s ``### What an experiment pins`` asks for. Dropping
 the NaN the pandas way gives −3.1822, which misses −3.19 by one unit at the
 book's precision. ``TestTheQuirksMoveTheFigure`` holds that, because it is the
 mistake a port is most likely to make.
+
+``TestWhatAnAverageDayCosts`` holds why the third figure lands where it does,
+on the third specification: an average day earns 0.5276 basis points of the
+position, pays 7.2525 in cost and swings by 33.3770, so the cost is 13.7453
+days of profit.
 
 Khandani and Lo's 4.47 is cited here as unpinned. It was computed on their own
 universe, which this repo does not hold, and nothing below asserts it.
@@ -76,11 +84,13 @@ from chan.khandani_lo import (
     VERY_POSITIVE,
     WINDOW_END,
     WINDOW_START,
+    DailyBook,
     NotebookReversal,
     OpenVariation,
     Reversal,
     chan_sharpe,
     claim_holds,
+    daily_book,
     daily_pnl,
     daily_returns,
     main,
@@ -110,6 +120,11 @@ def panel():
 def result(panel) -> Reversal:
     _, frame = panel
     return reversal(frame)
+
+
+@pytest.fixture(scope="module")
+def day(result) -> DailyBook:
+    return daily_book(result)
 
 
 @pytest.fixture(scope="module")
@@ -151,6 +166,15 @@ class TestTheVintage:
         assert frame.loc["2006-01-03"].notna().sum() == 491
         assert frame.loc["2006-12-29"].notna().sum() == 495
 
+    def test_no_stock_leaves_during_the_window_and_four_join(self, panel) -> None:
+        """No stock priced on the first day is missing on the last, which a
+        file of survivors guarantees. The four that join began trading during
+        2006."""
+        _, frame = panel
+        first, last = frame.loc["2006-01-03"].notna(), frame.loc["2006-12-29"].notna()
+        assert list(frame.columns[first & ~last]) == []
+        assert sorted(frame.columns[last & ~first]) == ["EQ", "NYX", "WU", "WYN"]
+
 
 class TestTheFigures:
     """Rows 1, 2 and 3 of the specifications in the module docstring."""
@@ -179,6 +203,56 @@ class TestTheFigures:
         assert BOOK_KHANDANI_LO == 4.47
 
 
+class TestWhatAnAverageDayCosts:
+    """Why 0.2510 becomes about −3.2, as an average day of the charged specification.
+
+    Every figure is a daily mean or deviation over the window's mean gross
+    position, a constant, so each reads in basis points of the position held
+    and neither Sharpe ratio moves. Dividing each day by its own position
+    would be a different rule, and gives 1.4666 for the turnover rather than
+    1.4505. ``blog/survivorship-and-transaction-costs.md`` quotes these.
+    """
+
+    def test_the_day_earns_half_a_basis_point_and_pays_seven(self, day: DailyBook) -> None:
+        assert day.profit * 1e4 == pytest.approx(0.5276, abs=5e-5)
+        assert day.cost * 1e4 == pytest.approx(7.2525, abs=5e-5)
+
+    def test_the_cost_is_about_fourteen_days_of_profit(self, day: DailyBook) -> None:
+        assert day.cost_per_profit == pytest.approx(13.7453, abs=5e-5)
+
+    def test_the_rule_trades_about_one_and_a_half_books_a_day(self, day: DailyBook) -> None:
+        """Five basis points on each unit traded is the whole cost."""
+        assert day.turnover == pytest.approx(1.4505, abs=5e-5)
+        assert day.cost == pytest.approx(day.turnover * ONE_WAY_COST, abs=1e-15)
+
+    def test_dividing_each_day_by_its_own_position_reads_differently(
+        self, result: Reversal
+    ) -> None:
+        """The figure the issue's plan measured, on the rule this class avoids."""
+        assert (result.traded / result.held).mean() == pytest.approx(1.4666, abs=5e-5)
+
+    def test_the_daily_swing_dwarfs_both(self, day: DailyBook) -> None:
+        assert day.swing * 1e4 == pytest.approx(33.3770, abs=5e-5)
+        assert day.swing_after * 1e4 == pytest.approx(33.0134, abs=5e-5)
+
+    def test_the_sharpe_ratios_are_these_averages(self, day: DailyBook, result: Reversal) -> None:
+        """√252 times the average day over its swing gives rows 1 and 3 exactly."""
+        root = math.sqrt(TRADING_DAYS)
+        assert root * day.profit / day.swing == pytest.approx(result.before_costs, abs=1e-12)
+        assert root * (day.profit - day.cost) / day.swing_after == pytest.approx(
+            result.after_costs_charged, abs=1e-12
+        )
+
+    def test_the_charged_series_is_the_profit_less_five_basis_points_a_unit(
+        self, result: Reversal
+    ) -> None:
+        assert np.isfinite(result.pnl_charged).all()
+        assert result.pnl_charged == pytest.approx(
+            result.pnl - result.traded * ONE_WAY_COST, abs=1e-18
+        )
+        assert result.held.min() > 0
+
+
 class TestTheQuirksMoveTheFigure:
     """What each quirk does to row 2, so a port that drops one fails here."""
 
@@ -193,6 +267,17 @@ class TestTheQuirksMoveTheFigure:
         dropped = math.sqrt(TRADING_DAYS) * kept.mean() / kept.std(ddof=1)
         assert dropped == pytest.approx(-3.1822, abs=5e-5)
         assert round(dropped, 2) != BOOK_AFTER_COSTS
+
+    def test_numpys_nan_functions_land_on_chans_digit_by_another_route(
+        self, result: Reversal
+    ) -> None:
+        """``np.nanmean`` and ``np.nanstd`` also skip the NaN in both, but the
+        deviation divides by n rather than n − 1, which lands on −3.19 with
+        neither quirk. So the second digit turns on the divisor as well."""
+        after = result.pnl_after_costs
+        numpy_port = math.sqrt(TRADING_DAYS) * np.nanmean(after) / np.nanstd(after)
+        assert numpy_port == pytest.approx(-3.1886, abs=5e-5)
+        assert round(numpy_port, 2) == BOOK_AFTER_COSTS
 
 
 class TestTheScaleBreakDecision:
