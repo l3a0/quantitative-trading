@@ -331,7 +331,9 @@ to infer.
 5. **Nothing was filled here, and EIA filled some days itself.** Contracts of
    one product do not hold the same days. RBOB's four files span the same
    2005-10-03 to 2024-04-05 and hold 4,609, 4,618, 4,625 and 4,623 rows, so a
-   run pairing two contracts reads only the days both hold. The natural gas
+   run pairing two contracts reads only the days both hold. The New York Harbor
+   contract-1 file misses trading days too, among them 1997-04-14, which leaves
+   three of the gasoline seasonal's years unreadable. The natural gas
    files go the other way on exchange holidays. They carry rows such as
    2018-01-01, 2018-03-30 and 2018-12-25 that repeat the day before's
    settlement exactly, and the files keep them, so a return across one of those
