@@ -511,6 +511,12 @@ def test_a_slug_drops_punctuation_and_emphasis() -> None:
     )
 
 
+def test_a_slug_drops_a_code_spans_backticks() -> None:
+    # The price-spread post's "What does `γ` do?" is the heading this holds.
+    # GitHub renders its anchor as what-does-γ-do, the same as with a bare γ.
+    assert slug("What does `γ` do?") == slug("What does γ do?") == "what-does-γ-do"
+
+
 def test_a_slug_keeps_digits_underscores_and_hyphens() -> None:
     assert slug("Pass 2_3 and non-obvious") == "pass-2_3-and-non-obvious"
 
