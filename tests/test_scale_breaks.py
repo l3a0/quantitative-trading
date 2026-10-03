@@ -108,7 +108,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: not finite, and handed the panel the guard refuses over ten missing closes
 #: rather than over any scale break.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo.py`` runs both of
-#: its answers.
+#: its answers, on the closes and on the opens.
+#:
+#: [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206)
+#: inherited that decision for Example 3.8's rule B, which reads the opens with
+#: the same rule and the same NaN mask. Its rule A, Chan's Python notebook,
+#: fills each gap with the last price and so reads WYN's restart as a return of
+#: 121.5 on the closes and 127.65 on the opens. That is the notebook's own
+#: computation rather than a window to refuse, and ``TestRuleAOnTheCloses`` and
+#: ``TestRuleAOnTheOpens`` in the same file pin it.
 #:
 #: [Issue 18](https://github.com/l3a0/quantitative-trading/issues/18) decided
 #: that ``chan.equity_seasonals`` refuses no window for Examples 7.6 and 7.7. Its
