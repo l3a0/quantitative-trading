@@ -87,10 +87,11 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: single stocks: AAPL at 0.4813 on 2000-09-29, its profit-warning day, and the
 #: energy names of July 2002 among them.
 #:
-#: Two are not price moves at all. ``spx_20071123/wyn.csv`` and
+#: Three are not price moves at all. ``spx_20071123/wyn.csv`` and
 #: ``spx_20071123/dfs.csv`` each hold two companies under one symbol across a
-#: gap of 952 and 400 trading days, and a member's own rows read that gap as
-#: one day. Four sit within 0.02 of a two-for-one split, and whether any is
+#: gap of 952 and 400 trading days, ``ijr_20080114/pmc.csv`` holds two price
+#: histories across a gap of 851, and a member's own rows read each gap as one
+#: day. Four sit within 0.02 of a two-for-one split, and whether any is
 #: an unadjusted split is not known: AES and AYE here, and CBU and INSP in the
 #: S&P 600 file. AAPL's column absorbs its June 2000 split with no jump, so its
 #: day is the move it looks like. The book-two S&P 500 file adds 30 days in 17

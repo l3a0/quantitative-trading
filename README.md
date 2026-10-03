@@ -157,12 +157,12 @@ they were first built. The other eleven were built here.
     rank highest and shorts the 50 lowest. Chan reports 2 percent a year in
     MATLAB and 4 percent in Python and R, and calls the difference round-off.
     The first edition's MATLAB, the revised MATLAB and the revised Python
-    reproduce every figure they print, to 17 digits for the Python. The R block
-    prints the Python's figures and its own code reads differently. The
-    round-off account does not hold. The Python's regression carries an
-    intercept, which cancels its factors, so it ranks on a year of momentum,
-    and its book matches the revised MATLAB's on none of 752 days. Every figure
-    is exploratory and about survivors.
+    reproduce every figure they print, the Python's 17-digit figures within
+    1e-15. The R block prints the Python's figures and its own code reads
+    differently. The round-off account does not hold. The Python's regression
+    carries an intercept, which cancels its factors, so it ranks on a year of
+    momentum. Given the same 50 longs, its book matches the revised MATLAB's on
+    none of 752 days. Every figure is exploratory and about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so

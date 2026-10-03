@@ -283,9 +283,10 @@ was written on
 trade was computed. Entry 13's row 10 is a claim too, and the exception
 among them: its criterion was written on
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the
-overlap it judges was measured. It survives that only because no criterion
-could pass it. Round-off would leave two books the same on every day, and
-they are the same on none of 752.
+overlap it judges was measured. Round-off would leave two books of one size
+the same on every day. Given the MATLAB's 50 longs, the Python's book matches
+on none of 752 days and differs in at least 125 positions on each, so the
+verdict does not rest on where a threshold sits.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -2710,8 +2711,8 @@ series and ranks on the summed fitted values, and with an intercept in the
 regression that sum is the stock's summed return. So the Python ranks on a
 year of momentum, and its book is the same on every day as a ranking that
 leaves the PCA out. The revised MATLAB fits today's cross-section of returns
-on the stocks' factor exposures instead, and on none of the 752 days both
-trade do the two hold the same book.
+on the stocks' factor exposures instead. Given the MATLAB's 50 longs, the
+Python's book matches the MATLAB's on none of the 752 days both trade.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -2768,17 +2769,17 @@ absence.
 | 1 | `first_edition_matlab`, the mean over 1,005 rows | −1.809865 | `TestThePrintouts::test_the_first_edition_prints_minus_1_8099` |
 | 2 | `revised_matlab`, the mean over the 752 days that trade | 0.020205 | `TestThePrintouts::test_the_revised_matlab_prints_its_two_figures` |
 | 3 | the same, with book two's `smartstd` | 0.211120 | the same |
-| 4 | `revised_python`, the mean over all 1,006 rows | 0.04052422056844462 | `TestThePrintouts::test_the_revised_python_lands_its_17_digits` |
-| 5 | the same, `np.nanstd` dividing by n | 0.07002908500498845 | the same |
-| 6 | the same | 0.5786769963588403 | the same |
+| 4 | `revised_python`, the mean over all 1,006 rows | 0.040524220568445 | `TestThePrintouts::test_the_revised_python_lands_its_printed_figures` |
+| 5 | the same, `np.nanstd` dividing by n | 0.070029085004988 | the same |
+| 6 | the same | 0.578676996358840 | the same |
 | 7 | `revised_r_reading`, unfilled and forward-filled | 0.0401, 0.0797, 0.5038 and 0.0426, 0.0802, 0.5319 | `TestThePrintouts::test_neither_r_reading_lands_the_printed_figures` |
 | 8 | row 2 at the text's whole percent | 2% | `TestThePrintouts::test_the_revised_matlab_prints_its_two_figures` |
-| 9 | row 4 at the text's whole percent, and row 7's two readings | 4%, 4% and 4% | `TestThePrintouts::test_the_revised_python_lands_its_17_digits` and `::test_neither_r_reading_lands_the_printed_figures` |
-| 10 | the shared days on which the revised MATLAB and Python hold the same book | 0 of 752 | `TestWhatSeparatesTwoFromFour::test_the_revised_books_are_never_identical` and `::test_round_off_does_not_explain_the_spread` |
+| 9 | row 4 at the text's whole percent, and row 7's two readings | 4%, 4% and 4% | `TestThePrintouts::test_the_revised_python_lands_its_printed_figures` and `::test_neither_r_reading_lands_the_printed_figures` |
+| 10 | the shared days on which the revised MATLAB and the Python given 50 longs hold the same book, and the fewest positions in which they differ on one day | 0 of 752, and 125 | `TestWhatSeparatesTwoFromFour::test_at_one_size_the_revised_books_are_never_identical` and `::test_round_off_does_not_explain_the_spread` |
 | 11 | the Python ranked on each stock's summed return, with the PCA left out | the same book on every day | `TestWhatSeparatesTwoFromFour::test_the_pythons_pca_changes_no_position` |
-| 12 | the mean share of the revised MATLAB's names the Python holds the same way | 13.83% | `TestWhatSeparatesTwoFromFour::test_the_revised_books_are_never_identical` |
+| 12 | the mean share of the revised MATLAB's names the Python holds the same way, as printed and with 50 longs | 13.83% and 14.14% | `TestWhatSeparatesTwoFromFour::test_the_revised_books_share_few_names` and `::test_at_one_size_the_revised_books_are_never_identical` |
 | 13 | the Python buying the top 50 rather than the 49 ranked second to 50th | 0.0414, Sharpe ratio 0.5908 | `TestWhatSeparatesTwoFromFour::test_fifty_longs_move_the_pythons_figures` |
-| 14 | the Python over its 751 trading days, and the first edition over its 753 | 0.0543, Sharpe ratio 0.6699, and −2.4156 | `TestWhatSeparatesTwoFromFour::test_averaging_over_trading_days_moves_both_programs` |
+| 14 | the Python over its 751 trading days, the first edition over its 753, and the Python keeping the first book it clears | 0.0543, Sharpe ratio 0.6699, then −2.4156, then 0.0417, Sharpe ratio 0.5945 | `TestWhatSeparatesTwoFromFour::test_averaging_over_trading_days_moves_both_programs` and `::test_keeping_the_first_book_moves_the_pythons_figures` |
 | 15 | row 3 under the first edition's `smartstd` | 0.2441 | `TestWhatSeparatesTwoFromFour::test_the_first_editions_smartstd_moves_the_revised_sharpe` |
 | 16 | rows 1 to 6 without PMC | −1.8014, then 0.0180 and 0.1869, then 0.0408 and 0.5851 | `TestTheSplice::test_each_printout_without_pmc` |
 
@@ -2788,18 +2789,18 @@ absence.
 | --- | --- | --- | --- |
 | 1 | 0.0000 | reproduced | Chan's first-edition figure, on his file, through his script transcribed. It is a sum over 100 positions of ±1 with no division by capital, and its mean runs over 252 rows from before the first trade. |
 | 2 | 0.000000 | reproduced | The same, for the revised MATLAB. |
-| 3 | 0.000000 | reproduced | The same. Book two's `smartstd` is the one the revised edition's code ships, and row 15 is what the first edition's gives. |
-| 4 | 3e-17 | reproduced | Within 1e-12 of each figure printed to 17 digits. |
-| 5 | −1e-17 | reproduced | The same. |
-| 6 | 5e-16 | reproduced | The same. |
-| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days with no position, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. |
+| 3 | 0.000000 | reproduced | The same. The printed figure lands with book two's `smartstd` and misses with the first edition's, row 15, and the revised repost at `7430b84` carries book two's file. |
+| 4 | under 1e-15 | reproduced | Within 1e-12 of each figure printed to 17 digits, the verdict's criterion, and within 1e-15, the pin. They agree to 15 significant digits. |
+| 5 | under 1e-15 | reproduced | The same. |
+| 6 | under 1e-15 | reproduced | The same. |
+| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days with no position, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
 | 8 | 0 | reproduced | 2.02 percent rounds to 2. |
 | 9 | 0 | reproduced | The Python's 4.05 percent rounds to 4, and so does each R reading. The whole-percent figure is reached even by the code whose 17-digit figures are not. |
-| 10 | none | did not reproduce | Round-off would leave the two books the same on every day, and they are the same on none. The criterion was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the overlap was measured, which is the cost named there. Any threshold above zero days gives the same verdict. |
+| 10 | none | did not reproduce | Round-off would leave two books of one size the same on every day. The printed Python buys 49 and the MATLAB 50, so the comparison gives the Python 50, and the books then match on none of 752 days and differ in at least 125 positions on each. The criterion was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the overlap was measured, which is the cost named there. |
 | 11 | none | none, not a replication | This is why the Python's figure is momentum's. Its PCA changes no position. |
 | 12 | none | none, not a replication | The two revised programs trade mostly different stocks. |
 | 13 | none | none, not a replication | The Python's `np.arange(-topN, -1)` never buys the top-ranked stock. |
-| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that hold no position. The first edition's mean runs over 252 such rows. |
+| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that hold no position, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows with no position. |
 | 15 | none | none, not a replication | The first edition's `smartstd` zero-fills a missing day and divides by n − 1. |
 | 16 | none | none, not a replication | PMC closes at 6.02 on 2004-03-12 and resumes at 17.25 on 2007-08-01, two price histories under one symbol. Every program but the unfilled R reading forward-fills, so the gap becomes one day's return of 1.8654. |
 
@@ -2807,14 +2808,16 @@ absence.
 
 Two things.
 
-1. **The three printouts that can run reproduce exactly on Chan's file.**
-   The first edition's −1.8099, the revised MATLAB's 0.020205 and 0.211120,
-   and the revised Python's three 17-digit figures all land.
+1. **The three printouts that can run reproduce on Chan's file.** The first
+   edition's −1.8099 and the revised MATLAB's 0.020205 and 0.211120 land at
+   the precision printed, and the revised Python's three 17-digit figures land
+   within 1e-15.
 2. **The 2-versus-4 spread is two different strategies, not round-off.** The
    revised MATLAB trades a factor model and the Python trades a year of
    momentum, because its regression's intercept cancels its factors. Three
-   bookkeeping choices then move the Python's figure further: its long side,
-   its averaging, and the first book it clears.
+   bookkeeping choices each lower the Python's figure toward the MATLAB's: its
+   long side, its averaging, and the first book it clears. Without any one of
+   them the Python's figure is higher than 4.05 percent, rows 13 and 14.
 
 ### What this entry cannot say
 

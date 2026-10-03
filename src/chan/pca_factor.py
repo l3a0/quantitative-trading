@@ -46,12 +46,16 @@ factors and 50 stocks a side, and charge no cost.
   today's cross-section of returns on an intercept and the first five scores
   with ``mvregress``, ranks on the fitted values, divides each day by gross
   capital, and takes its mean over the days that trade. Its ``smartstd`` is
-  book two's, which the revised edition's code ships under the same name.
+  book two's. The printed 0.211120 lands with it and not with the first
+  edition's, and the repost at ``7430b84`` carries book two's file.
 - :func:`revised_python` takes the 251 returns ending yesterday, runs PCA with
   days as observations, regresses each stock's returns on an intercept and the
   five factor series, and ranks on the summed fitted values.
-- :func:`revised_r_reading` does the same as the Python with a window of 251
-  returns ending today.
+- :func:`revised_r_reading` takes the 251 returns ending today. Its PCA is not
+  the Python's: ``prcomp(t(R))`` treats stocks as observations, and
+  ``t(PCA$x[1:numFactors,])`` takes the scores of the first five stocks,
+  indexed by component, as its regressors. Each stock's returns are regressed
+  on an intercept and those, and it ranks on the summed fitted values.
 
 **The Python's PCA changes no position, and neither does the R's.** A
 regression with an intercept leaves residuals that sum to zero, so a stock's
@@ -61,12 +65,14 @@ regressors are. Both programs therefore rank on plain momentum.
 the Python's positions equal to it on every day.
 
 **Three of the Python's bookkeeping choices move its figures.** Each is
-transcribed rather than fixed.
+transcribed rather than fixed, and each lowers the figure toward the MATLAB's.
+The report prints what each gives when it is changed.
 
 1. ``idxSort[np.arange(-topN, -1)]`` buys 49 stocks, the ones ranked second to
    50th, so the top-ranked stock is never bought.
-2. ``positionsTable[capital==0,]=0`` runs before any position is held, so it
-   also clears the first day's book.
+2. ``positionsTable[capital==0,]=0`` zeroes every row whose previous row
+   holds nothing, and the first day's book is one of those rows, so the
+   strategy never earns on it.
 3. ``np.nanmean`` runs over all 1,006 rows, including the ones that hold no
    position, and ``np.nanstd`` divides by n.
 
@@ -96,10 +102,10 @@ The R buys 52, from ``(length(result$ix)-topN-1):length(result$ix)``.
 **One splice in the file.** PMC holds two price histories under one symbol. It
 closes at 6.02 on 2004-03-12, is missing for 851 days, and resumes at 17.25 on
 2007-08-01. The three printouts that run forward-fill, as does the R reading
-with ``fill=True``, so that gap is one day's return. :func:`without` reruns a program without it, and the report
-prints the result beside the verdicts. The scale-break guard is not applied,
-for the reason the comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in
-``tests/test_scale_breaks.py`` gives.
+with ``fill=True``, so that gap is one day's return. :func:`without` reruns a
+program without it, and the report prints the result beside the verdicts.
+The scale-break guard is not applied, for the reason the comment above
+``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py`` gives.
 
 **Every figure here is about survivors.** ``IJR_20080114.mat`` holds the 600
 companies in the index on 2008-01-14, carried backwards.
@@ -329,12 +335,14 @@ def revised_python(
     ranking: Callable[[np.ndarray], np.ndarray] = python_expected,
     longs: slice = PYTHON_LONGS,
     every_row: bool = True,
+    clears_first_book: bool = True,
 ) -> Run:
     """``example7_4.py``, which prints 0.0405…, 0.0700… and 0.5787….
 
     The keywords default to the printout. ``ranking=summed_returns`` ranks on
     momentum directly, ``longs=MATLAB_LONGS`` buys the top 50, and ``every_row=False`` takes
-    the mean and spread over the days that trade. Each exists to say what one
+    the mean and spread over the days that trade, and ``clears_first_book=False``
+    leaves out ``positionsTable[capital==0,]=0``. Each exists to say what one
     of the printout's choices does to its figures.
     """
     filled = closes.ffill()  # df.fillna(method='ffill')
@@ -346,7 +354,8 @@ def revised_python(
         order = ranking(window[has]).argsort()
         _hold(positions, t, has, order, longs)
     capital = np.nansum(np.abs(backshift(1, positions)), axis=1)
-    positions[capital == 0] = 0  # positionsTable[capital==0,]=0, which clears the first book
+    if clears_first_book:
+        positions[capital == 0] = 0  # positionsTable[capital==0,]=0, which clears the first book
     capital[capital == 0] = 1
     daily = np.nansum(backshift(1, positions) * returns, axis=1) / capital
     rows = daily if every_row else daily[_traded(positions)]
@@ -399,11 +408,16 @@ def without(program: Callable[[pd.DataFrame], Run], closes: pd.DataFrame, symbol
 
 @dataclass(frozen=True)
 class Agreement:
-    """How far two programs' books agree on the days both hold one."""
+    """How far two programs' books agree on the days both hold one.
+
+    ``fewest_differing`` is the smallest number of position cells, out of every
+    stock on every shared day, in which the two books disagree on one day.
+    """
 
     days: int
     identical: int
     share: float
+    fewest_differing: int
 
 
 def agreement(a: Run, b: Run) -> Agreement:
@@ -417,6 +431,7 @@ def agreement(a: Run, b: Run) -> Agreement:
         days=len(rows),
         identical=int(same.all(axis=1).sum()),
         share=float(((held & same).sum(axis=1) / held.sum(axis=1)).mean()),
+        fewest_differing=int((~same).sum(axis=1).min()),
     )
 
 
@@ -456,6 +471,7 @@ class Results:
     r_filled: Run
     python_fifty: Run
     python_traded: Run
+    python_first_book: Run
     momentum: Run
     first_unspliced: Run
     matlab_unspliced: Run
@@ -472,6 +488,7 @@ def compute(closes: pd.DataFrame) -> Results:
         r_filled=revised_r_reading(closes, fill=True),
         python_fifty=revised_python(closes, ranking=summed_returns, longs=MATLAB_LONGS),
         python_traded=revised_python(closes, ranking=summed_returns, every_row=False),
+        python_first_book=revised_python(closes, ranking=summed_returns, clears_first_book=False),
         momentum=revised_python(closes, ranking=summed_returns),
         first_unspliced=without(first_edition_matlab, closes, SPLICED),
         matlab_unspliced=without(revised_matlab, closes, SPLICED),
@@ -524,6 +541,10 @@ def report(members: list[VintageEntry], closes: pd.DataFrame, results: Results) 
     python_ok = within(_figures(r.python), PYTHON_PRINTS)
     r_ok = within(_figures(r.r_unfilled), R_PRINTS) or within(_figures(r.r_filled), R_PRINTS)
     together = agreement(r.matlab, r.python)
+    # The printed Python buys 49 and the MATLAB 50, so their books can never be
+    # identical. Round-off is judged against the Python given 50 longs, whose
+    # books are the MATLAB's size.
+    sized = agreement(r.matlab, r.python_fifty)
     print("  Verdicts")
     print(f"    first-edition MATLAB   {verdict(first_ok)}")
     print(f"    revised MATLAB         {verdict(matlab_ok)}")
@@ -532,10 +553,14 @@ def report(members: list[VintageEntry], closes: pd.DataFrame, results: Results) 
         f"    revised R              {verdict(r_ok)}, under either reading. Its printed "
         "figures are the Python's."
     )
-    holds = together.identical == together.days
+    holds = sized.identical == sized.days
     print(
-        f"    'round off errors'     {'holds' if holds else 'does not hold'}. The revised books "
-        f"are identical on {together.identical} of {together.days} days."
+        f"    'round off errors'     {'holds' if holds else 'does not hold'}. With {TOP_N} longs "
+        f"each, the revised books are identical on {sized.identical} of {sized.days} days,"
+    )
+    print(
+        f"                           and differ in at least {sized.fewest_differing} positions "
+        "on every one."
     )
     print()
     print("  What separates 2% from 4%")
@@ -546,7 +571,7 @@ def report(members: list[VintageEntry], closes: pd.DataFrame, results: Results) 
     )
     print(
         f"    On average {together.share:.2%} of the revised MATLAB's names are held the same way "
-        "by the Python."
+        f"by the Python, and {sized.share:.2%} with {TOP_N} longs."
     )
     print(
         f"    The Python with {TOP_N} longs: {r.python_fifty.annual:.4f} a year, "
@@ -555,6 +580,10 @@ def report(members: list[VintageEntry], closes: pd.DataFrame, results: Results) 
     print(
         f"    The Python over its {int(r.python.traded.sum())} trading days: "
         f"{r.python_traded.annual:.4f} a year, Sharpe ratio {r.python_traded.sharpe:.4f}."
+    )
+    print(
+        f"    The Python keeping its first book: {r.python_first_book.annual:.4f} a year, "
+        f"Sharpe ratio {r.python_first_book.sharpe:.4f}."
     )
     first_traded = float(smartmean(r.first.daily[r.first.traded])) * TRADING_DAYS
     print(

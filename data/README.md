@@ -424,7 +424,7 @@ it holds the same 1,006 days, the same 600 symbols in the same order and the
 same NaN cells as this directory's closes, and every value agrees to a largest
 relative difference of 2.0e-16. The revised MATLAB repost at
 pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` carries an
-`IJR_20080114.mat` with the sha256 recorded below. Each holds only the companies
+`IJR_20080114.mat` with the sha256 recorded below. Each directory holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
@@ -479,7 +479,9 @@ measurements below and the decision behind the shape.
    returns on that panel rather than on one file's own rows. `spx_20071123/wyn.csv`
    holds two companies under one symbol, 952 trading days apart, closing at
    0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
-   same across 400 days to 2007-07-02.
+   same across 400 days to 2007-07-02. `ijr_20080114/pmc.csv` holds two price
+   histories the same way, closing at 6.02 on 2004-03-12 and then at 17.25 on
+   2007-08-01, 851 trading days apart.
 4. **The date is the save.** It comes from each file's MAT header, which
    records when the file was created. That is a day after the date in each
    name, because the name carries the last trading day.
@@ -503,7 +505,7 @@ measurements below and the decision behind the shape.
    A flag is a day's close below 0.625 or above 1.6 times the one before. Most
    are real moves, such as AAPL falling to 0.4813 of its close on 2000-09-29,
    its profit-warning day, in a column that absorbs its June 2000 split with
-   no jump. Two are the splices in point 3. Four more sit within 0.02 of a
+   no jump. Three are the splices in point 3. Four more sit within 0.02 of a
    two-for-one split, and whether any of them is an unadjusted split is not
    known.
 

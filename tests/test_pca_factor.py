@@ -147,9 +147,16 @@ class TestThePrintouts:
         assert results.matlab.annual == pytest.approx(0.020205047899499503, abs=1e-9), SPEC
         assert results.matlab.sharpe == pytest.approx(0.21112030750148036, abs=1e-9), SPEC
 
-    def test_the_revised_python_lands_its_17_digits(self, results: Results) -> None:
+    def test_the_revised_python_lands_its_printed_figures(self, results: Results) -> None:
+        """Within 1e-15 of each figure the Python prints to 17 digits.
+
+        The verdict's criterion is :data:`DIGITS_17`. This pin is tighter, so it
+        holds the precision the log quotes the computed figures at.
+        """
         figures = (results.python.annual, results.python.stdev, results.python.sharpe)
         assert within(figures, PYTHON_PRINTS), (figures, SPEC)
+        for computed, printed in zip(figures, PYTHON_PRINTS, strict=True):
+            assert computed == pytest.approx(float(printed), abs=1e-15), SPEC
 
     def test_neither_r_reading_lands_the_printed_figures(self, results: Results) -> None:
         for reading, figures in (
@@ -212,10 +219,18 @@ class TestWhatSeparatesTwoFromFour:
     def test_the_pythons_pca_changes_no_position(self, results: Results) -> None:
         assert np.array_equal(results.python.positions, results.momentum.positions)
 
-    def test_the_revised_books_are_never_identical(self, results: Results) -> None:
+    def test_the_revised_books_share_few_names(self, results: Results) -> None:
+        """The printed Python buys 49 and the MATLAB 50, so this compares names, not books."""
         together = agreement(results.matlab, results.python)
-        assert (together.days, together.identical) == (752, 0)
+        assert together.days == 752
         assert round(together.share, 4) == 0.1383
+
+    def test_at_one_size_the_revised_books_are_never_identical(self, results: Results) -> None:
+        """Given 50 longs, the Python's book is the MATLAB's size, and still never matches it."""
+        sized = agreement(results.matlab, results.python_fifty)
+        assert (sized.days, sized.identical) == (752, 0)
+        assert sized.fewest_differing == 125
+        assert round(sized.share, 4) == 0.1414
 
     def test_fifty_longs_move_the_pythons_figures(self, results: Results) -> None:
         assert results.python_fifty.annual == pytest.approx(0.0414, abs=5e-5)
@@ -237,9 +252,20 @@ class TestWhatSeparatesTwoFromFour:
         assert not prints_as(swapped, REVISED_MATLAB_PRINTS[1])
 
     def test_round_off_does_not_explain_the_spread(self, results: Results) -> None:
-        """Chan's "essentially round off errors" needs the books to agree on every day."""
-        together = agreement(results.matlab, results.python)
-        assert together.identical < together.days
+        """Chan's "essentially round off errors" needs books of one size to agree every day."""
+        sized = agreement(results.matlab, results.python_fifty)
+        assert sized.identical < sized.days
+
+    def test_keeping_the_first_book_moves_the_pythons_figures(self, results: Results) -> None:
+        kept = results.python_first_book
+        assert kept.annual == pytest.approx(0.0417, abs=5e-5)
+        assert kept.sharpe == pytest.approx(0.5945, abs=5e-5)
+        assert kept.positions[LOOKBACK + 1].any()
+
+    def test_each_bookkeeping_choice_lowers_the_pythons_figure(self, results: Results) -> None:
+        """Changing any of the three raises it, so each moves it toward the MATLAB's."""
+        for changed in (results.python_fifty, results.python_traded, results.python_first_book):
+            assert changed.annual > results.python.annual > results.matlab.annual
 
 
 class TestTheSplice:
@@ -274,6 +300,7 @@ class TestTheReport:
             "revised R              did not reproduce",
             "'round off errors'     does not hold",
             "identical on 0 of 752 days",
+            "differ in at least 125 positions",
             "identical on every day",
             "13.83%",
             "Without PMC",
