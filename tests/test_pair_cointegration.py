@@ -40,9 +40,10 @@ replications themselves.
    picture of it. ``TestResidualCheckOnChansFiles`` repeats it on Chan's own
    files, and ``TestResidualCheckChapter7`` asks the same of the longer window,
    on the yfinance closes and on Chan's own files.
-8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
-   premise one download date can show: GDX's adjusted 2006 closes sit below
-   its raw ones, and GLD's do not move at all.
+8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the adjusted half of the
+   vintage premise: GDX's adjusted 2006 closes sit below its raw ones and
+   below Chan's own 2007 file, and GLD's do not move at all. The raw half is
+   ``TestRawCloseAcrossTwoDownloads`` in ``tests/test_vintage_overlap.py``.
 9. ``TestReportNamesItsBasis``, which holds the lines of the report that say
    which vintage produced the numbers above them. The basis line names which
    kind of series and the vintage lines name which file, which vendor and which
@@ -1469,7 +1470,7 @@ class TestResidualCheckChapter7:
 
 
 # ============================================================
-# Layer 7 -- the vintage premise, as far as one download date shows
+# Layer 7 -- the adjusted half of the vintage premise
 # ============================================================
 
 

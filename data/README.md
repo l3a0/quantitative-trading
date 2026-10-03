@@ -122,8 +122,9 @@ by hand, which is why it carries the recorder's five-field name and a single
 `Date,Close` header. It is read by
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
 6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
-leg of Qian's allocation. Two of the other SPY files are workbook columns
-placed by hand, and the third is a raw download described below. The Kelly run reads `spy_chan.csv` under `--chan`, and
+leg of Qian's allocation. Two of the other SPY files are workbook
+columns placed by hand, and the third is a raw download described below.
+The Kelly run reads `spy_chan.csv` under `--chan`, and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.
 
@@ -393,7 +394,8 @@ infer.
    ```
 
    It ran against yfinance 1.7.0 on 2026-10-03, after the 2026-10-02 close,
-   outside the package. Its `Close` is the file, which carries splits and not
+   outside the package, and `chan.vintage.record_vintage` wrote what it
+   returned. Its `Close` is the file, which carries splits and not
    dividends. SPY has never split, so here that is the as-traded close. The
    call returned no non-finite close, so the file holds all 8,477 rows the
    vendor returned. Its `Adj Close` is not committed, because a second

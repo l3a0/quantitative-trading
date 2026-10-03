@@ -1568,12 +1568,14 @@ before any data is read.
 
 **Whether the finding survives another vintage.** These are raw closes, which
 a vendor should restate only when a fund splits, so a later download should
-match on every shared day unless one of the two has split by then. SPY shows
-that is not quite safe. Its two raw vintages, Chan's 2008 file and a 2026
-yfinance download, disagree on 2 of the 3,758 days they share with no split
-between them, which
-[tests/test_vintage_overlap.py](../tests/test_vintage_overlap.py) pins. The
-comparison
+match on every shared day unless one of the two has split by then. Nothing
+has checked that against a second yfinance download. The nearest measurement
+is SPY's two raw vintages, Chan's 2008 file and a 2026 yfinance download, which
+come from two sources and disagree on 2 of the 3,758 days they share with no
+split between them.
+[tests/test_vintage_overlap.py](../tests/test_vintage_overlap.py) pins that,
+and it says two sources can hold different closes rather than that a vendor
+rewrote one. The comparison
 [issue 139](https://github.com/l3a0/quantitative-trading/issues/139) built,
 `chan.series.vintage_overlap`, is what would check TLT and IEF, and no second
 download of either is committed.

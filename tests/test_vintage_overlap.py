@@ -81,11 +81,23 @@ class TestTheOverlap:
         assert overlap["ratio"].tolist() == pytest.approx([0.5, 0.5, 0.5])
         assert overlap.attrs["vintages"] == (older[0], newer[0])
 
-    def test_a_vintage_repeating_a_date_is_refused(self) -> None:
+    @pytest.mark.parametrize("side", ["older", "newer"])
+    def test_a_vintage_repeating_a_date_is_refused(self, side: str) -> None:
         repeated = _closes(1.0, 2.0)
         repeated.index = pd.DatetimeIndex(["2020-01-02", "2020-01-02"])
-        with pytest.raises(ValueError, match="older.csv repeats a date"):
-            vintage_overlap((_entry("older.csv"), repeated), (_entry("newer.csv"), _closes(1.0)))
+        pair = {"older": _closes(1.0), "newer": _closes(1.0), side: repeated}
+        with pytest.raises(ValueError, match=f"{side}.csv repeats a date"):
+            vintage_overlap(
+                (_entry("older.csv"), pair["older"]), (_entry("newer.csv"), pair["newer"])
+            )
+
+    def test_unsorted_vintages_come_back_in_date_order_with_each_day_its_own(self) -> None:
+        older = _closes(100.0, 102.0, 104.0).iloc[[2, 0, 1]]
+        newer = _closes(50.0, 51.0, 52.0).iloc[[1, 2, 0]]
+        overlap = vintage_overlap((_entry("older.csv"), older), (_entry("newer.csv"), newer))
+        assert overlap.index.is_monotonic_increasing
+        assert overlap["older"].tolist() == [100.0, 102.0, 104.0]
+        assert overlap["newer"].tolist() == [50.0, 51.0, 52.0]
 
     def test_two_symbols_are_refused(self) -> None:
         with pytest.raises(ValueError, match="two series rather than two vintages of one"):
@@ -145,6 +157,15 @@ class TestDepartures:
         found = departures(overlap, tolerance=HALF_A_CENT)
         assert [str(day.date()) for day in found.index] == ["2020-01-03"]
 
+    def test_a_hundredth_of_a_cent_past_the_tolerance_departs(self) -> None:
+        """The float slack is units in the last place, and no wider.
+
+        A hundredth of a cent against a dearer close is where a slack sized in
+        anything but the last place would start swallowing real departures.
+        """
+        overlap = self._overlap(_closes(127.95, 769.64), _closes(127.9449, 769.6349))
+        assert len(departures(overlap, tolerance=HALF_A_CENT)) == 2
+
     def test_a_tie_at_exactly_half_a_cent_agrees_despite_the_subtraction(self) -> None:
         """45.125 against 45.13 is half a cent on paper and 0.0050000000000026 in a float."""
         overlap = self._overlap(_closes(45.13), _closes(45.125))
@@ -161,8 +182,8 @@ class TestARatioNobodyCanReadDeparts:
     """Each arises from finite inputs, and none of them is agreement.
 
     A zero close is what ``_validated_rows`` allows for a halted day, a NaN is
-    what the parse makes of an unreadable value, and a negative close passes
-    every check that reads only the size of a difference.
+    what the parse makes of an unreadable value, and a close of the other sign
+    passes every check that reads only the size of a difference.
     """
 
     @pytest.mark.parametrize(
@@ -171,6 +192,7 @@ class TestARatioNobodyCanReadDeparts:
             (0.0, 0.0, "zero over zero is NaN although the closes are equal"),
             (0.0, 0.001, "a zero denominator is infinite although the closes differ by 0.001"),
             (100.0, math.nan, "a NaN close"),
+            (0.001, 0.0, "a zero numerator although the closes differ by 0.001"),
             (0.001, -0.001, "a negative ratio although the closes differ by 0.002"),
         ],
     )
@@ -340,6 +362,9 @@ class TestRawCloseAcrossTwoDownloads:
         assert len(ties) == 247
         assert ((ties < 0).sum(), (ties > 0).sum()) == (132, 115)
         assert ties.index.year.max() == 2001
+        # The 58 a float subtraction leaves a hair above the half cent, which
+        # is the count `departures` cites for its slack.
+        assert int((gap.abs() > HALF_A_CENT).sum()) == 58
 
     def test_each_vendor_agrees_with_itself_on_the_departing_days(
         self, overlap: pd.DataFrame

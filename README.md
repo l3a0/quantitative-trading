@@ -402,7 +402,7 @@ gap in the mean that its ten largest days and SPY's dividend months carry.
 `--start` and `--end` move the window, and the report drops the published
 column on any other window rather than printing a comparison against figures
 that came from his. `--dated` picks a vintage by its date, which matters the
-day a second SPY download arrives. Left out, it means the 2026 download, or no
+day a second adjusted SPY download arrives. Left out, it means the 2026 download, or no
 date under `--chan`, which finds his adjusted workbook column. `--risk-free` moves
 the book's 4 percent constant, and on Chan's window the report then says the
 gap column measures the rate as well as anything else.
@@ -1190,6 +1190,7 @@ The GLD/GDX replication was first run in `trading-strategies`, and it came
 here because that run already mapped the traps: the book's hedge ratio and its
 test statistic come from different chapters, on different windows, under
 different regression specifications, and the book's own number is
-unreproducible from any modern download. What is left to check is whether the
-vintage machinery makes those traps visible on its own, rather than through the
-comments that currently point them out.
+unreproducible from any modern download. What was checked here is whether the
+vintage machinery makes those traps visible on its own, rather than through
+comments, and each number the suite pins for it names its vintage, its window
+and its specification.

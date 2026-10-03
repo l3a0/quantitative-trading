@@ -57,8 +57,9 @@ is here for the reason the paragraph above gives for the parse.
 :func:`vintage_overlap` sets two vintages of one series against each other on
 the days both hold, and :func:`departures` names the days they disagree. Where
 the scale-break guard reads one series against itself, this reads a later
-download against an earlier one, which is the only way to see a vendor rewrite
-history between the two. It lives here for the same reason the guard does.
+download against an earlier one. Between two downloads from one vendor that is
+the only way to see the vendor rewrite history, and between two sources it says
+where they disagree. It lives here for the same reason the guard does.
 
 :func:`load_panel` reads a whole source file's columns as one date-by-symbol
 frame, which is how Chan's cross-sectional examples read his ``.mat`` files.
@@ -574,8 +575,11 @@ def vintage_overlap(
     being newer over older, and the two entries ride on
     ``DataFrame.attrs["vintages"]`` in that order, the way :func:`aligned_closes`
     hands back its two. An earlier vintage is committed bytes that no vendor
-    restatement can reach, so setting a later download against it is what says
-    whether the vendor rewrote the history in between.
+    restatement can reach, so setting a later download from the same vendor
+    against it is what says whether the vendor rewrote the history in between.
+    Set against a vintage from another source, it says where the two disagree
+    and not which one moved, because nothing compared here records where the
+    older one came from.
 
     It compares levels rather than returns, which is why it is not
     :func:`chan.kelly_leverage.compare_vintages`. A split falling between two
@@ -656,10 +660,11 @@ def departures(overlap: pd.DataFrame, *, tolerance: float) -> pd.DataFrame:
 
     A ratio that is not a finite positive number is a departure whatever the
     difference, because "agree" and "could not tell" must not be the same
-    answer, which is the rule :func:`scale_breaks` carries. Three such ratios
-    arise from finite inputs: a zero denominator, a NaN, and a negative close,
-    whose ratio is negative even where the two differ by less than the
-    tolerance.
+    answer, which is the rule :func:`scale_breaks` carries. Four such ratios
+    arise from finite inputs: a zero denominator, a zero numerator, a NaN, and
+    a close whose sign differs from the other's, whose ratio is negative even
+    where the two differ by less than the tolerance. Two negative closes give a
+    positive ratio and are judged on their difference like any other pair.
 
     The comparison is written as the negation of the agreeing case, so a NaN
     close, whose difference is NaN and fails every comparison, lands here
