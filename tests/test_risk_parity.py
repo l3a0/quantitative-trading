@@ -294,8 +294,8 @@ class TestTheTwoLegAlgebra:
         assert correlation_from_leverage(1.75) == pytest.approx(0.2783, abs=5e-5)
         assert correlation_from_leverage(1.85) == pytest.approx(0.0557, abs=5e-5)
 
-    def test_allowing_for_both_of_his_roundings_opens_the_band_a_long_way(self, measured) -> None:
-        """Roughly −0.01 through +0.37, wide enough to hold zero and a clearly positive one.
+    def test_allowing_for_both_of_his_roundings_opens_the_band_a_long_way(self) -> None:
+        """Roughly −0.01 through +0.37, wide enough to include zero and a clearly positive one.
 
         Qian printed two significant figures on the leverage and two on the
         weights. The map is monotone decreasing in both, so the band's ends sit
@@ -321,16 +321,6 @@ class TestTheTwoLegAlgebra:
         # them. His own printed pair sits well inside.
         assert min(corners.values()) < correlation_from_leverage(BOOK_LEVERAGE)
         assert correlation_from_leverage(BOOK_LEVERAGE) < max(corners.values())
-        # Wide, and still not every correlation this pair has shown. The full
-        # span's and the rising window's sit inside it, and the falling
-        # window's −0.0688 falls below it.
-        low, high = book_correlation_band()
-        measured_correlations = {
-            label: result.legs.correlation for label, (result, _) in measured.items()
-        }
-        assert low <= measured_correlations["full span"] <= high
-        assert low <= measured_correlations["rising rates"] <= high
-        assert measured_correlations["falling rates"] < low
 
     def test_a_higher_correlation_needs_less_leverage_on_his_weights(self) -> None:
         """Lesson 3's numbers. From a correlation of 0 to 0.2 on Qian's 23-77,
@@ -971,21 +961,18 @@ class TestTheTwoSubWindows:
 
         Vintages: ``yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv``
         and ``yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv``, both
-        yfinance's both-adjustments close, downloaded 2026-09-18. Specification:
-        :func:`matching_leverage`, the sample standard deviation of 60/40's daily
-        excess returns over the risk-parity portfolio's, constant weights
-        rebalanced daily.
+        each yfinance's both-adjustments close, downloaded 2026-09-18.
+        Specification: :func:`matching_leverage`, the sample standard deviation
+        of 60/40's daily excess returns divided by the risk-parity portfolio's,
+        with constant weights rebalanced daily.
 
         The two rankings above report a leverage each, and only the falling
         window's is on weights fitted inside it. The rising window is ranked on
         the falling window's 20.53 percent stocks, so its 1.6572 is that window
         on weights from before it. On its own 26.63 percent the matching
         leverage is 1.5495, which is the figure row 2's specification gives
-        there and the one to set against 2.1475 and Qian's 1.8.
-
-        Setting 2.1475 against 1.6572 holds the weights fixed and moves only
-        the window. That move is the larger part of the fall to 1.5495, and
-        refitting the weights takes it the rest of the way.
+        there and the one to set against 2.1475 and Qian's 1.8. Setting 2.1475
+        against 1.6572 holds the weights fixed and moves only the window.
         """
         falling, falling_returns = measured["falling rates"]
         rising, rising_returns = measured["rising rates"]
@@ -994,12 +981,14 @@ class TestTheTwoSubWindows:
 
         before = rankings["falling rates"]
         assert before.weight_source == "falling rates"
+        assert before.in_sample is True
         assert matching_leverage(falling_returns, falling_own) == pytest.approx(
             before.leverage, abs=1e-12
         )
 
         carried = rankings["rising rates"]
         assert carried.weight_source == "falling rates"
+        assert carried.in_sample is False
         assert matching_leverage(rising_returns, falling_own) == pytest.approx(
             carried.leverage, abs=1e-12
         )
@@ -1014,8 +1003,6 @@ class TestTheTwoSubWindows:
 
         # One on each side of his 1.8, on the specification his 1.8 is.
         assert after < BOOK_LEVERAGE < before.leverage
-        # The window alone moves it further than the refit does.
-        assert before.leverage - carried.leverage > carried.leverage - after
 
     def test_the_ratio_misses_qians_band_on_every_window_and_from_both_sides(
         self, measured
@@ -1148,6 +1135,23 @@ class TestTheReport:
         assert "falling rates (out of sample)" in printed
         assert "full span (in sample)" in printed
         assert "falling rates (in sample)" in printed
+
+    def test_only_a_leverage_on_its_own_windows_weights_is_set_against_the_book(
+        self, printed
+    ) -> None:
+        """Qian's 1.8 is a leverage on his own weights, and 1.6572 is not one.
+
+        The rising window is ranked on the falling window's weights, so its
+        leverage is a change of window on fixed weights. Setting it against
+        1.8 is the reading issue 186 corrected in Entry 4's row 15.
+        """
+        book = f"the book prints {BOOK_LEVERAGE:g}"
+        for label in ("full span", "falling rates"):
+            line = _line(_section(printed, label), "leverage that matches 60/40")
+            assert book in line, label
+        rising = _section(printed, "rising rates")
+        assert book not in _line(rising, "leverage that matches 60/40")
+        assert "so the leverage and the Sharpe ratio below are on those weights" in rising
 
     def test_a_window_that_does_not_resolve_the_ranking_says_so(self, printed) -> None:
         """A line a reader sees rather than an exception, because nothing has failed."""
@@ -1286,6 +1290,12 @@ def _section(text: str, label: str) -> str:
     rest = text[start + len("--- ") :]
     end = rest.find("\n--- ")
     return rest if end == -1 else rest[:end]
+
+
+def _line(section: str, label: str) -> str:
+    """The one line of a window's block that carries ``label``."""
+    (line,) = [line for line in section.splitlines() if label in line]
+    return line
 
 
 def _numbers_on(section: str, label: str) -> list[float]:

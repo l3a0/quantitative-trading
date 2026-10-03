@@ -34,7 +34,8 @@
    levered risk parity over the whole period, before the 2022 rise and after
    it, as :func:`chan.risk_parity.rank_the_windows` ranks them, with the later
    period also on weights fitted to it with hindsight. The later period's row
-   gives the t-statistic at its own leverage and at the earlier period's.
+   gives the t-statistic at the leverage measured on the later period, on the
+   earlier period's weights, and at the earlier period's leverage.
 
 7. :func:`make_correlation_figure` draws Lesson 6. After the 2022 rise, the
    hurdle bonds' Sharpe ratio had to clear, drawn against the stock-bond
@@ -1140,7 +1141,7 @@ def _t_at_leverage(returns: pd.DataFrame, weights: tuple[float, float], leverage
     """The robust t on the daily difference at a leverage the caller supplies.
 
     The same arithmetic as :func:`chan.risk_parity.rank_at_matched_volatility`
-    with the leverage it measures inside the window swapped out, which is how
+    with its in-window leverage swapped out, which is how
     ``tests/test_risk_parity.py`` reaches the post's −1.64. The only leverage
     passed here is the one the earlier years measured, so nothing is fitted.
     """

@@ -57,7 +57,7 @@ volatilities cancel out of the ratio once their ratio is pinned by the weights.
 useful, since the leverage this run derives moves visibly with the measured
 correlation. Read backwards it is weak. 1.8 solves to a correlation near 0.16
 on his printed weights, and letting both of his roundings vary at once opens
-that to roughly −0.01 through +0.37, wide enough to hold both zero and a
+that to roughly −0.01 through +0.37, wide enough to include both zero and a
 clearly positive correlation. So the report states what the derived leverage implies
 and does not claim to have recovered the correlation Qian measured.
 
@@ -1014,10 +1014,14 @@ def _ranking(ranking: Ranking, *, against_the_book: bool) -> None:
     sample = "in sample" if ranking.in_sample else "out of sample"
     print(f"    {'weights come from':<30}{ranking.weight_source} ({sample})")
     if not ranking.in_sample:
-        print("      so the Sharpe ratio below is on those weights and not on the ones")
-        print("      printed above, which were measured inside this window and rank nothing")
+        print("      so the leverage and the Sharpe ratio below are on those weights and not")
+        print("      on the ones printed above, which were measured inside this window and")
+        print("      rank nothing")
     leverage = f"{ranking.leverage:.4f}"
-    if against_the_book:
+    # Qian's 1.8 is a leverage on his own weights, so only a ranking on weights
+    # fitted inside its window is set against it. Issue 186 is where a
+    # carried-weight leverage was read against it and called the same thing.
+    if against_the_book and ranking.in_sample:
         print(
             f"    {'leverage that matches 60/40':<30}{leverage:>10}   "
             f"the book prints {BOOK_LEVERAGE:g}, gap {ranking.leverage - BOOK_LEVERAGE:+.1f}"
