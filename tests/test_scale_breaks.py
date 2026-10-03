@@ -96,6 +96,14 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: the measurements. Whether a run reading one of these files refuses a window
 #: crossing a flagged day is for that run to decide.
 #:
+#: [Issue 17](https://github.com/l3a0/quantitative-trading/issues/17) decided
+#: it for Example 3.7, and ``chan.khandani_lo``'s docstring says why it does
+#: not call the guard: Chan's rule puts a weight of 0 on every return that is
+#: not finite, and handed the panel the guard refuses over ten missing closes
+#: rather than over any scale break.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo.py`` runs both of
+#: its answers.
+#:
 #: [Issue 18](https://github.com/l3a0/quantitative-trading/issues/18) decided
 #: that ``chan.equity_seasonals`` refuses no window for Examples 7.6 and 7.7. Its
 #: job is to reproduce what Chan printed, and Chan's scripts ran on these closes
