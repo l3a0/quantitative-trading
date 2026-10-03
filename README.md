@@ -244,6 +244,14 @@ a price, so the scale-break check skips it.
 a window of months, and [tests/test_bill_rates.py](tests/test_bill_rates.py)
 pins what it gives.
 
+Twelve vintages hold NYMEX futures settlement prices as the US Energy
+Information Administration publishes them: contracts 1 to 4 of RBOB gasoline,
+of the New York Harbor gasoline contract it replaced, and of Henry Hub natural
+gas. Nothing reads them yet. They are committed ahead of the run
+[issue 19](https://github.com/l3a0/quantitative-trading/issues/19) describes,
+which reads five of them, and the issue records the owner's decision to commit
+them. [data/README.md](data/README.md) says what each file holds.
+
 Four of Chan's own files are cross-sections rather than series. Three hold
 prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 as it stood on
 2008-01-14, and the S&P 500 as he held it on 2012-04-24. The fourth holds his
