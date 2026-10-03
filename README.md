@@ -1097,7 +1097,7 @@ believed was not publicly available. A figure quoted from one of those traces
 there instead.
 
 The notes are quoted rather than written, so nothing edits them by hand and
-three markdownlint rules stand down over that directory. The reasoning is in
+four markdownlint rules stand down over that directory. The reasoning is in
 its README.
 
 ## Running the checks

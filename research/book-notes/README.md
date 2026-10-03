@@ -83,15 +83,17 @@ transcription error by re-extracting from the source, not by hand.
 
 That rule is what
 [.markdownlint.jsonc](.markdownlint.jsonc) in this directory exists for. It
-switches off three rules and keeps the rest. Two fire on the book's own text:
-websites cited in running prose without a scheme, and a `* i` that is
-multiplication rather than emphasis. The third is the note format, which runs
-one h1 title and then one h3 per highlight. The only way to satisfy any of them
+switches off four rules and keeps the rest. Three fire on the book's own text:
+websites cited in running prose without a scheme, a `* i` that is
+multiplication rather than emphasis, and a numbered list Chan prints whose
+items were highlighted one at a time, so the *Algorithmic Trading* note's
+item 2 at location 885 opens a list of its own. The fourth is the note format,
+which runs one h1 title and then one h3 per highlight. The only way to satisfy any of them
 here would be to alter the quotation, and a re-extraction would undo the
 alteration anyway.
 
 That directory config also covers this README, which is the price of putting
-the exemption next to what it governs. The three rules it relaxes are minor
+the exemption next to what it governs. The four rules it relaxes are minor
 style checks, and every other markdownlint rule still applies here.
 
 The prose sweeps in `tests/test_markdown_hygiene.py` do still read this
