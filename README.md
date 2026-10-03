@@ -615,8 +615,8 @@ six lessons from Box 6.1 on expected value against the compound growth
 rate of capital. The growth-maximising stake it quotes is pinned beside the
 rest, in `TestTheStakeDecidesTheSign`. SPY's mean annual return of 11.23% and
 its unlevered growth rate of 9.8%, Chan's at Kindle location 2869, are pinned
-in [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py) instead. That
-file carries both as cited constants, and
+in [tests/test_kelly_leverage.py](tests/test_kelly_leverage.py) instead. The
+code carries both as cited constants in `_PUBLISHED`, and
 `test_every_published_figure_reproduces_at_the_precision_he_printed` asserts
 that his own `example6_2.xls` rounds to each at the decimals he printed.
 Three groups of its figures are not pinned here.
@@ -632,11 +632,10 @@ Three groups of its figures are not pinned here.
 3. The \$606 median path is a loss of 39%. The test that pins \$606 says so in
    its docstring and does not assert the percentage. Lesson 2's 6% gap at ten
    rounds is the same kind, the pinned ratio of 1.06 written as a percentage.
-   So are Lesson 4's multiple of 3.11, the pinned \$3,111 divided by \$1,000,
-   and Lesson 6's "a fifth of the growth", the pinned standard error of
-   1.05e-4 set against the growth of about 0.0005. So is the
-   1.43-percentage-point gap between SPY's two figures, the pinned 11.23%
-   less the pinned 9.8%.
+   So are Lesson 3's 1.43-percentage-point gap between SPY's two figures, the
+   pinned 11.23% less the pinned 9.8%, Lesson 4's multiple of 3.11, the pinned
+   \$3,111 divided by \$1,000, and Lesson 6's "a fifth of the growth", the
+   pinned standard error of 1.05e-4 set against the growth of about 0.0005.
 
 Every other number in the post traces to an assertion in
 [tests/test_coin_flip_growth.py](tests/test_coin_flip_growth.py). The numbers
