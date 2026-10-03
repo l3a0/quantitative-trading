@@ -227,7 +227,7 @@ The vocabulary defines a replication as an attempt to reproduce a specific
 published number. A row with no published number is therefore not a
 replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
-Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 15, and
+Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
@@ -1049,7 +1049,7 @@ Algorithmic Trading Business*, revised edition, Kindle location 4684, reporting
 Edward Qian's argument. Shipped under
 [issue 15](https://github.com/l3a0/quantitative-trading/issues/15).
 
-Fifteen rows, all derivable from
+Twenty-one rows, all derivable from
 [tests/test_risk_parity.py](../tests/test_risk_parity.py).
 
 **The allocation lands near Qian's and the ranking goes the other way.** On the
@@ -1062,8 +1062,8 @@ earns a higher Sharpe ratio at the same risk, and at Chan's 4 percent rate
 here where a published number lands close and the claim behind it does not
 survive.
 
-Three rows are replications and twelve are not. Rows 1, 2 and 3 are the three
-things location 4684 prints. The other twelve fall into four groups.
+Three rows are replications and eighteen are not. Rows 1, 2 and 3 are the three
+things location 4684 prints. The other eighteen fall into five groups.
 
 1. **Rows 4 and 5**, the volatility ratio Qian's weights imply and the one
    these two legs measured. They are what row 1's gap is really about.
@@ -1076,6 +1076,13 @@ things location 4684 prints. The other twelve fall into four groups.
    with no reasoning attached. Row 10 is there because a ranking reported as a
    sign hides its size.
 4. **Rows 11 to 15**, the two sub-windows.
+5. **Rows 16 to 21**, the same three windows with IWB in place of SPY. IWB
+   tracks the Russell 1000, the index Qian's paper reads, so these rows price
+   the substitution. Row 21 is what it cost, under a rule
+   [issue 160](https://github.com/l3a0/quantitative-trading/issues/160)
+   declared before any IWB number existed. SPY stays the equity leg of rows 1
+   to 15, because promoting IWB after its numbers were seen would be choosing
+   a proxy for its result.
 
 **The sub-window rows carry no verdict either**, because the book makes no
 claim about a window. They are what turns rows 1 to 3 into a verdict rather
@@ -1130,16 +1137,26 @@ should hold.
 | 13 | Risk-parity weights and volatility ratio, rising-rates window | none, the book works no window | n/a |
 | 14 | The ranking on the rising-rates window, on weights from before it | none, the book works no window | n/a |
 | 15 | The leverage that matches 60/40's volatility, both sub-windows, on each window's own weights and on the weights row 14 carries | none, the book works no window | n/a |
+| 16 | IWB and AGG annualised volatility, their correlation, the risk-parity weights and both risk splits, full span | none, the book prints no IWB figure | n/a |
+| 17 | The leverage, the correlation it implies on his weights, the ranking and both Sharpe ratios on IWB, full span | none, the book prints no IWB figure | n/a |
+| 18 | The falling-rates window on IWB | none, the book works no window | n/a |
+| 19 | The rising-rates window on IWB, on weights from before it, and its leverage on each window's own weights | none, the book works no window | n/a |
+| 20 | The rate at which the IWB ranking ties, and both Sharpe ratios at the bill average, full span | none, the book prints no IWB figure | n/a |
+| 21 | What the SPY proxy cost, IWB against SPY on all three windows | none, the book prints no IWB figure | n/a |
 
 ### What this repo computed
 
-Every row reads the same two vintages on the same price basis under the same
-rebalancing rule, so the four are stated once here rather than in fifteen
-cells. The vintages are
+Every row reads the same price basis under the same rebalancing rule and the
+same moments, and rows 1 to 15 read the same two vintages, so all of it is
+stated once here rather than in twenty-one cells. Rows 1 to 15 read
 `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` and
 `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv`, both yfinance's
-both-adjustments close, both downloaded 2026-09-18. The price basis is
-adjusted on both legs. The rebalancing rule is constant weights rebalanced
+both-adjustments close, both downloaded 2026-09-18. Rows 16 to 20 read
+`yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv` in place of the
+SPY file, yfinance's both-adjustments close downloaded 2026-10-03, against the
+same AGG file. Row 21 reads all three. IWB holds every day AGG does inside the
+span, so rows 16 to 21 run on exactly the days rows 1 to 15 do. The price basis
+is adjusted on both legs. The rebalancing rule is constant weights rebalanced
 every trading day. The moments are simple daily returns, the mean scaled by
 252 and the sample standard deviation, dividing by n−1, by the square root of
 252, with a 4 percent annual risk-free rate subtracted as 0.04/252 a day.
@@ -1161,6 +1178,12 @@ every trading day. The moments are simple daily returns, the mean scaled by
 | 13 | 2022-03-17 to 2026-09-17 | the row 1, 5, 7 and 8 specifications, recomputed inside the window | 26.63 to 73.37, SPY 17.1193 percent, AGG 6.2127 percent, ratio 2.7555, correlation +0.2442, 60/40 risk 90.0043 and 9.9957 percent, risk parity 50 percent each | `TestTheTwoSubWindows::test_the_rising_rates_window` |
 | 14 | 2022-03-17 to 2026-09-17 | the row 3, 9 and 10 specifications, on the row 11 weights, which are strictly earlier data | implying +0.5689 on his weights, Sharpe 0.5071 against 0.0097, difference −0.4974, a mean difference of −5.5417 percent a year, robust t −2.1956 at lag 6 | `TestTheTwoSubWindows::test_the_rising_rates_window` |
 | 15 | the two windows of rows 11 and 13 | the row 2 specification on each window's own weights, and for the rising window also on the falling window's weights, which are the weights row 14 ranks | 2.1475 falling on its own 20.53 percent stocks, 1.5495 rising on its own 26.63 percent, and 1.6572 rising on the falling window's 20.53 percent | `TestTheTwoSubWindows::test_the_falling_rates_window`, `::test_the_rising_rates_window` and `::test_each_leverage_in_row_15_names_the_weights_it_was_measured_on` |
+| 16 | 2003-09-30 to 2026-09-17 | the row 1, 5, 6, 7 and 8 specifications on IWB | IWB 18.4710 percent, AGG 5.1650 percent, ratio 3.5762, correlation −0.0072, weights 21.85 to 78.15, 60/40 risk 96.7630 and 3.2370 percent, risk parity 50 percent each | `TestIWBInPlaceOfSPY::test_the_leg_moments_on_iwb` and `::test_the_weights_and_risk_split_on_iwb` |
+| 17 | 2003-09-30 to 2026-09-17 | the row 2, 3, 9 and 10 specifications on IWB | leverage 1.9795, implying −0.1486 on his weights, Sharpe 0.4132 against 0.1962 at 11.2589 percent volatility, difference −0.2171, mean difference −2.4439 percent a year, robust t −2.1619 at lag 9 | `TestIWBInPlaceOfSPY::test_the_leverage_and_ranking_on_iwb` |
+| 18 | 2003-09-30 to 2022-03-15 | the row 11 and 12 specifications on IWB, on weights fitted inside the window because nothing precedes it | 20.61 to 79.39, IWB 18.7833 percent, ratio 3.8512, correlation −0.0802, 60/40 risk 98.3945 percent on IWB, leverage 2.1484 on its own 20.61 percent, Sharpe 0.3887 against 0.2314, difference −0.1574, mean difference −1.7754 percent a year, robust t −1.3423 at lag 9 | `TestIWBInPlaceOfSPY::test_the_sub_windows_on_iwb` |
+| 19 | 2022-03-17 to 2026-09-17 | the row 13 and 14 specifications on IWB, ranked on the row 18 weights, which are strictly earlier data, and the row 2 specification on each window's own weights | 26.64 to 73.36, IWB 17.1076 percent, ratio 2.7536, correlation +0.2511, 60/40 risk 89.8823 percent on IWB, leverage 1.5468 on its own 26.64 percent and 1.6532 on the falling window's 20.61 percent, and on those Sharpe 0.4872 against 0.0003, difference −0.4869, mean difference −5.4295 percent a year, robust t −2.1556 at lag 6 | `TestIWBInPlaceOfSPY::test_the_sub_windows_on_iwb` |
+| 20 | 2003-09-30 to 2026-09-17 | row 17's tie in closed form, and row 17 recomputed at the 1.744 percent TB3MS average | ties at 1.5050 percent, against SPY's 1.4977; at 1.744 percent, Sharpe 0.6136 against 0.5928, difference −0.0208, robust t −0.2071 | `TestIWBInPlaceOfSPY::test_the_tie_rate_and_the_bill_average_on_iwb` |
+| 21 | all three windows | the five answers of the rule [issue 160](https://github.com/l3a0/quantitative-trading/issues/160) declared, each instrument on its own weights and leverage and every change IWB less SPY: the change in both Sharpe ratios, their difference and the mean difference; the robust t on the daily change `d_IWB(t) − d_SPY(t)` in the series each ranking is the mean of; whether any ranking's sign or resolution flips; IWB's ratio against row 4's band; and row 20's tie against the bill average | difference changes −0.0001, −0.0008 and +0.0105, mean difference +0.0113, +0.0023 and +0.1122 percent a year, robust t on that change +0.2939, +0.0557 and +0.9764; no sign or resolution flips; IWB's ratio 3.5762, 3.8512 and 2.7536, all outside the band; tie 1.5050 percent, under 1.744 | `TestIWBInPlaceOfSPY::test_what_the_proxy_cost` |
 
 **One return falls in neither sub-window and it is the boundary day's.** Rows 11
 to 15 run on 4,647 and 1,130 daily returns against the full span's 5,778, one
@@ -1170,7 +1193,8 @@ dated 2022-03-15 and row 13's starts with the one dated 2022-03-17, so this one
 belongs to neither. That return covers the day the Federal Reserve announced
 its first rate rise of 2022. SPY gained 2.2174 percent that day against AGG's
 0.0743 percent. So the return is named here rather than left for a reader to
-notice the counts miss by one.
+notice the counts miss by one. Rows 18 and 19 run on the same counts and lose
+the same return.
 `TestTheTwoSubWindows::test_the_two_windows_cover_the_span_except_the_return_that_straddles_the_cut`
 holds that day's two returns, so the arithmetic above stays checkable.
 
@@ -1193,10 +1217,17 @@ holds that day's two returns, so the arithmetic above stays checkable.
 | 13 | none | none, not a replication | The book works no window. The bond leg's volatility rises to 6.2127 percent and the ratio falls to 2.7555, which moves the risk-parity weights toward stocks, to 26.63 percent. They do not pass 60, so risk parity still holds less equity than 60/40 and the correction the book argues for still points the same way. |
 | 14 | none | none, not a replication | The book works no window. This is the only ranking here whose weights did not see the window they are judged on, and it is the worst of the three for risk parity, at −0.4974 with a robust t of −2.1956. Refitting the weights inside the window moves it in risk parity's favour, which is why it is not done. |
 | 15 | none | none, not a replication | The book works no window. On each window's own weights, which is row 2's specification, the leverage runs from 2.1475 to 1.5495, one on each side of his 1.8. That is what says 1.8 is a regime measurement rather than a constant. Row 14 ranks the rising window at 1.6572, which is that window on the falling window's weights. So setting 1.6572 against 2.1475 holds the weights fixed and moves only the window. |
+| 16 | none | none, not a replication | The book prints no IWB figure. IWB's volatility is 18.4710 percent against SPY's 18.5472, so the ratio moves from 3.5909 to 3.5762 and stays outside row 4's band, and the equity weight moves by 0.07 of a percentage point. On this window the broader index and the narrower one carry almost the same risk. |
+| 17 | none | none, not a replication | The book prints no IWB figure. Every figure moves in the third decimal or later. The leverage is 1.9795 against 1.9812, the difference −0.2171 against −0.2169, and the robust t −2.1619 against −2.1727. The ranking still goes against the book and the window still resolves it. |
+| 18 | none | none, not a replication | The book works no window. The robust t is −1.3423, so as on SPY this window does not resolve its own ranking and nothing is read off the sign. |
+| 19 | none | none, not a replication | The book works no window. Ranked on weights from before it, as row 14 is, it is again the worst of the three for risk parity, at −0.4869 with a robust t of −2.1556. On each window's own weights the leverage runs from 2.1484 to 1.5468 and straddles his 1.8, the way row 15's SPY figures do. |
+| 20 | none | none, not a replication | The book prints no IWB figure. The tie moves by less than a hundredth of a point and stays under the 1.744 percent bill average. So at the rate bills actually paid 60/40 still leads on IWB, and the robust t of −0.2071 does not resolve it. |
+| 21 | none | none, not a replication | The answer to the question [issue 160](https://github.com/l3a0/quantitative-trading/issues/160) asked, under the rule it declared before any IWB number existed. The swap moved no verdict. No window changes sign or resolution, no change in the mean difference reaches a robust t of 1, and IWB's ratio misses Qian's band on every window as SPY's does. The largest change is the rising window's, +0.0105 of Sharpe difference, against a difference of −0.4974. The paired t belongs to the change in the mean difference rather than to the change in the Sharpe difference, because the two instruments match different volatilities. |
 
 ### What the entry concludes
 
-Four things, and the first is the one the other three explain.
+Five things. The first is the one the next three explain, and the fifth says
+the first does not rest on the proxy.
 
 1. **The numbers land close and the claim does not survive.** Row 1 misses by a
    percentage point and row 2 by two tenths, which on the five-figure scale
@@ -1232,6 +1263,13 @@ Four things, and the first is the one the other three explain.
    leverage the later window's own risk parity needs. This is the same shape as Entry 3's fourth
    conclusion, where the window moved the leverage further than the vendor
    did.
+5. **The S&P 500 proxy is not what separates row 3 from Qian's claim.** Rows
+   16 to 21 run IWB, which tracks his Russell 1000, on the same window, rate
+   and bond leg. No ranking changes sign or resolution, the largest change in
+   a Sharpe difference is 0.0105, and no change in the mean difference reaches
+   a robust t of 1. So the instrument explains none of the gap, and what is
+   left of the difference between his inputs and these is his sample, his
+   monthly frequency and his cash rate, which What this entry cannot say gives.
 
 ### What this entry cannot say
 
@@ -1283,12 +1321,12 @@ three-month Treasury bills on the Russell 1000 Index and the Lehman Aggregate
 Bond Index from 1983 to 2004, and prints the volatilities, the correlation, the
 risk split and both Sharpe ratios this entry has no published counterpart for.
 Two cards read it, because the gap splits into an instrument and a sample.
-[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) swaps the
-equity leg for one that tracks his index and holds everything else fixed, which
-runs on free data.
+[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) swapped
+the equity leg for one that tracks his index and held everything else fixed,
+which ran on free data and is rows 16 to 21.
 [Issue 161](https://github.com/l3a0/quantitative-trading/issues/161) reaches his
-1983 to 2004 sample and is blocked on licensed history. Three things they change
-are worth stating here rather than leaving to those cards.
+1983 to 2004 sample and is blocked on licensed history. Three things the split
+turns on are worth stating here rather than leaving to those cards.
 
 1. **His window and this one barely overlap.** 1983 to 2004 against
    2003-09-30 to 2026-09-17. The paper gives years rather than months, so
@@ -1301,9 +1339,10 @@ are worth stating here rather than leaving to those cards.
    first bar is 2003-09-29 and his sample ends in 2004, so it covers the tail of
    his twenty-two years and nothing before it.
 3. **His equity leg is the Russell 1000 and SPY is not that.** It is the S&P
-   500, which is a narrower index, and nothing here has measured what the
-   substitution costs. IWB tracks the Russell 1000 and shares this entry's own
-   window, so that one is measurable on free data and is [issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
+   500, which is a narrower index. IWB tracks the Russell 1000 and shares this
+   entry's own window, so rows 16 to 21 measured what the substitution costs on
+   it, and it moved no verdict. What the instrument cannot answer is his span,
+   which is the first item.
 
 His bond index settles the proxy ruling from the source rather than from
 argument. The paper's disclosure describes the Lehman Aggregate as roughly

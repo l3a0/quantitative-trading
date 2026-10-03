@@ -85,6 +85,8 @@ for a column lifted from one of Chan's own files.
 | `yfinance_tlt_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | TLT | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_ief_raw_2002-07-30_2026-10-01_dl2026-10-02.csv` | yfinance | IEF | raw | 2002-07-30 .. 2026-10-01 | 2026-10-02 |
 | `yfinance_cadaud=x_raw_2005-07-04_2026-09-30_dl2026-10-02.csv` | yfinance | CADAUD=X | raw | 2005-07-04 .. 2026-09-30 | 2026-10-02 |
+| `yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | adjusted | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
+| `yfinance_iwb_raw_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | raw | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
 
@@ -152,7 +154,9 @@ evidence stand behind the value.
 
    run against yfinance 1.7.0 on 2026-09-18, with the `Close` column handed to
    the recorder in each case. The field holds the column and its argument, and
-   this paragraph holds the rest of the call.
+   this paragraph holds the rest of the call. IWB's line carries its call the
+   same way, written in its own paragraph below, and it is the one line with
+   both kinds of evidence, because a raw twin from the same session checks it.
 2. **GLD and GDX carry an inference that their bytes bound.** Nobody wrote
    their calls down. A comparison against the raw twin beside each, which
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins, says what
@@ -271,6 +275,40 @@ a reader to infer.
    pins the gap so the reason for that start cannot quietly stop being true.
 4. **`scale_breaks` finds nothing on it.** Its largest day-over-day move is a
    small fraction of the bound, so a flagged day would be a bad print.
+
+`yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv` and
+`yfinance_iwb_raw_2000-05-19_2026-10-02_dl2026-10-03.csv` are IWB, the fund
+that tracks the Russell 1000. That is the equity index Qian's paper reads,
+where SPY, the equity leg of the risk parity run, tracks the S&P 500.
+[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) runs IWB
+beside SPY on the same window and the same AGG vintage, so that whatever moves
+is the instrument. Three things about the pair are worth stating rather than
+leaving a reader to infer.
+
+1. **Both came from one session, and these are the calls.**
+
+   ```python
+   yfinance.download("IWB", period="max", interval="1d", auto_adjust=True, actions=False)
+   yfinance.download("IWB", period="max", interval="1d", auto_adjust=False, actions=False)
+   ```
+
+   Both ran against yfinance 1.7.0 on 2026-10-03, after the 2026-10-02 close,
+   outside the package. The first call's `Close` is the adjusted file, and its
+   manifest line carries `vendor_column` as `Close, auto_adjust=True`. The
+   second call's `Close` is the raw file, which carries splits and not
+   dividends. The second call's `Adj Close` matched the first call's `Close` on
+   every row to within 0.00013, which is the "two routes, one series" claim
+   above, checked at download time against a column this repo does not commit.
+2. **Nothing was dropped.** The download ran on a Saturday and returned no
+   non-finite close on either call, so each file holds all 6,632 rows the
+   vendor returned.
+3. **The raw twin is what makes the adjusted label checkable.** A split-only
+   `Close` recorded as `adjusted` would strip the dividends from IWB, and the
+   risk parity run would report them as what the SPY proxy cost.
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins the shape a
+   close carrying the dividends takes against its twin, the form GDX's
+   comparison above takes. The adjusted file sits below the raw one on every day
+   before 2026-09-15 and equals it from then on.
 
 The `*_chan.csv` files are a different kind of source. Each is one price
 column of Ernest Chan's own book-companion spreadsheet, taken from the public

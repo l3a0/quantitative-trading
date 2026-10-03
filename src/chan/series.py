@@ -235,7 +235,7 @@ def load_panel(
     measured on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88).
 
     The manifest is read once. Resolving each member by its identity fields
-    would read and validate all 1,115 of its lines once per member, 500 times
+    would read and validate all 1,118 of its lines once per member, 500 times
     for the S&P 500 file, where reading it once validates each line once. Every
     member is still read through :func:`read_vintage`, so each one is hashed
     against its entry before it is parsed.

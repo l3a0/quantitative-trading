@@ -76,7 +76,8 @@ they were first built. The other seven were built here.
    matched risk on the full span at Chan's 4 percent rate, resolved at a robust
    t of −2.17. It is the first entry here where the numbers reproduce and the
    claim does not, which is the reverse of the split the GLD/GDX and Kelly
-   entries both found.
+   entries both found. Swapping SPY for IWB, which tracks the Russell 1000
+   index Qian read, moves no verdict on any of the three windows.
 6. The CAD/AUD cross rate, which Chan calls "quite stationary" at Kindle
    location 3951 without working it. He names the rate itself, so the claim is
    what gets pinned and it carries a verdict against a criterion fixed before
@@ -333,8 +334,8 @@ time-scale check. A window whose mean excess return is negative makes Kelly
 recommend a short, and that arrives as a line saying what it means rather than
 as an exception, because nothing has failed.
 
-The risk parity run reads two series and takes no window, because its windows
-were declared in advance:
+The risk parity run reads SPY and AGG by default and takes no window, because
+its windows were declared in advance:
 
 ```bash
 uv run python -m chan.risk_parity
@@ -348,6 +349,13 @@ increase of the 2022 tightening cycle, 2022-03-16, which is a dated external
 event rather than anything read from the series under test. `--start` and
 `--end` add a fourth window, reported as off the reproduction and carrying no
 published counterpart, and `--risk-free` moves Chan's 4 percent constant.
+`--stock IWB` swaps the equity leg for IWB, which tracks the Russell 1000 index
+Qian read, keeps the same AGG vintage, and then reads SPY again to print what
+the substitution cost under the rule
+[issue 160](https://github.com/l3a0/quantitative-trading/issues/160) declared
+before any IWB number existed. SPY stays the default, because it is the leg
+[issue 15](https://github.com/l3a0/quantitative-trading/issues/15) fixed in
+writing.
 
 Each window reports both legs' volatilities against the ratio Qian's 23-77
 implies, the risk each leg contributes under 60/40 and under risk parity, the

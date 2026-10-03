@@ -99,11 +99,15 @@ which is why they are worth recording as confirmations rather than as changes.
 
 ## What it does not settle
 
-Two things, and each has a card that is the authority for what it is.
+Two things. The first has been measured on Entry 4's own window, and the
+second has an open card that is the authority for what it is.
 
 1. **The equity leg.** He read the Russell 1000 and Entry 4 reads SPY, which
-   tracks the S&P 500.
-   [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160).
+   tracks the S&P 500. IWB tracks his index, and Entry 4's rows 16 to 21 run it
+   beside SPY on Entry 4's window, where the swap moved no verdict. That
+   prices the instrument and not his sample, which is the second item.
+   [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) is
+   where the comparison's rule was declared.
 2. **The sample.** His is 1983 to 2004 and Entry 4's is 2003 to 2026.
    [Issue 161](https://github.com/l3a0/quantitative-trading/issues/161).
 
