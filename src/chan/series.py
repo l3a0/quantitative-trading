@@ -574,6 +574,9 @@ def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
     ``column`` is which column holds the values, the close's by default. A
     lifted file carries a stock's other fields after its close, and
     :func:`load_panel` passes the column of the one it was asked for.
+
+    Each value comes back as exactly the number its text spells, which
+    :func:`_exact_numbers` says how.
     """
     if column == 1:
         # The call every single-series vintage has always been read through,
@@ -592,8 +595,40 @@ def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
         dates = pd.to_datetime(raw["date"], errors="coerce")
     mask = dates.notna()
     series = pd.Series(
-        pd.to_numeric(raw["close"][mask], errors="coerce").to_numpy(dtype=float),
+        _exact_numbers(raw["close"][mask]),
         index=pd.DatetimeIndex(dates[mask]),
         name=ticker.upper(),
     )
     return series.sort_index()
+
+
+def _exact_numbers(cells: pd.Series) -> np.ndarray:
+    """Each cell as the float its text spells, NaN where the text is not a number.
+
+    Every column reaches here as text, because each vintage's header rows put
+    words above its numbers. ``pd.to_numeric`` parses that text with a fast
+    parser that does not round-trip, so a long value such as
+    ``912.7555772777217`` came back one unit off in its last digit. At
+    ``7ddf15a`` that was 8,104 values in 9 committed vintages, which
+    [issue 211](https://github.com/l3a0/quantitative-trading/issues/211)
+    measured. A ``float_precision`` argument to ``pd.read_csv`` changes none of
+    them, because it governs only columns ``read_csv`` itself turns into
+    numbers. Casting the text with ``astype`` returns the nearest float to the
+    decimal written, as Python's ``float`` does, and it matched ``float`` on
+    every value of every committed vintage at that commit.
+
+    A cell that is not a number becomes NaN, which is what ``to_numeric`` with
+    ``errors="coerce"`` did. No committed vintage holds one, so the cell-by-cell
+    path below runs only when one turns up.
+    """
+    try:
+        return cells.astype("float64").to_numpy()
+    except (TypeError, ValueError):
+        return np.array([_number_or_nan(cell) for cell in cells], dtype=float)
+
+
+def _number_or_nan(cell: object) -> float:
+    try:
+        return float(cell)
+    except (TypeError, ValueError):
+        return math.nan

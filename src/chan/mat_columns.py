@@ -202,13 +202,14 @@ def round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | Non
     file was recorded, the way the TLT and IEF column check ran at download
     time.
 
-    The comparison is exact, and the panel is parsed by ``_parse_close``, whose
-    pandas parser can land a long value one unit in its last digit away from
-    the one written, which is
-    [issue 211](https://github.com/l3a0/quantitative-trading/issues/211). Chan's
-    two files read back exactly. A file of full-precision prices would be
-    reported as differing although its bytes are right, which is the safe
-    direction for this check to be wrong in.
+    The comparison is exact, and so is the parse it compares. ``_parse_close``
+    once landed a long value one unit in its last digit away from the one
+    written, which
+    [issue 211](https://github.com/l3a0/quantitative-trading/issues/211)
+    fixed. Before that a file of full-precision prices was reported as differing
+    although its bytes were right. Chan's book-two price file was one, at 170
+    closes and 173 opens, measured on
+    [issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
     """
     from chan.series import load_panel
 
