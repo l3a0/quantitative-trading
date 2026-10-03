@@ -1946,8 +1946,10 @@ Three things, and the first is the verdict.
 2. **On the S&P 500 the daily cost is larger than the daily edge.** A Sharpe
    ratio of 0.2510 before costs and −3.1884 after is a rule whose average
    daily profit is smaller than the average cost of rebalancing into it every
-   day. Removing the quirks makes the after-cost figure slightly worse, not
-   better.
+   day. On the specification of row 3, the average day's cost is 13.7453
+   times its average profit, because the rule trades 1.4505 times its average
+   gross position a day, which `TestWhatAnAverageDayCosts` holds. Removing
+   the quirks makes the after-cost figure slightly worse, not better.
 3. **The universe is survivors, and nothing here measures what that cost.**
    Every stock that left the S&P 500 before 2007-11-23 is missing, whether it
    failed or was taken over, so neither the size nor the sign of the effect on

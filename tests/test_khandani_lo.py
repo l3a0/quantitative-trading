@@ -36,6 +36,11 @@ the NaN the pandas way gives −3.1822, which misses −3.19 by one unit at the
 book's precision. ``TestTheQuirksMoveTheFigure`` holds that, because it is the
 mistake a port is most likely to make.
 
+``TestWhatAnAverageDayCosts`` holds why the third figure lands where it does,
+on the third specification: an average day earns 0.5276 basis points of the
+position, pays 7.2525 in cost and swings by 33.3770, so the cost is 13.7453
+days of profit.
+
 Khandani and Lo's 4.47 is cited here as unpinned. It was computed on their own
 universe, which this repo does not hold, and nothing below asserts it.
 
@@ -61,8 +66,10 @@ from chan.khandani_lo import (
     TRADING_DAYS,
     WINDOW_END,
     WINDOW_START,
+    DailyBook,
     Reversal,
     chan_sharpe,
+    daily_book,
     daily_pnl,
     daily_returns,
     main,
@@ -90,6 +97,11 @@ def result(panel) -> Reversal:
     return reversal(frame)
 
 
+@pytest.fixture(scope="module")
+def day(result) -> DailyBook:
+    return daily_book(result)
+
+
 class TestTheVintage:
     """The members are the ``LIFTED_SOURCES`` row, and the window is Chan's."""
 
@@ -111,6 +123,14 @@ class TestTheVintage:
         _, frame = panel
         assert frame.loc["2006-01-03"].notna().sum() == 491
         assert frame.loc["2006-12-29"].notna().sum() == 495
+
+    def test_no_stock_leaves_during_the_window_and_four_join(self, panel) -> None:
+        """Survivors only, so the count can grow and never shrink. The four
+        that join began trading during 2006."""
+        _, frame = panel
+        first, last = frame.loc["2006-01-03"].notna(), frame.loc["2006-12-29"].notna()
+        assert list(frame.columns[first & ~last]) == []
+        assert sorted(frame.columns[last & ~first]) == ["EQ", "NYX", "WU", "WYN"]
 
 
 class TestTheFigures:
@@ -138,6 +158,56 @@ class TestTheFigures:
     def test_khandani_and_los_figure_is_cited_and_not_computed(self) -> None:
         """4.47, location 2099. On their universe, so this is a citation only."""
         assert BOOK_KHANDANI_LO == 4.47
+
+
+class TestWhatAnAverageDayCosts:
+    """Why 0.2510 becomes about −3.2, as an average day of the charged specification.
+
+    Every figure is a daily mean or deviation over the window's mean gross
+    position, a constant, so each reads in basis points of the position held
+    and neither Sharpe ratio moves. Dividing each day by its own position
+    would be a different rule, and gives 1.4666 for the turnover rather than
+    1.4505. ``blog/survivorship-and-transaction-costs.md`` quotes these.
+    """
+
+    def test_the_day_earns_half_a_basis_point_and_pays_seven(self, day: DailyBook) -> None:
+        assert day.profit * 1e4 == pytest.approx(0.5276, abs=5e-5)
+        assert day.cost * 1e4 == pytest.approx(7.2525, abs=5e-5)
+
+    def test_the_cost_is_about_fourteen_days_of_profit(self, day: DailyBook) -> None:
+        assert day.cost_per_profit == pytest.approx(13.7453, abs=5e-5)
+
+    def test_the_rule_trades_about_one_and_a_half_books_a_day(self, day: DailyBook) -> None:
+        """Five basis points on each unit traded is the whole cost."""
+        assert day.turnover == pytest.approx(1.4505, abs=5e-5)
+        assert day.cost == pytest.approx(day.turnover * ONE_WAY_COST, abs=1e-15)
+
+    def test_dividing_each_day_by_its_own_position_reads_differently(
+        self, result: Reversal
+    ) -> None:
+        """The figure the issue's plan measured, on the rule this class avoids."""
+        assert (result.traded / result.held).mean() == pytest.approx(1.4666, abs=5e-5)
+
+    def test_the_daily_swing_dwarfs_both(self, day: DailyBook) -> None:
+        assert day.swing * 1e4 == pytest.approx(33.3770, abs=5e-5)
+        assert day.swing_after * 1e4 == pytest.approx(33.0134, abs=5e-5)
+
+    def test_the_sharpe_ratios_are_these_averages(self, day: DailyBook, result: Reversal) -> None:
+        """√252 times the average day over its swing gives rows 1 and 3 exactly."""
+        root = math.sqrt(TRADING_DAYS)
+        assert root * day.profit / day.swing == pytest.approx(result.before_costs, abs=1e-12)
+        assert root * (day.profit - day.cost) / day.swing_after == pytest.approx(
+            result.after_costs_charged, abs=1e-12
+        )
+
+    def test_the_charged_series_is_the_profit_less_five_basis_points_a_unit(
+        self, result: Reversal
+    ) -> None:
+        assert np.isfinite(result.pnl_charged).all()
+        assert result.pnl_charged == pytest.approx(
+            result.pnl - result.traded * ONE_WAY_COST, abs=1e-18
+        )
+        assert result.held.min() > 0
 
 
 class TestTheQuirksMoveTheFigure:
