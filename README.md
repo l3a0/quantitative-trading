@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Nine replications run here, all from Chan's *Quantitative Trading*. The
+Ten replications run here, all from Chan's *Quantitative Trading*. The
 first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other seven were built here.
+they were first built. The other eight were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -119,6 +119,16 @@ they were first built. The other seven were built here.
    split, and with NEOF on one share basis the survivor-only return is 100.91
    percent. The loss against a gain survives that correction, and the printed
    388 still reproduces from the table as printed.
+10. The same reversal updated at the open instead of the close, Example 3.8 in
+    the revised edition, where the book says both Sharpe ratios turn "very
+    positive". On the rule the book describes it earns 4.4202 before costs and
+    0.7834 after, so the claim does not hold at the line of 1.0 declared before
+    the run. Chan's own Python notebook computes a different rule and prints
+    2.3818 and 1.3997, which reproduce. The notebook fills each gap with the
+    last price, so it reads WYN's change of company as a one-day return of
+    121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
+    0.9578 rather than the book's 0.25. Every figure is exploratory and about
+    survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -167,7 +177,9 @@ listed below.
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
-builder who corrects his code fails a test rather than moving a pin.
+builder who corrects his code fails a test rather than moving a pin. The blog
+post about them is the exception, and what it says that nothing here asserts
+is listed below.
 
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
 reversal. It pins Chan's two figures at four decimals and at the book's two,
@@ -175,7 +187,10 @@ and the figure with both quirks removed at four. It also pins the −3.1822 a
 port gives when it skips the missing day in the standard deviation as well as
 the mean, because that is the mistake that misses Chan's −3.19. It also pins
 what an average day earns, costs and trades as a share of the position held,
-which explains where the third figure lands. The blog post about it is the
+which explains where the third figure lands. For Example 3.8 it pins both rules
+on the opens, the claim's verdict, and the notebook's Example 3.7 figures on
+the closes, which fail if a transcription leans on pandas' current
+`pct_change`, because that no longer fills gaps. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
@@ -186,12 +201,12 @@ sweep run when the pins were written found that moving any printed cell by one
 unit in its last digit fails a test. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 
-All nine replications reach a verdict in
+All ten replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
-seasonals', Entry 8 the Khandani-Lo reversal's and Entry 9 the survivorship
-toy's.
+seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
+toy's and Entry 10 the reversal at the open's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -211,12 +226,15 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's MATLAB files, below, report 62 more, most of
+The columns lifted from Chan's MATLAB price files, below, report 92 more, most of
 them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
 one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
 that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
-called there.
+called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
+reads it as a return of 121.5 on the closes and 127.65 on the opens, because
+that is what his notebook computed, and the entry reports what the figures are
+without it.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -226,19 +244,23 @@ a price, so the scale-break check skips it.
 a window of months, and [tests/test_bill_rates.py](tests/test_bill_rates.py)
 pins what it gives.
 
-Two of Chan's own files are cross-sections rather than series: the S&P 500 as
-it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14. Each is
-committed as one vintage per stock, 1,100 between them, each holding the
-stock's close, high, low, open and volume, written by
-`src/chan/mat_columns.py` under a directory per file.
+Four of Chan's own files are cross-sections rather than series. Three hold
+prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 as it stood on
+2008-01-14, and the S&P 500 as he held it on 2012-04-24. The fourth holds his
+earnings-announcement flags for those last 497 stocks, a 0 or 1 for each day.
+Each is committed as one vintage per stock, 2,094 between them, written by
+`src/chan/mat_columns.py` under a directory per file. A price file's stock
+holds its close, high, low, open and volume, and a flag file's stock holds its
+flag for every day of the file's calendar.
 `chan.series.load_panel` reads a whole file back as one date-by-stock frame
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
-equity seasonals read both, the Khandani-Lo reversal reads the S&P 500 file,
-and [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) will
-read that file's opens.
+equity seasonals read the first two, and the Khandani-Lo reversal reads the
+2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
+[Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) will read the
+2012 S&P 500 file and its flags.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -390,13 +412,13 @@ Chan's equity seasonals are one command, and they take no option:
 uv run python -m chan.equity_seasonals
 ```
 
-It reads both of Chan's cross-section files and prints every figure each
+It reads both of Chan's first-edition cross-section files and prints every figure each
 printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
 January the file ends before is printed as not computable with the date the
 file ends, and the 2002 split of the revised Python prints under a line saying
 it carries no verdict.
 
-Khandani and Lo's reversal reads Chan's S&P 500 file and takes no argument,
+Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
 
 ```bash
@@ -407,6 +429,16 @@ It prints the panel in one line, the window and its day count, and each Sharpe
 ratio beside the book's, naming which quirks of Chan's code each one keeps.
 Khandani and Lo's own 4.47 is printed as a citation, since it was computed on a
 universe this repo does not hold.
+
+Its one option, `--open`, runs Example 3.8 on the same file's opens:
+
+```bash
+uv run python -m chan.khandani_lo --open
+```
+
+It prints both rules, Chan's notebook figures beside the rule that printed
+them, "very positive" beside the rule the claim is read on, both verdicts, the
+one-year bar, and the exploratory label.
 
 Chan's survivorship toy reads the two tables the book prints and takes no
 option:
@@ -918,6 +950,69 @@ uv run python -m chan.survivorship_and_costs_figures
 [tests/test_survivorship_and_costs_figures.py](tests/test_survivorship_and_costs_figures.py)
 holds what they draw rather than their bytes, for the reason given above for
 the regime map.
+
+[blog/equity-seasonals-lessons.md](blog/equity-seasonals-lessons.md) is an
+eighth post, about the equity seasonals, Examples 7.6 and 7.7. Chan reports
+seasonality in stocks as fading and publishes Example 7.7 as dead, while his
+text on Example 7.6 says it won in January 2008 after losing in the two
+Januaries before. The post draws four lessons from Entry 7 of the replication
+log.
+
+1. Every figure the committed files reach reproduces, and only under each
+   script's own rules.
+2. One strategy gives four answers across four printouts, and the first
+   edition's is in different units from the other three.
+3. Reproducing a strategy published as dead checks its printed figures and not
+   its death, and the split at 2002 is exploratory with no verdict.
+4. A file of survivors is the first thing the result cannot get past.
+
+Four groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its page in the revised edition. "More than 13
+   percent" and "has disappeared since then" are on p. 179, "has weakened or
+   even disappeared in recent years" on p. 174, and "worked wonderfully" on
+   p. 175, beside the tax-loss reason Chan gives for the January effect. The
+   reader whose backtest of Example 7.6 failed is on p. 13. "The most
+   recent five years instead of the entire data period", and Chan's
+   statement that those years do even worse, are on p. 180.
+2. Book figures with no computed value. Example 7.6's third January, 0.0881
+   in MATLAB and R and 0.088486 in Python, needs prices through 2008-01-31,
+   which no committed file holds. The suite pins only that the file ends on
+   2008-01-14 and leaves 2007-12-31 unreached.
+3. Counts, arithmetic and facts no test asserts. Nothing counts the fourteen
+   reproduced figures, six for Example 7.6 and eight for Example 7.7, or the
+   first edition's 95 months with a return and 83 with a position, which are
+   its 96 months less the one with no return and less the twelve with no
+   position. Nothing states that Chan's five years run roughly from late 2002
+   to late 2007, that a half's slope in the figure is its annual return over
+   12, that the revised Python copy's five printed figures match the book, or
+   that the mirror lacks `IJR_20080131.mat`.
+4. Its references. The four citations, including the publication details the
+   post gives for Heston and Sadka and for Singal, are cited rather than
+   computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), or to
+[tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
+for the figure's own labels. One group had no pin before it, and
+`TestTheYearsInsideTheSplit` now pins it: the calendar-year sums of the
+revised Python's months, 0.2227 for 2002 and −0.1319 for 2006, that those
+two years differ by more than the two halves of the split do, and that the
+running sum peaks in January 2006.
+
+Its one figure is drawn from the committed S&P 500 file by
+[src/chan/equity_seasonals_figures.py](src/chan/equity_seasonals_figures.py).
+It draws the 83 months the revised Python keeps as a running sum, split at
+2002 and labelled with each half's month count, annual return and Sharpe
+ratio, for Lesson 3.
+
+```bash
+uv run python -m chan.equity_seasonals_figures
+```
+
+[tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 

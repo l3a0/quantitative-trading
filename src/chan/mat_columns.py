@@ -1,11 +1,21 @@
 """Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
 
-Chan's cross-sectional examples read two files from his first-edition code: the
-S&P 500 as it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14.
-Each holds date-by-stock arrays of closes, highs, lows, opens and volumes, and
+Chan's cross-sectional examples read three price files. Two come from his
+first-edition code: the S&P 500 as it stood on 2007-11-23 and the S&P 600 as it
+stood on 2008-01-14. The third comes from his second book's code: the S&P 500
+as he held it on 2012-04-24, which his Example 7.2 reads. Each holds
+date-by-stock arrays of closes, highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
 file of a new shape.
+
+Example 7.2 also reads a fourth file, ``earnannFile.mat``, which holds no
+prices. It is a date-by-stock array of 0 and 1 marking the days a stock
+announced earnings between the previous close and the open.
+[Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) decided it
+is recorded the same way, one vintage per stock, under the ``event`` basis and
+the one field :data:`chan.vintage.EVENT_FIELDS` names. :func:`record_flag_file`
+records it and :func:`flag_round_trip_differs` checks it.
 
 This module is the half that needs scipy. It reads the ``.mat`` bytes, turns
 each stock into rows, and hands them to
@@ -23,11 +33,14 @@ Three choices are settled here rather than left to whoever runs it.
    would share every identity field with the close.
 2. **A missing cell is a missing row.** Chan marks a day a stock has no price
    with NaN in every field at once, and a vintage refuses one. Dropping those
-   rows loses nothing, because no day in either file lacks a close in every
-   column, so the union of the members' dates is the file's own day list and
+   rows loses nothing, because no day in any of the three lacks a close in
+   every column, so the union of the members' dates is the file's own day list and
    :func:`chan.series.load_panel` rebuilds every NaN by reindexing onto it.
    :func:`round_trip_differs` is the check that says so, field by field, for
-   the file at hand.
+   the file at hand. A flag file is the exception, and keeps every day of its
+   calendar with a 0 where nothing happened, because Example 7.2 cuts its
+   prices to the flag file's own days. A flag file whose rows began at its
+   first announcement would start that calendar late.
 3. **The saved date is the header's.** A MAT file's 116-byte text header
    records when it was created, and that is the date the vintage carries. It
    is a day after the date in each file's name, because the name carries the
@@ -35,11 +48,13 @@ Three choices are settled here rather than left to whoever runs it.
 
 The price basis is the caller's to state, because nothing in the file says
 it, and it names the four prices. ``data/README.md`` records what was measured
-for each file and why it is recorded as ``adjusted``.
+for each file and why it is recorded as ``adjusted``. A basis of ``event``
+records a flag file instead.
 
-Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``. The
-files are not committed, so a run needs a local copy taken from the mirror at
-the commit ``data/README.md`` names.
+Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``, or
+``--price-basis event`` for a flag file. The files are not committed, so a run
+needs a local copy taken from the mirror at the commit ``data/README.md``
+names.
 """
 
 from __future__ import annotations
@@ -56,6 +71,7 @@ import numpy as np
 import scipy.io
 
 from chan.vintage import (
+    EVENT_FIELDS,
     LIFTED_FIELDS,
     PRICE_BASES,
     VintageEntry,
@@ -138,8 +154,9 @@ def columns_of(
 
     A day is priced when its close is. Every other field must be present on
     exactly those days, because a row cannot hold a missing open and a day
-    with an open and no close has nowhere to go. Both of Chan's files hold
-    that, measured on issue 88, and a file that does not is refused naming the
+    with an open and no close has nowhere to go. Chan's first two files hold
+    that, measured on issue 88, and so does his book-two file, measured on
+    issue 250. A file that does not is refused naming the
     first stock and day that break it.
     """
     closes = arrays["Close"]
@@ -228,6 +245,85 @@ def round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | Non
     return None
 
 
+def read_flags(payload: bytes) -> tuple[list[str], list[str], np.ndarray]:
+    """A flag file's days as ISO dates, its symbols, and its 0 and 1 array.
+
+    Checked the way :func:`read_arrays` checks a price file, and every cell must
+    be 0 or 1, because a flag file with anything else in it is not one.
+    """
+    wanted = ["tday", "stocks", "earnann"]
+    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=wanted)
+    missing = [name for name in wanted if name not in held]
+    if missing:
+        raise ValueError(f"the file carries no {', '.join(missing)}")
+
+    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
+    if days != sorted(set(days)):
+        raise ValueError("the file's trading days are not strictly increasing")
+    symbols = [_symbol(cell) for cell in np.asarray(held["stocks"]).ravel()]
+    repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
+    if repeated:
+        raise ValueError(f"the file names a symbol more than once: {', '.join(repeated)}")
+
+    flags = np.asarray(held["earnann"])
+    if flags.shape != (len(days), len(symbols)):
+        raise ValueError(
+            f"earnann is {flags.shape[0]} by {flags.shape[1]} and the file carries "
+            f"{len(days)} days and {len(symbols)} symbols"
+        )
+    if not np.isin(flags, (0, 1)).all():
+        raise ValueError("earnann holds a value other than 0 and 1")
+    return days, symbols, flags.astype(int)
+
+
+def record_flag_file(path: Path, *, data_dir: Path | None = None) -> list[VintageEntry]:
+    """Record every stock in a flag file as its own ``event`` vintage, under :data:`VENDOR`.
+
+    Each stock keeps every day of the file's calendar, a 0 included, so the
+    vintage's span is the calendar's rather than its first announcement's.
+    """
+    payload = Path(path).read_bytes()
+    days, symbols, flags = read_flags(payload)
+    columns = {
+        symbol: [(day, int(flag)) for day, flag in zip(days, flags[:, index], strict=True)]
+        for index, symbol in enumerate(symbols)
+    }
+    return record_lifted_columns(
+        columns,
+        vendor=VENDOR,
+        price_basis="event",
+        saved_date=saved_date_of(payload),
+        source_file=Path(path).name,
+        fields=EVENT_FIELDS,
+        data_dir=data_dir,
+    )
+
+
+def flag_round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | None:
+    """Why the recorded flags are not the file's array, or ``None`` when they are.
+
+    :func:`round_trip_differs` cannot read a flag file, because
+    :func:`read_arrays` asks for five price arrays it does not carry. This
+    rebuilds the array from the committed bytes through
+    :func:`chan.series.load_panel` and compares it cell for cell, days and
+    symbol order included.
+    """
+    from chan.series import load_panel
+
+    payload = Path(path).read_bytes()
+    days, symbols, flags = read_flags(payload)
+    spelled = [symbol.upper() for symbol in symbols]
+    _, panel = load_panel(Path(path).name, field=EVENT_FIELDS[0], data_dir=data_dir)
+    if [str(day.date()) for day in panel.index] != days:
+        return "the panel's days are not the file's trading days"
+    if list(panel.columns) != sorted(spelled):
+        return "the panel's symbols are not the file's"
+    order = [spelled.index(symbol) for symbol in panel.columns]
+    if not np.array_equal(panel.to_numpy(dtype=float), flags[:, order].astype(float)):
+        return "the panel's flags are not the file's earnann array"
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m chan.mat_columns",
@@ -238,19 +334,24 @@ def main(argv: list[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
 
     sha256 = hashlib.sha256(arguments.path.read_bytes()).hexdigest()
+    flags = arguments.price_basis == "event"
     try:
-        entries = record_mat_file(arguments.path, price_basis=arguments.price_basis)
+        if flags:
+            entries = record_flag_file(arguments.path)
+        else:
+            entries = record_mat_file(arguments.path, price_basis=arguments.price_basis)
     except (VintageRefused, ValueError) as refused:
         print(f"{arguments.path.name}: not recorded. {refused}", file=sys.stderr)
         return 1
 
     rows = sum(entry.row_count for entry in entries)
+    fields = EVENT_FIELDS if flags else LIFTED_FIELDS
     print(f"{arguments.path.name}   sha256 {sha256}")
     print(
-        f"recorded {len(entries)} vintages, {rows} rows of {', '.join(LIFTED_FIELDS)}, under "
+        f"recorded {len(entries)} vintages, {rows} rows of {', '.join(fields)}, under "
         f"{entries[0].path.split('/')[0]}/, saved {entries[0].saved_date}"
     )
-    differs = round_trip_differs(arguments.path)
+    differs = (flag_round_trip_differs if flags else round_trip_differs)(arguments.path)
     if differs is not None:
         print(
             f"round trip failed: {differs}. The vintages are recorded, so review them before "
@@ -259,7 +360,10 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    print("round trip: every field read back is the file's array, NaN for NaN")
+    if flags:
+        print("round trip: every flag read back is the file's array, day for day")
+    else:
+        print("round trip: every field read back is the file's array, NaN for NaN")
     return 0
 
 

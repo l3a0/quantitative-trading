@@ -18,8 +18,8 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8 and 9 carry their own, three, eleven, twelve, five,
-six, one and three, and they are listed in those entries rather than here, because the
+Entries 2, 3, 4, 6, 7, 8, 9 and 10 carry their own, three, eleven, twelve,
+five, six, one, three and eight, and they are listed in those entries rather than here, because the
 list is about an entry's rows and not about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -28,7 +28,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6, 7 and 8 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8 and 10 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -103,6 +103,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-7)
   - [What the entry concludes](#what-the-entry-concludes-8)
   - [What this entry cannot say](#what-this-entry-cannot-say-6)
+- [Entry 10: the Khandani-Lo reversal at the open, Chan's *Quantitative Trading*](#entry-10-the-khandani-lo-reversal-at-the-open-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-8)
+  - [What this repo computed](#what-this-repo-computed-9)
+  - [The verdicts](#the-verdicts-8)
+  - [What the entry concludes](#what-the-entry-concludes-9)
+  - [What this entry cannot say](#what-this-entry-cannot-say-7)
 
 ## How to read an entry
 
@@ -126,7 +132,7 @@ both.
    module,
    [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds
    Entry 7, [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
-   Entry 8, and
+   Entries 8 and 10, which are Examples 3.7 and 3.8 and share a module, and
    [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
    Entry 9.
 2. **Every published figure names where the source prints it, or says it has no
@@ -231,13 +237,17 @@ Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
-Entry 8's row 3, and Entry 9's rows 3 to 5.
+Entry 8's row 3, Entry 9's rows 3 to 5, and Entry 10's rows 6 to 13.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
 ranking or a verdict, the claim is what gets pinned. Entry 3's rows 12, 15, 27
 and 28 are all of those, and they split two and two. So is Entry 4's row 3,
 which is the ranking Qian's two printed figures were printed to support.
+Entry 10's row 1 is one too, for the reason Entry 6's row 1 below is: the
+claim is about one strategy the book names, and its criterion was declared on
+[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) before
+any figure was computed.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -1875,7 +1885,10 @@ most recent five years give even worse average returns. Neither file reaches
 those years, so nothing here reads that claim.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/equity-seasonals-lessons.md](../blog/equity-seasonals-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.equity_seasonals_figures` redraws.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
 
@@ -2014,12 +2027,15 @@ this repo does not hold, so it stays a cited number.
 it, and Chan leaves that as an exercise. The S&P 600 file under
 `ijr_20080114/` spans 2006, and running the rule on it would be a finding with
 no published figure to check, like Entry 5, rather than a replication.
+[Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) runs it.
 
 **What survivorship cost.** Neither its size nor its sign is measured.
 
-**What trading at the open gives.** That is Example 3.8, and
-[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) carries
-it.
+**What trading at the open gives.** That is Example 3.8, and Entry 10
+carries it. Entry 10 also reproduces Chan's Python notebook for this example,
+which prints 0.9578 and −2.1617 rather than 0.25 and −3.19, because its rule
+differs from `example3_7.m` in six ways and its forward-fill reads WYN's gap
+as one day's move.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -2159,3 +2175,169 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its
 figure of the three portfolios' returns, which
 `uv run python -m chan.survivorship_and_costs_figures` redraws.
+
+## Entry 10: the Khandani-Lo reversal at the open, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Example 3.8, p. 78, and the
+notebook `example3_8.ipynb` the book points to. Shipped under
+[issue 206](https://github.com/l3a0/quantitative-trading/issues/206).
+
+The label is a revised-edition one, and this entry declares it because the
+repo reads an example number as first-edition unless it says otherwise. The
+first-edition mirror holds `example3_7.m` and no file for this example, and
+whether the 2009 edition carries it was not checked.
+
+Thirteen rows, all derivable from
+[tests/test_khandani_lo.py](../tests/test_khandani_lo.py).
+
+**Chan's notebook reproduces, and the book's claim does not.** Example 3.8
+takes Example 3.7's reversal and changes one thing, updating the positions at
+the market open instead of the close. The book prints no figure and says only
+that the Sharpe ratios before and after costs are "both very positive". Chan's
+notebook prints 2.3818 before costs and 1.3997 after, and its transcription
+lands on both. Run on the rule the book describes, the reversal earns 4.4202
+before costs and 0.7834 after, so the after-cost figure misses the line of 1.0
+that the claim was held to, declared before any figure on the opens was
+computed.
+
+Those two results come from two rules, and the difference between them is the
+finding.
+
+1. **Rule B is Example 3.7's MATLAB with the open in place of the close**, the
+   rule Entry 8 reproduces. Chan's sentence at p. 78 recalls that strategy's
+   0.25 and −3.19 and calls updating at the open "the only change", so rule B
+   carries the claim.
+2. **Rule A is the notebook as written.** It forward-fills before taking
+   returns, carrying each stock's last price into a gap. It scales each day's
+   weights to a gross exposure of 1, zeroes no stock for a missing price,
+   divides its deviation by n, charges nothing on the first day, and charges
+   no change in weight beside a missing one. Its Example 3.7 twin prints
+   0.9578 and −2.1617 rather than the book's 0.25 and −3.19, and rows 4 and 5
+   reproduce both on the closes.
+
+The forward-fill is what separates them most. `spx_20071123/wyn.csv` holds two
+companies under one symbol, 952 trading days apart, and the fill reads that gap
+as a single day's move on 2006-08-01: a return of 121.5 on the closes and
+127.65 on the opens, gains of over 12,000 percent. On the closes the fill
+lifts rule A from 0.4179 to 0.9578 before costs, and dropping WYN alone gives
+0.4268. On the opens it pulls rule A down, from 4.8606 to 2.3818, and dropping
+WYN alone gives 4.8508.
+
+Five rows are replications and eight are not. Row 1 is the claim, which takes
+the claim route `### Rows that are not replications` describes, and rows 2 to
+5 are the four figures Chan's notebooks print. Rows 6 to 13 have no published
+figure.
+
+Every row reads the same vintage, window and costs, so the three are stated
+once here.
+
+1. **The vintage.** `spx_20071123/`, the 500 stocks of Chan's
+   `SPX_20071123.mat`, read through `chan.series.load_panel` with
+   `field="Open"`, or the default close where a row says closes. Chan's
+   notebooks read `SPX_op_20071123.txt` and `SPX_20071123.txt` instead, which
+   this repo does not commit. Measured on
+   [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) at
+   `7150afb`, each
+   matches its panel cell for cell, NaN for NaN, to a largest relative
+   difference of 2.0e-16, so the two are one series and nothing here can
+   re-measure that. **Every figure here is about survivors**, for the reason
+   Entry 8 gives.
+2. **The window.** 2006-01-03 to 2006-12-29, 251 trading days, cut after the
+   profit is computed.
+3. **The costs and the ratio.** 5 basis points on each side of a change in
+   weight, and √252 times the mean over the standard deviation with no
+   risk-free rate. Rule B divides the deviation by n − 1 and rule A by n.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 sample on a rule somebody else chose, so the entry says whether his
+numbers and his claim reproduce on his file and nothing about whether trading
+at the open pays today.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | Both Sharpe ratios, before and after costs, at the open | "both very positive", a claim rather than a figure | p. 78. Not among the committed highlights, as [research/book-notes/README.md](../research/book-notes/README.md) records |
+| 2 | The notebook's Sharpe ratio before costs | 2.381759409645483 | `example3_8.ipynb`, as reposted at pinhaocheng/epchan-quant_trading_Python_codes `5fcab61` |
+| 3 | The notebook's Sharpe ratio after costs | 1.3996944546182997 | the same |
+| 4 | The Example 3.7 notebook's Sharpe ratio before costs, on the closes | 0.957785681010386 | `example3_7.ipynb`, the same repost |
+| 5 | The Example 3.7 notebook's Sharpe ratio after costs | −2.1617433718962276 | the same |
+| 6 to 13 | rule B's figures, what the open recovered, rule A without its fill or without WYN, and the one-year bar | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | rows 6 and 7 read against the declared criterion, both at least 1.0 unrounded | before costs clears it and after costs does not | `TestTheVerdicts::test_the_claim_does_not_hold_because_after_costs_misses` |
+| 2 | rule A on the opens, before costs | 2.3818 | `TestRuleAOnTheOpens::test_the_figures` |
+| 3 | rule A on the opens, after costs | 1.3997 | `TestRuleAOnTheOpens::test_the_figures` |
+| 4 | rule A on the closes, before costs | 0.9578 | `TestRuleAOnTheCloses::test_it_reproduces_the_notebooks_example_37` |
+| 5 | rule A on the closes, after costs | −2.1617 | `TestRuleAOnTheCloses::test_it_reproduces_the_notebooks_example_37` |
+| 6 | rule B on the opens, before costs | 4.4202 | `TestRuleBOnTheOpens::test_before_costs` |
+| 7 | rule B on the opens, after costs, first day uncharged and its NaN counted as 0 | 0.7834 | `TestRuleBOnTheOpens::test_after_costs_with_both_quirks` |
+| 8 | row 7 with the first day charged, so no day is NaN | 0.8293 | `TestRuleBOnTheOpens::test_after_costs_with_both_quirks_removed` |
+| 9 | row 7 less Entry 8's row 2 | 3.9718 | `TestRuleBOnTheOpens::test_what_trading_at_the_open_recovered` |
+| 10 | rule A on the opens without the forward-fill | 4.8606 before costs, 1.0335 after | `TestRuleAOnTheOpens::test_without_the_forward_fill` |
+| 11 | rule A on the opens without WYN | 4.8508 before costs, 1.0357 after | `TestRuleAOnTheOpens::test_without_wyn` |
+| 12 | rule A on the closes without the forward-fill, and without WYN | 0.4179 and −3.3760, and 0.4268 and −3.3643 | `TestRuleAOnTheCloses::test_without_the_forward_fill_it_does_not` and `::test_without_wyn_it_lands_near_the_unfilled_figure` |
+| 13 | rows 2, 3, 6 and 7 against 1 × √(681/251), Chan's minimum-backtest estimate at p. 61 scaled to the window | the bar is 1.6472, and only the two before-cost figures clear it | `TestTheVerdicts::test_which_figures_clear_the_one_year_bar` and `::test_the_bar_is_chans_estimate_scaled_to_the_window` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, the source states a claim | did not reproduce | The criterion was declared on [issue 206](https://github.com/l3a0/quantitative-trading/issues/206) and the threshold confirmed by the owner before any figure on the opens was computed: both of rule B's figures at least 1.0, Chan's own line for a strategy worth trading on its own at p. 23. Before costs is 4.4202 and after costs 0.7834. The run reads Chan's own file through a transcription of the rule Entry 8 reproduces, so no cause outside the method is available, which is the reasoning behind Entry 1's row 6. |
+| 2 | 0.0000 | reproduced | Chan's figure, on his own data, through his own notebook transcribed. |
+| 3 | 0.0000 | reproduced | The same. |
+| 4 | 0.0000 | reproduced | Rule A's control. Without it a transcription that leaned on pandas' current `pct_change`, which no longer fills gaps, would give row 12's 0.4179 and look plausible. |
+| 5 | 0.0000 | reproduced | The same. |
+| 6 | none | none, not a replication | Half of what row 1 reads. Updating at the open lifts the figure before costs from Entry 8's 0.2510 to 4.4202. |
+| 7 | none | none, not a replication | The half that fails. Charging 5 basis points a side takes the figure from row 6's 4.4202 to 0.7834. |
+| 8 | none | none, not a replication | Charging the first day moves the figure up rather than down here, and it stays below 1.0, so the quirks do not decide row 1. |
+| 9 | none | none, not a replication | What the open recovered against Example 3.7 after costs. It turns a large loss into a small gain. |
+| 10 | none | none, not a replication | The forward-fill is pandas 0.24's default, which the notebook's bare `pct_change()` inherits rather than asks for. Without it rule A's after-cost figure is 1.0335, above 1.0. |
+| 11 | none | none, not a replication | Dropping only WYN gives 4.8508 against row 10's 4.8606, and 1.0357 against 1.0335, so on the opens WYN's gap carries most of what the fill does. |
+| 12 | none | none, not a replication | The same pair on the closes. There WYN's gap lifts the figure rather than lowering it, and dropping WYN alone brings rule A from row 4's 0.9578 to 0.4268, near the 0.4179 it gives without the fill. |
+| 13 | none | none, not a replication | The two before-cost figures clear the bar and the two after-cost figures do not. Chan states the estimate behind it as 95 percent confidence over 681 days, and scaling it to one year is this repo's step, so the row decides nothing. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **On the rule the book describes, the claim does not hold.** Updating at
+   the open turns Example 3.7's −3.1884 after costs into 0.7834, a recovery of
+   3.9718, and the before-cost figure reaches 4.4202. "Both very positive"
+   asks both to clear 1.0, and the after-cost figure does not.
+2. **Chan's notebook reproduces exactly and computes something else.** Its
+   figures land at four decimals on both examples, and both of its Example
+   3.8 figures clear 1.0. But it differs from the MATLAB in six ways, and on
+   Example 3.7 it prints 0.9578 where the book prints 0.25, so it is not the
+   strategy behind 0.25 and −3.19 with one change, which is what the book's
+   sentence describes.
+3. **WYN's gap moves rule A on both fields, in opposite directions.** Reading
+   it as a gap rather than a move, by dropping the fill or dropping WYN, gives
+   0.4179 to 0.4268 before costs on the closes and 4.8508 to 4.8606 on the
+   opens. Rule A's after-cost figure on the opens stays above 1.0 either way,
+   at 1.0335 and 1.0357.
+
+### What this entry cannot say
+
+Four things.
+
+**What `example3_8.R` prints.** The book points to it beside the notebook, and
+no copy was found.
+
+**Whether trading at the open is tradeable on the open's own signal.** Both
+rules set a weight from the day's open and trade at that same open, as Example
+3.7 does at the close. Neither run adjusts that timing.
+
+**What survivorship cost.** Neither its size nor its sign is measured, as
+Entry 8 says.
+
+**Whether the rule pays on small caps.** Chan leaves that as an exercise, and
+[issue 249](https://github.com/l3a0/quantitative-trading/issues/249) runs it on
+the S&P 600 file.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
