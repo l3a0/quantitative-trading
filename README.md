@@ -221,7 +221,7 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's MATLAB files, below, report 62 more, most of
+The columns lifted from Chan's MATLAB price files, below, report 92 more, most of
 them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
 one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -239,18 +239,23 @@ a price, so the scale-break check skips it.
 a window of months, and [tests/test_bill_rates.py](tests/test_bill_rates.py)
 pins what it gives.
 
-Two of Chan's own files are cross-sections rather than series: the S&P 500 as
-it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14. Each is
-committed as one vintage per stock, 1,100 between them, each holding the
-stock's close, high, low, open and volume, written by
-`src/chan/mat_columns.py` under a directory per file.
+Four of Chan's own files are cross-sections rather than series. Three hold
+prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 as it stood on
+2008-01-14, and the S&P 500 as he held it on 2012-04-24. The fourth holds his
+earnings-announcement flags for those last 497 stocks, a 0 or 1 for each day.
+Each is committed as one vintage per stock, 2,094 between them, written by
+`src/chan/mat_columns.py` under a directory per file. A price file's stock
+holds its close, high, low, open and volume, and a flag file's stock holds its
+flag for every day of the file's calendar.
 `chan.series.load_panel` reads a whole file back as one date-by-stock frame
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
-equity seasonals read both, and the Khandani-Lo reversal reads the S&P 500
-file's closes for Example 3.7 and its opens for Example 3.8.
+equity seasonals read the first two, and the Khandani-Lo reversal reads the
+2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
+[Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) will read the
+2012 S&P 500 file and its flags.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -395,7 +400,7 @@ Chan's equity seasonals are one command, and they take no option:
 uv run python -m chan.equity_seasonals
 ```
 
-It reads both of Chan's cross-section files and prints every figure each
+It reads both of Chan's first-edition cross-section files and prints every figure each
 printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
 January the file ends before is printed as not computable with the date the
 file ends, and the 2002 split of the revised Python prints under a line saying

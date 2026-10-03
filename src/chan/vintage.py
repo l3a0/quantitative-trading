@@ -1,7 +1,7 @@
 """Record a series as a vintage, immutable once written, and resolve one to read.
 
 A vintage is one series as one source held it on one date, identified by
-vendor, symbol, span, that date, and which price or rate the series carries.
+vendor, symbol, span, that date, and which price, rate or event the series carries.
 The date is when the series was downloaded, or when Ernest Chan saved the file
 a column was lifted from, and ``VintageEntry`` carries exactly one of the two. Losing one is the
 failure [docs/design.md](../../docs/design.md) is built around: everything else
@@ -66,7 +66,7 @@ pinned for its source in ``tests/support/committed_vintages.py``, or for a
 workbook column its path, and the ``Ticker,`` header row its own bytes carry.
 
 The identity fields are compared as strings, so one source needs one spelling.
-Case is normalised and the price basis is one of the three terms the design
+Case is normalised and the price basis is one of the four terms the design
 doc's vocabulary defines, because ``raw`` against ``unadjusted`` would otherwise be
 two vintages of one download. Which word names a vendor is a convention rather
 than a rule, and the manifest's existing rows are what carry it.
@@ -99,16 +99,23 @@ from chan import paths
 MANIFEST_NAME = "vintages.jsonl"
 CHECKSUMS_NAME = "checksums.sha256"
 
-#: The bases in the design doc's vocabulary. Two are prices and one is not. A
+#: The bases in the design doc's vocabulary. Two are prices and two are not. A
 #: ``rate`` vintage holds a series of rates, such as a Treasury-bill yield, as
 #: the vendor publishes it, and no scale-break check reads it. The design doc's
-#: **rate** entry says why. :mod:`chan.series` never checks the basis. A rate
-#: cannot reach its guard because ``close_identity`` never names ``rate``, and
-#: the manifest-wide skip is ``price_entries`` in ``tests/test_scale_breaks.py``.
-#: The field keeps its name, ``price_basis``, because every committed entry
-#: already spells it that way. A fourth spelling of any of the three is a
-#: second vintage of the same download.
-PRICE_BASES = ("raw", "adjusted", "rate")
+#: **rate** entry says why. An ``event`` vintage holds a 0 or 1 per day saying
+#: whether something happened, such as an earnings announcement, and its
+#: **event** entry says why it is a basis rather than a field of a price file.
+#: A rate cannot reach the single-series guard because ``close_identity`` never
+#: names ``rate``. :func:`chan.series.load_panel` refuses a close from an
+#: ``event`` source, and the manifest-wide skip is
+#: ``price_entries`` in ``tests/test_scale_breaks.py``. The field keeps its
+#: name, ``price_basis``, because every committed entry already spells it that
+#: way. A fifth spelling of any of the four is a second vintage of the same
+#: download.
+PRICE_BASES = ("raw", "adjusted", "rate", "event")
+
+#: The bases whose values are prices, which a scale-break check and a close may read.
+PRICES = ("raw", "adjusted")
 
 # A name joins the five identity fields with underscores, so no field may hold
 # one. Beyond that the patterns keep a field from reaching outside the data
@@ -142,6 +149,14 @@ SOURCE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 #: alone. A lifted source names the fields it carries, and they must be a run of
 #: these in this order starting at the close.
 LIFTED_FIELDS = ("Close", "High", "Low", "Open", "Volume")
+
+#: The one field an ``event`` source carries: a 0 or 1 per day.
+#:
+#: It stands outside :data:`LIFTED_FIELDS` because it is not a price, so the
+#: close-first rule has nothing to say about it. It travels only with the
+#: ``event`` basis, and that basis only with it, which is what keeps a flag
+#: from being read as a close and a close from being written as a flag.
+EVENT_FIELDS = ("Flag",)
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -219,8 +234,8 @@ class VintageEntry:
     assertion in ``tests/test_vintage.py`` that compares the two.
 
     The name says spreadsheet and the field holds any file a column was lifted
-    from. The 1,100 columns lifted from Chan's two MATLAB files carry
-    ``SPX_20071123.mat`` or ``IJR_20080114.mat`` here. Renaming the field would
+    from. A column lifted from one of Chan's MATLAB files carries that file's
+    name here, such as ``SPX_20071123.mat`` or ``earnannFile.mat``. Renaming the field would
     rewrite every committed line to say the same thing, so the name stays and
     this paragraph widens it.
 
@@ -467,6 +482,13 @@ def record_vintage(
     directory = paths.DATA_DIR if data_dir is None else data_dir
     rows = _validated_rows(rows)
     vendor, symbol, price_basis = _validated_identity(vendor, symbol, price_basis)
+    if price_basis == "event":
+        # This writes a close under a ``Date,Close`` header, and an event basis
+        # goes only with the Flag field, which record_lifted_columns writes.
+        raise ValueError(
+            f"{symbol}: an event vintage holds {EVENT_FIELDS[0]} rather than a close, so "
+            f"record_lifted_columns writes it, not this"
+        )
     _validated_date(download_date, "download date")
 
     days = [day for day, _ in rows]
@@ -562,7 +584,9 @@ def record_lifted_columns(
     would share vendor, symbol, basis and date with the close, and nothing in
     an entry's identity could tell the two apart. ``price_basis`` names the
     prices. A volume is written as the source holds it, as a whole number, and
-    a value in it that is not one is refused rather than rounded.
+    a value in it that is not one is refused rather than rounded. A source of
+    flags carries :data:`EVENT_FIELDS` under the ``event`` basis instead, one 0
+    or 1 per day written the same way, and the two go together or not at all.
 
     Each column lands at ``<source>/<symbol>.csv``, where ``<source>`` is the
     file's stem and both are lowercased, so ``SPX_20071123.mat``'s KO column is
@@ -593,11 +617,19 @@ def record_lifted_columns(
     _validated_date(saved_date, "saved date")
     source = _validated_source(source_file)
     fields = _validated_fields(fields, source_file)
+    if (fields == EVENT_FIELDS) != (price_basis == "event"):
+        raise ValueError(
+            f"{source_file}: the {EVENT_FIELDS[0]} field and the event basis go together, "
+            f"and fields {fields!r} came with basis {price_basis!r}"
+        )
 
     entries, payloads = [], []
     for symbol in sorted(columns):
         try:
-            rows = _validated_wide_rows(columns[symbol], fields)
+            if fields == EVENT_FIELDS:
+                rows = _validated_flag_rows(columns[symbol])
+            else:
+                rows = _validated_wide_rows(columns[symbol], fields)
         except ValueError as refused:
             # The rows' own refusals name a date and not the column, and a
             # source holds hundreds of them, so the symbol is what says where.
@@ -1093,15 +1125,44 @@ def _validated_fields(fields: Sequence[str], source_file: str) -> tuple[str, ...
 
     A run of :data:`LIFTED_FIELDS` from the close onwards, so the close is
     always the second column and the order is the one the header shape comes
-    from.
+    from. The one exception is :data:`EVENT_FIELDS`, which holds no price.
     """
     held = tuple(fields)
+    if held == EVENT_FIELDS:
+        return held
     if held != LIFTED_FIELDS[: len(held)] or not held:
         raise ValueError(
             f"{source_file}: fields {held!r} are not a run of {LIFTED_FIELDS} starting at "
-            f"the close, which is the column every reader takes"
+            f"the close, which is the column every reader takes, nor {EVENT_FIELDS!r}"
         )
     return held
+
+
+def _validated_flag_rows(rows: Iterable[tuple]) -> list[tuple]:
+    """Each row as its date and a whole 0 or 1, or a refusal naming the day.
+
+    A flag is written as the whole number it is, the way a volume is, so a file
+    reads ``0`` and ``1`` rather than ``0.0`` and ``1.0``. Anything else is
+    refused rather than rounded, because a flag of 0.5 says the source held
+    something other than a yes or a no.
+    """
+    materialized = []
+    for row in rows:
+        if len(row) != 2:
+            raise ValueError(f"a flag row carries a date and one value, not {row!r}")
+        day, value = row
+        _validated_date(day, "row date")
+        if isinstance(value, bool) or value not in (0, 1):
+            raise ValueError(f"the flag on {day} is not 0 or 1: {value!r}")
+        materialized.append((day, int(value)))
+    if not materialized:
+        raise ValueError("an empty series has no span, so it cannot be identified as a vintage")
+    repeated = sorted(
+        day for day, seen in Counter(day for day, _ in materialized).items() if seen > 1
+    )
+    if repeated:
+        raise ValueError(f"one date carries more than one flag: {', '.join(repeated)}")
+    return materialized
 
 
 def _validated_wide_rows(rows: Iterable[tuple], fields: tuple[str, ...]) -> list[tuple]:

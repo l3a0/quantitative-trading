@@ -119,8 +119,11 @@ HAND_WRITTEN = {
 #: [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
 #: Chan's two ``.mat`` files this way, 1,100 columns between them, and pinning
 #: each column by path would be 1,100 hand-typed tuples saying the same four
-#: things. One source was saved once, so its members share a vendor, a basis
-#: and a date, and the pin says each once. The member count is what notices a
+#: things. [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250)
+#: added Chan's two book-two files, his 2012 S&P 500 prices and the earnings
+#: flags for the same 497 stocks under the ``event`` basis. One source was
+#: saved once, so its members share a vendor, a basis and a date, and the pin
+#: says each once. The member count is what notices a
 #: column dropped from the manifest along with its file.
 #:
 #: The symbol is not pinned, for the reason the ``Ticker,`` paragraph above
@@ -133,6 +136,14 @@ HAND_WRITTEN = {
 LIFTED_SOURCES = {
     "SPX_20071123.mat": ("chan-mat", "adjusted", "2007-11-24", "spx_20071123", 500),
     "IJR_20080114.mat": ("chan-mat", "adjusted", "2008-01-15", "ijr_20080114", 600),
+    "inputDataOHLCDaily_stocks_20120424.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-04-25",
+        "inputdataohlcdaily_stocks_20120424",
+        497,
+    ),
+    "earnannFile.mat": ("chan-mat", "event", "2012-05-15", "earnannfile", 497),
 }
 
 
