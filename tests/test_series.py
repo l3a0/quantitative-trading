@@ -1500,5 +1500,25 @@ class TestTheCommittedFlagsAreChansArray:
     def test_asking_the_flags_for_a_close_is_refused(self) -> None:
         """Every vintage's second column answers to ``Close``, so without the
         refusal the default field would hand the flags back as closes."""
-        with pytest.raises(VintageUnavailable, match="holds event values rather than prices"):
+        with pytest.raises(VintageUnavailable, match="holds event flags rather than prices"):
             load_panel(self.SOURCE)
+
+    def test_a_lifted_rate_still_reads_as_its_close(self, tmp_path: Path) -> None:
+        """The refusal is for flags alone. A rate's value is the one in its Close
+        column, so refusing every basis that is not a price would leave a lifted
+        rate source with no field to ask for."""
+        directory = tmp_path / "data"
+        directory.mkdir()
+        (directory / MANIFEST_NAME).write_text("", encoding="utf-8")
+        record_lifted_columns(
+            {"TB": [("2020-01-02", 1.5), ("2020-01-03", 1.6)]},
+            vendor="chan-mat",
+            price_basis="rate",
+            saved_date="2020-01-04",
+            source_file="R.mat",
+            data_dir=directory,
+        )
+
+        _, rates = load_panel("R.mat", data_dir=directory)
+
+        assert list(rates["TB"]) == [1.5, 1.6]

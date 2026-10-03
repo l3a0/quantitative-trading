@@ -44,7 +44,7 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB files carry 62 more flagged days, most of
+The columns lifted from Chan's MATLAB price files carry 92 more flagged days, most of
 them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
 of them.
 
@@ -72,7 +72,7 @@ import numpy as np
 import pandas as pd
 
 from chan.vintage import (
-    PRICES,
+    EVENT_FIELDS,
     VintageEntry,
     VintageUnavailable,
     read_manifest,
@@ -254,7 +254,7 @@ def load_panel(
 
     A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
     A source naming no entry, members disagreeing on the vendor, basis or date
-    they carry, a close asked of a source that holds no prices, and two members
+    they carry, a close asked of a source of flags, and two members
     holding one symbol are four different states, and the message says which
     fired.
     """
@@ -278,14 +278,14 @@ def load_panel(
             f"{'; '.join(' '.join(each) for each in carried)}. One source was saved once, so "
             f"its columns carry one vendor, one basis and one date."
         )
-    basis = members[0].price_basis
-    if field == "Close" and basis not in PRICES:
+    if field == "Close" and members[0].price_basis == "event":
         # Every vintage's second column answers to "Close" without its header
-        # being read, so a source of flags or rates would otherwise come back
-        # labelled as closes with nothing to say it was not.
+        # being read, so a source of flags would otherwise come back labelled
+        # as closes with nothing to say it was not. A rate is different: its
+        # value is the one written in the Close column, so it still reads.
         raise VintageUnavailable(
-            f"{source_file} holds {basis} values rather than prices, so it has no close. Ask "
-            f"for its field by name."
+            f"{source_file} holds event flags rather than prices, so it has no close. Ask "
+            f"for its {EVENT_FIELDS[0]} field by name."
         )
     symbols = [entry.symbol for entry in members]
     repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})

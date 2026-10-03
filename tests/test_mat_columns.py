@@ -312,7 +312,7 @@ class TestTheCommandLine:
         ]
 
 
-def flag_bytes(*, flags: np.ndarray, symbols: list[str] = SYMBOLS) -> bytes:
+def flag_bytes(*, flags: np.ndarray, symbols: list[str] = SYMBOLS, days: list[int] = DAYS) -> bytes:
     """A MATLAB 5 file holding ``tday``, ``stocks`` and ``earnann``, as Chan's flag file does."""
     stocks = np.empty((len(symbols), 1), dtype=object)
     for index, symbol in enumerate(symbols):
@@ -321,7 +321,7 @@ def flag_bytes(*, flags: np.ndarray, symbols: list[str] = SYMBOLS) -> bytes:
     scipy.io.savemat(
         buffer,
         {
-            "tday": np.array(DAYS, dtype=np.int32).reshape(-1, 1),
+            "tday": np.array(days, dtype=np.int32).reshape(-1, 1),
             "stocks": stocks,
             "earnann": np.asarray(flags, dtype=np.uint8),
         },
@@ -383,6 +383,64 @@ class TestAFlagFile:
             "the panel's flags are not the file's earnann array"
         )
 
+    def test_symbols_out_of_alphabetical_order_round_trip(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        """The panel comes back sorted by symbol, so the check has to reorder the
+        file's columns to compare them, which a sorted fixture would not show."""
+        path = tmp_path / "earnannFile.mat"
+        path.write_bytes(flag_bytes(flags=FLAGS, symbols=["KO", "AA", "BF.B"]))
+        record_flag_file(path, data_dir=data_dir)
+
+        assert flag_round_trip_differs(path, data_dir=data_dir) is None
+
+    def test_the_round_trip_says_when_the_days_differ(
+        self, flags: Path, data_dir: Path, tmp_path: Path
+    ) -> None:
+        record_flag_file(flags, data_dir=data_dir)
+        other = tmp_path / "elsewhere" / "earnannFile.mat"
+        other.parent.mkdir()
+        other.write_bytes(flag_bytes(flags=np.vstack([FLAGS, [0, 0, 0]]), days=[*DAYS, 20071126]))
+
+        assert flag_round_trip_differs(other, data_dir=data_dir) == (
+            "the panel's days are not the file's trading days"
+        )
+
+    def test_the_round_trip_says_when_the_symbols_differ(
+        self, flags: Path, data_dir: Path, tmp_path: Path
+    ) -> None:
+        record_flag_file(flags, data_dir=data_dir)
+        other = tmp_path / "elsewhere" / "earnannFile.mat"
+        other.parent.mkdir()
+        other.write_bytes(
+            flag_bytes(flags=np.hstack([FLAGS, [[0], [0], [0], [0]]]), symbols=[*SYMBOLS, "XOM"])
+        )
+
+        assert flag_round_trip_differs(other, data_dir=data_dir) == (
+            "the panel's symbols are not the file's"
+        )
+
+    @pytest.mark.parametrize(
+        ("build", "message"),
+        [
+            (
+                lambda: flag_bytes(flags=FLAGS, days=[DAYS[1], DAYS[0], *DAYS[2:]]),
+                "the file's trading days are not strictly increasing",
+            ),
+            (
+                lambda: flag_bytes(flags=FLAGS, symbols=["AA", "AA", "KO"]),
+                "the file names a symbol more than once: AA",
+            ),
+            (
+                lambda: flag_bytes(flags=FLAGS[:, :2]),
+                "earnann is 4 by 2 and the file carries 4 days and 3 symbols",
+            ),
+        ],
+    )
+    def test_a_malformed_flag_file_is_refused_by_name(self, build, message: str) -> None:
+        with pytest.raises(ValueError, match=message):
+            read_flags(build())
+
     def test_a_value_other_than_0_or_1_is_refused(self) -> None:
         bad = FLAGS.copy()
         bad[1, 0] = 2
@@ -409,6 +467,24 @@ class TestAFlagFile:
             "recorded 3 vintages, 12 rows of Flag, under earnannfile/, saved 2007-11-24"
         )
         assert printed[2] == "round trip: every flag read back is the file's array, day for day"
+
+    def test_a_failed_flag_round_trip_stops_the_command(
+        self,
+        flags: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """The flag path runs its own round trip, so a flag file that does not
+        read back stops the run rather than printing a clean result."""
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        monkeypatch.setattr(mat_columns, "flag_round_trip_differs", lambda path: "moved")
+
+        assert mat_columns.main([str(flags), "--price-basis", "event"]) == 1
+
+        assert capsys.readouterr().err.startswith("round trip failed: moved.")
 
     def test_a_price_file_given_the_event_basis_is_refused_in_one_line(
         self,

@@ -106,8 +106,8 @@ CHECKSUMS_NAME = "checksums.sha256"
 #: whether something happened, such as an earnings announcement, and its
 #: **event** entry says why it is a basis rather than a field of a price file.
 #: A rate cannot reach the single-series guard because ``close_identity`` never
-#: names ``rate``. :func:`chan.series.load_panel` refuses a close from a source
-#: whose basis is not in :data:`PRICES`, and the manifest-wide skip is
+#: names ``rate``. :func:`chan.series.load_panel` refuses a close from an
+#: ``event`` source, and the manifest-wide skip is
 #: ``price_entries`` in ``tests/test_scale_breaks.py``. The field keeps its
 #: name, ``price_basis``, because every committed entry already spells it that
 #: way. A fifth spelling of any of the four is a second vintage of the same
@@ -482,6 +482,13 @@ def record_vintage(
     directory = paths.DATA_DIR if data_dir is None else data_dir
     rows = _validated_rows(rows)
     vendor, symbol, price_basis = _validated_identity(vendor, symbol, price_basis)
+    if price_basis == "event":
+        # This writes a close under a ``Date,Close`` header, and an event basis
+        # goes only with the Flag field, which record_lifted_columns writes.
+        raise ValueError(
+            f"{symbol}: an event vintage holds {EVENT_FIELDS[0]} rather than a close, so "
+            f"record_lifted_columns writes it, not this"
+        )
     _validated_date(download_date, "download date")
 
     days = [day for day, _ in rows]

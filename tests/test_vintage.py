@@ -2449,6 +2449,14 @@ class TestRecordingASourceOfFlags:
             )
         assert manifest_lines(data_dir) == []
 
+    def test_a_downloaded_series_under_the_event_basis_is_refused(self, data_dir):
+        """`record_vintage` writes a close under `Date,Close`, so a flag cannot
+        travel through it, and the event basis goes only with the flag."""
+        with pytest.raises(ValueError, match="an event vintage holds Flag rather than a close"):
+            record_vintage(ROWS, **{**SOURCE, "price_basis": "event"}, data_dir=data_dir)
+        assert manifest_lines(data_dir) == []
+        assert sorted(path.name for path in data_dir.iterdir()) == [MANIFEST_NAME]
+
     def test_a_price_under_the_event_basis_is_refused(self, data_dir):
         with pytest.raises(ValueError, match="the Flag field and the event basis go together"):
             vintage.record_lifted_columns(
@@ -2465,6 +2473,38 @@ class TestRecordingASourceOfFlags:
                 rows, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
             )
         assert manifest_lines(data_dir) == []
+
+    @pytest.mark.parametrize(
+        ("rows", "message"),
+        [
+            ([("2026-08-25", 0, 1)], "a flag row carries a date and one value"),
+            ([("2026-02-30", 1)], "row date '2026-02-30' is not a day that exists"),
+            ([], "an empty series has no span"),
+        ],
+    )
+    def test_a_malformed_flag_row_is_refused(self, data_dir, rows, message):
+        with pytest.raises(ValueError, match=message):
+            vintage.record_lifted_columns(
+                {"KO": rows}, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
+            )
+        assert manifest_lines(data_dir) == []
+
+    def test_a_flag_handed_over_as_a_float_or_a_numpy_integer_is_written_whole(self, data_dir):
+        """Chan's array is uint8 and a caller may hand over floats, and either way
+        the file says 1 rather than 1.0."""
+        import numpy as np
+
+        rows = {"KO": [("2026-08-25", 1.0), ("2026-08-26", np.uint8(1)), ("2026-08-27", 0.0)]}
+
+        vintage.record_lifted_columns(
+            rows, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
+        )
+
+        assert (
+            (data_dir / "flags" / "ko.csv")
+            .read_bytes()
+            .endswith(b"2026-08-25,1\n2026-08-26,1\n2026-08-27,0\n")
+        )
 
     def test_a_day_flagged_twice_is_refused(self, data_dir):
         rows = {"KO": [("2026-08-25", 0), ("2026-08-25", 1)]}
