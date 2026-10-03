@@ -1,6 +1,6 @@
 """What reading one of Chan's ``.mat`` files must do, on a file built here.
 
-Chan's two files are not committed, so every case writes a small MATLAB 5 file
+Chan's ``.mat`` files are not committed, so every case writes a small MATLAB 5 file
 with ``scipy.io.savemat`` and stamps the header's creation date in by hand,
 because ``savemat`` writes today's. The committed result of reading the real
 files is pinned in ``tests/test_series.py``, where
@@ -21,7 +21,10 @@ from chan.mat_columns import (
     ARRAYS,
     VENDOR,
     columns_of,
+    flag_round_trip_differs,
     read_arrays,
+    read_flags,
+    record_flag_file,
     record_mat_file,
     round_trip_differs,
     saved_date_of,
@@ -307,3 +310,120 @@ class TestTheCommandLine:
             "SPX_20071123.mat: not recorded. SPX_20071123.mat: the manifest already holds "
             "entries lifted from it"
         ]
+
+
+def flag_bytes(*, flags: np.ndarray, symbols: list[str] = SYMBOLS) -> bytes:
+    """A MATLAB 5 file holding ``tday``, ``stocks`` and ``earnann``, as Chan's flag file does."""
+    stocks = np.empty((len(symbols), 1), dtype=object)
+    for index, symbol in enumerate(symbols):
+        stocks[index, 0] = symbol
+    buffer = io.BytesIO()
+    scipy.io.savemat(
+        buffer,
+        {
+            "tday": np.array(DAYS, dtype=np.int32).reshape(-1, 1),
+            "stocks": stocks,
+            "earnann": np.asarray(flags, dtype=np.uint8),
+        },
+    )
+    header = f"MATLAB 5.0 MAT-file, Platform: PCWIN, Created on: {CREATED}".encode("ascii")
+    return header.ljust(116, b" ") + buffer.getvalue()[116:]
+
+
+#: No stock is flagged on the first day, so a recorder keeping only flagged
+#: days would start every vintage late.
+FLAGS = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 1], [0, 1, 0]])
+
+
+class TestAFlagFile:
+    """``earnannFile.mat``'s shape, which issue 250 records under the ``event`` basis."""
+
+    @pytest.fixture
+    def flags(self, tmp_path: Path) -> Path:
+        path = tmp_path / "earnannFile.mat"
+        path.write_bytes(flag_bytes(flags=FLAGS))
+        return path
+
+    def test_every_day_is_kept_with_a_zero_where_nothing_happened(
+        self, flags: Path, data_dir: Path
+    ) -> None:
+        entries = record_flag_file(flags, data_dir=data_dir)
+
+        assert [entry.path for entry in entries] == [
+            "earnannfile/aa.csv",
+            "earnannfile/bf.b.csv",
+            "earnannfile/ko.csv",
+        ]
+        assert {(e.price_basis, e.first_date, e.last_date, e.row_count) for e in entries} == {
+            ("event", "2007-11-19", "2007-11-23", 4)
+        }
+        assert (data_dir / "earnannfile" / "aa.csv").read_bytes() == (
+            b"Price,Flag\nTicker,AA\nDate,\n2007-11-19,0\n2007-11-20,1\n"
+            b"2007-11-21,0\n2007-11-23,0\n"
+        )
+
+    def test_the_round_trip_finds_the_array_and_says_nothing(
+        self, flags: Path, data_dir: Path
+    ) -> None:
+        record_flag_file(flags, data_dir=data_dir)
+
+        assert flag_round_trip_differs(flags, data_dir=data_dir) is None
+
+    def test_the_round_trip_says_when_a_flag_moved(
+        self, flags: Path, data_dir: Path, tmp_path: Path
+    ) -> None:
+        record_flag_file(flags, data_dir=data_dir)
+        moved = FLAGS.copy()
+        moved[3, 1] = 0
+        other = tmp_path / "elsewhere" / "earnannFile.mat"
+        other.parent.mkdir()
+        other.write_bytes(flag_bytes(flags=moved))
+
+        assert flag_round_trip_differs(other, data_dir=data_dir) == (
+            "the panel's flags are not the file's earnann array"
+        )
+
+    def test_a_value_other_than_0_or_1_is_refused(self) -> None:
+        bad = FLAGS.copy()
+        bad[1, 0] = 2
+
+        with pytest.raises(ValueError, match="earnann holds a value other than 0 and 1"):
+            read_flags(flag_bytes(flags=bad))
+
+    def test_the_command_records_flags_under_the_event_basis(
+        self,
+        flags: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+
+        assert mat_columns.main([str(flags), "--price-basis", "event"]) == 0
+
+        printed = capsys.readouterr().out.splitlines()
+        assert printed[0].startswith("earnannFile.mat   sha256 ")
+        assert printed[1] == (
+            "recorded 3 vintages, 12 rows of Flag, under earnannfile/, saved 2007-11-24"
+        )
+        assert printed[2] == "round trip: every flag read back is the file's array, day for day"
+
+    def test_a_price_file_given_the_event_basis_is_refused_in_one_line(
+        self,
+        mat: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+
+        assert mat_columns.main([str(mat), "--price-basis", "event"]) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "SPX_20071123.mat: not recorded. the file carries no earnann"
+        ]
+        assert read_manifest(data_dir) == []

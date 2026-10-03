@@ -2411,11 +2411,75 @@ class TestRecordingALiftedSource:
             vintage.record_lifted_columns({}, **LIFTED_FROM, data_dir=data_dir)
 
 
+class TestRecordingASourceOfFlags:
+    """`record_lifted_columns` under the `event` basis, which issue 250 added.
+
+    A flag is a 0 or 1 per day rather than a price. It travels in one field,
+    `Flag`, which goes with the `event` basis and only with it, and it is
+    written as the whole number it is.
+    """
+
+    FLAGS = {"KO": [("2026-08-25", 0), ("2026-08-26", 1), ("2026-08-27", 0)]}
+    FROM = dict(
+        vendor="chan-mat", price_basis="event", saved_date="2026-08-28", source_file="FLAGS.mat"
+    )
+
+    def test_a_flag_is_written_whole_under_its_own_header(self, data_dir):
+        (entry,) = vintage.record_lifted_columns(
+            self.FLAGS, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
+        )
+
+        assert (data_dir / "flags" / "ko.csv").read_bytes() == (
+            b"Price,Flag\nTicker,KO\nDate,\n2026-08-25,0\n2026-08-26,1\n2026-08-27,0\n"
+        )
+        assert (entry.price_basis, entry.first_date, entry.last_date, entry.row_count) == (
+            "event",
+            "2026-08-25",
+            "2026-08-27",
+            3,
+        )
+
+    def test_a_flag_under_a_price_basis_is_refused(self, data_dir):
+        with pytest.raises(ValueError, match="the Flag field and the event basis go together"):
+            vintage.record_lifted_columns(
+                self.FLAGS,
+                **{**self.FROM, "price_basis": "adjusted"},
+                fields=vintage.EVENT_FIELDS,
+                data_dir=data_dir,
+            )
+        assert manifest_lines(data_dir) == []
+
+    def test_a_price_under_the_event_basis_is_refused(self, data_dir):
+        with pytest.raises(ValueError, match="the Flag field and the event basis go together"):
+            vintage.record_lifted_columns(
+                LIFTED, **{**LIFTED_FROM, "price_basis": "event"}, data_dir=data_dir
+            )
+        assert manifest_lines(data_dir) == []
+
+    @pytest.mark.parametrize("value", [2, 0.5, -1, True, "1"])
+    def test_a_flag_that_is_not_0_or_1_is_refused_by_day(self, data_dir, value):
+        rows = {"KO": [("2026-08-25", 0), ("2026-08-26", value)]}
+
+        with pytest.raises(ValueError, match="KO: the flag on 2026-08-26 is not 0 or 1"):
+            vintage.record_lifted_columns(
+                rows, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
+            )
+        assert manifest_lines(data_dir) == []
+
+    def test_a_day_flagged_twice_is_refused(self, data_dir):
+        rows = {"KO": [("2026-08-25", 0), ("2026-08-25", 1)]}
+
+        with pytest.raises(ValueError, match="one date carries more than one flag: 2026-08-25"):
+            vintage.record_lifted_columns(
+                rows, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
+            )
+
+
 class TestALiftedSourceIsHeld:
     """What the per-source pin catches in the committed tree, driven against a copy.
 
-    `LIFTED_SOURCES` holds each of Chan's two `.mat` files to one tuple rather
-    than 1,100. These cases show that one tuple still fails on an edit to any
+    `LIFTED_SOURCES` holds each of Chan's `.mat` files to one tuple rather
+    than one per column. These cases show that one tuple still fails on an edit to any
     member, and that the table's one row per source fails on a member that
     stops agreeing with the others.
     """

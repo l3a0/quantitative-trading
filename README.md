@@ -223,11 +223,14 @@ a price, so the scale-break check skips it.
 a window of months, and [tests/test_bill_rates.py](tests/test_bill_rates.py)
 pins what it gives.
 
-Two of Chan's own files are cross-sections rather than series: the S&P 500 as
-it stood on 2007-11-23 and the S&P 600 as it stood on 2008-01-14. Each is
-committed as one vintage per stock, 1,100 between them, each holding the
-stock's close, high, low, open and volume, written by
-`src/chan/mat_columns.py` under a directory per file.
+Four of Chan's own files are cross-sections rather than series. Three hold
+prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 as it stood on
+2008-01-14, and the S&P 500 as he held it on 2012-04-24. The fourth holds his
+earnings-announcement flags for those last 497 stocks, a 0 or 1 for each day.
+Each is committed as one vintage per stock, 2,094 between them, written by
+`src/chan/mat_columns.py` under a directory per file. A price file's stock
+holds its close, high, low, open and volume, and a flag file's stock holds its
+flag for every day of the file's calendar.
 `chan.series.load_panel` reads a whole file back as one date-by-stock frame
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
@@ -380,7 +383,7 @@ Chan's equity seasonals are one command, and they take no option:
 uv run python -m chan.equity_seasonals
 ```
 
-It reads both of Chan's cross-section files and prints every figure each
+It reads both of Chan's first-edition cross-section files and prints every figure each
 printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
 January the file ends before is printed as not computable with the date the
 file ends, and the 2002 split of the revised Python prints under a line saying

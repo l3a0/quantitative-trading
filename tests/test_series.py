@@ -28,6 +28,7 @@ import shutil
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -555,7 +556,7 @@ class TestTheParseTakesTwoColumnsAndStaysQuiet:
         self, data_dir: Path
     ) -> None:
         """The single-series vintages carry two columns, so for them `usecols`
-        reads as decoration. The 1,100 stocks lifted from Chan's MATLAB files
+        reads as decoration. The stocks lifted from Chan's MATLAB price files
         carry six, so for those it decides which field every read gets. Without
         it pandas puts the first column into the index and the close is read
         out of the wrong field, silently."""
@@ -938,7 +939,7 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
     def test_a_stray_file_inside_a_subdirectory_is_named_by_its_path(self, data_dir: Path) -> None:
         """A lifted source's members sit in a directory of their own, so the scan reaches in.
 
-        A listing of the top level alone would go quiet exactly where 1,100 of
+        A listing of the top level alone would go quiet exactly where 2,094 of
         the committed vintages live.
         """
         place(data_dir, name="recorded.csv", symbol="AAA")
@@ -1364,7 +1365,7 @@ class TestAPanelIsOneSourceReadOnce:
 
 
 class TestTheCommittedPanelsAreChansArrays:
-    """The two sources issue 88 committed, read back whole.
+    """The price sources issues 88 and 250 committed, read back whole.
 
     The conversion checked each panel against the ``.mat`` it came from, cell
     for cell and NaN for NaN, and printed so. The ``.mat`` files are not
@@ -1378,6 +1379,14 @@ class TestTheCommittedPanelsAreChansArrays:
         [
             ("SPX_20071123.mat", 2024, 500, 966_884, "1999-11-24", "2007-11-23"),
             ("IJR_20080114.mat", 1006, 600, 589_660, "2004-01-15", "2008-01-14"),
+            (
+                "inputDataOHLCDaily_stocks_20120424.mat",
+                1500,
+                497,
+                734_519,
+                "2006-05-11",
+                "2012-04-24",
+            ),
         ],
     )
     def test_each_panel_has_the_shape_and_the_priced_cells_of_chan_s_array(
@@ -1392,7 +1401,10 @@ class TestTheCommittedPanelsAreChansArrays:
         assert panel.notna().any(axis=1).all()
         assert panel.iloc[-1].notna().all(), "every member is priced on the day the file was cut"
 
-    @pytest.mark.parametrize("source", ["SPX_20071123.mat", "IJR_20080114.mat"])
+    @pytest.mark.parametrize(
+        "source",
+        ["SPX_20071123.mat", "IJR_20080114.mat", "inputDataOHLCDaily_stocks_20120424.mat"],
+    )
     def test_every_field_is_priced_on_exactly_the_days_the_close_is(self, source: str) -> None:
         """Chan's arrays share one NaN pattern, so every field's panel has the close's."""
         _, closes = load_panel(source)
@@ -1440,3 +1452,53 @@ class TestTheCommittedPanelsAreChansArrays:
             "ijr_20080114/   chan-mat adjusted, saved 2008-01-15, "
             "600 members lifted from IJR_20080114.mat"
         )
+
+
+class TestTheCommittedFlagsAreChansArray:
+    """Chan's earnings flags, which issue 250 committed under the ``event`` basis.
+
+    The lift compared them with ``earnannFile.mat`` cell for cell and said so.
+    The ``.mat`` is not committed, so these pin what that check saw in figures
+    the committed bytes still carry, each measured on Chan's array: its shape,
+    its 1,885 flags, a calendar that opens two days before the first flag, and
+    the three days AAPL is flagged.
+    """
+
+    SOURCE = "earnannFile.mat"
+
+    def test_the_flags_have_the_shape_and_the_count_of_chan_s_array(self) -> None:
+        entries, flags = load_panel(self.SOURCE, field="Flag")
+
+        assert flags.shape == (330, 497)
+        assert int(flags.to_numpy().sum()) == 1885
+        assert set(np.unique(flags.to_numpy())) == {0.0, 1.0}
+        assert len(entries) == LIFTED_SOURCES[self.SOURCE][4]
+        assert {entry.price_basis for entry in entries} == {"event"}
+
+    def test_the_calendar_opens_before_the_first_flag(self) -> None:
+        """Example 7.2 cuts its prices to these days, so a calendar that opened
+        on the first flag would start the strategy two days late."""
+        _, flags = load_panel(self.SOURCE, field="Flag")
+
+        assert str(flags.index[0].date()) == "2011-01-03"
+        assert str(flags.index[flags.to_numpy().any(axis=1)][0].date()) == "2011-01-05"
+        assert str(flags.index[-1].date()) == "2012-04-24"
+
+    def test_the_flag_calendar_is_the_price_file_s_days_over_the_same_span(self) -> None:
+        _, flags = load_panel(self.SOURCE, field="Flag")
+        _, closes = load_panel("inputDataOHLCDaily_stocks_20120424.mat")
+
+        assert list(flags.columns) == list(closes.columns)
+        assert list(flags.index) == list(closes.loc[flags.index[0] : flags.index[-1]].index)
+
+    def test_aapl_is_flagged_on_three_days(self) -> None:
+        _, flags = load_panel(self.SOURCE, field="Flag")
+
+        flagged = flags.index[flags["AAPL"] == 1]
+        assert [str(day.date()) for day in flagged] == ["2011-04-21", "2011-07-20", "2012-01-25"]
+
+    def test_asking_the_flags_for_a_close_is_refused(self) -> None:
+        """Every vintage's second column answers to ``Close``, so without the
+        refusal the default field would hand the flags back as closes."""
+        with pytest.raises(VintageUnavailable, match="holds event values rather than prices"):
+            load_panel(self.SOURCE)
