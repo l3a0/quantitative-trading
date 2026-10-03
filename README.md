@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Seven replications run here, all from Chan's *Quantitative Trading*. The
-first two were ported from the sibling
+Eight replications run here, all from Chan's *Quantitative Trading*. The first
+two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other five were built here.
+they were first built. The other six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -83,15 +83,27 @@ they were first built. The other five were built here.
    the first lag count whose residuals pass, against a bar of −2.86, so the
    claim reproduces. Its half-life is 141.6 trading days, and only 23 of 226
    one-year windows reject at 10%.
-7. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
+7. The equity seasonals, Examples 7.6 and 7.7, which Chan publishes as already
+   dead: the January effect on his S&P 600 file and Heston and Sadka's
+   year-on-year rotation on his S&P 500 file. He prints them in the first
+   edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
+   fourteen figures his files reach reproduce to the digits printed. None
+   lands from the strategy as described. The revised MATLAB and R code is not
+   in the repo, so their rules are readings that reproduce the printed figures.
+   The first edition's −0.9167 a year is a sum over positions rather than a
+   return on capital, and the revised edition's three annual returns land
+   between −0.0114 and −0.0129 a year. Example 7.6's third January,
+   the one that made money, needs a file running to 2008-01-31 that this repo
+   does not hold.
+8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
    after 5 basis points a trade, against his printed 0.25 and −3.19, so both
    reproduce. The second lands only because two quirks of his code are kept.
    His script never charges the first day's rebalance, which leaves that day's
    profit missing, and his standard deviation counts the missing day as 0
-   while his mean skips it. Removing both gives −3.2337. The file holds only the stocks still in the
-   index on 2007-11-23, so every figure is about survivors.
+   while his mean skips it. Removing both gives −3.2337. The file holds only the stocks still in
+   the index on 2007-11-23, so every figure is about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -133,7 +145,9 @@ here asserts is listed below.
 does it for both stationary candidates. It pins both orientations of every
 fixed-income number, because the test is not symmetric in its legs and Chan
 names no dependent one. For the cross rate it pins the verdict rule as well as
-the verdict, so a criterion edited after the fact fails a test.
+the verdict, so a criterion edited after the fact fails a test. The blog post
+about them is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
 reversal. It pins Chan's two figures at four decimals and at the book's two,
@@ -141,10 +155,16 @@ and the figure with both quirks removed at four. It also pins the −3.1822 a
 port gives when it skips the missing day in the standard deviation as well as
 the mean, because that is the mistake that misses Chan's −3.19.
 
-All seven replications reach a verdict in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
+the equity seasonals. It pins every printout's figures at its own printed
+precision, and the figure each of Chan's rules gives when it is changed, so a
+builder who corrects his code fails a test rather than moving a pin.
+
+All eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
-verdict against, and Entry 6 the cross rate's verdict.
+verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
+seasonals' and Entry 8 the Khandani-Lo reversal's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -189,10 +209,10 @@ and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
+equity seasonals read both, the
 Khandani-Lo reversal reads the S&P 500 file, and
-[issue 18](https://github.com/l3a0/quantitative-trading/issues/18) and
-[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) also read
-them.
+[issue 206](https://github.com/l3a0/quantitative-trading/issues/206) will read
+it too.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -342,6 +362,18 @@ It prints the panel in one line, the window and its day count, and each Sharpe
 ratio beside the book's, naming which quirks of Chan's code each one keeps.
 Khandani and Lo's own 4.47 is printed as a citation, since it was computed on a
 universe this repo does not hold.
+
+Chan's equity seasonals are one command, and they take no option:
+
+```bash
+uv run python -m chan.equity_seasonals
+```
+
+It reads both of Chan's cross-section files and prints every figure each
+printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
+January the file ends before is printed as not computable with the date the
+file ends, and the 2002 split of the revised Python prints under a line saying
+it carries no verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -670,6 +702,77 @@ uv run python -m chan.risk_parity_figures
 
 The test file holds what they draw rather than their bytes, for the reason
 given above for the regime map.
+
+[blog/stationary-candidates-lessons.md](blog/stationary-candidates-lessons.md)
+is a sixth post, about the two of Chan's three stationary candidates at Kindle
+location 3951 that run here, the CAD/AUD cross rate and the bond pair tested on
+TLT and IEF. It draws five lessons from Entries 5 and 6 of the replication log.
+
+1. A named series carries a verdict, while a class of instruments tested on
+   stand-ins carries a finding.
+2. One series and a fitted pair are read against different bars, and on the
+   cross rate the bar decides the verdict.
+3. The check for leftover autocorrelation strengthens the bond pair's finding
+   and shrinks the cross rate's margin.
+4. How often one-year windows reject says little about the whole span.
+5. Each choice that could turn the answer was fixed in advance or checked both
+   ways.
+
+Four groups of its figures are not pinned here.
+
+1. Chan's words. "Quite stationary", "both being commodities currencies" and
+   "fixed-income instruments can be found to be cointegrating" are quoted from
+   location 3951, and nothing computes them.
+2. Facts about the instruments. TLT holding Treasuries maturing in twenty years
+   or more and IEF seven to ten are the funds' descriptions, not derivable from
+   committed closes. That a cross rate is, in logs, a spread between two dollar
+   rates with its hedge ratio fixed at one is an identity no test states.
+3. Arithmetic that no test asserts. Nothing states that 2007-08-06 to
+   2026-09-30 is nineteen years, that the vendor's 90-weekday gap is four
+   months, that a half-life of 141.6 trading days is a little over half a year,
+   that a 21-day step is a month, or that the history before the gap is a
+   little under two years.
+4. Its references. The seven citations, and the rules the post attributes to
+   them, such as Schwert's ceiling and the Breusch-Godfrey test, are cited
+   rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
+apart from what it sets beside them from GLD/GDX. The full-span −1.45 and
+833.5 days, the 31 of 231 windows and the plain ADF table trace to
+[tests/test_pair_cointegration.py](tests/test_pair_cointegration.py), and the
+5,099 days behind GLD/GDX's ceiling of 33 to
+[tests/test_series.py](tests/test_series.py). Four groups of its numbers had
+no pin before it, and `tests/test_stationary_candidates.py` now pins them.
+
+1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
+2. Both cross-rate statistics falling short of the pair's 5% bar of −3.34.
+3. A one-year window holding about 1.78 half-lives.
+4. The window-power simulation behind Lesson 4: 1,000 series that truly
+   revert at the rate's half-life, scanned as the rate is, on a specification
+   [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) fixed
+   before it ran. `TestTheWindowPower` holds its counts. It takes about half a
+   minute of the suite's run.
+
+Its three figures are drawn from the committed vintages by
+[src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py).
+
+1. Both sets of bars as number lines, with the cross rate's two statistics on
+   the first and the bond pair's on the second, and the cross rate's two
+   statistics drawn again against the pair's bars, for Lesson 2.
+2. The statistic at every lag count up to the ceiling, filled where the fit's
+   residuals pass the check and hollow where they fail, the cross rate in one
+   panel and both orientations of the bond pair in the other, for Lesson 3.
+3. The two candidates' one-year rolling scans against their bars, laid out the
+   same way, with a dot on each window past the 10% bar, for Lesson 4.
+
+```bash
+uv run python -m chan.stationary_candidates_figures
+```
+
+[tests/test_stationary_candidates_figures.py](tests/test_stationary_candidates_figures.py)
+holds what they draw rather than their bytes, for the reason given above for
+the regime map.
 
 ## Where the book's numbers come from
 

@@ -101,8 +101,17 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: not finite, and handed the panel the guard refuses over ten missing closes
 #: rather than over any scale break.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo.py`` runs both of
-#: its answers. [Issue 18](https://github.com/l3a0/quantitative-trading/issues/18)
-#: decides it for its own examples.
+#: its answers.
+#:
+#: [Issue 18](https://github.com/l3a0/quantitative-trading/issues/18) decided
+#: that ``chan.equity_seasonals`` refuses no window for Examples 7.6 and 7.7. Its
+#: job is to reproduce what Chan printed, and Chan's scripts ran on these closes
+#: as they stand, so a guard would refuse the computation being reproduced.
+#: AAPL's 2000-09-29 is a month-end, so Example 7.7 ranks that day's move as
+#: AAPL's September 2000 return. WYN and DFS, the two symbols that each hold
+#: two companies, leak no false move into it, because no finite monthly return
+#: reaches across either gap. ``TestTheShapesTheScaleBreakCommentNames`` in
+#: ``tests/test_equity_seasonals.py`` holds both claims.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

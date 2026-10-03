@@ -1,7 +1,7 @@
 """The pins for Khandani and Lo's linear reversal, Chan's Example 3.7.
 
 This file is the single authority for every number any prose surface quotes
-about the reversal. ``docs/replication-log.md`` Entry 7 carries the verdicts
+about the reversal. ``docs/replication-log.md`` Entry 8 carries the verdicts
 and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
@@ -65,17 +65,14 @@ from chan.khandani_lo import (
     chan_sharpe,
     daily_pnl,
     daily_returns,
-    lag1,
     main,
     plain_sharpe,
     reversal,
     reversal_weights,
     run,
-    smartmean,
-    smartstd,
-    smartsum,
     trading_cost,
 )
+from chan.matlab_helpers import lag1, smartmean, smartstd, smartsum
 from chan.series import WindowCrossesScaleBreak, load_panel, refuse_window_crossing_a_break
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -308,7 +305,7 @@ class TestTheRuleByHand:
 
 
 class TestTheHelpers:
-    """The MATLAB helpers, against the behaviour of their ``.m`` files."""
+    """The MATLAB helpers Example 3.7 calls, from :mod:`chan.matlab_helpers`, on its shapes."""
 
     def test_lag1_moves_down_and_fills_nan(self) -> None:
         lagged = lag1(np.array([[1.0, 2.0], [3.0, 4.0]]))
