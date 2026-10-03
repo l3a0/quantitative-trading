@@ -136,6 +136,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: XYL, spun off inside the window, pass without a missing price after that
 #: being dropped. ``TestTheRefusals`` in ``tests/test_pead.py`` runs the guard
 #: on the committed file and on both shapes.
+#:
+#: [Issue 21](https://github.com/l3a0/quantitative-trading/issues/21) decided
+#: that ``chan.pca_factor`` refuses no window for Example 7.4, for the reason
+#: issue 18 gives: every printout forward-fills these closes as they stand, so
+#: a guard would refuse the computation being reproduced. PMC, flagged below on
+#: 2007-08-01, is two price histories under one symbol with 851 days missing
+#: between them, and the fill reads that gap as one day's return of 1.8654.
+#: ``TestTheSplice`` in ``tests/test_pca_factor.py`` pins that return and every
+#: printout's figures without PMC.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

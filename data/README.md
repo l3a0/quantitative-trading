@@ -414,7 +414,17 @@ first two returns and not its third.
 [`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads both
 directories, and
 [issue 225](https://github.com/l3a0/quantitative-trading/issues/225) is where
-the third gets computed. Each holds only the companies
+the third gets computed. [`chan.pca_factor`](../src/chan/pca_factor.py) reads the
+second's closes for Example 7.4. The revised edition's Python for that example
+reads `IJR_20080114.txt` instead, reposted at
+pinhaocheng/epchan-quant_trading_Python_codes `5fcab61` and at
+liujiantong/epchan_books `653cf92` as one git blob. Measured on
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21) at `3bb9cce`,
+it holds the same 1,006 days, the same 600 symbols in the same order and the
+same NaN cells as this directory's closes, and every value agrees to a largest
+relative difference of 2.0e-16. The revised MATLAB repost at
+pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` carries an
+`IJR_20080114.mat` with the sha256 recorded below. Each holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
