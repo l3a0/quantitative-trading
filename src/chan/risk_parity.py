@@ -1,4 +1,4 @@
-"""Qian's risk parity against the classic 60/40, on SPY and AGG.
+"""Qian's risk parity against the classic 60/40, on SPY and AGG, with IWB beside SPY.
 
 Chan reports Edward Qian's argument that a 60/40 split between stocks and
 bonds is not the balanced portfolio its labels suggest. Capital is split 60 to
@@ -200,9 +200,25 @@ argues for then points the other way in that window. That is a result rather
 than a bug, so the report states the direction it found rather than describing
 the weights as a move toward bonds.
 
+## IWB is reported beside SPY, never in place of it
+
+Qian's paper names his equity index, the Russell 1000, and SPY tracks the S&P
+500. IWB tracks the Russell 1000, so ``--stock IWB`` runs the same three
+windows with IWB as the equity leg and AGG unchanged, then reads the committed
+SPY vintage again and prints what the substitution cost.
+[Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) declared
+the rule for that comparison before any IWB number existed, and
+:func:`proxy_cost` computes it.
+
+SPY stays the default and the declared reproduction. Promoting IWB after its
+numbers were seen would choose a proxy because of what it made a number do,
+which is what the proxy rule above forbids. So the report prints an IWB figure
+beside the SPY figure it answers rather than in place of it.
+
 Usage::
 
     python -m chan.risk_parity                            # the three declared windows
+    python -m chan.risk_parity --stock IWB                # on IWB, then what the proxy cost
     python -m chan.risk_parity --start 2010-01-01 --end 2019-12-31
 """
 
@@ -229,13 +245,19 @@ from chan.vintage import VintageUnavailable
 #: tracks that bond index under its later names, so the bond leg is his in
 #: substance and cannot reach his span, because the fund opened in 2003 and his
 #: sample ends in 2004. SPY is the S&P 500 rather than the Russell 1000, and IWB is
-#: the fund that tracks his index. Swapping the equity leg for it is
-#: [issue 160](https://github.com/l3a0/quantitative-trading/issues/160), which
-#: runs on free data, and reaching his 1983 to 2004 sample is
+#: the fund that tracks his index.
+#: [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) ran IWB
+#: beside SPY on the same window and left SPY the declared leg, and reaching his
+#: 1983 to 2004 sample is
 #: [issue 161](https://github.com/l3a0/quantitative-trading/issues/161), which
-#: does not.
+#: does not run on free data.
 STOCK = "SPY"
 BOND = "AGG"
+
+#: The equity legs ``--stock`` accepts, the declared one first. A stock leg is a
+#: declared choice, so a new one is a code change on purpose rather than a
+#: symbol a reader can type.
+STOCKS = (STOCK, "IWB")
 
 #: 60/40, stocks then bonds. Fixed by definition and never fitted to anything.
 BENCHMARK_WEIGHTS = (0.60, 0.40)
@@ -750,6 +772,28 @@ def matching_leverage(
     return float(bench.std(ddof=1)) / float(parity.std(ddof=1))
 
 
+def ranking_series(
+    returns: pd.DataFrame,
+    parity_weights: tuple[float, float],
+    *,
+    benchmark: tuple[float, float] = BENCHMARK_WEIGHTS,
+    risk_free: float = RISK_FREE,
+) -> pd.Series:
+    """The daily series whose mean the ranking is, ``leverage * parity - bench``.
+
+    The leverage is :func:`matching_leverage` on the same window, so the two
+    portfolios carry the same volatility and the series' mean, annualised and
+    divided by that volatility, is the Sharpe difference.
+    :func:`rank_at_matched_volatility` summarises this series and
+    :func:`proxy_cost` differences two of them, so both read one construction
+    rather than each building its own.
+    """
+    leverage = matching_leverage(returns, parity_weights, benchmark=benchmark, risk_free=risk_free)
+    parity = portfolio_excess_returns(returns, parity_weights, risk_free=risk_free)
+    bench = portfolio_excess_returns(returns, benchmark, risk_free=risk_free)
+    return leverage * parity - bench
+
+
 def rank_at_matched_volatility(
     label: str,
     returns: pd.DataFrame,
@@ -775,8 +819,8 @@ def rank_at_matched_volatility(
     """
     parity = portfolio_excess_returns(returns, parity_weights, risk_free=risk_free)
     bench = portfolio_excess_returns(returns, benchmark, risk_free=risk_free)
-    leverage = float(bench.std(ddof=1)) / float(parity.std(ddof=1))
-    difference = leverage * parity - bench
+    leverage = matching_leverage(returns, parity_weights, benchmark=benchmark, risk_free=risk_free)
+    difference = ranking_series(returns, parity_weights, benchmark=benchmark, risk_free=risk_free)
     summary = newey_west_summary(difference.to_numpy())
     volatility = float(bench.std(ddof=1)) * math.sqrt(TRADING_DAYS)
     sharpe_bench = float(bench.mean()) * TRADING_DAYS / volatility
@@ -881,6 +925,26 @@ def measure_window(
     )
 
 
+def ranking_weights(
+    measured: dict[str, tuple[WindowResult, pd.DataFrame]],
+) -> dict[str, tuple[tuple[float, float], str]]:
+    """The weights each declared window is ranked on, and the window they came from.
+
+    The rising-rates window takes the falling-rates window's weights, which is
+    strictly earlier data and available at the boundary. The other two have
+    nothing before them, so their weights are their own. :func:`rank_the_windows`
+    and :func:`proxy_cost` both read this, so the rule lives in one place.
+    """
+    earlier = measured["falling rates"][0].parity
+    chosen = {}
+    for label, (result, _) in measured.items():
+        if label == "rising rates":
+            chosen[label] = ((earlier.stock_weight, earlier.bond_weight), "falling rates")
+        else:
+            chosen[label] = ((result.parity.stock_weight, result.parity.bond_weight), label)
+    return chosen
+
+
 def rank_the_windows(
     measured: dict[str, tuple[WindowResult, pd.DataFrame]],
     *,
@@ -888,39 +952,149 @@ def rank_the_windows(
 ) -> dict[str, Ranking]:
     """Each declared window's ranking, with the rising one ranked out of sample.
 
-    The rising-rates window takes the falling-rates window's weights, which is
-    strictly earlier data and available at the boundary. The other two have
-    nothing before them, so their weights are their own and every surface says
-    in sample.
+    :func:`ranking_weights` says which weights each window takes. A window
+    ranked on its own weights says in sample on every surface, because nothing
+    precedes the full span or the falling-rates window.
     """
-    earlier = measured["falling rates"][0].parity
-    earlier_weights = (earlier.stock_weight, earlier.bond_weight)
     rankings = {}
-    for label, (result, returns) in measured.items():
-        out_of_sample = label == "rising rates"
-        weights = (
-            earlier_weights
-            if out_of_sample
-            else (result.parity.stock_weight, result.parity.bond_weight)
-        )
+    for label, (weights, source) in ranking_weights(measured).items():
         rankings[label] = rank_at_matched_volatility(
             label,
-            returns,
+            measured[label][1],
             weights,
-            weight_source="falling rates" if out_of_sample else label,
-            in_sample=not out_of_sample,
+            weight_source=source,
+            in_sample=source == label,
             risk_free=risk_free,
         )
     return rankings
 
 
+@dataclass(frozen=True)
+class ProxyCost:
+    """One window run on the declared stock leg and on a swapped one, and the change.
+
+    Issue 160 declared what this answers before any IWB number existed. Each
+    instrument runs on its own weights and its own leverage, the way Entry 4's
+    rows were computed, so ``declared`` and ``swapped`` are two ordinary
+    rankings and the changes below are the swapped figure less the declared
+    one.
+
+    ``t_newey_west`` is the robust t on the daily series ``d_swapped(t) -
+    d_declared(t)`` over the days both windows hold, where ``d`` is
+    :func:`ranking_series`. Its mean is the change in ``mean_difference_annual``
+    scaled to a day, so this t is the error bar on that change. It is not a t
+    on the change in the Sharpe difference, because the two instruments match
+    different volatilities and so divide by different numbers.
+    """
+
+    label: str
+    declared: Ranking
+    swapped: Ranking
+    declared_legs: Legs
+    swapped_legs: Legs
+    declared_tie: float
+    swapped_tie: float
+    days: int
+    mean_change_annual: float
+    t_naive: float
+    t_newey_west: float
+    lag: int
+
+    @property
+    def sharpe_benchmark_change(self) -> float:
+        return self.swapped.sharpe_benchmark - self.declared.sharpe_benchmark
+
+    @property
+    def sharpe_parity_change(self) -> float:
+        return self.swapped.sharpe_parity - self.declared.sharpe_parity
+
+    @property
+    def sharpe_difference_change(self) -> float:
+        return self.swapped.sharpe_difference - self.declared.sharpe_difference
+
+    @property
+    def mean_difference_change(self) -> float:
+        return self.swapped.mean_difference_annual - self.declared.mean_difference_annual
+
+    @property
+    def change_resolved(self) -> bool:
+        """Whether the change in the mean clears the window's noise, at the ranking's bar."""
+        return abs(self.t_newey_west) >= 2.0
+
+    @property
+    def verdict_moved(self) -> bool:
+        """Whether the swap changed the ranking's sign or whether the window resolves it."""
+        same_sign = (self.swapped.sharpe_difference > 0) == (self.declared.sharpe_difference > 0)
+        return not same_sign or self.swapped.resolved != self.declared.resolved
+
+
+def proxy_cost(
+    declared: dict[str, tuple[WindowResult, pd.DataFrame]],
+    swapped: dict[str, tuple[WindowResult, pd.DataFrame]],
+    *,
+    risk_free: float = RISK_FREE,
+) -> dict[str, ProxyCost]:
+    """What swapping the stock leg did to each declared window, under issue 160's rule.
+
+    Both arguments are :func:`measure_window` outputs keyed by window, one per
+    stock leg. Each is ranked as :func:`rank_the_windows` ranks it, and the
+    paired t reads :func:`ranking_series` for both, day by day.
+
+    The two windows must hold the same days, and a pair that does not is
+    refused by naming the first day that differs. Dropping the unshared day
+    would not repair the pairing, because the next return on the leg that
+    skipped it spans two closes while the other spans one, and the paired mean
+    would stop being the change in the mean difference. IWB and SPY hold the
+    same days against AGG, which ``tests/test_risk_parity.py`` asserts.
+
+    The tie rate is the assumed rate at which a window's two Sharpe ratios
+    tie, the closed form ``risk_free - sharpe_difference / rate_sensitivity``
+    that ``tests/test_risk_parity.py`` pins for SPY.
+    """
+    declared_rankings = rank_the_windows(declared, risk_free=risk_free)
+    swapped_rankings = rank_the_windows(swapped, risk_free=risk_free)
+    declared_weights = ranking_weights(declared)
+    swapped_weights = ranking_weights(swapped)
+    costs = {}
+    for label in declared:
+        before = ranking_series(declared[label][1], declared_weights[label][0], risk_free=risk_free)
+        after = ranking_series(swapped[label][1], swapped_weights[label][0], risk_free=risk_free)
+        if not before.index.equals(after.index):
+            differ = before.index.symmetric_difference(after.index)
+            first = differ[0].date() if len(differ) else "an order"
+            raise ValueError(
+                f"the {label} window holds different days on the two stock legs, first "
+                f"{first}, so their daily returns cannot be paired"
+            )
+        summary = newey_west_summary((after - before).to_numpy())
+        old, new = declared_rankings[label], swapped_rankings[label]
+        costs[label] = ProxyCost(
+            label=label,
+            declared=old,
+            swapped=new,
+            declared_legs=declared[label][0].legs,
+            swapped_legs=swapped[label][0].legs,
+            declared_tie=risk_free - old.sharpe_difference / old.rate_sensitivity,
+            swapped_tie=risk_free - new.sharpe_difference / new.rate_sensitivity,
+            days=summary.n,
+            mean_change_annual=summary.mean * TRADING_DAYS,
+            t_naive=summary.t_naive,
+            t_newey_west=summary.t_newey_west,
+            lag=summary.lag,
+        )
+    return costs
+
+
 def _header(joined: pd.DataFrame, legs: dict[str, pd.Series], risk_free: float) -> None:
     """The vintages, the join and the specification, before any number is printed."""
     stock_entry, bond_entry = joined.attrs["vintages"]
-    print("Risk parity against 60/40 on SPY and AGG, as Chan reports Edward Qian's argument")
+    stock, bond = joined.columns
+    print(
+        f"Risk parity against 60/40 on {stock} and {bond}, as Chan reports Edward Qian's argument"
+    )
     print(f"  {BOOK_REF}")
-    print(f"  {STOCK} vintage: {vintage_line(stock_entry)}")
-    print(f"  {BOND} vintage: {vintage_line(bond_entry)}")
+    print(f"  {stock} vintage: {vintage_line(stock_entry)}")
+    print(f"  {bond} vintage: {vintage_line(bond_entry)}")
     first, last = joined.index[0], joined.index[-1]
     print(f"  joined:      {first.date()} .. {last.date()}   ({len(joined):,} common days)")
     # An inner join drops days one leg traded and the other did not, silently.
@@ -945,14 +1119,25 @@ def _header(joined: pd.DataFrame, legs: dict[str, pd.Series], risk_free: float) 
     print()
 
 
-def _decomposition(result: WindowResult, *, against_the_book: bool) -> None:
-    """One window's leg moments, its 60/40 risk split and its risk-parity weights."""
+def _decomposition(
+    result: WindowResult,
+    *,
+    against_the_book: bool,
+    symbols: tuple[str, str] = (STOCK, BOND),
+) -> None:
+    """One window's leg moments, its 60/40 risk split and its risk-parity weights.
+
+    ``symbols`` labels the two legs, stocks first. :func:`report` passes the
+    joined frame's own columns, so a run on another stock leg cannot print
+    SPY's name over IWB's numbers.
+    """
+    stock, bond = symbols
     legs = result.legs
     print(f"--- {result.label}: {legs.start} .. {legs.end}   ({legs.days:,} daily returns) ---")
     print()
     print(
-        f"  leg volatility, annualised      {STOCK} {legs.stock_vol:>8.2%}   "
-        f"{BOND} {legs.bond_vol:>8.2%}"
+        f"  leg volatility, annualised      {stock} {legs.stock_vol:>8.2%}   "
+        f"{bond} {legs.bond_vol:>8.2%}"
     )
     inside = "inside" if legs.ratio_inside_the_band else "outside"
     low, high = BOOK_RATIO_BAND
@@ -961,17 +1146,17 @@ def _decomposition(result: WindowResult, *, against_the_book: bool) -> None:
     # so a reader checking the flag against the printed bound would find it
     # false. Nothing measured lands there and the line is what a reader checks.
     print(
-        f"  volatility ratio {STOCK}/{BOND}       {legs.vol_ratio:>8.4f}   "
+        f"  volatility ratio {stock}/{bond}       {legs.vol_ratio:>8.4f}   "
         f"{inside} the {low:.4f} to {high:.4f} band Qian's 23-77 admits"
     )
     print(f"  measured correlation            {legs.correlation:>+8.4f}")
     print(
-        f"  leg mean return, annualised     {STOCK} {legs.stock_mean:>8.2%}   "
-        f"{BOND} {legs.bond_mean:>8.2%}"
+        f"  leg mean return, annualised     {stock} {legs.stock_mean:>8.2%}   "
+        f"{bond} {legs.bond_mean:>8.2%}"
     )
     print()
     bench, parity = result.benchmark, result.parity
-    print(f"  {'':<32}{STOCK:>10}{BOND:>10}")
+    print(f"  {'':<32}{stock:>10}{bond:>10}")
     print(f"  {'60/40 capital weights':<32}{bench.stock_weight:>10.2%}{bench.bond_weight:>10.2%}")
     print(
         f"  {'60/40 risk contributions':<32}{bench.stock_risk_share:>10.2%}"
@@ -1060,33 +1245,142 @@ def _ranking(ranking: Ranking, *, against_the_book: bool) -> None:
     print()
 
 
+def _proxy_cost(
+    costs: dict[str, ProxyCost],
+    declared: pd.DataFrame,
+    swapped: pd.DataFrame,
+    risk_free: float = RISK_FREE,
+) -> None:
+    """Issue 160's five answers, each window's swapped figure against its declared one."""
+    old, new = declared.columns[0], swapped.columns[0]
+    old_entry, new_entry = declared.attrs["vintages"][0], swapped.attrs["vintages"][0]
+    print(f"--- what the proxy cost: {new} against {old}, under the rule issue 160 declared ---")
+    print()
+    print(f"  {old} vintage: {vintage_line(old_entry)}")
+    print(f"  {new} vintage: {vintage_line(new_entry)}")
+    print("  Each leg runs on its own weights and its own leverage.")
+    print(f"  Every change below is {new} less {old}.")
+    print()
+    if risk_free == RISK_FREE:
+        print(f"  1. The size, at the declared {risk_free:.0%} rate")
+    else:
+        print(f"  1. The size, at the {risk_free:.0%} rate this run assumed, off the reproduction")
+    print(
+        f"    {'':<16}{'Sharpe 60/40':>14}{'Sharpe parity':>15}{'difference':>12}{'mean diff':>11}"
+    )
+    for label, cost in costs.items():
+        print(
+            f"    {label:<16}{cost.sharpe_benchmark_change:>+14.4f}"
+            f"{cost.sharpe_parity_change:>+15.4f}{cost.sharpe_difference_change:>+12.4f}"
+            f"{cost.mean_difference_change:>+11.4%}"
+        )
+    print()
+    print("  2. Whether the size is noise, from the robust t on the daily change in the")
+    print("     series the ranking is the mean of")
+    for label, cost in costs.items():
+        verdict = "clears 2" if cost.change_resolved else "under 2"
+        print(
+            f"    {label:<16}mean {cost.mean_change_annual:>+8.4%} a year, robust t "
+            f"{cost.t_newey_west:>+8.4f} at lag {cost.lag}, {verdict}, on {cost.days:,} days"
+        )
+    print("    The t belongs to the change in the mean difference. The two legs match different")
+    print("    volatilities, so it is not a t on the change in the Sharpe difference.")
+    print()
+    print("  3. Whether a verdict moved, meaning the ranking's sign or whether its window")
+    print("     resolves it")
+    for label, cost in costs.items():
+        sides = []
+        for symbol, ranking in ((old, cost.declared), (new, cost.swapped)):
+            sign = "risk parity" if ranking.sharpe_difference > 0 else "60/40"
+            resolves = "resolved" if ranking.resolved else "not resolved"
+            sides.append(f"{symbol} {sign} ahead, {resolves}")
+        moved = "MOVED" if cost.verdict_moved else "unchanged"
+        print(f"    {label:<16}{'; '.join(sides)}: {moved}")
+    print()
+    low, high = BOOK_RATIO_BAND
+    print(
+        f"  4. Qian's band, the volatility ratio against the {low:.4f} to {high:.4f} "
+        "his 23-77 admits"
+    )
+    for label, cost in costs.items():
+        inside = "inside" if cost.swapped_legs.ratio_inside_the_band else "outside"
+        print(
+            f"    {label:<16}{new} {cost.swapped_legs.vol_ratio:.4f}, {inside}, against "
+            f"{old} {cost.declared_legs.vol_ratio:.4f}"
+        )
+    print()
+    full = costs["full span"]
+    print("  5. The rate at which the full span's two Sharpe ratios tie")
+    print(f"    {new} {full.swapped_tie:.2%} against {old} {full.declared_tie:.2%}")
+    print("    The run reads no bill series, so it does not set either tie against the rate")
+    print("    bills paid. docs/replication-log.md Entry 4 does, from the average that")
+    print("    tests/test_bill_rates.py pins, because whether that average sits above the tie")
+    print("    is what decides row 3's sign at the rate bills actually paid.")
+    print()
+    if any(cost.verdict_moved for cost in costs.values()):
+        print(f"  The swap moved a verdict, so the {old} proxy changed what this entry concludes.")
+    else:
+        print(f"  The swap moved no verdict. Every window ranks the same way on {new} as on {old}")
+        print("  and resolves or fails to resolve the same way, and the sizes are the first item.")
+    print()
+
+
 def report(
     joined: pd.DataFrame,
     legs: dict[str, pd.Series],
     *,
     risk_free: float = RISK_FREE,
     extra: tuple[str, str | None, str | None] | None = None,
+    declared: pd.DataFrame | None = None,
 ) -> None:
-    """Print the three declared windows together, then any window a reader asked for."""
+    """Print the three declared windows together, then any window a reader asked for.
+
+    ``declared`` is the joined frame on the declared stock leg, handed in only
+    when ``joined`` carries another one. The report then follows the three
+    windows with what the swap cost, under the rule :class:`ProxyCost` states.
+    """
+    symbols = tuple(joined.columns)
+    stock = symbols[0]
     _header(joined, legs, risk_free)
     measured = {
         label: measure_window(label, joined, start, end, risk_free=risk_free)
         for label, start, end in WINDOWS
     }
     rankings = rank_the_windows(measured, risk_free=risk_free)
+    if declared is not None:
+        named = declared.columns[0]
+        print(f"This run reads {stock} in place of the declared {named}, and the bond leg is")
+        print(f"the same {symbols[1]} vintage. {named} stays Entry 4's equity leg, so every figure")
+        print("below is reported beside the declared reproduction rather than replacing it.")
+        print("Issue 160 declared how the two are compared before any number existed.")
+        print()
     print("The three windows below were declared on issue 15 before any number existed, and")
     print(f"the boundary is the Federal Reserve's first increase of the cycle, {TIGHTENING_START}.")
     print("All three print every run, so no window here was chosen after its ranking was seen.")
     print()
     print(f"One return falls in neither sub-window, the one dated {TIGHTENING_START} itself, which")
     print("is why the two sub-windows hold one day fewer between them than the full span.")
+    # Computed rather than typed, so a run on another stock leg names its own
+    # move on that day rather than SPY's.
+    boundary = simple_returns(joined).loc[pd.Timestamp(TIGHTENING_START), stock]
+    moved = "gained" if boundary >= 0 else "lost"
     print("A return spans two closes, so that one straddles the cut and belongs to neither")
-    print("side of it. It covers the day of the first rate rise, on which SPY gained 2.2")
+    print(
+        f"side of it. It covers the day of the first rate rise, on which {stock} {moved} "
+        f"{abs(boundary) * 100:.1f}"
+    )
     print("percent, so it is named here rather than left for a reader to subtract.")
     print()
     for label, _, _ in WINDOWS:
-        _decomposition(measured[label][0], against_the_book=True)
+        _decomposition(measured[label][0], against_the_book=True, symbols=symbols)
         _ranking(rankings[label], against_the_book=True)
+
+    if declared is not None:
+        before = {
+            label: measure_window(label, declared, start, end, risk_free=risk_free)
+            for label, start, end in WINDOWS
+        }
+        _proxy_cost(proxy_cost(before, measured, risk_free=risk_free), declared, joined, risk_free)
 
     if extra is not None:
         label, start, end = extra
@@ -1096,7 +1390,7 @@ def report(
         print("reproduction. Nothing below carries a published counterpart, and its weights")
         print("were fitted inside the window they are judged on.")
         print()
-        _decomposition(result, against_the_book=False)
+        _decomposition(result, against_the_book=False, symbols=symbols)
         _ranking(
             rank_at_matched_volatility(
                 label,
@@ -1128,6 +1422,7 @@ def report(
 
 def run(
     *,
+    stock: str = STOCK,
     start: str | None = None,
     end: str | None = None,
     risk_free: float = RISK_FREE,
@@ -1139,19 +1434,33 @@ def run(
     can say how many days the inner join dropped. The join is what verifies the
     bytes and what refuses a window spanning a scale break, and the two extra
     reads answer a question the joined frame no longer holds.
+
+    A ``stock`` other than :data:`STOCK` also reads the declared pair, because
+    what the swap cost is a comparison against it. Either vintage missing
+    stops the run as :class:`chan.vintage.VintageUnavailable`.
     """
-    joined = aligned_closes(STOCK, BOND, data_dir=data_dir)
+    if stock not in STOCKS:
+        raise ValueError(f"the stock leg is one of {STOCKS}, not {stock!r}")
+    joined = aligned_closes(stock, BOND, data_dir=data_dir)
     legs = {
-        STOCK: load_close(STOCK, data_dir=data_dir),
+        stock: load_close(stock, data_dir=data_dir),
         BOND: load_close(BOND, data_dir=data_dir),
     }
+    declared = None if stock == STOCK else aligned_closes(STOCK, BOND, data_dir=data_dir)
     extra = None if start is None and end is None else ("the window you asked for", start, end)
-    report(joined, legs, risk_free=risk_free, extra=extra)
+    report(joined, legs, risk_free=risk_free, extra=extra, declared=declared)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Qian's risk parity against 60/40, on committed SPY and AGG vintages"
+        description="Qian's risk parity against 60/40, on committed stock and AGG vintages"
+    )
+    parser.add_argument(
+        "--stock",
+        choices=STOCKS,
+        default=STOCK,
+        help=f"the equity leg (default: {STOCK}, the declared one). IWB tracks the Russell 1000 "
+        f"Qian read, and a run on it also prints what the {STOCK} proxy cost",
     )
     parser.add_argument(
         "--start",
@@ -1171,7 +1480,7 @@ def main() -> None:
     )
     args = parser.parse_args()
     try:
-        run(start=args.start, end=args.end, risk_free=args.risk_free)
+        run(stock=args.stock, start=args.start, end=args.end, risk_free=args.risk_free)
     except (VintageUnavailable, WindowCrossesScaleBreak, WindowTooShort) as stopped:
         # A refusal naming which vintage or which window is worth nothing at the
         # bottom of a twenty-line pandas traceback. All three reach the operator

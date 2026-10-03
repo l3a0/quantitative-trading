@@ -1,0 +1,125 @@
+Risk parity against 60/40 on SPY and AGG, as Chan reports Edward Qian's argument
+  Qian's risk parity as Chan reports it (rev. ed., Kindle location 4684): a 23-77 allocation between stocks and bonds, levered 1.8 times to hold 60/40's risk level, for a higher Sharpe ratio
+  SPY vintage: yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv   yfinance adjusted, downloaded 2026-09-18
+  AGG vintage: yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv   yfinance adjusted, downloaded 2026-09-18
+  joined:      2003-09-29 .. 2026-09-17   (5,779 common days)
+    SPY recorded 1993-01-29..2026-09-18, 8,467 rows, 5,779 of them inside the joined span, of which the join dropped 0
+    AGG recorded 2003-09-29..2026-09-17, 5,779 rows, 5,779 of them inside the joined span, of which the join dropped 0
+  spec:        adjusted closes on both legs, constant weights rebalanced every
+               trading day, simple daily returns, mean x 252, sample sd
+               (n-1) x sqrt(252), risk-free 4% subtracted as 0.04/252
+               per day, no transaction costs and no financing spread
+
+The three windows below were declared on issue 15 before any number existed, and
+the boundary is the Federal Reserve's first increase of the cycle, 2022-03-16.
+All three print every run, so no window here was chosen after its ranking was seen.
+
+One return falls in neither sub-window, the one dated 2022-03-16 itself, which
+is why the two sub-windows hold one day fewer between them than the full span.
+A return spans two closes, so that one straddles the cut and belongs to neither
+side of it. It covers the day of the first rate rise, on which SPY gained 2.2
+percent, so it is named here rather than left for a reader to subtract.
+
+--- full span: 2003-09-30 .. 2026-09-17   (5,778 daily returns) ---
+
+  leg volatility, annualised      SPY   18.55%   AGG    5.17%
+  volatility ratio SPY/AGG         3.5909   outside the 3.2553 to 3.4444 band Qian's 23-77 admits
+  measured correlation             -0.0002
+  leg mean return, annualised     SPY   12.36%   AGG    3.09%
+
+                                         SPY       AGG
+  60/40 capital weights               60.00%    40.00%
+  60/40 risk contributions            96.67%     3.33%
+  risk-parity capital weights         21.78%    78.22%
+  its risk contributions              50.00%    50.00%
+  Qian prints                            23%       77%   gaps -1 and +1 percentage points
+  his weights imply a ratio of           3.3             gap +0.2
+
+  the ranking, with both portfolios matched on volatility
+    weights come from             full span (in sample)
+    leverage that matches 60/40       1.9812   the book prints 1.8, gap +0.2
+    read back on his 23-77 weights   -0.1508   where his 1.8 implies +0.1579
+    the volatility both carry         11.32%
+    Sharpe, 60/40                     0.4111
+    Sharpe, risk parity               0.1942
+    difference, parity less 60/40    -0.2169   60/40 ranks higher
+    mean excess-return difference     -2.46%   a year, on 5,778 daily differences
+    robust t on that mean            -2.1727   Newey-West at lag 9, against a naive -1.7520
+    per unit of assumed rate         -8.6692   (1 - leverage) / volatility, so a higher rate costs risk parity
+    This window resolves the ranking: the robust t clears 2.
+
+--- falling rates: 2003-09-30 .. 2022-03-15   (4,647 daily returns) ---
+
+  leg volatility, annualised      SPY   18.87%   AGG    4.88%
+  volatility ratio SPY/AGG         3.8700   outside the 3.2553 to 3.4444 band Qian's 23-77 admits
+  measured correlation             -0.0688
+  leg mean return, annualised     SPY   11.53%   AGG    3.56%
+
+                                         SPY       AGG
+  60/40 capital weights               60.00%    40.00%
+  60/40 risk contributions            98.23%     1.77%
+  risk-parity capital weights         20.53%    79.47%
+  its risk contributions              50.00%    50.00%
+  Qian prints                            23%       77%   gaps -2 and +2 percentage points
+  his weights imply a ratio of           3.3             gap +0.5
+
+  the ranking, with both portfolios matched on volatility
+    weights come from             falling rates (in sample)
+    leverage that matches 60/40       2.1475   the book prints 1.8, gap +0.3
+    read back on his 23-77 weights   -0.3299   where his 1.8 implies +0.1579
+    the volatility both carry         11.36%
+    Sharpe, 60/40                     0.3820
+    Sharpe, risk parity               0.2255
+    difference, parity less 60/40    -0.1565   60/40 ranks higher
+    mean excess-return difference     -1.78%   a year, on 4,647 daily differences
+    robust t on that mean            -1.3455   Newey-West at lag 9, against a naive -1.0561
+    per unit of assumed rate        -10.1029   (1 - leverage) / volatility, so a higher rate costs risk parity
+    This window does NOT resolve the ranking. The robust t is under 2, so the
+    sign above is not something this sample can support. Nothing has failed.
+
+--- rising rates: 2022-03-17 .. 2026-09-17   (1,130 daily returns) ---
+
+  leg volatility, annualised      SPY   17.12%   AGG    6.21%
+  volatility ratio SPY/AGG         2.7555   outside the 3.2553 to 3.4444 band Qian's 23-77 admits
+  measured correlation             +0.2442
+  leg mean return, annualised     SPY   15.31%   AGG    1.16%
+
+                                         SPY       AGG
+  60/40 capital weights               60.00%    40.00%
+  60/40 risk contributions            90.00%    10.00%
+  risk-parity capital weights         26.63%    73.37%
+  its risk contributions              50.00%    50.00%
+  Qian prints                            23%       77%   gaps +4 and -4 percentage points
+  his weights imply a ratio of           3.3             gap -0.6
+
+  the ranking, with both portfolios matched on volatility
+    weights come from             falling rates (out of sample)
+      so the leverage and the Sharpe ratio below are on those weights and not
+      on the ones printed above, which were measured inside this window and
+      rank nothing
+    leverage that matches 60/40       1.6572
+    read back on his 23-77 weights   +0.5689   where his 1.8 implies +0.1579
+    the volatility both carry         11.14%
+    Sharpe, 60/40                     0.5071
+    Sharpe, risk parity               0.0097
+    difference, parity less 60/40    -0.4974   60/40 ranks higher
+    mean excess-return difference     -5.54%   a year, on 1,130 daily differences
+    robust t on that mean            -2.1956   Newey-West at lag 6, against a naive -1.8591
+    per unit of assumed rate         -5.8979   (1 - leverage) / volatility, so a higher rate costs risk parity
+    This window resolves the ranking: the robust t clears 2.
+
+A replication against data is exploratory by construction. The sample was spent
+on a hypothesis Qian chose and Chan reported, so this run says whether his
+figures reproduce and nothing about whether either allocation is a good idea.
+The 4% is Chan's constant applied to whatever window was read, not a rate
+anyone paid, and no transaction cost or financing spread is charged, which
+favours the levered portfolio the book argues for.
+
+The assumed rate is not neutral to the ranking, which is why every window above
+reports what it costs. The Sharpe difference changes with the rate by
+1/vol(60/40) less 1/vol(risk parity, unlevered), and levering to match collapses
+that to (1 - leverage) / volatility. So a higher assumed rate penalises risk
+parity whenever the leverage is above 1. --risk-free moves the rate, and a run
+that does is off the reproduction, because the rate was declared with the
+windows.
+docs/replication-log.md Entry 4 carries the verdict.
