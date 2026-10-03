@@ -18,7 +18,8 @@ Three sources, told apart by what the manifest records rather than by a filename
   ``unadjusted=True``.
 - Chan's book-companion set, with ``chan=True``. Those entries carry the
   vendor ``chan-xls`` and are the adjusted-close column of Chan's own ``.xls``
-  for that symbol.
+  for that symbol. SPY's workbook also gives its as-traded ``Close``, which
+  ``unadjusted=True`` reads, and no other symbol has one.
 - Chan's two MATLAB cross-sections, under the vendor ``chan-mat``, which
   :func:`load_panel` reads a whole file at a time and no ticker flag names.
 
@@ -126,15 +127,21 @@ class WindowCrossesScaleBreak(Exception):
 def close_identity(ticker: str, *, unadjusted: bool = False, chan: bool = False) -> tuple[str, str]:
     """The vendor and price basis a ticker's flags name, as the manifest spells them.
 
-    ``unadjusted`` is ignored when ``chan`` is set, which is the promise
-    ``load_close`` has carried since before the manifest existed. Chan's
-    workbooks hold one price column per symbol and it is the adjusted one, so
-    ``(chan-xls, raw)`` names no entry and never will. Refusing instead would
-    turn an argument the caller was told is ignored into a refusal naming a
-    vintage nobody meant to ask for.
+    ``unadjusted`` selects the basis under ``chan`` the way it does without it.
+    Until [issue 192](https://github.com/l3a0/quantitative-trading/issues/192)
+    the flag was ignored under ``chan``, on the premise that Chan's workbooks
+    hold one price column per symbol and it is the adjusted one. ``example6_2.xls``
+    holds both, and ``spy_unadjusted_chan.csv`` is its as-traded ``Close``, so
+    ``(chan-xls, raw)`` now names an entry for SPY.
+
+    The old argument against refusing was that it would turn an argument the
+    caller was told is ignored into a refusal naming a vintage nobody asked
+    for. The caller is no longer told that. A caller asking for Chan's
+    as-traded KO is asking for a column this repo does not hold, and the reader
+    refuses that rather than handing back the adjusted one under the wrong name.
     """
     if chan:
-        return "chan-xls", "adjusted"
+        return "chan-xls", "raw" if unadjusted else "adjusted"
     return "yfinance", "raw" if unadjusted else "adjusted"
 
 

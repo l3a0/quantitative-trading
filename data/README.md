@@ -78,6 +78,7 @@ for a column lifted from one of Chan's own files.
 | `ko_chan.csv` | Chan's `KO.xls` | KO | adjusted | 1962-01-02 .. 2008-01-18 | saved 2008-01-23 |
 | `pep_chan.csv` | Chan's `PEP.xls` | PEP | adjusted | 1977-01-03 .. 2008-01-18 | saved 2008-01-23 |
 | `spy_chan.csv` | Chan's `example6_2.xls` | SPY | adjusted | 1993-01-29 .. 2007-12-28 | saved 2008-01-29 |
+| `spy_unadjusted_chan.csv` | Chan's `example6_2.xls` | SPY | raw | 1993-01-29 .. 2007-12-28 | saved 2008-01-29 |
 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv` | yfinance | SPY | adjusted | 1993-01-29 .. 2026-09-18 | 2026-09-18 |
 | `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` | yfinance | AGG | adjusted | 2003-09-29 .. 2026-09-17 | 2026-09-18 |
 | `fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv` | fred | TB3MS | rate | 1934-01-01 .. 2026-08-01 | 2026-09-30 |
@@ -104,8 +105,10 @@ by hand, which is why it carries the recorder's five-field name and a single
 `Date,Close` header. It is read by
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
 6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
-leg of Qian's allocation. The other SPY file, `spy_chan.csv`, is a workbook
-column placed by hand, and the Kelly run reads it under `--chan`.
+leg of Qian's allocation. The other two SPY files are workbook columns
+placed by hand. The Kelly run reads `spy_chan.csv` under `--chan`, and
+`tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
+price basis is worth on Chan's own data.
 
 `yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv` is recorded the
 same way and is the bond leg of that same run. Two things about it are
@@ -242,17 +245,27 @@ a reader to infer.
 4. **`scale_breaks` finds nothing on it.** Its largest day-over-day move is a
    small fraction of the bound, so a flagged day would be a bad print.
 
-The `*_chan.csv` files are a different kind of source. Each is the
-adjusted-close column of Ernest Chan's own book-companion spreadsheet, taken
-from the public mirror at
+The `*_chan.csv` files are a different kind of source. Each is one price
+column of Ernest Chan's own book-companion spreadsheet, taken from the public
+mirror at
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading).
 The date given is when Chan last saved the workbook, which is the closest thing
 these files have to a download date. Which workbook each column came from is
 recorded too, in the manifest's `source_workbook` field, because a workbook's
-name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
+name is not its column's symbol. Chan's `example6_2.xls` holds SPY's columns,
 and a `SPY.xls` in the same mirror holds a different series.
 
-Every workbook has its `.xls` checksum recorded beside the run that reads the
+Every one of them is the adjusted close except `spy_unadjusted_chan.csv`. That
+file is the `Close` column of the same `example6_2.xls` that gives
+`spy_chan.csv` its `Adj Close`, so the two share a workbook, a saved date and a
+calendar, and differ only in basis. Its basis is `raw` because the column is
+the as-traded close. SPY has not split, so the column carries no split for a
+vendor to have adjusted away, and `scale_breaks` finds nothing on it.
+[Issue 192](https://github.com/l3a0/quantitative-trading/issues/192) committed
+it to pin Chan's Kelly leverage on the as-traded close, which is the figure
+that shows the price basis deciding his Black Monday conclusion.
+
+Every workbook has its `.xls` checksum recorded beside the run that reads a
 column taken from it. The checksums of `GLD.xls`, `GDX.xls`, `KO.xls` and
 `PEP.xls` are in
 [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and that
@@ -430,9 +443,10 @@ Two files carry that record.
    a single column can hold and a filename cannot.
 
    The workbook is recorded rather than derived from the symbol. Joining the
-   two spells the right workbook for every committed column but `spy_chan.csv`,
-   whose source, `example6_2.xls`, is named after a chapter's example rather
-   than after a ticker. The `SPY.xls` the join would give is a real file in the
+   two spells the right workbook for every committed column but the two SPY
+   ones, `spy_chan.csv` and `spy_unadjusted_chan.csv`, whose source,
+   `example6_2.xls`, is named after a chapter's example rather than after a
+   ticker. The `SPY.xls` the join would give is a real file in the
    same mirror carrying another series. The manifest is the authority for a vintage's provenance, so the
    fact sits here and the table repeats it.
 
@@ -444,7 +458,8 @@ Two files carry that record.
    series a vendor returned did not come out of a spreadsheet.
 
    Its hand-written lines are the eight that were here before the recorder
-   existed and `spy_chan.csv`'s, which was typed because the recorder cannot
+   existed and the two SPY workbook columns', `spy_chan.csv`'s and
+   `spy_unadjusted_chan.csv`'s, which were typed because the recorder cannot
    write a saved date. Every other line was written by code, a download by
    `record_vintage` and a stock lifted from Chan's MATLAB files by
    `record_lifted_columns`. More lines will be typed by hand for as long as a

@@ -95,6 +95,7 @@ from chan.pair_cointegration import (
     CointResult,
     RollingCoint,
     engle_granger,
+    main,
     residual_check,
     return_correlation,
     rolling_cointegration,
@@ -1446,3 +1447,24 @@ class TestReportNamesItsBasis:
         assert "KO vintage: ko_chan.csv   chan-xls adjusted, saved 2008-01-23" in out
         assert "PEP vintage: pep_chan.csv   chan-xls adjusted, saved 2008-01-23" in out
         assert "downloaded" not in out
+
+    def test_asking_for_chan_s_as_traded_ko_stops_with_the_reader_s_line(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """``--ko-pep --unadjusted`` asks for a column this repo does not hold.
+
+        Before [issue 192](https://github.com/l3a0/quantitative-trading/issues/192)
+        the flag was ignored under ``--ko-pep``, so the run read KO's adjusted
+        column and printed the adjusted basis line beside it. Chan's SPY
+        workbook now gives an as-traded column, so ``close_identity`` asks for
+        ``(chan-xls, raw)`` and the reader refuses KO, which has none. The run
+        exits with the reader's own sentence rather than a traceback, and prints
+        no report.
+        """
+        monkeypatch.setattr("sys.argv", ["chan.pair_cointegration", "--ko-pep", "--unadjusted"])
+
+        with pytest.raises(
+            SystemExit, match="no committed vintage is recorded for chan-xls KO raw"
+        ):
+            main()
+        assert "Price basis" not in capsys.readouterr().out

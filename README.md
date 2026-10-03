@@ -317,7 +317,7 @@ gap in the mean that its ten largest days and SPY's dividend months carry.
 column on any other window rather than printing a comparison against figures
 that came from his. `--dated` picks a vintage by its date, which matters the
 day a second SPY download arrives. Left out, it means the 2026 download, or no
-date under `--chan`, which finds his one workbook column. `--risk-free` moves
+date under `--chan`, which finds his adjusted workbook column. `--risk-free` moves
 the book's 4 percent constant, and on Chan's window the report then says the
 gap column measures the rate as well as anything else.
 
@@ -588,7 +588,7 @@ post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
 Entry 3 of the replication log: the gap from Chan's figures, the specification,
 rebalancing at a constant leverage, the stress test's threshold and price
 series, the window, and the return frequency. A further lesson, Lesson 6, on
-overbetting past the Kelly leverage, comes from the growth formula. Three
+overbetting past the Kelly leverage, comes from the growth formula. Two
 groups of its figures are not pinned here.
 
 1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
@@ -597,12 +597,7 @@ groups of its figures are not pinned here.
    equity and 10% fall of the worked example, and the 20.47% Black Monday loss
    and 20% tolerance of the stress test. The code carries them as cited
    constants and computes none of them.
-2. The leverage of 1.93 on Chan's as-traded close. It comes from his
-   workbook's as-traded column, which this repo does not hold, and
-   [issue 192](https://github.com/l3a0/quantitative-trading/issues/192) is
-   where it would be pinned. A test cites it only to compare it with the
-   threshold.
-3. Arithmetic that no test asserts: the 99% a 10% loss and a 10% gain leave,
+2. Arithmetic that no test asserts: the 99% a 10% loss and a 10% gain leave,
    with their variance of 0.01, half of it 0.5% a period and 1% over two, the
    1.43% volatility drag, the 6.98% half-Kelly adds above the 4% rate, the
    9.30% that `S²/2` adds, the 0.60 margin above the 1.954 threshold, the 7.72
