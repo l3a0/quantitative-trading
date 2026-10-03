@@ -70,8 +70,8 @@ they were first built. The other nine were built here.
    Chan's claim that the Kelly leverage, unlike the Sharpe ratio, does not
    depend on the time scale. Rows 15 and 28 of the entry record it as
    `did not reproduce`, on the 2026 download and on his own workbook alike, so
-   its failure owes nothing to the download. On his own workbook every one of
-   those levels reproduces at the precision he printed, and setting the two
+   its failure owes nothing to the download. On his own workbook every level he
+   computed from a series reproduces at the precision he printed, and setting the two
    series day by day against each other puts the whole gap on about ten days
    on or beside SPY's quarterly ex-dividend dates.
 5. Edward Qian's risk parity against the classic 60/40, reported at Kindle
@@ -79,7 +79,7 @@ they were first built. The other nine were built here.
    claim behind them does not survive: 60/40 earns the higher Sharpe ratio at
    matched risk on the full span at Chan's 4 percent rate, resolved at a robust
    t of −2.17. It is the first entry here where the numbers reproduce and the
-   claim does not, which is the reverse of the split the GLD/GDX and Kelly
+   central claim does not, which is the reverse of the split the GLD/GDX and Kelly
    entries both found. Swapping SPY for IWB, which tracks the Russell 1000
    index Qian read, moves no verdict on any of the three windows. That swap is
    a measurement beside the replication rather than a replication, because

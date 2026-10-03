@@ -1003,12 +1003,12 @@ Five things, and the first is what makes the other four worth reading.
 
 1. **Seven numbers moved and every claim but one held.** Every level Chan
    computed from a series except the dispersion is higher on the 2026 download,
-   by 0.06 percentage points on the mean and 0.023 on the leverage, and every
-   statement those numbers were printed to support still holds on that vintage
-   except one. The exception is his claim that the Kelly leverage does not
-   depend on the time scale, which rows 15 and 28 record as `did not reproduce`
-   on this vintage and on his own workbook alike, so its failure owes nothing
-   to the vintage. That is the same split Entry 1 found on
+   by 0.06 percentage points on the mean and 0.023 on the leverage. Every
+   statement those numbers were printed to support but one still holds on that
+   vintage. The exception is his claim that the Kelly leverage does not depend
+   on the time scale, which rows 15 and 28 record as `did not reproduce` on that
+   vintage and on his own workbook alike, so its failure owes nothing to the
+   vintage. The rest is the same split Entry 1 found on
    a different pair with a different estimator: a published number and the
    claim it supports have different shelf lives, and only the number depends on
    a vintage. What is new here is the one that did not move. The dispersion of
@@ -1086,8 +1086,8 @@ Rows 1 and 2 are therefore a percentage point and two tenths out. Row 3 is the
 claim those two were printed to support, that the levered risk-parity portfolio
 earns a higher Sharpe ratio at the same risk, and at Chan's 4 percent rate
 60/40 wins it by 0.2169 with a robust t of −2.17. So this entry is the first
-here where a published number lands close and the claim behind it does not
-survive.
+here where a published number lands close and the central claim behind it does
+not survive.
 
 Three rows are replications and eighteen are not. Rows 1, 2 and 3 are the three
 things location 4684 prints. The other eighteen fall into five groups.
