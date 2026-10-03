@@ -958,3 +958,54 @@ class TestWhichColumnTheHandPlacedAdjustedVintagesHold:
         assert (before.adjusted < before.raw).all()
         assert (after.adjusted == after.raw).all()
         assert (len(before), len(after)) == (4928, 171)
+
+
+class TestIWBsAdjustedVintageCarriesTheDividends:
+    """IWB's adjusted line records its call, and its raw twin checks the label against bytes.
+
+    Both files came from one session on 2026-10-03, the adjusted one from
+    ``Close`` under ``auto_adjust=True`` and the twin from ``Close`` under
+    ``auto_adjust=False``, which carries splits and not dividends.
+    [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160)
+    recorded the twin for this comparison. A split-only close recorded as
+    ``adjusted`` would strip IWB's dividends, and the risk parity run would
+    then report the missing dividends as what the SPY proxy cost.
+
+    The comparison takes the shape GDX's above does. The adjusted close sits
+    below the twin on every day before the last ex-dividend date in the file
+    and equals it from that date on, because the adjustment is a factor applied
+    backwards from each payment. The ratio of the two moves only on the days a
+    payment goes ex, so the count of its steps is a count of distributions.
+    """
+
+    def test_it_sits_below_its_raw_twin_before_its_last_ex_date_and_equals_it_after(self):
+        both = adjusted_against_raw("IWB")
+        last_ex_date = pd.Timestamp("2026-09-15")
+        before = both[both.index < last_ex_date]
+        after = both[both.index >= last_ex_date]
+
+        assert len(both) == 6632
+        assert (before.adjusted < before.raw).all()
+        assert (after.adjusted == after.raw).all()
+        assert (len(before), len(after)) == (6618, 14)
+
+    def test_the_ratio_steps_once_per_distribution_and_only_upward(self):
+        """108 steps of at least 0.05 percent, against stored-float noise under 1e-6.
+
+        Each close is stored at its shortest round-trip repr, so the ratio of two
+        of them wobbles in the seventh decimal on days nothing happened. A step
+        clears that by more than two orders of magnitude, so the threshold
+        between them is not a judgement call. Every step raises the ratio toward
+        1, which is a payment's factor coming off, and the last is the last
+        ex-date above. About four a year over 26 years is a quarterly payer.
+        """
+        both = adjusted_against_raw("IWB")
+        moves = (both.adjusted / both.raw).diff().dropna()
+        steps = moves[moves.abs() > 1e-5]
+        noise = moves[moves.abs() <= 1e-5]
+
+        assert len(steps) == 108
+        assert (steps > 0).all()
+        assert steps.abs().min() > 5e-4
+        assert noise.abs().max() < 1e-6
+        assert steps.index[-1] == pd.Timestamp("2026-09-15")

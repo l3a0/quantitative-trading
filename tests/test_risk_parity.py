@@ -44,10 +44,12 @@ t came from the pin in ``pyproject.toml`` rather than from either vintage.
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import inspect
 import io
 import math
 import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -65,11 +67,13 @@ from chan.risk_parity import (
     MIN_TRADING_DAYS,
     RISK_FREE,
     STOCK,
+    STOCKS,
     TIGHTENING_START,
     TRADING_DAYS,
     WINDOWS,
     Allocation,
     Legs,
+    ProxyCost,
     Ranking,
     WindowResult,
     WindowTooShort,
@@ -91,8 +95,11 @@ from chan.risk_parity import (
     measure_legs,
     measure_window,
     portfolio_excess_returns,
+    proxy_cost,
     rank_at_matched_volatility,
     rank_the_windows,
+    ranking_series,
+    ranking_weights,
     report,
     risk_parity_weights,
     risk_shares,
@@ -125,6 +132,32 @@ def measured(joined):
 def rankings(measured):
     """The three rankings, with the rising-rates one carrying earlier weights."""
     return rank_the_windows(measured)
+
+
+# IWB, which tracks the Russell 1000 Qian read, in place of SPY. Issue 160 ran it
+# beside the declared reproduction rather than in place of it.
+IWB = "IWB"
+IWB_VINTAGE = "yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv"
+AGG_VINTAGE = "yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv"
+SPY_VINTAGE = "yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv"
+
+
+@pytest.fixture(scope="module")
+def joined_iwb():
+    """IWB's committed vintage and the same AGG vintage, inner-joined."""
+    return aligned_closes(IWB, BOND)
+
+
+@pytest.fixture(scope="module")
+def measured_iwb(joined_iwb):
+    """The three declared windows on IWB, each a ``(WindowResult, returns)`` pair."""
+    return {label: measure_window(label, joined_iwb, start, end) for label, start, end in WINDOWS}
+
+
+@pytest.fixture(scope="module")
+def rankings_iwb(measured_iwb):
+    """The three rankings on IWB, the rising one on IWB's own falling-window weights."""
+    return rank_the_windows(measured_iwb)
 
 
 # ============================================================
@@ -1765,3 +1798,421 @@ class TestTheHurdleForAnyWeights:
     def test_no_hurdle_exists_where_bonds_count_for_less(self) -> None:
         with pytest.raises(ValueError, match="no bond Sharpe ratio"):
             hurdle_for_weights((0.7, 0.3), 0.15, 0.05, 0.0)
+
+
+# ============================================================
+# IWB in place of SPY, reported beside the declared reproduction
+# ============================================================
+
+
+class TestIWBInPlaceOfSPY:
+    """Entry 4's rows 16 to 21, which run the same three windows with IWB as the stock leg.
+
+    Vintages: ``yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv``,
+    yfinance's both-adjustments close downloaded 2026-10-03, against the same
+    ``yfinance_agg_adjusted_2003-09-29_2026-09-17_dl2026-09-18.csv`` every SPY
+    pin above reads. The comparison cases read
+    ``yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv`` too.
+    Specification: Entry 4's, unchanged. Simple daily returns, the mean times
+    252 and the sample standard deviation times the square root of 252, a 4
+    percent annual rate subtracted as 0.04/252 a day, constant weights
+    rebalanced daily, no costs. Each instrument runs on its own weights and its
+    own leverage.
+
+    Only the instrument moves, so whatever moves is the proxy. SPY stays the
+    declared leg, because promoting IWB after its numbers were seen would be
+    choosing a proxy for its result. The book prints no IWB figure, so every
+    row these pins back reads "none, not a replication".
+
+    [Issue 160](https://github.com/l3a0/quantitative-trading/issues/160) declared
+    the rule for what the proxy cost before any IWB number existed, and
+    ``test_what_the_proxy_cost`` holds its five answers. The swap moves no
+    verdict.
+    """
+
+    def test_the_iwb_entry_is_the_download_this_card_names(self, joined_iwb) -> None:
+        """The identity fields, so a re-download cannot answer to these pins."""
+        stock_entry, bond_entry = joined_iwb.attrs["vintages"]
+        assert stock_entry.path == IWB_VINTAGE
+        assert (stock_entry.vendor, stock_entry.symbol) == ("yfinance", "IWB")
+        assert stock_entry.price_basis == "adjusted"
+        assert stock_entry.vendor_column == "Close, auto_adjust=True"
+        assert stock_entry.download_date == "2026-10-03"
+        assert (stock_entry.first_date, stock_entry.last_date) == ("2000-05-19", "2026-10-02")
+        assert stock_entry.row_count == 6632
+        assert bond_entry.path == AGG_VINTAGE
+
+    def test_the_join_is_entry_4s_window(self, joined, joined_iwb) -> None:
+        """IWB carries every day AGG does inside the span, so the window is SPY's to the day.
+
+        IWB's history starts in 2000 and runs to 2026-10-02, so AGG bounds the
+        pair at both ends, as it bounds SPY's. Holding the two indexes equal
+        rather than only their ends and counts is what says no day moved.
+        """
+        assert str(joined_iwb.index[0].date()) == "2003-09-29"
+        assert str(joined_iwb.index[-1].date()) == "2026-09-17"
+        assert len(joined_iwb) == len(joined) == 5779
+        assert joined_iwb.index.equals(joined.index)
+        agg = load_close(BOND)
+        assert agg.index.difference(load_close(IWB).index).empty
+
+    def test_the_leg_moments_on_iwb(self, measured_iwb) -> None:
+        """Row 16's moments, full span. IWB's 18.4710 percent against SPY's 18.5472."""
+        legs = measured_iwb["full span"][0].legs
+        assert (legs.start, legs.end, legs.days) == ("2003-09-30", "2026-09-17", 5778)
+        assert legs.stock_vol == pytest.approx(0.184710, abs=5e-7)
+        assert legs.bond_vol == pytest.approx(0.051650, abs=5e-7)
+        assert legs.vol_ratio == pytest.approx(3.576175, abs=5e-7)
+        assert legs.correlation == pytest.approx(-0.007212, abs=5e-7)
+        assert legs.stock_mean == pytest.approx(0.123609, abs=5e-7)
+        assert legs.bond_mean == pytest.approx(0.030897, abs=5e-7)
+        assert legs.ratio_inside_the_band is False
+
+    def test_the_weights_and_risk_split_on_iwb(self, measured_iwb) -> None:
+        """Row 16's weights and risk split, full span. 21.85 to 78.15 against SPY's 21.78."""
+        result, _ = measured_iwb["full span"]
+        parity, bench = result.parity, result.benchmark
+        assert parity.stock_weight == pytest.approx(0.218523, abs=5e-7)
+        assert parity.bond_weight == pytest.approx(0.781477, abs=5e-7)
+        assert parity.stock_risk_share == pytest.approx(0.5, abs=1e-12)
+        assert bench.stock_risk_share == pytest.approx(0.967630, abs=5e-7)
+        assert bench.bond_risk_share == pytest.approx(0.032370, abs=5e-7)
+        assert round((parity.stock_weight - BOOK_WEIGHTS[0]) * 100) == -1
+
+    def test_the_leverage_and_ranking_on_iwb(self, rankings_iwb) -> None:
+        """Row 17. Leverage 1.9795 and 60/40 ahead by 0.2171, robust t −2.1619.
+
+        Pinned as the measured difference and its robust t rather than as a
+        sign, for the reason the SPY ranking pins give.
+        """
+        ranking = rankings_iwb["full span"]
+        assert ranking.weight_source == "full span"
+        assert ranking.in_sample is True
+        assert ranking.leverage == pytest.approx(1.979538, abs=5e-7)
+        assert ranking.implied_correlation == pytest.approx(-0.148628, abs=5e-7)
+        assert ranking.matched_volatility == pytest.approx(0.112589, abs=5e-7)
+        assert ranking.sharpe_benchmark == pytest.approx(0.413220, abs=5e-7)
+        assert ranking.sharpe_parity == pytest.approx(0.196153, abs=5e-7)
+        assert ranking.sharpe_difference == pytest.approx(-0.217067, abs=5e-7)
+        assert ranking.mean_difference_annual == pytest.approx(-0.024439, abs=5e-7)
+        assert (ranking.t_newey_west, ranking.lag, ranking.days) == pytest.approx(
+            (-2.161935, 9, 5778), abs=5e-7
+        )
+        assert ranking.resolved is True
+
+    def test_the_sub_windows_on_iwb(self, measured_iwb, rankings_iwb) -> None:
+        """Rows 18 and 19, with each leverage naming the weights it was measured on.
+
+        The falling window is ranked on weights fitted inside it, 20.61 percent
+        stocks, at a leverage of 2.1484. The rising window is ranked on those
+        same weights from before it, at 1.6532. On its own 26.64 percent the
+        matching leverage is 1.5467, which is row 2's specification there and
+        the figure to set against 2.1484 and Qian's 1.8. Row 15 states SPY's
+        three in the same words.
+        """
+        falling, falling_returns = measured_iwb["falling rates"]
+        rising, rising_returns = measured_iwb["rising rates"]
+
+        legs = falling.legs
+        assert (legs.start, legs.end, legs.days) == ("2003-09-30", "2022-03-15", 4647)
+        assert legs.stock_vol == pytest.approx(0.187833, abs=5e-7)
+        assert legs.vol_ratio == pytest.approx(3.851206, abs=5e-7)
+        assert legs.correlation == pytest.approx(-0.080153, abs=5e-7)
+        assert falling.parity.stock_weight == pytest.approx(0.206134, abs=5e-7)
+        assert falling.benchmark.stock_risk_share == pytest.approx(0.983945, abs=5e-7)
+        before = rankings_iwb["falling rates"]
+        assert (before.weight_source, before.in_sample) == ("falling rates", True)
+        assert before.leverage == pytest.approx(2.148369, abs=5e-7)
+        assert before.sharpe_benchmark == pytest.approx(0.388731, abs=5e-7)
+        assert before.sharpe_parity == pytest.approx(0.231375, abs=5e-7)
+        assert before.sharpe_difference == pytest.approx(-0.157356, abs=5e-7)
+        assert before.mean_difference_annual == pytest.approx(-0.017754, abs=5e-7)
+        assert (before.t_newey_west, before.lag) == pytest.approx((-1.342320, 9), abs=5e-7)
+        assert before.resolved is False
+
+        legs = rising.legs
+        assert (legs.start, legs.end, legs.days) == ("2022-03-17", "2026-09-17", 1130)
+        assert legs.stock_vol == pytest.approx(0.171076, abs=5e-7)
+        assert legs.vol_ratio == pytest.approx(2.753648, abs=5e-7)
+        assert legs.correlation == pytest.approx(0.251114, abs=5e-7)
+        assert rising.parity.stock_weight == pytest.approx(0.266408, abs=5e-7)
+        assert rising.parity_tilts_toward_stocks is False
+        assert rising.benchmark.stock_risk_share == pytest.approx(0.898823, abs=5e-7)
+        carried = rankings_iwb["rising rates"]
+        assert (carried.weight_source, carried.in_sample) == ("falling rates", False)
+        assert carried.leverage == pytest.approx(1.653223, abs=5e-7)
+        assert carried.sharpe_benchmark == pytest.approx(0.487167, abs=5e-7)
+        assert carried.sharpe_parity == pytest.approx(0.000263, abs=5e-7)
+        assert carried.sharpe_difference == pytest.approx(-0.486904, abs=5e-7)
+        assert carried.mean_difference_annual == pytest.approx(-0.054295, abs=5e-7)
+        assert (carried.t_newey_west, carried.lag) == pytest.approx((-2.155571, 6), abs=5e-7)
+        assert carried.resolved is True
+
+        falling_own = (falling.parity.stock_weight, falling.parity.bond_weight)
+        rising_own = (rising.parity.stock_weight, rising.parity.bond_weight)
+        assert matching_leverage(falling_returns, falling_own) == pytest.approx(
+            before.leverage, abs=1e-12
+        )
+        assert matching_leverage(rising_returns, falling_own) == pytest.approx(
+            carried.leverage, abs=1e-12
+        )
+        after = matching_leverage(rising_returns, rising_own)
+        assert after == pytest.approx(1.546750, abs=5e-7)
+        assert after < BOOK_LEVERAGE < before.leverage
+
+    def test_the_tie_rate_and_the_bill_average_on_iwb(self, measured_iwb, rankings_iwb) -> None:
+        """Row 20. The full span ties at 1.5050 percent, under the 1.744 percent bill average.
+
+        At the bill average, typed as a fraction the way
+        ``test_the_earlier_period_at_its_own_bill_average`` types its rate,
+        60/40 still leads, 0.6136 against 0.5928, by 0.0208 at a robust t of
+        −0.2071. So row 3's sign at the rate bills paid is the same on IWB as on
+        SPY, and neither resolves there.
+        """
+        ranking = rankings_iwb["full span"]
+        tie = RISK_FREE - ranking.sharpe_difference / ranking.rate_sensitivity
+        assert tie == pytest.approx(0.015050, abs=5e-7)
+        assert tie < 0.01744
+
+        result, returns = measured_iwb["full span"]
+        weights = (result.parity.stock_weight, result.parity.bond_weight)
+        at_bills = rank_at_matched_volatility(
+            "full span",
+            returns,
+            weights,
+            weight_source="full span",
+            in_sample=True,
+            risk_free=0.01744,
+        )
+        assert at_bills.sharpe_benchmark == pytest.approx(0.613595, abs=5e-7)
+        assert at_bills.sharpe_parity == pytest.approx(0.592803, abs=5e-7)
+        assert at_bills.sharpe_difference == pytest.approx(-0.020792, abs=5e-7)
+        assert at_bills.t_newey_west == pytest.approx(-0.207084, abs=5e-7)
+        assert at_bills.resolved is False
+
+    def test_what_the_proxy_cost(self, measured, measured_iwb) -> None:
+        """Row 21, the five answers of the rule issue 160 declared, on each window.
+
+        1. The size, IWB less SPY. The Sharpe difference moves by −0.0001,
+           −0.0008 and +0.0105, and the mean difference by +0.0113, +0.0023 and
+           +0.1122 percent a year.
+        2. Whether the size is noise. The robust t on ``d_IWB(t) − d_SPY(t)`` is
+           +0.2939, +0.0557 and +0.9764, so no window tells the two instruments
+           apart.
+           That t belongs to the change in the mean difference, not to the
+           change in the Sharpe difference.
+        3. Whether a verdict moved. No window changes sign or resolution.
+        4. Qian's band. IWB's ratio is outside it on every window, at 3.5762,
+           3.8512 and 2.7536 against SPY's 3.5909, 3.8700 and 2.7555.
+        5. The rate. IWB's full span ties at 1.5050 percent against SPY's
+           1.4977, both under the 1.744 percent bill average.
+        """
+        costs = proxy_cost(measured, measured_iwb)
+        assert list(costs) == [label for label, _, _ in WINDOWS]
+        expected = {
+            # label: (Sharpe 60/40, Sharpe parity, difference, mean difference,
+            #         robust t, lag)
+            "full span": (0.002085, 0.001949, -0.000136, 0.000113, 0.293908, 9),
+            "falling rates": (0.006726, 0.005877, -0.000849, 0.000023, 0.055723, 9),
+            "rising rates": (-0.019895, -0.009433, 0.010462, 0.001122, 0.976375, 6),
+        }
+        for label, (bench, parity, difference, mean, t, lag) in expected.items():
+            cost = costs[label]
+            assert isinstance(cost, ProxyCost)
+            assert cost.sharpe_benchmark_change == pytest.approx(bench, abs=5e-7), label
+            assert cost.sharpe_parity_change == pytest.approx(parity, abs=5e-7), label
+            assert cost.sharpe_difference_change == pytest.approx(difference, abs=5e-7), label
+            assert cost.mean_difference_change == pytest.approx(mean, abs=5e-7), label
+            # The paired series' mean is the change in the mean difference, which
+            # is what makes the t an error bar on that change.
+            assert cost.mean_change_annual == pytest.approx(cost.mean_difference_change, abs=1e-12)
+            assert (cost.t_newey_west, cost.lag) == pytest.approx((t, lag), abs=5e-7), label
+            assert cost.change_resolved is False, label
+            assert cost.verdict_moved is False, label
+            assert cost.swapped_legs.ratio_inside_the_band is False, label
+            assert cost.days == measured[label][0].legs.days, label
+
+        ratios = {
+            label: (c.declared_legs.vol_ratio, c.swapped_legs.vol_ratio)
+            for label, c in costs.items()
+        }
+        assert ratios == {
+            "full span": pytest.approx((3.590935, 3.576175), abs=5e-7),
+            "falling rates": pytest.approx((3.869974, 3.851206), abs=5e-7),
+            "rising rates": pytest.approx((2.755525, 2.753648), abs=5e-7),
+        }
+        full = costs["full span"]
+        assert (full.declared_tie, full.swapped_tie) == pytest.approx(
+            (0.014977, 0.015050), abs=5e-7
+        )
+        assert full.swapped_tie < 0.01744 and full.declared_tie < 0.01744
+
+    def test_a_moved_verdict_is_reported_as_moved(self, measured) -> None:
+        """The flag the third answer reads, held on each half of the rule.
+
+        The rule moves a verdict when the sign changes or when the resolution
+        does, so each half gets a case where only it changes. A single case
+        that changed both would pass with either half deleted, which a
+        mutation run showed. The rankings are the full span's own, edited
+        with ``dataclasses.replace``, so nothing else about them moves.
+        """
+        declared = rank_the_windows(measured)["full span"]
+        assert declared.sharpe_difference < 0 and declared.resolved is True
+        sign_only = dataclasses.replace(
+            declared,
+            sharpe_difference=-declared.sharpe_difference,
+            t_newey_west=-declared.t_newey_west,
+        )
+        resolution_only = dataclasses.replace(declared, t_newey_west=-1.5)
+        assert sign_only.resolved is True and resolution_only.resolved is False
+        legs = measured["full span"][0].legs
+
+        def cost(swapped: Ranking) -> ProxyCost:
+            return ProxyCost(
+                label="full span",
+                declared=declared,
+                swapped=swapped,
+                declared_legs=legs,
+                swapped_legs=legs,
+                declared_tie=0.0,
+                swapped_tie=0.0,
+                days=0,
+                mean_change_annual=0.0,
+                t_naive=0.0,
+                t_newey_west=0.0,
+                lag=0,
+            )
+
+        assert cost(sign_only).verdict_moved is True
+        assert cost(resolution_only).verdict_moved is True
+        assert cost(declared).verdict_moved is False
+
+    def test_two_windows_on_different_days_are_refused_rather_than_mispaired(
+        self, measured, measured_iwb
+    ) -> None:
+        """Dropping one day from IWB's join stops the comparison and names the day.
+
+        Pairing on the shared days would line a two-day return on one leg against
+        a one-day return on the other. On the full span with 2010-06-15 gone,
+        that pairing turns the paired mean negative while the change in the mean
+        difference stays positive, so the t would belong to nothing.
+        """
+        gone = pd.Timestamp("2010-06-15")
+        thinned = aligned_closes(IWB, BOND)
+        thinned = thinned.loc[thinned.index != gone]
+        swapped = {
+            label: measure_window(label, thinned, start, end) for label, start, end in WINDOWS
+        }
+        with pytest.raises(ValueError, match="2010-06-15"):
+            proxy_cost(measured, swapped)
+
+    def test_an_assumed_rate_off_the_declared_one_is_named_as_off_it(self) -> None:
+        """The size heading prints the rate the run used, not Chan's constant."""
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            run(stock=IWB, risk_free=0.02)
+        text = buffer.getvalue()
+        assert "1. The size, at the 2% rate this run assumed, off the reproduction" in text
+        assert "at the declared 4% rate" not in text
+
+    def test_ranking_series_is_the_series_the_ranking_summarises(self, measured) -> None:
+        """One construction feeds the ranking and the comparison, so the two cannot drift.
+
+        Its mean, annualised, is the ranking's mean difference, and its robust
+        t is the ranking's t, on every window and the weights each was ranked
+        on.
+        """
+        rankings = rank_the_windows(measured)
+        for label, (weights, source) in ranking_weights(measured).items():
+            series = ranking_series(measured[label][1], weights)
+            ranking = rankings[label]
+            assert ranking.weight_source == source
+            assert float(series.mean()) * TRADING_DAYS == pytest.approx(
+                ranking.mean_difference_annual, abs=1e-15
+            )
+            summary = newey_west_summary(series.to_numpy())
+            assert summary.t_newey_west == pytest.approx(ranking.t_newey_west, abs=1e-12)
+            assert len(series) == ranking.days
+
+    def test_the_default_report_is_unchanged(self, printed) -> None:
+        """The default run still reads SPY and prints nothing about IWB.
+
+        ``tests/support/risk_parity_default_report.txt`` is the report as the
+        module printed it at ``b2ab98e``, before the stock leg became an
+        argument, so a byte that moves on the default run fails here.
+        """
+        assert STOCKS == ("SPY", "IWB")
+        assert STOCK == "SPY"
+        assert printed == DEFAULT_REPORT.read_text(encoding="utf-8")
+        assert "IWB" not in printed
+        assert "what the proxy cost" not in printed
+
+    def test_the_iwb_report_names_its_vintage(self, iwb_printed) -> None:
+        """Both stock vintages, the swap and the five answers, on the run --stock IWB prints."""
+        assert "Risk parity against 60/40 on IWB and AGG" in iwb_printed
+        assert IWB_VINTAGE in iwb_printed
+        assert SPY_VINTAGE in iwb_printed
+        assert AGG_VINTAGE in iwb_printed
+        assert "This run reads IWB in place of the declared SPY" in iwb_printed
+        assert "volatility ratio IWB/AGG" in iwb_printed
+        assert "SPY" not in _section(iwb_printed, "full span")
+        assert "on which IWB gained 2.4" in iwb_printed
+        cost = iwb_printed[iwb_printed.index("--- what the proxy cost") :]
+        for heading in (
+            "1. The size",
+            "2. Whether the size is noise",
+            "3. Whether a verdict",
+            "4. Qian's band",
+            "5. The rate",
+        ):
+            assert heading in cost, heading
+        assert "The swap moved no verdict." in cost
+        assert "IWB 1.51% against SPY 1.50%" in cost
+        assert "full span       IWB 3.5762, outside, against SPY 3.5909" in cost
+        assert "rising rates    IWB 2.7536, outside, against SPY 2.7555" in cost
+        assert "rising rates    mean +0.1122% a year, robust t  +0.9764 at lag 6" in cost
+
+    def test_the_stock_leg_is_a_declared_choice(self, monkeypatch, capsys) -> None:
+        """An unknown symbol is an argparse line, and ``run`` refuses one too."""
+        monkeypatch.setattr("sys.argv", ["risk_parity", "--stock", "QQQ"])
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert stopped.value.code == 2
+        assert "invalid choice: 'QQQ'" in capsys.readouterr().err
+        with pytest.raises(ValueError, match="one of"):
+            run(stock="QQQ")
+
+    def test_a_missing_iwb_or_spy_vintage_reaches_the_operator_as_a_line(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        """Either stock leg missing stops ``--stock IWB`` with a line naming it.
+
+        The run reads SPY as well as IWB, so both are dropped in turn from a copy
+        of the committed record, the way the AGG case above drops its line.
+        """
+        for symbol in (IWB, STOCK):
+            directory = committed_copy(tmp_path / symbol)
+            manifest = directory / "vintages.jsonl"
+            kept = [
+                line
+                for line in manifest.read_text(encoding="utf-8").splitlines()
+                if f'"symbol": "{symbol}"' not in line
+            ]
+            manifest.write_text("".join(f"{line}\n" for line in kept), encoding="utf-8")
+            monkeypatch.setattr("sys.argv", ["chan.risk_parity", "--stock", IWB])
+            monkeypatch.setattr("chan.paths.DATA_DIR", directory)
+            with pytest.raises(SystemExit) as stopped:
+                main()
+            assert symbol in str(stopped.value), symbol
+
+
+DEFAULT_REPORT = Path(__file__).parent / "support" / "risk_parity_default_report.txt"
+
+
+@pytest.fixture(scope="module")
+def iwb_printed():
+    """The report ``--stock IWB`` prints, captured once."""
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        run(stock=IWB)
+    return buffer.getvalue()
