@@ -12,7 +12,7 @@ Both files came from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, byte for
 byte. The *Algorithmic Trading* note is that repo's
 `research/book-notes/algorithmic-trading.md` at `7612281`, and it landed here
-with [PR #261](https://github.com/l3a0/quantitative-trading/pull/261), with
+with [PR #263](https://github.com/l3a0/quantitative-trading/pull/263), with
 nothing changed on the way over. It came because
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20) replicates
 that book's Example 7.2, which is the first replication here from Chan's second

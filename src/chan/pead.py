@@ -16,7 +16,7 @@ at ``45670240f1f3d4b5233a75f82fd18b742455b4bb``. The mirror
 [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) at
 ``e4bc46f`` holds the same ``pead.m`` under ``public/img/book2/``, identical
 once line endings are stripped. The transcription landed here with
-[PR #261](https://github.com/l3a0/quantitative-trading/pull/261). Where ``op``
+[PR #263](https://github.com/l3a0/quantitative-trading/pull/263). Where ``op``
 is the open, ``cl`` the close and ``earnann`` the flags:
 
 1. Both price arrays are cut to the days the flag file covers, before any

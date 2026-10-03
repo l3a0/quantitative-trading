@@ -77,7 +77,7 @@ at ``45670240f1f3d4b5233a75f82fd18b742455b4bb``. The mirror
 ``e4bc46f`` holds the same three files under ``public/img/book2/``, identical
 once line endings are stripped. ``data/README.md`` names both mirrors for the
 data files. The port landed here with
-[PR #261](https://github.com/l3a0/quantitative-trading/pull/261). Four things
+[PR #263](https://github.com/l3a0/quantitative-trading/pull/263). Four things
 changed on the way over.
 
 1. ``smartstd``'s ``dim`` becomes ``axis``, with 0 as the default, as the
