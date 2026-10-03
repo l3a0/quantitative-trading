@@ -584,19 +584,25 @@ The test file holds what each figure draws rather than its bytes, for the
 reason given above for the regime map.
 
 [blog/kelly-leverage-on-spy.md](blog/kelly-leverage-on-spy.md) is a fourth
-post, about Example 6.2's Kelly leverage on SPY. It draws six lessons from
-Entry 3 of the replication log: the gap from Chan's figures, the specification,
-rebalancing at a constant leverage, the stress test's threshold and price
-series, the window, and the return frequency. A further lesson, Lesson 6, on
-overbetting past the Kelly leverage, comes from the growth formula. Two
-groups of its figures are not pinned here.
+post, about Example 6.2's Kelly leverage on SPY. It draws seven lessons,
+numbered here as the post numbers them. Lesson 6 comes from the growth formula
+and the other six from Entry 3 of the replication log.
 
-1. Chan's printed figures: the 11.23% mean, 16.91% standard deviation,
-   7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage, 13.14% and 9.8%
-   growth rates and 1.26 half-Kelly, the 4% risk-free rate, the \$100,000 of
-   equity and 10% fall of the worked example, and the 20.47% Black Monday loss
-   and 20% tolerance of the stress test. The code carries them as cited
-   constants and computes none of them.
+1. The gap from Chan's figures, which is gone on his own `example6_2.xls` and
+   sits on ten days on or beside SPY's quarterly ex-dividend dates.
+2. The specification.
+3. Rebalancing at a constant leverage.
+4. The stress test's threshold, and the price series that reverses it.
+5. The window.
+6. Overbetting past the Kelly leverage.
+7. The return frequency.
+
+Two groups of its figures are not pinned here.
+
+1. Chan's inputs: the 4% risk-free rate, the \$100,000 of equity and 10% fall
+   of the worked example, and the 20.47% Black Monday loss and 20% tolerance of
+   the stress test. The code carries them as cited constants and computes none
+   of them.
 2. Arithmetic that no test asserts: the 99% a 10% loss and a 10% gain leave,
    with their variance of 0.01, half of it 0.5% a period and 1% over two, the
    1.43% volatility drag, the 6.98% half-Kelly adds above the 4% rate, the
@@ -604,13 +610,31 @@ groups of its figures are not pinned here.
    spread between the bear and bull windows, the variance of 0.0286 and the
    factor of about 35 it multiplies an error in the mean by, the worst SPY day
    being about a third of Black Monday, and twice Kelly carrying about five
-   times SPY's swings. The 43 to 47% that monthly sampling adds is held by a
-   test only as a band of 42 to 48%.
+   times SPY's swings. The 43 to 47% that monthly sampling adds on the 2026
+   download is held by a test only as a band of 42 to 48%.
 
 Every other number in the post traces to an assertion in
-[tests/test_kelly_leverage.py](tests/test_kelly_leverage.py), apart from the
-numbers read off the growth formula, which trace to
-[tests/test_kelly_figures.py](tests/test_kelly_figures.py). Those include the
+[tests/test_kelly_leverage.py](tests/test_kelly_leverage.py). Three groups of
+those are worth naming, because each reads Chan's own workbook.
+
+1. Chan's eight printed figures in the table: the 11.23% mean, 16.91% standard
+   deviation, 7.231% excess return, 0.4275 Sharpe ratio, 2.528 leverage,
+   13.14% and 9.8% growth rates and 1.26 half-Kelly. The code carries them as
+   cited constants. `test_every_published_figure_reproduces_at_the_precision_he_printed`
+   asserts that his workbook's figures round to each of them at the decimals
+   he printed, which is what the table's middle column shows.
+2. Every other figure the post quotes from the workbook's adjusted column, from
+   its 3,758 days to the \$252,775.87 its unrounded leverage buys. That
+   includes the 43 to 47% that monthly sampling adds, which a test asserts as
+   written on this column.
+3. The figures from its as-traded column: the leverage of 1.9341, the 0.59 it
+   sits below the adjusted leverage, the 1.68 points between the two columns'
+   mean returns, the 0.020 by which it misses the threshold and its half-Kelly
+   of 0.9670.
+   `TestThePriceBasisOnHisOwnWorkbook` holds them.
+
+The numbers read off the growth formula trace to
+[tests/test_kelly_figures.py](tests/test_kelly_figures.py) instead. They include the
 10.98% half-Kelly keeps and the 5.10 of twice Kelly, which the figure prints,
 and the 5.60 at which growth reaches zero and the 5.43% the bull window's 4.90
 earns on Chan's window, which it does not.
