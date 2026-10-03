@@ -252,7 +252,7 @@ mirror at
 The date given is when Chan last saved the workbook, which is the closest thing
 these files have to a download date. Which workbook each column came from is
 recorded too, in the manifest's `source_workbook` field, because a workbook's
-name is not its column's symbol. Chan's `example6_2.xls` holds a SPY column,
+name is not its column's symbol. Chan's `example6_2.xls` holds SPY's columns,
 and a `SPY.xls` in the same mirror holds a different series.
 
 Every one of them is the adjusted close except `spy_unadjusted_chan.csv`. That
@@ -265,7 +265,7 @@ vendor to have adjusted away, and `scale_breaks` finds nothing on it.
 it to pin Chan's Kelly leverage on the as-traded close, which is the figure
 that shows the price basis deciding his Black Monday conclusion.
 
-Every workbook has its `.xls` checksum recorded beside the run that reads the
+Every workbook has its `.xls` checksum recorded beside the run that reads a
 column taken from it. The checksums of `GLD.xls`, `GDX.xls`, `KO.xls` and
 `PEP.xls` are in
 [src/chan/pair_cointegration.py](../src/chan/pair_cointegration.py), and that
@@ -275,10 +275,16 @@ of `example6_2.xls` is in
 The two directories hold Chan's first-edition MATLAB files, one vintage per
 stock, each carrying that stock's close, high, low, open and volume. `spx_20071123/` is the S&P 500 as it stood on 2007-11-23,
 which his Examples 3.7 and 7.7 read, and `ijr_20080114/` is the S&P 600 as it
-stood on 2008-01-14. His Example 7.6 loads `IJR_20080131`, which the mirror
+stood on 2008-01-14.
+[src/chan/khandani_lo.py](../src/chan/khandani_lo.py) reads the first for
+Example 3.7. His Example 7.6 loads `IJR_20080131`, which the mirror
 does not hold, and its third printed return is the trade into January 2008,
 whose month end this file stops short of. So this file can give Example 7.6's
-first two returns and not its third. Each holds only the companies
+first two returns and not its third.
+[`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads both
+directories, and
+[issue 225](https://github.com/l3a0/quantitative-trading/issues/225) is where
+the third gets computed. Each holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the

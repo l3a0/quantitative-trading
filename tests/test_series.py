@@ -132,7 +132,9 @@ def committed_copy(tmp_path: Path) -> Path:
 #
 # `spy_chan.csv` postdates that commit and has no captured output to compare
 # against, so its row was computed from the file it arrived with, under
-# [issue 124](https://github.com/l3a0/quantitative-trading/issues/124). What it
+# [issue 124](https://github.com/l3a0/quantitative-trading/issues/124).
+# `spy_unadjusted_chan.csv` was computed the same way, under
+# [issue 192](https://github.com/l3a0/quantitative-trading/issues/192). What it
 # pins is the same thing: this file, parsed this way, gives these numbers, and
 # a change to either that moves them fails here.
 #

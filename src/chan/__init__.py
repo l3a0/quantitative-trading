@@ -10,6 +10,11 @@ The exception is a result computed from nothing. ``coin_flip_growth`` works a
 gamble, so it has no vendor and no download date and nothing to restate, and
 it says so where every other run names a file. ``pair_cointegration``'s
 ``--selftest`` is the same shape at a smaller scale.
+
+``survivorship_bias`` is a second exception, of a different kind. It reads the
+two tables Chan prints for Example 3.3 rather than nothing, and a printed table
+has no vendor to restate it, so the run says its vintage is none, the book's
+printed tables.
 """
 
 __all__: list[str] = []
