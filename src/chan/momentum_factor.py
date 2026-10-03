@@ -5,8 +5,9 @@ something about the next. Chan makes that claim at Kindle location 4014 of the
 revised edition: "often factor returns are more stable than individual stock
 returns—they exhibit stronger serial autocorrelations than individual stock's
 returns. In other words, they have momentum." Two of the factors his section
-names can be built from prices alone. The market factor, defined at location
-3978, is the index's return over the bill rate. WML, winners minus losers,
+names can be built from prices alone. The market factor, named at location
+3978 as "the return of the market", is built here as the index's return over
+the bill rate, the way French's market factor is. WML, winners minus losers,
 defined at location 4004, longs the stocks "that previously had positive
 returns" and shorts those "that previously had negative returns".
 [Issue 22](https://github.com/l3a0/quantitative-trading/issues/22) carries the
@@ -168,6 +169,9 @@ class Comparison:
     def median(self) -> float:
         return float(self.stocks.median())
 
+    #: The quartiles use pandas' default, linear interpolation between the two
+    #: nearest stocks, which the issue left open. ``tests/test_momentum_factor.py``
+    #: holds it, because another method moves the lower quartile's fourth decimal.
     @property
     def lower_quartile(self) -> float:
         return float(self.stocks.quantile(0.25))
@@ -370,6 +374,7 @@ def report(
         (f"Stocks, upper quartile of {count}", comparison.upper_quartile),
     ):
         print(f"  {label:<34} {value:>9.4f}")
+    print("  Quartiles by linear interpolation. The percentile counts stocks strictly below.")
     print()
     for verdict in verdicts(comparison):
         print(
@@ -388,7 +393,7 @@ def report(
     ]
     print(
         f"  Band +/-{CRITICAL}/sqrt({comparison.months}) = {comparison.band:.4f}, where a series "
-        "with no autocorrelation leaves its estimate 95 percent of the time. Decides nothing."
+        "with no autocorrelation stays inside 95 percent of the time. Decides nothing."
     )
     print(f"  Outside it: {', '.join(outside) or 'neither factor'}.")
     print(

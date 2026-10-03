@@ -136,7 +136,12 @@ class TestTheCalendar:
         assert str(factors.held_to[-1].date()) == "2007-10-31"
 
     def test_the_formations_last_close_is_the_month_before(self, factors: Factors) -> None:
-        """The skip. A lookback ending at t rather than t − 1 moves WML."""
+        """The dates each formation reports reading between.
+
+        This holds what :class:`Factors` records. The ranking itself is held by
+        ``TestTheRule::test_the_month_before_formation_does_not_rank`` and by
+        the WML pins, each of which a lookback ending at t fails.
+        """
         ends = list(factors.month_ends)
         for formed, start, stop, held in zip(
             factors.formed,
@@ -154,6 +159,11 @@ class TestTheCalendar:
 class TestTheLegs:
     def test_442_to_494_stocks_are_eligible(self, factors: Factors) -> None:
         assert (min(factors.eligible), max(factors.eligible)) == (442, 494), SPEC
+
+    def test_6_to_58_stocks_are_excluded(self, sources, factors: Factors) -> None:
+        members, *_ = sources
+        excluded = [len(members) - n for n in factors.eligible]
+        assert (min(excluded), max(excluded)) == (6, 58), SPEC
 
     def test_the_winner_and_loser_legs_sizes(self, factors: Factors) -> None:
         assert (min(factors.winners), max(factors.winners)) == (79, 468), SPEC
@@ -264,8 +274,12 @@ class TestTheRun:
         assert "spx_20071123/" in out and "spy_chan.csv" in out and "tb3ms" in out
         assert "442 to 494 stocks per formation" in out
         assert "winners 79 to 468, losers 11 to 397" in out
+        assert "so 6 to 58 excluded for a missing close" in out
         for figure in ("0.0675", "-0.1099", "-0.1198", "-0.0392", "0.0402", "80.72", "27.80"):
             assert figure in out
+        assert "0.0185  0.3660" in out
+        assert "0.0241  0.4505" in out
+        assert "stays inside 95 percent of the time" in out
         assert "Claim for MKT, location 4014" in out
         assert "HOLDS. Above 0 and above the median stock" in out
         assert (
@@ -353,6 +367,10 @@ class TestTheRule:
         with pytest.raises(EmptyLeg, match="loser leg is empty for the month ending 2000-12-29"):
             build_factors(frame(A=path(0.02), B=path(0.01)), path(0.0), bills())
 
+    def test_an_empty_winner_leg_is_named_too(self) -> None:
+        with pytest.raises(EmptyLeg, match="winner leg is empty for the month ending 2000-12-29"):
+            build_factors(frame(A=path(-0.02), B=path(-0.01)), path(0.0), bills())
+
     def test_spy_missing_a_month_end_is_refused(self) -> None:
         spy = path(0.01).drop(pd.Timestamp("2003-06-30"))
         with pytest.raises(VintageUnavailable, match="first 2003-06-30"):
@@ -392,6 +410,16 @@ class TestTheCriterion:
 
     def test_zero_is_not_above_zero(self) -> None:
         assert not Verdict("X", 0.0, -0.1).holds
+
+    def test_the_quartiles_interpolate_linearly(self) -> None:
+        comparison = Comparison(mkt=0.0, wml=0.0, stocks=pd.Series([0.0, 1.0, 2.0, 3.0]), months=83)
+        assert (comparison.lower_quartile, comparison.upper_quartile) == (0.75, 2.25)
+
+    def test_a_value_on_the_band_is_not_outside_it(self) -> None:
+        comparison = Comparison(mkt=0.0, wml=0.0, stocks=pd.Series([0.0]), months=83)
+        assert not comparison.outside_band(comparison.band)
+        assert not comparison.outside_band(-comparison.band)
+        assert comparison.outside_band(comparison.band + 1e-12)
 
     def test_the_percentile_counts_strictly_below(self) -> None:
         comparison = Comparison(

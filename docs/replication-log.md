@@ -2700,8 +2700,9 @@ factor.** Chan says at location 4014 that "often factor returns are more
 stable than individual stock returns", that they "exhibit stronger serial
 autocorrelations than individual stock's returns", and so "have momentum".
 That persistence is what lets this period's factor return stand in for the
-next. Two of the factors his section names need only prices. MKT, the market
-factor of location 3978, is the index's return over the bill rate. WML, winners
+next. Two of the factors his section names need only prices. MKT, which
+location 3978 names as "the return of the market", is built here as the
+index's return over the bill rate, the way French's market factor is. WML, winners
 minus losers, defined at location 4004, longs the stocks whose past return was
 positive and shorts those whose past return was negative. Over 83 months,
 MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099, against a median
@@ -2780,24 +2781,24 @@ columns have nothing to hold in any row and are dropped, under
 | 2 | WML's autocorrelation against the same two | −0.1099, below 0 and below −0.0392 | `TestTheVerdicts::test_wml_does_not_hold_on_either_half` |
 | 3 | MKT's lag-1 autocorrelation, and the percent of the 446 stocks strictly below it | 0.0675, 80.7175, which is 360 stocks | `TestTheFigures::test_mkts_autocorrelation` and `::test_each_factors_percentile_among_the_stocks` |
 | 4 | WML's lag-1 autocorrelation, and the same percent | −0.1099, 27.8027, which is 124 stocks | `TestTheFigures::test_wmls_autocorrelation` and `::test_each_factors_percentile_among_the_stocks` |
-| 5 | the 446 stocks' lag-1 autocorrelations, lower quartile, median and upper quartile | −0.1198, −0.0392 and 0.0402 | `TestTheFigures::test_the_stocks_quartiles` |
+| 5 | the 446 stocks' lag-1 autocorrelations, lower quartile, median and upper quartile, by linear interpolation | −0.1198, −0.0392 and 0.0402 | `TestTheFigures::test_the_stocks_quartiles` |
 | 6 | ±1.96/√83, and which factors fall outside it | 0.2151, neither | `TestTheBand::test_the_band_is_1_96_over_root_83` and `::test_neither_factor_falls_outside_it` |
 | 7 | MKT's mean monthly return times 12, and its plain t-statistic | 0.0185 and 0.3660 | `TestTheFigures::test_each_factors_annual_mean_and_t_statistic` |
 | 8 | WML's mean monthly return times 12, and its plain t-statistic | 0.0241 and 0.4505 | `TestTheFigures::test_each_factors_annual_mean_and_t_statistic` |
-| 9 | the eligible stocks, the winner leg and the loser leg, fewest and most over the 83 formations | 442 to 494 eligible, so 6 to 58 excluded for a missing close. Winners 79 to 468, losers 11 to 397 | `TestTheLegs::test_442_to_494_stocks_are_eligible` and `::test_the_winner_and_loser_legs_sizes` |
+| 9 | the eligible stocks, the excluded stocks, the winner leg and the loser leg, fewest and most over the 83 formations | 442 to 494 eligible, so 6 to 58 excluded for a missing close. Winners 79 to 468, losers 11 to 397 | `TestTheLegs::test_442_to_494_stocks_are_eligible`, `::test_6_to_58_stocks_are_excluded` and `::test_the_winner_and_loser_legs_sizes` |
 
 ### The verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The claim holds for MKT, which Chan says factors "often" show. Its autocorrelation is above 0 and above the median stock's, under the criterion declared on the issue before any autocorrelation was computed. It sits at 0.0675, inside row 6's band, so a series with no autocorrelation would land there often, and this verdict could be noise. |
-| 2 | did not reproduce | The claim does not hold for WML, on either half: its autocorrelation is below 0 and below the median stock's. Chan says factors "often" behave this way, and the owner's ruling judges each factor on its own, so this does not refute "often" and is not outweighed by row 1. The run reads Chan's own file through the construction fixed on the issue, so no cause outside the method is available for the verdict. The panel's survivorship is named above, and nothing here argues which way it moves an autocorrelation. |
+| 2 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for WML, on either half: its autocorrelation is below 0 and below the median stock's. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 and 2. The value is forced, because the log's two other verdicts both need the claim to survive. Two causes outside the method are open and neither is measured: the panel holds only survivors, and 2000 to 2007 is one window. Nothing here argues which way either moves an autocorrelation. |
 | 3 | none, not a replication | MKT sits at the 80.7175th percentile of the stocks, above 360 of 446. |
 | 4 | none, not a replication | WML sits at the 27.8027th percentile, above 124 of 446, so it is less persistent than most single stocks on this file. |
-| 5 | none, not a replication | The median stock's autocorrelation is negative, so on this file any factor above 0 is also above the median stock, and the half of the criterion against 0 is the one that decides. |
+| 5 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. That is a fact about this panel, and the criterion keeps both halves as declared. |
 | 6 | none, not a replication | Under a series with no autocorrelation, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
-| 7 | none, not a replication | MKT earned 1.85 percent a year over the bill, at a t-statistic of 0.3660, which no test would distinguish from zero. |
-| 8 | none, not a replication | WML earned 2.41 percent a year at a t-statistic of 0.4505, also indistinguishable from zero. Survivorship moves a mean before it moves an autocorrelation, so this row carries the survivor-only label most loudly. |
+| 7 | none, not a replication | MKT's mean monthly return over the bill, times 12, is 0.0185, an arithmetic figure rather than a compounded one. Its plain t-statistic of 0.3660 is uncorrected for autocorrelation and decides nothing. |
+| 8 | none, not a replication | WML's mean monthly return times 12 is 0.0241, with a plain t-statistic of 0.4505 that decides nothing. Survivorship moves a mean before it moves an autocorrelation, so this row carries the survivor-only label most loudly. |
 | 9 | none, not a replication | Every formation has both legs, so the refusal for an empty leg never fires. At its smallest the loser leg holds 11 stocks, so WML's return that month rests on few short positions. |
 
 ### What the entry concludes
@@ -2806,18 +2807,18 @@ Three things, and the first is the verdict.
 
 1. **On this file the claim holds for the market factor and not for the
    momentum factor.** MKT's autocorrelation is positive and above the median
-   stock's. WML's is negative and below the median stock's. Chan's "often"
-   allows a factor that does not persist, and this file holds one of each.
+   stock's. WML's is negative and below the median stock's. Each verdict
+   stands on its own, with Chan's "often" quoted beside it, and the entry
+   draws no combined verdict from the two.
 2. **Neither autocorrelation is far from zero.** Both sit inside the band a
    series with no autocorrelation stays inside 95 percent of the time, so 83
    months cannot tell MKT's 0.0675 from no persistence at all. The verdict in
    row 1 is what the declared criterion says, and row 6 says how little it
    rests on.
-3. **The median stock is a low bar on this file.** The median stock's lag-1
-   autocorrelation is −0.0392 and the upper quartile is 0.0402, so any factor
-   above 0 also beats the median stock, and the comparison with single stocks
-   decided neither verdict. The comparison set is survivors, so how low the
-   bar sits is a fact about this panel.
+3. **The median stock sits below 0 on this file.** Its lag-1 autocorrelation
+   is −0.0392, so a factor above 0 is also above the median stock here. The
+   comparison set is survivors, so where the median sits is a fact about this
+   panel rather than about single stocks in general.
 
 ### What this entry cannot say
 

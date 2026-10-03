@@ -254,7 +254,7 @@ miss.
 [tests/test_momentum_factor.py](tests/test_momentum_factor.py) does it for the
 market and momentum factors. It pins the calendar, the legs, both factors'
 autocorrelations and the stocks' quartiles, and one verdict per factor. Its
-`test_the_formations_last_close_is_the_month_before` holds the skip, so a
+`test_the_month_before_formation_does_not_rank` holds the skip, so a
 lookback that runs to the formation's own close fails a test.
 
 All thirteen replications reach a verdict in
