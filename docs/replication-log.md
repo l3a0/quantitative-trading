@@ -2827,8 +2827,8 @@ on a point-in-time universe, which waits on data.
 
 **What the R printout actually computed.** Without `calculateReturns.R` and an
 R runtime, row 7 is a reading.
-[Issue 21](https://github.com/l3a0/quantitative-trading/issues/21) asks the
-owner for Chan's download.
+[Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it
+once Chan's download is in hand.
 
 **What costs would take.** Every printout charges none, and the books turn over
 daily.
