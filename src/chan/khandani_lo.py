@@ -55,7 +55,9 @@ A port that skips the NaN in both, the way pandas does, lands on −3.1822 and
 misses Chan's −3.19 at the two decimals he printed. ``tests/test_khandani_lo.py`` pins what each
 specification gives, and :func:`reversal` returns both Chan's figures and the
 after-cost figure with both quirks removed, so the distance between them is
-printed rather than argued.
+printed rather than argued. :func:`daily_book` states the third figure's
+average day as a share of the position held, which is how
+``blog/survivorship-and-transaction-costs.md`` explains it.
 
 **The vintage.** ``spx_20071123/``, the 500 stocks of Chan's
 ``SPX_20071123.mat``, read as one frame through
@@ -146,9 +148,19 @@ def daily_pnl(weights: np.ndarray, returns: np.ndarray) -> np.ndarray:
     return smartsum(lag1(weights) * returns, axis=1)
 
 
+def turnover(weights: np.ndarray) -> np.ndarray:
+    """Each day's total change in weight, ``Σ|w[t] − w[t−1]|``, NaN on the first row."""
+    return smartsum(np.abs(weights - lag1(weights)), axis=1)
+
+
 def trading_cost(weights: np.ndarray) -> np.ndarray:
     """The cost of each day's change in weight, NaN on the array's first row."""
-    return smartsum(np.abs(weights - lag1(weights)), axis=1) * ONE_WAY_COST
+    return turnover(weights) * ONE_WAY_COST
+
+
+def gross_held(weights: np.ndarray) -> np.ndarray:
+    """The gross position each day's profit is earned on, ``Σ|w[t−1]|``."""
+    return smartsum(np.abs(lag1(weights)), axis=1)
 
 
 def chan_sharpe(daily: np.ndarray) -> float:
@@ -181,6 +193,12 @@ class Reversal:
     3. ``after_costs_charged``, the same cost with the first day's rebalance
        charged from the weights before the window, so no day is NaN and
        nothing is zero-filled. Chan prints no such figure.
+
+    The third figure's series is ``pnl_charged``. ``traded`` is each day's
+    total change in weight and ``held`` the gross position the day's profit
+    was earned on, both on that same specification, so the day's cost is
+    ``traded · ONE_WAY_COST`` and :func:`daily_book` can set it beside the
+    day's profit.
     """
 
     days: pd.DatetimeIndex
@@ -189,6 +207,9 @@ class Reversal:
     before_costs: float
     after_costs: float
     after_costs_charged: float
+    pnl_charged: np.ndarray
+    traded: np.ndarray
+    held: np.ndarray
 
 
 def reversal(frame: pd.DataFrame, *, start: str = WINDOW_START, end: str = WINDOW_END) -> Reversal:
@@ -215,6 +236,56 @@ def reversal(frame: pd.DataFrame, *, start: str = WINDOW_START, end: str = WINDO
         before_costs=chan_sharpe(pnl),
         after_costs=chan_sharpe(after_costs),
         after_costs_charged=plain_sharpe(charged),
+        pnl_charged=charged,
+        traded=turnover(weights)[inside],
+        held=gross_held(weights)[inside],
+    )
+
+
+@dataclass(frozen=True)
+class DailyBook:
+    """An average day of the charged specification, per unit of the average book.
+
+    ``book`` is the mean gross position over the window, in the units of
+    Chan's weights, which he never scales. Every other field is a daily mean
+    or deviation divided by that one constant, so each reads as a fraction of
+    the position held. A constant divisor leaves both Sharpe ratios where they
+    were, which is why the profit and the swings divide by the window's mean
+    rather than each day's own position: dividing each day by its own would be
+    the different rule the module docstring describes, and would move both
+    figures. The turnover takes the same divisor so that it times
+    ``ONE_WAY_COST`` is exactly the cost.
+
+    1. ``profit``, the mean daily profit before costs.
+    2. ``cost``, the mean daily cost, first day charged.
+    3. ``turnover``, the mean daily change in weight.
+    4. ``swing`` and ``swing_after``, the daily standard deviation of profit
+       before and after costs, dividing by n − 1 as ``plain_sharpe`` does.
+    """
+
+    book: float
+    profit: float
+    cost: float
+    turnover: float
+    swing: float
+    swing_after: float
+
+    @property
+    def cost_per_profit(self) -> float:
+        """How many days of average profit one day of average cost eats."""
+        return self.cost / self.profit
+
+
+def daily_book(result: Reversal) -> DailyBook:
+    """The average day behind ``result``'s first and third figures."""
+    book = float(result.held.mean())
+    return DailyBook(
+        book=book,
+        profit=float(result.pnl.mean()) / book,
+        cost=float(result.traded.mean()) * ONE_WAY_COST / book,
+        turnover=float(result.traded.mean()) / book,
+        swing=float(result.pnl.std(ddof=1)) / book,
+        swing_after=float(result.pnl_charged.std(ddof=1)) / book,
     )
 
 
