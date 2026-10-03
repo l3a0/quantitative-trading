@@ -164,7 +164,9 @@ listed below.
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
-builder who corrects his code fails a test rather than moving a pin.
+builder who corrects his code fails a test rather than moving a pin. The blog
+post about them is the exception, and what it says that nothing here asserts
+is listed below.
 
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
 reversal. It pins Chan's two figures at four decimals and at the book's two,
@@ -908,6 +910,58 @@ uv run python -m chan.survivorship_and_costs_figures
 [tests/test_survivorship_and_costs_figures.py](tests/test_survivorship_and_costs_figures.py)
 holds what they draw rather than their bytes, for the reason given above for
 the regime map.
+
+[blog/equity-seasonals-lessons.md](blog/equity-seasonals-lessons.md) is a
+eighth post, about the equity seasonals Chan publishes as dead, Examples 7.6
+and 7.7. It draws four lessons from Entry 7 of the replication log.
+
+1. Every figure the committed files reach reproduces, and only under each
+   script's own rules.
+2. One strategy gives four answers across four printouts, and the first
+   edition's is in different units from the other three.
+3. Reproducing a strategy published as dead checks its printed figures and not
+   its death, and the split at 2002 is exploratory with no verdict.
+4. A file of survivors is the first thing the result cannot get past.
+
+Four groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its page in the revised edition. "More than 13
+   percent" and "has disappeared since then" are on p. 179, "has weakened or
+   even disappeared in recent years" on p. 174, and "worked wonderfully" on
+   p. 175. The reader whose backtest of Example 7.6 failed is on p. 13. "The
+   most recent five years instead of the entire data period", and Chan's
+   statement that those years do even worse, are on p. 180.
+2. Book figures with no computed value. Example 7.6's third January, 0.0881
+   in MATLAB and R and 0.088486 in Python, needs a file this repo does not
+   hold.
+3. Arithmetic and facts no test asserts. Nothing states that Chan's five years
+   run roughly from late 2002 to late 2007, that a half's slope in the figure
+   is its annual return over 12, that the revised Python copy's five printed
+   figures match the book, or that the public mirror lacks
+   `IJR_20080131.mat`.
+4. Its references. The four citations, and the tax-loss rationale the post
+   gives for the January effect, are cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py). One group
+had no pin before it, and `TestTheYearsInsideTheSplit` now pins it: the
+calendar-year sums of the revised Python's months, 0.2227 for 2002 and −0.1319
+for 2006, that those two years differ by more than the two halves of the split
+do, and that the running sum peaks in January 2006.
+
+Its one figure is drawn from the committed S&P 500 file by
+[src/chan/equity_seasonals_figures.py](src/chan/equity_seasonals_figures.py).
+It draws the 83 months the revised Python keeps as a running sum, split at
+2002 and labelled with each half's month count, annual return and Sharpe
+ratio, for Lesson 3.
+
+```bash
+uv run python -m chan.equity_seasonals_figures
+```
+
+[tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 
