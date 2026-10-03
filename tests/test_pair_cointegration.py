@@ -1003,7 +1003,7 @@ class TestAdjustedCloseMovesWithTheDownloadDate:
         gap = (adjusted.loc[shared] / raw.loc[shared] - 1.0).loc["2006-01-01":"2006-12-31"]
 
         assert len(gap) == 155
-        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-4)
+        assert float(gap.mean()) == pytest.approx(-0.1513, abs=5e-5)
 
     def test_gdx_adjusted_sits_about_fifteen_percent_below_chans_own_file(self) -> None:
         """The design doc and the post compare today's adjusted price with the
