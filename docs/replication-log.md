@@ -18,9 +18,10 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9 and 10 carry their own, three, eleven, twelve,
-five, six, one, three and eight, and they are listed in those entries rather than here, because the
-list is about an entry's rows and not about the file.
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11 and 12 carry their own, three, eleven,
+twelve, five, six, one, three, eight, six and two, and they are listed in those
+entries rather than here, because the list is about an entry's rows and not
+about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
 tests without printing a number, so it carries a finding rather than a verdict,
@@ -28,7 +29,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8 and 10 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11 and 12 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -115,6 +116,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-9)
   - [What the entry concludes](#what-the-entry-concludes-10)
   - [What this entry cannot say](#what-this-entry-cannot-say-8)
+- [Entry 12: post-earnings drift, Chan's *Algorithmic Trading*](#entry-12-post-earnings-drift-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-10)
+  - [What this repo computed](#what-this-repo-computed-11)
+  - [The verdicts](#the-verdicts-10)
+  - [What the entry concludes](#what-the-entry-concludes-11)
+  - [What this entry cannot say](#what-this-entry-cannot-say-9)
 
 ## How to read an entry
 
@@ -140,9 +147,10 @@ both.
    Entry 7, [tests/test_khandani_lo.py](../tests/test_khandani_lo.py) holds
    Entries 8 and 10, which are Examples 3.7 and 3.8 and share a module,
    [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
-   Entry 9, and
+   Entry 9,
    [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
-   holds Entry 11.
+   holds Entry 11, and [tests/test_pead.py](../tests/test_pead.py) holds
+   Entry 12.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -250,8 +258,8 @@ Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
-Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, and Entry 11's
-rows 2 and 6 to 10.
+Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
+rows 2 and 6 to 10, and Entry 12's rows 10 and 11.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -636,8 +644,9 @@ window, which is this repo's naming throughout, taken from the first edition's
 committed here, and
 [issue 12](https://github.com/l3a0/quantitative-trading/issues/12) settled it.
 
-The notes in [research/book-notes](../research/book-notes/README.md) are the
-2021 revised edition. In it the two printouts sit nine Kindle locations apart,
+The *Quantitative Trading* notes in
+[research/book-notes](../research/book-notes/README.md) are the 2021 revised
+edition. In it the two printouts sit nine Kindle locations apart,
 at 3718 and 3727, under one worked example introduced at location 3678 as
 teaching both the cointegration test and the hedge ratio. Chan writes at
 location 1862 that Chapter 3 defers the training-set analysis to Chapter 7
@@ -2179,12 +2188,12 @@ Three things, and the first is why the verdicts carry less than they look.
    Chan's table, and it does not change what the table as printed reproduces
    to.
 
-Chan tells the same toy a second time. The sibling repository's notes on his
-*Algorithmic Trading*, at location 704 in
-[research/book-notes/algorithmic-trading.md](https://github.com/l3a0/trading-strategies/blob/477c594/research/book-notes/algorithmic-trading.md),
+Chan tells the same toy a second time. The notes on his *Algorithmic
+Trading*, at location 704 in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md),
 give the same 388 percent but describe the honest outcome as "almost 100
 percent loss" rather than −42 percent. That is the same author with a
-different number, cited here as the sibling's note and not reproduced.
+different number, cited from the note and not reproduced.
 
 ### What this entry cannot say
 
@@ -2509,6 +2518,147 @@ start year, because 1994 is profitable too.
 
 **Whether either trade pays after costs.** No commission, slippage or margin is
 charged, as the rule on the issue states.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 7.2, Kindle location 3024, and the script
+`pead.m` the example names. Shipped under
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20). It is the
+first entry from Chan's second book, and its location numbers are that book's,
+in [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eleven rows, all derivable from [tests/test_pead.py](../tests/test_pead.py).
+
+**Every figure Chan prints reproduces on his own files.** Prices drift in the
+direction of an earnings surprise after the announcement, and Chan trades the
+first day of that drift without knowing what was announced. On a day a stock
+announced after the previous close and before the open, the gap from that
+close to the open stands in for the surprise. A gap of at least half its
+90-day moving standard deviation buys the stock at the open, or shorts it if
+the gap was down, and the position is closed at the same day's close. Each
+day's summed return is divided by 30. The book reports an APR of 6.7 percent
+and a Sharpe ratio of 1.5. `pead.m` prints five figures, and the
+transcription in `chan.pead` lands on all of them at the precision the script
+prints.
+
+One choice decides a printed digit. Chan's two books ship two helpers called
+`smartstd`. The first edition's, which Entries 7, 8 and 10 run, counts a
+missing value as zero and divides by n − 1. Book two's skips it and divides by
+n. With book two's, the arithmetic return is 0.066743, which prints as
+Chan's 0.0667. With the first edition's it is 0.066833, which prints as
+0.0668, and row 11 holds that.
+
+Every row reads the same vintages and specification, so both are stated once
+here.
+
+1. **The vintages.** `inputdataohlcdaily_stocks_20120424/`, the 497 stocks of
+   Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, read for
+   the open and the close, and `earnannfile/`, the 497 flag series of his
+   `earnannFile.mat`, saved 2012-05-15. Both are read through
+   `chan.series.load_panel`, and [data/README.md](../data/README.md) records
+   where each came from and what it holds. **Every figure here is about
+   survivors**, because the price file is the S&P 500 as Chan held it on
+   2012-04-24, carried backwards.
+2. **The specification.** `pead.m` at `45670240` in
+   [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
+   The prices are cut to the flag file's 330 days, 2011-01-03 to 2012-04-24,
+   before the gap is taken. The lookback is 90 days, the entry is 0.5 moving
+   standard deviations, and the denominator is 30. Every annualisation uses
+   252 days, and the Sharpe ratio subtracts no risk-free rate. No cost is
+   charged.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2011 and 2012 sample on a rule he chose, so the entry says whether his numbers
+reproduce on his files and nothing about whether the drift pays today.
+
+### What the book printed
+
+`pead.m` prints its figures in the comment lines that close it, and the book
+quotes two of them rounded.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | Arithmetic annual return, 252 times the mean daily return | 0.0667 | `pead.m` |
+| 2 | The same figure, as the book quotes it | "APR" of 6.7 percent | location 3024 |
+| 3 | Sharpe ratio | 1.49 | `pead.m` |
+| 4 | The same figure, as the book quotes it | 1.5 | location 3024 |
+| 5 | Compounded APR | 0.0680 | `pead.m` |
+| 6 | Maximum drawdown | −0.026052 | `pead.m` |
+| 7 | Maximum drawdown duration | 109 days | `pead.m` |
+| 8 | Most positions held on one day, which is the denominator | 30 | location 3024 |
+| 9 | Annual return levered four times | "close to 27 percent" | location 3024 |
+| 10 and 11 | the positions taken in all, and row 1 under the first edition's `smartstd` | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `252 · smartmean(ret)` | 0.066743 | `TestTheFigures::test_the_arithmetic_annual_return_is_the_books_apr` |
+| 2 | row 1, in percent at the book's one decimal, against the compounded figure's 6.8 | 6.7 | the same, and `TestTheFigures::test_the_books_apr_is_not_the_compounded_one` |
+| 3 | `√252 · smartmean(ret) / smartstd(ret)`, book two's `smartstd` | 1.4909 | `TestTheFigures::test_the_sharpe_ratio` |
+| 4 | row 3 at the book's one decimal | 1.5 | the same |
+| 5 | `prod(1 + ret)^(252/330) − 1` | 0.067952 | `TestTheFigures::test_the_compounded_apr` |
+| 6 | `calculateMaxDD` on `cumprod(1 + ret) − 1` | −0.026052 | `TestTheFigures::test_the_maximum_drawdown_and_its_duration` |
+| 7 | the same | 109 days | the same |
+| 8 | the most nonzero positions on one of the 330 days | 30 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` |
+| 9 | four times row 1 | 0.266970 | `TestTheFigures::test_levered_four_times_it_is_close_to_27_percent` |
+| 10 | the nonzero positions across the window, none in its first 89 days | 1,072 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` and `::test_no_stock_trades_before_its_window_fills` |
+| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit` and `::test_the_other_printed_figures_survive_the_swap` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0000 | reproduced | Chan's figure, on his own files, through his own script transcribed. |
+| 2 | 0.0 | reproduced | The book's "APR" is the arithmetic figure. The compounded one is 6.8 percent at the book's precision, so the label names the wrong one of the two. |
+| 3 | 0.00 | reproduced | The same as row 1. |
+| 4 | 0.0 | reproduced | The same. |
+| 5 | 0.0000 | reproduced | The same. |
+| 6 | 0.000000 | reproduced | The same. The port keeps `calculateMaxDD`'s two quirks, a high-water mark that starts at zero and a loop that starts on the second row. Neither moves this run, because its first day returns nothing, so `tests/test_matlab_helpers.py` holds both on inputs where they do. |
+| 7 | 0 | reproduced | The same. |
+| 8 | 0 | reproduced | The 30 is a fact about the run that Chan then used as an input, and the run gives it back. He names the look-ahead bias that makes it at location 3024. |
+| 9 | 0 | reproduced | 26.6970 percent rounds to 27, the precision Chan quotes. Leverage multiplies every day's return by four, so it multiplies the arithmetic figure by four. |
+| 10 | none | none, not a replication | The first 89 days hold no position, because the moving deviation has not filled. |
+| 11 | none | none, not a replication | The first edition's helper also takes one position fewer, 1,071. The Sharpe ratio, the compounded APR and the drawdown still print as Chan's, so the arithmetic return is the only printed figure it moves. |
+
+### What the entry concludes
+
+Two things.
+
+1. **Example 7.2 reproduces exactly on Chan's own files.** Every figure
+   `pead.m` prints, both figures the book quotes, its 30 and its levered 27
+   percent land at the precision each was printed.
+2. **Which book's helper runs is part of the specification.** The two
+   `smartstd` files share a name and differ in what they do with a missing
+   value and in their denominator. Here the difference is one unit in one
+   printed digit, so a port that reached for the helper the repo already held
+   would have looked like a near miss on a vintage problem rather than a
+   wrong helper.
+
+### What this entry cannot say
+
+Four things.
+
+**What the drift earned on the index as it stood each day.** Every stock here
+was in the S&P 500 on 2012-04-24.
+[Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) reruns the
+rule on a point-in-time universe, which waits on a purchase.
+
+**Whether Chan's flags are the announcement calendar.** They catch three of
+Apple's five releases inside the window, a measurement recorded on
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
+[Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) reruns the
+rule on EDGAR's filings and modern prices.
+
+**What costs would take.** `pead.m` charges none, and every position is a
+round trip inside one day.
+
+**How large the look-ahead in the 30 is.** Chan argues it is small because the
+number of announcements a day is predictable, and nothing here tests that.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

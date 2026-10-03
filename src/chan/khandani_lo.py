@@ -120,7 +120,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from chan.matlab_helpers import lag1, smartmean, smartstd, smartsum
+from chan.matlab_helpers import lag1, smartmean, smartstd_first_edition, smartsum
 from chan.series import load_panel, panel_line
 from chan.vintage import VintageUnavailable
 
@@ -225,7 +225,11 @@ def gross_held(weights: np.ndarray) -> np.ndarray:
 def chan_sharpe(daily: np.ndarray) -> float:
     """``sqrt(252)*smartmean(x,1)/smartstd(x,1)``, both quirks included."""
     column = daily[:, None]
-    return float(np.sqrt(TRADING_DAYS) * smartmean(column, axis=0)[0] / smartstd(column, axis=0)[0])
+    return float(
+        np.sqrt(TRADING_DAYS)
+        * smartmean(column, axis=0)[0]
+        / smartstd_first_edition(column, axis=0)[0]
+    )
 
 
 def plain_sharpe(daily: np.ndarray) -> float:

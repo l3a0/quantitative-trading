@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Eleven replications run here, all from Chan's *Quantitative Trading*. The
-first two were ported from the sibling
+Twelve replications run here, eleven from Chan's *Quantitative Trading* and
+one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other nine were built here.
+they were first built. The other ten were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -138,6 +138,16 @@ they were first built. The other nine were built here.
     Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
     EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
     win fewer years after the years he read. Every figure is exploratory.
+12. Post-earnings announcement drift, Example 7.2 of *Algorithmic Trading*,
+    which buys or shorts a stock at the open after an earnings announcement
+    when the overnight gap is large, and sells at the close. On Chan's own
+    S&P 500 file and earnings flags it reproduces every figure his script
+    prints: an arithmetic annual return of 0.066743, which is the book's "APR"
+    of 6.7 percent, a Sharpe ratio of 1.4909, a compounded APR of 0.067952,
+    a deepest drawdown of −0.026052, and a longest drawdown of 109 days. Book
+    two's `smartstd` is what lands the first of those. The first edition's, which
+    shares its name, gives 0.066833 and misses Chan's printed digit. Every
+    figure is exploratory and about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -217,13 +227,20 @@ fails a test even where the count survives. It also pins the natural gas
 expiry rule against the exchange's own last trading days, and each date Good
 Friday moved.
 
-All eleven replications reach a verdict in
+[tests/test_pead.py](tests/test_pead.py) does it for post-earnings drift. It
+pins each figure `pead.m` prints at the precision that is real and again as
+the script formats it, beside the book's rounded figures. It also pins the
+first edition's `smartstd` landing on 0.0668, so a port that reaches for the
+helper this repo already held fails a test rather than reading as a near
+miss.
+
+All twelve replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
-toy's, Entry 10 the reversal at the open's and Entry 11 the commodity
-seasonals'.
+toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
+seasonals' and Entry 12 post-earnings drift's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -251,7 +268,8 @@ that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
-without it.
+without it. Post-earnings drift calls the guard on each stock from its first
+price, over its 2011 and 2012 window, and nothing there needs refusing.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -284,8 +302,9 @@ shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
 equity seasonals read the first two, and the Khandani-Lo reversal reads the
 2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
-[Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) will read the
-2012 S&P 500 file and its flags.
+Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
+flags, for
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -488,6 +507,19 @@ It prints every year's trade for both contracts, with its dates, settlements
 and the numbered file each price came from, then the counts the book prints
 beside its own. A year whose trade date has no row in its file prints as
 missing rather than moving to another day.
+
+Post-earnings drift reads Chan's book-two S&P 500 file and his earnings flags,
+and takes no option, because his script fixes the files, the window and the
+rule:
+
+```bash
+uv run python -m chan.pead
+```
+
+It prints both sources in a line each, the window, the rule, the busiest day
+beside the 30 Chan divides by, and each figure beside what `pead.m` and the
+book print. It refuses to run if the two files name different stocks, because
+the script pairs their columns by position.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -959,7 +991,8 @@ Four groups of its figures are not pinned here.
    computed on. That EQ, NYX, WU and WYN began trading during
    2006, where the suite pins only that they are the four stocks priced on the
    window's last day and not its first.
-3. Chan's *Algorithmic Trading*, cited through the sibling repository's notes:
+3. Chan's *Algorithmic Trading*, cited through
+   [its committed notes](research/book-notes/algorithmic-trading.md):
    his argument at location 432 that survivorship flatters a long-short
    reversal by less than a buy-only rule, and his second telling of the toy at
    location 704, with "almost 100 percent loss".
@@ -1069,7 +1102,8 @@ regime map.
 ## Where the book's numbers come from
 
 [research/book-notes](research/book-notes/README.md) holds verbatim Kindle
-highlights from Chan's *Quantitative Trading*, cited by location. Where a
+highlights from Chan's *Quantitative Trading* and his *Algorithmic Trading*,
+cited by location. Where a
 published figure a replication chases is among them, that is where it traces
 to. A highlight covers what somebody marked, so the notes carry two of the five
 figures the design doc names.
@@ -1081,7 +1115,7 @@ believed was not publicly available. A figure quoted from one of those traces
 there instead.
 
 The notes are quoted rather than written, so nothing edits them by hand and
-three markdownlint rules stand down over that directory. The reasoning is in
+four markdownlint rules stand down over that directory. The reasoning is in
 its README.
 
 ## Running the checks

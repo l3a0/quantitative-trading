@@ -4,7 +4,7 @@
   // the repo. The repo-wide file one level up still supplies everything not
   // named here.
   //
-  // A note is a record of what a book says. The only way to satisfy these three
+  // A note is a record of what a book says. The only way to satisfy these
   // rules inside a quotation is to edit the quotation, which costs more than
   // the rules buy, and a re-extraction would undo the edit anyway. So the
   // rules are switched off here rather than the text being rewritten.
@@ -18,12 +18,18 @@
   // markdownlint reads as an emphasis marker with a space after it. It is
   // multiplication in the book's notation.
   //
+  // MD029 (ol-prefix): Chan prints a numbered list, and each item was
+  // highlighted on its own, so the Algorithmic Trading note's "2." at
+  // location 885 sits alone in its own quotation, where markdownlint expects
+  // a list to start at 1. Renumbering it would change what the book says.
+  //
   // MD001 (heading-increment) is the one that is not about quoted text. The
   // note runs a single h1 title and then one h3 per highlight, which is the
   // shape the extraction produces. Renaming the levels would mean re-editing
   // the file every time it is re-extracted.
   "extends": "../../.markdownlint.jsonc",
   "MD001": false,
+  "MD029": false,
   "MD034": false,
   "MD037": false
 }

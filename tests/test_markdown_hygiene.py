@@ -178,6 +178,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/stationary-candidates-lessons.md",
         "blog/survivorship-and-transaction-costs.md",
         "research/book-notes/README.md",
+        "research/book-notes/algorithmic-trading.md",
         "research/book-notes/quantitative-trading.md",
         "research/papers/README.md",
     }
@@ -375,12 +376,62 @@ def test_discovery_skips_a_markdown_path_that_is_not_a_regular_file(
     assert found == ["kept.md"]
 
 
+# Text a book note quotes, which a sweep flags and nothing may edit, keyed by
+# the note and the rule it trips. research/book-notes/README.md is where each
+# exemption is written down and argued.
+QUOTED_IN_A_NOTE = {
+    (
+        "research/book-notes/algorithmic-trading.md",
+        "unescaped tilde, write it as \\~",
+    ): "www.cs.ubc.ca/~murphyk/Software/Kalman/kalman.html",
+}
+
+
+def _excused(finding: Finding) -> bool:
+    """Whether a finding is only the quoted text an exemption names.
+
+    The quoted text is swapped for a placeholder and the line swept again,
+    so a second tilde beside the URL still fails rather than riding on its
+    exemption. A placeholder rather than nothing, because deleting the URL
+    would leave a tilde glued to its far end sitting after whitespace, where
+    the sweep reads it as one that cannot close a strikethrough.
+    """
+    key = (finding.path.relative_to(REPO_ROOT).as_posix(), finding.rule)
+    quoted = QUOTED_IN_A_NOTE.get(key)
+    if quoted is None or quoted not in finding.line:
+        return False
+    rest = sweep_text(finding.line.replace(quoted, "URL"), finding.path)
+    return finding.rule not in _rules(rest)
+
+
 @pytest.mark.parametrize(
     "path", markdown_files(REPO_ROOT), ids=lambda path: str(path.relative_to(REPO_ROOT))
 )
 def test_every_markdown_file_passes_the_prose_sweeps(path: Path) -> None:
-    findings = sweep_file(path)
+    findings = [finding for finding in sweep_file(path) if not _excused(finding)]
     assert not findings, "\n".join(str(finding) for finding in findings)
+
+
+@pytest.mark.parametrize("key", sorted(QUOTED_IN_A_NOTE))
+def test_every_quoted_exemption_is_still_needed(key: tuple[str, str]) -> None:
+    """An exemption whose text has gone excuses nothing and reads as a live rule."""
+    name, rule = key
+    findings = sweep_file(REPO_ROOT / name)
+    assert any(f.rule == rule and QUOTED_IN_A_NOTE[key] in f.line for f in findings)
+    assert all(_excused(f) for f in findings if f.rule == rule)
+
+
+def test_a_second_tilde_beside_a_quoted_url_is_still_flagged() -> None:
+    (key,) = [key for key in QUOTED_IN_A_NOTE if "algorithmic-trading" in key[0]]
+    line = f"> Found at {QUOTED_IN_A_NOTE[key]} and near (~30) more."
+    (finding,) = sweep_text(line + "\n", REPO_ROOT / key[0])
+    assert not _excused(finding)
+    glued = f"> Found at {QUOTED_IN_A_NOTE[key]}~30 more."
+    (finding,) = sweep_text(glued + "\n", REPO_ROOT / key[0])
+    assert not _excused(finding)
+    alone = f"> Found at {QUOTED_IN_A_NOTE[key]} today."
+    (quoted,) = sweep_text(alone + "\n", REPO_ROOT / key[0])
+    assert _excused(quoted)
 
 
 # --- The cross-document layer -------------------------------------------------

@@ -219,7 +219,7 @@ gh pr list --state open --json number,title,statusCheckRollup,closingIssuesRefer
 uv run pytest -q --no-header 2>&1 | tail -1
 python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
 wc -l < data/vintages.jsonl
-grep -c 'Location' research/book-notes/quantitative-trading.md
+cat research/book-notes/*-trading.md | grep -c '^### Location'
 gh issue list --state open --limit 100 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
 ```
 

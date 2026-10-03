@@ -8,14 +8,24 @@ lives here once, with the case that separates it from the numpy default held by
 Two of them move a figure Examples 7.6 and 7.7 print, and
 ``tests/test_equity_seasonals.py`` pins what each move gives.
 
-1. :func:`smartstd`'s zero-fill moves the first edition's 7.7 Sharpe ratio.
+1. :func:`smartstd_first_edition`'s zero-fill moves the first edition's 7.7
+   Sharpe ratio.
 2. :func:`round_half_away` moves the first edition's January 2006 return,
    against the floor.
+
+Chan's two books ship two different ``smartstd`` files under one name, and
+each is what its own printouts imply, so both live here under names that say
+which book each belongs to. :func:`smartstd_first_edition` is *Quantitative
+Trading*'s. :func:`smartstd_book_two` is *Algorithmic Trading*'s, and choosing
+it over the first edition's moves a figure Example 7.2 prints, which
+``tests/test_pead.py`` pins.
 
 The rest are Chan's helpers as his scripts call them. :func:`smartmean`,
 :func:`smartsum`, :func:`lag1` and :func:`matlab_sort` run in Example 7.7,
 and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
-:func:`backshift` runs through :func:`lag1`. :func:`fwdshift` has no caller
+:func:`backshift` runs through :func:`lag1` there, and :mod:`chan.pead` calls
+it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
+Trading*'s Example 7.2. :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
 tie order in :func:`matlab_sort` moves no printed figure on these files.
@@ -34,9 +44,10 @@ What each one does:
 - :func:`smartmean` takes the mean of the finite entries.
 - :func:`smartsum` takes the sum of the finite entries, NaN where there are
   none.
-- :func:`smartstd` replaces each non-finite entry with zero and then divides by
-  n - 1 over every entry. That is not a NaN-skipping standard deviation. A
-  month that held no position counts as a month that returned nothing.
+- :func:`smartstd_first_edition` replaces each non-finite entry with zero and
+  then divides by n - 1 over every entry. That is not a NaN-skipping standard
+  deviation. A month that held no position counts as a month that returned
+  nothing.
 - :func:`backshift`, :func:`lag1` and :func:`fwdshift` move rows down or up and
   pad with NaN.
 - :func:`matlab_sort` orders a row ascending with NaN last and ties in column
@@ -46,6 +57,54 @@ What each one does:
 
 They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
+
+**Book two's helpers.** Three come from Chan's *Algorithmic Trading* code
+rather than his first edition's. :mod:`chan.pead` is their one caller.
+
+- :func:`smartstd_book_two` skips each non-finite entry and divides by n, the
+  count of finite entries, rather than n - 1.
+- :func:`smart_moving_std` is ``smartMovingStd``, book two's standard deviation
+  over a trailing window of rows, NaN until the window first fills.
+- :func:`calculate_max_dd` is ``calculateMaxDD``, the deepest drawdown of a
+  compounded cumulative return and the longest run of days spent below a high.
+
+Book two's ``smartmean``, ``smartsum`` and ``backshift`` compute what the first
+edition's do, so they are not carried twice.
+
+They are ported from ``smartstd.m``, ``smartMovingStd.m`` and
+``calculateMaxDD.m`` under ``archived/matlab/`` in the mirror
+[ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
+at ``45670240f1f3d4b5233a75f82fd18b742455b4bb``. The mirror
+[ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) at
+``e4bc46f`` holds the same three files under ``public/img/book2/``, identical
+once line endings are stripped. ``data/README.md`` names both mirrors for the
+data files. The port landed here with
+[PR #263](https://github.com/l3a0/quantitative-trading/pull/263). Four things
+changed on the way over.
+
+1. ``smartstd``'s ``dim`` becomes ``axis``, with 0 as the default, as the
+   first edition's helpers here already do. MATLAB's default is the first
+   dimension longer than one, which is the same reduction on every shape
+   Example 7.2 passes.
+2. ``smartMovingStd``'s optional third argument, which samples every
+   ``period`` rows, is not carried, because ``pead.m`` never passes it.
+3. ``smartMovingStd`` refuses a window of one row. MATLAB would hand that
+   one-row slice to ``smartstd`` with no ``dim``, which then reduces across the
+   columns rather than down them, a different calculation that nothing calls.
+4. ``calculateMaxDD`` hands its duration back as a whole number of days
+   rather than as a double, which is the value ``pead.m`` prints after its
+   ``round``.
+
+``calculateMaxDD``'s two quirks are kept, because they are what Chan's code
+does. Its high-water mark starts at zero rather than at the first day's
+return, and its loop starts on the second row, so the first day can never be
+in a drawdown. Neither moves a figure ``pead.m`` prints, because its first
+day returns nothing, so ``tests/test_matlab_helpers.py`` holds both on inputs
+where they do.
+
+One behaviour of MATLAB is carried rather than numpy's. MATLAB's ``min``
+skips a NaN, so a day whose cumulative return is NaN leaves the deepest
+drawdown standing, where numpy's ``min`` would return NaN.
 """
 
 from __future__ import annotations
@@ -75,8 +134,8 @@ def smartmean(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
         return np.where(count > 0, total / count, np.nan)[()]
 
 
-def smartstd(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
-    """The standard deviation after replacing every non-finite entry with zero.
+def smartstd_first_edition(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
+    """*Quantitative Trading*'s ``smartstd``: zero-fill every non-finite entry, then take ``std``.
 
     It divides by n - 1, where n counts the replaced entries too, because
     Chan's helper zero-fills and then calls MATLAB's ``std``. It is NaN only
@@ -147,3 +206,62 @@ def round_half_away(x: ArrayLike) -> NDArray[np.float64] | np.float64:
     # the fraction is compared against a half instead.
     whole = np.trunc(values)
     return (whole + np.sign(values) * (np.abs(values - whole) >= 0.5))[()]
+
+
+def smartstd_book_two(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
+    """*Algorithmic Trading*'s ``smartstd``: the spread of the finite entries, over n.
+
+    n counts the finite entries only, so a non-finite entry is skipped rather
+    than read as zero, and the result is not the n - 1 estimate that
+    :func:`smartstd_first_edition` gives. It is computed the way the ``.m``
+    file computes it, as the mean of the squared deviations from the mean, both
+    means taken by :func:`smartmean`. It is NaN where no entry is finite.
+    """
+    values = np.asarray(x, dtype=float)
+    centred = values - np.expand_dims(smartmean(values, axis=axis), axis)
+    return np.sqrt(smartmean(centred * centred, axis=axis))[()]
+
+
+def smart_moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
+    """``smartMovingStd``: :func:`smartstd_book_two` over each trailing window of ``lookback`` rows.
+
+    Row t holds the spread of rows t - lookback + 1 through t, column by column,
+    and the first ``lookback - 1`` rows are NaN because no window has filled.
+    A window that holds fewer than ``lookback`` finite entries still gives a
+    spread, because ``smartstd`` skips what is not finite rather than refusing.
+    """
+    values = np.asarray(x, dtype=float)
+    if lookback < 2:
+        raise ValueError(
+            f"smart_moving_std takes a window of at least 2 rows, not {lookback}, because "
+            "MATLAB reduces a one-row window across its columns"
+        )
+    spread = np.full_like(values, np.nan)
+    for t in range(lookback - 1, len(values)):
+        spread[t] = smartstd_book_two(values[t - lookback + 1 : t + 1], axis=0)
+    return spread
+
+
+def calculate_max_dd(cumret: ArrayLike) -> tuple[float, int]:
+    """``calculateMaxDD``: the deepest drawdown and the longest stretch below a high.
+
+    ``cumret`` is a compounded cumulative return, ``cumprod(1 + ret) - 1``. A
+    day's drawdown is ``(1 + cumret) / (1 + high) - 1``, where the high is the
+    largest ``cumret`` so far, and its duration counts the consecutive days
+    that drawdown has been below zero. The deepest drawdown is a fraction no
+    greater than zero and the duration is in rows.
+
+    Two quirks of Chan's loop are kept. The high starts at zero rather than at
+    the first day's ``cumret``, and the loop starts on the second row, so the
+    first day's drawdown and duration are both 0 whatever it returned.
+    """
+    values = np.asarray(cumret, dtype=float)
+    high = np.zeros_like(values)
+    drawdown = np.zeros_like(values)
+    duration = np.zeros(len(values), dtype=int)
+    for t in range(1, len(values)):
+        high[t] = max(high[t - 1], values[t])
+        drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
+        duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
+    # MATLAB's min skips NaN. The first row is always 0, so the minimum exists.
+    return float(np.nanmin(drawdown)), int(duration.max())

@@ -1,20 +1,27 @@
 # Book notes
 
-Kindle highlights from the book this repo replicates, quoted verbatim and cited
-by Kindle location.
+Kindle highlights from the books this repo replicates, quoted verbatim and
+cited by Kindle location.
 
 | Note | Book | Edition | Highlights |
 | --- | --- | --- | --- |
+| [algorithmic-trading.md](algorithmic-trading.md) | *Algorithmic Trading: Winning Strategies and Their Rationale* | 1st, Wiley, 2013 | 301 |
 | [quantitative-trading.md](quantitative-trading.md) | *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* | 2nd (Revised), Wiley, 2021 | 235 |
 
-The file came from the sibling
+Both files came from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, byte for
-byte. That repo also holds notes for Chan's *Algorithmic Trading* and for four
-other authors. They stayed there, because nothing here replicates those books.
+byte. The *Algorithmic Trading* note is that repo's
+`research/book-notes/algorithmic-trading.md` at `7612281`, and it landed here
+with [PR #263](https://github.com/l3a0/quantitative-trading/pull/263), with
+nothing changed on the way over. It came because
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20) replicates
+that book's Example 7.2, which is the first replication here from Chan's second
+book. The sibling also holds notes for four other authors. They stayed there,
+because nothing here replicates those books.
 
-Mind the edition. These notes are the revised second edition of 2021, while
-this repo's citations of chapter and page numbers come from the first edition
-of 2009. The two are not interchangeable, and these notes are what showed it:
+Mind the edition. The *Quantitative Trading* notes are the revised second
+edition of 2021, while this repo's citations of chapter and page numbers for
+that book come from the first edition of 2009. The two are not interchangeable, and these notes are what showed it:
 the GLD/GDX chapter labels this repo uses throughout turn out to be
 first-edition shorthand, because in this edition both printouts belong to one
 Chapter 7 example and Chapter 3 defers the analysis at location 1862.
@@ -36,6 +43,11 @@ figures their four printouts give is here, the third January's 0.0881 and
 and commit that prints it, or to the owner's reading of the revised edition
 recorded on
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931).
+
+*Algorithmic Trading*'s Example 7.2 is the opposite case. Its two book
+figures, its denominator of 30 and its levered 27 percent all sit at location
+3024, while the figures its script prints sit in `pead.m` and nowhere in the
+book. The replication log's Entry 12 traces each to one or the other.
 
 Example 3.8 is absent in both ways. Its setup sentence at location 2233 and
 its closing exercise at 2236 are here, and the sentence carrying its result,
@@ -71,22 +83,31 @@ transcription error by re-extracting from the source, not by hand.
 
 That rule is what
 [.markdownlint.jsonc](.markdownlint.jsonc) in this directory exists for. It
-switches off three rules and keeps the rest. Two fire on the book's own text:
-websites cited in running prose without a scheme, and a `* i` that is
-multiplication rather than emphasis. The third is the note format, which runs
-one h1 title and then one h3 per highlight. The only way to satisfy any of them
+switches off four rules and keeps the rest. Three fire on the book's own text:
+websites cited in running prose without a scheme, a `* i` that is
+multiplication rather than emphasis, and a numbered list Chan prints whose
+items were highlighted one at a time, so the *Algorithmic Trading* note's
+item 2 at location 885 opens a list of its own. The fourth is the note format,
+which runs one h1 title and then one h3 per highlight. The only way to satisfy any of them
 here would be to alter the quotation, and a re-extraction would undo the
 alteration anyway.
 
 That directory config also covers this README, which is the price of putting
-the exemption next to what it governs. The three rules it relaxes are minor
+the exemption next to what it governs. The four rules it relaxes are minor
 style checks, and every other markdownlint rule still applies here.
 
 The prose sweeps in `tests/test_markdown_hygiene.py` do still read this
-directory, including the note itself, because the note happens to contain
-nothing any of them objects to. If a future re-extraction or a second note
-introduces something they flag, the fix is an exemption written down here, not
-an edit to the quotation.
+directory, notes included. When a note trips one, the fix is an exemption
+written down here, not an edit to the quotation.
+
+One exemption stands. The *Algorithmic Trading* note quotes Chan's pointer to a
+Kalman filter package at location 1726, and the URL he prints,
+`www.cs.ubc.ca/~murphyk/Software/Kalman/kalman.html`, carries a tilde glued to
+a slash. The tilde sweep flags that shape, because it can close a
+strikethrough. Escaping it would edit the book's text, so
+`QUOTED_IN_A_NOTE` in the hygiene tests excuses that exact URL and nothing
+else. Every other character of the line is still swept, and a test fails if
+the exemption ever stops being needed.
 
 ## Copyright
 

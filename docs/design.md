@@ -74,9 +74,10 @@ covers what somebody marked, so the notes carry 1.6766 and 0.4849 and not the
 other three figures this doc names. A figure from a source Chan cites rather
 than prints traces to
 [research/papers](../research/papers/README.md) instead, which holds the
-document whole. The notes are the 2021 revised edition of
-*Quantitative Trading*, and the chapter and page citations in this repo are
-first-edition. The next subsection says what follows from that, because the
+document whole. The *Quantitative Trading* notes are that book's 2021
+revised edition, and the chapter and page citations of it in this repo are
+first-edition. The *Algorithmic Trading* notes are that book's only edition,
+of 2013. The next subsection says what follows from that, because the
 two editions do not tell the same story about where these numbers come from.
 
 A gap between the published number and the reproduction is as informative as a
@@ -225,6 +226,8 @@ do not already say. What changes is that they are now declared as
 first-edition shorthand rather than left to look like the book's own
 structure. Every citation of a chapter, a page, an example number or a MATLAB
 filename in this repo means the 2009 first edition unless it says otherwise.
+A citation from *Algorithmic Trading* names that book, as Example 7.2 and
+`pead.m` do.
 Box 6.1, the coin-flip gamble, says otherwise, because its label exists only
 in the revised edition. It is a revised-edition sidebar titled "Loss aversion
 is not a behavioral bias", which the 2009 edition could not hold because it
