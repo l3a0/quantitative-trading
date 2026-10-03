@@ -173,7 +173,7 @@ class TestTheFigures:
     def test_levered_four_times_it_is_close_to_27_percent(self, drift: Drift) -> None:
         """Location 3024: levered "at least four times", "close to 27 percent"."""
         assert drift.levered == pytest.approx(0.266970, abs=5e-7), SPEC
-        assert BOOK_LEVERAGE == 4
+        assert BOOK_LEVERAGE == 4, SPEC
         assert round(100 * drift.levered) == BOOK_LEVERED_PERCENT == 27, SPEC
 
     def test_the_compounded_apr(self, drift: Drift) -> None:
@@ -213,7 +213,8 @@ class TestTheHelperMovesADigit:
     ) -> None:
         """0.066833 prints as 0.0668, one unit off what ``pead.m`` prints."""
         assert first_edition.arithmetic_annual == pytest.approx(0.066833, abs=5e-7), SPEC
-        assert f"{first_edition.arithmetic_annual:7.4f}".strip() == "0.0668" != SCRIPT_ARITHMETIC
+        printed = f"{first_edition.arithmetic_annual:7.4f}".strip()
+        assert printed == "0.0668" != SCRIPT_ARITHMETIC, SPEC
         assert first_edition.trades == drift.trades - 1 == 1071, SPEC
 
     def test_the_other_printed_figures_survive_the_swap(self, first_edition: Drift) -> None:
@@ -328,9 +329,15 @@ class TestTheRule:
         assert drift_positions(np.array([[0.5]]), nan, np.array([[1.0]])) == 0.0
         assert drift_positions(nan, np.array([[1.0]]), np.array([[1.0]])) == 0.0
 
-    def test_a_flag_that_is_not_a_number_is_refused(self) -> None:
-        with pytest.raises(ValueError, match="not a number"):
+    def test_a_nan_flag_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="hold a NaN"):
             drift_positions(np.zeros((1, 1)), np.ones((1, 1)), np.array([[np.nan]]))
+
+    def test_any_flag_other_than_zero_is_an_announcement(self) -> None:
+        """MATLAB's ``&`` reads every number but 0 as true, infinity included."""
+        flags = np.array([[2.0, -1.0, np.inf, 0.0]])
+        positions = drift_positions(np.ones((1, 4)), np.ones((1, 4)), flags)
+        assert positions.tolist() == [[1.0, 1.0, 1.0, 0.0]]
 
     def test_the_spread_is_book_twos_over_the_lookback(self) -> None:
         opens, closes, _ = _frames(LOOKBACK + 5, 0.03, LOOKBACK + 2)
@@ -391,6 +398,19 @@ class TestTheRefusals:
         refuse_scale_breaks([member], steady, steady, days)
         with pytest.raises(WindowCrossesScaleBreak, match="x/aaa.csv changes scale on 2011-01-05"):
             refuse_scale_breaks([member], steady, halved, days)
+
+    def test_the_guard_passes_chans_files_over_the_window(self, sources, drift) -> None:
+        """The real guard on all 497 stocks, so a refusal would fail here first."""
+        prices, _, opens, closes, _ = sources
+        refuse_scale_breaks(prices, opens, closes, drift.days)
+
+    def test_a_price_missing_after_the_first_is_still_refused(self) -> None:
+        """Reading from the first price is not dropping every NaN."""
+        days = pd.bdate_range("2011-01-03", periods=4)
+        member = SimpleNamespace(symbol="AAA", path="x/aaa.csv")
+        holed = pd.DataFrame({"AAA": [10.0, np.nan, 10.2, 10.3]}, index=days)
+        with pytest.raises(WindowCrossesScaleBreak, match="no readable day-over-day move"):
+            refuse_scale_breaks([member], holed, holed, days)
 
     def test_a_stock_listed_inside_the_window_passes_on_its_own_rows(self) -> None:
         """MPC and XYL have no price before their spin-offs, which the panel's columns

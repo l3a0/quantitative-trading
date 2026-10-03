@@ -390,15 +390,17 @@ QUOTED_IN_A_NOTE = {
 def _excused(finding: Finding) -> bool:
     """Whether a finding is only the quoted text an exemption names.
 
-    The quoted text is cut out of the line and the line swept again, so a
-    second tilde beside the URL still fails rather than riding on its
-    exemption.
+    The quoted text is swapped for a placeholder and the line swept again,
+    so a second tilde beside the URL still fails rather than riding on its
+    exemption. A placeholder rather than nothing, because deleting the URL
+    would leave a tilde glued to its far end sitting after whitespace, where
+    the sweep reads it as one that cannot close a strikethrough.
     """
     key = (finding.path.relative_to(REPO_ROOT).as_posix(), finding.rule)
     quoted = QUOTED_IN_A_NOTE.get(key)
     if quoted is None or quoted not in finding.line:
         return False
-    rest = sweep_text(finding.line.replace(quoted, ""), finding.path)
+    rest = sweep_text(finding.line.replace(quoted, "URL"), finding.path)
     return finding.rule not in _rules(rest)
 
 
@@ -423,6 +425,9 @@ def test_a_second_tilde_beside_a_quoted_url_is_still_flagged() -> None:
     (key,) = [key for key in QUOTED_IN_A_NOTE if "algorithmic-trading" in key[0]]
     line = f"> Found at {QUOTED_IN_A_NOTE[key]} and near (~30) more."
     (finding,) = sweep_text(line + "\n", REPO_ROOT / key[0])
+    assert not _excused(finding)
+    glued = f"> Found at {QUOTED_IN_A_NOTE[key]}~30 more."
+    (finding,) = sweep_text(glued + "\n", REPO_ROOT / key[0])
     assert not _excused(finding)
     alone = f"> Found at {QUOTED_IN_A_NOTE[key]} today."
     (quoted,) = sweep_text(alone + "\n", REPO_ROOT / key[0])

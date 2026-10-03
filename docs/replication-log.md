@@ -18,8 +18,8 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10 and 12 carry their own, three, eleven,
-twelve, five, six, one, three, eight and two, and they are listed in those
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11 and 12 carry their own, three, eleven,
+twelve, five, six, one, three, eight, six and two, and they are listed in those
 entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -29,7 +29,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10 and 12 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11 and 12 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -2519,9 +2519,9 @@ close to the open stands in for the surprise. A gap of at least half its
 90-day moving standard deviation buys the stock at the open, or shorts it if
 the gap was down, and the position is closed at the same day's close. Each
 day's summed return is divided by 30. The book reports an APR of 6.7 percent
-and a Sharpe ratio of 1.5. `pead.m` prints four figures and a duration, and
-the transcription in `chan.pead` lands on all of them at the precision the
-script prints.
+and a Sharpe ratio of 1.5. `pead.m` prints five figures, and the
+transcription in `chan.pead` lands on all of them at the precision the script
+prints.
 
 One choice decides a printed digit. Chan's two books ship two helpers called
 `smartstd`. The first edition's, which Entries 7, 8 and 10 run, counts a
@@ -2576,7 +2576,7 @@ quotes two of them rounded.
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | `252 · smartmean(ret)` | 0.066743 | `TestTheFigures::test_the_arithmetic_annual_return_is_the_books_apr` |
-| 2 | row 1, in percent at the book's one decimal | 6.7 | the same |
+| 2 | row 1, in percent at the book's one decimal, against the compounded figure's 6.8 | 6.7 | the same, and `TestTheFigures::test_the_books_apr_is_not_the_compounded_one` |
 | 3 | `√252 · smartmean(ret) / smartstd(ret)`, book two's `smartstd` | 1.4909 | `TestTheFigures::test_the_sharpe_ratio` |
 | 4 | row 3 at the book's one decimal | 1.5 | the same |
 | 5 | `prod(1 + ret)^(252/330) − 1` | 0.067952 | `TestTheFigures::test_the_compounded_apr` |
@@ -2584,8 +2584,8 @@ quotes two of them rounded.
 | 7 | the same | 109 days | the same |
 | 8 | the most nonzero positions on one of the 330 days | 30 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` |
 | 9 | four times row 1 | 0.266970 | `TestTheFigures::test_levered_four_times_it_is_close_to_27_percent` |
-| 10 | the nonzero positions across the window | 1,072 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` |
-| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833 | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit` |
+| 10 | the nonzero positions across the window, none in its first 89 days | 1,072 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` and `::test_no_stock_trades_before_its_window_fills` |
+| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit` and `::test_the_other_printed_figures_survive_the_swap` |
 
 ### The verdicts
 
@@ -2596,11 +2596,11 @@ quotes two of them rounded.
 | 3 | 0.00 | reproduced | The same as row 1. |
 | 4 | 0.0 | reproduced | The same. |
 | 5 | 0.0000 | reproduced | The same. |
-| 6 | 0.000000 | reproduced | The same. It needs `calculateMaxDD`'s high-water mark to start at zero and its loop at the second row, which the port keeps. On this run the first day returns nothing, so neither quirk moves the figure here, and `tests/test_matlab_helpers.py` holds both on inputs where they do. |
+| 6 | 0.000000 | reproduced | The same. The port keeps `calculateMaxDD`'s two quirks, a high-water mark that starts at zero and a loop that starts on the second row. Neither moves this run, because its first day returns nothing, so `tests/test_matlab_helpers.py` holds both on inputs where they do. |
 | 7 | 0 | reproduced | The same. |
 | 8 | 0 | reproduced | The 30 is a fact about the run that Chan then used as an input, and the run gives it back. He names the look-ahead bias that makes it at location 3024. |
 | 9 | 0 | reproduced | 26.6970 percent rounds to 27, the precision Chan quotes. Leverage multiplies every day's return by four, so it multiplies the arithmetic figure by four. |
-| 10 | none | none, not a replication | 1,072 positions over 241 days on which a position was possible, and the first 89 days hold none because the moving deviation has not filled. |
+| 10 | none | none, not a replication | The first 89 days hold no position, because the moving deviation has not filled. |
 | 11 | none | none, not a replication | The first edition's helper also takes one position fewer, 1,071. The Sharpe ratio, the compounded APR and the drawdown still print as Chan's, so the arithmetic return is the only printed figure it moves. |
 
 ### What the entry concludes

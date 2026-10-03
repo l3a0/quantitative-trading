@@ -127,6 +127,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: two companies, leak no false move into it, because no finite monthly return
 #: reaches across either gap. ``TestTheShapesTheScaleBreakCommentNames`` in
 #: ``tests/test_equity_seasonals.py`` holds both claims.
+#:
+#: [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) decided
+#: that ``chan.pead`` calls the guard for Example 7.2, on each stock's opens
+#: and closes from its first price onward. The book-two file's 30 flagged days
+#: all fall in 2007 to 2009, and the window is 2011-01-03 to 2012-04-24, so
+#: nothing in it is refused. Reading from the first price is what lets MPC and
+#: XYL, spun off inside the window, pass without a missing price after that
+#: being dropped. ``TestTheRefusals`` in ``tests/test_pead.py`` runs the guard
+#: on the committed file and on both shapes.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

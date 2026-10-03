@@ -144,8 +144,8 @@ they were first built. The other ten were built here.
     S&P 500 file and earnings flags it reproduces every figure his script
     prints: an arithmetic annual return of 0.066743, which is the book's "APR"
     of 6.7 percent, a Sharpe ratio of 1.4909, a compounded APR of 0.067952,
-    and a deepest drawdown of −0.026052 lasting 109 days. Book two's
-    `smartstd` is what lands the first of those. The first edition's, which
+    a deepest drawdown of −0.026052, and a longest drawdown of 109 days. Book
+    two's `smartstd` is what lands the first of those. The first edition's, which
     shares its name, gives 0.066833 and misses Chan's printed digit. Every
     figure is exploratory and about survivors.
 
@@ -268,7 +268,8 @@ that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
-without it.
+without it. Post-earnings drift calls the guard on each stock from its first
+price, over its 2011 and 2012 window, and nothing there needs refusing.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -301,8 +302,9 @@ shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
 equity seasonals read the first two, and the Khandani-Lo reversal reads the
 2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
-[Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) will read the
-2012 S&P 500 file and its flags.
+Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
+flags, for
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.

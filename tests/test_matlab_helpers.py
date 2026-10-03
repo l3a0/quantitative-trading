@@ -172,6 +172,16 @@ class TestCalculateMaxDD:
     def test_a_day_back_at_the_high_ends_the_stretch(self) -> None:
         assert calculate_max_dd([0.0, 0.1, 0.0, 0.1, 0.0])[1] == 1
 
+    def test_any_drawdown_however_small_counts_as_a_day_below(self) -> None:
+        """``drawdown == 0`` is an exact test, so a shortfall of 1e-12 is a day below."""
+        assert calculate_max_dd([0.0, 0.1, 0.1 - 1e-12])[1] == 1
+
+    def test_a_nan_day_is_skipped_by_the_minimum_as_matlab_skips_it(self) -> None:
+        """numpy's ``min`` would return NaN, where MATLAB's gives the deepest finite day."""
+        max_dd, max_ddd = calculate_max_dd([0.0, 0.1, math.nan, 0.05])
+        assert max_dd == pytest.approx(1.05 / 1.1 - 1, abs=1e-15)
+        assert max_ddd == 2
+
 
 class TestShifts:
     def test_backshift_moves_rows_later_and_pads_with_nan(self) -> None:

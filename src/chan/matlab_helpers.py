@@ -23,7 +23,9 @@ it over the first edition's moves a figure Example 7.2 prints, which
 The rest are Chan's helpers as his scripts call them. :func:`smartmean`,
 :func:`smartsum`, :func:`lag1` and :func:`matlab_sort` run in Example 7.7,
 and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
-:func:`backshift` runs through :func:`lag1`. :func:`fwdshift` has no caller
+:func:`backshift` runs through :func:`lag1` there, and :mod:`chan.pead` calls
+it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
+Trading*'s Example 7.2. :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
 tie order in :func:`matlab_sort` moves no printed figure on these files.
@@ -93,10 +95,16 @@ changed on the way over.
    rather than as a double, which is the value ``pead.m`` prints after its
    ``round``.
 
-``calculateMaxDD``'s two quirks are kept, because the 109 days ``pead.m``
-prints depend on them. Its high-water mark starts at zero rather than at the
-first day's return, and its loop starts on the second row, so the first day
-can never be in a drawdown.
+``calculateMaxDD``'s two quirks are kept, because they are what Chan's code
+does. Its high-water mark starts at zero rather than at the first day's
+return, and its loop starts on the second row, so the first day can never be
+in a drawdown. Neither moves a figure ``pead.m`` prints, because its first
+day returns nothing, so ``tests/test_matlab_helpers.py`` holds both on inputs
+where they do.
+
+One behaviour of MATLAB is carried rather than numpy's. MATLAB's ``min``
+skips a NaN, so a day whose cumulative return is NaN leaves the deepest
+drawdown standing, where numpy's ``min`` would return NaN.
 """
 
 from __future__ import annotations
@@ -255,4 +263,5 @@ def calculate_max_dd(cumret: ArrayLike) -> tuple[float, int]:
         high[t] = max(high[t - 1], values[t])
         drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
         duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
-    return float(drawdown.min()), int(duration.max())
+    # MATLAB's min skips NaN. The first row is always 0, so the minimum exists.
+    return float(np.nanmin(drawdown)), int(duration.max())

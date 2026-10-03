@@ -20,7 +20,7 @@ once line endings are stripped. The transcription landed here with
 is the open, ``cl`` the close and ``earnann`` the flags:
 
 1. Both price arrays are cut to the days the flag file covers, before any
-   return is taken, so the first day's return is NaN.
+   return is taken, so the first day's gap is NaN.
 2. ``retC2O = (op − backshift(1, cl)) / backshift(1, cl)``, each stock's gap
    from the previous close to today's open.
 3. ``stdC2O`` is book two's ``smartMovingStd`` of that gap over 90 days, NaN
@@ -86,15 +86,28 @@ earned on the index as it stood each day.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is where
 that is measured.
 
-**The scale-break guard runs on each stock's own rows.**
+**The scale-break guard runs on each stock's rows from its first price.**
 :func:`chan.series.refuse_window_crossing_a_break` reads the open and the
-close of every stock over the flag file's days. On the panel's columns it
-would refuse, because MPC and XYL were spun off inside the window and have no
-price before 2011-06-24 and 2011-10-13, and it cannot read the day beside a
-NaN. On each stock's own rows it reads every move, and neither stock has a
-gap after its first price. The 30 days the guard flags in this file all fall
-in 2007 to 2009, outside the window, and ``tests/test_scale_breaks.py`` pins
-them.
+close of every stock over the flag file's days. Unlike
+:mod:`chan.khandani_lo`, which decided not to call it, this run can, because
+nothing in its window needs refusing. On the panel's columns it would refuse,
+because MPC and XYL were spun off inside the window and have no price before
+2011-06-24 and 2011-10-13, and it cannot read the day before a first price.
+Read from each stock's first price onward it finds every move readable. The
+30 days the guard flags in this file all fall in 2007 to 2009, outside the
+window, and ``tests/test_scale_breaks.py`` pins them.
+
+**What changed on the way over from** ``pead.m``. Five things, and none moves
+a figure.
+
+1. The two files are read as committed vintages through
+   :func:`chan.series.load_panel` rather than loaded from the ``.mat`` files,
+   and the days are intersected as dates rather than through ``intersect``'s
+   indices.
+2. A stock one file holds and the other does not is refused by symbol.
+3. The scale-break guard runs, as above.
+4. ``plot(cumret)`` is not carried. The run prints and draws nothing.
+5. The book's levered figure is computed beside the script's five.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2011
 and 2012 sample on a rule he chose, so the run says whether his numbers
@@ -201,12 +214,13 @@ def drift_positions(gaps: np.ndarray, spread: np.ndarray, flags: np.ndarray) -> 
     """Step 4: 1 or −1 on an announcement day whose gap clears the threshold, else 0.
 
     A NaN gap or spread clears nothing, as a comparison with NaN is false in
-    MATLAB too, so no stock trades before its window has filled. A flag must
-    be finite, because MATLAB stops on a NaN in a logical ``&`` rather than
+    MATLAB too, so no stock trades before its window has filled. A flag counts
+    as an announcement wherever it is not 0, which is how MATLAB's ``&`` reads
+    a number. A NaN flag is refused, because MATLAB stops on one rather than
     reading it as either answer.
     """
-    if not np.isfinite(flags).all():
-        raise ValueError("the flags hold a value that is not a number, which pead.m cannot read")
+    if np.isnan(flags).any():
+        raise ValueError("the flags hold a NaN, which pead.m cannot read")
     announced = flags != 0
     with np.errstate(invalid="ignore"):
         longs = (gaps >= ENTRY * spread) & announced
@@ -286,13 +300,23 @@ def read_sources(
 def refuse_scale_breaks(
     members: list[VintageEntry], opens: pd.DataFrame, closes: pd.DataFrame, days: pd.DatetimeIndex
 ) -> None:
-    """Run the scale-break guard on each stock's own opens and closes over ``days``."""
+    """Run the scale-break guard on each stock's own opens and closes over ``days``.
+
+    Each stock is read from its first price onward rather than with every NaN
+    dropped, so a stock listed inside the window passes while a price missing
+    after its first one is still refused as a day the guard cannot read.
+    """
     for frame in (opens, closes):
         refuse_window_crossing_a_break(
-            [(entry, frame[entry.symbol].dropna()) for entry in members],
+            [(entry, _from_first_price(frame[entry.symbol])) for entry in members],
             start=days[0],
             end=days[-1],
         )
+
+
+def _from_first_price(prices: pd.Series) -> pd.Series:
+    first = prices.first_valid_index()
+    return prices.iloc[:0] if first is None else prices.loc[first:]
 
 
 def report(prices: list[VintageEntry], announcements: list[VintageEntry], drift: Drift) -> None:
