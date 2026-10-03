@@ -1831,7 +1831,12 @@ class TestIWBInPlaceOfSPY:
     """
 
     def test_the_iwb_entry_is_the_download_this_card_names(self, joined_iwb) -> None:
-        """The identity fields, so a re-download cannot answer to these pins."""
+        """The identity fields, so a re-download cannot answer to these pins.
+
+        The risk parity post quotes the download date, 3 October 2026, and the
+        first date's month, May 2000, which is why IWB cannot reach back to the
+        1983 start of Qian's sample.
+        """
         stock_entry, bond_entry = joined_iwb.attrs["vintages"]
         assert stock_entry.path == IWB_VINTAGE
         assert (stock_entry.vendor, stock_entry.symbol) == ("yfinance", "IWB")
@@ -1857,7 +1862,11 @@ class TestIWBInPlaceOfSPY:
         assert agg.index.difference(load_close(IWB).index).empty
 
     def test_the_leg_moments_on_iwb(self, measured_iwb) -> None:
-        """Row 16's moments, full span. IWB's 18.4710 percent against SPY's 18.5472."""
+        """Row 16's moments, full span. IWB's 18.4710 percent against SPY's 18.5472.
+
+        The risk parity post quotes the volatility as 18.47 percent and the ratio
+        as 3.58, outside Qian's band.
+        """
         legs = measured_iwb["full span"][0].legs
         assert (legs.start, legs.end, legs.days) == ("2003-09-30", "2026-09-17", 5778)
         assert legs.stock_vol == pytest.approx(0.184710, abs=5e-7)
@@ -1869,7 +1878,10 @@ class TestIWBInPlaceOfSPY:
         assert legs.ratio_inside_the_band is False
 
     def test_the_weights_and_risk_split_on_iwb(self, measured_iwb) -> None:
-        """Row 16's weights and risk split, full span. 21.85 to 78.15 against SPY's 21.78."""
+        """Row 16's weights and risk split, full span. 21.85 to 78.15 against SPY's 21.78.
+
+        The risk parity post quotes the stock weight as 21.9 percent.
+        """
         result, _ = measured_iwb["full span"]
         parity, bench = result.parity, result.benchmark
         assert parity.stock_weight == pytest.approx(0.218523, abs=5e-7)
@@ -1883,7 +1895,9 @@ class TestIWBInPlaceOfSPY:
         """Row 17. Leverage 1.9795 and 60/40 ahead by 0.2171, robust t −2.1619.
 
         Pinned as the measured difference and its robust t rather than as a
-        sign, for the reason the SPY ranking pins give.
+        sign, for the reason the SPY ranking pins give. The risk parity post
+        quotes the leverage as 1.98, the Sharpe ratios as 0.41 and 0.20, the gap
+        as 0.22 computed before rounding, and the robust t as −2.16.
         """
         ranking = rankings_iwb["full span"]
         assert ranking.weight_source == "full span"
@@ -1968,10 +1982,18 @@ class TestIWBInPlaceOfSPY:
         60/40 still leads, 0.6136 against 0.5928, by 0.0208 at a robust t of
         −0.2071. So row 3's sign at the rate bills paid is the same on IWB as on
         SPY, and neither resolves there.
+
+        The risk parity post quotes the tie as 1.51 percent, against SPY's 1.50,
+        and the gap at the bill average as 0.02 at a t of −0.21. The tie is
+        0.01505015, about 1.5e-7 above the 0.01505 where the printed figure turns
+        from 1.50 to 1.51, while the pin allows 5e-7 either side. A re-pin inside
+        that tolerance could print 1.50, so the rounding is held on its own, the
+        way the weight's one-point miss is held above.
         """
         ranking = rankings_iwb["full span"]
         tie = RISK_FREE - ranking.sharpe_difference / ranking.rate_sensitivity
         assert tie == pytest.approx(0.015050, abs=5e-7)
+        assert round(tie * 100, 2) == 1.51
         assert tie < 0.01744
 
         result, returns = measured_iwb["full span"]
@@ -2006,6 +2028,10 @@ class TestIWBInPlaceOfSPY:
            3.8512 and 2.7536 against SPY's 3.5909, 3.8700 and 2.7555.
         5. The rate. IWB's full span ties at 1.5050 percent against SPY's
            1.4977, both under the 1.744 percent bill average.
+
+        The risk parity post quotes the first answer's three changes in the
+        Sharpe difference at four decimals, and the second answer's three robust
+        t values at two. It states the third answer in words.
         """
         costs = proxy_cost(measured, measured_iwb)
         assert list(costs) == [label for label, _, _ in WINDOWS]
