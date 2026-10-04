@@ -167,6 +167,12 @@ states rather than picking one.
   - [Beside Entries 8 and 10](#beside-entries-8-and-10)
   - [What the entry concludes](#what-the-entry-concludes-18)
   - [What this entry cannot say](#what-this-entry-cannot-say-16)
+- [Entry 20: constant leverage and capped Kelly allocation, Chan's *Algorithmic Trading*](#entry-20-constant-leverage-and-capped-kelly-allocation-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-17)
+  - [What this repo computed](#what-this-repo-computed-19)
+  - [The verdicts](#the-verdicts-18)
+  - [What the entry concludes](#what-the-entry-concludes-19)
+  - [What this entry cannot say](#what-this-entry-cannot-say-17)
 
 ## How to read an entry
 
@@ -202,9 +208,11 @@ both.
    whose pins run only where the owner's data archive is,
    [tests/test_cross_sectional_momentum.py](../tests/test_cross_sectional_momentum.py)
    holds Entry 17, [tests/test_buy_on_gap.py](../tests/test_buy_on_gap.py)
-   holds Entry 18, and
+   holds Entry 18,
    [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py)
-   holds Entry 19.
+   holds Entry 19, and
+   [tests/test_kelly_allocation.py](../tests/test_kelly_allocation.py) holds
+   Entry 20.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -315,8 +323,8 @@ than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
-Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, and Entry 19's rows 9 to
-11.
+Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
+and Entry 20's rows 11 to 13.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -4091,6 +4099,138 @@ weights from today's open and enters at that same open. Chan names the noise
 that brings at location 2135, and nothing here measures it.
 
 **Whether the rule pays today.** The window ends in 2011.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 20: constant leverage and capped Kelly allocation, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Examples 8.1 and 8.2, Kindle locations 3216 and 3287,
+introduced at 3210 and 3268. Shipped under
+[issue 298](https://github.com/l3a0/quantitative-trading/issues/298). Neither
+example has a script in Chan's public code mirrors, which hold only
+`monteCarloOptimLeverage.m` for Chapter 8, so the printed prose is the whole
+source.
+
+Thirteen rows, all derivable from
+[tests/test_kelly_allocation.py](../tests/test_kelly_allocation.py). Three
+carry no published figure and say so in their own cells. Row 11 is the growth
+rate at the uncapped Kelly leverages, which Equation 8.3 gives as an image the
+highlights did not capture. Rows 12 and 13 are what the arithmetic shows about
+Chan's claim, and the book prints neither.
+
+**Example 8.1** holds a leverage of 5 on \$100K of equity through a \$10K loss
+and then a \$20K gain, resizing after each. Keeping the leverage constant means
+selling into the loss and buying into the gain.
+[src/chan/kelly_allocation.py](../src/chan/kelly_allocation.py) runs each resize
+through `chan.kelly_leverage.rebalance`, the same operation Entry 3 runs for
+*Quantitative Trading*'s Example 6.2, rather than a second copy of it.
+
+**Example 8.2** has two uncorrelated strategies, with annualised mean excess
+returns of 30 and 60 percent and volatilities of 26 and 35 percent, under a
+broker's cap of 2 on gross leverage. Location 3268 calls scaling every Kelly
+leverage down by one factor "the usual recommendation", and the example exists
+to show it is not the allocation that grows fastest. The growth rate is
+`g = r + F'M - F'CF / 2` at a risk-free rate of 0.
+
+**The vintage column says `none, synthetic` in every row**, as in Entry 2.
+Every input is a number the book states, and nothing reads a series. No row has
+a window either, so the computed table drops that column the way Entry 2's
+does.
+
+### What the book printed
+
+| # | Row | Published figure | Where the book prints it |
+| --- | --- | --- | --- |
+| 1 | 8.1, the position after a \$10K loss | \$490K | location 3216 |
+| 2 | 8.1, the trade that restores leverage 5 | sell \$40K, to \$450K | location 3216 |
+| 3 | 8.1, the position after a \$20K gain the next day | \$470K | location 3216 |
+| 4 | 8.1, the trade that restores leverage 5 | buy \$80K, to \$550K | location 3216 |
+| 5 | 8.2, Kelly leverage of strategy 1 | 4.4 | location 3287 |
+| 6 | 8.2, Kelly leverage of strategy 2 | 4.9 | location 3287 |
+| 7 | 8.2, total gross Kelly leverage | 9.3 | location 3287 |
+| 8 | 8.2, both leverages scaled to the cap of 2 | 0.95 and 1.05 | location 3287 |
+| 9 | 8.2, growth rate at those leverages, Equation 8.4 | 0.82 | location 3287 |
+| 10 | 8.2, growth rate with all of the cap on strategy 2 | 0.96 | location 3287 |
+| 11 | 8.2, growth rate at the uncapped Kelly leverages, Equation 8.3 | none in the highlights, the equation is an image | absent, as [research/book-notes/README.md](../research/book-notes/README.md) records |
+| 12 | 8.2, the line's stationary point when F2 is not bounded | none, the book plots F2 from 0 to the cap only | n/a |
+| 13 | 8.2, the cap above which all on strategy 2 stops being best | none, the book says only "much smaller than" the total | location 3268 states the claim |
+
+### What this repo computed
+
+| # | Specification | Vintage | Computed | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | `rebalance(5, equity=100000, shock=0.02)`, the dollar loss as a fraction of the \$500K position | none, synthetic | \$490,000 | `TestConstantLeverage::test_the_loss_day_sells_forty_thousand` |
+| 2 | Target `5 × 90,000` less the position after the loss | none, synthetic | −\$40,000, to \$450,000 | `TestConstantLeverage::test_the_loss_day_sells_forty_thousand` |
+| 3 | The \$20K gain as a negative shock on the \$450K position | none, synthetic | \$470,000 | `TestConstantLeverage::test_the_gain_day_buys_eighty_thousand` |
+| 4 | Target `5 × 110,000` less the position after the gain | none, synthetic | +\$80,000, to \$550,000 | `TestConstantLeverage::test_the_gain_day_buys_eighty_thousand` |
+| 5 | `F = C^-1 M`, zero correlation, so `0.30 / 0.26^2` | none, synthetic | 4.437870 | `TestKellyLeverages::test_the_computed_leverages` |
+| 6 | `0.60 / 0.35^2` | none, synthetic | 4.897959 | `TestKellyLeverages::test_the_computed_leverages` |
+| 7 | The absolute sum of rows 5 and 6 | none, synthetic | 9.335829 | `TestKellyLeverages::test_the_computed_leverages` |
+| 8 | Both scaled by `2 / 9.335829`, a factor of 0.214228 | none, synthetic | 0.950718 and 1.049282 | `TestTheProportionalScaling::test_the_capped_leverages` |
+| 9 | `g = F'M - F'CF / 2` at row 8 | none, synthetic | 0.816798 | `TestTheProportionalScaling::test_the_growth_rate_at_the_capped_leverages` |
+| 10 | The same at F1 = 0, F2 = 2, the long-only optimum of the line `F1 = 2 - F2` | none, synthetic | 0.955, exactly 191/200 | `TestTheCorner::test_the_growth_rate_is_exactly_a_tie` and `::test_a_grid_over_the_whole_gross_boundary_agrees` |
+| 11 | The same at rows 5 and 6 | none, synthetic | 2.135068 | `TestTheKellyGrowthRate::test_the_growth_rate_at_kelly` |
+| 12 | The line's stationary point with F2 unbounded | none, synthetic | F2 = 2.289321, F1 = −0.289321, growth 0.962956, gross leverage 2.578643 | `TestTheNearMisses::test_the_unbounded_line_peaks_outside_the_cap` |
+| 13 | `(m2 - m1) / (c22 - c12)` | none, synthetic | 2.448980 | `TestWhereTheCornerStopsWinning::test_the_threshold` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | \$0 | reproduced | Exact. |
+| 2 | \$0 | reproduced | Chan's claim is that a constant leverage sells into a loss. The trade is a sale of exactly the size he prints. |
+| 3 | \$0 | reproduced | Exact. |
+| 4 | \$0 | reproduced | The same claim on the other side: the trade is a purchase into the gain. |
+| 5 | +0.0 at the one decimal the book prints | reproduced | Exact at that precision. |
+| 6 | −0.0 at one decimal | reproduced | Exact at that precision. |
+| 7 | +0.0 at one decimal | reproduced | Exact at that precision. |
+| 8 | +0.00 and −0.00 at two decimals | reproduced | Exact at that precision. This is the proportional scaling location 3268 calls the usual recommendation, which Example 8.2 sets out to refute, not a candidate for the best allocation. |
+| 9 | −0.00 at two decimals | reproduced | Exact at that precision. |
+| 10 | −0.005, stated at three decimals | reproduced | Chan's claim is that putting the whole cap on strategy 2 beats the proportional scaling, and 0.955 against row 9's 0.816798 says it does. The growth rate rises over the whole line and peaks at the corner. This file states a gap at the coarser precision, rounded from the full value, and that would print −0.01 for a figure that lands. The computed value is an exact tie at the book's two decimals, and Chan prints it rounded up, which half-up and half-to-even rounding both give. |
+| 11 | none | none, not a replication | Equation 8.3 is an image the highlights did not capture, so whether the book prints a value is not known here. The row exists so the figure is pinned when it is. |
+| 12 | none | none, not a replication | The near miss. Substituting `F1 = Fmax - F2` without bounding F2 finds a higher growth rate by shorting strategy 1, at a gross leverage above the cap. Location 3268 is explicit that the cap is on gross leverage, so this allocation is not allowed. |
+| 13 | none | none, not a replication | Chan says the corner tends to win when the cap is "much smaller than" the total Kelly leverage. On these inputs it wins for any cap below 2.448980, against a total of 9.335829, and above that the best allocation holds both strategies. |
+
+### What the entry concludes
+
+Four things.
+
+1. **The verdicts were known before the work started.** Nothing can move an
+   arithmetic result, which is Entry 2's first conclusion, and planning on the
+   issue computed every row before the module existed. Neither epistemic label
+   reaches the entry either, for the reason Entry 2 gives: no sample was spent.
+   What the entry is worth is rows 10, 12 and 13, which pin what the book's
+   claim rests on rather than only the figures it prints.
+2. **The book already answers whether 0.95 and 1.05 is the best allocation.**
+   It is the proportional scaling the example refutes. Along the line
+   `F1 = 2 - F2` the slope of the growth rate is `0.4352 - 0.1901 F2`, positive
+   for every F2 from 0 to 2, so the growth rate peaks with everything on
+   strategy 2.
+3. **The printed 0.96 depends on a rounding mode.** The exact value is 0.955.
+   A float holding it sits just below the tie, so the formatting a report would
+   reach for first prints 0.95 beside Chan's 0.96. The module prints three
+   decimals, and the suite pins the tie and the two rounding rules that give
+   0.96.
+4. **The best allocation under the cap is long-only here, and not in general.**
+   On Chan's inputs a grid over every allocation the gross cap allows, short
+   positions included, finds the same corner. With a strong positive
+   correlation it does not. `TestTheLongOnlyLimit` holds a case where a short
+   hedge inside the cap grows at 0.656501 against 0.48 for the best long-only
+   allocation, which is why the module's capped search says it is long-only.
+
+### What this entry cannot say
+
+Two things.
+
+**Whether Equation 8.3 prints a number.** Row 11 waits on the book itself. If
+it prints a value, the row gains a published figure and a verdict.
+
+**Anything about a real pair of strategies.** Every input is hypothetical and
+Gaussian by assumption. Whether a cap makes a real second strategy worth
+dropping depends on moments estimated from data, with the estimation error
+location 3235 warns about.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
