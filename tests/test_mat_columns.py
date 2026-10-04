@@ -219,6 +219,22 @@ class TestRecordingAFile:
             b"2007-11-23,32.5,33.75,31.75,33.0,900\n"
         )
 
+    def test_the_unpriced_day_is_read_off_the_close_rather_than_another_field(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        """A day whose opens survive and whose closes do not is still a day the
+        per-stock files could not give back, because a row is keyed on its close."""
+        closes = CLOSES.copy()
+        closes[1] = NAN
+        arrays = arrays_from(closes)
+        arrays["op"] = arrays_from(CLOSES)["op"]
+        path = tmp_path / "SPX_20071123.mat"
+        path.write_bytes(mat_bytes(arrays=arrays))
+
+        with pytest.raises(ValueError, match="prices no column on 2007-11-20"):
+            record_mat_file(path, price_basis="adjusted", data_dir=data_dir)
+        assert read_manifest(data_dir) == []
+
     def test_a_day_priced_in_no_column_is_refused_before_anything_is_written(
         self, tmp_path: Path, data_dir: Path
     ) -> None:
@@ -576,6 +592,24 @@ class TestAStrip:
             b"Price,Close\nTicker,CL-2007F\nDate,\n2007-11-19,20.0\n2007-11-21,20.5\n"
         )
 
+    def test_a_settlement_is_written_as_the_file_holds_it(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        """Values a float32 or a rounding would move, written out digit for digit."""
+        path = tmp_path / self.NAME
+        decimals = np.array([[99.62, 2.8743], [93.04, NAN], [0.1, 1188.45], [21.44, 3.0183]])
+        path.write_bytes(strip_bytes(closes=decimals, contracts=["2007F", "0000$"]))
+        record_strip_file(path, price_basis="raw", data_dir=data_dir)
+
+        assert (data_dir / "inputdatadaily_cl_20120813" / "cl-2007f.csv").read_bytes() == (
+            b"Price,Close\nTicker,CL-2007F\nDate,\n2007-11-19,99.62\n2007-11-20,93.04\n"
+            b"2007-11-21,0.1\n2007-11-23,21.44\n"
+        )
+        assert (data_dir / "inputdatadaily_cl_20120813" / "cl-spot.csv").read_bytes() == (
+            b"Price,Close\nTicker,CL-SPOT\nDate,\n2007-11-19,2.8743\n2007-11-21,1188.45\n"
+            b"2007-11-23,3.0183\n"
+        )
+
     def test_the_round_trip_finds_the_array_holes_and_all(
         self, strip: Path, data_dir: Path
     ) -> None:
@@ -593,6 +627,10 @@ class TestAStrip:
         [
             (
                 {"closes": np.where(np.isnan(STRIP), NAN, STRIP + np.eye(4)[1])},
+                "the panel's closes are not the file's cl array",
+            ),
+            (
+                {"closes": STRIP + np.outer(np.ones(4), [1e-9, 0, 0, 0])},
                 "the panel's closes are not the file's cl array",
             ),
             (
@@ -656,6 +694,35 @@ class TestAStrip:
                 lambda: strip_bytes(days=[DAYS[1], DAYS[0], *DAYS[2:]]),
                 "the file's trading days are not strictly increasing",
             ),
+            (
+                lambda: strip_bytes(days=[DAYS[0], DAYS[0], *DAYS[2:]]),
+                "the file's trading days are not strictly increasing",
+            ),
+            (
+                lambda: strip_bytes(contracts=["0000$", "2007F", "2007G", "2007A"]),
+                "the file names a column '2007A'",
+            ),
+            (
+                lambda: strip_bytes(contracts=["0000$", "2007F", "2007G", "2007FX"]),
+                "the file names a column '2007FX'",
+            ),
+            (
+                lambda: strip_bytes(contracts=["0000S", "2007F", "2007G", "2007H"]),
+                "the file names a column '0000S'",
+            ),
+            (
+                lambda: strip_bytes(days=DAYS[:3]),
+                "cl is 4 by 4 and the file carries 3 days and 4 columns",
+            ),
+            (
+                lambda: (
+                    scipy.io.savemat(
+                        buffer := io.BytesIO(), {"tday": np.array(DAYS).reshape(-1, 1)}
+                    )
+                    or buffer.getvalue()
+                ),
+                "the file carries no cl",
+            ),
         ],
     )
     def test_a_malformed_strip_is_refused_by_name(self, build, message: str) -> None:
@@ -689,6 +756,7 @@ class TestTheCommandPicksItsReaderByTheFile:
         assert shape_of(mat_bytes()) == "stocks"
         assert shape_of(strip_bytes()) == "strip"
         assert shape_of(strip_bytes(closes=STRIP[:, :1], contracts=None)) == "strip"
+        assert shape_of(strip_bytes(extra={"hi": STRIP})) == "strip"
 
     def test_a_file_naming_no_columns_but_holding_other_fields_takes_the_stock_path(
         self,
