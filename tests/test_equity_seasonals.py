@@ -27,8 +27,9 @@ are these.
    [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes
    the expressions that decide each rule. The R needs no repair. The MATLAB
    needs one repair to run, which :data:`chan.equity_seasonals.REVISED_MATLAB`
-   names, and which ``smartstd`` it calls is inferred from the digits it
-   prints.
+   names. The revised code as reposted at
+   pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84`` carries the same repair and book two's
+   ``smartstd``.
 
 Every reproduced figure is asserted twice. Its full value is held at
 ``abs=1e-9``, and its rounding is held at the precision its source prints. Two
@@ -319,7 +320,8 @@ class TestHestonSadkaRevisedMatlab:
     The listing cuts ``cl`` to its month-end rows and then masks on
     ``cl(monthEnds(m-1), :)``, which cannot run. The repair reads ``cl(m-1, :)``.
     Pp. 179 to 181 do not print ``smartstd``, so these tests also hold which of
-    Chan's two prints his digits.
+    Chan's two prints his digits. The revised code's repost ships book two's,
+    which is the one that does.
     """
 
     def test_both_figures_reproduce(self, spx) -> None:

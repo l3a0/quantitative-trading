@@ -1789,9 +1789,17 @@ decide each rule, and rows 9, 10, 13 and 14 run those rules.
 2. **The MATLAB needs one repair to run.** It cuts its closes to month-end rows
    and then reads one by a daily row number. `REVISED_MATLAB` reads the
    month-end row instead and follows the listing everywhere else.
-3. **One choice in the MATLAB is inferred rather than read.** The listing calls
-   `smartstd`, and pp. 179 to 181 do not print its body. Chan's two books ship two versions,
-   and only *Algorithmic Trading*'s prints row 10's digits.
+3. **The page leaves `smartstd` open.** The listing calls it, and pp. 179 to
+   181 do not print its body. Chan's two books ship two versions, and only
+   *Algorithmic Trading*'s prints row 10's digits.
+4. **The revised code's repost settles both.** The revised edition's MATLAB as
+   reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` holds an `example7_7.m` whose mask already
+   reads the month-end row, and which matches `REVISED_MATLAB` everywhere
+   else, down to the −0.0129 and −0.1243 in its closing comment. Its
+   `smartstd.m` divides by n, which is book two's. The repost is a third
+   party's copy rather than the book, so the page stays the source for rows 9
+   and 10, and the repost is what confirms the two choices the page does not
+   decide.
 
 Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on a
 different inference: the figures match the first edition's, so its rules are
@@ -1873,7 +1881,7 @@ printed precision, and the gap is zero at that precision.
 | 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
 | 8 | reproduced | Skipping the NaN month in the standard deviation instead of counting it as zero gives −0.1049. |
 | 9 | reproduced | The printed code with one repair. As printed, it reads a daily row of a 96-row array and cannot run. The repair reads the month-end row, and because the printed mask removes stocks by column, it keeps each stock on its own close. Keeping the first edition's sorted-against-columns rule instead gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so the code chooses the close where four decimals cannot. |
-| 10 | reproduced | As row 9, with `smartstd` inferred from the digits, since pp. 179 to 181 do not print it. *Algorithmic Trading*'s, which skips a month with no position and divides by n, prints −0.1243. The first edition's gives −0.1236. Every month the drop removes holds no position, so under the former the drop count moves no figure. Under the first edition's it does: dropping 12 also prints −0.1243 by counting one empty month as zero, which is the reading this row ran before the code was read, and dropping none gives −0.1330. |
+| 10 | reproduced | As row 9. Pp. 179 to 181 do not print `smartstd`, and the revised code's repost ships book two's. *Algorithmic Trading*'s, which skips a month with no position and divides by n, prints −0.1243. The first edition's gives −0.1236. Every month the drop removes holds no position, so under the former the drop count moves no figure. Under the first edition's it does: dropping 12 also prints −0.1243 by counting one empty month as zero, which is the reading this row ran before the code was read, and dropping none gives −0.1330. |
 | 11 | reproduced | Taking one shared row per month instead gives −0.012917. |
 | 12 | reproduced | Dividing by n − 1 instead gives −0.121508. |
 | 13 | reproduced | The printed code, unchanged, and the tightest of rows 9 to 14, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
@@ -1939,9 +1947,9 @@ in November 1999. [Issue 196](https://github.com/l3a0/quantitative-trading/issue
 is where the 13 percent is tested on a panel that still holds the companies
 that left.
 
-**Which `smartstd` the revised MATLAB calls, and how the revised R rounds
-Example 7.6.** Pp. 179 to 181 do not print `smartstd`, so row 10 takes the
-version whose digits land. R's Example 7.6 rounding is assumed from its Example 7.7 code.
+**How the revised R rounds Example 7.6.** It is assumed from its Example 7.7
+code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
+by the revised code's repost.
 
 **What happened after 2007.** After Example 7.7 the revised edition says the
 most recent five years give even worse average returns. Neither file reaches
