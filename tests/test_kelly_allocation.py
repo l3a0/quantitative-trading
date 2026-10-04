@@ -159,8 +159,9 @@ class TestConstantLeverage:
             constant_leverage_chain(5.0, 0.0, (1_000.0,))
 
     def test_a_chain_refuses_a_leverage_that_holds_nothing(self) -> None:
-        with pytest.raises(ValueError, match="holds no position"):
-            constant_leverage_chain(0.0, EX81_EQUITY, (1.0,))
+        for leverage in (0.0, -1.0):
+            with pytest.raises(ValueError, match="holds no position"):
+                constant_leverage_chain(leverage, EX81_EQUITY, (1.0,))
 
     def test_the_results_are_frozen(self) -> None:
         step = constant_leverage_chain()[0]
@@ -213,8 +214,11 @@ class TestTheProportionalScaling:
         assert _book(g, 2) == "0.82"
 
     def test_leverages_inside_the_cap_come_back_unchanged(self) -> None:
+        """As a copy, so a caller editing the result does not edit its input."""
         inside = np.array([0.5, 0.7])
-        assert np.array_equal(proportional_cap(inside, MAX_LEVERAGE), inside)
+        result = proportional_cap(inside, MAX_LEVERAGE)
+        assert np.array_equal(result, inside)
+        assert result is not inside
 
     def test_the_cap_is_on_gross_leverage(self) -> None:
         """A short leg counts toward the cap at its absolute size."""
@@ -434,8 +438,13 @@ class TestTheLongOnlyLimit:
 
 class TestTheInputsAreChecked:
     def test_the_capped_search_takes_two_strategies(self) -> None:
+        """Each half of the shape check on its own, so neither can be dropped."""
         with pytest.raises(ValueError, match="two strategies"):
             best_allocation_at_cap((0.1, 0.2, 0.3), covariance((0.1, 0.2, 0.3)), 2.0)
+        with pytest.raises(ValueError, match="two strategies"):
+            best_allocation_at_cap((0.1, 0.2), covariance((0.1, 0.2, 0.3)), 2.0)
+        with pytest.raises(ValueError, match="two strategies"):
+            best_allocation_at_cap((0.1, 0.2, 0.3), covariance((0.1, 0.2)), 2.0)
 
     def test_identical_strategies_have_no_best_split(self) -> None:
         with pytest.raises(ValueError, match="no variance"):
@@ -478,6 +487,28 @@ class TestTheReportSaysWhatItComputed:
         assert "2.289321" in out and "0.962956" in out and "2.578643" in out
         assert "2.448980" in out
 
+    def test_each_labelled_row_carries_its_own_value(self, capsys) -> None:
+        """The test above finds each value somewhere in the output, so it passes
+        with two rows swapped or a label on the wrong number. These read the line
+        each label sits on."""
+        report()
+        lines = capsys.readouterr().out.splitlines()
+
+        def row(label: str) -> str:
+            return next(line for line in lines if label in line)
+
+        assert "2.135068" in row("growth rate at Kelly, Equation 8.3")
+        assert "0.214228" in row("scaling factor, cap over gross")
+        assert "0.816798" in row("growth rate, proportional, Equation 8.4")
+        assert "correlation 0," in row("Example 8.2, two strategies")
+        assert "F1 = -0.289321" in row("Unbounded, the line peaks")
+        assert "sits at F2 = 1.049282" in row("The proportional allocation sits")
+        assert "peaks at F2 = 2." in row("rises the whole way")
+        loss = [cell for cell in lines if "-10,000" in cell][0].split()
+        gain = [cell for cell in lines if "+20,000" in cell][0].split()
+        assert loss == ["-10,000", "90,000", "490,000", "450,000", "-40,000"]
+        assert gain == ["+20,000", "110,000", "470,000", "550,000", "+80,000"]
+
     def test_the_corner_line_prints_three_decimals(self, capsys) -> None:
         report()
         line = next(
@@ -495,7 +526,8 @@ class TestTheReportSaysWhatItComputed:
             for row in capsys.readouterr().out.splitlines()
             if row.strip().startswith("F2 =")
         ]
-        assert len(growths) == kelly_allocation.CURVE_STEPS + 1
+        assert len(growths) == 9
+        assert kelly_allocation.CURVE_STEPS == 8
         assert growths == sorted(growths)
         assert growths[-1] == pytest.approx(0.955, abs=5e-7)
 
