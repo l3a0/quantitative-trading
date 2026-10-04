@@ -3,8 +3,10 @@
 :func:`engle_granger`, :func:`rolling_cointegration` and :func:`residual_check`
 are also what :mod:`chan.stationary_candidates` imports for Chan's other
 stationary candidates, which live there for the reason ``chan.series`` gives
-for the parse. The fixed-income one is a finding rather than a replication, and
-the CAD/AUD rate uses :func:`residual_check` alone, with a constant.
+for the parse. The fixed-income one is a finding rather than a replication, the
+CAD/AUD rate uses :func:`residual_check` alone, with a constant, and the
+calendar spreads run :func:`engle_granger` and :func:`residual_check` on every
+adjacent pair of futures contracts.
 
 Reproduces the pair-trading examples in Ernest Chan, *Quantitative Trading*
 (rev. ed.): a hedge-ratio regression, an Engle-Granger / CADF unit-root test on

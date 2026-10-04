@@ -16,6 +16,7 @@ from decimal import Decimal
 
 import pytest
 
+from chan import futures
 from chan.commodity_seasonals import (
     GASOLINE_YEARS,
     HARBOR_GASOLINE,
@@ -136,23 +137,9 @@ class TestTheNaturalGasExpiries:
         assert abs(one[after] - two[last]) < abs(one[after] - one[last])
 
     @staticmethod
-    def handover_fit(last: date) -> Decimal:
-        """How much better a handover after ``last`` fits the files than no handover.
-
-        The spreads between neighbouring files on the next trading day are set
-        against the spreads one file further up on ``last``, which a handover
-        predicts, and against the same files' spreads, which no handover
-        predicts. A negative value says the handover fits better.
-        """
-        files = {n: settlements(NATURAL_GAS[n])[1] for n in (1, 2, 3, 4)}
-        nxt = on_or_after(date.fromordinal(last.toordinal() + 1))
-
-        def spread(day: date, n: int) -> Decimal:
-            return files[n][day] - files[n + 1][day]
-
-        moved = sum(abs(spread(nxt, n) - spread(last, n + 1)) for n in (1, 2))
-        stayed = sum(abs(spread(nxt, n) - spread(last, n)) for n in (1, 2))
-        return moved - stayed
+    def handover_fit(last: date) -> Decimal | None:
+        """The files' handover fit after ``last``, from :func:`chan.futures.handover_fit`."""
+        return futures.handover_fit(futures.NATURAL_GAS_CONTRACTS, last)
 
     def test_the_lead_time_by_era(self) -> None:
         assert [ng_lead_days(1996, 1), ng_lead_days(1996, 2)] == [6, 5]
