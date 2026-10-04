@@ -548,7 +548,7 @@ def strip_bytes(
 
 
 class TestAStrip:
-    """A futures strip's shape, which issue 300 records one vintage per contract."""
+    """A futures strip, which issue 300 records as one vintage per contract."""
 
     NAME = "inputDataDaily_CL_20120813.mat"
 
@@ -682,13 +682,21 @@ class TestAStrip:
 
 
 class TestTheCommandPicksItsReaderByTheFile:
-    """The basis a caller states no longer chooses the reader, the variables do."""
+    """The variables a file carries choose the reader, not the basis the caller states."""
 
     def test_each_shape_is_named_by_what_it_carries(self) -> None:
         assert shape_of(flag_bytes(flags=FLAGS)) == "flags"
         assert shape_of(mat_bytes()) == "stocks"
         assert shape_of(strip_bytes()) == "strip"
         assert shape_of(strip_bytes(closes=STRIP[:, :1], contracts=None)) == "strip"
+
+    def test_a_file_naming_no_columns_but_holding_other_fields_takes_the_stock_path(
+        self,
+    ) -> None:
+        """Only a lone ``cl`` reads as one series. A stock file with its symbol
+        list missing would otherwise be read as a strip of one column, its other
+        four fields dropped."""
+        assert shape_of(mat_bytes(omit=("stocks",))) == "stocks"
 
     def test_a_file_naming_its_columns_syms_stays_on_the_stock_path(self) -> None:
         """Chan's ETF file carries ``syms``, and the stock reader is what
@@ -762,6 +770,27 @@ class TestTheCommandPicksItsReaderByTheFile:
         assert capsys.readouterr().err.splitlines() == [
             "earnannFile.mat: not recorded. the file carries earnann, which is recorded under "
             "the event basis rather than raw"
+        ]
+        assert read_manifest(data_dir) == []
+
+    def test_a_strip_given_another_price_basis_is_refused_in_one_line(
+        self,
+        tmp_path: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        path = tmp_path / "inputDataDaily_CL_20120813.mat"
+        path.write_bytes(strip_bytes())
+
+        assert mat_columns.main([str(path), "--price-basis", "adjusted"]) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "inputDataDaily_CL_20120813.mat: not recorded. the file is a futures strip, whose "
+            "settlements are recorded under the raw basis rather than adjusted"
         ]
         assert read_manifest(data_dir) == []
 

@@ -25,7 +25,7 @@ import pandas as pd
 import pytest
 
 from chan.futures import rbob_last_trade
-from chan.series import load_panel, scale_breaks
+from chan.series import SCALE_BREAK_BOUND, load_panel, scale_breaks
 from chan.vintage import read_manifest, resolve_vintage
 from tests.support.committed_vintages import LIFTED_SOURCES
 
@@ -236,3 +236,25 @@ class TestTheGuardFlagsNothing:
                     flagged[symbol] = days
 
         assert flagged == {}
+
+    def test_the_widest_move_is_crude_s_spot_on_the_first_day_of_the_gulf_war_air_campaign(
+        self,
+    ) -> None:
+        """The widest daily move in any strip, measured on the log of the ratio.
+
+        CL's spot fell from 32.05 to 21.44 on 1991-01-17, a ratio of 0.6690.
+        That sits inside the bound of 1.6 either way, and outside the 0.6810
+        the single-series envelope in ``tests/test_scale_breaks.py`` reaches,
+        which is why that envelope reads no lifted column."""
+        widest = (0.0, "", "")
+        for source in [strip[0] for strip in STRIPS] + [GOLD]:
+            _, panel = load_panel(source)
+            for symbol in panel.columns:
+                closes = panel[symbol].dropna()
+                moves = np.abs(np.log(closes.to_numpy()[1:] / closes.to_numpy()[:-1]))
+                if moves.max() > widest[0]:
+                    day = str(closes.index[int(moves.argmax()) + 1].date())
+                    widest = (float(moves.max()), symbol, day)
+
+        assert (round(widest[0], 4), widest[1], widest[2]) == (0.4020, "CL-SPOT", "1991-01-17")
+        assert widest[0] < SCALE_BREAK_BOUND

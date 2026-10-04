@@ -1,4 +1,4 @@
-"""Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
+"""Record one of Ernest Chan's MATLAB files as one vintage per column.
 
 Chan's cross-sectional examples read four price files. Three come from his
 first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
@@ -25,18 +25,19 @@ series sampled at 16:00, ``inputData_GC_1600_20100802.mat``.
 that each contract is one vintage holding the close alone, because the file
 holds nothing else, under a symbol joining the file's root and the contract,
 such as ``CL-2007F``. The root is needed because six strips share a saved date,
-so a bare ``2007F`` would name six vintages no reader argument could separate.
-Chan's spot column, ``0000$``, becomes ``CL-SPOT``. The gold file holds no
+so a bare ``2007Z`` would name six vintages no reader argument could separate.
+Chan's spot column, ``0000$``, becomes ``<root>-SPOT``. The gold file holds no
 contract names, so it is read as a strip of one column named for its root.
 :func:`record_strip_file` records either and :func:`strip_round_trip_differs`
 checks it.
 
 This module is the half that needs scipy. It reads the ``.mat`` bytes, turns
-each stock into rows, and hands them to
+each column into rows, and hands them to
 :func:`chan.vintage.record_lifted_columns`, which owns the write order, the
 refusals and the rollback and stays on the standard library.
 
-Three choices are settled here rather than left to whoever runs it.
+Three choices are settled here for the stock files rather than left to whoever
+runs it.
 
 1. **Every field is kept.** The owner decided on 2026-10-02 to record all five
    arrays rather than the closes alone. The closes are what Chan's printed
@@ -62,17 +63,16 @@ Three choices are settled here rather than left to whoever runs it.
    the save. ``IJR_20080131.mat`` is the exception: its name says 2008-01-31,
    its last row is 2008-02-01 and its header says 2008-02-02.
 
-The price basis is the caller's to state, because nothing in the file says
-it, and it names the four prices. ``data/README.md`` records what was measured
-for each file and why it is recorded as ``adjusted``, or as ``raw`` for a
-strip, whose settlements nobody adjusted. A flag file takes ``event`` and
-nothing else.
+The price basis is the caller's to state for a stock file, because nothing in
+the file says it, and it names the four prices. ``data/README.md`` records what
+was measured for each file and why it is recorded as ``adjusted``. A strip
+takes ``raw`` and nothing else, because a contract's settlement is the price it
+traded at and nothing adjusts it. A flag file takes ``event`` and nothing else.
 
 Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``,
 ``--price-basis raw`` for a strip, or ``--price-basis event`` for a flag file.
 The command picks its reader by the variables the file carries rather than by
-the basis: ``earnann`` is a flag file, ``stocks`` is a stock file, and anything
-else is read as a strip. The files are not committed, so a run needs a local
+the basis, and :func:`shape_of` says how. The files are not committed, so a run needs a local
 copy taken from the source and commit ``data/README.md`` names for that file.
 """
 
@@ -366,8 +366,8 @@ def read_strip(payload: bytes, root: str) -> tuple[list[str], list[str], np.ndar
 
     Each contract column is named ``<root>-<contract>`` and the spot column
     ``<root>-SPOT``. A file with no ``contracts`` must hold one column, which
-    is named ``<root>``. Any other column name is refused, because a name
-    this does not recognise is a column nobody has said what it holds.
+    is named ``<root>``. Any other column name is refused, because nothing
+    says what an unrecognised column holds.
     """
     held = scipy.io.loadmat(io.BytesIO(payload), variable_names=["tday", "contracts", "cl"])
     missing = [name for name in ("tday", "cl") if name not in held]
@@ -462,7 +462,7 @@ def strip_round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m chan.mat_columns",
-        description="Record one of Chan's .mat files as one vintage per stock.",
+        description="Record one of Chan's .mat files as one vintage per column.",
     )
     parser.add_argument("path", type=Path, help="a local copy of the .mat file")
     parser.add_argument("--price-basis", required=True, choices=PRICE_BASES)
@@ -484,6 +484,11 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("the file carries no earnann")
         elif shape == "stocks":
             entries = record_mat_file(arguments.path, price_basis=basis)
+        elif basis != "raw":
+            raise ValueError(
+                f"the file is a futures strip, whose settlements are recorded under the raw "
+                f"basis rather than {basis}"
+            )
         else:
             entries = record_strip_file(arguments.path, price_basis=basis)
     except (VintageRefused, ValueError) as refused:
@@ -528,17 +533,22 @@ def shape_of(payload: bytes) -> str:
     strips arrived a strip handed to the command reached the stock reader and
     was refused for carrying no ``stocks``.
 
-    A strip is a file carrying ``contracts``, or a file naming no columns at
-    all, which is the gold file's shape. A file naming its columns ``syms``
-    stays on the stock path, where :func:`read_arrays` refuses it for carrying
-    no ``stocks``. Chan's ETF file is one, and
+    A strip is a file carrying ``contracts``, or a file naming no columns and
+    holding no price array but ``cl``, which is the gold file's shape. Anything
+    else takes the stock path, so a stock file with its symbol list misspelled
+    is refused for carrying no ``stocks`` rather than read as one series. A file
+    naming its columns ``syms`` takes the stock path too, where
+    :func:`read_arrays` refuses it for carrying no ``stocks``. Chan's ETF file
+    is one, and
     [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) is
     what teaches the stock reader that spelling.
     """
     held = {name for name, _, _ in scipy.io.whosmat(io.BytesIO(payload))}
     if "earnann" in held:
         return "flags"
-    if "contracts" in held or not held & {"stocks", "syms"}:
+    if "contracts" in held:
+        return "strip"
+    if not held & ({"stocks", "syms", *ARRAYS.values()} - {ARRAYS["Close"]}):
         return "strip"
     return "stocks"
 

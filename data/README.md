@@ -723,21 +723,30 @@ measurements below.
    still states its own size against that in its issue before it is recorded.
 
 The next eight directories are Chan's per-contract futures strips from
-*Algorithmic Trading*, one column per contract, and the ninth is his gold
-series sampled at 16:00. His Example 5.3, `estimateFuturesReturns.m`, reads
-seven of the strips one at a time to estimate spot and roll returns, and his
-Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL strip saved for
-2012-08-13 to trade crude oil's 12-month calendar spread. The TU and VX strips
-feed two unnumbered experiments, `VX_ES_rollreturn.m` reads the VX strip, and
-`GLD_GC.m` reads the gold series. No replication reads any of them yet.
-[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
-the measurements below and the decision behind the shape.
+*Algorithmic Trading*, and the ninth is his gold series sampled at 16:00. A
+futures contract is an agreement to trade a commodity in one delivery month,
+and the exchange publishes a settlement price for it each day it trades. A
+strip holds one column of those settlements per contract, for one commodity,
+named by the exchange's code for that commodity, its root, such as CL for
+crude oil. A spot column holds the price of the commodity itself rather than
+of a contract on it.
 
-1. **Where they came from.** The two mirrors point 1 of the book-two list above
-   names hold all nine with identical git blobs, EpchanPreview at `e4bc46f`
-   under `public/img/book2/` and ivanliu1989/algorithmic_trading at `4567024`
-   under `archived/matlab/`. Neither carries a licence. The `.mat` files are
-   not committed, and their sha256 is recorded here.
+His Example 5.3, `estimateFuturesReturns.m`, reads seven of the strips one at
+a time. It splits each commodity's return into the part that comes from the
+commodity's own price and the part that comes from holding contracts as they
+near delivery. His Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL
+strip named for 2012-08-13 to trade the gap between two crude contracts
+delivering 12 months apart. Two unnumbered experiments read the TU and VX
+strips. `VX_ES_rollreturn.m` also reads the VX strip, and `GLD_GC.m` reads the
+gold series. No replication reads any of them yet.
+[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
+the decision behind the shape, and the build measured what follows.
+
+1. **Where they came from.** Both mirrors named in point 1 of the book-two
+   list above hold all nine, with identical git blobs: EpchanPreview at
+   `e4bc46f` under `public/img/book2/`, and ivanliu1989/algorithmic_trading at
+   `4567024` under `archived/matlab/`. Neither carries a licence. The `.mat`
+   files are not committed, and their sha256 is recorded here.
 
    ```text
    e6cd73a6ee37377769dbdf4047df8a4d17c2c599114a073e133f8c724e0c3d65  inputDataDaily_BR_20120813.mat
@@ -752,79 +761,90 @@ the measurements below and the decision behind the shape.
    ```
 
 2. **Each contract is one vintage holding its settlement alone.** A strip
-   holds `tday`, `contracts` and `cl` and nothing else, so each member carries
-   the close and no other field. The symbol joins the root in the file's name
-   to the contract, such as `CL-2007F`, because the six strips saved for
-   2012-08-13 share a saved date, 2012-08-14. A bare `2007F` would name six
-   vintages under one vendor, basis and date, and no reader argument could
-   separate them. Chan names the spot column `0000$`, which the record's
-   symbol rule refuses, so it is recorded as `<root>-SPOT`. Six strips carry
-   one, and the CL strip saved for 2012-05-02 and the VX strip carry none.
+   holds `tday`, `contracts` and `cl` and nothing else, so each member's
+   `Close` field holds the contract's daily settlement and no other field
+   exists. The symbol joins the root in the file's name to the contract, such
+   as `CL-2007F`, where 2007 is the delivery year and F is CME's letter for
+   January. The root is there because the six strips named for 2012-08-13
+   share one saved date, 2012-08-14, and all six hold a December 2007
+   contract. A bare `2007Z` would name six vintages under one vendor, basis
+   and date, and no reader argument could separate them. Chan names the spot
+   column `0000$`, which the record's symbol rule refuses, so it is recorded
+   as `<root>-SPOT`. Six strips carry one, and the CL strip named for
+   2012-05-02 and the VX strip carry none.
 3. **The basis is `raw`.** A contract's settlement is the price it traded at,
-   and nothing adjusts it, unlike a continuous series spliced across rolls.
+   and nothing adjusts it. A continuous series, which switches from each
+   expiring contract to the next, is different, because its history is
+   shifted at every switch.
 4. **Sorted symbols are Chan's contract order.** `chan.series.load_panel`
    returns members sorted by symbol, and CME's month letters, F G H J K M N Q
    U V X Z, run alphabetically in calendar order. In all eight strips the
-   contracts in file order are their sorted order. The spot column sorts last,
-   although four strips hold it first. That matters because
+   contracts in file order are their sorted order. The spot column sorts
+   last, although four strips hold it first, which the committed bytes cannot
+   show and nothing pins. The order matters because
    `calendarSpdsMeanReversion.m` pairs a contract with the one 12 places later
    by position.
 5. **A day without a settlement is a missing row.** No strip holds a day on
-   which no contract settled, so the union of the members' dates is the file's
-   own `tday`, and `load_panel` rebuilds every NaN. Some columns stop and
-   restart: 15 in BR, 29 in HG, 31 in HO2, 2 in TU and 1 in the CL strip saved
-   for 2012-08-13, spot columns included. The scripts read those holes,
+   which no contract settled, so the union of the members' dates is the
+   file's own `tday`, and `load_panel` rebuilds every NaN. Some columns stop
+   and restart: 15 in BR, 29 in HG, 31 in HO2, 2 in TU and 1 in the CL strip
+   named for 2012-08-13, spot columns included. The scripts read those holes,
    because they find a contract's last day as the last finite settlement
    before a NaN. `chan.mat_columns.strip_round_trip_differs` rebuilt each
    strip's `cl` array from the committed bytes and found it equal, days,
    column order and every NaN included.
-6. **HO2's expiries follow the rule `chan.futures` already holds.** RBOB's
-   rule, the last business day of the month before delivery, is heating
-   oil's too. Of HO2's 309 contracts that stop before the file does, 300 last
-   settle on that rule's day. For 8, the rule's day has no row in the file,
-   such as 1986-11-28 and 1993-12-31, and each stops on the day before, so
-   Chan's calendar lacks some NYMEX trading days. One, August 2012, stops a
-   day early. [tests/test_futures_strips.py](../tests/test_futures_strips.py) pins those
+6. **HO2's expiries follow a rule `chan.futures` already holds.** The rule for
+   RBOB, NYMEX's gasoline contract, is the last business day of the month
+   before delivery, and heating oil's is the same. Of HO2's 309 contracts that
+   stop before the file does, 300 last settle on that rule's day. For 8, the
+   rule's day has no row in the file, such as 1986-11-28 and 1993-12-31, and
+   each stops on the row before, so Chan's calendar lacks some NYMEX trading
+   days. One, August 2012, stops a day early.
+   [tests/test_futures_strips.py](../tests/test_futures_strips.py) pins those
    counts.
 7. **No other expiry rule is built.** `chan.futures` has none for CL, VX, TU,
    BR, HG or C2, and nothing needs one, because every script finds a
-   contract's last day from the data. Two were written in scratch to see how
-   far the files follow the exchanges, and their figures are not pinned.
-   CME's crude rule, three business days before the 25th of the month before
-   delivery, gives the last settlement of 65 of the 68 expired contracts in
-   the CL strip saved for 2012-08-13 and 62 of the 65 in the one saved for
-   2012-05-02. The three misses are the same three contracts in both, each
-   stopping one trading day early. VX's last settlement falls on CFE's
-   final settlement day, the Wednesday 30 days before the next month's third
-   Friday, for 36 of its 64 expired contracts, on the trading day before it
-   for 23, and on neither for 5.
+   contract's last day from the data. A scratch script, not committed, wrote
+   two to see how far the files follow the exchanges, and none of its figures
+   is pinned. CME's crude rule, three business days before the 25th of the
+   month before delivery, gives the last settlement of 65 of the 68 expired
+   contracts in the CL strip named for 2012-08-13 and 62 of the 65 in the one
+   named for 2012-05-02. The three misses are the same three contracts in
+   both, each stopping one trading day early. For VX, CFE, the Cboe futures
+   exchange, settles a contract on the Wednesday 30 days before the next
+   month's third Friday, or 30 days before the Thursday when that Friday is a
+   holiday. The last settlement of 36 of VX's 64 expired contracts falls on
+   that day, 23 on the trading day before it, and 5 on neither.
 8. **The Python port's copies agree.** Chan's 2018 Python port,
    `PythonCodesAndData.zip` in EpchanPreview, sha256
-   `91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317`, carries
-   three of the strips as CSV: C2, the CL strip saved for 2012-05-02 and VX.
-   Each holds the `.mat` file's days and columns in the same order, its spot
-   column named `C_Spot` rather than `0000$`, and equals it cell for cell,
-   NaN for NaN, across 25,168, 92,440 and 12,279 settlements. The zip is not
-   committed, so the comparison ran when the strips were recorded.
+   `91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317`,
+   carries three of the strips as CSV: C2, the CL strip named for 2012-05-02,
+   and VX. Each holds the `.mat` file's days and columns in the same order,
+   and each equals it cell for cell, NaN for NaN, across 25,168, 92,440 and
+   12,279 settlements. C2's copy names its spot column `C_Spot` rather than
+   `0000$`. The zip is not committed, so the comparison ran when the strips
+   were recorded, and nothing pins it.
 9. **The gold series is one vintage, `GC`.** It is recorded under `chan-mat`
    and `raw`, the close alone, and its root comes from its name the way a
-   strip's does. It differs from the back-adjusted GC column of
-   `inputDataOHLCDaily_20120504.mat`, sha256 `b69f8b8c…`, on all 555 days the
-   two share, by −15.4 to 84.7. That file carries the same saved date,
-   2012-05-07, so the basis is also what keeps the two apart. The file also
-   holds `hhmm`, 18,326 times of day taking 27 values, against 761 closes, so
-   it does not index them. `GLD_GC.m` loads it and never reads it, and it is
-   not kept.
+   strip's does. The GC column of `inputDataOHLCDaily_20120504.mat`, sha256
+   `b69f8b8c…`, is a continuous series, shifted at each switch of contract.
+   On all 555 days the two share, the 16:00 close sits between 15.4 dollars
+   below it and 84.7 dollars above it, a measurement nothing pins because
+   that file is not committed. Both carry the saved date 2012-05-07, so the
+   basis is also what keeps them apart. The file also holds `hhmm`, 18,326
+   times of day taking 27 values, against 761 closes, so it does not index
+   them. `GLD_GC.m` loads `hhmm` but never uses it, so the lift drops it.
 10. **The scale-break guard flags nothing.** It reads all 1,232 members as
     prices, because their basis is `raw`, and no close in any of them sits
     below 0.625 or above 1.6 times the one before.
 11. **It fits the budget.** The nine directories and their manifest and
     checksum lines hold 10.36 MB, and this section adds 0.01 MB, which takes
-    `data/` from 134.91 MB to 145.28 MB of file content, under the 150 MB budget point 5 of the
-    book-two list above sets. The owner ruled on 2026-10-04, on
+    `data/` from 134.91 MB to 145.28 MB of file content, under the 150 MB
+    budget point 5 of the book-two list above sets. The owner ruled on
+    2026-10-04, on
     [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), that
-    the four book-two lifts may take it to 205 MB, and the change that crosses
-    150 MB raises the budget here.
+    this lift and the three built beside it may take `data/` to 205 MB, and
+    the change that crosses 150 MB raises the budget here.
 
 ## Two vintages kept in the owner's archive
 
@@ -1017,10 +1037,10 @@ for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
 
-A directory gets one row rather than one per file, so every column lifted
-from one source shares one row. The row states what every file in it shares, which is the
-vendor, the basis and the date, along with how many members it holds and the
-earliest and latest day any of them carries. Its members must agree on the
+A directory gets one row rather than one per file, so a source's lifted
+columns take one row between them. The row states what every file in it has
+in common, which is the vendor, the basis and the date, along with how many
+members it holds and the earliest and latest day any of them carries. Its members must agree on the
 three shared cells, or the failure names the directory and the values. What
 holds each member's own identity is the pin for its source in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),

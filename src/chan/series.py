@@ -64,9 +64,9 @@ the only way to see the vendor rewrite history, and between two sources it says
 where they disagree. It lives here for the same reason the guard does.
 
 :func:`load_panel` reads a whole source file's columns as one date-by-symbol
-frame, which is how Chan's cross-sectional examples read his ``.mat`` files.
+frame, which is how Chan's examples read his ``.mat`` files.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
-those as one vintage per stock, and the panel is what puts them back together.
+those as one vintage per column, and the panel is what puts them back together.
 """
 
 from __future__ import annotations
@@ -241,7 +241,7 @@ def vintage_line(entry: VintageEntry) -> str:
 def load_panel(
     source_file: str, *, field: str = "Close", data_dir: Path | None = None
 ) -> tuple[list[VintageEntry], pd.DataFrame]:
-    """Every stock lifted from one source file, as a date-by-symbol frame of one field.
+    """Every column lifted from one source file, as a date-by-symbol frame of one field.
 
     ``field`` is a name from :data:`chan.vintage.LIFTED_FIELDS`, the close by
     default, or from :data:`chan.vintage.EVENT_FIELDS` for a source of flags. A
@@ -257,9 +257,9 @@ def load_panel(
     [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
     and for the two book-two files on
     [issue 250](https://github.com/l3a0/quantitative-trading/issues/250).
-    His futures strips hold their contracts in that order too, measured on
-    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300),
-    because CME's month letters run alphabetically in calendar order. Their
+    His futures strips hold their contracts in calendar order, which is sorted
+    order because CME's month letters run alphabetically, measured on
+    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300). A
     spot column is the exception: four strips hold it first, and its symbol,
     ``<root>-SPOT``, sorts after every contract.
 
