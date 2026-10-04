@@ -73,7 +73,7 @@ from chan.equity_seasonals import (
     summarize,
 )
 from chan.matlab_helpers import round_half_away
-from chan.series import load_panel, panel_line
+from chan.series import load_panel, panel_line, row_month_ends
 from chan.vintage import VintageUnavailable
 
 
@@ -145,7 +145,7 @@ class TestJanuaryMatlab:
         That leaves three Januaries against four Decembers, so its check that
         each January follows its December fails before anything prints.
         """
-        ends = seasonals._row_month_ends(ijr.index)
+        ends = row_month_ends(ijr.index)
         decembers = [ijr.index[row] for row in ends if ijr.index[row].month == 12]
         januaries = [ijr.index[row] for row in ends if ijr.index[row].month == 1]
         assert [day.date().isoformat() for day in decembers] == [
@@ -285,7 +285,7 @@ class TestTheShapesTheScaleBreakCommentNames:
     """What the comment above ``FLAGGED_IN_CHANS_MAT_FILES`` says about Example 7.7."""
 
     def test_aapls_flagged_day_is_a_month_end(self, spx) -> None:
-        ends = spx.index[seasonals._row_month_ends(spx.index)]
+        ends = spx.index[row_month_ends(spx.index)]
         assert pd.Timestamp("2000-09-29") in ends
 
     @pytest.mark.parametrize("rules", [FIRST_EDITION_MATLAB, PYTHON_HESTON_SADKA])
@@ -299,7 +299,7 @@ class TestTheShapesTheScaleBreakCommentNames:
         if rules.per_stock_period_ends:
             ends = spx.resample("ME").last().iloc[:-1]
         else:
-            ends = spx.iloc[seasonals._row_month_ends(spx.index)]
+            ends = spx.iloc[row_month_ends(spx.index)]
         returned = ends[symbol].pct_change(fill_method=None)
         missing = spx[symbol].isna().to_numpy()
         runs, run = [], 0
@@ -331,7 +331,7 @@ class TestHestonSadkaRevisedMatlab:
 
     def test_the_printed_index_is_out_of_range_on_the_first_pass(self, spx) -> None:
         """``monthEnds(12)`` is a daily row, and the cut ``cl`` holds 96 rows."""
-        ends = seasonals._row_month_ends(spx.index)
+        ends = row_month_ends(spx.index)
         assert len(ends) == 96
         assert ends[11] + 1 == 237
 

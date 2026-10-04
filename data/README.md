@@ -122,7 +122,10 @@ by hand, which is why it carries the recorder's five-field name and a single
 [src/chan/kelly_leverage.py](../src/chan/kelly_leverage.py) for Chan's Example
 6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
 leg of Qian's allocation. The other two SPY files are workbook columns
-placed by hand. The Kelly run reads `spy_chan.csv` under `--chan`, and
+placed by hand. The Kelly run reads `spy_chan.csv` under `--chan`,
+[src/chan/momentum_factor.py](../src/chan/momentum_factor.py) reads it as the
+market factor of
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22), and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.
 
@@ -427,6 +430,9 @@ pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` carries an
 `IJR_20080114.mat` with the sha256 recorded below. Each directory holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
+[`chan.momentum_factor`](../src/chan/momentum_factor.py) reads the first's
+closes to build the momentum factor and the stocks it is compared against, for
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22).
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
 measurements below and the decision behind the shape.
 

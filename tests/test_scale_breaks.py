@@ -146,6 +146,17 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: between them, and the fill reads that gap as one day's return of 1.8654.
 #: ``TestTheSplice`` in ``tests/test_pca_factor.py`` pins that return and every
 #: printout's figures without PMC.
+#:
+#: [Issue 22](https://github.com/l3a0/quantitative-trading/issues/22) decided
+#: that ``chan.momentum_factor`` refuses no window either. Apart from WYN's and
+#: DFS's restarts, the flags on the S&P 500 file read as real moves, and a
+#: momentum ranking is meant to see a real collapse. Refusing a window across
+#: AAPL's 2000-09-29 would drop exactly the kind of loser the factor exists to
+#: short. WYN and DFS cannot reach a formation across their gaps, because a
+#: stock enters one only with a finite close at all 14 month-ends from t − 12
+#: to t + 1, and each gap holds a month-end with no close.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_momentum_factor.py`` holds
+#: that.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
