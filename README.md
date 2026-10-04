@@ -438,9 +438,11 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's MATLAB price files, below, report 113 more, most of
-them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
-one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
+The columns lifted from Chan's MATLAB price files, below, report 171 more. In
+his stock files most are real moves in single stocks, and the 58 in his ETF
+file fall in eight leveraged and inverse funds in 2008 and 2009. The
+Khandani-Lo reversal's 2006 window spans one of the stock days, WYN's restart
+on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
 that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
@@ -491,15 +493,23 @@ file, for [issue 137](https://github.com/l3a0/quantitative-trading/issues/137).
 read.
 [data/README.md](data/README.md) says what each file holds.
 
-Five of Chan's own files are cross-sections rather than series. Four hold
-prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 in two saves named
-for 2008-01-14 and 2008-01-31, and the S&P 500 as he held it on 2012-04-24. The fifth holds his earnings-announcement flags for those last
-497 stocks, a 0 or 1 for each day. Each is committed as one vintage per stock,
-2,694 between them, written by
-`src/chan/mat_columns.py` under a directory per file. A price file's stock
-holds its close, high, low, open and volume, and a flag file's stock holds its
+Six of Chan's own files are cross-sections rather than series. Five hold
+prices.
+
+1. The S&P 500 as it stood on 2007-11-23.
+2. The S&P 600 in a save named for 2008-01-14.
+3. The S&P 600 in a later save named for 2008-01-31.
+4. The S&P 500 as he held it on 2012-04-24.
+5. The 67 ETFs his second book's examples read, as he saved them on
+   2012-04-10.
+
+The sixth holds his earnings-announcement flags for the 497 stocks of the 2012 S&P
+500 file, a 0 or 1 for each day. Each is committed as one vintage per stock or
+ETF, 2,761 between them, written by
+`src/chan/mat_columns.py` under a directory per file. A price file's member
+holds its close, high, low, open and volume, and a flag file's member holds its
 flag for every day of the file's calendar.
-`chan.series.load_panel` reads a whole file back as one date-by-stock frame
+`chan.series.load_panel` reads a whole file back as one date-by-symbol frame
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
@@ -519,6 +529,10 @@ factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
+No run reads the ETF file yet. The lift for
+[issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
+it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
+examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract

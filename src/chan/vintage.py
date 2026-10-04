@@ -206,11 +206,11 @@ class VintageEntry:
     Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
     one it is holds an ISO calendar date. A download carries the first. A
     series lifted from one of Ernest Chan's files carries the second, the
-    ``*_chan.csv`` workbook columns, the members of the ``.mat`` directories and
-    the files of his Python port alike, because its date is when Chan last saved the file and
-    nothing was fetched on that day. Putting a save date in a field named for a download
-    would hand the next reader a wrong fact in the field that identifies the
-    vintage.
+    ``*_chan.csv`` workbook columns, the members of every directory lifted from
+    a ``.mat`` and the files of his Python port alike, because its date is when
+    Chan last saved the file and nothing was fetched on that day. Putting a save
+    date in a field named for a download would hand the next reader a wrong fact
+    in the field that identifies the vintage.
 
     Both rules are checked wherever an entry is built, which includes the line
     :func:`read_manifest` reads back, and so are ``vendor``, ``symbol`` and

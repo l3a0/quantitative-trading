@@ -22,9 +22,9 @@ Four sources, told apart by what the manifest records rather than by a filename.
   ``unadjusted=True`` reads, and no other symbol has one.
 - Chan's MATLAB files, under the vendor ``chan-mat``, which :func:`load_panel`
   reads a whole file at a time and no ticker flag names. Four hold stock
-  prices and one holds earnings flags under the ``event`` basis. Eight more are
-  futures strips, one ``raw`` column per contract, and one is a gold series of
-  one column.
+  prices, one holds the prices of 67 ETFs, and one holds earnings flags under
+  the ``event`` basis. Eight more are futures strips, one ``raw`` column per
+  contract, and one is a gold series of one column.
 - Chan's 2018 Python port, under the vendor ``chan-py``, whose files are
   committed as the zip shipped them. :func:`load_minute_close` reads the one
   that holds minute bars, a close per day at 16:59 New York time. The daily
@@ -51,9 +51,10 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB price files carry 113 more flagged days, most of
-them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
-of them.
+The columns lifted from Chan's MATLAB price files carry 171 more flagged days.
+In his stock files most are real moves in single stocks, and in his ETF file
+they fall in leveraged and inverse funds. ``tests/test_scale_breaks.py`` pins
+all of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands
 back both manifest entries, so this module reads two series as well as one.
@@ -327,8 +328,10 @@ def load_panel(
     for his first two on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88),
     for the later S&P 600 save on
     [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
-    and for the two book-two files on
-    [issue 250](https://github.com/l3a0/quantitative-trading/issues/250).
+    for the book-two S&P 500 file and its flag file on
+    [issue 250](https://github.com/l3a0/quantitative-trading/issues/250),
+    and for the book-two ETF file, whose list is named ``syms``, on
+    [issue 299](https://github.com/l3a0/quantitative-trading/issues/299).
     His futures strips hold their contracts in calendar order, which is sorted
     order because CME's month letters run alphabetically, measured on
     [issue 300](https://github.com/l3a0/quantitative-trading/issues/300). A

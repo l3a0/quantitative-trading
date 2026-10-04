@@ -1391,7 +1391,7 @@ class TestAPanelIsOneSourceReadOnce:
 
 
 class TestTheCommittedPanelsAreChansArrays:
-    """The price sources issues 88, 250 and 225 committed, read back whole.
+    """The price sources issues 88, 250, 225 and 299 committed, read back whole.
 
     The conversion checked each panel against the ``.mat`` it came from, cell
     for cell and NaN for NaN, and printed so. The ``.mat`` files are not
@@ -1425,6 +1425,7 @@ class TestTheCommittedPanelsAreChansArrays:
                 "2012-04-24",
                 [],
             ),
+            ("inputData_ETF.mat", 1500, 67, 83_454, "2006-04-26", "2012-04-09", []),
         ],
     )
     def test_each_panel_has_the_shape_and_the_priced_cells_of_chan_s_array(
@@ -1475,6 +1476,7 @@ class TestTheCommittedPanelsAreChansArrays:
             "IJR_20080114.mat",
             "IJR_20080131.mat",
             "inputDataOHLCDaily_stocks_20120424.mat",
+            "inputData_ETF.mat",
         ],
     )
     def test_every_field_is_priced_on_exactly_the_days_the_close_is(self, source: str) -> None:
@@ -1528,6 +1530,121 @@ class TestTheCommittedPanelsAreChansArrays:
             "ijr_20080131/   chan-mat adjusted, saved 2008-02-02, "
             "600 members lifted from IJR_20080131.mat"
         )
+        assert panel_line(load_panel("inputData_ETF.mat")[0]) == (
+            "inputdata_etf/   chan-mat adjusted, saved 2012-04-10, "
+            "67 members lifted from inputData_ETF.mat"
+        )
+
+
+class TestTheETFFileSubtractsEachDividend:
+    """Chan's ETF prices fold each dividend in by subtracting it, not by rescaling.
+
+    That is what ``adjusted`` means for ``inputData_ETF.mat``, and it is a
+    different series from a rescaled close: a subtraction moves the gap to the
+    as-traded price only on an ex-dividend day, and it can take a close below
+    zero. ``docs/design.md`` widens **adjusted price** to cover both methods, and
+    ``data/README.md`` says which one each file uses. These tests are what hold
+    that sentence to the bytes.
+
+    The ex-dividend days and the dividends come from a second committed vintage
+    rather than from a typed list. A yfinance adjusted close is the raw close
+    times a factor that steps only on an ex-dividend day, and the step's size
+    gives the dividend. Every read names its download date, so a second
+    download of one symbol does not make it ambiguous, which is the failure
+    [issue 83](https://github.com/l3a0/quantitative-trading/issues/83) tracks.
+    """
+
+    SOURCE = "inputData_ETF.mat"
+
+    @staticmethod
+    def gap_and_dividends(
+        symbol: str, *, raw_dated: str, adjusted_dated: str
+    ) -> tuple[pd.Series, pd.Series]:
+        """The raw close less Chan's, to the cent, and each dividend the vendor's factor implies.
+
+        The dividend on an ex-dividend day is the previous raw close times one
+        less the ratio of the factor before the step to the factor after it.
+        """
+        chan = load_panel(TestTheETFFileSubtractsEachDividend.SOURCE)[1][symbol].dropna()
+        raw = load_close(symbol, unadjusted=True, dated=raw_dated)
+        factor = (load_close(symbol, dated=adjusted_dated) / raw).reindex(chan.index)
+        step = (factor / factor.shift()).dropna()
+        stepped = step[(step - 1).abs() > 1e-5]
+        previous = raw.reindex(chan.index).shift().reindex(stepped.index)
+        gap = (raw.round(2).reindex(chan.index) - chan).round(2)
+        return gap, previous * (1 - 1 / stepped)
+
+    def test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day(self) -> None:
+        gap, dividends = self.gap_and_dividends(
+            "SPY", raw_dated="2026-10-03", adjusted_dated="2026-09-18"
+        )
+        moves = gap.diff().round(2).dropna()
+        large = moves[moves.abs() > 0.01]
+
+        assert (gap.iloc[0], gap.iloc[-1]) == (14.98, 0.0)
+        assert len(dividends) == 24
+        assert list(large.index) == list(dividends.index)
+        assert ((large + dividends).abs() <= 0.01).all()
+        assert (large.max(), large.min()) == (-0.48, -0.80)
+        # The two vendors disagreeing on a raw close by a cent, not an adjustment.
+        assert int((moves.abs() == 0.01).sum()) == 43
+
+    def test_gdx_moves_on_its_five_december_dividends_and_gld_never_moves(self) -> None:
+        gap, dividends = self.gap_and_dividends(
+            "GDX", raw_dated="2026-08-27", adjusted_dated="2026-08-27"
+        )
+        moves = gap.diff().round(2).dropna()
+        large = moves[moves.abs() > 0.01]
+
+        assert [str(day.date()) for day in dividends.index] == [
+            "2006-12-21",
+            "2007-12-24",
+            "2009-12-23",
+            "2010-12-23",
+            "2011-12-23",
+        ]
+        assert list(large.index) == list(dividends.index)
+        assert ((large + dividends).abs() <= 0.01).all()
+
+        gld = load_panel(self.SOURCE)[1]["GLD"].dropna()
+        raw = load_close("GLD", unadjusted=True, dated="2026-08-27").reindex(gld.index)
+        assert len(gld) == 1500
+        assert (raw.round(2) == gld).all()
+
+    def test_eleven_closes_go_below_zero_in_three_etfs(self) -> None:
+        """A rescaled close cannot cross zero, and a subtracted one can."""
+        closes = load_panel(self.SOURCE)[1]
+        below = closes.where(closes <= 0).stack().dropna()
+
+        assert len(below) == 11
+        assert sorted(set(below.index.get_level_values(1))) == ["EDC", "MWJ", "SMN"]
+        assert (below < 0).all()
+        assert below.loc[(pd.Timestamp("2009-03-06"), "MWJ")] == -1.07
+
+    def test_no_open_jumps_by_a_split_ratio(self) -> None:
+        """Splits are folded in too, so no open sits a split's ratio off the close before it.
+
+        The ratios are an open over the previous close after a 2:1, 3:2 or 4:1
+        split and a 1:2, 1:4, 1:5 or 1:10 reverse split.
+        """
+        _, closes = load_panel(self.SOURCE)
+        _, opens = load_panel(self.SOURCE, field="Open")
+        ratios = (opens / closes.shift()).to_numpy()
+        ratios = ratios[np.isfinite(ratios)]
+
+        assert len(ratios) == 83_387
+        for split in (1 / 2, 2 / 3, 1 / 4, 2, 4, 5, 10):
+            assert not (np.abs(ratios - split) <= 0.01).any(), split
+
+    def test_no_etf_the_experiments_read_comes_near_zero(self) -> None:
+        """Every ETF the experiments issue 299 lists read, for Examples 2.6 to 4.2
+        and the GLD-GDX, GLD-GC and XLE-USO experiments, stays well above zero."""
+        lowest = load_panel(self.SOURCE)[1][
+            ["EWA", "EWC", "IGE", "GLD", "USO", "SPY", "GDX", "XLE"]
+        ].min()
+
+        assert (lowest.idxmin(), lowest.min()) == ("EWA", 7.49)
+        assert (lowest.idxmax(), lowest.max()) == ("SPY", 60.48)
 
 
 class TestTheCommittedFlagsAreChansArray:

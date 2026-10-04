@@ -121,6 +121,7 @@ for a series lifted from one of Chan's own files.
 | `inputdatadaily_cl_20120502/` | Chan's `inputDataDaily_CL_20120502.mat` | 89 members | raw | 2000-11-20 .. 2012-05-02 | saved 2012-05-03 |
 | `inputdatadaily_vx_20120507/` | Chan's `inputDataDaily_VX_20120507.mat` | 72 members | raw | 2006-03-23 .. 2012-05-07 | saved 2012-05-08 |
 | `inputdata_gc_1600_20100802/` | Chan's `inputData_GC_1600_20100802.mat` | 1 member | raw | 2007-08-03 .. 2010-08-02 | saved 2012-05-07 |
+| `inputdata_etf/` | Chan's `inputData_ETF.mat` | 67 members | adjusted | 2006-04-26 .. 2012-04-09 | saved 2012-04-10 |
 | `pythoncodesanddata/inputData_USDCAD.csv` | Chan's `PythonCodesAndData.zip` | USDCAD | raw | 2007-07-22 .. 2012-03-28 | saved 2018-10-13 |
 | `pythoncodesanddata/inputData_USDCAD_20120426.csv` | Chan's `PythonCodesAndData.zip` | USDCAD | raw | 2009-01-02 .. 2012-04-26 | saved 2018-12-12 |
 | `pythoncodesanddata/inputData_AUDUSD_20120426.csv` | Chan's `PythonCodesAndData.zip` | AUDUSD | raw | 2009-01-02 .. 2012-04-26 | saved 2018-12-12 |
@@ -514,7 +515,7 @@ measurements below and the decision behind the shape.
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
    `data/` stays under 100 MB of file content, and a later panel states its own size
    against that in its issue before it is recorded. Point 5 of the book-two
-   list below raises it.
+   S&P 500 list below raises it.
 
    ```text
    8d3ccbbd2c95b1ea342dfd5f953075f24c0df561efc9c6cc2cce651294ee73dc  SPX_20071123.mat
@@ -648,10 +649,10 @@ moved between the saves.
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 6. **It fits the budget.** The directory holds 26.10 MB, and its manifest and
    checksum lines and this section add 0.25 MB, which takes `data/` from
-   108.56 MB to 134.91 MB of file content. That leaves 15.09 MB under the
-   150 MB budget point 5 of the book-two list below sets.
+   108.56 MB to 134.91 MB of file content. That left 15.09 MB under the
+   150 MB budget point 5 of the book-two S&P 500 list below set at the time.
 
-The other two directories hold the two files of Chan's second book, *Algorithmic
+Two more directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
 [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) reproduces
 that example.
@@ -862,8 +863,8 @@ the measurements below.
       Canada's own tables, which the book names as their source.
 9. **The owner raised the size cap to 205 MB.** The seven files hold 38,634,670
    bytes, 38.63 MB. With their manifest and checksum lines and this section
-   they take `data/` from 145.28 MB, where the futures strips below left it, to
-   183.93 MB of file content, past the 150 MB cap. The owner ruled on 2026-10-04, on
+   they take `data/` from 148.72 MB, where the futures strips and the ETF file
+   below left it, to 187.37 MB of file content, past the 150 MB cap. The owner ruled on 2026-10-04, on
    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), that
    the four book-two lifts of that day land whole under a cap of 205 MB, and
    that past 205 MB the work stops and asks. So `data/` now stays under
@@ -890,7 +891,7 @@ gold series. No replication reads any of them yet.
 the decision behind the shape, and the build measured what follows.
 
 1. **Where they came from.** Both mirrors named in point 1 of the book-two
-   list above hold all nine, with identical git blobs: EpchanPreview at
+   S&P 500 list above hold all nine, with identical git blobs: EpchanPreview at
    `e4bc46f` under `public/img/book2/`, and ivanliu1989/algorithmic_trading at
    `4567024` under `archived/matlab/`. Neither carries a licence. The `.mat`
    files are not committed, and their sha256 is recorded here.
@@ -987,11 +988,106 @@ the decision behind the shape, and the build measured what follows.
 11. **It fits the budget.** The nine directories and their manifest and
     checksum lines hold 10.36 MB, and this section adds 0.01 MB, which takes
     `data/` from 134.91 MB to 145.28 MB of file content, under the 150 MB
-    budget point 5 of the book-two list above set at the time. The owner ruled on
+    budget point 5 of the book-two S&P 500 list above set at the time. The owner ruled on
     2026-10-04, on
     [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), that
     this lift and the three built beside it may take `data/` to 205 MB, and
     the change that crosses 150 MB raises the budget here.
+
+`inputdata_etf/` is Chan's book-two ETF file, `inputData_ETF.mat`, which most
+of *Algorithmic Trading*'s ETF experiments not yet run here read. It holds 67 ETFs over 1,500
+trading days, 2006-04-26 to 2012-04-09, with the same five fields per member
+as the stock files. Nine of his book-two scripts load it, and each reads only
+its days, its symbols and its closes. They cover the cointegration tests and
+mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
+price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
+on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. No run reads it
+yet. [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
+carries the measurements below.
+
+1. **Where it came from.** Three copies exist, and all three are one git
+   blob, `261718b`.
+
+   1. [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview)
+      at `e4bc46f`, under `public/img/book2/`.
+   2. The same mirror at the same commit, under
+      `public/img/book3/Chap3 Time Series/`.
+   3. [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
+      at `4567024`, under `archived/matlab/`.
+
+   Neither mirror carries a licence, which README's licence paragraph already
+   covers. The `.mat` is 1,218,621 bytes. It is not committed, and its sha256
+   is recorded here. Its header says it was created on 2012-04-10, which is
+   the saved date every member carries. The file names its list of symbols
+   `syms` where the stock files say `stocks`, and `chan.mat_columns` reads
+   either. `chan.mat_columns.round_trip_differs` finds the committed members
+   rebuild all five of its arrays exactly, NaN for NaN.
+
+   ```text
+   5f8dc0f05cba1bd69dc1fa3fe11b6a397c06cfd39174ba47171bd8ff66ff2065  inputData_ETF.mat
+   ```
+
+2. **Chan's Python port agrees with it.** EpchanPreview alone holds
+   `PythonCodesAndData.zip`, blob `b573b1a`, Chan's 2018 port of the book's
+   code. Its `inputData_ETF_stocks.csv` lists the same 67 symbols in the same
+   order. Its `inputData_ETF_cl.csv` holds the same 1,500 days, all 83,454
+   priced closes are equal, and the same cells are missing.
+   `inputData_EWA_EWC.csv`, `inputData_EWA_EWC_IGE.csv` and
+   `inputData_GLD_USO.csv` are exact copies of those columns. The port holds
+   closes only, so the opens, highs, lows and volumes exist only in the
+   `.mat`.
+3. **The prices are `adjusted`, by subtraction rather than by rescaling.**
+   This file folds each dividend in by subtracting it in dollars from every
+   earlier close, where a yfinance adjusted close multiplies every earlier
+   close by a factor. Against the raw SPY downloaded on 2026-10-03, rounded to
+   the cent, Chan's SPY sits 14.98 below raw on 2006-04-26 and level with it on
+   2012-04-09. The gap moves by more than a cent on exactly the 24 days the
+   adjusted SPY downloaded on 2026-09-18 marks as ex-dividend. Those 24 moves
+   run from 0.48 to 0.80, each within a cent of the dividend that download
+   implies. On
+   43 other days it moves by one cent, which is the two vendors disagreeing on
+   a raw close. GDX moves the same way on its five December ex-dividend days,
+   and GLD, which pays nothing, equals its raw download on all 1,500 days.
+   Splits are folded in as well. Across 83,387 ratios of an open to the close
+   before it, none sits within 0.01 of the ratio a 2:1, 3:2 or 4:1 split or a
+   1:2, 1:4, 1:5 or 1:10 reverse split would give.
+
+   A subtracted dividend can take a close below zero, and 11 go there, in
+   EDC, MWJ and SMN, such as MWJ at −1.07 on 2009-03-06. The owner decided on
+   2026-10-04 to record the file as `adjusted` rather than add a basis, and
+   [docs/design.md](../docs/design.md) widens its **adjusted price** row to
+   cover both methods. The price of that decision is that a return computed
+   from these closes is not the return a holder earned. None of the ETFs the
+   examples above read comes near zero, and their lowest closes run from
+   EWA's 7.49 to SPY's 60.48. `TestTheETFFileSubtractsEachDividend` in
+   [tests/test_series.py](../tests/test_series.py) pins every figure in this
+   point.
+4. **The scale-break guard flags 58 days in eight of the 67, on the close.** Each
+   of the eight is a leveraged or inverse fund, and every day falls between
+   2008-04-16 and 2009-06-25.
+
+   1. EDC on 13 days.
+   2. EEV on 2.
+   3. FAS on 2.
+   4. FAZ on 4.
+   5. MWJ on 11.
+   6. MWN on 1.
+   7. SMN on 24.
+   8. TNA on 1.
+
+   None of them is an ETF the examples above read. All 58 are pinned in
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+5. **It fits the budget.** The directory holds 3.40 MB, and its manifest and
+   checksum lines and this section add 0.03 MB, which takes `data/` from
+   145.28 MB to 148.72 MB of file content. That stayed under the 150 MB
+   budget that point 5 of the book-two S&P 500 list set at the time. The owner set a
+   ceiling of 205 MB on 2026-10-04, on
+   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), for
+   this lift and the book-two lifts of issues
+   [300](https://github.com/l3a0/quantitative-trading/issues/300),
+   [301](https://github.com/l3a0/quantitative-trading/issues/301) and
+   [313](https://github.com/l3a0/quantitative-trading/issues/313). The lift
+   that takes `data/` past 150 MB raises the budget to it.
 
 ## Two vintages kept in the owner's archive
 

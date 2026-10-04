@@ -69,6 +69,14 @@ def arrays_from(closes: np.ndarray) -> dict[str, np.ndarray]:
     }
 
 
+def cell_array(symbols: list[str]) -> np.ndarray:
+    """A list of symbols as MATLAB's cell array of strings, written as an object array."""
+    cells = np.empty((len(symbols), 1), dtype=object)
+    for index, symbol in enumerate(symbols):
+        cells[index, 0] = symbol
+    return cells
+
+
 def mat_bytes(
     *,
     created: str = CREATED,
@@ -76,18 +84,19 @@ def mat_bytes(
     symbols: list[str] = SYMBOLS,
     arrays: dict[str, np.ndarray] | None = None,
     omit: tuple[str, ...] = (),
+    symbols_under: tuple[str, ...] = ("stocks",),
 ) -> bytes:
     """A MATLAB 5 file holding ``tday``, ``stocks`` and the five arrays the way Chan's do.
 
     ``stocks`` is a cell array of strings, written as an object array, and the
     header's first 116 bytes are replaced with one carrying ``created``.
+    ``symbols_under`` names where the list goes instead, so a case can write it
+    as ``syms`` the way ``inputData_ETF.mat`` does, under both names, or under
+    neither.
     """
-    stocks = np.empty((len(symbols), 1), dtype=object)
-    for index, symbol in enumerate(symbols):
-        stocks[index, 0] = symbol
     held = {
         "tday": np.array(days, dtype=np.int32).reshape(-1, 1),
-        "stocks": stocks,
+        **{name: cell_array(symbols) for name in symbols_under},
         **(arrays_from(CLOSES) if arrays is None else arrays),
     }
     buffer = io.BytesIO()
@@ -157,6 +166,51 @@ class TestTheArraysAreCheckedAgainstEachOther:
 
         with pytest.raises(ValueError, match="hi is 4 by 2 and the file carries 4 days and 3"):
             read_arrays(mat_bytes(arrays=arrays))
+
+
+#: A flag array for :func:`flag_bytes`, defined here because the class below
+#: reads it before :data:`FLAGS` further down is reached.
+NO_FLAGS = np.zeros((len(DAYS), len(SYMBOLS)), dtype=int)
+
+
+class TestTheSymbolListHasTwoSpellings:
+    """Chan's stock files name their symbols ``stocks`` and his ETF file ``syms``.
+
+    Issue 299 found ``inputData_ETF.mat`` refused on that one name. Both readers
+    go through one lookup, so each case runs against both.
+    """
+
+    READERS = {
+        "prices": lambda under: read_arrays(mat_bytes(symbols_under=under)),
+        "flags": lambda under: read_flags(flag_bytes(flags=NO_FLAGS, symbols_under=under)),
+    }
+
+    @pytest.mark.parametrize("reader", READERS)
+    @pytest.mark.parametrize("under", ["stocks", "syms"])
+    def test_either_name_gives_the_same_symbols(self, reader: str, under: str) -> None:
+        _, symbols, _ = self.READERS[reader]((under,))
+
+        assert symbols == SYMBOLS
+
+    @pytest.mark.parametrize("reader", READERS)
+    @pytest.mark.parametrize(("under", "held"), [(("stocks", "syms"), "both"), ((), "neither")])
+    def test_a_file_with_both_names_or_neither_is_refused_naming_both(
+        self, reader: str, under: tuple[str, ...], held: str
+    ) -> None:
+        with pytest.raises(
+            ValueError,
+            match=f"the file carries {held} of stocks and syms, so it names no single list",
+        ):
+            self.READERS[reader](under)
+
+    def test_a_syms_file_records_and_round_trips(self, tmp_path: Path, data_dir: Path) -> None:
+        path = tmp_path / "inputData_ETF.mat"
+        path.write_bytes(mat_bytes(symbols_under=("syms",)))
+
+        entries = record_mat_file(path, price_basis="adjusted", data_dir=data_dir)
+
+        assert [entry.symbol for entry in entries] == SYMBOLS
+        assert round_trip_differs(path, data_dir=data_dir) is None
 
 
 class TestAMissingCellIsAMissingRow:
@@ -333,17 +387,20 @@ class TestTheCommandLine:
         ]
 
 
-def flag_bytes(*, flags: np.ndarray, symbols: list[str] = SYMBOLS, days: list[int] = DAYS) -> bytes:
+def flag_bytes(
+    *,
+    flags: np.ndarray,
+    symbols: list[str] = SYMBOLS,
+    days: list[int] = DAYS,
+    symbols_under: tuple[str, ...] = ("stocks",),
+) -> bytes:
     """A MATLAB 5 file holding ``tday``, ``stocks`` and ``earnann``, as Chan's flag file does."""
-    stocks = np.empty((len(symbols), 1), dtype=object)
-    for index, symbol in enumerate(symbols):
-        stocks[index, 0] = symbol
     buffer = io.BytesIO()
     scipy.io.savemat(
         buffer,
         {
             "tday": np.array(days, dtype=np.int32).reshape(-1, 1),
-            "stocks": stocks,
+            **{name: cell_array(symbols) for name in symbols_under},
             "earnann": np.asarray(flags, dtype=np.uint8),
         },
     )
@@ -767,18 +824,8 @@ class TestTheCommandPicksItsReaderByTheFile:
         assert shape_of(mat_bytes(omit=("stocks",))) == "stocks"
 
     def test_a_file_naming_its_columns_syms_stays_on_the_stock_path(self) -> None:
-        """Chan's ETF file carries ``syms``, and the stock reader is what
-        refuses it until it learns that spelling."""
-        syms = np.empty((1, 3), dtype=object)
-        syms[0, :] = SYMBOLS
-        payload = mat_bytes(omit=("stocks",))
-        buffer = io.BytesIO()
-        held = scipy.io.loadmat(io.BytesIO(payload))
-        scipy.io.savemat(
-            buffer, {**{k: v for k, v in held.items() if not k.startswith("__")}, "syms": syms}
-        )
-
-        assert shape_of(buffer.getvalue()) == "stocks"
+        """Chan's ETF file carries ``syms``, and the stock reader is what reads it."""
+        assert shape_of(mat_bytes(symbols_under=("syms",))) == "stocks"
 
     def test_a_strip_is_recorded_and_checked(
         self,
