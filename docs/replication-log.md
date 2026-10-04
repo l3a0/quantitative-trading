@@ -18,8 +18,8 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11 and 12 carry their own, three, eleven,
-twelve, five, six, one, three, eight, six and two, and they are listed in those
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12 and 13 carry their own, three, eleven,
+twelve, five, six, one, three, eight, six, two and eight, and they are listed in those
 entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -29,7 +29,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11 and 12 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12 and 13 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -122,6 +122,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-10)
   - [What the entry concludes](#what-the-entry-concludes-11)
   - [What this entry cannot say](#what-this-entry-cannot-say-9)
+- [Entry 13: the PCA factor model, Chan's *Quantitative Trading*](#entry-13-the-pca-factor-model-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-11)
+  - [What this repo computed](#what-this-repo-computed-12)
+  - [The verdicts](#the-verdicts-11)
+  - [What the entry concludes](#what-the-entry-concludes-12)
+  - [What this entry cannot say](#what-this-entry-cannot-say-10)
 
 ## How to read an entry
 
@@ -149,8 +155,9 @@ both.
    [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
    Entry 9,
    [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
-   holds Entry 11, and [tests/test_pead.py](../tests/test_pead.py) holds
-   Entry 12.
+   holds Entry 11, [tests/test_pead.py](../tests/test_pead.py) holds
+   Entry 12, and [tests/test_pca_factor.py](../tests/test_pca_factor.py)
+   holds Entry 13.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -259,7 +266,7 @@ each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
-rows 2 and 6 to 10, and Entry 12's rows 10 and 11.
+rows 2 and 6 to 10, Entry 12's rows 10 and 11, and Entry 13's rows 11 to 16.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -273,7 +280,13 @@ any figure was computed. Entry 11's row 3 is one as well. The sidebar's claim
 names one trade, and its criterion, a profit in every year from 1995 to 2008,
 was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any
-trade was computed.
+trade was computed. Entry 13's row 10 is a claim too, and the exception
+among them: its criterion was written on
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the
+overlap it judges was measured. Round-off would leave two books of one size
+the same on every day. Given the MATLAB's 50 longs, the Python's book matches
+on none of 752 days and differs in at least 125 positions on each, so the
+verdict does not rest on where a threshold sits.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -2669,6 +2682,165 @@ round trip inside one day.
 
 **How large the look-ahead in the 30 is.** Chan argues it is small because the
 number of announcements a day is predictable, and nothing here tests that.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 13: the PCA factor model, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading*, Example 7.4, "Principal
+Component Analysis as an Example of the Factor Model". The revised edition
+prints it on pp. 163 to 167, read in the Kindle Cloud Reader on 2026-10-03,
+with its setup at Kindle location 4034 and its result at 4051. The first
+edition's script is `example7_4.m`. Shipped under
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
+
+Sixteen rows, all derivable from
+[tests/test_pca_factor.py](../tests/test_pca_factor.py). Eight do not pair one
+published figure with one computation. Row 7 sets two readings against three
+printed figures, row 9 sets three programs against one, and rows 11 to 16
+carry no published figure.
+
+**Three of the four printouts reproduce, and Chan's account of why they
+disagree does not hold.** The strategy takes five statistical factors from a
+year of returns, assumes the factor returns carry momentum, buys the 50 stocks
+with the highest expected return and shorts the 50 with the lowest. Chan
+reports 2 percent a year in MATLAB and 4 percent in Python and R, and calls the
+difference "essentially round off errors". The first edition's MATLAB, the
+revised MATLAB and the revised Python each land on every figure they print,
+on the file they all load. The revised R prints the Python's three figures to
+17 digits, and its own code reads differently.
+
+The spread between 2 and 4 percent is method. The revised Python never uses
+its factors. It regresses each stock's returns on an intercept and five factor
+series and ranks on the summed fitted values, and with an intercept in the
+regression that sum is the stock's summed return. So the Python ranks on a
+year of momentum, and its book is the same on every day as a ranking that
+leaves the PCA out. The revised MATLAB fits today's cross-section of returns
+on the stocks' factor exposures instead. Given the MATLAB's 50 longs, the
+Python's book matches the MATLAB's on none of the 752 days both trade.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `ijr_20080114/`, the 600 stocks of Chan's
+   `IJR_20080114.mat`, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14,
+   read for the close through `chan.series.load_panel`. Every printout loads
+   this file. The revised repost's `.mat` has the sha256 the lifted file has,
+   and the Python's text file holds the same closes to 2.0e-16, which
+   [data/README.md](../data/README.md) records. **Every figure here is about
+   survivors**, because the file holds the S&P 600 as it stood on 2008-01-14,
+   carried backwards.
+2. **The specification.** A lookback of 252, five factors, 50 stocks shorted
+   and no cost, under each printout's own rule as `chan.pca_factor`
+   transcribes it. The first edition's `example7_4.m` is read at `1a71950` in
+   the mirror [data/README.md](../data/README.md) names. The revised MATLAB and
+   Python are read from the book's pages and from their reposts at
+   pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` and
+   pinhaocheng/epchan-quant_trading_Python_codes `5fcab61`. The R is read from
+   the pages alone. Every annualisation uses 252 days, and no Sharpe ratio
+   subtracts a risk-free rate.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2004 to 2008 sample on a rule he chose, so the entry says whether his numbers
+reproduce on his file and nothing about whether a statistical factor model
+earns money.
+
+### What the book printed
+
+The revised edition prints each program's figures in the comment lines that
+close its listing, and the text quotes two of them as whole percents. Only the
+text is among the committed highlights. The code-printed figures are not, and
+[research/book-notes/README.md](../research/book-notes/README.md) records that
+absence.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | First-edition MATLAB, `smartmean(ret)*252`, a sum over positions | −1.8099 | `example7_4.m`, first edition |
+| 2 | Revised MATLAB, annual mean return | 0.020205 | revised edition p. 164 |
+| 3 | Revised MATLAB, Sharpe ratio | 0.211120 | revised edition p. 164 |
+| 4 | Revised Python, annual mean return | 0.04052422056844459 | revised edition p. 165 |
+| 5 | Revised Python, annualised standard deviation | 0.07002908500498846 | revised edition p. 165 |
+| 6 | Revised Python, Sharpe ratio | 0.5786769963588398 | revised edition p. 165 |
+| 7 | Revised R, the same three lines | rows 4 to 6, digit for digit | revised edition p. 167 |
+| 8 | The MATLAB return, as the text quotes it | 2% | location 4051 |
+| 9 | The Python and R return, as the text quotes it | 4% | location 4051 |
+| 10 | Why the programs differ | "essentially round off errors" | location 4051 |
+| 11 to 16 | what separates the printouts, and each without PMC | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `first_edition_matlab`, the mean over 1,005 rows | −1.809865 | `TestThePrintouts::test_the_first_edition_prints_minus_1_8099` |
+| 2 | `revised_matlab`, the mean over the 752 days that trade | 0.020205 | `TestThePrintouts::test_the_revised_matlab_prints_its_two_figures` |
+| 3 | the same, with book two's `smartstd` | 0.211120 | the same |
+| 4 | `revised_python`, the mean over all 1,006 rows | 0.040524220568445 | `TestThePrintouts::test_the_revised_python_lands_its_printed_figures` |
+| 5 | the same, `np.nanstd` dividing by n | 0.070029085004988 | the same |
+| 6 | the same | 0.578676996358840 | the same |
+| 7 | `revised_r_reading`, unfilled and forward-filled | 0.0401, 0.0797, 0.5038 and 0.0426, 0.0802, 0.5319 | `TestThePrintouts::test_neither_r_reading_lands_the_printed_figures` |
+| 8 | row 2 at the text's whole percent | 2% | `TestThePrintouts::test_the_revised_matlab_prints_its_two_figures` |
+| 9 | row 4 at the text's whole percent, and row 7's two readings | 4%, 4% and 4% | `TestThePrintouts::test_the_revised_python_lands_its_printed_figures` and `::test_neither_r_reading_lands_the_printed_figures` |
+| 10 | the shared days on which the revised MATLAB and the Python given 50 longs hold the same book, and the fewest positions in which they differ on one day | 0 of 752, and 125 | `TestWhatSeparatesTwoFromFour::test_at_one_size_the_revised_books_are_never_identical` and `::test_round_off_does_not_explain_the_spread` |
+| 11 | the Python ranked on each stock's summed return, with the PCA left out | the same book on every day | `TestWhatSeparatesTwoFromFour::test_the_pythons_pca_changes_no_position` |
+| 12 | the mean share of the revised MATLAB's names the Python holds the same way, as printed and with 50 longs | 13.83% and 14.14% | `TestWhatSeparatesTwoFromFour::test_the_revised_books_share_few_names` and `::test_at_one_size_the_revised_books_are_never_identical` |
+| 13 | the Python buying the top 50 rather than the 49 ranked second to 50th | 0.0414, Sharpe ratio 0.5908 | `TestWhatSeparatesTwoFromFour::test_fifty_longs_move_the_pythons_figures` |
+| 14 | the Python over its 751 trading days, the first edition over its 753, and the Python keeping the first book it clears | 0.0543, Sharpe ratio 0.6699, then −2.4156, then 0.0417, Sharpe ratio 0.5945 | `TestWhatSeparatesTwoFromFour::test_averaging_over_trading_days_moves_both_programs` and `::test_keeping_the_first_book_moves_the_pythons_figures` |
+| 15 | row 3 under the first edition's `smartstd` | 0.2441 | `TestWhatSeparatesTwoFromFour::test_the_first_editions_smartstd_moves_the_revised_sharpe` |
+| 16 | rows 1 to 6 without PMC | −1.8014, then 0.0180 and 0.1869, then 0.0408 and 0.5851 | `TestTheSplice::test_each_printout_without_pmc` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0000 | reproduced | Chan's first-edition figure, on his file, through his script transcribed. It is a sum over 100 positions of ±1 with no division by capital, and its mean runs over 252 rows from before the first trade. |
+| 2 | 0.000000 | reproduced | The same, for the revised MATLAB. |
+| 3 | 0.000000 | reproduced | The same. The printed figure lands with book two's `smartstd` and misses with the first edition's, row 15, and the revised repost at `7430b84` carries book two's file. |
+| 4 | under 1e-15 | reproduced | Within 1e-12 of each figure printed to 17 digits, the verdict's criterion, and within 1e-15, the pin. They agree to 15 significant digits. |
+| 5 | under 1e-15 | reproduced | The same. |
+| 6 | under 1e-15 | reproduced | The same. |
+| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days with no position, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
+| 8 | 0 | reproduced | 2.02 percent rounds to 2. |
+| 9 | 0 | reproduced | The Python's 4.05 percent rounds to 4, and so does each R reading. The whole-percent figure is reached even by the code whose 17-digit figures are not. |
+| 10 | none | did not reproduce | Round-off would leave two books of one size the same on every day. The printed Python buys 49 and the MATLAB 50, so the comparison gives the Python 50, and the books then match on none of 752 days and differ in at least 125 positions on each. The criterion was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the overlap was measured, which is the cost named there. |
+| 11 | none | none, not a replication | This is why the Python's figure is momentum's. Its PCA changes no position. |
+| 12 | none | none, not a replication | The two revised programs trade mostly different stocks. |
+| 13 | none | none, not a replication | The Python's `np.arange(-topN, -1)` never buys the top-ranked stock. |
+| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that hold no position, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows with no position. |
+| 15 | none | none, not a replication | The first edition's `smartstd` zero-fills a missing day and divides by n − 1. |
+| 16 | none | none, not a replication | PMC closes at 6.02 on 2004-03-12 and resumes at 17.25 on 2007-08-01, two price histories under one symbol. Every program but the unfilled R reading forward-fills, so the gap becomes one day's return of 1.8654. |
+
+### What the entry concludes
+
+Two things.
+
+1. **The three printouts that can run reproduce on Chan's file.** The first
+   edition's −1.8099 and the revised MATLAB's 0.020205 and 0.211120 land at
+   the precision printed, and the revised Python's three 17-digit figures land
+   within 1e-15.
+2. **The 2-versus-4 spread is two different strategies, not round-off.** The
+   revised MATLAB trades a factor model and the Python trades a year of
+   momentum, because its regression's intercept cancels its factors. Three
+   bookkeeping choices each lower the Python's figure toward the MATLAB's: its
+   long side, its averaging, and the first book it clears. Without any one of
+   them the Python's figure is higher than 4.05 percent, rows 13 and 14.
+
+### What this entry cannot say
+
+Three things.
+
+**What the strategy earned on the index as it stood each day.** Every stock
+here was in the S&P 600 on 2008-01-14.
+[Issue 269](https://github.com/l3a0/quantitative-trading/issues/269) reruns it
+on a point-in-time universe, which waits on data.
+
+**What the R printout actually computed.** Without `calculateReturns.R` and an
+R runtime, row 7 is a reading.
+[Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it
+once Chan's download is in hand.
+
+**What costs would take.** Every printout charges none, and the books turn over
+daily.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
