@@ -48,7 +48,8 @@ The cross-rate pins read one vintage and one specification too.
 - **Specification.** The ADF with a constant and no trend, on the log of the
   rate, one lag, over the test window from 2007-08-06 to 2026-09-30, 4,984
   days. The residual check fits the same constant. The rolling scan is
-  252-day windows stepped by 21.
+  252-day windows stepped by 21. Tests that change one part of it, such as
+  the quoting direction or the deterministic term, say which in their names.
 
 Eleven classes and one test.
 
@@ -688,8 +689,8 @@ class TestTheCrossRateStatistic:
     ) -> None:
         """Added after the verdict, to show what the declared constant does.
         Without it the regression assumes the log reverts to zero, a rate of
-        exactly 1.00. The rate stayed between 0.9301 and 1.3239, so the test
-        still rejects. Quoted per 100 Canadian dollars, the log sits 4.6 higher,
+        exactly 1.00. The rate stayed close to 1.00, between 0.9301 and 1.3239,
+        so the test still rejects. Quoted per 100 Canadian dollars, the log sits 4.6 higher,
         the test with a constant gives the same answer, and the test without
         one finds nothing."""
         values = rate.log_rate.to_numpy()
@@ -717,7 +718,11 @@ class TestTheCrossRateStatistic:
         )[:5]
         assert stat == pytest.approx(-3.2947, abs=5e-5)
         assert nobs == rate.nobs
-        assert (round(crit["5%"], 2), round(crit["10%"], 2)) == (-3.41, -3.13)
+        assert (round(crit["1%"], 2), round(crit["5%"], 2), round(crit["10%"], 2)) == (
+            -3.96,
+            -3.41,
+            -3.13,
+        )
         assert crit["5%"] < stat < crit["10%"]
         same = adfuller(values, maxlag=LAGS, regression="c", autolag=None, result_object=False)[0]
         assert same == pytest.approx(rate.adf_stat, abs=1e-9)

@@ -28,11 +28,11 @@ The test **rejects** the hypothesis that the series wanders like a random walk w
 
 **The rate.** The series is `CADAUD=X`, Yahoo Finance’s quote of the rate in Australian dollars per Canadian dollar, downloaded on 2 October 2026. The vendor’s history starts in July 2005 and has a hole: it returned nothing for the 90 weekdays from 2 April to 3 August 2007. A regression on lagged values across that hole would treat four months as one day, so the test reads from 6 August 2007 to 30 September 2026, 4,984 days.
 
-The test is an ADF with three settings, and each one changes what the test asks. The constant and the single lag match Chan’s MATLAB code. The log is this repository’s choice.
+The test is an ADF with three settings, and each changes the question it answers. The single lag matches Chan’s MATLAB code for GLD/GDX. The constant and the log are this repository’s choices, and all three were written down before any statistic was computed.
 
-1. **A constant and no trend.** The constant lets the rate revert to whatever level it has tended to sit at. Without it, the test would ask whether the rate reverts to exactly 1.00. Leaving out a trend matches Chan’s claim, which is that the level itself is stationary, not that it reverts around a line that drifts. Lesson 2 shows what each alternative would have found, and a trend would have reversed the verdict.
-2. **The log of the rate.** Chan writes CAD/AUD, and Yahoo quotes the rate the other way round. On the log, flipping the quote only flips the sign, which leaves the statistic unchanged, so the answer does not depend on the vendor’s convention. The log also turns the rate into a spread between two currencies, which Lesson 2 relies on.
-3. **One lag.** The lag absorbs a day’s change echoing the day before. Too few lags leave echoes behind, and then the bars the statistic is read against no longer apply. Too many spend data the test needs. Lesson 3 checks whether one is enough, and it is not.
+1. **A constant and no trend.** The constant lets the rate revert to whatever level it has tended to sit at. Leaving out a trend matches Chan’s claim, which is that the level itself is stationary, not that it reverts around a line that drifts. Lesson 2 shows what each alternative finds.
+2. **The log of the rate.** Chan writes CAD/AUD without saying which currency is the unit, and a rate can be quoted either way round. On the log, flipping the quote only flips the sign, which leaves the statistic unchanged, so the answer does not depend on the convention. The log also turns the rate into a spread between two currencies, which Lesson 2 uses.
+3. **One lag.** The lag absorbs a day’s change echoing the day before. Too few lags leave echoes behind, and the bars the statistic is read against no longer apply. Too many cost the test power, because each extra lag is one more coefficient estimated from the same days. Lesson 3 checks whether one is enough, and it is not.
 
 **The bond pair.** Chan names no bond, so this repository chose two funds to stand in. TLT holds Treasuries maturing in twenty years or more and IEF holds Treasuries maturing in seven to ten, so the two are one issuer at two maturities. The repository named both in writing before downloading anything. The test reads raw closes, which this vendor adjusts for splits and not for dividends. Adjusting for dividends would fold each fund’s payouts into its price, so the pair would drift apart by the difference in payouts, which says nothing about whether the two prices move together. The test is Engle-Granger with an intercept, at one lag, over the 6,083 days from 30 July 2002 to 1 October 2026, also downloaded on 2 October 2026.
 
@@ -65,13 +65,14 @@ Here `γ` is the pull back toward zero, `φ₁` weights the one lagged change, a
 \Delta y_t = c + \gamma y_{t-1} + \phi_1 \Delta y_{t-1} + \varepsilon_t
 ```
 
-There is no trend term, because Chan’s claim is that the level is stationary. Adding the constant changes the bars the statistic has to clear. Three sets of bars matter here, one per row:
+There is no trend term, for the reason given above. Each choice of terms comes with its own bars. Four sets matter here, one per row:
 
 ```math
 \begin{array}{l|c|c|c}
 \text{Test} & 10\% & 5\% & 1\% \\ \hline
 \text{ADF, no constant} & -1.62 & -1.94 & -2.57 \\
 \text{ADF with a constant, for one series} & -2.57 & -2.86 & -3.43 \\
+\text{ADF with a constant and a trend} & -3.13 & -3.41 & -3.96 \\
 \text{Engle-Granger, for a fitted pair} & -3.04 & -3.34 & -3.90
 \end{array}
 ```
@@ -84,10 +85,10 @@ The cross rate pays no such price. In logs it is the difference between the Cana
 
 On this rate the choice of table decides the verdict. Both statistics the verdict reads, −3.2136 and −2.9946, clear the one-series 5% bar of −2.86. Read against the pair’s 5% bar of −3.34, both would fall short. At the pair’s 10% bar of −3.04 they would split, with the one-lag statistic clearing it and the 10-lag one not. Neither clears the one-series 1% bar of −3.43 either, so “quite stationary” holds at 5% and no stronger.
 
-The constant also decides what the test asks. Two checks, run after the verdict to measure how much the declared setting mattered, show what the alternatives would have found:
+Two checks, run after the verdict, show what the other choices would have found:
 
-1. **Without the constant**, the test asks whether the rate reverts to exactly 1.00. The one-lag statistic becomes −2.5159, which clears that table’s 5% bar of −1.94. It clears only because the rate stayed near 1.00, between 0.93 and 1.32. Quote the same rate per 100 Canadian dollars and the test with a constant gives −3.2136 again, while the test without one gives −0.2982, nowhere near any bar. A regression with no constant is forced through zero, so on a series that sits far from zero it misses reversion that is really there.
-2. **With a trend as well**, the test asks whether the rate reverts around a line that drifts. The bars get stricter again, −3.41 at 5% and −3.13 at 10%. The statistic is −3.2947, which clears 10% and not 5%, so a trend term would have reversed the verdict. Chan’s claim is about the level, so a trend tests something he did not say.
+1. **Without the constant**, the test asks whether the rate reverts to exactly 1.00, where its log is zero. The one-lag statistic becomes −2.5159, which clears that row’s 5% bar of −1.94. It clears only because the rate has stayed close to 1.00. Quote the same rate per 100 Canadian dollars and the test with a constant gives −3.2136 again, while the test without one gives −0.2982, nowhere near any bar. A regression with no constant is forced through zero, so on a series that sits far from zero it misses the reversion the test with a constant finds.
+2. **With a trend as well**, the test asks whether the rate reverts around a line that drifts. The statistic is −3.2947, which clears that row’s 10% bar of −3.13 and not its 5% bar of −3.41, so a trend term would have reversed the verdict.
 
 ![Two horizontal number lines of t-statistics from −4.1 to −2.0. The upper line, for one series tested by an ADF with a constant, has bars at −3.43, −2.86 and −2.57 for 1%, 5% and 10%, with the region past −2.86 shaded. CAD/AUD’s statistics, −3.2136 at one lag and −2.9946 at ten lags, sit inside the shaded region. The lower line, for a fitted pair tested by Engle-Granger, has bars at −3.90, −3.34 and −3.04, with the region past −3.34 shaded. TLT on IEF at −2.3887 and IEF on TLT at −2.3168 sit far outside it, and CAD/AUD’s two statistics, drawn again as hollow marks, sit outside it too.](../docs/figures/stationary_candidates_bars.png)
 
@@ -141,9 +142,9 @@ One number was added after the results were seen rather than declared before, an
 A free choice can steer a test, so the repository wrote each one down before computing the statistic it could move, or reported the result both ways.
 
 1. **Which leg depends on which.** Engle-Granger regresses one price on the other, the answer depends on the order, and Chan names no order. So the repository reports both, TLT regressed on IEF and IEF on TLT. They sit 0.0719 apart, so the choice could not have turned this finding.
-2. **Which way the rate is quoted.** Chan writes CAD/AUD without saying which currency is the unit, and a rate can be quoted either way round. On the log, flipping the quote only flips the sign, so the test gives one answer. On the rate itself the two directions differ. Quoted as the vendor quotes it, in Australian dollars per Canadian dollar, the statistic is −3.2944 at one lag and −3.0241 at 10 lags. Quoted the other way it is −3.1552 and −2.9734. All four reject at 5%, so taking the log decided nothing either.
-3. **The constant, and no trend.** Both were written down before any statistic was computed, because Chan’s claim is that the level is stationary. Lesson 2 showed that a trend would have reversed the verdict, which is why this choice had to come first.
-4. **The lag.** Both candidates use one lag, the setting Chan’s MATLAB code uses, and the autocorrelation check runs beside it rather than replacing it. On the rate, Lesson 3 showed that every other lag count up to the ceiling rejects too.
+2. **Which way the rate is quoted.** On the log the direction makes no difference, as the settings above say. On the rate itself the two directions differ. Quoted as the vendor quotes it, in Australian dollars per Canadian dollar, the statistic is −3.2944 at one lag and −3.0241 at 10 lags. Quoted the other way it is −3.1552 and −2.9734. All four reject at 5%, so taking the log decided nothing either.
+3. **The constant, and no trend.** Both were written down before any statistic was computed. A check run afterwards, in Lesson 2, found that a trend would have reversed the verdict, so this choice could have turned the answer.
+4. **The lag.** Both candidates use one lag, and the autocorrelation check runs beside it rather than replacing it. On the rate, Lesson 3 showed that every other lag count up to the ceiling rejects too.
 5. **The start date.** The command that runs either test accepts no window, so nobody can keep trying periods until one rejects. The repository set the cross rate’s start on the first day after the vendor’s gap. That came after the download, since only the download could show the gap, and before any statistic was computed.
 
 ## Lesson 6: a reversion this slow is hard to size
@@ -184,7 +185,7 @@ Six habits follow from the lessons above.
 2. **Ask whether the hedge ratio was fixed or fitted.** A fitted ratio earns a stricter bar. A spread whose ratio is fixed in advance, like a cross rate, does not.
 3. **Check the residuals before trusting the statistic.** The check can reverse a verdict, shrink its margin or strengthen a finding, and a statistic from a fit that fails it is read against bars that do not apply.
 4. **Keep the span and the window apart.** A verdict over nineteen years says little about any one year, and a run of rejecting years says little about the whole.
-5. **Close the free choices before computing.** Which leg, which quote, whether to fit a trend, which lag and which start date can each move a statistic across a bar, and a choice made after seeing the number is a search.
+5. **Close the free choices before computing.** Which leg, which quote, whether to fit a constant or a trend, which lag and which start date can each move a statistic across a bar, and a choice made after seeing the number is a search.
 6. **Price the half-life before sizing the trade.** A slow reversion caps the Sharpe ratio, stretches every daily cost over months, and leaves few independent bets to estimate the size from.
 
 On a modern download, Chan’s currency rate holds at 5%, the bond funds show no evidence of cointegrating, and his calendar spreads hold for natural gas and not for gasoline.

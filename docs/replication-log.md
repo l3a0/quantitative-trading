@@ -1718,11 +1718,12 @@ days, a little over half a year.
 One row is a replication and seven are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
 are the two statistics the criterion reads, rows 4 to 6 say what the verdict
-rests on, row 7 measures what row 6 can see, and row 8 measures what the
-declared constant did.
+rests on, row 7 measures what row 6 can see, and row 8 measures what dropping the
+constant or adding a trend would have done.
 
 Every row reads the same series, vintage and specification, so the three are
-stated once here.
+stated once here. Rows 5, 7 and 8 each change one part of it, and their
+specification column says which.
 
 1. **The series.** `CADAUD=X`, yfinance's quote of the rate Chan names, in
    Australian dollars per Canadian dollar. It is the rate itself rather than a
@@ -1786,10 +1787,10 @@ columns have nothing to hold in any row and are dropped, under
 | 2 | none, not a replication | The headline statistic. Lag 1 was fixed before any number was seen, as the rule [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) set for both candidates. Every count from 0 to the ceiling of 32 also rejects at 5%, the closest being 6 at −2.8739, so the lag rule does not decide the verdict here. `::test_every_lag_up_to_the_ceiling_rejects_at_five_percent` pins that. |
 | 3 | none, not a replication | The one-lag fit leaves autocorrelation, so its statistic is read against critical values that do not apply. The fit that earns them is further from rejecting and still past the bar. Without the constant the check would audit a different regression, whose one-lag statistic is −2.5159 rather than −3.2136 and is read against a different table, so the check would no longer be about this test. |
 | 4 | none, not a replication | The book prints no half-life. At 141.6 trading days a deviation takes a little over half a year to halve, which is a rate that pulls back slowly. |
-| 5 | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
+| 5 | none, not a replication | Chan writes CAD/AUD without saying which currency is the unit, and a rate can be quoted either way round, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
 | 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
 | 7 | none, not a replication | A measure of row 6's power. A series that certainly reverts this slowly clears 10% in 12.0% of its windows, against about one in ten for a series that does not revert at all, which is what a 10% bar means. So row 6 barely separates the two, and only the whole span does: it rejects at 5% in 968 of 1,000 paths. Row 6's 23 sits near the middle of the simulated counts. At 5% only 73 paths have 5 or fewer, as the rate does, a number added after the results were seen. The model has neither the rate's fat tails nor its changing volatility, and a half-life estimated from 4,984 days reads short, so the true reversion may be slower than row 4's. This shows that slow reversion can produce so few rejecting windows, and not that it is why the rate does. Exploratory. |
-| 8 | none, not a replication | A measure of the declared term, computed after the verdict. With no constant the test asks whether the rate reverts to 1.00, and it rejects only because the rate stayed near 1.00, since the same rate per 100 finds nothing. A trend asks whether the rate reverts around a drifting line, which is not Chan's claim, and it would have turned the verdict at 5%. Both are why [issue 135](https://github.com/l3a0/quantitative-trading/issues/135) fixed the term before any statistic. Exploratory. |
+| 8 | none, not a replication | A measure of the declared constant and missing trend, computed after the verdict. With no constant the test asks whether the rate reverts to 1.00, and it rejects only because the rate stayed close to 1.00, since the same rate per 100 finds nothing. A trend asks whether the rate reverts around a drifting line, which is not Chan's claim, and it would have turned the verdict at 5%. [Issue 135](https://github.com/l3a0/quantitative-trading/issues/135) fixed a constant and no trend before any statistic, and these two checks show that choice could have turned the answer. Exploratory. |
 
 ### What the entry concludes
 
@@ -1799,10 +1800,10 @@ Three things, and the first is the verdict.
    CAD/AUD rate rejects a unit root under the criterion fixed before the
    statistic was read, on both statistics the criterion names. Every lag count
    up to the ceiling rejects too, and so does the level in either quoting
-   direction. The log, the constant and the window start were fixed on the
-   issue before any statistic. Only the scale and the term were tried another
-   way afterwards, and row 8 reports that a trend would have turned the
-   verdict at 5%.
+   direction. The log, a constant with no trend, and the window start were
+   fixed on the issue before any statistic. Only the scale, the constant and
+   the trend were tried another way afterwards, and row 8 reports that a trend
+   would have turned the verdict at 5%.
 2. **It is a slow reversion, and only the whole window shows it.** A half-life
    of 141.6 trading days means a deviation takes a little over half a year to
    halve, and only 23 of 226 one-year windows reject at 10%. Over the full
@@ -3906,7 +3907,10 @@ would answer it for this rule too.
 MS that day. Nothing here checks the print against another source.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/buy-on-gap-lessons.md](../blog/buy-on-gap-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.buy_on_gap_figures` redraws.
 
 ## Entry 19: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*
 

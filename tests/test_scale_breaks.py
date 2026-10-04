@@ -78,7 +78,11 @@ from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 #: [issue 108](https://github.com/l3a0/quantitative-trading/issues/108).
 KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 
-#: What the guard flags in the 2,197 price columns lifted from Chan's four MATLAB price files.
+#: What the guard flags in the price columns lifted from Chan's MATLAB files.
+#:
+#: Four stock files account for every flag. The futures strips and the gold
+#: series, 1,232 columns, flag nothing, which ``tests/test_futures_strips.py``
+#: says on its own.
 #:
 #: Pinned by path and day rather than as a count, so a day that stops being
 #: flagged fails as surely as a new one. These are flags rather than known
@@ -937,6 +941,10 @@ class TestTheBoundIsTheOneThatWasMeasured:
         ``FLAGGED_IN_CHANS_MAT_FILES`` pins instead. Holding them to an envelope
         fitted to the single-series vintages, mostly funds, indexes and
         futures, would assert that a small cap never moves 40 percent in a day.
+        Chan's futures strips are skipped with them, although they are futures,
+        because the skip is by source rather than by asset.
+        ``tests/test_futures_strips.py`` pins their widest move on its own, and
+        it would widen this envelope's lower end.
 
         The twelve EIA futures vintages moved both ends of the envelope. The
         widest fall is now 0.6810, RBOB gasoline's first contract on
