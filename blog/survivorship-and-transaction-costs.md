@@ -210,7 +210,7 @@ Like NEOF’s row in Lesson 4, one column of the author’s own data holds two t
 
 Five things are beyond these results.
 
-1. **Whether Khandani and Lo’s 4.47 reproduces, or Chan’s small-cap explanation holds.** At the end of Example 3.8, on p. 78, Chan leaves testing the strategy on the S&P 400 mid-cap and S&P 600 small-cap stocks as an exercise. The repository holds Chan’s S&P 600 file, which covers 2006, and [issue 249](https://github.com/l3a0/quantitative-trading/issues/249) tracks running the rule on it.
+1. **Whether Khandani and Lo’s 4.47 reproduces, or Chan’s small-cap explanation holds.** At the end of Example 3.8, on p. 78, Chan leaves testing the strategy on the S&P 400 mid-cap and S&P 600 small-cap stocks as an exercise.
 2. **What survivorship cost the reversal, at the close or at the open.** Lesson 5 says why the toy cannot answer it, and [issue 198](https://github.com/l3a0/quantitative-trading/issues/198) needs bought data.
 3. **Whether trading at the open can be done on the open’s own prices.** Both rules set a weight from the day’s opening prices and trade at that same open, as Example 3.7 does at the close. Neither run adjusts that timing.
 4. **Whether the toy’s picks are right.** The book does not print the 1,000 stocks it ranked, so the selection cannot be rerun, and only NEOF’s row was checked against a filing.
