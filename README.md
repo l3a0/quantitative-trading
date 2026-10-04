@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twelve replications run here, eleven from Chan's *Quantitative Trading* and
+Fourteen replications run here, thirteen from Chan's *Quantitative Trading* and
 one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other ten were built here.
+they were first built. The other twelve were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -97,8 +97,10 @@ they were first built. The other ten were built here.
    year-on-year rotation on his S&P 500 file. He prints them in the first
    edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
    fourteen figures his files reach reproduce to the digits printed. None
-   lands from the strategy as described. The revised MATLAB and R code is not
-   in the repo, so their rules are readings that reproduce the printed figures.
+   lands from the strategy as described. The revised MATLAB and R rules follow
+   the code the book prints, with one index repaired so the MATLAB runs. A
+   repost of the revised code carries the same repair and book two's
+   `smartstd`, which is the helper the printed digits need.
    The first edition's −0.9167 a year is a sum over positions rather than a
    return on capital, and the revised edition's three annual returns land
    between −0.0114 and −0.0129 a year. Example 7.6's third January,
@@ -152,6 +154,30 @@ they were first built. The other ten were built here.
     two's `smartstd` is what lands the first of those. The first edition's, which
     shares its name, gives 0.066833 and misses Chan's printed digit. Every
     figure is exploratory and about survivors.
+13. The PCA factor model, Example 7.4, which takes five statistical factors
+    from a year of returns on Chan's S&P 600 file, buys the 50 stocks they
+    rank highest and shorts the 50 lowest. Chan reports 2 percent a year in
+    MATLAB and 4 percent in Python and R, and calls the difference round-off.
+    The first edition's MATLAB, the revised MATLAB and the revised Python
+    reproduce every figure they print, the Python's 17-digit figures within
+    1e-15. The R block prints the Python's figures and its own code reads
+    differently. The round-off account does not hold. The Python's regression
+    carries an intercept, which cancels its factors, so it ranks on a year of
+    momentum. Given the same 50 longs, its book matches the revised MATLAB's on
+    none of 752 days. Every figure is exploratory and about survivors.
+14. The market and momentum factors, built on Chan's S&P 500 file to test his
+    claim at Kindle location 4014 of the revised edition that factor returns
+    "often" have stronger serial autocorrelation than single stocks', so they
+    have momentum. MKT is SPY's monthly return over the three-month bill, and
+    WML longs the stocks whose past eleven months, skipping the latest, rose
+    and shorts those that fell. Over the 83 months from December 2000 to
+    October 2007, MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099,
+    against a median of −0.0392 across the 446 stocks priced in every month.
+    The claim holds for MKT and does not hold for WML, which is below 0 and
+    below the median stock. Neither factor's estimate is outside the 0.2151
+    band that a series with no autocorrelation stays inside 95 percent of the
+    time, so MKT's verdict could be noise. Every figure is exploratory, and WML
+    and the stocks' figures are about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 other places a stationary spread should live without naming an instrument, so
@@ -238,13 +264,27 @@ first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
 miss.
 
-All twelve replications reach a verdict in
+[tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
+factor model. It pins each printout's figures as the printout formats them and
+in full, and the figure each of the Python's bookkeeping choices gives when it
+is changed, so a builder who corrects Chan's code fails a test rather than
+moving a pin. It also holds the Python's book equal to a momentum ranking on
+every day, which is the finding the entry rests on.
+
+[tests/test_momentum_factor.py](tests/test_momentum_factor.py) does it for the
+market and momentum factors. It pins the calendar, the legs, both factors'
+autocorrelations and the stocks' quartiles, and one verdict per factor. Its
+`test_the_month_before_formation_does_not_rank` holds the skip, so a
+lookback that runs to the formation's own close fails a test.
+
+All fourteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
-seasonals' and Entry 12 post-earnings drift's.
+seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor
+model's and Entry 14 the market and momentum factors'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -273,7 +313,10 @@ called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
 without it. Post-earnings drift calls the guard on each stock from its first
-price, over its 2011 and 2012 window, and nothing there needs refusing.
+price, over its 2011 and 2012 window, and nothing there needs refusing. The
+PCA factor model does not call it. Its printouts forward-fill PMC's 851-day
+gap in the S&P 600 file into one day's return of 1.8654, because Chan's
+programs do, and its entry reports every figure without PMC beside them.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -316,7 +359,9 @@ equity seasonals read the first two, and the Khandani-Lo reversal reads the
 2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
 Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
 flags, for
-[issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20). The PCA
+factor model reads the S&P 600 file's closes, for
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed.
@@ -532,6 +577,29 @@ It prints both sources in a line each, the window, the rule, the busiest day
 beside the 30 Chan divides by, and each figure beside what `pead.m` and the
 book print. It refuses to run if the two files name different stocks, because
 the script pairs their columns by position.
+
+The PCA factor model runs every printout of Example 7.4 at once:
+
+```bash
+uv run python -m chan.pca_factor
+```
+
+It prints each printout's figures beside Chan's, the verdicts, what separates
+the 2 percent from the 4, and every figure without PMC. It takes about a
+minute, most of it the first edition's eigendecomposition on every day.
+
+The market and momentum factors read Chan's S&P 500 file, his SPY column and
+the bills, and take no option, because the issue fixed the construction and
+the window before any return was computed:
+
+```bash
+uv run python -m chan.momentum_factor
+```
+
+It prints the three vintages, the window, the eligible stocks and the legs,
+each factor's lag-1 autocorrelation beside the stocks' quartiles, a verdict per
+factor, and the band beside them. It refuses to run if a month's winner or
+loser leg is empty, and names the month.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

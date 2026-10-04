@@ -124,7 +124,10 @@ by hand, which is why it carries the recorder's five-field name and a single
 6.2, and by [src/chan/risk_parity.py](../src/chan/risk_parity.py) as the equity
 leg of Qian's allocation. Two of the other SPY files are workbook
 columns placed by hand, and the third is a raw download described below.
-The Kelly run reads `spy_chan.csv` under `--chan`, and
+The Kelly run reads `spy_chan.csv` under `--chan`,
+[src/chan/momentum_factor.py](../src/chan/momentum_factor.py) reads it as the
+market factor of
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22), and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.
 
@@ -453,9 +456,22 @@ first two returns and not its third.
 [`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads both
 directories, and
 [issue 225](https://github.com/l3a0/quantitative-trading/issues/225) is where
-the third gets computed. Each holds only the companies
+the third gets computed. [`chan.pca_factor`](../src/chan/pca_factor.py) reads the
+second's closes for Example 7.4. The revised edition's Python for that example
+reads `IJR_20080114.txt` instead, reposted at
+pinhaocheng/epchan-quant_trading_Python_codes `5fcab61` and at
+liujiantong/epchan_books `653cf92` as one git blob. Measured on
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21) at `3bb9cce`,
+it holds the same 1,006 days, the same 600 symbols in the same order and the
+same NaN cells as this directory's closes, and every value agrees to a largest
+relative difference of 2.0e-16. The revised MATLAB repost at
+pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` carries an
+`IJR_20080114.mat` with the sha256 recorded below. Each directory holds only the companies
 still in its index on that day, carried backwards, so a figure computed from
 either is a figure about survivors.
+[`chan.momentum_factor`](../src/chan/momentum_factor.py) reads the first's
+closes to build the momentum factor and the stocks it is compared against, for
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22).
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
 measurements below and the decision behind the shape.
 
@@ -508,7 +524,9 @@ measurements below and the decision behind the shape.
    returns on that panel rather than on one file's own rows. `spx_20071123/wyn.csv`
    holds two companies under one symbol, 952 trading days apart, closing at
    0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
-   same across 400 days to 2007-07-02.
+   same across 400 days to 2007-07-02. `ijr_20080114/pmc.csv` holds two price
+   histories the same way, closing at 6.02 on 2004-03-12 and then at 17.25 on
+   2007-08-01, 851 trading days apart.
 4. **The date is the save.** It comes from each file's MAT header, which
    records when the file was created. That is a day after the date in each
    name, because the name carries the last trading day.
@@ -532,7 +550,7 @@ measurements below and the decision behind the shape.
    A flag is a day's close below 0.625 or above 1.6 times the one before. Most
    are real moves, such as AAPL falling to 0.4813 of its close on 2000-09-29,
    its profit-warning day, in a column that absorbs its June 2000 split with
-   no jump. Two are the splices in point 3. Four more sit within 0.02 of a
+   no jump. Three are the splices in point 3. Four more sit within 0.02 of a
    two-for-one split, and whether any of them is an unadjusted split is not
    known.
 

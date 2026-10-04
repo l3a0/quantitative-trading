@@ -77,6 +77,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 from chan.vintage import (
     EVENT_FIELDS,
@@ -317,6 +318,21 @@ def load_panel(
         )
     # The columns keep the dict's order, which is the members' sorted order.
     return members, pd.DataFrame(columns).sort_index()
+
+
+def row_month_ends(days: pd.DatetimeIndex) -> NDArray[np.intp]:
+    """The rows whose next row falls in another month.
+
+    The final row is never one, because the next row does not exist. That is
+    how Chan's scripts find a month-end, by row rather than by calendar.
+
+    It lives beside :func:`load_panel` because two chapters read a panel's
+    month-ends, :mod:`chan.equity_seasonals` and :mod:`chan.momentum_factor`,
+    and importing one chapter from another to find a row is what this module
+    exists to prevent.
+    """
+    months = days.month.to_numpy()
+    return np.flatnonzero(months[:-1] != months[1:])
 
 
 def panel_line(members: Sequence[VintageEntry]) -> str:

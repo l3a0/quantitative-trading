@@ -49,6 +49,14 @@ figures, its denominator of 30 and its levered 27 percent all sit at location
 3024, while the figures its script prints sit in `pead.m` and nowhere in the
 book. The replication log's Entry 12 traces each to one or the other.
 
+Example 7.4 splits the same way. Its setup at location 4034 and its result at
+4051 are here, including the 2 and 4 percent and Chan's account of the gap
+between them as round-off. The figures its four programs print are not,
+because the book prints them beside code: the first edition's −1.8099, the
+revised MATLAB's 0.020205 and 0.211120, and the three 17-digit figures the
+revised Python and R both print. The replication log's Entry 13 traces each to
+its script or to the revised edition's page.
+
 Example 3.8 is absent in both ways. Its setup sentence at location 2233 and
 its closing exercise at 2236 are here, and the sentence carrying its result,
 that both Sharpe ratios turn "very positive", is not. That sentence traces to

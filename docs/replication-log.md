@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11 and 12 carry their own, three, eleven,
-twelve, five, six, one, three, eight, six and two, and they are listed in those
-entries rather than here, because the list is about an entry's rows and not
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13 and 14 carry their own, three,
+eleven, twelve, five, six, one, three, eight, six, two, eight and seven, and they
+are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -29,7 +29,7 @@ and its tables drop the columns that would hold a published figure, a gap and a
 verdict. Entry 6 comes from the same sentence of the book and is a replication,
 because the claim it tests is about one series Chan names.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11 and 12 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13 and 14 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -122,6 +122,18 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-10)
   - [What the entry concludes](#what-the-entry-concludes-11)
   - [What this entry cannot say](#what-this-entry-cannot-say-9)
+- [Entry 13: the PCA factor model, Chan's *Quantitative Trading*](#entry-13-the-pca-factor-model-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-11)
+  - [What this repo computed](#what-this-repo-computed-12)
+  - [The verdicts](#the-verdicts-11)
+  - [What the entry concludes](#what-the-entry-concludes-12)
+  - [What this entry cannot say](#what-this-entry-cannot-say-10)
+- [Entry 14: the market and momentum factors, Chan's *Quantitative Trading*](#entry-14-the-market-and-momentum-factors-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-1)
+  - [What this repo computed](#what-this-repo-computed-13)
+  - [The verdicts](#the-verdicts-12)
+  - [What the entry concludes](#what-the-entry-concludes-13)
+  - [What this entry cannot say](#what-this-entry-cannot-say-11)
 
 ## How to read an entry
 
@@ -149,8 +161,11 @@ both.
    [tests/test_survivorship_bias.py](../tests/test_survivorship_bias.py) holds
    Entry 9,
    [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
-   holds Entry 11, and [tests/test_pead.py](../tests/test_pead.py) holds
-   Entry 12.
+   holds Entry 11, [tests/test_pead.py](../tests/test_pead.py) holds
+   Entry 12, [tests/test_pca_factor.py](../tests/test_pca_factor.py) holds
+   Entry 13, and
+   [tests/test_momentum_factor.py](../tests/test_momentum_factor.py) holds
+   Entry 14.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -259,7 +274,8 @@ each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
-rows 2 and 6 to 10, and Entry 12's rows 10 and 11.
+rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16, and
+Entry 14's rows 3 to 9.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -273,7 +289,18 @@ any figure was computed. Entry 11's row 3 is one as well. The sidebar's claim
 names one trade, and its criterion, a profit in every year from 1995 to 2008,
 was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any
-trade was computed.
+trade was computed. Entry 13's row 10 is a claim too, and the exception
+among them: its criterion was written on
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the
+overlap it judges was measured. Round-off would leave two books of one size
+the same on every day. Given the MATLAB's 50 longs, the Python's book matches
+on none of 752 days and differs in at least 125 positions on each, so the
+verdict does not rest on where a threshold sits. Entry 14's rows 1 and 2 are
+two more. Location 4014's claim is about factors, and the section names both
+MKT and WML, so each is a definite case of it. Their criterion was written on
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22), and the
+owner ruled that each factor carries its own verdict, both before any
+autocorrelation was computed.
 
 Entry 5's claim does not take that route. Each claim above is about an
 instrument its source names, SPY in Chan's Example 6.2 and Qian's own
@@ -1772,22 +1799,32 @@ Example 7.7, and rows 15 to 18 split one of them at 2002. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
-Two of the four printouts have no code in this repo. The owner read the revised
-edition's MATLAB and R figures from the Kindle book on 2026-10-02, and the
-session that built this entry could not open it. So rows 9, 10, 13 and 14 run
-rules that reproduce the printed figures, not transcriptions of the printed
-code. Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on
-the same kind of inference: the figures match the first edition's, so its
-rules are assumed.
-[Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
-the 7.7 readings against the book.
+Two of the four printouts have no code file in this repo. The revised
+edition prints its Example 7.7 in MATLAB on p. 179 and in R on p. 181, and the
+owner read both listings from the Kindle book on 2026-10-03.
+[Issue 226's comment on the printed code](https://github.com/l3a0/quantitative-trading/issues/226#issuecomment-5973504942) quotes the expressions that
+decide each rule, and rows 9, 10, 13 and 14 run those rules.
 
-Those rows say less than the others, and their verdicts should be read that
-way. Each reading was found by trying combinations of rule choices until the
-printed digits landed, so its match holds by construction. What the verdict
-records is that the printed figure is reachable from the committed vintage
-under rules a script could plausibly hold. It does not record that the printed
-code holds them, and [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) may move these rows.
+1. **The R needs no repair**, because it indexes the daily closes, and
+   `R_HESTON_SADKA` follows it with no change.
+2. **The MATLAB needs one repair to run.** It cuts its closes to month-end rows
+   and then reads one by a daily row number. `REVISED_MATLAB` reads the
+   month-end row instead and follows the listing everywhere else.
+3. **The page leaves `smartstd` open.** The listing calls it, and pp. 179 to
+   181 do not print its body. Chan's two books ship two versions, and only
+   *Algorithmic Trading*'s prints row 10's digits.
+4. **The revised code's repost settles both.** The revised edition's MATLAB as
+   reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` holds an `example7_7.m` whose mask already
+   reads the month-end row, and which matches `REVISED_MATLAB` everywhere
+   else, down to the −0.0129 and −0.1243 in its closing comment. Its
+   `smartstd.m` divides by n, which is book two's. The repost is a third
+   party's copy rather than the book, so the page stays the source for rows 9
+   and 10, and the repost is what confirms the two choices the page does not
+   decide.
+
+Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on a
+different inference: the figures match the first edition's, so its rules are
+assumed.
 
 Every result here is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
@@ -1805,12 +1842,12 @@ hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 | 6 | 7.6, January 2007, revised R | −0.0068 | as row 5 |
 | 7 | 7.7 average annual return, first-edition MATLAB | −0.9167 | `example7_7.m` at `1a71950`, printed in its closing comment |
 | 8 | 7.7 Sharpe ratio, first-edition MATLAB | −0.1055 | as row 7 |
-| 9 | 7.7 average annual return, revised MATLAB | −0.0129 | as row 5 |
-| 10 | 7.7 Sharpe ratio, revised MATLAB | −0.1243 | as row 5 |
+| 9 | 7.7 average annual return, revised MATLAB | −0.0129 | the revised Kindle edition, p. 179, in the listing's closing comment, as the owner read it on 2026-10-02 and 2026-10-03 |
+| 10 | 7.7 Sharpe ratio, revised MATLAB | −0.1243 | as row 9 |
 | 11 | 7.7 average annual return, revised Python | −0.012679 | `example7_7.py` at `653cf92`, printed in its closing comment |
 | 12 | 7.7 Sharpe ratio, revised Python | −0.122247 | as row 11 |
-| 13 | 7.7 average annual return, revised R | −0.01139674 | as row 5 |
-| 14 | 7.7 Sharpe ratio, revised R | −0.1095098 | as row 5 |
+| 13 | 7.7 average annual return, revised R | −0.01139674 | the revised Kindle edition, p. 181, read on the same two days as row 9 |
+| 14 | 7.7 Sharpe ratio, revised R | −0.1095098 | as row 13 |
 | 15 | 7.7 annual return before 2002 | more than 13 percent, Heston and Sadka's sample rather than this file | Kindle location 4425 |
 | 16 | 7.7 Sharpe ratio before 2002 | nothing | n/a |
 | 17 | 7.7 annual return from 2002 | the effect "has disappeared since then" | Kindle location 4425 |
@@ -1821,7 +1858,9 @@ beside code rather than in a sentence somebody marked.
 [research/book-notes/README.md](../research/book-notes/README.md) records that
 absence. Rows 5, 6, 9, 10, 13 and 14 trace to
 [the owner's comment on issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931),
-which tables every figure the revised edition prints for both examples.
+which tables every figure the revised edition prints for both examples. The
+code behind rows 9, 10, 13 and 14 traces to
+[the comment on issue 226](https://github.com/l3a0/quantitative-trading/issues/226#issuecomment-5973504942).
 
 ### What this repo computed
 
@@ -1835,11 +1874,11 @@ which tables every figure the revised edition prints for both examples.
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
 | 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
 | 8 | as row 7 | −0.1055 | 0.0000 | as row 7 |
-| 9 | `REVISED_MATLAB`: each stock kept only if its own close exists, each month divided by its positions, statistics from the thirteenth month | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
+| 9 | `REVISED_MATLAB`: the printed code with its out-of-range index repaired, each stock kept only if its own close exists, each month divided by its positions, 83 months, *Algorithmic Trading*'s `smartstd` | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
 | 10 | as row 9 | −0.1243 | 0.0000 | as row 9 |
 | 11 | `PYTHON_HESTON_SADKA`: each stock's last priced day, kept only if its own return exists, 83 months, standard deviation over n | −0.012679 | 0.000000 | `TestHestonSadkaPython::test_both_figures_reproduce` |
 | 12 | as row 11 | −0.122247 | 0.000000 | as row 11 |
-| 13 | `R_HESTON_SADKA`: row 9's selection with half-to-even rounding, 83 months, standard deviation over n − 1 | −0.01139674 | 0.00000000 | `TestHestonSadkaR::test_both_figures_reproduce` |
+| 13 | `R_HESTON_SADKA`: the printed code, row 9's selection with half-to-even rounding, 83 months, standard deviation over n − 1 | −0.01139674 | 0.00000000 | `TestHestonSadkaR::test_both_figures_reproduce` |
 | 14 | as row 13 | −0.1095098 | 0.0000000 | as row 13 |
 | 15 | row 11's months from 2000-12-31 to 2001-12-31, 13 of them | −0.145387 | none, not a replication | `TestTheSplitAt2002::test_the_two_halves` |
 | 16 | as row 15 | −0.859993 | none | as row 15 |
@@ -1862,11 +1901,11 @@ printed precision, and the gap is zero at that precision.
 | 6 | reproduced | as row 5 |
 | 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
 | 8 | reproduced | Skipping the NaN month in the standard deviation instead of counting it as zero gives −0.1049. |
-| 9 | reproduced | A reading, not transcribed code. As the owner read the printed code, it reads a daily row of a 96-row array and cannot run. Keeping the first edition's sorted-against-columns rule in the minimal repair gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so four decimals do not choose between the two. Row 13's digits choose the close for R, and the owner read the MATLAB as reading the close too. |
-| 10 | reproduced | A reading, as row 9. Dropping 13 months and dividing by n also prints −0.1243, so [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) decides between the two against the printed code. Keeping the first twelve months instead gives −0.1330. |
+| 9 | reproduced | The printed code with one repair. As printed, it reads a daily row of a 96-row array and cannot run. The repair reads the month-end row, and because the printed mask removes stocks by column, it keeps each stock on its own close. Keeping the first edition's sorted-against-columns rule instead gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so the code chooses the close where four decimals cannot. |
+| 10 | reproduced | As row 9. Pp. 179 to 181 do not print `smartstd`, and the revised code's repost ships book two's. *Algorithmic Trading*'s, which skips a month with no position and divides by n, prints −0.1243. The first edition's gives −0.1236. Every month the drop removes holds no position, so under the former the drop count moves no figure. Under the first edition's it does: dropping 12 also prints −0.1243 by counting one empty month as zero, which is the reading this row ran before the code was read, and dropping none gives −0.1330. |
 | 11 | reproduced | Taking one shared row per month instead gives −0.012917. |
 | 12 | reproduced | Dividing by n − 1 instead gives −0.121508. |
-| 13 | reproduced | A reading, as row 9, and the tightest of them, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
+| 13 | reproduced | The printed code, unchanged, and the tightest of rows 9 to 14, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
 | 14 | reproduced | Dividing by n instead gives −0.1101755. |
 | 15 | none, not a replication | Heston and Sadka's 13 percent is from their own sample, which this file does not reach. It has 13 months before 2002 after the twelve-month lookback, and they lost. |
 | 16 | none, not a replication | as row 15 |
@@ -1929,11 +1968,9 @@ in November 1999. [Issue 196](https://github.com/l3a0/quantitative-trading/issue
 is where the 13 percent is tested on a panel that still holds the companies
 that left.
 
-**Whether the revised MATLAB and R rows are the printed code.** They reproduce
-every digit printed, and for the MATLAB more than one reading does. R's
-Example 7.6 rounding is assumed from what the owner read of its 7.7.
-[Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) carries
-the check.
+**How the revised R rounds Example 7.6.** It is assumed from its Example 7.7
+code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
+by the revised code's repost.
 
 **What happened after 2007.** After Example 7.7 the revised edition says the
 most recent five years give even worse average returns. Neither file reaches
@@ -2560,9 +2597,10 @@ transcription in `chan.pead` lands on all of them at the precision the script
 prints.
 
 One choice decides a printed digit. Chan's two books ship two helpers called
-`smartstd`. The first edition's, which Entries 7, 8 and 10 run, counts a
-missing value as zero and divides by n − 1. Book two's skips it and divides by
-n. With book two's, the arithmetic return is 0.066743, which prints as
+`smartstd`. The first edition's, which Entries 8 and 10 and Entry 7's
+first-edition rows run, counts a missing value as zero and divides by n − 1.
+Book two's, which Entry 7's revised MATLAB rows run too, skips it and divides
+by n. With book two's, the arithmetic return is 0.066743, which prints as
 Chan's 0.0667. With the first edition's it is 0.066833, which prints as
 0.0668, and row 11 holds that.
 
@@ -2673,6 +2711,329 @@ round trip inside one day.
 
 **How large the look-ahead in the 30 is.** Chan argues it is small because the
 number of announcements a day is predictable, and nothing here tests that.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 13: the PCA factor model, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading*, Example 7.4, "Principal
+Component Analysis as an Example of the Factor Model". The revised edition
+prints it on pp. 163 to 167, read in the Kindle Cloud Reader on 2026-10-03,
+with its setup at Kindle location 4034 and its result at 4051. The first
+edition's script is `example7_4.m`. Shipped under
+[issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
+
+Sixteen rows, all derivable from
+[tests/test_pca_factor.py](../tests/test_pca_factor.py). Eight do not pair one
+published figure with one computation. Row 7 sets two readings against three
+printed figures, row 9 sets three programs against one, and rows 11 to 16
+carry no published figure.
+
+**Three of the four printouts reproduce, and Chan's account of why they
+disagree does not hold.** The strategy takes five statistical factors from a
+year of returns, assumes the factor returns carry momentum, buys the 50 stocks
+with the highest expected return and shorts the 50 with the lowest. Chan
+reports 2 percent a year in MATLAB and 4 percent in Python and R, and calls the
+difference "essentially round off errors". The first edition's MATLAB, the
+revised MATLAB and the revised Python each land on every figure they print,
+on the file they all load. The revised R prints the Python's three figures to
+17 digits, and its own code reads differently.
+
+The spread between 2 and 4 percent is method. The revised Python never uses
+its factors. It regresses each stock's returns on an intercept and five factor
+series and ranks on the summed fitted values, and with an intercept in the
+regression that sum is the stock's summed return. So the Python ranks on a
+year of momentum, and its book is the same on every day as a ranking that
+leaves the PCA out. The revised MATLAB fits today's cross-section of returns
+on the stocks' factor exposures instead. Given the MATLAB's 50 longs, the
+Python's book matches the MATLAB's on none of the 752 days both trade.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `ijr_20080114/`, the 600 stocks of Chan's
+   `IJR_20080114.mat`, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14,
+   read for the close through `chan.series.load_panel`. Every printout loads
+   this file. The revised repost's `.mat` has the sha256 the lifted file has,
+   and the Python's text file holds the same closes to 2.0e-16, which
+   [data/README.md](../data/README.md) records. **Every figure here is about
+   survivors**, because the file holds the S&P 600 as it stood on 2008-01-14,
+   carried backwards.
+2. **The specification.** A lookback of 252, five factors, 50 stocks shorted
+   and no cost, under each printout's own rule as `chan.pca_factor`
+   transcribes it. The first edition's `example7_4.m` is read at `1a71950` in
+   the mirror [data/README.md](../data/README.md) names. The revised MATLAB and
+   Python are read from the book's pages and from their reposts at
+   pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` and
+   pinhaocheng/epchan-quant_trading_Python_codes `5fcab61`. The R is read from
+   the pages alone. Every annualisation uses 252 days, and no Sharpe ratio
+   subtracts a risk-free rate.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2004 to 2008 sample on a rule he chose, so the entry says whether his numbers
+reproduce on his file and nothing about whether a statistical factor model
+earns money.
+
+### What the book printed
+
+The revised edition prints each program's figures in the comment lines that
+close its listing, and the text quotes two of them as whole percents. Only the
+text is among the committed highlights. The code-printed figures are not, and
+[research/book-notes/README.md](../research/book-notes/README.md) records that
+absence.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | First-edition MATLAB, `smartmean(ret)*252`, a sum over positions | −1.8099 | `example7_4.m`, first edition |
+| 2 | Revised MATLAB, annual mean return | 0.020205 | revised edition p. 164 |
+| 3 | Revised MATLAB, Sharpe ratio | 0.211120 | revised edition p. 164 |
+| 4 | Revised Python, annual mean return | 0.04052422056844459 | revised edition p. 165 |
+| 5 | Revised Python, annualised standard deviation | 0.07002908500498846 | revised edition p. 165 |
+| 6 | Revised Python, Sharpe ratio | 0.5786769963588398 | revised edition p. 165 |
+| 7 | Revised R, the same three lines | rows 4 to 6, digit for digit | revised edition p. 167 |
+| 8 | The MATLAB return, as the text quotes it | 2% | location 4051 |
+| 9 | The Python and R return, as the text quotes it | 4% | location 4051 |
+| 10 | Why the programs differ | "essentially round off errors" | location 4051 |
+| 11 to 16 | what separates the printouts, and each without PMC | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `first_edition_matlab`, the mean over 1,005 rows | −1.809865 | `TestThePrintouts::test_the_first_edition_prints_minus_1_8099` |
+| 2 | `revised_matlab`, the mean over the 752 days that trade | 0.020205 | `TestThePrintouts::test_the_revised_matlab_prints_its_two_figures` |
+| 3 | the same, with book two's `smartstd` | 0.211120 | the same |
+| 4 | `revised_python`, the mean over all 1,006 rows | 0.040524220568445 | `TestThePrintouts::test_the_revised_python_lands_its_printed_figures` |
+| 5 | the same, `np.nanstd` dividing by n | 0.070029085004988 | the same |
+| 6 | the same | 0.578676996358840 | the same |
+| 7 | `revised_r_reading`, unfilled and forward-filled | 0.0401, 0.0797, 0.5038 and 0.0426, 0.0802, 0.5319 | `TestThePrintouts::test_neither_r_reading_lands_the_printed_figures` |
+| 8 | row 2 at the text's whole percent | 2% | `TestThePrintouts::test_the_revised_matlab_prints_its_two_figures` |
+| 9 | row 4 at the text's whole percent, and row 7's two readings | 4%, 4% and 4% | `TestThePrintouts::test_the_revised_python_lands_its_printed_figures` and `::test_neither_r_reading_lands_the_printed_figures` |
+| 10 | the shared days on which the revised MATLAB and the Python given 50 longs hold the same book, and the fewest positions in which they differ on one day | 0 of 752, and 125 | `TestWhatSeparatesTwoFromFour::test_at_one_size_the_revised_books_are_never_identical` and `::test_round_off_does_not_explain_the_spread` |
+| 11 | the Python ranked on each stock's summed return, with the PCA left out | the same book on every day | `TestWhatSeparatesTwoFromFour::test_the_pythons_pca_changes_no_position` |
+| 12 | the mean share of the revised MATLAB's names the Python holds the same way, as printed and with 50 longs | 13.83% and 14.14% | `TestWhatSeparatesTwoFromFour::test_the_revised_books_share_few_names` and `::test_at_one_size_the_revised_books_are_never_identical` |
+| 13 | the Python buying the top 50 rather than the 49 ranked second to 50th | 0.0414, Sharpe ratio 0.5908 | `TestWhatSeparatesTwoFromFour::test_fifty_longs_move_the_pythons_figures` |
+| 14 | the Python over its 751 trading days, the first edition over its 753, and the Python keeping the first book it clears | 0.0543, Sharpe ratio 0.6699, then −2.4156, then 0.0417, Sharpe ratio 0.5945 | `TestWhatSeparatesTwoFromFour::test_averaging_over_trading_days_moves_both_programs` and `::test_keeping_the_first_book_moves_the_pythons_figures` |
+| 15 | row 3 under the first edition's `smartstd` | 0.2441 | `TestWhatSeparatesTwoFromFour::test_the_first_editions_smartstd_moves_the_revised_sharpe` |
+| 16 | rows 1 to 6 without PMC | −1.8014, then 0.0180 and 0.1869, then 0.0408 and 0.5851 | `TestTheSplice::test_each_printout_without_pmc` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0000 | reproduced | Chan's first-edition figure, on his file, through his script transcribed. It is a sum over 100 positions of ±1 with no division by capital, and its mean runs over 252 rows from before the first trade. |
+| 2 | 0.000000 | reproduced | The same, for the revised MATLAB. |
+| 3 | 0.000000 | reproduced | The same. The printed figure lands with book two's `smartstd` and misses with the first edition's, row 15, and the revised repost at `7430b84` carries book two's file. |
+| 4 | under 1e-15 | reproduced | Within 1e-12 of each figure printed to 17 digits, the verdict's criterion, and within 1e-15, the pin. They agree to 15 significant digits. |
+| 5 | under 1e-15 | reproduced | The same. |
+| 6 | under 1e-15 | reproduced | The same. |
+| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days with no position, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
+| 8 | 0 | reproduced | 2.02 percent rounds to 2. |
+| 9 | 0 | reproduced | The Python's 4.05 percent rounds to 4, and so does each R reading. The whole-percent figure is reached even by the code whose 17-digit figures are not. |
+| 10 | none | did not reproduce | Round-off would leave two books of one size the same on every day. The printed Python buys 49 and the MATLAB 50, so the comparison gives the Python 50, and the books then match on none of 752 days and differ in at least 125 positions on each. The criterion was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the overlap was measured, which is the cost named there. |
+| 11 | none | none, not a replication | This is why the Python's figure is momentum's. Its PCA changes no position. |
+| 12 | none | none, not a replication | The two revised programs trade mostly different stocks. |
+| 13 | none | none, not a replication | The Python's `np.arange(-topN, -1)` never buys the top-ranked stock. |
+| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that hold no position, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows with no position. |
+| 15 | none | none, not a replication | The first edition's `smartstd` zero-fills a missing day and divides by n − 1. |
+| 16 | none | none, not a replication | PMC closes at 6.02 on 2004-03-12 and resumes at 17.25 on 2007-08-01, two price histories under one symbol. Every program but the unfilled R reading forward-fills, so the gap becomes one day's return of 1.8654. |
+
+### What the entry concludes
+
+Two things.
+
+1. **The three printouts that can run reproduce on Chan's file.** The first
+   edition's −1.8099 and the revised MATLAB's 0.020205 and 0.211120 land at
+   the precision printed, and the revised Python's three 17-digit figures land
+   within 1e-15.
+2. **The 2-versus-4 spread is two different strategies, not round-off.** The
+   revised MATLAB trades a factor model and the Python trades a year of
+   momentum, because its regression's intercept cancels its factors. Three
+   bookkeeping choices each lower the Python's figure toward the MATLAB's: its
+   long side, its averaging, and the first book it clears. Without any one of
+   them the Python's figure is higher than 4.05 percent, rows 13 and 14.
+
+### What this entry cannot say
+
+Three things.
+
+**What the strategy earned on the index as it stood each day.** Every stock
+here was in the S&P 600 on 2008-01-14.
+[Issue 269](https://github.com/l3a0/quantitative-trading/issues/269) reruns it
+on a point-in-time universe, which waits on data.
+
+**What the R printout actually computed.** Without `calculateReturns.R` and an
+R runtime, row 7 is a reading.
+[Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it
+once Chan's download is in hand.
+
+**What costs would take.** Every printout charges none, and the books turn over
+daily.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 14: the market and momentum factors, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle locations 3978, 4004
+and 4014. Shipped under
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22). Every
+location is the revised edition's. Whether the first edition carries the
+sentences at 4004 and 4014 was not checked.
+
+Nine rows, all derivable from
+[tests/test_momentum_factor.py](../tests/test_momentum_factor.py).
+
+**The claim holds for the market factor and does not hold for the momentum
+factor.** Chan says at location 4014 that "often factor returns are more
+stable than individual stock returns", that they "exhibit stronger serial
+autocorrelations than individual stock's returns", and so "have momentum".
+That persistence is what lets this period's factor return stand in for the
+next. Two of the factors his section names need only prices. MKT, which
+location 3978 names as "the return of the market", is built here as the
+index's return over the bill rate, the way French's market factor is. WML, winners
+minus losers, defined at location 4004, longs the stocks whose past return was
+positive and shorts those whose past return was negative. Over 83 months,
+MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099, against a median
+of −0.0392 across the 446 stocks priced in every month. MKT is above 0 and
+above the median stock. WML is below both.
+
+Two rows are claims and seven are not replications. Rows 1 and 2 take the
+claim route `### Rows that are not replications` describes, one per factor.
+Rows 3 to 9 are the figures the issue reports beside the verdicts, which
+decide nothing.
+
+Every rule was fixed on
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22) on
+2026-10-03, before any autocorrelation was computed. The owner ruled the same
+day, also before, that each factor carries its own verdict with Chan's "often"
+quoted beside it and that no combined verdict is formed. Four of the rules
+carry the result, so they are stated here.
+
+1. **The vintages.** `spx_20071123/`, the 500 stocks of Chan's
+   `SPX_20071123.mat`, saved 2007-11-24, read through `chan.series.load_panel`.
+   `spy_chan.csv`, the adjusted-close column of his `example6_2.xls`, saved
+   2008-01-29. FRED's TB3MS, downloaded 2026-09-30.
+   [data/README.md](../data/README.md) says what each holds.
+2. **The construction.** The month-ends are the panel's rows whose next row
+   falls in another month, Chan's own rule, which gives 96 from 1999-11-30 to
+   2007-10-31. At month-end t a stock's past return runs from its close at
+   t − 12 to its close at t − 1, skipping the latest month as French's
+   momentum factor does. A positive past return makes a winner and a negative
+   one a loser. A stock enters only with a finite close at all 14 month-ends
+   from t − 12 to t + 1, which leaves 442 to 494 at each formation. Each leg is
+   equally weighted, held one month, and charged no costs. MKT is SPY's
+   month-end to month-end return less that month's TB3MS over 12. The
+   holding months run from December 2000 to October 2007, 83 of them.
+3. **The statistic.** `pandas.Series.autocorr(lag=1)` on each series of 83
+   monthly returns, which is the correlation of the 82 pairs of one month's
+   return with the month before. The comparison set is every stock with a
+   finite return in all 83 months, 446 of them, and their median stands for
+   "individual stock's returns".
+4. **The criterion.** The claim holds for a factor when its autocorrelation is
+   above 0 and above the median stock's, both compared unrounded. Monthly is
+   the only frequency computed, because the factors are re-formed monthly.
+
+**Every figure touching the stocks is about survivors.** The panel is the
+S&P 500 as it stood on 2007-11-23, carried backwards. That reaches WML's two
+legs in opposite directions, and which dominates is not measured here.
+
+1. **The loser leg** lacks the stocks that fell and then left the index, so
+   it holds losers that recovered enough to stay. That pushes WML down.
+2. **The winner leg** lacks past winners that later collapsed out of the
+   index. That pushes WML up.
+
+MKT reads SPY, which held the index as it stood each day, so it carries no
+survivorship.
+
+Every result here is **exploratory**. Testing a claim someone else chose
+spends the 2000 to 2007 sample on it, so the entry says whether the claim
+holds on this file and nothing about factor momentum today.
+
+### What the book stated
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | MKT has stronger serial autocorrelation than single stocks, so it has momentum | the claim, "often", with no figure | location 4014, MKT defined at location 3978 |
+| 2 | WML has stronger serial autocorrelation than single stocks, so it has momentum | the same claim | location 4014, WML defined at location 4004 |
+| 3 to 9 | each factor's autocorrelation and percentile, the stocks' quartiles, the band, each factor's mean and t-statistic, and the legs | nothing, the book works no example | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | MKT's autocorrelation against 0 and against the median stock's, unrounded | 0.0675, above 0 and above −0.0392 | `TestTheVerdicts::test_mkt_holds_above_zero_and_above_the_median_stock` |
+| 2 | WML's autocorrelation against the same two | −0.1099, below 0 and below −0.0392 | `TestTheVerdicts::test_wml_does_not_hold_on_either_half` |
+| 3 | MKT's lag-1 autocorrelation, and the percent of the 446 stocks strictly below it | 0.0675, 80.7175, which is 360 stocks | `TestTheFigures::test_mkts_autocorrelation` and `::test_each_factors_percentile_among_the_stocks` |
+| 4 | WML's lag-1 autocorrelation, and the same percent | −0.1099, 27.8027, which is 124 stocks | `TestTheFigures::test_wmls_autocorrelation` and `::test_each_factors_percentile_among_the_stocks` |
+| 5 | the 446 stocks' lag-1 autocorrelations, lower quartile, median and upper quartile, by linear interpolation | −0.1198, −0.0392 and 0.0402 | `TestTheFigures::test_the_stocks_quartiles` |
+| 6 | ±1.96/√83, and which factors fall outside it | 0.2151, neither | `TestTheBand::test_the_band_is_1_96_over_root_83` and `::test_neither_factor_falls_outside_it` |
+| 7 | MKT's mean monthly return times 12, and its plain t-statistic | 0.0185 and 0.3660 | `TestTheFigures::test_each_factors_annual_mean_and_t_statistic` |
+| 8 | WML's mean monthly return times 12, and its plain t-statistic | 0.0241 and 0.4505 | `TestTheFigures::test_each_factors_annual_mean_and_t_statistic` |
+| 9 | the eligible stocks, the excluded stocks, the winner leg and the loser leg, fewest and most over the 83 formations | 442 to 494 eligible, so 6 to 58 excluded for a missing close. Winners 79 to 468, losers 11 to 397 | `TestTheLegs::test_442_to_494_stocks_are_eligible`, `::test_6_to_58_stocks_are_excluded` and `::test_the_winner_and_loser_legs_sizes` |
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | The claim holds for MKT, which Chan says factors "often" show. Its autocorrelation is above 0 and above the median stock's, under the criterion declared on the issue before any autocorrelation was computed. It sits at 0.0675, inside row 6's band, so a series with no autocorrelation would land there often, and this verdict could be noise. |
+| 2 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for WML, on either half: its autocorrelation is below 0 and below the median stock's. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 and 2. The value is forced, because the log's two other verdicts both need the claim to survive. Two causes outside the method are open and neither is measured: the panel holds only survivors, and 2000 to 2007 is one window. Nothing here argues which way either moves an autocorrelation. |
+| 3 | none, not a replication | MKT sits at the 80.7175th percentile of the stocks, above 360 of 446. |
+| 4 | none, not a replication | WML sits at the 27.8027th percentile, above 124 of 446, so it is less persistent than most single stocks on this file. |
+| 5 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. That is a fact about this panel, and the criterion keeps both halves as declared. |
+| 6 | none, not a replication | Under a series with no autocorrelation, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
+| 7 | none, not a replication | MKT's mean monthly return over the bill, times 12, is 0.0185, an arithmetic figure rather than a compounded one. Its plain t-statistic of 0.3660 is uncorrected for autocorrelation and decides nothing. |
+| 8 | none, not a replication | WML's mean monthly return times 12 is 0.0241, with a plain t-statistic of 0.4505 that decides nothing. Survivorship moves a mean before it moves an autocorrelation, so this row carries the survivor-only label most loudly. |
+| 9 | none, not a replication | Every formation has both legs, so the refusal for an empty leg never fires. At its smallest the loser leg holds 11 stocks, so WML's return that month rests on few short positions. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **On this file the claim holds for the market factor and not for the
+   momentum factor.** MKT's autocorrelation is positive and above the median
+   stock's. WML's is negative and below the median stock's. Each verdict
+   stands on its own, with Chan's "often" quoted beside it, and the entry
+   draws no combined verdict from the two.
+2. **Neither autocorrelation is far from zero.** Both sit inside the band a
+   series with no autocorrelation stays inside 95 percent of the time, so 83
+   months cannot tell MKT's 0.0675 from no persistence at all. The verdict in
+   row 1 is what the declared criterion says, and row 6 says how little it
+   rests on.
+3. **The median stock sits below 0 on this file.** Its lag-1 autocorrelation
+   is −0.0392, so a factor above 0 is also above the median stock here. The
+   comparison set is survivors, so where the median sits is a fact about this
+   panel rather than about single stocks in general.
+
+### What this entry cannot say
+
+Four things.
+
+**What survivorship does to WML.** The panel lacks the stocks that left the
+index before 2007-11-23, and the two legs lose different ones.
+[Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) waits on
+a panel of the index as it stood each day, which would measure it.
+
+**Whether the factors persist at another frequency.** Only monthly returns
+were computed, by the rule on the issue, so a daily autocorrelation was not
+tried after the monthly one was seen.
+
+**Whether French's published factors agree.** Kenneth French's library
+publishes a market and a momentum factor built on every listed stock.
+[Issue 274](https://github.com/l3a0/quantitative-trading/issues/274) records
+that library as a vintage, and the skip here matches its momentum factor's so
+the two can be set side by side.
+
+**What the other two factors of location 3978 do.** SMB and HML need market
+capitalisation and book value at each date, which this repo does not hold.
+[Issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries
+them.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
