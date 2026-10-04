@@ -271,7 +271,6 @@ class TestTheMirror:
         assert short.max_drawdown_days == 363, SPEC
         assert short.max_drawdown < long.max_drawdown, SPEC
 
-
     def test_chans_two_figures_need_four_and_a_half_times_this_volatility(
         self, short: Side
     ) -> None:
