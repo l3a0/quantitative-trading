@@ -222,6 +222,12 @@ class TestWhatAnAverageDayCosts:
         assert day.profit * 1e4 == pytest.approx(0.5276, abs=5e-5)
         assert day.cost * 1e4 == pytest.approx(7.2525, abs=5e-5)
 
+    def test_the_rounded_inputs_give_one_digit_less(self, day: DailyBook, result: Reversal) -> None:
+        """The post shows 0.5276 and 33.3770, which give 0.2509 where the data give 0.2510."""
+        rounded = math.sqrt(TRADING_DAYS) * round(day.profit * 1e4, 4) / round(day.swing * 1e4, 4)
+        assert round(rounded, 4) == 0.2509
+        assert round(result.before_costs, 4) == 0.2510
+
     def test_the_cost_is_about_fourteen_days_of_profit(self, day: DailyBook) -> None:
         assert day.cost_per_profit == pytest.approx(13.7453, abs=5e-5)
 
@@ -650,6 +656,24 @@ class TestWhyRuleAKeepsMoreAfterCosts:
         swings = [round(step.swing * 1e4, 4) for step in open_steps]
         assert swings == [32.2556, 30.1416, 30.1416, 30.1416, 30.1416, 117.7257]
         assert round(open_steps[-1].swing / open_steps[0].swing, 2) == 3.65
+
+    def test_the_fixed_position_raises_the_figure_before_costs(
+        self, open_steps, close_steps
+    ) -> None:
+        """It lowers the swing, so costs take more, 3.84 against 3.59, and the
+        after-cost figure rises because the figure before costs rises more."""
+        before = [round(step.before_costs, 4) for step in open_steps]
+        assert before == [4.4202, 4.8509, 4.8509, 4.8509, 4.8606, 2.3818]
+        drops = [round(step.before_costs - step.after_costs, 2) for step in open_steps[:2]]
+        assert drops == [3.59, 3.84]
+        closes = [round(step.before_costs, 4) for step in close_steps]
+        assert closes == [0.2510, 0.4170, 0.4170, 0.4170, 0.4179, 0.9578]
+
+    def test_one_stocks_gap_carries_the_swing(self, open_panel) -> None:
+        """Without WYN, rule A's swing on the opens is 30.2366 basis points, not 117.7257."""
+        _, frame = open_panel
+        without = steps_to_the_notebook(frame.drop(columns=[SPLICED_SYMBOL]))
+        assert without[-1].swing * 1e4 == pytest.approx(30.2366, abs=5e-5)
 
     def test_the_cost_over_the_swing_predicts_the_drop(
         self, open_steps, variation: OpenVariation

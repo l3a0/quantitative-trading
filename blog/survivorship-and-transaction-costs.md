@@ -53,6 +53,8 @@ Chan’s weights are small numbers that he never scales to a dollar amount, so t
 \text{Sharpe before costs} = \sqrt{252}\;\frac{0.5276}{33.3770} \approx 0.2510
 ```
 
+This post rounds the inputs to four decimals, and each result comes from the unrounded figures. Redone on the rounded inputs, this equation gives 0.2509.
+
 Chan calls 0.25 a “mediocre” Sharpe ratio, a small edge under a large swing.
 
 Then the cost. Because the rule sets every weight again from yesterday’s returns, little of yesterday’s book survives into today’s. Each day it trades 1.4505 times its average position, and each unit traded costs 5 basis points:
@@ -67,7 +69,7 @@ The day’s cost is 13.7453 times the day’s profit. Subtracting it from every 
 \text{Sharpe after costs} = \sqrt{252}\;\frac{0.5276 - 7.2525}{33.0134} \approx -3.2337
 ```
 
-The inputs are shown at four decimals, so redoing the arithmetic on them can miss the last digit of a result, which comes from the unrounded figures. Chan’s −3.19 comes from the same arithmetic with the first day treated differently, which Lesson 2 explains.
+Chan’s −3.19 comes from the same arithmetic with the first day treated differently, which Lesson 2 explains.
 
 ![Two lines of cumulative profit over 2006, each day’s profit divided by the year’s average gross position. The green line, before costs, wanders around zero and ends the year at +1.3%. The red line, after 5 basis points a side, falls steadily from January and ends at −16.9%. The note gives the Sharpe ratios as 0.2510 before costs and −3.2337 after.](../docs/figures/khandani_lo_cumulative_profit.png)
 
@@ -141,10 +143,10 @@ Both rules bet against each stock’s return relative to the market’s. They di
 
 1. **Gaps in prices.** The notebook fills each gap in a stock’s prices with the last price seen, so a stock missing for a day earns nothing that day, and a gap of any length counts as one day’s move. The book’s rule leaves the gap empty and computes no return across it.
 2. **Position size.** The book’s rule divides each weight by the number of stocks priced that day, so its total position changes from day to day. The notebook scales each day’s weights so that the stocks it owns and the stocks it has sold short add up to the same total every day.
-3. **Stocks with a missing price.** The book’s rule gives a stock no weight on a day its price is missing, or was missing the day before. After the fill, the notebook is missing a price only before a stock’s first one, and its sums skip those days.
+3. **Stocks with a missing price.** The book’s rule gives a stock no weight on a day its price is missing, or was missing the day before. After the fill, the notebook is missing a return only up to and including a stock’s first priced day, and its sums skip that stock on those days.
 4. **The standard deviation.** The notebook divides the variance by the number of days, and the book’s rule by one fewer.
 5. **The first day’s cost.** The notebook charges nothing for the first day’s trades, so neither of Lesson 2’s quirks applies to it.
-6. **Trades next to a missing weight.** The book’s rule charges for moving a stock’s weight up from zero and back down to it. The notebook skips any trade next to a missing weight, so it never pays to buy a stock first priced during 2006.
+6. **Trades next to a missing weight.** The book’s rule charges for moving a stock’s weight up from zero and back down to it. The notebook skips any change in weight where the weight on either day is missing, so it never pays to buy a stock first priced during 2006.
 
 ```math
 \begin{array}{l|l|c|c}
@@ -159,15 +161,15 @@ Both rules bet against each stock’s return relative to the market’s. They di
 \end{array}
 ```
 
-On the opens the notebook’s rule loses less to costs than the book’s rule, 0.98 of its Sharpe ratio against 3.59, yet it pays about the same cost. The book’s rule pays 7.3182 basis points of its position a day and the notebook’s rule 7.2808. What differs is the swing. Subtracting a cost from every day lowers the average by that cost and leaves the swing nearly where it was, so the cost takes about this much off the Sharpe ratio:
+On the opens, costs take 0.98 off the notebook’s Sharpe ratio, from 2.3818 to 1.3997, and 3.59 off the book’s rule with its first day charged, from 4.4202 to 0.8293. Yet the two rules pay about the same cost. The book’s rule pays 7.3182 basis points of its position a day and the notebook’s rule 7.2808. What differs is the swing. Subtracting a cost from every day lowers the average by that cost and leaves the swing nearly where it was, so the cost takes about this much off the Sharpe ratio:
 
 ```math
 \text{Sharpe lost to costs} \approx \sqrt{252}\;\frac{\text{daily cost}}{\text{standard deviation of daily profit}}
 ```
 
-For the book’s rule that is √252 × 7.3182 / 32.2556, about 3.60. For the notebook’s rule it is √252 × 7.2808 / 117.7257, about 0.98. The notebook’s daily profit swings 3.65 times as far, so the same cost removes far less. The swing comes from the fill. It reads one stock’s gap as a single day’s move, which Lesson 7 shows.
+For the book’s rule that is √252 × 7.3182 / 32.2556, about 3.60. For the notebook’s rule it is √252 × 7.2808 / 117.7257, about 0.98. The notebook’s daily profit swings 3.65 times as far, so the same cost removes far less. The swing comes from the fill, and almost all of it from one stock’s gap, which the fill reads as a single day’s move. Without that stock the notebook’s swing is 30.2366 basis points. Lesson 7 shows the gap.
 
-Turning the book’s rule into the notebook’s one difference at a time shows where the 0.5704 between their figures after costs comes from. Each row keeps every change above it, so a different order would split the total differently. The cost and the swing are in basis points of the position.
+Turning the book’s rule into the notebook’s one difference at a time shows where the 0.5704 between their figures after costs comes from, with the book’s rule charging its first day. Each row keeps every change above it, so a different order would split the total differently. Differences 3 and 6 share a row, because both come from leaving a missing weight empty rather than setting it to zero. The cost and the swing are in basis points of the position.
 
 ```math
 \begin{array}{l|c|c|c}
@@ -175,13 +177,13 @@ Turning the book’s rule into the notebook’s one difference at a time shows w
 \text{The book's rule, first day charged} & 7.3182 & 32.2556 & 0.8293 \\
 \text{+ the same total position every day} & 7.3116 & 30.1416 & 1.0149 \\
 \text{+ the first day's trades free} & 7.2788 & 30.1416 & 1.0307 \\
-\text{+ no charge next to a missing weight} & 7.2773 & 30.1416 & 1.0314 \\
+\text{+ missing weights left empty} & 7.2773 & 30.1416 & 1.0314 \\
 \text{+ variance divided by the number of days} & 7.2773 & 30.1416 & 1.0335 \\
 \text{+ gaps filled with the last price} & 7.2808 & 117.7257 & 1.3997
 \end{array}
 ```
 
-The cost stays within 0.05 basis points of 7.3 on every row. The fill adds 0.3662 of the 0.5704, and without it the notebook’s rule lands at 1.0335, the figure Lesson 7 gives for it without the fill. Most of the rest comes from holding the same total position every day. The book’s rule divides each weight by the number of stocks, so its total position is roughly how far the average stock’s return strays from the market’s, and it holds the most on days when returns scatter widely. Holding the same amount every day lowers the swing from 32.2556 to 30.1416 basis points.
+The cost stays within 0.05 basis points of 7.3 on every row. The fill adds 0.3662 of the 0.5704, and without it the notebook’s rule lands at 1.0335, the figure Lesson 7 gives for it without the fill. Most of the rest comes from holding the same total position every day, and it works the other way from the fill. The book’s rule divides each weight by the number of stocks, so its total position is roughly how far the average stock’s return strays from the market’s, and it holds the most on days when returns scatter widely. Holding the same amount every day raises the figure before costs from 4.4202 to 4.8509 and lowers the swing from 32.2556 to 30.1416 basis points. The smaller swing lets costs take more, 3.84 instead of 3.59, but the higher figure before costs more than makes up for it.
 
 ## Lesson 7: one column of Chan’s file joins two stretches of prices
 

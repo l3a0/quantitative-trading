@@ -103,7 +103,9 @@ into a gap, so it reads WYN's gap between two companies as one day's move: a
 return of 121.5 on the closes and 127.65 on the opens. That is the
 transcription rather than a defect, and the report prints rule A without the
 forward-fill and without WYN beside it, so a reader sees how much of Chan's
-figure that gap carries.
+figure that gap carries. :func:`steps_to_the_notebook` turns rule B into rule
+A one departure at a time, which is how the post explains why rule A keeps
+more of its figure after costs.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 sample on a rule somebody else chose, so the run says whether his numbers
@@ -113,7 +115,6 @@ reproduce on his file and nothing about whether the rule pays today.
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -448,12 +449,13 @@ class Step:
     deviation of profit before costs, both over the window's mean gross
     position, as :class:`DailyBook` reads them. The swing divides by n − 1 at
     every step, so it describes the series the same way throughout, while
-    ``after_costs`` uses the rule's own divisor.
+    ``before_costs`` and ``after_costs`` use the rule's own divisor.
     """
 
     label: str
     cost: float
     swing: float
+    before_costs: float
     after_costs: float
 
 
@@ -464,7 +466,7 @@ STEP_LABELS = (
     "rule B, first day charged",
     "fixed gross position",
     "first day's trades free",
-    "no charge beside a missing weight",
+    "missing weights left empty",
     "variance divided by n",
     "gaps filled with the last price",
 )
@@ -473,6 +475,7 @@ STEP_LABELS = (
 def _variant(
     frame: pd.DataFrame,
     *,
+    label: str,
     fixed_gross: bool,
     first_day_free: bool,
     skip_missing: bool,
@@ -514,9 +517,10 @@ def _variant(
     after = pnl - cost
     book = float(held.mean())
     return Step(
-        label="",
+        label=label,
         cost=float(cost.mean()) / book,
         swing=float(pnl.std(ddof=1)) / book,
+        before_costs=float(np.sqrt(TRADING_DAYS) * pnl.mean() / pnl.std(ddof=ddof)),
         after_costs=float(np.sqrt(TRADING_DAYS) * after.mean() / after.std(ddof=ddof)),
     )
 
@@ -542,7 +546,7 @@ def steps_to_the_notebook(frame: pd.DataFrame) -> list[Step]:
     for label, switch in zip(STEP_LABELS, turned_on, strict=True):
         if switch is not None:
             switches[switch[0]] = switch[1]
-        steps.append(dataclasses.replace(_variant(frame, **switches), label=label))
+        steps.append(_variant(frame, label=label, **switches))
     return steps
 
 
