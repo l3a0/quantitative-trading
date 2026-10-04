@@ -111,6 +111,27 @@ class TestTheBars:
         for name, _ in PANELS:
             assert set(drawn[f"{name}-zero"].get_ydata()) == {0}
 
+    def test_the_marks_sit_along_each_panel_s_foot(self, figure) -> None:
+        """In axes units, so a mark stays at the foot whatever the panel's dollar range."""
+        drawn = _by_gid(figure)
+        for (name, _), ax in zip(PANELS, figure.axes, strict=True):
+            for kind in ("profit", "loss"):
+                marks = drawn[f"{name}-{kind}-marks"]
+                assert set(marks.get_ydata()) == {0.035}
+                assert marks.get_transform() == ax.get_xaxis_transform()
+
+    def test_the_panels_share_one_year_axis_from_1994_to_2023(self, figure) -> None:
+        top, bottom = figure.axes
+        assert top.get_xlim() == bottom.get_xlim()
+        assert bottom.get_xlim() == pytest.approx((1993.3, 2023.7))
+        assert bottom.get_xlabel() == "year of the trade"
+
+    def test_the_lowest_bar_sits_clear_of_the_panel_s_foot_marks(self, figure) -> None:
+        for ax in figure.axes:
+            heights = [bar.get_y() + bar.get_height() for bar in ax.patches if bar.get_gid()]
+            lowest, highest = min(heights), max(heights)
+            assert ax.get_ylim()[0] < lowest - 0.1 * (highest - lowest)
+
     def test_nothing_wears_a_verdict_colour(self, figure) -> None:
         """One ink for every bar whatever its sign, and no green or red anywhere."""
         verdicts = {to_rgba(GOOD), to_rgba(LOST)}
@@ -217,10 +238,14 @@ class TestTheWords:
         )
         for symbol in symbols:
             assert settlements(symbol)[0].download_date == DOWNLOADED
-        assert "Chan chose both trades after looking at these years' history." in note
-        assert note.endswith(
-            "2015 for gasoline, and 2008 for natural gas under the reading that both of its "
-            "counts were written for the first edition."
+        assert note == (
+            f"EIA's NYMEX settlements, downloaded 2026-10-02: {', '.join(symbols)}. "
+            "One contract a year with no costs, so a bar above zero is a profitable year, "
+            "and the marks along each foot point up for a profit and down for a loss. "
+            "Chan chose both trades after looking at these years' history. "
+            "The dashed line is where the book's years end: 2015 for gasoline, and 2008 for "
+            "natural gas under the reading that both of its counts were written for the "
+            "first edition."
         )
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
