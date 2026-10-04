@@ -2004,8 +2004,8 @@ code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
 by the revised code's repost.
 
 **What happened after 2007.** After Example 7.7 the revised edition says the
-most recent five years give even worse average returns. The S&P 500 file
-Example 7.7 reads ends on 2007-11-23, so nothing here reads that claim.
+most recent five years give even worse average returns. Neither file reaches
+those years, so nothing here reads that claim.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
