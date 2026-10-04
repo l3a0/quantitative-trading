@@ -1,6 +1,6 @@
 # Chan’s other stationary spreads: a currency rate holds and a pair of bond funds does not
 
-*The currency rate passes the cutoff for a single price series but misses the stricter cutoff for a fitted pair of prices, so which cutoff applies decides the verdict.*
+*At the usual 5% level, the currency rate passes the cutoff for a single price series and would miss the stricter one for a fitted pair of prices. The rate involves no fitting, so the single-series cutoff applies.*
 
 ## Why the bar matters
 
