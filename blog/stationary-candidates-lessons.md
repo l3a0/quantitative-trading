@@ -14,7 +14,7 @@ Chan’s *Quantitative Trading* (Chan, 2021) builds its pairs-trading examples a
 
 He names them without working any of them, so he prints no number to match. This repository tested all three. The CAD/AUD rate holds. The bond pair, tested on two Treasury funds, shows no evidence of it. The calendar spreads, tested on every pair of neighbouring natural gas and RBOB gasoline contracts in the US Energy Information Administration’s free settlement prices, hold for natural gas and not for gasoline, an exploratory result like the other two. This post covers the first and the third, which were tested first.
 
-Two earlier posts covered the machinery in more depth. [How to test whether a price spread mean-reverts](https://baowebdev.substack.com/p/how-to-test-whether-a-price-spread) builds the tests step by step, and [Lessons from testing GLD/GDX for cointegration](https://baowebdev.substack.com/p/lessons-from-testing-gldgdx-for-cointegration) shows a pair whose relationship came and went. This post draws five lessons from what the two new tests add. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Two earlier posts covered the machinery in more depth. [How to test whether a price spread mean-reverts](https://baowebdev.substack.com/p/how-to-test-whether-a-price-spread) builds the tests step by step, and [Lessons from testing GLD/GDX for cointegration](https://baowebdev.substack.com/p/lessons-from-testing-gldgdx-for-cointegration) shows a pair whose relationship came and went. This post draws six lessons from what the two new tests add. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## How the test reads
 
@@ -147,30 +147,53 @@ A free choice can steer a test, so the repository wrote each one down before com
 4. **The lag.** Both candidates use one lag, and the autocorrelation check runs beside it rather than replacing it. On the rate, Lesson 3 showed that every other lag count up to the ceiling rejects too.
 5. **The start date.** The command that runs either test accepts no window, so nobody can keep trying periods until one rejects. The repository set the cross rate’s start on the first day after the vendor’s gap. That came after the download, since only the download could show the gap, and before any statistic was computed.
 
+## Lesson 6: a reversion as slow as the rate’s is hard to size
+
+Passing the test says the rate comes back to its average. It does not say a trade on it pays, and the half-life is what makes the trade hard. Chan’s linear rule holds a position proportional to the rate’s distance from its average, so it buys more the further the rate falls below it and sells more the further it rises above.
+
+A simple model shows what that rule earns at its best informed. Suppose the log of the rate reverts at exactly 141.6 days with normally distributed daily noise, the average and the speed of reversion are known, and trading costs nothing. Chan’s rule has to estimate the average from a moving window, so this version knows more than his does. Its Sharpe ratio is the average daily profit divided by the daily profit’s volatility, scaled to a year by the square root of 252, the number of trading days in a year. That is the convention Chan’s backtests report. On this model the Sharpe ratio has a closed form:
+
+```math
+\text{Sharpe} = \sqrt{252 \cdot \frac{1 - \rho}{3 - \rho}}, \qquad \rho = 1 - \frac{\ln 2}{h}
+```
+
+Here `h` is the half-life in trading days and `ρ` is the share of a day’s distance from the average that survives to the next day. Running the rule on 400 simulated series that revert this way earned what the formula says.
+
+Four problems follow from the half-life.
+
+1. **The rule earns half as much per unit of daily risk.** At 141.6 days the model’s Sharpe ratio is 0.78. Chan reports a 36-day half-life for a crude oil calendar spread in *Algorithmic Trading* (Chan, 2013), and at 36 days the ratio is 1.55. It falls roughly with the square root of the half-life, so a reversion four times slower earns about half as much. These are long-run averages rather than limits, so a backtest over a finite sample can land above them. Summed over whole years, the profit is steadier than the daily figure suggests, because a loss on a widening gap tends to be won back as the gap closes. On that measure the simulated ratios are 1.24 and 4.29, so the slower reversion earns less than a third as much.
+2. **The interest-rate difference weighs twice as much.** Holding the position means borrowing one currency and lending the other, which earns or pays the difference between their interest rates every day, depending on the trade’s side. The rule is never flat. On a typical day its position at a 141.6-day half-life is about twice the size it is at 36 days, for the same expected daily profit. So whatever the interest-rate difference costs or pays is about twice as large against the edge.
+3. **Nineteen years are little data for a reversion this slow.** The test period’s 4,984 days hold 35.2 half-lives, so about 35 stretches long enough for a gap to close halfway. The half-life is read from the fitted pull back toward the average, like `γ` in Lesson 2. Even the regression’s usual standard error, which assumes well-behaved noise, puts the half-life anywhere from 110.1 to 198.2 days within one standard error either side. On this model the Kelly leverage, the one that makes capital grow fastest, moves almost one for one with the speed, so an error in the speed becomes an error of about the same size in the leverage. [The post on Kelly leverage](https://baowebdev.substack.com/p/the-kelly-leverage-on-spy-depends) showed that twice the Kelly leverage earns only the cash rate. Lesson 4 noted that this estimate tends to read short, so a leverage set from it tends to be too high.
+4. **A losing position can last for months, and a year of data cannot say when to stop.** On a typical day the rate sits 10.1 times a day’s noise from its average, against 5.1 times at a 36-day half-life. A gap that wide takes months rather than weeks to close, so a loss on it lasts months too. Lesson 4’s simulation shows why no early warning comes. A series that certainly reverts at this speed clears the 10% bar in 12.0% of its one-year windows, against 10% for one that never reverts, so a trader a year into a loss cannot tell slow reversion from a relationship that has broken.
+
+The model is idealised, with neither the rate’s fat tails nor its changing volatility, and the repository runs no trade on the rate. The model was added after every other number here was known, and like the rest it is exploratory.
+
 ## What this replication cannot say
 
 The two results cover two series over two spans. Four questions are beyond them.
 
-1. **Whether trading the rate pays.** Stationarity is a property of the series. A trade adds costs, the carry from two interest rates, and the problem of sizing a position against a half-life of 141.6 trading days. The repository tests none of them.
+1. **Whether trading the rate pays.** Stationarity is a property of the series. A trade adds costs, the interest-rate difference Lesson 6 describes, and the sizing problem it works through on a model. The repository runs no trade on the rate, so it measures none of these on a real trade.
 2. **Whether individual bonds, or the yields behind them, behave like the funds.** A fund rolls its holdings to stay near one maturity. Treasury futures and individual bonds both need data the repository does not hold, and a yield cannot be bought or sold, so testing yields would be a different claim.
 3. **Whether the rate behaved the same before August 2007.** The repository keeps the history before the vendor’s gap, a little under two years of it, and does not test it.
 4. **Whether either result survives another download.** Raw closes change only when a fund splits, and a currency rate has no corporate actions, but a vendor can still fill or change its history. A test already fails if a new download fills the 2007 gap, so the start date cannot move quietly.
 
 ## What this means for a trader
 
-Five habits follow from the lessons above.
+Six habits follow from the lessons above.
 
 1. **Name the table before reading the statistic.** The same −3.2136 clears one bar and falls short of another, and −2.57 means two different things in two rows.
 2. **Ask whether the hedge ratio was fixed or fitted.** A fitted ratio earns a stricter bar. A spread whose ratio is fixed in advance, like a cross rate, does not.
 3. **Check the residuals before trusting the statistic.** The check can reverse a verdict, shrink its margin or strengthen a finding, and a statistic from a fit that fails it is read against bars that do not apply.
 4. **Keep the span and the window apart.** A verdict over nineteen years says little about any one year, and a run of rejecting years says little about the whole.
 5. **Close the free choices before computing.** Which leg, which quote, whether to fit a constant or a trend, which lag and which start date can each move a statistic across a bar, and a choice made after seeing the number is a search.
+6. **Price the half-life before sizing the trade.** A slow reversion earns less per unit of risk, weighs every daily payment more heavily against the edge, leaves little data to estimate the size from, and gives a year of losses no way to tell slow from broken.
 
 On a modern download, Chan’s currency rate holds at 5%, the bond funds show no evidence of cointegrating, and his calendar spreads hold for natural gas and not for gasoline.
 
 ## References
 
 - Breusch, T. S. (1978). Testing for autocorrelation in dynamic linear models. *Australian Economic Papers*, 17(31), 334–355.
+- Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.4.
 - Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley.
 - Dickey, D. A., & Fuller, W. A. (1979). Distribution of the estimators for autoregressive time series with a unit root. *Journal of the American Statistical Association*, 74(366), 427–431.
 - Engle, R. F., & Granger, C. W. J. (1987). Co-integration and error correction: Representation, estimation, and testing. *Econometrica*, 55(2), 251–276.
