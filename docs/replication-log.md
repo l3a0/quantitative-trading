@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 and 17 carry their
-own, three, eleven, twelve, five, six, one, three, eight, six, two, eight,
-seven, twelve, six and two,
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 and 18 carry
+their own, three, eleven, twelve, five, six, one, three, eight, six, two,
+eight, seven, twelve, six, two and five,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16 and 17 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17 and 18 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -154,6 +154,12 @@ states rather than picking one.
   - [The declared readings](#the-declared-readings)
   - [What the entry concludes](#what-the-entry-concludes-16)
   - [What this entry cannot say](#what-this-entry-cannot-say-14)
+- [Entry 18: buy on gap and its mirror, Chan's *Algorithmic Trading*](#entry-18-buy-on-gap-and-its-mirror-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-15)
+  - [What this repo computed](#what-this-repo-computed-17)
+  - [The verdicts](#the-verdicts-16)
+  - [What the entry concludes](#what-the-entry-concludes-17)
+  - [What this entry cannot say](#what-this-entry-cannot-say-15)
 
 ## How to read an entry
 
@@ -188,7 +194,8 @@ both.
    Entry 14, [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
    whose pins run only where the owner's data archive is, and
    [tests/test_cross_sectional_momentum.py](../tests/test_cross_sectional_momentum.py)
-   holds Entry 17.
+   holds Entry 17, and [tests/test_buy_on_gap.py](../tests/test_buy_on_gap.py)
+   holds Entry 18.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -299,7 +306,7 @@ than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
-and Entry 17's rows 10 and 11.
+Entry 17's rows 10 and 11, and Entry 18's rows 8 to 12.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -363,6 +370,14 @@ yet" after 2009, and the criterion, a return from 2010 on of at least 0 and
 below 2007's under the same script, was written on
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297) before
 any return was computed.
+
+Entry 18's row 7 takes it too. Chan says the mirror he names "does have
+steeper drawdown", a definite claim about one strategy, and the criterion, the
+deeper drawdown of the two as `calculateMaxDD` measures it, was written on
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295) before
+any return was computed. Its rows 5 and 6 are replications of printed figures,
+but the mirror's rule was read from one sentence, so it was declared on the
+same issue before any run, and the verdicts name it.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -3691,6 +3706,176 @@ a panel that could measure what that costs a cross-sectional rule.
 cohort of 100 picks enters and the one formed 25 days earlier leaves.
 
 **Whether momentum pays today.** The sample ends in April 2012.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 18: buy on gap and its mirror, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 4.1, Kindle locations 1948 to 1993 and 3509,
+and the script `bog.m` the example names. Shipped under
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295). The
+location numbers are that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Twelve rows, all derivable from
+[tests/test_buy_on_gap.py](../tests/test_buy_on_gap.py).
+
+**Both figures `bog.m` prints reproduce on Chan's own file, and the mirror
+does not.** Chan argues that a stock's open can overshoot on a morning of panic
+selling and drift back during the day. So each day the rule buys at the open
+the ten stocks that opened furthest below their previous day's low, by more
+than one 90-day standard deviation of their daily returns, provided the open is
+still above the 20-day moving average of closes, and sells them at the close.
+The book reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and the
+transcription in `chan.buy_on_gap` lands on both at the precision printed.
+Chan also reports the mirror image, shorting stocks that open a standard
+deviation above the previous day while below their moving average, at 46
+percent and 1.27. He prints no script for it, and the rule [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) declared
+before any run lands at 12 percent and 1.79.
+
+One choice decides both printed figures. `bog.m`'s moving deviation calls book
+two's `smartstd`, which skips a missing return and divides by n. With the first
+edition's, which counts it as zero and divides by n − 1, the APR rounds to 8.4
+percent and the Sharpe ratio to 1.7, and row 10 holds that. It is Entry 12's
+lesson again, on two figures rather than one digit.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdataohlcdaily_stocks_20120424/`, the 497 stocks of
+   Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, read for
+   the open, high, low and close through `chan.series.load_panel`, all 1,500
+   days from 2006-05-11 to 2012-04-24. `bog.m` loads
+   `inputDataOHLCDaily_20120424`, with no `_stocks`, and the only file of that
+   name in either public mirror of Chan's code is the same bytes, which
+   [data/README.md](../data/README.md) records. **Every figure here is about
+   survivors**, because the file is the S&P 500 as Chan held it on 2012-04-24,
+   carried backwards, and location 1974 says so.
+2. **The specification.** `bog.m` at `45670240` in
+   [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
+   The spread is book two's `smartMovingStd` over 90 rows of close-to-close
+   returns and the average is `smartMovingAvg` over 20 rows of closes, both
+   moved one row later. Entry is one spread below the previous low, at most ten
+   positions a day, and each day's sum is divided by 10 whatever the day's
+   count. The APR is compounded over all 1,500 days at 252 a year, and the
+   Sharpe ratio uses MATLAB's n − 1 `std` and subtracts no risk-free rate. No
+   cost is charged. The mirror measures its jump from the previous day's high,
+   requires the open below the average, and shorts the ten largest jumps, as
+   [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) declared.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 to 2012 sample on a rule he chose, so the entry says whether his numbers
+reproduce on his file and nothing about whether the rule pays today. The
+mirror's rule was declared before its numbers were seen, but it is a reading of
+one sentence rather than a hypothesis tested on held-out data.
+
+### What the book printed
+
+`bog.m` closes on the comment `% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
+would print more digits, but nothing records what they printed, so the
+comment's one decimal is the precision the source carries.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The window `bog.m` prints | `20060511 - 20120424` | `bog.m`, location 1974 |
+| 2 | Buy on gap, APR | 8.7 percent | `bog.m`, location 1974 |
+| 3 | Buy on gap, Sharpe ratio | 1.5 | `bog.m`, location 1974 |
+| 4 | Location 3509's figure, read as the arithmetic annual return | "around 8.7 percent", an "annualized average return" | location 3509 |
+| 5 | Short on gap, APR | 46 percent | location 1993 |
+| 6 | Short on gap, Sharpe ratio | 1.27 | location 1993 |
+| 7 | Short on gap has the steeper drawdown | a claim | location 1993 |
+| 8 to 12 | the qualifiers and positions, the first positions, the other `smartstd`, the late listings and the flagged days | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | the first and last of the panel's days | `20060511 - 20120424` | `TestTheVintages::test_the_window_is_the_one_bog_m_prints` |
+| 2 | `prod(1 + ret)^(252/1500) − 1` | 0.087385 | `TestTheFigures::test_the_apr_is_chans_8_7_percent` |
+| 3 | `√252 · mean(ret) / std(ret)` | 1.5371 | `TestTheFigures::test_the_sharpe_ratio_is_chans_1_5` |
+| 4 | `252 · mean(ret)` | 0.085279 | `TestTheFigures::test_the_arithmetic_return_does_not_reach_location_3509s_8_7` |
+| 5 | row 2 under the declared mirror | 0.122030 | `TestTheMirror::test_the_apr_lands_far_from_46_percent` |
+| 6 | row 3 under the declared mirror | 1.7853 | `TestTheMirror::test_the_sharpe_ratio_lands_above_1_27` |
+| 7 | `calculateMaxDD` on each side's `cumprod(1 + ret) − 1` | −0.064928 short against −0.052459 long | `TestTheMirror::test_its_drawdown_is_the_steeper_as_location_1993_says` |
+| 8 | qualifiers, positions and days holding one, buy side then mirror | 972, 695 and 391, then 1,308, 725 and 338, at most 10 on a day | `TestTheFigures::test_the_comparison_as_written_selects_what_the_algebra_does`, `::test_the_positions_and_the_busiest_day` and `TestTheMirror::test_the_arithmetic_return_and_the_positions` |
+| 9 | the first position on each side | 2006-09-22 and 2006-09-25, after the spread first exists on 2006-09-19 | `TestTheFigures::test_nothing_is_held_before_the_spread_exists` |
+| 10 | rows 2 and 3, and 5 and 6, with the first edition's `smartstd` in the spread | 0.083629 and 1.6503, then 0.116340 and 1.7234 | `TestTheHelperMovesBothFigures` |
+| 11 | positions resting on fewer than 90 returns after 2006-09-19 | 3: CFN and MPC long, DPS short, none on a spread of 0 | `TestTheLateListings::test_three_positions_rest_on_fewer_than_90_returns` |
+| 12 | positions on one of the 30 days the scale-break guard flags | 1, MS short on 2008-10-13 | `TestTheScaleBreakDecision::test_one_position_falls_on_a_flagged_day` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, exact | reproduced | The panel's span is the window `bog.m` prints. |
+| 2 | 0.0 | reproduced | Chan's figure, on his own file, through his own script transcribed. |
+| 3 | 0.0 | reproduced | The same as row 2. |
+| 4 | −0.2 | did not reproduce | Read as the arithmetic return, as Example 7.2's "annualized average return" was, the figure is 8.5 percent at the book's precision. What fails is that reading rather than Chan's number: location 3509's 8.7 is row 2's compounded APR, which reproduces. |
+| 5 | −34 | did not reproduce | Under the rule [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) declared. The reading is part of the method, so it cannot explain a miss from outside it, and no second reading was tried. |
+| 6 | +0.52 | did not reproduce | The same as row 5. |
+| 7 | none, a claim | reproduced | The short side's deepest drawdown is the more negative, the criterion [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) fixed before any run. Its longest stretch below a high is 363 days against 159. |
+| 8 | none | none, not a replication | Comparing each open against `bog.m`'s `buyPrice`, as the script writes it, selects exactly what comparing the drop against the spread does. No two qualifiers on one day tie, so MATLAB's tie order moves nothing either. Ten days fill all ten buy positions. |
+| 9 | none | none, not a replication | No position can come before 2006-09-19, the first day a 90-row spread exists. |
+| 10 | none | none, not a replication | The first edition's helper moves both printed figures off Chan's, to 8.4 percent and 1.7, and takes two buy positions fewer. |
+| 11 | none | none, not a replication | A stock listed inside the window reaches the rule before 90 returns stand behind its spread, which is what Chan's helper does. Of the 23 late listings, three positions come from it. |
+| 12 | none | none, not a replication | The guard is not called, so this counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Example 4.1 reproduces exactly on Chan's own file.** Both figures `bog.m`
+   prints land at the precision printed, and only with book two's `smartstd`
+   inside the spread.
+2. **One phrase names two formulas in this book.** In Example 7.2, "annualized
+   average return" is the arithmetic figure. At location 3509 the same phrase
+   carries Example 4.1's compounded APR, which the arithmetic figure misses.
+   Reading the label instead of the script would have pinned row 2 against
+   the arithmetic figure and called it a miss. Entry 17 found the same of the
+   word "APR", which names the arithmetic figure in Example 7.2 and the
+   compounded one in Example 6.2.
+3. **The declared mirror is a different strategy from Chan's.** Its drawdown
+   is steeper, as he says, and its return is not. His own pair of figures
+   rules out the declared rule's scale on arithmetic alone, if he computed
+   them with `bog.m`'s formulas and no risk-free rate. Because ln(1 + r) ≤ r
+   every day, an APR of 46 percent and a Sharpe ratio of 1.27 need an annual
+   volatility of at least ln(1.46) / 1.27 = 0.2980, and the declared rule's
+   is 0.0657, about four and a half times less, held by
+   `TestTheMirror::test_chans_two_figures_need_four_and_a_half_times_this_volatility`.
+   The declared rule holds a position on 338 of 1,500 days and ten at once on
+   16 of them. The floor says nothing about whether the difference lies in
+   which stocks Chan's rule chose, how many days it traded, or how it sized
+   each position, and nothing here tests them.
+
+### What this entry cannot say
+
+Five things.
+
+**Which rule Chan ran for the mirror.** Two other readings of location 1993
+were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) and not run. Trying readings until one matched would be the
+search the honesty rail forbids.
+
+**Which file Chan ran in 2012.** The name `bog.m` loads points, in both
+public mirrors, at the same bytes as the committed panel's source. That says
+what the name means in the code he published, not that the file he ran when
+he wrote the book was this one. Both figures reproducing is consistent with
+it and does not prove it.
+
+**What costs and execution would take.** `bog.m` charges none. Location 1993
+names the short-sale constraint the mirror suffers from, and location 1988
+names the signal noise of deciding on the official open, which cannot be known
+before the trade at that open.
+
+**What the rule earned on the index as it stood each day.** Every stock here
+was in the S&P 500 on 2012-04-24. The point-in-time panel
+[issue 252](https://github.com/l3a0/quantitative-trading/issues/252) waits on
+would answer it for this rule too.
+
+**Whether MS's flagged day was a clean print.** The guard flags the move from
+2008-10-10 to 2008-10-13 as too large for a price change, and the mirror shorted
+MS that day. Nothing here checks the print against another source.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
