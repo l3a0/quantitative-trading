@@ -41,7 +41,7 @@ The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/da
 ```math
 \begin{array}{l|r|r|r}
 \text{Figure} & \text{Computed} & \texttt{bog.m}\text{'s comment} & \text{Book} \\ \hline
-\text{APR} & 0.087385 & \text{8.7\%} & \text{8.7 percent} \\
+\text{APR} & 0.087385 & 8.7\% & \text{8.7 percent} \\
 \text{Sharpe ratio} & 1.5371 & 1.5 & 1.5 \\
 \text{Arithmetic annual return} & 0.085279 & \text{none} & \text{none} \\
 \text{Maximum drawdown} & -0.052459 & \text{none} & \text{none} \\
