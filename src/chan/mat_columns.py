@@ -1,16 +1,18 @@
 """Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
 
-Chan's cross-sectional examples read four price files. Three come from his
+Chan's examples read five price files of this shape. Three come from his
 first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
-two saves named for 2008-01-14 and 2008-01-31. The fourth comes from his second
-book's code: the S&P 500 as he held it on 2012-04-24, which his Examples 7.2,
-6.2 and 4.1 read. Each holds
-date-by-stock arrays of closes, highs, lows, opens and volumes, and
+two saves named for 2008-01-14 and 2008-01-31. Two come from his second book's
+code: the S&P 500 as he held it on 2012-04-24, which his Examples 7.2, 6.2 and
+4.1 read, and ``inputData_ETF.mat``, 67 ETFs saved on 2012-04-10, which most
+of the book's ETF examples read. Each holds date-by-symbol arrays of closes,
+highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
-file of a new shape.
+file of a new shape. The ETF file is recorded the same way, one vintage per
+ETF, and names its list of symbols ``syms`` where the others say ``stocks``.
 
-Example 7.2 also reads a fifth file, ``earnannFile.mat``, which holds no
+Example 7.2 also reads a sixth file, ``earnannFile.mat``, which holds no
 prices. It is a date-by-stock array of 0 and 1 marking the days a stock
 announced earnings between the previous close and the open.
 [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) decided it
@@ -34,7 +36,7 @@ Three choices are settled here rather than left to whoever runs it.
    would share every identity field with the close.
 2. **A missing cell is a missing row.** Chan marks a day a stock has no price
    with NaN in every field at once, and a vintage refuses one. Dropping those
-   rows loses nothing, because no day in any of the four lacks a close in
+   rows loses nothing, because no day in any of the five lacks a close in
    every column, so the union of the members' dates is the file's own day list and
    :func:`chan.series.load_panel` rebuilds every NaN by reindexing onto it.
    :func:`round_trip_differs` is the check that says so, field by field, for
@@ -116,6 +118,46 @@ def saved_date_of(payload: bytes) -> str:
 #: Each field a lifted file carries, to the array in Chan's file that holds it.
 ARRAYS = {"Close": "cl", "High": "hi", "Low": "lo", "Open": "op", "Volume": "vol"}
 
+#: The names Chan's files give their list of symbols. His stock files say
+#: ``stocks``, and his book-two ETF file, ``inputData_ETF.mat``, says ``syms``.
+#: A file holds exactly one of them.
+SYMBOL_NAMES = ("stocks", "syms")
+
+
+def _days_and_symbols(
+    payload: bytes, names: list[str]
+) -> tuple[dict[str, np.ndarray], list[str], list[str]]:
+    """The file's arrays named ``names``, its trading days as ISO dates, and its symbols.
+
+    Both readers come through here, so a price file and a flag file cannot come
+    to disagree on where a file keeps its symbols or on what makes a day list
+    or a symbol list unreadable. The symbols are read from whichever of
+    :data:`SYMBOL_NAMES` the file holds, and a file holding both or neither is
+    refused, because guessing would put one list's names on the other's
+    columns.
+    """
+    wanted = ["tday", *names]
+    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=[*wanted, *SYMBOL_NAMES])
+    missing = [name for name in wanted if name not in held]
+    if missing:
+        raise ValueError(f"the file carries no {', '.join(missing)}")
+    spellings = [name for name in SYMBOL_NAMES if name in held]
+    if len(spellings) != 1:
+        held_or_not = "both" if spellings else "neither"
+        raise ValueError(
+            f"the file carries {held_or_not} of {' and '.join(SYMBOL_NAMES)}, so it names "
+            f"no single list of symbols"
+        )
+
+    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
+    if days != sorted(set(days)):
+        raise ValueError("the file's trading days are not strictly increasing")
+    symbols = [_symbol(cell) for cell in np.asarray(held[spellings[0]]).ravel()]
+    repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
+    if repeated:
+        raise ValueError(f"the file names a symbol more than once: {', '.join(repeated)}")
+    return held, days, symbols
+
 
 def read_arrays(payload: bytes) -> tuple[list[str], list[str], dict[str, np.ndarray]]:
     """The file's trading days as ISO dates, its symbols, and each field's array.
@@ -124,20 +166,7 @@ def read_arrays(payload: bytes) -> tuple[list[str], list[str], dict[str, np.ndar
     returned, because a mismatch here would put one stock's prices under
     another's name with every hash verifying.
     """
-    wanted = ["tday", "stocks", *ARRAYS.values()]
-    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=wanted)
-    missing = [name for name in wanted if name not in held]
-    if missing:
-        raise ValueError(f"the file carries no {', '.join(missing)}")
-
-    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
-    if days != sorted(set(days)):
-        raise ValueError("the file's trading days are not strictly increasing")
-    symbols = [_symbol(cell) for cell in np.asarray(held["stocks"]).ravel()]
-    repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
-    if repeated:
-        raise ValueError(f"the file names a symbol more than once: {', '.join(repeated)}")
-
+    held, days, symbols = _days_and_symbols(payload, list(ARRAYS.values()))
     arrays = {}
     for field, name in ARRAYS.items():
         array = np.asarray(held[name], dtype=float)
@@ -158,9 +187,10 @@ def columns_of(
     A day is priced when its close is. Every other field must be present on
     exactly those days, because a row cannot hold a missing open and a day
     with an open and no close has nowhere to go. Chan's first two files hold
-    that, measured on issue 88, and so does his book-two file, measured on
-    issue 250. A file that does not is refused naming the
-    first stock and day that break it.
+    that, measured on issue 88, and so do his later S&P 600 save, measured on
+    issue 225, his book-two S&P 500 file, measured on issue 250, and his
+    book-two ETF file, measured on issue 299. A file that does not is refused
+    naming the first stock and day that break it.
     """
     closes = arrays["Close"]
     columns = {}
@@ -227,7 +257,7 @@ def round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | Non
     written, which
     [issue 211](https://github.com/l3a0/quantitative-trading/issues/211)
     fixed. Before that a file of full-precision prices was reported as differing
-    although its bytes were right. Chan's book-two price file was one, at 170
+    although its bytes were right. Chan's book-two S&P 500 file was one, at 170
     closes and 173 opens, measured on
     [issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
     """
@@ -254,20 +284,7 @@ def read_flags(payload: bytes) -> tuple[list[str], list[str], np.ndarray]:
     Checked the way :func:`read_arrays` checks a price file, and every cell must
     be 0 or 1, because a flag file with anything else in it is not one.
     """
-    wanted = ["tday", "stocks", "earnann"]
-    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=wanted)
-    missing = [name for name in wanted if name not in held]
-    if missing:
-        raise ValueError(f"the file carries no {', '.join(missing)}")
-
-    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
-    if days != sorted(set(days)):
-        raise ValueError("the file's trading days are not strictly increasing")
-    symbols = [_symbol(cell) for cell in np.asarray(held["stocks"]).ravel()]
-    repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
-    if repeated:
-        raise ValueError(f"the file names a symbol more than once: {', '.join(repeated)}")
-
+    held, days, symbols = _days_and_symbols(payload, ["earnann"])
     flags = np.asarray(held["earnann"])
     if flags.shape != (len(days), len(symbols)):
         raise ValueError(

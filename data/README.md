@@ -108,6 +108,7 @@ for a column lifted from one of Chan's own files.
 | `ijr_20080131/` | Chan's `IJR_20080131.mat` | 600 members | adjusted | 2004-01-15 .. 2008-02-01 | saved 2008-02-02 |
 | `inputdataohlcdaily_stocks_20120424/` | Chan's `inputDataOHLCDaily_stocks_20120424.mat` | 497 members | adjusted | 2006-05-11 .. 2012-04-24 | saved 2012-04-25 |
 | `earnannfile/` | Chan's `earnannFile.mat` | 497 members | event | 2011-01-03 .. 2012-04-24 | saved 2012-05-15 |
+| `inputdata_etf/` | Chan's `inputData_ETF.mat` | 67 members | adjusted | 2006-04-26 .. 2012-04-09 | saved 2012-04-10 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -628,7 +629,7 @@ moved between the saves.
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 6. **It fits the budget.** The directory holds 26.10 MB, and its manifest and
    checksum lines and this section add 0.25 MB, which takes `data/` from
-   108.56 MB to 134.91 MB of file content. That leaves 15.09 MB under the
+   108.56 MB to 134.91 MB of file content. That left 15.09 MB under the
    150 MB budget point 5 of the book-two list below sets.
 
 The other two directories hold the two files of Chan's second book, *Algorithmic
@@ -712,6 +713,96 @@ measurements below.
    100 MB budget, because the mirrors are the only free copies, and raised the
    budget so that `data/` stays under 150 MB of file content. A later panel
    still states its own size against that in its issue before it is recorded.
+
+`inputdata_etf/` is Chan's book-two ETF file, `inputData_ETF.mat`, which most
+of *Algorithmic Trading*'s ETF examples read. It holds 67 ETFs over 1,500
+trading days, 2006-04-26 to 2012-04-09, with the same five fields per member
+as the stock files. Nine of his book-two scripts load it, and each reads only
+its days, its symbols and its closes. They cover the cointegration tests and
+mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
+price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
+on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. No run reads it
+yet. [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
+carries the measurements below.
+
+1. **Where it came from.** Three copies exist, and all three are one git
+   blob, `261718b`.
+
+   1. [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview)
+      at `e4bc46f`, under `public/img/book2/`.
+   2. The same mirror at the same commit, under
+      `public/img/book3/Chap3 Time Series/`.
+   3. [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
+      at `4567024`, under `archived/matlab/`.
+
+   Neither mirror carries a licence, which README's licence paragraph already
+   covers. The `.mat` is 1,218,621 bytes. It is not committed, and its sha256
+   is recorded here. Its header says it was created on 2012-04-10, which is
+   the saved date every member carries. The file names its list of symbols
+   `syms` where the stock files say `stocks`, and `chan.mat_columns` reads
+   either. `chan.mat_columns.round_trip_differs` finds the committed members
+   rebuild all five of its arrays exactly, NaN for NaN.
+
+   ```text
+   5f8dc0f05cba1bd69dc1fa3fe11b6a397c06cfd39174ba47171bd8ff66ff2065  inputData_ETF.mat
+   ```
+
+2. **Chan's Python port agrees with it.** EpchanPreview alone holds
+   `PythonCodesAndData.zip`, blob `b573b1a`, Chan's 2018 port of the book's
+   code. Its `inputData_ETF_stocks.csv` lists the same 67 symbols in the same
+   order. Its `inputData_ETF_cl.csv` holds the same 1,500 days, all 83,454
+   priced closes are equal, and the same cells are missing.
+   `inputData_EWA_EWC.csv`, `inputData_EWA_EWC_IGE.csv` and
+   `inputData_GLD_USO.csv` are exact copies of those columns. The port holds
+   closes only, so the opens, highs, lows and volumes exist only in the
+   `.mat`.
+3. **The prices are `adjusted`, by subtraction rather than by rescaling.**
+   This file folds each dividend in by subtracting it in dollars from every
+   earlier close, where a yfinance adjusted close multiplies every earlier
+   close by a factor. Against the raw SPY downloaded on 2026-10-03, rounded to
+   the cent, Chan's SPY sits 14.98 below raw on 2006-04-26 and level with it on
+   2012-04-09. The gap moves by more than a cent on exactly the 24 days the
+   adjusted SPY downloaded on 2026-09-18 marks as ex-dividend, each time
+   within a cent of the dividend that download implies, by 0.48 to 0.80. On
+   43 other days it moves by one cent, which is the two vendors disagreeing on
+   a raw close. GDX moves the same way on its five December ex-dividend days,
+   and GLD, which pays nothing, equals its raw download on all 1,500 days.
+   Splits are folded in as well. Across 83,387 ratios of an open to the close
+   before it, none sits within 0.01 of the ratio a common split or reverse
+   split would give.
+
+   A subtracted dividend can take a close below zero, and 11 go there, in
+   EDC, MWJ and SMN, such as MWJ at −1.07 on 2009-03-06. The owner decided on
+   2026-10-04 to record the file as `adjusted` rather than add a basis, and
+   [docs/design.md](../docs/design.md) widens its **adjusted price** row to
+   cover both methods. The price of that decision is that a return computed
+   from these closes is not the return a holder earned. None of the ETFs the
+   examples above read comes near zero, and their lowest closes run from
+   EWA's 7.49 to SPY's 60.48. `TestTheETFFileSubtractsEachDividend` in
+   [tests/test_series.py](../tests/test_series.py) pins every figure in this
+   point.
+4. **The scale-break guard flags 58 days in 8 of the 67, on the close.** Each
+   of the eight is a leveraged or inverse fund, and every day falls between
+   2008-04-16 and 2009-06-25.
+
+   1. EDC on 13 days.
+   2. EEV on 2.
+   3. FAS on 2.
+   4. FAZ on 4.
+   5. MWJ on 11.
+   6. MWN on 1.
+   7. SMN on 24.
+   8. TNA on 1.
+
+   None of them is an ETF the examples above read. All 58 are pinned in
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+5. **It fits the budget.** The directory holds 3.40 MB, and its manifest and
+   checksum lines and this section add 0.03 MB, which takes `data/` from
+   134.91 MB to 138.35 MB of file content. That stays under the 150 MB
+   budget point 5 above sets. The owner set a ceiling of 205 MB on
+   2026-10-04 for the four book-two lifts, on
+   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), and
+   the lift that takes `data/` past 150 MB raises the budget to it.
 
 ## Two vintages kept in the owner's archive
 
@@ -904,8 +995,8 @@ for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
 
-A directory gets one row rather than one per file, so the 2,694 lifted columns
-are five rows. The row states what every file in it shares, which is the
+A directory gets one row rather than one per file, so the 2,761 lifted columns
+are six rows. The row states what every file in it shares, which is the
 vendor, the basis and the date, along with how many members it holds and the
 earliest and latest day any of them carries. Its members must agree on the
 three shared cells, or the failure names the directory and the values. What

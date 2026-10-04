@@ -124,9 +124,12 @@ HAND_WRITTEN = {
 #: flags for the same 497 stocks under the ``event`` basis.
 #: [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) added
 #: ``IJR_20080131.mat``, a later save of the S&P 600 file holding the same 600
-#: symbols. One source was saved once, so its members share a vendor, a basis
-#: and a date, and the pin says each once. The member count is what notices a
-#: column dropped from the manifest along with its file.
+#: symbols. [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
+#: added ``inputData_ETF.mat``, Chan's book-two file of 67 ETFs, which names its
+#: symbol list ``syms`` rather than ``stocks``. One source was saved once, so
+#: its members share a vendor, a basis and a date, and the pin says each once.
+#: The member count is what notices a column dropped from the manifest along
+#: with its file.
 #:
 #: The symbol is not pinned, for the reason the ``Ticker,`` paragraph above
 #: gives: each member's own bytes carry it, and a member's path is its
@@ -147,6 +150,7 @@ LIFTED_SOURCES = {
         497,
     ),
     "earnannFile.mat": ("chan-mat", "event", "2012-05-15", "earnannfile", 497),
+    "inputData_ETF.mat": ("chan-mat", "adjusted", "2012-04-10", "inputdata_etf", 67),
 }
 
 

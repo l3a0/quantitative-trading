@@ -22,7 +22,7 @@ Three sources, told apart by what the manifest records rather than by a filename
   ``unadjusted=True`` reads, and no other symbol has one.
 - Chan's MATLAB cross-sections, under the vendor ``chan-mat``, which
   :func:`load_panel` reads a whole file at a time and no ticker flag names.
-  Three hold prices and one holds earnings flags under the ``event`` basis.
+  Five hold prices and one holds earnings flags under the ``event`` basis.
 
 The basis decides the levels. GLD pays no distributions, so its adjusted close
 already equals its raw close, while GDX's dividends put today's adjusted
@@ -44,9 +44,10 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB price files carry 113 more flagged days, most of
-them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
-of them.
+The columns lifted from Chan's MATLAB price files carry 171 more flagged days.
+In his stock files most are real moves in single stocks, and in his ETF file
+they fall in leveraged and inverse funds. ``tests/test_scale_breaks.py`` pins
+all of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands
 back both manifest entries, so this module reads two series as well as one.
@@ -253,8 +254,10 @@ def load_panel(
     for his first two on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88),
     for the later S&P 600 save on
     [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
-    and for the two book-two files on
-    [issue 250](https://github.com/l3a0/quantitative-trading/issues/250).
+    for the book-two S&P 500 file and its flag file on
+    [issue 250](https://github.com/l3a0/quantitative-trading/issues/250),
+    and for the book-two ETF file, whose list is named ``syms``, on
+    [issue 299](https://github.com/l3a0/quantitative-trading/issues/299).
 
     The manifest is read once. Resolving each member by its identity fields
     would read and validate every one of its lines once per member, 500 times
