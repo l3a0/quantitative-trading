@@ -31,7 +31,7 @@ EIA publishes those settlements for free, for the nearest four contracts of each
 2. RBOB gasoline, contract 1, from 2006. RBOB is the gasoline contract that replaced the New York Harbor one, and it began trading in October 2005.
 3. Henry Hub natural gas, contracts 2, 3 and 4.
 
-The rules that decide each result were written down before any trade was computed, and one was corrected after the first run without changing any count, as Lesson 4 says. Two of them carry most of what follows:
+The rules that decide each result were written down before any trade was computed, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records, and one was corrected after the first run without changing any count, as Lesson 4 says. Two of them carry most of what follows:
 
 1. **Profitable** means the exit settlement is strictly above the entry settlement, on one contract, with no costs. A zero change is not a profit.
 2. **A missing row stays missing.** A year whose trade date has no row in its file counts neither as a profit nor as a loss. The run does not move it to a neighbouring day.
@@ -52,7 +52,7 @@ The files answer part of it. Every year from 1994, the first year the files hold
 \end{array}
 ```
 
-Read as first-edition figures counted from 1995, both of Chan’s counts reproduce. The main text’s 13 is the run ending in 2007 and the sidebar’s 14 is the run ending in 2008, both inside the years before a book released in November 2008. That reading was written down before any trade was computed, as a hypothesis. The files constrain it in two ways and prove it in neither.
+Read as first-edition figures counted from 1995, both of Chan’s counts reproduce. The main text’s 13 is the run ending in 2007 and the sidebar’s 14 is the run ending in 2008, both inside the years before a book released in November 2008. [The replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records that reading as a hypothesis written down before any trade was computed. The files constrain it in two ways and prove it in neither.
 
 1. **They rule out the revised edition’s years.** 2009 is a loss, and counted from 1995 no run of 13 or more ends in any year except 2007 and 2008. So neither count can describe a run that reached into the years after the first edition.
 2. **They cannot pick the start year.** 1994 is profitable too. Counted from 1994, the runs of 13 and 14 end in 2006 and 2007 instead. The only reason to prefer 1995 is that Chan’s gasoline sidebar names it as its own start.
@@ -118,7 +118,7 @@ For gasoline the answer is simple. The May contract trades until the last busine
 That makes the expiry rule part of the result, so the run checks it against things the files do not supply.
 
 1. **Against the exchange’s own dates.** For 16 contracts, March to June of 2017, 2018, 2021 and 2024, the rule gives the last trading day the Massive futures data service recorded. Those 16 dates were read on 3 October 2026, and nothing in this repository can read them again, so the tests carry them as a measurement.
-2. **Against the files’ own handovers.** On the day after an expiry, each numbered file should continue the next file’s prices. Before mid-1997 the files show contracts stopping five or six trading days before delivery rather than three. In March 1996 the price handover fits a five-day rule and not a three-day one. Following the files moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either contract. That correction came from the review of the pull request that first ran the trades, after the first run, and it changed no count.
+2. **Against the files’ own handovers.** On the day after an expiry, each numbered file should continue the next file’s prices. Before mid-1997 the files show contracts stopping five or six trading days before delivery rather than three. In March 1996 the price handover fits a five-day rule and not a three-day one. Following the files moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either contract. That correction came from a review after the first run, and it changed no count.
 3. **Against the edge cases.** In 10 of the 30 years, the entry date falls on the March contract’s last trading day. Reading contract 3 instead of contract 4 on those days flips no year’s result, so on these files that convention moves no count.
 
 The calendar is computed rather than read from the files, for one more reason. The natural gas files carry exchange holidays as rows that repeat the day before’s settlement, so a row’s presence does not mean the exchange was open. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.

@@ -101,7 +101,7 @@ So the gap between 2 and 4 percent is method, an **exploratory** verdict on Chan
 
 ## Lesson 3: the momentum the strategy assumes held for the market factor and not for the momentum factor
 
-Chan’s claim is that factor returns “often” autocorrelate more strongly than single stocks. Before any autocorrelation was computed, this repository fixed a criterion for each factor on its own. The claim holds for a factor when its lag-1 autocorrelation is above 0 and above the median stock’s. On the same day, still before any autocorrelation was computed, the repository’s owner ruled that each factor carries its own verdict and that no combined verdict is drawn from the two.
+Chan’s claim is that factor returns “often” autocorrelate more strongly than single stocks. Before any autocorrelation was computed, this repository fixed a criterion for each factor on its own, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading) records. The claim holds for a factor when its lag-1 autocorrelation is above 0 and above the median stock’s. On the same day, still before any autocorrelation was computed, the repository’s owner ruled that each factor carries its own verdict and that no combined verdict is drawn from the two.
 
 ```math
 \begin{array}{l|r|r|l}
@@ -147,7 +147,7 @@ The two factors’ average returns are just as uncertain, and they decide nothin
 
 The order in which a rule and its number arrive decides what a verdict can claim. The two entries arrived in opposite orders.
 
-1. **Entry 14 fixed every rule first.** The criterion, the monthly frequency, the one-month skip and the comparison set were written down before any autocorrelation was computed, and the owner’s ruling that each factor stands alone came before too. So neither verdict can have been chosen to fit the result. The cost is that a daily autocorrelation was never tried after the monthly one was seen.
+1. **Entry 14 fixed every rule first.** The criterion, the monthly frequency, the one-month skip and the comparison set were written down before any autocorrelation was computed, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading) records, and the owner’s ruling that each factor stands alone came before too. So neither verdict can have been chosen to fit the result. The cost is that a daily autocorrelation was never tried after the monthly one was seen.
 2. **Entry 13 wrote its round-off criterion after measuring.** The rule that round-off would leave books of the same size identical every day was written down after the 0 of 752 was in hand, and the entry names that cost. A rule written after its number cannot show on its own that it was not fitted to that number.
 
 ## Lesson 6: every figure that touches the stocks is about survivors
