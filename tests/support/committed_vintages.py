@@ -1,8 +1,10 @@
 """Which manifest entries no recorder wrote, and what their identity is.
 
-That covers two sets. :data:`HAND_WRITTEN` is the lines typed by hand, and
+That covers three sets. :data:`HAND_WRITTEN` is the lines typed by hand,
 :data:`LIFTED_SOURCES` is the sources whose columns ``record_lifted_columns``
-wrote, one vintage per column. Several test modules need the same answer to one
+wrote, one vintage per column, and :data:`PYTHON_PORT` is the files of Chan's
+2018 Python port, committed as his zip shipped them and typed into the manifest
+by hand too. Several test modules need the same answer to one
 question, so it is written once here. ``tests/test_vintage.py`` holds the
 hand-written entries to their pinned identity, and ``tests/test_series.py``
 counts the reader's map against the same set. Spelling it twice would let a new
@@ -41,6 +43,13 @@ hand-placed file written as a bare ``Date,Close`` would join this set and reach
 stops that today is convention rather than a check: every file here is written
 in the three-row shape, which ``data/README.md``'s ``## Header shape`` states,
 and the next one is expected to be.
+
+The files of Chan's Python port are the exception to that convention, and they
+sit in :data:`PYTHON_PORT` rather than here for that reason. The owner ruled on
+2026-10-04, on [issue 301](https://github.com/l3a0/quantitative-trading/issues/301),
+that they are committed as the zip shipped them, so no header of this repo's
+can be added to them and their bytes name no symbol. Their pin holds the symbol
+against the member's own file name instead.
 
 The sixth is ``source_workbook``, which says where the bytes came from rather
 than what they are. It is pinned with the identity because it is hand-typed on
@@ -130,9 +139,12 @@ HAND_WRITTEN = {
 #: [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) added
 #: eight futures strips from the second book, one vintage per contract under the
 #: ``raw`` basis, and the gold series sampled at 16:00, a source of one member.
-#: One source was saved once, so its members share a vendor, a basis and a
-#: date, and the pin says each once. The member count is what notices a column
-#: dropped from the manifest along with its file.
+#: [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) added
+#: four saves of Chan's book-two continuous futures and his ``VIX.csv``, the
+#: one source here that is not a MATLAB file. One source was saved once, so
+#: its members share a vendor, a basis and a date, and the pin says each once.
+#: The member count is what notices a column dropped from the manifest along
+#: with its file.
 #:
 #: The symbol is not pinned, for the reason the ``Ticker,`` paragraph above
 #: gives: each member's own bytes carry it, and a member's path is its
@@ -217,7 +229,139 @@ LIFTED_SOURCES = {
         "inputdata_gc_1600_20100802",
         1,
     ),
+    "inputDataOHLCDaily_20120504.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-07",
+        "inputdataohlcdaily_20120504",
+        51,
+    ),
+    "inputDataOHLCDaily_20120507.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-09",
+        "inputdataohlcdaily_20120507",
+        53,
+    ),
+    "inputDataOHLCDaily_20120511.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-12",
+        "inputdataohlcdaily_20120511",
+        52,
+    ),
+    "inputDataOHLCDaily_20120517.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-18",
+        "inputdataohlcdaily_20120517",
+        52,
+    ),
+    "VIX.csv": ("chan-csv", "raw", "2012-05-09", "vix", 1),
 }
+
+
+#: Each file of Chan's 2018 Python port, to its identity and the shape of its rows.
+#:
+#: Path to ``(vendor, symbol, price_basis, saved_date, source_workbook,
+#: shape)``. [Issue 301](https://github.com/l3a0/quantitative-trading/issues/301)
+#: lifted seven members of ``PythonCodesAndData.zip`` byte for byte, and they
+#: fit neither set above. A hand-written file carries a ``Ticker,`` row and
+#: these carry none, and a lifted source's members share one basis and one date
+#: where these carry three bases and four dates. So each is pinned by path, the
+#: way :data:`HAND_WRITTEN` pins its files. The saved date is the member's own
+#: timestamp in the zip's directory, which is part of the zip's bytes.
+#:
+#: ``shape`` says how a row writes its date, because the zip's files write it
+#: three ways and a check reading a span needs to know which.
+#:
+#: - ``minute``: ``Date,Time,Close``, one bar per minute, the date as
+#:   ``YYYYMMDD``.
+#: - ``daily``: ``Date,Close``, the date as ``YYYYMMDD``.
+#: - ``rate``: ``Year,Month,Rates``, one row per month. The span is the first
+#:   of the first and last months, the convention the FRED bill series uses.
+#: - ``return``: ``Return`` alone, with no date at all. Its span is the
+#:   calendar Example 5.1 gives it, rows 251 to 862 of the AUD.USD daily file,
+#:   which :data:`RETURN_CALENDAR` names.
+PYTHON_PORT_DIRECTORY = "pythoncodesanddata"
+PYTHON_PORT = {
+    "pythoncodesanddata/inputData_USDCAD.csv": (
+        "chan-py",
+        "USDCAD",
+        "raw",
+        "2018-10-13",
+        "PythonCodesAndData.zip",
+        "minute",
+    ),
+    "pythoncodesanddata/inputData_USDCAD_20120426.csv": (
+        "chan-py",
+        "USDCAD",
+        "raw",
+        "2018-12-12",
+        "PythonCodesAndData.zip",
+        "daily",
+    ),
+    "pythoncodesanddata/inputData_AUDUSD_20120426.csv": (
+        "chan-py",
+        "AUDUSD",
+        "raw",
+        "2018-12-12",
+        "PythonCodesAndData.zip",
+        "daily",
+    ),
+    "pythoncodesanddata/inputData_AUDCAD_20120426.csv": (
+        "chan-py",
+        "AUDCAD",
+        "raw",
+        "2018-12-13",
+        "PythonCodesAndData.zip",
+        "daily",
+    ),
+    "pythoncodesanddata/AUD_interestRate.csv": (
+        "chan-py",
+        "AUDRATE",
+        "rate",
+        "2018-12-13",
+        "PythonCodesAndData.zip",
+        "rate",
+    ),
+    "pythoncodesanddata/CAD_interestRate.csv": (
+        "chan-py",
+        "CADRATE",
+        "rate",
+        "2018-12-13",
+        "PythonCodesAndData.zip",
+        "rate",
+    ),
+    "pythoncodesanddata/AUDCAD_unequal_ret.csv": (
+        "chan-py",
+        "AUDCAD-UNEQUAL",
+        "return",
+        "2018-12-26",
+        "PythonCodesAndData.zip",
+        "return",
+    ),
+}
+
+#: The daily file whose dates the return file's rows fall on, and the rows it takes.
+#:
+#: ``AUDCAD_unequal.m``, Example 5.1's script, reads the AUD.USD and USD.CAD
+#: daily files from 2009-01-02, trains on the first 250 days and saves the
+#: returns of the rest, which are rows 251 to 862 counted from one. Those run
+#: from 2009-12-18 to 2012-04-26, the dates the book gives for Example 5.1's
+#: performance, and 862 less 250 is the file's 612 rows.
+RETURN_CALENDAR = ("pythoncodesanddata/inputData_AUDUSD_20120426.csv", 250)
+
+
+def in_the_python_port(path: str) -> bool:
+    """Whether ``path`` sits in the directory :data:`PYTHON_PORT`'s files share.
+
+    Read off the path for the reason :func:`in_a_lifted_source` gives. A file
+    added to that directory and left out of the pin is then still treated as one
+    of the port's, and the pin's check fails on it by name rather than letting
+    it pass as a recorded vintage.
+    """
+    return path.startswith(f"{PYTHON_PORT_DIRECTORY}/")
 
 
 def in_a_lifted_source(path: str) -> bool:

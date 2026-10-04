@@ -11,7 +11,7 @@ here instead of there. It does not live in :mod:`chan.pair_cointegration`
 either, which is a Chapter 7 replication, and every experiment that reads a
 series would then import a chapter to open a file.
 
-Three sources, told apart by what the manifest records rather than by a filename.
+Five sources, told apart by what the manifest records rather than by a filename.
 
 - The yfinance set, the default. ``adjusted`` carries Yahoo's
   dividend-adjusted close, and ``raw`` carries the as-traded close when
@@ -24,7 +24,16 @@ Three sources, told apart by what the manifest records rather than by a filename
   reads a whole file at a time and no ticker flag names. Four hold stock
   prices, one holds the prices of 67 ETFs, and one holds earnings flags under
   the ``event`` basis. Eight more are futures strips, one ``raw`` column per
-  contract, and one is a gold series of one column.
+  contract, and one is a gold series of one column. Four are saves of his
+  continuous futures, which :func:`load_panel` reads one member at a time, as
+  its docstring says.
+- Chan's 2018 Python port, under the vendor ``chan-py``, whose files are
+  committed as the zip shipped them. :func:`load_minute_close` reads the one
+  that holds minute bars, a close per day at 16:59 New York time. The daily
+  currency files parse through the same path as every other single series,
+  and nothing reads the rate and return files yet.
+- Chan's ``VIX.csv``, one vintage under the vendor ``chan-csv``, which
+  :func:`load_panel` reads by its file name too.
 
 The basis decides the levels. GLD pays no distributions, so its adjusted close
 already equals its raw close, while GDX's dividends put today's adjusted
@@ -46,10 +55,12 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB price files carry 171 more flagged days.
+The columns lifted from Chan's stock, ETF and strip files carry 171 more flagged
+days.
 In his stock files most are real moves in single stocks, and in his ETF file
-they fall in leveraged and inverse funds. ``tests/test_scale_breaks.py`` pins
-all of them.
+they fall in leveraged and inverse funds. His continuous futures saves carry
+126 more, all in the ZB and ZF columns, and his ``VIX.csv`` one.
+``tests/test_scale_breaks.py`` pins all of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands
 back both manifest entries, so this module reads two series as well as one.
@@ -126,6 +137,18 @@ from chan.vintage import (
 #: ported. Both KO breaks sit inside it, at 0.5050 and 0.5047, because it runs
 #: on already-adjusted closes where a correct split leaves no cliff at all.
 SCALE_BREAK_BOUND = math.log(1.6)
+
+
+#: The minute Chan reads a currency's daily close at, 16:59 New York time, as ``hhmm``.
+#:
+#: The currency market's day closes at 17:00, so the 16:59 bar is the last one
+#: of the day. Chan's MATLAB takes ``cl(hhmm==1659)`` and his Python port takes
+#: ``df['Time']==1659``, and both read 1,216 closes from the committed USD.CAD
+#: minute file. ``data/README.md`` carries the file's other conventions.
+DAILY_CLOSE_MINUTE = 1659
+
+#: The header row of a file of minute bars as Chan's Python port ships it.
+MINUTE_HEADER = "Date,Time,Close"
 
 
 class WindowCrossesScaleBreak(Exception):
@@ -219,6 +242,61 @@ def load_close(
     return load_vintage(ticker, unadjusted=unadjusted, chan=chan, dated=dated, data_dir=data_dir)[1]
 
 
+def load_minute_close(
+    symbol: str,
+    *,
+    dated: str | None = None,
+    at: int = DAILY_CLOSE_MINUTE,
+    data_dir: Path | None = None,
+) -> tuple[VintageEntry, pd.Series]:
+    """One close per day from a committed file of Chan's minute bars: the bar stamped ``at``.
+
+    The entry is the ``chan-py`` vintage of ``symbol`` on the ``raw`` basis,
+    and ``dated`` names its saved date where the symbol has more than one, as
+    USD.CAD does. A day holding no bar at ``at`` is absent rather than NaN,
+    because the file holds no bar for it. For the committed USD.CAD file that
+    is 250 days, mostly Sundays, whose session opens at 17:15.
+
+    The minute file is committed whole and the daily closes are filtered from
+    its verified bytes on every call, so no derived file stands between the
+    zip and a result. An entry whose bytes are not minute bars is refused by
+    name rather than read, since a daily file carries no time to filter on.
+    """
+    entry = resolve_vintage(
+        vendor="chan-py", symbol=symbol.upper(), price_basis="raw", dated=dated, data_dir=data_dir
+    )
+    return entry, minute_close(read_vintage(entry, data_dir=data_dir), entry, at=at)
+
+
+def minute_close(payload: bytes, entry: VintageEntry, *, at: int = DAILY_CLOSE_MINUTE) -> pd.Series:
+    """The closes of the bars in ``payload`` stamped ``at``, indexed by their date.
+
+    ``payload`` is the verified buffer of ``entry``, the way :func:`_parse_close`
+    takes one. It is public because a scan over the manifest holds the entry
+    already and reads its bytes through :func:`chan.vintage.read_vintage`, which
+    is what ``tests/test_scale_breaks.py`` does, and resolving the entry again
+    would stop on the first symbol carrying two vintages.
+    """
+    if not _holds_minute_bars(payload):
+        raise VintageUnavailable(
+            f"{entry.path} does not open with {MINUTE_HEADER}, so it holds no minute bars to "
+            f"read a close at {at} from"
+        )
+    raw = pd.read_csv(io.BytesIO(payload), dtype=str)
+    kept = raw.loc[raw["Time"].astype(int) == at]
+    series = pd.Series(
+        _exact_numbers(kept["Close"]),
+        index=pd.DatetimeIndex(pd.to_datetime(kept["Date"], format="%Y%m%d")),
+        name=entry.symbol,
+    )
+    return series.sort_index()
+
+
+def _holds_minute_bars(payload: bytes) -> bool:
+    """Whether ``payload``'s first row is :data:`MINUTE_HEADER`, whatever its line ending."""
+    return payload.split(b"\n", 1)[0].rstrip(b"\r") == MINUTE_HEADER.encode()
+
+
 def vintage_line(entry: VintageEntry) -> str:
     """One entry as a report prints it: which file, from where, and when.
 
@@ -274,16 +352,27 @@ def load_panel(
 
     The frame's index is the union of the members' dates. A member's file holds
     only the days its source priced it, so a day it was not priced is NaN here,
-    which is what the source held. Compute returns on this frame rather than on
-    one member's own rows. Two of the S&P 500 file's columns each hold two
-    companies under one symbol across a gap, and a return taken over a member's
-    own rows reads that gap as one day's move.
+    which is what the source held. For a stock file, compute returns on this
+    frame rather than on one member's own rows. Two of the S&P 500 file's
+    columns each hold two companies under one symbol across a gap, and a return
+    taken over a member's own rows reads that gap as one day's move.
+
+    A continuous futures save is the opposite case. Each of its symbols is
+    priced on its own calendar, so the union puts NaN in a member's column on
+    every day another symbol traded and it did not, and a return taken on this
+    frame breaks there. Read one member as
+    ``load_panel(source)[symbol].dropna()``, which is Chan's column without its
+    leading NaN. :func:`chan.mat_columns.continuous_round_trip_differs` holds
+    each member's rows to that column.
 
     A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
-    A source naming no entry, members disagreeing on the vendor, basis or date
-    they carry, a close asked of a source of flags, and two members
-    holding one symbol are four different states, and the message says which
-    fired.
+    Five different states are refused, and the message says which fired.
+
+    1. A source naming no entry.
+    2. Members disagreeing on the vendor, basis or date they carry.
+    3. A close asked of a source of flags.
+    4. A close asked of a source of returns.
+    5. Two members holding one symbol.
     """
     try:
         entries = read_manifest(data_dir)
@@ -313,6 +402,15 @@ def load_panel(
         raise VintageUnavailable(
             f"{source_file} holds event flags rather than prices, so it has no close. Ask "
             f"for its {EVENT_FIELDS[0]} field by name."
+        )
+    if field == "Close" and members[0].price_basis == "return":
+        # The same reasoning as for a flag, for a source holding returns alone.
+        # No committed source does: the returns of Chan's Python port share
+        # a zip with prices and rates, so the disagreement check above refuses
+        # that one first. A return is not a price, and a later source of them
+        # written with a second column would come back labelled as a close.
+        raise VintageUnavailable(
+            f"{source_file} holds returns rather than prices, so it has no close"
         )
     symbols = [entry.symbol for entry in members]
     repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
@@ -719,9 +817,13 @@ def _dates(days: pd.DatetimeIndex) -> str:
 def _column_of(payload: bytes, field: str, path: str) -> int:
     """Which column of a vintage's bytes holds ``field``.
 
-    The close is the second column in every vintage here, whatever header it
-    carries, so it needs no lookup. Any other field is found in the first row,
-    which a lifted file writes as ``Price,`` followed by its fields.
+    The close is the second column in every vintage a panel can read, whatever
+    header it carries, so it needs no lookup. That is not true of every file in
+    ``data/``. In a file of Chan's Python port the second column can be a time
+    or a month, and :func:`load_panel` refuses that source before reading any
+    column, because its files disagree on basis and date. Any other field is
+    found in the first row, which a lifted file writes as ``Price,`` followed by
+    its fields.
     """
     if field == "Close":
         return 1
@@ -752,7 +854,16 @@ def _parse_close(payload: bytes, ticker: str, *, column: int = 1) -> pd.Series:
 
     Each value comes back as exactly the number its text spells, which
     :func:`_exact_numbers` says how.
+
+    A file of minute bars is refused rather than parsed. Its second column is
+    the time of the bar, so this would hand back times labelled as closes.
+    :func:`minute_close` reads it instead.
     """
+    if _holds_minute_bars(payload):
+        raise VintageUnavailable(
+            f"{ticker.upper()}'s vintage holds minute bars, whose second column is a time "
+            f"rather than a close. Read it through minute_close."
+        )
     if column == 1:
         # The call every single-series vintage has always been read through.
         # Naming the columns lets a first row of any width parse.

@@ -28,7 +28,9 @@ cannot write one. A single such column is typed into the record by hand, and a
 whole file of them goes through the third way below. `spy_chan.csv`
 is the first to arrive by hand since `chan.vintage` existed, and
 [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
-that was settled.
+that was settled. The seven files of Chan's 2018 Python port arrived by hand
+too, because they are committed as his zip shipped them and neither writer
+produces that shape.
 
 The third way is `chan.vintage.record_lifted_columns`, which writes every
 column of one of Chan's files at once, each as its own vintage carrying the
@@ -36,7 +38,8 @@ date the file was saved. It exists because typing stopped being one line per
 column. Chan's first two MATLAB files held 1,100 columns between them, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where the
 owner decided on 2026-10-02 that entries at that count are written by code.
-`python -m chan.mat_columns` reads a `.mat` file and hands its closes over.
+`python -m chan.mat_columns` reads a `.mat` file, or one of Chan's CSV files with the
+`--saved-date` it cannot carry, and hands its fields over.
 
 A recorded vintage's name is load-bearing. The recorder builds it by joining
 the five identity fields, so the vendor, symbol, price basis, span and download
@@ -52,7 +55,8 @@ a hand-written entry instead is the identity pinned for it in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
 what holds a lifted column is the pin for its source in the same file, and
 both carry their own `Ticker,` header row, which names the series their bytes
-carry.
+carry. A file of Chan's Python port carries no such row, so its pin there
+checks its symbol against the file name the zip gave it.
 
 That check is what stands between a recorded entry and a file it does not
 describe, and it is worth saying what it does not do. It compares the record
@@ -66,9 +70,10 @@ why the bytes cannot carry the symbol instead.
 ## What each file is
 
 A vintage is one series as one source held it on one date, identified by
-vendor, symbol, span, that date, and which price, rate or event the series carries.
+vendor, symbol, span, that date, and which price, rate, event or return the series
+carries.
 The date is a download date for a series a vendor returned, and a saved date
-for a column lifted from one of Chan's own files.
+for a series lifted from one of Chan's own files.
 
 | File | Vendor | Symbol | Price | Span | Downloaded |
 | --- | --- | --- | --- | --- | --- |
@@ -118,6 +123,18 @@ for a column lifted from one of Chan's own files.
 | `inputdatadaily_vx_20120507/` | Chan's `inputDataDaily_VX_20120507.mat` | 72 members | raw | 2006-03-23 .. 2012-05-07 | saved 2012-05-08 |
 | `inputdata_gc_1600_20100802/` | Chan's `inputData_GC_1600_20100802.mat` | 1 member | raw | 2007-08-03 .. 2010-08-02 | saved 2012-05-07 |
 | `inputdata_etf/` | Chan's `inputData_ETF.mat` | 67 members | adjusted | 2006-04-26 .. 2012-04-09 | saved 2012-04-10 |
+| `pythoncodesanddata/inputData_USDCAD.csv` | Chan's `PythonCodesAndData.zip` | USDCAD | raw | 2007-07-22 .. 2012-03-28 | saved 2018-10-13 |
+| `pythoncodesanddata/inputData_USDCAD_20120426.csv` | Chan's `PythonCodesAndData.zip` | USDCAD | raw | 2009-01-02 .. 2012-04-26 | saved 2018-12-12 |
+| `pythoncodesanddata/inputData_AUDUSD_20120426.csv` | Chan's `PythonCodesAndData.zip` | AUDUSD | raw | 2009-01-02 .. 2012-04-26 | saved 2018-12-12 |
+| `pythoncodesanddata/inputData_AUDCAD_20120426.csv` | Chan's `PythonCodesAndData.zip` | AUDCAD | raw | 2007-07-23 .. 2012-04-26 | saved 2018-12-13 |
+| `pythoncodesanddata/AUD_interestRate.csv` | Chan's `PythonCodesAndData.zip` | AUDRATE | rate | 2000-01-01 .. 2012-03-01 | saved 2018-12-13 |
+| `pythoncodesanddata/CAD_interestRate.csv` | Chan's `PythonCodesAndData.zip` | CADRATE | rate | 2000-01-01 .. 2011-12-01 | saved 2018-12-13 |
+| `pythoncodesanddata/AUDCAD_unequal_ret.csv` | Chan's `PythonCodesAndData.zip` | AUDCAD-UNEQUAL | return | 2009-12-18 .. 2012-04-26 | saved 2018-12-26 |
+| `inputdataohlcdaily_20120504/` | Chan's `inputDataOHLCDaily_20120504.mat` | 51 members | adjusted | 2008-04-02 .. 2012-05-04 | saved 2012-05-07 |
+| `inputdataohlcdaily_20120507/` | Chan's `inputDataOHLCDaily_20120507.mat` | 53 members | adjusted | 1995-10-20 .. 2012-05-08 | saved 2012-05-09 |
+| `inputdataohlcdaily_20120511/` | Chan's `inputDataOHLCDaily_20120511.mat` | 52 members | adjusted | 1995-10-20 .. 2012-05-11 | saved 2012-05-12 |
+| `inputdataohlcdaily_20120517/` | Chan's `inputDataOHLCDaily_20120517.mat` | 52 members | adjusted | 1995-10-20 .. 2012-05-17 | saved 2012-05-18 |
+| `vix/` | Chan's `VIX.csv` | 1 member | raw | 1990-01-02 .. 2012-05-08 | saved 2012-05-09 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -639,7 +656,7 @@ moved between the saves.
 6. **It fits the budget.** The directory holds 26.10 MB, and its manifest and
    checksum lines and this section add 0.25 MB, which takes `data/` from
    108.56 MB to 134.91 MB of file content. That left 15.09 MB under the
-   150 MB budget point 5 of the book-two S&P 500 list below sets.
+   150 MB budget point 5 of the book-two S&P 500 list below set at the time.
 
 Two more directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
@@ -722,6 +739,142 @@ measurements below.
    100 MB budget, because the mirrors are the only free copies, and raised the
    budget so that `data/` stays under 150 MB of file content. A later panel
    still states its own size against that in its issue before it is recorded.
+   The owner raised the cap to 205 MB on 2026-10-04, on
+   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), for
+   the four book-two lifts of that day, and the lift of Chan's Python port
+   below is what took `data/` past 150 MB.
+
+The directory `pythoncodesanddata/` holds seven files of Chan's 2018 Python
+port of *Algorithmic Trading*'s code, `PythonCodesAndData.zip`, committed byte
+for byte under the names the zip gives them. Neither `.mat` mirror holds these
+series, and the zip is the only free copy of them.
+
+- USD.CAD's one-minute bars, which Examples 2.1 to 2.5 read at 16:59.
+- The daily closes of USD.CAD, AUD.USD and AUD.CAD, which Examples 5.1 and 5.2
+  read.
+- The monthly AUD and CAD interest rates, which Example 5.2 reads for its
+  rollover interest.
+- The AUD.CAD returns Example 5.1 saved, which Chapter 8's Monte Carlo
+  leverage, historical optimization and CPPI boxes read.
+
+[Issue 301](https://github.com/l3a0/quantitative-trading/issues/301) carries
+the measurements below.
+
+1. **Where they came from.** The zip sits in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview)
+   at `e4bc46f`, under `public/img/book2/`, as git blob `b573b1a` of
+   13,645,198 bytes. The other mirror, ivanliu1989/algorithmic_trading, does
+   not hold it. Each committed file is what
+   `unzip -p PythonCodesAndData.zip PythonCodesAndData/<name>` writes, and
+   [tests/test_python_port.py](../tests/test_python_port.py) pins each one's
+   sha256. Each saved date is that file's own timestamp in the zip's central
+   directory, the index of members that is part of the zip's bytes, and the vendor is `chan-py`.
+   It is a vendor of its own rather than `chan-mat` or `chan-xls`, because
+   those name his MATLAB files and his workbooks, and sharing one would let a
+   read match two sources.
+
+   ```text
+   91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317  PythonCodesAndData.zip
+   ```
+
+2. **They keep the zip's shape.** The owner ruled on 2026-10-04 that the
+   minute file is committed unchanged, so the other six are committed the same
+   way, and each can be hashed against its zip member. A daily or minute file
+   writes its date as `YYYYMMDD`. The headers are `Date,Time,Close` for the
+   minute file, `Date,Close` for a daily one, `Year,Month,Rates` for a rate
+   file and `Return` alone for the return file. All seven end their lines
+   with a carriage return and a newline, which makes them the first files here
+   to carry a carriage return. `data/** -text` in
+   [.gitattributes](../.gitattributes) keeps those bytes as they are. They do
+   not share one basis or one saved date, so each has its own row in the table
+   above rather than one row for the directory.
+3. **The minute file's clock is New York time, with daylight saving.** It
+   holds 1,730,962 bars on 1,466 dates, from 2007-07-22 to 2012-03-28, with no
+   date and time repeated. No bar falls from 17:00 to 17:14 on any day, across
+   every change of clock from 2007 to 2012. A file kept in a fixed offset
+   would shift that gap by an hour twice a year. The currency market's day closes
+   at 17:00, so a full day holds 1,425 bars, the 1,440 minutes of a day less
+   the 15-minute pause. The date column is the bar's calendar date, so a
+   Sunday evening's bars carry the Sunday. No Sunday bar comes before 17:15,
+   and every Friday's last bar is 16:59, except 2011-12-23's, at 14:59.
+4. **Its daily close is the 16:59 bar, filtered at read time rather than
+   committed.** Chan's MATLAB takes `cl(hhmm==1659)` and his Python takes
+   `df['Time']==1659`, and `chan.series.load_minute_close` does the same from
+   the verified bytes. That gives 1,216 closes from 2007-07-23 to 2012-03-28.
+   Of the 1,466 dates, 250 hold no 16:59 bar.
+   - 245 Sundays, whose session opens at 17:15.
+   - Four holidays: 2007-12-25, 2008-01-01, 2008-12-25 and 2009-01-01.
+   - The early close on 2011-12-23.
+
+   The scale-break guard reads these closes, and it flags no day in them or in
+   the three daily files.
+5. **The bases.** A currency is `raw`, because it has no splits or dividends
+   to adjust for. The two interest-rate files are `rate`, and each one's span
+   runs from the first of its first month to the first of its last, the
+   convention the FRED bill series uses. The return file carries a fifth
+   basis, `return`, which the owner added on 2026-10-04, under the symbol
+   `AUDCAD-UNEQUAL`. It holds no dates. `AUDCAD_unequal.m`, Example 5.1's
+   script, trains on the first 250 of the AUD.USD daily file's 862 days and
+   saves the returns of the other 612, so its span is that file's rows 251 to
+   862, 2009-12-18 to 2012-04-26. Those are the dates the book gives for
+   Example 5.1's performance. The two USD.CAD files share vendor, symbol and
+   basis, so a reader passes the saved date to name one.
+6. **The files agree with each other.** Each of these is a test in
+   [tests/test_python_port.py](../tests/test_python_port.py).
+   1. The 16:59 closes equal the daily USD.CAD file exactly on all 841 dates
+      the two share, 2009-01-02 to 2012-03-28. The daily file runs 21 dates
+      further.
+   2. The AUD.USD and USD.CAD daily files carry the same 862 dates, which
+      `AUDCAD_unequal.m` assumes when it takes one file's dates for both.
+   3. AUD.CAD agrees with AUD.USD times USD.CAD on those 862 dates. The median
+      relative gap is 6.0e-5 and the largest is 0.19%, on 2009-05-27.
+   4. AUD.CAD agrees loosely with the inverse of the yfinance `CADAUD=X` raw
+      vintage above, on the 1,220 of its 1,237 dates that vintage also holds.
+      The median relative gap is 0.16%, the 95th percentile 0.83%, and three
+      days pass 2%, the largest 6.6% on 2008-10-10. yfinance does not record
+      the hour its currency close is taken at, so this bounds a gross error
+      and no more.
+7. **The rates and returns match the `.mat` files Chan's MATLAB loaded.**
+   Three `.mat` files in the mirror hold the same series. They are not
+   committed, so this is a measurement rather than a test. The examples'
+   printed figures come from the MATLAB, which read these, and no difference
+   below moves a printed digit.
+
+   - `AUD_interestRate.mat`, blob `c1613e4`, whose header says it was saved
+     on 2012-04-30, holds the same 147 years and months, and its rates differ
+     from the CSV's by at most 4.9e-15.
+   - `CAD_interestRate.mat`, blob `95f3a9d`, saved on 2012-04-30, holds the
+     same 144 years and months and identical rates.
+   - `AUDCAD_unequal_ret.mat`, blob `e2c3465`, saved on 2012-07-03, holds the
+     same 612 returns, differing by at most 4.0e-16. It is an output rather
+     than an input: `AUDCAD_unequal.m` ends by saving its returns under that
+     name, and `monteCarloOptimLeverage.m` loads it.
+
+   ```text
+   02d86dd720e149b03a6bae7bd561116be9ab227f59a2c890890b6f187d021a90  AUD_interestRate.mat
+   36b7ece549e60052c043619684030ea1d4b7159359dd6b68604b501e346fd519  CAD_interestRate.mat
+   13a058403b5ef592dc27b2839bb81b695622740f4218e4896fa6064a01922c5e  AUDCAD_unequal_ret.mat
+   ```
+
+8. **Three things cannot be checked here.**
+   1. Whether the four currency files equal the `.mat` files Chan's MATLAB
+      loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
+      Neither mirror holds any of them. Example 5.1 run as the MATLAB runs it
+      can be compared with `AUDCAD_unequal_ret.mat`, which is that MATLAB's
+      own output, and that belongs to Example 5.1's experiment.
+   2. Who supplied the bars, and whether a bar's label is its first minute or
+      its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
+      and nothing in the files says more.
+   3. The rates against the Reserve Bank of Australia's and the Bank of
+      Canada's own tables, which the book names as their source.
+9. **The owner raised the size cap to 205 MB.** The seven files hold 38,634,670
+   bytes, 38.63 MB. With their manifest and checksum lines and this section
+   they take `data/` from 148.72 MB, where the futures strips and the ETF file
+   below left it, to 187.37 MB of file content, past the 150 MB cap. The owner ruled on 2026-10-04, on
+   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), that
+   the four book-two lifts of that day land whole under a cap of 205 MB, and
+   that past 205 MB the work stops and asks. So `data/` now stays under
+   205 MB of file content.
 
 The next eight directories are Chan's per-contract futures strips from
 *Algorithmic Trading*, and the ninth is his gold series sampled at 16:00. A
@@ -841,11 +994,12 @@ the decision behind the shape, and the build measured what follows.
 11. **It fits the budget.** The nine directories and their manifest and
     checksum lines hold 10.36 MB, and this section adds 0.01 MB, which takes
     `data/` from 134.91 MB to 145.28 MB of file content, under the 150 MB
-    budget point 5 of the book-two S&P 500 list above sets. The owner ruled on
+    budget point 5 of the book-two S&P 500 list above set at the time. The owner ruled on
     2026-10-04, on
     [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), that
     this lift and the three built beside it may take `data/` to 205 MB, and
-    the change that crosses 150 MB raises the budget here.
+    the change that crosses 150 MB raises the budget. Point 9 of the Python
+    port list above is that change.
 
 `inputdata_etf/` is Chan's book-two ETF file, `inputData_ETF.mat`, which most
 of *Algorithmic Trading*'s ETF experiments not yet run here read. It holds 67 ETFs over 1,500
@@ -932,15 +1086,172 @@ carries the measurements below.
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **It fits the budget.** The directory holds 3.40 MB, and its manifest and
    checksum lines and this section add 0.03 MB, which takes `data/` from
-   145.28 MB to 148.72 MB of file content. That stays under the 150 MB
-   budget that point 5 of the book-two S&P 500 list sets. The owner set a
+   145.28 MB to 148.72 MB of file content. That stayed under the 150 MB
+   budget that point 5 of the book-two S&P 500 list set at the time. The owner set a
    ceiling of 205 MB on 2026-10-04, on
    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), for
    this lift and the book-two lifts of issues
    [300](https://github.com/l3a0/quantitative-trading/issues/300),
    [301](https://github.com/l3a0/quantitative-trading/issues/301) and
    [313](https://github.com/l3a0/quantitative-trading/issues/313). The lift
-   that takes `data/` past 150 MB raises the budget to it.
+   that takes `data/` past 150 MB raises the budget to it, which point 9 of
+   the Python port list above does.
+
+The four `inputdataohlcdaily_2012*/` directories hold four saves of Chan's
+continuous futures series from *Algorithmic Trading*, and `vix/` holds his
+`VIX.csv`. A futures contract expires, so a series running for years is built
+by rolling from one contract to the next and shifting the history at each roll.
+Each of the four futures directories is named for the date in its file's name.
+The saved date, one to three days later, comes from the MAT header. These scripts read them, by file
+and symbol.
+
+1. `TU_mom_hypothesisTest.m` and `TU_mom.m`, Examples 1.1 and 6.1, read TU
+   from the 2012-05-11 save.
+2. `CL_rev.m` reads CL from the 2012-05-04 save.
+3. `VX_ES.m` reads VX and ES, and `gapFutures_FSTX.m`, Example 7.1's gap on
+   Euro Stoxx 50 futures, reads FSTX, all from the 2012-05-17 save.
+4. `VX_ES_rollreturn.m` reads ES from the 2012-05-07 save and the close of
+   `VIX.csv`.
+5. The two VIX-filtered variants at Kindle location 3509, of Examples 4.1 and 7.1,
+   read `VIX.csv`.
+
+[Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
+the measurements below.
+
+1. **Where they came from.** The two mirrors that hold the book-two stock file
+   above hold all five, with identical git blobs: EpchanPreview at `e4bc46f`
+   under `public/img/book2/`, and algorithmic_trading at `4567024` under
+   `archived/matlab/`. The sources are not committed, and their sha256 is
+   recorded here.
+
+   ```text
+   b69f8b8ce0c14b422184e15f20ff93cd65d56141ae632c92ac8115fd1c06144f  inputDataOHLCDaily_20120504.mat
+   3cc01a9623031df25aa45abfc2201869d7a1288c018d8a46e62f7cad1fe72892  inputDataOHLCDaily_20120507.mat
+   1714d630b05b9343d569092ade56f3f6f2885d0db0e2a9150b4841062640be98  inputDataOHLCDaily_20120511.mat
+   b155d8d50634d7322a24808160f97269c3687f52ce7ae160d1002ac3a0835c08  inputDataOHLCDaily_20120517.mat
+   3e7374d398758b468d765b32e20ab6aaf2a8ed93eafe348c8a8bf3f9ccde874a  VIX.csv
+   ```
+
+   Only EpchanPreview holds `PythonCodesAndData.zip`, Chan's 2018 Python port,
+   at blob `b573b1a`. Points 6 and 7 read it.
+
+   ```text
+   91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317  PythonCodesAndData.zip
+   ```
+
+2. **The series are rewritten between saves, and recorded as `adjusted`.**
+   How they are rewritten was measured for CL alone. On 2008-05-19 the 2012-05-04 save's CL closes at 175.48, where the CL front
+   contract in Chan's `inputDataDaily_CL_20120502.mat` settles at 127.05, and
+   by 2012-04-10 the gap is 0.51. Of the 998 days the two share, the save
+   equals the front contract on 8. The contract file is committed above as
+   `inputdatadaily_cl_20120502/`, and `TestTheCommittedSavesAreChansColumns`
+   in [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
+   pins all four figures against it. That is the price back-adjustment Chan's
+   Chapter 5 describes, which shifts the history by each roll's gap rather
+   than rescaling it. Between the 2012-05-07 and 2012-05-11 saves, CL and QM
+   each move by one constant on every shared day, which is what a roll falling
+   between two saves does to such a series. 46 of the other symbols do not move
+   at all. C, ES, GC and VX change by neither one constant nor one factor, so
+   how Chan's source built those four was not measured, and a return computed
+   across a roll in them should not assume a shift. The basis field exists to
+   tell a series rewritten backward between vintages from one that is not, and
+   every one of these can be, so `adjusted` names them all.
+   `docs/design.md`'s vocabulary entry for **adjusted price** covers a futures
+   series rewritten at each roll as well as a close adjusted for splits and
+   dividends.
+3. **Each symbol keeps its own calendar.** `tday` is a date-by-symbol array,
+   1,000 by 51 in the 2012-05-04 save and 2,000 by 52 or 53 in the others, and
+   each script takes one symbol's column of it. A member's rows are the days
+   its column is priced. Every column's unpriced cells lead it, measured on all
+   208 columns, so dropping them moves no row a script steps through, and
+   `chan.mat_columns.read_continuous` refuses a file where they do not.
+   CL, ES, TU, VX and FSTX are priced on every row in every save that holds
+   them. `chan.mat_columns.continuous_round_trip_differs` holds each member's
+   rows to its column's priced rows, every field, exactly, and found all 208
+   identical. The panel `chan.series.load_panel` builds is the union of the
+   members' days, which is not this file's layout, so a replication reads one
+   member as `load_panel(source)[symbol].dropna()`.
+
+   Unpriced cells are not the only break a row-by-row script can step across.
+   In each of the three 2,000-row saves, ZB's and ZF's own days run straight
+   from 1998-03-10 to 2008-04-16, and ZN's to 2008-04-17. Those are adjacent
+   rows ten years apart, so a return taken across them spans a decade. Their
+   stretch before it is sparse too, with gaps of up to 103 days, and no other
+   column in any save skips more than ten days between rows. The reader checks
+   that days increase, not how far apart they are, so it does not refuse this.
+   No script of Chan's reads ZB, ZF or ZN.
+4. **The column with no name is kept as `COLUMN-6`.** The 2012-05-07 save holds
+   53 columns, and the sixth, between BZ and CAD, has an empty name. Its 2,000
+   closes equal the 2012-05-11 save's `C` on all 1,997 days the two share,
+   while the same save's own `C` is a different series, 48.75 below it at the
+   median. No script reads the column. The owner decided on 2026-10-04 to keep
+   it under a name built from its position, counting from one, because that name claims nothing
+   the file does not say. It also keeps three days no later save holds,
+   2004-05-28, 2004-06-01 and 2004-06-02. The reader names that one column for
+   these bytes alone and refuses any other empty name.
+5. **The four saves are four vintages, and they disagree.**
+   `chan.series.vintage_overlap` set each symbol a script reads against its
+   next save, and `chan.series.departures` with no tolerance counted the days
+   their closes differ. Items 1 to 5 compare the close alone, and item 1 also
+   says where the volume moves. Item 6 compares every field.
+   1. TU's close never moves on a shared day. Its volume differs on each
+      earlier save's last day.
+   2. CL moves between the 2012-05-07 and 2012-05-11 saves by one constant on
+      all 1,997 shared days: the later save is 0.27 higher.
+   3. ES takes 17 distinct differences between those two saves, zero
+      included, and agrees on 294 of 1,997 days.
+   4. VX takes 79 distinct differences between those two saves and agrees on
+      3 of 1,997 days.
+   5. FSTX moves between the 2012-05-11 and 2012-05-17 saves, with 25 distinct
+      differences, and agrees on 45 of 1,996 days.
+   6. Of the 2012-05-04 save's 51 members, 18 agree with the 2012-05-07 save
+      on every field of every shared day. 31 of the other 33 differ on one row,
+      2012-05-04, the earlier save's last day. FFI differs on two, and BZ on
+      all 1,000.
+6. **The Python port's copies agree.** `inputDataDaily_ES_20120507.csv`,
+   `inputDataDaily_FSTX_20120517.csv`, `inputDataOHLCDaily_TU_20120511.csv`
+   and `TU.csv` from the zip each equal their member's committed fields cell
+   for cell, 2,000 days each, the FSTX file on its open, high, low and close.
+   The zip is not committed, so this ran when the files were recorded, the way
+   the TLT and IEF column check did.
+7. **`VIX.csv` is recorded under vendor `chan-csv`, basis `raw`, symbol
+   `VIX`.** `chan-csv` names the kind of file Chan shipped, beside `chan-xls`
+   and `chan-mat`. An index level as published has nothing to adjust. The file
+   spans 1990-01-02 to 2012-05-08, 5,635 rows, and its volume is non-zero on
+   136. Its `Adj Close` equals its `Close` on every row, so the vintage keeps
+   the close, high, low, open and volume, and the reader refuses a file where
+   the two differ. A CSV carries no header recording when it was saved, so the
+   command takes `--saved-date`. The date, 2012-05-09, is the timestamp the
+   zip records for its copy, which is the same file with CRLF line endings.
+   Stripping the carriage returns gives the mirror's bytes, and the zip's copy
+   itself hashes to this.
+
+   ```text
+   2013110389a7aa0366b6d1560e073ce980e8a9efbb7ba1370ae6c4620b5efedf  PythonCodesAndData/VIX.csv
+   ```
+
+8. **The scale-break guard flags ZB on 33 days and ZF on 9, in each of the
+   three 2,000-row saves.** They fall between 1995-12-05 and 2008-04-16, and
+   ZB's close goes as low as 0.4844. Up to 1998-03-10 ZB's closes run from
+   0.4844 to 5.1094 and ZF's from 1.3594 to 3.3594, which is not the scale of
+   a bond future. The next row in each is 2008-04-16, ten years later, per
+   point 3, where ZB closes at 106.67 and ZF at 103.21, and neither closes
+   below 99 after it. That flag is the jump across the hole onto the bond's
+   scale. ZN has the same hole but sits on a bond's scale on both sides of
+   it, from 84.05 to 94.77 before and 92.94 to 133.08 after, so nothing flags
+   it. No script reads ZB, ZF or ZN.
+   `VIX.csv` flags one day, 2007-02-27, when the index closed at 18.31 after
+   11.15, which is a real move. Nothing else flags, the 2012-05-04 save
+   included. All of them are pinned in
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+9. **It fits under the 205 MB ceiling.** The five directories and their
+   manifest and checksum lines hold 15.11 MB, which takes `data/` from
+   187.37 MB, where the Python port's files above left it, to 202.47 MB of
+   file content before this section and 202.48 MB with it. That leaves
+   2.52 MB under the 205 MB budget point 9 of the Python port list sets, under
+   the owner's ruling of 2026-10-04 on
+   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300). Past
+   205 MB the work stops and asks the owner.
 
 ## Two vintages kept in the owner's archive
 
@@ -987,13 +1298,17 @@ file name and never rewrites one this record names.
 
 ## Header shape
 
-The files placed by hand above carry a three-row header before the data. The
-shape is yfinance's multi-index frame, and the workbook columns were written
-into it too, as is every stock `record_lifted_columns` writes. A stock lifted
-with all five fields widens it to one cell per field, so its first two rows
-read `Price,Close,High,Low,Open,Volume` and `Ticker,KO,KO,KO,KO,KO`. What that buys, whether or not anybody meant it at the time, is
-that the symbol sits in the bytes where a check can read it back, and
-`tests/test_vintage.py` now does:
+The vintages here carry one of three header shapes.
+
+The files placed by hand above carry a three-row header before the data,
+except the seven of Chan's Python port, which the third shape below covers.
+The shape is yfinance's multi-index frame, and the workbook columns were
+written into it too, as is every stock `record_lifted_columns` writes. A stock
+lifted with all five fields widens it to one cell per field, so its first two
+rows read `Price,Close,High,Low,Open,Volume` and `Ticker,KO,KO,KO,KO,KO`. What
+that buys, whether or not anybody meant it at the time, is that the symbol sits
+in the bytes where a check can read it back, and `tests/test_vintage.py` now
+does:
 
 ```text
 Price,Close
@@ -1006,7 +1321,8 @@ A vintage `record_vintage` writes carries one header row, `Date,Close`, and
 nothing else.
 In a `rate` vintage the `Close` column holds the rate, because the recorder
 writes one header for every series it records.
-Two shapes rather than one is deliberate. The three rows above are an artifact
+
+Those two shapes rather than one are deliberate. The three rows above are an artifact
 of one vendor's frame, and writing `Price,Close` at the top of a series some
 other vendor returned would be a claim the file has no business making. The
 columns lifted from Chan's own files take the three-row shape anyway, the
@@ -1015,7 +1331,20 @@ because they are held by the same check: the `Ticker,` row is what names the
 series in the bytes, and none of them came from the recorder.
 
 `load_close` drops every leading row whose first field does not parse as a
-date, so it reads either shape and does not depend on a row count.
+date, so it reads both of those shapes and does not depend on a row count.
+
+The third shape is the header Chan's 2018 Python port gave each of its files,
+such as `Date,Time,Close` for the minute bars and `Year,Month,Rates` for a
+rate. A minute or daily file writes its dates as `YYYYMMDD`. The owner ruled
+on 2026-10-04, on
+[issue 301](https://github.com/l3a0/quantitative-trading/issues/301), that
+these files are committed as the zip shipped them, so no header of this
+repo's can be added to them. Every check that reads their dates knows each
+file's layout from the pin in
+[tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
+`load_close` reads the daily files like any other, and refuses the minute
+file, whose second column is a time. `chan.series.load_minute_close` reads
+that one.
 
 ## Verifying the bytes
 
@@ -1056,8 +1385,9 @@ Two files carry that record.
    count and sha256. A line carries `download_date` when a vendor was asked for
    the series and `saved_date` for a series lifted from one of Chan's own
    files, whose date is when he last saved that file rather than when anything
-   was fetched. Those lines name their vendor `chan-xls` for a workbook column
-   and `chan-mat` for a column of one of his MATLAB files, and carry a
+   was fetched. Those lines name their vendor `chan-xls` for a workbook column,
+   `chan-mat` for a column of one of his MATLAB files, `chan-py` for a file of
+   his Python port and `chan-csv` for one of his CSV files, and carry a
    `source_workbook` field holding the file the series was lifted from. The
    table's "Chan's `GLD.xls`" is that pair written as one cell, which is what
    a single column can hold and a filename cannot. An `adjusted` yfinance line
@@ -1083,8 +1413,10 @@ Two files carry that record.
    Its hand-written lines are the eight that were here before the recorder
    existed and the two SPY workbook columns', `spy_chan.csv`'s and
    `spy_unadjusted_chan.csv`'s, which were typed because the recorder cannot
-   write a saved date. Every other line was written by code, a download by
-   `record_vintage` and a column lifted from Chan's MATLAB files by
+   write a saved date, and the seven files of Chan's Python port, which were
+   typed because they keep the zip's shape. Every other line was written by
+   code, a download by
+   `record_vintage` and a column lifted from Chan's MATLAB and CSV files by
    `record_lifted_columns`. More lines will be typed by hand for as long as a
    replication reaches for another of Chan's workbook columns.
 
@@ -1108,12 +1440,13 @@ a test, so no total is given here.
 - Every CSV file here has exactly one entry, at any depth.
 - `checksums.sha256` is the projection the manifest produces, and regenerating
   it changes nothing.
-- Every hand-written entry, and every column lifted from Chan's MATLAB files,
+- Every hand-written entry, and every column lifted from Chan's MATLAB and CSV
+  files,
   names the series its file's `Ticker,` row carries.
-- The hand-written entries and the lifted sources carry the identity
-  `tests/support/committed_vintages.py` pins for them, and each lifted source
-  holds the number of members its pin gives, each at the path its directory
-  and symbol make.
+- The hand-written entries, the lifted sources and the files of Chan's Python
+  port carry the identity `tests/support/committed_vintages.py` pins for them,
+  and each lifted source holds the number of members its pin gives, each at
+  the path its directory and symbol make.
 - Every recorded entry agrees with the name its file took.
 - Every manifest line is the text its own entry would write.
 - Neither the manifest nor the projection carries a carriage return.
@@ -1133,11 +1466,15 @@ for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
 
-A directory gets one row rather than one per file, so a source's lifted
-columns take one row between them. The row states what every file in it has
-in common, which is the vendor, the basis and the date, along with how many
-members it holds and the earliest and latest day any of them carries. Its members must agree on the
-three shared cells, or the failure names the directory and the values. What
+A directory of lifted columns gets one row rather than one per file, so a
+source's lifted columns take one row between them. The row states what every
+file in it has in common, which is the vendor, the basis and the date, along
+with how many members it holds and the earliest and latest day any of them
+carries. Its members must agree on the three shared cells, or the failure names the directory and the values. What
 holds each member's own identity is the pin for its source in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
-which also counts the members.
+which also counts the members. The directory of Chan's Python port gets one
+row per file instead, because its files do not share one basis or one saved
+date, so one row could not state them. The check tells the two kinds
+apart by the file names: a lifted column is named for its symbol, and a file
+of the port keeps the name the zip gave it.
