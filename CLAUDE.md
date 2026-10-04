@@ -439,6 +439,29 @@ Two limits are worth stating rather than leaving a reader to infer.
 1. The board is a private artifact on the owner's account, and its figures live in that artifact's database. A session without access to it, or without the `ArtifactData` tool that writes the database, cannot do this and should say so in its handover rather than treat the rule as failed.
 2. What argues for the rule is one measured failure rather than a comparison. An update run against figures carried in a session's head shipped 39 open issues when a query said 40, which is why the skill leads with reading the live data and re-measuring. Nothing has yet measured what a stale board costs a reader, so the rule is a convention this repo keeps rather than a cost it has priced.
 
+## Keep the main thread free
+
+The main thread is where the owner talks to a session, so a session that blocks it stops answering. Work that takes longer than a quick command goes to a background sub-agent, and the main thread keeps taking requests while it runs.
+
+Five runs of the full suite on `main` on 2026-10-04 took 394, 405, 444, 469 and 501 seconds. A session that waits on each one in the foreground is unreachable for over half an hour on suite runs alone, which is what prompted this rule.
+
+What runs in the background:
+
+- The full test suite, and any measurement that waits on it, such as the board's test count.
+- A review's lenses and its verifiers, each as its own sub-agent, which `## Pull requests` already asks for in parallel.
+- Watching a pull request's checks until they settle.
+- A decompose loop, a plan audit that sweeps many files, and a Substack sync check.
+- Any wait on something outside the session, such as another session's merge.
+
+Use the `Agent` tool for work that needs judgment, since it runs in the background by default, and `Bash` with `run_in_background` for a single long command. Both report back when they finish, so the main thread never polls or sleeps in a loop waiting on them. While one runs, say in a line what it is doing, then keep working on whatever does not depend on it.
+
+Two things stay in the foreground.
+
+1. A step whose result the very next action needs, when nothing else can usefully happen meanwhile. Even then, prefer the background and say so, because the owner may have something else to ask.
+2. A write that needs the owner's approval in the same exchange, such as a Substack patch. The approval is a conversation, so it happens on the main thread, while the checks before and after it can run anywhere.
+
+The price is named rather than hidden. A sub-agent starts with none of the session's context, so its prompt has to carry everything it needs, as a spawned session's prompt already does. Two background writers can also reach the same shared state at once. The board's pinned writes already refuse the second writer, which then re-reads and redoes its write, and the same discipline applies to anything else two of them share.
+
 ## Research pins
 
 This repo quotes measured numbers from its first commit, so this section

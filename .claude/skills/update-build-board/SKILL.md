@@ -207,6 +207,11 @@ count next to the commit, so a figure from another tree is attributed to a tree
 that never produced it. `git worktree add --detach <dir> origin/main` gives a
 clean one, and removing it afterwards is part of the same step.
 
+The run takes minutes, between 394 and 501 seconds on `main` on 2026-10-04, so
+it goes to a background sub-agent or a background shell, under `CLAUDE.md`'s
+`## Keep the main thread free`. The rest of the update proceeds while it runs,
+and the count goes in when it reports.
+
 That one is worth reading twice, because its cover story arrived on its own.
 [PR 90](https://github.com/l3a0/quantitative-trading/pull/90) merged twenty minutes later and made 243 right for `main`, so a session
 checking the number afterwards would have found it correct and left the method
