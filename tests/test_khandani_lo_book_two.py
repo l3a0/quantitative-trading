@@ -2,7 +2,7 @@
 
 This file is the single authority for every number a prose surface quotes
 about these two examples and about the two bridge rows that set them beside
-the first book's Examples 3.7 and 3.8. ``docs/replication-log.md`` Entry 17
+the first book's Examples 3.7 and 3.8. ``docs/replication-log.md`` Entry 18
 carries the verdicts and points here row by row.
 
 Every pin on the committed panel reads one vintage and one specification, so

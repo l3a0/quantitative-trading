@@ -173,6 +173,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``TestTheScaleBreakDecision`` in ``tests/test_momentum_factor.py`` holds
 #: that.
 #:
+#: [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) decided
+#: that ``chan.cross_sectional_momentum`` refuses no window for *Algorithmic
+#: Trading*'s Example 6.2, on issue 22's reasoning. The book-two file's 30
+#: flagged stock-days fall one inside the 2007 window, ETFC's 2007-11-12, and
+#: 29 inside 2008 and 2009, so the guard would refuse both windows the book
+#: prints, and ``kentdaniel.m`` ran across them as they stand. No stock in that
+#: file has a missing price after its first, so no ranking return reaches
+#: across a gap. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_cross_sectional_momentum.py`` runs the guard and holds both.
+#:
 #: [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296) decided
 #: that ``chan.khandani_lo_book_two`` refuses no window for *Algorithmic
 #: Trading*'s Examples 4.3 and 4.4. Their window,

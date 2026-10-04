@@ -54,7 +54,7 @@ book prints are here: 13.7 percent and 1.3 and the 30 and 11 percent of 2008
 and 2011 at location 2110, 73 percent and 4.7 at 2135, and 4.7 again at 2890.
 The two figures `andrewlo_2007_2012.m` prints for Example 4.4, 0.731553 and
 4.713284, sit in its closing comment and nowhere in the book. The replication
-log's Entry 17 traces each to one or the other.
+log's Entry 18 traces each to one or the other.
 
 Example 7.4 splits the same way. Its setup at location 4034 and its result at
 4051 are here, including the 2 and 4 percent and Chan's account of the gap
@@ -82,7 +82,14 @@ traces each to the pages read in the Kindle Cloud Reader on 2026-10-03,
 recorded on
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
 
-A second kind of absence turns up in Example 6.2, and it costs more than a
+*Algorithmic Trading*'s Example 6.2 splits the same way as its Example 7.2.
+Its two 2007 figures, its −30 percent for 2008 and 2009 and its sentence that
+the return "did stabilize" afterwards all sit at location 2800, while the five
+figures its script's closing comment prints sit in `kentdaniel.m` and nowhere
+in the book. The replication log's Entry 17 traces each to one or the other.
+
+A second kind of absence turns up in *Quantitative Trading*'s Example 6.2, and
+it costs more than a
 missing figure. Every number that example prints is here. Its levered growth
 formula is not, because the book renders that equation as an image at location
 2849 and a highlight captures text. Its unlevered twin survives as inline text

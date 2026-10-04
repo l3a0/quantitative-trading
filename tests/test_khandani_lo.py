@@ -82,6 +82,7 @@ from chan.khandani_lo import (
     ONE_YEAR_BAR,
     SOURCE_FILE,
     SPLICED_SYMBOL,
+    STEP_LABELS,
     TRADING_DAYS,
     VERY_POSITIVE,
     WINDOW_END,
@@ -90,6 +91,7 @@ from chan.khandani_lo import (
     NotebookReversal,
     OpenVariation,
     Reversal,
+    Step,
     chan_sharpe,
     claim_holds,
     daily_book,
@@ -104,6 +106,7 @@ from chan.khandani_lo import (
     reversal,
     reversal_weights,
     run,
+    steps_to_the_notebook,
     trading_cost,
 )
 from chan.series import WindowCrossesScaleBreak, load_panel, refuse_window_crossing_a_break
@@ -218,6 +221,12 @@ class TestWhatAnAverageDayCosts:
     def test_the_day_earns_half_a_basis_point_and_pays_seven(self, day: DailyBook) -> None:
         assert day.profit * 1e4 == pytest.approx(0.5276, abs=5e-5)
         assert day.cost * 1e4 == pytest.approx(7.2525, abs=5e-5)
+
+    def test_the_rounded_inputs_give_one_digit_less(self, day: DailyBook, result: Reversal) -> None:
+        """The post shows 0.5276 and 33.3770, which give 0.2509 where the data give 0.2510."""
+        rounded = math.sqrt(TRADING_DAYS) * round(day.profit * 1e4, 4) / round(day.swing * 1e4, 4)
+        assert round(rounded, 4) == 0.2509
+        assert round(result.before_costs, 4) == 0.2510
 
     def test_the_cost_is_about_fourteen_days_of_profit(self, day: DailyBook) -> None:
         assert day.cost_per_profit == pytest.approx(13.7453, abs=5e-5)
@@ -578,6 +587,115 @@ class TestRuleBOnTheOpens:
         """Rule B's after-cost figure less Example 3.7's −3.1884."""
         recovered = variation.rule_b.after_costs - result.after_costs
         assert recovered == pytest.approx(3.9718, abs=5e-5)
+
+
+@pytest.fixture(scope="module")
+def open_steps(open_panel) -> list[Step]:
+    _, frame = open_panel
+    return steps_to_the_notebook(frame)
+
+
+@pytest.fixture(scope="module")
+def close_steps(panel) -> list[Step]:
+    _, frame = panel
+    return steps_to_the_notebook(frame)
+
+
+class TestWhyRuleAKeepsMoreAfterCosts:
+    """Rule B turned into rule A one departure at a time, on the opens and the closes.
+
+    The two rules pay about the same cost each day. Rule A keeps more of its
+    Sharpe ratio after costs because the fill reads WYN's gap as one day's
+    move, which makes its daily profit swing 3.65 times as far on the
+    opens, and a cost divided by a larger swing removes less.
+    ``blog/survivorship-and-transaction-costs.md`` quotes these.
+    """
+
+    def test_the_departures_and_their_order(self, open_steps) -> None:
+        assert [step.label for step in open_steps] == list(STEP_LABELS)
+        assert STEP_LABELS[-1] == "gaps filled with the last price"
+
+    def test_the_chain_starts_at_rule_b_and_ends_at_rule_a(
+        self, open_steps, close_steps, variation: OpenVariation, result: Reversal, panel
+    ) -> None:
+        """Both ends, and the step before the fill, are figures other tests already pin."""
+        _, closes = panel
+        assert open_steps[0].after_costs == pytest.approx(
+            variation.rule_b.after_costs_charged, abs=1e-12
+        )
+        assert open_steps[-2].after_costs == pytest.approx(
+            variation.unfilled.after_costs, abs=1e-12
+        )
+        assert open_steps[-1].after_costs == pytest.approx(
+            variation.notebook.after_costs, abs=1e-12
+        )
+        assert close_steps[0].after_costs == pytest.approx(result.after_costs_charged, abs=1e-12)
+        unfilled = notebook_reversal(closes, fill=False)
+        assert close_steps[-2].after_costs == pytest.approx(unfilled.after_costs, abs=1e-12)
+        assert close_steps[-1].after_costs == pytest.approx(
+            notebook_reversal(closes).after_costs, abs=1e-12
+        )
+
+    def test_each_step_on_the_opens(self, open_steps) -> None:
+        figures = [round(step.after_costs, 4) for step in open_steps]
+        assert figures == [0.8293, 1.0149, 1.0307, 1.0314, 1.0335, 1.3997]
+
+    def test_each_step_on_the_closes(self, close_steps) -> None:
+        """A fixed gross position lowers the figure on the closes and raises it on the opens."""
+        figures = [round(step.after_costs, 4) for step in close_steps]
+        assert figures == [-3.2337, -3.3790, -3.3697, -3.3693, -3.3760, -2.1617]
+
+    def test_the_cost_barely_moves(self, open_steps) -> None:
+        """7.3182 basis points for rule B and 7.2808 for rule A, each over its own mean position."""
+        costs = [round(step.cost * 1e4, 4) for step in open_steps]
+        assert costs == [7.3182, 7.3116, 7.2788, 7.2773, 7.2773, 7.2808]
+        assert all(abs(step.cost * 1e4 - 7.3) < 0.05 for step in open_steps)
+
+    def test_the_fill_multiplies_the_swing(self, open_steps) -> None:
+        """32.2556 basis points for rule B, 30.1416 before the fill and 117.7257 after it."""
+        swings = [round(step.swing * 1e4, 4) for step in open_steps]
+        assert swings == [32.2556, 30.1416, 30.1416, 30.1416, 30.1416, 117.7257]
+        assert round(open_steps[-1].swing / open_steps[0].swing, 2) == 3.65
+
+    def test_the_fixed_position_raises_the_figure_before_costs(
+        self, open_steps, close_steps
+    ) -> None:
+        """It lowers the swing, so costs take more, 3.84 against 3.59, and the
+        after-cost figure rises because the figure before costs rises more."""
+        before = [round(step.before_costs, 4) for step in open_steps]
+        assert before == [4.4202, 4.8509, 4.8509, 4.8509, 4.8606, 2.3818]
+        drops = [round(step.before_costs - step.after_costs, 2) for step in open_steps[:2]]
+        assert drops == [3.59, 3.84]
+        closes = [round(step.before_costs, 4) for step in close_steps]
+        assert closes == [0.2510, 0.4170, 0.4170, 0.4170, 0.4179, 0.9578]
+
+    def test_one_stocks_gap_carries_the_swing(self, open_panel) -> None:
+        """Without WYN, rule A's swing on the opens is 30.2366 basis points, not 117.7257."""
+        _, frame = open_panel
+        without = steps_to_the_notebook(frame.drop(columns=[SPLICED_SYMBOL]))
+        assert without[-1].swing * 1e4 == pytest.approx(30.2366, abs=5e-5)
+
+    def test_the_cost_over_the_swing_predicts_the_drop(
+        self, open_steps, variation: OpenVariation
+    ) -> None:
+        """√252 · cost / swing is about 3.60 for rule B and 0.98 for rule A, and
+        each lands within 0.02 of the drop from its figure before costs to after."""
+        penalty = [
+            math.sqrt(TRADING_DAYS) * s.cost / s.swing for s in (open_steps[0], open_steps[-1])
+        ]
+        assert [round(p, 2) for p in penalty] == [3.60, 0.98]
+        b_drop = variation.rule_b.before_costs - variation.rule_b.after_costs_charged
+        a_drop = variation.notebook.before_costs - variation.notebook.after_costs
+        assert (round(b_drop, 4), round(a_drop, 4)) == (3.5909, 0.9821)
+        assert penalty[0] == pytest.approx(b_drop, abs=0.02)
+        assert penalty[1] == pytest.approx(a_drop, abs=0.02)
+
+    def test_the_fill_carries_most_of_the_gap_on_the_opens(self, open_steps) -> None:
+        """0.3662 of the 0.5704 between rule B and rule A, after costs."""
+        gap = open_steps[-1].after_costs - open_steps[0].after_costs
+        fill = open_steps[-1].after_costs - open_steps[-2].after_costs
+        assert gap == pytest.approx(0.5704, abs=5e-5)
+        assert fill == pytest.approx(0.3662, abs=5e-5)
 
 
 class TestTheVerdicts:
