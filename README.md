@@ -1242,7 +1242,7 @@ apart from what it sets beside them from GLD/GDX. The full-span −1.45 and
 833.5 days, the 31 of 231 windows and the plain ADF table trace to
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py), and the
 5,099 days behind GLD/GDX's ceiling of 33 to
-[tests/test_series.py](tests/test_series.py). Four groups of its numbers had
+[tests/test_series.py](tests/test_series.py). Five groups of its numbers had
 no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 
 1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
@@ -1253,6 +1253,9 @@ no pin before it, and `tests/test_stationary_candidates.py` now pins them.
    [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) fixed
    before it ran. `TestTheWindowPower` holds its counts. It takes about half a
    minute of the suite's run.
+5. The two checks behind Lesson 2's other choices: the rate's one-lag
+   statistic with a trend and the trend's bars, and the test without a
+   constant on the rate quoted per 100.
 
 Its three figures are drawn from the committed vintages by
 [src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py).
