@@ -1435,7 +1435,9 @@ log.
 2. One strategy gives four answers across four printouts, and the first
    edition's is in different units from the other three.
 3. Reproducing a strategy published as dead checks its printed figures and not
-   its death, and the split at 2002 is exploratory with no verdict.
+   its death. The split at 2002 is exploratory with no verdict, and Chan's
+   claim that the most recent five years do worse holds on his own file under
+   a criterion written before the check ran.
 4. A file of survivors is the first thing the result cannot get past.
 
 Three groups of its figures are not pinned here.
@@ -1451,9 +1453,8 @@ Three groups of its figures are not pinned here.
    reproduced figures, nine for Example 7.6 and eight for Example 7.7, or the
    first edition's 95 months with a return and 83 with a position, which are
    its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that Chan's five years run roughly from late 2002
-   to late 2007, that a half's slope in the figure is its annual return over
-   12, that the revised Python copy's five printed figures match the book,
+   position. Nothing states that a half's slope in the figure is its annual
+   return over 12, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
    [data/README.md](data/README.md) records by its sha256.

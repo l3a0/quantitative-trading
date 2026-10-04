@@ -112,7 +112,11 @@ The 70 months from 2002 are not a steady small gain. They climb to a peak in Jan
 
 The split carries no verdict because this repository wrote no criterion before computing it.
 
-Chan says the most recent five years do even worse (p. 180), and the years after 2006 sit inside them. The figure does not test that claim, and the section on what this replication cannot say gives the reason.
+Chan makes one claim about timing that the file can check. Directly after the MATLAB listing of Example 7.7, he suggests running the program on “the most recent five years instead of the entire data period” and says the average returns are even worse (p. 180). The entire data period is the program’s own input, the S&P 500 file, so those five years are inside it.
+
+This repository wrote the check down before computing any five-year figure. Rerun the revised MATLAB’s rules unchanged on the file’s rows after 2002-11-23, and call the claim reproduced if the annual return comes out below the whole period’s. The rerun keeps 47 months, from December 2003 to October 2007, and returns −0.0165 a year against the whole period’s −0.0129. The claim holds. Under the revised Python’s rules, reported beside it with no verdict, the figures are −0.016431 and −0.012679.
+
+That verdict is narrow. The gap between the two figures is 0.0036 a year, and the standard error of a mean over 47 of these months is 0.0281 a year, about eight times larger. So the check shows that Chan’s comparison holds on his own file of survivors. It does not show that the effect weakened.
 
 Example 7.6 meets the same limit from another side. All three of its Januaries reproduce: the two that lost, and January 2008, the one Chan’s text says “worked wonderfully” (p. 175), at 0.0881 in both editions’ MATLAB and the revised R and 0.088486 in the revised Python. One winning January after two losing ones, on a file of survivors, is three trades. They show that Chan’s code and data agree with his book, and they say nothing about whether the January effect lives.
 
@@ -126,10 +130,7 @@ Both strategies rank stocks on past returns and trade the tenth at each end, so 
 
 ## What this replication cannot say
 
-Two questions are beyond it.
-
-1. **Whether the effect existed before 2002.** The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
-2. **Chan’s claim about the most recent five years.** Directly after the MATLAB listing of Example 7.7, he suggests running the program on “the most recent five years instead of the entire data period” and says those years do even worse (p. 180). The entire data period is the program’s own input, the S&P 500 file, so the five years run roughly from late 2002 to late 2007, inside the committed file. The file can check the claim. This post quotes no five-year figure, because this repository has written no criterion for one. A criterion has to be written before the check runs.
+One question is beyond it: whether the effect existed before 2002. The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
 
 ## What this means for a trader
 

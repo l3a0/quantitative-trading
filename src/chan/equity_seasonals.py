@@ -520,6 +520,56 @@ def _undropped(rules: HestonSadkaRules) -> HestonSadkaRules:
     return HestonSadkaRules(**{**rules.__dict__, "dropped": 0})
 
 
+#: How many of the full run's last kept months the second reading of p. 180 averages.
+TAIL_MONTHS = 60
+
+
+def most_recent_five_years(closes: pd.DataFrame) -> pd.DataFrame:
+    """The rows dated after the day five calendar years before the file's last row."""
+    cutoff = closes.index[-1] - pd.DateOffset(years=5)
+    return closes.loc[closes.index > cutoff]
+
+
+@dataclass(frozen=True)
+class FiveYearCheck:
+    """P. 180's claim that the most recent five years do even worse, under one printout's rules.
+
+    The criterion was written on
+    [issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before
+    any five-year figure was computed. Reading 1 reruns the program unchanged on
+    the last five years of its input, which is what the sentence tells a reader
+    to do, and carries the verdict under :data:`REVISED_MATLAB`. Reading 2
+    averages the full run's last :data:`TAIL_MONTHS` kept months, and carries no
+    verdict, because it adds a rule the book does not print.
+    """
+
+    whole: HestonSadka
+    rerun: HestonSadka
+    #: Reading 1's monthly returns after the program's own drop.
+    rerun_kept: pd.Series
+    #: Reading 2, as a count, an annual return and a Sharpe ratio.
+    tail: tuple[int, float, float]
+
+    @property
+    def worse(self) -> bool:
+        """Whether reading 1's annual return is below the whole period's, at full precision."""
+        return self.rerun.annual_return < self.whole.annual_return
+
+
+def five_year_check(closes: pd.DataFrame, rules: HestonSadkaRules) -> FiveYearCheck:
+    """Both readings of p. 180 beside the whole period, on the frame :func:`load_panel` returns."""
+    whole = heston_sadka(closes, rules)
+    rerun = heston_sadka(most_recent_five_years(closes), rules)
+    last = whole.returns.iloc[rules.dropped :].iloc[-TAIL_MONTHS:]
+    annual, sharpe = summarize(last, _undropped(rules))
+    return FiveYearCheck(
+        whole=whole,
+        rerun=rerun,
+        rerun_kept=rerun.returns.iloc[rules.dropped :],
+        tail=(len(last), annual, sharpe),
+    )
+
+
 # --------------------------------------------------------------------------
 # The report
 # --------------------------------------------------------------------------
@@ -565,6 +615,23 @@ def report_heston_sadka(members, closes: pd.DataFrame) -> None:
         print(
             f"    {label} {SPLIT.date()}, {months} months: {annual:.6f} a year, "
             f"Sharpe ratio {sharpe:.6f}"
+        )
+    cutoff = closes.index[-1] - pd.DateOffset(years=5)
+    print(f"  The most recent five years of p. 180, rows after {cutoff:%Y-%m-%d}")
+    for rules in (REVISED_MATLAB, PYTHON_HESTON_SADKA):
+        check = five_year_check(closes, rules)
+        if rules is REVISED_MATLAB:
+            verdict = "reproduced" if check.worse else "not reproduced"
+        else:
+            verdict = "no verdict"
+        months, annual, sharpe = check.tail
+        print(
+            f"    {rules.source}, {verdict}: rerun on {len(check.rerun_kept)} months "
+            f"{_figure(check.rerun.annual_return, rules.printed)} a year, Sharpe ratio "
+            f"{_figure(check.rerun.sharpe, rules.printed)}, against the whole period's "
+            f"{_figure(check.whole.annual_return, rules.printed)}. The last {months} months "
+            f"{_figure(annual, rules.printed)} a year, Sharpe ratio "
+            f"{_figure(sharpe, rules.printed)}, no verdict"
         )
 
 

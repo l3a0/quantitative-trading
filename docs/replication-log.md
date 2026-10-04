@@ -319,7 +319,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18,
+than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18 and 23 to 29,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -365,6 +365,14 @@ verdict, and the criterion was written on
 [issue 135](https://github.com/l3a0/quantitative-trading/issues/135) before any
 statistic was computed, because a criterion chosen after the number is a
 search.
+
+Entry 7's row 22 takes it as well. P. 180 says the most recent five years of
+the program's data give even worse average returns, a definite claim about one
+strategy on one file. The owner ruled on 2026-10-04 that the revised MATLAB's
+rules carry it, and the criterion, the rerun's annual return below the whole
+period's, was written on
+[issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before
+any five-year figure was computed.
 
 Entry 15's rows 1 and 2 take it too, one per commodity. Chan names calendar
 spreads as the simplest cointegrating futures pairs, and a June and July
@@ -1856,9 +1864,11 @@ Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
 Algorithmic Trading Business*, Examples 7.6 and 7.7, in both editions. Rows 1
 to 18 shipped under
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), and rows 19
-to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225).
+to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
+and rows 22 to 29 under
+[issue 254](https://github.com/l3a0/quantitative-trading/issues/254).
 
-Twenty-one rows, all derivable from
+Twenty-nine rows, all derivable from
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
 
 **Every figure the committed files reach reproduces, in every printout.** Chan
@@ -1899,8 +1909,9 @@ month-end. The two saves give rows 1 to 6 to every digit.
 `TestTheTwoSmallCapSaves` holds both.
 
 The specification is the script. Rows 1 to 6 are Example 7.6, rows 7 to 14 are
-Example 7.7, rows 15 to 18 split one of them at 2002, and rows 19 to 21 are
-Example 7.6's third January. Each row names the
+Example 7.7, rows 15 to 18 split one of them at 2002, rows 19 to 21 are
+Example 7.6's third January, and rows 22 to 29 are p. 180's most recent five
+years. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
@@ -1933,7 +1944,9 @@ assumed.
 
 Every result here is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
-"disappeared" was written down.
+"disappeared" was written down. Row 22's criterion was written first, so it
+carries a verdict, and the verdict is about Chan's file of survivors rather
+than about the effect.
 
 ### What the book printed
 
@@ -1960,6 +1973,8 @@ hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 | 19 | 7.6, entered 2007-12-31, MATLAB in both editions | 0.0881 | as row 1 |
 | 20 | 7.6, exited 2008-01-31, revised Python | 0.088486 | as row 3 |
 | 21 | 7.6, January 2008, revised R | 0.0881 | as row 5 |
+| 22 | 7.7 average annual return over the most recent five years, revised MATLAB | "even worse" than the whole period, a claim, no figure | the revised Kindle edition, p. 180, directly after the MATLAB listing |
+| 23 to 29 | row 22's Sharpe ratio, the same two figures over the full run's last 60 months, and all four under the revised Python's rules | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
 beside code rather than in a sentence somebody marked.
@@ -1995,10 +2010,20 @@ code behind rows 9, 10, 13 and 14 traces to
 | 19 | as row 1, 59 long and 59 short of 594 ranked | 0.0881 | 0.0000 | as row 1 |
 | 20 | as row 3, 60 long and 58 short of 595 ranked | 0.088486 | 0.000000 | as row 3 |
 | 21 | as row 5 | 0.0881 | 0.0000 | as row 5 |
+| 22 | `REVISED_MATLAB` rerun unchanged on the rows of `spx_20071123/` after 2002-11-23, keeping 47 months from 2003-12-31 to 2007-10-31, and read against row 9 | −0.0165 against −0.0129, so it holds | none, a claim | `TestTheMostRecentFiveYears::test_the_revised_matlab_reproduces_the_claim` |
+| 23 | as row 22 | −0.2963 | none | `TestTheMostRecentFiveYears::test_the_revised_matlab_figures_with_no_verdict` |
+| 24 | row 9's last 60 kept months, 2002-11-29 to 2007-10-31 | −0.0171 | none | as row 23 |
+| 25 | as row 24 | −0.2609 | none | as row 23 |
+| 26 | `PYTHON_HESTON_SADKA` rerun as row 22, and read against row 11 | −0.016431 against −0.012679 | none | `TestTheMostRecentFiveYears::test_the_revised_python_beside_it_with_no_verdict` |
+| 27 | as row 26 | −0.294952 | none | as row 26 |
+| 28 | row 11's last 60 kept months, 2002-11-30 to 2007-10-31 | −0.017011 | none | as row 26 |
+| 29 | as row 28 | −0.259985 | none | as row 26 |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
-printed precision, and the gap is zero at that precision.
+printed precision, and the gap is zero at that precision. Rows 22 to 29 are
+asserted the same way, at the precision their printout's rules print, and have
+no published figure to take a gap from.
 
 ### The verdicts
 
@@ -2025,10 +2050,12 @@ printed precision, and the gap is zero at that precision.
 | 19 | reproduced | This is the January Chan's text says "worked wonderfully" (p. 175). Its month-end, 2008-01-31, is one only because the file's last row is 2008-02-01. Cut at 2008-01-31, no printout's rules reach it. |
 | 20 | reproduced | The forward fill moves this row, where it moves neither row 3 nor row 4. It ranks PMC, which has no 2006 close, on its last close before an 851-day gap, a return of 1.3056 that puts it fourth of 595 and short. So 595 stocks are ranked, and a tenth of them, 59.5, rounds to 60. Without the fill 594 are ranked, a tenth rounds to 59, and the return is 0.090908. Taking the full top decile with the fill gives 0.085757, and dropping both the slice and the fill gives row 19's figure. |
 | 21 | reproduced | Inferred rules, as for row 5. A tenth of 594 is 59.4, so R's rounding and MATLAB's give the same stocks. |
+| 22 | reproduced | The criterion was written on [issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before any five-year figure was computed, under the owner's ruling that the revised MATLAB's rules carry it. P. 180 tells the reader to run the program on the most recent five years instead of the entire data period, so the program is rerun on the last five years of its input. The rerun's 47 months are the full run's last 47, value for value. The rerun's annual return has a standard error of 0.0281 a year, about eight times the 0.0036 gap, so the claim holds on Chan's file of survivors and the row says nothing about whether the effect weakened. `TestTheMostRecentFiveYears::test_the_gap_is_far_inside_the_noise_of_47_months` holds both figures. |
+| 23 to 29 | none, not a replication | Reported beside row 22 under the same criterion. Rows 24, 25, 28 and 29 average the tail of the full run, a rule the book does not print, and p. 180 names the average returns rather than the Sharpe ratio. |
 
 ### What the entry concludes
 
-Three things.
+Four things.
 
 1. **Every reachable figure reproduces, and not under the strategy as
    described.** The seventeen rows land at the precision each printout gives.
@@ -2050,10 +2077,15 @@ Three things.
    finding about survivors over one short window, with no verdict, and it
    says nothing about Heston and Sadka, whose sample this file does not
    reach.
+4. **On this file, the most recent five years do worse, as p. 180 says.**
+   Rerun on them, the revised MATLAB's rules give −0.0165 a year against the
+   whole period's −0.0129. The gap is about an eighth of the rerun's standard
+   error of 0.0281, so this says Chan's comparison holds on his own file, and
+   nothing more.
 
 ### What this entry cannot say
 
-Three things.
+Two things.
 
 **Whether the effect existed before 2002.** Both files hold only the companies
 still in their index on the day Chan saved them, and the S&P 500 file starts
@@ -2064,20 +2096,6 @@ that left.
 **How the revised R rounds Example 7.6.** It is assumed from its Example 7.7
 code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
 by the revised code's repost.
-
-**Whether the most recent five years do worse.** Directly after the MATLAB
-listing of Example 7.7, the revised edition, p. 180, suggests running the
-program on "the most recent five years instead of the entire data period" and
-says the average returns are even worse. The entire data period is the
-program's own input, `SPX_20071123`, which runs to 2007-11-23. So those five
-years are inside the committed file, and the claim can be checked here. This
-entry quotes no five-year figure, because no criterion for one has been
-written, and a criterion comes before the figure it judges. Row 17 is not that
-figure. Its 70 months start in January 2002, about ten months before the
-five years do, and they were split at the date location 4425 gives rather
-than at any reading of p. 180.
-[Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) carries
-the check.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

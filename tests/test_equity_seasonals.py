@@ -70,16 +70,19 @@ from chan.equity_seasonals import (
     R_HESTON_SADKA,
     R_JANUARY,
     REVISED_MATLAB,
+    TAIL_MONTHS,
     Mask,
     Statistic,
     Winners,
+    five_year_check,
     heston_sadka,
     january_effect,
     monthly_returns,
+    most_recent_five_years,
     split_at,
     summarize,
 )
-from chan.matlab_helpers import round_half_away
+from chan.matlab_helpers import round_half_away, smartstd_book_two
 from chan.series import departures, load_panel, panel_line, row_month_ends, vintage_overlap
 from chan.vintage import VintageUnavailable
 
@@ -675,6 +678,88 @@ class TestTheYearsInsideTheSplit:
         assert kept.cumsum().idxmax() == pd.Timestamp("2006-01-31")
 
 
+class TestTheMostRecentFiveYears:
+    """P. 180's claim that the most recent five years give even worse average returns.
+
+    The owner ruled on 2026-10-04 that the check runs under the revised MATLAB's
+    rules, with the revised Python's reported beside them. The criterion was
+    written on [issue 254](https://github.com/l3a0/quantitative-trading/issues/254)
+    before any five-year figure was computed, and these were first run on
+    2026-10-04 after it.
+
+    Reading 1 reruns the program unchanged on the rows of ``SPX_20071123`` dated
+    after 2002-11-23, and its annual return carries the verdict: reproduced if it
+    is below the whole period's at full precision. Reading 2 averages the full
+    run's last 60 kept months and carries no verdict, and neither does any Sharpe
+    ratio. The rerun's annual return has a standard error of 0.0281 a year, about
+    eight times its gap from the whole period's, so the verdict says whether
+    Chan's comparison holds on his file of survivors, not whether the effect
+    weakened.
+    """
+
+    def test_the_rerun_reads_the_rows_after_2002_11_23(self, spx) -> None:
+        cut = most_recent_five_years(spx)
+        assert cut.index[0] == pd.Timestamp("2002-11-25")
+        assert cut.index[-1] == pd.Timestamp("2007-11-23")
+
+    @pytest.mark.parametrize(
+        "rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "python"]
+    )
+    def test_the_rerun_keeps_the_full_runs_last_47_months(self, spx, rules) -> None:
+        """Cutting the input changes which months are kept and none of their values."""
+        check = five_year_check(spx, rules)
+        assert len(check.rerun_kept) == 47
+        assert check.rerun_kept.index[0].strftime("%Y-%m") == "2003-12"
+        assert check.rerun_kept.index[-1].strftime("%Y-%m") == "2007-10"
+        assert check.rerun_kept.notna().all()
+        whole = check.whole.returns.iloc[rules.dropped :].iloc[-47:]
+        pd.testing.assert_series_equal(check.rerun_kept, whole)
+
+    @pytest.mark.parametrize(
+        "rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "python"]
+    )
+    def test_the_tail_starts_in_november_2002(self, spx, rules) -> None:
+        kept = five_year_check(spx, rules).whole.returns.iloc[rules.dropped :]
+        assert kept.iloc[-TAIL_MONTHS:].index[0].strftime("%Y-%m") == "2002-11"
+
+    def test_the_revised_matlab_reproduces_the_claim(self, spx) -> None:
+        check = five_year_check(spx, REVISED_MATLAB)
+        assert_reproduces(check.whole.annual_return, -0.012922703586771995, "-0.0129", ".4f")
+        assert_reproduces(check.rerun.annual_return, -0.016502156222333787, "-0.0165", ".4f")
+        assert check.worse
+
+    def test_the_gap_is_far_inside_the_noise_of_47_months(self, spx) -> None:
+        """The standard error of the rerun's annual return, on book two's ``smartstd``."""
+        check = five_year_check(spx, REVISED_MATLAB)
+        kept = check.rerun_kept.to_numpy()
+        monthly = smartstd_book_two(kept)
+        error = 12 * monthly / math.sqrt(len(kept))
+        gap = check.rerun.annual_return - check.whole.annual_return
+        assert monthly == pytest.approx(0.01607494842406708, abs=1e-9)
+        assert_reproduces(error, 0.028137266582467655, "0.0281", ".4f")
+        assert_reproduces(gap, -0.0035794526355617928, "-0.0036", ".4f")
+        assert error > 7 * abs(gap)
+
+    def test_the_revised_matlab_figures_with_no_verdict(self, spx) -> None:
+        check = five_year_check(spx, REVISED_MATLAB)
+        assert_reproduces(check.rerun.sharpe, -0.296346964414183, "-0.2963", ".4f")
+        months, annual, sharpe = check.tail
+        assert months == 60
+        assert_reproduces(annual, -0.017065622236990454, "-0.0171", ".4f")
+        assert_reproduces(sharpe, -0.2608812443118037, "-0.2609", ".4f")
+
+    def test_the_revised_python_beside_it_with_no_verdict(self, spx) -> None:
+        check = five_year_check(spx, PYTHON_HESTON_SADKA)
+        assert_reproduces(check.whole.annual_return, -0.012679138708036275, "-0.012679", ".6f")
+        assert_reproduces(check.rerun.annual_return, -0.01643109580760715, "-0.016431", ".6f")
+        assert_reproduces(check.rerun.sharpe, -0.2949518936016059, "-0.294952", ".6f")
+        months, annual, sharpe = check.tail
+        assert months == 60
+        assert_reproduces(annual, -0.017010774055752898, "-0.017011", ".6f")
+        assert_reproduces(sharpe, -0.25998538649554387, "-0.259985", ".6f")
+        assert check.worse
+
+
 class TestTheReport:
     def test_every_figure_prints_beside_its_panel(self, capsys) -> None:
         seasonals.run()
@@ -694,6 +779,11 @@ class TestTheReport:
             "average annual return -0.01139674, Sharpe ratio -0.1095098",
             "-0.145387 a year, Sharpe ratio -0.859993",
             "0.011967 a year, Sharpe ratio 0.141777",
+            "rows after 2002-11-23",
+            "revised edition, reproduced: rerun on 47 months -0.0165 a year, "
+            "Sharpe ratio -0.2963, against the whole period's -0.0129",
+            "The last 60 months -0.0171 a year, Sharpe ratio -0.2609, no verdict",
+            "example7_7.py, revised edition, no verdict: rerun on 47 months -0.016431",
         ):
             assert figure in out
         assert out.count("exited 2008-01-31: 0.0881 ") == 2
