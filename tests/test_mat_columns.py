@@ -1559,3 +1559,26 @@ class TestTheCsvChecksAreExact:
         assert csv_round_trip_differs(vix, data_dir=data_dir) == (
             "the panel holds OTHER, VIX rather than VIX"
         )
+
+
+class TestTheSecondReviewsSurvivors:
+    """Cases the mutation review of the rebuilt branch found missing."""
+
+    def test_days_that_decrease_without_repeating_are_refused(self) -> None:
+        days = FUTURES_DAYS.copy()
+        days[1, 0], days[2, 0] = 20120503.0, 20120502.0
+
+        with pytest.raises(ValueError, match="CL's trading days are not strictly increasing"):
+            read_continuous(continuous_bytes(days=days))
+
+    def test_a_negative_csv_cell_is_a_plain_decimal(self) -> None:
+        """A price below zero is a number a vendor can mean, as a subtracted close shows."""
+        negative = VIX_TEXT.replace("11.5,11.6", "-0.5,11.6")
+
+        assert read_csv_rows(negative.encode("ascii"))[0][4] == -0.5
+
+    def test_a_strip_with_a_two_column_tday_stays_a_strip(self) -> None:
+        """``contracts`` decides before the shape of ``tday`` does."""
+        two_columns = np.repeat(np.array(DAYS, dtype=float).reshape(-1, 1), 2, axis=1)
+
+        assert shape_of(strip_bytes(extra={"tday": two_columns})) == "strip"
