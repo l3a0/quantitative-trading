@@ -159,6 +159,30 @@ Both rules bet against each stock’s return relative to the market’s. They di
 \end{array}
 ```
 
+On the opens the notebook’s rule loses less to costs than the book’s rule, 0.98 of its Sharpe ratio against 3.59, yet it pays about the same cost. The book’s rule pays 7.3182 basis points of its position a day and the notebook’s rule 7.2808. What differs is the swing. Subtracting a cost from every day lowers the average by that cost and leaves the swing nearly where it was, so the cost takes about this much off the Sharpe ratio:
+
+```math
+\text{Sharpe lost to costs} \approx \sqrt{252}\;\frac{\text{daily cost}}{\text{standard deviation of daily profit}}
+```
+
+For the book’s rule that is √252 × 7.3182 / 32.2556, about 3.60. For the notebook’s rule it is √252 × 7.2808 / 117.7257, about 0.98. The notebook’s daily profit swings 3.65 times as far, so the same cost removes far less. The swing comes from the fill. It reads one stock’s gap as a single day’s move, which Lesson 7 shows.
+
+Turning the book’s rule into the notebook’s one difference at a time shows where the 0.5704 between their figures after costs comes from. Each row keeps every change above it, so a different order would split the total differently. The cost and the swing are in basis points of the position.
+
+```math
+\begin{array}{l|c|c|c}
+\text{Rule, on the opens} & \text{Daily cost} & \text{Swing} & \text{After costs} \\ \hline
+\text{The book's rule, first day charged} & 7.3182 & 32.2556 & 0.8293 \\
+\text{+ the same total position every day} & 7.3116 & 30.1416 & 1.0149 \\
+\text{+ the first day's trades free} & 7.2788 & 30.1416 & 1.0307 \\
+\text{+ no charge next to a missing weight} & 7.2773 & 30.1416 & 1.0314 \\
+\text{+ variance divided by the number of days} & 7.2773 & 30.1416 & 1.0335 \\
+\text{+ gaps filled with the last price} & 7.2808 & 117.7257 & 1.3997
+\end{array}
+```
+
+The cost stays within 0.05 basis points of 7.3 on every row. The fill adds 0.3662 of the 0.5704, and without it the notebook’s rule lands at 1.0335, the figure Lesson 7 gives for it without the fill. Most of the rest comes from holding the same total position every day. The book’s rule divides each weight by the number of stocks, so its total position is roughly how far the average stock’s return strays from the market’s, and it holds the most on days when returns scatter widely. Holding the same amount every day lowers the swing from 32.2556 to 30.1416 basis points.
+
 ## Lesson 7: one column of Chan’s file joins two stretches of prices
 
 The stock with ticker WYN is one of the four Lesson 5 counts as priced on the window’s last day and not its first. Its column’s last price before a gap is 0.26. It then holds no price at all, and restarts 952 trading days later, at 31.85 on 1 August 2006. Nothing here says how the earlier prices entered the column.
