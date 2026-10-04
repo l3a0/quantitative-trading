@@ -103,7 +103,7 @@ Chan states the mechanism on p. 26. Some stocks are cheap because the company is
 
 The two tables show it. Nine of the ten survivorship-free picks were removed from the exchange during 2001, and the book gives each one’s last traded price, which is what a holder got out. Only MDM still traded on 2 January 2002, and it is the one stock in both tables. The survivor-only database never held the other nine, so it skips them and keeps going up the price ranking to stocks that all survived the year.
 
-With equal money in each stock, the survivorship-free picks return −41.72% and the survivor-only picks 387.88%, which round to Chan’s −42% and 388%. The book prints no formula, so the reproduction had to find the weighting. Buying one share of each instead gives −47.62% and 373.17%, and neither rounds to the book, which is what rules that weighting out. Chan calls the 388% “fictitious”.
+Chan’s rule puts equal money in each stock, so a portfolio’s return is the plain average of its ten stocks’ returns. On that rule the survivorship-free picks return −41.72% and the survivor-only picks 387.88%, which round to Chan’s −42% and 388%. The book states the rule in words and prints no calculation, so the reproduction also tried the other common way to buy a list of stocks, one share of each, which weights each stock by its price. That gives −47.62% and 373.17%, and neither rounds to the book. So the book’s figures match equal money and not one share each. Chan calls the 388% “fictitious”.
 
 ## Lesson 4: the author’s own table mixes two kinds of share in one row
 
