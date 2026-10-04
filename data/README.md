@@ -495,7 +495,7 @@ measurements below and the decision behind the shape.
    [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is that
    `data/` stays under 100 MB of file content, and a later panel states its own size
    against that in its issue before it is recorded. Point 5 of the book-two
-   list below raises it.
+   S&P 500 list below raises it.
 
    ```text
    8d3ccbbd2c95b1ea342dfd5f953075f24c0df561efc9c6cc2cce651294ee73dc  SPX_20071123.mat
@@ -630,9 +630,9 @@ moved between the saves.
 6. **It fits the budget.** The directory holds 26.10 MB, and its manifest and
    checksum lines and this section add 0.25 MB, which takes `data/` from
    108.56 MB to 134.91 MB of file content. That left 15.09 MB under the
-   150 MB budget point 5 of the book-two list below sets.
+   150 MB budget point 5 of the book-two S&P 500 list below sets.
 
-The other two directories hold the two files of Chan's second book, *Algorithmic
+Two more directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
 [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) reproduces
 that example.
@@ -715,7 +715,7 @@ measurements below.
    still states its own size against that in its issue before it is recorded.
 
 `inputdata_etf/` is Chan's book-two ETF file, `inputData_ETF.mat`, which most
-of *Algorithmic Trading*'s ETF examples read. It holds 67 ETFs over 1,500
+of *Algorithmic Trading*'s ETF experiments not yet run here read. It holds 67 ETFs over 1,500
 trading days, 2006-04-26 to 2012-04-09, with the same five fields per member
 as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
@@ -762,14 +762,15 @@ carries the measurements below.
    close by a factor. Against the raw SPY downloaded on 2026-10-03, rounded to
    the cent, Chan's SPY sits 14.98 below raw on 2006-04-26 and level with it on
    2012-04-09. The gap moves by more than a cent on exactly the 24 days the
-   adjusted SPY downloaded on 2026-09-18 marks as ex-dividend, each time
-   within a cent of the dividend that download implies, by 0.48 to 0.80. On
+   adjusted SPY downloaded on 2026-09-18 marks as ex-dividend. Those 24 moves
+   run from 0.48 to 0.80, each within a cent of the dividend that download
+   implies. On
    43 other days it moves by one cent, which is the two vendors disagreeing on
    a raw close. GDX moves the same way on its five December ex-dividend days,
    and GLD, which pays nothing, equals its raw download on all 1,500 days.
    Splits are folded in as well. Across 83,387 ratios of an open to the close
-   before it, none sits within 0.01 of the ratio a common split or reverse
-   split would give.
+   before it, none sits within 0.01 of the ratio a 2:1, 3:2 or 4:1 split or a
+   1:2, 1:4, 1:5 or 1:10 reverse split would give.
 
    A subtracted dividend can take a close below zero, and 11 go there, in
    EDC, MWJ and SMN, such as MWJ at −1.07 on 2009-03-06. The owner decided on
@@ -781,7 +782,7 @@ carries the measurements below.
    EWA's 7.49 to SPY's 60.48. `TestTheETFFileSubtractsEachDividend` in
    [tests/test_series.py](../tests/test_series.py) pins every figure in this
    point.
-4. **The scale-break guard flags 58 days in 8 of the 67, on the close.** Each
+4. **The scale-break guard flags 58 days in eight of the 67, on the close.** Each
    of the eight is a leveraged or inverse fund, and every day falls between
    2008-04-16 and 2009-06-25.
 
@@ -799,10 +800,14 @@ carries the measurements below.
 5. **It fits the budget.** The directory holds 3.40 MB, and its manifest and
    checksum lines and this section add 0.03 MB, which takes `data/` from
    134.91 MB to 138.35 MB of file content. That stays under the 150 MB
-   budget point 5 above sets. The owner set a ceiling of 205 MB on
-   2026-10-04 for the four book-two lifts, on
-   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), and
-   the lift that takes `data/` past 150 MB raises the budget to it.
+   budget that point 5 of the book-two S&P 500 list sets. The owner set a
+   ceiling of 205 MB on 2026-10-04, on
+   [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), for
+   this lift and the book-two lifts of issues
+   [300](https://github.com/l3a0/quantitative-trading/issues/300),
+   [301](https://github.com/l3a0/quantitative-trading/issues/301) and
+   [313](https://github.com/l3a0/quantitative-trading/issues/313). The lift
+   that takes `data/` past 150 MB raises the budget to it.
 
 ## Two vintages kept in the owner's archive
 

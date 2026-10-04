@@ -240,7 +240,7 @@ def vintage_line(entry: VintageEntry) -> str:
 def load_panel(
     source_file: str, *, field: str = "Close", data_dir: Path | None = None
 ) -> tuple[list[VintageEntry], pd.DataFrame]:
-    """Every stock lifted from one source file, as a date-by-symbol frame of one field.
+    """Every member lifted from one source file, as a date-by-symbol frame of one field.
 
     ``field`` is a name from :data:`chan.vintage.LIFTED_FIELDS`, the close by
     default, or from :data:`chan.vintage.EVENT_FIELDS` for a source of flags. A

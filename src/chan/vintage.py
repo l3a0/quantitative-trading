@@ -192,8 +192,8 @@ class VintageEntry:
     Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
     one it is holds an ISO calendar date. A download carries the first. A
     column lifted from one of Ernest Chan's files carries the second, the
-    ``*_chan.csv`` workbook columns and the members of the two ``.mat``
-    directories alike, because its date is when Chan last saved the file and
+    ``*_chan.csv`` workbook columns and the members of every directory lifted
+    from a ``.mat`` alike, because its date is when Chan last saved the file and
     nothing was fetched on that day. Putting a save date in a field named for a download
     would hand the next reader a wrong fact in the field that identifies the
     vintage.

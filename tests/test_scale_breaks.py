@@ -78,7 +78,7 @@ from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 #: [issue 108](https://github.com/l3a0/quantitative-trading/issues/108).
 KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 
-#: What the guard flags in the 2,197 price columns lifted from Chan's four MATLAB price files.
+#: What the guard flags in the 2,264 price columns lifted from Chan's five MATLAB price files.
 #:
 #: Pinned by path and day rather than as a count, so a day that stops being
 #: flagged fails as surely as a new one. These are flags rather than known
@@ -212,7 +212,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: is what lets a close go below zero, which
 #: ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` pins. No
 #: run reads this file yet, so no decision about refusing a window has been
-#: made, and none of the eight is an ETF the experiments issue 299 names read.
+#: made, and no experiment issue 299 names reads any of the eight.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

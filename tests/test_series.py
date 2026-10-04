@@ -939,7 +939,7 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
     def test_a_stray_file_inside_a_subdirectory_is_named_by_its_path(self, data_dir: Path) -> None:
         """A lifted source's members sit in a directory of their own, so the scan reaches in.
 
-        A listing of the top level alone would go quiet exactly where 2,694 of
+        A listing of the top level alone would go quiet exactly where 2,761 of
         the committed vintages live.
         """
         place(data_dir, name="recorded.csv", symbol="AAA")
@@ -1611,8 +1611,8 @@ class TestTheETFFileSubtractsEachDividend:
             assert not (np.abs(ratios - split) <= 0.01).any(), split
 
     def test_no_etf_the_experiments_read_comes_near_zero(self) -> None:
-        """The ETFs issue 299 lists for Examples 2.6 to 4.2 and the GLD-GDX,
-        GLD-GC and XLE-USO experiments, whose lowest closes run from EWA's to SPY's."""
+        """Every ETF the experiments issue 299 lists read, for Examples 2.6 to 4.2
+        and the GLD-GDX, GLD-GC and XLE-USO experiments, stays well above zero."""
         lowest = load_panel(self.SOURCE)[1][
             ["EWA", "EWC", "IGE", "GLD", "USO", "SPY", "GDX", "XLE"]
         ].min()

@@ -1,12 +1,12 @@
-"""Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
+"""Record one of Ernest Chan's MATLAB files as one vintage per member, every field kept.
 
 Chan's examples read five price files of this shape. Three come from his
 first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
 two saves named for 2008-01-14 and 2008-01-31. Two come from his second book's
 code: the S&P 500 as he held it on 2012-04-24, which his Examples 7.2, 6.2 and
 4.1 read, and ``inputData_ETF.mat``, 67 ETFs saved on 2012-04-10, which most
-of the book's ETF examples read. Each holds date-by-symbol arrays of closes,
-highs, lows, opens and volumes, and
+of the book's ETF experiments not yet run here read. Each holds date-by-symbol
+arrays of closes, highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
 file of a new shape. The ETF file is recorded the same way, one vintage per
@@ -124,23 +124,15 @@ ARRAYS = {"Close": "cl", "High": "hi", "Low": "lo", "Open": "op", "Volume": "vol
 SYMBOL_NAMES = ("stocks", "syms")
 
 
-def _days_and_symbols(
-    payload: bytes, names: list[str]
-) -> tuple[dict[str, np.ndarray], list[str], list[str]]:
-    """The file's arrays named ``names``, its trading days as ISO dates, and its symbols.
+def symbols_of(held: dict[str, np.ndarray]) -> list[str]:
+    """The symbols in a loaded file, read from whichever of :data:`SYMBOL_NAMES` it holds.
 
-    Both readers come through here, so a price file and a flag file cannot come
-    to disagree on where a file keeps its symbols or on what makes a day list
-    or a symbol list unreadable. The symbols are read from whichever of
-    :data:`SYMBOL_NAMES` the file holds, and a file holding both or neither is
-    refused, because guessing would put one list's names on the other's
-    columns.
+    ``held`` is what ``scipy.io.loadmat`` returned when asked for every name in
+    :data:`SYMBOL_NAMES`, so any reader of Chan's files can take its symbols
+    from here whatever shape its other arrays have. A file holding both names or
+    neither is refused, because guessing would put one list's names on the
+    other's columns, and so is a file naming a symbol twice.
     """
-    wanted = ["tday", *names]
-    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=[*wanted, *SYMBOL_NAMES])
-    missing = [name for name in wanted if name not in held]
-    if missing:
-        raise ValueError(f"the file carries no {', '.join(missing)}")
     spellings = [name for name in SYMBOL_NAMES if name in held]
     if len(spellings) != 1:
         held_or_not = "both" if spellings else "neither"
@@ -148,14 +140,32 @@ def _days_and_symbols(
             f"the file carries {held_or_not} of {' and '.join(SYMBOL_NAMES)}, so it names "
             f"no single list of symbols"
         )
-
-    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
-    if days != sorted(set(days)):
-        raise ValueError("the file's trading days are not strictly increasing")
     symbols = [_symbol(cell) for cell in np.asarray(held[spellings[0]]).ravel()]
     repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
     if repeated:
         raise ValueError(f"the file names a symbol more than once: {', '.join(repeated)}")
+    return symbols
+
+
+def _days_and_symbols(
+    payload: bytes, names: list[str]
+) -> tuple[dict[str, np.ndarray], list[str], list[str]]:
+    """The file's arrays named ``names``, its trading days as ISO dates, and its symbols.
+
+    Both readers here come through this, so a price file and a flag file cannot
+    come to disagree on where a file keeps its symbols or on what makes a day
+    list or a symbol list unreadable. It reads ``tday`` as one column of days.
+    """
+    wanted = ["tday", *names]
+    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=[*wanted, *SYMBOL_NAMES])
+    missing = [name for name in wanted if name not in held]
+    if missing:
+        raise ValueError(f"the file carries no {', '.join(missing)}")
+    symbols = symbols_of(held)
+
+    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
+    if days != sorted(set(days)):
+        raise ValueError("the file's trading days are not strictly increasing")
     return held, days, symbols
 
 
@@ -214,7 +224,7 @@ def columns_of(
 def record_mat_file(
     path: Path, *, price_basis: str, data_dir: Path | None = None
 ) -> list[VintageEntry]:
-    """Record every stock in ``path`` as its own vintage, under :data:`VENDOR`.
+    """Record every member of ``path`` as its own vintage, under :data:`VENDOR`.
 
     A file holding a day with no close in any column is refused before
     anything is written. The panel rebuilds a file's days from the union of
@@ -347,7 +357,7 @@ def flag_round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m chan.mat_columns",
-        description="Record one of Chan's .mat files as one vintage per stock.",
+        description="Record one of Chan's .mat files as one vintage per member.",
     )
     parser.add_argument("path", type=Path, help="a local copy of the .mat file")
     parser.add_argument("--price-basis", required=True, choices=PRICE_BASES)
