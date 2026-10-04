@@ -129,7 +129,7 @@ Chan argues in *Algorithmic Trading* that for a strategy like this, long and sho
 
 ## Lesson 6: on the book’s rule, trading at the open misses Chan’s claim after costs
 
-Chan’s claim for Example 3.8 is that both Sharpe ratios, before costs and after, are “very positive” (p. 78). The book prints no figure, so the claim needs a threshold before it can be tested. [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) wrote it down before any figure on the opens was computed: both figures at least 1.0, compared unrounded. The threshold comes from Chan’s own rule of thumb. He writes that a strategy with a Sharpe ratio “of less than 1 is not suitable” to trade on its own (p. 23).
+Chan’s claim for Example 3.8 is that both Sharpe ratios, before costs and after, are “very positive” (p. 78). The book prints no figure, so the claim needs a threshold before it can be tested. This repository wrote it down before computing any figure on the opens: both figures at least 1.0, compared unrounded. The threshold comes from Chan’s own rule of thumb. He writes that a strategy with a Sharpe ratio “of less than 1 is not suitable” to trade on its own (p. 23).
 
 On the book’s rule, trading at the open earns 4.4202 before costs and 0.7834 after. The recovery is large, since Example 3.7’s −3.1884 after costs rises by 3.9718. But 0.7834 is below 1.0, so the claim does not hold on the book’s rule. Lesson 2’s quirks do not decide it. Charging the first day removes both and gives 0.8293, also below 1.0.
 
