@@ -438,9 +438,11 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's MATLAB price files, below, report 171 more. In
+The columns lifted from Chan's stock, ETF and strip files, below, report 171 more. In
 his stock files most are real moves in single stocks, and the 58 in his ETF
-file fall in eight leveraged and inverse funds in 2008 and 2009. The
+file fall in eight leveraged and inverse funds in 2008 and 2009. His
+continuous futures saves report 126 more, all in the ZB and ZF bond columns no
+script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27. The
 Khandani-Lo reversal's 2006 window spans one of the stock days, WYN's restart
 on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -554,6 +556,15 @@ the monthly AUD and CAD interest rates, and the AUD.CAD returns his Example 5.1
 saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
 the daily close his Examples 2.1 to 2.5 read. No replication reads any of the
 seven yet.
+
+Four more of his MATLAB files hold his continuous futures series, four saves of one file named
+for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
+series rolled from contract to contract and shifted at each roll, priced on
+its own calendar, and each is one vintage with all five fields, as a stock
+is. His `VIX.csv` is committed beside them as one vintage under the vendor
+`chan-csv`. Those five files hold 209 vintages, and
+[issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
+their shape. No replication reads them yet.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
