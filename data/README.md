@@ -584,6 +584,8 @@ moved between the saves.
    bytes as the file the mirror holds and the first list records, so the
    repost carries Chan's files unaltered where that can be checked. The `.mat`
    is 10,675,731 bytes. It is not committed, and its sha256 is recorded here.
+   The conversion read all five fields back from the committed files and
+   found them equal to the file's arrays, NaN for NaN.
 
    ```text
    1a038ce1adf7af8461400ee8c8b7bc33696851397b6ebface5f913be34bce164  IJR_20080131.mat
@@ -624,10 +626,10 @@ moved between the saves.
    neither stock on those days, because its January 2008 holding reads the
    closes of 2007-12-31 and 2008-01-31. All 21 are pinned in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
-6. **It fits the budget.** The directory holds 26.10 MB, and the manifest and
-   checksum lines add 0.24 MB, which takes `data/` from 108.56 MB to 134.90 MB
-   of file content. That leaves 15.10 MB under the 150 MB budget point 5 of
-   the book-two list below sets.
+6. **It fits the budget.** The directory holds 26.10 MB, and its manifest and
+   checksum lines and this section add 0.25 MB, which takes `data/` from
+   108.56 MB to 134.91 MB of file content. That leaves 15.09 MB under the
+   150 MB budget point 5 of the book-two list below sets.
 
 The other two directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.

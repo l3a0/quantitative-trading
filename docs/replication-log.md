@@ -1934,7 +1934,7 @@ code behind rows 9, 10, 13 and 14 traces to
 | 20 | as row 3, 60 long and 58 short of 595 ranked | 0.088486 | 0.000000 | as row 3 |
 | 21 | as row 5 | 0.0881 | 0.0000 | as row 5 |
 
-Each of rows 1 to 14 is asserted twice: its full value at `abs=1e-9`, and its
+Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
 printed precision, and the gap is zero at that precision.
 
@@ -1942,7 +1942,7 @@ printed precision, and the gap is zero at that precision.
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | The script runs as written on the file it loads, which holds four December year-ends and five January month-ends. It drops the first January, and each December keeps the January after it. On the earlier save it cannot run, because that file holds four of each, and dropping the first January leaves three dates to compare against four. Rounding the decile down instead gives −0.0234. |
+| 1 | reproduced | The script's date check passes on the file it loads, which holds four December year-ends and five January month-ends. It drops the first January, and each December keeps the January after it. On the earlier save the check fails, because that file holds four of each, and dropping the first January leaves three dates to compare against four. Rounding the decile down instead gives −0.0234. |
 | 2 | reproduced | as row 1 |
 | 3 | reproduced | Taking the full top decile instead gives rows 1 and 2 to every digit, so in 2006 and 2007 the two editions differ by the winners' slice alone. Without the forward fill the script ranks 578, as MATLAB does, and the return does not move. |
 | 4 | reproduced | as row 3 |
@@ -1961,7 +1961,7 @@ printed precision, and the gap is zero at that precision.
 | 17 | none, not a replication | Location 4425's claim is a verdict, and `### Rows that are not replications` would let it be pinned as one. It is not, because Entry 6's rule wants the criterion written before any statistic, and these were computed first. |
 | 18 | none, not a replication | as row 17 |
 | 19 | reproduced | This is the January Chan's text says "worked wonderfully" (p. 175). Its month-end, 2008-01-31, is one only because the file's last row is 2008-02-01. Cut at 2008-01-31, no printout's rules reach it. |
-| 20 | reproduced | The forward fill moves this row, where it moves neither row 3 nor row 4. It ranks PMC, which has no 2006 close, so 595 stocks are ranked, and a tenth of them, 59.5, rounds to 60. Without the fill 594 are ranked, a tenth rounds to 59, and the return is 0.090908. Taking the full top decile with the fill gives 0.085757, and dropping both the slice and the fill gives row 19's figure. |
+| 20 | reproduced | The forward fill moves this row, where it moves neither row 3 nor row 4. It ranks PMC, which has no 2006 close, on its last close before an 851-day gap, a return of 1.3056 that puts it fourth of 595 and short. So 595 stocks are ranked, and a tenth of them, 59.5, rounds to 60. Without the fill 594 are ranked, a tenth rounds to 59, and the return is 0.090908. Taking the full top decile with the fill gives 0.085757, and dropping both the slice and the fill gives row 19's figure. |
 | 21 | reproduced | Inferred rules, as for row 5. A tenth of 594 is 59.4, so R's rounding and MATLAB's give the same stocks. |
 
 ### What the entry concludes
@@ -2004,8 +2004,8 @@ code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
 by the revised code's repost.
 
 **What happened after 2007.** After Example 7.7 the revised edition says the
-most recent five years give even worse average returns. Neither file reaches
-those years, so nothing here reads that claim.
+most recent five years give even worse average returns. The S&P 500 file
+Example 7.7 reads ends on 2007-11-23, so nothing here reads that claim.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

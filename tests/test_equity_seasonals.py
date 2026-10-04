@@ -284,6 +284,15 @@ class TestJanuaryPython:
         assert unpadded.trades[2].ret == pytest.approx(0.0909075804839564, abs=1e-9)
         assert format(unpadded.trades[2].ret, ".6f") == "0.090908"
 
+    def test_the_fill_reads_pmcs_gap_as_a_2007_gain(self, ijr) -> None:
+        """PMC's last close before its 851-day gap stands in for its 2005 and 2006 year-ends."""
+        filled = ijr.resample("YE").last().iloc[:-1].ffill()
+        assert filled["PMC"].tolist() == [6.02, 6.02, 6.02, 13.88]
+        gain = (filled.iloc[-1] - filled.iloc[-2]) / filled.iloc[-2]
+        assert gain["PMC"] == pytest.approx(1.3056478405315617, abs=1e-12)
+        assert int((gain.dropna() > gain["PMC"]).sum()) + 1 == 4
+        assert int(gain.notna().sum()) == 595
+
     def test_the_full_decile_gives_the_first_editions_figures_until_2008(self, ijr) -> None:
         """In 2006 and 2007 the two editions' printouts differ by the winners' slice alone.
 
@@ -690,6 +699,27 @@ class TestTheReport:
         assert out.count("exited 2008-01-31: 0.0881 ") == 2
         assert "not computable" not in out
         assert "Exploratory, no verdict" in out
+
+    def test_each_holding_prints_with_its_positions(self, capsys) -> None:
+        seasonals.run()
+        out = capsys.readouterr().out
+        assert "exited 2008-01-31: 0.088486   (60 long and 58 short of 595 ranked)" in out
+        assert out.count("exited 2008-01-31: 0.0881   (59 long and 59 short of 594 ranked)") == 2
+
+    def test_a_january_the_file_ends_before_prints_as_not_computable(
+        self, small_caps, capsys
+    ) -> None:
+        """The committed file reaches every January, so the line is driven on a cut panel."""
+        members, closes = small_caps
+        seasonals.report_january(members, closes.loc[:"2008-01-31"])
+        out = capsys.readouterr().out
+        assert (
+            out.count(
+                "entered 2007-12-31: not computable, the file ends 2008-01-31 before the "
+                "January it holds through"
+            )
+            == 3
+        )
 
     def test_a_missing_vintage_reaches_the_operator_as_one_line(self, monkeypatch) -> None:
         def refuse(*_args, **_kwargs):

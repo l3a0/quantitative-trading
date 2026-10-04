@@ -209,8 +209,10 @@ def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
         year_end_rows = year_ends.to_numpy()
         # The script's ``pct_change()`` names no fill method, and every pandas
         # before 3.0 then forward-fills. So a stock with no close in a year is
-        # ranked on a return of 0 against its last one. The January return
-        # reads the unfilled year-end, as the script's ``eoyPrice.values`` does.
+        # ranked on its last close before it: a return of 0 for a year with no
+        # close, and a return across the gap for the year its closes resume.
+        # PMC is that case in 2007. The January return reads the unfilled
+        # year-end, as the script's ``eoyPrice.values`` does.
         ranked_rows = year_ends.ffill().to_numpy() if rules.pads_year_ends else year_end_rows
         exit_day = {day.year: day for day in januaries.index}
     else:

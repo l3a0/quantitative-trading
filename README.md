@@ -354,7 +354,7 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's MATLAB price files, below, report 92 more, most of
+The columns lifted from Chan's MATLAB price files, below, report 113 more, most of
 them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
 one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -367,6 +367,9 @@ price, over its 2011 and 2012 window, and nothing there needs refusing. The
 PCA factor model does not call it. Its printouts forward-fill PMC's 851-day
 gap in the S&P 600 file into one day's return of 1.8654, because Chan's
 programs do, and its entry reports every figure without PMC beside them.
+Example 7.6's revised Python forward-fills the same gap at year-end, so its
+2007 ranking reads PMC as a return of 1.3056 and holds it short in January
+2008. That is Chan's program as printed, and Entry 7 says what the fill moves.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -398,8 +401,8 @@ read.
 
 Five of Chan's own files are cross-sections rather than series. Four hold
 prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 in two saves named
-for 2008-01-14 and 2008-01-31, and the S&P 500 as he held it on 2012-04-24. The fifth holds his earnings-announcement flags for those last 497
-stocks, a 0 or 1 for each day. Each is committed as one vintage per stock,
+for 2008-01-14 and 2008-01-31, and the S&P 500 as he held it on 2012-04-24. The fifth holds his earnings-announcement flags for those last
+497 stocks, a 0 or 1 for each day. Each is committed as one vintage per stock,
 2,694 between them, written by
 `src/chan/mat_columns.py` under a directory per file. A price file's stock
 holds its close, high, low, open and volume, and a flag file's stock holds its
@@ -574,11 +577,11 @@ Chan's equity seasonals are one command, and they take no option:
 uv run python -m chan.equity_seasonals
 ```
 
-It reads both of Chan's first-edition cross-section files and prints every figure each
-printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
-January the file ends before is printed as not computable with the date the
-file ends, and the 2002 split of the revised Python prints under a line saying
-it carries no verdict.
+It reads the S&P 600 file Chan's Example 7.6 loads and his S&P 500 file, and
+prints every figure each printout of Examples 7.6 and 7.7 reaches, beside the
+panel it came from. A January a file ends before would print as not computable
+with the date the file ends, and the 2002 split of the revised Python prints
+under a line saying it carries no verdict.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:

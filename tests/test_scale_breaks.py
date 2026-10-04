@@ -138,7 +138,11 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: AAPL's September 2000 return. WYN and DFS, the two symbols that each hold
 #: two companies, leak no false move into it, because no finite monthly return
 #: reaches across either gap. ``TestTheShapesTheScaleBreakCommentNames`` in
-#: ``tests/test_equity_seasonals.py`` holds both claims.
+#: ``tests/test_equity_seasonals.py`` holds both claims. Example 7.6's revised
+#: Python forward-fills its year-end closes, so its 2007 ranking reads PMC's
+#: 851-day gap as a return of 1.3056 and holds PMC short in January 2008.
+#: That is the printed program's computation, and ``TestJanuaryPython`` pins
+#: it and the figure without the fill.
 #:
 #: [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) decided
 #: that ``chan.pead`` calls the guard for Example 7.2, on each stock's opens
