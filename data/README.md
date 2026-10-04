@@ -1,7 +1,8 @@
 # Committed vintages
 
-The price series every run here reads, committed because the numbers the suite
-pins were computed from these exact bytes. A vendor restates an adjusted series
+The price series every run here reads, except the two
+`## Two vintages kept in the owner's archive` describes, committed because the
+numbers the suite pins were computed from these exact bytes. A vendor restates an adjusted series
 without announcing it, so a result checked against a fresh download is a result
 checked against different data. [docs/design.md](../docs/design.md) carries the
 reasoning.
@@ -11,7 +12,9 @@ would move the pinned numbers and fail the suite, which is the behaviour that
 makes the pins worth having. Replacing a file is therefore a deliberate act
 with a visible cost, not a refresh.
 
-A vintage arrives one of three ways, and which one decides what holds it.
+A vintage in this directory arrives one of three ways, and which one decides
+what holds it. The two kept in the owner's archive are typed into their own
+record instead, which their section below describes.
 `chan.vintage.record_vintage` writes the file and appends its entry, and
 refuses to overwrite either, so recording a series is a recorded act and
 replacing one is not an act the recorder performs at all. It does not download.
@@ -639,14 +642,20 @@ the archive's path is set.
 
 Neither file is in `checksums.sha256`, which projects `vintages.jsonl` alone.
 [tests/test_archive.py](../tests/test_archive.py) holds them instead. It pins
-each line field for field, and wherever an archive is configured it re-hashes
-both files and holds each day's last regular-session close to the committed
-raw daily vintage of the same symbol. On GLD the two agree to a median of about
-0.01% and never differ by more than 2%. On GDX the median is about 0.04%, and
-ten days differ by more than 2%. Eight of those fall in the crashes of 2008 and
-March 2020, where a closing auction can move away from the last minute's trade.
-Two, 2009-09-17 and 2014-12-03, have no cause found, and the second is 7.0%
-off.
+each line field for field. Wherever an archive is configured it also re-hashes
+both files and holds each day's last regular-session close from 2006 to 2020 to
+the committed raw daily vintage of the same symbol, reading the session as
+`chan.cpo` does, so an early close ends at 12:59. On GLD's 3,776 days the
+median gap is 0.012% and no day differs by more than 2%. On GDX's 3,680 days
+the median is 0.046%, and nine days differ by more than 2%. Seven of those
+fall in the crashes of 2008 and March 2020, where a closing auction can move
+away from the last minute's trade. Two, 2009-09-17 and 2014-12-03, have no
+cause found, and the second is 7.0% off.
+
+That comparison is also what stands in for the scale-break guard, which reads
+committed daily closes and never these minute bars. A minute series that
+changed scale would show up as a day whose last close disagrees with the daily
+vintage, and none does beyond the nine named.
 
 The archive copy is the only kept copy of these bytes. The archive's own
 `README.txt` marks both files as pinned by hash here, so a refresh writes a new

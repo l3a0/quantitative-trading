@@ -13,7 +13,9 @@ requires-python = ">=3.12"
 # significance block the risk-parity ranking rests on, and it pulls statsmodels
 # in, which is what actually does the arithmetic. numpy and pandas load and align
 # the committed vintages. scipy supplies the t-distribution behind the
-# return-correlation significance test.
+# return-correlation significance test, and the filter chan.cpo runs Chan's
+# recursions through. scikit-learn supplies Example 7.1's boosted-tree model,
+# and ta is the indicator library Chan names for its features.
 #
 # ithildincore is named by a direct URL at an exact commit, and both halves of
 # that are deliberate.
