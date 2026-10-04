@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from matplotlib.dates import date2num, num2date
+from matplotlib.dates import DateFormatter, YearLocator, date2num, num2date
 
 from chan import buy_on_gap
 from chan.buy_on_gap import SPREAD_LOOKBACK, both_sides
@@ -147,6 +147,15 @@ class TestTheLines:
             assert low < ax.cumret.min() and high > ax.cumret.max()
             assert ax.yaxis.get_major_formatter().xmax == 1.0
 
+    def test_the_limits_leave_the_same_headroom_on_both_panels(self, figure, panels) -> None:
+        """18 percent of the joint span below and 16 above, so both panels' labels fit."""
+        low = min(ax.cumret.min() for ax, _ in panels)
+        high = max(ax.cumret.max() for ax, _ in panels)
+        span = high - low
+        assert figure.axes[1].get_ylim() == pytest.approx(
+            (low - 0.18 * span, high + 0.16 * span), abs=1e-12
+        )
+
 
 class TestTheSpells:
     """The longest spell below the high on each side, 159 days and 363."""
@@ -200,6 +209,18 @@ class TestTheSpells:
         assert bottom["high-label"] == "high, 2008-11-21"
         assert bottom["trough-label"] == "deepest drawdown −0.064928,\n2009-02-03"
 
+    def test_each_label_points_at_the_row_it_names(self, panels) -> None:
+        """The text alone would pass with the arrow anchored at the wrong day."""
+        for ax, side in panels:
+            notes = {a.get_gid(): a for a in ax.texts if a.get_gid()}
+            spell = ax.spell
+            for gid, row in (("high-label", spell.high), ("trough-label", spell.trough)):
+                x, y = notes[gid].xy
+                assert date2num(x) == date2num(side.days[row]), gid
+                assert y == ax.cumret[row], gid
+            middle = side.days[(spell.first + spell.last) // 2]
+            assert date2num(notes["spell-label"].get_position()[0]) == date2num(middle)
+
 
 class TestTheIdleStart:
     """The first 90 rows, which ``test_nothing_is_held_before_the_spread_exists`` holds empty."""
@@ -217,6 +238,11 @@ class TestTheIdleStart:
             " no position in the first 90 days,\n before the 90-day\n standard deviation exists"
         )
         assert "unfilled-label" not in bottom
+
+    def test_its_label_starts_where_the_band_ends(self, figure, sides) -> None:
+        label = {t.get_gid(): t for t in figure.axes[0].texts}["unfilled-label"]
+        start = date2num(label.get_position()[0])
+        assert start == date2num(sides[0].days[SPREAD_LOOKBACK - 1])
 
 
 class TestTheWords:
@@ -261,6 +287,24 @@ class TestTheReadPath:
         monkeypatch.setattr(buy_on_gap, "report", lambda *args: None)
         assert buy_on_gap.run() == tuple(sides)
 
+    def test_sides_handed_in_are_the_sides_drawn(self, tmp_path, sides) -> None:
+        """Reversed, so a figure that ignored the argument and read the run would fail."""
+        long, short = sides
+        drawn = make_cumulative_figure(out=tmp_path / CUMULATIVE_FIGURE, sides=(short, long))
+        assert list(drawn.axes[0].cumret) == list(cumulative_return(short))
+        assert list(drawn.axes[1].cumret) == list(cumulative_return(long))
+
+    def test_any_other_error_keeps_its_traceback(self, monkeypatch) -> None:
+        """Only a missing vintage becomes one line. A bug must surface as itself."""
+        import chan.buy_on_gap_figures as figures
+
+        def broken(data_dir=None):
+            raise KeyError("Close")
+
+        monkeypatch.setattr(figures, "both_sides", broken)
+        with pytest.raises(KeyError, match="Close"):
+            main()
+
     def test_drawing_writes_the_file_it_is_given(self, figure, out) -> None:
         assert out.is_file()
 
@@ -293,3 +337,10 @@ def test_the_x_axis_is_dates(figure, sides) -> None:
     start, end = figure.axes[1].get_xlim()
     assert num2date(start).date() == sides[0].days[0].date()
     assert num2date(end).date() == sides[0].days[-1].date()
+
+
+def test_the_ticks_read_as_years(figure) -> None:
+    axis = figure.axes[1].xaxis
+    assert isinstance(axis.get_major_locator(), YearLocator)
+    assert isinstance(axis.get_major_formatter(), DateFormatter)
+    assert axis.get_major_formatter().fmt == "%Y"
