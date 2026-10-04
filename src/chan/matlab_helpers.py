@@ -34,6 +34,9 @@ and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
 it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
 Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`smartmean`, :func:`smartsum` and :func:`matlab_sort` for Example 7.4.
+:mod:`chan.cross_sectional_momentum` calls :func:`backshift`, :func:`lag1`,
+:func:`smartmean`, :func:`smartsum`, :func:`matlab_sort` and
+:func:`round_half_away` for *Algorithmic Trading*'s Example 6.2.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
@@ -69,9 +72,11 @@ They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
 **Book two's helpers.** Three come from Chan's *Algorithmic Trading* code
-rather than his first edition's. :mod:`chan.pead` calls all three, and
-:mod:`chan.pca_factor` and :mod:`chan.equity_seasonals` call
-:func:`smartstd_book_two`, the second for the revised edition's Example 7.7.
+rather than his first edition's. :mod:`chan.pead` calls all three,
+:mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
+:func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
+:mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
+the revised edition's Example 7.7.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
