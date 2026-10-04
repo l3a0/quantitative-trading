@@ -123,7 +123,7 @@ That makes the expiry rule part of the result, so the run checks it against thin
 
 The calendar is computed rather than read from the files, for one more reason. The natural gas files carry exchange holidays as rows that repeat the day before’s settlement, so a row’s presence does not mean the exchange was open. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.
 
-The same map from dates to contracts serves Chan’s calendar spreads, tested on the same files. [The stationary candidates post](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md) reports what those spreads showed.
+The same map from dates to contracts serves Chan’s calendar spreads, tested on the same files. [The calendar spreads post](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md) reports what those spreads showed.
 
 ## What this replication cannot say
 
