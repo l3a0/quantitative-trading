@@ -44,6 +44,13 @@ and commit that prints it, or to the owner's reading of the revised edition
 recorded on
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931).
 
+*Algorithmic Trading*'s Example 4.1 is the plain case. Every figure its entry
+quotes from the book is here: the 8.7 percent and 1.5 at location 1974, the
+mirror's 46 percent and 1.27 and its steeper drawdown at 1993, and the same
+8.7 percent called an annualized average return at 3509. The script `bog.m`
+repeats the first two in its closing comment and prints nothing the book
+lacks. The replication log's Entry 18 traces each.
+
 *Algorithmic Trading*'s Example 7.2 is the opposite case. Its two book
 figures, its denominator of 30 and its levered 27 percent all sit at location
 3024, while the figures its script prints sit in `pead.m` and nowhere in the
@@ -87,7 +94,7 @@ and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
 image. The prose around them fixes their content, and location 3319 gives the
 one-strategy growth rate inline, with its variance recovered as `m2` where
 `s2` belongs. Whether Equation 8.3's image prints a value is not known from
-here, which is why the replication log's Entry 18 row 11 carries no published
+here, which is why the replication log's Entry 19 row 11 carries no published
 figure.
 
 A second kind of absence turns up in *Quantitative Trading*'s Example 6.2, and

@@ -75,7 +75,7 @@ sibling repo's ``kelly_fraction`` is a different object, the discrete form over
 a bag of trade outcomes, as issue 14 ruled.
 
 ``tests/test_kelly_allocation.py`` is the single authority for every number
-quoted about these examples, and ``docs/replication-log.md`` Entry 18 carries
+quoted about these examples, and ``docs/replication-log.md`` Entry 19 carries
 the verdicts.
 
 Usage::
@@ -402,7 +402,7 @@ def report() -> None:
     print()
     print("A replication is exploratory when a sample was spent looking. This one")
     print("spends none, so neither that label nor its opposite reaches it.")
-    print("docs/replication-log.md Entry 18 carries the verdicts.")
+    print("docs/replication-log.md Entry 19 carries the verdicts.")
 
 
 def main() -> None:

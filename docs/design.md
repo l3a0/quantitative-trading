@@ -384,7 +384,7 @@ A second replication reads nothing. *Algorithmic Trading*'s Examples 8.1 and
 book states, and
 [src/chan/kelly_allocation.py](../src/chan/kelly_allocation.py) works them.
 The first three points above apply unchanged, and
-[docs/replication-log.md](replication-log.md) Entry 18 states them for its own
+[docs/replication-log.md](replication-log.md) Entry 19 states them for its own
 rows. The fourth applies in a sharper form. The book gives its formulas as
 images, so the specification is what the suite pins beside each figure, and one
 printed figure, 0.96, lands only because Chan rounds an exact tie up. No

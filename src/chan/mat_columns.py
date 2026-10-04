@@ -3,8 +3,8 @@
 Chan's cross-sectional examples read four price files. Three come from his
 first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
 two saves named for 2008-01-14 and 2008-01-31. The fourth comes from his second
-book's code: the S&P 500 as he held it on 2012-04-24, which his Examples 7.2
-and 6.2 read. Each holds
+book's code: the S&P 500 as he held it on 2012-04-24, which his Examples 7.2,
+6.2 and 4.1 read. Each holds
 date-by-stock arrays of closes, highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
