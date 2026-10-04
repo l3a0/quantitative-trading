@@ -105,6 +105,7 @@ for a column lifted from one of Chan's own files.
 | `yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv` | yfinance | SPY | raw | 1993-01-29 .. 2026-10-02 | 2026-10-03 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
+| `ijr_20080131/` | Chan's `IJR_20080131.mat` | 600 members | adjusted | 2004-01-15 .. 2008-02-01 | saved 2008-02-02 |
 | `inputdataohlcdaily_stocks_20120424/` | Chan's `inputDataOHLCDaily_stocks_20120424.mat` | 497 members | adjusted | 2006-05-11 .. 2012-04-24 | saved 2012-04-25 |
 | `earnannfile/` | Chan's `earnannFile.mat` | 497 members | event | 2011-01-03 .. 2012-04-24 | saved 2012-05-15 |
 
@@ -458,12 +459,11 @@ stood on 2008-01-14.
 [src/chan/khandani_lo.py](../src/chan/khandani_lo.py) reads the first's
 closes for Example 3.7 and its opens for Example 3.8. His Example 7.6 loads `IJR_20080131`, which the mirror
 does not hold, and its third printed return is the trade into January 2008,
-whose month end this file stops short of. So this file can give Example 7.6's
-first two returns and not its third.
-[`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads both
-directories, and
-[issue 225](https://github.com/l3a0/quantitative-trading/issues/225) is where
-the third gets computed. [`chan.pca_factor`](../src/chan/pca_factor.py) reads the
+whose month end the second file stops short of. `ijr_20080131/`, described
+after this list, is that later save.
+[`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads the first
+directory for Example 7.7 and `ijr_20080131/` for Example 7.6.
+[`chan.pca_factor`](../src/chan/pca_factor.py) reads the
 second's closes for Example 7.4. The revised edition's Python for that example
 reads `IJR_20080114.txt` instead, reposted at
 pinhaocheng/epchan-quant_trading_Python_codes `5fcab61` and at
@@ -565,6 +565,69 @@ measurements below and the decision behind the shape.
    2. AYE on 2002-10-08, in the S&P 500 file.
    3. CBU on 2004-04-13, in the S&P 600 file.
    4. INSP on 2008-01-09, in the S&P 600 file.
+
+`ijr_20080131/` is the file Chan's Example 7.6 script loads, a later save of
+the S&P 600 file holding the same 600 symbols.
+[Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) committed
+it so that the example's third return, January 2008, can be computed, and
+carries the measurements below. `chan.equity_seasonals` reads it, and its
+tests read `ijr_20080114/` beside it to say whether the first two Januaries
+moved between the saves.
+
+1. **Where it came from.** Not the mirror above, which does not hold it. It
+   comes from
+   [pinhaocheng/epchan-quant_trading_MATLAB_codes](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84a14a5f5b2216c03d0bfe62704368c7d47)
+   at `7430b84`, a third party's repost of the revised edition's code and
+   data rather than Chan's own mirror. The owner decided on 2026-10-03 to
+   commit it from there. The copy is trusted because of its sibling: the same
+   repost carries an `IJR_20080114.mat` whose sha256 is `a30f6560…`, the same
+   bytes as the file the mirror holds and the first list records, so the
+   repost carries Chan's files unaltered where that can be checked. The `.mat`
+   is 10,675,731 bytes. It is not committed, and its sha256 is recorded here.
+
+   ```text
+   1a038ce1adf7af8461400ee8c8b7bc33696851397b6ebface5f913be34bce164  IJR_20080131.mat
+   ```
+
+2. **The names are 17 days apart and the saves 18.** The MAT header records
+   2008-02-02, against 2008-01-15 for the earlier save. Unlike the first two
+   files, this name is not the last trading day. The last row is 2008-02-01,
+   priced for 596 of the 600, and four share classes have no close on it:
+   MOG.A, MOGN, TRX.B and TRY.B. That trailing row is what makes 2008-01-31 a
+   January month-end under every printout's rules, so the third holding
+   needs it.
+3. **The two saves disagree only on the earlier save's last six trading
+   days.** `chan.series.vintage_overlap` set each stock's two closes side by
+   side on the 589,660 days they share, and `chan.series.departures` found 198
+   that differ, in 42 stocks, every one between 2008-01-07 and 2008-01-14. A
+   tolerance of half a cent finds the same 198. The opens, highs and lows
+   differ on the same six days, and the volumes on none. The first two
+   Januaries read no close after 2007-01-31, so both saves give them to the
+   same digits. Two of the departures are large, and which save is right is
+   not known.
+   1. INSP's later save scales its closes on 2008-01-07 and 2008-01-08 by
+      0.4969 and leaves the days before them alone. That moves the
+      two-for-one-sized step the earlier save shows on 2008-01-09 to
+      2008-01-07.
+   2. SHFL's close on 2008-01-10 is 10.30 in the earlier save and 9.09 in the
+      later one.
+4. **It is recorded as `adjusted`, on the measurement the first list's point
+   5 made.** Across 596,817 ratios of an open to the close before it, two sit
+   within 0.01 of a two-for-one split: CBU on 2004-04-13, as in the earlier
+   save, and INSP on 2008-01-07, the step point 3 describes. Five sit within
+   0.01 of a three-for-two split, against four in the earlier save.
+5. **The scale-break guard flags 21 days in 19 of the 600, on the close.**
+   Seventeen of the earlier save's eighteen flagged stocks flag the same days.
+   INSP's flag moves to 2008-01-07, per point 3. IDXX is new, and its two
+   days are one close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
+   to that day's low and far below its open of 55.28. Example 7.6 reads
+   neither stock on those days, because its January 2008 holding reads the
+   closes of 2007-12-31 and 2008-01-31. All 21 are pinned in
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+6. **It fits the budget.** The directory holds 26.10 MB, and the manifest and
+   checksum lines add 0.24 MB, which takes `data/` from 108.56 MB to 134.90 MB
+   of file content. That leaves 15.10 MB under the 150 MB budget point 5 of
+   the book-two list below sets.
 
 The other two directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
@@ -809,8 +872,8 @@ for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
 
-A directory gets one row rather than one per file, so the 2,094 lifted columns
-are four rows. The row states what every file in it shares, which is the
+A directory gets one row rather than one per file, so the 2,694 lifted columns
+are five rows. The row states what every file in it shares, which is the
 vendor, the basis and the date, along with how many members it holds and the
 earliest and latest day any of them carries. Its members must agree on the
 three shared cells, or the failure names the directory and the values. What

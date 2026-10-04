@@ -47,21 +47,28 @@ Four sources, all of them Chan's.
 4. The revised edition's R, printed on p. 181 and read the same way.
    :data:`R_HESTON_SADKA` follows it with no change.
 
-Both editions' MATLAB and the revised R print the same two reachable Example
-7.6 returns, so the rules for those are the first edition's, with R's rounding
+Both editions' MATLAB and the revised R print the same three Example 7.6
+returns, so the rules for those are the first edition's, with R's rounding
 taken from its Example 7.7 code.
 
-Three limits, each stated where it applies.
+Example 7.6 reads ``IJR_20080131.mat``, the file Chan's script loads. The
+mirror does not hold it, so it comes from the revised edition's code as
+reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84``, and
+``data/README.md`` says why that copy is trusted. Its last row is 2008-02-01,
+and that row is what makes 2008-01-31 a January month-end under every
+printout's rules, so the third holding needs it.
+[Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) committed
+it, and the earlier save, ``IJR_20080114.mat``, gives the first two holdings
+to the same digits.
+
+Two limits, each stated where it applies.
 
 1. Both files hold only the companies in their index on the day Chan saved
    them, carried backwards. Whatever these files show about a disappearance,
    they show it about survivors.
    [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196) is
    where the effect is tested on the rest.
-2. ``IJR_20080114.mat`` ends on 2008-01-14. Chan's third January return,
-   0.0881, holds through 2008-01-31, so it cannot be computed from the
-   committed file under any edition's rules.
-3. The 2002 split of the revised Python is exploratory. It was computed before
+2. The 2002 split of the revised Python is exploratory. It was computed before
    any criterion for "disappeared" was written down, so it carries no verdict.
 
 The scale-break guard is not applied. ``refuse_window_crossing_a_break`` serves
@@ -100,9 +107,8 @@ from chan.matlab_helpers import (
 from chan.series import load_panel, panel_line, row_month_ends
 from chan.vintage import VintageUnavailable
 
-#: The S&P 600 small-cap file Example 7.6 reads. Chan's script loads
-#: ``IJR_20080131``, which the mirror does not hold.
-SMALL_CAPS = "IJR_20080114.mat"
+#: The S&P 600 small-cap file Example 7.6 reads, the one Chan's script loads.
+SMALL_CAPS = "IJR_20080131.mat"
 
 #: The S&P 500 file Example 7.7 reads.
 LARGE_CAPS = "SPX_20071123.mat"
