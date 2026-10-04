@@ -494,8 +494,10 @@ def sampling_scan(close: pd.Series, *, risk_free: float = RISK_FREE) -> dict[str
 class VintageComparison:
     """Two vintages of one symbol read over one window, day by day.
 
-    Nothing in :mod:`chan.series` joins two vintages of one symbol.
-    ``aligned_closes`` takes two tickers under one price basis and has no
+    :func:`chan.series.vintage_overlap` joins two vintages of one symbol on
+    their levels, which is how a split between downloads shows. This compares
+    their returns, which a split leaves unchanged, so the two answer different
+    questions. ``aligned_closes`` takes two tickers under one price basis and has no
     ``dated`` argument on purpose, so it cannot say "SPY from this vintage
     against SPY from that one". This intersects the two indexes itself and
     keeps what each side lost, because a vendor restates which days a series

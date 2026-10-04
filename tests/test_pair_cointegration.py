@@ -40,9 +40,10 @@ replications themselves.
    picture of it. ``TestResidualCheckOnChansFiles`` repeats it on Chan's own
    files, and ``TestResidualCheckChapter7`` asks the same of the longer window,
    on the yfinance closes and on Chan's own files.
-8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the part of the vintage
-   premise one download date can show: GDX's adjusted 2006 closes sit below
-   its raw ones, and GLD's do not move at all.
+8. ``TestAdjustedCloseMovesWithTheDownloadDate``, the adjusted half of the
+   vintage premise: GDX's adjusted 2006 closes sit below its raw ones and
+   below Chan's own 2007 file, and GLD's do not move at all. The raw half is
+   ``TestRawCloseAcrossTwoDownloads`` in ``tests/test_vintage_overlap.py``.
 9. ``TestReportNamesItsBasis``, which holds the lines of the report that say
    which vintage produced the numbers above them. The basis line names which
    kind of series and the vintage lines name which file, which vendor and which
@@ -1469,18 +1470,22 @@ class TestResidualCheckChapter7:
 
 
 # ============================================================
-# Layer 7 -- the vintage premise, as far as one download date shows
+# Layer 7 -- the adjusted half of the vintage premise
 # ============================================================
 
 
 class TestAdjustedCloseMovesWithTheDownloadDate:
-    """The vintage premise, as far as one download date can show it.
+    """The adjusted half of the vintage premise.
 
     An adjusted close folds every later dividend back into the history, so the
     same 2006 trading day reads lower in the adjusted series than in the raw
-    one. Two vintages taken at different dates would show the series moving
-    under itself, which is issue 4's remaining half and needs the recorder.
-    This is the weaker claim that the committed files already support.
+    one. The second case below sets two adjusted vintages taken nineteen years
+    apart against each other, Chan's 2007 file and a 2026 download, and shows
+    the series moving under itself. The raw half, that two downloads of a
+    symbol that has not split return the same as-traded close, is
+    ``TestRawCloseAcrossTwoDownloads`` in ``tests/test_vintage_overlap.py``.
+    Together they are the premise test
+    [issue 4](https://github.com/l3a0/quantitative-trading/issues/4) asked for.
 
     Four prose surfaces quote the gap as about 15%, so a re-pin here moves all
     four. ``src/chan/series.py`` says it against raw, which the first test
