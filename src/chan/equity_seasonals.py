@@ -646,9 +646,9 @@ def report_heston_sadka(members, closes: pd.DataFrame) -> None:
         months, annual, sharpe = check.tail
         print(
             f"    {rules.source}, {verdict}: rerun on {len(check.rerun_kept)} months "
-            f"{_figure(check.rerun.annual_return, rules.printed)} a year, Sharpe ratio "
-            f"{_figure(check.rerun.sharpe, rules.printed)}, against the whole period's "
-            f"{_figure(check.whole.annual_return, rules.printed)}. The last {months} months "
+            f"{_figure(check.rerun.annual_return, rules.printed)} a year against the whole "
+            f"period's {_figure(check.whole.annual_return, rules.printed)}. Its Sharpe ratio "
+            f"{_figure(check.rerun.sharpe, rules.printed)}, no verdict. The last {months} months "
             f"{_figure(annual, rules.printed)} a year, Sharpe ratio "
             f"{_figure(sharpe, rules.printed)}, no verdict"
         )

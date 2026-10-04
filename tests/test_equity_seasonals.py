@@ -830,8 +830,8 @@ class TestTheReport:
             "-0.145387 a year, Sharpe ratio -0.859993",
             "0.011967 a year, Sharpe ratio 0.141777",
             "rows after 2002-11-23",
-            "revised edition, reproduced: rerun on 47 months -0.0165 a year, "
-            "Sharpe ratio -0.2963, against the whole period's -0.0129",
+            "revised edition, reproduced: rerun on 47 months -0.0165 a year against the "
+            "whole period's -0.0129. Its Sharpe ratio -0.2963, no verdict.",
             "The last 60 months -0.0171 a year, Sharpe ratio -0.2609, no verdict",
             "example7_7.py, revised edition, no verdict: rerun on 47 months -0.016431",
         ):
