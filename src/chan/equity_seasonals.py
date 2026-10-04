@@ -41,8 +41,9 @@ Four sources, all of them Chan's.
    [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes
    the expressions that decide each rule. :data:`REVISED_MATLAB` is that code
    with one repair, which its comment names. The revised edition's code as
-   reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84`` already carries the repair, in
-   ``example7_7.m``, and ships book two's ``smartstd.m``.
+   reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84``
+   already carries the repair, in ``example7_7.m``, and ships book two's
+   ``smartstd.m``.
 4. The revised edition's R, printed on p. 181 and read the same way.
    :data:`R_HESTON_SADKA` follows it with no change.
 
