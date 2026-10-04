@@ -50,7 +50,7 @@ The cross-rate pins read one vintage and one specification too.
   days. The residual check fits the same constant. The rolling scan is
   252-day windows stepped by 21.
 
-Ten classes and one test.
+Eleven classes and one test.
 
 1. ``TestTheCrossRateVintage``, the file, the window it is read over, and the
    vendor's gap the window starts after.
@@ -74,6 +74,8 @@ Ten classes and one test.
 10. ``TestTheWindowPower``, the simulation issue 212 declared before it ran:
     how often a series that truly reverts at the rate's half-life rejects in
     the rate's scan.
+11. ``TestTheSizingCeiling``, the most a position sized on the rate's
+    half-life could earn per unit of risk, set beside a 36-day half-life.
 
 ``test_measuring_reads_from_the_test_start`` holds that measuring a series
 that begins before the window drops those days.
@@ -138,6 +140,7 @@ from decimal import Decimal
 import numpy as np
 import pandas as pd
 import pytest
+import statsmodels.api as sm
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat, ou_half_life
 from statsmodels.tsa.stattools import adfuller
 
@@ -179,6 +182,7 @@ from chan.stationary_candidates import (
     SPREAD_POWER_SEED,
     SPREAD_PRODUCTS,
     TEST_START,
+    TRADING_DAYS,
     WINDOW,
     CalendarSpread,
     CrossRate,
@@ -202,6 +206,7 @@ from chan.stationary_candidates import (
     run_cross_rate,
     schwert_ceiling,
     simulated_paths,
+    sizing_ceiling,
     spread_pair,
     spread_window,
     unit_root_line,
@@ -1074,6 +1079,83 @@ class TestTheWindowPower:
         """968 of 1,000 paths reject at 5% over all 4,984 days, so the whole
         test period has the power one year lacks."""
         assert int(power.whole_rejects5.sum()) == 968
+
+
+class TestTheSizingCeiling:
+    """The most a position sized on the rate's half-life could earn.
+
+    Chan's linear rule holds minus the distance from the mean. On a series
+    that truly reverts at a half-life, with the mean and the speed known and
+    no costs, its Sharpe ratio has a closed form, and the rate's is about half
+    of what a 36-day half-life gives. The 36 days is Chan's crude oil calendar
+    spread in *Algorithmic Trading* Example 5.4, the half-life
+    ``TestTheCalendarSpreadDescriptions`` already reads for its power row. Added on
+    2026-10-04 after every other cross-rate number was known, to say why the
+    blog post calls the half-life a sizing problem. It tests no trade on the
+    rate. Exploratory.
+    """
+
+    def test_the_rate_s_ceiling(self, rate: CrossRate) -> None:
+        """0.7845 a year before costs, and a typical day sits 10.12 days of
+        noise from the mean."""
+        c = sizing_ceiling(rate.half_life)
+        assert c.phi == pytest.approx(1 - math.log(2) / rate.half_life, abs=1e-15)
+        assert c.sharpe == pytest.approx(0.7845, abs=5e-5)
+        assert c.spread_to_daily == pytest.approx(10.12, abs=5e-3)
+
+    def test_a_36_day_half_life_s_ceiling(self) -> None:
+        """1.5501 and 5.12, so the rate earns about half as much per unit of
+        risk and sits about twice as far from its mean."""
+        c = sizing_ceiling(SPREAD_POWER_HALF_LIFE)
+        assert SPREAD_POWER_HALF_LIFE == 36.0
+        assert c.sharpe == pytest.approx(1.5501, abs=5e-5)
+        assert c.spread_to_daily == pytest.approx(5.12, abs=5e-3)
+
+    def test_the_ceiling_falls_with_the_square_root_of_the_half_life(self, rate: CrossRate) -> None:
+        """The ratio is 1.976 against a square root of 1.983, so the rule of
+        thumb holds to within half a percent at these speeds."""
+        slow, fast = sizing_ceiling(rate.half_life), sizing_ceiling(SPREAD_POWER_HALF_LIFE)
+        assert fast.sharpe / slow.sharpe == pytest.approx(1.976, abs=5e-4)
+        assert math.sqrt(rate.half_life / 36.0) == pytest.approx(1.983, abs=5e-4)
+
+    def test_the_test_window_holds_about_35_half_lives(self, rate: CrossRate) -> None:
+        """4,984 days over a 141.6-day half-life gives 35.2 stretches long
+        enough for a gap to close halfway, which is the number of roughly
+        independent bets nineteen years hold."""
+        assert len(rate.log_rate) / rate.half_life == pytest.approx(35.2, abs=0.05)
+
+    def test_one_standard_error_on_the_speed_spans_110_to_198_days(self, rate: CrossRate) -> None:
+        """The slope the half-life is read from, with the constant the test
+        fits, has a standard error of 29% of itself. One standard error either
+        side gives half-lives of 110.1 and 198.2 days, so 35 stretches pin the
+        speed loosely, and Lesson 4's short bias comes on top of that."""
+        y = rate.log_rate.to_numpy(dtype=float)
+        fit = sm.OLS(np.diff(y), sm.add_constant(y[:-1])).fit()
+        slope, se = float(fit.params[1]), float(fit.bse[1])
+        assert -math.log(2) / slope == pytest.approx(rate.half_life, rel=1e-12)
+        assert se / -slope == pytest.approx(0.286, abs=5e-4)
+        assert -math.log(2) / (slope - se) == pytest.approx(110.1, abs=0.05)
+        assert -math.log(2) / (slope + se) == pytest.approx(198.2, abs=0.05)
+
+    def test_the_kelly_leverage_tracks_the_speed(self, rate: CrossRate) -> None:
+        """A 36-day half-life reverts 3.93 times as fast as the rate and earns
+        a Kelly leverage 3.88 times as large, so the leverage moves almost one
+        for one with the speed."""
+        slow, fast = sizing_ceiling(rate.half_life), sizing_ceiling(SPREAD_POWER_HALF_LIFE)
+        assert rate.half_life / SPREAD_POWER_HALF_LIFE == pytest.approx(3.93, abs=5e-3)
+        assert fast.kelly / slow.kelly == pytest.approx(3.88, abs=5e-3)
+
+    @pytest.mark.parametrize("half_life", ["rate", SPREAD_POWER_HALF_LIFE])
+    def test_a_simulated_trade_earns_the_ceiling(self, rate: CrossRate, half_life) -> None:
+        """The closed form is checked by running the trade it describes on
+        400 simulated paths as long as the test window, seed 20261005."""
+        h = rate.half_life if half_life == "rate" else half_life
+        c = sizing_ceiling(h)
+        z = simulated_paths(h, len(rate.log_rate), 400, 20261005)
+        pnl = -z[:, :-1] * np.diff(z, axis=1)
+        assert pnl.mean() / pnl.std() * math.sqrt(TRADING_DAYS) == pytest.approx(c.sharpe, abs=0.03)
+        assert z.std() == pytest.approx(c.spread_to_daily, rel=0.02)
+        assert pnl.mean() / pnl.var() == pytest.approx(c.kelly, rel=0.02)
 
 
 # ---- calendar spreads ----

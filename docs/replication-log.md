@@ -1835,7 +1835,11 @@ fails if a recorded download fills the gap, so the window cannot quietly move.
 
 **Whether trading the rate pays.** Stationarity is a statement about the
 series. A trade adds costs, carry from the two interest rates, and the
-question of sizing against a half-life this long, and none of those are here.
+question of sizing against a half-life this long, and no trade on the rate is
+run here. `TestTheSizingCeiling` measures only what an idealised model allows:
+Chan's linear rule on a series reverting at row 4's half-life, with the mean
+and speed known and no costs, has a Sharpe ratio of at most 0.78 a year,
+against 1.55 at 36 days. Exploratory, and added after the verdict.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

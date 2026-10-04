@@ -94,6 +94,8 @@ when no count up to the ceiling passes. The rolling scan and the half-life are
 reported beside it and decide nothing. :func:`window_power` measures what the
 scan can see: it runs the same scan over simulated series that truly revert at
 the rate's half-life, on a specification declared on issue 212 before it ran.
+:func:`sizing_ceiling` says the most Chan's linear rule could earn on a series
+reverting at that half-life, and it runs no trade on the rate.
 ``docs/replication-log.md`` Entry 6 carries the verdict.
 
 **The calendar spreads** are every adjacent pair of delivery months, contract m
@@ -524,6 +526,57 @@ def window_power(
         clear10=clear10,
         clear5=clear5,
         whole_rejects5=whole,
+    )
+
+
+TRADING_DAYS = 252
+
+
+@dataclass(frozen=True)
+class SizingCeiling:
+    """The most a position sized on one half-life can earn per unit of risk.
+
+    The series is the AR(1) :func:`simulated_paths` draws, with
+    ``phi = 1 - ln 2 / h``. The position is minus the series' distance from its
+    mean, reset each day, which is Chan's linear mean-reversion rule. With the
+    mean and the speed known exactly and no costs, a day's profit has mean
+    ``s2 / (1 + phi)`` and variance ``2 s2**2 / (1 + phi)**2 + s2**2 / (1 - phi**2)``,
+    where ``s2`` is the variance of a day's noise. So the daily Sharpe ratio is
+    ``sqrt((1 - phi) / (3 - phi))`` and the noise's scale drops out. A real
+    trade knows less and pays more, so this bounds what one could earn rather
+    than estimating it.
+
+    ``spread_to_daily`` is the series' standard deviation over a day's noise,
+    ``1 / sqrt(1 - phi**2)``. It says how far from its mean the series sits on
+    a typical day, counted in days of noise.
+
+    ``kelly`` is the Kelly leverage, a day's mean profit over its variance,
+    times ``s2`` so that it too is free of the noise's scale. It is
+    ``(1 - phi**2) / (3 - phi)``, close to ``1 - phi``, so the leverage is
+    nearly proportional to the speed of reversion and an error in the speed is
+    an error of about the same size in the leverage.
+    """
+
+    half_life: float
+    phi: float
+    sharpe: float
+    spread_to_daily: float
+    kelly: float
+
+
+def sizing_ceiling(half_life: float) -> SizingCeiling:
+    """The annualised Sharpe ceiling, typical distance and Kelly leverage for one half-life.
+
+    ``tests/test_stationary_candidates.py`` holds all three against a simulated
+    trade, so the algebra in :class:`SizingCeiling` is checked by running it.
+    """
+    phi = 1.0 - math.log(2.0) / half_life
+    return SizingCeiling(
+        half_life=half_life,
+        phi=phi,
+        sharpe=math.sqrt(TRADING_DAYS * (1.0 - phi) / (3.0 - phi)),
+        spread_to_daily=1.0 / math.sqrt(1.0 - phi**2),
+        kelly=(1.0 - phi**2) / (3.0 - phi),
     )
 
 
