@@ -2071,8 +2071,8 @@ program on "the most recent five years instead of the entire data period" and
 says the average returns are even worse. The entire data period is the
 program's own input, `SPX_20071123`, which runs to 2007-11-23. So those five
 years are inside the committed file, and the claim can be checked here. This
-entry quotes no five-year figure, because no criterion for one was written
-before any was computed.
+entry quotes no five-year figure, because no criterion for one has been
+written, and a criterion comes before the figure it judges.
 [Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) carries
 the check.
 
