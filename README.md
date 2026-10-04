@@ -1138,8 +1138,8 @@ of Entry 15, which `TestTheCalendarSpreadVerdicts` holds.
 
 1. A named series carries a verdict, while a class of instruments tested on
    stand-ins carries a finding.
-2. One series and a fitted pair are read against different bars, and on the
-   cross rate the bar decides the verdict.
+2. A fitted pair faces a stricter critical value than one series, and on the
+   cross rate which of the two applies decides the verdict.
 3. The check for leftover autocorrelation strengthens the bond pair's finding
    and shrinks the cross rate's margin.
 4. How often one-year windows reject says little about the whole span.
