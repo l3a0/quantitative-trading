@@ -18,8 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14 and 15 carry their own, three,
-eleven, twelve, five, six, one, three, eight, six, two, eight, seven and twelve,
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 and 16 carry their own,
+three, eleven, twelve, five, six, one, three, eight, six, two, eight, seven,
+twelve and six,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -30,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14 and 15 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15 and 16 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -3292,19 +3293,29 @@ for these bars.
 
 **Neither of Chan's columns reproduces, and his claim does not hold.** Holding
 the parameters the train years chose, the strategy earns a test Sharpe ratio of
-5.791 against his 1.947, and every other figure overshoots by a similar
-multiple. Re-choosing the parameters each day beats holding them on the Sharpe
-and Calmar ratios and loses on both returns, so the claim that it improves all
-four metrics fails. At a cost of 1 basis point a round trip both arms lose
-money, which is the clearest pointer to what Chan's figures carry that the
-book does not state.
+5.700 against his 1.947, about three times his figure. The other three figures
+overshoot by more: cumulative return about 4.7 times, annual return about 3.8
+times and the Calmar ratio about 15.5 times. Re-choosing the parameters each day
+beats holding them on the Calmar ratio alone and loses on the other three, so
+the claim that it improves every metric fails. At a cost of 1 basis point a
+round trip both arms lose money.
+
+**The first run broke a declared reading, and both runs are reported.** On
+NYSE's 34 early closes from 2006 to 2020 the session ends at 13:00, and the
+first run kept the extended-hours bars from 13:00 to 15:59, against reading 2.
+The review of the pull request found it, and the fix implements the reading as
+declared rather than changing it. The corrected run gives every figure below.
+The first run gave 3.55, 0.6798, 5.791 and 15.676 for the unconditional column,
+and 3.48, 0.6710, 5.916 and 16.604 for the conditional, where re-choosing won on
+the Sharpe and Calmar ratios. The claim failed in both runs.
 
 Rows 1 to 4 are replications, one per printed figure of the unconditional
 column. Row 5 is Chan's claim and takes the claim route
 `### Rows that are not replications` describes. Rows 6 to 11 are not
 replications. Row 6 sets the conditional column beside Chan's, which the issue
 declared could only be reproduced in kind, because it rests on PredictNow's
-model. Row 10 was added after the result was seen.
+model. Row 10, and row 6's count of how often the model kept one cell, were
+added after the result was seen.
 
 Every row reads the same vintages and specification, so they are stated once
 here.
@@ -3324,7 +3335,8 @@ here.
    on 2026-10-04, before any return on the minute bars was computed, and
    `src/chan/cpo.py` cites each by number. In short:
 
-   - the regular session, 09:30 to 15:59 by opening minute
+   - the regular session, 09:30 to 15:59 by opening minute, or to 12:59 on an
+     early close
    - every day both ETFs traded from GDX's first day, 2006-05-22, to
      2020-12-31, split 80% and 20% by trading days
    - the endnote's recursions run continuously over the minutes
@@ -3335,9 +3347,10 @@ here.
 
 3. **The model and features.** scikit-learn's `HistGradientBoostingRegressor`
    with default hyperparameters and `random_state=0`, on 101 features: the
-   three parameters, and seven named indicators from `ta` on each ETF at seven
-   lookbacks, each read at the day's last bar. The book's unnamed eighth
-   indicator is left out.
+   three parameters, and seven named indicators on each ETF at seven lookbacks,
+   each read at the day's last bar. Six indicators come from `ta`, and the
+   Bollinger z-score is computed the way `ta`'s bands are. The book's unnamed
+   eighth indicator is left out.
 
 Every result here is **exploratory**. A replication spends its sample on a
 hypothesis someone else chose, so the entry says whether Chan's numbers and
@@ -3345,39 +3358,47 @@ claim reproduce on these bars and nothing about whether the method works.
 
 ### What the book printed
 
+The setup of Example 7.1 is among the committed highlights in
+[research/book-notes](../research/book-notes/README.md), at Kindle locations
+3428 to 3517. Its results are not, because the book prints them in a table
+beside code and a figure, as `research/book-notes/README.md` records. Those
+rows trace to the pages read on 2026-10-03, recorded on
+[issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
+
 | # | Row | Published | Where |
 | --- | --- | --- | --- |
-| 1 | Unconditional cumulative return over the three test years | 73% | p. 145 |
-| 2 | Unconditional annual return | 17.29% | p. 145 |
-| 3 | Unconditional Sharpe ratio | 1.947 | p. 145 |
-| 4 | Unconditional Calmar ratio | 0.984 | p. 145 |
-| 5 | Conditional beats unconditional on every metric | "All other metrics are improved using CPO" | p. 145 |
-| 6 | The conditional column | 83%, 19.77%, 2.325 and 1.454 | p. 145 |
+| 1 | Unconditional cumulative return over the three test years | 73% | p. 145, not among the highlights |
+| 2 | Unconditional annual return | 17.29% | p. 145, not among the highlights |
+| 3 | Unconditional Sharpe ratio | 1.947 | p. 145, not among the highlights |
+| 4 | Unconditional Calmar ratio | 0.984 | p. 145, not among the highlights |
+| 5 | Conditional beats unconditional on every metric | "All other metrics are improved using CPO" | p. 145, not among the highlights |
+| 6 | The conditional column | 83%, 19.77%, 2.325 and 1.454 | p. 145, not among the highlights |
 | 7 | The arithmetic annual return | nothing | n/a |
 | 8 | Both arms net of 1 basis point a round trip | nothing, the book mentions no costs | n/a |
-| 9 | Round trips a day | nothing beyond "multiple round trips per day" | p. 140 |
+| 9 | Round trips a day | nothing beyond multiple round trips a day | Kindle location 3444 |
 | 10 | Where 1.947 sits among the 400 cells' test Sharpe ratios | nothing | n/a |
-| 11 | The span and the split | 2006-01-01 to 2020-12-31, 80% and 20%, the test "the last three years" | pp. 137 and 145 |
+| 11 | The span and the split | 2006-01-01 to 2020-12-31, 80% and 20%, the test the last three years | Kindle location 3444, and p. 145 for the test years |
 
 The book's own figures disagree with each other. 17.29% a year compounds to
-61.4% over three years, not 73%, and 19.77% to 71.8%, not 83%. No definition
-of annual return makes them agree, so rows 1 and 2 cannot both reproduce at
-once.
+61.4% over three years, not 73%, and 19.77% to 71.8%, not 83%, which
+`test_chan_s_annual_returns_do_not_compound_to_his_cumulative_ones` holds.
+Neither the compounded nor the arithmetic definition of annual return makes
+them agree, so rows 1 and 2 cannot both reproduce under either.
 
 ### What this repo computed
 
 | # | Specification | Computed | Gap | Assertion |
 | --- | --- | --- | --- | --- |
-| 1 | `∏(1 + r) − 1` over the 736 test days | 3.55 | +2.82 | `TestExample71OnTheArchive::test_rows_1_to_4_the_unconditional_figures_and_their_gaps` |
-| 2 | `(1 + cumulative)^(252 / n) − 1` | 0.6798 | +0.5069 | the same |
-| 3 | `√252 · mean(r) / std(r)`, sample standard deviation, risk-free rate zero | 5.791 | +3.844 | the same |
-| 4 | row 2 over the magnitude of the deepest drawdown of compounded wealth | 15.676 | +14.692 | the same |
-| 5 | conditional against unconditional on rows 1 to 4 | better on the Sharpe and Calmar ratios, worse on both returns | n/a | `TestExample71OnTheArchive::test_row_5_chan_s_claim_does_not_hold` |
-| 6 | the conditional arm, specified as rows 1 to 4 | 3.48, 0.6710, 5.916 and 16.604. It keeps the unconditional cell on 489 of the 736 days, uses 47 cells and switches 362 times | n/a | `TestExample71OnTheArchive::test_row_6_the_conditional_figures_beside_chan_s` and the row after it |
-| 7 | `252 · mean(r)` | 0.5232 unconditional and 0.5177 conditional | n/a | `TestExample71OnTheArchive::test_row_7_the_arithmetic_annual_returns` |
-| 8 | each day's return less 1 basis point per round trip | Sharpe ratios of −7.468 and −5.658, and cumulative returns of −0.855 and −0.773 | n/a | `TestExample71OnTheArchive::test_row_8_one_basis_point_a_round_trip_turns_both_arms_to_losses` |
-| 9 | the mean count of round trips on a test day | 46.8 unconditional and 40.5 conditional | n/a | `TestExample71OnTheArchive::test_row_9_round_trips_a_day` |
-| 10 | each cell's test Sharpe ratio, all 400. Added after the result was seen | 0.812 to 5.964, median 3.516. 38 cells sit below 1.947, and the nearest is `3_60_2.5`, at 1.967 and 1.2 round trips a day | n/a | `TestExample71OnTheArchive::test_row_10_where_chan_s_sharpe_sits_among_the_400_cells` |
+| 1 | `∏(1 + r) − 1` over the 736 test days | 3.40 | +2.67 | `TestExample71OnTheArchive::test_rows_1_to_4_the_unconditional_figures_and_their_gaps` |
+| 2 | `(1 + cumulative)^(252 / n) − 1` | 0.6612 | +0.4883 | the same |
+| 3 | `√252 · mean(r) / std(r)`, sample standard deviation, risk-free rate zero | 5.700 | +3.753 | the same |
+| 4 | row 2 over the magnitude of the deepest drawdown of compounded wealth | 15.249 | +14.265 | the same |
+| 5 | conditional against unconditional on rows 1 to 4 | better on the Calmar ratio, worse on the Sharpe ratio and both returns | n/a | `TestExample71OnTheArchive::test_row_5_chan_s_claim_does_not_hold` |
+| 6 | the conditional arm, specified as rows 1 to 4 | 3.12, 0.6234, 5.274 and 18.637. Added after the result was seen: it keeps the unconditional cell on 557 of the 736 days, uses 44 cells and switches 254 times | n/a | `TestExample71OnTheArchive::test_row_6_the_conditional_figures_beside_chan_s` and the row after it |
+| 7 | `252 · mean(r)` | 0.5121 unconditional and 0.4892 conditional | n/a | `TestExample71OnTheArchive::test_row_7_the_arithmetic_annual_returns` |
+| 8 | each day's return less 1 basis point per round trip | Sharpe ratios of −7.614 and −6.122, and cumulative returns of −0.858 and −0.814 | n/a | `TestExample71OnTheArchive::test_row_8_one_basis_point_a_round_trip_turns_both_arms_to_losses` |
+| 9 | the mean count of round trips on a test day | 46.7 unconditional and 42.1 conditional | n/a | `TestExample71OnTheArchive::test_row_9_round_trips_a_day` |
+| 10 | each cell's test Sharpe ratio, all 400. Added after the result was seen | 0.807 to 5.891, median 3.506, the highest at `2.5_30_0.2`. 39 cells sit below 1.947, and the nearest is `3_60_2.5`, at 1.931 and 1.19 round trips a day | n/a | `TestExample71OnTheArchive::test_row_10_where_chan_s_sharpe_sits_among_the_400_cells` |
 | 11 | every day both ETFs have a regular-session bar | 3,680 days from 2006-05-22 to 2020-12-31, the test starting 2018-01-31 | n/a | `TestExample71OnTheArchive::test_row_11_the_span_and_the_split` |
 
 A cell is written as Chan's p. 145 output writes it: weight, lookback in
@@ -3387,39 +3408,40 @@ minutes, entry threshold.
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | did not reproduce | 3.55 against 0.73. The selection rule chose `2_30_0.2`, the smallest weight, the shortest lookback and the lowest entry, which is the corner of the grid that trades most. |
-| 2 | did not reproduce | 0.6798 against 0.1729, for the same reason. |
-| 3 | did not reproduce | 5.791 against 1.947. |
-| 4 | did not reproduce | 15.676 against 0.984. |
-| 5 | did not reproduce | The claim needs all four. Re-choosing wins on Sharpe, 5.916 against 5.791, and on Calmar, 16.604 against 15.676, and loses on cumulative return, 3.48 against 3.55, and on annual return. |
-| 6 | none, not a replication | The issue declared before the run that this column rests on a model this repo cannot have, so its figures are set beside Chan's rather than judged against them. The model keeps the unconditional cell on two days in three, so the arms differ less than their names suggest. |
-| 7 | none, not a replication | The arithmetic figures are lower than the compounded ones and still three times Chan's. No definition of annual return rescues row 2. |
-| 8 | none, not a replication | A cost of 1 basis point a round trip, about GLD's quoted half-spread, wipes out both arms. Chan's figures are consistent with a strategy that trades a few times a day rather than 47, which is what a cost charged during his optimisation would select. |
-| 9 | none, not a replication | Both arms trade about 40 to 47 round trips a day. Chan says only "multiple". |
-| 10 | none, not a replication | Added after the verdicts were seen, because a gap alone does not say where the book's figure would have to come from. Chan's 1.947 sits near the bottom of what these 400 cells earned on the test days, among the cells that trade least. |
+| 1 | did not reproduce | 3.40 against 0.73. The selection rule chose `2_30_0.2`, the smallest weight, the shortest lookback and the lowest entry threshold, which trades 46.7 round trips a day on the test days. |
+| 2 | did not reproduce | 0.6612 against 0.1729. |
+| 3 | did not reproduce | 5.700 against 1.947. |
+| 4 | did not reproduce | 15.249 against 0.984. |
+| 5 | did not reproduce | The claim needs all four. Re-choosing wins on Calmar, 18.637 against 15.249, and loses on Sharpe, 5.274 against 5.700, on cumulative return, 3.12 against 3.40, and on annual return. |
+| 6 | none, not a replication | The issue declared before the run that this column rests on a model this repo cannot have, so its figures are set beside Chan's rather than judged against them. The model keeps the unconditional cell on 557 of the 736 days, so the arms differ less than their names suggest. |
+| 7 | none, not a replication | The arithmetic figures are lower than the compounded ones and still about three times Chan's. Neither definition rescues row 2. |
+| 8 | none, not a replication | A cost of 1 basis point a round trip, the figure reading 16 declared, turns both arms into heavy losses. |
+| 9 | none, not a replication | The two arms trade 46.7 and 42.1 round trips a day. Chan says only that the strategy may make multiple round trips a day. |
+| 10 | none, not a replication | Added after the verdicts were seen, because a gap alone does not say where the book's figure would have to come from. Chan's 1.947 sits in the bottom tenth of what these 400 cells earned on the test days, and the nearest cell to it trades about once a day. |
 | 11 | none, not a replication | GDX's first trading day is 2006-05-22, so Chan's stated start of January 1, 2006 cannot hold for the pair. The 80% boundary falls on 2018-01-31, which fits Figure 7.1's curves beginning just after the 2018 tick. That reading of the figure is by eye. |
 
 ### What the entry concludes
 
 Three things, and the first is the verdict.
 
-1. **Neither column reproduces, and the claim fails.** Selecting the
-   parameters that maximise train return, at no cost, picks the busiest cell,
-   and it earns roughly three times Chan's figures on the test years.
-   Re-choosing daily improves the risk-adjusted figures a little and the
-   returns not at all.
-2. **What Chan's figures most likely carry is a cost, or something that acts
-   like one.** At no cost, more trading earns more here, so a selection made
-   at no cost always lands on the busiest corner. His 1.947 sits among the
-   cells that trade once or a few times a day. A cost charged during his own
-   optimisation, a fill one bar later, or a coarser bar would each move the
-   choice there. None was declared before the run, so none is tested here,
-   and this is a hypothesis for a later run rather than a finding.
-3. **The third-party run found the same.** The reproduction cited on the issue,
-   on Kibot bars from 2009, reported a test Sharpe ratio of 5.974 for its
-   unconditional arm at 50.1 round trips a day, and found Chan's figure near
-   its minimum. This entry's busiest cell, `2.5_30_0.2`, earns 5.964. Two
-   vendors and two spans agree on where the stated rule lands.
+1. **Neither column reproduces, and the claim fails.** Selecting the parameters
+   that maximise train return at no cost picks `2_30_0.2`, a cell that trades
+   about 47 round trips a day, and it earns about three times Chan's Sharpe
+   ratio on the test years. Re-choosing daily improves the Calmar ratio and
+   nothing else.
+2. **A hypothesis for a later run, which nothing here tests: Chan's figures
+   carry a cost, or something that acts like one.** At no cost the selection
+   landed on a cell trading dozens of times a day, and at 1 basis point a round
+   trip that cell loses money. The cell nearest his 1.947 trades about once a
+   day. A cost charged during his own optimisation, a fill one bar later, or a
+   coarser bar could each move the choice toward cells like that. None was
+   declared before the run, so none was tried.
+3. **The third-party run overshot the same way.** The reproduction cited on
+   the issue, on Kibot bars from 2009, reported a test Sharpe ratio of 5.974
+   for its unconditional arm at 50.1 round trips a day. Both runs land on a
+   high-turnover cell and overshoot Chan's Sharpe ratio about threefold. They
+   differ on where 1.947 sits. They placed it near their minimum of 1.931,
+   while here 39 cells sit below it and the minimum is 0.807.
 
 ### What this entry cannot say
 
@@ -3427,17 +3449,19 @@ Four things.
 
 **Whether conditional parameter optimization works.** The model here is not
 PredictNow's, its features lack the book's unnamed eighth indicator, and the
-features are read at the day's last bar rather than summarised over it. A
-better model could win where this one did not. The test is of Chan's printed
-claim on this strategy, not of the method.
+features are read at the day's last bar rather than summarised over it. `ta`'s
+ATR and ADX also return 0 rather than nothing before their window fills, so the
+earliest rows carry zeros the model cannot tell from readings. A better model
+could win where this one did not. The test is of Chan's printed claim on this
+strategy, not of the method.
 
 **What would reproduce Chan's numbers.** Row 10 places his Sharpe ratio among
-the least active cells, and the cost row shows why such a cell would be chosen
-once trading costs something. A search over costs and fill delays until one
-matched would be the search the honesty rail forbids, so it was not run.
+cells that trade far less, and the cost row shows the chosen cell losing once
+trading costs something. A search over costs and fill delays until one matched
+would be the search the honesty rail forbids, so it was not run.
 
 **Whether the strategy pays.** At 1 basis point a round trip both arms lose
-heavily, and GLD's real cost of a round trip is at least that.
+heavily. What a round trip in GLD actually costs is not measured here.
 
 **Anything a public clone can check.** The bars are licensed, so the pins run
 only where the owner's archive is. The hashes say exactly which bytes were

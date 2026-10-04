@@ -250,6 +250,14 @@ one cell per field for a lifted stock, while a recorded download carries one, so
 `wc -l` over every file, the lifted directories included, counts more lines than
 the manifest records rows. The manifest is the authority.
 
+Both figures count committed vintages only. `data/archive_vintages.jsonl`
+records two more, Example 7.1's minute bars, whose bytes live in the owner's
+archive rather than in `data/`, and the strip leaves them out. The suite total
+depends on the machine for the same reason: wherever an archive is configured,
+`tests/test_archive.py`'s checks of those two files run rather than skip, and
+`tests/test_cpo.py`'s pins run too when `QT_ARCHIVE_RUN=1` is set. Measure the
+suite on a checkout with neither, which is what CI runs.
+
 Three things decide where an open pull request's card goes, and none is
 guessable.
 

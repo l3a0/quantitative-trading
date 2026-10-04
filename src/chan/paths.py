@@ -16,8 +16,8 @@ one switch. Which file inside that tree a run reads is not decided here at all:
 The vintages kept in the owner's data archive are the one exception, and they
 have their own root on purpose. :mod:`chan.archive` reads it from the machine,
 because the path to someone's archive is machine-specific and never belongs in
-a tracked file, so this switch still names every committed vintage and nothing
-else.
+a tracked file. This switch still names every committed vintage, and the
+archive's own manifest beside them, and nothing inside the archive.
 
 ``FIGURES_DIR`` does the same for the committed figures, which
 :mod:`chan.regime_figure` and :mod:`chan.lag_residual_figure` draw from those
