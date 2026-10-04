@@ -518,6 +518,15 @@ factor model reads the earlier S&P 600 save's closes, for
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
 
+Seven more of Chan's files are committed as his 2018 Python port's zip shipped
+them, under `data/pythoncodesanddata/`, for
+[issue 301](https://github.com/l3a0/quantitative-trading/issues/301). They are
+USD.CAD's one-minute bars, the daily closes of USD.CAD, AUD.USD and AUD.CAD,
+the monthly AUD and CAD interest rates, and the AUD.CAD returns his Example 5.1
+saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
+the daily close his Examples 2.1 to 2.5 read. No replication reads any of the
+seven yet.
+
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
 read none either.

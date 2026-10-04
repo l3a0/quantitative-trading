@@ -30,7 +30,7 @@ highlights at Kindle locations 1423 and 1474 of
 Kindle Cloud Reader on 2026-10-02, recorded on
 [issue 213](https://github.com/l3a0/quantitative-trading/issues/213), and
 checked a second time against a zoomed capture of the page. A vintage is a
-series a vendor was asked for or a column lifted from one of Chan's own files,
+series a vendor was asked for or a series lifted from one of Chan's own files,
 and a table printed in a book is neither. A vendor cannot restate a printed
 number, so what pins these inputs is the edition, and the run prints
 ``vintage: none, the book's printed tables``.

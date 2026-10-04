@@ -41,15 +41,18 @@ from chan import paths
 from chan.series import (
     SCALE_BREAK_BOUND,
     WindowCrossesScaleBreak,
+    _holds_minute_bars,
     _parse_close,
     aligned_closes,
     load_vintage,
+    minute_close,
     refuse_window_crossing_a_break,
     scale_breaks,
 )
 from chan.vintage import (
     MANIFEST_NAME,
     PRICES,
+    VintageEntry,
     VintageUnavailable,
     read_manifest,
     read_vintage,
@@ -340,9 +343,25 @@ def price_entries(data_dir: Path | None = None) -> list:
     **rate** entry says why a rate cannot be read that way, and
     ``test_a_rate_series_would_report_breaks_if_it_were_read_as_a_price``
     measures it on the committed bill series. An ``event`` vintage holds 0 and
-    1, which is not a price at all.
+    1, which is not a price at all, and a ``return`` vintage holds a strategy's
+    returns, which are not one either.
     """
     return [entry for entry in read_manifest(data_dir) if entry.price_basis in PRICES]
+
+
+def closes_of(entry: VintageEntry, data_dir: Path | None = None) -> pd.Series:
+    """One close per day from a committed price vintage, through the reader its bytes need.
+
+    The guard reads one series per day. A file of minute bars is read at 16:59
+    by ``minute_close``, which gives the closes Example 2.1 reads, so the guard
+    reads those. Every other file goes through ``_parse_close``, which refuses a
+    minute file rather than reading its times as closes, so a scan that forgot
+    this branch would stop rather than pass.
+    """
+    payload = read_vintage(entry, data_dir=data_dir)
+    if _holds_minute_bars(payload):
+        return minute_close(payload, entry)
+    return _parse_close(payload, entry.symbol)
 
 
 def breaks_across_the_manifest(data_dir: Path | None = None) -> dict[str, list[str]]:
@@ -374,7 +393,7 @@ def breaks_across_the_manifest(data_dir: Path | None = None) -> dict[str, list[s
     """
     found = {}
     for entry in price_entries(data_dir):
-        flagged = scale_breaks(_parse_close(read_vintage(entry, data_dir=data_dir), entry.symbol))
+        flagged = scale_breaks(closes_of(entry, data_dir))
         if flagged:
             found[entry.path] = days_of(flagged)
     return found
@@ -493,19 +512,27 @@ class TestTheGuardOverTheWholeManifest:
         """
         swept = {}
         for entry in price_entries():
-            closes = _parse_close(read_vintage(entry), entry.symbol)
+            closes = closes_of(entry)
             swept[entry.path] = days_of(scale_breaks(closes))
 
         assert set(swept) == {entry.path for entry in price_entries()}
         assert {path: days for path, days in swept.items() if days} == EVERY_FLAG
 
     def test_only_vintages_that_hold_no_price_are_left_out(self) -> None:
-        """The skip is by basis, so this says what it skips today: the bill series
-        and Chan's 497 earnings flags."""
+        """The skip is by basis, so this says what it skips today: the bill series,
+        Chan's 497 earnings flags, and the two rate files and the return file of
+        his Python port."""
         skipped = {e.path for e in read_manifest()} - {e.path for e in price_entries()}
-        assert {e.price_basis for e in read_manifest() if e.path in skipped} == {"rate", "event"}
+        assert {e.price_basis for e in read_manifest() if e.path in skipped} == {
+            "rate",
+            "event",
+            "return",
+        }
         assert {path for path in skipped if not path.startswith("earnannfile/")} == {
-            "fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv"
+            "fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv",
+            "pythoncodesanddata/AUD_interestRate.csv",
+            "pythoncodesanddata/CAD_interestRate.csv",
+            "pythoncodesanddata/AUDCAD_unequal_ret.csv",
         }
         assert len([path for path in skipped if path.startswith("earnannfile/")]) == 497
 
@@ -517,7 +544,7 @@ class TestTheGuardOverTheWholeManifest:
         went from 0.02% in October to 0.12%, six times over in a month, and
         nothing changed units.
         """
-        (bills,) = [e for e in read_manifest() if e.price_basis == "rate"]
+        (bills,) = [e for e in read_manifest() if e.symbol == "TB3MS"]
         flagged = days_of(scale_breaks(_parse_close(read_vintage(bills), bills.symbol)))
         assert len(flagged) == 47
         assert "2015-11-01" in flagged
@@ -955,7 +982,7 @@ class TestTheBoundIsTheOneThatWasMeasured:
         for entry in price_entries():
             if in_a_lifted_source(entry.path):
                 continue
-            closes = _parse_close(read_vintage(entry), entry.symbol)
+            closes = closes_of(entry)
             values = closes.to_numpy(dtype=float)
             moves = values[1:] / values[:-1]
             magnitudes = np.abs(np.log(moves))

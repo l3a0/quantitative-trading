@@ -36,9 +36,13 @@ from chan.vintage import (
 from tests.support.committed_vintages import (
     HAND_WRITTEN,
     LIFTED_SOURCES,
+    PYTHON_PORT,
+    PYTHON_PORT_DIRECTORY,
+    RETURN_CALENDAR,
     committed_copy,
     identity_of,
     in_a_lifted_source,
+    in_the_python_port,
     rewrite_entry,
 )
 from tests.support.vintage_table import (
@@ -1112,6 +1116,38 @@ def the_hand_written_identities_are_pinned(directory: Path) -> None:
         assert identity_of(by_path[path]) == pinned, path
 
     the_lifted_sources_are_pinned(directory)
+    the_python_port_is_pinned(directory)
+
+
+def the_python_port_is_pinned(directory: Path) -> None:
+    """Every file of Chan's Python port carries its pin, and the directory holds no other.
+
+    The members are found by the directory their path sits in, so a file added
+    there and left out of `PYTHON_PORT` fails here by name rather than passing
+    as a recorded vintage.
+
+    The symbol is in none of these files' bytes, so it is held against the
+    member's own name instead, which the zip gave it and which carries the
+    pair or currency. `inputData_USDCAD` names `USDCAD`, `AUD_interestRate`
+    names the `AUD` of `AUDRATE`, and `AUDCAD_unequal_ret` names
+    `AUDCAD-UNEQUAL`. The comparison drops the symbol's `RATE` suffix and its
+    hyphen and looks for what is left in the name with its underscores removed,
+    so swapping two members' symbols fails here though both pins agree with
+    the manifest.
+    """
+    members = {
+        entry.path: entry for entry in read_manifest(directory) if in_the_python_port(entry.path)
+    }
+    assert sorted(members) == sorted(PYTHON_PORT), (
+        f"{PYTHON_PORT_DIRECTORY}/: the manifest holds {sorted(members)} and the pin holds "
+        f"{sorted(PYTHON_PORT)}"
+    )
+    for path, (vendor, symbol, basis, saved, source, _shape) in PYTHON_PORT.items():
+        assert identity_of(members[path]) == (vendor, symbol, basis, None, saved, source, None), (
+            path
+        )
+        name = path.rpartition("/")[2].upper().replace("_", "")
+        assert symbol.removesuffix("RATE").replace("-", "") in name, path
 
 
 def the_lifted_sources_are_pinned(directory: Path) -> None:
@@ -1219,10 +1255,15 @@ def the_recorded_entries_name_themselves(directory: Path) -> None:
        where that was settled, and `docs/design.md`'s register carries why the
        recorder was not taught to write a saved date instead. A column lifted
        by `record_lifted_columns` is skipped by the directory it sits in, which
-       `LIFTED_SOURCES` pins, rather than by a list of its paths.
+       `LIFTED_SOURCES` pins, rather than by a list of its paths, and a file
+       of Chan's Python port by the directory `PYTHON_PORT` pins.
     """
     for entry in read_manifest(directory):
-        if entry.path in HAND_WRITTEN or in_a_lifted_source(entry.path):
+        if (
+            entry.path in HAND_WRITTEN
+            or in_a_lifted_source(entry.path)
+            or in_the_python_port(entry.path)
+        ):
             continue
         assert entry.download_date is not None, f"{entry.path} carries no download date"
         assert entry.path == vintage_filename(
@@ -1286,22 +1327,36 @@ def _rows_the_manifest_owes(entries: list[VintageEntry]) -> dict[str, dict[str, 
     """The cells the table must hold, keyed by what its File cell names.
 
     A vintage at the top of `data/` gets a row of its own. Every vintage in a
-    directory shares one row, keyed by the directory, because a source lifted as
-    one vintage per column puts hundreds of them there and a table of 1,100 rows
-    is the hand-written surface [issue
+    directory of lifted columns shares one row, keyed by the directory, because
+    a source lifted as one vintage per column puts hundreds of them there and a
+    table of 1,100 rows is the hand-written surface [issue
     88](https://github.com/l3a0/quantitative-trading/issues/88) set out not to
     build. That row states what every member shares: the vendor cell, the basis
     and the date, each of which must be one value across the directory or the
     failure names the directory and the values. The Symbol cell holds the member
     count and the Span cell the earliest and latest date any member carries.
-    The directory is read off the manifest rather than off `LIFTED_SOURCES`, so
-    this check stays a comparison of two surfaces rather than of one against a
-    pin.
+
+    A directory of files committed as their source shipped them gets one row
+    per file instead, because its files need not share a basis or a date. The
+    seven of Chan's Python port carry three bases and four dates. What tells
+    the two kinds apart is the file names. A lifted column is named for its
+    symbol, so a directory holding any file named that way is one of lifted
+    columns, and one holding none keeps its source's names. Asking whether any
+    member is named that way, rather than every one, keeps a single edited
+    member from turning a directory of 500 into 500 rows owed.
+
+    Both are read off the manifest rather than off `LIFTED_SOURCES` or
+    `PYTHON_PORT`, so this check stays a comparison of two surfaces rather than
+    of one against a pin.
     """
     groups: dict[str, list[VintageEntry]] = {}
     for entry in entries:
         folder, _, _ = entry.path.rpartition("/")
         groups.setdefault(f"{folder}/" if folder else entry.path, []).append(entry)
+    for key in [key for key in groups if key.endswith("/")]:
+        if not any(entry.path == f"{key}{entry.symbol.lower()}.csv" for entry in groups[key]):
+            for entry in groups.pop(key):
+                groups[entry.path] = [entry]
 
     owed = {}
     for key, members in groups.items():
@@ -1342,18 +1397,18 @@ def _rows_the_manifest_owes(entries: list[VintageEntry]) -> dict[str, dict[str, 
     return owed
 
 
-#: The vendors a column lifted from one of Chan's own files carries, whose
-#: Vendor cell names the file rather than the vendor: his workbooks and his
-#: MATLAB files.
-CHANS_VENDORS = ("chan-xls", "chan-mat")
+#: The vendors a series lifted from one of Chan's own files carries, whose
+#: Vendor cell names the file rather than the vendor: his workbooks, his
+#: MATLAB files and the zip of his Python port.
+CHANS_VENDORS = ("chan-xls", "chan-mat", "chan-py")
 
 
 def _vendor_cell(entry: VintageEntry) -> str:
     """The Vendor cell the table writes for one entry.
 
     The two surfaces disagree here by spelling rather than by fact. The manifest
-    writes `chan-xls` or `chan-mat` in the vendor field and the source file in
-    `source_workbook`,
+    writes `chan-xls`, `chan-mat` or `chan-py` in the vendor field and the
+    source file in `source_workbook`,
     and the table writes the workbook, which is the pair in a form one cell can
     hold.
 
@@ -1447,13 +1502,45 @@ def the_adjusted_yfinance_entries_name_their_column(directory: Path) -> None:
 
 
 def _lifted_from_chan(path: str) -> bool:
-    """Whether a committed path is a column lifted from one of Chan's own files.
+    """Whether a committed path is a series lifted from one of Chan's own files.
 
     Read off the path, because the two cases using it hold the date fields and
     the workbook field to it, and a predicate reading either field would agree
-    with any edit to it.
+    with any edit to it. A file of Chan's Python port counts, since it was
+    lifted from his zip byte for byte.
     """
-    return path.endswith("_chan.csv") or in_a_lifted_source(path)
+    return path.endswith("_chan.csv") or in_a_lifted_source(path) or in_the_python_port(path)
+
+
+def _days_in(path: str, raw: bytes) -> list[str]:
+    """The ISO date of every row in a committed file, one per row.
+
+    Every file this repo wrote, and every file placed by hand, writes an ISO
+    date first on each row, so a row is a line opening with four digits. The
+    files of Chan's Python port do not, and their pin's shape says what each
+    holds instead.
+
+    1. A minute or daily file writes `YYYYMMDD`, which is rewritten as ISO.
+    2. A rate file writes a year and a month, and its date is the first of the
+       month.
+    3. The return file writes no date, so its rows take the dates
+       `RETURN_CALENDAR` names. That every row of it is a row is what the
+       count holds, since `0.0024` and `-0.0065` both fail a digit test on the
+       first four characters.
+    """
+    lines = raw.decode("utf-8").splitlines()
+    if path not in PYTHON_PORT:
+        return [line.split(",")[0] for line in lines if line[:4].isdigit()]
+    rows = [line.split(",") for line in lines[1:]]
+    shape = PYTHON_PORT[path][5]
+    if shape in ("minute", "daily"):
+        return [f"{row[0][:4]}-{row[0][4:6]}-{row[0][6:]}" for row in rows]
+    if shape == "rate":
+        return [f"{int(row[0]):04d}-{int(row[1]):02d}-01" for row in rows]
+    calendar, trained = RETURN_CALENDAR
+    dates = _days_in(calendar, (DATA_DIR / calendar).read_bytes())[trained:]
+    assert len(dates) == len(rows), path
+    return dates
 
 
 class TestTheCommittedManifest:
@@ -1466,13 +1553,14 @@ class TestTheCommittedManifest:
     """
 
     def test_every_entry_describes_the_file_it_names(self):
+        """The sha256, the row count and the span, read off the bytes.
+
+        A file of Chan's Python port writes its dates three ways, or not at
+        all, so `_days_in` reads each one the way its pin's shape says.
+        """
         for entry in read_manifest():
             raw = (DATA_DIR / entry.path).read_bytes()
-            days = [
-                line.split(",")[0]
-                for line in raw.decode("utf-8").splitlines()
-                if line[:4].isdigit()
-            ]
+            days = _days_in(entry.path, raw)
             assert hashlib.sha256(raw).hexdigest() == entry.sha256, entry.path
             assert entry.row_count == len(days), entry.path
             assert (entry.first_date, entry.last_date) == (min(days), max(days)), entry.path
@@ -2411,6 +2499,33 @@ class TestRecordingALiftedSource:
             vintage.record_lifted_columns({}, **LIFTED_FROM, data_dir=data_dir)
 
 
+class TestNoWriterRecordsAReturn:
+    """The `return` basis, which issue 301 added, has no writer.
+
+    Both writers put a series under a `Close` header, so a return recorded
+    through either would be labelled as a close in its own bytes. The one
+    committed return file was typed into the manifest by hand, as its source
+    wrote it.
+    """
+
+    def test_it_is_a_basis_the_record_admits(self):
+        assert "return" in vintage.PRICE_BASES
+        assert "return" not in vintage.PRICES
+
+    def test_a_downloaded_series_under_the_return_basis_is_refused(self, data_dir):
+        with pytest.raises(ValueError, match="this writer would label the returns as a close"):
+            record_vintage(ROWS, **{**SOURCE, "price_basis": "return"}, data_dir=data_dir)
+        assert manifest_lines(data_dir) == []
+        assert sorted(path.name for path in data_dir.iterdir()) == [MANIFEST_NAME]
+
+    def test_a_lifted_source_under_the_return_basis_is_refused(self, data_dir):
+        with pytest.raises(ValueError, match="this writer would label the returns as a close"):
+            vintage.record_lifted_columns(
+                LIFTED, **{**LIFTED_FROM, "price_basis": "return"}, data_dir=data_dir
+            )
+        assert manifest_lines(data_dir) == []
+
+
 class TestRecordingASourceOfFlags:
     """`record_lifted_columns` under the `event` basis, which issue 250 added.
 
@@ -2604,6 +2719,6 @@ class TestALiftedSourceIsHeld:
         the_recorded_entries_name_themselves(committed)
 
     def test_a_pinned_source_lives_where_its_pin_says(self):
-        assert {pin[3] for pin in LIFTED_SOURCES.values()} == {
+        assert {pin[3] for pin in LIFTED_SOURCES.values()} | {PYTHON_PORT_DIRECTORY} == {
             path.name for path in DATA_DIR.iterdir() if path.is_dir()
         }
