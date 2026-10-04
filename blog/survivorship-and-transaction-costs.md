@@ -125,7 +125,7 @@ Example 3.7’s file has the same flaw the toy demonstrates. It holds the S&P 50
 
 The toy cannot say how much that flatters the reversal, because the toy only buys, and the reversal buys and sells short at once. For a buy-only rule, a missing failure can only flatter the result. For the reversal it acts both ways. On a day a failing stock falls, the rule buys it, and dropping the stock removes that loss from the side it owns. On a day it bounces, the rule sells it short, and when it then falls the short makes money, so dropping it removes a gain as well. Neither the size nor the direction of the effect on 0.2510 or −3.1884 is known.
 
-Chan argues in *Algorithmic Trading* that for a strategy like this, long and short at once and betting on reversal, the missing losses on the side it owns tend to outweigh the missing gains on the short side, so survivorship still flatters it but by less. That is an argument rather than a measurement. Measuring it needs the index as it actually stood on each day of 2006, removed stocks included, which has to be bought. [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) tracks it.
+Chan argues in *Algorithmic Trading* that for a strategy like this, long and short at once and betting on reversal, the missing losses on the side it owns tend to outweigh the missing gains on the short side, so survivorship still flatters it but by less. That is an argument rather than a measurement. Measuring it needs the index as it actually stood on each day of 2006, removed stocks included, which has to be bought.
 
 ## Lesson 6: on the book’s rule, trading at the open misses Chan’s claim after costs
 
