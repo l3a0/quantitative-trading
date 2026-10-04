@@ -637,9 +637,11 @@ Trading*, that his Example 7.2 reads.
 that example.
 [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) and
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) reproduce
-Examples 6.2 and 4.1 on the price file alone.
-`inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held
-it on 2012-04-24, with the same five fields per stock as the first two
+Examples 6.2 and 4.1 on the price file alone, and
+[issue 296](https://github.com/l3a0/quantitative-trading/issues/296) reads its
+opens and closes for Examples 4.3 and 4.4.
+`inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held it on
+2012-04-24, with the same five fields per stock as the first two
 directories. `earnannfile/` holds his earnings-announcement flags for the same
 497 stocks, a 0 or 1 for each trading day. Like the first two, the price file
 holds only the companies still in the index on its date, so a figure computed
@@ -666,6 +668,11 @@ measurements below.
    committed members rebuild all five of its arrays exactly. What the copy
    cannot show is that the file Chan ran in 2012 was the one he later shipped
    under that name.
+   `andrewlo_2007_2012.m`, the script of Examples 4.3 and 4.4, and
+   `indexArb.m` load the same name. Example 4.4's run lands on the six
+   decimals its script printed, which
+   [issue 296](https://github.com/l3a0/quantitative-trading/issues/296)
+   measured.
 
    ```text
    4a62f5851de9962b72c6b135d4f4addc3cb13ff1ce28afe45defceb47c318849  inputDataOHLCDaily_stocks_20120424.mat
@@ -693,7 +700,11 @@ measurements below.
    across all 30, one in its 2007 window and 29 in its 2008 and 2009 window,
    and [issue 297](https://github.com/l3a0/quantitative-trading/issues/297)
    decided not to call the guard there. All 30 also fall in Example 4.1's
-   window, which is the file's whole span. They are pinned beside the others in
+   window, which is the file's whole span, and in the 2007 to 2011 window
+   Examples 4.3 and 4.4 trade. One of them, CAH on 2009-09-02, reads as a data
+   error or a corporate action rather than a crash, and
+   `chan.khandani_lo_book_two`'s docstring says why that run computes across
+   them. They are pinned beside the others in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **The size budget is raised.** The two directories hold 32.01 MB, which
    takes `data/` from 74.41 MB to 106.86 MB of file content. The owner decided

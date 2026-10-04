@@ -40,6 +40,8 @@ Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`round_half_away` for *Algorithmic Trading*'s Example 6.2.
 :mod:`chan.buy_on_gap` calls :func:`backshift`, :func:`smartsum` and
 :func:`matlab_sort` for *Algorithmic Trading*'s Example 4.1.
+:mod:`chan.khandani_lo_book_two` calls :func:`backshift`, :func:`smartmean`
+and :func:`smartsum` for *Algorithmic Trading*'s Examples 4.3 and 4.4.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
