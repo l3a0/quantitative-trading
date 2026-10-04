@@ -9,6 +9,7 @@ files is pinned in ``tests/test_series.py``, where
 
 from __future__ import annotations
 
+import hashlib
 import io
 from pathlib import Path
 
@@ -19,12 +20,19 @@ import scipy.io
 from chan import mat_columns
 from chan.mat_columns import (
     ARRAYS,
+    CSV_VENDOR,
     VENDOR,
     columns_of,
+    continuous_round_trip_differs,
+    csv_round_trip_differs,
     flag_round_trip_differs,
     read_arrays,
+    read_continuous,
+    read_csv_rows,
     read_flags,
     read_strip,
+    record_continuous_file,
+    record_csv_file,
     record_flag_file,
     record_mat_file,
     record_strip_file,
@@ -936,3 +944,618 @@ class TestTheCommandLineOffersNoReturnBasis:
             mat_columns.main([str(tmp_path / "absent.mat"), "--price-basis", "return"])
 
         assert stopped.value.code == 2
+
+
+#: Two symbols on two calendars, the way Chan's continuous futures saves hold
+#: them. CL's first row is unpriced and ES's two first rows are, and row 2 of
+#: CL is a different day from row 2 of ES.
+FUTURES_DAYS = np.array(
+    [
+        [NAN, NAN],
+        [20120502.0, NAN],
+        [20120503.0, 20120501.0],
+        [20120504.0, 20120504.0],
+    ]
+)
+FUTURES_CLOSES = np.array(
+    [
+        [NAN, NAN],
+        [104.5, NAN],
+        [103.0, 1390.25],
+        [98.5, 1366.5],
+    ]
+)
+FUTURES_CREATED = "Mon May 07 12:54:08 2012"
+
+
+def continuous_bytes(
+    *,
+    symbols: list[object] | None = None,
+    days: np.ndarray = FUTURES_DAYS,
+    closes: np.ndarray = FUTURES_CLOSES,
+    omit: tuple[str, ...] = (),
+) -> bytes:
+    """A MATLAB 5 file holding a two-dimensional ``tday``, ``syms`` and the five arrays.
+
+    An empty name is passed as an empty array, which is how MATLAB writes a
+    cell holding ``''`` and how the 2012-05-07 save's sixth column reads back.
+    """
+    names = ["CL", "ES"] if symbols is None else symbols
+    syms = np.empty((1, len(names)), dtype=object)
+    for index, symbol in enumerate(names):
+        syms[0, index] = symbol
+    held = {"tday": days, "syms": syms, **arrays_from(closes)}
+    buffer = io.BytesIO()
+    scipy.io.savemat(buffer, {key: value for key, value in held.items() if key not in omit})
+    header = f"MATLAB 5.0 MAT-file, Platform: PCWIN, Created on: {FUTURES_CREATED}"
+    return header.encode("ascii").ljust(116, b" ") + buffer.getvalue()[116:]
+
+
+@pytest.fixture
+def futures(tmp_path: Path) -> Path:
+    path = tmp_path / "inputDataOHLCDaily_20120504.mat"
+    path.write_bytes(continuous_bytes())
+    return path
+
+
+class TestAContinuousSave:
+    """Chan's continuous futures saves, which issue 313 records one vintage per symbol."""
+
+    def test_each_symbol_keeps_its_own_days_and_drops_its_leading_cells(self) -> None:
+        symbols, days, _ = read_continuous(continuous_bytes())
+
+        assert symbols == ["CL", "ES"]
+        assert days == [
+            ["2012-05-02", "2012-05-03", "2012-05-04"],
+            ["2012-05-01", "2012-05-04"],
+        ]
+
+    def test_every_field_lands_on_the_symbol_s_own_days(
+        self, futures: Path, data_dir: Path
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+
+        assert (data_dir / "inputdataohlcdaily_20120504" / "es.csv").read_bytes() == (
+            b"Price,Close,High,Low,Open,Volume\n"
+            b"Ticker,ES,ES,ES,ES,ES\n"
+            b"Date,,,,,\n"
+            b"2012-05-01,1390.25,1391.5,1389.5,1390.75,500\n"
+            b"2012-05-04,1366.5,1367.75,1365.75,1367.0,700\n"
+        )
+        entries = read_manifest(data_dir)
+        assert {(e.vendor, e.saved_date) for e in entries} == {(VENDOR, "2012-05-07")}
+        assert [(e.symbol, e.first_date, e.row_count) for e in entries] == [
+            ("CL", "2012-05-02", 3),
+            ("ES", "2012-05-01", 2),
+        ]
+
+    def test_the_round_trip_finds_every_member_and_says_nothing(
+        self, futures: Path, data_dir: Path
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+
+        assert continuous_round_trip_differs(futures, data_dir=data_dir) is None
+
+    def test_the_round_trip_names_the_member_whose_days_moved(
+        self, futures: Path, data_dir: Path
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+        moved = FUTURES_DAYS.copy()
+        moved[2, 1] = 20120502.0
+        futures.write_bytes(continuous_bytes(days=moved))
+
+        assert continuous_round_trip_differs(futures, data_dir=data_dir) == (
+            "ES's days are not its tday column's priced rows"
+        )
+
+    @pytest.mark.parametrize(
+        ("field", "name"), [("Close", "cl"), ("Open", "op"), ("Volume", "vol")]
+    )
+    def test_the_round_trip_names_the_field_that_moved(
+        self, futures: Path, data_dir: Path, field: str, name: str
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+        arrays = arrays_from(FUTURES_CLOSES)
+        arrays[name] = arrays[name] * 2
+        buffer = io.BytesIO()
+        syms = np.empty((1, 2), dtype=object)
+        syms[0, 0], syms[0, 1] = "CL", "ES"
+        scipy.io.savemat(buffer, {"tday": FUTURES_DAYS, "syms": syms, **arrays})
+        header = f"MATLAB 5.0 MAT-file, Platform: PCWIN, Created on: {FUTURES_CREATED}"
+        futures.write_bytes(header.encode("ascii").ljust(116, b" ") + buffer.getvalue()[116:])
+
+        assert continuous_round_trip_differs(futures, data_dir=data_dir) == (
+            f"CL's {field} is not the file's {name} column"
+        )
+
+    def test_the_round_trip_says_when_a_member_is_missing(
+        self, futures: Path, data_dir: Path
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+        rewrite_entry(data_dir, "inputdataohlcdaily_20120504/es.csv", source_workbook="OTHER.mat")
+
+        assert continuous_round_trip_differs(futures, data_dir=data_dir) == (
+            "the panel's symbols are not the file's"
+        )
+
+    def test_an_empty_name_is_refused_when_no_ruling_names_it(self) -> None:
+        payload = continuous_bytes(symbols=["CL", np.array([], dtype="<U1")])
+
+        with pytest.raises(ValueError, match="column 2 has no name, and no ruling names it"):
+            read_continuous(payload)
+
+    def test_an_empty_name_a_ruling_names_is_recorded_under_its_position(
+        self, tmp_path: Path, data_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        payload = continuous_bytes(symbols=["CL", np.array([], dtype="<U1")])
+        monkeypatch.setattr(
+            mat_columns,
+            "UNNAMED_COLUMNS",
+            {hashlib.sha256(payload).hexdigest(): {2: "COLUMN-2"}},
+        )
+        path = tmp_path / "inputDataOHLCDaily_20120504.mat"
+        path.write_bytes(payload)
+
+        entries = record_continuous_file(path, price_basis="adjusted", data_dir=data_dir)
+
+        assert [entry.path for entry in entries] == [
+            "inputdataohlcdaily_20120504/cl.csv",
+            "inputdataohlcdaily_20120504/column-2.csv",
+        ]
+        assert continuous_round_trip_differs(path, data_dir=data_dir) is None
+
+    def test_a_ruling_names_only_the_position_it_was_made_for(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A second blank in the same file stops the read rather than being named silently."""
+        payload = continuous_bytes(symbols=[np.array([], dtype="<U1"), np.array([], dtype="<U1")])
+        monkeypatch.setattr(
+            mat_columns,
+            "UNNAMED_COLUMNS",
+            {hashlib.sha256(payload).hexdigest(): {2: "COLUMN-2"}},
+        )
+
+        with pytest.raises(ValueError, match="column 1 has no name"):
+            read_continuous(payload)
+
+    def test_the_one_ruling_is_the_2012_05_07_save_s_sixth_column(self) -> None:
+        """The owner's 2026-10-04 ruling on issue 313, keyed to that file's sha256."""
+        assert mat_columns.UNNAMED_COLUMNS == {
+            "3cc01a9623031df25aa45abfc2201869d7a1288c018d8a46e62f7cad1fe72892": {6: "COLUMN-6"}
+        }
+
+    def test_a_blank_name_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="column 2 has no name"):
+            read_continuous(continuous_bytes(symbols=["CL", "  "]))
+
+    def test_a_day_with_no_price_is_refused(self) -> None:
+        days = FUTURES_DAYS.copy()
+        days[0, 0] = 20120501.0
+
+        with pytest.raises(ValueError, match="CL's tday and close disagree on whether row 1"):
+            read_continuous(continuous_bytes(days=days))
+
+    def test_a_price_with_no_day_is_refused(self) -> None:
+        days = FUTURES_DAYS.copy()
+        days[2, 1] = NAN
+
+        with pytest.raises(ValueError, match="ES's tday and close disagree on whether row 3"):
+            read_continuous(continuous_bytes(days=days))
+
+    def test_a_gap_after_the_first_price_is_refused(self) -> None:
+        days, closes = FUTURES_DAYS.copy(), FUTURES_CLOSES.copy()
+        days[2, 0] = closes[2, 0] = NAN
+
+        with pytest.raises(ValueError, match="CL is unpriced on a row after its first price"):
+            read_continuous(continuous_bytes(days=days, closes=closes))
+
+    def test_days_out_of_order_are_refused(self) -> None:
+        days = FUTURES_DAYS.copy()
+        days[3, 0] = 20120502.0
+
+        with pytest.raises(ValueError, match="CL's trading days are not strictly increasing"):
+            read_continuous(continuous_bytes(days=days))
+
+    def test_a_symbol_named_twice_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="names a symbol more than once: CL"):
+            read_continuous(continuous_bytes(symbols=["CL", "CL"]))
+
+    def test_an_array_that_does_not_fit_the_symbols_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="carries 3 symbols"):
+            read_continuous(continuous_bytes(symbols=["CL", "ES", "TU"]))
+
+    def test_an_array_that_is_not_tday_s_shape_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="is not the shape of tday, 3 by 2"):
+            read_continuous(continuous_bytes(days=FUTURES_DAYS[1:]))
+
+    @pytest.mark.parametrize("name", ["tday", "cl", "vol"])
+    def test_a_missing_array_is_named(self, name: str) -> None:
+        with pytest.raises(ValueError, match=f"the file carries no {name}"):
+            read_continuous(continuous_bytes(omit=(name,)))
+
+    def test_a_missing_symbol_list_is_refused_through_symbols_of(self) -> None:
+        with pytest.raises(ValueError, match="carries neither of stocks and syms"):
+            read_continuous(continuous_bytes(omit=("syms",)))
+
+    def test_a_field_missing_on_a_day_the_close_is_priced_is_refused(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        arrays = arrays_from(FUTURES_CLOSES)
+        arrays["hi"][3, 1] = NAN
+        syms = np.empty((1, 2), dtype=object)
+        syms[0, 0], syms[0, 1] = "CL", "ES"
+        buffer = io.BytesIO()
+        scipy.io.savemat(buffer, {"tday": FUTURES_DAYS, "syms": syms, **arrays})
+        path = tmp_path / "inputDataOHLCDaily_20120504.mat"
+        path.write_bytes(
+            f"MATLAB 5.0 MAT-file, Platform: PCWIN, Created on: {FUTURES_CREATED}".encode(
+                "ascii"
+            ).ljust(116, b" ")
+            + buffer.getvalue()[116:]
+        )
+
+        with pytest.raises(ValueError, match="ES's High and close disagree on whether 2012-05-04"):
+            record_continuous_file(path, price_basis="adjusted", data_dir=data_dir)
+        assert read_manifest(data_dir) == []
+
+
+VIX_TEXT = (
+    "Date,Open,High,Low,Close,Volume,Adj Close\n"
+    "2007-02-26,11.5,11.6,11.1,11.15,0,11.15\n"
+    "2007-02-27,11.2,19.0,11.2,18.31,1200,18.31\n"
+)
+
+
+@pytest.fixture
+def vix(tmp_path: Path) -> Path:
+    path = tmp_path / "VIX.csv"
+    path.write_bytes(VIX_TEXT.encode("ascii"))
+    return path
+
+
+class TestAChanCsv:
+    """Chan's ``VIX.csv``, which issue 313 records under ``chan-csv``."""
+
+    def test_the_rows_come_back_in_the_lifted_order_without_the_adj_close(self) -> None:
+        assert read_csv_rows(VIX_TEXT.encode("ascii")) == [
+            ("2007-02-26", 11.15, 11.6, 11.1, 11.5, 0.0),
+            ("2007-02-27", 18.31, 19.0, 11.2, 11.2, 1200.0),
+        ]
+
+    def test_crlf_line_endings_read_the_same(self) -> None:
+        crlf = VIX_TEXT.replace("\n", "\r\n").encode("ascii")
+
+        assert read_csv_rows(crlf) == read_csv_rows(VIX_TEXT.encode("ascii"))
+
+    def test_an_adj_close_that_is_not_the_close_is_refused(self) -> None:
+        moved = VIX_TEXT.replace("18.31\n", "18.30\n")
+
+        with pytest.raises(ValueError, match="the Adj Close on 2007-02-27 is 18.30"):
+            read_csv_rows(moved.encode("ascii"))
+
+    def test_a_header_that_is_not_yahoo_s_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="the header is Date,Close rather than"):
+            read_csv_rows(b"Date,Close\n2007-02-26,11.15\n")
+
+    def test_a_short_line_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="line 4 holds 6 cells, not 7"):
+            read_csv_rows((VIX_TEXT + "2007-02-28,1,1,1,1,0\n").encode("ascii"))
+
+    def test_dates_out_of_order_are_refused(self) -> None:
+        lines = VIX_TEXT.splitlines()
+        swapped = "\n".join([lines[0], lines[2], lines[1]]) + "\n"
+
+        with pytest.raises(ValueError, match="dates are not strictly increasing"):
+            read_csv_rows(swapped.encode("ascii"))
+
+    def test_it_is_recorded_under_its_stem_with_the_stated_date(
+        self, vix: Path, data_dir: Path
+    ) -> None:
+        (entry,) = record_csv_file(
+            vix, price_basis="raw", saved_date="2012-05-09", data_dir=data_dir
+        )
+
+        assert (entry.vendor, entry.symbol, entry.price_basis, entry.saved_date) == (
+            CSV_VENDOR,
+            "VIX",
+            "raw",
+            "2012-05-09",
+        )
+        assert entry.path == "vix/vix.csv"
+        assert (data_dir / "vix" / "vix.csv").read_bytes() == (
+            b"Price,Close,High,Low,Open,Volume\n"
+            b"Ticker,VIX,VIX,VIX,VIX,VIX\n"
+            b"Date,,,,,\n"
+            b"2007-02-26,11.15,11.6,11.1,11.5,0\n"
+            b"2007-02-27,18.31,19.0,11.2,11.2,1200\n"
+        )
+        assert csv_round_trip_differs(vix, data_dir=data_dir) is None
+
+    def test_the_vendor_is_neither_the_workbooks_nor_the_mat_files(self) -> None:
+        assert CSV_VENDOR == "chan-csv"
+
+    @pytest.mark.parametrize(("field", "column"), [("Close", 4), ("Open", 1), ("Volume", 5)])
+    def test_the_round_trip_names_the_field_that_moved(
+        self, vix: Path, data_dir: Path, field: str, column: int
+    ) -> None:
+        record_csv_file(vix, price_basis="raw", saved_date="2012-05-09", data_dir=data_dir)
+        lines = VIX_TEXT.splitlines()
+        cells = lines[2].split(",")
+        cells[column] = "7" if field == "Volume" else "9.5"
+        if field == "Close":
+            cells[6] = "9.5"
+        vix.write_text("\n".join([*lines[:2], ",".join(cells)]) + "\n", encoding="ascii")
+
+        assert csv_round_trip_differs(vix, data_dir=data_dir) == (
+            f"the vintage's {field} is not the file's"
+        )
+
+    def test_the_round_trip_says_when_the_days_differ(self, vix: Path, data_dir: Path) -> None:
+        record_csv_file(vix, price_basis="raw", saved_date="2012-05-09", data_dir=data_dir)
+        vix.write_text(VIX_TEXT.replace("2007-02-27", "2007-02-28"), encoding="ascii")
+
+        assert csv_round_trip_differs(vix, data_dir=data_dir) == (
+            "the vintage's days are not the file's"
+        )
+
+
+class TestTheCommandReadsAContinuousSaveAndACsv:
+    """Issue 313's two shapes, a continuous save by its variables and a CSV by its suffix."""
+
+    def test_a_two_dimensional_tday_is_a_continuous_save(self) -> None:
+        assert shape_of(continuous_bytes()) == "continuous"
+
+    def test_a_one_column_tday_stays_on_the_stock_path(self) -> None:
+        """A continuous save of one symbol would be a stock file's shape, and reads as one."""
+        assert shape_of(mat_bytes()) == "stocks"
+
+    @pytest.fixture
+    def in_data_dir(self, data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        return data_dir
+
+    def test_a_continuous_save_runs_its_own_reader_and_round_trip(
+        self, futures: Path, in_data_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert mat_columns.main([str(futures), "--price-basis", "adjusted"]) == 0
+
+        assert capsys.readouterr().out.splitlines()[1:] == [
+            "recorded 2 vintages, 5 rows of Close, High, Low, Open, Volume, under "
+            "inputdataohlcdaily_20120504/, saved 2012-05-07",
+            "round trip: every member read back is its column's priced rows, every field",
+        ]
+
+    def test_a_failed_continuous_round_trip_stops_the_command(
+        self,
+        futures: Path,
+        in_data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.setattr(mat_columns, "continuous_round_trip_differs", lambda path: "moved")
+
+        assert mat_columns.main([str(futures), "--price-basis", "adjusted"]) == 1
+
+        assert capsys.readouterr().err.startswith("round trip failed: moved.")
+
+    @pytest.mark.parametrize("name", ["VIX.csv", "VIX.CSV"])
+    def test_a_csv_runs_with_the_date_it_is_given(
+        self, tmp_path: Path, in_data_dir: Path, capsys: pytest.CaptureFixture[str], name: str
+    ) -> None:
+        path = tmp_path / name
+        path.write_bytes(VIX_TEXT.encode("ascii"))
+        argv = [str(path), "--price-basis", "raw", "--saved-date", "2012-05-09"]
+
+        assert mat_columns.main(argv) == 0
+
+        assert capsys.readouterr().out.splitlines()[1:] == [
+            "recorded 1 vintages, 2 rows of Close, High, Low, Open, Volume, under vix/, "
+            "saved 2012-05-09",
+            "round trip: every field read back is the file's, row for row",
+        ]
+
+    def test_a_failed_csv_round_trip_stops_the_command(
+        self,
+        vix: Path,
+        in_data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.setattr(mat_columns, "csv_round_trip_differs", lambda path: "moved")
+        argv = [str(vix), "--price-basis", "raw", "--saved-date", "2012-05-09"]
+
+        assert mat_columns.main(argv) == 1
+
+        assert capsys.readouterr().err.startswith("round trip failed: moved.")
+
+    def test_a_csv_with_no_date_is_refused_in_one_line(
+        self, vix: Path, in_data_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert mat_columns.main([str(vix), "--price-basis", "raw"]) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "VIX.csv: not recorded. a .csv carries no saved date, so it needs --saved-date"
+        ]
+        assert read_manifest(in_data_dir) == []
+
+    def test_a_mat_file_given_a_date_is_refused_in_one_line(
+        self, futures: Path, in_data_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        argv = [str(futures), "--price-basis", "adjusted", "--saved-date", "2012-05-07"]
+
+        assert mat_columns.main(argv) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "inputDataOHLCDaily_20120504.mat: not recorded. the MAT header records the saved "
+            "date, so --saved-date is not taken"
+        ]
+
+    def test_a_continuous_save_given_the_event_basis_is_refused(
+        self, futures: Path, in_data_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert mat_columns.main([str(futures), "--price-basis", "event"]) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "inputDataOHLCDaily_20120504.mat: not recorded. the file carries no earnann"
+        ]
+
+
+class TestAnEmptyNameIsRefusedByEveryReader:
+    """The refusal lives in ``symbols_of``, so the stock reader holds it too."""
+
+    def test_the_stock_reader_refuses_an_empty_name(self) -> None:
+        payload = mat_bytes(symbols=["AA", np.array([], dtype="<U1"), "KO"])
+
+        with pytest.raises(ValueError, match="column 2 has no name"):
+            read_arrays(payload)
+
+
+class TestACsvCellIsAPlainDecimal:
+    """``float`` alone takes more than a vendor's file means, so the reader does not."""
+
+    @pytest.mark.parametrize("cell", ["1_0", " 2", "nan", "inf", "1e3", ""])
+    def test_a_cell_float_would_take_is_refused(self, cell: str) -> None:
+        bad = VIX_TEXT.replace("11.5,11.6", f"{cell},11.6")
+
+        with pytest.raises(ValueError, match="line 2 holds .*which is not a plain decimal"):
+            read_csv_rows(bad.encode("ascii"))
+
+    def test_an_empty_file_is_refused_in_words(self) -> None:
+        with pytest.raises(ValueError, match="the file is empty"):
+            read_csv_rows(b"")
+
+
+def continuous_with(arrays: dict[str, np.ndarray], symbols: list[str] = ["CL", "ES"]) -> bytes:  # noqa: B006
+    """A continuous save holding ``arrays`` as given, for a case that moves one cell."""
+    syms = np.empty((1, len(symbols)), dtype=object)
+    for index, symbol in enumerate(symbols):
+        syms[0, index] = symbol
+    buffer = io.BytesIO()
+    scipy.io.savemat(buffer, {"tday": FUTURES_DAYS, "syms": syms, **arrays})
+    header = f"MATLAB 5.0 MAT-file, Platform: PCWIN, Created on: {FUTURES_CREATED}"
+    return header.encode("ascii").ljust(116, b" ") + buffer.getvalue()[116:]
+
+
+class TestTheContinuousChecksAreExact:
+    """Cases the mutation review found missing, one per check it could loosen unseen."""
+
+    @pytest.mark.parametrize(("field", "name"), [("Close", "cl"), ("Low", "lo")])
+    def test_a_one_cell_move_in_the_last_digit_is_named(
+        self, futures: Path, data_dir: Path, field: str, name: str
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+        arrays = arrays_from(FUTURES_CLOSES)
+        arrays[name][3, 1] = np.nextafter(arrays[name][3, 1], np.inf)
+        futures.write_bytes(continuous_with(arrays))
+
+        assert continuous_round_trip_differs(futures, data_dir=data_dir) == (
+            f"ES's {field} is not the file's {name} column"
+        )
+
+    def test_an_extra_member_under_the_source_is_named(
+        self, futures: Path, tmp_path: Path, data_dir: Path
+    ) -> None:
+        record_continuous_file(futures, price_basis="adjusted", data_dir=data_dir)
+        other = tmp_path / "OTHER.mat"
+        other.write_bytes(continuous_bytes(symbols=["TU", "VX"]))
+        record_continuous_file(other, price_basis="adjusted", data_dir=data_dir)
+        rewrite_entry(data_dir, "other/tu.csv", source_workbook="inputDataOHLCDaily_20120504.mat")
+
+        assert continuous_round_trip_differs(futures, data_dir=data_dir) == (
+            "the panel's symbols are not the file's"
+        )
+
+    def test_lowercase_symbols_round_trip(self, tmp_path: Path, data_dir: Path) -> None:
+        path = tmp_path / "inputDataOHLCDaily_20120504.mat"
+        path.write_bytes(continuous_bytes(symbols=["cl", "es"]))
+        record_continuous_file(path, price_basis="adjusted", data_dir=data_dir)
+
+        assert continuous_round_trip_differs(path, data_dir=data_dir) is None
+
+    def test_a_repeated_day_is_refused(self) -> None:
+        days = FUTURES_DAYS.copy()
+        days[3, 0] = 20120503.0
+
+        with pytest.raises(ValueError, match="CL's trading days are not strictly increasing"):
+            read_continuous(continuous_bytes(days=days))
+
+    def test_a_trailing_unpriced_row_is_refused(self) -> None:
+        days, closes = FUTURES_DAYS.copy(), FUTURES_CLOSES.copy()
+        days[3, 0] = closes[3, 0] = NAN
+
+        with pytest.raises(ValueError, match="CL is unpriced on the file's last row"):
+            read_continuous(continuous_bytes(days=days, closes=closes))
+
+    def test_a_column_priced_on_no_row_is_refused_in_words(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        days, closes = FUTURES_DAYS.copy(), FUTURES_CLOSES.copy()
+        days[:, 1] = closes[:, 1] = NAN
+        path = tmp_path / "inputDataOHLCDaily_20120504.mat"
+        path.write_bytes(continuous_bytes(days=days, closes=closes))
+
+        with pytest.raises(ValueError, match="ES: an empty series has no span"):
+            record_continuous_file(path, price_basis="adjusted", data_dir=data_dir)
+
+    def test_a_ruling_never_renames_a_column_that_has_a_name(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        payload = continuous_bytes()
+        monkeypatch.setattr(
+            mat_columns, "UNNAMED_COLUMNS", {hashlib.sha256(payload).hexdigest(): {2: "COLUMN-2"}}
+        )
+
+        assert read_continuous(payload)[0] == ["CL", "ES"]
+
+    def test_a_ruling_for_other_bytes_names_nothing_here(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The real ruling names position 6 of one file, and a blank there in another is refused."""
+        names = ["A", "B", "C", "D", "E", np.array([], dtype="<U1")]
+        days = np.repeat(FUTURES_DAYS[:, :1], 6, axis=1)
+        closes = np.repeat(FUTURES_CLOSES[:, :1], 6, axis=1)
+
+        with pytest.raises(ValueError, match="column 6 has no name"):
+            read_continuous(continuous_bytes(symbols=names, days=days, closes=closes))
+
+
+class TestTheCsvChecksAreExact:
+    def test_a_repeated_date_is_refused(self) -> None:
+        lines = VIX_TEXT.splitlines()
+        repeated = "\n".join([*lines, lines[2]]) + "\n"
+
+        with pytest.raises(ValueError, match="dates are not strictly increasing"):
+            read_csv_rows(repeated.encode("ascii"))
+
+    def test_an_adj_close_spelled_differently_but_equal_is_taken(self) -> None:
+        spelled = VIX_TEXT.replace("18.31,1200,18.31", "18.30,1200,18.3")
+
+        assert read_csv_rows(spelled.encode("ascii"))[1][1] == 18.3
+
+    def test_a_lowercase_file_name_records_an_uppercase_symbol(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        path = tmp_path / "vix.csv"
+        path.write_bytes(VIX_TEXT.encode("ascii"))
+
+        (entry,) = record_csv_file(
+            path, price_basis="raw", saved_date="2012-05-09", data_dir=data_dir
+        )
+
+        assert entry.symbol == "VIX"
+        assert csv_round_trip_differs(path, data_dir=data_dir) is None
+
+    def test_an_extra_member_under_the_source_is_named(
+        self, vix: Path, tmp_path: Path, data_dir: Path
+    ) -> None:
+        record_csv_file(vix, price_basis="raw", saved_date="2012-05-09", data_dir=data_dir)
+        other = tmp_path / "OTHER.csv"
+        other.write_bytes(VIX_TEXT.encode("ascii"))
+        record_csv_file(other, price_basis="raw", saved_date="2012-05-09", data_dir=data_dir)
+        rewrite_entry(data_dir, "other/other.csv", source_workbook="VIX.csv")
+
+        assert csv_round_trip_differs(vix, data_dir=data_dir) == (
+            "the panel holds OTHER, VIX rather than VIX"
+        )

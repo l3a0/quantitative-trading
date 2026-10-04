@@ -139,9 +139,12 @@ HAND_WRITTEN = {
 #: [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) added
 #: eight futures strips from the second book, one vintage per contract under the
 #: ``raw`` basis, and the gold series sampled at 16:00, a source of one member.
-#: One source was saved once, so its members share a vendor, a basis and a
-#: date, and the pin says each once. The member count is what notices a column
-#: dropped from the manifest along with its file.
+#: [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) added
+#: four saves of Chan's book-two continuous futures and his ``VIX.csv``, the
+#: one source here that is not a MATLAB file. One source was saved once, so
+#: its members share a vendor, a basis and a date, and the pin says each once.
+#: The member count is what notices a column dropped from the manifest along
+#: with its file.
 #:
 #: The symbol is not pinned, for the reason the ``Ticker,`` paragraph above
 #: gives: each member's own bytes carry it, and a member's path is its
@@ -226,6 +229,35 @@ LIFTED_SOURCES = {
         "inputdata_gc_1600_20100802",
         1,
     ),
+    "inputDataOHLCDaily_20120504.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-07",
+        "inputdataohlcdaily_20120504",
+        51,
+    ),
+    "inputDataOHLCDaily_20120507.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-09",
+        "inputdataohlcdaily_20120507",
+        53,
+    ),
+    "inputDataOHLCDaily_20120511.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-12",
+        "inputdataohlcdaily_20120511",
+        52,
+    ),
+    "inputDataOHLCDaily_20120517.mat": (
+        "chan-mat",
+        "adjusted",
+        "2012-05-18",
+        "inputdataohlcdaily_20120517",
+        52,
+    ),
+    "VIX.csv": ("chan-csv", "raw", "2012-05-09", "vix", 1),
 }
 
 

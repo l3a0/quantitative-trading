@@ -1404,16 +1404,16 @@ def _rows_the_manifest_owes(entries: list[VintageEntry]) -> dict[str, dict[str, 
 
 #: The vendors a series lifted from one of Chan's own files carries, whose
 #: Vendor cell names the file rather than the vendor: his workbooks, his
-#: MATLAB files and the zip of his Python port.
-CHANS_VENDORS = ("chan-xls", "chan-mat", "chan-py")
+#: MATLAB files, his CSV files and the zip of his Python port.
+CHANS_VENDORS = ("chan-xls", "chan-mat", "chan-py", "chan-csv")
 
 
 def _vendor_cell(entry: VintageEntry) -> str:
     """The Vendor cell the table writes for one entry.
 
     The two surfaces disagree here by spelling rather than by fact. The manifest
-    writes `chan-xls`, `chan-mat` or `chan-py` in the vendor field and the
-    source file in `source_workbook`,
+    writes `chan-xls`, `chan-mat`, `chan-py` or `chan-csv` in the vendor field and
+    the source file in `source_workbook`,
     and the table writes the workbook, which is the pair in a form one cell can
     hold.
 
@@ -1432,7 +1432,7 @@ def _vendor_cell(entry: VintageEntry) -> str:
     Vendor column's expected value comes from the entry like every other, so
     `where the entry gives` still says where it came from.
 
-    An entry under either of Chan's vendors carrying no workbook fails here by
+    An entry under any of Chan's vendors carrying no workbook fails here by
     naming itself, rather
     than writing a cell holding the word `None`.
     `the_table_and_the_manifest_agree`'s docstring says a failure there is an

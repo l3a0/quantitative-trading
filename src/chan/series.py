@@ -11,7 +11,7 @@ here instead of there. It does not live in :mod:`chan.pair_cointegration`
 either, which is a Chapter 7 replication, and every experiment that reads a
 series would then import a chapter to open a file.
 
-Four sources, told apart by what the manifest records rather than by a filename.
+Five sources, told apart by what the manifest records rather than by a filename.
 
 - The yfinance set, the default. ``adjusted`` carries Yahoo's
   dividend-adjusted close, and ``raw`` carries the as-traded close when
@@ -24,12 +24,16 @@ Four sources, told apart by what the manifest records rather than by a filename.
   reads a whole file at a time and no ticker flag names. Four hold stock
   prices, one holds the prices of 67 ETFs, and one holds earnings flags under
   the ``event`` basis. Eight more are futures strips, one ``raw`` column per
-  contract, and one is a gold series of one column.
+  contract, and one is a gold series of one column. Four are saves of his
+  continuous futures, which :func:`load_panel` reads one member at a time, as
+  its docstring says.
 - Chan's 2018 Python port, under the vendor ``chan-py``, whose files are
   committed as the zip shipped them. :func:`load_minute_close` reads the one
   that holds minute bars, a close per day at 16:59 New York time. The daily
   currency files parse through the same path as every other single series,
   and nothing reads the rate and return files yet.
+- Chan's ``VIX.csv``, one vintage under the vendor ``chan-csv``, which
+  :func:`load_panel` reads by its file name too.
 
 The basis decides the levels. GLD pays no distributions, so its adjusted close
 already equals its raw close, while GDX's dividends put today's adjusted
@@ -51,10 +55,12 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB price files carry 171 more flagged days.
+The columns lifted from Chan's stock, ETF and strip files carry 171 more flagged
+days.
 In his stock files most are real moves in single stocks, and in his ETF file
-they fall in leveraged and inverse funds. ``tests/test_scale_breaks.py`` pins
-all of them.
+they fall in leveraged and inverse funds. His continuous futures saves carry
+126 more, all in the ZB and ZF columns, and his ``VIX.csv`` one.
+``tests/test_scale_breaks.py`` pins all of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands
 back both manifest entries, so this module reads two series as well as one.
@@ -346,10 +352,18 @@ def load_panel(
 
     The frame's index is the union of the members' dates. A member's file holds
     only the days its source priced it, so a day it was not priced is NaN here,
-    which is what the source held. Compute returns on this frame rather than on
-    one member's own rows. Two of the S&P 500 file's columns each hold two
-    companies under one symbol across a gap, and a return taken over a member's
-    own rows reads that gap as one day's move.
+    which is what the source held. For a stock file, compute returns on this
+    frame rather than on one member's own rows. Two of the S&P 500 file's
+    columns each hold two companies under one symbol across a gap, and a return
+    taken over a member's own rows reads that gap as one day's move.
+
+    A continuous futures save is the opposite case. Each of its symbols is
+    priced on its own calendar, so the union puts NaN in a member's column on
+    every day another symbol traded and it did not, and a return taken on this
+    frame breaks there. Read one member as
+    ``load_panel(source)[symbol].dropna()``, which is Chan's column without its
+    leading NaN. :func:`chan.mat_columns.continuous_round_trip_differs` holds
+    each member's rows to that column.
 
     A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
     Five different states are refused, and the message says which fired.
