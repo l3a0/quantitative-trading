@@ -37,6 +37,8 @@ rule somebody else chose. Both examples first ran on 2026-10-04.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -68,9 +70,15 @@ from chan.khandani_lo_book_two import (
     run,
     window,
 )
-from chan.series import WindowCrossesScaleBreak, load_panel, refuse_window_crossing_a_break
+from chan.series import (
+    WindowCrossesScaleBreak,
+    load_panel,
+    refuse_window_crossing_a_break,
+    scale_breaks,
+)
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.test_scale_breaks import FLAGGED_IN_CHANS_MAT_FILES
 
 # --- the committed files -------------------------------------------------------
 
@@ -167,6 +175,12 @@ class TestTheFigures:
         }[figure]
         assert value == pytest.approx(computed, abs=5e-7)
         assert matches(value, printed)
+
+    def test_two_book_figures_sit_close_to_their_rounding_points(self, result: BookTwo) -> None:
+        """Row 2's 1.2595 is 0.0095 above 1.25, and row 4's 10.58 is 0.08 above 10.5."""
+        a = result.close_to_close
+        assert a.sharpe - 1.25 == pytest.approx(0.0095, abs=5e-5)
+        assert 100 * a.year_apr(2011) - 10.5 == pytest.approx(0.08, abs=5e-3)
 
     def test_the_printed_apr_sits_just_above_its_rounding_point(self, result: BookTwo) -> None:
         """0.7315525 would round the sixth decimal either way, and the run is 1.6e-9 above it."""
@@ -294,8 +308,8 @@ class TestTheScaleBreakDecision:
 
     The guard refuses this window on both fields, each stock read from its own
     rows. On the close it names the 17 stocks ``tests/test_scale_breaks.py``
-    pins, all in the 2008 crisis. A reversal rule is meant to see those days,
-    so the module computes across them, as the module docstring says.
+    pins. Chan's script computes across them and his figures need them, which
+    CAH shows, so the module computes across them too, as its docstring says.
     """
 
     START, END = pd.Timestamp(WINDOW_START), pd.Timestamp(WINDOW_END)
@@ -311,6 +325,35 @@ class TestTheScaleBreakDecision:
         said = str(refused.value)
         assert said.count("changes scale") == stocks
         assert "has no readable" not in said
+
+    def test_on_the_close_it_names_the_stocks_the_scale_break_pins_hold(self, closes_panel) -> None:
+        members, frame = closes_panel
+        legs = [(m, frame[m.symbol].dropna()) for m in members]
+        with pytest.raises(WindowCrossesScaleBreak) as refused:
+            refuse_window_crossing_a_break(legs, start=self.START, end=self.END)
+        named = set(
+            re.findall(r"inputdataohlcdaily_stocks_20120424/[a-z]+\.csv", str(refused.value))
+        )
+        pinned = {k for k in FLAGGED_IN_CHANS_MAT_FILES if k.startswith("inputdataohlcdaily")}
+        assert named == pinned
+
+    def test_three_stocks_are_flagged_on_the_open_only(self, closes_panel, opens_panel) -> None:
+        def flagged(frame):
+            cut = window(frame, WINDOW_START, WINDOW_END)
+            return {s for s in cut.columns if scale_breaks(cut[s].dropna())}
+
+        assert flagged(opens_panel[1]) - flagged(closes_panel[1]) == {"HBAN", "SLM", "ZION"}
+
+    def test_cahs_flag_is_not_a_crash_and_the_figures_need_it(self, closes_panel) -> None:
+        """19.96, 14.50, 23.57 on three days, and without CAH neither of 4.3's figures lands."""
+        _, frame = closes_panel
+        closes = frame["CAH"].loc["2009-08-31":"2009-09-02"].tolist()
+        assert closes == [19.96, 14.5, 23.57]
+        without = close_to_close(frame.drop(columns=["CAH"]), start=WINDOW_START, end=WINDOW_END)
+        assert 100 * without.apr == pytest.approx(13.26, abs=5e-3)
+        assert without.sharpe == pytest.approx(1.2267, abs=5e-5)
+        assert not matches(100 * without.apr, BOOK_43_APR_PERCENT)
+        assert not matches(without.sharpe, BOOK_43_SHARPE)
 
     def test_aigs_first_flag_is_a_day_the_rule_weights(self, closes_panel, result: BookTwo) -> None:
         """AIG has a finite return on 2008-09-15, so the rule weights the crash."""

@@ -212,7 +212,8 @@ they were first built. The other fifteen were built here.
 17. Khandani and Lo's reversal again, as *Algorithmic Trading*'s Examples 4.3
     and 4.4 run it on Chan's 2012 S&P 500 file over 2007 to 2011. Book two
     changes the rule as well as the data: it scales each day's weights to a
-    gross of 1, charges no cost, and cuts the window before taking returns.
+    gross of 1, leaves a missing price's weight missing, charges no cost, and
+    cuts the window before taking returns.
     Example 4.3 holds the weights from close to close, and Example 4.4 trades
     from the open to the same day's close on the overnight gap. Every figure
     Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
@@ -221,7 +222,8 @@ they were first built. The other fifteen were built here.
     decimals his script printed. The first book's rule on the same panel and
     window earns 1.2219 before costs, so most of the distance from that book's
     0.25 is the data and the window rather than the rule, and 5 basis points a
-    side take it to 0.3797. Every figure is exploratory and about survivors.
+    side take it to 0.3797. The data include a longer survivor horizon, which
+    nothing here prices. Every figure is exploratory and about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -387,8 +389,9 @@ that is what his notebook computed, and the entry reports what the figures are
 without it. Post-earnings drift calls the guard on each stock from its first
 price, over its 2011 and 2012 window, and nothing there needs refusing. The
 reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
-30 of that file's flagged days, which read as the 2008 crisis, and a reversal
-rule is meant to see a stock that collapsed against the market. The
+30 of that file's flagged days, Chan's script computes across them, and his
+figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
+2009-09-02 does not. The
 PCA factor model does not call it. Its printouts forward-fill PMC's 851-day
 gap in the S&P 600 file into one day's return of 1.8654, because Chan's
 programs do, and its entry reports every figure without PMC beside them.

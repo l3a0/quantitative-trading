@@ -92,18 +92,26 @@ book prints either, so neither carries a verdict.
 :func:`chan.series.refuse_window_crossing_a_break` refuses this window, on 17
 stocks' closes and 14 stocks' opens read from each stock's own rows. On the
 close they are the 30 days ``tests/test_scale_breaks.py`` pins, all in 2007 to
-2009, which ``data/README.md`` reads as the 2008 crisis rather than as splits.
-A reversal rule is meant to see a stock that collapsed against the market, so
-refusing the window would refuse the computation being reproduced. That is
-[issue 22](https://github.com/l3a0/quantitative-trading/issues/22)'s reasoning
-for momentum, and it is not a ruling for any other rule on this panel.
+2009. Chan's script computes across them, and his figures reproduce only with
+them in, so refusing the window would refuse the computation being reproduced.
+
+Most of the flags read as the 2008 crisis, the moves a reversal rule is meant
+to see, which is [issue 22](https://github.com/l3a0/quantitative-trading/issues/22)'s
+reasoning for momentum. Not all of them do. CAH's close falls from 19.96 to
+14.50 on 2009-09-01 and rises to 23.57 the next day, which reads as a data
+error or a corporate action rather than a crash, and without CAH Example 4.3
+gives 13.26 percent and 1.2267, so neither of Chan's figures reproduces. The
+opens' flags were counted rather than read, and three of their stocks, HBAN,
+SLM and ZION, are flagged on the open only. The decision is about reproducing
+this script, and it is not a ruling for any other rule on this panel.
 
 **Every figure here is about survivors.** The panel is the S&P 500 as Chan
 held it on 2012-04-24, carried backwards. Chan calls the years from 2008 "a
 true out-of-sample test" because the strategy was published in 2007. They are
 out of sample in time, but the stocks were chosen with 2012's membership.
-[Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is where
-survivorship on this panel is measured.
+[Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) prices
+survivorship on this file for Example 7.2 over 2011 and 2012, and nothing yet
+prices it for this rule over 2007 to 2011.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2007
 to 2011 sample on a rule somebody else chose, so the run says whether his
