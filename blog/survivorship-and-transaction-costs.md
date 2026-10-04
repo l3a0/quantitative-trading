@@ -47,9 +47,27 @@ Chan’s code for these examples comes in two forms that disagree. His MATLAB fo
 
 ## Lesson 1: on the S&P 500, a day’s cost is larger than a day’s profit
 
-Chan’s weights are small numbers that he never scales to a dollar amount, so the clearest way to read an average day is as a share of the position the rule holds. Over 2006, per dollar of its average gross position, the stocks it owns plus the stocks it has sold short, the rule earned 0.53 basis points a day before costs. Its daily profit swung by about 33 basis points. The Sharpe ratio is that average over that swing, times √252, which gives 0.2510. Chan calls 0.25 a “mediocre” Sharpe ratio, a small edge under a large swing.
+Chan’s weights are small numbers that he never scales to a dollar amount, so the clearest way to read an average day is as a share of the position the rule holds. Over 2006, per dollar of its average gross position, the stocks it owns plus the stocks it has sold short, the rule earned 0.5276 basis points a day before costs. Its daily profit swung with a standard deviation of 33.3770 basis points. The Sharpe ratio is that average over that swing, times √252:
 
-Then the cost. Because the rule sets every weight again from yesterday’s returns, little of yesterday’s book survives into today’s. Each day it trades 1.45 times its average position, and at 5 basis points on each unit traded that costs 7.25 basis points of the position a day. The day’s cost is 13.7 times the day’s profit. Subtracting it barely changes the swing, so the Sharpe ratio drops to −3.2337, with the first day’s trades charged. Chan’s −3.19 comes from the same arithmetic with the first day treated differently, which Lesson 2 explains.
+```math
+\text{Sharpe before costs} = \sqrt{252}\;\frac{0.5276}{33.3770} \approx 0.2510
+```
+
+Chan calls 0.25 a “mediocre” Sharpe ratio, a small edge under a large swing.
+
+Then the cost. Because the rule sets every weight again from yesterday’s returns, little of yesterday’s book survives into today’s. Each day it trades 1.4505 times its average position, and each unit traded costs 5 basis points:
+
+```math
+\text{daily cost} = 1.4505 \times 5\ \text{basis points} = 7.2525\ \text{basis points}
+```
+
+The day’s cost is 13.7453 times the day’s profit. Subtracting it from every day moves the average a long way and barely changes the swing, from 33.3770 to 33.0134 basis points. With the first day’s trades charged, the Sharpe ratio drops to −3.2337:
+
+```math
+\text{Sharpe after costs} = \sqrt{252}\;\frac{0.5276 - 7.2525}{33.0134} \approx -3.2337
+```
+
+The inputs are shown at four decimals, so redoing the arithmetic on them can miss the last digit of a result, which comes from the unrounded figures. Chan’s −3.19 comes from the same arithmetic with the first day treated differently, which Lesson 2 explains.
 
 ![Two lines of cumulative profit over 2006, each day’s profit divided by the year’s average gross position. The green line, before costs, wanders around zero and ends the year at +1.3%. The red line, after 5 basis points a side, falls steadily from January and ends at −16.9%. The note gives the Sharpe ratios as 0.2510 before costs and −3.2337 after.](../docs/figures/khandani_lo_cumulative_profit.png)
 
