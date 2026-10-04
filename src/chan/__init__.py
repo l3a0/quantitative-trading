@@ -8,7 +8,8 @@ checkable later.
 
 The exception is a result computed from nothing. ``coin_flip_growth`` works a
 gamble, so it has no vendor and no download date and nothing to restate, and
-it says so where every other run names a file. ``pair_cointegration``'s
+it says so where every other run names a file. ``kelly_allocation`` is the same
+case, arithmetic on inputs the book states. ``pair_cointegration``'s
 ``--selftest`` is the same shape at a smaller scale.
 
 ``survivorship_bias`` is a second exception, of a different kind. It reads the
