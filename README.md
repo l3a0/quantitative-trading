@@ -1618,7 +1618,8 @@ and 1.27 for a mirror he prints no script for. The post draws six lessons
 from Entry 18 of the replication log.
 
 1. Both figures `bog.m` prints reproduce on Chan's own file.
-2. The `smartstd` inside the 90-day spread decides both printed figures.
+2. The `smartstd` behind the 90-day standard deviation decides both printed
+   figures.
 3. One phrase, "annualized average return", names two formulas in this book.
 4. The mirror, written down before any run, lands at 12 percent and not 46,
    though its drawdown is the steeper as Chan says.
@@ -1638,7 +1639,8 @@ Five groups of its figures are not pinned here.
    "does not have a large capacity" are at 1974. "Can't" and "signal noise"
    are at 1988. The mirror's sentence, its 46 percent and 1.27, "steeper
    drawdown" and "suffered from" are at 1993. "An annualized average return
-   of around 8.7 percent" is at 3509, and the same phrase for Example 7.2's
+   of around 8.7 percent", in a later chapter on risk management, is at 3509,
+   and the same phrase for Example 7.2's
    levered figure is at 3024. The book's figures are pinned, and its words
    are not.
 2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
@@ -1654,7 +1656,9 @@ Five groups of its figures are not pinned here.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), or to
+[tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), to
+[tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as the
+arithmetic figure, or to
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) for the
 figure's own numbers. Two had no pin before it, and the figure's test now pins
 both, for each side.

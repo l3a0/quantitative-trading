@@ -11,10 +11,12 @@ share both axes.
    position, unlevered and before costs.
 2. The bottom panel draws the same series for the short-on-gap mirror, where
    the book prints Figure 4.2 at location 1993. Chan published no script for
-   it, so this is the rule issue 295 declared before any run, not his.
+   it, so this is the rule
+   [issue 295](https://github.com/l3a0/quantitative-trading/issues/295)
+   declared before any run, not his.
 
-Sharing the axes is the point. The mirror's steeper drawdown, which
-reproduces, and its return, which does not, read on one scale. The figure
+On shared axes, the mirror's steeper drawdown, which reproduces, and its
+return, which does not, read on one scale. The figure
 serves the post's first lesson, that both printed figures reproduce, and its
 fourth, on the mirror.
 
@@ -29,7 +31,8 @@ Two stretches are shaded on each panel.
    which is why ``tests/test_buy_on_gap_figures.py`` holds it.
 
 Every value comes from :func:`chan.buy_on_gap.both_sides`, the run's own read
-of the committed file. The run calls no scale-break guard, by issue 295's
+of the committed file. The run calls no scale-break guard, by
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295)'s
 decision, so the figure has no guard to skip::
 
     uv run python -m chan.buy_on_gap_figures
@@ -157,13 +160,16 @@ def make_cumulative_figure(
     _panel(top, long, mirror=False)
     _panel(bottom, short, mirror=True)
 
-    top.annotate(
-        f"no position in the first {SPREAD_LOOKBACK} days,\nbefore the "
-        f"{SPREAD_LOOKBACK}-day spread exists",
-        (long.days[SPREAD_LOOKBACK - 1], 0.0),
-        xytext=(6, -30),
-        textcoords="offset points",
+    # The idle label sits at the top left, where the line has not yet climbed,
+    # because below the zero line it would run off the axes.
+    top.text(
+        long.days[SPREAD_LOOKBACK - 1],
+        0.95,
+        f" no position in the first {SPREAD_LOOKBACK} days,\n before the "
+        f"{SPREAD_LOOKBACK}-day\n standard deviation exists",
+        transform=top.get_xaxis_transform(),
         ha="left",
+        va="top",
         color=MUTED,
         fontsize=9.5,
         gid="unfilled-label",

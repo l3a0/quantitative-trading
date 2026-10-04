@@ -1,8 +1,13 @@
 """The pins for buy on gap and its mirror, *Algorithmic Trading*'s Example 4.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 4.1. ``docs/replication-log.md`` Entry 18 carries the verdicts
-and points here row by row.
+about Example 4.1, with two exceptions, both in ``blog/buy-on-gap-lessons.md``.
+The post quotes the dates of each side's longest spell below the high and of
+its deepest drawdown, which ``tests/test_buy_on_gap_figures.py`` holds. And it
+recalls Example 7.2's 6.7 percent as the arithmetic figure, which
+``tests/test_pead.py`` holds. README lists what the post says that nothing
+pins. ``docs/replication-log.md`` Entry 18 carries the verdicts and points
+here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as

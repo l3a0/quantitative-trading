@@ -214,7 +214,7 @@ class TestTheIdleStart:
     def test_its_label_names_the_90_days_once(self, figure) -> None:
         top, bottom = (_texts(ax) for ax in figure.axes)
         assert top["unfilled-label"] == (
-            "no position in the first 90 days,\nbefore the 90-day spread exists"
+            " no position in the first 90 days,\n before the 90-day\n standard deviation exists"
         )
         assert "unfilled-label" not in bottom
 
