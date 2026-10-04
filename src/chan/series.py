@@ -342,10 +342,13 @@ def load_panel(
     own rows reads that gap as one day's move.
 
     A refusal is :class:`chan.vintage.VintageUnavailable` and names the source.
-    A source naming no entry, members disagreeing on the vendor, basis or date
-    they carry, a close asked of a source of flags, and two members
-    holding one symbol are four different states, and the message says which
-    fired.
+    Five different states are refused, and the message says which fired.
+
+    1. A source naming no entry.
+    2. Members disagreeing on the vendor, basis or date they carry.
+    3. A close asked of a source of flags.
+    4. A close asked of a source of returns.
+    5. Two members holding one symbol.
     """
     try:
         entries = read_manifest(data_dir)
@@ -377,8 +380,11 @@ def load_panel(
             f"for its {EVENT_FIELDS[0]} field by name."
         )
     if field == "Close" and members[0].price_basis == "return":
-        # The same reasoning as for a flag. A strategy's return is not a price,
-        # and its second column would otherwise come back labelled as a close.
+        # The same reasoning as for a flag, for a source holding returns alone.
+        # No committed source does: the returns of Chan's Python port share
+        # a zip with prices and rates, so the disagreement check above refuses
+        # that one first. A return is not a price, and a later source of them
+        # written with a second column would come back labelled as a close.
         raise VintageUnavailable(
             f"{source_file} holds returns rather than prices, so it has no close"
         )
@@ -787,9 +793,13 @@ def _dates(days: pd.DatetimeIndex) -> str:
 def _column_of(payload: bytes, field: str, path: str) -> int:
     """Which column of a vintage's bytes holds ``field``.
 
-    The close is the second column in every vintage here, whatever header it
-    carries, so it needs no lookup. Any other field is found in the first row,
-    which a lifted file writes as ``Price,`` followed by its fields.
+    The close is the second column in every vintage a panel can read, whatever
+    header it carries, so it needs no lookup. That is not true of every file in
+    ``data/``. In a file of Chan's Python port the second column can be a time
+    or a month, and :func:`load_panel` refuses that source before reading any
+    column, because its files disagree on basis and date. Any other field is
+    found in the first row, which a lifted file writes as ``Price,`` followed by
+    its fields.
     """
     if field == "Close":
         return 1

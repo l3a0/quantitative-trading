@@ -108,8 +108,8 @@ CHECKSUMS_NAME = "checksums.sha256"
 #: whether something happened, such as an earnings announcement, and its
 #: **event** entry says why it is a basis rather than a field of a price file.
 #: A ``return`` vintage holds a strategy's period returns as its source wrote
-#: them, such as the AUD.CAD returns Chan's Example 5.1 saved, and its
-#: **return** entry says why it is none of the other four.
+#: them, such as the AUD.CAD returns Chan's Example 5.1 saved, and the design
+#: doc's **return** entry says why it is none of the other four.
 #: A rate or a return cannot reach the single-series guard because
 #: ``close_identity`` never names either. :func:`chan.series.load_panel`
 #: refuses a close from an ``event`` or a ``return`` source, and the
@@ -1112,12 +1112,14 @@ def _serialize(rows: list[tuple[str, float]]) -> bytes:
     written as Python's shortest round-trip repr, which is what produced the
     committed files, and lines end in a single newline.
 
-    The header names the two columns and nothing else. The hand-placed
+    The header names the two columns and nothing else. Most hand-placed
     vintages carry a three-row multi-index header instead, which is yfinance's
     shape, and writing that for every vendor would put a line reading
     ``Price,Close`` at the top of a series no vendor of that name returned.
     ``load_close`` drops every leading row whose first field is not a date, so
-    it reads either.
+    it reads either. The files of Chan's Python port keep the headers his zip
+    gave them, which ``data/README.md``'s ``## Header shape`` calls the third
+    shape.
     """
     lines = ["Date,Close"]
     lines.extend(f"{day},{value!r}" for day, value in rows)

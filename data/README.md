@@ -54,8 +54,8 @@ a hand-written entry instead is the identity pinned for it in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
 what holds a lifted column is the pin for its source in the same file, and
 both carry their own `Ticker,` header row, which names the series their bytes
-carry. A file of Chan's Python port carries no such row, so its pin in the
-same file holds its symbol against the name the zip gave the file.
+carry. A file of Chan's Python port carries no such row, so its pin there
+checks its symbol against the file name the zip gave it.
 
 That check is what stands between a recorded entry and a file it does not
 describe, and it is worth saying what it does not do. It compares the record
@@ -751,8 +751,8 @@ the measurements below.
    not hold it. Each committed file is what
    `unzip -p PythonCodesAndData.zip PythonCodesAndData/<name>` writes, and
    [tests/test_python_port.py](../tests/test_python_port.py) pins each one's
-   sha256. Each saved date is that file's own timestamp in the zip's
-   directory, which is part of the zip's bytes, and the vendor is `chan-py`.
+   sha256. Each saved date is that file's own timestamp in the zip's central
+   directory, the index of members that is part of the zip's bytes, and the vendor is `chan-py`.
    It is a vendor of its own rather than `chan-mat` or `chan-xls`, because
    those name his MATLAB files and his workbooks, and sharing one would let a
    read match two sources.
@@ -769,31 +769,34 @@ the measurements below.
    file and `Return` alone for the return file. All seven end their lines
    with a carriage return and a newline, which makes them the first files here
    to carry a carriage return. `data/** -text` in
-   [.gitattributes](../.gitattributes) keeps those bytes as they are. They
-   carry three bases and four saved dates, so each has its own row in the
-   table above rather than one row for the directory.
+   [.gitattributes](../.gitattributes) keeps those bytes as they are. They do
+   not share one basis or one saved date, so each has its own row in the table
+   above rather than one row for the directory.
 3. **The minute file's clock is New York time, with daylight saving.** It
    holds 1,730,962 bars on 1,466 dates, from 2007-07-22 to 2012-03-28, with no
    date and time repeated. No bar falls from 17:00 to 17:14 on any day, across
-   every change of clock from 2007 to 2012, which a file kept in a fixed
-   offset would move by an hour twice a year. The currency market's day closes
+   every change of clock from 2007 to 2012. A file kept in a fixed offset
+   would shift that gap by an hour twice a year. The currency market's day closes
    at 17:00, so a full day holds 1,425 bars, the 1,440 minutes of a day less
    the 15-minute pause. The date column is the bar's calendar date, so a
    Sunday evening's bars carry the Sunday. No Sunday bar comes before 17:15,
    and every Friday's last bar is 16:59, except 2011-12-23's, at 14:59.
-4. **Its daily close is the 16:59 bar, read when a run reads it.** Chan's
-   MATLAB takes `cl(hhmm==1659)` and his Python takes `df['Time']==1659`, and
-   `chan.series.load_minute_close` does the same from the verified bytes. That
-   gives 1,216 closes from 2007-07-23 to 2012-03-28, and no derived file is
-   committed. 250 dates hold no 16:59 bar: 245 Sundays, 2007-12-25,
-   2008-01-01, 2008-12-25, 2009-01-01, and the early close on 2011-12-23. The
-   scale-break guard reads these closes, and it flags no day in them or in
+4. **Its daily close is the 16:59 bar, filtered at read time rather than
+   committed.** Chan's MATLAB takes `cl(hhmm==1659)` and his Python takes
+   `df['Time']==1659`, and `chan.series.load_minute_close` does the same from
+   the verified bytes. That gives 1,216 closes from 2007-07-23 to 2012-03-28.
+   Of the 1,466 dates, 250 hold no 16:59 bar.
+   - 245 Sundays, whose session opens at 17:15.
+   - Four holidays: 2007-12-25, 2008-01-01, 2008-12-25 and 2009-01-01.
+   - The early close on 2011-12-23.
+
+   The scale-break guard reads these closes, and it flags no day in them or in
    the three daily files.
 5. **The bases.** A currency is `raw`, because it has no splits or dividends
    to adjust for. The two interest-rate files are `rate`, and each one's span
    runs from the first of its first month to the first of its last, the
    convention the FRED bill series uses. The return file carries a fifth
-   basis, `return`, which the owner ruled on 2026-10-04, under the symbol
+   basis, `return`, which the owner added on 2026-10-04, under the symbol
    `AUDCAD-UNEQUAL`. It holds no dates. `AUDCAD_unequal.m`, Example 5.1's
    script, trains on the first 250 of the AUD.USD daily file's 862 days and
    saves the returns of the other 612, so its span is that file's rows 251 to
@@ -848,7 +851,7 @@ the measurements below.
       and nothing in the files says more.
    3. The rates against the Reserve Bank of Australia's and the Bank of
       Canada's own tables, which the book names as their source.
-9. **The size cap is raised to 205 MB.** The seven files hold 38,634,670
+9. **The owner raised the size cap to 205 MB.** The seven files hold 38,634,670
    bytes, 38.63 MB. With their manifest and checksum lines and this section
    they take `data/` from 134.91 MB to 173.56 MB of file content, past the
    150 MB cap. The owner ruled on 2026-10-04, on
@@ -902,13 +905,17 @@ file name and never rewrites one this record names.
 
 ## Header shape
 
-The files placed by hand above carry a three-row header before the data. The
-shape is yfinance's multi-index frame, and the workbook columns were written
-into it too, as is every stock `record_lifted_columns` writes. A stock lifted
-with all five fields widens it to one cell per field, so its first two rows
-read `Price,Close,High,Low,Open,Volume` and `Ticker,KO,KO,KO,KO,KO`. What that buys, whether or not anybody meant it at the time, is
-that the symbol sits in the bytes where a check can read it back, and
-`tests/test_vintage.py` now does:
+The vintages here carry one of three header shapes.
+
+The files placed by hand above carry a three-row header before the data,
+except the seven of Chan's Python port, which the third shape below covers.
+The shape is yfinance's multi-index frame, and the workbook columns were
+written into it too, as is every stock `record_lifted_columns` writes. A stock
+lifted with all five fields widens it to one cell per field, so its first two
+rows read `Price,Close,High,Low,Open,Volume` and `Ticker,KO,KO,KO,KO,KO`. What
+that buys, whether or not anybody meant it at the time, is that the symbol sits
+in the bytes where a check can read it back, and `tests/test_vintage.py` now
+does:
 
 ```text
 Price,Close
@@ -922,17 +929,7 @@ nothing else.
 In a `rate` vintage the `Close` column holds the rate, because the recorder
 writes one header for every series it records.
 
-A file of Chan's 2018 Python port carries the header the zip gave it, such as
-`Date,Time,Close` for the minute bars and `Year,Month,Rates` for a rate, and
-writes its dates as `YYYYMMDD`. That is the third shape. The owner ruled on
-2026-10-04, on
-[issue 301](https://github.com/l3a0/quantitative-trading/issues/301), that
-these files are committed as the zip shipped them, so no header of this
-repo's can be added to them, and every check that reads a date knows their
-shapes from the pin in
-[tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
-
-The first two shapes are deliberate too. The three rows above are an artifact
+Those two shapes rather than one are deliberate. The three rows above are an artifact
 of one vendor's frame, and writing `Price,Close` at the top of a series some
 other vendor returned would be a claim the file has no business making. The
 columns lifted from Chan's own files take the three-row shape anyway, the
@@ -941,7 +938,20 @@ because they are held by the same check: the `Ticker,` row is what names the
 series in the bytes, and none of them came from the recorder.
 
 `load_close` drops every leading row whose first field does not parse as a
-date, so it reads either shape and does not depend on a row count.
+date, so it reads both of those shapes and does not depend on a row count.
+
+The third shape is the header Chan's 2018 Python port gave each of its files,
+such as `Date,Time,Close` for the minute bars and `Year,Month,Rates` for a
+rate. A minute or daily file writes its dates as `YYYYMMDD`. The owner ruled
+on 2026-10-04, on
+[issue 301](https://github.com/l3a0/quantitative-trading/issues/301), that
+these files are committed as the zip shipped them, so no header of this
+repo's can be added to them. Every check that reads their dates knows each
+file's layout from the pin in
+[tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
+`load_close` reads the daily files like any other, and refuses the minute
+file, whose second column is a time. `chan.series.load_minute_close` reads
+that one.
 
 ## Verifying the bytes
 
@@ -1064,13 +1074,13 @@ is the instruction saying so.
 
 A directory of lifted columns gets one row rather than one per file, so the
 2,694 lifted columns are five rows. The row states what every file in it
-shares, which is the vendor, the basis and the date, along with how many members it holds and the
-earliest and latest day any of them carries. Its members must agree on the
+shares, which is the vendor, the basis and the date, along with how many
+members it holds and the earliest and latest day any of them carries. Its members must agree on the
 three shared cells, or the failure names the directory and the values. What
 holds each member's own identity is the pin for its source in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
 which also counts the members. The directory of Chan's Python port gets one
-row per file instead, because its seven files carry three bases and four
-saved dates and one row could not state them. The check tells the two kinds
+row per file instead, because its files do not share one basis or one saved
+date, so one row could not state them. The check tells the two kinds
 apart by the file names: a lifted column is named for its symbol, and a file
 of the port keeps the name the zip gave it.

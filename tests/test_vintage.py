@@ -126,13 +126,14 @@ class TestRecordingAVintage:
         assert (data_dir / entry.path).read_bytes() == b"Date,Close\n2026-08-25,50.0\n"
 
     def test_the_header_does_not_borrow_one_vendor_s_shape(self, data_dir):
-        """The hand-placed vintages carry a three-row header instead.
+        """Most hand-placed vintages carry a three-row header instead.
 
         Writing that shape for every vendor would put `Price,Close` and a
         `Ticker` row at the top of a series no vendor of that name returned,
         which is a claim the file has no business making. `load_close` drops
         every leading row whose first field is not a date, so it reads either
-        shape, and `data/README.md` describes both.
+        shape. `data/README.md` describes both, and a third, the headers Chan's
+        Python port shipped with, which no writer here produces.
         """
         entry = record_vintage(ROWS, data_dir=data_dir, **SOURCE)
 
@@ -1132,8 +1133,7 @@ def the_python_port_is_pinned(directory: Path) -> None:
     names the `AUD` of `AUDRATE`, and `AUDCAD_unequal_ret` names
     `AUDCAD-UNEQUAL`. The comparison drops the symbol's `RATE` suffix and its
     hyphen and looks for what is left in the name with its underscores removed,
-    so swapping two members' symbols fails here though both pins agree with
-    the manifest.
+    so swapping two members' symbols fails here though the table agrees.
     """
     members = {
         entry.path: entry for entry in read_manifest(directory) if in_the_python_port(entry.path)
@@ -1343,7 +1343,11 @@ def _rows_the_manifest_owes(entries: list[VintageEntry]) -> dict[str, dict[str, 
     symbol, so a directory holding any file named that way is one of lifted
     columns, and one holding none keeps its source's names. Asking whether any
     member is named that way, rather than every one, keeps a single edited
-    member from turning a directory of 500 into 500 rows owed.
+    member from turning a directory of 500 into 500 rows owed. The other
+    direction still flips: one file named for its symbol, added to the port's
+    directory, turns its seven rows into one owed for the directory, and the
+    failure then names the directory's disagreeing cells rather than the
+    stray file. `the_python_port_is_pinned` names the file.
 
     Both are read off the manifest rather than off `LIFTED_SOURCES` or
     `PYTHON_PORT`, so this check stays a comparison of two surfaces rather than
@@ -1524,9 +1528,9 @@ def _days_in(path: str, raw: bytes) -> list[str]:
     2. A rate file writes a year and a month, and its date is the first of the
        month.
     3. The return file writes no date, so its rows take the dates
-       `RETURN_CALENDAR` names. That every row of it is a row is what the
-       count holds, since `0.0024` and `-0.0065` both fail a digit test on the
-       first four characters.
+       `RETURN_CALENDAR` names. A return row opens with `0.` or `-0.`, so the
+       four-digit test the other files take would drop every one, and the
+       length assertion is what checks each row got a date.
     """
     lines = raw.decode("utf-8").splitlines()
     if path not in PYTHON_PORT:
@@ -1648,12 +1652,14 @@ class TestTheCommittedManifest:
         the_table_and_the_manifest_agree(DATA_DIR)
 
     def test_an_entry_carries_one_kind_of_date(self):
-        """The `*_chan.csv` files and the columns of Chan's `.mat` files were saved.
+        """The series lifted from Chan's own files were saved, not downloaded.
 
-        Their date is when Ernest Chan last saved the file a column was
-        lifted from. A save date in a field named for a download is a wrong
-        fact in the field that identifies the vintage, so those four carry
-        their own field and the rest carry a download date.
+        Those are the `*_chan.csv` workbook columns, the columns of his `.mat`
+        files and the files of his Python port. Their date is when Ernest Chan
+        last saved the file a series was lifted from. A save date in a field
+        named for a download is a wrong fact in the field that identifies the
+        vintage, so those carry their own field and the rest carry a download
+        date.
         """
         by_path = {entry.path: entry for entry in read_manifest()}
 
@@ -2628,6 +2634,79 @@ class TestRecordingASourceOfFlags:
             vintage.record_lifted_columns(
                 rows, **self.FROM, fields=vintage.EVENT_FIELDS, data_dir=data_dir
             )
+
+
+class TestThePythonPortIsHeld:
+    """What `PYTHON_PORT` catches in the committed record, driven against a copy.
+
+    The pin is checked against the manifest alone, so only the manifest is
+    copied. Copying the whole of `data/` would add 174 MB of writes per case
+    for files the check never opens.
+    """
+
+    @pytest.fixture
+    def manifest(self, tmp_path):
+        (tmp_path / MANIFEST_NAME).write_bytes((DATA_DIR / MANIFEST_NAME).read_bytes())
+        the_python_port_is_pinned(tmp_path)
+        return tmp_path
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("vendor", "chan-mat"),
+            ("symbol", "AUDUSD"),
+            ("price_basis", "adjusted"),
+            ("saved_date", "2018-12-13"),
+            ("source_workbook", "PythonCodesAndData2.zip"),
+        ],
+    )
+    def test_an_edit_to_one_file_fails_the_pin(self, manifest, field, value):
+        rewrite_entry(
+            manifest, "pythoncodesanddata/inputData_USDCAD_20120426.csv", **{field: value}
+        )
+
+        with pytest.raises(AssertionError, match="inputData_USDCAD_20120426.csv"):
+            the_python_port_is_pinned(manifest)
+
+    def test_a_symbol_the_file_name_does_not_carry_fails_though_the_pin_agrees(
+        self, manifest, monkeypatch
+    ):
+        """Two files' symbols swapped in the pin and the manifest together.
+
+        The identity comparison agrees with itself then, so only the file name
+        is left to say the symbols are on the wrong files.
+        """
+        swapped = dict(PYTHON_PORT)
+        usd, aud = (
+            "pythoncodesanddata/inputData_USDCAD_20120426.csv",
+            "pythoncodesanddata/inputData_AUDUSD_20120426.csv",
+        )
+        swapped[usd] = (*PYTHON_PORT[usd][:1], "AUDUSD", *PYTHON_PORT[usd][2:])
+        swapped[aud] = (*PYTHON_PORT[aud][:1], "USDCAD", *PYTHON_PORT[aud][2:])
+        monkeypatch.setattr(sys.modules[__name__], "PYTHON_PORT", swapped)
+        rewrite_entry(manifest, usd, symbol="AUDUSD")
+        rewrite_entry(manifest, aud, symbol="USDCAD")
+
+        with pytest.raises(AssertionError, match="inputData_"):
+            the_python_port_is_pinned(manifest)
+
+    def test_a_file_the_pin_does_not_name_fails(self, manifest):
+        """A file added to the directory is held there rather than passing as recorded."""
+        line = json.loads((manifest / MANIFEST_NAME).read_text(encoding="utf-8").splitlines()[-1])
+        line["path"] = "pythoncodesanddata/stray.csv"
+        with (manifest / MANIFEST_NAME).open("a", encoding="utf-8") as appended:
+            appended.write(json.dumps(line, sort_keys=True) + "\n")
+
+        with pytest.raises(AssertionError, match="pythoncodesanddata/: the manifest holds"):
+            the_python_port_is_pinned(manifest)
+
+    def test_a_file_dropped_from_the_manifest_fails(self, manifest):
+        lines = (manifest / MANIFEST_NAME).read_text(encoding="utf-8").splitlines()
+        kept = [line for line in lines if "AUD_interestRate.csv" not in line]
+        (manifest / MANIFEST_NAME).write_text("".join(f"{line}\n" for line in kept))
+
+        with pytest.raises(AssertionError, match="pythoncodesanddata/: the manifest holds"):
+            the_python_port_is_pinned(manifest)
 
 
 class TestALiftedSourceIsHeld:
