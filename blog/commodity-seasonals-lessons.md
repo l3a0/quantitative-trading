@@ -31,7 +31,7 @@ EIA publishes those settlements for free, for the nearest four contracts of each
 2. RBOB gasoline, contract 1, from 2006. RBOB is the gasoline contract that replaced the New York Harbor one, and it began trading in October 2005.
 3. Henry Hub natural gas, contracts 2, 3 and 4.
 
-The rules that decide each result were written down on [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any trade was computed, and one was corrected after the first run without changing any count, as Lesson 4 says. Two of them carry most of what follows:
+The rules that decide each result were written down before any trade was computed, and one was corrected after the first run without changing any count, as Lesson 4 says. Two of them carry most of what follows:
 
 1. **Profitable** means the exit settlement is strictly above the entry settlement, on one contract, with no costs. A zero change is not a profit.
 2. **A missing row stays missing.** A year whose trade date has no row in its file counts neither as a profit nor as a loss. The run does not move it to a neighbouring day.
@@ -52,7 +52,7 @@ The files answer part of it. Every year from 1994, the first year the files hold
 \end{array}
 ```
 
-Read as first-edition figures counted from 1995, both of Chan’s counts reproduce. The main text’s 13 is the run ending in 2007 and the sidebar’s 14 is the run ending in 2008, both inside the years before a book released in November 2008. That reading was written down on [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any trade was computed, as a hypothesis. The files constrain it in two ways and prove it in neither.
+Read as first-edition figures counted from 1995, both of Chan’s counts reproduce. The main text’s 13 is the run ending in 2007 and the sidebar’s 14 is the run ending in 2008, both inside the years before a book released in November 2008. That reading was written down before any trade was computed, as a hypothesis. The files constrain it in two ways and prove it in neither.
 
 1. **They rule out the revised edition’s years.** 2009 is a loss, and counted from 1995 no run of 13 or more ends in any year except 2007 and 2008. So neither count can describe a run that reached into the years after the first edition.
 2. **They cannot pick the start year.** 1994 is profitable too. Counted from 1994, the runs of 13 and 14 end in 2006 and 2007 instead. The only reason to prefer 1995 is that Chan’s gasoline sidebar names it as its own start.
@@ -83,7 +83,7 @@ The losses say more than the gaps do. Chan’s 19 of 21 allows exactly 2 losing 
 
 One more year has a gap of the same kind. RBOB began trading in October 2005, so the first April it covers is 2006, and the run reads RBOB from then. The older New York Harbor contract still traded in April 2006, but its file has no row on 13 April 2006, so the files cannot say whether reading the older contract that year would change its result.
 
-The verdict [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records for this row is “reproduced with a gap”. That verdict was taken after the criterion [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) wrote down, exactly 19 profitable years, failed at 16. The log’s rule allows the verdict when the gap has a named cause outside the method, and the missing rows are one. Both the log and the issue say the verdict came afterwards, and this post says it too.
+The verdict [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records for this row is “reproduced with a gap”. That verdict was taken after the criterion written down in advance, exactly 19 profitable years, failed at 16. The log’s rule allows the verdict when the gap has a named cause outside the method, and the missing rows are one. The log says the verdict came afterwards, and this post says it too.
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
@@ -134,7 +134,7 @@ Six questions are beyond it.
 3. **Which year each natural gas count was written in.** Lesson 1’s reading is a hypothesis the files constrain and cannot prove.
 4. **Whether either trade pays after costs.** No commission, slippage or margin is charged.
 5. **Whether nearby dates hold up.** Chan’s own suggested check, at location 4637, was not run, for the reason Lesson 3 gives.
-6. **Any year after 2023.** EIA’s RBOB and natural gas files end on 5 April 2024, before either trade’s 2024 exit date. Another vendor could extend the record. [Issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records that the Massive futures data service returned gasoline prices for April 2025, and no issue is extending the record today.
+6. **Any year after 2023.** EIA’s RBOB and natural gas files end on 5 April 2024, before either trade’s 2024 exit date. Another vendor could extend the record. The Massive futures data service returned gasoline prices for April 2025, and nothing here extends the record yet.
 
 ## What this means for a trader
 

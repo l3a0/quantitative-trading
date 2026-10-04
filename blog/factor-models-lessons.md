@@ -66,7 +66,7 @@ Here is every figure the four printouts show, at the precision each prints it, b
 The revised MATLAB prints its figures on p. 164, the Python on p. 165 and the R on p. 167. Three points sit behind the table.
 
 1. **The first edition’s figure is in other units.** Its daily figure sums 100 positions of ±1 and never divides by capital. So −1.8099 is a sum over positions, not a return on capital, and it cannot be set beside the revised edition’s 2 percent. The [equity seasonals post](https://github.com/l3a0/quantitative-trading/blob/main/blog/equity-seasonals-lessons.md) met the same thing in Example 7.7.
-2. **Neither reading of the R’s code reaches the figures it prints.** The R prints the Python’s three figures to the last digit, but its code differs from the Python’s. It buys 52 stocks rather than 50, among other differences. Read without filling gaps, it gives 0.0401, 0.0797 and 0.5038. Read with gaps filled by the last price, it gives 0.0426, 0.0802 and 0.5319. The R also loads a helper file, `calculateReturns.R`, that the book does not print, and this repository has no R runtime, so the R row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) will run it.
+2. **Neither reading of the R’s code reaches the figures it prints.** The R prints the Python’s three figures to the last digit, but its code differs from the Python’s. It buys 52 stocks rather than 50, among other differences. Read without filling gaps, it gives 0.0401, 0.0797 and 0.5038. Read with gaps filled by the last price, it gives 0.0426, 0.0802 and 0.5319. The R also loads a helper file, `calculateReturns.R`, that the book does not print, and this repository has no R runtime, so the R row is a reading of the code rather than a run of it.
 3. **The revised Sharpe ratio needs a helper from another book.** The revised MATLAB computes its standard deviation with a helper, `smartstd`, and Chan’s two books ship two versions of it. The one from his *Algorithmic Trading* reproduces the printed 0.211120, and the revised repost carries that one. The one from this book’s first edition gives 0.2441.
 
 ## Lesson 2: Chan’s round-off is a second strategy
@@ -101,7 +101,7 @@ So the gap between 2 and 4 percent is method, an **exploratory** verdict on Chan
 
 ## Lesson 3: the momentum the strategy assumes held for the market factor and not for the momentum factor
 
-Chan’s claim is that factor returns “often” autocorrelate more strongly than single stocks. Before any autocorrelation was computed, [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) fixed a criterion for each factor on its own. The claim holds for a factor when its lag-1 autocorrelation is above 0 and above the median stock’s. On the same day, still before any autocorrelation was computed, the repository’s owner ruled that each factor carries its own verdict and that no combined verdict is drawn from the two.
+Chan’s claim is that factor returns “often” autocorrelate more strongly than single stocks. Before any autocorrelation was computed, this repository fixed a criterion for each factor on its own. The claim holds for a factor when its lag-1 autocorrelation is above 0 and above the median stock’s. On the same day, still before any autocorrelation was computed, the repository’s owner ruled that each factor carries its own verdict and that no combined verdict is drawn from the two.
 
 ```math
 \begin{array}{l|r|r|l}
@@ -121,7 +121,7 @@ Each verdict is **exploratory** and stands on its own.
 
 The quartiles are by linear interpolation between the two nearest stocks.
 
-**What was not tested.** Entry 14 tested the claim Example 7.4 rests on. It did not test Example 7.4’s own factors. Those are five statistical factors, on daily returns, on the S&P 600 file. MKT and WML are named factors, on monthly returns, on the S&P 500 file. And by Lesson 2 the revised Python rests on each stock’s own momentum over the year, not on any factor’s momentum. So neither verdict is a verdict on Example 7.4. [Issue 286](https://github.com/l3a0/quantitative-trading/issues/286) will test Example 7.4’s own factor returns.
+**What was not tested.** Entry 14 tested the claim Example 7.4 rests on. It did not test Example 7.4’s own factors. Those are five statistical factors, on daily returns, on the S&P 600 file. MKT and WML are named factors, on monthly returns, on the S&P 500 file. And by Lesson 2 the revised Python rests on each stock’s own momentum over the year, not on any factor’s momentum. So neither verdict is a verdict on Example 7.4.
 
 ## Lesson 4: a verdict can follow the declared criterion and still rest on almost nothing
 
@@ -147,8 +147,8 @@ The two factors’ average returns are just as uncertain, and they decide nothin
 
 The order in which a rule and its number arrive decides what a verdict can claim. The two entries arrived in opposite orders.
 
-1. **Entry 14 fixed every rule first.** The criterion, the monthly frequency, the one-month skip and the comparison set were written on [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) before any autocorrelation was computed, and the owner’s ruling that each factor stands alone came before too. So neither verdict can have been chosen to fit the result. The cost is that a daily autocorrelation was never tried after the monthly one was seen.
-2. **Entry 13 wrote its round-off criterion after measuring.** The rule that round-off would leave books of the same size identical every day was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the 0 of 752 was in hand, and the entry names that cost. A rule written after its number cannot show on its own that it was not fitted to that number.
+1. **Entry 14 fixed every rule first.** The criterion, the monthly frequency, the one-month skip and the comparison set were written down before any autocorrelation was computed, and the owner’s ruling that each factor stands alone came before too. So neither verdict can have been chosen to fit the result. The cost is that a daily autocorrelation was never tried after the monthly one was seen.
+2. **Entry 13 wrote its round-off criterion after measuring.** The rule that round-off would leave books of the same size identical every day was written down after the 0 of 752 was in hand, and the entry names that cost. A rule written after its number cannot show on its own that it was not fitted to that number.
 
 ## Lesson 6: every figure that touches the stocks is about survivors
 
@@ -165,13 +165,13 @@ MKT is the exception. It reads SPY, which held the index as it stood each day, s
 
 Seven things.
 
-1. **What Example 7.4 earned on the S&P 600 as it stood each day.** [Issue 269](https://github.com/l3a0/quantitative-trading/issues/269) reruns it on a universe without survivorship, which waits on data.
-2. **What the printed R computed.** Without its helper file and an R runtime, the R row is a reading. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it.
+1. **What Example 7.4 earned on the S&P 600 as it stood each day.** A rerun on a universe without survivorship waits on data.
+2. **What the printed R computed.** Without its helper file and an R runtime, the R row is a reading rather than a run.
 3. **What costs would take.** Every printout charges none, and the books turn over daily.
-4. **What survivorship does to WML.** [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) waits on a panel of the index as it stood each day.
-5. **Whether the factors persist at another frequency.** Only monthly returns were computed, by the rule on [issue 22](https://github.com/l3a0/quantitative-trading/issues/22).
-6. **Whether French’s published factors agree, and what his size and value factors, SMB and HML, do.** [Issue 274](https://github.com/l3a0/quantitative-trading/issues/274) records French’s library as a vintage, and [issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries the two factors that need company size and book value.
-7. **Whether Example 7.4’s own factor returns have momentum.** Nothing here tested them. [Issue 286](https://github.com/l3a0/quantitative-trading/issues/286) will.
+4. **What survivorship does to WML.** That needs a panel of the index as it stood each day, which has to be bought.
+5. **Whether the factors persist at another frequency.** Only monthly returns were computed, under the rule fixed in advance.
+6. **Whether French’s published factors agree, and what his size and value factors, SMB and HML, do.** This repository holds neither French’s library nor the company size and book value those two factors need.
+7. **Whether Example 7.4’s own factor returns have momentum.** Nothing here tested them.
 
 ## What this means for a trader
 

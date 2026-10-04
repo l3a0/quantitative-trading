@@ -143,7 +143,7 @@ The two results cover two series over two spans. Four questions are beyond them.
 1. **Whether trading the rate pays.** Stationarity is a property of the series. A trade adds costs, the carry from two interest rates, and the problem of sizing a position against a half-life of 141.6 trading days. The repository tests none of them.
 2. **Whether individual bonds, or the yields behind them, behave like the funds.** A fund rolls its holdings to stay near one maturity. Treasury futures and individual bonds both need data the repository does not hold, and a yield cannot be bought or sold, so testing yields would be a different claim.
 3. **Whether the rate behaved the same before August 2007.** The repository keeps the history before the vendor’s gap, a little under two years of it, and does not test it.
-4. **Whether either result survives another download.** Raw closes change only when a fund splits, and a currency rate has no corporate actions, but a vendor can still fill or change its history. [Issue 139](https://github.com/l3a0/quantitative-trading/issues/139) tracks the check that a later download repeats each raw price, and a test already fails if a new download fills the 2007 gap, so the start date cannot move quietly.
+4. **Whether either result survives another download.** Raw closes change only when a fund splits, and a currency rate has no corporate actions, but a vendor can still fill or change its history. A test already fails if a new download fills the 2007 gap, so the start date cannot move quietly.
 
 ## What this means for a trader
 
