@@ -1703,7 +1703,7 @@ under the rules
 [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
 every stationary candidate Chan names there.
 
-Seven rows, all derivable from
+Eight rows, all derivable from
 [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
 
 **Chan's claim reproduces.** The log of the rate rejects a unit root at 5%,
@@ -1715,10 +1715,11 @@ had to clear it under the criterion
 before any statistic was computed, and both do. The half-life is 141.6 trading
 days, a little over half a year.
 
-One row is a replication and six are not. Row 1 is the claim, and it takes
+One row is a replication and seven are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
 are the two statistics the criterion reads, rows 4 to 6 say what the verdict
-rests on, and row 7 measures what row 6 can see.
+rests on, row 7 measures what row 6 can see, and row 8 measures what the
+declared constant did.
 
 Every row reads the same series, vintage and specification, so the three are
 stated once here.
@@ -1762,6 +1763,7 @@ columns have nothing to hold in any row and are dropped, under
 | 5 | The test on the rate quoted the other way, and on the level | nothing | n/a |
 | 6 | The rolling scan | nothing | n/a |
 | 7 | How often a series that truly reverts at row 4's half-life rejects in row 6's scan | nothing | n/a |
+| 8 | The test with no constant, and with a trend | nothing | n/a |
 
 ### What this repo computed
 
@@ -1774,6 +1776,7 @@ columns have nothing to hold in any row and are dropped, under
 | 5 | 2007-08-06 to 2026-09-30 | rows 2 and 3 on the log negated, on the level, and on the inverted level | −3.2136 negated. On the level −3.2944 at one lag and −3.0241 at the first passing count, 10. Inverted, −3.1552 and −2.9734, also at 10 | `TestTheCrossRateStatistic::test_the_quoting_direction_does_not_move_it` and `::test_on_the_level_both_statistics_the_verdict_reads_still_reject` |
 | 6 | 226 windows ending 2008-07-30 to 2026-09-21 | 252-day windows stepped by 21, row 2's test in each | 23 clear 10% and 5 clear 5% | `TestTheCrossRateScan::test_the_counts` |
 | 7 | 1,000 simulated paths of 4,984 days | a Gaussian AR(1) reverting at row 4's half-life, from the stationary distribution, seed 20261002, scanned as row 6 is. Declared on [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) before any number was computed | 27.0 of 226 windows clear 10% on average, 12.0%, and 14.0 clear 5%, 6.2%. 388 paths have 23 or fewer past 10%. 968 reject at 5% over the whole path. Added after the results were seen, not declared: 73 have 5 or fewer past 5% | `TestTheWindowPower` |
+| 8 | 2007-08-06 to 2026-09-30 | row 2's test with no constant, on the log as quoted and on the log of the rate per 100, and with a constant and a trend. Added after the verdict, not declared | No constant, −2.5159 on the log, past its 5% bar of −1.94, over a rate that ran from 0.9301 to 1.3239. Per 100, −0.2982 with no constant and −3.2136 with one. With a trend, −3.2947, past the 10% bar of −3.13 and short of the 5% bar of −3.41 | `TestTheCrossRateStatistic::test_without_the_constant_the_answer_rests_on_where_the_rate_sits` and `::test_a_trend_term_would_have_turned_the_verdict` |
 
 ### The verdicts
 
@@ -1786,6 +1789,7 @@ columns have nothing to hold in any row and are dropped, under
 | 5 | none, not a replication | Chan writes CAD/AUD and the vendor quotes it the other way, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
 | 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
 | 7 | none, not a replication | A measure of row 6's power. A series that certainly reverts this slowly clears 10% in 12.0% of its windows, against about one in ten for a series that does not revert at all, which is what a 10% bar means. So row 6 barely separates the two, and only the whole span does: it rejects at 5% in 968 of 1,000 paths. Row 6's 23 sits near the middle of the simulated counts. At 5% only 73 paths have 5 or fewer, as the rate does, a number added after the results were seen. The model has neither the rate's fat tails nor its changing volatility, and a half-life estimated from 4,984 days reads short, so the true reversion may be slower than row 4's. This shows that slow reversion can produce so few rejecting windows, and not that it is why the rate does. Exploratory. |
+| 8 | none, not a replication | A measure of the declared term, computed after the verdict. With no constant the test asks whether the rate reverts to 1.00, and it rejects only because the rate stayed near 1.00, since the same rate per 100 finds nothing. A trend asks whether the rate reverts around a drifting line, which is not Chan's claim, and it would have turned the verdict at 5%. Both are why [issue 135](https://github.com/l3a0/quantitative-trading/issues/135) fixed the term before any statistic. Exploratory. |
 
 ### What the entry concludes
 
@@ -1796,7 +1800,9 @@ Three things, and the first is the verdict.
    statistic was read, on both statistics the criterion names. Every lag count
    up to the ceiling rejects too, and so does the level in either quoting
    direction. The log, the constant and the window start were fixed on the
-   issue before any statistic, and none was tried another way except the scale.
+   issue before any statistic. Only the scale and the term were tried another
+   way afterwards, and row 8 reports that a trend would have turned the
+   verdict at 5%.
 2. **It is a slow reversion, and only the whole window shows it.** A half-life
    of 141.6 trading days means a deviation takes a little over half a year to
    halve, and only 23 of 226 one-year windows reject at 10%. Over the full
