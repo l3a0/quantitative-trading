@@ -3355,8 +3355,8 @@ change to any assertion named above moves this entry in the same commit.
 [blog/calendar-spreads-lessons.md](../blog/calendar-spreads-lessons.md) moves
 with it, since that post writes up every row, and so does
 [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md),
-since that post quotes the verdicts. So does the first post's figure, which
-`uv run python -m chan.calendar_spread_figures` redraws.
+since that post quotes the verdicts. So does the calendar spreads post's
+figure, which `uv run python -m chan.calendar_spread_figures` redraws.
 
 ## Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*
 
