@@ -44,6 +44,13 @@ and commit that prints it, or to the owner's reading of the revised edition
 recorded on
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931).
 
+*Algorithmic Trading*'s Example 4.1 is the plain case. Every figure its entry
+quotes from the book is here: the 8.7 percent and 1.5 at location 1974, the
+mirror's 46 percent and 1.27 and its steeper drawdown at 1993, and the same
+8.7 percent called an annualized average return at 3509. The script `bog.m`
+repeats the first two in its closing comment and prints nothing the book
+lacks. The replication log's Entry 18 traces each.
+
 *Algorithmic Trading*'s Example 7.2 is the opposite case. Its two book
 figures, its denominator of 30 and its levered 27 percent all sit at location
 3024, while the figures its script prints sit in `pead.m` and nowhere in the
@@ -54,7 +61,7 @@ book prints are here: 13.7 percent and 1.3 and the 30 and 11 percent of 2008
 and 2011 at location 2110, 73 percent and 4.7 at 2135, and 4.7 again at 2890.
 The two figures `andrewlo_2007_2012.m` prints for Example 4.4, 0.731553 and
 4.713284, sit in its closing comment and nowhere in the book. The replication
-log's Entry 18 traces each to one or the other.
+log's Entry 19 traces each to one or the other.
 
 Example 7.4 splits the same way. Its setup at location 4034 and its result at
 4051 are here, including the 2 and 4 percent and Chan's account of the gap

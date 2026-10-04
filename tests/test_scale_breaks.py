@@ -97,7 +97,8 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: day is the move it looks like. The book-two S&P 500 file adds 30 days in 17
 #: stocks, every one between 2007 and 2009 and most of them banks and insurers
 #: in the 2008 crisis, such as AIG on 2008-09-15. None falls in the 2011 and 2012
-#: window Example 7.2 trades, and none sits near a split, measured on
+#: window Example 7.2 trades, all 30 fall in Example 4.1's, which is the file's
+#: whole span, and none sits near a split, measured on
 #: [issue 250](https://github.com/l3a0/quantitative-trading/issues/250). ``data/README.md`` and
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window
@@ -172,6 +173,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: to t + 1, and each gap holds a month-end with no close.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_momentum_factor.py`` holds
 #: that.
+#:
+#: [Issue 295](https://github.com/l3a0/quantitative-trading/issues/295) decided
+#: that ``chan.buy_on_gap`` refuses no window for *Algorithmic Trading*'s
+#: Example 4.1, on the reasoning issues 18, 21 and 22 give. Its window is the
+#: book-two file's whole span, 2006-05-11 to 2012-04-24, so it holds all 30
+#: of that file's flagged days, and the guard ``chan.pead`` calls would refuse
+#: the run. ``bog.m`` ran on these prices as they stand, and none of the 30 sits
+#: near a split. One position lands on one, a short in MS on 2008-10-13 under
+#: the mirror the issue declared. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_buy_on_gap.py`` runs the guard and holds both facts.
 #:
 #: [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) decided
 #: that ``chan.cross_sectional_momentum`` refuses no window for *Algorithmic

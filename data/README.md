@@ -634,9 +634,12 @@ moved between the saves.
 The other two directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
 [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) reproduces
-that example, and
-[issue 296](https://github.com/l3a0/quantitative-trading/issues/296) reads the
-price file's opens and closes for his Examples 4.3 and 4.4.
+that example.
+[Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) and
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295) reproduce
+Examples 6.2 and 4.1 on the price file alone, and
+[issue 296](https://github.com/l3a0/quantitative-trading/issues/296) reads its
+opens and closes for Examples 4.3 and 4.4.
 `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held it on
 2012-04-24, with the same five fields per stock as the first two
 directories. `earnannfile/` holds his earnings-announcement flags for the same
@@ -656,17 +659,20 @@ measurements below.
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
    at `4567024`, under `archived/matlab/`. Neither carries a licence, which
    README's licence paragraph already covers. The `.mat` files are not
-   committed, and their sha256 is recorded here. EpchanPreview holds the
-   price file a third time, as `public/img/book3/Chap3 Time
-   Series/inputDataOHLCDaily_20120424.mat`, with the same blob, `0fb5ebc`, and
-   the same sha256. That bare name, without `_stocks`, is the one
-   `andrewlo_2007_2012.m`, `bog.m` and `indexArb.m` load from a folder on
-   Chan's machine, so the file a reader finds under that name is the committed
-   panel. For `andrewlo_2007_2012.m` the stronger evidence is the run itself,
-   which lands on the six decimals the script printed. No file by the bare name sits in either mirror's
-   book-two folder.
-   [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296)
-   measured it.
+   committed, and their sha256 is recorded here. EpchanPreview holds the price
+   file a third time, as
+   `public/img/book3/Chap3 Time Series/inputDataOHLCDaily_20120424.mat`, the
+   same git blob, `0fb5ebc`, and the same sha256. That is the name, with no
+   `_stocks`, that Example 4.1's `bog.m` loads, and neither mirror holds
+   another file of that name. `chan.mat_columns.round_trip_differs` finds the
+   committed members rebuild all five of its arrays exactly. What the copy
+   cannot show is that the file Chan ran in 2012 was the one he later shipped
+   under that name.
+   `andrewlo_2007_2012.m`, the script of Examples 4.3 and 4.4, and
+   `indexArb.m` load the same name. Example 4.4's run lands on the six
+   decimals its script printed, which
+   [issue 296](https://github.com/l3a0/quantitative-trading/issues/296)
+   measured.
 
    ```text
    4a62f5851de9962b72c6b135d4f4addc3cb13ff1ce28afe45defceb47c318849  inputDataOHLCDaily_stocks_20120424.mat
@@ -693,9 +699,10 @@ measurements below.
    the 2011 and 2012 window Example 7.2 trades. Example 6.2's script reads
    across all 30, one in its 2007 window and 29 in its 2008 and 2009 window,
    and [issue 297](https://github.com/l3a0/quantitative-trading/issues/297)
-   decided not to call the guard there. All 30 also fall in the 2007 to 2011
-   window Examples 4.3 and 4.4 trade, and one of them, CAH on 2009-09-02,
-   reads as a data error or a corporate action rather than a crash.
+   decided not to call the guard there. All 30 also fall in Example 4.1's
+   window, which is the file's whole span, and in the 2007 to 2011 window
+   Examples 4.3 and 4.4 trade. One of them, CAH on 2009-09-02, reads as a data
+   error or a corporate action rather than a crash, and
    `chan.khandani_lo_book_two`'s docstring says why that run computes across
    them. They are pinned beside the others in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).

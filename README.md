@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Eighteen replications run here, fifteen from Chan's *Quantitative Trading*
-and three from his *Algorithmic Trading*. The first two were ported from the
+Nineteen replications run here, fifteen from Chan's *Quantitative Trading*
+and four from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other sixteen were built here.
+where they were first built. The other seventeen were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -222,11 +222,22 @@ where they were first built. The other sixteen were built here.
     figure reproduces, and the compounded match is reported as found
     afterwards. None of the four readings declared to explain the gap lands.
     Every figure is exploratory and about survivors.
-18. Khandani and Lo's reversal again, as *Algorithmic Trading*'s Examples 4.3
+18. Buy on gap, Example 4.1 of *Algorithmic Trading*, which buys at the open
+    the ten stocks that opened furthest below their previous day's low, while
+    still above their 20-day moving average, and sells at the close. On Chan's
+    own S&P 500 file both figures his script prints reproduce: an APR of
+    0.087385, his 8.7 percent, and a Sharpe ratio of 1.5371, his 1.5. Book
+    two's `smartstd` is what lands them, and the first edition's moves both.
+    The book's short-on-gap mirror has no script, so its rule was declared on
+    the issue before any run. It earns 0.122030 and 1.7853 against Chan's 46
+    percent and 1.27, and does not reproduce, though its drawdown is the
+    steeper as he says. Every figure is exploratory and about survivors.
+19. Khandani and Lo's reversal again, as *Algorithmic Trading*'s Examples 4.3
     and 4.4 run it on Chan's 2012 S&P 500 file over 2007 to 2011. Book two
     changes the rule as well as the data: it scales each day's weights to a
     gross of 1, leaves a missing price's weight missing, charges no cost, and
-    cuts the window before taking returns. Example 4.3 holds the weights from close to close, and Example 4.4 trades
+    cuts the window before taking returns. Example 4.3 holds the weights from
+    close to close, and Example 4.4 trades
     from the open to the same day's close on the overnight gap. Every figure
     Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
     1.2595 against his 13.7 and 1.3, 30.16 percent in 2008 and 10.58 in 2011
@@ -364,6 +375,13 @@ misreading of the MATLAB, since both read it the same way. It also pins the
 first edition's `smartstd` printing 4.05 against 4.07, so a port that reaches
 for the helper this repo held first fails a test.
 
+[tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) does it for buy on gap.
+It pins both figures `bog.m` prints at the precision that is real and at the
+book's, the declared mirror's figures beside Chan's, and both sides under the
+first edition's `smartstd`, so a port that reaches for the helper this repo
+already held fails a test. It also holds the decision not to call the
+scale-break guard, by running it and pinning what it would refuse.
+
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) does
 it for the reversal on the 2012 panel. It pins each figure at six decimals and
 again at the precision Chan printed, and both bridge rows beside the first
@@ -372,7 +390,7 @@ reading of the `lag` the script calls, and the profit of Example 3.8's
 notebook without its fill, which computes the same rule by another route, so a
 transcription that takes returns before the cut fails a test.
 
-All eighteen replications reach a verdict in
+All nineteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -381,7 +399,8 @@ toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
 seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
-momentum's and Entry 18 the reversal on the 2012 panel's.
+momentum's, Entry 18 buy on gap's and Entry 19 the reversal on the 2012
+panel's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -472,9 +491,11 @@ the Khandani-Lo reversal reads the
 2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
 Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
 flags, for
-[issue 20](https://github.com/l3a0/quantitative-trading/issues/20), and the
-reversal reads the same file's opens and closes for *Algorithmic Trading*'s
-Examples 4.3 and 4.4, for
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20). Buy on gap
+reads the same file's opens, highs, lows and closes, for
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295), and the
+reversal reads its opens and closes for *Algorithmic Trading*'s Examples 4.3
+and 4.4, for
 [issue 296](https://github.com/l3a0/quantitative-trading/issues/296). The PCA
 factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
@@ -768,6 +789,17 @@ It prints the source, the three windows, the script's five figures beside its
 comment and the book, then every declared reading's return and Sharpe ratio in
 each window and whether it lands, and the verdicts on the book's −30 percent
 and its claim about the years after 2009.
+
+Buy on gap reads Chan's book-two S&P 500 file and takes no option, because
+his script fixes the file, the window and the rule, and the issue fixed the
+mirror's before any run:
+
+```bash
+uv run python -m chan.buy_on_gap
+```
+
+It prints the source, the window, both rules, how many positions each side
+took, and each figure beside what `bog.m` and the book print.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
