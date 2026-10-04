@@ -94,6 +94,8 @@ when no count up to the ceiling passes. The rolling scan and the half-life are
 reported beside it and decide nothing. :func:`window_power` measures what the
 scan can see: it runs the same scan over simulated series that truly revert at
 the rate's half-life, on a specification declared on issue 212 before it ran.
+:func:`known_mean_rule` says what a known-mean version of Chan's linear rule
+earns on a series reverting at that half-life, and it runs no trade on the rate.
 ``docs/replication-log.md`` Entry 6 carries the verdict.
 
 **The calendar spreads** are every adjacent pair of delivery months, contract m
@@ -524,6 +526,65 @@ def window_power(
         clear10=clear10,
         clear5=clear5,
         whole_rejects5=whole,
+    )
+
+
+TRADING_DAYS = 252
+
+
+@dataclass(frozen=True)
+class KnownMeanRule:
+    """What a known-mean version of Chan's linear rule earns on one half-life.
+
+    The series is the Gaussian AR(1) :func:`simulated_paths` draws, with
+    ``phi = 1 - ln 2 / h``. The position is minus the series' distance from its
+    mean, reset each day. Chan's own rule divides that distance by a moving
+    standard deviation and measures it from a moving average, so this version
+    knows what his has to estimate. With no costs, a day's profit has mean
+    ``s2 / (1 + phi)`` and variance ``2 s2**2 / (1 + phi)**2 + s2**2 / (1 - phi**2)``,
+    where ``s2`` is the variance of a day's noise. The variance needs the
+    noise to be Gaussian.
+
+    ``sharpe`` is the daily Sharpe ratio, ``sqrt((1 - phi) / (3 - phi))``,
+    scaled to a year by ``sqrt(252)``, the convention Chan's backtests report.
+    It is a long-run average rather than a bound, so a finite backtest lands
+    above it about as often as below. Profits on successive days are
+    negatively correlated, because a loss on a widening gap is won back as it
+    closes, so a Sharpe ratio measured on whole years runs higher than this.
+    ``tests/test_stationary_candidates.py`` measures both.
+
+    ``spread_to_daily`` is the series' standard deviation in multiples of a
+    day's noise, ``1 / sqrt(1 - phi**2)``. It says how far from its mean the
+    series sits on a typical day, and so how large the position is.
+
+    ``kelly`` is the Kelly leverage, a day's mean profit over its variance,
+    times ``s2`` so that it too is free of the noise's scale. It is
+    ``(1 - phi**2) / (3 - phi)``, close to ``1 - phi``, so the leverage is
+    nearly proportional to the speed of reversion and an error in the speed is
+    an error of about the same size in the leverage.
+    """
+
+    half_life: float
+    phi: float
+    sharpe: float
+    spread_to_daily: float
+    kelly: float
+
+
+def known_mean_rule(half_life: float) -> KnownMeanRule:
+    """The annualised Sharpe ratio, typical distance and Kelly leverage for one half-life.
+
+    ``tests/test_stationary_candidates.py`` holds all three against a simulated
+    trade, including at a half-life short enough to tell each closed form from
+    its first-order approximation.
+    """
+    phi = 1.0 - math.log(2.0) / half_life
+    return KnownMeanRule(
+        half_life=half_life,
+        phi=phi,
+        sharpe=math.sqrt(TRADING_DAYS * (1.0 - phi) / (3.0 - phi)),
+        spread_to_daily=1.0 / math.sqrt(1.0 - phi**2),
+        kelly=(1.0 - phi**2) / (3.0 - phi),
     )
 
 

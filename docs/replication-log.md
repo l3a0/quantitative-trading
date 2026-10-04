@@ -319,7 +319,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
+than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -1703,7 +1703,7 @@ under the rules
 [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
 every stationary candidate Chan names there.
 
-Eight rows, all derivable from
+Nine rows, all derivable from
 [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
 
 **Chan's claim reproduces.** The log of the rate rejects a unit root at 5%,
@@ -1719,7 +1719,8 @@ One row is a replication and seven are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
 are the two statistics the criterion reads, rows 4 to 6 say what the verdict
 rests on, row 7 measures what row 6 can see, and row 8 measures what dropping the
-constant or adding a trend would have done.
+constant or adding a trend would have done, and row 9 models what row 4's
+half-life costs a trade.
 
 Every row reads the same series, vintage and specification, so the three are
 stated once here. Rows 5, 7 and 8 each change one part of it, and their
@@ -1765,6 +1766,7 @@ columns have nothing to hold in any row and are dropped, under
 | 6 | The rolling scan | nothing | n/a |
 | 7 | How often a series that truly reverts at row 4's half-life rejects in row 6's scan | nothing | n/a |
 | 8 | The test with no constant, and with a trend | nothing | n/a |
+| 9 | What a known-mean version of the linear rule earns at row 4's half-life | nothing for the rate. *Algorithmic Trading* Example 5.4 gives the 36-day half-life it is set beside | Example 5.4 |
 
 ### What this repo computed
 
@@ -1778,6 +1780,7 @@ columns have nothing to hold in any row and are dropped, under
 | 6 | 226 windows ending 2008-07-30 to 2026-09-21 | 252-day windows stepped by 21, row 2's test in each | 23 clear 10% and 5 clear 5% | `TestTheCrossRateScan::test_the_counts` |
 | 7 | 1,000 simulated paths of 4,984 days | a Gaussian AR(1) reverting at row 4's half-life, from the stationary distribution, seed 20261002, scanned as row 6 is. Declared on [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) before any number was computed | 27.0 of 226 windows clear 10% on average, 12.0%, and 14.0 clear 5%, 6.2%. 388 paths have 23 or fewer past 10%. 968 reject at 5% over the whole path. Added after the results were seen, not declared: 73 have 5 or fewer past 5% | `TestTheWindowPower` |
 | 8 | 2007-08-06 to 2026-09-30 | row 2's test with no constant, on the log as quoted and on the log of the rate per 100, and with a constant and a trend. Added after the verdict, not declared | No constant, −2.5159 on the log, past its 5% bar of −1.94, over a rate that ran from 0.9301 to 1.3239. Per 100, −0.2982 with no constant and −3.2136 with one. With a trend, −3.2947, past the 10% bar of −3.13 and short of the 5% bar of −3.41 | `TestTheCrossRateStatistic::test_without_the_constant_the_answer_rests_on_where_the_rate_sits` and `::test_a_trend_term_would_have_turned_the_verdict` |
+| 9 | 2007-08-06 to 2026-09-30, and 400 simulated paths of 4,984 days | a Gaussian AR(1) at row 4's half-life traded at minus its distance from a known mean, no costs. The Sharpe ratio is daily, scaled by √252. Seed 20261005. Added after the verdict, not declared | 0.7845, against 1.5501 at 36 days. On whole years 1.236 against 4.291. The rate sits 10.12 times a day's noise from its mean against 5.12. The test window holds 35.2 half-lives, and one OLS standard error on the slope spans half-lives of 110.1 to 198.2 days. The Kelly leverage at 36 days is 3.88 times the rate's | `TestTheKnownMeanRule` |
 
 ### The verdicts
 
@@ -1791,6 +1794,7 @@ columns have nothing to hold in any row and are dropped, under
 | 6 | none, not a replication | A description of the window, not a second verdict. About one window in ten clears 10%. A 252-day window holds under two half-lives of the full window's estimate. No window that rejects is promoted to a claim, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. Three windows have no finite half-life, because their fit does not revert. |
 | 7 | none, not a replication | A measure of row 6's power. A series that certainly reverts this slowly clears 10% in 12.0% of its windows, against about one in ten for a series that does not revert at all, which is what a 10% bar means. So row 6 barely separates the two, and only the whole span does: it rejects at 5% in 968 of 1,000 paths. Row 6's 23 sits near the middle of the simulated counts. At 5% only 73 paths have 5 or fewer, as the rate does, a number added after the results were seen. The model has neither the rate's fat tails nor its changing volatility, and a half-life estimated from 4,984 days reads short, so the true reversion may be slower than row 4's. This shows that slow reversion can produce so few rejecting windows, and not that it is why the rate does. Exploratory. |
 | 8 | none, not a replication | A measure of the declared constant and missing trend, computed after the verdict. With no constant the test asks whether the rate reverts to 1.00, and it rejects only because the rate stayed close to 1.00, since the same rate per 100 finds nothing. A trend asks whether the rate reverts around a drifting line, which is not Chan's claim, and it would have turned the verdict at 5%. [Issue 135](https://github.com/l3a0/quantitative-trading/issues/135) fixed a constant and no trend before any statistic, and these two checks show that choice could have turned the answer. Exploratory. |
+| 9 | none, not a replication | A model of what the half-life alone costs a trade, computed after the verdict. Its figures are long-run averages rather than bounds, and the rule knows the mean Chan's rule estimates. The blog post's Lesson 6 reads it. It runs no trade on the rate, so it says nothing about whether trading the rate pays. Exploratory. |
 
 ### What the entry concludes
 
@@ -1836,7 +1840,8 @@ fails if a recorded download fills the gap, so the window cannot quietly move.
 
 **Whether trading the rate pays.** Stationarity is a statement about the
 series. A trade adds costs, carry from the two interest rates, and the
-question of sizing against a half-life this long, and none of those are here.
+question of sizing against a half-life this long, and no trade on the rate is
+run here. Row 9 models only what the half-life costs an idealised trade.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
