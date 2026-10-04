@@ -107,7 +107,8 @@ a figure.
    indices.
 2. A stock one file holds and the other does not is refused by symbol.
 3. The scale-break guard runs, as above.
-4. ``plot(cumret)`` is not carried. The run prints and draws nothing.
+4. ``plot(cumret)`` is not carried here. The run prints and draws nothing,
+   and :mod:`chan.pead_figures` draws that plot for the blog post.
 5. The book's levered figure is computed beside the script's five.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2011
@@ -400,11 +401,23 @@ def report(prices: list[VintageEntry], announcements: list[VintageEntry], drift:
     )
 
 
-def run(data_dir: Path | None = None) -> Drift:
-    """Read both sources, guard the window, run ``pead.m`` and print the report."""
+def guarded_drift(
+    data_dir: Path | None = None,
+) -> tuple[list[VintageEntry], list[VintageEntry], Drift]:
+    """Read both sources, run ``pead.m`` on them and guard the window, printing nothing.
+
+    :func:`run` and :mod:`chan.pead_figures` both read the committed files
+    through this, so neither is a second read path that skips the guard.
+    """
     prices, announcements, opens, closes, flags = read_sources(data_dir)
     drift = pead(opens, closes, flags)
     refuse_scale_breaks(prices, opens, closes, drift.days)
+    return prices, announcements, drift
+
+
+def run(data_dir: Path | None = None) -> Drift:
+    """Read both sources, guard the window, run ``pead.m`` and print the report."""
+    prices, announcements, drift = guarded_drift(data_dir)
     report(prices, announcements, drift)
     return drift
 

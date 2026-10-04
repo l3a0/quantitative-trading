@@ -1497,6 +1497,13 @@ class TestTheCommittedFlagsAreChansArray:
         flagged = flags.index[flags["AAPL"] == 1]
         assert [str(day.date()) for day in flagged] == ["2011-04-21", "2011-07-20", "2012-01-25"]
 
+    def test_29_of_the_497_stocks_carry_no_flag(self) -> None:
+        """A stock with no flag is one Example 7.2 can never trade."""
+        _, flags = load_panel(self.SOURCE, field="Flag")
+
+        unflagged = (flags.to_numpy() == 0).all(axis=0)
+        assert (int(unflagged.sum()), flags.shape[1]) == (29, 497)
+
     def test_asking_the_flags_for_a_close_is_refused(self) -> None:
         """Every vintage's second column answers to ``Close``, so without the
         refusal the default field would hand the flags back as closes."""
