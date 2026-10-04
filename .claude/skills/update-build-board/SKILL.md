@@ -218,9 +218,11 @@ rest of the update proceeds while it runs. Three things keep the count honest.
 
 1. The run names the commit it ran on, and removes its detached worktree when it
    finishes, which is part of the same step.
-2. The `state` write waits for it. The count goes into the same pinned batch as
-   `main`, never into a second write afterwards, so the page never shows a new
-   `main` beside an old count.
+2. Only the fields measured on one commit wait for it: `main`, the test count
+   and the two vintage counts. They go into one pinned write together, so the
+   page never shows a new `main` beside an old count. Every other section, and
+   the rest of `state` such as the open issue count, is written without waiting,
+   because none of it depends on the run.
 3. If the re-measured `main` no longer equals the commit the run named, the run
    is stale. Run it again rather than writing its count beside a commit that
    never produced it.
