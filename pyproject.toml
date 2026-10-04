@@ -38,6 +38,8 @@ dependencies = [
     "ithildincore @ git+https://github.com/l3a0/ithildin-core@9d39ae35c9dd9931ad3f4021aa09153d85f12912",
     "scipy>=1.13",
     "statsmodels>=0.14",
+    "ta>=0.11.0",
+    "scikit-learn>=1.9.1",
 ]
 
 [dependency-groups]

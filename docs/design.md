@@ -58,6 +58,19 @@ symbol, the span, the download date, and which price, rate or event the series
 carries recorded next to it. Everything else here is regenerable. Rerun the analysis and it comes back. Lose the vintage
 and the number becomes an assertion nobody can check, including its author.
 
+**One exception, for licensed bars.** Alpha Vantage's one-minute GLD and GDX
+bars, which [issue 23](https://github.com/l3a0/quantitative-trading/issues/23)
+reads, are the first series this repo may not commit. The vendor's terms grant
+personal, non-commercial use, and no vendor priced on that issue published terms
+allowing raw bars to be republished. The owner decided on 2026-10-03 that the
+owner's data archive keeps the bytes and this repo commits only their hashes, in
+`data/archive_vintages.jsonl`. The series is still kept and the record still
+names its exact bytes, so a result still rests on a series that can be checked,
+but only where the archive is. A public clone can see what a run read and
+cannot re-run it, which is the price, and it is why the minute pins never run
+in CI. This is an exception for licensed data rather than a precedent, and a
+series anyone may republish is committed as before.
+
 That asymmetry is what the ranking rule in [CLAUDE.md](../CLAUDE.md) protects.
 A path that can lose a vintage is never deferred. A path that recomputes
 something from a vintage still on disk can wait for evidence that it matters.
@@ -549,7 +562,7 @@ candidate for a synonym.
 
 | Term | Definition |
 | --- | --- |
-| **vintage** | One series as one source held it on one date, identified by vendor, symbol, span, that date, and which price, rate or event the series carries, committed as a file with a checksum. The date is a download date when a vendor was asked for the series, and a saved date when the series is a column lifted from one of Ernest Chan's own files, because nothing was fetched on that day. An entry in the **manifest** carries exactly one of `download_date` and `saved_date`, and which one it carries says which kind of vintage it describes. A stock lifted from one of Chan's MATLAB files is one vintage holding its close, high, low, open and volume together, decided on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88), because the source saved them together and an identity naming one series could not tell them apart. |
+| **vintage** | One series as one source held it on one date, identified by vendor, symbol, span, that date, and which price, rate or event the series carries, committed as a file with a checksum. A vintage whose licence forbids committing it is kept in the owner's data archive instead, with only its checksum committed, under the exception the premise states. The date is a download date when a vendor was asked for the series, and a saved date when the series is a column lifted from one of Ernest Chan's own files, because nothing was fetched on that day. An entry in the **manifest** carries exactly one of `download_date` and `saved_date`, and which one it carries says which kind of vintage it describes. A stock lifted from one of Chan's MATLAB files is one vintage holding its close, high, low, open and volume together, decided on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88), because the source saved them together and an identity naming one series could not tell them apart. |
 | **raw price** | The as-traded close, or for a futures series the exchange's daily settlement as published. Fixed once the day has passed, so it is the same in every vintage. |
 | **adjusted price** | A close rescaled backward to fold in splits and dividends. It moves whenever a corporate action falls between two downloads, which is what makes a vintage necessary. |
 | **scale break** | A day on which a committed price series changes scale rather than price, meaning a day-over-day close ratio too far from 1 for a price move. The date is the later of the two days, so a window opening on it does not span the break. [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) holds the bound and what the committed vintages carry. The guard skips a **rate** vintage and an **event** vintage, because neither holds a price. |
@@ -558,7 +571,7 @@ candidate for a synonym.
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, against inputs the source itself prints, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
-| **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. Nothing else in this repo is called a manifest. |
+| **manifest** | `data/vintages.jsonl`, the record of every committed vintage, one JSON object per line. The authority for a vintage's provenance. `data/archive_vintages.jsonl` is the second manifest, recording the vintages kept in the owner's archive, decided on [issue 23](https://github.com/l3a0/quantitative-trading/issues/23). Nothing else in this repo is called a manifest. |
 | **projection** | A file derived from the manifest and rewritten from it, never edited. `data/checksums.sha256` is the only one. |
 | **verdict** | The written conclusion of a replication: reproduced, reproduced with a gap, or did not reproduce, with the reason. |
 | **ensemble average** | The average across many players of one gamble, which is what an expected return describes. Chan names it at Kindle location 3166. |
@@ -573,13 +586,16 @@ candidate for a synonym.
 This repo is public. Tracked files never carry secrets or machine-specific
 paths. Machine-local config lives under `~/.config/quantitative-trading/`.
 
-The table below stays empty until a vendor that needs a key is actually used.
-yfinance needs none, which is why everything built so far runs with no
-configuration at all.
+The table below names every setting a run or a test reads from the machine.
+None is a secret. yfinance needs no key, and the Alpha Vantage bars are read
+from the owner's archive rather than fetched, so no vendor key enters the repo.
+Everything that reads only committed vintages runs with no configuration at
+all.
 
 | Setting | Secret | Lives in | Read by |
 | --- | --- | --- | --- |
-| none yet | n/a | n/a | n/a |
+| The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records |
+| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/test_cpo.py`, which runs its archive pins only when it is set, because the full run takes minutes |
 
 ## Considered and rejected
 
@@ -644,3 +660,7 @@ change that cuts it.
 | Holding the lifted columns to the scale-break envelope the single-series vintages were fitted to | The bound flags a close below 0.625 or above 1.6 times the one before, and 52 of the first 1,100 columns cross it on 62 days, most of them real moves in single stocks. The book-two price file added 17 of its 497 columns on 30 days, all in 2007 to 2009. [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins every one by path and day instead, so a day that appears or disappears fails, and the envelope test keeps reading the single-series vintages it was fitted to. |
 | Batching the checkout sweep through `git cat-file --batch --filters` | The sweep started two processes a path, 36 in all, and 2,236 once the lifted columns were in the index. The batched form converts the content and keeps the stored size in each header, measured at 37,542 against 38,229 bytes for `README.md` as it stood at `d7993f7`, so its output cannot be split by size. [tests/test_checkout_bytes.py](../tests/test_checkout_bytes.py) has `git checkout-index` perform the converting checkout into a scratch directory instead, in one process, which is also the conversion a clone actually runs. |
 | Running Conditional Parameter Optimization on the daily GLD and GDX closes, with 2021-01-04 to 2026-08-27 held out | Conditional Parameter Optimization is the method of Chan's revised-edition Example 7.1: each day a model predicts the strategy's next-day return for every parameter set, and the set with the highest prediction is traded. [Issue 278](https://github.com/l3a0/quantitative-trading/issues/278) proposed running it on the daily closes this repo already holds, as the part of [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) that needs no bought data. It was a method study with no printed figure to meet rather than a replication, since it differed from Chan's run in its bars, its overnight holding, its features and its model. The owner decided on 2026-10-03 not to run it and gave no reason, so taking it up again starts by asking the owner. The issue closed as not planned. No result from the method was computed, and the registered holdout was never run. It is not free of everything known about the pair, because the regime map draws the hedge across those years. The holdout stays clean only while nothing computes a result from the method on a day after 2020-12-31, and that includes runs under [issue 23](https://github.com/l3a0/quantitative-trading/issues/23), whose minute archive reaches into 2026. Taking the design up again needs an audit of its plan against the code, which has moved since it was written at `84ee556`, and a new dependency decision, because the owner's approval of scikit-learn was given for this study and lapsed with it. The method code is now part of [issue 23](https://github.com/l3a0/quantitative-trading/issues/23)'s plan. |
+| Committing Alpha Vantage's one-minute bars to `data/` | The vendor's terms grant personal, non-commercial use, and none of the six vendors priced on [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) published terms allowing raw bars to be republished. At about 65 MB a symbol uncompressed they would also pass GitHub's 50 MB warning. The owner decided on 2026-10-03 that the archive keeps the bytes and the repo commits their hashes, which the premise records as an exception. |
+| A private data repository with a deploy key, so CI could run the minute pins | It would have let CI execute the pins, at the price of the repo's first secret and a second repository to keep. The owner's archive already held GLD's bars beside a checksum, so the owner chose it on 2026-10-03 and the pins run only where the archive is. |
+| Buying the minute bars from Kibot or FirstRate | Kibot quoted $83.62 for this slice and FirstRate about $400. The owner's premium Alpha Vantage key, which the owner keeps, supplied GDX at no extra cost, and GLD was already in the archive. Kibot stays the fallback if Alpha Vantage's terms ever rule the archive out. |
+| Running every archive pin on every local test run | The full run of Example 7.1 reads 2.9 million bars a symbol and fits a model on more than a million rows, which takes minutes. Every session here runs the suite, so the pins skip unless `QT_ARCHIVE_RUN=1` asks for them, with a reason that says so. The cheap check that the archive files still hash to their lines runs wherever an archive is configured. |
