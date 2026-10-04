@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Seventeen replications run here, fifteen from Chan's *Quantitative Trading*
-and two from his *Algorithmic Trading*. The first two were ported from the
+Eighteen replications run here, fifteen from Chan's *Quantitative Trading*
+and three from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other fifteen were built here.
+where they were first built. The other sixteen were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -64,7 +64,7 @@ where they were first built. The other fifteen were built here.
    positive and the growth rate of capital is negative. It reads nothing at
    all, so it has no vintage to name. The survivorship toy, item 9, has none
    either, because it reads tables the book prints. Neither do the leverage
-   examples, item 17, which work arithmetic on inputs the book states.
+   examples, item 18, which work arithmetic on inputs the book states.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
    maximises compounded growth and then whether that much would have survived
    the worst day the index has had. Most of the levels Chan computed from a
@@ -210,7 +210,20 @@ where they were first built. The other fifteen were built here.
     before any return was computed. The first run broke one of them, by keeping
     extended-hours bars on early-close days, and the entry reports both runs.
     Every figure is exploratory.
-17. Constant leverage and capped Kelly allocation, Examples 8.1 and 8.2 of
+17. Cross-sectional momentum, Example 6.2 of *Algorithmic Trading*, which buys
+    the 50 stocks with the highest 252-day return, shorts the 50 with the
+    lowest, and holds each day's picks for 25 days. The script's closing
+    comment prints a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
+    and run on the S&P 500 file it loads, the script prints none of its
+    comment's five figures. It gives a Sharpe ratio of 4.0657, and compounded
+    APRs of 0.372577 for 2007 and −0.298789 for 2008 and 2009, which round to
+    the book's 4.1, 37 percent and −30 percent. The rule declared before the
+    run read the book's "APR" as the arithmetic return, as Example 7.2's is,
+    and that gives 32 and −32 percent. So under the declared rule no book
+    figure reproduces, and the compounded match is reported as found
+    afterwards. None of the four readings declared to explain the gap lands.
+    Every figure is exploratory and about survivors.
+18. Constant leverage and capped Kelly allocation, Examples 8.1 and 8.2 of
     *Algorithmic Trading*, which are arithmetic on inputs the book states.
     Holding leverage 5 sells \$40K into a \$10K loss and buys \$80K into a
     \$20K gain, exactly as printed. Under a cap of 2 on two strategies whose
@@ -331,6 +344,20 @@ round trips are each held against a literal loop over the book's rules, and the
 rest by worked examples. Its pins run only where the
 owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
 because the full run takes about five minutes.
+[tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
+each line field for field everywhere, and the files' hashes and their
+agreement with the committed daily closes wherever an archive is configured.
+
+[tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
+does it for cross-sectional momentum. It pins each figure `kentdaniel.m`
+computes at the precision that is real and as the script formats it, beside
+the comment it misses and the book. It pins each declared reading over all
+three windows, its distance from the book, and the rule deciding whether one
+lands. It holds the transcription to a second implementation written
+separately in pandas, which rules out a slip in the numpy code, though not a
+misreading of the MATLAB, since both read it the same way. It also pins the
+first edition's `smartstd` printing 4.05 against 4.07, so a port that reaches
+for the helper this repo held first fails a test.
 
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
@@ -339,11 +366,7 @@ and pins the near miss beside them: solving along
 Chan's line without bounding it finds a higher growth rate by going short,
 over the gross cap.
 
-[tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
-each line field for field everywhere, and the files' hashes and their
-agreement with the committed daily closes wherever an archive is configured.
-
-All seventeen replications reach a verdict in
+All eighteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -351,8 +374,8 @@ seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
 seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
-Entry 16 Conditional Parameter Optimization's and Entry 17 the leverage
-examples'.
+Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
+momentum's and Entry 18 the leverage examples'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -388,6 +411,10 @@ programs do, and its entry reports every figure without PMC beside them.
 Example 7.6's revised Python forward-fills the same gap at year-end, so its
 2007 ranking reads PMC as a return of 1.3056 and holds it short in January
 2008. That is Chan's program as printed, and Entry 7 says what the fill moves.
+Cross-sectional momentum does not call the guard either. It flags ETFC's
+2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
+refuse both windows the book prints, and Chan's script ran across them as they
+stand.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -438,6 +465,8 @@ flags, for
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20). The PCA
 factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
+Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -702,6 +731,19 @@ and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
 in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+
+Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
+because the issue fixed the rule, the windows and the readings before any
+return was computed:
+
+```bash
+uv run python -m chan.cross_sectional_momentum
+```
+
+It prints the source, the three windows, the script's five figures beside its
+comment and the book, then every declared reading's return and Sharpe ratio in
+each window and whether it lands, and the verdicts on the book's −30 percent
+and its claim about the years after 2009.
 
 The leverage examples, Examples 8.1 and 8.2 of *Algorithmic Trading*, read
 nothing and take no option, because the book fixes every input:

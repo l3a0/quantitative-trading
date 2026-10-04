@@ -75,16 +75,23 @@ traces each to the pages read in the Kindle Cloud Reader on 2026-10-03,
 recorded on
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
 
+*Algorithmic Trading*'s Example 6.2 splits the same way as its Example 7.2.
+Its two 2007 figures, its −30 percent for 2008 and 2009 and its sentence that
+the return "did stabilize" afterwards all sit at location 2800, while the five
+figures its script's closing comment prints sit in `kentdaniel.m` and nowhere
+in the book. The replication log's Entry 17 traces each to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
 image. The prose around them fixes their content, and location 3319 gives the
 one-strategy growth rate inline, with its variance recovered as `m2` where
 `s2` belongs. Whether Equation 8.3's image prints a value is not known from
-here, which is why the replication log's Entry 17 row 11 carries no published
+here, which is why the replication log's Entry 18 row 11 carries no published
 figure.
 
-A second kind of absence turns up in Example 6.2, and it costs more than a
+A second kind of absence turns up in *Quantitative Trading*'s Example 6.2, and
+it costs more than a
 missing figure. Every number that example prints is here. Its levered growth
 formula is not, because the book renders that equation as an image at location
 2849 and a highlight captures text. Its unlevered twin survives as inline text
