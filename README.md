@@ -290,7 +290,8 @@ pins each figure `pead.m` prints at the precision that is real and again as
 the script formats it, beside the book's rounded figures. It also pins the
 first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
-miss.
+miss. The blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
@@ -1262,6 +1263,74 @@ uv run python -m chan.equity_seasonals_figures
 [tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+[blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
+a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
+Trading*. Chan trades the first day after an overnight earnings announcement
+by the direction of the open, without reading the earnings, and reports an
+APR of 6.7 percent and a Sharpe ratio of 1.5. It is the first post whose
+experiment comes from that book. The post draws five lessons from Entry 12 of
+the replication log.
+
+1. Every figure Chan prints reproduces on his own files.
+2. The gap from the previous close to the open stands in for the surprise,
+   and Chan's flags stand in for the announcement calendar.
+3. The 30 Chan divides by and the leverage he applies are facts about the run.
+4. Which book's `smartstd` runs decides a printed digit.
+5. An exact reproduction checks the arithmetic and not the edge.
+
+Four groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "Used to last several days" and "barely until the market closes" are at
+   2890. "The slow diffusion of news" is at 2990. "Known and studied since
+   1968" and the trader needing no view of expectations are at 2994. The
+   earnings.com calendar and the window from the previous close to the open
+   are at 3002 and 3010. The 90-day deviation as the test of "surprising" is
+   at 3019. "A very respectable 1.5", "a certain degree of look-ahead bias",
+   "not a very grievous bias" and "at least four times" are at 3024. "The
+   overnight returns are negative on average" is at 3039. The book's figures
+   at 3024 are pinned, and its words are not. The *Quantitative Trading* quotation the plan named, at
+   location 3360 of the revised edition, was dropped, because the Kindle
+   Cloud Reader could not be reached on 2026-10-03 to read its page.
+2. A fact outside the committed data. Apple released earnings five times
+   inside the window. Only the three flagged days are pinned.
+3. The book's Figure 7.2, which the post's figure redraws from `pead.m`'s
+   `plot(cumret)` and which nothing compares with the book's own.
+4. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pead.py](tests/test_pead.py), to
+[tests/test_series.py](tests/test_series.py) for the 1,885 flags, Apple's
+three flagged days and the 29 stocks with none, to
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) for the two
+Example 7.7 Sharpe ratios Lesson 4 recalls, or to
+[tests/test_pead_figures.py](tests/test_pead_figures.py) for the figure's own
+numbers. Four had no pin before it.
+
+1. That 157 of the 330 days hold a position, the first on 2011-05-11, the
+   first day the moving deviation can be computed.
+2. That 1,279 flagged stock-days fall on or after that day, and that the
+   1,072 positions are all among them.
+3. That 29 of the 497 stocks carry no flag.
+4. That the longest spell below the high runs from 2011-08-05 to 2012-01-10
+   after a high on 2011-08-04, and that the deepest drawdown falls inside it
+   on 2011-11-02.
+
+Its one figure is drawn from the committed files by
+[src/chan/pead_figures.py](src/chan/pead_figures.py), which reads them
+through the same scale-break guard as `python -m chan.pead`. It redraws the
+cumulative return `pead.m` plots, with the 89 days before the moving
+deviation fills and the longest spell below the high shaded, for Lessons 1
+and 3.
+
+```bash
+uv run python -m chan.pead_figures
+```
+
+[tests/test_pead_figures.py](tests/test_pead_figures.py) holds what it draws
+rather than its bytes, for the reason given above for the regime map.
 
 ## Where the book's numbers come from
 
