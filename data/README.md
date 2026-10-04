@@ -634,7 +634,9 @@ moved between the saves.
 The other two directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
 [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) reproduces
-that example. `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held
+that example, and
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295)
+reproduces Example 4.1 on the price file alone. `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held
 it on 2012-04-24, with the same five fields per stock as the first two
 directories. `earnannfile/` holds his earnings-announcement flags for the same
 497 stocks, a 0 or 1 for each trading day. Like the first two, the price file
@@ -650,7 +652,13 @@ measurements below.
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
    at `4567024`, under `archived/matlab/`. Neither carries a licence, which
    README's licence paragraph already covers. The `.mat` files are not
-   committed, and their sha256 is recorded here.
+   committed, and their sha256 is recorded here. EpchanPreview holds the price
+   file a third time, as
+   `public/img/book3/Chap3 Time Series/inputDataOHLCDaily_20120424.mat`, the
+   same git blob, `0fb5ebc`, and the same sha256. That is the name, with no
+   `_stocks`, that Example 4.1's `bog.m` loads, and the only file of that name
+   in Chan's published code. `chan.mat_columns.round_trip_differs` finds the
+   committed members rebuild all five of its arrays exactly.
 
    ```text
    4a62f5851de9962b72c6b135d4f4addc3cb13ff1ce28afe45defceb47c318849  inputDataOHLCDaily_stocks_20120424.mat
@@ -674,8 +682,9 @@ measurements below.
 4. **The scale-break guard flags 30 days in 17 of the 497, on the close.** Every
    one falls between 2007 and 2009, most are banks and insurers in the 2008
    crisis, such as AIG on 2008-09-15, and none sits near a split. None falls in
-   the 2011 and 2012 window Example 7.2 trades. They are pinned beside the
-   others in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
+   the 2011 and 2012 window Example 7.2 trades, and all 30 fall in Example
+   4.1's, which is the file's whole span. They are pinned beside the others in
+   [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **The size budget is raised.** The two directories hold 32.01 MB, which
    takes `data/` from 74.41 MB to 106.86 MB of file content. The owner decided
    on 2026-10-03 to commit the whole price file rather than stay under the

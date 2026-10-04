@@ -4,8 +4,8 @@ Every class here holds at least one input on which a helper and the numpy
 default disagree, and asserts the default's answer beside the helper's. So a
 helper quietly swapped for the default fails rather than agreeing on easy
 inputs. Where a helper moves a figure Chan prints, that figure is pinned in
-``tests/test_equity_seasonals.py``, ``tests/test_pead.py`` or
-``tests/test_pca_factor.py``, and the module
+``tests/test_equity_seasonals.py``, ``tests/test_pead.py``,
+``tests/test_pca_factor.py`` or ``tests/test_buy_on_gap.py``, and the module
 docstring of :mod:`chan.matlab_helpers` says which helpers those are.
 
 The two books' ``smartstd`` files are held against each other as well as
@@ -23,10 +23,12 @@ import pytest
 from chan.matlab_helpers import (
     backshift,
     calculate_max_dd,
+    calculate_returns,
     fwdshift,
     lag1,
     matlab_sort,
     round_half_away,
+    smart_moving_avg,
     smart_moving_std,
     smartmean,
     smartstd_book_two,
@@ -150,6 +152,62 @@ class TestSmartMovingStd:
     def test_a_one_row_window_is_refused(self) -> None:
         with pytest.raises(ValueError, match="at least 2 rows, not 1"):
             smart_moving_std([1.0, 2.0], 1)
+
+
+class TestSmartMovingAvg:
+    def test_the_rows_before_the_window_fills_are_nan_even_when_finite(self) -> None:
+        """A rolling mean with no minimum count would give row 0 a mean of itself."""
+        avg = smart_moving_avg(np.arange(1.0, 6.0)[:, None], 3)
+        assert np.isnan(avg[:2]).all()
+        np.testing.assert_array_equal(avg[2:, 0], [2.0, 3.0, 4.0])
+
+    def test_a_missing_entry_is_skipped_rather_than_spoiling_the_window(self) -> None:
+        """The plain mean of a window holding a NaN is NaN."""
+        x = np.array([[1.0], [NAN], [4.0], [6.0]])
+        avg = smart_moving_avg(x, 3)
+        assert avg[2, 0] == 2.5
+        assert avg[3, 0] == 5.0
+        assert np.isnan(np.mean(x[0:3]))
+
+    def test_a_window_holding_nothing_finite_is_nan(self) -> None:
+        x = np.array([[1.0, NAN], [NAN, NAN], [NAN, NAN], [4.0, 5.0]])
+        avg = smart_moving_avg(x, 2)
+        np.testing.assert_array_equal(avg[1], [1.0, NAN])
+        assert np.isnan(avg[2]).all()
+        np.testing.assert_array_equal(avg[3], [4.0, 5.0])
+
+    def test_it_adds_the_current_row_first_as_the_m_file_does(self) -> None:
+        """Added newest first, 1 is lost against 1e16 before the two large values cancel.
+
+        ``np.mean`` adds oldest first and keeps it, so the two orders give 0 and 1/3.
+        """
+        x = [-1e16, 1e16, 1.0]
+        assert smart_moving_avg(x, 3)[2] == 0.0
+        assert np.mean(x) == pytest.approx(1 / 3, abs=1e-15)
+
+    def test_a_window_below_one_row_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="at least 1 row, not 0"):
+            smart_moving_avg([1.0, 2.0], 0)
+
+
+class TestCalculateReturns:
+    def test_each_row_is_its_simple_return_and_the_first_lag_rows_are_nan(self) -> None:
+        """``np.diff`` would drop the first row rather than keep the shape."""
+        r = calculate_returns([100.0, 110.0, 99.0], 1)
+        assert np.isnan(r[0])
+        assert r[1] == pytest.approx(0.1, abs=1e-15)
+        assert r[2] == pytest.approx(-0.1, abs=1e-15)
+        assert len(np.diff([100.0, 110.0, 99.0])) == 2
+
+    def test_no_return_reaches_across_a_missing_price(self) -> None:
+        """A forward fill would read 100 to 120 as one row's return of 0.2."""
+        r = calculate_returns([100.0, NAN, 120.0], 1)
+        assert np.isnan(r).all()
+
+    def test_the_lag_counts_rows(self) -> None:
+        r = calculate_returns([100.0, 50.0, 150.0], 2)
+        assert np.isnan(r[:2]).all()
+        assert r[2] == pytest.approx(0.5, abs=1e-15)
 
 
 class TestCalculateMaxDD:

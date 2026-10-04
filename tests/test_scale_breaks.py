@@ -172,6 +172,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: to t + 1, and each gap holds a month-end with no close.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_momentum_factor.py`` holds
 #: that.
+#:
+#: [Issue 295](https://github.com/l3a0/quantitative-trading/issues/295) decided
+#: that ``chan.buy_on_gap`` refuses no window for *Algorithmic Trading*'s
+#: Example 4.1, on the reasoning issues 18, 21 and 22 give. Its window is the
+#: book-two file's whole span, 2006-05-11 to 2012-04-24, so it holds all 30
+#: of that file's flagged days, and the guard ``chan.pead`` calls would refuse
+#: the run. ``bog.m`` ran on these prices as they stand, and none of the 30 sits
+#: near a split. One position lands on one, a short in MS on 2008-10-13 under
+#: the mirror the issue declared. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_buy_on_gap.py`` runs the guard and holds both facts.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

@@ -20,7 +20,8 @@ each is what its own printouts imply, so both live here under names that say
 which book each belongs to. :func:`smartstd_first_edition` is the first
 edition of *Quantitative Trading*'s. :func:`smartstd_book_two` is *Algorithmic
 Trading*'s, and choosing it over the first edition's moves a figure Example 7.2
-prints, which ``tests/test_pead.py`` pins, and the revised Example 7.7 Sharpe
+prints, which ``tests/test_pead.py`` pins, both figures Example 4.1 prints,
+which ``tests/test_buy_on_gap.py`` pins, and the revised Example 7.7 Sharpe
 ratio above. The revised edition's Example 7.4
 prints a Sharpe ratio that :func:`smartstd_book_two` lands and the first
 edition's misses, and the repost of its code named below carries book two's
@@ -34,10 +35,14 @@ and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
 it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
 Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`smartmean`, :func:`smartsum` and :func:`matlab_sort` for Example 7.4.
+:mod:`chan.buy_on_gap` calls :func:`backshift`, :func:`smartsum` and
+:func:`matlab_sort` for *Algorithmic Trading*'s Example 4.1.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
-tie order in :func:`matlab_sort` moves no printed figure on these files.
+tie order in :func:`matlab_sort` moves no printed figure on these files. On
+the 2012 S&P 500 file Example 4.1 reads, no two stocks qualifying on one day
+tie at all, on either side, so it moves nothing there either.
 
 The source is Chan's first-edition mirror,
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading)
@@ -68,10 +73,12 @@ What each one does:
 They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
-**Book two's helpers.** Three come from Chan's *Algorithmic Trading* code
-rather than his first edition's. :mod:`chan.pead` calls all three, and
-:mod:`chan.pca_factor` and :mod:`chan.equity_seasonals` call
-:func:`smartstd_book_two`, the second for the revised edition's Example 7.7.
+**Book two's helpers.** Five come from Chan's *Algorithmic Trading* code
+rather than his first edition's. :mod:`chan.pead` calls the first three,
+:mod:`chan.buy_on_gap` calls all but :func:`smartstd_book_two` directly and
+runs it through :func:`smart_moving_std`, and :mod:`chan.pca_factor` and
+:mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
+the revised edition's Example 7.7.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
@@ -88,6 +95,10 @@ endings are stripped, measured on
   :func:`drawdown_path` is its loop, returning each day's high, drawdown and
   duration, so a caller that needs to know where the longest run falls reads
   the same calculation rather than a second copy of it.
+- :func:`calculate_returns` is ``calculateReturns``, each row's simple return
+  over the row ``lag`` rows before it.
+- :func:`smart_moving_avg` is ``smartMovingAvg``, the mean of the finite
+  entries over a trailing window of rows, NaN until the window first fills.
 
 Book two's ``smartmean``, ``smartsum`` and ``backshift`` compute what the first
 edition's do, so they are not carried twice.
@@ -115,6 +126,24 @@ changed on the way over.
 4. ``calculateMaxDD`` hands its duration back as a whole number of days
    rather than as a double, which is the value ``pead.m`` prints after its
    ``round``.
+
+``calculateReturns.m`` and ``smartMovingAvg.m`` came later, from the same
+directory of the same mirror at the same commit, for Example 4.1's ``bog.m``.
+EpchanPreview holds both under ``public/img/book2/`` and again under
+``public/img/book2/Utilities/``, all three copies identical once line endings
+are stripped. They landed here with the pull request for
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295). Three
+things changed on the way over.
+
+1. ``smartMovingAvg``'s optional third argument, which samples every
+   ``period`` rows, is not carried, because ``bog.m`` never passes it.
+2. ``smartMovingAvg``'s ``assert(T>0)`` becomes a refusal that names the
+   window.
+3. ``calculateReturns``' commented-out log return is not carried.
+
+``smartMovingAvg`` adds the window's rows one at a time, the current row first,
+and :func:`smart_moving_avg` adds them in the same order, so each mean is the
+same double rather than numpy's pairwise sum.
 
 ``calculateMaxDD``'s two quirks are kept, because they are what Chan's code
 does. Its high-water mark starts at zero rather than at the first day's
@@ -261,6 +290,42 @@ def smart_moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
     for t in range(lookback - 1, len(values)):
         spread[t] = smartstd_book_two(values[t - lookback + 1 : t + 1], axis=0)
     return spread
+
+
+def calculate_returns(prices: ArrayLike, lag: int) -> NDArray[np.float64]:
+    """``calculateReturns``: each row's simple return over the row ``lag`` rows before it.
+
+    ``(p − backshift(lag, p)) / backshift(lag, p)``, so the first ``lag`` rows
+    are NaN, and so is any row whose price or earlier price is missing.
+    """
+    values = np.asarray(prices, dtype=float)
+    previous = backshift(lag, values)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return (values - previous) / previous
+
+
+def smart_moving_avg(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
+    """``smartMovingAvg``: the mean of the finite entries in each trailing ``lookback`` rows.
+
+    Row t holds the mean of whichever of rows t − lookback + 1 through t are
+    finite, column by column, and NaN where none is. The first
+    ``lookback − 1`` rows are NaN whatever they hold, because the ``.m`` file
+    adds a NaN-padded shift of each earlier row and that padding survives the
+    division. The sum is taken in the ``.m`` file's order, row t first and then
+    each earlier row, so a mean here is the same double MATLAB's is rather than
+    numpy's pairwise sum, which can differ in the last bit.
+    """
+    values = np.asarray(x, dtype=float)
+    if lookback < 1:
+        raise ValueError(f"smart_moving_avg takes a window of at least 1 row, not {lookback}")
+    filled = np.where(np.isfinite(values), values, 0.0)
+    total = np.zeros_like(values)
+    count = np.zeros_like(values)
+    for i in range(lookback):
+        total = total + backshift(i, filled)
+        count = count + np.isfinite(backshift(i, values))
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(count > 0, total / count, np.nan)
 
 
 def drawdown_path(
