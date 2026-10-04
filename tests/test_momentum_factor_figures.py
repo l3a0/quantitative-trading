@@ -112,6 +112,17 @@ class TestTheFactors:
     def test_the_zero_line_sits_at_zero(self, figure) -> None:
         assert set(_by_gid(figure)["zero"].get_xdata()) == {0}
 
+    def test_the_two_factors_are_drawn_apart(self, figure) -> None:
+        """The labels name the factors, and the lines must not need them to."""
+        mkt, wml = _by_gid(figure)["mkt"], _by_gid(figure)["wml"]
+        assert to_rgba(mkt.get_color()) != to_rgba(wml.get_color())
+        assert mkt.get_linestyle() != wml.get_linestyle()
+
+    def test_the_axes_show_the_whole_curve(self, figure) -> None:
+        """A share runs from 0 to 1, so nothing the curve or a label sits on is clipped."""
+        low, high = figure.axes[0].get_ylim()
+        assert low == 0 and high >= 1
+
 
 def _band_edges(figure) -> tuple[float, float]:
     """The shaded band's left and right edges, in autocorrelation units."""
@@ -154,6 +165,11 @@ class TestTheWords:
                 (value, comparison.percentile(value) / 100)
             )
 
+    def test_the_median_and_band_labels_sit_on_their_own_lines(self, figure, comparison) -> None:
+        labels = _by_gid(figure)
+        assert labels["label-median"].xy[0] == comparison.median
+        assert labels["label-band"].xy[0] == comparison.band
+
     def test_the_title_carries_the_exploratory_label(self, figure) -> None:
         title = figure._suptitle.get_text()
         assert title == "Factor momentum on Chan's S&P 500 file, an exploratory test"
@@ -184,8 +200,10 @@ class TestTheWords:
         """Neither verdict can be told from noise, so nothing is green or red."""
         ax = figure.axes[0]
         verdicts = {to_rgba(GOOD)[:3], to_rgba(LOST)[:3]}
+        assert to_rgba(figure.patch.get_facecolor())[:3] not in verdicts
         for patch in ax.patches:
             assert to_rgba(patch.get_facecolor())[:3] not in verdicts
+            assert to_rgba(patch.get_edgecolor())[:3] not in verdicts
         for line in ax.lines:
             assert to_rgba(line.get_color())[:3] not in verdicts
             assert to_rgba(line.get_markerfacecolor())[:3] not in verdicts
