@@ -2,7 +2,7 @@
 
 This file is the single authority for every number any prose surface quotes
 about the three candidates. ``docs/replication-log.md`` Entry 5 carries the
-fixed-income finding, Entry 6 the cross-rate verdict and Entry 13 the
+fixed-income finding, Entry 6 the cross-rate verdict and Entry 15 the
 calendar-spread verdicts, and each points here row by row. The fixed-income
 classes come first, then the cross-rate classes, then the calendar-spread
 classes, each under a statement of its vintage and specification.
@@ -1567,7 +1567,7 @@ class TestTheCalendarSpreadReport:
 
     def test_it_says_exploratory_and_names_the_entry(self, out: str) -> None:
         assert "exploratory by construction" in out
-        assert "Entry 14 carries the verdicts." in out
+        assert "Entry 15 carries the verdicts." in out
         assert "there is no combined one" in out
 
 

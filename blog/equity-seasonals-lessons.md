@@ -16,7 +16,7 @@ The four lessons below say what the reproduction does teach. The code is open so
 
 **Example 7.6, the January effect.** At each December year-end, rank the S&P 600 small caps on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, and exit both at January’s last close. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays two one-way costs of 5 basis points.
 
-**Example 7.7, Heston and Sadka.** At each S&P 500 month-end, rank the stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month. The two scripts this repository holds turn their monthly returns into an annual return by multiplying their mean by 12, and into a Sharpe ratio by multiplying the mean over the standard deviation by √12, with no risk-free rate. The rules that reproduce the other two printouts do the same.
+**Example 7.7, Heston and Sadka.** At each S&P 500 month-end, rank the stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month. The two scripts this repository holds turn their monthly returns into an annual return by multiplying their mean by 12, and into a Sharpe ratio by multiplying the mean over the standard deviation by √12, with no risk-free rate. The revised MATLAB and R the book prints do the same.
 
 What Chan says of each is not the same, and the difference matters for what a reproduction can find.
 
@@ -75,13 +75,13 @@ None of them comes out of the strategy as described above. Each needs rules the 
 
 Example 7.7 gives four answers across its four printouts, and the first of them is in different units from the other three.
 
-The first edition’s −0.9167 is a sum over every position held each month, never divided by how many there were. So it is in units of summed positions, not a return on capital. Dividing each month by its positions puts the same script in units of capital, at −0.0120 a year, a figure computed here that Chan did not print. The revised Python divides, and so do the rules that reproduce the revised MATLAB and R. The three revised printouts land at −0.0129, −0.012679 and −0.01139674.
+The first edition’s −0.9167 is a sum over every position held each month, never divided by how many there were. So it is in units of summed positions, not a return on capital. Dividing each month by its positions puts the same script in units of capital, at −0.0120 a year, a figure computed here that Chan did not print. The revised Python divides, and so do the revised MATLAB and R. The three revised printouts land at −0.0129, −0.012679 and −0.01139674.
 
-The three revised figures still differ, so three languages give three answers to one strategy. The rules that reproduce them differ in where a month ends, how a tenth is rounded and what the standard deviation divides by, and each difference moves a digit.
+The three revised figures still differ, so three languages give three answers to one strategy. The three scripts differ in where a month ends, how a tenth is rounded and what the standard deviation divides by, and each difference moves a digit.
 
 Example 7.6 is a smaller case. Its three languages give two answers, not three. The R prints MATLAB’s figures. The revised Python differs because it slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives MATLAB’s figures to every digit.
 
-The revised MATLAB and R figures carry a caveat. Their code is not in this repository, so the rules behind them came from trying combinations until the printed digits came out, and the match holds by construction. The figures are Chan’s as printed. The rules only reproduce them, which is weaker than showing they are what his printed code does. For each of the revised MATLAB’s two figures, a second set of rules gives the same four decimals. A nearby choice does not: keeping the first twelve months gives a Sharpe ratio of −0.1330, not the printed −0.1243. For the R, the nearby choices give −0.0118031 or −0.0117146 for the return and −0.1101755 for the Sharpe ratio. [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks these rules against the code the book prints. The Python and the first edition’s MATLAB come from code and need no such caveat.
+The revised MATLAB and R rules come from the code the book prints, on pp. 179 and 181, which [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes. The R needs no repair. The MATLAB does: it cuts its prices down to month-end rows and then looks one up by a daily row number, which stops on the first month. Reading the month-end row instead, with the helper below, gives Chan’s figures. The listing also calls a helper, `smartstd`, whose body those pages do not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) settles both points the page leaves open. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
 
 ## Lesson 3: reproducing a strategy published as dead checks its figures, not its death
 
@@ -125,12 +125,11 @@ Both strategies rank stocks on past returns and trade the tenth at each end, so 
 
 ## What this replication cannot say
 
-Four questions are beyond it.
+Three questions are beyond it.
 
 1. **Whether the effect existed before 2002.** The file holds 13 months before 2002, all on survivors. [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196) is where the test runs on a panel without that limit.
-2. **Whether the revised MATLAB and R rules are the printed code.** They reproduce every digit printed, and for the MATLAB more than one reading does. [Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks them against the book.
-3. **Example 7.6’s third January.** Chan’s one winning January needs a file running to 2008-01-31. [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) tracks it.
-4. **Chan’s claim about the most recent five years.** Directly after the MATLAB listing of Example 7.7, he suggests running the program on “the most recent five years instead of the entire data period” and says those years do even worse (p. 180). The entire data period is the program’s own input, the S&P 500 file, so the five years run roughly from late 2002 to late 2007, inside the committed file. The file can check the claim. This post quotes no five-year figure, because this repository has written no criterion for one. [Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) runs the check under a criterion written first.
+2. **Example 7.6’s third January.** Chan’s one winning January needs a file running to 2008-01-31. [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) tracks it.
+3. **Chan’s claim about the most recent five years.** Directly after the MATLAB listing of Example 7.7, he suggests running the program on “the most recent five years instead of the entire data period” and says those years do even worse (p. 180). The entire data period is the program’s own input, the S&P 500 file, so the five years run roughly from late 2002 to late 2007, inside the committed file. The file can check the claim. This post quotes no five-year figure, because this repository has written no criterion for one. [Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) runs the check under a criterion written first.
 
 ## What this means for a trader
 

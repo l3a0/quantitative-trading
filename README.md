@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Fourteen replications run here, thirteen from Chan's *Quantitative Trading* and
+Fifteen replications run here, fourteen from Chan's *Quantitative Trading* and
 one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other twelve were built here.
+they were first built. The other thirteen were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -97,8 +97,10 @@ they were first built. The other twelve were built here.
    year-on-year rotation on his S&P 500 file. He prints them in the first
    edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
    fourteen figures his files reach reproduce to the digits printed. None
-   lands from the strategy as described. The revised MATLAB and R code is not
-   in the repo, so their rules are readings that reproduce the printed figures.
+   lands from the strategy as described. The revised MATLAB and R rules follow
+   the code the book prints, with one index repaired so the MATLAB runs. A
+   repost of the revised code carries the same repair and book two's
+   `smartstd`, which is the helper the printed digits need.
    The first edition's −0.9167 a year is a sum over positions rather than a
    return on capital, and the revised edition's three annual returns land
    between −0.0114 and −0.0129 a year. Example 7.6's third January,
@@ -163,7 +165,20 @@ they were first built. The other twelve were built here.
     carries an intercept, which cancels its factors, so it ranks on a year of
     momentum. Given the same 50 longs, its book matches the revised MATLAB's on
     none of 752 days. Every figure is exploratory and about survivors.
-14. Chan's calendar spreads, which he calls "the simplest examples of
+14. The market and momentum factors, built on Chan's S&P 500 file to test his
+    claim at Kindle location 4014 of the revised edition that factor returns
+    "often" have stronger serial autocorrelation than single stocks', so they
+    have momentum. MKT is SPY's monthly return over the three-month bill, and
+    WML longs the stocks whose past eleven months, skipping the latest, rose
+    and shorts those that fell. Over the 83 months from December 2000 to
+    October 2007, MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099,
+    against a median of −0.0392 across the 446 stocks priced in every month.
+    The claim holds for MKT and does not hold for WML, which is below 0 and
+    below the median stock. Neither factor's estimate is outside the 0.2151
+    band that a series with no autocorrelation stays inside 95 percent of the
+    time, so MKT's verdict could be noise. Every figure is exploratory, and WML
+    and the stocks' figures are about survivors.
+15. Chan's calendar spreads, which he calls "the simplest examples of
     cointegrating futures pairs" at Kindle location 3951. Every adjacent pair
     of delivery months is tested on EIA's nearest four contracts, 360 for
     natural gas and 220 for RBOB gasoline, over the 39 to 59 days a pair keeps.
@@ -272,14 +287,20 @@ is changed, so a builder who corrects Chan's code fails a test rather than
 moving a pin. It also holds the Python's book equal to a momentum ranking on
 every day, which is the finding the entry rests on.
 
-All fourteen replications reach a verdict in
+[tests/test_momentum_factor.py](tests/test_momentum_factor.py) does it for the
+market and momentum factors. It pins the calendar, the legs, both factors'
+autocorrelations and the stocks' quartiles, and one verdict per factor. Its
+`test_the_month_before_formation_does_not_rank` holds the skip, so a
+lookback that runs to the formation's own close fails a test.
+
+All fifteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
-seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's
-and Entry 14 the calendar spreads'.
+seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
+Entry 14 the market and momentum factors' and Entry 15 the calendar spreads'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -584,6 +605,19 @@ uv run python -m chan.pca_factor
 It prints each printout's figures beside Chan's, the verdicts, what separates
 the 2 percent from the 4, and every figure without PMC. It takes about a
 minute, most of it the first edition's eigendecomposition on every day.
+
+The market and momentum factors read Chan's S&P 500 file, his SPY column and
+the bills, and take no option, because the issue fixed the construction and
+the window before any return was computed:
+
+```bash
+uv run python -m chan.momentum_factor
+```
+
+It prints the three vintages, the window, the eligible stocks and the legs,
+each factor's lag-1 autocorrelation beside the stocks' quartiles, a verdict per
+factor, and the band beside them. It refuses to run if a month's winner or
+loser leg is empty, and names the month.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -961,7 +995,7 @@ is a sixth post, about two of Chan's three stationary candidates at Kindle
 location 3951, the CAD/AUD cross rate and the bond pair tested on TLT and IEF.
 It draws five lessons from Entries 5 and 6 of the replication log. Its opening
 and its close also state the third candidate's verdicts, the calendar spreads
-of Entry 14, which `TestTheCalendarSpreadVerdicts` holds.
+of Entry 15, which `TestTheCalendarSpreadVerdicts` holds.
 
 1. A named series carries a verdict, while a class of instruments tested on
    stand-ins carries a finding.

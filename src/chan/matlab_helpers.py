@@ -5,12 +5,14 @@ wrote himself, and on two behaviours of MATLAB that numpy does not share. Each
 lives here once, with the case that separates it from the numpy default held by
 ``tests/test_matlab_helpers.py``.
 
-Two of them move a figure Examples 7.6 and 7.7 print, and
+Three of them move a figure Examples 7.6 and 7.7 print, and
 ``tests/test_equity_seasonals.py`` pins what each move gives.
 
 1. :func:`smartstd_first_edition`'s zero-fill moves the first edition's 7.7
    Sharpe ratio.
-2. :func:`round_half_away` moves the first edition's January 2006 return,
+2. :func:`smartstd_book_two` moves the revised edition's 7.7 Sharpe ratio,
+   against :func:`smartstd_first_edition`.
+3. :func:`round_half_away` moves the first edition's January 2006 return,
    against the floor.
 
 Chan's two books ship two different ``smartstd`` files under one name, and
@@ -18,7 +20,8 @@ each is what its own printouts imply, so both live here under names that say
 which book each belongs to. :func:`smartstd_first_edition` is the first
 edition of *Quantitative Trading*'s. :func:`smartstd_book_two` is *Algorithmic
 Trading*'s, and choosing it over the first edition's moves a figure Example 7.2
-prints, which ``tests/test_pead.py`` pins. The revised edition's Example 7.4
+prints, which ``tests/test_pead.py`` pins, and the revised Example 7.7 Sharpe
+ratio above. The revised edition's Example 7.4
 prints a Sharpe ratio that :func:`smartstd_book_two` lands and the first
 edition's misses, and the repost of its code named below carries book two's
 file, so :mod:`chan.pca_factor` calls :func:`smartstd_book_two`.
@@ -67,7 +70,9 @@ because Examples 3.7 and 3.8 call the same helpers on the same file.
 
 **Book two's helpers.** Three come from Chan's *Algorithmic Trading* code
 rather than his first edition's. :mod:`chan.pead` calls all three, and
-:mod:`chan.pca_factor` calls :func:`smartstd_book_two`. The revised edition of
+:mod:`chan.pca_factor` and :mod:`chan.equity_seasonals` call
+:func:`smartstd_book_two`, the second for the revised edition's Example 7.7.
+The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
 ``backshift.m`` and ``fillMissingData.m`` identical to book two's once line

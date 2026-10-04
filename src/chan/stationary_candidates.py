@@ -123,7 +123,7 @@ batch, and no pair's result is a finding about that pair.
 
 :func:`power_shares` runs the same pipeline on pairs that truly cointegrate at
 a 36-day half-life, and with each orientation's share and the residual check it
-describes the batch and decides nothing. ``docs/replication-log.md`` Entry 14
+describes the batch and decides nothing. ``docs/replication-log.md`` Entry 15
 carries the verdicts.
 
 All three results are exploratory, and ``tests/test_stationary_candidates.py``
@@ -1091,7 +1091,7 @@ def report_calendar_spread(results: tuple[CalendarSpread, ...]) -> None:
     print()
     print("A replication against data is exploratory by construction. A pass earns a")
     print("registration, not a headline.")
-    print("docs/replication-log.md Entry 14 carries the verdicts.")
+    print("docs/replication-log.md Entry 15 carries the verdicts.")
 
 
 def run_calendar_spread(*, data_dir: Path | None = None) -> None:
