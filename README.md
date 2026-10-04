@@ -298,13 +298,16 @@ factor model. It pins each printout's figures as the printout formats them and
 in full, and the figure each of the Python's bookkeeping choices gives when it
 is changed, so a builder who corrects Chan's code fails a test rather than
 moving a pin. It also holds the Python's book equal to a momentum ranking on
-every day, which is the finding the entry rests on.
+every day, which is the finding the entry rests on. The blog post about it is
+the exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_momentum_factor.py](tests/test_momentum_factor.py) does it for the
 market and momentum factors. It pins the calendar, the legs, both factors'
 autocorrelations and the stocks' quartiles, and one verdict per factor. Its
 `test_the_month_before_formation_does_not_rank` holds the skip, so a
-lookback that runs to the formation's own close fails a test.
+lookback that runs to the formation's own close fails a test. The blog post
+about them is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_cpo.py](tests/test_cpo.py) does it for Conditional Parameter
 Optimization. Its mechanics run everywhere: each fast step of the strategy is
@@ -1331,6 +1334,81 @@ uv run python -m chan.pead_figures
 
 [tests/test_pead_figures.py](tests/test_pead_figures.py) holds what it draws
 rather than its bytes, for the reason given above for the regime map.
+
+[blog/factor-models-lessons.md](blog/factor-models-lessons.md) is a tenth
+post, about Chan's factor models: Example 7.4, the PCA factor model, and his
+claim that factor returns have momentum, tested on the market and momentum
+factors. Example 7.4 rests on that claim, so the post draws six lessons from
+Entries 13 and 14 of the replication log together. Every result in it is
+exploratory.
+
+1. Three of the four printouts reproduce, and the fourth, the R, prints
+   another program's figures.
+2. Chan's round-off is a second strategy, because the revised Python's
+   intercept cancels its factors and leaves single-stock momentum.
+3. The momentum the strategy assumes held for the market factor and not for
+   the momentum factor, each verdict standing on its own.
+4. A verdict can follow the declared criterion and still rest on almost
+   nothing, because both autocorrelations sit inside the range a series with
+   no autocorrelation lands in 95 percent of the time.
+5. Fix the rule before the number, which Entry 14 did and Entry 13's
+   round-off criterion did not.
+6. Every figure that touches the stocks is about survivors, and the market
+   factor is not.
+
+Four groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its page in the revised edition, read in the
+   Kindle Cloud Reader on 2026-10-03 from the Annotations panel, which labels
+   each highlight with the page it starts on. "The return of the market"
+   (location 3978) is on p. 160. WML's definition (location 4004), and
+   "often factor returns are more stable than individual stock returns",
+   "stronger serial autocorrelations", "individual stock's returns" and "have
+   momentum" (location 4014), are on p. 162. The setup of statistical factors
+   (location 4034) is on p. 163. "Remain constant from the current time
+   period to the next", "only 2% (MATLAB) to 4% (Python and R)" and
+   "essentially round off errors" (location 4051) are cited at p. 164, where
+   that highlight starts. A quotation late in a highlight could fall on the
+   next page, which the panel cannot show. Example 7.4 itself runs from p. 163
+   to p. 167, with the revised MATLAB's figures on p. 164, the Python's on
+   p. 165 and the R's on p. 167, as Entry 13 records from the same reader. The
+   suite pins the 2 and the 4 as whole percents, not the words.
+2. Facts outside the committed data. That French's market factor subtracts
+   the bill rate and his momentum factor skips the latest month. That the
+   revised MATLAB repost at `7430b84` carries *Algorithmic Trading*'s
+   `smartstd`. The commits the sources are read at: `1a71950` of the
+   first-edition mirror, `7430b84` of the MATLAB repost and `5fcab61` of the
+   Python repost. The Fama and French citation and its publication details.
+3. Counts and arithmetic no test asserts. Each autocorrelation of 83 months
+   rests on 82 pairs. 1.96 marks a two-sided 5 percent, which is what puts
+   the band at 95 percent. Each annual mean is the monthly mean times 12. The
+   Python's 255 rows with no position are its 1,006 rows less its 751 traded
+   days.
+4. Its references. The five citations are cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pca_factor.py](tests/test_pca_factor.py) or
+[tests/test_momentum_factor.py](tests/test_momentum_factor.py), to
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py)'s
+`TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, or to
+[tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
+for the figure's own labels. One figure was half pinned before it, and
+`TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
+ends of PMC's 851-day gap rather than only the days inside it.
+
+Its one figure is drawn from the committed S&P 500 file by
+[src/chan/momentum_factor_figures.py](src/chan/momentum_factor_figures.py). It
+draws the 446 stocks' lag-1 autocorrelations as their cumulative curve, with
+MKT, WML, the median stock, zero and the ±0.2151 band, so each factor's line
+meets the curve at its percentile, for Lessons 3 and 4.
+
+```bash
+uv run python -m chan.momentum_factor_figures
+```
+
+[tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 
