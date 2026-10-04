@@ -14,6 +14,7 @@ The order the cases appear in is the order the rules appear on
 [issue 1](https://github.com/l3a0/quantitative-trading/issues/1).
 """
 
+import dataclasses
 import hashlib
 import json
 import sys
@@ -2792,6 +2793,28 @@ class TestALiftedSourceIsHeld:
 
         with pytest.raises(AssertionError, match="spx_20071123/: the table's Symbol cell"):
             the_table_and_the_manifest_agree(committed)
+
+    def test_one_member_not_named_for_its_symbol_keeps_the_directory_s_one_row(self):
+        """The grouping asks whether any member is named for its symbol, not every one.
+
+        Asking every one would turn the 500 members of `spx_20071123/` into 500
+        rows owed the moment one of them is edited, and the failure would name a
+        row nobody should write rather than the edit.
+        """
+        entries = read_manifest()
+        edited = [
+            dataclasses.replace(entry, symbol="XOM")
+            if entry.path == "spx_20071123/ko.csv"
+            else entry
+            for entry in entries
+        ]
+
+        owed = _rows_the_manifest_owes(edited)
+
+        assert "spx_20071123/" in owed
+        assert not [
+            key for key in owed if key.startswith("spx_20071123/") and key != "spx_20071123/"
+        ]
 
     def test_a_lifted_member_is_not_held_to_the_recorder_s_name(self, committed):
         """It is skipped by its directory, so the recorder's check stays green over it."""

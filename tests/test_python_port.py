@@ -98,6 +98,7 @@ class TestTheCloseAt1659:
     """The 16:59 bar is the daily close Chan's MATLAB and his Python both read."""
 
     def test_it_is_one_close_a_day_over_the_file_s_span(self, at_1659) -> None:
+        assert at_1659.name == "USDCAD"
         assert len(at_1659) == 1216
         assert at_1659.index.is_unique
         assert (str(at_1659.index[0].date()), str(at_1659.index[-1].date())) == (
@@ -153,6 +154,18 @@ class TestTheCloseAt1659:
         assert DAILY_CLOSE_MINUTE == 1659
         assert len(at_1658) > 0
         assert not at_1658.equals(load_minute_close("USDCAD", dated=MINUTES)[1])
+
+    def test_the_symbol_is_matched_whatever_its_case(self, at_1659) -> None:
+        assert load_minute_close("usdcad", dated=MINUTES)[1].equals(at_1659)
+
+    def test_bars_out_of_date_order_come_back_in_it(self) -> None:
+        entry = resolve_vintage(vendor="chan-py", symbol="USDCAD", price_basis="raw", dated=MINUTES)
+        payload = b"Date,Time,Close\n20200103,1659,2.5\n20200102,1659,1.25\n"
+
+        closes = minute_close(payload, entry)
+
+        assert [str(day.date()) for day in closes.index] == ["2020-01-02", "2020-01-03"]
+        assert list(closes) == [1.25, 2.5]
 
     def test_a_daily_file_is_refused_by_the_minute_reader(self) -> None:
         with pytest.raises(VintageUnavailable, match="holds no minute bars"):

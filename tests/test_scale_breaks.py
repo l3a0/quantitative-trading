@@ -44,6 +44,7 @@ from chan.series import (
     _holds_minute_bars,
     _parse_close,
     aligned_closes,
+    load_minute_close,
     load_vintage,
     minute_close,
     refuse_window_crossing_a_break,
@@ -483,6 +484,18 @@ def halved(committed_copy: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     halve_one_close(committed_copy, named="gld_20yr_prices_unadjusted.csv", on="2007-01-03")
     monkeypatch.setattr(paths, "DATA_DIR", committed_copy)
     return committed_copy
+
+
+class TestTheMinuteFileIsReadAtItsDailyClose:
+    def test_the_guard_reads_the_16_59_closes(self) -> None:
+        """The guard reads one close a day, and it is the one Example 2.1 reads."""
+        (entry,) = [
+            entry
+            for entry in read_manifest()
+            if entry.path == "pythoncodesanddata/inputData_USDCAD.csv"
+        ]
+
+        assert closes_of(entry).equals(load_minute_close("USDCAD", dated=entry.saved_date)[1])
 
 
 class TestTheGuardOverTheWholeManifest:
