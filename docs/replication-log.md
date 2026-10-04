@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 and 16 carry their own,
-three, eleven, twelve, five, six, one, three, eight, six, two, eight, seven,
-twelve and six,
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 and 17 carry their
+own, three, eleven, twelve, five, six, one, three, eight, six, two, eight,
+seven, twelve, six and two,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15 and 16 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16 and 17 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -147,6 +147,13 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-14)
   - [What the entry concludes](#what-the-entry-concludes-15)
   - [What this entry cannot say](#what-this-entry-cannot-say-13)
+- [Entry 17: cross-sectional momentum, Chan's *Algorithmic Trading*](#entry-17-cross-sectional-momentum-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-14)
+  - [What this repo computed](#what-this-repo-computed-16)
+  - [The verdicts](#the-verdicts-15)
+  - [The declared readings](#the-declared-readings)
+  - [What the entry concludes](#what-the-entry-concludes-16)
+  - [What this entry cannot say](#what-this-entry-cannot-say-14)
 
 ## How to read an entry
 
@@ -178,8 +185,10 @@ both.
    Entry 12, [tests/test_pca_factor.py](../tests/test_pca_factor.py) holds
    Entry 13,
    [tests/test_momentum_factor.py](../tests/test_momentum_factor.py) holds
-   Entry 14, and [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
-   whose pins run only where the owner's data archive is.
+   Entry 14, [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
+   whose pins run only where the owner's data archive is, and
+   [tests/test_cross_sectional_momentum.py](../tests/test_cross_sectional_momentum.py)
+   holds Entry 17.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -289,7 +298,8 @@ Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
-Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, and Entry 16's rows 6 to 11.
+Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
+and Entry 17's rows 10 and 11.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -346,6 +356,13 @@ definite claim about one strategy, and the criterion, all four metrics better,
 was written on
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) before any
 return on the minute bars was computed.
+
+Entry 17's row 9 takes it too. Location 2800 says the return of the strategy
+it names "did stabilize, though it hasn't returned to its former high level
+yet" after 2009, and the criterion, a return from 2010 on of at least 0 and
+below 2007's under the same script, was written on
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297) before
+any return was computed.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -3479,6 +3496,201 @@ heavily. What a round trip in GLD actually costs is not measured here.
 **Anything a public clone can check.** The bars are licensed, so the pins run
 only where the owner's archive is. The hashes say exactly which bytes were
 read, and nothing here can show them to anyone else.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 17: cross-sectional momentum, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 6.2, Kindle locations 2797, 2800 and 2890,
+and the script `kentdaniel.m` the example names. Shipped under
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297), whose
+body declared the four readings below, and the rule deciding whether one
+lands, before any of them was computed.
+
+Eleven rows, all derivable from
+[tests/test_cross_sectional_momentum.py](../tests/test_cross_sectional_momentum.py),
+and a table of the readings.
+
+**The script's figures sit near the book's and far from its own comment's.** Stocks
+that rose most over the past year tend to keep rising, so Chan buys the 50
+with the highest 252-day return and shorts the 50 with the lowest, holds each
+day's picks 25 days in overlapping cohorts, and divides each day's return by
+2 · 50 · 25. The book reports 37 percent and a Sharpe ratio of 4.1 from
+2007-05-15 to 2007-12-31, and −30 percent over 2008 and 2009. The comment
+lines that close `kentdaniel.m` print 0.0315 and 0.40 over the same 2007
+window, which is where
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297) started.
+Transcribed and run on the file it loads, the script gives none of the five
+figures its comment prints. It gives a Sharpe ratio of 4.0657, and a
+compounded APR of 0.372577 in 2007 and −0.298789 over 2008 and 2009, which
+round to the book's 4.1, 37 percent and −30 percent. A second implementation
+written separately in pandas agrees with the transcription on every day, which
+`TestASecondImplementation` holds. It shares the transcription's reading of
+the script, a one-row `lag` among it, so it rules out a slip in the numpy code
+and not a misreading of the MATLAB. The comment would have confirmed that
+reading, and it did not.
+
+**Under the rule declared in advance, no book figure reproduces.** The
+issue set the book's "APR" against the arithmetic return, because Entry 12
+found that Example 7.2's "APR" is the arithmetic figure. Here the arithmetic
+return is 0.319989 in 2007 and −0.323195 over 2008 and 2009, which round to 32
+and −32 percent. The rule needed 37 percent and 4.1 together, so none of the
+four readings lands and the 4.1 row does not reproduce either, though the
+script's own Sharpe ratio rounds to it. That the compounded figure is the one
+matching was seen only after the rule was fixed, so row 10 reports it and it
+decides nothing. Chan's word "APR" names the arithmetic figure in Example 7.2
+and the compounded one here, and a rule taken from one example did not carry
+to the next.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdataohlcdaily_stocks_20120424/`, the 497 stocks of
+   Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, read for
+   the close through `chan.series.load_panel`.
+   [data/README.md](../data/README.md) records where it came from. **Every
+   figure here is about survivors**, because the file is the S&P 500 as Chan
+   held it on 2012-04-24, carried backwards, and none of its 497 stocks stops
+   before that day. That reaches the two legs in opposite directions. The
+   short leg lacks stocks that fell and then left the index, which pushes the
+   strategy down, and the long leg lacks past winners that later collapsed
+   out of it, which pushes it up. Which dominates is not measured here, as
+   Entry 14 found for its own panel.
+2. **The specification.** `kentdaniel.m` at `45670240` in
+   [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading),
+   with `lag` read as a one-row shift, since neither mirror ships a `lag.m`.
+   A 252-row ranking return, the 50 highest long and the 50 lowest short on
+   every row from the 253rd, each row's picks held 25 rows, each day's summed
+   return over 2 · 50 · 25. Book two's `smartstd`, which divides by n, and its
+   `calculateMaxDD`. Every annualisation uses 252 days, the Sharpe ratio
+   subtracts no risk-free rate, and no cost is charged. The 2007 window opens
+   the day after the first picks, so its first 24 days hold fewer than 25
+   cohorts while the script divides by 25.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2007 to 2012 sample on a rule he chose, and a reading tried against his number
+is an explanation found by a search, so the entry says whether his numbers
+reproduce on his file and nothing about whether momentum pays today.
+
+### What the book printed
+
+`kentdaniel.m` prints five figures for the 2007 window in the comment lines
+that close it. The book quotes two figures for that window, one for 2008 and
+2009, and a claim about the years after.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | Arithmetic annual return, 2007 | 0.0315 | `kentdaniel.m` |
+| 2 | Sharpe ratio, 2007 | 0.40 | `kentdaniel.m` |
+| 3 | Compounded APR, 2007 | 0.0288 | `kentdaniel.m` |
+| 4 | Maximum drawdown, 2007 | −0.066923 | `kentdaniel.m` |
+| 5 | Maximum drawdown duration, 2007 | 182 days | `kentdaniel.m` |
+| 6 | "APR", 2007-05-15 to 2007-12-31 | 37 percent | location 2800 |
+| 7 | Sharpe ratio, the same window | 4.1 | location 2800 |
+| 8 | "APR", 2008-01-02 to 2009-12-31 | −30 percent | location 2800 |
+| 9 | After 2009 the return "did stabilize, though it hasn't returned to its former high level yet" | a claim, no figure | location 2800 |
+| 10 and 11 | rows 6 and 8 on the compounded APR, and row 7 under the first edition's `smartstd` | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `252 · smartmean(ret)` over the 160 days of 2007 | 0.319989 | `TestTheScript::test_the_arithmetic_annual_return` |
+| 2 | `√252 · smartmean(ret) / smartstd(ret)`, book two's `smartstd` | 4.0657 | `TestTheScript::test_the_sharpe_ratio` |
+| 3 | `prod(1 + ret)^(252/160) − 1` | 0.372577 | `TestTheScript::test_the_compounded_apr` |
+| 4 | `calculateMaxDD` on `cumprod(1 + ret) − 1` | −0.033870 | `TestTheScript::test_the_maximum_drawdown_and_its_duration` |
+| 5 | the same | 23 days | the same |
+| 6 | row 1 in whole percent, under the declared rule | 32 | `TestTheBook::test_the_arithmetic_return_misses_37_percent_on_every_reading` |
+| 7 | row 2 at one decimal, which the declared rule needed together with row 6 | 4.1 | `TestTheBook::test_two_readings_land_4_1_alone` and `::test_no_reading_lands_37_percent_and_4_1` |
+| 8 | `252 · smartmean(ret)` over the 505 days of 2008 and 2009, in whole percent | −0.323195, so −32 | `TestTheScriptOverTheOtherWindows::test_2008_and_2009` and `TestTheBook::test_the_script_misses_minus_30_percent_on_the_arithmetic_return` |
+| 9 | 2010-01-04 to 2012-04-24's arithmetic return at least 0 and below row 1 | 0.016244, so it holds | `TestTheBook::test_the_return_after_2009_stabilised_below_2007` |
+| 10 | the compounded APR of 2007 and of 2008 and 2009, in whole percent | 0.372577 and −0.298789, so 37 and −30 | `TestTheBook::test_the_compounded_aprs_round_to_both_of_the_books` |
+| 11 | row 2 with the first edition's `smartstd`, which divides by n − 1 | 4.0530 | `TestTheHelperMovesADigit::test_the_first_editions_helper_prints_4_05_rather_than_4_07` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | +0.2885 | did not reproduce | The script, on the file it loads by name, does not print its own comment. The vintage explanation is spent, and nothing found says which run printed 0.0315. |
+| 2 | +3.67 | did not reproduce | The same. The comment's 0.40 is a tenth of what the code computes. |
+| 3 | +0.3438 | did not reproduce | The same. |
+| 4 | +0.033053 | did not reproduce | The same. |
+| 5 | −159 | did not reproduce | The same. |
+| 6 | −5 | did not reproduce | The declared rule reads the book's "APR" as the arithmetic return, and no reading's rounds to 37. |
+| 7 | −0.0 | did not reproduce | The declared rule needed 37 percent and 4.1 from one reading together. The script's 4.0657, 0.0343 below the book, rounds to 4.1 alone, which the rule calls a partial landing rather than a landing. |
+| 8 | −2 | did not reproduce | The declared rule again. The arithmetic return rounds to −32 percent. |
+| 9 | none | reproduced | The claim holds on the script as printed. The rule was fixed before the number was seen. |
+| 10 | none | none, not a replication | Seen after the rule was fixed. Both of the book's APRs are the script's compounded figure at the book's precision, and that decides no verdict. |
+| 11 | none | none, not a replication | The first edition's helper prints 4.05 against book two's 4.07, so a port reaching for the helper the repo held first fails a test. Both round to the book's 4.1. |
+
+### The declared readings
+
+[Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) declared
+R1 to R4 as what could explain a script printing 0.40 against a book printing
+4.1, each changing one thing from the script, and no combination was run. Each
+cell is the arithmetic annual return and then the Sharpe ratio, from
+`TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands when
+its 2007 return rounds to 37 percent and its 2007 Sharpe ratio to 4.1. The
+last column is each 2007 figure less the book's, from `TestTheDistances`, which
+also holds each reading's distance from −30 percent.
+
+| Reading | What changes | 2007 | 2008 and 2009 | 2010 to 2012 | Lands | From 37 percent and 4.1 |
+| --- | --- | --- | --- | --- | --- | --- |
+| R0 | nothing, the script as printed | 0.3200, 4.0657 | −0.3232, −1.2930 | 0.0162, 0.2004 | no, 4.1 alone | −0.0500, −0.0343 |
+| R1 | one portfolio held at a time, re-formed every 25 days | 0.3222, 3.9138 | −0.3130, −1.2586 | 0.0104, 0.1277 | no | −0.0478, −0.1862 |
+| R2 | the ranking return ends 21 days back | 0.2893, 3.8232 | −0.3053, −1.2821 | 0.0176, 0.2262 | no | −0.0807, −0.2768 |
+| R3 | a day's picks earn that same day, which looks ahead | 0.3371, 4.2779 | −0.2923, −1.1695 | 0.0332, 0.4093 | no | −0.0329, +0.1779 |
+| R4 | each day over the cohorts it holds rather than 25 | 0.3215, 4.0531 | R0's | R0's | no, 4.1 alone | −0.0485, −0.0469 |
+
+The readings were declared to explain a script printing 0.40 against a book
+printing 4.1. The code's own Sharpe ratio is 4.0657, and their 2007 Sharpe
+ratios span 3.82 to 4.28 around it. Long losers and
+short winners was declared too, and negating every position negates every
+day's return exactly, which `TestTheReadings::test_the_opposite_sign_negates_every_day`
+holds.
+
+### What the entry concludes
+
+Three things.
+
+1. **The 0.40 is the comment's, not the code's.** `kentdaniel.m` as
+   transcribed, on the file it loads, gives a Sharpe ratio that rounds to the
+   book's, and compounded APRs that round to both of the book's APRs. The 0.40
+   in its closing comment is a tenth of what the code computes, and no reading
+   was added to find the run that printed it. The one assumption the
+   transcription makes, that `lag` is a one-row shift, is the one the comment
+   would have confirmed.
+2. **A rule taken from one example did not carry to the next.** Example 7.2's
+   "APR" is the arithmetic return. The figures seen afterwards point to the
+   compounded one in Example 6.2, in one book by one author. The rule declared
+   in advance followed the first example, so the verdicts on rows 6 to 8 say
+   what that rule gives, and row 10 says what was seen afterwards.
+3. **Seen after the run and deciding nothing, the crash Chan describes is in
+   the file.** The strategy that earned a
+   Sharpe ratio of 4.07 over 2007 lost 32 percent a year over 2008 and 2009,
+   with a drawdown of −0.606634 lasting 371 days, and earned 1.6 percent a
+   year after that. That is the collapse location 2890 describes, where
+   momentum "vanished during the aftermath of the stock market crash".
+
+### What this entry cannot say
+
+Four things.
+
+**Which run printed the comment.** A different file, window or version of the
+script could each print 0.0315, and trying them until one did would be the
+search the issue's rule forbids, so none was tried.
+
+**What survivorship does to these figures.** Every stock here survived to
+2012-04-24, and the two legs lose different stocks.
+[Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) waits on
+a panel that could measure what that costs a cross-sectional rule.
+
+**What costs would take.** `kentdaniel.m` charges none, and every day one
+cohort of 100 picks enters and the one formed 25 days earlier leaves.
+
+**Whether momentum pays today.** The sample ends in April 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
