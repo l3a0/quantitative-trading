@@ -1227,7 +1227,7 @@ regime map.
 
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
 a ninth post, about the commodity seasonals, the gasoline and natural gas
-trades Chan says still pay where the equity ones died. It is the companion to
+trades Chan says still pay where the equity ones weakened. It is the companion to
 the equity seasonals post, and draws four lessons from Entry 11 of the
 replication log.
 
@@ -1247,23 +1247,29 @@ gave the equity seasonals post its pages. Four groups of its figures are not
 pinned here.
 
 1. Chan's words, each at its location in the revised edition. The pairing of
-   equity and commodity seasonals at location 4303, "alive and well" and 19
-   profitable years of the last 21 "as of 2015" with the last 9 out of sample
-   at 4529, the profit every year since 1995 and the scan of the literature at
-   4536, 13 consecutive years and the demand from power generators at 4585, 14
-   consecutive years at 4590, "didn't hold up as well out-of-sample" at 4632,
-   and the warning about data-snooping and the suggestion to try nearby dates
-   at 4637.
+   equity and commodity seasonals at location 4303, "alive and well", the
+   demand from real economic need rather than speculation, and 19 profitable
+   years of the last 21 "as of 2015" with the last 9 out of sample at 4529,
+   the summer driving season, the profit every year since 1995 and the scan of
+   the literature at 4536, 13 consecutive years and the demand from power
+   generators at 4585, 14 consecutive years and the exit on April 15 at 4590,
+   "didn't hold up as well out-of-sample" at 4632, and the warning about
+   data-snooping and the suggestion to try nearby dates at 4637.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
-   before delivery as the exchange's rule, and EIA's statement that its source
-   is NYMEX.
+   before delivery and the May gasoline contract trading until the last
+   business day of April as the exchange's rules, Good Friday as the only NYMEX
+   holiday that can land on a trade date, EIA publishing the nearest four
+   contracts numbered by expiry, EIA's statement that its source is NYMEX, and
+   the Massive futures data service returning April 2025 gasoline prices, which
+   [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that four contracts in four years
-   are 16, that 1994 to 2023 is 30 years, that 7 of 15 is fewer than half, and
-   that 2016 to 2023 is eight years.
+   are 16, that 1994 to 2023 is 30 years, that the last 9 of 1995 to 2015 are
+   2007 to 2015, that 7 of 15 is fewer than half, and that 2016 to 2023 is
+   eight years.
 4. Its references. The three citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in

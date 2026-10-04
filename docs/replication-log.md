@@ -2478,8 +2478,10 @@ contract at the close of February 25 and sells at the close of April 15.
 
 Every rule was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) on
-2026-10-03, before any trade was computed. Three of them carry the result, so
-they are stated here.
+2026-10-03, before any trade was computed. One was corrected afterwards: the
+review of [PR #260](https://github.com/l3a0/quantitative-trading/pull/260)
+found the pre-1997 expiries the first run missed, and the correction changed
+no count. Three of the rules carry the result, so they are stated here.
 
 1. **The vintages.** EIA's NYMEX settlements, downloaded 2026-10-02:
    `eia_eer-epmr-pe1-y35ny-dpg_raw_1985-01-02_2006-12-29_dl2026-10-02.csv`, New
@@ -2527,7 +2529,7 @@ nothing about whether either trade pays today.
 | 4 | natural gas, the run counted from 1995 ending in 2007 | 13 | `TestTheVerdicts::test_13_and_14_consecutive_years_reproduce` |
 | 5 | natural gas, the run counted from 1995 ending in 2008 | 14 | `TestTheVerdicts::test_13_and_14_consecutive_years_reproduce` |
 | 6 | natural gas, 1994 to 2008 against 2009 to 2023 | 15 of 15 against 7 of 15 | `TestTheVerdicts::test_natural_gas_before_and_after_the_first_edition` |
-| 7 | natural gas, the same two runs counted from 1994 | 14 and 15 | `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` |
+| 7 | natural gas, the runs counted from 1994 ending in 2006, 2007 and 2008 | 13, 14 and 15 | `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` |
 | 8 | gasoline 2006 on the older contract instead of RBOB | unreadable, no row on 2006-04-13 | `TestGasoline::test_the_2006_side_row_on_the_harbor_contract_is_missing` |
 | 9 | the 10 natural gas entries on the March contract's last day, read from contract 3 instead of 4 | no year changes sign | `TestTheNaturalGasExpiries::test_ten_entries_fall_on_march_s_last_day_and_none_flips_on_the_other_file` |
 | 10 | both trades, 2016 to 2023 | gasoline 3 of 8, natural gas 4 of 8 | `TestTheVerdicts::test_both_trades_after_the_book` |
@@ -2542,7 +2544,7 @@ nothing about whether either trade pays today.
 | 4 | 0 | reproduced | Under the reading pinned on the issue, both figures written for the 2008 first edition and counted from 1995. |
 | 5 | 0 | reproduced | The same reading. The two figures differ by the one year between the main text and the sidebar. |
 | 6 | none | none, not a replication | A claim with no figure, and the issue declared no criterion for it. The halves are 15 of 15 and 7 of 15. |
-| 7 | none | none, not a replication | 1994 is profitable too, so counting from the files' first year makes both runs one longer. With runs ending in 2007 and 2008, only a count from 1995 matches, the year the gasoline sidebar names as its start. Counted from 1994, runs of 13 and 14 end in 2006 and 2007 instead. |
+| 7 | none | none, not a replication | 1994 is profitable too, so counting from the first year the files hold a whole trade makes both runs one longer. With runs ending in 2007 and 2008, only a count from 1995 matches, the year the gasoline sidebar names as its start. Counted from 1994, runs of 13 and 14 end in 2006 and 2007 instead. |
 | 8 | none | none, not a replication | The older contract's file has no row on 2006's entry day, so the side row cannot say whether the switch to RBOB decides 2006. |
 | 9 | none | none, not a replication | In 10 years the entry falls on the March contract's last trading day, so the file read depends on contract 1 keeping an expiring contract on its last day. The files show that convention in 2014 and 2019. Reading contract 3 instead flips no year, so the convention cannot move a verdict. |
 | 10 | none | none, not a replication | After the book, gasoline profits in 3 of 8 years and natural gas in 4 of 8, its 2016 to 2023 share of row 6. |
@@ -2587,7 +2589,11 @@ start year, because 1994 is profitable too.
 charged, as the rule on the issue states.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/commodity-seasonals-lessons.md](../blog/commodity-seasonals-lessons.md)
+moves with it, since that post quotes most of these figures. So does its
+figure of every year of both trades, which
+`uv run python -m chan.commodity_seasonals_figures` redraws.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
 

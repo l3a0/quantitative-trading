@@ -152,9 +152,12 @@ class TestTheNaturalGasExpiries:
         assert self.handover_fit(date(1996, 2, 27)) == Decimal("0.068")
 
     def test_the_1996_and_1997_entries_read_contract_3(self) -> None:
+        """Both years are profitable on contract 4 too, so the correction moved no count."""
+        four = settlements(NATURAL_GAS[4])[1]
         for year, price in ((1996, Decimal("2.033")), (1997, Decimal("1.930"))):
             trade = natural_gas_trade(year)
             assert (trade.entry_symbol, trade.entry_price) == (NATURAL_GAS[3], price)
+            assert four[trade.entry_day] < trade.exit_price
 
     def test_nixon_s_funeral_closed_the_exchange(self) -> None:
         assert not is_trading_day(date(1994, 4, 27))

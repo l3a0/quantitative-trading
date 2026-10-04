@@ -21,7 +21,7 @@ import pytest
 from matplotlib.colors import to_rgba
 
 import chan.commodity_seasonals_figures as figures
-from chan.commodity_seasonals import settlements
+from chan.commodity_seasonals import profitable_count, settlements
 from chan.commodity_seasonals_figures import (
     DOWNLOADED,
     GASOLINE_BOOK_END,
@@ -106,6 +106,11 @@ class TestTheBars:
         assert drawn[f"{name}-profit-marks"].get_marker() == "^"
         assert drawn[f"{name}-loss-marks"].get_marker() == "v"
 
+    def test_each_panel_draws_its_zero_line(self, figure) -> None:
+        drawn = _by_gid(figure)
+        for name, _ in PANELS:
+            assert set(drawn[f"{name}-zero"].get_ydata()) == {0}
+
     def test_nothing_wears_a_verdict_colour(self, figure) -> None:
         """One ink for every bar whatever its sign, and no green or red anywhere."""
         verdicts = {to_rgba(GOOD), to_rgba(LOST)}
@@ -146,6 +151,22 @@ class TestTheDividers:
         assert drawn["gas-label-before"].get_text() == "1994 to 2008\n15 of 15 profitable"
         assert drawn["gas-label-after"].get_text() == "2009 to 2023\n7 of 15 profitable"
 
+    @pytest.mark.parametrize(("name", "which", "end"), [("gasoline", 0, 2015), ("gas", 1, 2008)])
+    def test_each_label_counts_its_own_side_of_the_trades(
+        self, figure, trades, name, which, end
+    ) -> None:
+        drawn = _by_gid(figure)
+        for side, years in (
+            ("before", [t for t in trades[which] if t.year <= end]),
+            ("after", [t for t in trades[which] if t.year > end]),
+        ):
+            missing = sum(1 for t in years if t.profitable is None)
+            expected = (
+                f"{years[0].year} to {years[-1].year}\n"
+                f"{profitable_count(years)} of {len(years)} profitable"
+            ) + (f"\n{missing} with no row" if missing else "")
+            assert drawn[f"{name}-label-{side}"].get_text() == expected
+
     def test_each_label_sits_on_its_own_side(self, figure) -> None:
         drawn = _by_gid(figure)
         for name, end in (("gasoline", 2015.5), ("gas", 2008.5)):
@@ -153,6 +174,7 @@ class TestTheDividers:
             assert (before.get_ha(), after.get_ha()) == ("right", "left")
             assert before.xyann[0] < 0 < after.xyann[0]
             assert before.xy == after.xy == (end, 1.0)
+            assert before.get_va() == after.get_va() == "top"
 
     def test_the_labels_hang_above_the_tallest_bar(self, figure) -> None:
         for ax in figure.axes:
@@ -195,7 +217,7 @@ class TestTheWords:
         )
         for symbol in symbols:
             assert settlements(symbol)[0].download_date == DOWNLOADED
-        assert "Chan chose both trades after looking at this history." in note
+        assert "Chan chose both trades after looking at these years' history." in note
         assert note.endswith(
             "2015 for gasoline, and 2008 for natural gas under the reading that both of its "
             "counts were written for the first edition."

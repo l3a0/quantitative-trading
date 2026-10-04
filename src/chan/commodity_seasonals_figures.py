@@ -24,7 +24,7 @@ from 1994, both to 2023, the last year whose exit the files hold.
 Every bar takes one ink whatever its sign, and nothing is drawn in the verdict
 colours, because the figure grades nothing. The title says the record is
 exploratory, for the reason ``chan.commodity_seasonals`` gives: Chan chose both
-trades after looking at the history the files hold.
+trades after looking at the history of the years the files hold.
 
 Every value comes from :mod:`chan.commodity_seasonals`, so the figure can only
 be wrong by drawing the wrong thing, which
@@ -195,7 +195,7 @@ def make_years_figure(trades: Trades | None = None, out: Path | None = None) -> 
         f"EIA's NYMEX settlements, downloaded {DOWNLOADED}: {symbols_read(gasoline, gas)}.\n"
         "One contract a year with no costs, so a bar above zero is a profitable year, and the "
         "marks along each foot\npoint up for a profit and down for a loss. Chan chose both "
-        "trades after looking at this history.\nThe dashed line is where "
+        "trades after looking at these years' history.\nThe dashed line is where "
         "the book's years end: 2015 for gasoline, and 2008 for natural gas under\n"
         "the reading that both of its counts were written for the first edition.",
     )
