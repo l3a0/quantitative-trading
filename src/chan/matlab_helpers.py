@@ -34,6 +34,8 @@ and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
 it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
 Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`smartmean`, :func:`smartsum` and :func:`matlab_sort` for Example 7.4.
+:mod:`chan.khandani_lo_book_two` calls :func:`backshift`, :func:`smartmean`
+and :func:`smartsum` for *Algorithmic Trading*'s Examples 4.3 and 4.4.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the

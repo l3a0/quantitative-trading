@@ -172,6 +172,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: to t + 1, and each gap holds a month-end with no close.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_momentum_factor.py`` holds
 #: that.
+#:
+#: [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296) decided
+#: that ``chan.khandani_lo_book_two`` refuses no window for *Algorithmic
+#: Trading*'s Examples 4.3 and 4.4, on issue 22's reasoning. Their window,
+#: 2007-01-03 to 2011-12-30, spans all 30 of the book-two file's flagged days,
+#: and the guard refuses it on 17 stocks' closes and 14 stocks' opens. The
+#: flags read as the 2008 crisis, and a reversal rule is meant to see a stock
+#: that collapsed against the market. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_khandani_lo_book_two.py`` runs both refusals.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

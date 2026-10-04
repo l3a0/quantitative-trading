@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Sixteen replications run here, fifteen from Chan's *Quantitative Trading* and
-one from his *Algorithmic Trading*. The first two were ported from the sibling
+Seventeen replications run here, fifteen from Chan's *Quantitative Trading*
+and two from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other fourteen were built here.
+they were first built. The other fifteen were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -209,6 +209,19 @@ they were first built. The other fourteen were built here.
     before any return was computed. The first run broke one of them, by keeping
     extended-hours bars on early-close days, and the entry reports both runs.
     Every figure is exploratory.
+17. Khandani and Lo's reversal again, as *Algorithmic Trading*'s Examples 4.3
+    and 4.4 run it on Chan's 2012 S&P 500 file over 2007 to 2011. Book two
+    changes the rule as well as the data: it scales each day's weights to a
+    gross of 1, charges no cost, and cuts the window before taking returns.
+    Example 4.3 holds the weights from close to close, and Example 4.4 trades
+    from the open to the same day's close on the overnight gap. Every figure
+    Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
+    1.2595 against his 13.7 and 1.3, 30.16 percent in 2008 and 10.58 in 2011
+    against his 30 and 11, and 0.731553 and 4.713284 for Example 4.4, the six
+    decimals his script printed. The first book's rule on the same panel and
+    window earns 1.2219 before costs, so most of the distance from that book's
+    0.25 is the data and the window rather than the rule, and 5 basis points a
+    side take it to 0.3797. Every figure is exploratory and about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -300,6 +313,14 @@ helper this repo already held fails a test rather than reading as a near
 miss. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 
+[tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) does
+it for the reversal on the 2012 panel. It pins each figure at six decimals and
+again at the precision Chan printed, and both bridge rows beside the first
+book. It also holds the first days at zero, the same series under either
+reading of the `lag` the script calls, and the profit of Example 3.8's
+notebook without its fill, which computes the same rule by another route, so a
+transcription that takes returns before the cut fails a test.
+
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
 in full, and the figure each of the Python's bookkeeping choices gives when it
@@ -326,15 +347,16 @@ because the full run takes about five minutes.
 each line field for field everywhere, and the files' hashes and their
 agreement with the committed daily closes wherever an archive is configured.
 
-All sixteen replications reach a verdict in
+All seventeen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
 seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
-Entry 14 the market and momentum factors', Entry 15 the calendar spreads' and
-Entry 16 Conditional Parameter Optimization's.
+Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
+Entry 16 Conditional Parameter Optimization's and Entry 17 the reversal on the
+2012 panel's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -364,6 +386,9 @@ reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
 without it. Post-earnings drift calls the guard on each stock from its first
 price, over its 2011 and 2012 window, and nothing there needs refusing. The
+reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
+30 of that file's flagged days, which read as the 2008 crisis, and a reversal
+rule is meant to see a stock that collapsed against the market. The
 PCA factor model does not call it. Its printouts forward-fill PMC's 851-day
 gap in the S&P 600 file into one day's return of 1.8654, because Chan's
 programs do, and its entry reports every figure without PMC beside them.
@@ -417,7 +442,10 @@ the Khandani-Lo reversal reads the
 2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
 Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
 flags, for
-[issue 20](https://github.com/l3a0/quantitative-trading/issues/20). The PCA
+[issue 20](https://github.com/l3a0/quantitative-trading/issues/20), and the
+reversal reads the same file's opens and closes for *Algorithmic Trading*'s
+Examples 4.3 and 4.4, for
+[issue 296](https://github.com/l3a0/quantitative-trading/issues/296). The PCA
 factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 
@@ -641,6 +669,18 @@ It prints both sources in a line each, the window, the rule, the busiest day
 beside the 30 Chan divides by, and each figure beside what `pead.m` and the
 book print. It refuses to run if the two files name different stocks, because
 the script pairs their columns by position.
+
+The reversal on the 2012 panel runs both of *Algorithmic Trading*'s examples
+at once, and takes no option, because `andrewlo_2007_2012.m` fixes the file,
+the window and the rule:
+
+```bash
+uv run python -m chan.khandani_lo_book_two
+```
+
+It prints the panel, the window and the rule, then each of Chan's eight
+figures beside what the run computed and a verdict, then the two rows that set
+the first book's rule and this one on each other's data.
 
 The PCA factor model runs every printout of Example 7.4 at once:
 

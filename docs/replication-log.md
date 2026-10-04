@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 and 16 carry their own,
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 and 17 carry their own,
 three, eleven, twelve, five, six, one, three, eight, six, two, eight, seven,
-twelve and six,
+twelve, six and three,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15 and 16 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16 and 17 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -147,6 +147,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-14)
   - [What the entry concludes](#what-the-entry-concludes-15)
   - [What this entry cannot say](#what-this-entry-cannot-say-13)
+- [Entry 17: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*](#entry-17-the-khandani-lo-reversal-on-the-2012-panel-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-14)
+  - [What this repo computed](#what-this-repo-computed-16)
+  - [The verdicts](#the-verdicts-15)
+  - [What the entry concludes](#what-the-entry-concludes-16)
+  - [What this entry cannot say](#what-this-entry-cannot-say-14)
 
 ## How to read an entry
 
@@ -178,8 +184,10 @@ both.
    Entry 12, [tests/test_pca_factor.py](../tests/test_pca_factor.py) holds
    Entry 13,
    [tests/test_momentum_factor.py](../tests/test_momentum_factor.py) holds
-   Entry 14, and [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
-   whose pins run only where the owner's data archive is.
+   Entry 14, [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
+   whose pins run only where the owner's data archive is, and
+   [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py)
+   holds Entry 17.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -289,7 +297,8 @@ Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
-Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, and Entry 16's rows 6 to 11.
+Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11, and
+Entry 17's rows 9 to 11.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -3479,6 +3488,165 @@ heavily. What a round trip in GLD actually costs is not measured here.
 **Anything a public clone can check.** The bars are licensed, so the pins run
 only where the owner's archive is. The hashes say exactly which bytes were
 read, and nothing here can show them to anyone else.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 17: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Examples 4.3 and 4.4, Kindle locations 2087 to 2135
+and 2890, and the script `andrewlo_2007_2012.m` the examples name. Shipped
+under [issue 296](https://github.com/l3a0/quantitative-trading/issues/296).
+Every example number and location in this entry is that book's.
+
+Eleven rows, all derivable from
+[tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py).
+
+**Every figure Chan prints reproduces on his own file.** The rule is the one
+Entries 8 and 10 run: weight every stock by minus its return against the
+equal-weighted market, so the rule buys what fell most against its peers and
+shorts what rose most. Example 4.3 holds the weights from one close to the
+next. Example 4.4 takes its signal from the gap between yesterday's close and
+today's open, enters at the open and exits at the same day's close. The book
+reports an APR of 13.7 percent and a Sharpe ratio of 1.3 for the first, with
+30 percent in 2008 and 11 percent in 2011, and 73 percent and 4.7 for the
+second. The transcription in `chan.khandani_lo_book_two` lands on all six, and
+on the two figures the script printed for Example 4.4 at six decimals.
+
+The owner's rule of 2026-10-04 is that a run on different data or over a
+different window is a new run rather than a duplicate. This entry runs on a
+different file over a different window from Entries 8 and 10, and its rule
+differs from theirs in four ways, so none of its rows is a check on theirs.
+
+1. **The weights are scaled to a gross of 1 each day**, where Entry 8's
+   divide by the count of stocks priced.
+2. **A missing price leaves its weight missing**, where Entry 8's sets it to 0.
+3. **No cost is charged.** The script's cost lines are commented out.
+4. **The window is cut before any return is taken**, so the first days earn
+   nothing, where Entry 8's takes returns on the whole file and cuts the
+   profit afterwards.
+
+Rows 9 to 11 set the two books side by side on the same data, which is the
+only way to say what each difference costs.
+
+Every row reads the same vintage and specification, so both are stated once
+here. Rows 9 and 11 are the exception, and say so.
+
+1. **The vintage.** `inputdataohlcdaily_stocks_20120424/`, the 497 stocks of
+   Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, read
+   for the open and the close through `chan.series.load_panel`. The script
+   loads `inputDataOHLCDaily_20120424`, without `_stocks`, and
+   [data/README.md](../data/README.md) records that the copy under that name
+   is the same bytes. **Every figure here is about survivors**, because the
+   panel is the S&P 500 as Chan held it on 2012-04-24, carried backwards.
+2. **The specification.** `andrewlo_2007_2012.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   identical to the copy at `4567024` in
+   [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
+   Both price frames are cut to 2007-01-03 through 2011-12-30, 1,260 trading
+   days, before any return is taken. The book's January 2, 2007 was a market
+   holiday. The APR is `prod(1 + r)^(252 / n) − 1` and the Sharpe ratio is
+   `√252 · mean / std` over all 1,260 days, zeros included, with the deviation
+   over n − 1 and no risk-free rate. No cost is charged.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2007 to 2011 sample on a rule somebody else chose, so the entry says whether
+his numbers reproduce on his file and nothing about whether the rule pays
+today.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | Example 4.3's APR, close to close | 13.7 percent | location 2110, and the script's comment `APR=13.7%` |
+| 2 | Example 4.3's Sharpe ratio | 1.3 | location 2110, and the script's comment |
+| 3 | Example 4.3's APR in 2008 | 30 percent | location 2110 |
+| 4 | Example 4.3's APR in 2011 | 11 percent | location 2110 |
+| 5 | Example 4.4's APR, open to close | 73 percent | location 2135 |
+| 6 | Example 4.4's Sharpe ratio | 4.7 | locations 2135 and 2890 |
+| 7 | Example 4.4's APR as the script printed it | 0.731553 | `andrewlo_2007_2012.m` |
+| 8 | Example 4.4's Sharpe ratio as the script printed it | 4.713284 | `andrewlo_2007_2012.m` |
+| 9 to 11 | the two books' rules on each other's data | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+The assertions are in `tests/test_khandani_lo_book_two.py`. Rows 1 to 8 are
+the cases of `TestTheFigures::test_each_figure_reproduces` named by the
+figure, and each is held at six decimals and again at the precision printed.
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | Example 4.3, `prod(1 + r)^(252/1260) − 1`, in percent | 13.677582 | `4.3 APR percent` |
+| 2 | Example 4.3, `√252 · mean / std` | 1.259478 | `4.3 Sharpe` |
+| 3 | row 1's APR line on the 253 days of 2008 in Example 4.3's series | 30.164676 | `4.3 APR percent in 2008` |
+| 4 | the same on the 252 days of 2011 | 10.577823 | `4.3 APR percent in 2011` |
+| 5 | Example 4.4, `prod(1 + r)^(252/1260) − 1`, in percent | 73.155250 | `4.4 APR percent` |
+| 6 | Example 4.4, `√252 · mean / std` | 4.713284 | `4.4 Sharpe` |
+| 7 | row 5 as a fraction | 0.731553 | `4.4 APR` |
+| 8 | row 6 | 4.713284 | `4.4 Sharpe as printed` |
+| 9 | Example 4.3's rule on `spx_20071123/`'s closes over 2006, Entry 8's file and window, cut first | 0.5484 | `TestBesideTheFirstBook::test_book_twos_rule_on_the_first_books_file_and_year` |
+| 10 | Entry 8's rule, `chan.khandani_lo.reversal`, on this panel's closes over this window, before costs and after 5 basis points a side with the first day charged | 1.2219 and 0.3797 | `TestBesideTheFirstBook::test_the_first_books_rule_on_this_panel_and_window` |
+| 11 | row 9 with returns taken before the cut, so 2006-01-03 and 2006-01-04 earn | 0.4170 | `TestBesideTheFirstBook::test_on_one_year_the_two_days_the_cut_zeroes_move_the_figure_by_a_third` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | −0.0 | reproduced | Chan's figure, on his own file, through his own script transcribed. |
+| 2 | −0.0 | reproduced | The same. 1.2595 sits 0.0095 above the 1.25 where it would round down, so the book's 1.3 has less room than it reads as having. |
+| 3 | 0 | reproduced | The script prints no yearly figure, so the specification applies its APR line to one year of the full run. Rerunning the year on its own would zero its first two days, and `TestTheFigures::test_a_year_rerun_on_its_own_would_be_a_different_figure` holds that it moves the figure. |
+| 4 | −0 | reproduced | The same. 10.58 sits 0.08 above the 10.5 where it would round down. |
+| 5 | 0 | reproduced | The same as row 1. |
+| 6 | 0.0 | reproduced | The same. |
+| 7 | 0.000000 | reproduced | The same, at every decimal the script printed. The full value is 0.7315525016, which is 1.6 × 10⁻⁹ above the point where the sixth decimal would round down. Rounding error in the compounding is far smaller, so the match is not luck of the last bit. |
+| 8 | 0.000000 | reproduced | The same. |
+| 9 | none | none, not a replication | Against Entry 8's 0.2510 on the same file and days. Book two's rule earns more on the first book's year, before any cost on either side. |
+| 10 | none | none, not a replication | Before costs it lands near row 2's 1.2595. Five basis points a side take it to 0.3797. |
+| 11 | none | none, not a replication | Entry 10's row 12 is this rule taking returns before the cut, 0.4179 with the deviation over n. The series differ only on 2006's first two days, which lost 0.48 and 0.14 percent there and earn nothing in row 9. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Examples 4.3 and 4.4 reproduce on Chan's own file.** All six figures
+   the book prints land at its precision, and Example 4.4's two lands at the
+   six decimals the script printed.
+2. **The distance from the first book's 0.25 to this book's 1.3 is mostly
+   the data and the window rather than the rule.** Entry 8's rule on this
+   panel earns 1.2219 before costs, near book two's 1.2595 on the same days
+   (row 10). On the first book's year, the rule change moves 0.2510 to 0.5484
+   (row 9), and row 11 shows two days carry most of that, because a window of
+   251 days lets two days move a Sharpe ratio by a third. One year is too
+   short a window to say which rule is better.
+3. **Entry 8's lesson survives the move to the 2012 panel.** Charged 5 basis
+   points a side, the first book's rule falls from 1.2219 to 0.3797 over 2007
+   to 2011 (row 10). Chan prints both of this book's figures before costs.
+
+Location 2110 calls the strategy "almost perfectly dollar neutral". With the
+weights scaled to a gross of 1, they sum to zero exactly every day, up to
+rounding, and `TestTheWeights::test_the_weights_sum_to_zero_every_day` holds
+it.
+
+### What this entry cannot say
+
+Four things.
+
+**What the rule earned on the index as it stood each day.** Every stock here
+was in the S&P 500 on 2012-04-24.
+[Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is where
+survivorship on this panel is measured.
+
+**Whether 2008 to 2011 is out of sample in Chan's sense.** He calls it "a
+true out-of-sample test, as the strategy was published in 2007". It is out of
+sample in time, but the stocks were chosen with 2012's membership, so the
+entry repeats his sentence and gives it no verdict.
+
+**What costs would take from Example 4.4.** It trades twice a day, which Chan
+says doubles the cost at location 2135, and nothing here charges one. Row 10
+charges the first book's rule, which trades once a day.
+
+**Whether the rule pays today.** The window ends in 2011.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

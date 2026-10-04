@@ -650,7 +650,15 @@ measurements below.
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
    at `4567024`, under `archived/matlab/`. Neither carries a licence, which
    README's licence paragraph already covers. The `.mat` files are not
-   committed, and their sha256 is recorded here.
+   committed, and their sha256 is recorded here. EpchanPreview holds the
+   price file a third time, as `public/img/book3/Chap3 Time
+   Series/inputDataOHLCDaily_20120424.mat`, with the same blob, `0fb5ebc`, and
+   the same sha256. That bare name, without `_stocks`, is the one
+   `andrewlo_2007_2012.m`, `bog.m` and `indexArb.m` load, so those scripts
+   read the committed panel. No file by the bare name sits in either mirror's
+   book-two folder.
+   [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296)
+   measured it.
 
    ```text
    4a62f5851de9962b72c6b135d4f4addc3cb13ff1ce28afe45defceb47c318849  inputDataOHLCDaily_stocks_20120424.mat
