@@ -1,10 +1,10 @@
 # Chan’s other stationary spreads: a currency rate holds and a pair of bond funds does not
 
-*One series and a fitted pair face different bars, and on the currency rate the bar decides the verdict.*
+*A stationarity test passes only when its statistic falls below a cutoff from a published table, the bar it has to clear. A pair whose hedge ratio was fitted faces a stricter bar than a single series, and on the currency rate the choice between the two decides the verdict.*
 
 ## Why the bar matters
 
-The Canadian dollar against the Australian dollar gives a test statistic of −3.2136 over nineteen years. Read as one series, that clears the 5% bar of −2.86, and Ernest Chan’s claim that the rate is stationary holds. Read against the bar a fitted pair of prices has to clear, −3.34, the same number falls short. Which bar is right depends on whether anything was fitted before the test ran.
+The Canadian dollar against the Australian dollar gives a test statistic of −3.2136 over nineteen years. The more negative the statistic, the stronger the evidence that the rate keeps returning to its average, and it counts as evidence at the 5% level only below a cutoff, the bar. Read as one series, the rate faces a 5% bar of −2.86. The statistic clears it, and Ernest Chan’s claim that the rate is stationary holds. A fitted pair of prices faces a stricter 5% bar, −3.34, and against that the same number falls short. Which bar is right depends on whether anything was fitted before the test ran.
 
 Chan’s *Quantitative Trading* (Chan, 2021) builds its pairs-trading examples around gold against gold miners. Then it says stationarity is not limited to the spread between stocks. It names three more places to look:
 
@@ -22,7 +22,7 @@ A series is **stationary** when it keeps returning to a fixed average instead of
 
 The **augmented Dickey-Fuller (ADF) test** checks one series. It regresses each day’s change on the day before’s level, plus a few earlier changes, called **lags**, which absorb **autocorrelation**, the tendency of one day’s change to echo an earlier one. If the series pulls back toward its average, the coefficient on the level is negative. The test statistic is that coefficient divided by its standard error, so the more negative it is, the stronger the pull.
 
-The test **rejects** the hypothesis that the series wanders like a random walk when the statistic falls below a critical value, called the bar here. Each bar belongs to a significance level, the chance of rejecting when the series really is a random walk. The usual levels are 10%, 5% and 1%, and the 1% bar is the most negative. For a pair, the **Engle-Granger test** first regresses one price on the other, then runs the ADF on what the regression leaves over, the **residuals**.
+The test **rejects** the hypothesis that the series wanders like a random walk when the statistic falls below a **critical value**, which is what this post calls the bar. Each bar belongs to a significance level, the chance of rejecting when the series really is a random walk. The usual levels are 10%, 5% and 1%, and the 1% bar is the most negative. For a pair, the **Engle-Granger test** first regresses one price on the other, then runs the ADF on what the regression leaves over, the **residuals**.
 
 ## The two tests
 
