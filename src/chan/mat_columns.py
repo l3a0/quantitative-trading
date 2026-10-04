@@ -493,7 +493,9 @@ def main(argv: list[str] | None = None) -> int:
         description="Record one of Chan's .mat files as one vintage per column.",
     )
     parser.add_argument("path", type=Path, help="a local copy of the .mat file")
-    parser.add_argument("--price-basis", required=True, choices=PRICE_BASES)
+    # Every basis but ``return``, which no writer records.
+    choices = [basis for basis in PRICE_BASES if basis != "return"]
+    parser.add_argument("--price-basis", required=True, choices=choices)
     arguments = parser.parse_args(argv)
 
     payload = arguments.path.read_bytes()

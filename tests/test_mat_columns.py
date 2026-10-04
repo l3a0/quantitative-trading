@@ -927,3 +927,12 @@ class TestTheCommandPicksItsReaderByTheFile:
         assert capsys.readouterr().err.splitlines() == [
             "inputDataDaily_CL_20120813.mat: not recorded. the file carries no earnann"
         ]
+
+
+class TestTheCommandLineOffersNoReturnBasis:
+    def test_the_return_basis_is_not_offered(self, tmp_path: Path) -> None:
+        """No writer records a return, so the parser refuses it before any file is read."""
+        with pytest.raises(SystemExit) as stopped:
+            mat_columns.main([str(tmp_path / "absent.mat"), "--price-basis", "return"])
+
+        assert stopped.value.code == 2

@@ -35,6 +35,7 @@ import pytest
 from chan import paths, series, vintage
 from chan.paths import DATA_DIR
 from chan.series import (
+    DAILY_CLOSE_MINUTE,
     aligned_closes,
     close_identity,
     load_close,
@@ -50,7 +51,12 @@ from chan.vintage import (
     record_lifted_columns,
     record_vintage,
 )
-from tests.support.committed_vintages import HAND_WRITTEN, LIFTED_SOURCES, rewrite_entry
+from tests.support.committed_vintages import (
+    HAND_WRITTEN,
+    LIFTED_SOURCES,
+    PYTHON_PORT,
+    rewrite_entry,
+)
 from tests.support.committed_vintages import committed_copy as copy_the_committed_tree
 
 # Root ignores mode bits, so a file at mode 000 opens and the case reads as a
@@ -657,11 +663,31 @@ class TestTheParseReturnsTheNumberTheTextSpells:
 
     def test_every_committed_column_reads_back_as_its_text(self) -> None:
         """Every field of every committed vintage, not only the close, because a
-        lifted file's other fields go through the same parse."""
+        lifted file's other fields go through the same parse.
+
+        Chan's Python port needs a branch, keyed on its pin's shape. Its minute
+        file is read through ``minute_close``, since its second column is the
+        time of the bar, and the closes compared are the bars at 16:59. Its
+        daily files read like any other. Its rate and return files are left
+        out, because nothing under ``src/`` reads either yet. Example 5.2 and
+        Chapter 8 are their readers, and whichever lands first adds the case.
+        """
         misread = {}
         for entry in read_manifest():
             payload = (DATA_DIR / entry.path).read_bytes()
             lines = payload.decode("utf-8").splitlines()
+            shape = PYTHON_PORT[entry.path][5] if entry.path in PYTHON_PORT else None
+            if shape in ("rate", "return"):
+                continue
+            if shape == "minute":
+                rows = [line.split(",") for line in lines[1:]]
+                expected = [
+                    float(row[2]) for row in sorted(rows) if int(row[1]) == DAILY_CLOSE_MINUTE
+                ]
+                read = list(series.minute_close(payload, entry))
+                if read != expected:
+                    misread[(entry.path, 2)] = "the 16:59 closes differ from the text"
+                continue
             first = lines[0].split(",")
             columns = range(1, len(first)) if first[0] == "Price" else [1]
             rows = [line.split(",") for line in lines if line[:1].isdigit()]
@@ -1676,6 +1702,31 @@ class TestTheCommittedFlagsAreChansArray:
         refusal the default field would hand the flags back as closes."""
         with pytest.raises(VintageUnavailable, match="holds event flags rather than prices"):
             load_panel(self.SOURCE)
+
+    def test_asking_a_source_of_returns_for_a_close_is_refused(self, tmp_path: Path) -> None:
+        """A strategy's return is not a price either, which the ``return`` basis
+        says. No writer records one, so the source here is typed by hand, the
+        way the one committed return file was."""
+        directory = tmp_path / "data"
+        (directory / "rets").mkdir(parents=True)
+        payload = b"Date,Close\n2020-01-02,0.01\n2020-01-03,-0.02\n"
+        (directory / "rets" / "aaa.csv").write_bytes(payload)
+        line = VintageEntry(
+            vendor="chan-py",
+            symbol="AAA",
+            price_basis="return",
+            first_date="2020-01-02",
+            last_date="2020-01-03",
+            path="rets/aaa.csv",
+            row_count=2,
+            sha256=hashlib.sha256(payload).hexdigest(),
+            saved_date="2020-01-04",
+            source_workbook="RETS.zip",
+        ).as_json()
+        (directory / MANIFEST_NAME).write_text(line + "\n", encoding="utf-8")
+
+        with pytest.raises(VintageUnavailable, match="RETS.zip holds returns rather than prices"):
+            load_panel("RETS.zip", data_dir=directory)
 
     def test_a_lifted_rate_still_reads_as_its_close(self, tmp_path: Path) -> None:
         """The refusal is for flags alone. A rate's value is the one in its Close

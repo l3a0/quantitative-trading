@@ -1,12 +1,12 @@
 """Record a series as a vintage, immutable once written, and resolve one to read.
 
 A vintage is one series as one source held it on one date, identified by
-vendor, symbol, span, that date, and which price, rate or event the series carries.
-The date is when the series was downloaded, or when Ernest Chan saved the file
-a column was lifted from, and ``VintageEntry`` carries exactly one of the two. Losing one is the
-failure [docs/design.md](../../docs/design.md) is built around: everything else
-here recomputes, and a number whose series nobody kept is a number nobody can
-check, including its author.
+vendor, symbol, span, that date, and which price, rate, event or return the
+series carries. The date is when the series was downloaded, or when Ernest Chan
+saved the file a series was lifted from, and ``VintageEntry`` carries exactly
+one of the two. Losing one is the failure [docs/design.md](../../docs/design.md)
+is built around: everything else here recomputes, and a number whose series
+nobody kept is a number nobody can check, including its author.
 
 So this module writes two things and refuses rather than overwrite either. The
 series becomes a file under ``data/``, and a line in ``data/vintages.jsonl``
@@ -51,7 +51,9 @@ because nothing was fetched on the day it carries. The ``*_chan.csv``
 columns lifted from his workbooks were typed into the manifest by hand, one line
 each, and ``docs/design.md``'s register carries why the recorder was not given
 a saved-date parameter for them: a second naming convention, and the check that
-asserts the first one, bought to save one typed line per workbook column.
+asserts the first one, bought to save one typed line per workbook column. The
+seven files of his 2018 Python port were typed too, because they are
+committed as his zip shipped them and neither writer here writes that shape.
 
 :func:`record_lifted_columns` is the second writer, and it exists because that
 price stopped being one line per column.
@@ -66,7 +68,7 @@ pinned for its source in ``tests/support/committed_vintages.py``, or for a
 workbook column its path, and the ``Ticker,`` header row its own bytes carry.
 
 The identity fields are compared as strings, so one source needs one spelling.
-Case is normalised and the price basis is one of the four terms the design
+Case is normalised and the price basis is one of the five terms the design
 doc's vocabulary defines, because ``raw`` against ``unadjusted`` would otherwise be
 two vintages of one download. Which word names a vendor is a convention rather
 than a rule, and the manifest's existing rows are what carry it.
@@ -99,20 +101,24 @@ from chan import paths
 MANIFEST_NAME = "vintages.jsonl"
 CHECKSUMS_NAME = "checksums.sha256"
 
-#: The bases in the design doc's vocabulary. Two are prices and two are not. A
+#: The bases in the design doc's vocabulary. Two are prices and three are not. A
 #: ``rate`` vintage holds a series of rates, such as a Treasury-bill yield, as
 #: the vendor publishes it, and no scale-break check reads it. The design doc's
 #: **rate** entry says why. An ``event`` vintage holds a 0 or 1 per day saying
 #: whether something happened, such as an earnings announcement, and its
 #: **event** entry says why it is a basis rather than a field of a price file.
-#: A rate cannot reach the single-series guard because ``close_identity`` never
-#: names ``rate``. :func:`chan.series.load_panel` refuses a close from an
-#: ``event`` source, and the manifest-wide skip is
-#: ``price_entries`` in ``tests/test_scale_breaks.py``. The field keeps its
-#: name, ``price_basis``, because every committed entry already spells it that
-#: way. A fifth spelling of any of the four is a second vintage of the same
-#: download.
-PRICE_BASES = ("raw", "adjusted", "rate", "event")
+#: A ``return`` vintage holds a strategy's period returns as its source wrote
+#: them, such as the AUD.CAD returns Chan's Example 5.1 saved, and the design
+#: doc's **return** entry says why it is none of the other four.
+#: A rate or a return cannot reach the single-series guard because
+#: ``close_identity`` never names either. :func:`chan.series.load_panel`
+#: refuses a close from an ``event`` or a ``return`` source, and the
+#: manifest-wide skip is ``price_entries`` in ``tests/test_scale_breaks.py``.
+#: Neither writer here records a ``return``, because each would write it under
+#: a ``Close`` header. The field keeps its name, ``price_basis``, because every
+#: committed entry already spells it that way. A sixth spelling of any of the
+#: five is a second vintage of the same download.
+PRICE_BASES = ("raw", "adjusted", "rate", "event", "return")
 
 #: The bases whose values are prices, which a scale-break check and a close may read.
 PRICES = ("raw", "adjusted")
@@ -160,6 +166,14 @@ EVENT_FIELDS = ("Flag",)
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
+# Both writers put a series under a ``Close`` header, which would label a
+# return as a close, so a ``return`` vintage is committed as its source shipped
+# it and typed into the manifest by hand.
+_NO_RETURN_WRITER = (
+    "{}: a return vintage is committed as its source wrote it, and this writer would "
+    "label the returns as a close"
+)
+
 
 class VintageUnavailable(Exception):
     """A run asked for a committed vintage and did not get one.
@@ -191,12 +205,12 @@ class VintageEntry:
 
     Exactly one of ``download_date`` and ``saved_date`` is set, and whichever
     one it is holds an ISO calendar date. A download carries the first. A
-    column lifted from one of Ernest Chan's files carries the second, the
-    ``*_chan.csv`` workbook columns and the members of every directory lifted
-    from a ``.mat`` alike, because its date is when Chan last saved the file and
-    nothing was fetched on that day. Putting a save date in a field named for a download
-    would hand the next reader a wrong fact in the field that identifies the
-    vintage.
+    series lifted from one of Ernest Chan's files carries the second, the
+    ``*_chan.csv`` workbook columns, the members of every directory lifted from
+    a ``.mat`` and the files of his Python port alike, because its date is when
+    Chan last saved the file and nothing was fetched on that day. Putting a save
+    date in a field named for a download would hand the next reader a wrong fact
+    in the field that identifies the vintage.
 
     Both rules are checked wherever an entry is built, which includes the line
     :func:`read_manifest` reads back, and so are ``vendor``, ``symbol`` and
@@ -235,7 +249,8 @@ class VintageEntry:
 
     The name says spreadsheet and the field holds any file a column was lifted
     from. A column lifted from one of Chan's MATLAB files carries that file's
-    name here, such as ``SPX_20071123.mat`` or ``earnannFile.mat``. Renaming the field would
+    name here, such as ``SPX_20071123.mat`` or ``earnannFile.mat``, and a file
+    of his Python port carries ``PythonCodesAndData.zip``. Renaming the field would
     rewrite every committed line to say the same thing, so the name stays and
     this paragraph widens it.
 
@@ -489,6 +504,8 @@ def record_vintage(
             f"{symbol}: an event vintage holds {EVENT_FIELDS[0]} rather than a close, so "
             f"record_lifted_columns writes it, not this"
         )
+    if price_basis == "return":
+        raise ValueError(_NO_RETURN_WRITER.format(symbol))
     _validated_date(download_date, "download date")
 
     days = [day for day, _ in rows]
@@ -617,6 +634,8 @@ def record_lifted_columns(
     _validated_date(saved_date, "saved date")
     source = _validated_source(source_file)
     fields = _validated_fields(fields, source_file)
+    if price_basis == "return":
+        raise ValueError(_NO_RETURN_WRITER.format(source_file))
     if (fields == EVENT_FIELDS) != (price_basis == "event"):
         raise ValueError(
             f"{source_file}: the {EVENT_FIELDS[0]} field and the event basis go together, "
@@ -1093,12 +1112,14 @@ def _serialize(rows: list[tuple[str, float]]) -> bytes:
     written as Python's shortest round-trip repr, which is what produced the
     committed files, and lines end in a single newline.
 
-    The header names the two columns and nothing else. The hand-placed
+    The header names the two columns and nothing else. Most hand-placed
     vintages carry a three-row multi-index header instead, which is yfinance's
     shape, and writing that for every vendor would put a line reading
     ``Price,Close`` at the top of a series no vendor of that name returned.
     ``load_close`` drops every leading row whose first field is not a date, so
-    it reads either.
+    it reads either. The files of Chan's Python port keep the headers his zip
+    gave them, which ``data/README.md``'s ``## Header shape`` calls the third
+    shape.
     """
     lines = ["Date,Close"]
     lines.extend(f"{day},{value!r}" for day, value in rows)
