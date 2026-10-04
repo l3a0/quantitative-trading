@@ -2072,7 +2072,10 @@ says the average returns are even worse. The entire data period is the
 program's own input, `SPX_20071123`, which runs to 2007-11-23. So those five
 years are inside the committed file, and the claim can be checked here. This
 entry quotes no five-year figure, because no criterion for one has been
-written, and a criterion comes before the figure it judges.
+written, and a criterion comes before the figure it judges. Row 17 is not that
+figure. Its 70 months start in January 2002, about ten months before the
+five years do, and they were split at the date location 4425 gives rather
+than at any reading of p. 180.
 [Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) carries
 the check.
 
