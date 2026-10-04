@@ -131,7 +131,8 @@ changed on the way over.
 directory of the same mirror at the same commit, for Example 4.1's ``bog.m``.
 EpchanPreview holds both under ``public/img/book2/`` and again under
 ``public/img/book2/Utilities/``, all three copies identical once line endings
-are stripped. They landed here with the pull request for
+are stripped. They landed here with
+[PR #307](https://github.com/l3a0/quantitative-trading/pull/307), for
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295). Three
 things changed on the way over.
 
