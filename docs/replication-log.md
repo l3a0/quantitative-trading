@@ -1778,22 +1778,32 @@ Example 7.7, and rows 15 to 18 split one of them at 2002. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
-Two of the four printouts have no code in this repo. The owner read the revised
-edition's MATLAB and R figures from the Kindle book on 2026-10-02, and the
-session that built this entry could not open it. So rows 9, 10, 13 and 14 run
-rules that reproduce the printed figures, not transcriptions of the printed
-code. Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on
-the same kind of inference: the figures match the first edition's, so its
-rules are assumed.
-[Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) checks
-the 7.7 readings against the book.
+Two of the four printouts have no code file in this repo. The revised
+edition prints its Example 7.7 in MATLAB on p. 179 and in R on p. 181, and the
+owner read both listings from the Kindle book on 2026-10-03.
+[Issue 226's comment on the printed code](https://github.com/l3a0/quantitative-trading/issues/226#issuecomment-5973504942) quotes the expressions that
+decide each rule, and rows 9, 10, 13 and 14 run those rules.
 
-Those rows say less than the others, and their verdicts should be read that
-way. Each reading was found by trying combinations of rule choices until the
-printed digits landed, so its match holds by construction. What the verdict
-records is that the printed figure is reachable from the committed vintage
-under rules a script could plausibly hold. It does not record that the printed
-code holds them, and [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) may move these rows.
+1. **The R needs no repair**, because it indexes the daily closes, and
+   `R_HESTON_SADKA` follows it with no change.
+2. **The MATLAB needs one repair to run.** It cuts its closes to month-end rows
+   and then reads one by a daily row number. `REVISED_MATLAB` reads the
+   month-end row instead and follows the listing everywhere else.
+3. **The page leaves `smartstd` open.** The listing calls it, and pp. 179 to
+   181 do not print its body. Chan's two books ship two versions, and only
+   *Algorithmic Trading*'s prints row 10's digits.
+4. **The revised code's repost settles both.** The revised edition's MATLAB as
+   reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes `7430b84` holds an `example7_7.m` whose mask already
+   reads the month-end row, and which matches `REVISED_MATLAB` everywhere
+   else, down to the −0.0129 and −0.1243 in its closing comment. Its
+   `smartstd.m` divides by n, which is book two's. The repost is a third
+   party's copy rather than the book, so the page stays the source for rows 9
+   and 10, and the repost is what confirms the two choices the page does not
+   decide.
+
+Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on a
+different inference: the figures match the first edition's, so its rules are
+assumed.
 
 Every result here is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
@@ -1811,12 +1821,12 @@ hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 | 6 | 7.6, January 2007, revised R | −0.0068 | as row 5 |
 | 7 | 7.7 average annual return, first-edition MATLAB | −0.9167 | `example7_7.m` at `1a71950`, printed in its closing comment |
 | 8 | 7.7 Sharpe ratio, first-edition MATLAB | −0.1055 | as row 7 |
-| 9 | 7.7 average annual return, revised MATLAB | −0.0129 | as row 5 |
-| 10 | 7.7 Sharpe ratio, revised MATLAB | −0.1243 | as row 5 |
+| 9 | 7.7 average annual return, revised MATLAB | −0.0129 | the revised Kindle edition, p. 179, in the listing's closing comment, as the owner read it on 2026-10-02 and 2026-10-03 |
+| 10 | 7.7 Sharpe ratio, revised MATLAB | −0.1243 | as row 9 |
 | 11 | 7.7 average annual return, revised Python | −0.012679 | `example7_7.py` at `653cf92`, printed in its closing comment |
 | 12 | 7.7 Sharpe ratio, revised Python | −0.122247 | as row 11 |
-| 13 | 7.7 average annual return, revised R | −0.01139674 | as row 5 |
-| 14 | 7.7 Sharpe ratio, revised R | −0.1095098 | as row 5 |
+| 13 | 7.7 average annual return, revised R | −0.01139674 | the revised Kindle edition, p. 181, read on the same two days as row 9 |
+| 14 | 7.7 Sharpe ratio, revised R | −0.1095098 | as row 13 |
 | 15 | 7.7 annual return before 2002 | more than 13 percent, Heston and Sadka's sample rather than this file | Kindle location 4425 |
 | 16 | 7.7 Sharpe ratio before 2002 | nothing | n/a |
 | 17 | 7.7 annual return from 2002 | the effect "has disappeared since then" | Kindle location 4425 |
@@ -1827,7 +1837,9 @@ beside code rather than in a sentence somebody marked.
 [research/book-notes/README.md](../research/book-notes/README.md) records that
 absence. Rows 5, 6, 9, 10, 13 and 14 trace to
 [the owner's comment on issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931),
-which tables every figure the revised edition prints for both examples.
+which tables every figure the revised edition prints for both examples. The
+code behind rows 9, 10, 13 and 14 traces to
+[the comment on issue 226](https://github.com/l3a0/quantitative-trading/issues/226#issuecomment-5973504942).
 
 ### What this repo computed
 
@@ -1841,11 +1853,11 @@ which tables every figure the revised edition prints for both examples.
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
 | 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
 | 8 | as row 7 | −0.1055 | 0.0000 | as row 7 |
-| 9 | `REVISED_MATLAB`: each stock kept only if its own close exists, each month divided by its positions, statistics from the thirteenth month | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
+| 9 | `REVISED_MATLAB`: the printed code with its out-of-range index repaired, each stock kept only if its own close exists, each month divided by its positions, 83 months, *Algorithmic Trading*'s `smartstd` | −0.0129 | 0.0000 | `TestHestonSadkaRevisedMatlab::test_both_figures_reproduce` |
 | 10 | as row 9 | −0.1243 | 0.0000 | as row 9 |
 | 11 | `PYTHON_HESTON_SADKA`: each stock's last priced day, kept only if its own return exists, 83 months, standard deviation over n | −0.012679 | 0.000000 | `TestHestonSadkaPython::test_both_figures_reproduce` |
 | 12 | as row 11 | −0.122247 | 0.000000 | as row 11 |
-| 13 | `R_HESTON_SADKA`: row 9's selection with half-to-even rounding, 83 months, standard deviation over n − 1 | −0.01139674 | 0.00000000 | `TestHestonSadkaR::test_both_figures_reproduce` |
+| 13 | `R_HESTON_SADKA`: the printed code, row 9's selection with half-to-even rounding, 83 months, standard deviation over n − 1 | −0.01139674 | 0.00000000 | `TestHestonSadkaR::test_both_figures_reproduce` |
 | 14 | as row 13 | −0.1095098 | 0.0000000 | as row 13 |
 | 15 | row 11's months from 2000-12-31 to 2001-12-31, 13 of them | −0.145387 | none, not a replication | `TestTheSplitAt2002::test_the_two_halves` |
 | 16 | as row 15 | −0.859993 | none | as row 15 |
@@ -1868,11 +1880,11 @@ printed precision, and the gap is zero at that precision.
 | 6 | reproduced | as row 5 |
 | 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
 | 8 | reproduced | Skipping the NaN month in the standard deviation instead of counting it as zero gives −0.1049. |
-| 9 | reproduced | A reading, not transcribed code. As the owner read the printed code, it reads a daily row of a 96-row array and cannot run. Keeping the first edition's sorted-against-columns rule in the minimal repair gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so four decimals do not choose between the two. Row 13's digits choose the close for R, and the owner read the MATLAB as reading the close too. |
-| 10 | reproduced | A reading, as row 9. Dropping 13 months and dividing by n also prints −0.1243, so [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) decides between the two against the printed code. Keeping the first twelve months instead gives −0.1330. |
+| 9 | reproduced | The printed code with one repair. As printed, it reads a daily row of a 96-row array and cannot run. The repair reads the month-end row, and because the printed mask removes stocks by column, it keeps each stock on its own close. Keeping the first edition's sorted-against-columns rule instead gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so the code chooses the close where four decimals cannot. |
+| 10 | reproduced | As row 9. Pp. 179 to 181 do not print `smartstd`, and the revised code's repost ships book two's. *Algorithmic Trading*'s, which skips a month with no position and divides by n, prints −0.1243. The first edition's gives −0.1236. Every month the drop removes holds no position, so under the former the drop count moves no figure. Under the first edition's it does: dropping 12 also prints −0.1243 by counting one empty month as zero, which is the reading this row ran before the code was read, and dropping none gives −0.1330. |
 | 11 | reproduced | Taking one shared row per month instead gives −0.012917. |
 | 12 | reproduced | Dividing by n − 1 instead gives −0.121508. |
-| 13 | reproduced | A reading, as row 9, and the tightest of them, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
+| 13 | reproduced | The printed code, unchanged, and the tightest of rows 9 to 14, because R prints seven significant digits. Rounding half away from zero instead gives −0.0118031, and keeping each stock on its own return gives −0.0117146. |
 | 14 | reproduced | Dividing by n instead gives −0.1101755. |
 | 15 | none, not a replication | Heston and Sadka's 13 percent is from their own sample, which this file does not reach. It has 13 months before 2002 after the twelve-month lookback, and they lost. |
 | 16 | none, not a replication | as row 15 |
@@ -1935,11 +1947,9 @@ in November 1999. [Issue 196](https://github.com/l3a0/quantitative-trading/issue
 is where the 13 percent is tested on a panel that still holds the companies
 that left.
 
-**Whether the revised MATLAB and R rows are the printed code.** They reproduce
-every digit printed, and for the MATLAB more than one reading does. R's
-Example 7.6 rounding is assumed from what the owner read of its 7.7.
-[Issue 226](https://github.com/l3a0/quantitative-trading/issues/226) carries
-the check.
+**How the revised R rounds Example 7.6.** It is assumed from its Example 7.7
+code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
+by the revised code's repost.
 
 **What happened after 2007.** After Example 7.7 the revised edition says the
 most recent five years give even worse average returns. Neither file reaches
@@ -2566,9 +2576,10 @@ transcription in `chan.pead` lands on all of them at the precision the script
 prints.
 
 One choice decides a printed digit. Chan's two books ship two helpers called
-`smartstd`. The first edition's, which Entries 7, 8 and 10 run, counts a
-missing value as zero and divides by n − 1. Book two's skips it and divides by
-n. With book two's, the arithmetic return is 0.066743, which prints as
+`smartstd`. The first edition's, which Entries 8 and 10 and Entry 7's
+first-edition rows run, counts a missing value as zero and divides by n − 1.
+Book two's, which Entry 7's revised MATLAB rows run too, skips it and divides
+by n. With book two's, the arithmetic return is 0.066743, which prints as
 Chan's 0.0667. With the first edition's it is 0.066833, which prints as
 0.0668, and row 11 holds that.
 
