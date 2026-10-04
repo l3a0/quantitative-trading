@@ -406,7 +406,7 @@ def report(
     )
     print(
         "  the claim holds on this file and nothing about factor momentum today. "
-        "docs/replication-log.md Entry 13 carries the verdicts."
+        "docs/replication-log.md Entry 14 carries the verdicts."
     )
 
 
