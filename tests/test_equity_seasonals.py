@@ -49,6 +49,9 @@ changed rule gives instead. A builder who corrects Chan's code fails one of
 those rather than quietly moving a pin.
 
 The 2002 split is exploratory and carries no verdict. First run on 2026-10-02.
+P. 180's five-year claim carries one, under a criterion written on issue 254
+before any five-year figure was computed, and ``TestTheMostRecentFiveYears``
+holds it. First run on 2026-10-04.
 """
 
 from __future__ import annotations
@@ -71,6 +74,8 @@ from chan.equity_seasonals import (
     R_JANUARY,
     REVISED_MATLAB,
     TAIL_MONTHS,
+    FiveYearCheck,
+    HestonSadka,
     Mask,
     Statistic,
     Winners,
@@ -698,6 +703,7 @@ class TestTheMostRecentFiveYears:
     """
 
     def test_the_rerun_reads_the_rows_after_2002_11_23(self, spx) -> None:
+        assert seasonals.five_year_cutoff(spx) == pd.Timestamp("2002-11-23")
         cut = most_recent_five_years(spx)
         assert cut.index[0] == pd.Timestamp("2002-11-25")
         assert cut.index[-1] == pd.Timestamp("2007-11-23")
@@ -709,18 +715,62 @@ class TestTheMostRecentFiveYears:
         """Cutting the input changes which months are kept and none of their values."""
         check = five_year_check(spx, rules)
         assert len(check.rerun_kept) == 47
-        assert check.rerun_kept.index[0].strftime("%Y-%m") == "2003-12"
-        assert check.rerun_kept.index[-1].strftime("%Y-%m") == "2007-10"
+        assert check.rerun_kept.index[0] == pd.Timestamp("2003-12-31")
+        assert check.rerun_kept.index[-1] == pd.Timestamp("2007-10-31")
         assert check.rerun_kept.notna().all()
         whole = check.whole.returns.iloc[rules.dropped :].iloc[-47:]
         pd.testing.assert_series_equal(check.rerun_kept, whole)
 
     @pytest.mark.parametrize(
-        "rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "python"]
+        ("rules", "first"),
+        [(REVISED_MATLAB, "2002-11-29"), (PYTHON_HESTON_SADKA, "2002-11-30")],
+        ids=["matlab", "python"],
     )
-    def test_the_tail_starts_in_november_2002(self, spx, rules) -> None:
+    def test_the_tail_starts_in_november_2002(self, spx, rules, first) -> None:
+        """The MATLAB finds a month-end by row and the Python by calendar."""
         kept = five_year_check(spx, rules).whole.returns.iloc[rules.dropped :]
-        assert kept.iloc[-TAIL_MONTHS:].index[0].strftime("%Y-%m") == "2002-11"
+        assert kept.iloc[-TAIL_MONTHS:].index[0] == pd.Timestamp(first)
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+
+    def test_the_claim_is_pinned_as_chans_words(self) -> None:
+        assert seasonals.FIVE_YEAR_PAGE == 180
+        assert seasonals.FIVE_YEAR_CLAIM == (
+            "the most recent five years instead of the entire data period"
+        )
+
+    @pytest.mark.parametrize(
+        ("rerun", "whole", "worse"),
+        [(-0.02, -0.01, True), (-0.01, -0.01, False), (0.0, -0.01, False)],
+        ids=["below", "equal", "above"],
+    )
+    def test_the_verdict_reads_only_the_reruns_annual_return(self, rerun, whole, worse) -> None:
+        """Strictly below, on the annual return, whatever the Sharpe ratios and the tail say.
+
+        Every other figure the check computes is also worse than the whole period
+        on this file, so the real data cannot tell the declared rule from a swap.
+        """
+        empty = pd.Series(dtype=float)
+        check = FiveYearCheck(
+            whole=HestonSadka(returns=empty, annual_return=whole, sharpe=-9.0),
+            rerun=HestonSadka(returns=empty, annual_return=rerun, sharpe=9.0),
+            rerun_kept=empty,
+            tail=(60, 9.0, 9.0),
+        )
+        assert check.worse is worse
+
+    def test_the_23_months_the_rerun_leaves_out_of_the_split_made_money(self, kept) -> None:
+        """Exploratory, with no verdict, like the split.
+
+        The revised Python's 70 months from 2002 return 0.011967 a year and its
+        last 47 return -0.016431. The 23 between them, January 2002 to
+        November 2003, are what turn one into the other.
+        """
+        between = kept[(kept.index >= "2002-01-01") & (kept.index < "2003-12-01")]
+        assert len(between) == 23
+        assert between.index[0] == pd.Timestamp("2002-01-31")
+        assert between.index[-1] == pd.Timestamp("2003-11-30")
+        annual, _ = summarize(between, replace(PYTHON_HESTON_SADKA, dropped=0))
+        assert_reproduces(annual, 0.06999696732165601, "0.069997", ".6f")
 
     def test_the_revised_matlab_reproduces_the_claim(self, spx) -> None:
         check = five_year_check(spx, REVISED_MATLAB)
@@ -738,7 +788,7 @@ class TestTheMostRecentFiveYears:
         assert monthly == pytest.approx(0.01607494842406708, abs=1e-9)
         assert_reproduces(error, 0.028137266582467655, "0.0281", ".4f")
         assert_reproduces(gap, -0.0035794526355617928, "-0.0036", ".4f")
-        assert error > 7 * abs(gap)
+        assert format(error / abs(gap), ".1f") == "7.9"
 
     def test_the_revised_matlab_figures_with_no_verdict(self, spx) -> None:
         check = five_year_check(spx, REVISED_MATLAB)

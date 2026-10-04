@@ -110,7 +110,11 @@ where they were first built. The other eighteen were built here.
    between −0.0114 and −0.0129 a year. Example 7.6's third January, the one
    that made money, reproduces as 0.0881 and 0.088486 on the later save of
    the S&P 600 file that Chan's script loads, committed from a repost of the
-   revised edition's code.
+   revised edition's code. Chan's p. 180 claim that the most recent five years
+   of his S&P 500 file do even worse holds under a criterion written before
+   the check ran: −0.0165 a year against −0.0129. The gap is far inside the
+   noise of 47 months, so the verdict is about his file of survivors rather
+   than about whether the effect weakened.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -716,7 +720,9 @@ It reads the S&P 600 file Chan's Example 7.6 loads and his S&P 500 file, and
 prints every figure each printout of Examples 7.6 and 7.7 reaches, beside the
 panel it came from. A January a file ends before would print as not computable
 with the date the file ends, and the 2002 split of the revised Python prints
-under a line saying it carries no verdict.
+under a line saying it carries no verdict. Last come both readings of p. 180's
+most recent five years under the revised MATLAB's and Python's rules, with the
+verdict printed beside the MATLAB's rerun alone.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:

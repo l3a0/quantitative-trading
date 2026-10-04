@@ -1864,8 +1864,8 @@ Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
 Algorithmic Trading Business*, Examples 7.6 and 7.7, in both editions. Rows 1
 to 18 shipped under
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), and rows 19
-to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
-and rows 22 to 29 under
+to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225).
+Rows 22 to 29 shipped under
 [issue 254](https://github.com/l3a0/quantitative-trading/issues/254).
 
 Twenty-nine rows, all derivable from
@@ -1973,11 +1973,14 @@ than about the effect.
 | 19 | 7.6, entered 2007-12-31, MATLAB in both editions | 0.0881 | as row 1 |
 | 20 | 7.6, exited 2008-01-31, revised Python | 0.088486 | as row 3 |
 | 21 | 7.6, January 2008, revised R | 0.0881 | as row 5 |
-| 22 | 7.7 average annual return over the most recent five years, revised MATLAB | "even worse" than the whole period, a claim, no figure | the revised Kindle edition, p. 180, directly after the MATLAB listing |
+| 22 | 7.7 average annual return over the most recent five years, revised MATLAB | "even worse" than the whole period, a claim, no figure | the revised Kindle edition, p. 180, directly after the MATLAB listing, as a session read it in the Kindle Cloud Reader on 2026-10-03 |
 | 23 to 29 | row 22's Sharpe ratio, the same two figures over the full run's last 60 months, and all four under the revised Python's rules | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
-beside code rather than in a sentence somebody marked.
+beside code rather than in a sentence somebody marked. Row 22's sentence is not
+among them either, and
+[issue 254](https://github.com/l3a0/quantitative-trading/issues/254) records
+when it was read.
 [research/book-notes/README.md](../research/book-notes/README.md) records that
 absence. Rows 5, 6, 9, 10, 13, 14 and 21 trace to
 [the owner's comment on issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931),
@@ -2081,7 +2084,10 @@ Four things.
    Rerun on them, the revised MATLAB's rules give −0.0165 a year against the
    whole period's −0.0129. The gap is about an eighth of the rerun's standard
    error of 0.0281, so this says Chan's comparison holds on his own file, and
-   nothing more.
+   nothing more. It does not contradict conclusion 3. The rerun leaves out the
+   23 months from January 2002 to November 2003, which return 0.069997 a year
+   under the revised Python's rules, and that figure is exploratory like the
+   split.
 
 ### What this entry cannot say
 

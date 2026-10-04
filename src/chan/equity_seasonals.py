@@ -71,6 +71,13 @@ Two limits, each stated where it applies.
 2. The 2002 split of the revised Python is exploratory. It was computed before
    any criterion for "disappeared" was written down, so it carries no verdict.
 
+P. 180's claim that the most recent five years do even worse is the one
+verdict here on timing. Its criterion was written on
+[issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before
+any five-year figure was computed, and :class:`FiveYearCheck` says what it
+reads. The claim holds on this file, and the first limit above still applies
+to it.
+
 The scale-break guard is not applied. ``refuse_window_crossing_a_break`` serves
 the pair readers and :func:`chan.series.load_panel` does not call it. The
 comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py``
@@ -520,14 +527,24 @@ def _undropped(rules: HestonSadkaRules) -> HestonSadkaRules:
     return HestonSadkaRules(**{**rules.__dict__, "dropped": 0})
 
 
+#: Where the revised edition makes the claim, directly after the MATLAB listing.
+FIVE_YEAR_PAGE = 180
+
+#: What p. 180 suggests the program be run on.
+FIVE_YEAR_CLAIM = "the most recent five years instead of the entire data period"
+
 #: How many of the full run's last kept months the second reading of p. 180 averages.
 TAIL_MONTHS = 60
 
 
+def five_year_cutoff(closes: pd.DataFrame) -> pd.Timestamp:
+    """The day five calendar years before the file's last row."""
+    return closes.index[-1] - pd.DateOffset(years=5)
+
+
 def most_recent_five_years(closes: pd.DataFrame) -> pd.DataFrame:
-    """The rows dated after the day five calendar years before the file's last row."""
-    cutoff = closes.index[-1] - pd.DateOffset(years=5)
-    return closes.loc[closes.index > cutoff]
+    """The rows dated after :func:`five_year_cutoff`."""
+    return closes.loc[closes.index > five_year_cutoff(closes)]
 
 
 @dataclass(frozen=True)
@@ -616,8 +633,10 @@ def report_heston_sadka(members, closes: pd.DataFrame) -> None:
             f"    {label} {SPLIT.date()}, {months} months: {annual:.6f} a year, "
             f"Sharpe ratio {sharpe:.6f}"
         )
-    cutoff = closes.index[-1] - pd.DateOffset(years=5)
-    print(f"  The most recent five years of p. 180, rows after {cutoff:%Y-%m-%d}")
+    print(
+        f"  The most recent five years of p. {FIVE_YEAR_PAGE}, "
+        f"rows after {five_year_cutoff(closes):%Y-%m-%d}"
+    )
     for rules in (REVISED_MATLAB, PYTHON_HESTON_SADKA):
         check = five_year_check(closes, rules)
         if rules is REVISED_MATLAB:
