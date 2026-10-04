@@ -169,6 +169,11 @@ class TestSmartMovingAvg:
         assert avg[3, 0] == 5.0
         assert np.isnan(np.mean(x[0:3]))
 
+    def test_a_zero_counts_and_an_infinity_does_not(self) -> None:
+        """A zero is a value, and an infinity is skipped the way a NaN is."""
+        assert smart_moving_avg([[0.0], [2.0]], 2)[1, 0] == 1.0
+        assert smart_moving_avg([[math.inf], [2.0]], 2)[1, 0] == 2.0
+
     def test_a_window_holding_nothing_finite_is_nan(self) -> None:
         x = np.array([[1.0, NAN], [NAN, NAN], [NAN, NAN], [4.0, 5.0]])
         avg = smart_moving_avg(x, 2)

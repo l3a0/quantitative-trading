@@ -97,7 +97,8 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: day is the move it looks like. The book-two S&P 500 file adds 30 days in 17
 #: stocks, every one between 2007 and 2009 and most of them banks and insurers
 #: in the 2008 crisis, such as AIG on 2008-09-15. None falls in the 2011 and 2012
-#: window Example 7.2 trades, and none sits near a split, measured on
+#: window Example 7.2 trades, all 30 fall in Example 4.1's, which is the file's
+#: whole span, and none sits near a split, measured on
 #: [issue 250](https://github.com/l3a0/quantitative-trading/issues/250). ``data/README.md`` and
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window

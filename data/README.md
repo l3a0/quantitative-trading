@@ -656,9 +656,11 @@ measurements below.
    file a third time, as
    `public/img/book3/Chap3 Time Series/inputDataOHLCDaily_20120424.mat`, the
    same git blob, `0fb5ebc`, and the same sha256. That is the name, with no
-   `_stocks`, that Example 4.1's `bog.m` loads, and the only file of that name
-   in Chan's published code. `chan.mat_columns.round_trip_differs` finds the
-   committed members rebuild all five of its arrays exactly.
+   `_stocks`, that Example 4.1's `bog.m` loads, and neither mirror holds
+   another file of that name. `chan.mat_columns.round_trip_differs` finds the
+   committed members rebuild all five of its arrays exactly. What the copy
+   cannot show is that the file Chan ran in 2012 was the one he later shipped
+   under that name.
 
    ```text
    4a62f5851de9962b72c6b135d4f4addc3cb13ff1ce28afe45defceb47c318849  inputDataOHLCDaily_stocks_20120424.mat

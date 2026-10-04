@@ -3538,7 +3538,7 @@ here.
    the open, high, low and close through `chan.series.load_panel`, all 1,500
    days from 2006-05-11 to 2012-04-24. `bog.m` loads
    `inputDataOHLCDaily_20120424`, with no `_stocks`, and the only file of that
-   name in Chan's published code is the same bytes, which
+   name in either public mirror of Chan's code is the same bytes, which
    [data/README.md](../data/README.md) records. **Every figure here is about
    survivors**, because the file is the S&P 500 as Chan held it on 2012-04-24,
    carried backwards, and location 1974 says so.
@@ -3568,10 +3568,10 @@ comment's one decimal is the precision the source carries.
 
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
-| 1 | The window `bog.m` prints | `20060511 - 20120424` | `bog.m` line 34, location 1974 |
+| 1 | The window `bog.m` prints | `20060511 - 20120424` | `bog.m`, location 1974 |
 | 2 | Buy on gap, APR | 8.7 percent | `bog.m`, location 1974 |
 | 3 | Buy on gap, Sharpe ratio | 1.5 | `bog.m`, location 1974 |
-| 4 | The same APR, called an "annualized average return" | "around 8.7 percent" | location 3509 |
+| 4 | Location 3509's figure, read as the arithmetic annual return | "around 8.7 percent", an "annualized average return" | location 3509 |
 | 5 | Short on gap, APR | 46 percent | location 1993 |
 | 6 | Short on gap, Sharpe ratio | 1.27 | location 1993 |
 | 7 | Short on gap has the steeper drawdown | a claim | location 1993 |
@@ -3601,7 +3601,7 @@ comment's one decimal is the precision the source carries.
 | 1 | none, exact | reproduced | The panel's span is the window `bog.m` prints. |
 | 2 | 0.0 | reproduced | Chan's figure, on his own file, through his own script transcribed. |
 | 3 | 0.0 | reproduced | The same as row 2. |
-| 4 | −0.2 | did not reproduce | The arithmetic return is 8.5 percent at the book's precision. Location 3509's 8.7 is row 2's compounded figure under another name, where Example 7.2's "annualized average return" was the arithmetic one. This is Chan's own file, so no vintage explains the miss. |
+| 4 | −0.2 | did not reproduce | Read as the arithmetic return, as Example 7.2's "annualized average return" was, the figure is 8.5 percent at the book's precision. What fails is that reading rather than Chan's number: location 3509's 8.7 is row 2's compounded APR, which reproduces. |
 | 5 | −34 | did not reproduce | Under the rule [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) declared. The reading is part of the method, so it cannot explain a miss from outside it, and no second reading was tried. |
 | 6 | +0.52 | did not reproduce | The same as row 5. |
 | 7 | none, a claim | reproduced | The short side's deepest drawdown is the more negative, the criterion [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) fixed before any run. Its longest stretch below a high is 363 days against 159. |
@@ -3620,28 +3620,35 @@ Three things.
    inside the spread.
 2. **One phrase names two formulas in this book.** In Example 7.2, "annualized
    average return" is the arithmetic figure. At location 3509 the same phrase
-   carries Example 4.1's compounded APR, which the arithmetic figure misses. A
-   pin that read the label rather than the script would have failed row 4's
-   reading and called it a miss on row 2.
+   carries Example 4.1's compounded APR, which the arithmetic figure misses.
+   Reading the label instead of the script would have pinned row 2 against
+   the arithmetic figure and called it a miss.
 3. **The declared mirror is a different strategy from Chan's.** Its drawdown
    is steeper, as he says, and its return is not. His own pair of figures
-   rules out the declared rule's scale on arithmetic alone. Because
-   ln(1 + r) ≤ r every day, an APR of 46 percent and a Sharpe ratio of 1.27
-   need an annual volatility of at least ln(1.46) / 1.27 = 0.2980, and the
-   declared rule's is 0.0657, about four and a half times less, held by
+   rules out the declared rule's scale on arithmetic alone, if he computed
+   them with `bog.m`'s formulas and no risk-free rate. Because ln(1 + r) ≤ r
+   every day, an APR of 46 percent and a Sharpe ratio of 1.27 need an annual
+   volatility of at least ln(1.46) / 1.27 = 0.2980, and the declared rule's
+   is 0.0657, about four and a half times less, held by
    `TestTheMirror::test_chans_two_figures_need_four_and_a_half_times_this_volatility`.
-   So the difference is unlikely to be which stocks were chosen alone. The
-   sizing or the leverage differs too, which is a hypothesis this entry does
-   not test.
+   The declared rule holds a position on 338 of 1,500 days and ten at once on
+   16 of them. The floor says nothing about whether the difference lies in
+   which stocks Chan's rule chose, how many days it traded, or how it sized
+   each position, and nothing here tests them.
 
 ### What this entry cannot say
 
-Four things.
+Five things.
 
 **Which rule Chan ran for the mirror.** Two other readings of location 1993
-were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) and not run, and the volatility floor above points at
-the sizing instead. Trying readings until one matched would be the search the
-honesty rail forbids.
+were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) and not run. Trying readings until one matched would be the
+search the honesty rail forbids.
+
+**Which file Chan ran in 2012.** The name `bog.m` loads points, in both
+public mirrors, at the same bytes as the committed panel's source. That says
+what the name means in the code he published, not that the file he ran when
+he wrote the book was this one. Both figures reproducing is consistent with
+it and does not prove it.
 
 **What costs and execution would take.** `bog.m` charges none. Location 1993
 names the short-sale constraint the mirror suffers from, and location 1988

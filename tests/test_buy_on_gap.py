@@ -152,7 +152,7 @@ class TestTheVintages:
         assert all(frame.shape == (1500, 497) for frame in frames.values())
 
     def test_the_window_is_the_one_bog_m_prints(self, long: Side) -> None:
-        """Line 34 prints ``tday(1)`` and ``tday(end)``, location 1974's "May 11, 2006,
+        """``bog.m`` prints ``tday(1)`` and ``tday(end)``, location 1974's "May 11, 2006,
         to April 24, 2012"."""
         printed = f"{long.days[0].strftime('%Y%m%d')} - {long.days[-1].strftime('%Y%m%d')}"
         assert printed == SCRIPT_WINDOW == "20060511 - 20120424", SPEC
@@ -228,9 +228,19 @@ class TestTheFigures:
         assert (rises == mirrored).all(), SPEC
 
     def test_reversing_the_tie_order_moves_nothing_because_nothing_ties(
-        self, sources, long: Side, short: Side, monkeypatch
+        self, sources, arrays, long: Side, short: Side, monkeypatch
     ) -> None:
-        """What ``chan.matlab_helpers``' docstring claims for this file."""
+        """What ``chan.matlab_helpers``' docstring claims for this file: no two
+        qualifiers on one day share a key, so no tie exists for the order to break."""
+        op, hi, lo, cl = (arrays[k] for k in ("Open", "High", "Low", "Close"))
+        spread, average = entry_spread(cl), trailing_average(cl)
+        for qualifies, key in (
+            drop_qualifiers(op, lo, spread, average),
+            jump_qualifiers(op, hi, spread, average),
+        ):
+            for t in range(1, len(op)):
+                keys = key[t, qualifies[t]]
+                assert len(np.unique(keys)) == len(keys), SPEC
 
         def reversed_ties(x):
             x = np.asarray(x, dtype=float)
@@ -261,6 +271,7 @@ class TestTheMirror:
         assert short.trades == 725, SPEC
         assert short.days_held == 338, SPEC
         assert short.most_held == TOP_N, SPEC
+        assert int((np.count_nonzero(short.positions, axis=1) == TOP_N).sum()) == 16, SPEC
         assert set(np.unique(short.positions)) == {-1.0, 0.0}, SPEC
 
     def test_its_drawdown_is_the_steeper_as_location_1993_says(
@@ -435,6 +446,38 @@ class TestTheRule:
         assert _one_day([49.0], [100.0], [0.5], [np.nan]).tolist() == [0.0]
         assert _one_day([49.0], [np.nan], [0.5], [40.0]).tolist() == [0.0]
 
+    def test_the_comparison_is_against_buy_price_as_written_not_the_algebra(self) -> None:
+        """An open equal to ``buyPrice`` whose drop still rounds below the spread.
+
+        ``bog.m`` refuses it, because ``op < buyPrice`` is false. Comparing the
+        drop against the spread, the same test in algebra, would buy it.
+        """
+        low, spread = 104.81, 0.09529405115096386
+        price = low * (1 - spread)
+        qualifies, drop = drop_qualifiers(
+            np.array([[np.nan], [price]]),
+            np.array([[low], [np.nan]]),
+            np.array([[np.nan], [spread]]),
+            np.array([[np.nan], [0.0]]),
+        )
+        assert not qualifies[1, 0]
+        assert drop[1, 0] < -spread
+
+    def test_a_previous_high_of_zero_qualifies_nothing_for_the_mirror(self) -> None:
+        """Its jump is infinite, and an infinite jump would otherwise rank first."""
+        assert _one_day([5.0], [0.0], [0.5], [200.0], mirror=True).tolist() == [0.0]
+
+    def test_ten_deepest_drops_among_many_ties_keep_column_order(self) -> None:
+        """Forty tied qualifiers, past the size where numpy's default sort stops being stable."""
+        held = _one_day([45.0] * 40, [100.0] * 40, [0.5] * 40, [30.0] * 40)
+        assert held.tolist() == [1.0] * 10 + [0.0] * 30
+
+    def test_the_ranking_loop_starts_on_the_second_row(self) -> None:
+        """Row 0 qualifies here by construction, and ``bog.m``'s loop never reaches it."""
+        qualifies = np.array([[True], [True]])
+        held = buy_on_gap._ranked(qualifies, np.array([[-0.1], [-0.1]]), 1.0)
+        assert held.tolist() == [[0.0], [1.0]]
+
     def test_the_ten_deepest_drops_are_bought(self) -> None:
         """Twelve qualifiers, opens 49 down to 38, so the last two columns miss out."""
         opens = [49.0 - k for k in range(12)][::-1]
@@ -474,7 +517,7 @@ class TestTheRule:
         assert daily_returns(positions, opens, closes)[0] == pytest.approx(0.05 / 10, abs=1e-15)
 
     def test_a_day_that_sums_nothing_is_zero_rather_than_nan(self) -> None:
-        """Line 32 sets it to 0, where ``chan.pead`` leaves ``smartsum``'s NaN."""
+        """``bog.m`` sets it to 0, where ``chan.pead`` leaves ``smartsum``'s NaN."""
         positions = np.zeros((1, 2))
         nan = np.full((1, 2), np.nan)
         assert daily_returns(positions, nan, nan).tolist() == [0.0]
@@ -500,6 +543,9 @@ class TestTheRule:
         a = pd.DataFrame({"AAA": [1.0, 2.0, 3.0]}, index=days)
         with pytest.raises(ValueError, match="one index and one column order"):
             buy_on_gap.buy_on_gap(a, a.rename(columns={"AAA": "BBB"}), a)
+        later = a.set_axis(pd.bdate_range("2011-01-04", periods=3))
+        with pytest.raises(ValueError, match="one index and one column order"):
+            buy_on_gap.buy_on_gap(a, later, a)
 
 
 class TestTheRefusals:

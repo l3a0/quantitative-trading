@@ -117,9 +117,10 @@ changed on the way over.
 1. ``smartstd``'s ``dim`` becomes ``axis``, with 0 as the default, as the
    first edition's helpers here already do. MATLAB's default is the first
    dimension longer than one, which is the same reduction on every shape
-   Example 7.2 passes.
+   Examples 7.2 and 4.1 pass.
 2. ``smartMovingStd``'s optional third argument, which samples every
-   ``period`` rows, is not carried, because ``pead.m`` never passes it.
+   ``period`` rows, is not carried, because neither ``pead.m`` nor ``bog.m``
+   passes it.
 3. ``smartMovingStd`` refuses a window of one row. MATLAB would hand that
    one-row slice to ``smartstd`` with no ``dim``, which then reduces across the
    columns rather than down them, a different calculation that nothing calls.

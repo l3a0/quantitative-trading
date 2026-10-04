@@ -51,12 +51,14 @@ holds three tenths of the book and leaves the rest idle. Example 7.2's fixed
    written a third time. It refuses a NaN, which holds the script's zero-fill
    in place.
 
-Three more are reported beside them. ``252 · mean(ret)``, the arithmetic
-annual return, is there because location 3509 calls the same 8.7 percent an
-"annualized average return", which named the arithmetic figure in Example 7.2.
-Here it is 0.085279 and does not reach 8.7, so the 8.7 is the compounded
-figure under a second name. The deepest drawdown and its duration, from book
-two's ``calculateMaxDD``, are there for location 1993's steeper drawdown.
+Three more are reported beside them.
+
+1. ``252 · mean(ret)``, the arithmetic annual return, because location 3509
+   calls the same 8.7 percent an "annualized average return", which named the
+   arithmetic figure in Example 7.2. Here it is 0.085279 and does not reach
+   8.7, so the 8.7 is the compounded figure under a second name.
+2. and 3. The deepest drawdown and its duration, from book two's
+   ``calculateMaxDD``, for location 1993's steeper drawdown.
 
 **The mirror has no script, and its rule was declared before any run.**
 [Issue 295](https://github.com/l3a0/quantitative-trading/issues/295) read it
@@ -65,12 +67,19 @@ the sentence is silent. The jump is measured from the previous day's high, and
 a stock qualifies when ``op > backshift(1, hi) · (1 + stdretC2C90d)`` and
 ``op < ma``. The ten largest jumps are shorted, ties in column order, and
 everything else is ``bog.m``. Two things in Chan's book-two code point at the
-high. ``bog.m`` loads ``hi`` and never reads it, and ``gapFutures_FSTX.m``
-measures a gap up from ``backshift(1, hi)``. Two other readings of the sentence
-were named on the issue and are not run: a jump from the previous close, and
-shorting the smallest qualifying jumps first. The declared rule lands far from
-Chan's figures, and the issue's rule is that no second reading is tried after
-a miss, because choosing a reading once its number is seen is a search.
+high.
+
+1. ``bog.m`` loads ``hi`` and never reads it.
+2. ``gapFutures_FSTX.m`` measures a jump up from ``backshift(1, hi)``.
+
+Two other readings of the sentence were named on the issue and are not run.
+
+1. A jump measured from the previous close.
+2. Shorting the smallest qualifying jumps first.
+
+The declared rule lands far from Chan's figures, and the issue's rule is that
+no second reading is tried after a miss, because choosing a reading once its
+number is seen is a search.
 
 **The helper choice moves both printed figures.** ``smartMovingStd`` calls book
 two's ``smartstd``, which skips a missing return and divides by n. With the
@@ -92,20 +101,23 @@ against its manifest entry before parsing it. ``bog.m`` loads
 ``inputDataOHLCDaily_20120424``, with no ``_stocks``. EpchanPreview at
 ``e4bc46f`` ships a file of exactly that name, under
 ``public/img/book3/Chap3 Time Series/``, and it is the same git blob as the
-``_stocks`` file, with the sha256 ``data/README.md`` records for it.
+``_stocks`` file, with the sha256 ``data/README.md`` records for it. Neither
+public mirror holds another file of that name. That shows what the name
+points at in the code Chan published, not that the file he ran in 2012 is the
+one he later shipped under it.
 
 **Every figure here is about survivors.** The price file is the S&P 500 as
 Chan held it on 2012-04-24, carried backwards, and location 1974 says so.
 
-**The scale-break guard is not called, and that was decided here.**
+**The scale-break guard is not called, and issue 295 decided that.**
 :func:`chan.series.refuse_window_crossing_a_break` flags 30 days in 17 of this
 file's stocks, every one between 2007 and 2009, and this window holds all 30,
 so calling it the way :mod:`chan.pead` does would refuse the run. Issues 18,
-21 and 22 each declined it for the same reason that applies here: the job is to
-reproduce what Chan's script computed on these prices as they stand, and none
-of the 30 sits near a split, so they read as real moves. One position lands on
-one, a short in MS on 2008-10-13. ``TestTheScaleBreakDecision`` runs the guard
-and holds both facts.
+21 and 22 each declined it because the job is to reproduce what Chan's script
+computed on the prices as they stand, and that holds here. Issue 250 measured
+that none of the 30 sits near a split, so they read as real moves. One
+position lands on one, a short in MS on 2008-10-13.
+``TestTheScaleBreakDecision`` runs the guard and holds both facts.
 
 **What changed on the way over from** ``bog.m``. Four things, and none moves a
 figure.
@@ -166,7 +178,7 @@ TRADING_DAYS = 252
 BOOK_APR_PERCENT = 8.7
 BOOK_SHARPE = 1.5
 SCRIPT_COMMENT = "APR=8.7%, Sharpe=1.5"
-#: What line 34 of ``bog.m`` prints, ``tday(1)`` and ``tday(end)``.
+#: What ``bog.m`` prints for its window, ``tday(1)`` and ``tday(end)``.
 SCRIPT_WINDOW = "20060511 - 20120424"
 #: What location 1993 prints for the mirror, which has no script.
 MIRROR_BOOK_APR_PERCENT = 46
@@ -207,7 +219,7 @@ class Side:
 
 
 def entry_spread(closes: np.ndarray) -> np.ndarray:
-    """Line 9: the 90-row moving deviation of close-to-close returns, one row later.
+    """``stdretC2C90d``: the 90-row moving deviation of close-to-close returns, one row later.
 
     Day t reads the returns ending at t − 1, through book two's ``smartstd``,
     so a window with fewer finite returns than rows still gives a spread.
@@ -216,14 +228,14 @@ def entry_spread(closes: np.ndarray) -> np.ndarray:
 
 
 def trailing_average(closes: np.ndarray) -> np.ndarray:
-    """Line 18: the mean of the finite closes over the 20 rows ending at t − 1."""
+    """``ma``: the mean of the finite closes over the 20 rows ending at t − 1."""
     return backshift(1, smart_moving_avg(closes, AVERAGE_LOOKBACK))
 
 
 def drop_qualifiers(
     opens: np.ndarray, lows: np.ndarray, spread: np.ndarray, average: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Lines 10 to 21: which stocks qualify each day, and each stock's drop below the previous low.
+    """``bog.m``'s ``hasData``: which stocks qualify each day, and each drop below the previous low.
 
     A stock qualifies when its drop is finite, its open is strictly below
     ``buyPrice`` and strictly above the moving average. The comparison is
@@ -259,7 +271,7 @@ def jump_qualifiers(
 def gap_down_positions(
     opens: np.ndarray, lows: np.ndarray, spread: np.ndarray, average: np.ndarray
 ) -> np.ndarray:
-    """Lines 20 to 25: a 1 on each of the day's ten deepest qualifying drops, from row two."""
+    """``positionTable``: a 1 on each of the day's ten deepest qualifying drops, from row two."""
     qualifies, drop = drop_qualifiers(opens, lows, spread, average)
     return _ranked(qualifies, drop, 1.0)
 
@@ -287,14 +299,14 @@ def _ranked(qualifies: np.ndarray, key: np.ndarray, sign: float) -> np.ndarray:
 
 
 def daily_returns(positions: np.ndarray, opens: np.ndarray, closes: np.ndarray) -> np.ndarray:
-    """Lines 27 to 32: the day's open-to-close return on the positions, over ten, NaN set to 0."""
+    """``ret``: the day's open-to-close return on the positions, over ten, NaN set to 0."""
     with np.errstate(invalid="ignore", divide="ignore"):
         daily = smartsum(positions * (closes - opens) / opens, axis=1) / TOP_N
     return np.where(np.isnan(daily), 0.0, daily)
 
 
 def figures(name: str, days: pd.DatetimeIndex, positions: np.ndarray, daily: np.ndarray) -> Side:
-    """Lines 35 and 37, and the three figures reported beside them."""
+    """``bog.m``'s APR and Sharpe ratio, and the three figures reported beside them."""
     max_dd, max_ddd = calculate_max_dd(np.cumprod(1 + daily) - 1)
     return Side(
         name=name,
