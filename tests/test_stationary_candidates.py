@@ -54,8 +54,9 @@ Ten classes and one test.
 
 1. ``TestTheCrossRateVintage``, the file, the window it is read over, and the
    vendor's gap the window starts after.
-2. ``TestTheCrossRateStatistic``, the lag-1 statistic, its half-life, and that
-   the quoting direction does not move it.
+2. ``TestTheCrossRateStatistic``, the lag-1 statistic, its half-life, that
+   the quoting direction does not move it, and what dropping the constant or
+   adding a trend would have done.
 3. ``TestTheCrossRateResidualCheck``, which asks whether the lag-1 fit earned
    its critical values. It did not, and the first fit that does still rejects.
 4. ``TestTheCrossRateVerdict``, the rule issue 135 declared and the verdict it
@@ -138,6 +139,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat, ou_half_life
+from statsmodels.tsa.stattools import adfuller
 
 from chan.commodity_seasonals import june_contract_number
 from chan.futures import (
@@ -675,6 +677,45 @@ class TestTheCrossRateStatistic:
             assert passing is not None
             assert passing.lags == 10
             assert passing.adf_stat == pytest.approx(stat, abs=5e-5)
+
+    def test_without_the_constant_the_answer_rests_on_where_the_rate_sits(
+        self, rate: CrossRate
+    ) -> None:
+        """Added after the verdict, to show what the declared constant does.
+        Without it the regression assumes the log reverts to zero, a rate of
+        exactly 1.00. The rate stayed between 0.9301 and 1.3239, so the test
+        still rejects. Quoted per 100 Canadian dollars, the log sits 4.6 higher,
+        the test with a constant gives the same answer, and the test without
+        one finds nothing."""
+        values = rate.log_rate.to_numpy()
+        rates = np.exp(values)
+        assert (rates.min(), rates.max()) == pytest.approx((0.9301, 1.3239), abs=5e-5)
+        crit = adfuller(values, maxlag=LAGS, regression="n", autolag=None, result_object=False)[4]
+        assert (round(crit["5%"], 2), round(crit["10%"], 2)) == (-1.94, -1.62)
+        without = adf_tstat(values, LAGS, constant=False)[0]
+        assert without == pytest.approx(-2.5159, abs=5e-5)
+        assert without < crit["5%"]
+        per_hundred = values + math.log(100)
+        assert adf_tstat(per_hundred, LAGS)[0] == pytest.approx(rate.adf_stat, abs=1e-9)
+        shifted = adf_tstat(per_hundred, LAGS, constant=False)[0]
+        assert shifted == pytest.approx(-0.2982, abs=5e-5)
+        assert shifted > crit["10%"]
+
+    def test_a_trend_term_would_have_turned_the_verdict(self, rate: CrossRate) -> None:
+        """Added after the verdict, to measure how much the declared term
+        mattered. Issue 135 fixed a constant and no trend before any statistic,
+        because Chan's claim is that the level is stationary. With a trend the
+        one-lag statistic clears the 10% bar and not the 5% bar."""
+        values = rate.log_rate.to_numpy()
+        stat, _, _, nobs, crit = adfuller(
+            values, maxlag=LAGS, regression="ct", autolag=None, result_object=False
+        )[:5]
+        assert stat == pytest.approx(-3.2947, abs=5e-5)
+        assert nobs == rate.nobs
+        assert (round(crit["5%"], 2), round(crit["10%"], 2)) == (-3.41, -3.13)
+        assert crit["5%"] < stat < crit["10%"]
+        same = adfuller(values, maxlag=LAGS, regression="c", autolag=None, result_object=False)[0]
+        assert same == pytest.approx(rate.adf_stat, abs=1e-9)
 
     def test_every_lag_up_to_the_ceiling_rejects_at_five_percent(self, rate: CrossRate) -> None:
         """The headline is lag 1 by rule, and the rule does not decide the
