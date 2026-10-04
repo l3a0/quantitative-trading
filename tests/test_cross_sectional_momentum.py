@@ -466,6 +466,75 @@ class TestTheRun:
             main()
 
 
+# --- the verdict rules, on figures made up to sit on their edges ---------------
+
+
+def _figures(arithmetic: float, sharpe: float = 0.0) -> Figures:
+    return Figures(
+        days=pd.DatetimeIndex([]),
+        arithmetic_annual=arithmetic,
+        sharpe=sharpe,
+        compounded_apr=0.0,
+        max_drawdown=0.0,
+        max_drawdown_days=0,
+    )
+
+
+class TestTheVerdictRules:
+    """The rules issue 297 declared, held on their edges, since the file reaches none."""
+
+    def test_37_percent_and_4_1_together_land(self) -> None:
+        assert lands_the_book(_figures(0.37, 4.1))
+
+    def test_37_percent_alone_does_not_land(self) -> None:
+        assert not lands_the_book(_figures(0.37, 3.9))
+        assert not lands_the_book(_figures(0.36, 4.1))
+
+    def test_a_half_rounds_away_from_zero_as_matlab_does(self) -> None:
+        """36.5 percent rounds to 37 in MATLAB and to 36 in Python's ``round``."""
+        assert 100 * 0.365 == 36.5
+        assert lands_the_book(_figures(0.365, 4.05))
+
+    def test_minus_30_percent_lands_the_crisis_and_minus_31_does_not(self) -> None:
+        assert lands_the_crisis(_figures(-0.30))
+        assert lands_the_crisis(_figures(-0.295))
+        assert not lands_the_crisis(_figures(-0.31))
+
+    def test_stabilised_holds_from_0_up_to_below_the_first_window(self) -> None:
+        first = _figures(0.32)
+        assert stabilised(_figures(0.0), first)
+        assert stabilised(_figures(0.31), first)
+        assert not stabilised(_figures(-0.01), first)
+        assert not stabilised(_figures(0.32), first)
+
+
+class TestTheReportsVerdictLines:
+    """What the report prints when a verdict goes the other way, which the file never does."""
+
+    def test_a_landing_reading_prints_yes_and_is_named(
+        self, source, results, monkeypatch, capsys
+    ) -> None:
+        monkeypatch.setattr(
+            module, "lands_the_book", lambda figures: figures is results["R3"]["2007"]
+        )
+        report(source[0], results)
+        out = capsys.readouterr().out
+        (r3,) = [each for each in out.splitlines() if each.strip().startswith("R3")]
+        assert r3.split()[-3] == "yes", r3
+        assert "landing 37 percent and 4.1 together: R3." in out
+
+    def test_the_crisis_line_reads_2008_and_2009(
+        self, source, results, monkeypatch, capsys
+    ) -> None:
+        asked = []
+        monkeypatch.setattr(
+            module, "lands_the_crisis", lambda figures: asked.append(figures) or True
+        )
+        report(source[0], results)
+        assert asked == [results["R0"]["2008-2009"]]
+        assert "rounds to -30 percent: yes." in capsys.readouterr().out
+
+
 # --- the rule, on frames small enough to read ----------------------------------
 
 STOCKS = 2 * TOP_N + 20
@@ -511,6 +580,12 @@ class TestTheRule:
         longs, shorts = formations(ranking_returns(prices))
         assert list(np.flatnonzero(shorts[LOOKBACK])) == list(range(TOP_N))
         assert list(np.flatnonzero(longs[LOOKBACK])) == list(range(STOCKS - TOP_N, STOCKS))
+
+    def test_a_row_with_exactly_50_returns_is_marked(self) -> None:
+        prices = _prices()
+        prices[0, TOP_N:] = np.nan
+        longs, shorts = formations(ranking_returns(prices))
+        assert longs[LOOKBACK].sum() == shorts[LOOKBACK].sum() == TOP_N
 
     def test_a_row_with_fewer_than_50_returns_is_refused(self) -> None:
         prices = _prices()
