@@ -66,6 +66,15 @@ The four figures Chan's notebooks print for Examples 3.7 and 3.8 are not here
 either, because the book prints none of them. The replication log's Entry 10
 traces each to the notebook and the repost it was read at.
 
+Example 7.1 splits the same way. Its setup is here, at locations 3428, 3444,
+3479 and 3517: the grid, the rules, the span and split, the features and the
+model. Its results are not. The p. 145 table of Chan's eight figures and his
+sentence that every other metric improves sit beside code and a figure, and the
+endnote's recursions are rendered as images. The replication log's Entry 16
+traces each to the pages read in the Kindle Cloud Reader on 2026-10-03,
+recorded on
+[issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
+
 A second kind of absence turns up in Example 6.2, and it costs more than a
 missing figure. Every number that example prints is here. Its levered growth
 formula is not, because the book renders that equation as an image at location

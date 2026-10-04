@@ -151,6 +151,18 @@ class TestTheBars:
         bars = pd.DataFrame({"close": [1.0, 2.0, 3.0, 4.0]}, index=index)
         assert list(regular_session(bars)["close"]) == [2.0, 3.0]
 
+    def test_an_early_close_ends_the_session_at_1259(self):
+        """2019-11-29 closed at 13:00, so its 13:00 to 15:59 bars are extended hours."""
+        index = pd.to_datetime(
+            ["2019-11-29 12:59", "2019-11-29 13:00", "2019-11-29 14:57", "2019-12-02 15:59"]
+        )
+        bars = pd.DataFrame({"close": [1.0, 2.0, 3.0, 4.0]}, index=index)
+        assert list(regular_session(bars)["close"]) == [1.0, 4.0]
+
+    def test_the_early_closes_are_thirty_four_days_at_one_a_year_or_more(self):
+        assert len(cpo.EARLY_CLOSES) == 34
+        assert {day[:4] for day in cpo.EARLY_CLOSES} == {str(y) for y in range(2006, 2021)}
+
     def test_the_span_ends_on_2020_12_31(self):
         index = pd.to_datetime(["2020-12-31 15:59", "2021-01-04 09:30"])
         bars = pd.DataFrame({"close": [1.0, 2.0]}, index=index)
@@ -320,6 +332,11 @@ class TestSelectionAndMetrics:
         assert m["calmar"] == pytest.approx(m["annual"] / abs(drawdown))
         assert m["arithmetic_annual"] == pytest.approx(252 * r.mean())
 
+    def test_chan_s_annual_returns_do_not_compound_to_his_cumulative_ones(self):
+        """The book's own table disagrees with itself, which Entry 16 states."""
+        assert (1 + cpo.BOOK_UNCONDITIONAL["annual"]) ** 3 - 1 == pytest.approx(0.614, abs=5e-4)
+        assert (1 + cpo.BOOK_CONDITIONAL["annual"]) ** 3 - 1 == pytest.approx(0.718, abs=5e-4)
+
     def test_the_costed_returns_charge_one_basis_point_a_trip(self):
         assert costed(np.array([0.01]), np.array([3])).tolist() == pytest.approx([0.0097])
 
@@ -407,6 +424,11 @@ class TestExample71OnTheArchive:
     `adjusted=false`. The specification is the 19 readings declared on issue 23
     before any return was computed, with scikit-learn 1.9.1 and `ta` 0.11.0 as
     `uv.lock` fixes them. A lock update that moves either can move rows 5 to 10.
+
+    The first run kept the extended-hours bars after 12:59 on NYSE's 34 early
+    closes, which broke reading 2, and the review of the pull request found it.
+    These pins are from the corrected run. Entry 16 sets the first run's figures
+    beside them.
     """
 
     def test_row_11_the_span_and_the_split(self, result):
@@ -417,71 +439,250 @@ class TestExample71OnTheArchive:
         assert result.test_days[0] == pd.Timestamp("2018-01-31")
         assert len(result.test_days) == 736
 
-    def test_the_unconditional_cell_is_the_busiest_corner_of_the_grid(self, result):
-        """The smallest weight, the shortest lookback and the lowest entry threshold."""
+    def test_the_unconditional_cell_is_the_smallest_weight_lookback_and_entry(self, result):
         assert result.unconditional == Cell(2.0, 0.2, 30)
 
     def test_rows_1_to_4_the_unconditional_figures_and_their_gaps(self, result):
         got = metrics(result.unconditional_returns)
-        assert got["cumulative"] == pytest.approx(3.5483992546508443, abs=1e-9)
-        assert got["annual"] == pytest.approx(0.6797515757890611, abs=1e-9)
-        assert got["sharpe"] == pytest.approx(5.790924881105733, abs=1e-9)
-        assert got["calmar"] == pytest.approx(15.676071316831976, abs=1e-8)
+        assert got["cumulative"] == pytest.approx(3.403600927621887, abs=1e-9)
+        assert got["annual"] == pytest.approx(0.6612471362977341, abs=1e-9)
+        assert got["sharpe"] == pytest.approx(5.699728423851837, abs=1e-9)
+        assert got["calmar"] == pytest.approx(15.249331720373785, abs=1e-8)
         # At Chan's printed precision, every gap is positive and large.
-        assert round(got["cumulative"], 2) - 0.73 == pytest.approx(2.82)
-        assert round(got["annual"], 4) - 0.1729 == pytest.approx(0.5069)
-        assert round(got["sharpe"], 3) - 1.947 == pytest.approx(3.844)
-        assert round(got["calmar"], 3) - 0.984 == pytest.approx(14.692)
+        assert round(got["cumulative"], 2) - 0.73 == pytest.approx(2.67)
+        assert round(got["annual"], 4) - 0.1729 == pytest.approx(0.4883)
+        assert round(got["sharpe"], 3) - 1.947 == pytest.approx(3.753)
+        assert round(got["calmar"], 3) - 0.984 == pytest.approx(14.265)
 
     def test_row_5_chan_s_claim_does_not_hold(self, result):
-        """Conditional wins on Sharpe and Calmar and loses on both returns."""
+        """Conditional wins on Calmar alone and loses on Sharpe and both returns."""
         unconditional = metrics(result.unconditional_returns)
         conditional = metrics(result.conditional_returns)
         better = {name for name in cpo.METRICS if conditional[name] > unconditional[name]}
-        assert better == {"sharpe", "calmar"}
+        assert better == {"calmar"}
         assert not claim_holds(unconditional, conditional)
 
     def test_row_6_the_conditional_figures_beside_chan_s(self, result):
         got = metrics(result.conditional_returns)
-        assert got["cumulative"] == pytest.approx(3.47958438490497, abs=1e-9)
-        assert got["annual"] == pytest.approx(0.6710064763877099, abs=1e-9)
-        assert got["sharpe"] == pytest.approx(5.915820233948008, abs=1e-9)
-        assert got["calmar"] == pytest.approx(16.604331193405503, abs=1e-8)
+        assert got["cumulative"] == pytest.approx(3.116680929400907, abs=1e-9)
+        assert got["annual"] == pytest.approx(0.6233629131053431, abs=1e-9)
+        assert got["sharpe"] == pytest.approx(5.274377985680034, abs=1e-9)
+        assert got["calmar"] == pytest.approx(18.63739123362268, abs=1e-8)
 
-    def test_row_6_the_conditional_arm_mostly_keeps_the_unconditional_cell(self, result):
+    def test_row_6_how_often_the_conditional_arm_keeps_the_unconditional_cell(self, result):
+        """Added after the result was seen, and not among reading 16's rows. It decides nothing."""
         chosen = result.conditional_cells
         unconditional = cells().index(result.unconditional)
-        assert int((chosen == unconditional).sum()) == 489
-        assert len(set(chosen.tolist())) == 47
-        assert int((np.diff(chosen) != 0).sum()) == 362
+        assert int((chosen == unconditional).sum()) == 557
+        assert len(set(chosen.tolist())) == 44
+        assert int((np.diff(chosen) != 0).sum()) == 254
 
     def test_row_7_the_arithmetic_annual_returns(self, result):
         assert metrics(result.unconditional_returns)["arithmetic_annual"] == pytest.approx(
-            0.5232361584088379, abs=1e-9
+            0.5120905561032464, abs=1e-9
         )
         assert metrics(result.conditional_returns)["arithmetic_annual"] == pytest.approx(
-            0.5177468750046424, abs=1e-9
+            0.4892191781531026, abs=1e-9
         )
 
     def test_row_8_one_basis_point_a_round_trip_turns_both_arms_to_losses(self, result):
         unconditional = metrics(costed(result.unconditional_returns, result.unconditional_trips))
         conditional = metrics(costed(result.conditional_returns, result.conditional_trips))
-        assert unconditional["sharpe"] == pytest.approx(-7.468491852898375, abs=1e-9)
-        assert unconditional["cumulative"] == pytest.approx(-0.8549535316680085, abs=1e-9)
-        assert conditional["sharpe"] == pytest.approx(-5.657835189746311, abs=1e-9)
-        assert conditional["cumulative"] == pytest.approx(-0.7730746556456858, abs=1e-9)
+        assert unconditional["sharpe"] == pytest.approx(-7.614270686532979, abs=1e-9)
+        assert unconditional["cumulative"] == pytest.approx(-0.8583878331403573, abs=1e-9)
+        assert conditional["sharpe"] == pytest.approx(-6.122139215884792, abs=1e-9)
+        assert conditional["cumulative"] == pytest.approx(-0.8139195761710087, abs=1e-9)
 
     def test_row_9_round_trips_a_day(self, result):
-        assert result.unconditional_trips.mean() == pytest.approx(46.80842391304348, abs=1e-9)
-        assert result.conditional_trips.mean() == pytest.approx(40.52038043478261, abs=1e-9)
+        assert result.unconditional_trips.mean() == pytest.approx(46.692934782608695, abs=1e-9)
+        assert result.conditional_trips.mean() == pytest.approx(42.06385869565217, abs=1e-9)
 
     def test_row_10_where_chan_s_sharpe_sits_among_the_400_cells(self, result):
         """Added after the result was seen. It locates the gap and decides nothing."""
         sharpes = result.cell_sharpes
-        assert sharpes.min() == pytest.approx(0.8123231655061941, abs=1e-9)
-        assert float(np.median(sharpes)) == pytest.approx(3.5161777010537194, abs=1e-9)
-        assert sharpes.max() == pytest.approx(5.963635026095906, abs=1e-9)
-        assert int((sharpes < 1.947).sum()) == 38
+        assert sharpes.min() == pytest.approx(0.8067846216494515, abs=1e-9)
+        assert float(np.median(sharpes)) == pytest.approx(3.5063034976327305, abs=1e-9)
+        assert sharpes.max() == pytest.approx(5.8911003445458965, abs=1e-9)
+        assert cells()[int(np.argmax(sharpes))].label == "2.5_30_0.2"
+        assert int((sharpes < 1.947).sum()) == 39
         nearest = int(np.argmin(np.abs(sharpes - 1.947)))
         assert cells()[nearest].label == "3_60_2.5"
-        assert result.cell_trips[nearest] == pytest.approx(1.2, abs=0.05)
+        assert sharpes[nearest] == pytest.approx(1.9311, abs=5e-5)
+        assert result.cell_trips[nearest] == pytest.approx(1.19, abs=0.005)
+
+
+# --- what the mutation lens of PR 285's review found unheld ------------------
+#
+# Each test below kills mutants that survived the default suite: a feature read
+# a day late, the strategy traded on GDX, the unconditional cell chosen on every
+# day including the test days, a threshold boundary, a trip that returns
+# nothing, an unseeded model. Most of them only the archive pins would have
+# noticed, and the selection leak probably not even those.
+
+
+class TestTheBoundariesAndConstants:
+    @pytest.mark.parametrize("entry", [1.0, 0.7, 1.25])
+    @pytest.mark.parametrize("start", [-9.0, 9.0, 0.0])
+    @pytest.mark.parametrize("which", ["-entry", "entry", "-inner", "inner"])
+    def test_the_rules_match_the_literal_loop_exactly_on_each_threshold(self, entry, start, which):
+        """A random z-score never lands on a threshold, so these place it there."""
+        edge = {
+            "-entry": -entry,
+            "entry": entry,
+            "-inner": EXIT_FRACTION * entry,
+            "inner": -EXIT_FRACTION * entry,
+        }[which]
+        z = np.array([start, edge, edge])
+        first = np.array([True, False, False])
+        np.testing.assert_array_equal(
+            positions(z, entry, first), literal_positions(z, entry, first)
+        )
+
+    def test_the_exit_fraction_is_the_book_s_minus_0_6(self):
+        """p. 140. A short exits at 0.55 under −0.6 and would hold under −0.5."""
+        assert positions(np.array([1.2, 0.55]), 1.0, np.array([True, False])).tolist() == [-1, 0]
+
+    def test_the_grids_are_the_printed_ones(self):
+        assert cpo.GDX_WEIGHTS == (2.0, 2.5, 3.0, 3.5, 4.0)
+        assert cpo.LOOKBACKS == (30, 60, 90, 120, 180, 240, 360, 720)
+        assert cpo.ENTRY_THRESHOLDS == (0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.25, 1.5, 2.0, 2.5)
+        assert cpo.FEATURE_LOOKBACKS == (50, 100, 200, 400, 800, 1600, 3200)
+
+    def test_the_z_score_divides_by_the_root_of_the_variance(self):
+        spread = np.random.default_rng(3).normal(0, 1, 200).cumsum()
+        ema, var = ema_var(spread, 30)
+        np.testing.assert_allclose(zscore(spread, 30)[1:], ((spread - ema) / np.sqrt(var))[1:])
+
+    def test_a_trip_that_returns_nothing_still_counts(self):
+        """Minute bars move in whole cents, so an exit at the entry price is common."""
+        first = np.array([True, False, False, False])
+        last = np.array([False, False, False, True])
+        held = np.array([1, 1, 0, 0], dtype=np.int8)
+        price = np.array([100.0, 101.0, 100.0, 99.0])
+        total, count = round_trips(held, price, first, last, np.zeros(4, dtype=np.intp), 1)
+        assert total.tolist() == [0.0]
+        assert count.tolist() == [1]
+
+    def test_the_train_set_floors_a_fractional_day(self):
+        assert train_days(3681) == 2944
+        assert train_days(9) == 7
+
+    def test_a_loss_on_the_first_day_is_a_drawdown_from_the_starting_wealth(self):
+        assert metrics(np.array([-0.1, 0.05, 0.02]))["max_drawdown"] == pytest.approx(-0.1)
+
+    def test_a_series_with_no_drawdown_has_an_infinite_calmar(self):
+        assert metrics(np.array([0.01, 0.02, 0.01]))["calmar"] == float("inf")
+
+
+class TestTheWiring:
+    def test_the_model_is_seeded(self, monkeypatch):
+        seen = {}
+
+        class Recorder:
+            def __init__(self, **kwargs):
+                seen.update(kwargs)
+
+            def fit(self, x, y):
+                return self
+
+        import sklearn.ensemble
+
+        monkeypatch.setattr(sklearn.ensemble, "HistGradientBoostingRegressor", Recorder)
+        cpo.fit_model(np.zeros((5, 1), dtype=np.float32), np.zeros((5, 400)), n_train=3)
+        assert seen == {"random_state": 0}
+
+    def test_a_day_s_features_are_its_last_regular_session_bar(self, monkeypatch):
+        index = pd.to_datetime(
+            [
+                "2006-06-01 09:30",
+                "2006-06-01 15:59",
+                "2006-06-01 16:05",
+                "2006-06-02 09:30",
+                "2006-06-02 15:59",
+                "2006-06-02 16:05",
+            ]
+        )
+        bars = pd.DataFrame({"close": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}, index=index)
+        monkeypatch.setattr(
+            cpo, "indicators", lambda b, n: pd.DataFrame({"x": b["close"] * n}, index=b.index)
+        )
+        features = cpo.daily_features(bars, "gld", pd.DatetimeIndex(["2006-06-01", "2006-06-02"]))
+        # The 15:59 bar, never the 16:05 one, and each day its own, never the next.
+        assert features["gld_x_50"].tolist() == [100.0, 250.0]
+        assert features.shape[1] == len(cpo.FEATURE_LOOKBACKS)
+
+    def test_an_early_close_s_features_are_its_1259_bar(self, monkeypatch):
+        index = pd.to_datetime(["2019-11-29 12:59", "2019-11-29 14:57"])
+        bars = pd.DataFrame({"close": [7.0, 8.0]}, index=index)
+        monkeypatch.setattr(
+            cpo, "indicators", lambda b, n: pd.DataFrame({"x": b["close"] * n}, index=b.index)
+        )
+        features = cpo.daily_features(bars, "gld", pd.DatetimeIndex(["2019-11-29"]))
+        assert features["gld_x_50"].tolist() == [350.0]
+
+    def test_each_label_column_is_its_cell_run_on_gld(self):
+        rng = np.random.default_rng(5)
+        index = pd.DatetimeIndex([])
+        for day in pd.date_range("2006-06-01", periods=30, freq="D"):
+            index = index.append(
+                pd.date_range(day + pd.Timedelta("9h30min"), periods=60, freq="min")
+            )
+        n = len(index)
+        grid = pd.DataFrame(
+            {
+                "gld": 100 * np.exp(rng.normal(0, 1e-3, n).cumsum()),
+                "gdx": 30 * np.exp(rng.normal(0, 1e-3, n).cumsum()),
+            },
+            index=index,
+        )
+        labels = cpo.strategy_labels(grid)
+        first, last, codes, days = day_bounds(grid.index)
+        gld, gdx = grid["gld"].to_numpy(), grid["gdx"].to_numpy()
+        for i, cell in enumerate(cells()):
+            held = positions(zscore(gld - cell.weight * gdx, cell.lookback), cell.entry, first)
+            total, count = round_trips(held, gld, first, last, codes, len(days))
+            np.testing.assert_array_equal(labels.returns[:, i], total)
+            np.testing.assert_array_equal(labels.trips[:, i], count)
+
+    def test_the_indicators_use_their_declared_windows(self):
+        from ta.momentum import AwesomeOscillatorIndicator
+
+        rng = np.random.default_rng(9)
+        close = pd.Series(100 * np.exp(rng.normal(0, 1e-3, 600).cumsum()))
+        bars = pd.DataFrame(
+            {"high": close + 0.05, "low": close - 0.05, "close": close, "volume": 1000}
+        )
+        got = cpo.indicators(bars, 50)
+        mean = close.rolling(50).mean()
+        spread = close.rolling(50).std(ddof=0)
+        pd.testing.assert_series_equal(got["bbz"], (close - mean) / spread, check_names=False)
+        slow = AwesomeOscillatorIndicator(bars["high"], bars["low"], 50, 340).awesome_oscillator()
+        pd.testing.assert_series_equal(got["ao"], slow, check_names=False)
+
+    def test_run_selects_on_train_days_and_reports_test_days(self, monkeypatch):
+        """Column 0 wins on the train days, column 1 over all days, and the model picks 2."""
+        n_days = 15
+        days = pd.date_range("2006-06-01", periods=n_days, freq="D")
+        returns = np.random.default_rng(0).normal(0, 1e-6, (n_days, 400))
+        returns[:12, 0] = 0.01
+        returns[12:, 1] = 0.5 + np.array([0.0, 0.001, 0.002])
+        returns[:, 2] = np.arange(n_days) / 1000.0
+        trips = np.tile(np.arange(n_days)[:, None], (1, 400))
+        trips[14] = 50
+        bars = pd.DataFrame({"close": [1.0]}, index=pd.to_datetime(["2006-06-01 09:30"]))
+        bars.attrs["vintage"] = None
+        monkeypatch.setattr(cpo.archive, "minute_bars", lambda *a, **k: bars)
+        monkeypatch.setattr(cpo, "minute_grid", lambda a, b: None)
+        monkeypatch.setattr(cpo, "strategy_labels", lambda g: cpo.Labels(days, returns, trips))
+        monkeypatch.setattr(
+            cpo, "daily_features", lambda b, p, d: pd.DataFrame({p: np.zeros(len(d))}, index=d)
+        )
+        monkeypatch.setattr(cpo, "fit_model", lambda f, r, n: None)
+        monkeypatch.setattr(cpo, "conditional_choices", lambda m, f, n, d: np.full(d - n, 2))
+        result = cpo.run()
+        assert result.n_train == 12
+        assert result.unconditional == cells()[0]
+        assert result.unconditional_returns.tolist() == returns[12:, 0].tolist()
+        assert result.conditional_returns.tolist() == [0.012, 0.013, 0.014]
+        assert result.conditional_trips.tolist() == [12, 13, 50]
+        assert result.cell_trips.tolist() == [25.0] * 400

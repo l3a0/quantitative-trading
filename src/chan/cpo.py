@@ -27,7 +27,8 @@ number. A reading changed after a result was seen would be reported beside the
 declared one, never substituted for it.
 
 **The bars.** Alpha Vantage one-minute bars, as traded, read through
-:mod:`chan.archive`, because the vendor's terms do not allow committing them.
+:mod:`chan.archive`, because the vendor's terms grant personal, non-commercial
+use and the repo does not republish them.
 The archive keeps the bytes and ``data/archive_vintages.jsonl`` records their
 hashes. A public clone has no archive, so :func:`run` refuses there with
 :class:`chan.archive.ArchiveUnavailable`.
@@ -69,6 +70,23 @@ FEATURE_LOOKBACKS = (50, 100, 200, 400, 800, 1600, 3200)
 #: The first and last regular-session bars, by the minute a bar opens.
 SESSION_FIRST = "09:30"
 SESSION_LAST = "15:59"
+#: The last regular-session bar on a day NYSE closes at 13:00.
+EARLY_CLOSE_LAST = "12:59"
+#: NYSE's early closes from 2006 to 2020, every one at 13:00, from the XNYS
+#: calendar of ``exchange_calendars`` 4.13.2, which encodes the exchange's
+#: published schedule. On these days the bars from 13:00 to 15:59 are
+#: extended-hours bars, and reading 2 drops them.
+EARLY_CLOSES = frozenset(
+    {
+        "2006-07-03", "2006-11-24", "2007-07-03", "2007-11-23", "2007-12-24",
+        "2008-07-03", "2008-11-28", "2008-12-24", "2009-11-27", "2009-12-24",
+        "2010-11-26", "2011-11-25", "2012-07-03", "2012-11-23", "2012-12-24",
+        "2013-07-03", "2013-11-29", "2013-12-24", "2014-07-03", "2014-11-28",
+        "2014-12-24", "2015-11-27", "2015-12-24", "2016-11-25", "2017-07-03",
+        "2017-11-24", "2018-07-03", "2018-11-23", "2018-12-24", "2019-07-03",
+        "2019-11-29", "2019-12-24", "2020-11-27", "2020-12-24",
+    }
+)  # fmt: skip
 #: Chan's span ends here, p. 137. It starts at GDX's first day, reading 3.
 SPAN_END = "2020-12-31"
 #: The share of trading days the train set takes, p. 137 and reading 9.
@@ -112,9 +130,18 @@ def cells() -> list[Cell]:
 
 
 def regular_session(bars: pd.DataFrame, end: str = SPAN_END) -> pd.DataFrame:
-    """The bars opening from 09:30 to 15:59 on or before ``end``, reading 2."""
+    """The regular-session bars on or before ``end``, reading 2.
+
+    That is the bars opening from 09:30 to 15:59, or to 12:59 on one of
+    :data:`EARLY_CLOSES`. On those days the bars after 12:59 are extended-hours
+    trading, so keeping them would trade, liquidate and read features on
+    after-hours prints. The first run kept them, which broke reading 2, and the
+    review of the pull request found it.
+    """
     minutes = bars.index.strftime("%H:%M")
-    keep = (minutes >= SESSION_FIRST) & (minutes <= SESSION_LAST) & (bars.index <= f"{end} 23:59")
+    early = bars.index.strftime("%Y-%m-%d").isin(EARLY_CLOSES)
+    last = np.where(early, EARLY_CLOSE_LAST, SESSION_LAST)
+    keep = (minutes >= SESSION_FIRST) & (minutes <= last) & (bars.index <= f"{end} 23:59")
     return bars[keep]
 
 
@@ -127,11 +154,9 @@ def minute_grid(gld: pd.Series, gdx: pd.Series) -> pd.DataFrame:
     is dropped, because the spread does not exist there.
     """
     frame = pd.concat({"gld": gld, "gdx": gdx}, axis=1, sort=True)
-    days = frame.index.normalize()
-    both = frame.groupby(days).transform("count").min(axis=1) > 0
-    frame = frame[both.to_numpy()]
-    days = frame.index.normalize()
-    frame = frame.groupby(days).ffill()
+    # A day one symbol never traded keeps that symbol's column empty after the
+    # fill, so dropping incomplete minutes drops the whole day.
+    frame = frame.groupby(frame.index.normalize()).ffill()
     return frame.dropna()
 
 
@@ -325,7 +350,15 @@ def metrics(returns: NDArray[np.float64]) -> dict[str, float]:
 
 
 def indicators(bars: pd.DataFrame, lookback: int) -> pd.DataFrame:
-    """The seven named indicators at one lookback, from ``ta`` 0.11.0, reading 12."""
+    """The seven named indicators at one lookback, reading 12.
+
+    Six come from ``ta`` 0.11.0. The Bollinger z-score is computed here, with the
+    population standard deviation ``ta``'s Bollinger bands use, because ``ta``
+    gives the bands and their width rather than the z-score. ``ta``'s ATR and ADX
+    return 0 rather than NaN before their window fills, so the earliest rows
+    carry zeros the model cannot tell from readings. Reading 12 takes ``ta`` as
+    it is, so that is left alone and stated.
+    """
     from ta.momentum import AwesomeOscillatorIndicator
     from ta.trend import ADXIndicator
     from ta.volatility import AverageTrueRange, DonchianChannel

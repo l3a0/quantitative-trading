@@ -27,6 +27,7 @@ from chan.archive import (
     read_archive_vintage,
     resolve_archive_vintage,
 )
+from chan.cpo import regular_session
 from chan.paths import DATA_DIR
 from chan.series import load_close
 
@@ -55,15 +56,14 @@ COMMITTED = {
     },
 }
 
-#: The days GDX's last regular-session close and its committed raw daily close
-#: differ by more than 2%. Eight fall in 2008 and March 2020. 2009-09-17 and
-#: 2014-12-03 have no cause found.
+#: The days from 2006 to 2020 on which GDX's last regular-session close and its
+#: committed raw daily close differ by more than 2%. Seven fall in 2008 and
+#: March 2020. 2009-09-17 and 2014-12-03 have no cause found.
 GDX_DAYS_BEYOND_TWO_PERCENT = [
     "2008-10-15",
     "2008-10-24",
     "2008-11-06",
     "2008-11-25",
-    "2008-11-28",
     "2008-12-01",
     "2009-09-17",
     "2014-12-03",
@@ -163,6 +163,22 @@ class TestReadingAnArchiveFile:
         assert entry.sha256 in str(refused.value)
         assert str(store / entry.path) in str(refused.value)
 
+    def test_a_hash_differing_only_in_its_last_digit_is_refused(self, tmp_path):
+        """The refusal compares the whole digest, not a prefix of it."""
+        data_dir, store = fixture_archive(tmp_path)
+        real = resolve_archive_vintage("ABC", data_dir).sha256
+        flipped = real[:-1] + ("0" if real[-1] != "0" else "1")
+        (tmp_path / "flipped").mkdir()
+        data_dir, store = fixture_archive(tmp_path / "flipped", sha256=flipped)
+        with pytest.raises(ArchiveRefused):
+            read_archive_vintage(resolve_archive_vintage("ABC", data_dir), store)
+
+    def test_columns_other_than_open_to_volume_are_refused(self, tmp_path):
+        payload = b"timestamp,open,high,low,close,adjusted_close\n2006-05-22 09:30:00,1,1,1,1,1\n"
+        data_dir, store = fixture_archive(tmp_path, payload=payload)
+        with pytest.raises(ValueError, match="not open to volume"):
+            minute_bars("ABC", data_dir=data_dir, directory=store)
+
     def test_a_file_the_archive_lacks_is_unavailable_not_refused(self, tmp_path):
         data_dir, store = fixture_archive(tmp_path)
         entry = resolve_archive_vintage("ABC", data_dir)
@@ -200,6 +216,10 @@ class TestAMalformedLineIsRefusedByNumber:
             ({"price_basis": "adjusted"}, "other than raw"),
             ({"symbol": "abc"}, "upper case"),
             ({"first_date": "May 2006"}, "first_date that is not an ISO"),
+            ({"path": ".."}, "bare file name"),
+            ({"first_date": "2006-05-22T09:30"}, "first_date that is not an ISO"),
+            ({"sha256": "a" * 65}, "64 lowercase hex"),
+            ({"row_count": 3.0}, "positive whole number"),
         ],
     )
     def test_each_bad_field_is_named(self, tmp_path, override, words):
@@ -214,6 +234,11 @@ class TestAMalformedLineIsRefusedByNumber:
         del line["vendor_call"]
         manifest.write_text(json.dumps(line) + "\n", encoding="utf-8")
         with pytest.raises(ValueError, match="line 1 does not carry exactly"):
+            read_archive_manifest(data_dir)
+
+    def test_an_extra_field_is_refused(self, tmp_path):
+        data_dir, _ = fixture_archive(tmp_path, extra="x")
+        with pytest.raises(ValueError, match="does not carry exactly"):
             read_archive_manifest(data_dir)
 
     def test_a_symbol_recorded_twice_is_refused(self, tmp_path):
@@ -234,7 +259,7 @@ def store() -> Path:
 
 
 class TestTheRealArchive:
-    """Runs only where an archive is configured, and is cheap: it hashes, it does not parse."""
+    """Runs only where an archive is configured: one hash check, and one parse of both files."""
 
     def test_every_recorded_file_hashes_to_its_line(self, store):
         for entry in read_archive_manifest():
@@ -244,24 +269,31 @@ class TestTheRealArchive:
                 pytest.skip(str(absent))
 
     @pytest.mark.parametrize(
-        ("symbol", "median_below", "days_beyond_two_percent"),
-        [("GLD", 0.0002, []), ("GDX", 0.0005, GDX_DAYS_BEYOND_TWO_PERCENT)],
+        ("symbol", "days", "median", "largest", "days_beyond_two_percent"),
+        [
+            ("GLD", 3776, 0.00012187512739675332, 0.006385656816790597, []),
+            ("GDX", 3680, 0.0004560102615875916, 0.06961038961038957, GDX_DAYS_BEYOND_TWO_PERCENT),
+        ],
     )
     def test_each_day_s_last_close_agrees_with_the_daily_vintage(
-        self, store, symbol, median_below, days_beyond_two_percent
+        self, store, symbol, days, median, largest, days_beyond_two_percent
     ):
-        """The last regular-session bar of a day against the committed raw daily close.
+        """The last regular-session bar of each day from 2006 to 2020 against the raw daily close.
 
-        A bar's timestamp is the minute it opens, so the 15:59 bar closes at
-        16:00. The official close comes from the closing auction, so small
-        differences are expected and a large one is a day worth naming.
+        The session is the one Example 7.1 reads, `chan.cpo.regular_session`,
+        which ends at 12:59 on an early close. A bar's timestamp is the minute it
+        opens, so the 15:59 bar closes at 16:00. The official close comes from the
+        closing auction, so small differences are expected and a large one is a
+        day worth naming. The span stops where `chan.cpo.EARLY_CLOSES` stops.
         """
         bars = minute_bars(symbol, directory=store)
-        minutes = bars.index.strftime("%H:%M")
-        session = bars[(minutes >= "09:30") & (minutes <= "15:59")]
+        session = regular_session(bars)
+        session = session[session.index >= "2006-01-01"]
         last = session.groupby(session.index.normalize())["close"].last()
         daily = load_close(symbol, unadjusted=True)
         shared = last.index.intersection(daily.index)
         gap = (last[shared] / daily[shared] - 1).abs()
-        assert gap.median() < median_below
+        assert len(shared) == days
+        assert gap.median() == pytest.approx(median, abs=1e-12)
+        assert gap.max() == pytest.approx(largest, abs=1e-12)
         assert gap[gap > 0.02].index.strftime("%Y-%m-%d").tolist() == days_beyond_two_percent

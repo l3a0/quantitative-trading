@@ -2,9 +2,9 @@
 
 Every other vintage here is committed, because the premise in
 [docs/design.md](../../docs/design.md) says a number computed from a series
-nobody kept is a number nobody can check. Alpha Vantage's one-minute bars are
-the first series the repo may not commit: the vendor's terms grant personal,
-non-commercial use, and no vendor priced for
+nobody kept is a number nobody can check. Alpha Vantage's one-minute GLD and
+GDX bars are the first series the repo does not commit: the vendor's terms grant
+personal, non-commercial use, and no vendor priced for
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) allowed
 publishing raw bars. The owner chose on 2026-10-03 that the archive keeps the
 bytes and this repo commits only their hashes, so the series is still kept and

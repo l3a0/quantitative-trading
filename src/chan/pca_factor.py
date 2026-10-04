@@ -89,8 +89,8 @@ The R buys 52, from ``(length(result$ix)-topN-1):length(result$ix)``.
    used, so the transcription reads line for line against the script.
 3. MATLAB's ``pca`` and ``sklearn``'s ``PCA`` are an SVD of the centred
    matrix, and ``ols``, ``mvregress`` and ``LinearRegression`` are least
-   squares, which :func:`numpy.linalg.lstsq` gives. This repo carries no
-   ``scikit-learn``.
+   squares, which :func:`numpy.linalg.lstsq` gives. This module does not use
+   ``scikit-learn``, which the repo carries only for :mod:`chan.cpo`'s model.
 4. The first edition's ``smartcov`` demeans each stock a second time, on rows
    already demeaned, and divides by n. Neither moves an eigenvector.
 5. The revised MATLAB's ``onewaytcost`` is 0, so its cost term is not carried.

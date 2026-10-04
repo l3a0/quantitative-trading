@@ -14,7 +14,10 @@ output saying why. A symbol that has paid nothing comes back unchanged, which
 is what makes the problem easy to miss.
 
 So a result computed from a series is committed next to the exact series it was
-computed from, and a result computed from none says so. Everything else is
+computed from, and a result computed from none says so. Example 7.1 is the one
+exception: its two series of licensed minute bars stay in the owner's data
+archive and only their hashes are committed, as `docs/design.md`'s premise
+records. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
@@ -194,15 +197,17 @@ they were first built. The other fourteen were built here.
 16. Conditional Parameter Optimization, Example 7.1 of the revised edition,
     where a model re-chooses a GLD strategy's three parameters every day from
     the 400 in its grid. It reads Alpha Vantage's one-minute GLD and GDX bars
-    from the owner's data archive, because their licence forbids committing
-    them, so its pins run only where that archive is. Neither of Chan's columns
-    reproduces. Holding the parameters the train years chose earns a test
-    Sharpe ratio of 5.791 against his 1.947, because selecting at no cost picks
-    the grid's busiest cell, at 47 round trips a day. Re-choosing daily wins on
-    the Sharpe and Calmar ratios and loses on both returns, so his claim that it
-    improves every metric does not hold. At 1 basis point a round trip both arms
-    lose money. Every reading the book left open was declared on the issue
-    before any return was computed, and every figure is exploratory.
+    from the owner's data archive, because the vendor's terms grant personal,
+    non-commercial use and the repo does not republish them, so its pins run
+    only where that archive is. Neither of Chan's columns reproduces. Holding
+    the parameters the train years chose earns a test Sharpe ratio of 5.700
+    against his 1.947, on a cell that trades 46.7 round trips a day.
+    Re-choosing daily wins on the Calmar ratio alone, so his claim that it
+    improves every metric does not hold. At 1 basis point a round trip both
+    arms lose money. Every reading the book left open was declared on the issue
+    before any return was computed. The first run broke one of them, by keeping
+    extended-hours bars on early-close days, and the entry reports both runs.
+    Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -311,8 +316,9 @@ about them is the exception, and what it says that nothing here asserts is
 listed below.
 
 [tests/test_cpo.py](tests/test_cpo.py) does it for Conditional Parameter
-Optimization. Its mechanics run everywhere: each fast step of the strategy is
-held against a literal loop over the book's rules. Its pins run only where the
+Optimization. Its mechanics run everywhere. The recursions, the rules and the
+round trips are each held against a literal loop over the book's rules, and the
+rest by worked examples. Its pins run only where the
 owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
 because the full run takes about five minutes.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
@@ -656,7 +662,8 @@ loser leg is empty, and names the month.
 
 Conditional Parameter Optimization, Example 7.1, reads Alpha Vantage's
 one-minute GLD and GDX bars from the owner's data archive, because the
-vendor's terms do not allow committing them. `data/archive_vintages.jsonl`
+vendor's terms grant personal, non-commercial use and the repo does not
+republish them. `data/archive_vintages.jsonl`
 records their hashes, and the run needs the archive's path, set as
 `docs/design.md`'s Configuration section describes:
 
@@ -667,7 +674,8 @@ QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo
 It prints both vintages and their hashes, the span and the split, the
 unconditional cell, each arm's four figures beside Chan's with the gap, the
 same figures net of 1 basis point a round trip, the verdict on Chan's claim,
-and where his 1.947 sits among all 400 cells. It takes about five minutes. On a
+and, added after the result was seen and deciding nothing, where his 1.947
+sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
 in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
 
@@ -1512,7 +1520,10 @@ needs it. It is there so the committed figures can be redrawn and checked.
 
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a
-network at any point.
+network at any point. Example 7.1 reads its bars from the owner's data archive,
+which is a folder on the owner's machine. If that folder is synced from a cloud
+service, the first read of a file the service has not kept on disk downloads
+it, which this repo does not measure.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
 prose checks it has no rule for run in the test suite instead, from
