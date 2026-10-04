@@ -108,7 +108,7 @@ Every figure matching says that the code, the data and the book agree. It says n
 
 Five questions are beyond it.
 
-1. **What the drift earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs the index as it stood each day.
+1. **What the drift earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs prices for the companies that left the index during the window.
 2. **Whether Chan’s flags are the announcement calendar.** They miss two of Apple’s five releases inside the window. A rerun on EDGAR’s filings would test them.
 3. **What costs would take.** Nothing here charges any.
 4. **How large the look-ahead in the 30 is.** Chan argues it is small, and nothing here tests the argument.

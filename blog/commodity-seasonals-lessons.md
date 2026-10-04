@@ -83,7 +83,7 @@ The losses say more than the gaps do. Chan’s 19 of 21 allows exactly 2 losing 
 
 One more year has a gap of the same kind. RBOB began trading in October 2005, so the first April it covers is 2006, and the run reads RBOB from then. The older New York Harbor contract still traded in April 2006, but its file has no row on 13 April 2006, so the files cannot say whether reading the older contract that year would change its result.
 
-The verdict [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records for this row is “reproduced with a gap”. That verdict was taken after the criterion written down in advance, exactly 19 profitable years, failed at 16. The log’s rule allows the verdict when the gap has a named cause outside the method, and the missing rows are one. The log says the verdict came afterwards, and this post says it too.
+The verdict [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records for this row is “reproduced with a gap”. The criterion written down in advance was exactly 19 profitable years, and the run found 16, so the verdict was taken after the criterion failed. The log’s rule allows the verdict when the gap has a named cause outside the method, and the missing rows are one. The log says the verdict came afterwards, and this post says it too.
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
