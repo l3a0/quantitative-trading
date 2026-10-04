@@ -1,6 +1,6 @@
-# What a backtest leaves out: Chan’s lessons on trading costs and dead stocks
+# Trading costs and failed companies can flip a backtest
 
-*Five basis points a trade take a Sharpe ratio from 0.25 to −3.19, and a database of survivors turns a 42% loss into a 388% gain.*
+*A Sharpe ratio of 0.25 falls to −3.19 after costs. A 42% loss becomes a 388% gain when the failed companies are left out.*
 
 ## Why two results change sign
 
