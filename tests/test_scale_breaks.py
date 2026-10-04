@@ -80,7 +80,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 
 #: What the guard flags in the price columns lifted from Chan's MATLAB files.
 #:
-#: Four stock files account for every flag. The futures strips and the gold
+#: Four stock files and the ETF file account for every flag. The futures strips and the gold
 #: series, 1,232 columns, flag nothing, which ``tests/test_futures_strips.py``
 #: says on its own.
 #:
@@ -151,7 +151,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #:
 #: [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) decided
 #: that ``chan.pead`` calls the guard for Example 7.2, on each stock's opens
-#: and closes from its first price onward. The book-two file's 30 flagged days
+#: and closes from its first price onward. The book-two S&P 500 file's 30 flagged days
 #: all fall in 2007 to 2009, and the window is 2011-01-03 to 2012-04-24, so
 #: nothing in it is refused. Reading from the first price is what lets MPC and
 #: XYL, spun off inside the window, pass without a missing price after that
@@ -181,7 +181,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: [Issue 295](https://github.com/l3a0/quantitative-trading/issues/295) decided
 #: that ``chan.buy_on_gap`` refuses no window for *Algorithmic Trading*'s
 #: Example 4.1, on the reasoning issues 18, 21 and 22 give. Its window is the
-#: book-two file's whole span, 2006-05-11 to 2012-04-24, so it holds all 30
+#: book-two S&P 500 file's whole span, 2006-05-11 to 2012-04-24, so it holds all 30
 #: of that file's flagged days, and the guard ``chan.pead`` calls would refuse
 #: the run. ``bog.m`` ran on these prices as they stand, and none of the 30 sits
 #: near a split. One position lands on one, a short in MS on 2008-10-13 under
@@ -190,7 +190,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #:
 #: [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) decided
 #: that ``chan.cross_sectional_momentum`` refuses no window for *Algorithmic
-#: Trading*'s Example 6.2, on issue 22's reasoning. The book-two file's 30
+#: Trading*'s Example 6.2, on issue 22's reasoning. The book-two S&P 500 file's 30
 #: flagged stock-days fall one inside the 2007 window, ETFC's 2007-11-12, and
 #: 29 inside 2008 and 2009, so the guard would refuse both windows the book
 #: prints, and ``kentdaniel.m`` ran across them as they stand. No stock in that
@@ -201,12 +201,22 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296) decided
 #: that ``chan.khandani_lo_book_two`` refuses no window for *Algorithmic
 #: Trading*'s Examples 4.3 and 4.4. Their window,
-#: 2007-01-03 to 2011-12-30, spans all 30 of the book-two file's flagged days,
+#: 2007-01-03 to 2011-12-30, spans all 30 of the book-two S&P 500 file's flagged days,
 #: and the guard refuses it on 17 stocks' closes and 14 stocks' opens. Chan's
 #: script computes across them and his figures reproduce only with them in.
 #: Most read as the 2008 crisis. CAH's 2009-09-02 does not, and without CAH
 #: neither of Example 4.3's figures lands. ``TestTheScaleBreakDecision`` in
 #: ``tests/test_khandani_lo_book_two.py`` runs both refusals and pins CAH.
+#:
+#: [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) lifted
+#: Chan's book-two ETF file, and the guard flags 58 days in 8 of its 67 ETFs,
+#: every one a leveraged or inverse fund and every day between 2008-04-16 and
+#: 2009-06-25. EDC, MWJ and SMN are among the eight, and they hold the file's
+#: 11 closes below zero. A dividend subtracted in dollars rather than rescaled
+#: is what lets a close go below zero, which
+#: ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` pins. No
+#: run reads this file yet, so no decision about refusing a window has been
+#: made, and no experiment issue 299 names reads any of the eight.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
@@ -245,6 +255,65 @@ FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080131/poss.csv": ["2004-08-24"],
     "ijr_20080131/rgr.csv": ["2007-10-25"],
     "ijr_20080131/scur.csv": ["2006-07-12"],
+    "inputdata_etf/edc.csv": [
+        "2009-01-20",
+        "2009-02-17",
+        "2009-02-23",
+        "2009-02-24",
+        "2009-03-02",
+        "2009-03-03",
+        "2009-03-04",
+        "2009-03-05",
+        "2009-03-06",
+        "2009-03-09",
+        "2009-03-10",
+        "2009-03-23",
+        "2009-03-30",
+    ],
+    "inputdata_etf/eev.csv": ["2008-10-13", "2008-10-28"],
+    "inputdata_etf/fas.csv": ["2008-12-01", "2009-01-20"],
+    "inputdata_etf/faz.csv": ["2008-11-24", "2009-03-10", "2009-03-23", "2009-04-09"],
+    "inputdata_etf/mwj.csv": [
+        "2009-02-23",
+        "2009-02-24",
+        "2009-03-02",
+        "2009-03-03",
+        "2009-03-04",
+        "2009-03-05",
+        "2009-03-10",
+        "2009-03-11",
+        "2009-03-12",
+        "2009-03-17",
+        "2009-03-23",
+    ],
+    "inputdata_etf/mwn.csv": ["2009-06-25"],
+    "inputdata_etf/smn.csv": [
+        "2008-04-16",
+        "2008-05-15",
+        "2008-05-16",
+        "2008-05-19",
+        "2008-05-20",
+        "2008-05-21",
+        "2008-05-28",
+        "2008-05-29",
+        "2008-06-05",
+        "2008-06-06",
+        "2008-06-09",
+        "2008-06-10",
+        "2008-06-11",
+        "2008-06-13",
+        "2008-06-16",
+        "2008-06-17",
+        "2008-06-18",
+        "2008-06-19",
+        "2008-06-20",
+        "2008-06-23",
+        "2008-06-24",
+        "2008-06-26",
+        "2008-07-02",
+        "2008-10-13",
+    ],
+    "inputdata_etf/tna.csv": ["2008-12-01"],
     "inputdataohlcdaily_stocks_20120424/aig.csv": [
         "2008-09-15",
         "2008-09-17",
@@ -482,8 +551,8 @@ class TestTheGuardOverTheWholeManifest:
         found = breaks_across_the_manifest()
 
         assert found == EVERY_FLAG
-        assert sum(len(days) for days in found.values()) == 115
-        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 88
+        assert sum(len(days) for days in found.values()) == 173
+        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 96
 
     def test_every_committed_price_vintage_is_read_and_only_the_pinned_ones_report(self) -> None:
         """Said as its own case, because a guard that read one file would pass the count.
