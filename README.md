@@ -1408,6 +1408,8 @@ uv run python -m chan.momentum_factor_figures
 ```
 
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
 an eleventh post, about the commodity seasonals, the gasoline and natural gas
