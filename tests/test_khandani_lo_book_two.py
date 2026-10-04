@@ -57,6 +57,7 @@ from chan.khandani_lo_book_two import (
     WINDOW_END,
     WINDOW_START,
     BookTwo,
+    _verdict,
     book_two,
     close_to_close,
     compounded_apr,
@@ -398,6 +399,24 @@ class TestTheReport:
         with pytest.raises(VintageUnavailable, match="inputDataOHLCDaily_stocks_20120424.mat"):
             run(tmp_path)
 
+    def test_run_hands_its_directory_to_every_read(self, monkeypatch, tmp_path) -> None:
+        """All three reads, the panel's closes and opens and the first book's closes."""
+        asked = []
+
+        def recording(source, *, field="Close", data_dir=None):
+            asked.append((source, field, data_dir))
+            return [], pd.DataFrame()
+
+        monkeypatch.setattr("chan.khandani_lo_book_two.load_panel", recording)
+        monkeypatch.setattr("chan.khandani_lo_book_two.book_two", lambda *_: None)
+        monkeypatch.setattr("chan.khandani_lo_book_two.report", lambda *_: None)
+        run(tmp_path)
+        assert asked == [
+            (SOURCE_FILE, "Close", tmp_path),
+            (SOURCE_FILE, "Open", tmp_path),
+            (khandani_lo.SOURCE_FILE, "Close", tmp_path),
+        ]
+
     def test_any_other_failure_keeps_its_traceback(self, monkeypatch, no_arguments) -> None:
         """Only a refusal is turned into one line. A bug still surfaces as itself."""
 
@@ -468,6 +487,13 @@ class TestTheRuleByHand:
         closes = np.array([[11.0, 20.0]])
         assert held_intraday(weights, opens, closes).tolist() == [pytest.approx(0.05)]
 
+    def test_intraday_profit_divides_by_a_gross_that_is_not_one(self) -> None:
+        """Weights summing to 2 in absolute value, and to 0.5, both give the day's 0.05."""
+        opens, closes = np.array([[10.0, 20.0]]), np.array([[11.0, 20.0]])
+        for weights in ([[1.0, -1.0]], [[0.25, -0.25]]):
+            day = held_intraday(np.array(weights), opens, closes)
+            assert day.tolist() == [pytest.approx(0.05)]
+
     def test_a_day_with_no_weight_earns_zero_rather_than_nan(self) -> None:
         nan = np.full((1, 2), np.nan)
         assert held_intraday(nan, np.ones((1, 2)), np.ones((1, 2))).tolist() == [0.0]
@@ -482,14 +508,29 @@ class TestTheRuleByHand:
         assert run.weights[1].tolist() == pytest.approx([0.5, -0.5])
         assert run.daily[1] == pytest.approx(0.5 * 0.1 - 0.5 * (10.0 / 11.0 - 1))
 
-    def test_frames_holding_different_stocks_are_refused(self) -> None:
+    @pytest.mark.parametrize(
+        "other",
+        [
+            lambda frame: frame[["A", "B"]],
+            lambda frame: frame.iloc[1:],
+            lambda frame: frame[["B", "A", "C"]],
+        ],
+        ids=["fewer stocks", "fewer days", "stocks reordered"],
+    )
+    def test_frames_that_do_not_line_up_are_refused(self, other) -> None:
+        """A reordered frame would otherwise pair one stock's opens with another's closes."""
         frame = _hand_frame()
         with pytest.raises(ValueError, match="same days and stocks"):
-            open_to_close(frame, frame[["A", "B"]], start="2007-01-03", end="2007-01-05")
+            open_to_close(frame, other(frame), start="2007-01-03", end="2007-01-05")
 
     def test_the_apr_compounds_and_annualises_over_252(self) -> None:
         assert compounded_apr(np.full(252, 0.001)) == pytest.approx(1.001**252 - 1)
         assert compounded_apr(np.full(126, 0.001)) == pytest.approx(1.001**252 - 1)
+
+    def test_a_figure_that_misses_is_reported_as_missing_with_its_gap(self) -> None:
+        """Every committed figure reproduces, so only a case by hand reaches this branch."""
+        assert _verdict(13.677582, "13.7") == "reproduced"
+        assert _verdict(13.64, "13.7") == "did not reproduce, gap -0.1"
 
     def test_a_published_figure_matches_at_its_own_decimals(self) -> None:
         assert matches(13.677582, "13.7")
