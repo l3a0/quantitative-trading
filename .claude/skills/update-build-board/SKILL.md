@@ -207,21 +207,34 @@ count next to the commit, so a figure from another tree is attributed to a tree
 that never produced it. `git worktree add --detach <dir> origin/main` gives a
 clean one, and removing it afterwards is part of the same step.
 
-The run takes minutes, between 394 and 501 seconds on `main` on 2026-10-04, so
-it goes to a background sub-agent or a background shell, under `CLAUDE.md`'s
-`## Keep the main thread free`. The rest of the update proceeds while it runs,
-and the count goes in when it reports.
-
 That one is worth reading twice, because its cover story arrived on its own.
 [PR 90](https://github.com/l3a0/quantitative-trading/pull/90) merged twenty minutes later and made 243 right for `main`, so a session
 checking the number afterwards would have found it correct and left the method
 that produced it in place.
 
+The run takes several minutes, and `CLAUDE.md`'s `## Keep the main thread free`
+gives the measured times, so it goes to a background shell or sub-agent. The
+rest of the update proceeds while it runs. Three things keep the count honest.
+
+1. The run names the commit it ran on, and removes its detached worktree when it
+   finishes, which is part of the same step.
+2. The `state` write waits for it. The count goes into the same pinned batch as
+   `main`, never into a second write afterwards, so the page never shows a new
+   `main` beside an old count.
+3. If the re-measured `main` no longer equals the commit the run named, the run
+   is stale. Run it again rather than writing its count beside a commit that
+   never produced it.
+
+```bash
+D=$(mktemp -d) && git worktree add --detach "$D" origin/main && (cd "$D" && git log --oneline -1 && uv run pytest -q --no-header 2>&1 | tail -1); git worktree remove "$D"
+```
+
+The rest are quick and run in the foreground.
+
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
 gh issue list --state open --limit 100 --json number --jq 'length'
 gh pr list --state open --json number,title,statusCheckRollup,closingIssuesReferences
-uv run pytest -q --no-header 2>&1 | tail -1
 python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
 wc -l < data/vintages.jsonl
 cat research/book-notes/*-trading.md | grep -c '^### Location'
