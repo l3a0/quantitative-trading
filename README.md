@@ -99,16 +99,17 @@ they were first built. The other fourteen were built here.
    dead: the January effect on his S&P 600 file and Heston and Sadka's
    year-on-year rotation on his S&P 500 file. He prints them in the first
    edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
-   fourteen figures his files reach reproduce to the digits printed. None
+   seventeen figures his files reach reproduce to the digits printed. None
    lands from the strategy as described. The revised MATLAB and R rules follow
    the code the book prints, with one index repaired so the MATLAB runs. A
    repost of the revised code carries the same repair and book two's
    `smartstd`, which is the helper the printed digits need.
    The first edition's −0.9167 a year is a sum over positions rather than a
    return on capital, and the revised edition's three annual returns land
-   between −0.0114 and −0.0129 a year. Example 7.6's third January,
-   the one that made money, needs a file running to 2008-01-31 that this repo
-   does not hold.
+   between −0.0114 and −0.0129 a year. Example 7.6's third January, the one
+   that made money, reproduces as 0.0881 and 0.088486 on the later save of
+   the S&P 600 file that Chan's script loads, committed from a repost of the
+   revised edition's code.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -353,7 +354,7 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's MATLAB price files, below, report 92 more, most of
+The columns lifted from Chan's MATLAB price files, below, report 113 more, most of
 them real moves in single stocks. The Khandani-Lo reversal's 2006 window spans
 one of them, WYN's restart on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -366,6 +367,9 @@ price, over its 2011 and 2012 window, and nothing there needs refusing. The
 PCA factor model does not call it. Its printouts forward-fill PMC's 851-day
 gap in the S&P 600 file into one day's return of 1.8654, because Chan's
 programs do, and its entry reports every figure without PMC beside them.
+Example 7.6's revised Python forward-fills the same gap at year-end, so its
+2007 ranking reads PMC as a return of 1.3056 and holds it short in January
+2008. That is Chan's program as printed, and Entry 7 says what the fill moves.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -395,11 +399,11 @@ file, for [issue 137](https://github.com/l3a0/quantitative-trading/issues/137).
 read.
 [data/README.md](data/README.md) says what each file holds.
 
-Four of Chan's own files are cross-sections rather than series. Three hold
-prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 as it stood on
-2008-01-14, and the S&P 500 as he held it on 2012-04-24. The fourth holds his
-earnings-announcement flags for those last 497 stocks, a 0 or 1 for each day.
-Each is committed as one vintage per stock, 2,094 between them, written by
+Five of Chan's own files are cross-sections rather than series. Four hold
+prices: the S&P 500 as it stood on 2007-11-23, the S&P 600 in two saves named
+for 2008-01-14 and 2008-01-31, and the S&P 500 as he held it on 2012-04-24. The fifth holds his earnings-announcement flags for those last
+497 stocks, a 0 or 1 for each day. Each is committed as one vintage per stock,
+2,694 between them, written by
 `src/chan/mat_columns.py` under a directory per file. A price file's stock
 holds its close, high, low, open and volume, and a flag file's stock holds its
 flag for every day of the file's calendar.
@@ -408,12 +412,13 @@ and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
 [data/README.md](data/README.md) says what was measured on each file. The
-equity seasonals read the first two, and the Khandani-Lo reversal reads the
+equity seasonals read the 2007 S&P 500 file and the later S&P 600 save, and
+the Khandani-Lo reversal reads the
 2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
 Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
 flags, for
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20). The PCA
-factor model reads the S&P 600 file's closes, for
+factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 
 The coin flip reaches none of that. It records no vintage and reads no series,
@@ -572,11 +577,11 @@ Chan's equity seasonals are one command, and they take no option:
 uv run python -m chan.equity_seasonals
 ```
 
-It reads both of Chan's first-edition cross-section files and prints every figure each
-printout of Examples 7.6 and 7.7 reaches, beside the panel it came from. A
-January the file ends before is printed as not computable with the date the
-file ends, and the 2002 split of the revised Python prints under a line saying
-it carries no verdict.
+It reads the S&P 600 file Chan's Example 7.6 loads and his S&P 500 file, and
+prints every figure each printout of Examples 7.6 and 7.7 reaches, beside the
+panel it came from. A January a file ends before would print as not computable
+with the date the file ends, and the 2002 split of the revised Python prints
+under a line saying it carries no verdict.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -1228,7 +1233,7 @@ log.
    its death, and the split at 2002 is exploratory with no verdict.
 4. A file of survivors is the first thing the result cannot get past.
 
-Four groups of its figures are not pinned here.
+Three groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. "More than 13
    percent" and "has disappeared since then" are on p. 179, "has weakened or
@@ -1237,19 +1242,17 @@ Four groups of its figures are not pinned here.
    reader whose backtest of Example 7.6 failed is on p. 13. "The most
    recent five years instead of the entire data period", and Chan's
    statement that those years do even worse, are on p. 180.
-2. Book figures with no computed value. Example 7.6's third January, 0.0881
-   in MATLAB and R and 0.088486 in Python, needs prices through 2008-01-31,
-   which no committed file holds. The suite pins only that the file ends on
-   2008-01-14 and leaves 2007-12-31 unreached.
-3. Counts, arithmetic and facts no test asserts. Nothing counts the fourteen
-   reproduced figures, six for Example 7.6 and eight for Example 7.7, or the
+2. Counts, arithmetic and facts no test asserts. Nothing counts the seventeen
+   reproduced figures, nine for Example 7.6 and eight for Example 7.7, or the
    first edition's 95 months with a return and 83 with a position, which are
    its 96 months less the one with no return and less the twelve with no
    position. Nothing states that Chan's five years run roughly from late 2002
    to late 2007, that a half's slope in the figure is its annual return over
-   12, that the revised Python copy's five printed figures match the book, or
-   that the mirror lacks `IJR_20080131.mat`.
-4. Its references. The four citations, including the publication details the
+   12, that the revised Python copy's five printed figures match the book,
+   that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
+   carries the earlier save byte for byte as the mirror has it, which
+   [data/README.md](data/README.md) records by its sha256.
+3. Its references. The four citations, including the publication details the
    post gives for Heston and Sadka and for Singal, are cited rather than
    computed.
 

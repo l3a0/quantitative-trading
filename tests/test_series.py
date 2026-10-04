@@ -939,7 +939,7 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
     def test_a_stray_file_inside_a_subdirectory_is_named_by_its_path(self, data_dir: Path) -> None:
         """A lifted source's members sit in a directory of their own, so the scan reaches in.
 
-        A listing of the top level alone would go quiet exactly where 2,094 of
+        A listing of the top level alone would go quiet exactly where 2,694 of
         the committed vintages live.
         """
         place(data_dir, name="recorded.csv", symbol="AAA")
@@ -1365,7 +1365,7 @@ class TestAPanelIsOneSourceReadOnce:
 
 
 class TestTheCommittedPanelsAreChansArrays:
-    """The price sources issues 88 and 250 committed, read back whole.
+    """The price sources issues 88, 250 and 225 committed, read back whole.
 
     The conversion checked each panel against the ``.mat`` it came from, cell
     for cell and NaN for NaN, and printed so. The ``.mat`` files are not
@@ -1375,10 +1375,21 @@ class TestTheCommittedPanelsAreChansArrays:
     """
 
     @pytest.mark.parametrize(
-        ("source", "days", "members", "priced", "first", "last"),
+        ("source", "days", "members", "priced", "first", "last", "unpriced_last"),
         [
-            ("SPX_20071123.mat", 2024, 500, 966_884, "1999-11-24", "2007-11-23"),
-            ("IJR_20080114.mat", 1006, 600, 589_660, "2004-01-15", "2008-01-14"),
+            ("SPX_20071123.mat", 2024, 500, 966_884, "1999-11-24", "2007-11-23", []),
+            ("IJR_20080114.mat", 1006, 600, 589_660, "2004-01-15", "2008-01-14", []),
+            # Saved on 2008-02-02 and named for 2008-01-31, its last row is
+            # 2008-02-01, and four share classes have no close on it.
+            (
+                "IJR_20080131.mat",
+                1019,
+                600,
+                597_456,
+                "2004-01-15",
+                "2008-02-01",
+                ["MOG.A", "MOGN", "TRX.B", "TRY.B"],
+            ),
             (
                 "inputDataOHLCDaily_stocks_20120424.mat",
                 1500,
@@ -1386,11 +1397,19 @@ class TestTheCommittedPanelsAreChansArrays:
                 734_519,
                 "2006-05-11",
                 "2012-04-24",
+                [],
             ),
         ],
     )
     def test_each_panel_has_the_shape_and_the_priced_cells_of_chan_s_array(
-        self, source: str, days: int, members: int, priced: int, first: str, last: str
+        self,
+        source: str,
+        days: int,
+        members: int,
+        priced: int,
+        first: str,
+        last: str,
+        unpriced_last: list[str],
     ) -> None:
         entries, panel = load_panel(source)
 
@@ -1399,11 +1418,38 @@ class TestTheCommittedPanelsAreChansArrays:
         assert (str(panel.index[0].date()), str(panel.index[-1].date())) == (first, last)
         assert len(entries) == LIFTED_SOURCES[source][4]
         assert panel.notna().any(axis=1).all()
-        assert panel.iloc[-1].notna().all(), "every member is priced on the day the file was cut"
+        assert list(panel.columns[panel.iloc[-1].isna()]) == unpriced_last
+
+    def test_the_two_s_and_p_600_saves_stay_two_panels(self) -> None:
+        """One symbol in two saves is two vintages, and each panel reads only its own file.
+
+        Both files hold the same 600 symbols under one vendor and basis, so
+        only the source file tells a member of one from a member of the other.
+        A selection on anything else would hold each symbol twice, which
+        ``load_panel`` refuses, or would read the wrong save.
+        """
+        earlier, early = load_panel("IJR_20080114.mat")
+        later, late = load_panel("IJR_20080131.mat")
+
+        assert [entry.symbol for entry in earlier] == [entry.symbol for entry in later]
+        assert {entry.path.split("/")[0] for entry in earlier} == {"ijr_20080114"}
+        assert {entry.path.split("/")[0] for entry in later} == {"ijr_20080131"}
+        assert {entry.saved_date for entry in earlier} == {"2008-01-15"}
+        assert {entry.saved_date for entry in later} == {"2008-02-02"}
+        assert early.index[-1] == pd.Timestamp("2008-01-14")
+        assert late.index[-1] == pd.Timestamp("2008-02-01")
+        # INSP is a day the two saves disagree on, so it tells them apart by value.
+        assert early.loc["2008-01-07", "INSP"] == 17.8
+        assert late.loc["2008-01-07", "INSP"] == 8.8454
 
     @pytest.mark.parametrize(
         "source",
-        ["SPX_20071123.mat", "IJR_20080114.mat", "inputDataOHLCDaily_stocks_20120424.mat"],
+        [
+            "SPX_20071123.mat",
+            "IJR_20080114.mat",
+            "IJR_20080131.mat",
+            "inputDataOHLCDaily_stocks_20120424.mat",
+        ],
     )
     def test_every_field_is_priced_on_exactly_the_days_the_close_is(self, source: str) -> None:
         """Chan's arrays share one NaN pattern, so every field's panel has the close's."""
@@ -1451,6 +1497,10 @@ class TestTheCommittedPanelsAreChansArrays:
         assert panel_line(load_panel("IJR_20080114.mat")[0]) == (
             "ijr_20080114/   chan-mat adjusted, saved 2008-01-15, "
             "600 members lifted from IJR_20080114.mat"
+        )
+        assert panel_line(load_panel("IJR_20080131.mat")[0]) == (
+            "ijr_20080131/   chan-mat adjusted, saved 2008-02-02, "
+            "600 members lifted from IJR_20080131.mat"
         )
 
 

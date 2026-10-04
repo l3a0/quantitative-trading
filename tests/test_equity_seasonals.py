@@ -4,11 +4,17 @@ This file is the single authority for every number any prose surface quotes
 about either example. ``docs/replication-log.md`` Entry 7 carries the verdicts
 and points here row by row.
 
-Two vintages, both read whole through :func:`chan.series.load_panel`.
+Three vintages, each read whole through :func:`chan.series.load_panel`.
 
-- **Example 7.6** reads ``data/ijr_20080114/``, 600 members lifted from Chan's
-  ``IJR_20080114.mat``, vendor ``chan-mat``, recorded as split-adjusted, saved
-  2008-01-15, spanning 2004-01-15 to 2008-01-14.
+- **Example 7.6** reads ``data/ijr_20080131/``, 600 members lifted from Chan's
+  ``IJR_20080131.mat``, vendor ``chan-mat``, recorded as split-adjusted, saved
+  2008-02-02, spanning 2004-01-15 to 2008-02-01. The file comes from the
+  revised edition's code as reposted at
+  pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84``.
+- **The earlier S&P 600 save**, ``data/ijr_20080114/``, lifted from
+  ``IJR_20080114.mat`` with the same vendor and basis, saved 2008-01-15,
+  spanning 2004-01-15 to 2008-01-14. It is read only to say whether the first
+  two Januaries move between the saves.
 - **Example 7.7** reads ``data/spx_20071123/``, 500 members lifted from Chan's
   ``SPX_20071123.mat``, the same vendor and basis, saved 2007-11-24, spanning
   1999-11-24 to 2007-11-23.
@@ -57,6 +63,7 @@ import pytest
 import chan.equity_seasonals as seasonals
 from chan.equity_seasonals import (
     FIRST_EDITION_MATLAB,
+    JANUARY_RULES,
     MATLAB_JANUARY,
     PYTHON_HESTON_SADKA,
     PYTHON_JANUARY,
@@ -73,14 +80,23 @@ from chan.equity_seasonals import (
     summarize,
 )
 from chan.matlab_helpers import round_half_away
-from chan.series import load_panel, panel_line, row_month_ends
+from chan.series import departures, load_panel, panel_line, row_month_ends, vintage_overlap
 from chan.vintage import VintageUnavailable
+
+#: The earlier save of Chan's S&P 600 file, which the mirror holds and his script does not load.
+EARLIER_SMALL_CAPS = "IJR_20080114.mat"
 
 
 @pytest.fixture(scope="module")
 def small_caps():
     """Loaded once, because ``load_panel`` hashes and parses all 600 members."""
     return load_panel(seasonals.SMALL_CAPS)
+
+
+@pytest.fixture(scope="module")
+def earlier_small_caps():
+    """The earlier save, read only to say whether the first two Januaries move."""
+    return load_panel(EARLIER_SMALL_CAPS)
 
 
 @pytest.fixture(scope="module")
@@ -92,6 +108,11 @@ def large_caps():
 @pytest.fixture(scope="module")
 def ijr(small_caps) -> pd.DataFrame:
     return small_caps[1]
+
+
+@pytest.fixture(scope="module")
+def earlier_ijr(earlier_small_caps) -> pd.DataFrame:
+    return earlier_small_caps[1]
 
 
 @pytest.fixture(scope="module")
@@ -109,11 +130,30 @@ def returns_of(effect) -> list[float]:
     return [trade.ret for trade in effect.trades]
 
 
+def year_ends_and_januaries(closes: pd.DataFrame) -> tuple[list[str], list[str]]:
+    """The December and January month-ends ``example7_6.m`` finds, by row."""
+    days = closes.index[row_month_ends(closes.index)]
+    return (
+        [str(day.date()) for day in days if day.month == 12],
+        [str(day.date()) for day in days if day.month == 1],
+    )
+
+
 class TestThePanels:
     def test_the_small_cap_panel(self, small_caps) -> None:
         members, closes = small_caps
+        assert seasonals.SMALL_CAPS == "IJR_20080131.mat"
         assert len(members) == 600
         assert closes.index[0] == pd.Timestamp("2004-01-15")
+        assert closes.index[-1] == pd.Timestamp("2008-02-01")
+        assert panel_line(members) == (
+            "ijr_20080131/   chan-mat adjusted, saved 2008-02-02, 600 members lifted from "
+            "IJR_20080131.mat"
+        )
+
+    def test_the_earlier_small_cap_panel(self, earlier_small_caps) -> None:
+        members, closes = earlier_small_caps
+        assert len(members) == 600
         assert closes.index[-1] == pd.Timestamp("2008-01-14")
         assert panel_line(members) == (
             "ijr_20080114/   chan-mat adjusted, saved 2008-01-15, 600 members lifted from "
@@ -130,52 +170,70 @@ class TestThePanels:
 class TestJanuaryMatlab:
     """Example 7.6 under ``example7_6.m``, which both editions' MATLAB print the same."""
 
-    def test_the_two_reachable_januaries_reproduce(self, ijr) -> None:
+    def test_the_three_januaries_reproduce(self, ijr) -> None:
         trades = january_effect(ijr, MATLAB_JANUARY).trades
         assert [(t.entered, t.exited) for t in trades] == [
             (pd.Timestamp("2005-12-30"), pd.Timestamp("2006-01-31")),
             (pd.Timestamp("2006-12-29"), pd.Timestamp("2007-01-31")),
+            (pd.Timestamp("2007-12-31"), pd.Timestamp("2008-01-31")),
         ]
         assert_reproduces(trades[0].ret, -0.024368881797563913, "-0.0244", ".4f")
         assert_reproduces(trades[1].ret, -0.006796429884419337, "-0.0068", ".4f")
+        assert_reproduces(trades[2].ret, 0.08807964565655355, "0.0881", ".4f")
 
-    def test_the_script_as_written_cannot_pair_its_dates_on_this_file(self, ijr) -> None:
+    def test_the_script_as_written_pairs_its_dates_on_its_own_file(self, ijr) -> None:
+        """Four year-ends and five January month-ends, and the script drops the first January.
+
+        That leaves four Januaries against four Decembers, each in the year
+        after its December, so the script's check passes on the file it loads.
+        """
+        decembers, januaries = year_ends_and_januaries(ijr)
+        assert decembers == ["2004-12-31", "2005-12-30", "2006-12-29", "2007-12-31"]
+        assert januaries == ["2004-01-30", "2005-01-31", "2006-01-31", "2007-01-31", "2008-01-31"]
+        kept = januaries[1:]
+        assert [int(jan[:4]) - int(dec[:4]) for dec, jan in zip(decembers, kept, strict=True)] == [
+            1,
+            1,
+            1,
+            1,
+        ]
+
+    def test_the_script_as_written_cannot_pair_its_dates_on_the_earlier_save(
+        self, earlier_ijr
+    ) -> None:
         """Four year-ends and four January month-ends, and the script drops the first January.
 
         That leaves three Januaries against four Decembers, so its check that
         each January follows its December fails before anything prints.
         """
-        ends = row_month_ends(ijr.index)
-        decembers = [ijr.index[row] for row in ends if ijr.index[row].month == 12]
-        januaries = [ijr.index[row] for row in ends if ijr.index[row].month == 1]
-        assert [day.date().isoformat() for day in decembers] == [
-            "2004-12-31",
-            "2005-12-30",
-            "2006-12-29",
-            "2007-12-31",
-        ]
-        assert [day.date().isoformat() for day in januaries] == [
-            "2004-01-30",
-            "2005-01-31",
-            "2006-01-31",
-            "2007-01-31",
-        ]
+        decembers, januaries = year_ends_and_januaries(earlier_ijr)
+        assert decembers == ["2004-12-31", "2005-12-30", "2006-12-29", "2007-12-31"]
+        assert januaries == ["2004-01-30", "2005-01-31", "2006-01-31", "2007-01-31"]
         assert len(januaries[1:]) != len(decembers)
 
     def test_the_decile_is_rounded_half_away_from_zero(self, ijr) -> None:
         trades = january_effect(ijr, MATLAB_JANUARY).trades
-        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [(578, 58, 58), (592, 59, 59)]
+        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [
+            (578, 58, 58),
+            (592, 59, 59),
+            (594, 59, 59),
+        ]
 
     def test_rounding_the_decile_down_moves_january_2006(self, ijr) -> None:
         floored = january_effect(ijr, replace(MATLAB_JANUARY, decile_size=np.floor))
         assert returns_of(floored)[0] == pytest.approx(-0.02335614494703974, abs=1e-9)
         assert format(returns_of(floored)[0], ".4f") == "-0.0234"
 
-    def test_the_third_january_is_not_reached(self, ijr) -> None:
-        """Chan prints 0.0881 for it. Issue 225 carries reaching it."""
-        effect = january_effect(ijr, MATLAB_JANUARY)
-        assert effect.unreached == (pd.Timestamp("2007-12-31"),)
-        assert effect.file_end == pd.Timestamp("2008-01-14")
+    @pytest.mark.parametrize("rules", JANUARY_RULES, ids=lambda rules: rules.source)
+    def test_the_third_january_needs_the_row_after_it(self, ijr, rules) -> None:
+        """The file is named for 2008-01-31 and its last row is 2008-02-01.
+
+        Every printout finds a month's end by looking at the day after it, so
+        cut at 2008-01-31 the file has no January 2008 to close the holding in.
+        """
+        cut = january_effect(ijr.loc[:"2008-01-31"], rules)
+        assert cut.unreached == (pd.Timestamp("2007-12-31"),)
+        assert len(cut.trades) == 2
 
     def test_each_trade_pays_two_one_way_costs_of_five_basis_points(self, ijr, monkeypatch) -> None:
         assert seasonals.ONE_WAY_COST == 0.0005
@@ -183,58 +241,156 @@ class TestJanuaryMatlab:
         monkeypatch.setattr(seasonals, "ONE_WAY_COST", 0.0)
         free = returns_of(january_effect(ijr, MATLAB_JANUARY))
         assert [f - c for f, c in zip(free, costed, strict=True)] == pytest.approx(
-            [0.001, 0.001], abs=1e-15
+            [0.001, 0.001, 0.001], abs=1e-15
         )
 
 
 class TestJanuaryPython:
     """Example 7.6 under the revised ``example7_6.py``."""
 
-    def test_the_two_reachable_januaries_reproduce(self, ijr) -> None:
+    def test_the_three_januaries_reproduce(self, ijr) -> None:
         effect = january_effect(ijr, PYTHON_JANUARY)
         assert [t.exited for t in effect.trades] == [
             pd.Timestamp("2006-01-31"),
             pd.Timestamp("2007-01-31"),
+            pd.Timestamp("2008-01-31"),
         ]
         assert_reproduces(effect.trades[0].ret, -0.023853172610774076, "-0.023853", ".6f")
         assert_reproduces(effect.trades[1].ret, -0.00364117175573088, "-0.003641", ".6f")
-        assert effect.unreached == (pd.Timestamp("2007-12-31"),)
+        assert_reproduces(effect.trades[2].ret, 0.08848639560403175, "0.088486", ".6f")
+        assert effect.unreached == ()
 
     def test_the_winners_slice_holds_two_fewer_than_the_decile(self, ijr) -> None:
         trades = january_effect(ijr, PYTHON_JANUARY).trades
-        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [(579, 58, 56), (593, 59, 57)]
+        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [
+            (579, 58, 56),
+            (593, 59, 57),
+            (595, 60, 58),
+        ]
 
-    def test_the_forward_fill_ranks_one_more_stock_and_moves_no_return(self, ijr) -> None:
-        """PMC has no close in 2005 or 2006, and pandas before 3.0 ranks it on a return of 0.
+    def test_the_forward_fill_ranks_one_more_stock_and_moves_january_2008(self, ijr) -> None:
+        """PMC has no close in 2005 or 2006, and pandas before 3.0 ranks it on a padded close.
 
-        Without the fill the script ranks 578 and 592, the MATLAB counts, and the
-        decile sizes and both returns are unchanged.
+        Without the fill the script ranks 578, 592 and 594, the MATLAB counts.
+        That moves neither of the first two returns, because a tenth of 578 or
+        579 and of 592 or 593 rounds to the same size. A tenth of 595 is 59.5,
+        which rounds to 60, and a tenth of 594 rounds to 59, so in January
+        2008 the fill adds a stock to each side and moves the printed figure.
         """
         unpadded = january_effect(ijr, replace(PYTHON_JANUARY, pads_year_ends=False))
-        assert [t.ranked for t in unpadded.trades] == [578, 592]
-        assert returns_of(unpadded) == pytest.approx(
-            returns_of(january_effect(ijr, PYTHON_JANUARY)), abs=1e-15
-        )
+        padded = january_effect(ijr, PYTHON_JANUARY)
+        assert [(t.ranked, t.longs) for t in unpadded.trades] == [(578, 58), (592, 59), (594, 59)]
+        assert returns_of(unpadded)[:2] == pytest.approx(returns_of(padded)[:2], abs=1e-15)
+        assert unpadded.trades[2].ret == pytest.approx(0.0909075804839564, abs=1e-9)
+        assert format(unpadded.trades[2].ret, ".6f") == "0.090908"
 
-    def test_the_full_decile_gives_the_first_editions_figures(self, ijr) -> None:
-        """On this file the two editions' printouts differ by the winners' slice alone."""
+    def test_the_fill_reads_pmcs_gap_as_a_2007_gain(self, ijr) -> None:
+        """PMC's last close before its 851-day gap stands in for its 2005 and 2006 year-ends."""
+        filled = ijr.resample("YE").last().iloc[:-1].ffill()
+        assert filled["PMC"].tolist() == [6.02, 6.02, 6.02, 13.88]
+        gain = (filled.iloc[-1] - filled.iloc[-2]) / filled.iloc[-2]
+        assert gain["PMC"] == pytest.approx(1.3056478405315617, abs=1e-12)
+        assert int((gain.dropna() > gain["PMC"]).sum()) + 1 == 4
+        assert int(gain.notna().sum()) == 595
+
+    def test_the_full_decile_gives_the_first_editions_figures_until_2008(self, ijr) -> None:
+        """In 2006 and 2007 the two editions' printouts differ by the winners' slice alone.
+
+        In 2008 they differ by the forward fill too, so the full decile alone
+        gives 0.085757, and dropping the fill as well gives MATLAB's 0.0881.
+        """
         full = january_effect(ijr, replace(PYTHON_JANUARY, winners=Winners.DECILE))
         matlab = january_effect(ijr, MATLAB_JANUARY)
-        assert returns_of(full) == pytest.approx(returns_of(matlab), abs=1e-15)
+        assert returns_of(full)[:2] == pytest.approx(returns_of(matlab)[:2], abs=1e-15)
+        assert full.trades[2].ret == pytest.approx(0.08575740297161999, abs=1e-9)
+        assert format(full.trades[2].ret, ".6f") == "0.085757"
+        both = january_effect(
+            ijr, replace(PYTHON_JANUARY, winners=Winners.DECILE, pads_year_ends=False)
+        )
+        assert returns_of(both) == pytest.approx(returns_of(matlab), abs=1e-15)
 
 
 class TestJanuaryR:
     """Example 7.6 in the revised edition's R, which prints MATLAB's three figures."""
 
-    def test_the_two_reachable_januaries_reproduce(self, ijr) -> None:
+    def test_the_three_januaries_reproduce(self, ijr) -> None:
         trades = january_effect(ijr, R_JANUARY).trades
         assert_reproduces(trades[0].ret, -0.024368881797563913, "-0.0244", ".4f")
         assert_reproduces(trades[1].ret, -0.006796429884419337, "-0.0068", ".4f")
+        assert_reproduces(trades[2].ret, 0.08807964565655355, "0.0881", ".4f")
 
     def test_no_decile_on_this_file_lands_on_a_half(self, ijr) -> None:
         """No decile lands on a half, so R's rounding and MATLAB's pick the same stocks."""
-        for trade in january_effect(ijr, R_JANUARY).trades:
+        trades = january_effect(ijr, R_JANUARY).trades
+        assert len(trades) == 3
+        for trade in trades:
             assert (trade.ranked / 10) % 1 != 0.5
+
+
+class TestTheTwoSmallCapSaves:
+    """Whether the first two Januaries move between Chan's 2008-01-14 and 2008-01-31 saves.
+
+    A vendor can restate history between two saves, and these were saved 18
+    days apart, on 2008-01-15 and 2008-02-02. ``chan.series.vintage_overlap``
+    sets each stock's two vintages side by side on the days both hold, and
+    ``chan.series.departures`` keeps the days they disagree.
+    """
+
+    @pytest.mark.parametrize("rules", JANUARY_RULES, ids=lambda rules: rules.source)
+    def test_the_first_two_januaries_do_not_move(self, ijr, earlier_ijr, rules) -> None:
+        earlier = january_effect(earlier_ijr, rules)
+        later = january_effect(ijr, rules)
+        assert earlier.trades == later.trades[:2]
+        assert earlier.unreached == (pd.Timestamp("2007-12-31"),)
+        assert earlier.file_end == pd.Timestamp("2008-01-14")
+
+    def test_the_saves_disagree_only_in_the_earlier_ones_last_six_days(
+        self, small_caps, earlier_small_caps
+    ) -> None:
+        """198 closes in 42 stocks, every one between 2008-01-07 and 2008-01-14.
+
+        The first two Januaries read no close after 2007-01-31, which is why
+        they do not move. The tolerance is zero because both saves are one
+        vendor's binary floats. A half cent finds the same 198, so no
+        departure is a rounding.
+        """
+        later = {entry.symbol: entry for entry in small_caps[0]}
+        shared, found, half_cent = 0, {}, 0
+        for entry in earlier_small_caps[0]:
+            overlap = vintage_overlap(
+                (entry, earlier_small_caps[1][entry.symbol].dropna()),
+                (later[entry.symbol], small_caps[1][entry.symbol].dropna()),
+            )
+            shared += len(overlap)
+            moved = departures(overlap, tolerance=0.0)
+            if len(moved):
+                found[entry.symbol] = moved
+            half_cent += len(departures(overlap, tolerance=0.005))
+        disagree = pd.concat(found.values())
+
+        assert shared == 589_660
+        assert len(disagree) == 198 == half_cent
+        assert len(found) == 42
+        assert sorted({str(day.date()) for day in disagree.index}) == [
+            "2008-01-07",
+            "2008-01-08",
+            "2008-01-09",
+            "2008-01-10",
+            "2008-01-11",
+            "2008-01-14",
+        ]
+
+    def test_insp_is_rescaled_on_two_days(self, small_caps, earlier_small_caps) -> None:
+        """The later save scales two of INSP's closes by 0.4969 and leaves the days before alone."""
+        insp = vintage_overlap(
+            *(
+                (next(e for e in members if e.symbol == "INSP"), closes["INSP"].dropna())
+                for members, closes in (earlier_small_caps, small_caps)
+            )
+        )
+        moved = departures(insp, tolerance=0.0)
+        assert [str(day.date()) for day in moved.index] == ["2008-01-07", "2008-01-08"]
+        assert moved["ratio"].round(4).tolist() == [0.4969, 0.4969]
 
 
 class TestHestonSadkaFirstEdition:
@@ -523,13 +679,15 @@ class TestTheReport:
     def test_every_figure_prints_beside_its_panel(self, capsys) -> None:
         seasonals.run()
         out = capsys.readouterr().out
-        assert "ijr_20080114/   chan-mat adjusted, saved 2008-01-15" in out
+        assert "ijr_20080131/   chan-mat adjusted, saved 2008-02-02" in out
         assert "spx_20071123/   chan-mat adjusted, saved 2007-11-24" in out
         for figure in (
-            "-0.0244",
-            "-0.0068",
+            "entered 2005-12-30 exited 2006-01-31: -0.0244",
+            "entered 2006-12-29 exited 2007-01-31: -0.0068",
+            "entered 2007-12-31 exited 2008-01-31: 0.0881",
             "-0.023853",
             "-0.003641",
+            "entered 2007-12-31 exited 2008-01-31: 0.088486",
             "average annual return -0.9167, Sharpe ratio -0.1055",
             "average annual return -0.0129, Sharpe ratio -0.1243",
             "average annual return -0.012679, Sharpe ratio -0.122247",
@@ -538,15 +696,37 @@ class TestTheReport:
             "0.011967 a year, Sharpe ratio 0.141777",
         ):
             assert figure in out
-        assert out.count("entered 2007-12-31: not computable, the file ends 2008-01-14") == 3
+        assert out.count("exited 2008-01-31: 0.0881 ") == 2
+        assert "not computable" not in out
         assert "Exploratory, no verdict" in out
+
+    def test_each_holding_prints_with_its_positions(self, capsys) -> None:
+        seasonals.run()
+        out = capsys.readouterr().out
+        assert "exited 2008-01-31: 0.088486   (60 long and 58 short of 595 ranked)" in out
+        assert out.count("exited 2008-01-31: 0.0881   (59 long and 59 short of 594 ranked)") == 2
+
+    def test_a_january_the_file_ends_before_prints_as_not_computable(
+        self, small_caps, capsys
+    ) -> None:
+        """The committed file reaches every January, so the line is driven on a cut panel."""
+        members, closes = small_caps
+        seasonals.report_january(members, closes.loc[:"2008-01-31"])
+        out = capsys.readouterr().out
+        assert (
+            out.count(
+                "entered 2007-12-31: not computable, the file ends 2008-01-31 before the "
+                "January it holds through"
+            )
+            == 3
+        )
 
     def test_a_missing_vintage_reaches_the_operator_as_one_line(self, monkeypatch) -> None:
         def refuse(*_args, **_kwargs):
-            raise VintageUnavailable("no committed vintage is lifted from IJR_20080114.mat")
+            raise VintageUnavailable("no committed vintage is lifted from IJR_20080131.mat")
 
         monkeypatch.setattr(seasonals, "load_panel", refuse)
         with pytest.raises(
-            SystemExit, match="no committed vintage is lifted from IJR_20080114.mat"
+            SystemExit, match="no committed vintage is lifted from IJR_20080131.mat"
         ):
             seasonals.main()

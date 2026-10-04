@@ -1,15 +1,16 @@
 """Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
 
-Chan's cross-sectional examples read three price files. Two come from his
-first-edition code: the S&P 500 as it stood on 2007-11-23 and the S&P 600 as it
-stood on 2008-01-14. The third comes from his second book's code: the S&P 500
-as he held it on 2012-04-24, which his Example 7.2 reads. Each holds
+Chan's cross-sectional examples read four price files. Three come from his
+first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
+two saves named for 2008-01-14 and 2008-01-31. The fourth comes from his second
+book's code: the S&P 500 as he held it on 2012-04-24, which his Example 7.2
+reads. Each holds
 date-by-stock arrays of closes, highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
 file of a new shape.
 
-Example 7.2 also reads a fourth file, ``earnannFile.mat``, which holds no
+Example 7.2 also reads a fifth file, ``earnannFile.mat``, which holds no
 prices. It is a date-by-stock array of 0 and 1 marking the days a stock
 announced earnings between the previous close and the open.
 [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) decided it
@@ -33,7 +34,7 @@ Three choices are settled here rather than left to whoever runs it.
    would share every identity field with the close.
 2. **A missing cell is a missing row.** Chan marks a day a stock has no price
    with NaN in every field at once, and a vintage refuses one. Dropping those
-   rows loses nothing, because no day in any of the three lacks a close in
+   rows loses nothing, because no day in any of the four lacks a close in
    every column, so the union of the members' dates is the file's own day list and
    :func:`chan.series.load_panel` rebuilds every NaN by reindexing onto it.
    :func:`round_trip_differs` is the check that says so, field by field, for
@@ -42,9 +43,11 @@ Three choices are settled here rather than left to whoever runs it.
    prices to the flag file's own days. A flag file whose rows began at its
    first announcement would start that calendar late.
 3. **The saved date is the header's.** A MAT file's 116-byte text header
-   records when it was created, and that is the date the vintage carries. It
-   is a day after the date in each file's name, because the name carries the
-   last trading day and the header carries the save.
+   records when it was created, and that is the date the vintage carries. For
+   the first three files recorded it is a day after the date in the file's
+   name, because the name carries the last trading day and the header carries
+   the save. ``IJR_20080131.mat`` is the exception: its name says 2008-01-31,
+   its last row is 2008-02-01 and its header says 2008-02-02.
 
 The price basis is the caller's to state, because nothing in the file says
 it, and it names the four prices. ``data/README.md`` records what was measured
@@ -53,8 +56,8 @@ records a flag file instead.
 
 Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``, or
 ``--price-basis event`` for a flag file. The files are not committed, so a run
-needs a local copy taken from the mirror at the commit ``data/README.md``
-names.
+needs a local copy taken from the source and commit ``data/README.md`` names
+for that file.
 """
 
 from __future__ import annotations

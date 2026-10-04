@@ -78,7 +78,7 @@ from tests.support.committed_vintages import in_a_lifted_source, rewrite_entry
 #: [issue 108](https://github.com/l3a0/quantitative-trading/issues/108).
 KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 
-#: What the guard flags in the 1,597 price columns lifted from Chan's three MATLAB price files.
+#: What the guard flags in the 2,197 price columns lifted from Chan's four MATLAB price files.
 #:
 #: Pinned by path and day rather than as a count, so a day that stops being
 #: flagged fails as surely as a new one. These are flags rather than known
@@ -102,6 +102,17 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window
 #: crossing a flagged day is for that run to decide.
+#:
+#: The later S&P 600 save, ``ijr_20080131/``, flags 21 days in 19 stocks,
+#: committed under
+#: [issue 225](https://github.com/l3a0/quantitative-trading/issues/225). Of
+#: the 18 stocks the earlier save flags, 17 flag the same days. INSP's flag
+#: moves from 2008-01-09 to 2008-01-07, because the later save rescales
+#: INSP's closes on 2008-01-07 and 2008-01-08 by 0.4969 and leaves the days
+#: before them alone. IDXX is new, and its two days are one close: 30.05 on
+#: 2008-01-25, between 55.60 and 53.75, equal to that day's low and far below
+#: its open of 55.28. Example 7.6 reads neither stock on those days, because
+#: its January 2008 holding reads the closes of 2007-12-31 and 2008-01-31.
 #:
 #: [Issue 17](https://github.com/l3a0/quantitative-trading/issues/17) decided
 #: it for Example 3.7, and ``chan.khandani_lo``'s docstring says why it does
@@ -127,7 +138,11 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: AAPL's September 2000 return. WYN and DFS, the two symbols that each hold
 #: two companies, leak no false move into it, because no finite monthly return
 #: reaches across either gap. ``TestTheShapesTheScaleBreakCommentNames`` in
-#: ``tests/test_equity_seasonals.py`` holds both claims.
+#: ``tests/test_equity_seasonals.py`` holds both claims. Example 7.6's revised
+#: Python forward-fills its year-end closes, so its 2007 ranking reads PMC's
+#: 851-day gap as a return of 1.3056 and holds PMC short in January 2008.
+#: That is the printed program's computation, and ``TestJanuaryPython`` pins
+#: it and the figure without the fill.
 #:
 #: [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) decided
 #: that ``chan.pead`` calls the guard for Example 7.2, on each stock's opens
@@ -176,6 +191,25 @@ FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/poss.csv": ["2004-08-24"],
     "ijr_20080114/rgr.csv": ["2007-10-25"],
     "ijr_20080114/scur.csv": ["2006-07-12"],
+    "ijr_20080131/agp.csv": ["2005-09-29"],
+    "ijr_20080131/bbx.csv": ["2007-10-26"],
+    "ijr_20080131/bcsi.csv": ["2006-02-06"],
+    "ijr_20080131/blti.csv": ["2007-11-06"],
+    "ijr_20080131/cbm.csv": ["2007-05-04"],
+    "ijr_20080131/cbu.csv": ["2004-04-13"],
+    "ijr_20080131/cybx.csv": ["2004-06-16", "2004-08-12"],
+    "ijr_20080131/ditc.csv": ["2005-05-27"],
+    "ijr_20080131/idxx.csv": ["2008-01-25", "2008-01-28"],
+    "ijr_20080131/insp.csv": ["2008-01-07"],
+    "ijr_20080131/ivac.csv": ["2004-07-13"],
+    "ijr_20080131/mag.csv": ["2005-05-04"],
+    "ijr_20080131/matk.csv": ["2005-04-28"],
+    "ijr_20080131/moh.csv": ["2005-07-21"],
+    "ijr_20080131/odsy.csv": ["2004-10-18"],
+    "ijr_20080131/pmc.csv": ["2007-08-01"],
+    "ijr_20080131/poss.csv": ["2004-08-24"],
+    "ijr_20080131/rgr.csv": ["2007-10-25"],
+    "ijr_20080131/scur.csv": ["2006-07-12"],
     "inputdataohlcdaily_stocks_20120424/aig.csv": [
         "2008-09-15",
         "2008-09-17",
@@ -413,8 +447,8 @@ class TestTheGuardOverTheWholeManifest:
         found = breaks_across_the_manifest()
 
         assert found == EVERY_FLAG
-        assert sum(len(days) for days in found.values()) == 94
-        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 69
+        assert sum(len(days) for days in found.values()) == 115
+        assert len(FLAGGED_IN_CHANS_MAT_FILES) == 88
 
     def test_every_committed_price_vintage_is_read_and_only_the_pinned_ones_report(self) -> None:
         """Said as its own case, because a guard that read one file would pass the count.

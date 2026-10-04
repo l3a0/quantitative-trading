@@ -44,7 +44,7 @@ over day and :func:`refuse_window_crossing_a_break` stops a run whose window
 spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
-The columns lifted from Chan's MATLAB price files carry 92 more flagged days, most of
+The columns lifted from Chan's MATLAB price files carry 113 more flagged days, most of
 them real moves in single stocks, and ``tests/test_scale_breaks.py`` pins all
 of them.
 
@@ -250,7 +250,9 @@ def load_panel(
     The members are the entries whose ``source_workbook`` names the file, and
     they come back sorted by symbol, which is the frame's column order too.
     Chan's ``.mat`` files already hold their columns in that order, measured
-    for his first two on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88)
+    for his first two on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88),
+    for the later S&P 600 save on
+    [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
     and for the two book-two files on
     [issue 250](https://github.com/l3a0/quantitative-trading/issues/250).
 

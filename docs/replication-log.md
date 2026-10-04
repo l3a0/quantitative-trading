@@ -92,7 +92,6 @@ states rather than picking one.
   - [What this repo computed](#what-this-repo-computed-6)
   - [The verdicts](#the-verdicts-5)
   - [What the entry concludes](#what-the-entry-concludes-6)
-  - [The third January return the committed file cannot reach](#the-third-january-return-the-committed-file-cannot-reach)
   - [What this entry cannot say](#what-this-entry-cannot-say-4)
 - [Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*](#entry-8-the-khandani-lo-reversal-chans-quantitative-trading)
   - [What the book printed](#what-the-book-printed-6)
@@ -1792,16 +1791,18 @@ redraws.
 ## Entry 7: the equity seasonals, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
-Algorithmic Trading Business*, Examples 7.6 and 7.7, in both editions. Shipped
-under [issue 18](https://github.com/l3a0/quantitative-trading/issues/18).
+Algorithmic Trading Business*, Examples 7.6 and 7.7, in both editions. Rows 1
+to 18 shipped under
+[issue 18](https://github.com/l3a0/quantitative-trading/issues/18), and rows 19
+to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225).
 
-Eighteen rows, all derivable from
+Twenty-one rows, all derivable from
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
 
 **Every figure the committed files reach reproduces, in every printout.** Chan
 prints these two examples in four ways: the first edition's MATLAB, and the
-revised edition's MATLAB, Python and R. Fourteen printed figures need only data
-this repo holds, and all fourteen land on the digits their source prints. None
+revised edition's MATLAB, Python and R. Seventeen printed figures need only
+data this repo holds, and all seventeen land on the digits their source prints. None
 of them lands from the strategy's description alone. Each needs the rules its
 own script applies, and the issue records the figure each rule gives when it is
 changed.
@@ -1814,19 +1815,30 @@ be measured against, so this entry gives no verdict on one.
 
 Each example reads one of two vintages.
 
-1. **Example 7.6** reads `data/ijr_20080114/`, the 600 S&P 600 members lifted
-   from Chan's `IJR_20080114.mat`, vendor `chan-mat`, recorded as
-   split-adjusted, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14.
+1. **Example 7.6** reads `data/ijr_20080131/`, the 600 S&P 600 members lifted
+   from Chan's `IJR_20080131.mat`, the file his script loads, vendor
+   `chan-mat`, recorded as split-adjusted, saved 2008-02-02, spanning
+   2004-01-15 to 2008-02-01. It comes from a repost of the revised edition's
+   code rather than from the mirror, which does not hold it.
 2. **Example 7.7** reads `data/spx_20071123/`, the 500 S&P 500 members lifted
    from `SPX_20071123.mat`, the same vendor and basis, saved 2007-11-24,
    spanning 1999-11-24 to 2007-11-23.
 
-[data/README.md](../data/README.md) holds both. Each file holds only the
-companies in its index on the day Chan saved it, carried backwards, which is
-the first thing this entry cannot get past.
+[data/README.md](../data/README.md) holds both, and says why the repost is
+trusted. Each file holds only the companies in its index on the day Chan saved
+it, carried backwards, which is the first thing this entry cannot get past.
+
+Rows 1 to 6 first ran on an earlier save, `data/ijr_20080114/`, saved
+2008-01-15 and ending on 2008-01-14, which stops short of January 2008's
+month-end. The two saves give rows 1 to 6 to every digit.
+`chan.series.vintage_overlap` and `departures` find their closes differing on
+198 of 589,660 shared days, in 42 stocks, all between 2008-01-07 and
+2008-01-14, and the first two Januaries read no close after 2007-01-31.
+`TestTheTwoSmallCapSaves` holds both.
 
 The specification is the script. Rows 1 to 6 are Example 7.6, rows 7 to 14 are
-Example 7.7, and rows 15 to 18 split one of them at 2002. Each row names the
+Example 7.7, rows 15 to 18 split one of them at 2002, and rows 19 to 21 are
+Example 7.6's third January. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
@@ -1853,8 +1865,8 @@ decide each rule, and rows 9, 10, 13 and 14 run those rules.
    and 10, and the repost is what confirms the two choices the page does not
    decide.
 
-Rows 5 and 6, and the revised edition's half of rows 1 and 2, rest on a
-different inference: the figures match the first edition's, so its rules are
+Rows 5, 6 and 21, and the revised edition's half of rows 1, 2 and 19, rest on
+a different inference: the figures match the first edition's, so its rules are
 assumed.
 
 Every result here is **exploratory**. A replication spends the sample on a
@@ -1883,11 +1895,14 @@ hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 | 16 | 7.7 Sharpe ratio before 2002 | nothing | n/a |
 | 17 | 7.7 annual return from 2002 | the effect "has disappeared since then" | Kindle location 4425 |
 | 18 | 7.7 Sharpe ratio from 2002 | nothing | n/a |
+| 19 | 7.6, entered 2007-12-31, MATLAB in both editions | 0.0881 | as row 1 |
+| 20 | 7.6, exited 2008-01-31, revised Python | 0.088486 | as row 3 |
+| 21 | 7.6, January 2008, revised R | 0.0881 | as row 5 |
 
-None of rows 1 to 14 is among the committed highlights, because each is printed
+None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
 beside code rather than in a sentence somebody marked.
 [research/book-notes/README.md](../research/book-notes/README.md) records that
-absence. Rows 5, 6, 9, 10, 13 and 14 trace to
+absence. Rows 5, 6, 9, 10, 13, 14 and 21 trace to
 [the owner's comment on issue 18](https://github.com/l3a0/quantitative-trading/issues/18#issuecomment-5960594931),
 which tables every figure the revised edition prints for both examples. The
 code behind rows 9, 10, 13 and 14 traces to
@@ -1897,11 +1912,11 @@ code behind rows 9, 10, 13 and 14 traces to
 
 | # | Printout's rules | Computed | Gap, computed minus published | Assertion |
 | --- | --- | --- | --- | --- |
-| 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_two_reachable_januaries_reproduce` |
+| 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_three_januaries_reproduce` |
 | 2 | as row 1, 59 long and 59 short of 592 ranked | −0.0068 | 0.0000 | as row 1 |
-| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_two_reachable_januaries_reproduce` |
+| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
 | 4 | as row 3 | −0.003641 | 0.000000 | as row 3 |
-| 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_two_reachable_januaries_reproduce` |
+| 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_three_januaries_reproduce` |
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
 | 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
 | 8 | as row 7 | −0.1055 | 0.0000 | as row 7 |
@@ -1915,8 +1930,11 @@ code behind rows 9, 10, 13 and 14 traces to
 | 16 | as row 15 | −0.859993 | none | as row 15 |
 | 17 | row 11's months from 2002-01-31 to 2007-10-31, 70 of them | 0.011967 | none, not a replication | as row 15 |
 | 18 | as row 17 | 0.141777 | none | as row 15 |
+| 19 | as row 1, 59 long and 59 short of 594 ranked | 0.0881 | 0.0000 | as row 1 |
+| 20 | as row 3, 60 long and 58 short of 595 ranked | 0.088486 | 0.000000 | as row 3 |
+| 21 | as row 5 | 0.0881 | 0.0000 | as row 5 |
 
-Each of rows 1 to 14 is asserted twice: its full value at `abs=1e-9`, and its
+Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
 printed precision, and the gap is zero at that precision.
 
@@ -1924,9 +1942,9 @@ printed precision, and the gap is zero at that precision.
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | The script cannot run on this file as written. The file holds four December year-ends and four January month-ends. The script drops the first January. Its check that each January follows its December then compares three dates against four. Pairing each year-end with the January after it inside the file reaches the first two holdings. Rounding the decile down instead gives −0.0234. |
+| 1 | reproduced | The script's date check passes on the file it loads, which holds four December year-ends and five January month-ends. It drops the first January, and each December keeps the January after it. On the earlier save the check fails, because that file holds four of each, and dropping the first January leaves three dates to compare against four. Rounding the decile down instead gives −0.0234. |
 | 2 | reproduced | as row 1 |
-| 3 | reproduced | Taking the full top decile instead gives rows 1 and 2 to every digit, so on this file the two editions differ by the winners' slice alone. Without the forward fill the script ranks 578, as MATLAB does, and the return does not move. |
+| 3 | reproduced | Taking the full top decile instead gives rows 1 and 2 to every digit, so in 2006 and 2007 the two editions differ by the winners' slice alone. Without the forward fill the script ranks 578, as MATLAB does, and the return does not move. |
 | 4 | reproduced | as row 3 |
 | 5 | reproduced | Inferred rules, as the entry's opening says. No decile on this file lands on a half, so R's rounding and MATLAB's give the same stocks. |
 | 6 | reproduced | as row 5 |
@@ -1942,20 +1960,24 @@ printed precision, and the gap is zero at that precision.
 | 16 | none, not a replication | as row 15 |
 | 17 | none, not a replication | Location 4425's claim is a verdict, and `### Rows that are not replications` would let it be pinned as one. It is not, because Entry 6's rule wants the criterion written before any statistic, and these were computed first. |
 | 18 | none, not a replication | as row 17 |
+| 19 | reproduced | This is the January Chan's text says "worked wonderfully" (p. 175). Its month-end, 2008-01-31, is one only because the file's last row is 2008-02-01. Cut at 2008-01-31, no printout's rules reach it. |
+| 20 | reproduced | The forward fill moves this row, where it moves neither row 3 nor row 4. It ranks PMC, which has no 2006 close, on its last close before an 851-day gap, a return of 1.3056 that puts it fourth of 595 and short. So 595 stocks are ranked, and a tenth of them, 59.5, rounds to 60. Without the fill 594 are ranked, a tenth rounds to 59, and the return is 0.090908. Taking the full top decile with the fill gives 0.085757, and dropping both the slice and the fill gives row 19's figure. |
+| 21 | reproduced | Inferred rules, as for row 5. A tenth of 594 is 59.4, so R's rounding and MATLAB's give the same stocks. |
 
 ### What the entry concludes
 
 Three things.
 
 1. **Every reachable figure reproduces, and not under the strategy as
-   described.** The fourteen rows land at the precision each printout gives.
-   Each of these five rules moves a printed figure, and none is in the
+   described.** The seventeen rows land at the precision each printout gives.
+   Each of these six rules moves a printed figure, and none is in the
    description:
    1. keeping or dropping a stock on another stock's close,
    2. a monthly sum rather than a mean over positions,
    3. months with no position counted as zero in the mean,
    4. a standard deviation that counts a NaN month as zero,
-   5. a winners' slice that leaves out the best stock.
+   5. a winners' slice that leaves out the best stock,
+   6. year-end closes forward-filled before ranking, which moves January 2008.
 2. **The four Heston and Sadka printouts disagree on units and agree on sign.**
    The first edition's −0.9167 is a sum over positions. The revised edition
    divides by the positions, and its three printouts land between −0.0114 and
@@ -1966,28 +1988,6 @@ Three things.
    finding about survivors over one short window, with no verdict, and it
    says nothing about Heston and Sadka, whose sample this file does not
    reach.
-
-### The third January return the committed file cannot reach
-
-Chan's third Example 7.6 holding was entered at the close of 2007-12-31 and
-closed on 2008-01-31. The book's text says the strategy "worked wonderfully"
-that January after failing in 2006 and 2007. `IJR_20080114.mat` ends on
-2008-01-14, so no printout's rules can compute it here, and the two Januaries
-this entry reproduces are the two that lost.
-
-This follows the shape Entry 3 used for two figures from Chan's workbook until
-[issue 192](https://github.com/l3a0/quantitative-trading/issues/192) committed
-the column they needed and gave them rows. It is a section rather than rows, because the log has no row state for a
-published figure with no computed value.
-
-1. **0.0881**, printed by the MATLAB in both editions and by the revised R.
-2. **0.088486**, printed by the revised Python.
-
-`TestJanuaryMatlab::test_the_third_january_is_not_reached` holds that the
-file's last day is 2008-01-14 and that 2007-12-31 is the only ranked year-end
-left unreached.
-[Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) carries
-reaching it and the owner question it waits on.
 
 ### What this entry cannot say
 

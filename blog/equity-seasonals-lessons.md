@@ -6,9 +6,9 @@
 
 Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stocks, and reports that seasonality of this kind has faded. The second strategy, a monthly rotation from a 2007 working paper by Heston and Sadka, he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, he writes, and the effect “has disappeared since then” (Chan, 2021, p. 179). The same sentence invites the reader to check that in Example 7.7.
 
-This repository checked. The data files behind both examples are public, and they are committed here, though for Example 7.6 the public file is an earlier save than the one Chan’s script loads. The book prints the examples in MATLAB in the first edition, and in MATLAB, Python and R in the revised edition. Fourteen of the printed figures need only data the committed files hold, and all fourteen reproduce to the digits printed.
+This repository checked. The data files behind both examples are public, and they are committed here. The book prints the examples in MATLAB in the first edition, and in MATLAB, Python and R in the revised edition. Seventeen of the printed figures need only data the committed files hold, and all seventeen reproduce to the digits printed.
 
-None of the fourteen can say whether the effect died. Example 7.7’s are figures over the whole file, and the S&P 500 file holds only 13 months before 2002 once the ranking has its year of history. Both files hold only the companies still in their index on the day Chan saved them. A printed figure that reproduces shows that the code and the data agree with the book. A death is a claim about two periods, and testing it needs a criterion for “disappeared” written down before anything is computed. This repository wrote none before computing returns on either side of 2002, so the post reports them and draws no verdict from them.
+None of the seventeen can say whether the effect died. Example 7.7’s are figures over the whole file, and the S&P 500 file holds only 13 months before 2002 once the ranking has its year of history. Both files hold only the companies still in their index on the day Chan saved them. A printed figure that reproduces shows that the code and the data agree with the book. A death is a claim about two periods, and testing it needs a criterion for “disappeared” written down before anything is computed. This repository wrote none before computing returns on either side of 2002, so the post reports them and draws no verdict from them.
 
 The four lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -26,10 +26,10 @@ What Chan says of each is not the same, and the difference matters for what a re
 
 The examples read two of Chan’s own MATLAB data files, converted into one file per stock.
 
-1. **For Example 7.6**, `IJR_20080114.mat`: 600 members of the S&P 600, recorded as split-adjusted, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14.
+1. **For Example 7.6**, `IJR_20080131.mat`: 600 members of the S&P 600, recorded as split-adjusted, saved 2008-02-02, spanning 2004-01-15 to 2008-02-01.
 2. **For Example 7.7**, `SPX_20071123.mat`: 500 members of the S&P 500, also recorded as split-adjusted, saved 2007-11-24, spanning 1999-11-24 to 2007-11-23.
 
-Chan’s Example 7.6 script loads a later save, `IJR_20080131.mat`, which the mirror of his first-edition code and data, named below, does not hold. Lesson 3 says what that costs. Both files hold only the companies in their index on the day Chan saved them, carried backwards. That limits everything below, and Lesson 4 comes back to it.
+The mirror of Chan’s first-edition code and data, named below, holds only an earlier save of the S&P 600 file, `IJR_20080114.mat`, which ends on 2008-01-14. The file his Example 7.6 script loads comes from [a public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84), a third party’s repost rather than Chan’s own. That copy also carries the earlier save, byte for byte as the mirror has it, which is why its later file is trusted. The two saves give the first two Januaries to the same digits. Both files hold only the companies in their index on the day Chan saved them, carried backwards. That limits everything below, and Lesson 4 comes back to it.
 
 **Which edition says what.** The first edition (2009) prints the examples in MATLAB, cited here by script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror. The revised edition (2021) prints both in MATLAB, Python and R at pp. 174 to 182. Its Python is cited as `example7_6.py` and `example7_7.py` at commit `653cf92` of liujiantong/epchan_books, a third-party copy whose five printed figures match the book. Page numbers here are the revised edition’s.
 
@@ -37,14 +37,14 @@ Every result below is **exploratory**. Reproducing a printed figure tests a hypo
 
 ## Lesson 1: every reachable figure reproduces, and only under each script’s own rules
 
-Here is every printout of Example 7.6, at the precision each source prints. The two columns are the two Januaries the committed file reaches.
+Here is every printout of Example 7.6, at the precision each source prints, one column for each of its three Januaries.
 
 ```math
-\begin{array}{l|r|r}
-\text{Example 7.6 printout} & \text{January 2006} & \text{January 2007} \\ \hline
-\text{MATLAB, both editions} & -0.0244 & -0.0068 \\
-\text{Python, revised edition} & -0.023853 & -0.003641 \\
-\text{R, revised edition} & -0.0244 & -0.0068
+\begin{array}{l|r|r|r}
+\text{Example 7.6 printout} & \text{January 2006} & \text{January 2007} & \text{January 2008} \\ \hline
+\text{MATLAB, both editions} & -0.0244 & -0.0068 & 0.0881 \\
+\text{Python, revised edition} & -0.023853 & -0.003641 & 0.088486 \\
+\text{R, revised edition} & -0.0244 & -0.0068 & 0.0881
 \end{array}
 ```
 
@@ -60,9 +60,9 @@ And every printout of Example 7.7, whose two figures are the average annual retu
 \end{array}
 ```
 
-That is six figures for Example 7.6 and eight for Example 7.7. The MATLAB prints the same two Januaries in both editions, so they count once. Every one of the fourteen is computed here and lands on the digits printed.
+That is nine figures for Example 7.6 and eight for Example 7.7. The MATLAB prints the same three Januaries in both editions, so they count once. Every one of the seventeen is computed here and lands on the digits printed.
 
-None of them comes out of the strategy as described above. Each needs rules the description leaves out, and each of those rules moves a printed figure when it is changed. Six of them, all read from code this repository holds, with the figure each change gives instead:
+None of them comes out of the strategy as described above. Each needs rules the description leaves out, and each of those rules moves a printed figure when it is changed. Seven of them, all read from code this repository holds, with the figure each change gives instead:
 
 1. **How many stocks make a tenth.** Example 7.6’s MATLAB rounds a tenth of the ranked stocks half away from zero. Rounding down instead gives −0.0234 for January 2006.
 2. **Which close keeps a stock in the ranking.** The first edition’s Example 7.7 decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives −1.0822 a year.
@@ -70,6 +70,7 @@ None of them comes out of the strategy as described above. Each needs rules the 
 4. **What the standard deviation does with a missing month.** The same script counts the one month with no return as zero. Skipping it gives a Sharpe ratio of −0.1049.
 5. **When a stock’s month ends.** The revised Python reads each stock’s own last priced day in the month. One shared month-end row for every stock gives −0.012917.
 6. **What the standard deviation divides by.** The revised Python divides by the number of months, n. Dividing by n − 1 gives a Sharpe ratio of −0.121508.
+7. **Whether a stock missing a year-end close is ranked.** Example 7.6’s revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908.
 
 ## Lesson 2: one strategy, four printouts, four answers
 
@@ -79,7 +80,7 @@ The first edition’s −0.9167 is a sum over every position held each month, ne
 
 The three revised figures still differ, so three languages give three answers to one strategy. The three scripts differ in where a month ends, how a tenth is rounded and what the standard deviation divides by, and each difference moves a digit.
 
-Example 7.6 is a smaller case. Its three languages give two answers, not three. The R prints MATLAB’s figures. The revised Python differs because it slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives MATLAB’s figures to every digit.
+Example 7.6 is a smaller case. Its three languages give two answers, not three. The R prints MATLAB’s figures. The revised Python differs because it slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives MATLAB’s figures for 2006 and 2007 to every digit. January 2008 also needs the fill in Lesson 1’s seventh rule dropped, and then all three match.
 
 The revised MATLAB and R rules come from the code the book prints, on pp. 179 and 181, which [issue 226](https://github.com/l3a0/quantitative-trading/issues/226) quotes. The R needs no repair. The MATLAB does: it cuts its prices down to month-end rows and then looks one up by a daily row number, which stops on the first month. Reading the month-end row instead, with the helper below, gives Chan’s figures. The listing also calls a helper, `smartstd`, whose body those pages do not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) settles both points the page leaves open. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
 
@@ -113,7 +114,7 @@ The split carries no verdict because this repository wrote no criterion before c
 
 Chan says the most recent five years do even worse (p. 180), and the years after 2006 sit inside them. The figure does not test that claim, and the section on what this replication cannot say gives the reason.
 
-Example 7.6 meets the same limit from another side. The two Januaries reproduced here are the two that lost. The one Chan’s text says “worked wonderfully” (p. 175), January 2008, is printed as 0.0881 by both editions’ MATLAB and the revised R, and as 0.088486 by the revised Python. It needs prices through 2008-01-31, and the committed file ends on 2008-01-14. [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) tracks reaching it. So the reproduction holds both of Chan’s failures and none of his success, which says nothing about whether the January effect lives.
+Example 7.6 meets the same limit from another side. All three of its Januaries reproduce: the two that lost, and January 2008, the one Chan’s text says “worked wonderfully” (p. 175), at 0.0881 in both editions’ MATLAB and the revised R and 0.088486 in the revised Python. One winning January after two losing ones, on a file of survivors, is three trades. They show that Chan’s code and data agree with his book, and they say nothing about whether the January effect lives.
 
 ## Lesson 4: a file of survivors is the first thing the result cannot get past
 
@@ -125,11 +126,10 @@ Both strategies rank stocks on past returns and trade the tenth at each end, so 
 
 ## What this replication cannot say
 
-Three questions are beyond it.
+Two questions are beyond it.
 
 1. **Whether the effect existed before 2002.** The file holds 13 months before 2002, all on survivors. [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196) is where the test runs on a panel without that limit.
-2. **Example 7.6’s third January.** Chan’s one winning January needs a file running to 2008-01-31. [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) tracks it.
-3. **Chan’s claim about the most recent five years.** Directly after the MATLAB listing of Example 7.7, he suggests running the program on “the most recent five years instead of the entire data period” and says those years do even worse (p. 180). The entire data period is the program’s own input, the S&P 500 file, so the five years run roughly from late 2002 to late 2007, inside the committed file. The file can check the claim. This post quotes no five-year figure, because this repository has written no criterion for one. [Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) runs the check under a criterion written first.
+2. **Chan’s claim about the most recent five years.** Directly after the MATLAB listing of Example 7.7, he suggests running the program on “the most recent five years instead of the entire data period” and says those years do even worse (p. 180). The entire data period is the program’s own input, the S&P 500 file, so the five years run roughly from late 2002 to late 2007, inside the committed file. The file can check the claim. This post quotes no five-year figure, because this repository has written no criterion for one. [Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) runs the check under a criterion written first.
 
 ## What this means for a trader
 
