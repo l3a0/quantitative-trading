@@ -1,6 +1,6 @@
 # Three of Chan’s four factor-model printouts reproduce, and the round-off he blames is a second strategy
 
-*Chan’s 2 and 4 percent come from two methods, not round-off. The factor momentum his strategy assumes held for the market factor and not for WML, on too few months to tell either from noise.*
+*Chan’s 2 and 4 percent come from two methods, not round-off. The factor momentum his strategy assumes held for the market factor and not the momentum factor, on too few months to tell either from noise.*
 
 ## Why a factor model has to persist to trade
 
