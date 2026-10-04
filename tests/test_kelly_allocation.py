@@ -1,7 +1,7 @@
 """Pins for Chan's Examples 8.1 and 8.2, constant leverage and capped Kelly allocation.
 
 This file is the single authority for every number any prose surface quotes
-about these examples. ``docs/replication-log.md`` Entry 19 states those numbers
+about these examples. ``docs/replication-log.md`` Entry 20 states those numbers
 and derives none of them, and ``src/chan/kelly_allocation.py`` carries the
 reasoning.
 

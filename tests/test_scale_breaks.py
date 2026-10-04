@@ -193,6 +193,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: file has a missing price after its first, so no ranking return reaches
 #: across a gap. ``TestTheScaleBreakDecision`` in
 #: ``tests/test_cross_sectional_momentum.py`` runs the guard and holds both.
+#:
+#: [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296) decided
+#: that ``chan.khandani_lo_book_two`` refuses no window for *Algorithmic
+#: Trading*'s Examples 4.3 and 4.4. Their window,
+#: 2007-01-03 to 2011-12-30, spans all 30 of the book-two file's flagged days,
+#: and the guard refuses it on 17 stocks' closes and 14 stocks' opens. Chan's
+#: script computes across them and his figures reproduce only with them in.
+#: Most read as the 2008 crisis. CAH's 2009-09-02 does not, and without CAH
+#: neither of Example 4.3's figures lands. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_khandani_lo_book_two.py`` runs both refusals and pins CAH.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
