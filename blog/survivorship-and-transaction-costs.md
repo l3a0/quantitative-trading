@@ -45,13 +45,31 @@ Chan’s code for these examples comes in two forms that disagree. His MATLAB fo
 
 **The toy.** On 2 January 2001, rank the 1,000 largest stocks by price, buy the ten cheapest with equal money in each, and sell them on 2 January 2002. The book prints two tables of ten picks. The first comes from a **survivorship-free** database, one that keeps the companies that later failed or were removed from the exchange. The second comes from a database holding only the survivors. The returns follow from those two tables alone. Example 3.3 is the revised edition’s number for the toy, and this repository has not checked how the 2009 first edition numbers it. Page numbers here are the revised edition’s too.
 
-The results carry different labels. The reversal’s is **exploratory**: it used the 2006 data to check figures somebody else chose, so it says whether his numbers reproduce on his file and nothing about whether the rule pays today. Example 3.8’s results are exploratory for the same reason. Its threshold, a Sharpe ratio of at least 1.0 before costs and after, was set before any figure on the opens existed. That stops the verdict being picked after seeing the number. The run still checks a rule somebody else chose, so the result stays exploratory. The toy carries neither that label nor any other, because it reads only the book’s printed tables and uses no data at all.
-
 ## Lesson 1: on the S&P 500, a day’s cost is larger than a day’s profit
 
-Chan’s weights are small numbers that he never scales to a dollar amount, so the clearest way to read an average day is as a share of the position the rule holds. Over 2006, per dollar of its average gross position, the stocks it owns plus the stocks it has sold short, the rule earned 0.53 basis points a day before costs. Its daily profit swung by about 33 basis points. The Sharpe ratio is that average over that swing, times √252, which gives 0.2510. Chan calls 0.25 a “mediocre” Sharpe ratio, a small edge under a large swing.
+Chan’s weights are small numbers that he never scales to a dollar amount, so the clearest way to read an average day is as a share of the position the rule holds. Over 2006, per dollar of its average gross position, the stocks it owns plus the stocks it has sold short, the rule earned 0.5276 basis points a day before costs. Its daily profit swung with a standard deviation of 33.3770 basis points. The Sharpe ratio is that average over that swing, times √252:
 
-Then the cost. Because the rule sets every weight again from yesterday’s returns, little of yesterday’s book survives into today’s. Each day it trades 1.45 times its average position, and at 5 basis points on each unit traded that costs 7.25 basis points of the position a day. The day’s cost is 13.7 times the day’s profit. Subtracting it barely changes the swing, so the Sharpe ratio drops to −3.2337, with the first day’s trades charged. Chan’s −3.19 comes from the same arithmetic with the first day treated differently, which Lesson 2 explains.
+```math
+\text{Sharpe before costs} = \sqrt{252}\;\frac{0.5276}{33.3770} \approx 0.2510
+```
+
+This post rounds the inputs to four decimals, and each result comes from the unrounded figures. Redone on the rounded inputs, this equation gives 0.2509.
+
+Chan calls 0.25 a “mediocre” Sharpe ratio, a small edge under a large swing.
+
+Then the cost. Because the rule sets every weight again from yesterday’s returns, little of yesterday’s book survives into today’s. Each day it trades 1.4505 times its average position, and each unit traded costs 5 basis points:
+
+```math
+\text{daily cost} = 1.4505 \times 5\ \text{basis points} = 7.2525\ \text{basis points}
+```
+
+The day’s cost is 13.7453 times the day’s profit. Subtracting it from every day moves the average a long way and barely changes the swing, from 33.3770 to 33.0134 basis points. With the first day’s trades charged, the Sharpe ratio drops to −3.2337:
+
+```math
+\text{Sharpe after costs} = \sqrt{252}\;\frac{0.5276 - 7.2525}{33.0134} \approx -3.2337
+```
+
+Chan’s −3.19 comes from the same arithmetic with the first day treated differently, which Lesson 2 explains.
 
 ![Two lines of cumulative profit over 2006, each day’s profit divided by the year’s average gross position. The green line, before costs, wanders around zero and ends the year at +1.3%. The red line, after 5 basis points a side, falls steadily from January and ends at −16.9%. The note gives the Sharpe ratios as 0.2510 before costs and −3.2337 after.](../docs/figures/khandani_lo_cumulative_profit.png)
 
@@ -83,11 +101,11 @@ pandas, the standard Python library for tables of data, skips a missing value in
 
 ## Lesson 3: a database of survivors turns a loss into a large gain
 
-Chan states the mechanism on p. 26. Some stocks are cheap because the company is about to fail, so a database that has dropped the failures offers a cheap-stock strategy only the cheap stocks that recovered.
+Chan states the mechanism on p. 26. Some stocks are cheap because the company is about to fail. A database that has dropped the failed companies keeps only the cheap stocks that recovered, so a strategy that buys cheap stocks picks from the winners alone.
 
 The two tables show it. Nine of the ten survivorship-free picks were removed from the exchange during 2001, and the book gives each one’s last traded price, which is what a holder got out. Only MDM still traded on 2 January 2002, and it is the one stock in both tables. The survivor-only database never held the other nine, so it skips them and keeps going up the price ranking to stocks that all survived the year.
 
-With equal money in each stock, the survivorship-free picks return −41.72% and the survivor-only picks 387.88%, which round to Chan’s −42% and 388%. The book prints no formula, so the reproduction had to find the weighting. Buying one share of each instead gives −47.62% and 373.17%, and neither rounds to the book, which is what rules that weighting out. Chan calls the 388% “fictitious”.
+Chan’s rule puts equal money in each stock, so a portfolio’s return is the plain average of its ten stocks’ returns. On that rule the survivorship-free picks return −41.72% and the survivor-only picks 387.88%, which round to Chan’s −42% and 388%. The book states the rule in words and prints no calculation, so the reproduction also tried the other common way to buy a list of stocks, one share of each, which weights each stock by its price. That gives −47.62% and 373.17%, and neither rounds to the book. So the book’s figures match equal money and not one share each. Chan calls the 388% “fictitious”.
 
 ## Lesson 4: the author’s own table mixes two kinds of share in one row
 
@@ -109,17 +127,26 @@ Example 3.7’s file has the same flaw the toy demonstrates. It holds the S&P 50
 
 The toy cannot say how much that flatters the reversal, because the toy only buys, and the reversal buys and sells short at once. For a buy-only rule, a missing failure can only flatter the result. For the reversal it acts both ways. On a day a failing stock falls, the rule buys it, and dropping the stock removes that loss from the side it owns. On a day it bounces, the rule sells it short, and when it then falls the short makes money, so dropping it removes a gain as well. Neither the size nor the direction of the effect on 0.2510 or −3.1884 is known.
 
-Chan argues in *Algorithmic Trading* that for a strategy like this, long and short at once and betting on reversal, the missing losses on the side it owns tend to outweigh the missing gains on the short side, so survivorship still flatters it but by less. That is an argument rather than a measurement. Measuring it needs the index as it actually stood on each day of 2006, removed stocks included, which has to be bought. [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) tracks it.
+Chan argues in *Algorithmic Trading* that for a strategy like this, long and short at once and betting on reversal, the missing losses on the side it owns tend to outweigh the missing gains on the short side, so survivorship still flatters it but by less. That is an argument rather than a measurement. Measuring it needs the index as it actually stood on each day of 2006, removed stocks included, which has to be bought.
 
 ## Lesson 6: on the book’s rule, trading at the open misses Chan’s claim after costs
 
-Chan’s claim for Example 3.8 is that both Sharpe ratios, before costs and after, are “very positive” (p. 78). The book prints no figure, so the claim needs a threshold before it can be tested. [Issue 206](https://github.com/l3a0/quantitative-trading/issues/206) wrote it down before any figure on the opens was computed: both figures at least 1.0, compared unrounded. The threshold comes from Chan’s own rule of thumb. He writes that a strategy with a Sharpe ratio “of less than 1 is not suitable” to trade on its own (p. 23).
+Chan’s claim for Example 3.8 is that both Sharpe ratios, before costs and after, are “very positive” (p. 78). The book prints no figure, so the claim needs a threshold before it can be tested. This repository wrote it down before computing any figure on the opens: both figures at least 1.0, compared unrounded. The threshold comes from Chan’s own rule of thumb. He writes that a strategy with a Sharpe ratio “of less than 1 is not suitable” to trade on its own (p. 23).
 
 On the book’s rule, trading at the open earns 4.4202 before costs and 0.7834 after. The recovery is large, since Example 3.7’s −3.1884 after costs rises by 3.9718. But 0.7834 is below 1.0, so the claim does not hold on the book’s rule. Lesson 2’s quirks do not decide it. Charging the first day removes both and gives 0.8293, also below 1.0.
 
 The notebook’s rule clears the threshold. Run as written, it reproduces both figures Chan’s notebook printed, to four decimals: 2.3818 before costs and 1.3997 after. The book prints neither number. They are the notebook’s own output, read in [a third-party copy of Chan’s Python code on GitHub](https://github.com/pinhaocheng/epchan-quant_trading_Python_codes/tree/5fcab614d75c53c61e79a9049f6f623b84e2f4d4), at commit `5fcab61`.
 
-This post tests the claim on the book’s rule because of what Chan’s sentence says. It recalls Example 3.7’s 0.25 and −3.19 and calls trading at the open the only change. The notebook’s rule is not that strategy with one change. Chan’s companion notebook for Example 3.7, `example3_7.ipynb` in the same copy, printed 0.9578 before costs and −2.1617 after on the closes, where the book prints 0.25 and −3.19, and the notebook’s rule reproduces both. Among other differences from the MATLAB, it fills each gap in a stock’s prices with the last price seen, scales each day’s weights to a fixed total size, and divides the variance by the number of days rather than one fewer.
+This post tests the claim on the book’s rule because of what Chan’s sentence says. It recalls Example 3.7’s 0.25 and −3.19 and calls trading at the open the only change. The notebook’s rule is not that strategy with one change. Chan’s companion notebook for Example 3.7, `example3_7.ipynb` in the same copy, printed 0.9578 before costs and −2.1617 after on the closes, where the book prints 0.25 and −3.19, and the notebook’s rule reproduces both.
+
+Both rules bet against each stock’s return relative to the market’s. They differ in six ways.
+
+1. **Gaps in prices.** The notebook fills each gap in a stock’s prices with the last price seen, so a stock missing for a day earns nothing that day, and a gap of any length counts as one day’s move. The book’s rule leaves the gap empty and computes no return across it.
+2. **Position size.** The book’s rule divides each weight by the number of stocks priced that day, so its total position changes from day to day. The notebook scales each day’s weights so that the stocks it owns and the stocks it has sold short add up to the same total every day.
+3. **Stocks with a missing price.** The book’s rule gives a stock no weight on a day its price is missing, or was missing the day before. After the fill, the notebook is missing a return only up to and including a stock’s first priced day, and its sums skip that stock on those days.
+4. **The standard deviation.** The notebook divides the variance by the number of days, and the book’s rule by one fewer.
+5. **The first day’s cost.** The notebook charges nothing for the first day’s trades, so neither of Lesson 2’s quirks applies to it.
+6. **Trades next to a missing weight.** The book’s rule charges for moving a stock’s weight up from zero and back down to it. The notebook skips any change in weight where the weight on either day is missing, so it never pays to buy a stock first priced during 2006.
 
 ```math
 \begin{array}{l|l|c|c}
@@ -133,6 +160,30 @@ This post tests the claim on the book’s rule because of what Chan’s sentence
 \text{The line declared in advance} & \text{open} & 1.0 & 1.0
 \end{array}
 ```
+
+On the opens, costs take 0.98 off the notebook’s Sharpe ratio, from 2.3818 to 1.3997, and 3.59 off the book’s rule with its first day charged, from 4.4202 to 0.8293. Yet the two rules pay about the same cost. The book’s rule pays 7.3182 basis points of its position a day and the notebook’s rule 7.2808. What differs is the swing. Subtracting a cost from every day lowers the average by that cost and leaves the swing nearly where it was, so the cost takes about this much off the Sharpe ratio:
+
+```math
+\text{Sharpe lost to costs} \approx \sqrt{252}\;\frac{\text{daily cost}}{\text{standard deviation of daily profit}}
+```
+
+For the book’s rule that is √252 × 7.3182 / 32.2556, about 3.60. For the notebook’s rule it is √252 × 7.2808 / 117.7257, about 0.98. The notebook’s daily profit swings 3.65 times as far, so the same cost removes far less. The swing comes from the fill, and almost all of it from one stock’s gap, which the fill reads as a single day’s move. Without that stock the notebook’s swing is 30.2366 basis points. Lesson 7 shows the gap.
+
+Turning the book’s rule into the notebook’s one difference at a time shows where the 0.5704 between their figures after costs comes from, with the book’s rule charging its first day. Each row keeps every change above it, so a different order would split the total differently. Differences 3 and 6 share a row, because both come from leaving a missing weight empty rather than setting it to zero. The cost and the swing are in basis points of the position.
+
+```math
+\begin{array}{l|c|c|c}
+\text{Rule, on the opens} & \text{Daily cost} & \text{Swing} & \text{After costs} \\ \hline
+\text{The book's rule, first day charged} & 7.3182 & 32.2556 & 0.8293 \\
+\text{+ the same total position every day} & 7.3116 & 30.1416 & 1.0149 \\
+\text{+ the first day's trades free} & 7.2788 & 30.1416 & 1.0307 \\
+\text{+ missing weights left empty} & 7.2773 & 30.1416 & 1.0314 \\
+\text{+ variance divided by the number of days} & 7.2773 & 30.1416 & 1.0335 \\
+\text{+ gaps filled with the last price} & 7.2808 & 117.7257 & 1.3997
+\end{array}
+```
+
+The cost stays within 0.05 basis points of 7.3 on every row. The fill adds 0.3662 of the 0.5704, and without it the notebook’s rule lands at 1.0335, the figure Lesson 7 gives for it without the fill. Most of the rest comes from holding the same total position every day, and it works the other way from the fill. The book’s rule divides each weight by the number of stocks, so its total position is roughly how far the average stock’s return strays from the market’s, and it holds the most on days when returns scatter widely. Holding the same amount every day raises the figure before costs from 4.4202 to 4.8509 and lowers the swing from 32.2556 to 30.1416 basis points. The smaller swing lets costs take more, 3.84 instead of 3.59, but the higher figure before costs more than makes up for it.
 
 ## Lesson 7: one column of Chan’s file joins two stretches of prices
 
