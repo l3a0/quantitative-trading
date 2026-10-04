@@ -732,6 +732,12 @@ class TestTheMostRecentFiveYears:
         assert kept.iloc[-TAIL_MONTHS:].index[0] == pd.Timestamp(first)
         assert kept.index[-1] == pd.Timestamp("2007-10-31")
 
+    def test_a_row_on_the_cutoff_is_left_out(self) -> None:
+        """Rows after the cutoff, not from it. No row of the committed file sits on it."""
+        days = pd.DatetimeIndex(["2002-11-22", "2002-11-23", "2002-11-25", "2007-11-23"])
+        closes = pd.DataFrame({"X": [1.0, 2.0, 3.0, 4.0]}, index=days)
+        assert list(most_recent_five_years(closes).index) == list(days[2:])
+
     def test_the_claim_is_pinned_as_chans_words(self) -> None:
         assert seasonals.FIVE_YEAR_PAGE == 180
         assert seasonals.FIVE_YEAR_CLAIM == (
@@ -740,8 +746,13 @@ class TestTheMostRecentFiveYears:
 
     @pytest.mark.parametrize(
         ("rerun", "whole", "worse"),
-        [(-0.02, -0.01, True), (-0.01, -0.01, False), (0.0, -0.01, False)],
-        ids=["below", "equal", "above"],
+        [
+            (-0.02, -0.01, True),
+            (-0.01001, -0.01, True),
+            (-0.01, -0.01, False),
+            (0.0, -0.01, False),
+        ],
+        ids=["below", "below-at-full-precision", "equal", "above"],
     )
     def test_the_verdict_reads_only_the_reruns_annual_return(self, rerun, whole, worse) -> None:
         """Strictly below, on the annual return, whatever the Sharpe ratios and the tail say.
@@ -833,12 +844,25 @@ class TestTheReport:
             "revised edition, reproduced: rerun on 47 months -0.0165 a year against the "
             "whole period's -0.0129. Its Sharpe ratio -0.2963, no verdict.",
             "The last 60 months -0.0171 a year, Sharpe ratio -0.2609, no verdict",
-            "example7_7.py, revised edition, no verdict: rerun on 47 months -0.016431",
+            "example7_7.py, revised edition, no verdict: rerun on 47 months -0.016431 a "
+            "year against the whole period's -0.012679. Its Sharpe ratio -0.294952, no "
+            "verdict. The last 60 months -0.017011 a year, Sharpe ratio -0.259985, no verdict",
         ):
             assert figure in out
         assert out.count("exited 2008-01-31: 0.0881 ") == 2
+        assert out.count("rerun on ") == 2
         assert "not computable" not in out
         assert "Exploratory, no verdict" in out
+
+    def test_a_claim_that_fails_prints_as_not_reproduced(
+        self, large_caps, monkeypatch, capsys
+    ) -> None:
+        """The committed file reproduces the claim, so the other branch is driven by hand."""
+        monkeypatch.setattr(FiveYearCheck, "worse", property(lambda self: False))
+        seasonals.report_heston_sadka(*large_caps)
+        out = capsys.readouterr().out
+        assert "Example 7.7 in MATLAB, revised edition, not reproduced: rerun on 47" in out
+        assert "example7_7.py, revised edition, no verdict: rerun on 47" in out
 
     def test_each_holding_prints_with_its_positions(self, capsys) -> None:
         seasonals.run()
