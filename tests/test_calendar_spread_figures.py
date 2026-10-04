@@ -33,7 +33,7 @@ from chan.calendar_spread_figures import (
 )
 from chan.futures import settlements
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import GOOD, LOST
+from chan.regime_figure import ACCENT, GOOD, LOST, MUTED
 from chan.stationary_candidates import SPREAD_PRODUCTS
 from chan.vintage import VintageUnavailable
 
@@ -96,6 +96,18 @@ class TestTheBars:
         assert drawn[f"{name}-declared-label"].xy == (declared, 1.0)
         assert drawn[f"{name}-corrected-label"].xy == (corrected, 1.0)
 
+    def test_each_bar_is_dashed_and_its_label_hangs_left_at_its_own_height(self, figure) -> None:
+        """Dashed so a bar never reads as the real count's solid line, and each label
+        to the left at its own height, because RBOB's 14 sits one pair from its 13."""
+        drawn = _by_gid(figure)
+        for name, _, _ in PANELS:
+            assert drawn[f"{name}-real-line"].get_linestyle() == "-"
+            for key in ("declared", "corrected"):
+                assert drawn[f"{name}-{key}-bar"].get_linestyle() == "--"
+                assert drawn[f"{name}-{key}-label"].get_ha() == "right"
+            heights = {drawn[f"{name}-{key}-label"].xyann[1] for key in ("declared", "corrected")}
+            assert len(heights) == 2
+
     def test_each_bar_and_its_label_take_its_null_s_colour(self, figure) -> None:
         drawn = _by_gid(figure)
         for name, _, _ in PANELS:
@@ -112,6 +124,9 @@ class TestTheRealCount:
         assert list(drawn[f"{name}-real"].get_xdata()) == [real]
         assert list(drawn[f"{name}-real"].get_ydata()) == [0]
         assert set(drawn[f"{name}-real-line"].get_xdata()) == {real}
+        assert drawn[f"{name}-real"].get_clip_on() is False, "half the marker would be cut off"
+        bins = [*drawn[f"{name}-declared-bin"], *drawn[f"{name}-corrected-bin"]]
+        assert drawn[f"{name}-real-line"].get_zorder() > max(b.get_zorder() for b in bins)
 
     def test_natural_gas_sits_past_both_bars_and_rbob_between_them(self, figure) -> None:
         """The picture of the two verdicts: the correction moves RBOB's and not natural gas's."""
@@ -158,7 +173,29 @@ class TestTheHistograms:
             round(r.share * n), np.rint(r.null * n).max(), np.rint(r.declared_null * n).max()
         )
         assert ax.get_xlim()[0] == -0.5
-        assert ax.get_xlim()[1] > largest
+        assert ax.get_xlim()[1] >= largest + 2, "the rightmost line would sit on the frame"
+
+    @pytest.mark.parametrize(("name", "which", "n"), PANELS)
+    def test_the_labels_have_headroom_above_the_tallest_bin(self, figure, name, which, n):
+        """The bar labels hang from the top of the axes, so they need room above the bins."""
+        ax = figure.axes[which]
+        bins = [*_by_gid(figure)[f"{name}-declared-bin"], *_by_gid(figure)[f"{name}-corrected-bin"]]
+        assert ax.get_ylim()[1] >= 1.3 * max(b.get_height() for b in bins)
+
+    def test_the_note_s_grey_and_brass_are_the_nulls_colours(self) -> None:
+        """The note names the declared null grey and the corrected one brass."""
+        assert (DECLARED_COLOUR, CORRECTED_COLOUR) == (MUTED, ACCENT)
+
+    @pytest.mark.parametrize(("name", "which", "n"), PANELS)
+    @pytest.mark.parametrize(
+        ("key", "colour"), [("declared", DECLARED_COLOUR), ("corrected", CORRECTED_COLOUR)]
+    )
+    def test_each_histogram_wears_its_null_s_colour_and_shows_the_other_through_it(
+        self, figure, name, which, n, key, colour
+    ) -> None:
+        for patch in _by_gid(figure)[f"{name}-{key}-bin"]:
+            assert to_rgba(patch.get_facecolor(), 1.0) == to_rgba(colour, 1.0)
+            assert patch.get_alpha() < 1
 
     def test_nothing_wears_a_verdict_colour(self, figure) -> None:
         verdicts = {to_rgba(GOOD), to_rgba(LOST)}
