@@ -285,7 +285,8 @@ def main() -> None:
     )
     from_data = runs_ending(gas)
     print(
-        f"  counted from {NG_YEARS[0]}, the files' first year, the same two runs are "
+        f"  counted from {NG_YEARS[0]}, the first year the files hold a whole trade, "
+        f"the same two runs are "
         f"{from_data[2007]} and {from_data[2008]}"
     )
     through = [trade for trade in gas if trade.year <= 2008]

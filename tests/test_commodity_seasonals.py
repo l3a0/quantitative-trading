@@ -152,9 +152,12 @@ class TestTheNaturalGasExpiries:
         assert self.handover_fit(date(1996, 2, 27)) == Decimal("0.068")
 
     def test_the_1996_and_1997_entries_read_contract_3(self) -> None:
+        """Both years are profitable on contract 4 too, so the correction moved no count."""
+        four = settlements(NATURAL_GAS[4])[1]
         for year, price in ((1996, Decimal("2.033")), (1997, Decimal("1.930"))):
             trade = natural_gas_trade(year)
             assert (trade.entry_symbol, trade.entry_price) == (NATURAL_GAS[3], price)
+            assert four[trade.entry_day] < trade.exit_price
 
     def test_nixon_s_funeral_closed_the_exchange(self) -> None:
         assert not is_trading_day(date(1994, 4, 27))
@@ -235,8 +238,9 @@ class TestNaturalGas:
         assert {year: run for year, run in runs.items() if run >= 13} == {2007: 13, 2008: 14}
 
     def test_the_runs_counted_from_the_files_first_year(self) -> None:
+        """Counted from 1994, the runs of 13 and 14 end a year early, in 2006 and 2007."""
         runs = runs_ending(GAS)
-        assert (runs[2007], runs[2008]) == (14, 15)
+        assert (runs[2006], runs[2007], runs[2008]) == (13, 14, 15)
 
     def test_a_missing_year_breaks_a_run_in_any_order(self) -> None:
         trades = [gasoline_trade(year) for year in (2000, 1997, 1996, 1995)]
