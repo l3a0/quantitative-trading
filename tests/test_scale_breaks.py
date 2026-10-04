@@ -87,10 +87,11 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: single stocks: AAPL at 0.4813 on 2000-09-29, its profit-warning day, and the
 #: energy names of July 2002 among them.
 #:
-#: Two are not price moves at all. ``spx_20071123/wyn.csv`` and
+#: Three are not price moves at all. ``spx_20071123/wyn.csv`` and
 #: ``spx_20071123/dfs.csv`` each hold two companies under one symbol across a
-#: gap of 952 and 400 trading days, and a member's own rows read that gap as
-#: one day. Four sit within 0.02 of a two-for-one split, and whether any is
+#: gap of 952 and 400 trading days, ``ijr_20080114/pmc.csv`` holds two price
+#: histories across a gap of 851, and a member's own rows read each gap as one
+#: day. Four sit within 0.02 of a two-for-one split, and whether any is
 #: an unadjusted split is not known: AES and AYE here, and CBU and INSP in the
 #: S&P 600 file. AAPL's column absorbs its June 2000 split with no jump, so its
 #: day is the move it looks like. The book-two S&P 500 file adds 30 days in 17
@@ -136,6 +137,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: XYL, spun off inside the window, pass without a missing price after that
 #: being dropped. ``TestTheRefusals`` in ``tests/test_pead.py`` runs the guard
 #: on the committed file and on both shapes.
+#:
+#: [Issue 21](https://github.com/l3a0/quantitative-trading/issues/21) decided
+#: that ``chan.pca_factor`` refuses no window for Example 7.4, for the reason
+#: issue 18 gives: every printout forward-fills these closes as they stand, so
+#: a guard would refuse the computation being reproduced. PMC, flagged below on
+#: 2007-08-01, is two price histories under one symbol with 851 days missing
+#: between them, and the fill reads that gap as one day's return of 1.8654.
+#: ``TestTheSplice`` in ``tests/test_pca_factor.py`` pins that return and every
+#: printout's figures without PMC.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
