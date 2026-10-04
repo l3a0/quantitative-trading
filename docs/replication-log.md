@@ -2907,7 +2907,7 @@ daily.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
-it, since that post's Lessons 1 and 2 quote these figures.
+it, since that post quotes most of these figures.
 
 ## Entry 14: the market and momentum factors, Chan's *Quantitative Trading*
 
@@ -3073,8 +3073,7 @@ them.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
-it, since that post's Lessons 3 and 4 quote these figures. So does its one
-figure, which `uv run python -m chan.momentum_factor_figures` redraws.
+it, since that post quotes most of these figures. So does its one figure, which `uv run python -m chan.momentum_factor_figures` redraws.
 
 ## Entry 15: calendar spreads, Chan's *Quantitative Trading*
 

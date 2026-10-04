@@ -8,10 +8,13 @@ repeat here on purpose, because a figure's labels are prose and the suite is
 the authority for every number prose quotes. No test compares bytes, for the
 reason ``tests/test_regime_figure.py`` gives.
 
-The vintages are the three ``tests/test_momentum_factor.py`` names:
-``spx_20071123/``, the 500 S&P 500 members lifted from Chan's
-``SPX_20071123.mat``, saved 2007-11-24, ``spy_chan.csv`` from Chan's
-``example6_2.xls``, saved 2008-01-29, and FRED's TB3MS downloaded 2026-09-30.
+The vintages are the three ``tests/test_momentum_factor.py`` names.
+
+1. ``spx_20071123/``, the 500 S&P 500 members lifted from Chan's
+   ``SPX_20071123.mat``, saved 2007-11-24.
+2. ``spy_chan.csv``, from Chan's ``example6_2.xls``, saved 2008-01-29.
+3. FRED's TB3MS, downloaded 2026-09-30.
+
 The specification is :mod:`chan.momentum_factor` as
 [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) fixed it.
 Like the test it draws, the figure is exploratory.
@@ -128,8 +131,9 @@ class TestTheBand:
         assert round(_band_edges(figure)[1], 4) == 0.2151
         assert round(_band_edges(figure)[0], 4) == -0.2151
 
-    def test_both_factors_sit_inside_it(self, figure, comparison) -> None:
-        for value in (comparison.mkt, comparison.wml):
+    def test_both_factors_and_the_median_sit_inside_it(self, figure, comparison) -> None:
+        """What the post's caption says, so the caption has a pin."""
+        for value in (comparison.mkt, comparison.wml, comparison.median):
             assert -comparison.band < value < comparison.band
 
 
@@ -159,13 +163,21 @@ class TestTheWords:
         assert note.startswith(
             "The 446 stocks are every stock in spx_20071123/ priced in all 83 holding months."
         )
-        assert "so WML and every stock here are survivors." in note
+        assert "in the S&P 500 on 2007-11-23, so WML and every stock here are survivors." in note
         assert "MKT reads SPY, which held the index as it stood each day, so it is not." in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
         """The title carries an ampersand and the labels minus signs, so math
         parsing stays off the way it does for the other figures."""
-        for text in [*figure.axes[0].texts, *figure.texts]:
+        ax = figure.axes[0]
+        for text in [
+            *ax.texts,
+            *figure.texts,
+            ax.xaxis.label,
+            ax.yaxis.label,
+            *ax.get_xticklabels(),
+            *ax.get_yticklabels(),
+        ]:
             assert text.get_parse_math() is False
 
     def test_nothing_wears_a_verdict_colour(self, figure) -> None:

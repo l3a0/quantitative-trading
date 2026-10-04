@@ -20,12 +20,14 @@ cumulative curve, with MKT, WML, the median stock, zero and the band on it.
    equals either factor's, so the share at or below and the share strictly
    below, which :meth:`chan.momentum_factor.Comparison.percentile` counts,
    agree.
-3. **The band shaded**, ±1.96/√83, where a series with no autocorrelation
-   lands about 95 percent of the time. Both factors sit inside it.
+3. **The band is shaded.** It runs ±1.96/√83, where a series with no
+   autocorrelation lands about 95 percent of the time. Both factors sit
+   inside it.
 
-Nothing is drawn in the verdict colours, because Lesson 4 says neither verdict
-is distinguishable from noise. The title says the test is exploratory, and the
-note says ``spx_20071123/`` holds only survivors while SPY does not.
+The figure uses neither the green nor the red that other figures here give a
+verdict, because Lesson 4 says neither verdict can be told from noise. The
+title says the test is exploratory, and the note says ``spx_20071123/`` holds
+only survivors while SPY does not.
 
 Every value comes from one :class:`chan.momentum_factor.Comparison`, so the
 figure can only be wrong by drawing the wrong thing, which
@@ -147,7 +149,7 @@ def make_autocorrelation_figure(comparison: Comparison, out: Path | None = None)
         "Factor momentum on Chan's S&P 500 file, an exploratory test",
         f"The {count} stocks are every stock in spx_20071123/ priced in all {comparison.months} "
         "holding months. That file holds only the companies\n"
-        "in the S&P 500 the day Chan saved it, so WML and every stock here are survivors. "
+        "in the S&P 500 on 2007-11-23, so WML and every stock here are survivors. "
         "MKT reads SPY, which held the index\n"
         "as it stood each day, so it is not. A factor's line meets the curve at its "
         "percentile among the stocks.",

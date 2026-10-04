@@ -1349,8 +1349,8 @@ exploratory.
 3. The momentum the strategy assumes held for the market factor and not for
    the momentum factor, each verdict standing on its own.
 4. A verdict can follow the declared criterion and still rest on almost
-   nothing, because both autocorrelations sit inside the band of no
-   autocorrelation.
+   nothing, because both autocorrelations sit inside the range a series with
+   no autocorrelation lands in 95 percent of the time.
 5. Fix the rule before the number, which Entry 14 did and Entry 13's
    round-off criterion did not.
 6. Every figure that touches the stocks is about survivors, and the market
@@ -1362,28 +1362,39 @@ Four groups of its figures are not pinned here.
    Kindle Cloud Reader on 2026-10-03 from the Annotations panel, which labels
    each highlight with the page it starts on. "The return of the market"
    (location 3978) is on p. 160. WML's definition (location 4004), and
-   "often", "stronger serial autocorrelations" and "have momentum" (location
-   4014), are on p. 162. The setup of statistical factors (location 4034) is
-   on p. 163. "Remain constant from the current time period to the next",
-   "only 2% (MATLAB) to 4% (Python and R)" and "essentially round off errors"
-   (location 4051) are on p. 164. The suite pins the 2 and the 4 as whole
-   percents, not the words.
+   "often factor returns are more stable than individual stock returns",
+   "stronger serial autocorrelations", "individual stock's returns" and "have
+   momentum" (location 4014), are on p. 162. The setup of statistical factors
+   (location 4034) is on p. 163. "Remain constant from the current time
+   period to the next", "only 2% (MATLAB) to 4% (Python and R)" and
+   "essentially round off errors" (location 4051) are cited at p. 164, where
+   that highlight starts. A quotation late in a highlight could fall on the
+   next page, which the panel cannot show. Example 7.4 itself runs from p. 163
+   to p. 167, with the revised MATLAB's figures on p. 164, the Python's on
+   p. 165 and the R's on p. 167, as Entry 13 records from the same reader. The
+   suite pins the 2 and the 4 as whole percents, not the words.
 2. Facts outside the committed data. That French's market factor subtracts
    the bill rate and his momentum factor skips the latest month. That the
    revised MATLAB repost at `7430b84` carries *Algorithmic Trading*'s
-   `smartstd`. The Fama and French citation and its publication details.
+   `smartstd`. The commits the sources are read at: `1a71950` of the
+   first-edition mirror, `7430b84` of the MATLAB repost and `5fcab61` of the
+   Python repost. The Fama and French citation and its publication details.
 3. Counts and arithmetic no test asserts. Each autocorrelation of 83 months
    rests on 82 pairs. 1.96 marks a two-sided 5 percent, which is what puts
    the band at 95 percent. Each annual mean is the monthly mean times 12. The
    Python's 255 rows with no position are its 1,006 rows less its 751 traded
    days.
-4. Its references. The four citations are cited rather than computed.
+4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_pca_factor.py](tests/test_pca_factor.py) or
-[tests/test_momentum_factor.py](tests/test_momentum_factor.py), or to
+[tests/test_momentum_factor.py](tests/test_momentum_factor.py), to
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py)'s
+`TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, or to
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
-for the figure's own labels.
+for the figure's own labels. One figure was half pinned before it, and
+`TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
+ends of PMC's 851-day gap rather than only the days inside it.
 
 Its one figure is drawn from the committed S&P 500 file by
 [src/chan/momentum_factor_figures.py](src/chan/momentum_factor_figures.py). It

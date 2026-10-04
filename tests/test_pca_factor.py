@@ -279,6 +279,12 @@ class TestTheSplice:
         assert filled[day] / filled.shift()[day] - 1 == pytest.approx(1.8654, abs=5e-5)
         gap = closes[SPLICED].loc["2004-03-15":"2007-07-31"]
         assert gap.isna().all() and len(gap) == 851
+        # Both ends are priced, so 851 is the whole gap rather than part of it.
+        before, after = closes.index.get_indexer(
+            [pd.Timestamp("2004-03-12"), pd.Timestamp("2007-08-01")]
+        )
+        assert after - before == 852
+        assert closes[SPLICED].iloc[[before, after]].notna().all()
 
     def test_each_printout_without_pmc(self, results: Results) -> None:
         assert results.first_unspliced.annual == pytest.approx(-1.8014, abs=5e-5)
