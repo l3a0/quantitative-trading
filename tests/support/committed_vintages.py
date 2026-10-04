@@ -133,7 +133,10 @@ HAND_WRITTEN = {
 #: flags for the same 497 stocks under the ``event`` basis.
 #: [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) added
 #: ``IJR_20080131.mat``, a later save of the S&P 600 file holding the same 600
-#: symbols. One source was saved once, so its members share a vendor, a basis
+#: symbols. [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300)
+#: added eight futures strips from the second book, one vintage per contract
+#: under the ``raw`` basis, and the gold series sampled at 16:00, a source of
+#: one member. One source was saved once, so its members share a vendor, a basis
 #: and a date, and the pin says each once. The member count is what notices a
 #: column dropped from the manifest along with its file.
 #:
@@ -156,6 +159,69 @@ LIFTED_SOURCES = {
         497,
     ),
     "earnannFile.mat": ("chan-mat", "event", "2012-05-15", "earnannfile", 497),
+    "inputDataDaily_BR_20120813.mat": (
+        "chan-mat",
+        "raw",
+        "2012-08-14",
+        "inputdatadaily_br_20120813",
+        322,
+    ),
+    "inputDataDaily_C2_20120813.mat": (
+        "chan-mat",
+        "raw",
+        "2012-08-14",
+        "inputdatadaily_c2_20120813",
+        31,
+    ),
+    "inputDataDaily_CL_20120813.mat": (
+        "chan-mat",
+        "raw",
+        "2012-08-14",
+        "inputdatadaily_cl_20120813",
+        90,
+    ),
+    "inputDataDaily_HG_20120813.mat": (
+        "chan-mat",
+        "raw",
+        "2012-08-14",
+        "inputdatadaily_hg_20120813",
+        182,
+    ),
+    "inputDataDaily_HO2_20120813.mat": (
+        "chan-mat",
+        "raw",
+        "2012-08-14",
+        "inputdatadaily_ho2_20120813",
+        351,
+    ),
+    "inputDataDaily_TU_20120813.mat": (
+        "chan-mat",
+        "raw",
+        "2012-08-14",
+        "inputdatadaily_tu_20120813",
+        94,
+    ),
+    "inputDataDaily_CL_20120502.mat": (
+        "chan-mat",
+        "raw",
+        "2012-05-03",
+        "inputdatadaily_cl_20120502",
+        89,
+    ),
+    "inputDataDaily_VX_20120507.mat": (
+        "chan-mat",
+        "raw",
+        "2012-05-08",
+        "inputdatadaily_vx_20120507",
+        72,
+    ),
+    "inputData_GC_1600_20100802.mat": (
+        "chan-mat",
+        "raw",
+        "2012-05-07",
+        "inputdata_gc_1600_20100802",
+        1,
+    ),
 }
 
 

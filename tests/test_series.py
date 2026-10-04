@@ -965,7 +965,7 @@ class TestAnEntryWithNoFileIsNotAFileWithNoEntry:
     def test_a_stray_file_inside_a_subdirectory_is_named_by_its_path(self, data_dir: Path) -> None:
         """A lifted source's members sit in a directory of their own, so the scan reaches in.
 
-        A listing of the top level alone would go quiet exactly where 2,694 of
+        A listing of the top level alone would go quiet exactly where most of
         the committed vintages live.
         """
         place(data_dir, name="recorded.csv", symbol="AAA")

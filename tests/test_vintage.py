@@ -1390,7 +1390,7 @@ def _rows_the_manifest_owes(entries: list[VintageEntry]) -> dict[str, dict[str, 
         owed[key] = {
             "File": f"`{key}`",
             "Vendor": shared["Vendor"],
-            "Symbol": f"{len(members)} members",
+            "Symbol": f"{len(members)} member{'' if len(members) == 1 else 's'}",
             "Price": shared["Price"],
             "Span": (
                 f"{min(entry.first_date for entry in members)} .. "

@@ -1,4 +1,4 @@
-"""Record one of Ernest Chan's MATLAB files as one vintage per stock, every field kept.
+"""Record one of Ernest Chan's MATLAB files as one vintage per column.
 
 Chan's cross-sectional examples read four price files. Three come from his
 first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
@@ -18,12 +18,26 @@ is recorded the same way, one vintage per stock, under the ``event`` basis and
 the one field :data:`chan.vintage.EVENT_FIELDS` names. :func:`record_flag_file`
 records it and :func:`flag_round_trip_differs` checks it.
 
+Chan's second book also reads eight futures strips, each a date-by-contract
+array of settlements named ``inputDataDaily_<root>_<date>.mat``, and one gold
+series sampled at 16:00, ``inputData_GC_1600_20100802.mat``.
+[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) decided
+that each contract is one vintage holding the close alone, because the file
+holds nothing else, under a symbol joining the file's root and the contract,
+such as ``CL-2007F``. The root is needed because six strips share a saved date,
+so a bare ``2007Z`` would name six vintages no reader argument could separate.
+Chan's spot column, ``0000$``, becomes ``<root>-SPOT``. The gold file holds no
+contract names, so it is read as a strip of one column named for its root.
+:func:`record_strip_file` records either and :func:`strip_round_trip_differs`
+checks it.
+
 This module is the half that needs scipy. It reads the ``.mat`` bytes, turns
-each stock into rows, and hands them to
+each column into rows, and hands them to
 :func:`chan.vintage.record_lifted_columns`, which owns the write order, the
 refusals and the rollback and stays on the standard library.
 
-Three choices are settled here rather than left to whoever runs it.
+Three choices are settled here for the stock files rather than left to whoever
+runs it.
 
 1. **Every field is kept.** The owner decided on 2026-10-02 to record all five
    arrays rather than the closes alone. The closes are what Chan's printed
@@ -49,15 +63,17 @@ Three choices are settled here rather than left to whoever runs it.
    the save. ``IJR_20080131.mat`` is the exception: its name says 2008-01-31,
    its last row is 2008-02-01 and its header says 2008-02-02.
 
-The price basis is the caller's to state, because nothing in the file says
-it, and it names the four prices. ``data/README.md`` records what was measured
-for each file and why it is recorded as ``adjusted``. A basis of ``event``
-records a flag file instead.
+The price basis is the caller's to state for a stock file, because nothing in
+the file says it, and it names the four prices. ``data/README.md`` records what
+was measured for each file and why it is recorded as ``adjusted``. A strip
+takes ``raw`` and nothing else, because a contract's settlement is the price it
+traded at and nothing adjusts it. A flag file takes ``event`` and nothing else.
 
-Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``, or
-``--price-basis event`` for a flag file. The files are not committed, so a run
-needs a local copy taken from the source and commit ``data/README.md`` names
-for that file.
+Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``,
+``--price-basis raw`` for a strip, or ``--price-basis event`` for a flag file.
+The command picks its reader by the variables the file carries rather than by
+the basis, and :func:`shape_of` says how. The files are not committed, so a run needs a local
+copy taken from the source and commit ``data/README.md`` names for that file.
 """
 
 from __future__ import annotations
@@ -187,21 +203,11 @@ def record_mat_file(
     """Record every stock in ``path`` as its own vintage, under :data:`VENDOR`.
 
     A file holding a day with no close in any column is refused before
-    anything is written. The panel rebuilds a file's days from the union of
-    its members' dates, so such a day would vanish from it, and
-    :func:`round_trip_differs` would only say so once every member had been
-    recorded.
+    anything is written, for the reason :func:`_refuse_unpriced_days` gives.
     """
     payload = Path(path).read_bytes()
     days, symbols, arrays = read_arrays(payload)
-    unpriced = [
-        day for day, row in zip(days, arrays["Close"], strict=True) if not np.isfinite(row).any()
-    ]
-    if unpriced:
-        raise ValueError(
-            f"{Path(path).name} prices no column on {', '.join(unpriced)}, so the per-stock "
-            f"files could not give that day back"
-        )
+    _refuse_unpriced_days(Path(path).name, days, arrays["Close"])
     return record_lifted_columns(
         columns_of(days, symbols, arrays),
         vendor=VENDOR,
@@ -327,10 +333,136 @@ def flag_round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str 
     return None
 
 
+#: The name Chan's strips give the spot column, which ``SYMBOL_PATTERN`` refuses.
+SPOT_COLUMN = "0000$"
+
+#: What the spot column is recorded as, after the root and a hyphen.
+SPOT_SYMBOL = "SPOT"
+
+#: A contract column's name, a delivery year and CME's letter for the month.
+_CONTRACT = re.compile(r"^\d{4}[FGHJKMNQUVXZ]$")
+
+#: A strip's root, the symbol between the file name's first two underscores.
+_ROOT = re.compile(r"^inputData[A-Za-z]*_([A-Z][A-Z0-9]*)_")
+
+
+def root_of(name: str) -> str:
+    """The futures root a strip's file name carries, such as ``HO2``, or a refusal.
+
+    Read off the name because the file holds no root of its own. Its contract
+    columns name delivery months alone, and the gold file names nothing.
+    """
+    found = _ROOT.match(Path(name).stem)
+    if found is None:
+        raise ValueError(
+            f"{name}: the name carries no root between its first two underscores, the way "
+            f"inputDataDaily_CL_20120813.mat carries CL"
+        )
+    return found.group(1)
+
+
+def read_strip(payload: bytes, root: str) -> tuple[list[str], list[str], np.ndarray]:
+    """A strip's days as ISO dates, its symbols, and its date-by-symbol closes.
+
+    Each contract column is named ``<root>-<contract>`` and the spot column
+    ``<root>-SPOT``. A file with no ``contracts`` must hold one column, which
+    is named ``<root>``. Any other column name is refused, because nothing
+    says what an unrecognised column holds.
+    """
+    held = scipy.io.loadmat(io.BytesIO(payload), variable_names=["tday", "contracts", "cl"])
+    missing = [name for name in ("tday", "cl") if name not in held]
+    if missing:
+        raise ValueError(f"the file carries no {', '.join(missing)}")
+
+    days = [_iso_day(day) for day in np.asarray(held["tday"]).ravel()]
+    if days != sorted(set(days)):
+        raise ValueError("the file's trading days are not strictly increasing")
+    closes = np.asarray(held["cl"], dtype=float)
+    if "contracts" in held:
+        symbols = []
+        for name in (_symbol(cell) for cell in np.asarray(held["contracts"]).ravel()):
+            if name == SPOT_COLUMN:
+                symbols.append(f"{root}-{SPOT_SYMBOL}")
+            elif _CONTRACT.match(name):
+                symbols.append(f"{root}-{name}")
+            else:
+                raise ValueError(
+                    f"the file names a column {name!r}, which is neither a contract such as "
+                    f"2007F nor the spot column {SPOT_COLUMN}"
+                )
+        repeated = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
+        if repeated:
+            raise ValueError(f"the file names a contract more than once: {', '.join(repeated)}")
+    elif closes.ndim == 2 and closes.shape[1] == 1:
+        symbols = [root]
+    else:
+        raise ValueError(
+            f"the file names no contracts and its cl has {closes.shape[1]} columns, so "
+            f"nothing says which series each one is"
+        )
+    if closes.shape != (len(days), len(symbols)):
+        raise ValueError(
+            f"cl is {closes.shape[0]} by {closes.shape[1]} and the file carries "
+            f"{len(days)} days and {len(symbols)} columns"
+        )
+    return days, symbols, closes
+
+
+def record_strip_file(
+    path: Path, *, price_basis: str, data_dir: Path | None = None
+) -> list[VintageEntry]:
+    """Record every column of a strip as its own close-only vintage, under :data:`VENDOR`.
+
+    A day a contract was not settled is a missing row, as it is for a stock.
+    Some contracts stop and restart, and Chan's scripts read those holes when
+    they find a contract's last day, so :func:`strip_round_trip_differs` is
+    what says the panel gives them back.
+    """
+    payload = Path(path).read_bytes()
+    days, symbols, closes = read_strip(payload, root_of(Path(path).name))
+    _refuse_unpriced_days(Path(path).name, days, closes)
+    columns = {
+        symbol: [(days[day], float(closes[day, index])) for day in np.flatnonzero(priced)]
+        for index, symbol in enumerate(symbols)
+        for priced in [np.isfinite(closes[:, index])]
+    }
+    return record_lifted_columns(
+        columns,
+        vendor=VENDOR,
+        price_basis=price_basis,
+        saved_date=saved_date_of(payload),
+        source_file=Path(path).name,
+        data_dir=data_dir,
+    )
+
+
+def strip_round_trip_differs(path: Path, *, data_dir: Path | None = None) -> str | None:
+    """Why the recorded strip is not the file's ``cl`` array, or ``None`` when it is.
+
+    :func:`round_trip_differs` asks for five fields, and a strip's members
+    carry the close alone, which :func:`chan.series.load_panel` refuses to
+    read as anything else. So this rebuilds the one array and compares it
+    exactly, days, column order and every NaN included.
+    """
+    from chan.series import load_panel
+
+    payload = Path(path).read_bytes()
+    days, symbols, closes = read_strip(payload, root_of(Path(path).name))
+    _, panel = load_panel(Path(path).name, data_dir=data_dir)
+    if [str(day.date()) for day in panel.index] != days:
+        return "the panel's days are not the file's trading days"
+    if list(panel.columns) != sorted(symbols):
+        return "the panel's symbols are not the file's"
+    order = [symbols.index(symbol) for symbol in panel.columns]
+    if not np.array_equal(panel.to_numpy(dtype=float), closes[:, order], equal_nan=True):
+        return "the panel's closes are not the file's cl array"
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m chan.mat_columns",
-        description="Record one of Chan's .mat files as one vintage per stock.",
+        description="Record one of Chan's .mat files as one vintage per column.",
     )
     parser.add_argument("path", type=Path, help="a local copy of the .mat file")
     # Every basis but ``return``, which no writer records.
@@ -338,25 +470,46 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--price-basis", required=True, choices=choices)
     arguments = parser.parse_args(argv)
 
-    sha256 = hashlib.sha256(arguments.path.read_bytes()).hexdigest()
-    flags = arguments.price_basis == "event"
+    payload = arguments.path.read_bytes()
+    sha256 = hashlib.sha256(payload).hexdigest()
+    basis = arguments.price_basis
     try:
-        if flags:
+        shape = shape_of(payload)
+        if shape == "flags":
+            if basis != "event":
+                raise ValueError(
+                    f"the file carries earnann, which is recorded under the event basis "
+                    f"rather than {basis}"
+                )
             entries = record_flag_file(arguments.path)
+        elif basis == "event":
+            raise ValueError("the file carries no earnann")
+        elif shape == "stocks":
+            entries = record_mat_file(arguments.path, price_basis=basis)
+        elif basis != "raw":
+            raise ValueError(
+                f"the file is a futures strip, whose settlements are recorded under the raw "
+                f"basis rather than {basis}"
+            )
         else:
-            entries = record_mat_file(arguments.path, price_basis=arguments.price_basis)
+            entries = record_strip_file(arguments.path, price_basis=basis)
     except (VintageRefused, ValueError) as refused:
         print(f"{arguments.path.name}: not recorded. {refused}", file=sys.stderr)
         return 1
 
     rows = sum(entry.row_count for entry in entries)
-    fields = EVENT_FIELDS if flags else LIFTED_FIELDS
+    fields = {"flags": EVENT_FIELDS, "stocks": LIFTED_FIELDS, "strip": ("Close",)}[shape]
     print(f"{arguments.path.name}   sha256 {sha256}")
     print(
         f"recorded {len(entries)} vintages, {rows} rows of {', '.join(fields)}, under "
         f"{entries[0].path.split('/')[0]}/, saved {entries[0].saved_date}"
     )
-    differs = (flag_round_trip_differs if flags else round_trip_differs)(arguments.path)
+    check = {
+        "flags": flag_round_trip_differs,
+        "stocks": round_trip_differs,
+        "strip": strip_round_trip_differs,
+    }[shape]
+    differs = check(arguments.path)
     if differs is not None:
         print(
             f"round trip failed: {differs}. The vintages are recorded, so review them before "
@@ -365,11 +518,56 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    if flags:
+    if shape == "flags":
         print("round trip: every flag read back is the file's array, day for day")
+    elif shape == "strip":
+        print("round trip: every close read back is the file's cl array, NaN for NaN")
     else:
         print("round trip: every field read back is the file's array, NaN for NaN")
     return 0
+
+
+def shape_of(payload: bytes) -> str:
+    """Which reader a file needs, ``flags``, ``stocks`` or ``strip``, by the variables it holds.
+
+    Read off the variables rather than off the basis the caller states,
+    because a strip and a stock file both take a price basis, and before the
+    strips arrived a strip handed to the command reached the stock reader and
+    was refused for carrying no ``stocks``.
+
+    A strip is a file carrying ``contracts``, or a file naming no columns and
+    holding no price array but ``cl``, which is the gold file's shape. Anything
+    else takes the stock path, so a stock file with its symbol list misspelled
+    is refused for carrying no ``stocks`` rather than read as one series. A file
+    naming its columns ``syms`` takes the stock path too, where
+    :func:`read_arrays` refuses it for carrying no ``stocks``. Chan's ETF file
+    is one, and
+    [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) is
+    what teaches the stock reader that spelling.
+    """
+    held = {name for name, _, _ in scipy.io.whosmat(io.BytesIO(payload))}
+    if "earnann" in held:
+        return "flags"
+    if "contracts" in held:
+        return "strip"
+    if not held & ({"stocks", "syms", *ARRAYS.values()} - {ARRAYS["Close"]}):
+        return "strip"
+    return "stocks"
+
+
+def _refuse_unpriced_days(name: str, days: list[str], closes: np.ndarray) -> None:
+    """Refuse a file holding a day on which no column has a close.
+
+    The panel rebuilds a file's days from the union of its members' dates, so
+    such a day would vanish from it, and a round trip would only say so once
+    every member had been recorded.
+    """
+    unpriced = [day for day, row in zip(days, closes, strict=True) if not np.isfinite(row).any()]
+    if unpriced:
+        raise ValueError(
+            f"{name} prices no column on {', '.join(unpriced)}, so the per-column "
+            f"files could not give that day back"
+        )
 
 
 def _iso_day(day: object) -> str:

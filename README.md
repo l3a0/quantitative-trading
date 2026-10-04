@@ -520,6 +520,18 @@ factor model reads the earlier S&P 600 save's closes, for
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
 
+Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
+Eight are per-contract strips, each holding one column per futures contract
+on one commodity. A contract's column holds its settlement, the price the
+exchange publishes for it each day it trades. The strips are named by the
+exchange's code for the commodity: BR, C2, CL in two saves, HG, HO2, TU and
+VX. The ninth is his gold series sampled at 16:00. Each contract is committed
+as one vintage, under a symbol joining the code to the delivery month, such
+as `CL-2007F` for January 2007 crude oil, and `src/chan/mat_columns.py` writes
+them too.
+[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
+that shape was decided. No replication reads them yet.
+
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
 them, under `data/pythoncodesanddata/`, for
 [issue 301](https://github.com/l3a0/quantitative-trading/issues/301). They are

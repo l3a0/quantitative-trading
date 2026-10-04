@@ -20,9 +20,11 @@ Four sources, told apart by what the manifest records rather than by a filename.
   vendor ``chan-xls`` and are the adjusted-close column of Chan's own ``.xls``
   for that symbol. SPY's workbook also gives its as-traded ``Close``, which
   ``unadjusted=True`` reads, and no other symbol has one.
-- Chan's MATLAB cross-sections, under the vendor ``chan-mat``, which
-  :func:`load_panel` reads a whole file at a time and no ticker flag names.
-  Three hold prices and one holds earnings flags under the ``event`` basis.
+- Chan's MATLAB files, under the vendor ``chan-mat``, which :func:`load_panel`
+  reads a whole file at a time and no ticker flag names. Four hold stock
+  prices and one holds earnings flags under the ``event`` basis. Eight more are
+  futures strips, one ``raw`` column per contract, and one is a gold series of
+  one column.
 - Chan's 2018 Python port, under the vendor ``chan-py``, whose files are
   committed as the zip shipped them. :func:`load_minute_close` reads the one
   that holds minute bars, a close per day at 16:59 New York time. The daily
@@ -67,9 +69,9 @@ the only way to see the vendor rewrite history, and between two sources it says
 where they disagree. It lives here for the same reason the guard does.
 
 :func:`load_panel` reads a whole source file's columns as one date-by-symbol
-frame, which is how Chan's cross-sectional examples read his ``.mat`` files.
+frame, which is how Chan's examples read his ``.mat`` files.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) recorded
-those as one vintage per stock, and the panel is what puts them back together.
+those as one vintage per column, and the panel is what puts them back together.
 """
 
 from __future__ import annotations
@@ -311,7 +313,7 @@ def vintage_line(entry: VintageEntry) -> str:
 def load_panel(
     source_file: str, *, field: str = "Close", data_dir: Path | None = None
 ) -> tuple[list[VintageEntry], pd.DataFrame]:
-    """Every stock lifted from one source file, as a date-by-symbol frame of one field.
+    """Every column lifted from one source file, as a date-by-symbol frame of one field.
 
     ``field`` is a name from :data:`chan.vintage.LIFTED_FIELDS`, the close by
     default, or from :data:`chan.vintage.EVENT_FIELDS` for a source of flags. A
@@ -327,6 +329,11 @@ def load_panel(
     [issue 225](https://github.com/l3a0/quantitative-trading/issues/225),
     and for the two book-two files on
     [issue 250](https://github.com/l3a0/quantitative-trading/issues/250).
+    His futures strips hold their contracts in calendar order, which is sorted
+    order because CME's month letters run alphabetically, measured on
+    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300). A
+    spot column is the exception: four strips hold it first, and its symbol,
+    ``<root>-SPOT``, sorts after every contract.
 
     The manifest is read once. Resolving each member by its identity fields
     would read and validate every one of its lines once per member, 500 times
