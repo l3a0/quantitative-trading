@@ -235,8 +235,9 @@ class TestNaturalGas:
         assert {year: run for year, run in runs.items() if run >= 13} == {2007: 13, 2008: 14}
 
     def test_the_runs_counted_from_the_files_first_year(self) -> None:
+        """Counted from 1994, the runs of 13 and 14 end a year early, in 2006 and 2007."""
         runs = runs_ending(GAS)
-        assert (runs[2007], runs[2008]) == (14, 15)
+        assert (runs[2006], runs[2007], runs[2008]) == (13, 14, 15)
 
     def test_a_missing_year_breaks_a_run_in_any_order(self) -> None:
         trades = [gasoline_trade(year) for year in (2000, 1997, 1996, 1995)]
