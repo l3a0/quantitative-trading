@@ -3903,7 +3903,10 @@ would answer it for this rule too.
 MS that day. Nothing here checks the print against another source.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/buy-on-gap-lessons.md](../blog/buy-on-gap-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.buy_on_gap_figures` redraws.
 
 ## Entry 19: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*
 
