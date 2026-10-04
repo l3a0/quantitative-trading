@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Fifteen replications run here, fourteen from Chan's *Quantitative Trading* and
+Sixteen replications run here, fifteen from Chan's *Quantitative Trading* and
 one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other thirteen were built here.
+they were first built. The other fourteen were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -191,6 +191,18 @@ they were first built. The other thirteen were built here.
     move together as closely as the real ones do. The null declared before any
     statistic made every contract independent, gave bars of 19 and 13, and
     passed both. Every figure is exploratory.
+16. Conditional Parameter Optimization, Example 7.1 of the revised edition,
+    where a model re-chooses a GLD strategy's three parameters every day from
+    the 400 in its grid. It reads Alpha Vantage's one-minute GLD and GDX bars
+    from the owner's data archive, because their licence forbids committing
+    them, so its pins run only where that archive is. Neither of Chan's columns
+    reproduces. Holding the parameters the train years chose earns a test
+    Sharpe ratio of 5.791 against his 1.947, because selecting at no cost picks
+    the grid's busiest cell, at 47 round trips a day. Re-choosing daily wins on
+    the Sharpe and Calmar ratios and loses on both returns, so his claim that it
+    improves every metric does not hold. At 1 basis point a round trip both arms
+    lose money. Every reading the book left open was declared on the issue
+    before any return was computed, and every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -293,14 +305,24 @@ autocorrelations and the stocks' quartiles, and one verdict per factor. Its
 `test_the_month_before_formation_does_not_rank` holds the skip, so a
 lookback that runs to the formation's own close fails a test.
 
-All fifteen replications reach a verdict in
+[tests/test_cpo.py](tests/test_cpo.py) does it for Conditional Parameter
+Optimization. Its mechanics run everywhere: each fast step of the strategy is
+held against a literal loop over the book's rules. Its pins run only where the
+owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
+because the full run takes about five minutes.
+[tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
+each line field for field everywhere, and the files' hashes and their
+agreement with the committed daily closes wherever an archive is configured.
+
+All sixteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
 seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
-Entry 14 the market and momentum factors' and Entry 15 the calendar spreads'.
+Entry 14 the market and momentum factors', Entry 15 the calendar spreads' and
+Entry 16 Conditional Parameter Optimization's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -626,6 +648,23 @@ It prints the three vintages, the window, the eligible stocks and the legs,
 each factor's lag-1 autocorrelation beside the stocks' quartiles, a verdict per
 factor, and the band beside them. It refuses to run if a month's winner or
 loser leg is empty, and names the month.
+
+Conditional Parameter Optimization, Example 7.1, reads Alpha Vantage's
+one-minute GLD and GDX bars from the owner's data archive, because the
+vendor's terms do not allow committing them. `data/archive_vintages.jsonl`
+records their hashes, and the run needs the archive's path, set as
+`docs/design.md`'s Configuration section describes:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo
+```
+
+It prints both vintages and their hashes, the span and the split, the
+unconditional cell, each arm's four figures beside Chan's with the gap, the
+same figures net of 1 basis point a round trip, the verdict on Chan's claim,
+and where his 1.947 sits among all 400 cells. It takes about five minutes. On a
+machine with no archive it refuses, naming both ways to set one, and its pins
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

@@ -615,6 +615,43 @@ measurements below.
    budget so that `data/` stays under 150 MB of file content. A later panel
    still states its own size against that in its issue before it is recorded.
 
+## Two vintages kept in the owner's archive
+
+Two series a run reads are not in this directory. `archive_vintages.jsonl`
+records Alpha Vantage's one-minute bars for GLD and GDX, which
+[issue 23](https://github.com/l3a0/quantitative-trading/issues/23) reads for
+Example 7.1, and the files themselves stay in the owner's data archive. The
+vendor's terms grant personal, non-commercial use, so the bytes may not be
+republished here. The owner decided on 2026-10-03 that the archive keeps them
+and this repo keeps their hashes, and `docs/design.md`'s premise records that
+as an exception.
+
+| File | Vendor | Symbol | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `gld_intraday_1min.csv.gz` | Alpha Vantage, `TIME_SERIES_INTRADAY` | GLD | 2004-11-18 to 2026-07-16 | 2026-07-17 | raw, as `adjusted=false` returns it, extended hours included | 2,984,037 |
+| `gdx_intraday_1min.csv.gz` | the same | GDX | 2006-05-22 to 2026-10-02 | 2026-10-03 | the same | 2,656,028 |
+
+`chan.archive` hands a file's bytes back only once they hash to its line, and
+refuses with both hashes otherwise. On a machine with no archive it raises
+`ArchiveUnavailable` instead, and every test reading the bars turns that into a
+skip carrying the message. `docs/design.md`'s Configuration section says where
+the archive's path is set.
+
+Neither file is in `checksums.sha256`, which projects `vintages.jsonl` alone.
+[tests/test_archive.py](../tests/test_archive.py) holds them instead. It pins
+each line field for field, and wherever an archive is configured it re-hashes
+both files and holds each day's last regular-session close to the committed
+raw daily vintage of the same symbol. On GLD the two agree to a median of about
+0.01% and never differ by more than 2%. On GDX the median is about 0.04%, and
+ten days differ by more than 2%. Eight of those fall in the crashes of 2008 and
+March 2020, where a closing auction can move away from the last minute's trade.
+Two, 2009-09-17 and 2014-12-03, have no cause found, and the second is 7.0%
+off.
+
+The archive copy is the only kept copy of these bytes. The archive's own
+`README.txt` marks both files as pinned by hash here, so a refresh writes a new
+file name and never rewrites one this record names.
+
 ## Header shape
 
 The files placed by hand above carry a three-row header before the data. The

@@ -141,6 +141,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-13)
   - [What the entry concludes](#what-the-entry-concludes-14)
   - [What this entry cannot say](#what-this-entry-cannot-say-12)
+- [Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*](#entry-16-conditional-parameter-optimization-chans-quantitative-trading)
+  - [What the book printed](#what-the-book-printed-13)
+  - [What this repo computed](#what-this-repo-computed-15)
+  - [The verdicts](#the-verdicts-14)
+  - [What the entry concludes](#what-the-entry-concludes-15)
+  - [What this entry cannot say](#what-this-entry-cannot-say-13)
 
 ## How to read an entry
 
@@ -170,9 +176,10 @@ both.
    [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
    holds Entry 11, [tests/test_pead.py](../tests/test_pead.py) holds
    Entry 12, [tests/test_pca_factor.py](../tests/test_pca_factor.py) holds
-   Entry 13, and
+   Entry 13,
    [tests/test_momentum_factor.py](../tests/test_momentum_factor.py) holds
-   Entry 14.
+   Entry 14, and [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
+   whose pins run only where the owner's data archive is.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -282,7 +289,7 @@ Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
-Entry 14's rows 3 to 9, and Entry 15's rows 3 to 14.
+Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, and Entry 16's rows 6 to 11.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -332,6 +339,13 @@ his sentence, which one failing pair of bond funds cannot. The owner ruled on
 2026-10-03 that each commodity carries a verdict, and the criterion was written
 on [issue 137](https://github.com/l3a0/quantitative-trading/issues/137) before
 any statistic on the futures was computed.
+
+Entry 16's row 5 takes it as well. Chan states that conditional parameter
+optimization improves every metric of the strategy he names, which is a
+definite claim about one strategy, and the criterion, all four metrics better,
+was written on
+[issue 23](https://github.com/l3a0/quantitative-trading/issues/23) before any
+return on the minute bars was computed.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -3264,3 +3278,170 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
 moves with it, since that post quotes the verdicts.
+
+## Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Example 7.1, pp. 137 to 146.
+Shipped under [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
+
+Eleven rows, all derivable from [tests/test_cpo.py](../tests/test_cpo.py) on a
+machine that holds the owner's data archive. On any other machine those tests
+skip, which is the price of the exception `docs/design.md`'s premise records
+for these bars.
+
+**Neither of Chan's columns reproduces, and his claim does not hold.** Holding
+the parameters the train years chose, the strategy earns a test Sharpe ratio of
+5.791 against his 1.947, and every other figure overshoots by a similar
+multiple. Re-choosing the parameters each day beats holding them on the Sharpe
+and Calmar ratios and loses on both returns, so the claim that it improves all
+four metrics fails. At a cost of 1 basis point a round trip both arms lose
+money, which is the clearest pointer to what Chan's figures carry that the
+book does not state.
+
+Rows 1 to 4 are replications, one per printed figure of the unconditional
+column. Row 5 is Chan's claim and takes the claim route
+`### Rows that are not replications` describes. Rows 6 to 11 are not
+replications. Row 6 sets the conditional column beside Chan's, which the issue
+declared could only be reproduced in kind, because it rests on PredictNow's
+model. Row 10 was added after the result was seen.
+
+Every row reads the same vintages and specification, so they are stated once
+here.
+
+1. **The vintages.** Alpha Vantage's one-minute bars at `adjusted=false`:
+   GLD's `gld_intraday_1min.csv.gz`, downloaded 2026-07-17, and GDX's
+   `gdx_intraday_1min.csv.gz`, downloaded 2026-10-03. Both are kept in the
+   owner's archive and verified against the hashes in
+   `data/archive_vintages.jsonl` before they are parsed.
+   [data/README.md](../data/README.md) says what each holds and how each was
+   checked against the committed daily closes.
+2. **The readings.** The book leaves the bar grid, the rule order, the
+   annual-return definition, the features' daily form, the model and the
+   costs unstated, and its entry grid misprints a value. All 19 readings were
+   declared on
+   [issue 23](https://github.com/l3a0/quantitative-trading/issues/23#issuecomment-5975426355)
+   on 2026-10-04, before any return on the minute bars was computed, and
+   `src/chan/cpo.py` cites each by number. In short:
+
+   - the regular session, 09:30 to 15:59 by opening minute
+   - every day both ETFs traded from GDX's first day, 2006-05-22, to
+     2020-12-31, split 80% and 20% by trading days
+   - the endnote's recursions run continuously over the minutes
+   - exits before entries, flat at each day's open, liquidation at the last close
+   - the label is the sum of the day's round trips, at zero cost
+   - the unconditional cell maximises the compounded train return
+   - pyfolio's definitions for the four metrics
+
+3. **The model and features.** scikit-learn's `HistGradientBoostingRegressor`
+   with default hyperparameters and `random_state=0`, on 101 features: the
+   three parameters, and seven named indicators from `ta` on each ETF at seven
+   lookbacks, each read at the day's last bar. The book's unnamed eighth
+   indicator is left out.
+
+Every result here is **exploratory**. A replication spends its sample on a
+hypothesis someone else chose, so the entry says whether Chan's numbers and
+claim reproduce on these bars and nothing about whether the method works.
+
+### What the book printed
+
+| # | Row | Published | Where |
+| --- | --- | --- | --- |
+| 1 | Unconditional cumulative return over the three test years | 73% | p. 145 |
+| 2 | Unconditional annual return | 17.29% | p. 145 |
+| 3 | Unconditional Sharpe ratio | 1.947 | p. 145 |
+| 4 | Unconditional Calmar ratio | 0.984 | p. 145 |
+| 5 | Conditional beats unconditional on every metric | "All other metrics are improved using CPO" | p. 145 |
+| 6 | The conditional column | 83%, 19.77%, 2.325 and 1.454 | p. 145 |
+| 7 | The arithmetic annual return | nothing | n/a |
+| 8 | Both arms net of 1 basis point a round trip | nothing, the book mentions no costs | n/a |
+| 9 | Round trips a day | nothing beyond "multiple round trips per day" | p. 140 |
+| 10 | Where 1.947 sits among the 400 cells' test Sharpe ratios | nothing | n/a |
+| 11 | The span and the split | 2006-01-01 to 2020-12-31, 80% and 20%, the test "the last three years" | pp. 137 and 145 |
+
+The book's own figures disagree with each other. 17.29% a year compounds to
+61.4% over three years, not 73%, and 19.77% to 71.8%, not 83%. No definition
+of annual return makes them agree, so rows 1 and 2 cannot both reproduce at
+once.
+
+### What this repo computed
+
+| # | Specification | Computed | Gap | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | `∏(1 + r) − 1` over the 736 test days | 3.55 | +2.82 | `TestExample71OnTheArchive::test_rows_1_to_4_the_unconditional_figures_and_their_gaps` |
+| 2 | `(1 + cumulative)^(252 / n) − 1` | 0.6798 | +0.5069 | the same |
+| 3 | `√252 · mean(r) / std(r)`, sample standard deviation, risk-free rate zero | 5.791 | +3.844 | the same |
+| 4 | row 2 over the magnitude of the deepest drawdown of compounded wealth | 15.676 | +14.692 | the same |
+| 5 | conditional against unconditional on rows 1 to 4 | better on the Sharpe and Calmar ratios, worse on both returns | n/a | `TestExample71OnTheArchive::test_row_5_chan_s_claim_does_not_hold` |
+| 6 | the conditional arm, specified as rows 1 to 4 | 3.48, 0.6710, 5.916 and 16.604. It keeps the unconditional cell on 489 of the 736 days, uses 47 cells and switches 362 times | n/a | `TestExample71OnTheArchive::test_row_6_the_conditional_figures_beside_chan_s` and the row after it |
+| 7 | `252 · mean(r)` | 0.5232 unconditional and 0.5177 conditional | n/a | `TestExample71OnTheArchive::test_row_7_the_arithmetic_annual_returns` |
+| 8 | each day's return less 1 basis point per round trip | Sharpe ratios of −7.468 and −5.658, and cumulative returns of −0.855 and −0.773 | n/a | `TestExample71OnTheArchive::test_row_8_one_basis_point_a_round_trip_turns_both_arms_to_losses` |
+| 9 | the mean count of round trips on a test day | 46.8 unconditional and 40.5 conditional | n/a | `TestExample71OnTheArchive::test_row_9_round_trips_a_day` |
+| 10 | each cell's test Sharpe ratio, all 400. Added after the result was seen | 0.812 to 5.964, median 3.516. 38 cells sit below 1.947, and the nearest is `3_60_2.5`, at 1.967 and 1.2 round trips a day | n/a | `TestExample71OnTheArchive::test_row_10_where_chan_s_sharpe_sits_among_the_400_cells` |
+| 11 | every day both ETFs have a regular-session bar | 3,680 days from 2006-05-22 to 2020-12-31, the test starting 2018-01-31 | n/a | `TestExample71OnTheArchive::test_row_11_the_span_and_the_split` |
+
+A cell is written as Chan's p. 145 output writes it: weight, lookback in
+minutes, entry threshold.
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | did not reproduce | 3.55 against 0.73. The selection rule chose `2_30_0.2`, the smallest weight, the shortest lookback and the lowest entry, which is the corner of the grid that trades most. |
+| 2 | did not reproduce | 0.6798 against 0.1729, for the same reason. |
+| 3 | did not reproduce | 5.791 against 1.947. |
+| 4 | did not reproduce | 15.676 against 0.984. |
+| 5 | did not reproduce | The claim needs all four. Re-choosing wins on Sharpe, 5.916 against 5.791, and on Calmar, 16.604 against 15.676, and loses on cumulative return, 3.48 against 3.55, and on annual return. |
+| 6 | none, not a replication | The issue declared before the run that this column rests on a model this repo cannot have, so its figures are set beside Chan's rather than judged against them. The model keeps the unconditional cell on two days in three, so the arms differ less than their names suggest. |
+| 7 | none, not a replication | The arithmetic figures are lower than the compounded ones and still three times Chan's. No definition of annual return rescues row 2. |
+| 8 | none, not a replication | A cost of 1 basis point a round trip, about GLD's quoted half-spread, wipes out both arms. Chan's figures are consistent with a strategy that trades a few times a day rather than 47, which is what a cost charged during his optimisation would select. |
+| 9 | none, not a replication | Both arms trade about 40 to 47 round trips a day. Chan says only "multiple". |
+| 10 | none, not a replication | Added after the verdicts were seen, because a gap alone does not say where the book's figure would have to come from. Chan's 1.947 sits near the bottom of what these 400 cells earned on the test days, among the cells that trade least. |
+| 11 | none, not a replication | GDX's first trading day is 2006-05-22, so Chan's stated start of January 1, 2006 cannot hold for the pair. The 80% boundary falls on 2018-01-31, which fits Figure 7.1's curves beginning just after the 2018 tick. That reading of the figure is by eye. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **Neither column reproduces, and the claim fails.** Selecting the
+   parameters that maximise train return, at no cost, picks the busiest cell,
+   and it earns roughly three times Chan's figures on the test years.
+   Re-choosing daily improves the risk-adjusted figures a little and the
+   returns not at all.
+2. **What Chan's figures most likely carry is a cost, or something that acts
+   like one.** At no cost, more trading earns more here, so a selection made
+   at no cost always lands on the busiest corner. His 1.947 sits among the
+   cells that trade once or a few times a day. A cost charged during his own
+   optimisation, a fill one bar later, or a coarser bar would each move the
+   choice there. None was declared before the run, so none is tested here,
+   and this is a hypothesis for a later run rather than a finding.
+3. **The third-party run found the same.** The reproduction cited on the issue,
+   on Kibot bars from 2009, reported a test Sharpe ratio of 5.974 for its
+   unconditional arm at 50.1 round trips a day, and found Chan's figure near
+   its minimum. This entry's busiest cell, `2.5_30_0.2`, earns 5.964. Two
+   vendors and two spans agree on where the stated rule lands.
+
+### What this entry cannot say
+
+Four things.
+
+**Whether conditional parameter optimization works.** The model here is not
+PredictNow's, its features lack the book's unnamed eighth indicator, and the
+features are read at the day's last bar rather than summarised over it. A
+better model could win where this one did not. The test is of Chan's printed
+claim on this strategy, not of the method.
+
+**What would reproduce Chan's numbers.** Row 10 places his Sharpe ratio among
+the least active cells, and the cost row shows why such a cell would be chosen
+once trading costs something. A search over costs and fill delays until one
+matched would be the search the honesty rail forbids, so it was not run.
+
+**Whether the strategy pays.** At 1 basis point a round trip both arms lose
+heavily, and GLD's real cost of a round trip is at least that.
+
+**Anything a public clone can check.** The bars are licensed, so the pins run
+only where the owner's archive is. The hashes say exactly which bytes were
+read, and nothing here can show them to anyone else.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.

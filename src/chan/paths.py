@@ -13,6 +13,12 @@ name through this module rather than binding it at import, so the switch stays
 one switch. Which file inside that tree a run reads is not decided here at all:
 :mod:`chan.series` asks ``data/vintages.jsonl`` for the path.
 
+The vintages kept in the owner's data archive are the one exception, and they
+have their own root on purpose. :mod:`chan.archive` reads it from the machine,
+because the path to someone's archive is machine-specific and never belongs in
+a tracked file, so this switch still names every committed vintage and nothing
+else.
+
 ``FIGURES_DIR`` does the same for the committed figures, which
 :mod:`chan.regime_figure` and :mod:`chan.lag_residual_figure` draw from those
 same vintages.
