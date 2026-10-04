@@ -2065,9 +2065,19 @@ that left.
 code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
 by the revised code's repost.
 
-**What happened after 2007.** After Example 7.7 the revised edition says the
-most recent five years give even worse average returns. Neither file reaches
-those years, so nothing here reads that claim.
+**Whether the most recent five years do worse.** Directly after the MATLAB
+listing of Example 7.7, the revised edition, p. 180, suggests running the
+program on "the most recent five years instead of the entire data period" and
+says the average returns are even worse. The entire data period is the
+program's own input, `SPX_20071123`, which runs to 2007-11-23. So those five
+years are inside the committed file, and the claim can be checked here. This
+entry quotes no five-year figure, because no criterion for one has been
+written, and a criterion comes before the figure it judges. Row 17 is not that
+figure. Its 70 months start in January 2002, about ten months before the
+five years do, and they were split at the date location 4425 gives rather
+than at any reading of p. 180.
+[Issue 254](https://github.com/l3a0/quantitative-trading/issues/254) carries
+the check.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
