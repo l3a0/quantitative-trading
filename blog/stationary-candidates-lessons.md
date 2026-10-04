@@ -1,6 +1,6 @@
 # Chan’s other stationary spreads: a currency rate holds and a pair of bond funds does not
 
-*A test finds that a price keeps returning to its average only when its statistic falls below a cutoff, called the bar. A fitted pair faces a stricter bar than one series, and for the currency rate, which bar applies decides the verdict.*
+*The currency rate passes the cutoff for a single price series but misses the stricter cutoff for a fitted pair of prices, so which cutoff applies decides the verdict.*
 
 ## Why the bar matters
 
