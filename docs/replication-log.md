@@ -2745,8 +2745,8 @@ number of announcements a day is predictable, and nothing here tests that.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/post-earnings-drift-lessons.md](../blog/post-earnings-drift-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
-figure, which `uv run python -m chan.pead_figures` redraws.
+moves with it, since that post quotes most of these figures. So does the
+post's one figure, which `uv run python -m chan.pead_figures` redraws.
 
 ## Entry 13: the PCA factor model, Chan's *Quantitative Trading*
 

@@ -10,9 +10,13 @@ reason ``tests/test_regime_figure.py`` gives.
 The figure reads the vintages and the specification ``tests/test_pead.py``
 names as its ``SPEC``, which every failure message here carries too.
 
-Three things are pinned here and nowhere else: the dates of the longest spell
-below the high, the high it falls from, and that the deepest drawdown sits
-inside it. ``calculateMaxDD`` returns the deepest drawdown and the longest
+Three things are pinned here and nowhere else.
+
+1. The dates of the longest spell below the high.
+2. The high it falls from.
+3. That the deepest drawdown sits inside it.
+
+``calculateMaxDD`` returns the deepest drawdown and the longest
 duration separately, and the two need not share a spell, so the figure
 finding them together is a fact about this run rather than about the helper.
 

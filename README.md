@@ -1282,16 +1282,16 @@ the replication log.
 Four groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
-   "used to last several days" and "barely until the market closes" at 2890,
-   "the slow diffusion of news" at 2990, "known and studied since 1968" and
-   the trader needing no expectations at 2994, the earnings.com calendar and
-   the window from the previous close to the open at 3002 and 3010, the
-   90-day deviation as the test of "surprising" at 3019, "a very respectable
-   1.5", "a certain degree of look-ahead bias", "not a very grievous bias"
-   and "at least four times" at 3024, and "the overnight returns are
-   negative on average" at 3039. The book's figures at 3024 are pinned. Its
-   words are not. The *Quantitative Trading* quotation the plan named, at
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "Used to last several days" and "barely until the market closes" are at
+   2890. "The slow diffusion of news" is at 2990. "Known and studied since
+   1968" and the trader needing no view of expectations are at 2994. The
+   earnings.com calendar and the window from the previous close to the open
+   are at 3002 and 3010. The 90-day deviation as the test of "surprising" is
+   at 3019. "A very respectable 1.5", "a certain degree of look-ahead bias",
+   "not a very grievous bias" and "at least four times" are at 3024. "The
+   overnight returns are negative on average" is at 3039. The book's figures
+   at 3024 are pinned, and its words are not. The *Quantitative Trading* quotation the plan named, at
    location 3360 of the revised edition, was dropped, because the Kindle
    Cloud Reader could not be reached on 2026-10-03 to read its page.
 2. A fact outside the committed data. Apple released earnings five times

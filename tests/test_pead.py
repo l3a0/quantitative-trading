@@ -1,7 +1,14 @@
 """The pins for post-earnings announcement drift, *Algorithmic Trading*'s Example 7.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 7.2. ``docs/replication-log.md`` Entry 12 carries the verdicts and
+about Example 7.2, with three exceptions, all in
+``blog/post-earnings-drift-lessons.md``. The post quotes the dates of the
+longest spell below the high, which ``tests/test_pead_figures.py`` holds. It
+quotes the flag file's 1,885 flags, Apple's three flagged days and the 29
+stocks with none, which ``tests/test_series.py`` holds as facts about the
+committed flags. And it recalls Example 7.7's two Sharpe ratios, which
+``tests/test_equity_seasonals.py`` holds. README lists what the post says that
+nothing pins. ``docs/replication-log.md`` Entry 12 carries the verdicts and
 points here row by row.
 
 Every pin on the committed files reads two vintages and one specification, so
@@ -205,7 +212,7 @@ class TestTheFigures:
         assert np.isfinite(drift.daily).all(), SPEC
 
     def test_157_of_the_330_days_hold_a_position_from_2011_05_11(self, drift: Drift) -> None:
-        """Most days hold nothing, which is the idle capital Chan's leverage is for."""
+        """More than half the days hold nothing, because each position gets a thirtieth."""
         held = np.count_nonzero(drift.positions, axis=1) > 0
         assert int(held.sum()) == 157, SPEC
         assert str(drift.days[held][0].date()) == "2011-05-11", SPEC

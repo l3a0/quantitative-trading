@@ -7,8 +7,9 @@ figure for it. :func:`make_cumulative_figure` redraws what ``pead.m``'s closing
 ``plot(cumret)`` draws, which the book prints as Figure 7.2 at location 3024:
 the compounded cumulative return over the flag file's 330 days, at one
 thirtieth of capital a position, unlevered and before costs. It serves the
-post's first lesson, that every printed figure reproduces, and the spell it
-marks serves the third, that most days hold nothing.
+post's first lesson, that every printed figure reproduces. Its shaded start
+serves the third, where the 89 days before the moving deviation fills hold
+nothing, and its spell shows where the 109-day drawdown falls.
 
 Two stretches are shaded.
 
@@ -38,6 +39,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import PercentFormatter
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
+from chan.matlab_helpers import drawdown_path
 from chan.paths import FIGURES_DIR
 from chan.pead import (
     DENOMINATOR,
@@ -86,19 +88,11 @@ class Spell:
 def longest_spell(cumret: np.ndarray) -> Spell:
     """Where ``calculateMaxDD``'s longest duration falls, under its own rules.
 
-    The high starts at zero and the loop on the second row, as
-    :func:`chan.matlab_helpers.calculate_max_dd` keeps them, so the spell's
-    length is that function's duration. Where two spells tie, the first is
-    taken.
+    It reads :func:`chan.matlab_helpers.drawdown_path`, the loop
+    :func:`chan.matlab_helpers.calculate_max_dd` runs, so the spell's length is
+    that function's duration. Where two spells tie, the first is taken.
     """
-    values = np.asarray(cumret, dtype=float)
-    high = np.zeros_like(values)
-    drawdown = np.zeros_like(values)
-    duration = np.zeros(len(values), dtype=int)
-    for t in range(1, len(values)):
-        high[t] = max(high[t - 1], values[t])
-        drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
-        duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
+    _, drawdown, duration = drawdown_path(cumret)
     last = int(np.argmax(duration))
     first = last - int(duration[last]) + 1
     trough = first + int(np.argmin(drawdown[first : last + 1]))
@@ -205,7 +199,7 @@ def make_cumulative_figure(out: Path | None = None, drift: Drift | None = None) 
         f"Example 7.2 of Algorithmic Trading, {days[0].date()} to {days[-1].date()}, each day's "
         f"summed return over {DENOMINATOR}, unlevered and before costs.\n"
         f"Prices from {PRICE_FILE} and flags from {FLAG_FILE}.\n"
-        "The price file holds only the S&P 500 as it stood on 2012-04-24, "
+        "The price file holds the S&P 500 as Chan held it on 2012-04-24, "
         "so every stock is a survivor.",
     )
     fig.tight_layout(rect=(0, 0.11, 1, 0.96))
