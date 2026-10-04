@@ -135,7 +135,16 @@ On the book’s rule, trading at the open earns 4.4202 before costs and 0.7834 a
 
 The notebook’s rule clears the threshold. Run as written, it reproduces both figures Chan’s notebook printed, to four decimals: 2.3818 before costs and 1.3997 after. The book prints neither number. They are the notebook’s own output, read in [a third-party copy of Chan’s Python code on GitHub](https://github.com/pinhaocheng/epchan-quant_trading_Python_codes/tree/5fcab614d75c53c61e79a9049f6f623b84e2f4d4), at commit `5fcab61`.
 
-This post tests the claim on the book’s rule because of what Chan’s sentence says. It recalls Example 3.7’s 0.25 and −3.19 and calls trading at the open the only change. The notebook’s rule is not that strategy with one change. Chan’s companion notebook for Example 3.7, `example3_7.ipynb` in the same copy, printed 0.9578 before costs and −2.1617 after on the closes, where the book prints 0.25 and −3.19, and the notebook’s rule reproduces both. Among other differences from the MATLAB, it fills each gap in a stock’s prices with the last price seen, scales each day’s weights to a fixed total size, and divides the variance by the number of days rather than one fewer.
+This post tests the claim on the book’s rule because of what Chan’s sentence says. It recalls Example 3.7’s 0.25 and −3.19 and calls trading at the open the only change. The notebook’s rule is not that strategy with one change. Chan’s companion notebook for Example 3.7, `example3_7.ipynb` in the same copy, printed 0.9578 before costs and −2.1617 after on the closes, where the book prints 0.25 and −3.19, and the notebook’s rule reproduces both.
+
+Both rules bet against each stock’s return relative to the market’s. They differ in six ways.
+
+1. **Gaps in prices.** The notebook fills each gap in a stock’s prices with the last price seen, so a stock missing for a day earns nothing that day, and a gap of any length counts as one day’s move. The book’s rule leaves the gap empty and computes no return across it.
+2. **Position size.** The book’s rule divides each weight by the number of stocks priced that day, so its total position changes from day to day. The notebook scales each day’s weights so that the stocks it owns and the stocks it has sold short add up to the same total every day.
+3. **Stocks with a missing price.** The book’s rule gives a stock no weight on a day its price is missing, or was missing the day before. After the fill, the notebook is missing a price only before a stock’s first one, and its sums skip those days.
+4. **The standard deviation.** The notebook divides the variance by the number of days, and the book’s rule by one fewer.
+5. **The first day’s cost.** The notebook charges nothing for the first day’s trades, so neither of Lesson 2’s quirks applies to it.
+6. **Trades next to a missing weight.** The book’s rule charges for moving a stock’s weight up from zero and back down to it. The notebook skips any trade next to a missing weight, so it never pays to buy a stock first priced during 2006.
 
 ```math
 \begin{array}{l|l|c|c}
