@@ -343,10 +343,12 @@ agreement with the committed daily closes wherever an archive is configured.
 does it for cross-sectional momentum. It pins each figure `kentdaniel.m`
 computes at the precision that is real and as the script formats it, beside
 the comment it misses and the book. It pins each declared reading over all
-three windows, and the rule deciding whether one lands. It also holds the
-transcription to a second implementation written separately in pandas, which
-is what says the script, rather than a slip in copying it, is what departs
-from the comment.
+three windows, its distance from the book, and the rule deciding whether one
+lands. It holds the transcription to a second implementation written
+separately in pandas, which rules out a slip in the numpy code, though not a
+misreading of the MATLAB, since both read it the same way. It also pins the
+first edition's `smartstd` printing 4.05 against 4.07, so a port that reaches
+for the helper this repo held first fails a test.
 
 All seventeen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -394,7 +396,7 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 2007 ranking reads PMC as a return of 1.3056 and holds it short in January
 2008. That is Chan's program as printed, and Entry 7 says what the fill moves.
 Cross-sectional momentum does not call the guard either. It flags ETFC's
-2007-11-12 inside the 2007 window and 29 days inside 2008 and 2009, so it would
+2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
 stand.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for

@@ -3513,7 +3513,7 @@ Eleven rows, all derivable from
 [tests/test_cross_sectional_momentum.py](../tests/test_cross_sectional_momentum.py),
 and a table of the readings.
 
-**The script reproduces the book, and its own comment lines do not.** Stocks
+**The script's figures sit near the book's and far from its own comment's.** Stocks
 that rose most over the past year tend to keep rising, so Chan buys the 50
 with the highest 252-day return and shorts the 50 with the lowest, holds each
 day's picks 25 days in overlapping cohorts, and divides each day's return by
@@ -3527,8 +3527,10 @@ figures its comment prints. It gives a Sharpe ratio of 4.0657, and a
 compounded APR of 0.372577 in 2007 and −0.298789 over 2008 and 2009, which
 round to the book's 4.1, 37 percent and −30 percent. A second implementation
 written separately in pandas agrees with the transcription on every day, which
-`TestASecondImplementation` holds, so the departure is the script's and not a
-slip in copying it.
+`TestASecondImplementation` holds. It shares the transcription's reading of
+the script, a one-row `lag` among it, so it rules out a slip in the numpy code
+and not a misreading of the MATLAB. The comment would have confirmed that
+reading, and it did not.
 
 **Under the rule declared in advance, no book figure reproduces.** The
 issue set the book's "APR" against the arithmetic return, because Entry 12
@@ -3617,7 +3619,7 @@ that close it. The book quotes two figures for that window, one for 2008 and
 | 4 | +0.033053 | did not reproduce | The same. |
 | 5 | −159 | did not reproduce | The same. |
 | 6 | −5 | did not reproduce | The declared rule reads the book's "APR" as the arithmetic return, and no reading's rounds to 37. |
-| 7 | −0.0 | did not reproduce | The declared rule needed 37 percent and 4.1 from one reading together. The script's 4.0657 rounds to 4.1 alone, which the rule calls a partial landing rather than a landing. |
+| 7 | −0.0 | did not reproduce | The declared rule needed 37 percent and 4.1 from one reading together. The script's 4.0657, 0.0343 below the book, rounds to 4.1 alone, which the rule calls a partial landing rather than a landing. |
 | 8 | −2 | did not reproduce | The declared rule again. The arithmetic return rounds to −32 percent. |
 | 9 | none | reproduced | The claim holds on the script as printed. The rule was fixed before the number was seen. |
 | 10 | none | none, not a replication | Seen after the rule was fixed. Both of the book's APRs are the script's compounded figure at the book's precision, and that decides no verdict. |
@@ -3630,20 +3632,21 @@ R1 to R4 as what could explain a script printing 0.40 against a book printing
 4.1, each changing one thing from the script, and no combination was run. Each
 cell is the arithmetic annual return and then the Sharpe ratio, from
 `TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands when
-its 2007 return rounds to 37 percent and its 2007 Sharpe ratio to 4.1.
+its 2007 return rounds to 37 percent and its 2007 Sharpe ratio to 4.1. The
+last column is each 2007 figure less the book's, from `TestTheDistances`, which
+also holds each reading's distance from −30 percent.
 
-| Reading | What changes | 2007 | 2008 and 2009 | 2010 to 2012 | Lands |
-| --- | --- | --- | --- | --- | --- |
-| R0 | nothing, the script as printed | 0.3200, 4.0657 | −0.3232, −1.2930 | 0.0162, 0.2004 | no, 4.1 alone |
-| R1 | one portfolio held at a time, re-formed every 25 days | 0.3222, 3.9138 | −0.3130, −1.2586 | 0.0104, 0.1277 | no |
-| R2 | the ranking return ends 21 days back | 0.2893, 3.8232 | −0.3053, −1.2821 | 0.0176, 0.2262 | no |
-| R3 | a day's picks earn that same day, which looks ahead | 0.3371, 4.2779 | −0.2923, −1.1695 | 0.0332, 0.4093 | no |
-| R4 | each day over the cohorts it holds rather than 25 | 0.3215, 4.0531 | R0's | R0's | no, 4.1 alone |
+| Reading | What changes | 2007 | 2008 and 2009 | 2010 to 2012 | Lands | From 37 percent and 4.1 |
+| --- | --- | --- | --- | --- | --- | --- |
+| R0 | nothing, the script as printed | 0.3200, 4.0657 | −0.3232, −1.2930 | 0.0162, 0.2004 | no, 4.1 alone | −0.0500, −0.0343 |
+| R1 | one portfolio held at a time, re-formed every 25 days | 0.3222, 3.9138 | −0.3130, −1.2586 | 0.0104, 0.1277 | no | −0.0478, −0.1862 |
+| R2 | the ranking return ends 21 days back | 0.2893, 3.8232 | −0.3053, −1.2821 | 0.0176, 0.2262 | no | −0.0807, −0.2768 |
+| R3 | a day's picks earn that same day, which looks ahead | 0.3371, 4.2779 | −0.2923, −1.1695 | 0.0332, 0.4093 | no | −0.0329, +0.1779 |
+| R4 | each day over the cohorts it holds rather than 25 | 0.3215, 4.0531 | R0's | R0's | no, 4.1 alone | −0.0485, −0.0469 |
 
-The readings were declared to explain a gap that the code turned out not to
-have. Their 2007 Sharpe ratios span 3.82 to 4.28, with the script's own 4.07
-inside that span, and the question they were built for is answered by row 2
-rather than by any of them. Long losers and
+The readings were declared to explain a script printing 0.40 against a book
+printing 4.1. The code's own Sharpe ratio is 4.0657, and their 2007 Sharpe
+ratios span 3.82 to 4.28 around it. Long losers and
 short winners was declared too, and negating every position negates every
 day's return exactly, which `TestTheReadings::test_the_opposite_sign_negates_every_day`
 holds.
@@ -3652,17 +3655,20 @@ holds.
 
 Three things.
 
-1. **The disagreement was between the code and its comment, not the code and
-   the book.** `kentdaniel.m` as printed, on the file it loads, gives the
-   book's Sharpe ratio, and its compounded APR gives both of the book's APRs.
-   The 0.40 in its closing comment is a tenth of what the code computes, and
-   no reading was added to find the run that printed it.
+1. **The 0.40 is the comment's, not the code's.** `kentdaniel.m` as
+   transcribed, on the file it loads, gives a Sharpe ratio that rounds to the
+   book's, and compounded APRs that round to both of the book's APRs. The 0.40
+   in its closing comment is a tenth of what the code computes, and no reading
+   was added to find the run that printed it. The one assumption the
+   transcription makes, that `lag` is a one-row shift, is the one the comment
+   would have confirmed.
 2. **A rule taken from one example did not carry to the next.** Example 7.2's
-   "APR" is the arithmetic return and Example 6.2's is the compounded one,
-   in one book by one author. The rule declared in advance followed the first,
-   so the verdicts on rows 6 to 8 say what that rule gives, and row 10 says
-   what was seen afterwards.
-3. **The crash Chan describes is in the file.** The strategy that earned a
+   "APR" is the arithmetic return. The figures seen afterwards point to the
+   compounded one in Example 6.2, in one book by one author. The rule declared
+   in advance followed the first example, so the verdicts on rows 6 to 8 say
+   what that rule gives, and row 10 says what was seen afterwards.
+3. **Seen after the run and deciding nothing, the crash Chan describes is in
+   the file.** The strategy that earned a
    Sharpe ratio of 4.07 over 2007 lost 32 percent a year over 2008 and 2009,
    with a drawdown of −0.606634 lasting 371 days, and earned 1.6 percent a
    year after that. That is the collapse location 2890 describes, where

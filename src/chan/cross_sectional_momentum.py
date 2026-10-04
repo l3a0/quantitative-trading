@@ -37,10 +37,12 @@ The 2007 window, rows 253 to 412, opens the day after the first row any stock
 is marked, so its first 24 days hold fewer than 25 cohorts while the script
 still divides by 25.
 
-**The book's APR is the arithmetic figure.** Entry 12 found that Example 7.2's
-"APR of 6.7 percent" is ``pead.m``'s ``252 · smartmean``, not its compounded
-figure, so the book's 37 and −30 percent are set against the arithmetic
-return here, and the compounded one is reported beside them.
+**The declared rule reads the book's APR as the arithmetic figure.** Issue 297
+fixed that before any run, because Entry 12 found that Example 7.2's "APR of
+6.7 percent" is ``pead.m``'s ``252 · smartmean``, not its compounded figure. So
+the book's 37 and −30 percent are set against the arithmetic return here, and
+the compounded one is reported beside them and decides nothing. The
+replication log's Entry 17 says what the compounded figure showed afterwards.
 
 **The readings.** :data:`READINGS` holds the script as printed and four
 variants, each changing one thing, and the report always runs all five. The
@@ -65,21 +67,22 @@ moves a figure.
 
 1. The closes are read as committed vintages through
    :func:`chan.series.load_panel` rather than loaded from the ``.mat`` file.
-2. ``longs`` is preallocated. The script's line that would preallocate it was
-   swallowed by the comment on the line before, so MATLAB grows it row by row.
+2. ``longs`` is preallocated. The script's ``longs=false(size(ret));`` sits
+   inside line 21's own comment, so MATLAB grows it row by row.
    It still ends with every row, so its logical indexing lands on the same
    cells.
 3. ``lag(cl)`` is :func:`chan.matlab_helpers.lag1`. Neither mirror ships a
    ``lag.m``. The first edition's ``lag1.m`` defines ``lag`` as a one-row
-   shift padded with NaN, and the printed figures reproducing confirms it.
+   shift padded with NaN. The script's printed figures would have confirmed
+   that reading, and they did not reproduce, so it stays a reading.
 4. A row with fewer than 50 returns that are not NaN is refused, where MATLAB
    would stop on an index below 1. No row of Chan's file comes near that.
 5. ``plot(cumret)`` is not carried. The run prints and draws nothing.
 
-**The scale-break guard is not called.** The 30 days the guard flags in this
-file all fall in 2007 to 2009. ETFC's 2007-11-12 is inside the 2007 window and
-the other 29 inside 2008 and 2009, so the guard :mod:`chan.pead` calls would
-refuse both. The script ran on these closes as they stand, and a momentum
+**The scale-break guard is not called.** The guard flags 30 stock-days in this
+file, all in 2007 to 2009. ETFC's 2007-11-12 is inside the 2007 window and the
+other 29 inside 2008 and 2009, so the guard :mod:`chan.pead` calls would refuse
+both. The script ran on these closes as they stand, and a momentum
 ranking is meant to see a real collapse, which is the decision
 :mod:`chan.momentum_factor` recorded. The comment above
 ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py`` records it.
@@ -141,7 +144,8 @@ WINDOWS = {
     "2010-2012": ("2010-01-04", "2012-04-24"),
 }
 
-#: What the book prints at location 2800. Each APR is the arithmetic figure.
+#: What the book prints at location 2800. The rule declared on issue 297 reads
+#: each APR as the arithmetic figure.
 BOOK_APR_PERCENT = 37
 BOOK_SHARPE = 4.1
 BOOK_CRISIS_APR_PERCENT = -30
@@ -414,14 +418,23 @@ def report(members: list[VintageEntry], results: dict[str, dict[str, Figures]]) 
         f"{BOOK_APR_PERCENT} percent and {BOOK_SHARPE} for 2007, and "
         f"{BOOK_CRISIS_APR_PERCENT} percent for 2008 and 2009."
     )
-    print(f"  {'Reading':<34} " + " ".join(f"{window:>19}" for window in WINDOWS) + "  lands")
+    print(
+        f"  {'Reading':<34} "
+        + " ".join(f"{window:>19}" for window in WINDOWS)
+        + "  lands  from 37 percent, from 4.1"
+    )
     for name, (label, _) in READINGS.items():
         cells = " ".join(
             f"{results[name][window].arithmetic_annual:>10.4f}{results[name][window].sharpe:>9.4f}"
             for window in WINDOWS
         )
-        landed = "yes" if lands_the_book(results[name]["2007"]) else "no"
-        print(f"  {name} {label:<31} {cells}  {landed}")
+        first = results[name]["2007"]
+        landed = "yes" if lands_the_book(first) else "no"
+        print(
+            f"  {name} {label:<31} {cells}  {landed:>5}  "
+            f"{first.arithmetic_annual - BOOK_APR_PERCENT / 100:+.4f}  "
+            f"{first.sharpe - BOOK_SHARPE:+.4f}"
+        )
     print()
     landed = [name for name in READINGS if lands_the_book(results[name]["2007"])]
     print(f"  Readings landing 37 percent and 4.1 together: {', '.join(landed) or 'none'}.")
@@ -445,7 +458,7 @@ def report(members: list[VintageEntry], results: dict[str, dict[str, Figures]]) 
     )
     print(
         "  his numbers reproduce on his file and nothing about whether momentum pays today. "
-        "docs/replication-log.md carries the verdicts."
+        "docs/replication-log.md Entry 17 carries the verdicts."
     )
 
 

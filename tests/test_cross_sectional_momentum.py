@@ -1,7 +1,7 @@
 """The pins for cross-sectional momentum, *Algorithmic Trading*'s Example 6.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 6.2. The replication log's entry for it carries the verdicts and
+about Example 6.2. ``docs/replication-log.md`` Entry 17 carries the verdicts and
 points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
@@ -221,9 +221,10 @@ class TestASecondImplementation:
     """The same rule written again in pandas, sharing no code with the module.
 
     A rank in place of MATLAB's sort, a rolling sum in place of 25 shifts, and
-    ``pct_change`` in place of ``lag``. Its agreement is what says the script
-    as transcribed, not a slip in the transcription, is what departs from
-    ``kentdaniel.m``'s comment lines.
+    ``pct_change`` in place of ``lag``. It shares the transcription's reading
+    of the script, a one-row ``lag`` and MATLAB's tie order among it, so its
+    agreement rules out a slip in the numpy code and not a misreading of the
+    MATLAB.
     """
 
     def test_it_agrees_with_the_transcription_on_every_day(self, closes) -> None:
@@ -283,6 +284,30 @@ class TestTheBook:
         later = results["R0"]["2010-2012"]
         assert later.arithmetic_annual == pytest.approx(0.016244, abs=5e-7), SPEC
         assert stabilised(later, results["R0"]["2007"])
+
+
+class TestTheDistances:
+    """Each reading's distance from the book, which issue 297 asked for beside the landing."""
+
+    @pytest.mark.parametrize(
+        ("name", "from_37", "from_4_1", "from_minus_30"),
+        [
+            ("R0", -0.0500, -0.0343, -0.0232),
+            ("R1", -0.0478, -0.1862, -0.0130),
+            ("R2", -0.0807, -0.2768, -0.0053),
+            ("R3", -0.0329, 0.1779, 0.0077),
+            ("R4", -0.0485, -0.0469, -0.0232),
+        ],
+    )
+    def test_the_distance(self, results, name, from_37, from_4_1, from_minus_30) -> None:
+        first, crisis = results[name]["2007"], results[name]["2008-2009"]
+        assert first.arithmetic_annual - BOOK_APR_PERCENT / 100 == pytest.approx(
+            from_37, abs=5e-5
+        ), SPEC
+        assert first.sharpe - BOOK_SHARPE == pytest.approx(from_4_1, abs=5e-5), SPEC
+        assert crisis.arithmetic_annual - BOOK_CRISIS_APR_PERCENT / 100 == pytest.approx(
+            from_minus_30, abs=5e-5
+        ), SPEC
 
 
 class TestTheScriptOverTheOtherWindows:
@@ -415,12 +440,15 @@ class TestTheRun:
             assert all(figure in row.split() for figure in figures), row
         for name in READINGS:
             (row,) = [each for each in out.splitlines() if each.strip().startswith(name)]
-            assert row.split()[-1] == "no", row
+            assert row.split()[-3] == "no", row
         assert "landing 37 percent and 4.1 together: none." in out
         assert "rounds to -30 percent: no." in out
         assert "stabilised below its 2007 level: yes." in out
         assert "about survivors" in out
         assert "Exploratory." in out
+        assert "Entry 17 carries the verdicts" in out
+        (r0,) = [each for each in out.splitlines() if each.strip().startswith("R0")]
+        assert r0.split()[-2:] == ["-0.0500", "-0.0343"], r0
 
     def test_run_reads_the_committed_file(self, source, monkeypatch, capsys) -> None:
         monkeypatch.setattr(module, "read_closes", lambda data_dir=None: source)
