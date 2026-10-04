@@ -49,10 +49,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Fifteen replications run here, fourteen from Chan's *Quantitative Trading* and
+Sixteen replications run here, fifteen from Chan's *Quantitative Trading* and
 one from his *Algorithmic Trading*. The first two were ported from the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
-they were first built. The other thirteen were built here.
+they were first built. The other fourteen were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -191,6 +191,18 @@ they were first built. The other thirteen were built here.
     move together as closely as the real ones do. The null declared before any
     statistic made every contract independent, gave bars of 19 and 13, and
     passed both. Every figure is exploratory.
+16. Conditional Parameter Optimization, Example 7.1 of the revised edition,
+    where a model re-chooses a GLD strategy's three parameters every day from
+    the 400 in its grid. It reads Alpha Vantage's one-minute GLD and GDX bars
+    from the owner's data archive, because their licence forbids committing
+    them, so its pins run only where that archive is. Neither of Chan's columns
+    reproduces. Holding the parameters the train years chose earns a test
+    Sharpe ratio of 5.791 against his 1.947, because selecting at no cost picks
+    the grid's busiest cell, at 47 round trips a day. Re-choosing daily wins on
+    the Sharpe and Calmar ratios and loses on both returns, so his claim that it
+    improves every metric does not hold. At 1 basis point a round trip both arms
+    lose money. Every reading the book left open was declared on the issue
+    before any return was computed, and every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -279,7 +291,8 @@ pins each figure `pead.m` prints at the precision that is real and again as
 the script formats it, beside the book's rounded figures. It also pins the
 first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
-miss.
+miss. The blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
@@ -294,14 +307,24 @@ autocorrelations and the stocks' quartiles, and one verdict per factor. Its
 `test_the_month_before_formation_does_not_rank` holds the skip, so a
 lookback that runs to the formation's own close fails a test.
 
-All fifteen replications reach a verdict in
+[tests/test_cpo.py](tests/test_cpo.py) does it for Conditional Parameter
+Optimization. Its mechanics run everywhere: each fast step of the strategy is
+held against a literal loop over the book's rules. Its pins run only where the
+owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
+because the full run takes about five minutes.
+[tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
+each line field for field everywhere, and the files' hashes and their
+agreement with the committed daily closes wherever an archive is configured.
+
+All sixteen replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
 seasonals', Entry 8 the Khandani-Lo reversal's, Entry 9 the survivorship
 toy's, Entry 10 the reversal at the open's, Entry 11 the commodity
 seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
-Entry 14 the market and momentum factors' and Entry 15 the calendar spreads'.
+Entry 14 the market and momentum factors', Entry 15 the calendar spreads' and
+Entry 16 Conditional Parameter Optimization's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -627,6 +650,23 @@ It prints the three vintages, the window, the eligible stocks and the legs,
 each factor's lag-1 autocorrelation beside the stocks' quartiles, a verdict per
 factor, and the band beside them. It refuses to run if a month's winner or
 loser leg is empty, and names the month.
+
+Conditional Parameter Optimization, Example 7.1, reads Alpha Vantage's
+one-minute GLD and GDX bars from the owner's data archive, because the
+vendor's terms do not allow committing them. `data/archive_vintages.jsonl`
+records their hashes, and the run needs the archive's path, set as
+`docs/design.md`'s Configuration section describes:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo
+```
+
+It prints both vintages and their hashes, the span and the split, the
+unconditional cell, each arm's four figures beside Chan's with the gap, the
+same figures net of 1 basis point a round trip, the verdict on Chan's claim,
+and where his 1.947 sits among all 400 cells. It takes about five minutes. On a
+machine with no archive it refuses, naming both ways to set one, and its pins
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -1225,8 +1265,76 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+[blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
+a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
+Trading*. Chan trades the first day after an overnight earnings announcement
+by the direction of the open, without reading the earnings, and reports an
+APR of 6.7 percent and a Sharpe ratio of 1.5. It is the first post whose
+experiment comes from that book. The post draws five lessons from Entry 12 of
+the replication log.
+
+1. Every figure Chan prints reproduces on his own files.
+2. The gap from the previous close to the open stands in for the surprise,
+   and Chan's flags stand in for the announcement calendar.
+3. The 30 Chan divides by and the leverage he applies are facts about the run.
+4. Which book's `smartstd` runs decides a printed digit.
+5. An exact reproduction checks the arithmetic and not the edge.
+
+Four groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "Used to last several days" and "barely until the market closes" are at
+   2890. "The slow diffusion of news" is at 2990. "Known and studied since
+   1968" and the trader needing no view of expectations are at 2994. The
+   earnings.com calendar and the window from the previous close to the open
+   are at 3002 and 3010. The 90-day deviation as the test of "surprising" is
+   at 3019. "A very respectable 1.5", "a certain degree of look-ahead bias",
+   "not a very grievous bias" and "at least four times" are at 3024. "The
+   overnight returns are negative on average" is at 3039. The book's figures
+   at 3024 are pinned, and its words are not. The *Quantitative Trading* quotation the plan named, at
+   location 3360 of the revised edition, was dropped, because the Kindle
+   Cloud Reader could not be reached on 2026-10-03 to read its page.
+2. A fact outside the committed data. Apple released earnings five times
+   inside the window. Only the three flagged days are pinned.
+3. The book's Figure 7.2, which the post's figure redraws from `pead.m`'s
+   `plot(cumret)` and which nothing compares with the book's own.
+4. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pead.py](tests/test_pead.py), to
+[tests/test_series.py](tests/test_series.py) for the 1,885 flags, Apple's
+three flagged days and the 29 stocks with none, to
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) for the two
+Example 7.7 Sharpe ratios Lesson 4 recalls, or to
+[tests/test_pead_figures.py](tests/test_pead_figures.py) for the figure's own
+numbers. Four had no pin before it.
+
+1. That 157 of the 330 days hold a position, the first on 2011-05-11, the
+   first day the moving deviation can be computed.
+2. That 1,279 flagged stock-days fall on or after that day, and that the
+   1,072 positions are all among them.
+3. That 29 of the 497 stocks carry no flag.
+4. That the longest spell below the high runs from 2011-08-05 to 2012-01-10
+   after a high on 2011-08-04, and that the deepest drawdown falls inside it
+   on 2011-11-02.
+
+Its one figure is drawn from the committed files by
+[src/chan/pead_figures.py](src/chan/pead_figures.py), which reads them
+through the same scale-break guard as `python -m chan.pead`. It redraws the
+cumulative return `pead.m` plots, with the 89 days before the moving
+deviation fills and the longest spell below the high shaded, for Lessons 1
+and 3.
+
+```bash
+uv run python -m chan.pead_figures
+```
+
+[tests/test_pead_figures.py](tests/test_pead_figures.py) holds what it draws
+rather than its bytes, for the reason given above for the regime map.
+
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
-a ninth post, about the commodity seasonals, the gasoline and natural gas
+a tenth post, about the commodity seasonals, the gasoline and natural gas
 trades Chan says still pay where the equity ones weakened. It is the companion to
 the equity seasonals post, and draws four lessons from Entry 11 of the
 replication log.

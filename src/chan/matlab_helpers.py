@@ -85,6 +85,9 @@ endings are stripped, measured on
   over a trailing window of rows, NaN until the window first fills.
 - :func:`calculate_max_dd` is ``calculateMaxDD``, the deepest drawdown of a
   compounded cumulative return and the longest run of days spent below a high.
+  :func:`drawdown_path` is its loop, returning each day's high, drawdown and
+  duration, so a caller that needs to know where the longest run falls reads
+  the same calculation rather than a second copy of it.
 
 Book two's ``smartmean``, ``smartsum`` and ``backshift`` compute what the first
 edition's do, so they are not carried twice.
@@ -260,6 +263,25 @@ def smart_moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
     return spread
 
 
+def drawdown_path(
+    cumret: ArrayLike,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.int_]]:
+    """``calculateMaxDD``'s loop: each day's high, drawdown and duration below the high.
+
+    :func:`calculate_max_dd` takes the minimum drawdown and the maximum
+    duration of these, and its docstring states the rules and the two quirks.
+    """
+    values = np.asarray(cumret, dtype=float)
+    high = np.zeros_like(values)
+    drawdown = np.zeros_like(values)
+    duration = np.zeros(len(values), dtype=int)
+    for t in range(1, len(values)):
+        high[t] = max(high[t - 1], values[t])
+        drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
+        duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
+    return high, drawdown, duration
+
+
 def calculate_max_dd(cumret: ArrayLike) -> tuple[float, int]:
     """``calculateMaxDD``: the deepest drawdown and the longest stretch below a high.
 
@@ -273,13 +295,6 @@ def calculate_max_dd(cumret: ArrayLike) -> tuple[float, int]:
     the first day's ``cumret``, and the loop starts on the second row, so the
     first day's drawdown and duration are both 0 whatever it returned.
     """
-    values = np.asarray(cumret, dtype=float)
-    high = np.zeros_like(values)
-    drawdown = np.zeros_like(values)
-    duration = np.zeros(len(values), dtype=int)
-    for t in range(1, len(values)):
-        high[t] = max(high[t - 1], values[t])
-        drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
-        duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
+    _, drawdown, duration = drawdown_path(cumret)
     # MATLAB's min skips NaN. The first row is always 0, so the minimum exists.
     return float(np.nanmin(drawdown)), int(duration.max())
