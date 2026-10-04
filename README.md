@@ -518,6 +518,15 @@ factor model reads the earlier S&P 600 save's closes, for
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
 
+Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
+Eight are per-contract strips, one column per contract, under the roots BR,
+C2, CL in two saves, HG, HO2, TU and VX. The ninth is his gold series sampled
+at 16:00. Each contract is committed as one vintage holding its settlement,
+under a symbol joining the root to the contract, such as `CL-2007F`, and
+`src/chan/mat_columns.py` writes them too.
+[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
+that shape was decided. No replication reads them yet.
+
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
 read none either.

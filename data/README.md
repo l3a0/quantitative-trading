@@ -108,6 +108,15 @@ for a column lifted from one of Chan's own files.
 | `ijr_20080131/` | Chan's `IJR_20080131.mat` | 600 members | adjusted | 2004-01-15 .. 2008-02-01 | saved 2008-02-02 |
 | `inputdataohlcdaily_stocks_20120424/` | Chan's `inputDataOHLCDaily_stocks_20120424.mat` | 497 members | adjusted | 2006-05-11 .. 2012-04-24 | saved 2012-04-25 |
 | `earnannfile/` | Chan's `earnannFile.mat` | 497 members | event | 2011-01-03 .. 2012-04-24 | saved 2012-05-15 |
+| `inputdatadaily_br_20120813/` | Chan's `inputDataDaily_BR_20120813.mat` | 322 members | raw | 1995-11-01 .. 2012-08-13 | saved 2012-08-14 |
+| `inputdatadaily_c2_20120813/` | Chan's `inputDataDaily_C2_20120813.mat` | 31 members | raw | 1986-11-03 .. 2012-08-13 | saved 2012-08-14 |
+| `inputdatadaily_cl_20120813/` | Chan's `inputDataDaily_CL_20120813.mat` | 90 members | raw | 1986-11-03 .. 2012-08-13 | saved 2012-08-14 |
+| `inputdatadaily_hg_20120813/` | Chan's `inputDataDaily_HG_20120813.mat` | 182 members | raw | 1986-11-03 .. 2012-08-13 | saved 2012-08-14 |
+| `inputdatadaily_ho2_20120813/` | Chan's `inputDataDaily_HO2_20120813.mat` | 351 members | raw | 1986-11-03 .. 2012-08-13 | saved 2012-08-14 |
+| `inputdatadaily_tu_20120813/` | Chan's `inputDataDaily_TU_20120813.mat` | 94 members | raw | 1990-06-22 .. 2012-08-13 | saved 2012-08-14 |
+| `inputdatadaily_cl_20120502/` | Chan's `inputDataDaily_CL_20120502.mat` | 89 members | raw | 2000-11-20 .. 2012-05-02 | saved 2012-05-03 |
+| `inputdatadaily_vx_20120507/` | Chan's `inputDataDaily_VX_20120507.mat` | 72 members | raw | 2006-03-23 .. 2012-05-07 | saved 2012-05-08 |
+| `inputdata_gc_1600_20100802/` | Chan's `inputData_GC_1600_20100802.mat` | 1 member | raw | 2007-08-03 .. 2010-08-02 | saved 2012-05-07 |
 
 The four GLD and GDX files were not all taken on one day. `gld_20yr_prices.csv`
 was downloaded on 2026-06-16 and the other three on 2026-08-27, which leaves
@@ -713,6 +722,110 @@ measurements below.
    budget so that `data/` stays under 150 MB of file content. A later panel
    still states its own size against that in its issue before it is recorded.
 
+The next eight directories are Chan's per-contract futures strips from
+*Algorithmic Trading*, one column per contract, and the ninth is his gold
+series sampled at 16:00. His Example 5.3, `estimateFuturesReturns.m`, reads
+seven of the strips one at a time to estimate spot and roll returns, and his
+Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL strip saved for
+2012-08-13 to trade crude oil's 12-month calendar spread. The TU and VX strips
+feed two unnumbered experiments, `VX_ES_rollreturn.m` reads the VX strip, and
+`GLD_GC.m` reads the gold series. No replication reads any of them yet.
+[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
+the measurements below and the decision behind the shape.
+
+1. **Where they came from.** The two mirrors point 1 of the book-two list above
+   names hold all nine with identical git blobs, EpchanPreview at `e4bc46f`
+   under `public/img/book2/` and ivanliu1989/algorithmic_trading at `4567024`
+   under `archived/matlab/`. Neither carries a licence. The `.mat` files are
+   not committed, and their sha256 is recorded here.
+
+   ```text
+   e6cd73a6ee37377769dbdf4047df8a4d17c2c599114a073e133f8c724e0c3d65  inputDataDaily_BR_20120813.mat
+   7fadd1939c3b85fc2bb9121aecbae6c4f13394a76cb0aa0ea3c04b8bd943470f  inputDataDaily_C2_20120813.mat
+   3d4c5f2373eeb0c99ed18c903e0926d7c41a22a12055bd2ce661de249de80af2  inputDataDaily_CL_20120813.mat
+   684df457d7c1a4d4d915ec25e010b0d9fe19eb73e779d6db9918125be2a8746b  inputDataDaily_HG_20120813.mat
+   9cce5d11c2c1f142bec4f9321e3ea787d9f32cdcb17b0df1a743a53278c40ff8  inputDataDaily_HO2_20120813.mat
+   c75a09f543ce0d03d398f220dddca568d3b4f01a0042c27eb3515350ff2614a5  inputDataDaily_TU_20120813.mat
+   3ff9af0b9f084159647547f5f0c412b1fd9e8474525ab64804b071abf75d0485  inputDataDaily_CL_20120502.mat
+   baa6ff188a232c2ee96d3f94b3ec4b3003994ec6e3ec3ab2ee1705bc06bf5f3b  inputDataDaily_VX_20120507.mat
+   eaacdd398a9677207b02c524dd686081823b03a5cb1b148b2fba132c7babd257  inputData_GC_1600_20100802.mat
+   ```
+
+2. **Each contract is one vintage holding its settlement alone.** A strip
+   holds `tday`, `contracts` and `cl` and nothing else, so each member carries
+   the close and no other field. The symbol joins the root in the file's name
+   to the contract, such as `CL-2007F`, because the six strips saved for
+   2012-08-13 share a saved date, 2012-08-14. A bare `2007F` would name six
+   vintages under one vendor, basis and date, and no reader argument could
+   separate them. Chan names the spot column `0000$`, which the record's
+   symbol rule refuses, so it is recorded as `<root>-SPOT`. Six strips carry
+   one, and the CL strip saved for 2012-05-02 and the VX strip carry none.
+3. **The basis is `raw`.** A contract's settlement is the price it traded at,
+   and nothing adjusts it, unlike a continuous series spliced across rolls.
+4. **Sorted symbols are Chan's contract order.** `chan.series.load_panel`
+   returns members sorted by symbol, and CME's month letters, F G H J K M N Q
+   U V X Z, run alphabetically in calendar order. In all eight strips the
+   contracts in file order are their sorted order. The spot column sorts last,
+   although four strips hold it first. That matters because
+   `calendarSpdsMeanReversion.m` pairs a contract with the one 12 places later
+   by position.
+5. **A day without a settlement is a missing row.** No strip holds a day on
+   which no contract settled, so the union of the members' dates is the file's
+   own `tday`, and `load_panel` rebuilds every NaN. Some columns stop and
+   restart: 15 in BR, 29 in HG, 31 in HO2, 2 in TU and 1 in the CL strip saved
+   for 2012-08-13, spot columns included. The scripts read those holes,
+   because they find a contract's last day as the last finite settlement
+   before a NaN. `chan.mat_columns.strip_round_trip_differs` rebuilt each
+   strip's `cl` array from the committed bytes and found it equal, days,
+   column order and every NaN included.
+6. **HO2's expiries follow the rule `chan.futures` already holds.** RBOB's
+   rule, the last business day of the month before delivery, is heating
+   oil's too. Of HO2's 309 contracts that stop before the file does, 300 last
+   settle on that rule's day. For 8, the rule's day has no row in the file,
+   such as 1986-11-28 and 1993-12-31, and each stops on the day before, so
+   Chan's calendar lacks some NYMEX trading days. One, August 2012, stops a
+   day early. [tests/test_futures_strips.py](../tests/test_futures_strips.py) pins those
+   counts.
+7. **No other expiry rule is built.** `chan.futures` has none for CL, VX, TU,
+   BR, HG or C2, and nothing needs one, because every script finds a
+   contract's last day from the data. Two were written in scratch to see how
+   far the files follow the exchanges, and their figures are not pinned.
+   CME's crude rule, three business days before the 25th of the month before
+   delivery, gives the last settlement of 65 of the 68 expired contracts in
+   the CL strip saved for 2012-08-13 and 62 of the 65 in the one saved for
+   2012-05-02. The three misses are the same three contracts in both, each
+   stopping one trading day early. VX's last settlement falls on CFE's
+   final settlement day, the Wednesday 30 days before the next month's third
+   Friday, for 36 of its 64 expired contracts, on the trading day before it
+   for 23, and on neither for 5.
+8. **The Python port's copies agree.** Chan's 2018 Python port,
+   `PythonCodesAndData.zip` in EpchanPreview, sha256
+   `91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317`, carries
+   three of the strips as CSV: C2, the CL strip saved for 2012-05-02 and VX.
+   Each holds the `.mat` file's days and columns in the same order, its spot
+   column named `C_Spot` rather than `0000$`, and equals it cell for cell,
+   NaN for NaN, across 25,168, 92,440 and 12,279 settlements. The zip is not
+   committed, so the comparison ran when the strips were recorded.
+9. **The gold series is one vintage, `GC`.** It is recorded under `chan-mat`
+   and `raw`, the close alone, and its root comes from its name the way a
+   strip's does. It differs from the back-adjusted GC column of
+   `inputDataOHLCDaily_20120504.mat`, sha256 `b69f8b8c…`, on all 555 days the
+   two share, by −15.4 to 84.7. That file carries the same saved date,
+   2012-05-07, so the basis is also what keeps the two apart. The file also
+   holds `hhmm`, 18,326 times of day taking 27 values, against 761 closes, so
+   it does not index them. `GLD_GC.m` loads it and never reads it, and it is
+   not kept.
+10. **The scale-break guard flags nothing.** It reads all 1,232 members as
+    prices, because their basis is `raw`, and no close in any of them sits
+    below 0.625 or above 1.6 times the one before.
+11. **It fits the budget.** The nine directories and their manifest and
+    checksum lines hold 10.36 MB, and this section adds 0.01 MB, which takes
+    `data/` from 134.91 MB to 145.28 MB of file content, under the 150 MB budget point 5 of the
+    book-two list above sets. The owner ruled on 2026-10-04, on
+    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300), that
+    the four book-two lifts may take it to 205 MB, and the change that crosses
+    150 MB raises the budget here.
+
 ## Two vintages kept in the owner's archive
 
 Two series a run reads are not in this directory. `archive_vintages.jsonl`
@@ -828,7 +941,7 @@ Two files carry that record.
    the series and `saved_date` for a series lifted from one of Chan's own
    files, whose date is when he last saved that file rather than when anything
    was fetched. Those lines name their vendor `chan-xls` for a workbook column
-   and `chan-mat` for a stock from one of his MATLAB files, and carry a
+   and `chan-mat` for a column of one of his MATLAB files, and carry a
    `source_workbook` field holding the file the series was lifted from. The
    table's "Chan's `GLD.xls`" is that pair written as one cell, which is what
    a single column can hold and a filename cannot. An `adjusted` yfinance line
@@ -855,7 +968,7 @@ Two files carry that record.
    existed and the two SPY workbook columns', `spy_chan.csv`'s and
    `spy_unadjusted_chan.csv`'s, which were typed because the recorder cannot
    write a saved date. Every other line was written by code, a download by
-   `record_vintage` and a stock lifted from Chan's MATLAB files by
+   `record_vintage` and a column lifted from Chan's MATLAB files by
    `record_lifted_columns`. More lines will be typed by hand for as long as a
    replication reaches for another of Chan's workbook columns.
 
@@ -879,7 +992,7 @@ a test, so no total is given here.
 - Every CSV file here has exactly one entry, at any depth.
 - `checksums.sha256` is the projection the manifest produces, and regenerating
   it changes nothing.
-- Every hand-written entry, and every stock lifted from Chan's MATLAB files,
+- Every hand-written entry, and every column lifted from Chan's MATLAB files,
   names the series its file's `Ticker,` row carries.
 - The hand-written entries and the lifted sources carry the identity
   `tests/support/committed_vintages.py` pins for them, and each lifted source
@@ -904,8 +1017,8 @@ for, and an entry the table has no row for. That last one is what adding a
 vintage costs: the suite is red until somebody writes its row, and the failure
 is the instruction saying so.
 
-A directory gets one row rather than one per file, so the 2,694 lifted columns
-are five rows. The row states what every file in it shares, which is the
+A directory gets one row rather than one per file, so every column lifted
+from one source shares one row. The row states what every file in it shares, which is the
 vendor, the basis and the date, along with how many members it holds and the
 earliest and latest day any of them carries. Its members must agree on the
 three shared cells, or the failure names the directory and the values. What

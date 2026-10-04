@@ -24,10 +24,15 @@ from chan.mat_columns import (
     flag_round_trip_differs,
     read_arrays,
     read_flags,
+    read_strip,
     record_flag_file,
     record_mat_file,
+    record_strip_file,
+    root_of,
     round_trip_differs,
     saved_date_of,
+    shape_of,
+    strip_round_trip_differs,
 )
 from chan.series import load_panel
 from chan.vintage import LIFTED_FIELDS, MANIFEST_NAME, read_manifest
@@ -503,3 +508,278 @@ class TestAFlagFile:
             "SPX_20071123.mat: not recorded. the file carries no earnann"
         ]
         assert read_manifest(data_dir) == []
+
+
+#: A strip the way Chan's are shaped: the spot column first, a contract that
+#: stops and restarts, and contracts that start late and stop early.
+CONTRACTS = ["0000$", "2007F", "2007G", "2007H"]
+STRIP = np.array(
+    [
+        [14.0, 20.0, NAN, NAN],
+        [14.5, NAN, 21.0, NAN],
+        [15.0, 20.5, 21.5, 22.0],
+        [15.5, NAN, 22.5, 23.0],
+    ]
+)
+
+
+def strip_bytes(
+    *,
+    closes: np.ndarray = STRIP,
+    contracts: list[str] | None = CONTRACTS,
+    days: list[int] = DAYS,
+    extra: dict | None = None,
+) -> bytes:
+    """A MATLAB 5 file holding ``tday``, ``contracts`` and ``cl``, as Chan's strips do.
+
+    ``contracts=None`` leaves the cell array out, which is the gold file's shape.
+    """
+    held = {"tday": np.array(days, dtype=np.int32).reshape(-1, 1), "cl": closes}
+    if contracts is not None:
+        cells = np.empty((1, len(contracts)), dtype=object)
+        for index, name in enumerate(contracts):
+            cells[0, index] = name
+        held["contracts"] = cells
+    held.update(extra or {})
+    buffer = io.BytesIO()
+    scipy.io.savemat(buffer, held)
+    header = f"MATLAB 5.0 MAT-file, Platform: PCWIN, Created on: {CREATED}".encode("ascii")
+    return header.ljust(116, b" ") + buffer.getvalue()[116:]
+
+
+class TestAStrip:
+    """A futures strip's shape, which issue 300 records one vintage per contract."""
+
+    NAME = "inputDataDaily_CL_20120813.mat"
+
+    @pytest.fixture
+    def strip(self, tmp_path: Path) -> Path:
+        path = tmp_path / self.NAME
+        path.write_bytes(strip_bytes())
+        return path
+
+    def test_each_contract_is_a_close_only_vintage_named_for_the_root(
+        self, strip: Path, data_dir: Path
+    ) -> None:
+        entries = record_strip_file(strip, price_basis="raw", data_dir=data_dir)
+
+        assert [(e.symbol, e.path, e.row_count) for e in entries] == [
+            ("CL-2007F", "inputdatadaily_cl_20120813/cl-2007f.csv", 2),
+            ("CL-2007G", "inputdatadaily_cl_20120813/cl-2007g.csv", 3),
+            ("CL-2007H", "inputdatadaily_cl_20120813/cl-2007h.csv", 2),
+            ("CL-SPOT", "inputdatadaily_cl_20120813/cl-spot.csv", 4),
+        ]
+        assert {(e.vendor, e.price_basis, e.saved_date) for e in entries} == {
+            (VENDOR, "raw", "2007-11-24")
+        }
+        assert (data_dir / "inputdatadaily_cl_20120813" / "cl-2007f.csv").read_bytes() == (
+            b"Price,Close\nTicker,CL-2007F\nDate,\n2007-11-19,20.0\n2007-11-21,20.5\n"
+        )
+
+    def test_the_round_trip_finds_the_array_holes_and_all(
+        self, strip: Path, data_dir: Path
+    ) -> None:
+        """The spot sits first in the file and sorts last in the panel, so the
+        check has to reorder the columns, and 2007F's hole has to come back."""
+        record_strip_file(strip, price_basis="raw", data_dir=data_dir)
+
+        assert strip_round_trip_differs(strip, data_dir=data_dir) is None
+        _, panel = load_panel(self.NAME, data_dir=data_dir)
+        assert list(panel.columns) == ["CL-2007F", "CL-2007G", "CL-2007H", "CL-SPOT"]
+        assert panel["CL-2007F"].isna().tolist() == [False, True, False, True]
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                {"closes": np.where(np.isnan(STRIP), NAN, STRIP + np.eye(4)[1])},
+                "the panel's closes are not the file's cl array",
+            ),
+            (
+                {"contracts": ["0000$", "2007F", "2007G", "2007J"]},
+                "the panel's symbols are not the file's",
+            ),
+            ({"days": [*DAYS[:3], 20071126]}, "the panel's days are not the file's trading days"),
+        ],
+    )
+    def test_the_round_trip_says_what_moved(
+        self, strip: Path, data_dir: Path, tmp_path: Path, change: dict, message: str
+    ) -> None:
+        record_strip_file(strip, price_basis="raw", data_dir=data_dir)
+        other = tmp_path / "elsewhere" / self.NAME
+        other.parent.mkdir()
+        other.write_bytes(strip_bytes(**change))
+
+        assert strip_round_trip_differs(other, data_dir=data_dir) == message
+
+    def test_a_file_naming_no_contracts_is_one_series_named_for_its_root(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        """The gold file's shape. Its ``hhmm`` is not read."""
+        path = tmp_path / "inputData_GC_1600_20100802.mat"
+        path.write_bytes(
+            strip_bytes(
+                closes=STRIP[:, :1],
+                contracts=None,
+                extra={"hhmm": np.arange(9, dtype=np.uint32).reshape(-1, 1)},
+            )
+        )
+        (entry,) = record_strip_file(path, price_basis="raw", data_dir=data_dir)
+
+        assert (entry.symbol, entry.path, entry.row_count) == (
+            "GC",
+            "inputdata_gc_1600_20100802/gc.csv",
+            4,
+        )
+        assert strip_round_trip_differs(path, data_dir=data_dir) is None
+
+    @pytest.mark.parametrize(
+        ("build", "message"),
+        [
+            (
+                lambda: strip_bytes(contracts=["0000$", "2007F", "2007G", "OOPS"]),
+                "the file names a column 'OOPS', which is neither a contract",
+            ),
+            (
+                lambda: strip_bytes(contracts=["0000$", "2007F", "2007F", "2007H"]),
+                "the file names a contract more than once: CL-2007F",
+            ),
+            (
+                lambda: strip_bytes(contracts=None),
+                "the file names no contracts and its cl has 4 columns",
+            ),
+            (
+                lambda: strip_bytes(closes=STRIP[:, :3]),
+                "cl is 4 by 3 and the file carries 4 days and 4 columns",
+            ),
+            (
+                lambda: strip_bytes(days=[DAYS[1], DAYS[0], *DAYS[2:]]),
+                "the file's trading days are not strictly increasing",
+            ),
+        ],
+    )
+    def test_a_malformed_strip_is_refused_by_name(self, build, message: str) -> None:
+        with pytest.raises(ValueError, match=message):
+            read_strip(build(), "CL")
+
+    def test_a_day_no_contract_settled_is_refused_before_anything_is_written(
+        self, tmp_path: Path, data_dir: Path
+    ) -> None:
+        unpriced = STRIP.copy()
+        unpriced[1] = NAN
+        path = tmp_path / self.NAME
+        path.write_bytes(strip_bytes(closes=unpriced))
+
+        with pytest.raises(ValueError, match="prices no column on 2007-11-20"):
+            record_strip_file(path, price_basis="raw", data_dir=data_dir)
+        assert read_manifest(data_dir) == []
+
+    def test_the_root_is_read_off_the_name(self) -> None:
+        assert root_of("inputDataDaily_HO2_20120813.mat") == "HO2"
+        assert root_of("inputData_GC_1600_20100802.mat") == "GC"
+        with pytest.raises(ValueError, match="carries no root"):
+            root_of("strip.mat")
+
+
+class TestTheCommandPicksItsReaderByTheFile:
+    """The basis a caller states no longer chooses the reader, the variables do."""
+
+    def test_each_shape_is_named_by_what_it_carries(self) -> None:
+        assert shape_of(flag_bytes(flags=FLAGS)) == "flags"
+        assert shape_of(mat_bytes()) == "stocks"
+        assert shape_of(strip_bytes()) == "strip"
+        assert shape_of(strip_bytes(closes=STRIP[:, :1], contracts=None)) == "strip"
+
+    def test_a_file_naming_its_columns_syms_stays_on_the_stock_path(self) -> None:
+        """Chan's ETF file carries ``syms``, and the stock reader is what
+        refuses it until it learns that spelling."""
+        syms = np.empty((1, 3), dtype=object)
+        syms[0, :] = SYMBOLS
+        payload = mat_bytes(omit=("stocks",))
+        buffer = io.BytesIO()
+        held = scipy.io.loadmat(io.BytesIO(payload))
+        scipy.io.savemat(
+            buffer, {**{k: v for k, v in held.items() if not k.startswith("__")}, "syms": syms}
+        )
+
+        assert shape_of(buffer.getvalue()) == "stocks"
+
+    def test_a_strip_is_recorded_and_checked(
+        self,
+        tmp_path: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        path = tmp_path / "inputDataDaily_CL_20120813.mat"
+        path.write_bytes(strip_bytes())
+
+        assert mat_columns.main([str(path), "--price-basis", "raw"]) == 0
+
+        printed = capsys.readouterr().out.splitlines()
+        assert printed[1] == (
+            "recorded 4 vintages, 11 rows of Close, under inputdatadaily_cl_20120813/, "
+            "saved 2007-11-24"
+        )
+        assert printed[2] == "round trip: every close read back is the file's cl array, NaN for NaN"
+
+    def test_a_failed_strip_round_trip_stops_the_command(
+        self,
+        tmp_path: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        monkeypatch.setattr(mat_columns, "strip_round_trip_differs", lambda path: "moved")
+        path = tmp_path / "inputDataDaily_CL_20120813.mat"
+        path.write_bytes(strip_bytes())
+
+        assert mat_columns.main([str(path), "--price-basis", "raw"]) == 1
+
+        assert capsys.readouterr().err.startswith("round trip failed: moved.")
+
+    def test_a_flag_file_given_a_price_basis_is_refused_in_one_line(
+        self,
+        tmp_path: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        path = tmp_path / "earnannFile.mat"
+        path.write_bytes(flag_bytes(flags=FLAGS))
+
+        assert mat_columns.main([str(path), "--price-basis", "raw"]) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "earnannFile.mat: not recorded. the file carries earnann, which is recorded under "
+            "the event basis rather than raw"
+        ]
+        assert read_manifest(data_dir) == []
+
+    def test_a_strip_given_the_event_basis_is_refused_in_one_line(
+        self,
+        tmp_path: Path,
+        data_dir: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        from chan import paths
+
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+        path = tmp_path / "inputDataDaily_CL_20120813.mat"
+        path.write_bytes(strip_bytes())
+
+        assert mat_columns.main([str(path), "--price-basis", "event"]) == 1
+
+        assert capsys.readouterr().err.splitlines() == [
+            "inputDataDaily_CL_20120813.mat: not recorded. the file carries no earnann"
+        ]
