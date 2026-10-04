@@ -295,13 +295,17 @@ Information Administration publishes them, contracts 1 to 4 of three products.
 They are what [issue 19](https://github.com/l3a0/quantitative-trading/issues/19)
 needs to check Chan's two commodity seasonals, gasoline in April and natural gas
 from February to April, and the owner decided on 2026-10-02 that they may be
-committed. Five things about them are worth stating rather than leaving a reader
+committed. [Issue 137](https://github.com/l3a0/quantitative-trading/issues/137)
+reads the eight natural gas and RBOB files again, to test Chan's calendar
+spreads. Five things about them are worth stating rather than leaving a reader
 to infer.
 
 1. **Each file is a chain of contracts.** Contract 1 is whichever contract
    expires next, so on an expiry day a file's next close belongs to a different
-   contract, and the day-over-day ratio across it compares two instruments. The
-   issue says how a run maps a contract number back to a named contract.
+   contract, and the day-over-day ratio across it compares two instruments.
+   [src/chan/futures.py](../src/chan/futures.py) holds the expiry rules that
+   map a contract number back to a named contract, and its docstring says how
+   they were checked against the files.
 2. **The symbol names the product.**
    - `EER-EPMR-PE1-Y35NY-DPG` to `PE4` are New York Harbor regular gasoline,
      the contract RBOB replaced, in dollars a gallon.

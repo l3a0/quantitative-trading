@@ -12,7 +12,7 @@ Chan’s *Quantitative Trading* (Chan, 2021) builds its pairs-trading examples a
 2. **Futures calendar spreads.** A long and a short position in one commodity’s futures, expiring in different months.
 3. **Bonds of one issuer at two maturities.** Chan writes that “fixed-income instruments can be found to be cointegrating”, long one maturity and short another.
 
-He names them without working any of them, so he prints no number to match. This repository tested all three. The CAD/AUD rate holds. The bond pair, tested on two Treasury funds, shows no evidence of it. The calendar spreads, tested on every pair of neighbouring natural gas and RBOB gasoline contracts in the US Energy Information Administration’s free settlement prices, hold for both commodities, and for gasoline by a single pair. This post covers the first and the third, which were tested first.
+He names them without working any of them, so he prints no number to match. This repository tested all three. The CAD/AUD rate holds. The bond pair, tested on two Treasury funds, shows no evidence of it. The calendar spreads, tested on every pair of neighbouring natural gas and RBOB gasoline contracts in the US Energy Information Administration’s free settlement prices, hold for natural gas and not for gasoline, an exploratory result like the other two. This post covers the first and the third, which were tested first.
 
 Two earlier posts covered the machinery in more depth. [How to test whether a price spread mean-reverts](https://baowebdev.substack.com/p/how-to-test-whether-a-price-spread) builds the tests step by step, and [Lessons from testing GLD/GDX for cointegration](https://baowebdev.substack.com/p/lessons-from-testing-gldgdx-for-cointegration) shows a pair whose relationship came and went. This post draws five lessons from what the two new tests add. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -155,7 +155,7 @@ Five habits follow from the lessons above.
 4. **Keep the span and the window apart.** A verdict over nineteen years says little about any one year, and a run of rejecting years says little about the whole.
 5. **Close the free choices before computing.** Which leg, which quote, which lag and which start date can each move a statistic across a bar, and a choice made after seeing the number is a search.
 
-On a modern download, Chan’s currency rate holds at 5%, the bond funds show no evidence of cointegrating, and his calendar spreads hold in both commodities tested, one of them by a single pair.
+On a modern download, Chan’s currency rate holds at 5%, the bond funds show no evidence of cointegrating, and his calendar spreads hold for natural gas and not for gasoline.
 
 ## References
 

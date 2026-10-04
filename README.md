@@ -166,18 +166,21 @@ they were first built. The other twelve were built here.
 14. Chan's calendar spreads, which he calls "the simplest examples of
     cointegrating futures pairs" at Kindle location 3951. Every adjacent pair
     of delivery months is tested on EIA's nearest four contracts, 360 for
-    natural gas and 220 for RBOB gasoline, over the 39 to 59 days both
-    contracts of a pair sit there. A pair rejects when Engle-Granger clears the
-    10% bar in both orientations. Each commodity is judged as one batch against
-    the 975th of 1,000 simulated shares under no cointegration, a bar declared
-    before any statistic. Natural gas reproduces, with 57 of 360 pairs against
-    a bar of 19. RBOB reproduces by one pair, with 14 of 220 against a bar of
-    13. Every figure is exploratory.
+    natural gas and 220 for RBOB gasoline, over the 39 to 59 days a pair keeps.
+    A pair rejects when Engle-Granger clears the 10% bar in both orientations.
+    Each commodity is judged as one batch against the 975th of 1,000 shares
+    from simulated contracts that do not cointegrate. Natural gas reproduces,
+    with 57 of 360 pairs against a bar of 47. RBOB does not, with 14 of 220
+    against a bar of 31. Those bars come from a null corrected after the result
+    was seen, on the owner's ruling, so that simulated neighbouring contracts
+    move together as closely as the real ones do. The null declared before any
+    statistic made every contract independent, gave bars of 19 and 13, and
+    passed both. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
-other places a stationary spread should live without naming an instrument, so
-there is no number of his to reproduce and no series of his to test. His
-fixed-income candidate, bonds of one issuer at two maturities, is tested on TLT
+bonds of one issuer as a place a stationary spread should live without naming
+an instrument, so there is no number of his to reproduce and no series of his
+to test. That fixed-income candidate, bonds of one issuer at two maturities, is tested on TLT
 against IEF, and the result is a finding rather than a verdict. Over
 2002-07-30 to 2026-10-01 neither orientation rejects the no-cointegration
 null, at −2.3887 and −2.3168 against a 10% bar of −3.04, and the residual check
@@ -216,7 +219,8 @@ fixed-income number, because the test is not symmetric in its legs and Chan
 names no dependent one. For the cross rate it pins the verdict rule as well as
 the verdict, so a criterion edited after the fact fails a test. For the
 calendar spreads it pins how often the files hand over on the day each expiry
-rule says and on a day either side, so a rule moved by one day fails a test.
+rule says and on a day either side, so a rule moved by one day fails a test,
+and it pins the bars of both the declared null and the corrected one.
 The blog post about them is the exception, and what it says that nothing here
 asserts is listed below.
 
@@ -491,8 +495,9 @@ residual check at one lag beside the first lag count whose residuals pass, and
 the rolling scan each way round. The cross rate prints the same three for the
 log of `CADAUD=X` over its test window, then the verdict and the criterion it
 was read against. The calendar spreads print, for each commodity, how many pairs
-reject in both orientations, the null's bar, the verdict, and the rows that
-describe the batch and decide nothing. Both simulations run each time, and the
+reject in both orientations, the corrected null's bar and the verdict it gives,
+the declared null's bar and verdict beside them, and the rows that describe the
+batch and decide nothing. Both simulations run each time, and the
 command takes about seven seconds. There is no `--start` or `--end`, because a
 window option is what would let a reader pick one that rejects, and each issue
 declared exactly one window. `--dated` names which `CADAUD=X` download to read,

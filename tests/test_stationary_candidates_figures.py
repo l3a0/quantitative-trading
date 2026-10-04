@@ -1,8 +1,8 @@
 """The pins for the stationary-candidates post's three figures.
 
-``tests/test_stationary_candidates.py`` holds what both candidates compute. This
-file holds that the figures draw those numbers against the right bars, so a
-generator that put a statistic on the wrong line or a bar at the wrong value
+``tests/test_stationary_candidates.py`` holds what the two drawn candidates
+compute. This file holds that the figures draw those numbers against the right
+bars, so a generator that put a statistic on the wrong line or a bar at the wrong value
 fails even when the arithmetic is right. The bars figure comes first,
 ``TestTheLags`` holds the lag-count figure, and ``TestTheWindows`` holds the
 rolling-scan figure. Some numbers repeat here on purpose,

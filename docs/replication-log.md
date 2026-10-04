@@ -19,7 +19,7 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13 and 14 carry their own, three, eleven,
-twelve, five, six, one, three, eight, six, two, eight and nine, and they are
+twelve, five, six, one, three, eight, six, two, eight and twelve, and they are
 listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -274,7 +274,7 @@ Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16, and
-Entry 14's rows 3 to 11.
+Entry 14's rows 3 to 14.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -2868,34 +2868,48 @@ under the rules
 [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) sets for
 every stationary candidate Chan names there.
 
-Eleven rows, all derivable from
+Fourteen rows, all derivable from
 [tests/test_stationary_candidates.py](../tests/test_stationary_candidates.py).
 
-**Chan's claim reproduces for both commodities, and for RBOB by one pair.**
-Chan names calendar spreads as "the simplest examples of cointegrating futures
-pairs". Of 360 adjacent natural gas pairs, 57 reject no cointegration in both
-orientations, against a bar of 19, the 975th of 1,000 shares from unrelated
-random walks read on the same days. Of 220 RBOB pairs, 14 reject against a bar
-of 13. The rule behind each bar was declared on the issue before any statistic
-was computed.
+**Chan's claim reproduces for natural gas and does not reproduce for RBOB
+gasoline.** Chan names calendar spreads as "the simplest examples of
+cointegrating futures pairs". Of 360 adjacent natural gas pairs, 57 reject no
+cointegration in both orientations, against a bar of 47. Of 220 RBOB pairs, 14
+reject, against a bar of 31. Each bar is the 975th of 1,000 shares from
+simulated contracts that do not cointegrate but move together as closely as
+the real ones do.
 
-Two rows are replications and nine are not. Rows 1 and 2 are the claim, one
+**The bars were corrected after the result was seen, and both readings are
+reported.** The issue declared a null in which every contract is an
+independent random walk, and under it the bars are 19 and 13 and both
+commodities reproduce. Review found that real neighbouring contracts move
+almost together, and that at that correlation the requirement that both
+orientations reject is barely stricter than one. The owner ruled on 2026-10-03
+to re-judge both commodities against a null at the files' own correlation, and
+the reasoning and the measurement are recorded on the issue. The correction can
+only make a pass harder, so it is not a search toward the claim. It moves the
+RBOB verdict and not the natural gas one.
+
+Two rows are replications and twelve are not. Rows 1 and 2 are the claim, one
 per commodity, and each takes the claim route
-`### Rows that are not replications` describes. Rows 3 to 9 describe the two
-batches and row 9 was added after the verdicts were seen. Rows 10 and 11 check
-the expiry map the pairs are read through.
+`### Rows that are not replications` describes. Rows 3 and 4 are the claim
+under the declared null, which rows 1 and 2 supersede. Row 5 is the
+correlation the correction reads. Rows 6 to 12 describe the two batches, and
+row 12 was added after the verdicts were seen. Rows 13 and 14 check the expiry
+map the pairs are read through.
 
-Every row reads the same vintages and specification, so they are stated once
-here.
+Rows 1 to 12 read the same vintages and specification, so they are stated
+once here.
 
 1. **The vintages.** EIA's NYMEX settlements for the nearest four contracts,
    all downloaded 2026-10-02 on the raw basis. Natural gas is `eia_rngc1` to
    `eia_rngc4`, 1993-12-20 to 2024-04-05 across the four. RBOB gasoline is
    `eia_eer-epmrr-pe1-y35ny-dpg` to `pe4`, 2005-10-03 to 2024-04-05.
    [data/README.md](../data/README.md) says what each file holds. New York
-   Harbor gasoline is left out, because its contract 2 and contract 4 files
-   hold about half the rows of the other two, which the issue measured before
-   any statistic.
+   Harbor gasoline is left out. Its four files each lack different days, so an
+   adjacent pair of its contracts keeps a median of 42 days and 141 of its 150
+   pairs keep fewer than 50. The issue measured that before any statistic, and
+   no test pins it.
 2. **The pairs.** Every pair of adjacent delivery months, contract m against
    m+1, whose whole window lies inside all four of a commodity's files: 360
    natural gas pairs with near months May 1994 to April 2024, and 220 RBOB
@@ -2906,7 +2920,7 @@ here.
    m's last day. Six days of it are dropped: the first and last, and each of
    the two expiries inside it with the day after. An expiry rule one day wrong
    then misreads only dropped days. A day either file lacks is dropped rather
-   than filled. Natural gas pairs read 39 to 59 days, a median of 56, and RBOB
+   than filled. Natural gas pairs keep 39 to 59 days, a median of 56, and RBOB
    pairs 40 to 59, a median of 57.
 4. **The test.** Engle-Granger on levels at one lag, in both orientations,
    because the test is not symmetric and Chan names no dependent leg. A pair
@@ -2914,13 +2928,19 @@ here.
 5. **The criterion.** A commodity's statistic is the share of its pairs that
    reject. The bar's critical values are asymptotic while a window is about 56
    days, and pairs sharing a contract are not independent, so 10% is not the
-   reference for that share and the reference comes from simulation. In each of 1,000 sets, seed 20261003, every contract is an
-   independent Gaussian random walk on every trading day of its run, and each
-   pair is read on the same days the real pair keeps. The claim reproduces for
-   a commodity when its share is strictly above the 975th of those 1,000
-   shares. The 975th rather than the 950th splits a family-wise 5% across the
-   two commodities. The owner ruled on 2026-10-03 that each commodity carries
-   its own verdict, and there is no combined one.
+   reference for that share and the reference comes from simulation. In each
+   of 1,000 sets, seed 20261003, every contract walks on every trading day of
+   its run, and each pair is read on the same days the real pair keeps. The
+   claim reproduces for a commodity when its share is strictly above the 975th
+   of those 1,000 shares. The 975th rather than the 950th splits a family-wise
+   5% across the two commodities. The owner ruled on 2026-10-03 that each
+   commodity carries its own verdict, and there is no combined one.
+6. **The correction.** In the declared null each contract's walk is
+   independent. In the corrected one it is the square root of ρ times one walk
+   shared by the whole commodity, plus the square root of 1 − ρ times its own,
+   so any two contracts' daily changes correlate at ρ. ρ is the commodity's
+   median, over its pairs, of the correlation between the two legs' daily
+   changes on the days the pair keeps. Everything else in item 5 is unchanged.
 
 No pair is tested alone, because 56 days give one pair little power, and no
 pair's result is a finding about that pair. Every result here is
@@ -2935,68 +2955,80 @@ columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`. Chan's later book qualifies the
 sentence, at *Algorithmic Trading* location 2321, saying calendar spreads "do
 not generally mean-revert". The issue recorded that as a prior against the
-claim before any statistic, so neither verdict reads as a surprise.
+claim before any statistic, so the result cannot be presented afterwards as a
+surprise in either direction.
 
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | Natural gas calendar spreads cointegrate | the claim, with no figure | Kindle location 3951 |
 | 2 | RBOB gasoline calendar spreads cointegrate | the same claim | Kindle location 3951 |
-| 3 | Natural gas, each orientation alone | nothing | n/a |
-| 4 | RBOB, each orientation alone | nothing | n/a |
-| 5 | Natural gas, the residual check at one lag | nothing | n/a |
-| 6 | RBOB, the residual check at one lag | nothing | n/a |
-| 7 | Natural gas, how often spreads that truly revert reject | a 36-day half-life for a 12-month crude oil calendar spread, used here as the reversion speed | *Algorithmic Trading* locations 2461 and 2471 |
-| 8 | RBOB, the same | the same | the same |
-| 9 | How many null sets reach each commodity's share | nothing | n/a |
-| 10 | Natural gas, whether the files hand over on the expiry rule's day | nothing | n/a |
-| 11 | RBOB, the same | nothing | n/a |
+| 3 | Natural gas, the claim under the declared null | the same claim | Kindle location 3951 |
+| 4 | RBOB, the claim under the declared null | the same claim | Kindle location 3951 |
+| 5 | How closely the two legs of a pair move together | nothing | n/a |
+| 6 | Natural gas, each orientation alone | nothing | n/a |
+| 7 | RBOB, each orientation alone | nothing | n/a |
+| 8 | Natural gas, the residual check at one lag | nothing | n/a |
+| 9 | RBOB, the residual check at one lag | nothing | n/a |
+| 10 | Natural gas, how often spreads that truly revert reject | a 36-day half-life for a 12-month crude oil calendar spread, used here as the reversion speed | *Algorithmic Trading* locations 2461 and 2471 |
+| 11 | RBOB, the same | the same | the same |
+| 12 | How many null sets reach each commodity's share | nothing | n/a |
+| 13 | Natural gas, whether the files hand over on the expiry rule's day | nothing | n/a |
+| 14 | RBOB, the same | nothing | n/a |
 
 ### What this repo computed
 
 | # | Pairs | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
-| 1 | 360 natural gas | the share rejecting in both orientations, against the 975th of 1,000 null shares | 57 of 360, 0.1583, against 19 of 360, 0.0528. The null's median is 12 of 360 | `TestTheCalendarSpreadVerdicts::test_natural_gas_reproduces` |
-| 2 | 220 RBOB | the same | 14 of 220, 0.0636, against 13 of 220, 0.0591. The null's median is 7 of 220 | `TestTheCalendarSpreadVerdicts::test_rbob_reproduces_by_one_pair` |
-| 3 | 360 natural gas | each orientation alone at 10% | near on far 62 and far on near 62 | `TestTheCalendarSpreadDescriptions::test_each_orientation_alone` |
-| 4 | 220 RBOB | the same | near on far 17 and far on near 16 | the same |
-| 5 | 360 natural gas | pairs whose one-lag fit passes both halves of the residual check | near on far 250 and far on near 255 | `TestTheCalendarSpreadDescriptions::test_the_residual_check_at_one_lag` |
-| 6 | 220 RBOB | the same | near on far 168 and far on near 166 | the same |
-| 7 | 360 natural gas | 1,000 sets in which every pair cointegrates: the far leg a random walk and the near leg the far leg plus a Gaussian AR(1) spread with a 36-day half-life, seed 20261004, tested as row 1 is | a mean share of 0.0609, 21.9 of 360 pairs | `TestTheCalendarSpreadDescriptions::test_the_power_row` |
-| 8 | 220 RBOB | the same | a mean share of 0.0614, 13.5 of 220 pairs | the same |
-| 9 | both | null sets whose share reaches the real one. Added after the verdicts were seen, not declared | none of 1,000 for natural gas, and 22 for RBOB | `TestTheCalendarSpreadVerdicts::test_how_many_null_sets_reach_each_share` |
-| 10 | 363 natural gas expiries, February 1994 to April 2024 | expiries where the files' prices hand over on the rule's day rather than not, among those every file can read, then with the rule moved one trading day earlier and one later | 298 of 316. Moved earlier 38 of 324, and later 16 of 324 | `TestTheExpiryMapAgainstTheFiles::test_the_handover_counts` |
-| 11 | 220 RBOB expiries, January 2006 to April 2024 | the same | 202 of 213. Moved earlier 15 of 210, and later 9 of 213 | the same |
+| 1 | 360 natural gas | the share rejecting in both orientations, against the 975th of 1,000 shares under the corrected null | 57 of 360, 0.1583, against 47 of 360, 0.1306. The null's median is 35 of 360 | `TestTheCalendarSpreadVerdicts::test_natural_gas_reproduces` |
+| 2 | 220 RBOB | the same | 14 of 220, 0.0636, against 31 of 220, 0.1409. The null's median is 21.5 of 220 | `TestTheCalendarSpreadVerdicts::test_rbob_does_not_reproduce` |
+| 3 | 360 natural gas | the same share against the declared null, every contract an independent walk | against 19 of 360, 0.0528, with a median of 12 | `TestTheCalendarSpreadVerdicts::test_under_the_declared_null` |
+| 4 | 220 RBOB | the same | against 13 of 220, 0.0591, with a median of 7 | the same |
+| 5 | both | ρ, the median correlation of the two legs' daily changes over a commodity's pairs | 0.9942 for natural gas and 0.9951 for RBOB | `TestTheCalendarSpreadVerdicts::test_the_correlation_the_correction_reads` |
+| 6 | 360 natural gas | each orientation alone at 10% | near on far 62 and far on near 62 | `TestTheCalendarSpreadDescriptions::test_each_orientation_alone` |
+| 7 | 220 RBOB | the same | near on far 17 and far on near 16 | the same |
+| 8 | 360 natural gas | pairs whose one-lag fit passes both halves of the residual check | near on far 250 and far on near 255 | `TestTheCalendarSpreadDescriptions::test_the_residual_check_at_one_lag` |
+| 9 | 220 RBOB | the same | near on far 168 and far on near 166 | the same |
+| 10 | 360 natural gas | 1,000 sets in which every pair cointegrates: the far leg a random walk and the near leg the far leg plus a Gaussian AR(1) spread with a 36-day half-life, seed 20261004, tested as row 1 is | a mean share of 0.0609, 21.9 of 360 pairs | `TestTheCalendarSpreadDescriptions::test_the_power_row` |
+| 11 | 220 RBOB | the same | a mean share of 0.0614, 13.5 of 220 pairs | the same |
+| 12 | both | null sets whose share reaches the real one. Added after the verdicts were seen, not declared | under the corrected null, none of 1,000 for natural gas and 973 for RBOB. Under the declared null, none and 22 | `TestTheCalendarSpreadVerdicts::test_how_many_null_sets_reach_each_share` |
+| 13 | 363 natural gas expiries, February 1994 to April 2024 | expiries where the files' prices hand over on the rule's day rather than not, among those every file can read, then with the rule moved one trading day earlier and one later | 298 of 316. Moved earlier 38 of 324, and later 16 of 324 | `TestTheExpiryMapAgainstTheFiles::test_the_handover_counts` |
+| 14 | 220 RBOB expiries, January 2006 to April 2024 | the same | 202 of 213. Moved earlier 15 of 210, and later 9 of 213 | the same |
 
 ### The verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | The criterion was declared on the issue before any statistic: the share strictly above the 975th null share. 57 pairs is three times the bar of 19, and no null set of 1,000 reaches it. |
-| 2 | reproduced | The same criterion. 14 pairs clears the bar of 13 by one pair. Row 9 says how narrow that is. |
-| 3 | none, not a replication | Requiring both orientations costs five pairs against either one alone. |
-| 4 | none, not a replication | Requiring both costs three pairs against the near-on-far orientation alone. Reading either orientation would have been the search [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) forbids. |
-| 5 | none, not a replication | About seven fits in ten pass. The rest fail the check, so their statistics are read against critical values that may not apply. The criterion reads lag 1 and the null is tested at lag 1 too, so the search for a passing lag count was left out rather than run on one side only. |
-| 6 | none, not a replication | About three fits in four pass, the same reading as row 5. |
-| 7 | none, not a replication | A measure of power. If every natural gas pair reverted at 36 days, 21.9 of 360 would reject on average, a little above the bar of 19. The real 57 is far more than spreads reverting that slowly would give, so whatever produces the rejections reverts faster within these windows, or comes from something the null leaves out. The row decides neither. |
-| 8 | none, not a replication | If every RBOB pair reverted at 36 days, 13.5 of 220 would reject on average, about where the bar of 13 sits. The real 14 is about what reversion that slow would give. |
-| 9 | none, not a replication | Added after the verdicts were seen, because the bar alone does not say how close a verdict sat to it. 22 of 1,000 is 2.2%, inside the 2.5% the criterion allows and close to its edge. |
-| 10 | none, not a replication | The rule's day fits nine handovers in ten, and a day either side about one in ten, so the map reads the right contract on almost every day. The 18 that do not fit are either noisy or one day off, and one day is what the dropped days absorb. A rule two days off would put a neighbouring contract into a day or two of four pairs, which these counts do not rule out. |
-| 11 | none, not a replication | The same reading for RBOB, with 11 that do not fit. |
+| 1 | reproduced | The share is strictly above the 975th corrected null share, 57 against 47, and no corrected null set reaches it. It also clears the declared null, so the correction does not move this verdict. |
+| 2 | did not reproduce | 14 is well under the bar of 31, and 973 of 1,000 corrected null sets reach it. Contracts that move together this closely and do not cointegrate give RBOB's share most of the time. |
+| 3 | none, superseded by row 1 | Under the declared null natural gas also reproduces, 57 against 19. |
+| 4 | none, superseded by row 2 | Under the declared null RBOB cleared 13 by one pair. That pass came from a null whose contracts move independently, which real contracts do not. |
+| 5 | none, not a replication | The correction's one input. Contracts a month apart move almost as one, which is what makes requiring both orientations nearly no stricter than requiring one. |
+| 6 | none, not a replication | Requiring both orientations costs five pairs against either one alone. |
+| 7 | none, not a replication | Requiring both costs three pairs against the near-on-far orientation alone. Reading either orientation would have been the search [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) forbids. |
+| 8 | none, not a replication | About seven fits in ten pass. The rest fail the check, so their statistics are read against critical values that may not apply. The criterion reads lag 1 and the null is tested at lag 1 too, so the search for a passing lag count was left out rather than run on one side only. |
+| 9 | none, not a replication | About three fits in four pass, the same reading as row 8. |
+| 10 | none, not a replication | A measure of power. If every natural gas pair reverted at 36 days, 21.9 of 360 would reject on average. The real 57 is far more than spreads reverting that slowly would give, so whatever produces the rejections reverts faster within these windows, or comes from something neither simulation models. The row decides neither. |
+| 11 | none, not a replication | If every RBOB pair reverted at 36 days, 13.5 of 220 would reject on average. The real 14 is about what reversion that slow would give, and also about what no reversion at all gives under row 2's null, so a 56-day window cannot tell the two apart for RBOB. |
+| 12 | none, not a replication | Added after the verdicts were seen, because a bar alone does not say how close a verdict sat to it. |
+| 13 | none, not a replication | The rule's day fits 298 of 316 handovers, about 94%, and a day either side fits between 4% and 12% of them, so the map reads the right contract on almost every day. Whether each of the 18 that do not fit is noise or a rule one day off is not settled here, and one day is what the dropped days absorb. A rule two days off would put a neighbouring contract into a day or two of four pairs, which these counts do not rule out. |
+| 14 | none, not a replication | The same reading for RBOB, with 11 that do not fit. |
 
 ### What the entry concludes
 
 Three things, and the first is the verdict.
 
-1. **Both commodities reproduce, and the margins differ by a wide distance.**
-   Natural gas rejects three times as often as its bar, and nothing in the
-   null comes near it. RBOB clears its bar by one pair, and 22 of 1,000 null
-   sets reach its share. Each verdict stands alone, as the owner ruled, so the
-   RBOB verdict is reproduced, and a single pair would have reversed it.
-2. **The short window sees only fast reversion.** Row 7 and row 8 say that
-   spreads reverting at Chan's 36-day half-life reject in about one pair in
-   sixteen. RBOB's share is about that. Natural gas's is more than twice that,
-   so its spreads either revert faster than 36 days inside these windows or
-   reject for a reason the null does not model.
+1. **Natural gas reproduces and RBOB does not.** Natural gas rejects in 57
+   pairs against a bar of 47 from contracts that move together as the real
+   ones do, and no null set reaches 57. RBOB rejects in 14 against a bar of
+   31, which most null sets reach. Each verdict stands alone, as the owner
+   ruled.
+2. **Requiring both orientations is not the safeguard it looks like here.**
+   It was declared so that neither leg would be chosen as the dependent one
+   after the fact. Two contracts a month apart move almost as one, and then
+   the two orientations nearly agree, so the requirement removes little. With
+   no cointegration, a null of independent walks has a median of 12 natural
+   gas pairs rejecting, and a null at the files' correlation has 35. The
+   declared null missed that, and it is why the bars were corrected.
 3. **The expiry map holds where it was checked, and one correction to it was
    owed.** Three days the calendar listed as closures, the two days of
    Hurricane Sandy in October 2012 and 2018-12-05, are days every natural gas
@@ -3011,19 +3043,19 @@ Four things.
 
 **Whether a pair cointegrates over its whole life.** The nearest four hold a
 pair for about three months. A contract's full history, and gaps wider than
-one month, need contract-level data EIA does not publish. A probe of Massive's
-futures aggregates on 2026-10-03 returned no bars for the three natural gas
-contracts it asked for, so that data would have to be bought. That
-is a stronger test than Chan's sentence asks for, and nothing has asked for it,
-so it is deferred under the ranking rule rather than filed.
+one month, need contract-level data EIA does not publish. A probe of the
+Massive futures API on 2026-10-03, recorded on
+[issue 137](https://github.com/l3a0/quantitative-trading/issues/137), returned
+no bars for the three natural gas contracts it asked for, so no free source for
+that data is known here. It is a stronger test than Chan's sentence asks for
+and nothing has asked for it, so it is deferred under the ranking rule rather
+than filed.
 
-**Whether RBOB's verdict survives the one assumption the null makes.** Every
-contract in the null walks independently of its neighbours. Real contracts of
-one commodity move together. The Engle-Granger statistic's distribution under
-no cointegration does not depend on that in the limit, but the dependence
-between pairs that share a contract widens the spread of the share, and a
-wider spread raises the bar. Natural gas's margin is wide enough not to depend
-on this. RBOB's single pair might.
+**How much the corrected null leaves out.** It gives every pair of contracts
+in a commodity one correlation, the median, and equal volatilities. Real
+correlations vary from pair to pair and over time, and so do the two legs'
+volatilities. Natural gas clears the corrected bar by ten
+pairs and RBOB misses it by seventeen, so neither verdict sits on that edge.
 
 **Which pairs cointegrate.** No pair is a finding, because a pair tested on
 56 days has little power and 580 pairs tested at 10% produce rejections by

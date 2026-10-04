@@ -522,7 +522,7 @@ def report_at_open(members, variation: OpenVariation) -> None:
 
     It is a report of its own rather than a branch inside :func:`report`, so
     Example 3.7's printed lines stay exactly as they were, the way
-    ``chan.stationary_candidates`` gives its claim-route verdict its own report.
+    ``chan.stationary_candidates`` gives each claim-route verdict its own report.
     """
     a, b = variation.notebook, variation.rule_b
     cost = f"{ONE_WAY_COST * 1e4:.0f} bp a side"

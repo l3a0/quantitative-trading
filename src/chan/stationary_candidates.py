@@ -80,8 +80,8 @@ never fits. Three specification choices are fixed here.
    test on the log gives one answer in either direction, and the test on the
    level does not.
 2. **The lag is 1**, with the residual check beside it and the same search to
-   :func:`schwert_ceiling` the pair uses, so both candidates in this module read
-   one rule. The check fits a constant here, because the test does.
+   :func:`schwert_ceiling` the pair uses, so the fixed-income pair and the
+   cross rate read one rule. The check fits a constant here, because the test does.
 3. **The deterministic term is a constant and no trend**, because Chan's claim
    is that the level is stationary.
 
@@ -111,13 +111,19 @@ batch, and no pair's result is a finding about that pair.
 3. **The verdict.** A commodity's statistic is the share of its pairs that
    reject. Short windows and pairs sharing a contract make 10% the wrong
    reference for that share, so :func:`null_shares` simulates 1,000 sets of
-   independent random walks on the same days. The claim reproduces for a
-   commodity when its share is strictly above the 975th of those shares, a
-   family-wise 5% split across the two commodities.
+   random walks on the same days. The claim reproduces for a commodity when
+   its share is strictly above the 975th of those shares, a family-wise 5%
+   split across the two commodities.
+4. **The correction.** The null issue 137 declared made every contract an
+   independent walk. Real neighbouring contracts move almost together, and
+   then requiring both orientations is barely stricter than one, so the
+   declared null set the bar too low. The owner ruled on 2026-10-03 to
+   re-judge against walks that correlate as the files' legs do,
+   :func:`leg_correlation`, and to report the declared verdict beside it.
 
 :func:`power_shares` runs the same pipeline on pairs that truly cointegrate at
 a 36-day half-life, and with each orientation's share and the residual check it
-describes the batch and decides nothing. ``docs/replication-log.md`` Entry 13
+describes the batch and decides nothing. ``docs/replication-log.md`` Entry 14
 carries the verdicts.
 
 All three results are exploratory, and ``tests/test_stationary_candidates.py``
@@ -486,12 +492,7 @@ def simulated_paths(half_life: float, length: int, paths: int, seed: int) -> NDA
     """
     phi = 1.0 - math.log(2.0) / half_life
     rng = np.random.default_rng(seed)
-    shocks = rng.standard_normal((paths, length))
-    z = np.empty((paths, length))
-    z[:, 0] = shocks[:, 0] / math.sqrt(1.0 - phi**2)
-    for t in range(1, length):
-        z[:, t] = phi * z[:, t - 1] + shocks[:, t]
-    return z
+    return _ar1(rng.standard_normal((paths, length)), phi)
 
 
 def window_power(
@@ -615,9 +616,9 @@ CALENDAR_REF = (
     "one commodity at two expiration months"
 )
 
-#: The two commodities, each judged on its own. New York Harbor gasoline is out
-#: because its contract 2 and contract 4 files are too sparse, which issue 137
-#: measured before any statistic.
+#: The two commodities, each judged on its own. New York Harbor gasoline is out:
+#: its four files each lack different days, so an adjacent pair keeps a median
+#: of 42 days, which issue 137 measured before any statistic.
 SPREAD_PRODUCTS = (NATURAL_GAS_CONTRACTS, RBOB_CONTRACTS)
 
 #: A pair rejects only when both orientations clear this bar of ``EG_CRIT_N2``.
@@ -626,7 +627,8 @@ SPREAD_LEVEL = "10%"
 #: The null, declared on issue 137 before any statistic: 1,000 simulated sets,
 #: and a commodity reproduces when its share is strictly above the 975th of
 #: them sorted from smallest. The 975th rather than the 950th splits a
-#: family-wise 5% across the two commodities.
+#: family-wise 5% across the two commodities. The walks were corrected after
+#: the result to correlate as the files do, which :func:`null_shares` says.
 NULL_SEED = 20261003
 NULL_SETS = 1000
 NULL_RANK = 975
@@ -766,32 +768,66 @@ def _both_reject(near: NDArray[np.float64], far: NDArray[np.float64]) -> NDArray
     return (batched_engle_granger(near, far) < bar) & (batched_engle_granger(far, near) < bar)
 
 
+def leg_correlation(pairs: tuple[SpreadPair, ...]) -> float:
+    """The median, over ``pairs``, of the correlation of the two legs' daily changes.
+
+    Read on the days each pair keeps, so a dropped day contributes a two-day
+    change, as it does to the test. It is the one input of the corrected null.
+    """
+    return float(
+        np.median([np.corrcoef(np.diff(p.near_prices), np.diff(p.far_prices))[0, 1] for p in pairs])
+    )
+
+
 def null_shares(
-    pairs: tuple[SpreadPair, ...], *, sets: int = NULL_SETS, seed: int = NULL_SEED
+    pairs: tuple[SpreadPair, ...],
+    *,
+    sets: int = NULL_SETS,
+    seed: int = NULL_SEED,
+    correlation: float = 0.0,
 ) -> NDArray[np.float64]:
     """The share of pairs rejecting in both orientations, in each of ``sets`` simulated sets.
 
-    Every contract is an independent Gaussian random walk with unit innovations
-    on every trading day of its run, which is every day of each window it
-    appears in. A contract shared by two pairs carries one walk through both.
-    Each pair reads its walks on the days the real pair keeps, so a dropped day
-    spans two steps as it does in the files. The walks are drawn contract by
-    contract in delivery order, the near leg of the first pair first.
+    Every contract walks with unit Gaussian innovations on every trading day of
+    its run, which is every day of each window it appears in. A contract shared
+    by two pairs carries one walk through both. Each pair reads its walks on
+    the days the real pair keeps, so a dropped day spans two steps as it does
+    in the files.
+
+    At ``correlation`` 0, the null issue 137 declared, every contract's walk is
+    independent, drawn contract by contract in delivery order. Otherwise each
+    walk is the square root of ``correlation`` times one walk shared by the
+    whole commodity, drawn first over every day any run covers, plus the square
+    root of one minus it times the contract's own. Any two contracts' daily
+    changes then correlate at ``correlation``. That is the corrected null the
+    owner ruled for on 2026-10-03, after the declared one was seen to leave out
+    how closely neighbouring contracts move together.
     """
+    for first, second in zip(pairs, pairs[1:], strict=False):
+        if second.near != first.far:
+            raise ValueError("the pairs must be adjacent and in delivery order")
     run: dict[Month, list[date]] = {}
     for pair in pairs:
         for month in (pair.near, pair.far):
             run.setdefault(month, [])
             run[month].extend(day for day in pair.window if day not in run[month])
     rng = np.random.default_rng(seed)
+    shared: NDArray[np.float64] | None = None
+    every: dict[date, int] = {}
+    if correlation:
+        every = {day: i for i, day in enumerate(sorted({d for days in run.values() for d in days}))}
+        shared = np.cumsum(rng.standard_normal((sets, len(every))), axis=1)
     walks: dict[Month, tuple[dict[date, int], NDArray[np.float64]]] = {}
     count = np.zeros(sets)
     for pair in pairs:
         for month in (pair.near, pair.far):
             if month not in walks:
                 days = sorted(run[month])
-                steps = rng.standard_normal((sets, len(days)))
-                walks[month] = ({day: i for i, day in enumerate(days)}, np.cumsum(steps, axis=1))
+                walk = np.cumsum(rng.standard_normal((sets, len(days))), axis=1)
+                if shared is not None:
+                    common = shared[:, [every[day] for day in days]]
+                    walk = math.sqrt(correlation) * common + math.sqrt(1 - correlation) * walk
+                walks[month] = ({day: i for i, day in enumerate(days)}, walk)
 
         def legs(month: Month, pair: SpreadPair = pair) -> NDArray[np.float64]:
             position, walk = walks[month]
@@ -869,11 +905,19 @@ def measure_pair(pair: SpreadPair) -> PairTest:
 
 @dataclass(frozen=True)
 class CalendarSpread:
-    """One commodity's batch, its null, its power row, and the verdict they give."""
+    """One commodity's batch, both nulls, its power row, and the verdict they give.
+
+    ``null`` is the corrected null, at the files' own correlation, and the
+    verdict reads it. ``declared_null`` is the one issue 137 declared before any
+    statistic, every contract independent, kept beside it because it was the
+    registered criterion.
+    """
 
     product: Product
     tests: tuple[PairTest, ...]
+    correlation: float
     null: NDArray[np.float64]
+    declared_null: NDArray[np.float64]
     power: NDArray[np.float64]
 
     def _share(self, hits: list[bool]) -> float:
@@ -902,18 +946,31 @@ class CalendarSpread:
     def far_on_near_residuals_pass(self) -> float:
         return self._share([residuals_pass(t.far_on_near_check) for t in self.tests])
 
+    @staticmethod
+    def _cut(null: NDArray[np.float64]) -> float:
+        return float(np.sort(null)[NULL_RANK - 1])
+
     @property
     def cut(self) -> float:
-        """The 975th of the null's shares sorted from smallest."""
-        return float(np.sort(self.null)[NULL_RANK - 1])
+        """The 975th of the corrected null's shares sorted from smallest."""
+        return self._cut(self.null)
+
+    @property
+    def declared_cut(self) -> float:
+        """The 975th of the declared null's shares sorted from smallest."""
+        return self._cut(self.declared_null)
 
     @property
     def null_median(self) -> float:
         return float(np.median(self.null))
 
     @property
+    def declared_null_median(self) -> float:
+        return float(np.median(self.declared_null))
+
+    @property
     def null_reaching(self) -> int:
-        """How many null sets reach the real share. Added after the verdicts were seen.
+        """How many corrected null sets reach the real share. Added after the verdicts were seen.
 
         It decides nothing. It says how close the verdict sat to the cut, which
         the cut alone does not.
@@ -921,18 +978,31 @@ class CalendarSpread:
         return int((self.null >= self.share).sum())
 
     @property
+    def declared_null_reaching(self) -> int:
+        """The same count under the declared null, added after the verdicts were seen."""
+        return int((self.declared_null >= self.share).sum())
+
+    @property
     def reproduced(self) -> bool:
-        """Whether Chan's claim holds for this commodity under the criterion issue 137 declared."""
+        """Whether Chan's claim holds for this commodity against the corrected null."""
         return self.share > self.cut
+
+    @property
+    def reproduced_as_declared(self) -> bool:
+        """Whether it holds against the declared null, which the corrected one replaced."""
+        return self.share > self.declared_cut
 
 
 def calendar_spread(product: Product, *, data_dir: Path | None = None) -> CalendarSpread:
-    """Test every declared pair of one commodity and judge the batch against the null."""
+    """Test every declared pair of one commodity and judge the batch against both nulls."""
     pairs = declared_pairs(product, data_dir=data_dir)
+    correlation = leg_correlation(pairs)
     return CalendarSpread(
         product=product,
         tests=tuple(measure_pair(pair) for pair in pairs),
-        null=null_shares(pairs),
+        correlation=correlation,
+        null=null_shares(pairs, correlation=correlation),
+        declared_null=null_shares(pairs),
         power=power_shares(pairs),
     )
 
@@ -942,7 +1012,7 @@ def _month(month: Month) -> str:
 
 
 def report_calendar_spread(results: tuple[CalendarSpread, ...]) -> None:
-    """Print each commodity's verdict with the vintages, specification and null behind it."""
+    """Print each commodity's verdict with the vintages, specification and nulls behind it."""
     bar = EG_CRIT_N2[SPREAD_LEVEL]
     print(
         "Chan's calendar spreads -- daily NYMEX settlements   "
@@ -962,10 +1032,12 @@ def report_calendar_spread(results: tuple[CalendarSpread, ...]) -> None:
         f"rejects when both clear the {SPREAD_LEVEL} bar of {bar}."
     )
     print(
-        f"  Null: {NULL_SETS:,} sets of independent Gaussian random walks on the same days, "
-        f"seed {NULL_SEED}. A commodity reproduces when its share is above the "
-        f"{NULL_RANK}th null share."
+        f"  Null: {NULL_SETS:,} sets of Gaussian random walks on the same days, seed "
+        f"{NULL_SEED}, whose daily changes correlate as closely as the files' two legs do. "
+        f"A commodity reproduces when its share is above the {NULL_RANK}th null share."
     )
+    print("    This null was corrected after the result was seen, on the owner's ruling.")
+    print("    The declared one made every contract independent, and is reported beside it.")
     print()
     for r in results:
         lengths = [len(t.pair.kept) for t in r.tests]
@@ -990,12 +1062,19 @@ def report_calendar_spread(results: tuple[CalendarSpread, ...]) -> None:
             f"  residual check passing at {LAGS} lag: near on far "
             f"{r.near_on_far_residuals_pass:.4f}, far on near {r.far_on_near_residuals_pass:.4f}"
         )
+        print(f"  correlation of the two legs' daily changes, median of pairs: {r.correlation:.4f}")
         print(
             f"  null shares: median {r.null_median:.4f}, {NULL_RANK}th of {NULL_SETS:,} {r.cut:.4f}"
         )
         print(
-            f"  null sets reaching {r.share:.4f}: {r.null_reaching} of {NULL_SETS:,}, "
-            "a description added after the verdicts were seen"
+            f"  declared null, contracts independent: median {r.declared_null_median:.4f}, "
+            f"{NULL_RANK}th {r.declared_cut:.4f}, "
+            f"{'reproduced' if r.reproduced_as_declared else 'did not reproduce'}"
+        )
+        print(
+            f"  null sets reaching {r.share:.4f}: {r.null_reaching} of {NULL_SETS:,}, and "
+            f"{r.declared_null_reaching} under the declared null, a description added after "
+            "the verdicts were seen"
         )
         print(
             f"  power, every pair reverting at a {SPREAD_POWER_HALF_LIFE:g}-day half-life "
@@ -1007,12 +1086,12 @@ def report_calendar_spread(results: tuple[CalendarSpread, ...]) -> None:
         )
         print()
     print("Each commodity carries its own verdict, and there is no combined one. No pair's")
-    print("result is a finding about that pair. The orientation shares, the residual check")
-    print("and the power row describe the batch and decide nothing.")
+    print("result is a finding about that pair. The declared null, the orientation shares,")
+    print("the residual check and the power row describe the batch and decide nothing.")
     print()
-    print("A replication against data is exploratory by construction. The criterion was")
-    print("declared before any statistic, so a pass earns a registration, not a headline.")
-    print("docs/replication-log.md Entry 13 carries the verdicts.")
+    print("A replication against data is exploratory by construction. A pass earns a")
+    print("registration, not a headline.")
+    print("docs/replication-log.md Entry 14 carries the verdicts.")
 
 
 def run_calendar_spread(*, data_dir: Path | None = None) -> None:

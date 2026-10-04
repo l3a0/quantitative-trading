@@ -94,9 +94,12 @@ The calendar-spread pins read eight vintages and one specification.
   near, and a pair rejects when both clear the 10% bar of -3.04. A commodity's
   share is judged against the 975th of 1,000 null shares from seed 20261003,
   and the power row reverts at a 36-day half-life from seed 20261004. Each was
-  declared on issue 137 before any statistic.
+  declared on issue 137 before any statistic. The null's walks were then
+  corrected, after the result and on the owner's ruling, to correlate as the
+  files' two legs do, and the declared null's figures are pinned beside it.
 
-Ten classes, all reading the module fixture ``spreads``.
+Ten classes. Most read the module fixture ``spreads``, which runs both batches
+once.
 
 1. ``TestTheCalendarSpreadVintages``, the eight files, and the three days the
    calendar used to count closed on which every file settled.
@@ -108,7 +111,8 @@ Ten classes, all reading the module fixture ``spreads``.
    rule one day wrong reads the same prices on every day both keep.
 5. ``TestTheBatchedStatistic``, the simulations' closed form held to the
    engine on simulated paths and on every real pair.
-6. ``TestTheCalendarSpreadVerdicts``, the criterion and the two verdicts.
+6. ``TestTheCalendarSpreadVerdicts``, the criterion, the correction, and the
+   verdicts under both nulls.
 7. ``TestTheCalendarSpreadNull``, how the null draws and reads its walks.
 8. ``TestTheCalendarSpreadDescriptions``, each orientation alone, the residual
    check and the power row, which decide nothing.
@@ -139,6 +143,7 @@ from chan.commodity_seasonals import june_contract_number
 from chan.futures import (
     NATURAL_GAS_CONTRACTS,
     RBOB_CONTRACTS,
+    UNSCHEDULED_CLOSURES,
     Product,
     contract_number,
     handover_fit,
@@ -183,6 +188,7 @@ from chan.stationary_candidates import (
     first_passing,
     fixed_income,
     guard_band,
+    leg_correlation,
     main,
     measure_cross_rate,
     null_shares,
@@ -894,7 +900,13 @@ class TestTheCrossRateRefusals:
             main()
         assert "CADAUD=X raw dated 2026-10-03" in str(stopped.value)
 
-    def test_no_argument_runs_both_fixed_income_first(self, monkeypatch, capsys) -> None:
+    def test_no_argument_runs_every_candidate_fixed_income_first(
+        self, monkeypatch, capsys, spreads
+    ) -> None:
+        monkeypatch.setattr(
+            "chan.stationary_candidates.calendar_spread",
+            lambda product, data_dir=None: spreads[product.name],
+        )
         monkeypatch.setattr("sys.argv", ["chan.stationary_candidates"])
         main()
         out = capsys.readouterr().out
@@ -1063,6 +1075,16 @@ class TestTheCalendarSpreadVintages:
             ("eia", "raw", "2026-10-02")
         }
 
+    def test_a_file_with_another_header_is_refused(self, monkeypatch, tmp_path) -> None:
+        """A settlement is read only from the two columns EIA's files carry."""
+        entry = settlements(RBOB_CONTRACTS.symbols[0])[0]
+        monkeypatch.setattr("chan.futures.resolve_vintage", lambda **_: entry)
+        monkeypatch.setattr(
+            "chan.futures.read_vintage", lambda *_, **__: b"Day,Settle\n2020-01-02,1.0\n"
+        )
+        with pytest.raises(ValueError, match="the header reads"):
+            settlements(RBOB_CONTRACTS.symbols[0], data_dir=tmp_path)
+
     @pytest.mark.parametrize("day", [date(2012, 10, 29), date(2012, 10, 30), date(2018, 12, 5)])
     def test_the_three_former_closures_settled_in_every_file(self, day: date) -> None:
         """Every file holds the day, and at least seven of the eight differ from
@@ -1080,6 +1102,10 @@ class TestTheCalendarSpreadVintages:
     ) -> None:
         """Counted closed, the rule gave 2012-10-25, where the handover does not fit."""
         assert ng_last_trade(2012, 11) == date(2012, 10, 29)
+        sandy = {date(2012, 10, 29), date(2012, 10, 30), date(2018, 12, 5)}
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr("chan.futures.UNSCHEDULED_CLOSURES", UNSCHEDULED_CLOSURES | sandy)
+            assert ng_last_trade(2012, 11) == date(2012, 10, 25)
         assert handover_fit(NATURAL_GAS_CONTRACTS, date(2012, 10, 29)) == Decimal("-0.315")
         assert handover_fit(NATURAL_GAS_CONTRACTS, date(2012, 10, 25)) == Decimal("0.289")
 
@@ -1104,6 +1130,15 @@ class TestTheContractNumber:
         with pytest.raises(ValueError, match="stopped trading"):
             contract_number(date(2018, 2, 27), 2018, 3, ng_last_trade)
 
+    @pytest.mark.parametrize("day", [date(2010, 12, 31), date(2021, 12, 31)])
+    def test_new_year_on_a_saturday_leaves_the_friday_open(self, day: date) -> None:
+        """The exchange does not move New Year's Day back into the old year.
+        Every file settled on both Fridays, each the January RBOB expiry."""
+        assert is_trading_day(day)
+        assert rbob_last_trade(day.year + 1, 1) == day
+        for product in SPREAD_PRODUCTS:
+            assert all(day in rows for rows in product.files())
+
     def test_rbob_stops_on_the_last_business_day_before_delivery(self) -> None:
         """2024-03-29 was Good Friday, and 2005-12-30 the first RBOB expiry a pair reads."""
         assert rbob_last_trade(2024, 4) == date(2024, 3, 28)
@@ -1114,9 +1149,9 @@ class TestTheContractNumber:
 class TestTheExpiryMapAgainstTheFiles:
     """Whether the files hand over on the day each rule says, over every expiry.
 
-    A negative :func:`handover_fit` says the handover fits. Moving a rule one
-    trading day either way makes about one in ten fit rather than nine in ten,
-    so a rule moved by a day turns these red. Measured on issue 137 before any
+    A negative :func:`handover_fit` says the handover fits. At the rule's day
+    about 94% of readable handovers fit, and a day either side between 4% and
+    12%, so a rule moved by a day turns these red. Measured on issue 137 before any
     statistic, and reproduced here unchanged.
     """
 
@@ -1226,11 +1261,25 @@ class TestThePairs:
 
     @pytest.mark.parametrize("product", SPREAD_PRODUCTS, ids=lambda p: p.name)
     @pytest.mark.parametrize("shift", [-1, 1])
+    def test_a_rule_one_day_wrong_reads_the_same_files_on_every_kept_day(
+        self, spreads, product: Product, shift: int
+    ) -> None:
+        """The guard band's job, held directly: on every day a pair keeps under
+        the rule, a rule one day wrong puts both legs in the same files."""
+        moved = shifted(product, shift).last_trade
+        for t in spreads[product.name].tests:
+            for day in t.pair.kept:
+                assert contract_number(day, *t.pair.near, moved) == contract_number(
+                    day, *t.pair.near, product.last_trade
+                ), (t.pair.near, day)
+
+    @pytest.mark.parametrize("product", SPREAD_PRODUCTS, ids=lambda p: p.name)
+    @pytest.mark.parametrize("shift", [-1, 1])
     def test_a_rule_one_day_wrong_reads_the_same_prices(
         self, spreads, product: Product, shift: int
     ) -> None:
         """On every day a pair keeps under both the rule and the rule moved a
-        day, the two read the same two prices. That is the guard band's job."""
+        day, the two read the same two prices."""
         compared = 0
         for t in spreads[product.name].tests:
             moved = spread_pair(shifted(product, shift), t.pair.near)
@@ -1272,36 +1321,66 @@ class TestTheBatchedStatistic:
 
 
 class TestTheCalendarSpreadVerdicts:
-    """The criterion issue 137 declared before any statistic, and what it gives.
+    """The criterion issue 137 declared, the correction to its null, and what each gives.
 
     A commodity reproduces when the share of its pairs rejecting in both
     orientations at 10% is strictly above the 975th of 1,000 null shares,
-    seed 20261003. Shares are pinned as whole pairs.
+    seed 20261003. The null issue 137 declared made every contract an
+    independent walk. The owner ruled on 2026-10-03, after the result was
+    seen, to re-judge against walks that correlate as the files' two legs do,
+    and to report the declared verdict beside it. Shares are pinned as whole
+    pairs.
     """
 
     def test_the_declared_specification(self, spreads) -> None:
         assert (NULL_SEED, NULL_SETS, NULL_RANK) == (20261003, 1000, 975)
         assert (SPREAD_LEVEL, EG_CRIT_N2[SPREAD_LEVEL], LAGS) == ("10%", -3.04, 1)
-        assert all(len(r.null) == len(r.power) == 1000 for r in spreads.values())
+        assert all(
+            len(r.null) == len(r.declared_null) == len(r.power) == 1000 for r in spreads.values()
+        )
+
+    def test_the_correlation_the_correction_reads(self, spreads) -> None:
+        """The median over pairs of the correlation of the two legs' daily changes."""
+        assert spreads[NG].correlation == pytest.approx(0.9942, abs=5e-5)
+        assert spreads[RBOB].correlation == pytest.approx(0.9951, abs=5e-5)
+        pairs = tuple(t.pair for t in spreads[RBOB].tests)
+        assert leg_correlation(pairs) == spreads[RBOB].correlation
 
     def test_natural_gas_reproduces(self, spreads) -> None:
-        """57 of 360 against a 975th null share of 19, with a median of 12."""
+        """57 of 360 against a corrected 975th null share of 47, with a median of 35."""
         r = spreads[NG]
         assert count(r.share, 360) == 57
-        assert (count(r.cut, 360), count(r.null_median, 360)) == (19, 12)
+        assert (count(r.cut, 360), count(r.null_median, 360)) == (47, 35)
         assert r.reproduced
 
-    def test_rbob_reproduces_by_one_pair(self, spreads) -> None:
-        """14 of 220 against a 975th null share of 13, with a median of 7."""
+    def test_rbob_does_not_reproduce(self, spreads) -> None:
+        """14 of 220 against a corrected 975th null share of 31, with a median of 21.5."""
         r = spreads[RBOB]
         assert count(r.share, 220) == 14
-        assert (count(r.cut, 220), count(r.null_median, 220)) == (13, 7)
-        assert r.reproduced
+        assert count(r.cut, 220) == 31
+        assert r.null_median * 220 == pytest.approx(21.5, abs=1e-9)
+        assert not r.reproduced
+
+    def test_under_the_declared_null(self, spreads) -> None:
+        """Bars of 19 and 13, medians of 12 and 7, and both commodities passed."""
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (count(ng.declared_cut, 360), count(ng.declared_null_median, 360)) == (19, 12)
+        assert (count(rbob.declared_cut, 220), count(rbob.declared_null_median, 220)) == (13, 7)
+        assert ng.reproduced_as_declared and rbob.reproduced_as_declared
+
+    def test_the_declared_null_is_the_correlated_one_at_zero(self, spreads) -> None:
+        pairs = tuple(t.pair for t in spreads[RBOB].tests)
+        assert np.array_equal(null_shares(pairs, correlation=0.0), spreads[RBOB].declared_null)
 
     def test_how_many_null_sets_reach_each_share(self, spreads) -> None:
-        """Added after the verdicts were seen, and decides nothing. None of the
-        null sets reaches natural gas's 57, and 22 reach RBOB's 14."""
-        assert (spreads[NG].null_reaching, spreads[RBOB].null_reaching) == (0, 22)
+        """Added after the verdicts were seen, and decides nothing. Under the
+        corrected null none reaches natural gas's 57 and 973 reach RBOB's 14.
+        Under the declared null, none and 22."""
+        assert (spreads[NG].null_reaching, spreads[RBOB].null_reaching) == (0, 973)
+        assert (spreads[NG].declared_null_reaching, spreads[RBOB].declared_null_reaching) == (
+            0,
+            22,
+        )
 
     def test_a_pair_rejects_only_when_both_orientations_clear(self, spreads) -> None:
         t = spreads[NG].tests[0]
@@ -1342,6 +1421,36 @@ class TestTheCalendarSpreadNull:
         bar = EG_CRIT_N2[SPREAD_LEVEL]
         want = (batched_engle_granger(near, far) < bar) & (batched_engle_granger(far, near) < bar)
         assert np.array_equal(null_shares((pair,), sets=200), want.astype(float))
+
+    def test_a_correlated_null_draws_the_shared_walk_first(self) -> None:
+        """For a lone pair the shared walk covers the window, and each leg is
+        the square root of rho times it plus the rest times its own walk."""
+        pair = spread_pair(RBOB_CONTRACTS, (2012, 3))
+        rho, n = 0.9, len(pair.window)
+        rng = np.random.default_rng(NULL_SEED)
+        shared = np.cumsum(rng.standard_normal((200, n)), axis=1)
+        near = np.cumsum(rng.standard_normal((200, n)), axis=1)
+        far = np.cumsum(rng.standard_normal((200, n)), axis=1)
+
+        def leg(own):
+            return (math.sqrt(rho) * shared + math.sqrt(1 - rho) * own)[:, pair.kept_index]
+
+        bar = EG_CRIT_N2[SPREAD_LEVEL]
+        a, b = leg(near), leg(far)
+        want = (batched_engle_granger(a, b) < bar) & (batched_engle_granger(b, a) < bar)
+        got = null_shares((pair,), sets=200, correlation=rho)
+        assert np.array_equal(got, want.astype(float))
+
+    def test_the_correlation_raises_how_often_both_orientations_reject(self, spreads) -> None:
+        """The reason for the correction, on RBOB's own days: the null's median
+        rises from 7 pairs to 21.5 when the walks correlate as the files do."""
+        r = spreads[RBOB]
+        assert r.declared_null_median * 220 < 8 < 21 < r.null_median * 220
+
+    def test_pairs_out_of_delivery_order_are_refused(self) -> None:
+        first, second = (spread_pair(RBOB_CONTRACTS, m) for m in ((2010, 1), (2010, 2)))
+        with pytest.raises(ValueError, match="delivery order"):
+            null_shares((second, first), sets=10)
 
     def test_a_contract_shared_by_two_pairs_carries_one_walk(self) -> None:
         """The second pair's near leg is the first pair's far leg, so its run
@@ -1421,16 +1530,44 @@ class TestTheCalendarSpreadReport:
 
     def test_the_verdict_lines(self, out: str) -> None:
         assert "rejecting in both orientations: 57 of 360, a share of 0.1583" in out
-        assert "Verdict: REPRODUCED. 0.1583 is above 0.0528." in out
+        assert "Verdict: REPRODUCED. 0.1583 is above 0.1306." in out
         assert "rejecting in both orientations: 14 of 220, a share of 0.0636" in out
-        assert "Verdict: REPRODUCED. 0.0636 is above 0.0591." in out
+        assert "Verdict: DID NOT REPRODUCE. 0.0636 is not above 0.1409." in out
+
+    def test_every_line_that_prints_a_number(self, out: str) -> None:
+        """Each line the entry quotes, so a wrong number in any of them fails."""
+        for line in (
+            "natural gas: 360 pairs, near months 1994-05 .. 2024-04",
+            "RBOB gasoline: 220 pairs, near months 2006-01 .. 2024-04",
+            "days a pair reads: 39 to 59, median 56",
+            "days a pair reads: 40 to 59, median 57",
+            "each orientation alone at 10%: near on far 0.1722, far on near 0.1722",
+            "each orientation alone at 10%: near on far 0.0773, far on near 0.0727",
+            "residual check passing at 1 lag: near on far 0.6944, far on near 0.7083",
+            "residual check passing at 1 lag: near on far 0.7636, far on near 0.7545",
+            "correlation of the two legs' daily changes, median of pairs: 0.9942",
+            "correlation of the two legs' daily changes, median of pairs: 0.9951",
+            "null shares: median 0.0972, 975th of 1,000 0.1306",
+            "null shares: median 0.0977, 975th of 1,000 0.1409",
+            "declared null, contracts independent: median 0.0333, 975th 0.0528, reproduced",
+            "declared null, contracts independent: median 0.0318, 975th 0.0591, reproduced",
+            "null sets reaching 0.1583: 0 of 1,000, and 0 under the declared null",
+            "null sets reaching 0.0636: 973 of 1,000, and 22 under the declared null",
+            "(seed 20261004): mean share 0.0609",
+            "(seed 20261004): mean share 0.0614",
+            "A pair rejects when both clear the 10% bar of -3.04.",
+            "Null: 1,000 sets of Gaussian random walks on the same days, seed 20261003,",
+            "A commodity reproduces when its share is above the 975th null share.",
+        ):
+            assert line in out, line
 
     def test_the_description_added_late_says_so(self, out: str) -> None:
         assert out.count("a description added after the verdicts were seen") == 2
+        assert "This null was corrected after the result was seen" in out
 
     def test_it_says_exploratory_and_names_the_entry(self, out: str) -> None:
         assert "exploratory by construction" in out
-        assert "Entry 13 carries the verdicts." in out
+        assert "Entry 14 carries the verdicts." in out
         assert "there is no combined one" in out
 
 
@@ -1451,6 +1588,16 @@ class TestTheCalendarSpreadCommandLine:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert stopped.value.code == 2
+
+    @pytest.mark.parametrize("other", ["fixed-income", "cross-rate"])
+    def test_the_other_candidates_run_without_it(self, monkeypatch, capsys, other) -> None:
+        def refuse(product, data_dir=None):
+            raise AssertionError("the calendar spreads ran")
+
+        monkeypatch.setattr("chan.stationary_candidates.calendar_spread", refuse)
+        monkeypatch.setattr("sys.argv", ["chan.stationary_candidates", other])
+        main()
+        assert "Chan's calendar spreads" not in capsys.readouterr().out
 
     def test_it_runs_alone(self, monkeypatch, capsys, quick) -> None:
         monkeypatch.setattr("sys.argv", ["chan.stationary_candidates", "calendar-spread"])
