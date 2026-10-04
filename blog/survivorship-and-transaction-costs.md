@@ -99,7 +99,7 @@ pandas, the standard Python library for tables of data, skips a missing value in
 
 ## Lesson 3: a database of survivors turns a loss into a large gain
 
-Chan states the mechanism on p. 26. Some stocks are cheap because the company is about to fail, so a database that has dropped the failures offers a cheap-stock strategy only the cheap stocks that recovered.
+Chan states the mechanism on p. 26. Some stocks are cheap because the company is about to fail. A database that has dropped the failed companies keeps only the cheap stocks that recovered, so a strategy that buys cheap stocks picks from the winners alone.
 
 The two tables show it. Nine of the ten survivorship-free picks were removed from the exchange during 2001, and the book gives each one’s last traded price, which is what a holder got out. Only MDM still traded on 2 January 2002, and it is the one stock in both tables. The survivor-only database never held the other nine, so it skips them and keeps going up the price ranking to stocks that all survived the year.
 
