@@ -1232,16 +1232,17 @@ of Entry 15, which `TestTheCalendarSpreadVerdicts` holds.
 5. Each choice that could turn the answer was fixed in advance or checked both
    ways.
 6. A reversion as slow as the cross rate's is hard to size, which an idealised
-   model of Chan's linear rule measures without running a trade.
+   model of a known-mean version of Chan's linear rule measures without running
+   a trade on the rate.
 
 Four groups of its figures are not pinned here.
 
 1. Chan's words. "Quite stationary", "both being commodities currencies" and
    "fixed-income instruments can be found to be cointegrating" are quoted from
-   location 3951, and nothing computes them. Lesson 6's 36-day half-life and
-   Sharpe ratio of 1.3 for a crude oil calendar spread are quoted from
-   *Algorithmic Trading* Example 5.4. The suite reads the 36 days as an input
-   and computes neither.
+   location 3951, and nothing computes them. Lesson 6's 36-day half-life for a
+   crude oil calendar spread is quoted from *Algorithmic Trading* Example 5.4,
+   and the suite reads it as an input rather than computing it. So is the
+   description of Chan's rule as measuring the distance from a moving average.
 2. Facts about the instruments. TLT holding Treasuries maturing in twenty years
    or more and IEF seven to ten are the funds' descriptions, not derivable from
    committed closes. That a cross rate is, in logs, a spread between two dollar
@@ -1250,8 +1251,10 @@ Four groups of its figures are not pinned here.
    2026-09-30 is nineteen years, that the vendor's 90-weekday gap is four
    months, that a half-life of 141.6 trading days is a little over half a year,
    that a 21-day step is a month, or that the history before the gap is a
-   little under two years.
-4. Its references. The seven citations, and the rules the post attributes to
+   little under two years. Lesson 6 adds two more of the same kind: that 3.93
+   is about four times, and that a gap 10.1 times a day's noise wide takes
+   months rather than weeks to close.
+4. Its references. The eight citations, and the rules the post attributes to
    them, such as Schwert's ceiling and the Breusch-Godfrey test, are cited
    rather than computed.
 
@@ -1261,7 +1264,10 @@ apart from what it sets beside them from GLD/GDX. The full-span −1.45 and
 833.5 days, the 31 of 231 windows and the plain ADF table trace to
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py), and the
 5,099 days behind GLD/GDX's ceiling of 33 to
-[tests/test_series.py](tests/test_series.py). Six groups of its numbers had
+[tests/test_series.py](tests/test_series.py). Lesson 6's sentence that twice
+the Kelly leverage earns only the cash rate is quoted from the Kelly post, and
+`test_half_kelly_keeps_three_quarters_and_twice_kelly_keeps_none` in
+[tests/test_kelly_figures.py](tests/test_kelly_figures.py) holds it. Six groups of its numbers had
 no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 
 1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
@@ -1275,12 +1281,14 @@ no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 5. The two checks behind Lesson 2's other choices: the rate's one-lag
    statistic with a trend and the trend's bars, and the test without a
    constant on the rate quoted per 100.
-6. The sizing ceiling behind Lesson 6: the Sharpe ratio of 0.78 against 1.55
-   at 36 days, the typical distance of 10.1 days of noise against 5.1, the
-   35.2 half-lives in the test period, the half-lives of 110.1 and 198.2 days
-   one standard error either side of the fitted slope, and the Kelly leverage
-   moving almost one for one with the speed. `TestTheSizingCeiling` holds
-   them, and checks the closed form by running the trade on simulated series.
+6. The model behind Lesson 6, exploratory and added after the verdict. It
+   holds the Sharpe ratio of 0.78 against 1.55 at 36 days and the yearly 1.24
+   against 4.29, the typical distance of 10.1 times a day's noise against 5.1,
+   the 35.2 half-lives in the test period, the half-lives of 110.1 and 198.2
+   days one standard error either side of the fitted slope, and the Kelly
+   leverage moving almost one for one with the speed. `TestTheKnownMeanRule`
+   holds them, and checks each closed form by running the trade on simulated
+   series.
 
 Its three figures are drawn from the committed vintages by
 [src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py).
