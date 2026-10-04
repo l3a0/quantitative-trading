@@ -42,13 +42,15 @@ everything on strategy 2.
 
 Three things about that peak are easy to get wrong, and each is pinned.
 
-1. **0.955 is a tie.** The peak is exactly 191/200. Chan prints 0.96, the
-   half-up rounding. In float, 0.955 sits just below the tie, so a report
+1. **0.955 is a tie.** The peak is exactly 191/200. Chan prints 0.96, the tie
+   rounded up, which half-up and half-to-even rounding both give, so the
+   printed digit cannot say which he used. In float, 0.955 sits just below the
+   tie, so a report
    formatting it at two decimals prints 0.95 beside the book's 0.96 and reads
    as a miss. :func:`report` prints three decimals.
 2. **The line has a higher point outside the cap.** Solved without bounding F2,
    the line's stationary point is F2 = 2.289321 with a growth rate of
-   0.962956, reached by shorting strategy 1. Its gross leverage is 2.578642,
+   0.962956, reached by shorting strategy 1. Its gross leverage is 2.578643,
    over the cap, and location 3268 is explicit that the cap is on gross
    leverage. :func:`best_allocation_at_cap` clamps F2 to ``[0, Fmax]``.
 3. **The corner is not always the answer.** Everything on strategy 2 stays best
@@ -108,7 +110,7 @@ MAX_LEVERAGE = 2.0
 BOOK_REF = (
     "Examples 8.1 and 8.2 (Algorithmic Trading, locations 3216 and 3287): "
     "leverage 5 on $100K sells $40K after a $10K loss and buys $80K after a $20K "
-    "gain; Kelly leverages 4.4 and 4.9, total 9.3; capped at 2, the proportional "
+    "gain. Kelly leverages 4.4 and 4.9, total 9.3. Capped at 2, the proportional "
     "0.95 and 1.05 grow at 0.82 and everything on strategy 2 grows at 0.96"
 )
 
@@ -160,15 +162,20 @@ def constant_leverage_chain(
     """
     if leverage <= 0.0:
         raise ValueError(f"a leverage of {leverage} holds no position to resize")
+    if equity <= 0.0:
+        raise ValueError(f"equity of {equity:,.2f} leaves nothing to hold at any leverage")
     steps = []
     for pnl in pnls:
-        if equity <= 0.0:
-            raise ValueError(
-                f"equity is {equity:,.2f} before a P&L of {pnl:,.2f}, so there is nothing "
-                "left to hold at any leverage"
-            )
         position = leverage * equity
         moved = rebalance(leverage, equity=equity, shock=-pnl / position)
+        # Checked after the move rather than before the next one, so the last
+        # P&L in a run is held to it too. A resize against equity at or below
+        # zero would report a short target at the same leverage.
+        if moved.shocked_equity <= 0.0:
+            raise ValueError(
+                f"equity is {moved.shocked_equity:,.2f} after a P&L of {pnl:,.2f}, so there "
+                "is nothing left to hold at any leverage"
+            )
         steps.append(
             Step(
                 equity_before=equity,
@@ -223,6 +230,7 @@ def proportional_cap(leverages: Sequence[float], max_leverage: float) -> NDArray
     Leverages already inside the cap come back unchanged, because the rule
     location 3268 states applies only when the cap is below the gross.
     """
+    _check_cap(max_leverage)
     f = np.asarray(leverages, dtype=float)
     gross = float(np.abs(f).sum())
     if gross <= max_leverage:
@@ -243,6 +251,13 @@ def _two(
     return float(m[0]), float(m[1]), float(c[0, 0]), float(c[1, 1]), float(c[0, 1])
 
 
+def _check_cap(max_leverage: float) -> None:
+    if max_leverage < 0.0:
+        raise ValueError(
+            f"a cap of {max_leverage} is below zero, and a cap on gross leverage cannot be"
+        )
+
+
 def segment_stationary_point(
     means: Sequence[float], cov: NDArray[np.float64], max_leverage: float
 ) -> float:
@@ -252,6 +267,7 @@ def segment_stationary_point(
     it inside ``[0, Fmax]``, so it can name a short position whose gross
     leverage breaks the cap. :func:`best_allocation_at_cap` is the bounded one.
     """
+    _check_cap(max_leverage)
     m1, m2, c11, c22, c12 = _two(means, cov)
     spread_variance = c11 + c22 - 2.0 * c12
     if spread_variance <= 0.0:
@@ -266,7 +282,6 @@ def best_allocation_at_cap(
     means: Sequence[float],
     cov: NDArray[np.float64],
     max_leverage: float = MAX_LEVERAGE,
-    risk_free: float = RISK_FREE,
 ) -> Allocation:
     """The long-only split of a two-strategy cap that grows fastest.
 
@@ -279,20 +294,30 @@ def best_allocation_at_cap(
     raw = segment_stationary_point(means, cov, max_leverage)
     f2 = min(max(raw, 0.0), max_leverage)
     leverages = (max_leverage - f2, f2)
-    return Allocation(leverages, growth_rate(leverages, means, cov, risk_free))
+    return Allocation(leverages, growth_rate(leverages, means, cov))
 
 
 def corner_threshold(means: Sequence[float], cov: NDArray[np.float64]) -> float:
     """The largest cap at which putting everything on strategy 2 is still best.
 
     At the corner the slope along the line is ``(m2 - m1) - Fmax (c22 - c12)``,
-    which stays positive while ``Fmax < (m2 - m1) / (c22 - c12)``.
+    which stays positive while ``Fmax < (m2 - m1) / (c22 - c12)``. That is a
+    largest cap only when strategy 2 has the higher mean and a variance above
+    its covariance with strategy 1, which is Example 8.2's case. With the
+    lower mean the corner is never best at a small cap, and with a variance at
+    or below the covariance the slope rises with the cap rather than falling,
+    so the same formula would name a smallest cap or nothing. Both refuse.
     """
     m1, m2, _, c22, c12 = _two(means, cov)
+    if m2 <= m1:
+        raise ValueError(
+            f"strategy 2's mean of {m2} is not above strategy 1's {m1}, so no cap is small "
+            "enough for everything on strategy 2 to be best"
+        )
     if c22 <= c12:
         raise ValueError(
-            "strategy 2's variance does not exceed its covariance with strategy 1, so "
-            "the slope at the corner never turns and there is no threshold"
+            "strategy 2's variance does not exceed its covariance with strategy 1, so the "
+            "slope at the corner never falls with the cap and there is no largest cap"
         )
     return (m2 - m1) / (c22 - c12)
 
@@ -345,8 +370,8 @@ def report() -> None:
     )
     for label, value, book in rows:
         print(f"  {label:<44}{value:>12}  {book}")
-    print("  0.955 is exactly 191/200, a tie at two decimals, and 0.96 is its half-up")
-    print("  rounding. It is printed at three decimals because a float 0.955 sits just")
+    print("  0.955 is exactly 191/200, a tie at two decimals, and 0.96 is that tie")
+    print("  rounded up. It is printed at three decimals because a float 0.955 sits just")
     print("  below the tie and prints as 0.95 at two.")
     print()
 

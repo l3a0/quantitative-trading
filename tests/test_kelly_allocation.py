@@ -20,7 +20,7 @@ assertion carries the replication and which carries the specification.
 from __future__ import annotations
 
 import dataclasses
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_DOWN, ROUND_HALF_EVEN, ROUND_HALF_UP, Decimal
 from fractions import Fraction
 
 import numpy as np
@@ -60,7 +60,8 @@ def kelly(cov):
 
 
 def _book(value: float, places: int) -> str:
-    """Round the way a printed figure is read: half up, from the true value."""
+    """Round half up from the true value. Only row 10 sits on a tie, and there
+    half to even gives the same digit, so the choice of rule moves nothing."""
     quantum = Decimal(1).scaleb(-places)
     return str(Decimal(repr(float(value))).quantize(quantum, rounding=ROUND_HALF_UP))
 
@@ -146,6 +147,16 @@ class TestConstantLeverage:
         """At leverage 5 a 20 percent fall in the position is all the equity."""
         with pytest.raises(ValueError, match="nothing left to hold"):
             constant_leverage_chain(5.0, 100_000.0, (-100_000.0, 1_000.0))
+
+    def test_the_last_move_is_held_to_the_same_check(self) -> None:
+        """A loss past the equity on the final day would otherwise come back as a
+        short target of -250,000 at "leverage 5" on equity of -50,000."""
+        with pytest.raises(ValueError, match="nothing left to hold"):
+            constant_leverage_chain(5.0, 100_000.0, (-150_000.0,))
+
+    def test_a_chain_refuses_to_start_with_no_equity(self) -> None:
+        with pytest.raises(ValueError, match="nothing to hold"):
+            constant_leverage_chain(5.0, 0.0, (1_000.0,))
 
     def test_a_chain_refuses_a_leverage_that_holds_nothing(self) -> None:
         with pytest.raises(ValueError, match="holds no position"):
@@ -252,8 +263,13 @@ class TestTheCorner:
         m, s = Fraction(60, 100), Fraction(35, 100)
         assert 2 * m - 4 * s**2 / 2 == Fraction(191, 200)
 
-    def test_the_book_rounds_the_tie_half_up(self) -> None:
-        assert Decimal("0.955").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP) == Decimal("0.96")
+    def test_the_book_rounds_the_tie_up(self) -> None:
+        """Half up and half to even both give 0.96, so the printed digit cannot
+        say which rule Chan used. Only half down gives 0.95."""
+        tie, cent = Decimal("0.955"), Decimal("0.01")
+        assert tie.quantize(cent, rounding=ROUND_HALF_UP) == Decimal("0.96")
+        assert tie.quantize(cent, rounding=ROUND_HALF_EVEN) == Decimal("0.96")
+        assert tie.quantize(cent, rounding=ROUND_HALF_DOWN) == Decimal("0.95")
 
     def test_float_formatting_at_two_decimals_prints_a_miss(self, cov) -> None:
         """Why the report prints three decimals. A float 0.955 sits just below
@@ -302,6 +318,19 @@ class TestWhereTheCornerStopsWinning:
     def test_below_the_threshold_everything_goes_on_strategy_two(self, cov) -> None:
         cap = corner_threshold(MEANS, cov) - 1e-3
         assert best_allocation_at_cap(MEANS, cov, cap).leverages == (0.0, cap)
+
+    def test_with_the_means_swapped_everything_goes_on_strategy_one(self, cov) -> None:
+        """The lower bound of the clamp. Swapped, the line's stationary point
+        sits at F2 = -0.866912, a short in strategy 2 that breaks the cap."""
+        swapped = (MEANS[1], MEANS[0])
+        assert segment_stationary_point(swapped, cov, MAX_LEVERAGE) == pytest.approx(
+            -0.866912, abs=5e-7
+        )
+        best = best_allocation_at_cap(swapped, cov, MAX_LEVERAGE)
+        assert best.leverages == (MAX_LEVERAGE, 0.0)
+        assert best.growth == pytest.approx(1.0648, abs=1e-12)
+        g, grid_f2 = _segment_grid(swapped, cov, MAX_LEVERAGE)
+        assert grid_f2 == 0.0 and g == pytest.approx(best.growth, abs=1e-12)
 
     def test_above_the_threshold_the_optimum_mixes(self, cov) -> None:
         cap = corner_threshold(MEANS, cov) + 0.5
@@ -413,8 +442,21 @@ class TestTheInputsAreChecked:
             segment_stationary_point((0.3, 0.3), covariance((0.2, 0.2), 1.0), 2.0)
 
     def test_a_threshold_needs_strategy_two_to_carry_its_own_risk(self) -> None:
-        with pytest.raises(ValueError, match="no threshold"):
+        with pytest.raises(ValueError, match="no largest cap"):
             corner_threshold((0.3, 0.6), covariance((0.2, 0.2), 1.0))
+        with pytest.raises(ValueError, match="no largest cap"):
+            corner_threshold((0.3, 0.6), covariance((0.4, 0.2), 0.9))
+
+    def test_a_threshold_needs_strategy_two_to_have_the_higher_mean(self) -> None:
+        """With the means swapped the formula gives -2.448980, a cap nothing can be."""
+        with pytest.raises(ValueError, match="not above"):
+            corner_threshold((0.60, 0.30), covariance(VOLS))
+
+    def test_a_cap_below_zero_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="below zero"):
+            best_allocation_at_cap(MEANS, covariance(VOLS), -1.0)
+        with pytest.raises(ValueError, match="below zero"):
+            proportional_cap((4.4, 4.9), -1.0)
 
     def test_an_allocation_reports_its_gross_leverage(self) -> None:
         assert Allocation((-1.5, 0.5), 0.0).gross == 2.0

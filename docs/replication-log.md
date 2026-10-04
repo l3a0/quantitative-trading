@@ -184,8 +184,10 @@ both.
    Entry 12, [tests/test_pca_factor.py](../tests/test_pca_factor.py) holds
    Entry 13,
    [tests/test_momentum_factor.py](../tests/test_momentum_factor.py) holds
-   Entry 14, and [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
-   whose pins run only where the owner's data archive is.
+   Entry 14, [tests/test_cpo.py](../tests/test_cpo.py) holds Entry 16,
+   whose pins run only where the owner's data archive is, and
+   [tests/test_kelly_allocation.py](../tests/test_kelly_allocation.py) holds
+   Entry 17.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -295,7 +297,8 @@ Entry 5 is in that position too, so that entry drops the verdict column rather
 than filling it. So are Entry 6's rows 2 to 6, Entry 7's rows 15 to 18,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
-Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, and Entry 16's rows 6 to 11.
+Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11, and
+Entry 17's rows 11 to 13.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -3504,7 +3507,7 @@ Thirteen rows, all derivable from
 carry no published figure and say so in their own cells. Row 11 is the growth
 rate at the uncapped Kelly leverages, which Equation 8.3 gives as an image the
 highlights did not capture. Rows 12 and 13 are what the arithmetic shows about
-Chan's claim that the book does not print.
+Chan's claim, and the book prints neither.
 
 **Example 8.1** holds a leverage of 5 on \$100K of equity through a \$10K loss
 and then a \$20K gain, resizing after each. Keeping the leverage constant means
@@ -3539,7 +3542,7 @@ does.
 | 8 | 8.2, both leverages scaled to the cap of 2 | 0.95 and 1.05 | location 3287 |
 | 9 | 8.2, growth rate at those leverages, Equation 8.4 | 0.82 | location 3287 |
 | 10 | 8.2, growth rate with all of the cap on strategy 2 | 0.96 | location 3287 |
-| 11 | 8.2, growth rate at the uncapped Kelly leverages, Equation 8.3 | none in the highlights, the equation is an image | n/a |
+| 11 | 8.2, growth rate at the uncapped Kelly leverages, Equation 8.3 | none in the highlights, the equation is an image | absent, as [research/book-notes/README.md](../research/book-notes/README.md) records |
 | 12 | 8.2, the line's stationary point when F2 is not bounded | none, the book plots F2 from 0 to the cap only | n/a |
 | 13 | 8.2, the cap above which all on strategy 2 stops being best | none, the book says only "much smaller than" the total | location 3268 states the claim |
 
@@ -3574,7 +3577,7 @@ does.
 | 7 | +0.0 at one decimal | reproduced | Exact at that precision. |
 | 8 | +0.00 and −0.00 at two decimals | reproduced | Exact at that precision. This is the proportional scaling location 3268 calls the usual recommendation, which Example 8.2 sets out to refute, not a candidate for the best allocation. |
 | 9 | −0.00 at two decimals | reproduced | Exact at that precision. |
-| 10 | −0.005, stated at three decimals | reproduced | Chan's claim is that putting the whole cap on strategy 2 beats the proportional scaling, and 0.955 against row 9's 0.816798 says it does. The growth rate rises over the whole line and peaks at the corner. The gap needs a word. This file states a gap at the coarser precision, rounded from the full value, and that would print −0.01 for a figure that lands. The computed value is an exact tie at the book's two decimals, and Chan rounds it half up. |
+| 10 | −0.005, stated at three decimals | reproduced | Chan's claim is that putting the whole cap on strategy 2 beats the proportional scaling, and 0.955 against row 9's 0.816798 says it does. The growth rate rises over the whole line and peaks at the corner. This file states a gap at the coarser precision, rounded from the full value, and that would print −0.01 for a figure that lands. The computed value is an exact tie at the book's two decimals, and Chan prints it rounded up, which half-up and half-to-even rounding both give. |
 | 11 | none | none, not a replication | Equation 8.3 is an image the highlights did not capture, so whether the book prints a value is not known here. The row exists so the figure is pinned when it is. |
 | 12 | none | none, not a replication | The near miss. Substituting `F1 = Fmax - F2` without bounding F2 finds a higher growth rate by shorting strategy 1, at a gross leverage above the cap. Location 3268 is explicit that the cap is on gross leverage, so this allocation is not allowed. |
 | 13 | none | none, not a replication | Chan says the corner tends to win when the cap is "much smaller than" the total Kelly leverage. On these inputs it wins for any cap below 2.448980, against a total of 9.335829, and above that the best allocation holds both strategies. |
@@ -3597,7 +3600,8 @@ Four things.
 3. **The printed 0.96 depends on a rounding mode.** The exact value is 0.955.
    A float holding it sits just below the tie, so the formatting a report would
    reach for first prints 0.95 beside Chan's 0.96. The module prints three
-   decimals and the suite pins both the tie and the half-up rounding.
+   decimals, and the suite pins the tie and the two rounding rules that give
+   0.96.
 4. **The best allocation under the cap is long-only here, and not in general.**
    On Chan's inputs a grid over every allocation the gross cap allows, short
    positions included, finds the same corner. With a strong positive

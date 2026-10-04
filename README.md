@@ -62,9 +62,9 @@ where they were first built. The other fifteen were built here.
    returns yet does not cointegrate in levels.
 3. The coin-flip gamble, Box 6.1, where the expected return of a round is
    positive and the growth rate of capital is negative. It reads nothing at
-   all, so it has no vintage to name. Two others have none. The survivorship
-   toy, item 9, reads tables the book prints, and the leverage examples, item
-   17, read nothing either.
+   all, so it has no vintage to name. The survivorship toy, item 9, has none
+   either, because it reads tables the book prints. Neither do the leverage
+   examples, item 17, which work arithmetic on inputs the book states.
 4. The Kelly leverage on SPY, Example 6.2, which asks how much leverage
    maximises compounded growth and then whether that much would have survived
    the worst day the index has had. Most of the levels Chan computed from a
@@ -217,7 +217,7 @@ where they were first built. The other fifteen were built here.
     Kelly leverages are 4.4 and 4.9, scaling both down to 0.95 and 1.05 grows
     at 0.82, and putting the whole cap on the second grows at 0.955, which the
     book prints as 0.96. Every printed figure lands. The 0.96 lands only by
-    rounding an exact tie half up, so the run prints three decimals.
+    rounding an exact tie up, so the run prints three decimals.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -333,10 +333,12 @@ owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
 because the full run takes about five minutes.
 
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
-the leverage examples. It pins each figure at six decimals and again at the
-precision the book prints, and pins the near miss beside them: solving along
+the leverage examples. It pins Example 8.1's figures to the dollar and each
+Example 8.2 figure at six decimals and again at the precision the book prints,
+and pins the near miss beside them: solving along
 Chan's line without bounding it finds a higher growth rate by going short,
 over the gross cap.
+
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
 each line field for field everywhere, and the files' hashes and their
 agreement with the committed daily closes wherever an archive is configured.
