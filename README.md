@@ -389,7 +389,9 @@ It pins both figures `bog.m` prints at the precision that is real and at the
 book's, the declared mirror's figures beside Chan's, and both sides under the
 first edition's `smartstd`, so a port that reaches for the helper this repo
 already held fails a test. It also holds the decision not to call the
-scale-break guard, by running it and pinning what it would refuse.
+scale-break guard, by running it and pinning what it would refuse. The blog
+post about it is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) does
 it for the reversal on the 2012 panel. It pins each figure at six decimals and
@@ -531,6 +533,18 @@ No run reads the ETF file yet. The lift for
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
 it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
+
+Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
+Eight are per-contract strips, each holding one column per futures contract
+on one commodity. A contract's column holds its settlement, the price the
+exchange publishes for it each day it trades. The strips are named by the
+exchange's code for the commodity: BR, C2, CL in two saves, HG, HO2, TU and
+VX. The ninth is his gold series sampled at 16:00. Each contract is committed
+as one vintage, under a symbol joining the code to the delivery month, such
+as `CL-2007F` for January 2007 crude oil, and `src/chan/mat_columns.py` writes
+them too.
+[Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
+that shape was decided. No replication reads them yet.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -1256,7 +1270,7 @@ apart from what it sets beside them from GLD/GDX. The full-span −1.45 and
 833.5 days, the 31 of 231 windows and the plain ADF table trace to
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py), and the
 5,099 days behind GLD/GDX's ceiling of 33 to
-[tests/test_series.py](tests/test_series.py). Four groups of its numbers had
+[tests/test_series.py](tests/test_series.py). Five groups of its numbers had
 no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 
 1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
@@ -1267,6 +1281,9 @@ no pin before it, and `tests/test_stationary_candidates.py` now pins them.
    [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) fixed
    before it ran. `TestTheWindowPower` holds its counts. It takes about half a
    minute of the suite's run.
+5. The two checks behind Lesson 2's other choices: the rate's one-lag
+   statistic with a trend and the trend's bars, and the test without a
+   constant on the rate quoted per 100.
 
 Its three figures are drawn from the committed vintages by
 [src/chan/stationary_candidates_figures.py](src/chan/stationary_candidates_figures.py).
@@ -1649,6 +1666,81 @@ uv run python -m chan.commodity_seasonals_figures
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+[blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
+about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
+strategy buys at the open the stocks that fell furthest below the previous
+day's low, while still above their 20-day average, and sells at the close.
+Chan reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and 46 percent
+and 1.27 for a mirror he prints no script for. The post draws six lessons
+from Entry 18 of the replication log.
+
+1. Both figures `bog.m` prints reproduce on Chan's own file.
+2. The `smartstd` behind the 90-day standard deviation decides both printed
+   figures.
+3. One phrase, "annualized average return", names two formulas in this book.
+4. The mirror, written down before any run, lands at 12 percent and not 46,
+   though its drawdown is the steeper as Chan says.
+5. Chan's own pair of figures implies at least four and a half times the
+   written rule's volatility, from arithmetic alone.
+6. An exact reproduction checks the arithmetic and not the edge.
+
+Five groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The four rules, "panic selling at the open", "will gradually appreciate
+   over the course of the day", "a momentum filter superimposed on a
+   mean-reverting strategy" and the drops of "just a little" and "a lot" are
+   at 1948. The 8.7 percent and 1.5, "has survivorship bias", "quite
+   profitably", "suffered from diminishing returns from 2009 onward" and
+   "does not have a large capacity" are at 1974. "Can't" and "signal noise"
+   are at 1988. The mirror's sentence, its 46 percent and 1.27, "steeper
+   drawdown" and "suffered from" are at 1993. "An annualized average return
+   of around 8.7 percent", in a later chapter on risk management, is at 3509,
+   and the same phrase for Example 7.2's
+   levered figure is at 3024. The book's figures are pinned, and its words
+   are not.
+2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
+   from the previous high, and that the name `bog.m` loads is the same bytes as
+   the committed file in both public mirrors, which `src/chan/buy_on_gap.py`'s
+   docstring and [data/README.md](data/README.md) record. That MS, the stock
+   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker.
+3. Arithmetic no test asserts: that ln(1 + r) ≤ r for every daily return,
+   which the floor rests on, and the steps from it to the floor.
+4. The book's Figures 4.1 and 4.2, which the post's figure redraws from
+   `bog.m`'s `plot(cumret)` and from the written rule, and which nothing
+   compares with the book's own.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), to
+[tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as the
+arithmetic figure, or to
+[tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) for the
+figure's own numbers. Two had no pin before it, and the figure's test now pins
+both, for each side.
+
+1. That the longest spell below the high runs from 2008-09-02 to 2009-04-20
+   after a high on 2008-08-29 for buy on gap, and from 2008-11-24 to
+   2010-05-05 after a high on 2008-11-21 for the mirror.
+2. That each side's deepest drawdown falls inside that spell, on 2008-12-09
+   and 2009-02-03.
+
+Its one figure is drawn from the committed file by
+[src/chan/buy_on_gap_figures.py](src/chan/buy_on_gap_figures.py), which reads
+it through the same `both_sides` as `python -m chan.buy_on_gap`. It draws two
+panels on one scale, the cumulative return `bog.m` plots above and the
+written mirror's below, each with the 90 days before the spread exists and the
+longest spell below the high shaded, for Lessons 1 and 4.
+
+```bash
+uv run python -m chan.buy_on_gap_figures
+```
+
+[tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the regime
+map.
 
 ## Where the book's numbers come from
 

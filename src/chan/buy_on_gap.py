@@ -124,7 +124,8 @@ figure.
 
 1. The file is read as committed vintages through
    :func:`chan.series.load_panel` rather than loaded from the ``.mat``.
-2. ``plot(cumret)`` is not carried. The run prints and draws nothing.
+2. ``plot(cumret)`` is not carried. The run prints and draws nothing, and
+   :mod:`chan.buy_on_gap_figures` draws the plot for the post.
 3. The arithmetic return and the drawdown are computed beside the script's
    two figures.
 4. The mirror runs beside it, under the rule the issue declared.
