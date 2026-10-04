@@ -35,6 +35,9 @@ and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
 it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
 Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`smartmean`, :func:`smartsum` and :func:`matlab_sort` for Example 7.4.
+:mod:`chan.cross_sectional_momentum` calls :func:`backshift`, :func:`lag1`,
+:func:`smartmean`, :func:`smartsum`, :func:`matlab_sort` and
+:func:`round_half_away` for *Algorithmic Trading*'s Example 6.2.
 :mod:`chan.buy_on_gap` calls :func:`backshift`, :func:`smartsum` and
 :func:`matlab_sort` for *Algorithmic Trading*'s Example 4.1.
 :func:`fwdshift` has no caller
@@ -76,7 +79,9 @@ because Examples 3.7 and 3.8 call the same helpers on the same file.
 **Book two's helpers.** Five come from Chan's *Algorithmic Trading* code
 rather than his first edition's. :mod:`chan.pead` calls the first three,
 :mod:`chan.buy_on_gap` calls all but :func:`smartstd_book_two` directly and
-runs it through :func:`smart_moving_std`, and :mod:`chan.pca_factor` and
+runs it through :func:`smart_moving_std`,
+:mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
+:func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
 :mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
 the revised edition's Example 7.7.
 The revised edition of

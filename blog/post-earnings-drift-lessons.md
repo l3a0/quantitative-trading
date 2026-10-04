@@ -70,7 +70,7 @@ The strategy never reads an earnings number. It reads two things that stand in f
 1. **The gap stands in for the surprise.** Half a moving standard deviation is a low bar. On the committed files, 1,279 announcements fall on or after the first day the 90-day deviation can be computed, and 1,072 of them clear the bar and are traded. So most flagged announcements get traded, and whether a stock trades on a given day comes down mostly to whether the flag file marks it.
 2. **The flags stand in for the calendar.** The strategy trades only where Chan’s flag file says a stock announced overnight. The file holds 1,885 flags across its 497 stocks, and 29 of the stocks carry none at all, so the strategy can never trade them. Apple is flagged on three days: 2011-04-21, 2011-07-20 and 2012-01-25. Apple released earnings five times inside the window, so two of its releases carry no flag. Whether that comes from the timing of those releases or from whatever source built the file, the committed file cannot say.
 
-The book supplies a function that builds flags like these by scraping about a year of an earnings calendar from earnings.com (Chan, 2013, location 3002). Nothing committed here records what that calendar held. [Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) is open to rerun the rule on announcement times from the SEC’s EDGAR filings, which a reader can fetch today.
+The book supplies a function that builds flags like these by scraping about a year of an earnings calendar from earnings.com (Chan, 2013, location 3002). Nothing committed here records what that calendar held. The SEC’s EDGAR filings give announcement times a reader can fetch today, and this repository has not yet rerun the rule on them.
 
 The short holding period is part of Chan’s argument too. In the previous chapter he writes that momentum from earnings announcements “used to last several days” and now lasts “barely until the market closes” (Chan, 2013, location 2890). That is why the strategy exits at the close.
 
@@ -100,7 +100,7 @@ So a translation that used the wrong helper would match four of the five printed
 
 Every figure matching says that the code, the data and the book agree. It says nothing about whether the drift paid, for three reasons.
 
-1. **Every stock is a survivor.** The price file holds the S&P 500 as Chan held it on 2012-04-24, with each stock’s prices running back over the window. A company that left the index during 2011, because it was acquired, shrank or failed, is absent, and the strategy could not have traded its announcements. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is open to rerun this strategy on the index as it stood each day.
+1. **Every stock is a survivor.** The price file holds the S&P 500 as Chan held it on 2012-04-24, with each stock’s prices running back over the window. A company that left the index during 2011, because it was acquired, shrank or failed, is absent, and the strategy could not have traded its announcements. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
 2. **No cost is charged.** `pead.m` charges nothing, and every position is a full round trip inside one day: a buy and a sell, or a short and a cover, each paying a spread and a commission. A strategy that trades 1,072 times across 330 days at a thirtieth of capital each carries costs a reader would want priced before believing the 6.7 percent.
 3. **The rule was chosen on the same days it is tested on.** Chan chose the rule and its settings, and took the 30 from this very window. Reproducing his figures on the same days tests his arithmetic, so the result is exploratory. A result that could confirm the drift would need a rule fixed in writing first and data the rule had never seen.
 
@@ -108,8 +108,8 @@ Every figure matching says that the code, the data and the book agree. It says n
 
 Five questions are beyond it.
 
-1. **What the drift earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is where that gets measured.
-2. **Whether Chan’s flags are the announcement calendar.** They miss two of Apple’s five releases inside the window. [Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) is open to rerun the rule on EDGAR’s filings.
+1. **What the drift earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs prices for the companies that left the index during the window.
+2. **Whether Chan’s flags are the announcement calendar.** They miss two of Apple’s five releases inside the window. A rerun on EDGAR’s filings would test them.
 3. **What costs would take.** Nothing here charges any.
 4. **How large the look-ahead in the 30 is.** Chan argues it is small, and nothing here tests the argument.
 5. **Whether holding overnight adds anything.** Chan says it does not, because “the overnight returns are negative on average”, and says this “may be” a case of the drift shortening as more traders learned of it (Chan, 2013, location 3039). The script holds nothing overnight, so nothing here tests the claim.
@@ -123,8 +123,6 @@ One habit for each lesson.
 3. **Ask which numbers were chosen after the backtest ran.** The 30 is the busiest day of the very window it sizes, and the 27 percent depends on it, since leverage multiplies a return that was divided by 30.
 4. **Find out which version of a helper the author ran.** A helper’s name does not identify it, and the wrong one can cost one printed digit and look like noise.
 5. **Treat an exact reproduction as a check on arithmetic.** Whether the drift pays needs survivors replaced, costs charged and a rule written down before new data is read.
-
-[Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is open to rerun the strategy on the index as it stood each day, and [issue 251](https://github.com/l3a0/quantitative-trading/issues/251) on EDGAR’s announcement times.
 
 ## References
 

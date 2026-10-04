@@ -430,7 +430,7 @@ def report(members: list[VintageEntry], long: Side, short: Side) -> None:
     )
     print(
         "  his numbers reproduce on his file and nothing about whether the rule pays today. "
-        "docs/replication-log.md Entry 17 carries the verdicts."
+        "docs/replication-log.md Entry 18 carries the verdicts."
     )
 
 

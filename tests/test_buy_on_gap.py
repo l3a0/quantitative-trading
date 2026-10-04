@@ -1,7 +1,7 @@
 """The pins for buy on gap and its mirror, *Algorithmic Trading*'s Example 4.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 4.1. ``docs/replication-log.md`` Entry 17 carries the verdicts
+about Example 4.1. ``docs/replication-log.md`` Entry 18 carries the verdicts
 and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so

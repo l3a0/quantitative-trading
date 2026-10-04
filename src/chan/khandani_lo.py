@@ -103,7 +103,9 @@ into a gap, so it reads WYN's gap between two companies as one day's move: a
 return of 121.5 on the closes and 127.65 on the opens. That is the
 transcription rather than a defect, and the report prints rule A without the
 forward-fill and without WYN beside it, so a reader sees how much of Chan's
-figure that gap carries.
+figure that gap carries. :func:`steps_to_the_notebook` turns rule B into rule
+A one departure at a time, which is how the post explains why rule A keeps
+more of its figure after costs.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 sample on a rule somebody else chose, so the run says whether his numbers
@@ -436,6 +438,116 @@ def matches_notebook(result: NotebookReversal, before: float, after: float) -> b
     return round(result.before_costs, NOTEBOOK_DECIMALS) == round(
         before, NOTEBOOK_DECIMALS
     ) and round(result.after_costs, NOTEBOOK_DECIMALS) == round(after, NOTEBOOK_DECIMALS)
+
+
+@dataclass(frozen=True)
+class Step:
+    """One rule on the way from rule B to rule A, and its average day.
+
+    ``label`` names the departure this step adds to the step before it.
+    ``cost`` and ``swing`` are the mean daily cost and the daily standard
+    deviation of profit before costs, both over the window's mean gross
+    position, as :class:`DailyBook` reads them. The swing divides by n − 1 at
+    every step, so it describes the series the same way throughout, while
+    ``before_costs`` and ``after_costs`` use the rule's own divisor.
+    """
+
+    label: str
+    cost: float
+    swing: float
+    before_costs: float
+    after_costs: float
+
+
+#: The departures in the order :func:`steps_to_the_notebook` adds them. The
+#: fill goes last, so the step before it is rule A without the fill, which
+#: :attr:`OpenVariation.unfilled` already reports.
+STEP_LABELS = (
+    "rule B, first day charged",
+    "fixed gross position",
+    "first day's trades free",
+    "missing weights left empty",
+    "variance divided by n",
+    "gaps filled with the last price",
+)
+
+
+def _variant(
+    frame: pd.DataFrame,
+    *,
+    label: str,
+    fixed_gross: bool,
+    first_day_free: bool,
+    skip_missing: bool,
+    ddof: int,
+    fill: bool,
+    start: str = WINDOW_START,
+    end: str = WINDOW_END,
+) -> Step:
+    """Rule B with any of rule A's departures switched on, on one window.
+
+    With every switch off it is :func:`reversal`'s charged figure, and with
+    every one on it is :func:`notebook_reversal`. Departures 3 and 6 of that
+    function's list are one switch here, ``skip_missing``, because both follow
+    from leaving a missing weight as NaN rather than 0.
+    """
+    prices = frame.ffill() if fill else frame
+    returns = prices.pct_change(fill_method=None).to_numpy(dtype=float)
+    priced = np.isfinite(prices.to_numpy(dtype=float)).sum(axis=1).astype(float)
+    market = smartmean(returns, axis=1)
+    weights = -(returns - market[:, None])
+    if fixed_gross:
+        gross = np.nansum(np.abs(weights), axis=1)
+        weights[gross == 0] = 0.0
+        gross[gross == 0] = 1.0
+        weights = weights / gross[:, None]
+    else:
+        weights = weights / priced[:, None]
+    if not skip_missing:
+        weights[~np.isfinite(returns)] = 0.0
+    pnl = np.nansum(lag1(weights) * returns, axis=1)
+    traded = np.nansum(np.abs(weights - lag1(weights)), axis=1)
+    held = np.nansum(np.abs(lag1(weights)), axis=1)
+
+    inside = (frame.index >= pd.Timestamp(start)) & (frame.index <= pd.Timestamp(end))
+    pnl, traded, held = pnl[inside], traded[inside], held[inside]
+    if first_day_free:
+        traded[0] = 0.0
+    cost = traded * ONE_WAY_COST
+    after = pnl - cost
+    book = float(held.mean())
+    return Step(
+        label=label,
+        cost=float(cost.mean()) / book,
+        swing=float(pnl.std(ddof=1)) / book,
+        before_costs=float(np.sqrt(TRADING_DAYS) * pnl.mean() / pnl.std(ddof=ddof)),
+        after_costs=float(np.sqrt(TRADING_DAYS) * after.mean() / after.std(ddof=ddof)),
+    )
+
+
+def steps_to_the_notebook(frame: pd.DataFrame) -> list[Step]:
+    """Turn rule B into rule A one departure at a time, in :data:`STEP_LABELS` order.
+
+    Each step keeps every departure before it, so the change in
+    ``after_costs`` from one step to the next is what that departure adds
+    given the ones already made. A different order would split the total
+    differently.
+    """
+    switches = dict(fixed_gross=False, first_day_free=False, skip_missing=False, ddof=1, fill=False)
+    turned_on = (
+        None,
+        ("fixed_gross", True),
+        ("first_day_free", True),
+        ("skip_missing", True),
+        ("ddof", 0),
+        ("fill", True),
+    )
+    steps = []
+    for label, switch in zip(STEP_LABELS, turned_on, strict=True):
+        if switch is not None:
+            switches[switch[0]] = switch[1]
+        steps.append(_variant(frame, label=label, **switches))
+    return steps
 
 
 def claim_holds(result: Reversal) -> bool:

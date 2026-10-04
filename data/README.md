@@ -634,14 +634,19 @@ moved between the saves.
 The other two directories hold the two files of Chan's second book, *Algorithmic
 Trading*, that his Example 7.2 reads.
 [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) reproduces
-that example, and
-[issue 295](https://github.com/l3a0/quantitative-trading/issues/295)
-reproduces Example 4.1 on the price file alone. `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held
+that example.
+[Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) and
+[issue 295](https://github.com/l3a0/quantitative-trading/issues/295) reproduce
+Examples 6.2 and 4.1 on the price file alone.
+`inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held
 it on 2012-04-24, with the same five fields per stock as the first two
 directories. `earnannfile/` holds his earnings-announcement flags for the same
 497 stocks, a 0 or 1 for each trading day. Like the first two, the price file
 holds only the companies still in the index on its date, so a figure computed
 from it is a figure about survivors.
+[`chan.cross_sectional_momentum`](../src/chan/cross_sectional_momentum.py) reads
+the price file's closes for Example 6.2, for
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
 [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) carries the
 measurements below.
 
@@ -684,8 +689,11 @@ measurements below.
 4. **The scale-break guard flags 30 days in 17 of the 497, on the close.** Every
    one falls between 2007 and 2009, most are banks and insurers in the 2008
    crisis, such as AIG on 2008-09-15, and none sits near a split. None falls in
-   the 2011 and 2012 window Example 7.2 trades, and all 30 fall in Example
-   4.1's, which is the file's whole span. They are pinned beside the others in
+   the 2011 and 2012 window Example 7.2 trades. Example 6.2's script reads
+   across all 30, one in its 2007 window and 29 in its 2008 and 2009 window,
+   and [issue 297](https://github.com/l3a0/quantitative-trading/issues/297)
+   decided not to call the guard there. All 30 also fall in Example 4.1's
+   window, which is the file's whole span. They are pinned beside the others in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **The size budget is raised.** The two directories hold 32.01 MB, which
    takes `data/` from 74.41 MB to 106.86 MB of file content. The owner decided
