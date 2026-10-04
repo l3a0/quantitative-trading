@@ -154,11 +154,9 @@ def minute_grid(gld: pd.Series, gdx: pd.Series) -> pd.DataFrame:
     is dropped, because the spread does not exist there.
     """
     frame = pd.concat({"gld": gld, "gdx": gdx}, axis=1, sort=True)
-    days = frame.index.normalize()
-    both = frame.groupby(days).transform("count").min(axis=1) > 0
-    frame = frame[both.to_numpy()]
-    days = frame.index.normalize()
-    frame = frame.groupby(days).ffill()
+    # A day one symbol never traded keeps that symbol's column empty after the
+    # fill, so dropping incomplete minutes drops the whole day.
+    frame = frame.groupby(frame.index.normalize()).ffill()
     return frame.dropna()
 
 

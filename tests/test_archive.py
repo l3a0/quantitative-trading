@@ -163,6 +163,22 @@ class TestReadingAnArchiveFile:
         assert entry.sha256 in str(refused.value)
         assert str(store / entry.path) in str(refused.value)
 
+    def test_a_hash_differing_only_in_its_last_digit_is_refused(self, tmp_path):
+        """The refusal compares the whole digest, not a prefix of it."""
+        data_dir, store = fixture_archive(tmp_path)
+        real = resolve_archive_vintage("ABC", data_dir).sha256
+        flipped = real[:-1] + ("0" if real[-1] != "0" else "1")
+        (tmp_path / "flipped").mkdir()
+        data_dir, store = fixture_archive(tmp_path / "flipped", sha256=flipped)
+        with pytest.raises(ArchiveRefused):
+            read_archive_vintage(resolve_archive_vintage("ABC", data_dir), store)
+
+    def test_columns_other_than_open_to_volume_are_refused(self, tmp_path):
+        payload = b"timestamp,open,high,low,close,adjusted_close\n2006-05-22 09:30:00,1,1,1,1,1\n"
+        data_dir, store = fixture_archive(tmp_path, payload=payload)
+        with pytest.raises(ValueError, match="not open to volume"):
+            minute_bars("ABC", data_dir=data_dir, directory=store)
+
     def test_a_file_the_archive_lacks_is_unavailable_not_refused(self, tmp_path):
         data_dir, store = fixture_archive(tmp_path)
         entry = resolve_archive_vintage("ABC", data_dir)
@@ -200,6 +216,10 @@ class TestAMalformedLineIsRefusedByNumber:
             ({"price_basis": "adjusted"}, "other than raw"),
             ({"symbol": "abc"}, "upper case"),
             ({"first_date": "May 2006"}, "first_date that is not an ISO"),
+            ({"path": ".."}, "bare file name"),
+            ({"first_date": "2006-05-22T09:30"}, "first_date that is not an ISO"),
+            ({"sha256": "a" * 65}, "64 lowercase hex"),
+            ({"row_count": 3.0}, "positive whole number"),
         ],
     )
     def test_each_bad_field_is_named(self, tmp_path, override, words):
@@ -214,6 +234,11 @@ class TestAMalformedLineIsRefusedByNumber:
         del line["vendor_call"]
         manifest.write_text(json.dumps(line) + "\n", encoding="utf-8")
         with pytest.raises(ValueError, match="line 1 does not carry exactly"):
+            read_archive_manifest(data_dir)
+
+    def test_an_extra_field_is_refused(self, tmp_path):
+        data_dir, _ = fixture_archive(tmp_path, extra="x")
+        with pytest.raises(ValueError, match="does not carry exactly"):
             read_archive_manifest(data_dir)
 
     def test_a_symbol_recorded_twice_is_refused(self, tmp_path):

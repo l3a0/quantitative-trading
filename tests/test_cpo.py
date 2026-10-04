@@ -509,3 +509,180 @@ class TestExample71OnTheArchive:
         assert cells()[nearest].label == "3_60_2.5"
         assert sharpes[nearest] == pytest.approx(1.9311, abs=5e-5)
         assert result.cell_trips[nearest] == pytest.approx(1.19, abs=0.005)
+
+
+# --- what the mutation lens of PR 285's review found unheld ------------------
+#
+# Each test below kills mutants that survived the default suite: a feature read
+# a day late, the strategy traded on GDX, the unconditional cell chosen on every
+# day including the test days, a threshold boundary, a trip that returns
+# nothing, an unseeded model. Most of them only the archive pins would have
+# noticed, and the selection leak probably not even those.
+
+
+class TestTheBoundariesAndConstants:
+    @pytest.mark.parametrize("entry", [1.0, 0.7, 1.25])
+    @pytest.mark.parametrize("start", [-9.0, 9.0, 0.0])
+    @pytest.mark.parametrize("which", ["-entry", "entry", "-inner", "inner"])
+    def test_the_rules_match_the_literal_loop_exactly_on_each_threshold(self, entry, start, which):
+        """A random z-score never lands on a threshold, so these place it there."""
+        edge = {
+            "-entry": -entry,
+            "entry": entry,
+            "-inner": EXIT_FRACTION * entry,
+            "inner": -EXIT_FRACTION * entry,
+        }[which]
+        z = np.array([start, edge, edge])
+        first = np.array([True, False, False])
+        np.testing.assert_array_equal(
+            positions(z, entry, first), literal_positions(z, entry, first)
+        )
+
+    def test_the_exit_fraction_is_the_book_s_minus_0_6(self):
+        """p. 140. A short exits at 0.55 under −0.6 and would hold under −0.5."""
+        assert positions(np.array([1.2, 0.55]), 1.0, np.array([True, False])).tolist() == [-1, 0]
+
+    def test_the_grids_are_the_printed_ones(self):
+        assert cpo.GDX_WEIGHTS == (2.0, 2.5, 3.0, 3.5, 4.0)
+        assert cpo.LOOKBACKS == (30, 60, 90, 120, 180, 240, 360, 720)
+        assert cpo.ENTRY_THRESHOLDS == (0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.25, 1.5, 2.0, 2.5)
+        assert cpo.FEATURE_LOOKBACKS == (50, 100, 200, 400, 800, 1600, 3200)
+
+    def test_the_z_score_divides_by_the_root_of_the_variance(self):
+        spread = np.random.default_rng(3).normal(0, 1, 200).cumsum()
+        ema, var = ema_var(spread, 30)
+        np.testing.assert_allclose(zscore(spread, 30)[1:], ((spread - ema) / np.sqrt(var))[1:])
+
+    def test_a_trip_that_returns_nothing_still_counts(self):
+        """Minute bars move in whole cents, so an exit at the entry price is common."""
+        first = np.array([True, False, False, False])
+        last = np.array([False, False, False, True])
+        held = np.array([1, 1, 0, 0], dtype=np.int8)
+        price = np.array([100.0, 101.0, 100.0, 99.0])
+        total, count = round_trips(held, price, first, last, np.zeros(4, dtype=np.intp), 1)
+        assert total.tolist() == [0.0]
+        assert count.tolist() == [1]
+
+    def test_the_train_set_floors_a_fractional_day(self):
+        assert train_days(3681) == 2944
+        assert train_days(9) == 7
+
+    def test_a_loss_on_the_first_day_is_a_drawdown_from_the_starting_wealth(self):
+        assert metrics(np.array([-0.1, 0.05, 0.02]))["max_drawdown"] == pytest.approx(-0.1)
+
+    def test_a_series_with_no_drawdown_has_an_infinite_calmar(self):
+        assert metrics(np.array([0.01, 0.02, 0.01]))["calmar"] == float("inf")
+
+
+class TestTheWiring:
+    def test_the_model_is_seeded(self, monkeypatch):
+        seen = {}
+
+        class Recorder:
+            def __init__(self, **kwargs):
+                seen.update(kwargs)
+
+            def fit(self, x, y):
+                return self
+
+        import sklearn.ensemble
+
+        monkeypatch.setattr(sklearn.ensemble, "HistGradientBoostingRegressor", Recorder)
+        cpo.fit_model(np.zeros((5, 1), dtype=np.float32), np.zeros((5, 400)), n_train=3)
+        assert seen == {"random_state": 0}
+
+    def test_a_day_s_features_are_its_last_regular_session_bar(self, monkeypatch):
+        index = pd.to_datetime(
+            [
+                "2006-06-01 09:30",
+                "2006-06-01 15:59",
+                "2006-06-01 16:05",
+                "2006-06-02 09:30",
+                "2006-06-02 15:59",
+                "2006-06-02 16:05",
+            ]
+        )
+        bars = pd.DataFrame({"close": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}, index=index)
+        monkeypatch.setattr(
+            cpo, "indicators", lambda b, n: pd.DataFrame({"x": b["close"] * n}, index=b.index)
+        )
+        features = cpo.daily_features(bars, "gld", pd.DatetimeIndex(["2006-06-01", "2006-06-02"]))
+        # The 15:59 bar, never the 16:05 one, and each day its own, never the next.
+        assert features["gld_x_50"].tolist() == [100.0, 250.0]
+        assert features.shape[1] == len(cpo.FEATURE_LOOKBACKS)
+
+    def test_an_early_close_s_features_are_its_1259_bar(self, monkeypatch):
+        index = pd.to_datetime(["2019-11-29 12:59", "2019-11-29 14:57"])
+        bars = pd.DataFrame({"close": [7.0, 8.0]}, index=index)
+        monkeypatch.setattr(
+            cpo, "indicators", lambda b, n: pd.DataFrame({"x": b["close"] * n}, index=b.index)
+        )
+        features = cpo.daily_features(bars, "gld", pd.DatetimeIndex(["2019-11-29"]))
+        assert features["gld_x_50"].tolist() == [350.0]
+
+    def test_each_label_column_is_its_cell_run_on_gld(self):
+        rng = np.random.default_rng(5)
+        index = pd.DatetimeIndex([])
+        for day in pd.date_range("2006-06-01", periods=30, freq="D"):
+            index = index.append(
+                pd.date_range(day + pd.Timedelta("9h30min"), periods=60, freq="min")
+            )
+        n = len(index)
+        grid = pd.DataFrame(
+            {
+                "gld": 100 * np.exp(rng.normal(0, 1e-3, n).cumsum()),
+                "gdx": 30 * np.exp(rng.normal(0, 1e-3, n).cumsum()),
+            },
+            index=index,
+        )
+        labels = cpo.strategy_labels(grid)
+        first, last, codes, days = day_bounds(grid.index)
+        gld, gdx = grid["gld"].to_numpy(), grid["gdx"].to_numpy()
+        for i, cell in enumerate(cells()):
+            held = positions(zscore(gld - cell.weight * gdx, cell.lookback), cell.entry, first)
+            total, count = round_trips(held, gld, first, last, codes, len(days))
+            np.testing.assert_array_equal(labels.returns[:, i], total)
+            np.testing.assert_array_equal(labels.trips[:, i], count)
+
+    def test_the_indicators_use_their_declared_windows(self):
+        from ta.momentum import AwesomeOscillatorIndicator
+
+        rng = np.random.default_rng(9)
+        close = pd.Series(100 * np.exp(rng.normal(0, 1e-3, 600).cumsum()))
+        bars = pd.DataFrame(
+            {"high": close + 0.05, "low": close - 0.05, "close": close, "volume": 1000}
+        )
+        got = cpo.indicators(bars, 50)
+        mean = close.rolling(50).mean()
+        spread = close.rolling(50).std(ddof=0)
+        pd.testing.assert_series_equal(got["bbz"], (close - mean) / spread, check_names=False)
+        slow = AwesomeOscillatorIndicator(bars["high"], bars["low"], 50, 340).awesome_oscillator()
+        pd.testing.assert_series_equal(got["ao"], slow, check_names=False)
+
+    def test_run_selects_on_train_days_and_reports_test_days(self, monkeypatch):
+        """Column 0 wins on the train days, column 1 over all days, and the model picks 2."""
+        n_days = 15
+        days = pd.date_range("2006-06-01", periods=n_days, freq="D")
+        returns = np.random.default_rng(0).normal(0, 1e-6, (n_days, 400))
+        returns[:12, 0] = 0.01
+        returns[12:, 1] = 0.5 + np.array([0.0, 0.001, 0.002])
+        returns[:, 2] = np.arange(n_days) / 1000.0
+        trips = np.tile(np.arange(n_days)[:, None], (1, 400))
+        trips[14] = 50
+        bars = pd.DataFrame({"close": [1.0]}, index=pd.to_datetime(["2006-06-01 09:30"]))
+        bars.attrs["vintage"] = None
+        monkeypatch.setattr(cpo.archive, "minute_bars", lambda *a, **k: bars)
+        monkeypatch.setattr(cpo, "minute_grid", lambda a, b: None)
+        monkeypatch.setattr(cpo, "strategy_labels", lambda g: cpo.Labels(days, returns, trips))
+        monkeypatch.setattr(
+            cpo, "daily_features", lambda b, p, d: pd.DataFrame({p: np.zeros(len(d))}, index=d)
+        )
+        monkeypatch.setattr(cpo, "fit_model", lambda f, r, n: None)
+        monkeypatch.setattr(cpo, "conditional_choices", lambda m, f, n, d: np.full(d - n, 2))
+        result = cpo.run()
+        assert result.n_train == 12
+        assert result.unconditional == cells()[0]
+        assert result.unconditional_returns.tolist() == returns[12:, 0].tolist()
+        assert result.conditional_returns.tolist() == [0.012, 0.013, 0.014]
+        assert result.conditional_trips.tolist() == [12, 13, 50]
+        assert result.cell_trips.tolist() == [25.0] * 400
