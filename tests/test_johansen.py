@@ -128,6 +128,18 @@ class TestCountingRelations:
         assert [test.relations("trace", level) for level in LEVELS] == [2, 0, 0]
         assert [test.relations("eigen", level) for level in LEVELS] == [2, 2, 0]
 
+    def test_each_statistic_reads_its_own_bars(self) -> None:
+        test = Johansen(
+            trace=np.array([15.0, 5.0]),
+            trace_critical=np.array([[10.0, 20.0, 30.0], [1.0, 2.0, 3.0]]),
+            eigen=np.array([15.0, 5.0]),
+            eigen_critical=np.array([[12.0, 13.0, 14.0], [1.0, 2.0, 3.0]]),
+            eigenvalues=np.zeros(2),
+            eigenvectors=np.eye(2),
+        )
+        assert test.relations("eigen", 95) == 2
+        assert test.relations("trace", 95) == 0
+
     def test_a_statistic_equal_to_its_bar_does_not_reject(self) -> None:
         assert self.made(trace=[20.0, 5.0], eigen=[0.0, 0.0]).relations("trace", 95) == 0
 
@@ -149,6 +161,13 @@ class TestTheRefusals:
         with pytest.raises(ValueError, match="column 1 is nan on row 17"):
             johansen(prices)
 
+    def test_the_refusal_names_the_first_bad_row(self, tethered) -> None:
+        prices = tethered.copy()
+        prices[5, 1] = np.nan
+        prices[9, 0] = np.nan
+        with pytest.raises(ValueError, match="column 1 is nan on row 5"):
+            johansen(prices)
+
     def test_an_infinity_is_refused_too(self, tethered) -> None:
         prices = tethered.copy()
         prices[3, 0] = np.inf
@@ -160,6 +179,10 @@ class TestTheRefusals:
         assert np.isnan(raw(tethered, p=2).cvt).all()
         with pytest.raises(ValueError, match="p is -1, 0 or 1"):
             johansen(tethered, p=2)
+
+    def test_twelve_series_are_accepted(self) -> None:
+        walks = np.cumsum(np.random.default_rng(3).normal(size=(400, 12)), axis=0)
+        assert johansen(walks).trace.shape == (12,)
 
     def test_more_than_twelve_series_is_refused(self) -> None:
         walks = np.cumsum(np.random.default_rng(2).normal(size=(400, 13)), axis=0)

@@ -247,6 +247,10 @@ class TestMovingStd:
         assert sd[3, 0] == pytest.approx(math.sqrt(2), abs=1e-15)
         assert smart_moving_std(x, 3)[2, 0] == 1.0
 
+    def test_a_nan_spoils_a_window_that_holds_two_finite_values(self) -> None:
+        """``np.nanstd`` would give 1.4142 here, the spread of 1 and 3."""
+        assert np.isnan(moving_std([1.0, NAN, 3.0, 5.0], 3)[2])
+
     def test_each_column_is_its_own_series(self) -> None:
         x = np.array([[1.0, 10.0], [3.0, 10.0], [5.0, 40.0]])
         np.testing.assert_allclose(

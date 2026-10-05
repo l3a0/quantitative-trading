@@ -314,6 +314,20 @@ class TestTheRule:
         with pytest.raises(ValueError, match="does not revert"):
             strategy(trend, np.array([1.0, 0.0]))
 
+    def test_a_missing_price_makes_its_day_zero_as_matlabs_sum_does(self) -> None:
+        """``np.nansum`` would skip the missing leg and earn on the other."""
+        rng = np.random.default_rng(5)
+        prices = 10 + np.cumsum(rng.normal(scale=0.1, size=(30, 2)), axis=0)
+        prices[20, 1] = np.nan
+        daily = linear_mean_reversion(prices, np.array([1.0, -1.0]), 5)
+        assert daily[20] == 0
+        assert daily[19] != 0
+
+    def test_the_lookback_rounds_a_half_away_from_zero(self, monkeypatch, triplet, result):
+        """``np.round`` would give 22, since it sends a half to the even neighbour."""
+        monkeypatch.setattr(module, "ou_half_life", lambda _: 22.5)
+        assert strategy(triplet, result.strategy.weights).lookback == 23
+
     def test_a_day_with_no_gross_is_zero_rather_than_nan(self) -> None:
         """A weight of 0 everywhere leaves the gross at 0 and 0 / 0 at NaN, set to 0."""
         prices = np.column_stack([np.linspace(1, 2, 8), np.linspace(2, 3, 8)])
@@ -416,6 +430,10 @@ class TestTheGuardAndTheReads:
         monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
         with pytest.raises(SystemExit, match="inputData_ETF.mat"):
             main()
+
+    def test_a_miss_is_reported_as_one(self) -> None:
+        assert module._verdict(0.0, "1.0") == "did not reproduce, gap -1"
+        assert module._verdict(1.04, "1.0") == "reproduced"
 
     def test_the_report_marks_every_printed_figure_reproduced(self, capsys, no_arguments):
         main()
