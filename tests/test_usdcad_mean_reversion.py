@@ -147,7 +147,11 @@ class TestTheVintage:
 class TestExample21TheAdfTest:
     def test_the_statistic_is_chans_minus_1_840744(self, result: StationarityRun) -> None:
         assert result.adf.statistic == pytest.approx(SCRIPT_ADF, abs=5e-7), SPEC
-        assert result.adf.statistic == pytest.approx(-1.8407440891, abs=5e-11), SPEC
+        # Nine decimals rather than ten. macOS gives -1.8407440890839797 and some
+        # Linux CI runners -1.840744089202234, a 1.2e-10 gap in the last bits of
+        # the regression, so the tenth decimal is not a figure the platforms
+        # share. Issue 400 measured it.
+        assert result.adf.statistic == pytest.approx(-1.840744089, abs=5e-10), SPEC
         assert round(result.adf.statistic, 2) == BOOK_ADF
 
     def test_the_ar1_estimate_is_chans_0_994120(self, result: StationarityRun) -> None:
