@@ -1875,7 +1875,7 @@ is a fourteenth post, about cross-sectional momentum, Example 6.2 of Chan's
 highest 252-day return and shorts the 50 with the lowest, and holds each day's
 picks 25 days. Chan reports an APR of 37 percent and a Sharpe ratio of 4.1 over
 2007, and −30 percent over 2008 and 2009, while the comment closing
-`kentdaniel.m` prints a Sharpe ratio of 0.40. The post draws four lessons from
+`kentdaniel.m` records a Sharpe ratio of 0.40. The post draws four lessons from
 Entry 17 of the replication log.
 
 1. The 0.40 is the comment's and not the code's, which computes 4.0657 on the
@@ -1886,7 +1886,7 @@ Entry 17 of the replication log.
    afterwards.
 3. The crash Chan describes is in the file, and the one book claim that
    reproduces under a rule fixed in advance is that the return after 2009
-   stabilised below 2007's.
+   stabilized below 2007's.
 4. A reproduction checks the arithmetic and not the edge.
 
 Five groups of its figures are not pinned here.
@@ -1896,8 +1896,10 @@ Five groups of its figures are not pinned here.
    The top and bottom deciles held for a month are at 2797. The 37 percent and
    4.1, "a miserable −30 percent", "did stabilize, though it hasn't returned
    to its former high level yet", and Daniel and Moskowitz's 16.7 percent and
-   0.83 from 1947 to 2007 are at 2800. "Performed similarly well pre-2008",
-   the reversal's 4.7, "vanished during the aftermath of the stock market
+   0.83 from 1947 to 2007 are at 2800, and so are the labels "APR" for
+   Chan's figure and "annualized average return" for theirs. That Example
+   7.2 calls its 6.7 percent an APR is at 3024. "Performed similarly well
+   pre-2008", the reversal's 4.7, "vanished during the aftermath of the stock market
    crash in 2008–2009" and the cause in "the strong rebound of short
    positions" are at 2890. The book's figures are pinned, and its words are
    not.
@@ -1909,7 +1911,8 @@ Five groups of its figures are not pinned here.
    same `kentdaniel.m`, which `src/chan/cross_sectional_momentum.py`'s
    docstring records. Whether ETFC's move from 85.9 to 35.5 was a real move or
    a bad print, which nothing checks.
-3. Arithmetic no test asserts: that 0.40 is about a tenth of 4.1, that
+3. Arithmetic no test asserts: that 0.40 is about a tenth of 4.1 and of
+   4.0530, so either helper's Sharpe ratio is ten times the comment's, that
    2007-05-15 to 2007-12-31 is seven and a half months, and that 1947 to 2007
    is sixty years.
 4. The book's Figure 6.6, which the post's figure redraws from

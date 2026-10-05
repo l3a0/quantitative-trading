@@ -9,7 +9,8 @@ windows switched by which pair of lines is commented out. So
 :func:`make_cumulative_figure` draws three panels side by side, one per
 window, sharing the y-axis, with widths in proportion to the 160, 505 and 582
 days each holds. That redraws what the script draws once per run, three times,
-and each panel ends at the compounded figure the run prints for its window.
+and each panel's last value is the compounded figure the run prints for its
+window, carried back over the window's days.
 
 Each panel marks three things.
 

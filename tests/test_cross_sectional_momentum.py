@@ -1,8 +1,15 @@
 """The pins for cross-sectional momentum, *Algorithmic Trading*'s Example 6.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 6.2. ``docs/replication-log.md`` Entry 17 carries the verdicts and
-points here row by row.
+about Example 6.2, with three exceptions, all in
+``blog/cross-sectional-momentum-lessons.md``. The post quotes each window's
+deepest drawdown and the dates of the 2008 and 2009 spell below the high, which
+``tests/test_cross_sectional_momentum_figures.py`` holds. It recalls Example
+7.2's 6.7 percent as the arithmetic figure, which ``tests/test_pead.py`` holds.
+And it quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which
+``tests/test_khandani_lo_book_two.py`` holds. README lists what the post says
+that nothing pins. ``docs/replication-log.md`` Entry 17 carries the verdicts
+and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as

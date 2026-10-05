@@ -38,8 +38,8 @@ is marked, so its first 24 days hold fewer than 25 cohorts while the script
 still divides by 25.
 
 **The declared rule reads the book's APR as the arithmetic figure.** Issue 297
-fixed that before any run, because Entry 12 found that Example 7.2's "APR of
-6.7 percent" is ``pead.m``'s ``252 · smartmean``, not its compounded figure. So
+fixed that before any run, because Entry 12 found that the 6.7 percent Example
+7.2 calls an APR is ``pead.m``'s ``252 · smartmean``, not its compounded figure. So
 the book's 37 and −30 percent are set against the arithmetic return here, and
 the compounded one is reported beside them and decides nothing. The
 replication log's Entry 17 says what the compounded figure showed afterwards.

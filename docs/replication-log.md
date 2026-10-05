@@ -3750,13 +3750,13 @@ Three things.
    in advance followed the first example, so the verdicts on rows 6 to 8 say
    what that rule gives, and row 10 says what was seen afterwards.
 3. **Seen after the run and deciding nothing, the crash Chan describes is in
-   the file.** The strategy that earned a
-   Sharpe ratio of 4.07 over 2007 lost 32 percent a year over 2008 and 2009,
-   with a drawdown of −0.606634 from a high on 2008-07-14. It was still below
-   that high 371 days later, when the window ended, so the drawdown had not
-   finished. It earned 1.6 percent a year after that. That is the collapse
-   location 2890 describes, where
-   momentum "vanished during the aftermath of the stock market crash".
+   the file.** The strategy that earned a Sharpe ratio of 4.07 over 2007
+   lost 32 percent a year over 2008 and 2009, with a drawdown of −0.606634
+   from a high on 2008-07-14. It was still below that high 371 days later,
+   when the window ended, so the drawdown had not finished. The strategy
+   earned 1.6 percent a year from 2010 to 2012. That is the collapse location
+   2890 describes, where momentum "vanished during the aftermath of the stock
+   market crash".
 
 ### What this entry cannot say
 
