@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-seven replications run here, fifteen from Chan's *Quantitative Trading*
-and twelve from his *Algorithmic Trading*. The first two were ported from the
+Twenty-eight replications run here, fifteen from Chan's *Quantitative Trading*
+and thirteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-five were built here.
+where they were first built. The other twenty-six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -353,6 +353,19 @@ where they were first built. The other twenty-five were built here.
     script's arithmetic, and corn's is no longer twice its spot return.
     `chan.roll_returns` exports the strip reader and both fits for Example
     5.4 and the TU momentum experiment. Every figure is exploratory.
+28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
+    Chapter 5, on Chan's own continuous futures. A regression of ES on VX
+    from August 2008 gives the hedge, and a band one training deviation wide
+    trades the residual. On the save of 2012-05-07, fitted on the first 500
+    days from 2008-08-04, the hedge of 0.390594, the APR of 0.122811 and the
+    Sharpe ratio of 1.393201 reproduce the book's 0.3906, 12.3 percent and
+    1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
+    dropping the first training day reaches $2,046.93. `VX_ES.m` as it ships
+    loads a later save, fits on the test days too and runs no trade. The
+    window comes from Chan's `VX_ES_rollreturn.m`, while the save and the exit
+    at the opposite band were chosen because they land the book's figures.
+    The test holds four positions in 449 days.
+    Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -579,7 +592,15 @@ synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
 and a gap in the spot still counted as elapsed days.
 
-All twenty-seven replications reach a verdict in
+[tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
+the four figures on the 2012-05-07 save at the precision that is real and at
+the book's, and each diagnostic beside them: the first training day dropped,
+an exit at the mean, a band started flat on the first test day, the printed
+hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
+It also holds the training and test spans, the four positions, and the
+scale-break guard on each leg of each save.
+
+All twenty-eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -592,7 +613,7 @@ momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
-3.2's and Entry 27 the spot and roll returns'.
+3.2's, Entry 27 the spot and roll returns' and Entry 28 VX against ES's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -640,7 +661,9 @@ Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
 stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
-span, and neither carries a flagged day, so nothing is refused.
+span, and neither carries a flagged day, so nothing is refused. VX against ES
+calls it on VX and ES over each leg's own span in each continuous futures save
+it reads, and nothing is refused there either.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -754,7 +777,9 @@ its own calendar, and each is one vintage with all five fields, as a stock
 is. His `VIX.csv` is committed beside them as one vintage under the vendor
 `chan-csv`. Those five files hold 209 vintages, and
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
-their shape. No replication reads them yet.
+their shape. VX against ES reads VX and ES from the 2012-05-07 and
+2012-05-17 saves, and its tests read the 2012-05-11 save too, for
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350).
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -1232,6 +1257,17 @@ uv run python -m chan.roll_returns
 It prints the five strips' vintages, each strip's spot and roll returns beside
 Table 5.1's, and then the roll return with maturity in months, the days each
 fit covers and the month gaps between its contracts.
+
+VX against ES takes no option, because the issue fixed the save, the window
+and the band:
+
+```bash
+uv run python -m chan.vx_es
+```
+
+It prints the vintage, the calendar, the training and test spans, the four
+figures beside the book's with a verdict, the diagnostics in a table, and the
+position held into the test with each change after it.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
