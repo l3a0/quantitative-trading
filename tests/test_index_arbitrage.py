@@ -36,6 +36,8 @@ chosen with hindsight. The example first ran on 2026-10-05.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -61,6 +63,7 @@ from chan.index_arbitrage import (
     SCRIPT_TRACE_CRITICAL,
     STOCK_FILE,
     IndexArbitrage,
+    Screen,
     basket_value,
     common_days,
     index_arbitrage,
@@ -68,6 +71,7 @@ from chan.index_arbitrage import (
     instrument_weights,
     main,
     read_sources,
+    report,
     run,
     screen,
     windows,
@@ -388,6 +392,16 @@ class TestTheRule:
     def test_the_weights_repeat_the_baskets_element_for_every_stock(self) -> None:
         np.testing.assert_array_equal(instrument_weights(np.array([2.0, -3.0]), 3), [2, 2, 2, -3])
 
+    def test_the_common_days_come_back_in_date_order(self) -> None:
+        stocks = pd.DataFrame(
+            {"A": [3.0, 1.0, 2.0]}, index=pd.to_datetime(["2007-01-05", "2007-01-03", "2007-01-04"])
+        )
+        spy = pd.Series([1.0, 2.0, 3.0], index=stocks.index)
+        cut, index = common_days(stocks, spy)
+        assert cut.index.is_monotonic_increasing
+        assert list(cut["A"]) == [1.0, 2.0, 3.0]
+        assert index.index.equals(cut.index)
+
     def test_the_common_days_drop_a_day_either_file_lacks(self) -> None:
         stocks = pd.DataFrame(
             {"A": [1.0, 2.0, 3.0]}, index=pd.to_datetime(["2007-01-03", "2007-01-04", "2007-01-05"])
@@ -398,10 +412,12 @@ class TestTheRule:
         assert list(index) == [5.0, 4.0]
 
     def test_the_last_day_of_2007_trains_and_the_first_of_2008_tests(self) -> None:
-        days = pd.to_datetime(["2006-12-29", "2007-01-02", "2007-12-31", "2008-01-02"])
+        days = pd.to_datetime(
+            ["2006-12-29", "2007-01-01", "2007-01-02", "2007-12-31", "2008-01-01", "2008-01-02"]
+        )
         train, test = windows(pd.DatetimeIndex(days))
-        assert list(train) == [False, True, True, False]
-        assert list(test) == [False, False, False, True]
+        assert list(train) == [False, True, True, True, False, False]
+        assert list(test) == [False, False, False, False, True, True]
 
     def test_a_portfolio_above_its_average_is_sold(self) -> None:
         """The last price jumps, so the units go negative and the next rise loses."""
@@ -417,7 +433,23 @@ class TestTheRule:
         prices[20, 1] = np.nan
         daily = index_arbitrage_returns(prices, np.array([1.0, -1.0]), 5)
         assert daily[20] != 0
+        # The log market value skips the missing leg too, so the moving window
+        # over day 20 stays finite and the next five days still earn.
+        assert (daily[21:26] != 0).all()
         assert np.isfinite(daily).all()
+
+    def test_a_day_with_no_price_at_all_earns_nothing_for_a_window(self) -> None:
+        """``smartsum`` of nothing finite is NaN, where ``np.nansum`` would give 0.
+
+        A value of 0 among log prices near 0.1 would be a z-score far from the
+        rest, and the days after it would trade on that.
+        """
+        rng = np.random.default_rng(5)
+        prices = np.exp(0.1 + np.cumsum(rng.normal(scale=0.01, size=(30, 2)), axis=0))
+        prices[20, :] = np.nan
+        daily = index_arbitrage_returns(prices, np.array([1.0, -1.0]), 5)
+        assert (daily[20:26] == 0).all()
+        assert daily[26] != 0
 
     def test_a_day_with_no_gross_is_zero_rather_than_nan(self) -> None:
         prices = np.exp(np.column_stack([np.linspace(0, 1, 8), np.linspace(1, 0, 8)]))
@@ -576,8 +608,25 @@ class TestTheGuardAndTheReads:
         assert len(figures) == 11
         assert all(line.endswith("reproduced") for line in figures)
         assert "did not reproduce" not in out
+        assert "basket trace  2 at 90%, 2 at 95%, 0 at 99%" in out
         assert "basket eigen  0 at 90%, 0 at 95%, 0 at 99%" in out
+        assert "training 2007-01-03 to 2007-12-31, 251 trading days" in out
+        assert "test     2008-01-02 to 2012-04-09, 1076 trading days" in out
+        assert "17 skipped: CFN 0, COV 139, DFS 139, DPS 0" in out
+        assert "basket -2.46, SPY -2.38, against -2.57 at 90%" in out
+        assert "row 5 of the test, 1071 days with a return" in out
         assert "480 stocks tested at a per-test 90% bar, with no false-discovery" in out
         assert "pass it about 28% of the time" in out
         assert "first return on 2008-01-09" in out
         assert "Exploratory and survivor-only." in out
+
+    def test_a_count_that_misses_98_is_reported_as_a_miss(self, capsys, sources, result):
+        """The count's verdict is its own branch, so a run passing 97 must say so."""
+        short = Screen(
+            tested=result.screen.tested,
+            skipped=result.screen.skipped,
+            passed=result.screen.passed[:-1],
+        )
+        report(sources[0], sources[1], replace(result, screen=short))
+        (line,) = [s for s in capsys.readouterr().out.splitlines() if "passing the screen" in s]
+        assert line.endswith("did not reproduce, gap -1")
