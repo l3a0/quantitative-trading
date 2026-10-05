@@ -47,6 +47,7 @@ from chan.fund_holdings import (
     read_index,
     record,
 )
+from chan.fund_panel import MEMBERS_NAME
 
 FIXTURES = Path(__file__).parent / "fixtures" / "filings"
 
@@ -108,10 +109,13 @@ class TestTheCommittedRecord:
             assert entry.path == f"ijr/{filing.report_date}.csv"
 
     def test_the_directory_holds_no_file_the_index_does_not_name(self) -> None:
+        # A fund's members file sits beside its holdings files and is not a
+        # filing, so the index does not name it. chan.fund_panel owns it.
         named = {entry.path for entry in read_index()}
         on_disk = {
             path.relative_to(fund_holdings.FILINGS_DIR).as_posix()
             for path in fund_holdings.FILINGS_DIR.rglob("*.csv")
+            if path.name != MEMBERS_NAME
         }
         assert on_disk == named
 

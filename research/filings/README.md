@@ -79,9 +79,54 @@ the documents the survey on the issue downloaded that day. `fetch` wraps the
 same call around a download and has not yet run against EDGAR, so its first run
 is also the first check that EDGAR still serves the bytes the index names.
 
+## The members file
+
+`ijr/members.csv` maps each of IJR's members to the ticker Alpha Vantage files
+it under, and records whether that ticker's closes agree with the filing.
+[Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built it,
+and [src/chan/fund_panel.py](../../src/chan/fund_panel.py) reads and checks
+it. It holds one row per member and year-end from 2008 to 2025, plus each 2007
+member that the 2008 filing links to, since that member's 2007 close is what
+ranks it at the 2008 year-end. The index does not name it, because it is not a
+filing.
+
+| Column | What it holds |
+| --- | --- |
+| `report_date` | the filing's report date |
+| `row` | the member's position among its holdings file's data rows, counting from 1 |
+| `ticker` | the symbol Alpha Vantage files the company under, empty when nothing resolved it |
+| `source` | which step answered: `cusip`, `filing`, `link`, `name`, `hand`, or `none` |
+| `note` | what the source said, and on a `hand` row the evidence |
+| `check` | `pass`, `price`, `no-row`, `no-series` or `unmapped` |
+| `gap` | on a `price` row, the series' close less the filing's price, in cents |
+| `exit` | on a `pass` row, `close` when the series holds the last trading day of the next January, else `stop` |
+
+A company is resolved once, at the latest year-end it is a member, because
+Alpha Vantage files a company under its last ticker. A `link` row takes the
+ticker of the row in the next filing that the filings link it to.
+
+The check compares the series' raw close on the price date, times the
+filing's share count, against the filing's value, within half the unit the
+filing reports in. That is $0.50 on an N-Q's whole dollars and half a cent on
+an N-PORT's cents. The price date is the last day on or before the report date
+that the committed raw SPY vintage holds. The closes live in the owner's
+archive as the `sp600` cross-section, recorded in
+[data/archive_vintages.jsonl](../../data/archive_vintages.jsonl), so the check
+runs only where the archive is, and the report reads only this file and the
+holdings files.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp600_panel fetch'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp600_panel check
+uv run python -m chan.sp600_panel report
+```
+
 ## What reads it
 
 [tests/test_fund_holdings.py](../../tests/test_fund_holdings.py) is the
 authority for every count, including how many rows each filing holds, how many
 of them are companies' stocks, and how many of those can be paired with the
-filing before. No replication reads this directory yet.
+filing before.
+[tests/test_sp600_panel.py](../../tests/test_sp600_panel.py) is the authority
+for every count about the members file, including each year-end's coverage.
+No replication reads this directory yet.

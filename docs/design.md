@@ -560,6 +560,34 @@ Four things follow.
    The figures without it were measured on this branch and no test holds them,
    while the figures with it are pinned.
 
+[Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) joins
+that record to prices. [src/chan/fund_panel.py](../src/chan/fund_panel.py)
+maps each member to the ticker Alpha Vantage files it under, writes
+`research/filings/ijr/members.csv`, and checks each mapped series against the
+filing that names the member. [src/chan/sp600_panel.py](../src/chan/sp600_panel.py)
+binds IJR and the `sp600` cross-section and holds the command.
+[tests/test_sp600_panel.py](../tests/test_sp600_panel.py) is the authority for
+every count about it. Three choices carry the design.
+
+1. **The check holds a mapping, and the route that found it does not.** A
+   series passes when its raw close on the price date times the filing's
+   share count lands within half the filing's value unit of the filing's
+   value, which is $0.50 on an N-Q and half a cent on an N-PORT. A ticker
+   another company reused fails, so `SR` passes Laclede's 2009 row and fails
+   Standard Register's. Two members passing on one ticker at one year-end is
+   refused. The lookups that proposed each ticker ran in the build session and
+   cannot be rerun by code, so the members file records which source answered
+   and the check is what a reader trusts.
+2. **A company is resolved at its latest year-end and carried back.** Alpha
+   Vantage files a company under its last ticker, not under the ticker it
+   traded as in a given year, so the ticker found at the latest row is carried
+   back along `chan.fund_holdings.link`.
+3. **Coverage counts the three closes Example 7.6 reads.** A member is covered
+   at a year-end when its own row passes and, where it links to the previous
+   filing, that row passed too, since its rank close is the previous row's
+   close. A series that ends inside the next January is covered and counted as
+   a stop, which the run keeps.
+
 The return a placement carries is rough on purpose. It is value over shares in
 one filing against the same in the other, so a split moves it as much as a
 price does, and no dividend is in it. What reads it is the rule
@@ -682,8 +710,8 @@ only committed vintages runs with no configuration at all.
 
 | Setting | Secret | Lives in | Read by |
 | --- | --- | --- | --- |
-| The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, and `chan.fetch_alphavantage`, which writes the daily closes there |
-| `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage` |
+| The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, `chan.fetch_alphavantage`, which writes the daily closes there, and `chan.sp600_panel`, whose `fetch` and `check` read it |
+| `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage`, and `chan.sp600_panel fetch`, which hands it on |
 | `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose one run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share, and which runs only when it is set, because the full run takes minutes |
 | SEC's User-Agent contact | no | `~/.config/quantitative-trading/sec_user_agent`, one line, or `QT_SEC_USER_AGENT` for one run | `chan.fund_holdings`, whose fetch SEC asks to name a contact. A contact identifies a person, which is why it is read from the machine rather than from this repo |
 

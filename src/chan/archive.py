@@ -63,6 +63,7 @@ import io
 import json
 import os
 import re
+from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
 from datetime import date
@@ -319,7 +320,9 @@ def daily_span(payload: bytes) -> tuple[int, str, str]:
         raise ValueError(
             f"{len(undated)} rows do not open on an ISO date, the first {undated[0]!r}"
         )
-    repeated = sorted({day for day in dates if dates.count(day) > 1})
+    # Counted once rather than with list.count per row, which took 1.6 seconds
+    # on one stock's full history and set the pace of a fetch of 1,800 stocks.
+    repeated = sorted(day for day, seen in Counter(dates).items() if seen > 1)
     if repeated:
         # Two rows for one day would make every later read of the cross-section
         # fail on a duplicate index, and a recorded line is never rewritten.
