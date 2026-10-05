@@ -595,6 +595,15 @@ is. His `VIX.csv` is committed beside them as one vintage under the vendor
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 their shape. No replication reads them yet.
 
+IJR's holdings at every year-end from 2007 to 2025 are committed under
+[research/filings](research/filings/README.md), read from the schedules
+iShares Trust files with the SEC rather than from a vendor. A filing is never
+restated, so each file is pinned by the filing's accession number rather than
+kept as a vintage, and that directory's README says why.
+`src/chan/fund_holdings.py` reads the filings, and
+[issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
+their shape. No replication reads them yet.
+
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
 read none either.
