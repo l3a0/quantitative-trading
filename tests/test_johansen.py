@@ -1,7 +1,8 @@
 """What :func:`chan.johansen.johansen` adds to statsmodels' test, held on synthetic series.
 
 The figures it computes for Chan's ETFs are pinned in
-``tests/test_etf_cointegration.py``, which is what shows the wrapper is
+``tests/test_etf_cointegration.py``, and those for his basket of stocks against
+SPY in ``tests/test_index_arbitrage.py``, which is what shows the wrapper is
 LeSage's ``johansen.m``. This file holds the parts no printout reaches: that a
 known cointegrating vector comes back, how the relations are counted, the sign
 rule, and each refusal.
