@@ -149,7 +149,7 @@ only names what a round usually changes.
   one rather than deleting another session's entry.
 
 Nothing in a round waits on a suite run. The board stopped carrying the commit,
-the test count and the vintage counts on 2026-10-05, so every section is
+the test count and the vintage counts on 2026-10-05 UTC, so every section is
 written as soon as it is measured.
 
 ## 4. Recommend what to take next

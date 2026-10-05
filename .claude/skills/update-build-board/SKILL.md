@@ -76,17 +76,23 @@ default rather than through a rule.
 ## What the page is made of
 
 A header strip and three sections, top to bottom. The strip renders the two
-`STATE` figures, the open issue count and the stamp.
+`STATE` figures: the open issue count, and the stamp drawn from `updatedAt`.
 
-It used to carry five more: the commit `main` stood at, the vintage files and
-their rows, the committed highlights, the suite's test count and the
-experiments tracked. The owner removed all five on 2026-10-05. The test count
-alone cost a full suite run per update, 532 seconds on `ec44e94`, and a merge
-during that run made the count describe a commit that was no longer `main`, so
-the run had to start over. That happened the day they were removed, when
-[PR 363](https://github.com/l3a0/quantitative-trading/pull/363) merged
-mid-run. None of the five said what to take next, which is the question this
-page answers, so do not add them back.
+It used to carry five more, and the owner removed all five on 2026-10-05 UTC.
+
+1. The commit `main` stood at.
+2. The vintage files and their rows.
+3. The committed highlights.
+4. The suite's test count.
+5. The experiments tracked.
+
+The test count alone cost a full suite run per update, 532 seconds on
+`ec44e94`, and a merge during that run made the count describe a commit that
+was no longer `main`, so the run had to start over. That happened the day they
+were removed, when
+[pull request 363](https://github.com/l3a0/quantitative-trading/pull/363)
+merged mid-run. None of the five said what to take next, which is the question
+this page answers, so do not add them back.
 
 The sections are these.
 
@@ -183,7 +189,8 @@ the renderer reads without a guard. The redraw is also wrapped, so a write that
 passes the check but still breaks the drawing code is rolled back to the last
 good data. Either way the banner says live updates stopped and why. Both were
 exercised on 2026-10-02 by driving the page's `connect` with a fake database:
-a tracker item missing `needs`, a state with an empty `suite`, a tracker item
+a tracker item missing `needs`, a state with an empty `suite` (a field the
+check stopped asking for when the strip lost it), a tracker item
 whose `labels` was a string, and a renderer forced to throw. All four kept the
 last good board and lit the banner, and the next good write went live again.
 
@@ -209,7 +216,9 @@ A count recalled from earlier in the session is the one that will be wrong, and
 it has been: an update shipped 39 open issues when a query said 40.
 
 None of them runs the suite. The page carries no figure that needs one, so a
-board update never waits on a test run.
+board update never waits on a test run. The first command feeds no figure
+either. It fetches, and the head it prints is how a session notices that a
+merge landed since its last read.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
@@ -303,10 +312,11 @@ mid-update moves `STATE.issues.open` and owes `TRACKER` a card, so re-reading
 the count on its own leaves the page failing check 1. One was filed during the
 update this rule came from.
 
-The first command is in that set because it is the one that shows a merge, and a
-merge closes issues and pull requests, which moves `PRS`, `TRACKER` and the open
-issue count. `updatedAt` is the one figure none of this measures, because the
-session writes it.
+The first command is in that set because its printed head says which merges
+landed, and a merge is what closes issues and pull requests. The `gh` commands
+measure what that moves, `PRS`, `TRACKER` and the open issue count, so the first
+command explains a change rather than measuring one. `updatedAt` is the one
+figure none of this measures, because the session writes it.
 
 The price is one more round of queries per update. What it buys is a gap of
 seconds between the last measurement and the write rather than a gap the
