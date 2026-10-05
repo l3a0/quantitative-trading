@@ -76,8 +76,8 @@ pythonpath = ["."]
 # `uv run pytest` is the parallel run everywhere it is written down. xdist
 # starts every worker whatever the selection, so a run of a few tests pays for
 # all of them starting, and `-n 0` is the faster choice there. `--pdb` turns the
-# workers off on its own. PYTEST_XDIST_AUTO_NUM_WORKERS caps the count for a
-# shell, which helps when several sessions run the suite on one machine.
+# workers off on its own. PYTEST_XDIST_AUTO_NUM_WORKERS sets the count for a
+# shell, such as a lower one when several sessions share a machine.
 addopts = "-ra -n auto"
 
 [tool.ruff]

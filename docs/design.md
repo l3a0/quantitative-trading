@@ -684,7 +684,7 @@ only committed vintages runs with no configuration at all.
 | --- | --- | --- | --- |
 | The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, and `chan.fetch_alphavantage`, which writes the daily closes there |
 | `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage` |
-| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose one run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share, and which runs only when it is set, because the full run takes minutes |
+| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share within each test worker, and which runs only when it is set, because the full run takes minutes. `-n 0` runs the suite in one process, so the run is built once |
 | SEC's User-Agent contact | no | `~/.config/quantitative-trading/sec_user_agent`, one line, or `QT_SEC_USER_AGENT` for one run | `chan.fund_holdings`, whose fetch SEC asks to name a contact. A contact identifies a person, which is why it is read from the machine rather than from this repo |
 
 ## Considered and rejected

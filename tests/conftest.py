@@ -15,12 +15,12 @@ The suite runs across pytest-xdist workers, and each worker holds a session of
 its own, so the run is built once in every worker that draws a test reading
 it. xdist hands each worker a batch of neighbouring tests, so the readers in
 one file tend to share a worker, but an archive run can still build the run on
-more than one worker at once, which costs CPU rather than wall time. No
-archive run has happened in parallel yet, so that count is unmeasured. ``-n 0``
-builds it once. Keeping the readers on one worker would
-take ``--dist loadgroup``, which hands out every other test one at a time and
-so rebuilds each module-scoped fixture on more workers, a price every run
-would pay to save CPU on a run that happens by hand.
+more than one worker at once. No archive run has happened in parallel yet, so
+that count is unmeasured. ``-n 0`` runs the suite in one process and builds it
+once. Keeping the readers on one worker would take ``--dist loadgroup``, which
+hands out every other test one at a time and so rebuilds each module-scoped
+fixture on more workers, a price every run would pay to save CPU on a run that
+happens by hand.
 """
 
 from __future__ import annotations

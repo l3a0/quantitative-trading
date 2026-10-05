@@ -857,7 +857,9 @@ same figures net of 1 basis point a round trip, the verdict on Chan's claim,
 and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
-in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. Run those
+pins with `-n 0`, because each parallel worker that draws one builds the run
+again.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
