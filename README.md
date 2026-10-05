@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-six replications run here, fifteen from Chan's *Quantitative Trading*
-and eleven from his *Algorithmic Trading*. The first two were ported from the
+Twenty-seven replications run here, fifteen from Chan's *Quantitative Trading*
+and twelve from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-four were built here.
+where they were first built. The other twenty-five were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -330,7 +330,16 @@ where they were first built. The other twenty-four were built here.
     in 26 of the 612 training windows, so on most days the rule traded a hedge
     the test did not back. Every figure is
     exploratory, and the 250-day training length was chosen in hindsight.
-26. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
+26. Bollinger bands on GLD and USO, Example 3.2 of *Algorithmic Trading*,
+    which trades item 21's price spread with one unit at most, entering when
+    the 20-day z-score passes ±1 and exiting when it crosses 0. Both figures
+    `bollinger.m` prints reproduce to six decimals on Chan's own file, an APR
+    of 0.178249 and a Sharpe ratio of 0.964673, his 17.8 percent and 0.96.
+    Both beat the linear rule's 0.108335 and 0.589651, which is the
+    improvement the book claims. Unlike item 21, the run depends on the
+    moving deviation's divisor: n in place of the script's n − 1 gives
+    0.183306 and 0.984872. Every figure is exploratory.
+27. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
     Chan's own strips of BR, corn, CL, HG and TU. Eight of Table 5.1's ten
     cells reproduce, and HG's and TU's spot returns do not: HG's 0.050567
     rounds to 5.1 percent against the book's 5.0, and TU's 0.000039 is
@@ -506,6 +515,13 @@ divisor of the moving deviation, so a reader does not take these figures as
 evidence about either. The blog post about it is the exception, and what it
 says that nothing here asserts is listed below.
 
+[tests/test_bollinger.py](tests/test_bollinger.py) does it for Example 3.2.
+It pins both figures `bollinger.m` prints at six decimals and again at eight,
+the book's rounding beside them, and the claim that the band improves on the
+linear rule. It also pins the run with the deviation divided by n, which moves
+both figures here, and holds the band's edges on synthetic arrays, since no
+real day sits exactly on one.
+
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
 Example 8.2 figure at six decimals and again at the precision the book prints,
@@ -563,7 +579,7 @@ synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
 and a gap in the spot still counted as elapsed days.
 
-All twenty-six replications reach a verdict in
+All twenty-seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -575,8 +591,8 @@ Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
-examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's and Entry 26 the
-spot and roll returns'.
+examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
+3.2's and Entry 27 the spot and roll returns'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -623,8 +639,8 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand. Example 3.1 calls it on GLD and USO over the ETF file's whole span, and
-neither carries a flagged day, so nothing is refused.
+stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
+span, and neither carries a flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -702,6 +718,8 @@ The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
 closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
 and Example 4.2 reads its SPY, for
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
+Example 3.2 reads GLD and USO again, for
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract
@@ -1127,6 +1145,17 @@ uv run python -m chan.price_spread
 It prints the two vintages, the window, the rule, and each script's two
 figures beside its comment and the book, then the ratio again with GLD and USO
 swapped.
+
+Example 3.2 reads the same two ETFs and takes no option, because
+`bollinger.m` fixes the file, the lookback and both bands:
+
+```bash
+uv run python -m chan.bollinger
+```
+
+It prints the two vintages, the window, the rule, and the band's two figures
+beside the script's comment and the book, then Example 3.1's linear rule on
+the same spread for the book's comparison.
 
 The leverage examples, Examples 8.1 and 8.2 of *Algorithmic Trading*, read
 nothing and take no option, because the book fixes every input:
