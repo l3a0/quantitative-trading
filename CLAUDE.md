@@ -367,7 +367,7 @@ A mechanical consequence of an edit is part of that edit, not a separate decisio
 
 This repo is public. Tracked files never carry secrets or machine-specific paths. Machine-local config lives under `~/.config/quantitative-trading/`, and the design doc's Configuration section states the full rules. Sweep for leaks before any publish.
 
-No vendor used so far needs a credential, so the repo holds no secrets today. That changes the first time a paid data source lands, and the design doc's Configuration table is where it gets named.
+Alpha Vantage is the one vendor that needs a credential. Its daily fetch, which [issue 335](https://github.com/l3a0/quantitative-trading/issues/335) builds, reads `ALPHAVANTAGE_API_KEY` from the environment of the one run that needs it, and the design doc's Configuration table names it as a secret. The key lives in the owner's `~/.zshrc`, which a command a session runs does not read. So a session that runs the fetch loads that one line for the run, and never prints the key or writes it to a file, an issue or a pull request. The repo itself holds no secrets.
 
 Committed data is a separate question from secrets. A vintage is committed on purpose, because the premise says a result nobody can re-read is a result nobody can check. What does not get committed is anything that identifies a machine or a person.
 
