@@ -55,9 +55,10 @@ Each script prints two figures with ``%f``, and :class:`Run` carries both.
    zero-fill in place.
 
 Neither mirror holds ``lag.m``. Whether it pads its first row with 0 or with
-NaN moves nothing. A NaN pad makes the first row's return NaN, and a zero pad
-holds zero gross dollars there, so the return is 0/0, which is NaN too, and
-either NaN is set to 0. ``tests/test_price_spread.py`` runs both. :func:`chan.matlab_helpers.lag1`
+NaN moves nothing. A NaN pad makes the first row's return NaN. A zero pad
+divides by a price of 0, so the first row's profit is NaN over zero gross
+dollars, which is NaN too, and either NaN is set to 0.
+``tests/test_price_spread.py`` runs both. :func:`chan.matlab_helpers.lag1`
 pads with NaN.
 
 **The ratio's printed figures match swapped legs.** The price spread and
@@ -89,10 +90,10 @@ the run.
 
 **Example 3.2 builds on this.** Its ``bollinger.m`` computes the same hedge
 ratio, the same 20-row drop and the same price spread, and differs only in
-how it sets ``numUnits``. So :func:`price_spread`, :func:`zscore` and
-:func:`daily_returns` are public, for
-[issue 341](https://github.com/l3a0/quantitative-trading/issues/341) to call
-rather than write a second copy.
+how it sets ``numUnits``. So :mod:`chan.bollinger` calls :func:`read_sources`,
+:func:`price_spread`, :func:`zscore`, :func:`daily_returns` and :class:`Run`
+from here rather than write a second copy, under
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 
 **What changed on the way over.** Four things, and none moves a figure.
 
@@ -167,7 +168,7 @@ class Signal:
 
 @dataclass(frozen=True)
 class Run:
-    """One signal traded by the linear rule, and the two figures its script prints."""
+    """One signal traded by a rule, and the two figures its script prints."""
 
     signal: Signal
     units: np.ndarray
