@@ -236,6 +236,33 @@ class TestRow5TheReturnsAreChans:
         assert found.first_over == result.test_days[100]
         assert found.largest == pytest.approx(1e-6, rel=1e-6)
 
+    def test_a_row_that_is_not_a_number_does_not_agree(self, result, saved) -> None:
+        """``nan > 1e-9`` is False, so a plain comparison would call this row a match."""
+        missing = saved.copy()
+        missing[7] = np.nan
+        found = agreement(result.test, missing, result.test_days)
+        assert not found.holds
+        assert found.rows_over == 1
+        assert found.first_over == result.test_days[7]
+
+    def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
+        """So row 5 says the inputs agree with Chan's up to a scale per leg, and no more."""
+        again = aud_cad(frame * [2.0, 0.37])
+        assert agreement(again.test, saved, again.test_days).holds
+
+    def test_one_digit_on_a_test_window_close_breaks_the_match(self, frame, saved) -> None:
+        """The files quote six decimals, so 1e-6 is one unit in the last digit.
+
+        A close in the test window enters that day's or the next day's simple
+        return, and the match fails. A close in the first training row reaches
+        the returns only through the hedge, and the same change passes.
+        """
+        for row, breaks in ((SCRIPT_TRAINING_DAYS + 150, True), (0, False)):
+            moved = frame.copy()
+            moved.iloc[row, 0] += 1e-6
+            again = aud_cad(moved)
+            assert (not agreement(again.test, saved, again.test_days).holds) is breaks
+
     def test_series_of_different_lengths_are_refused(self, result, saved) -> None:
         with pytest.raises(ValueError, match="cannot be compared row by row"):
             agreement(result.test[1:], saved, result.test_days)
@@ -244,12 +271,12 @@ class TestRow5TheReturnsAreChans:
 class TestBesideTheReplication:
     """No book prints these, so none carries a verdict."""
 
-    def test_the_trace_test_backs_the_hedge_in_26_of_612_windows(self, result) -> None:
-        """Nineteen of them find two relations, which says each series is stationary alone."""
+    def test_the_trace_test_finds_a_relation_in_26_of_612_windows(self, result) -> None:
+        """Nineteen find two, which the test reads as each series stationary on its own."""
         assert len(result.trace_relations) == 612
         assert np.bincount(result.trace_relations, minlength=3).tolist() == [586, 7, 19]
 
-    def test_the_eigen_test_backs_it_in_11(self, result) -> None:
+    def test_the_eigen_test_finds_one_in_11(self, result) -> None:
         assert np.bincount(result.eigen_relations, minlength=3).tolist() == [601, 11, 0]
 
     def test_the_relation_counts_are_the_windows_own_tests(self, frame, result) -> None:
@@ -314,7 +341,12 @@ class TestTheRule:
             assert (not np.array_equal(other.hedge[t], found.hedge[t])) is reaches
 
     def test_ending_both_windows_a_day_earlier_breaks_row_5(self, frame, result, saved):
-        """The Python port's Example 5.1 does this, so its printout is not the MATLAB's."""
+        """Issue 301 records that the Python port's Example 5.1 does this.
+
+        The shifted run's Sharpe ratio is 1.359568, not the 1.362926 issue 301
+        records the port printing, so the port differs in more than this and
+        nothing here reproduces its printout.
+        """
         prices = frame.to_numpy()
         hedge = np.full(prices.shape, np.nan)
         units = np.full(len(prices), np.nan)
@@ -328,6 +360,7 @@ class TestTheRule:
         assert not found.holds
         assert found.rows_over == 611
         assert found.first_over == result.test_days[1]
+        assert figures(shifted).sharpe == pytest.approx(1.359568, abs=1e-6)
 
     def test_two_series_on_different_dates_are_refused_by_name(self) -> None:
         days = pd.bdate_range("2020-01-01", periods=5)
@@ -335,6 +368,16 @@ class TestTheRule:
         cad = pd.Series([1.3, 1.31, 1.32, 1.31], index=days.delete(2))
         with pytest.raises(ValueError, match="same dates.*1 are AUD.USD's alone and 0"):
             cross_rates(aud, cad)
+
+    def test_the_units_are_minus_the_z_score_with_the_n_minus_1_deviation(self) -> None:
+        """The deviation's divisor cancels out of every return, so only this sees it."""
+        prices = _synthetic(rows=30).to_numpy()
+        hedge = np.array([1.0, -0.8])
+        value = prices[11:21] @ hedge
+        expected = -(value[-1] - value.mean()) / value.std(ddof=1)
+        population = -(value[-1] - value.mean()) / value.std(ddof=0)
+        assert units_on(prices, hedge, 20, 10) == pytest.approx(expected, rel=1e-12)
+        assert units_on(prices, hedge, 20, 10) != pytest.approx(population, rel=1e-6)
 
     def test_a_missing_price_makes_its_day_zero_as_matlabs_sum_does(self) -> None:
         """``np.nansum`` would skip the missing leg and earn on the other."""

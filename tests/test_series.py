@@ -670,16 +670,22 @@ class TestTheParseReturnsTheNumberTheTextSpells:
         Chan's Python port needs a branch, keyed on its pin's shape. Its minute
         file is read through ``minute_close``, since its second column is the
         time of the bar, and the closes compared are the bars at 16:59. Its
-        daily files read like any other. Its rate and return files are left
-        out, because nothing under ``src/`` reads either yet. Example 5.2 and
-        Chapter 8 are their readers, and whichever lands first adds the case.
+        daily files read like any other. Its return file holds one value per
+        row and no dates, and ``load_returns`` reads it. Its rate files are
+        left out, because nothing under ``src/`` reads them yet. Example 5.2 is
+        their reader, and adds the case when it lands.
         """
         misread = {}
         for entry in read_manifest():
             payload = (DATA_DIR / entry.path).read_bytes()
             lines = payload.decode("utf-8").splitlines()
             shape = PYTHON_PORT[entry.path][5] if entry.path in PYTHON_PORT else None
-            if shape in ("rate", "return"):
+            if shape == "rate":
+                continue
+            if shape == "return":
+                expected = [float(line) for line in lines[1:]]
+                if list(load_returns(entry.symbol)[1]) != expected:
+                    misread[(entry.path, 0)] = "the returns differ from the text"
                 continue
             if shape == "minute":
                 rows = [line.split(",") for line in lines[1:]]

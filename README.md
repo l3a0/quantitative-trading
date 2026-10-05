@@ -311,9 +311,10 @@ where they were first built. The other twenty-two were built here.
     a Sharpe ratio of 1.610890, his 11 percent and 1.6, and a Kelly leverage of
     23.845328. They reproduce because all 612 daily returns match the ones the
     script saved, to within the 1e-9 declared before any return was computed,
-    which also shows the port's daily files are the inputs his MATLAB read. The
-    trace test finds a relation in 26 of the 612 training windows, so on most
-    days the rule traded a hedge the test did not back. Every figure is
+    which also shows the port's daily files agree with the inputs his MATLAB
+    read, up to a constant scale on each leg. The trace test finds a relation
+    in 26 of the 612 training windows, so on most days the rule traded a hedge
+    the test did not back. Every figure is
     exploratory, and the 250-day training length was chosen in hindsight.
 
 One more result runs here, and it is not a replication. The same passage names
@@ -512,8 +513,9 @@ Example 5.1. It pins the three printed figures at the precision that is real,
 as the script printed them and as the book rounded them, and holds the 612
 returns against Chan's saved ones row by row. It also holds that negating or
 scaling one day's hedge moves no return, that two series on different dates
-are refused, and that ending either window a day earlier, as the Python port
-does, breaks the match.
+are refused, that scaling either leg leaves the match and one digit on a close
+in the test window breaks it, and that ending both windows a day earlier, as
+the Python port does, breaks it too.
 
 All twenty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there

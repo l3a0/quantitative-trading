@@ -61,7 +61,9 @@ neither mirror.
 the question here, because Chan's saved returns are the one output of the
 MATLAB that can be compared. The criterion, fixed on issue 345 before any
 return was computed, is that the 612 returns agree with his to within 1e-9 on
-every row.
+every row. A match says the inputs agree up to a constant scale on each leg,
+because a simple return ignores the scale and the eigenvector rescales to
+cancel it.
 
 **The hedge's sign and scale move no return.** Multiplying day ``t``'s vector
 by any ``c ≠ 0`` multiplies that day's portfolio value by ``c``, so its z-score
@@ -300,6 +302,8 @@ def agreement(
 ) -> Agreement:
     """How far apart the two series are, and where they first part by more than 1e-9.
 
+    A row that is not a number on either side counts as over the criterion.
+
     ``days`` is the calendar the computed returns fall on. Chan's file carries
     none, so it takes this one.
     """
@@ -309,7 +313,9 @@ def agreement(
             f"on {len(days)} days, so they cannot be compared row by row"
         )
     difference = np.abs(computed - saved)
-    over = np.flatnonzero(difference > AGREEMENT)
+    # A row that is not a number on either side has not agreed, and a plain
+    # ``>`` would read it as agreeing.
+    over = np.flatnonzero(~(difference <= AGREEMENT))
     return Agreement(
         largest=float(difference.max()),
         rows_over=len(over),

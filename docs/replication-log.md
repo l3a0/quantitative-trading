@@ -4930,9 +4930,7 @@ Seven rows, all derivable from
 Chan trades the Australian dollar against the Canadian dollar, two commodity
 currencies he expects to move together. Both are quoted against the US dollar,
 as AUD.USD and CAD.USD, so a point move in either is worth the same in
-dollars. That is why USD.CAD is inverted before the test, and why the
-Johansen test's eigenvector can be read as a split of capital between the two.
-Each day the script runs the test on the 250 days before it, takes the first
+dollars. That is why USD.CAD is inverted before the test. Each day the script runs the test on the 250 days before it, takes the first
 eigenvector as that day's hedge, and holds minus the portfolio's 20-day
 z-score in units of it. The return is the day's profit over the capital held
 the day before.
@@ -4940,8 +4938,9 @@ the day before.
 **Every figure reproduces, because the run reproduces Chan's own saved returns
 on every one of the 612 days.** Chan's script saved the
 returns it traded, and that file is committed. The criterion for comparing
-them was written on the issue before any return was computed, so the match
-says the committed daily files are the inputs the MATLAB read, which
+them was written on the issue before any return was computed. So the match
+says the committed daily files agree with the inputs the MATLAB read, up to a
+constant scale on each leg, which
 [issue 301](https://github.com/l3a0/quantitative-trading/issues/301) could not
 check because the `.mat` files are in neither mirror.
 
@@ -4998,7 +4997,7 @@ figure.
 | 3 | The same | 1.6108902337 | `TestRows2To4TheFigures::test_row_3_the_sharpe_ratio` |
 | 4 | The same | 23.8453277641 | `TestRows2To4TheFigures::test_row_4_the_kelly_leverage` |
 | 5 | Each return against Chan's on the same row, criterion 1e-9 | no row over it | `TestRow5TheReturnsAreChans::test_every_row_agrees_within_the_declared_criterion` |
-| 6 | `Johansen.relations` on each of the 612 windows | the trace test in 26, two relations in 19 of them, and the eigen test in 11 | `TestBesideTheReplication::test_the_trace_test_backs_the_hedge_in_26_of_612_windows` and `::test_the_eigen_test_backs_it_in_11` |
+| 6 | `Johansen.relations` on each of the 612 windows | the trace test in 26, two relations in 19 of them, and the eigen test in 11 | `TestBesideTheReplication::test_the_trace_test_finds_a_relation_in_26_of_612_windows` and `::test_the_eigen_test_finds_one_in_11` |
 | 7 | The eigenvector of 2012-04-26 over its first element, and that day's positions over the first | 1 unit of AUD.USD to −0.7796733233 of CAD.USD, and in dollars 1 to −0.7622442800 | `TestBesideTheReplication::test_the_last_days_hedge_holds_0_7797_of_cad_per_aud_short` |
 
 Row 5's largest difference is printed by the run rather than pinned, because
@@ -5021,19 +5020,30 @@ entry it was 2.0e-15.
 
 Three things.
 
-1. **The committed currency files are the ones Chan's MATLAB read.** The
-   script loaded two minute `.mat` files that neither mirror carries, and this
-   run read the Python port's daily copies. Every one of the 612 returns lands
-   on the one Chan saved, inside the 1e-9 declared before the run, and the
-   largest difference was 2.0e-15 where the entry was built. A different close on any day would have moved the returns
-   it reaches by far more, so the match answers the question
+1. **The committed currency files agree with the ones Chan's MATLAB read,
+   up to a constant scale on each leg.** The script loaded two minute `.mat`
+   files that neither mirror carries, and this run read the Python port's daily
+   copies. Every one of the 612 returns lands on the one Chan saved, inside the
+   1e-9 declared before the run, and the largest difference was 2.0e-15 where
+   the entry was built. Two things bound what that shows, and
+   `TestRow5TheReturnsAreChans` holds both.
+   1. Scaling either leg by a constant moves no return, because a simple
+      return ignores the scale and the eigenvector rescales to cancel it.
+   2. A change of 1e-6, one unit in the files' last decimal, on a close in
+      the test window breaks the match, because the close enters a simple
+      return directly. The same change on the first training row does not,
+      because that close reaches the returns only through the hedge.
+
+   So the match answers the question
    [issue 301](https://github.com/l3a0/quantitative-trading/issues/301) left
    open for these two files. It says nothing about the port's USD.CAD minute
    file or its AUD.CAD file, which this script does not read.
 2. **The hedge was rarely one the Johansen test backed.** The trace test finds
    a relation in 26 of the 612 training windows and the eigen test in 11. In
-   19 of those 26, the trace test finds two relations, which says each currency
-   is stationary on its own rather than that the two share one. So on nearly
+   19 of those 26, the trace test finds two relations, which the test reads as
+   each currency being stationary on its own rather than the two sharing one.
+   That is a 95 percent rejection on overlapping windows of two rates close to
+   random walks, so it is weak evidence either way. So on nearly
    every day the strategy traded an eigenvector of a pair the test did not call
    cointegrated. Chan's rule never asks, and the figures are the rule's.
 3. **The Python port's version of this example is a different strategy.** It
@@ -5041,9 +5051,11 @@ Three things.
    [issue 301](https://github.com/l3a0/quantitative-trading/issues/301)
    recorded that it prints a Sharpe ratio of 1.362926, which no test here
    pins. Ending both windows a day earlier here leaves 611 of the 612 returns
-   over the criterion, every one but the first, which is 0 either way.
+   over the criterion, every one but the first, which is 0 either way. Its
+   Sharpe ratio is 1.359568, not the port's 1.362926, so the port differs in
+   more than the windows and nothing here reproduces its printout.
    `TestTheRule::test_ending_both_windows_a_day_earlier_breaks_row_5` holds
-   that. So the port's printout is no evidence about the data, and the MATLAB
+   both. So the port's printout is no evidence about the data, and the MATLAB
    is the specification.
 
 ### What this entry cannot say

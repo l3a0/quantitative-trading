@@ -861,18 +861,20 @@ the measurements below.
 8. **Three things cannot be checked here.**
    1. Whether the four currency files equal the `.mat` files Chan's MATLAB
       loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
-      Neither mirror holds any of them, so all four have indirect evidence
-      instead, and two of them have it strongly. Example 5.1 run as the MATLAB
+      Neither mirror holds any of them, so three have indirect evidence
+      instead and the AUD.CAD file has none. Example 5.1 run as the MATLAB
       runs it, on the AUD.USD and USD.CAD daily files, returns all 612 of the
       returns `AUDCAD_unequal_ret.mat` saved, within the 1e-9 declared before
-      any was computed. That is Entry 24 of the
+      any was computed. So those two files agree with the MATLAB's inputs up to
+      a constant scale on each leg, which no return can see. That is Entry 24
+      of the
       [replication log](../docs/replication-log.md), which
       [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py)
       pins. The minute file's evidence is four statistics computed from its
       16:59 closes, which land every digit `stationarityTests.m` prints for
       Examples 2.1, 2.3 and 2.4, as Entry 22 records and
       [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-      pins. Nothing yet runs on the AUD.CAD file.
+      pins.
    2. Who supplied the bars, and whether a bar's label is its first minute or
       its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
       and nothing in the files says more.
@@ -1422,9 +1424,10 @@ these files are committed as the zip shipped them, so no header of this
 repo's can be added to them. Every check that reads their dates knows each
 file's layout from the pin in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
-`load_close` reads the daily files like any other, and refuses the minute
+`chan.series.load_port_close` reads the daily files, and refuses the minute
 file, whose second column is a time. `chan.series.load_minute_close` reads
-that one.
+that one, and `chan.series.load_returns` reads the return file, which holds no
+dates.
 
 ## Verifying the bytes
 
