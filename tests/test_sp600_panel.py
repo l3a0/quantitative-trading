@@ -302,6 +302,12 @@ class TestTheCommand:
         )
         assert hashlib.sha256(out.encode()).hexdigest() == REPORT_SHA256
 
+    def test_a_year_end_with_no_threat_is_marked_exact(self, monkeypatch) -> None:
+        monkeypatch.setattr(sp600_panel, "threatening", lambda rows, year: [])
+        lines = sp600_panel.report_lines(ROWS)
+        assert lines[0].endswith("  threats 0  exact")
+        assert not any(line.endswith("threatens a tenth") for line in lines)
+
     def test_fetch_hands_on_every_ticker_and_redacts_the_key(self, monkeypatch, capsys) -> None:
         handed = {}
 
