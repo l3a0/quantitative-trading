@@ -308,8 +308,9 @@ where they were first built. The other twenty-two were built here.
 24. SPY against the S&P 500 stocks that pass a cointegration screen, Example
     4.2 of *Algorithmic Trading*, on Chan's own 2012 S&P 500 file and his ETF
     file's SPY. `indexArb.m` tests each of 480 stocks against SPY over 2007
-    and keeps the 98 that pass a 90 percent bar, where about 48 would pass by
-    chance. It holds them with equal capital against SPY on the basket test's
+    and keeps the 98 that pass a 90 percent bar. That bar passes about 28
+    percent of random walks unrelated to SPY, about 135 of 480, so the count
+    alone does not show that any stock cointegrates with SPY. It holds them with equal capital against SPY on the basket test's
     first eigenvector and trades from 2008 with a lookback of 5. Every figure
     the script prints reproduces to its last digit: the 98, both Johansen
     statistics for the basket, the eigenvectors with Chan's own signs, and an
@@ -1124,8 +1125,8 @@ uv run python -m chan.index_arbitrage
 It prints the two vintages and both windows, each figure the script prints
 beside the computed one and a verdict, how many relations each Johansen
 statistic finds for the basket, and the rows beside the replication: the 480
-stocks tested against the 48 expected to pass by chance, the 17 skipped, a
-plain ADF test of each 2007 log series, and the first day the strategy earns.
+stocks tested, the 17 skipped, a plain ADF test of each 2007 log series, and
+the first day the strategy earns.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

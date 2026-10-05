@@ -664,9 +664,11 @@ Trading*, that his Example 7.2 reads.
 that example.
 [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) and
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) reproduce
-Examples 6.2 and 4.1 on the price file alone, and
+Examples 6.2 and 4.1 on the price file alone,
 [issue 296](https://github.com/l3a0/quantitative-trading/issues/296) reads its
-opens and closes for Examples 4.3 and 4.4.
+opens and closes for Examples 4.3 and 4.4, and
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343) reads its
+closes against the ETF file's SPY for Example 4.2.
 `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held it on
 2012-04-24, with the same five fields per stock as the first two
 directories. `earnannfile/` holds his earnings-announcement flags for the same

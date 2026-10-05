@@ -383,9 +383,9 @@ pins.
 [tests/test_johansen.py](../tests/test_johansen.py) reads no vintage, so a
 failure there points at statsmodels rather than at the data, the split
 `tests/test_ithildincore_contract.py` gives the shared package. It holds the
-answer more loosely than the ETF pins do, a recovered vector to two decimals
-rather than statistics to six, so a small change in statsmodels would turn
-the ETF pins red first. `uv.lock` is what pins the version.
+answer more loosely than the pins on Chan's files do, a recovered vector to
+two decimals rather than statistics to six, so a small change in statsmodels
+would turn those pins red first. `uv.lock` is what pins the version.
 
 ### The replications that read nothing
 

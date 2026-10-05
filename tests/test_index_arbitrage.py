@@ -72,6 +72,7 @@ from chan.index_arbitrage import (
     screen,
     windows,
 )
+from chan.johansen import johansen
 from chan.khandani_lo_book_two import matches
 from chan.matlab_helpers import moving_avg, moving_std, smartsum
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
@@ -191,10 +192,9 @@ class TestRow2TheScreen:
     def test_row_2_98_stocks_pass(self, result) -> None:
         assert len(result.screen.passed) == SCRIPT_PASSED == 98, SPEC
 
-    def test_480_are_tested_and_about_48_would_pass_by_chance(self, result) -> None:
-        """A per-test 90 percent bar, so 0.10 × 480 pass when nothing cointegrates."""
+    def test_480_are_tested(self, result) -> None:
+        """Each at a per-test 90 percent bar, which ``TestBesideTheReplication`` sizes."""
         assert len(result.screen.tested) == 480
-        assert 0.10 * len(result.screen.tested) == pytest.approx(48)
         assert set(result.screen.passed) <= set(result.screen.tested)
 
     def test_the_17_skipped_are_the_11_with_no_2007_close_and_6_listed_during_it(
@@ -203,6 +203,20 @@ class TestRow2TheScreen:
         assert result.screen.skipped == SKIPPED
         assert sum(rows == 0 for rows in SKIPPED.values()) == 11
         assert len(result.screen.tested) + len(SKIPPED) == 497
+
+    def test_the_six_partial_stocks_list_during_2007_and_never_miss_a_close_after(
+        self, sources, result
+    ) -> None:
+        """Each holds one unbroken run of closes from its first 2007 day onward."""
+        stocks = sources[2]
+        partial = sorted(s for s, rows in SKIPPED.items() if rows)
+        assert partial == ["COV", "DFS", "PCS", "TDC", "TEL", "TWC"]
+        for symbol in partial:
+            closes = stocks[symbol]
+            first = closes.first_valid_index()
+            assert result.train_days[0] < first <= result.train_days[-1], symbol
+            assert closes.loc[first:].notna().all(), symbol
+            assert closes.loc[first : result.train_days[-1]].count() == SKIPPED[symbol]
 
     def test_the_rule_admits_exactly_the_stocks_priced_on_all_251_days(self, result) -> None:
         assert max(result.screen.skipped.values()) == 246 < FEWEST_ROWS
@@ -417,11 +431,51 @@ class TestBesideTheReplication:
         """A plain ADF with a constant and one lag, against MacKinnon's −2.57.
 
         Row 6's two relations between two series say each is stationary around
-        a constant over 2007. These two say neither is, on a test with little
+        a constant over 2007. Neither rejects a unit root here, which is weak
+        evidence against that reading rather than proof, on a test with little
         power over 251 days.
         """
         assert result.adf == pytest.approx({"basket": -2.461086, INDEX: -2.381322}, abs=1e-6)
         assert all(t > -2.57 for t in result.adf.values())
+
+    def test_the_screen_passes_561_of_2000_walks_unrelated_to_spy(self, sources, result):
+        """The 90 percent bar passes far more than 10 percent of stocks unrelated to SPY.
+
+        2,000 Gaussian random walks with unit steps and no drift, seeded with
+        343, each screened against SPY's 2007 closes exactly as the stocks are.
+        561 pass, 28 percent, which is about 135 of 480 stocks. The 98 the
+        screen passes is fewer than that, so 48, the nominal 10 percent of 480,
+        is not what chance alone gives.
+        """
+        spy = sources[3].loc[result.train_days]
+        rng = np.random.default_rng(343)
+        walks = pd.DataFrame(
+            100 + np.cumsum(rng.normal(size=(len(spy), 2000)), axis=0),
+            index=spy.index,
+            columns=[f"W{i}" for i in range(2000)],
+        )
+        found = screen(walks, spy)
+        assert len(found.tested) == 2000
+        assert len(found.passed) == 561
+        assert 480 * len(found.passed) / 2000 == pytest.approx(134.64)
+        assert len(result.screen.passed) < 480 * len(found.passed) / 2000
+
+    def test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks(self):
+        """Two independent walks of 251 days, 2,000 pairs seeded with 345.
+
+        ``johansen(·, 0, 1)``'s trace test rejects r ≤ 0 on 410 pairs at its 90
+        percent value and on 242 at its 95, about 20 and 12 percent where 10
+        and 5 are nominal. So a pass at either bar, the screen's or row 5's, is
+        weaker evidence than its label.
+        """
+        rng = np.random.default_rng(345)
+        at = {90: 0, 95: 0}
+        for _ in range(2000):
+            pair = 100 + np.cumsum(rng.normal(size=(251, 2)), axis=0)
+            tested = johansen(pair, 0, 1)
+            for level in at:
+                at[level] += tested.relations("trace", level) >= 1
+        assert at == {90: 410, 95: 242}
 
 
 class TestTheScaleBreakDecision:
@@ -451,6 +505,7 @@ class TestTheScaleBreakDecision:
             for day in scale_breaks(closes.dropna())
         ]
         assert len(flagged) == 30
+        assert all(result.train_days[0] <= day <= result.test_days[-1] for day in flagged)
         assert sum(day <= result.train_days[-1] for day in flagged) == 1
         assert sum(result.test_days[0] <= day <= result.test_days[-1] for day in flagged) == 29
 
@@ -522,6 +577,7 @@ class TestTheGuardAndTheReads:
         assert all(line.endswith("reproduced") for line in figures)
         assert "did not reproduce" not in out
         assert "basket eigen  0 at 90%, 0 at 95%, 0 at 99%" in out
-        assert "480 stocks tested at a per-test 90% bar, about 48 expected" in out
+        assert "480 stocks tested at a per-test 90% bar, with no false-discovery" in out
+        assert "pass it about 28% of the time" in out
         assert "first return on 2008-01-09" in out
         assert "Exploratory and survivor-only." in out

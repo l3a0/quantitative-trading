@@ -1,4 +1,4 @@
-"""SPY against the S&P 500 stocks that cointegrate with it, *Algorithmic Trading*'s Example 4.2.
+"""SPY against the S&P 500 stocks that pass a Johansen screen, *Algorithmic Trading*'s Example 4.2.
 
 Chan tests each stock in his 2012 S&P 500 file against SPY over 2007 and keeps
 the ones that pass. He holds those stocks with equal capital, checks that the
@@ -49,30 +49,38 @@ Example 2.8's :func:`chan.etf_cointegration.linear_mean_reversion` is not
 reused. It holds units times price and earns simple returns. This script holds
 dollars and earns log returns, so the formula differs.
 
-**What changed on the way over.** Four things, and none moves a figure.
+**What changed on the way over.** Five things, and none moves a figure.
 
 1. Both files are read as committed vintages through
    :func:`chan.series.load_panel` rather than from the ``.mat``.
-2. The two plot lines, 79 and 80, are not carried. The run prints and draws
+2. The stock file is named ``inputDataOHLCDaily_stocks_20120424.mat``, where
+   line 4 loads ``inputDataOHLCDaily_20120424`` with no ``_stocks``.
+   ``data/README.md`` records that the two names are one blob with one
+   sha256.
+3. The two plot lines, 79 and 80, are not carried. The run prints and draws
    nothing.
-3. :func:`chan.matlab_helpers.backshift` stands in for LeSage's ``lag``,
+4. :func:`chan.matlab_helpers.backshift` stands in for LeSage's ``lag``,
    which pads its first row with zero where ``backshift`` pads with NaN.
    Neither mirror holds a ``lag.m``, and the script already calls LeSage's
    ``johansen``, so his toolbox's ``lag`` is the one that ran. Either pad
-   leaves the first five test rows not a number, because the moving average
-   needs five rows, so each becomes 0 under line 77. The tests hold that.
-4. The run calls the scale-break guard on SPY, which the script has no
+   leaves the first five test rows not a number. The first row is 0 over a
+   gross of 0 under a zero pad and the pad itself under ``backshift``. The
+   next four read positions that are NaN, because the moving average needs
+   five rows. Each becomes 0 under line 77, and the tests hold that.
+5. The run calls the scale-break guard on SPY, which the script has no
    counterpart for, and not on the stocks, for the reason below.
 
-**The screen is a search, and the count is reported as one.** Line 26 tests
-480 stocks against one bar each, at 90 percent. If no stock cointegrated with
-SPY, about 48 would pass by chance, 0.10 × 480, and more or fewer than a
-binomial count gives because every test shares SPY as a leg. So the count is
-stocks passing a per-test 90 percent bar among 480 tested, never stocks that
-cointegrate with SPY. The run varies nothing, since ``indexArb.m`` fixed the
-panel, the window, the bar and the test before any number here was seen, so
-no false-discovery control is computed. ``coint_johansen`` returns no p-values
-for one to read, and simulating the null would be a new experiment.
+**The screen is a search, and the count is reported as one.** Lines 26 to 28
+test 480 stocks against one bar each, at 90 percent. The bar's nominal 10
+percent would put about 48 passes down to chance, but the test does not hold
+its nominal rate. Random walks unrelated to SPY pass it 28 percent of the
+time against SPY's 2007 closes, which is about 135 of 480 and more than the 98
+that pass. ``tests/test_index_arbitrage.py`` measures that on seeded walks. So
+the count is stocks passing a per-test 90 percent bar among 480 tested, never
+stocks that cointegrate with SPY. The run varies nothing, since ``indexArb.m``
+fixed the panel, the window, the bar and the test before any number here was
+seen, so no false-discovery control is computed. ``coint_johansen`` returns no
+p-values for one to read.
 
 **SPY is guarded and the stocks are not.** SPY carries no flagged day over the
 two files' common days. The stocks carry all 30 of the panel's flagged days
@@ -349,10 +357,9 @@ def report(
     print(f"    basket eigen  {_relations(basket, 'eigen')}")
     print()
     print("Beside the replication. No book prints these, so none carries a verdict.")
-    expected = (100 - SCREEN_LEVEL) / 100 * len(found.tested)
     print(
-        f"  {len(found.tested)} stocks tested at a per-test {SCREEN_LEVEL}% bar, about "
-        f"{expected:.0f} expected to pass by chance, with no false-discovery control"
+        f"  {len(found.tested)} stocks tested at a per-test {SCREEN_LEVEL}% bar, with no "
+        "false-discovery control. Walks unrelated to SPY pass it about 28% of the time."
     )
     print(
         f"  {len(found.skipped)} skipped: "

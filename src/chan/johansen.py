@@ -52,8 +52,9 @@ multiplies the whole eigenvector matrix by the sign of its top-left element
 (statsmodels issue 5517), so that element always comes back positive. MATLAB's
 ``eig`` makes no such promise, and on Chan's triplet it gave −1.0460 there, so
 every vector of his printout comes back here with its sign flipped. On
-``indexArb.m``'s basket it gave 1.0939, already positive, so those come back
-with his signs. A stationary
+``indexArb.m``'s basket it gave 1.0939, already positive, so nothing is
+multiplied and both of its vectors come back with his signs, which the tests
+pin. A stationary
 combination is still stationary when negated, and the half-life and the
 strategy Chan runs on it do not move, which the tests hold.
 """

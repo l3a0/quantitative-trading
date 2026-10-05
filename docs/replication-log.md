@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22 and 23 carry their own, three, eleven, twelve, five, six, one, three, eight,
-six, two, eight, seven, twelve, six, two, five, three, three, three, seven and
-six,
+22, 23 and 24 carry their own, three, eleven, twelve, five, six, one, three, eight,
+six, two, eight, seven, twelve, six, two, five, three, three, three, seven, six
+and seven,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -32,7 +32,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22 and 23 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23 and 24 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -242,9 +242,11 @@ both.
    Entry 20, [tests/test_price_spread.py](../tests/test_price_spread.py)
    holds Entry 21,
    [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-   holds Entry 22, and
+   holds Entry 22,
    [tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) holds
-   Entry 23.
+   Entry 23, and
+   [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py) holds
+   Entry 24.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -357,7 +359,7 @@ rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
-Entry 23's rows 15 to 20, and Entry 24's rows 10 to 14.
+Entry 23's rows 15 to 20, and Entry 24's rows 10 to 16.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -461,13 +463,15 @@ the bars in 2012, so the criterion reads Chan's own table rather than choosing
 a line, and no figure computed here could move a verdict.
 
 Entry 24's rows 5 and 6 take it as well, each a claim about the basket the
-example builds against SPY. Their criteria, each test's statistic past its 95
-percent value and each test's count of relations at 95 percent, read
-separately for the trace and the eigen test because location 2035 names
-neither, were written on
-[issue 343](https://github.com/l3a0/quantitative-trading/issues/343) before
-any Johansen statistic was computed here. The script's printout already held
-the statistics, so like Entry 23's, the criteria read Chan's own table.
+example builds against SPY, and they are the exception Entry 23's rows are.
+Their criteria, each test's statistic past its 95 percent value and each
+test's count of relations at 95 percent, were written on
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343) after
+the issue had read the statistics from the script's printout, though before
+any was computed here. Location 2035 names neither test, so the criteria read
+each separately, and each row carries one of the three verdicts per test
+rather than a fourth value. The criteria read Chan's own table, so no figure
+computed here could move a verdict.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -4922,7 +4926,7 @@ script `indexArb.m` the example names. Shipped under
 example number and location in this entry is that book's, in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
-Fourteen rows, all derivable from
+Sixteen rows, all derivable from
 [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py).
 
 Chan trades an index against the stocks inside it. He tests each stock in his
@@ -4988,11 +4992,13 @@ figures.
 | 7 | The basket test's eigenvectors | 1.0939 and −0.2799 over −105.5600 and 56.0933 | script lines 61 and 62 |
 | 8 | The strategy's APR | 0.044930, "4.5 percent" | script line 83, location 2035 |
 | 9 | The strategy's Sharpe ratio | 1.319397, "1.3" | the same |
-| 10 | The stocks tested and skipped, against those expected to pass by chance | none | n/a |
+| 10 | The stocks tested and skipped | none | n/a |
 | 11 | A plain ADF test of each 2007 log series | none | n/a |
 | 12 | The first day the strategy earns, and how many days it does | none | n/a |
 | 13 | The returns under a zero-padded `lag` | none | n/a |
 | 14 | The basket's stocks carrying a flagged scale-break day | none | n/a |
+| 15 | The screen's pass rate on random walks unrelated to SPY | none | n/a |
+| 16 | The trace test's rejection rate on two unrelated random walks | none | n/a |
 
 The critical values are pinned beside rows 3 and 4, at the three decimals
 the script prints. They come from statsmodels, which carries LeSage's tables.
@@ -5010,11 +5016,13 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 7 | The same test as row 3 | 1.09386171 and −0.27989806 over −105.55999232 and 56.09328286 | `TestTheBasketTest::test_row_7_the_eigenvectors_are_chans_with_his_signs` |
 | 8 | A lookback of 5, the script's lines 70 to 77 | 0.0449298745 | `TestTheStrategy::test_row_8_the_apr` |
 | 9 | The same | 1.3193972970 | `TestTheStrategy::test_row_9_the_sharpe_ratio` |
-| 10 | The screen's rule on 497 stocks | 480 tested, 17 skipped, about 48 expected to pass at a per-test 90 percent bar | `TestRow2TheScreen::test_480_are_tested_and_about_48_would_pass_by_chance` and `::test_the_17_skipped_are_the_11_with_no_2007_close_and_6_listed_during_it` |
+| 10 | The screen's rule on 497 stocks | 480 tested at a per-test 90 percent bar, 17 skipped | `TestRow2TheScreen::test_480_are_tested` and `::test_the_17_skipped_are_the_11_with_no_2007_close_and_6_listed_during_it` |
 | 11 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | −2.461086 for the basket and −2.381322 for SPY | `TestBesideTheReplication::test_neither_2007_log_series_rejects_a_unit_root_even_at_90` |
 | 12 | The first non-zero day of row 8's returns | 2008-01-09, the sixth test day, and 1,071 days from there on | `TestTheStrategy::test_the_first_return_is_on_the_sixth_test_row_and_every_later_day_has_one` |
 | 13 | LeSage's `lag`, which pads with zero, in place of `backshift` | the same returns to 10⁻¹⁵, and the same days at zero | `TestTheStrategy::test_zero_padding_the_lag_as_lesage_does_gives_the_same_series` |
 | 14 | `scale_breaks` on each of the 98 | CVH, MOS, PNC and STT, every flag in the test window | `TestTheScaleBreakDecision::test_four_of_the_baskets_stocks_carry_a_flag_all_in_the_test` |
+| 15 | The screen on 2,000 Gaussian random walks with no drift, seeded with 343, against SPY's 2007 closes | 561 pass, 28 percent, about 135 of 480 | `TestBesideTheReplication::test_the_screen_passes_561_of_2000_walks_unrelated_to_spy` |
+| 16 | `johansen(·, 0, 1)` on 2,000 pairs of such walks, seeded with 345 | r ≤ 0 rejected on 410 at the 90 percent value and 242 at the 95, about 20 and 12 percent | `TestBesideTheReplication::test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks` |
 
 ### The verdicts
 
@@ -5029,11 +5037,13 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 7 | 0.0000 on each | reproduced | Exact at the four decimals printed, with Chan's signs. statsmodels makes the top-left element positive, and his 1.0939 already is. |
 | 8 | 0.000000, and 0.0 at the book's one decimal of a percent | reproduced | Exact. |
 | 9 | 0.000000, and 0.0 at the book's one decimal | reproduced | Exact. |
-| 10 | none | none, not a replication | Eleven stocks have no 2007 close and six listed during it. The 98 that pass are about twice the 48 a per-test 90 percent bar passes by chance. |
+| 10 | none | none, not a replication | Eleven stocks have no 2007 close and six listed during it. |
 | 11 | none | none, not a replication | Neither series rejects a unit root on its own, which is what row 6's reading turns on. |
 | 12 | none | none, not a replication | The moving deviation first fills on the fifth test day, so positions first earn on the sixth. |
 | 13 | none | none, not a replication | Under either pad the first five test days are not a number and become 0. |
 | 14 | none | none, not a replication | `indexArb.m` ran across these days as they stand, and the guard on SPY passes. |
+| 15 | none | none, not a replication | More walks pass than the 98 stocks do, so the screen's count does not by itself show cointegration. |
+| 16 | none | none, not a replication | The test with a constant rejects two to three times its nominal rate on walks with no drift, so a pass at either bar is weaker evidence than its label. |
 
 ### What the entry concludes
 
@@ -5044,15 +5054,17 @@ Four things.
    signs, so the entry has nothing to say about the data. Rows 5 and 6 are
    the exception, and the evidence against their eigen halves is the
    printout that sits beside the example.
-2. **The screen's 98 is a count of tests passed, not of stocks that
-   cointegrate.** The script tests 480 stocks at a per-test 90 percent bar.
-   If none cointegrated with SPY, about 48 would pass by chance, so 98 is
-   about twice the count noise alone gives. The tests all share SPY as a leg,
-   so they are not independent, and the spread around 48 is wider than a
-   binomial count gives. No false-discovery control is computed, because
-   `coint_johansen` returns no p-values to read and simulating the null would
-   be a new experiment. The count therefore says the screen found more than
-   chance would, and it cannot say which of the 98 cointegrate with SPY.
+2. **The screen's 98 is a count of tests passed, and no more than chance
+   gives.** The script tests 480 stocks at a per-test 90 percent bar, whose
+   nominal rate would put about 48 passes down to chance. The test does not
+   hold that rate. Row 16 shows the trace test with a constant rejecting about
+   20 percent of pairs of unrelated walks at its 90 percent value, and row 15
+   shows the screen passing 28 percent of such walks against SPY's own 2007
+   closes, about 135 of 480. The 98 stocks are fewer than that. Gaussian walks
+   with no drift are not stocks, so this does not say none of the 98
+   cointegrates with SPY. It says the count is no evidence that any does. No
+   false-discovery control is computed, because `coint_johansen` returns no
+   p-values to read.
 3. **The basket's two relations make the same claim Entry 23's pair did.**
    Location 2035 reads two relations as a second portfolio Chan chose not to
    use. A Johansen rank of 2 between two series says every combination is
@@ -5060,7 +5072,9 @@ Four things.
    constant. Row 11 sits in tension with that. Neither rejects a unit root on
    its own, at −2.46 and −2.38 against −2.57. A plain ADF over 251 days has
    little power, so this is weak evidence rather than proof. The eigen test,
-   which finds no relation at all, does not support the full rank either.
+   which finds no relation at all, does not support the full rank either, and
+   row 16 shows the trace test rejecting about 12 percent of unrelated pairs at
+   its 95 percent value, so row 5's trace pass is weaker than its label.
 4. **The 4.5 percent is in-sample on its lookback and survivor-only.** The
    stocks and weights are fitted on 2007 and traded on 2008 to 2012, which
    looks out-of-sample. Location 2035 says the lookback of 5 was chosen with
@@ -5071,10 +5085,12 @@ Four things.
 
 Four things.
 
-**Which stocks cointegrate with SPY.** Conclusion 2 is why. A screen with a
-false-discovery control, or one judged against a simulated null, is a search
-this repo would be running, so it needs a hypothesis written before its run
-and data it never loads, and its own issue.
+**Which stocks cointegrate with SPY.** Conclusion 2 is why. Rows 15 and 16
+size the test on walks with no drift, which is enough to retire 48 and not
+enough to judge a stock. A screen with a false-discovery control, or one judged
+against a null built from real prices, is a search this repo would be running,
+so it needs a hypothesis written before its run, data it never loads, and its
+own issue.
 
 **Whether the strategy works with another lookback or with retraining.**
 Location 2035 suggests retraining the basket periodically. Each variant is a
