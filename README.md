@@ -1463,8 +1463,8 @@ Three groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. "More than 13
    percent" and "has disappeared since then" are on p. 179, "has weakened or
-   even disappeared in recent years" on p. 174, and "worked wonderfully" on
-   p. 175, beside the tax-loss reason Chan gives for the January effect. The
+   even disappeared in recent years" and "worked wonderfully" on p. 175,
+   beside the tax-loss reason Chan gives for the January effect. The
    reader whose backtest of Example 7.6 failed is on p. 13. "The most
    recent five years instead of the entire data period", and Chan's
    statement that those years do even worse, are on p. 180.

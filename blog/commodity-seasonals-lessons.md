@@ -4,7 +4,7 @@
 
 ## Why test a trade its author calls alive
 
-Ernest Chan’s *Quantitative Trading* sets two families of seasonal trade side by side in one sentence. Much of the seasonality in equity markets, he writes, has weakened or even disappeared in recent years, while some seasonal trades in commodity futures are still profitable (Chan, 2021, location 4303). Later in the same chapter he says commodity seasonals are “alive and well”, perhaps, he suggests, because the demand behind them is a real economic need rather than speculation (location 4529).
+Ernest Chan’s *Quantitative Trading* sets two families of seasonal trade side by side in one sentence. Much of the seasonality in equity markets, he writes, has weakened or even disappeared in recent years, while some seasonal trades in commodity futures are still profitable (Chan, 2021, p. 175). Later in the same chapter he says commodity seasonals are “alive and well”, perhaps, he suggests, because the demand behind them is a real economic need rather than speculation (p. 183).
 
 [The companion post on the equity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/equity-seasonals-lessons.md) tested the first half of that sentence. This post tests the second half. A claim that a trade still pays is one a reader might act on, so it is worth checking what the record behind it shows.
 
@@ -22,8 +22,8 @@ A **futures contract** is an agreement to buy a fixed amount of a commodity at a
 
 Each trade appears twice in the book, once in the main text and once in a sidebar that gives the exact rule.
 
-1. **Gasoline** (sidebar, location 4536). Buy one May gasoline futures contract at the close of April 13, or the next trading day if April 13 is a holiday, and sell it at the close of April 25, or the previous trading day. Chan’s reason is the summer driving season.
-2. **Natural gas** (sidebar, location 4590). Buy one June natural gas contract at the close of February 25 and exit on April 15, which the run reads as the close, moving the dates the same way. Chan’s reason is power generators buying gas ahead of air-conditioning season (location 4585).
+1. **Gasoline** (sidebar, pp. 183 to 184). Buy one May gasoline futures contract at the close of April 13, or the next trading day if April 13 is a holiday, and sell it at the close of April 25, or the previous trading day. Chan’s reason is the summer driving season.
+2. **Natural gas** (sidebar, p. 185). Buy one June natural gas contract at the close of February 25 and exit on April 15, which the run reads as the close, moving the dates the same way. Chan’s reason is power generators buying gas ahead of air-conditioning season (p. 185).
 
 EIA publishes those settlements for free, for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next. So the run has to work out which numbered file holds the May or June contract on each trade date, which Lesson 4 comes back to. It reads five files from three series, all downloaded on 2 October 2026:
 
@@ -40,7 +40,7 @@ The rules that decide each result were written down before any trade was compute
 
 ## Lesson 1: a count of consecutive years needs its start year and its edition
 
-The main text says the natural gas trade “has been profitable for 13 consecutive years as of this writing” (location 4585). The sidebar says 14 (location 4590). Neither says which year its run ends in, and the revised edition was published in 2021, so the question is which years “this writing” covers.
+The main text says the natural gas trade “has been profitable for 13 consecutive years as of this writing” (p. 185). The sidebar says 14 (p. 185). Neither says which year its run ends in, and the revised edition was published in 2021, so the question is which years “this writing” covers.
 
 The files answer part of it. Every year from 1994, the first year the files hold a whole trade, to 2008 is profitable. 2009 is a loss. So the length of the run ending in any year depends on where the count starts:
 
@@ -59,7 +59,7 @@ Read as first-edition figures counted from 1995, both of Chan’s counts reprodu
 
 So this post says natural gas reproduces under that reading, and never that it reproduces outright.
 
-Gasoline shows the same split inside one trade. Its main text says 19 profitable years of the last 21 “as of 2015” (location 4529), which is revised-edition text. Its sidebar says Chan “would have realized a profit every year since 1995” (location 4536), which reads as first-edition text, covering 1995 to 2008. On that reading the files show no losing year from 1995 to 2008: 11 profitable years and 3 the file cannot read. Read that way, one book prints a 2015 count beside a 2008 claim, and a reader who takes both as one moment in time compares two different spans.
+Gasoline shows the same split inside one trade. Its main text says 19 profitable years of the last 21 “as of 2015” (p. 183), which is revised-edition text. Its sidebar says Chan “would have realized a profit every year since 1995” (p. 184), which reads as first-edition text, covering 1995 to 2008. On that reading the files show no losing year from 1995 to 2008: 11 profitable years and 3 the file cannot read. Read that way, one book prints a 2015 count beside a 2008 claim, and a reader who takes both as one moment in time compares two different spans.
 
 ## Lesson 2: a missing row is not a losing year
 
@@ -97,7 +97,7 @@ Chan chose both trades after looking at the history. The gasoline sidebar says h
 \end{array}
 ```
 
-For natural gas the trade went from winning every year to winning fewer than half. Chan says as much himself: the natural gas trade “didn’t hold up as well out-of-sample” (location 4632). He prints no figure for it. The files give 7 of 15 for 2009 to 2023, a span that runs past any years he could have seen.
+For natural gas the trade went from winning every year to winning fewer than half. Chan says as much himself: the natural gas trade “didn’t hold up as well out-of-sample” (p. 185). He prints no figure for it. The files give 7 of 15 for 2009 to 2023, a span that runs past any years he could have seen.
 
 For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sample, meaning years he did not use to choose the rule. The trade won 7 of those 9, and both of its losing years fall among them. From 2016 to 2023, after the revised edition’s count ends, it won 3 of 8. Natural gas won 4 of the same 8.
 
@@ -107,7 +107,7 @@ For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sam
 
 None of this is a verdict on whether either trade is alive. Eight years with no costs charged can show a change and cannot measure it, and nobody wrote down a test for “alive” before these years were computed. The figures describe the record. They do not grade Chan’s claim, and like every result here the split is exploratory.
 
-Chan names the same weakness, and offers a check. A trade that happens once a year produces few results, he writes, so it is hard to tell whether its backtest reflects data-snooping bias, meaning a pattern found by searching the past that will not repeat. He suggests trying somewhat different entry and exit dates to see whether the profits hold up (location 4637). This repository did not try them. Varying the dates until some version works is a search across many trades, and a search needs its own safeguards: a list of the variants written down before any is run, a correction for how many were tried, and years held back that the search never sees.
+Chan names the same weakness, and offers a check. A trade that happens once a year produces few results, he writes, so it is hard to tell whether its backtest reflects data-snooping bias, meaning a pattern found by searching the past that will not repeat. He suggests trying somewhat different entry and exit dates to see whether the profits hold up (p. 186). This repository did not try them. Varying the dates until some version works is a search across many trades, and a search needs its own safeguards: a list of the variants written down before any is run, a correction for how many were tried, and years held back that the search never sees.
 
 ## Lesson 4: reading one named contract from files numbered by expiry needs a calendar checked outside the files
 
@@ -133,7 +133,7 @@ Six questions are beyond it.
 2. **Whether Chan read the same contracts.** His sidebar names RB, the symbol RBOB trades under, and glosses it as the unleaded gasoline futures. Before RBOB began trading in October 2005, his series presumably held the older contract, and the run assumes so. His data vendor is not named.
 3. **Which year each natural gas count was written in.** Lesson 1’s reading is a hypothesis the files constrain and cannot prove.
 4. **Whether either trade pays after costs.** No commission, slippage or margin is charged.
-5. **Whether nearby dates hold up.** Chan’s own suggested check, at location 4637, was not run, for the reason Lesson 3 gives.
+5. **Whether nearby dates hold up.** Chan’s own suggested check, on p. 186, was not run, for the reason Lesson 3 gives.
 6. **Any year after 2023.** EIA’s RBOB and natural gas files end on 5 April 2024, before either trade’s 2024 exit date. Another vendor could extend the record. The Massive futures data service returned gasoline prices for April 2025, and nothing here extends the record yet.
 
 ## What this means for a trader
@@ -149,7 +149,7 @@ On EIA’s free settlements, gasoline’s readable years fit Chan’s count, nat
 ## References
 
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Released in November 2008.
-- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Kindle locations 4303, 4529, 4536, 4585, 4590, 4632 and 4637. This post cites the revised edition by Kindle location, as the replication log does. [The companion post](https://github.com/l3a0/quantitative-trading/blob/main/blog/equity-seasonals-lessons.md) cites it by page, and location 4303 is its p. 174.
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 175 and 183 to 186. Page numbers here are the revised edition’s.
 - US Energy Information Administration. NYMEX futures settlement prices, daily, for New York Harbor regular gasoline, RBOB gasoline and Henry Hub natural gas, contracts 1 to 4. Downloaded 2 October 2026.
 
 *Not investment advice. Code: [the two trades](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals.py), [the calendar and expiry rules](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/futures.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals_figures.py), with the checks behind [the trades’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals_figures.py), and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) that sets each of Chan’s figures beside the one reproduced here.*
