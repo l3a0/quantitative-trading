@@ -37,7 +37,7 @@ Every result below is **exploratory**. Reproducing a printed figure tests a hypo
 
 ## Lesson 1: every reachable figure reproduces, and only under each script’s own rules
 
-Here is every printout of Example 7.6, at the precision each source prints, one column for each of its three Januaries.
+Here is every printout of Example 7.6, at the precision each source prints, one column for each of its three Januaries. Each number is the return on one trade, held from a December year-end close to the last close of the January its column names, after the two costs. It is a fraction of the capital, split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -48,7 +48,7 @@ Here is every printout of Example 7.6, at the precision each source prints, one 
 \end{array}
 ```
 
-And every printout of Example 7.7, whose two figures are the average annual return and the Sharpe ratio:
+And every printout of Example 7.7, whose two figures are the average annual return and the Sharpe ratio. The annual return is a fraction too, so −0.0129 is a loss of 1.29 percent a year. The first edition’s −0.9167 is not a loss of 92 percent a year. It is in different units, which Lesson 2 explains.
 
 ```math
 \begin{array}{l|r|r}
