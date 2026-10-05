@@ -387,7 +387,8 @@ lands. It holds the transcription to a second implementation written
 separately in pandas, which rules out a slip in the numpy code, though not a
 misreading of the MATLAB, since both read it the same way. It also pins the
 first edition's `smartstd` printing 4.05 against 4.07, so a port that reaches
-for the helper this repo held first fails a test.
+for the helper this repo held first fails a test. The blog post about it is
+the exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) does it for buy on gap.
 It pins both figures `bog.m` prints at the precision that is real and at the
@@ -1975,6 +1976,92 @@ drawing runs on every clone against a synthetic run of 400 cells, and only its
 check that the three labels are the cells Entry 16 names needs the archive. A
 public clone can check what the code draws but cannot redraw the committed
 figure.
+
+[blog/cross-sectional-momentum-lessons.md](blog/cross-sectional-momentum-lessons.md)
+is a fifteenth post, about cross-sectional momentum, Example 6.2 of Chan's
+*Algorithmic Trading*. Each day the strategy buys the 50 stocks with the
+highest 252-day return and shorts the 50 with the lowest, and holds each day's
+picks 25 days. Chan reports an APR of 37 percent and a Sharpe ratio of 4.1 over
+2007, and −30 percent over 2008 and 2009, while the comment closing
+`kentdaniel.m` records a Sharpe ratio of 0.40. The post draws four lessons from
+Entry 17 of the replication log.
+
+1. The 0.40 is the comment's and not the code's, which computes 4.0657 on the
+   file it loads.
+2. A rule taken from one example did not carry to the next. Read as the
+   arithmetic return, as Example 7.2's "APR" is, the book's APR reproduces in
+   neither window, and the compounded figure that matches both was seen only
+   afterwards.
+3. The crash Chan describes is in the file, and the one book claim that
+   reproduces under a rule fixed in advance is that the return after 2009
+   stabilized below 2007's.
+4. A reproduction checks the arithmetic and not the edge.
+
+Five groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The top and bottom deciles held for a month are at 2797. The 37 percent and
+   4.1, "a miserable −30 percent", "did stabilize, though it hasn't returned
+   to its former high level yet", and Daniel and Moskowitz's 16.7 percent and
+   0.83 from 1947 to 2007 are at 2800, and so are the labels "APR" for
+   Chan's figure and "annualized average return" for theirs. That Example
+   7.2 calls its 6.7 percent an APR is at 3024. "Performed similarly well
+   pre-2008", the reversal's 4.7, "vanished during the aftermath of the stock market
+   crash in 2008–2009" and the cause in "the strong rebound of short
+   positions" are at 2890. The book's figures are pinned, and its words are
+   not.
+2. Facts outside the committed data. The scripts' print labels,
+   `Avg Ann Ret=` for the arithmetic figure and `APR=` for the compounded one,
+   in `kentdaniel.m` and `pead.m`, and `bog.m`'s label on its compounded
+   figure. That neither public copy of Chan's code ships a `lag.m`, that the
+   first edition's `lag1.m` shifts by one row, and that both copies hold the
+   same `kentdaniel.m`, which `src/chan/cross_sectional_momentum.py`'s
+   docstring records. Whether ETFC's move from 85.9 to 35.5 was a real move or
+   a bad print, which nothing checks.
+3. Arithmetic no test asserts: that 0.40 is about a tenth of 4.1 and of
+   4.0530, so either helper's Sharpe ratio is ten times the comment's, that
+   2007-05-15 to 2007-12-31 is seven and a half months, and that 1947 to 2007
+   is sixty years.
+4. The book's Figure 6.6, which the post's figure redraws from
+   `kentdaniel.m`'s `plot(cumret)` and which nothing compares with the book's
+   own.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py),
+to [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as
+the arithmetic figure, to
+[tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) for
+the reversal's 4.713284 on the same file, or to
+[tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
+for the figure's own numbers. Three had no pin before it.
+
+1. That the 2008 and 2009 spell below the high runs from 2008-07-15, after a
+   high on 2008-07-14, to the window's last day, 2009-12-31, so it was still
+   running when the window ended, which the figure's test now pins.
+2. Each window's deepest drawdown, the high it fell from and its trough,
+   which the figure's test now pins too.
+3. ETFC's closes of 85.9 on 2007-11-09 and 35.5 on 2007-11-12, and the
+   strategy's position of −25 in it on 2007-11-09, which
+   `TestTheScaleBreakDecision` now pins.
+
+Its one figure is drawn from the committed file by
+[src/chan/cross_sectional_momentum_figures.py](src/chan/cross_sectional_momentum_figures.py),
+which reads it through the same `read_closes` and `script_as_printed` as
+`python -m chan.cross_sectional_momentum`, and slices each window through the
+same `window_returns` as the printed figures. It draws three panels on one
+scale, one per window the script carries, each restarting at zero, with its
+deepest drawdown marked and the 2008 and 2009 spell below the high shaded, for
+Lessons 2 and 3.
+
+```bash
+uv run python -m chan.cross_sectional_momentum_figures
+```
+
+[tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 
