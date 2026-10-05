@@ -366,8 +366,10 @@ nothing here asserts is listed below.
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
 builder who corrects his code fails a test rather than moving a pin. Its
-survivor-run pins read the owner's archive and skip where none is configured,
-while the run's mechanics and its 603 manifest lines are held everywhere. The
+survivor-run and point-in-time pins read the owner's archive and skip where
+none is configured. The survivor run's mechanics and its 603 manifest lines
+are held everywhere, and so are the point-in-time run's flags, bound, verdict
+and refusals. The
 blog post about them is the exception, and what it says that nothing here
 asserts is listed below.
 
@@ -686,10 +688,11 @@ IVV's. Beside IJR's, `research/filings/ijr/members.csv` maps each member to the
 ticker Alpha Vantage files it under and records whether that series' close
 agrees with the filing, which
 [issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built and
-[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. One replication
+[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. One module
 reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
-IJR's 2025-12-31 filing, and on the members of every year-end filing from 2007
-to 2025 through that members file.
+IJR's 2025-12-31 filing as a replication, and on the members of every
+year-end from 2008 to 2025 through that members file as a registered
+experiment.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples

@@ -36,7 +36,9 @@ Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18,
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
-and nothing about whether the trade works today. Entries 2 and 9 spend no
+and nothing about whether the trade works today. Entry 7's rows 35 to 40 are
+the one exception, and they are **registered**: their claim, test and verdict
+wording were written before any return was computed. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
 states rather than picking one. Entry 20 works arithmetic on inputs the book
 states and is outside both for the same reason, which its first conclusion
@@ -2013,7 +2015,7 @@ Rows 5, 6 and 21, and the revised edition's half of rows 1, 2 and 19, rest on
 a different inference: the figures match the first edition's, so its rules are
 assumed.
 
-Every result here is **exploratory**. A replication spends the sample on a
+Every result in rows 1 to 34 is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 "disappeared" was written down. Row 22's criterion was written first, so it
 carries a verdict, and the verdict is about Chan's file of survivors rather
@@ -2037,8 +2039,8 @@ return was computed, and the owner labelled it registered on 2026-10-04. The
 claim is that Example 7.6 earns no January return detectably above zero in the
 Januaries after the book was published. The panel keeps the companies that
 left the index, but it does not cover every member. A member is covered when
-its series passes the filing check at the year-end and at the year-end
-before. Covered members run from 425 of 600 at 2010-12-31 to 601 of 603 at
+its series passes the filing check at the year-end and, where it was in the
+filing before, at that year-end too. Covered members run from 425 of 600 at 2010-12-31 to 601 of 603 at
 2025-12-31. A missing member counts toward the tenth. Where one could change a
 tenth, the January is computed twice, with each threatening member inserted
 into the tenth it threatens at the 1st or the 99th percentile of that
@@ -2132,7 +2134,7 @@ code behind rows 9, 10, 13 and 14 traces to
 | 37 | a one-sided t-test of each series against zero at 5%, at 17 degrees of freedom | t −4.96, p 1.000, and t 3.70, p 0.001 | none | as row 35 |
 | 38 | the smallest mean each test detects with 80% probability at its own deviation | 0.0547 and 0.0615 | none | `TestThePointInTimePins::test_x_for_each_series` |
 | 39 | row 35 after the two one-way costs of 5 basis points | −0.1057 and 0.0869 | none | `TestThePointInTimePins::test_the_means_after_costs` |
-| 40 | row 30's mean less row 35's, described rather than tested | 0.1155 and −0.0771 | none | `TestThePointInTimePins::test_the_survivor_run_less_this_one` |
+| 40 | row 30's mean less row 35's, described rather than tested. The per-January differences print from `--point-in-time`, and the same test pins them | 0.1155 and −0.0771 | none | `TestThePointInTimePins::test_the_survivor_run_less_this_one` |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
@@ -2169,7 +2171,7 @@ no published figure to take a gap from.
 | 23 to 29 | none, not a replication | Reported beside row 22 with no verdict. Rows 24, 25, 28 and 29 average the tail of the full run, a rule the book does not print, and p. 180 names the average returns rather than the Sharpe ratio. |
 | 30 | none, survivor-only and exploratory | No January effect detectable above about 2.4% a January, on members that favour the effect. The test fails to reject, so the reading takes the owner's wording for [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), with X at the measured deviation, and it never says the effect disappeared. Two ranked members have no exit close and are skipped as `smartmean` skips them: INDV, which has no row on 2019-01-31, and GES, delisted on 2026-01-22. Two members are never ranked at all, because Alpha Vantage's NVRI and GTES hold nothing before 2026, so at most 601 of the 603 can rank. Row 40 takes these rows' mean less row 35's. |
 | 31 to 34 | none, survivor-only and exploratory | Reported beside row 30. Row 33 is 2.4% where the issue's power estimate before the run was 3.7%, because the measured deviation of 0.0398 is smaller than the 6.05% of Chan's three printed Januaries. |
-| 35 | the free sources cannot decide it, registered | The low series is nowhere near above zero, with a p of 1.000, and the high series is, with a p of 0.001. The criterion takes a verdict only where both series give the same answer, so neither "no January effect detectable" nor "a January effect above zero" can be written. The width is the threatening members. At 2008-12-31, 89 of the 161 missing members threaten a tenth of 59, so most of both tenths hold an assumed return. The bound shrinks as coverage grows, to −0.0023 and 0.0027 at 2025-12-31, where one member threatens. The next step the owner's ruling names is buying prices for the threatening members alone, which [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) carries. |
+| 35 | none, registered | The free sources cannot decide it, which is the verdict's own wording rather than one of the three a replication takes. The low series is nowhere near above zero, with a p of 1.000, and the high series is, with a p of 0.001. The criterion takes a verdict only where both series give the same answer, so neither "no January effect detectable" nor "a January effect above zero" can be written. The width is the threatening members. At 2008-12-31, 89 of the 161 missing members threaten a tenth of 59, so most of both tenths hold an assumed return. The bound shrinks as coverage grows, to −0.0023 and 0.0027 at 2025-12-31, where one member threatens. The next step the owner's ruling names is buying prices for the threatening members alone, which [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) carries. |
 | 36 to 40 | none, registered | Reported beside row 35. Row 40 compares two runs on one cross-section, so it measures membership rather than two download dates. Its two figures differ in sign because the bound is wider than the gap it would measure, so it says nothing yet about what survivorship cost Example 7.6. |
 
 ### What the entry concludes

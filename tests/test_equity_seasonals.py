@@ -1823,6 +1823,22 @@ class TestThePointInTimeFlags:
     def test_no_year_end_is_exact(self) -> None:
         assert all(sum(pin[2:]) > 0 for pin in PIT_THREATS)
 
+    def test_741_member_years_threaten_89_of_them_at_2008(self) -> None:
+        """The totals the log quotes, sized on this run's universe rather than on every member."""
+        assert sum(sum(pin[2:]) for pin in PIT_THREATS) == 741
+        assert PIT_THREATS[0][:2] == ("2008-12-31", 161)
+        assert sum(PIT_THREATS[0][2:]) == 89
+
+    def test_1487_of_the_1590_mapped_tickers_have_a_line(self) -> None:
+        """The rest have no series at Alpha Vantage, so the run reads 1,487 files."""
+        from chan import sp600_panel
+        from chan.archive import read_archive_manifest
+
+        mapped = sp600_panel.tickers(sp600_panel.load())
+        recorded = {e.symbol for e in read_archive_manifest() if e.cross_section == "sp600"}
+        assert len(mapped) == 1590
+        assert len(set(mapped) & recorded) == 1487
+
 
 class TestThePointInTimeCommand:
     @pytest.mark.parametrize(

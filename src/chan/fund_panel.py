@@ -467,7 +467,10 @@ def threat_sides(
     its return is no further in than the member twice a tenth in from either
     end of the placed returns. Ties at that boundary threaten, so the rule
     errs toward flagging. The side is one of :data:`SIDES`, and a member at the
-    low end is a loser, which Example 7.6 holds long.
+    low end is a loser, which Example 7.6 holds long. A member inside both
+    margins, which happens only when fewer than four tenths are placed, could
+    fall in either tenth, so it is marked ``unplaced`` like a member with no
+    return.
     """
     tenth = int(round_half_away(universe / 10))
     margin = 2 * tenth
@@ -478,10 +481,10 @@ def threat_sides(
         if value is None:
             sides[key] = "unplaced"
         elif placed and margin:
-            if value <= placed[min(margin, len(placed)) - 1]:
-                sides[key] = "long"
-            elif value >= placed[-min(margin, len(placed))]:
-                sides[key] = "short"
+            low = value <= placed[min(margin, len(placed)) - 1]
+            high = value >= placed[-min(margin, len(placed))]
+            if low or high:
+                sides[key] = "unplaced" if low and high else "long" if low else "short"
     return sides
 
 

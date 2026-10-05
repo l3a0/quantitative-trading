@@ -439,6 +439,11 @@ class TestThreats:
             ("d", 99): "unplaced",
         }
 
+    def test_a_member_inside_both_margins_could_fall_in_either_tenth(self) -> None:
+        # Three placed members against a margin of 4 put every one at both ends.
+        returns = {("d", n): Decimal(n) for n in (1, 2, 3)}
+        assert threat_sides(returns, [("d", 2)], universe=20) == {("d", 2): "unplaced"}
+
 
 class TestTheRecord:
     def test_a_file_round_trips(self, tmp_path: Path) -> None:
