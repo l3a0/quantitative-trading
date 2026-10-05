@@ -138,6 +138,21 @@ class TestCarryBack:
         assert rows[("2009-12-31", 2)] == MemberRow("2009-12-31", 2, "BET", "link")
         assert rows[("2010-12-31", 2)].source == "filing"
 
+    def test_a_whole_first_filing_carries_its_unlinked_members_too(
+        self, three_years: Fund, tmp_path: Path
+    ) -> None:
+        resolved = {("2008-12-31", 2): MemberRow("2008-12-31", 2, "GON", "hand", "a note")}
+        with pytest.raises(PanelRefused, match="not a row of the panel"):
+            carry_back(three_years, resolved, tmp_path)
+        rows = {
+            row.key: row for row in carry_back(three_years, resolved, tmp_path, whole_first=True)
+        }
+        assert rows[("2008-12-31", 2)].ticker == "GON"
+        assert panel_keys(three_years, tmp_path, whole_first=True)[:2] == [
+            ("2008-12-31", 1),
+            ("2008-12-31", 2),
+        ]
+
     def test_an_earlier_resolution_stands_over_a_later_one(
         self, three_years: Fund, tmp_path: Path
     ) -> None:

@@ -776,8 +776,8 @@ report counts which members Example 7.7 can rank at each month-end from
 December 2008 to August 2026, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
-between 346 and 501 of the 499 to 507 members a month-end holds, the fewest in
-November 2013. One replication
+between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
+September 2012. One replication
 reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing.
 

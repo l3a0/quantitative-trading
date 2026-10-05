@@ -38,20 +38,28 @@ things.
 
 1. The close at the month-end, trusted when the member's row passed the check
    at the schedule that sets that month.
-2. The closes at the month-ends twelve and eleven months back. Where the
-   member was in the index then, by :func:`chan.fund_panel.previous_rows`, each
-   is trusted when the row it links back to passed on the same ticker at the
-   schedule that sets that month. A member new to the index is ranked on its
-   series alone, and so is every member for a month before the first schedule.
-3. A close at the next month-end, unless the series ends inside that month.
-   A series that ends there is covered, because issue 336 gives the position
-   its return to the last close, and it is counted as a stop.
+2. The closes at the month-ends twelve and eleven months back, the two ends
+   of the year-earlier month's return. Where the member was in the index in
+   that month, by :func:`chan.fund_panel.previous_rows`, both are trusted when
+   the row it links back to passed on the same ticker at the schedule that
+   sets that month. A member new to the index is ranked on its series alone,
+   and so is every member whose year-earlier month comes before the first
+   schedule.
+3. A close at the next month-end, unless the series' last row falls after the
+   month-end and before the next one. A series that ends there is covered,
+   because issue 336 gives the position its return to the last close, and it
+   is counted as a stop. A series whose last row is the month-end itself holds
+   no close in the month the position would be held, and issue 336 drops it
+   at that month-end, so it misses.
 
-A member that misses carries one reason, checked in this order: its check
-outcome when it did not pass, ``stopped`` when its series ended before the
-month-end, ``close`` when the series runs past the month-end with no row on
-it, ``rank`` when a year-earlier close is missing or untrusted, and ``next``
-when the series continues past the next month-end with no row on it.
+A member that misses carries one reason, tested in this order.
+
+1. Its check outcome, when its row did not pass.
+2. ``stopped``, when its series ended before the month-end.
+3. ``close``, when its series runs past the month-end with no row on it.
+4. ``rank``, when a year-earlier close is missing or untrusted.
+5. ``next``, when its series holds no close at the next month-end and does
+   not end between the two month-ends.
 
 **Why a second committed table.** The report runs in CI, where no archive is,
 and it reads month-ends the check never looked at. The manifest's
@@ -312,32 +320,38 @@ def _reason(
     closes: _Closes,
     by_key: Mapping[Key, MemberRow],
     previous: Mapping[Key, Key],
-    first_schedule: pd.Period,
 ) -> str | None:
-    """Why a member misses at a month-end, or ``None`` when it is covered."""
+    """Why a member misses at a month-end, or ``None`` when it is covered.
+
+    Both year-earlier closes are trusted on one check, the one at the schedule
+    that sets the year-earlier month, which is the later of the two. Issue 373
+    trusts them that way, because they are the two ends of that month's return.
+    """
     if row.check != "pass":
         return row.check
     ticker = row.ticker
     if not closes.has(ticker, month):
         return "stopped" if closes.last(ticker) < closes.day(month) else "close"
-    for back in (month - LOOKBACK, month - LOOKBACK + 1):
-        if not closes.has(ticker, back):
-            return "rank"
-        if back < first_schedule:
-            continue
-        wanted = setter(back)
+    earlier = month - LOOKBACK + 1
+    if not (closes.has(ticker, earlier - 1) and closes.has(ticker, earlier)):
+        return "rank"
+    if earlier >= schedule_months()[0][1]:
+        wanted = setter(earlier)
         key: Key | None = row.key
         while key is not None and key[0] > wanted:
             key = previous.get(key)
-        if key is None:
-            continue
-        before = by_key[key]
-        if before.check != "pass" or before.ticker != ticker:
-            return "rank"
-    after = month + 1
-    if not closes.has(ticker, after) and closes.last(ticker) >= closes.day(after):
+        if key is not None:
+            before = by_key[key]
+            if before.check != "pass" or before.ticker != ticker:
+                return "rank"
+    if not (closes.has(ticker, month + 1) or _stops_inside(closes, ticker, month)):
         return "next"
     return None
+
+
+def _stops_inside(closes: _Closes, ticker: str, month: pd.Period) -> bool:
+    """Whether a series' last row falls after a month-end and before the next one."""
+    return closes.day(month) < closes.last(ticker) < closes.day(month + 1)
 
 
 def monthly_coverage(
@@ -350,7 +364,6 @@ def monthly_coverage(
     by_key = {row.key: row for row in rows}
     previous = previous_rows(FUND)
     closes = _Closes(spans, holes, calendar)
-    first_schedule = schedule_months()[0][1]
     by_schedule: dict[str, list[MemberRow]] = {}
     for row in rows:
         by_schedule.setdefault(row.report_date, []).append(row)
@@ -366,9 +379,9 @@ def monthly_coverage(
         for row in mine:
             if not row.check:
                 raise PanelRefused(f"{row.report_date} row {row.row} has not been checked")
-            reason = _reason(row, month, closes, by_key, previous, first_schedule)
+            reason = _reason(row, month, closes, by_key, previous)
             if reason is None:
-                stops += closes.last(row.ticker) < closes.day(month + 1)
+                stops += _stops_inside(closes, row.ticker, month)
                 continue
             misses[reason] += 1
             missing.append(row.key)

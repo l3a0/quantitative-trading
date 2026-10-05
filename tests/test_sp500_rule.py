@@ -23,17 +23,17 @@ from chan.sp500_panel import (
     find_holes,
     last_month_set,
     month_end,
+    monthly_coverage,
     months,
     read_holes,
     serialize_holes,
     setter,
+    tickers,
 )
 
 #: Weekdays from November 2007 to October 2026, standing in for an exchange
 #: calendar. 2026-09-30 is a Wednesday.
 CALENDAR = pd.bdate_range("2007-11-01", "2026-10-15")
-
-FIRST_SCHEDULE = pd.Period("2008-12", "M")
 
 
 def _month(text: str) -> pd.Period:
@@ -109,9 +109,7 @@ class TestTheReasons:
 
     def _reason(self, row: MemberRow, spans=WHOLE, holes=(), previous=None, rows=()) -> str | None:
         by_key = {item.key: item for item in (row, *rows)}
-        return _reason(
-            row, self.MARCH, _closes(spans, holes), by_key, previous or {}, FIRST_SCHEDULE
-        )
+        return _reason(row, self.MARCH, _closes(spans, holes), by_key, previous or {})
 
     def test_a_whole_series_new_to_the_index_is_covered(self) -> None:
         assert self._reason(_row("2010-03-31")) is None
@@ -168,9 +166,9 @@ class TestTheReasons:
         row = _row("2008-12-31")
         by_key = {row.key: row}
         closes = _closes(WHOLE)
-        assert _reason(row, _month("2008-12"), closes, by_key, {}, FIRST_SCHEDULE) is None
+        assert _reason(row, _month("2008-12"), closes, by_key, {}) is None
         holed = _closes(WHOLE, [("ALP", "2007-12")])
-        assert _reason(row, _month("2008-12"), holed, by_key, {}, FIRST_SCHEDULE) == "rank"
+        assert _reason(row, _month("2008-12"), holed, by_key, {}) == "rank"
 
 
 class TestTheHoles:
@@ -201,3 +199,99 @@ class TestTheCrossSection:
 
         assert sp500_panel.CROSS_SECTION == "sp500"
         assert CROSS_SECTIONS == ("sp600", "sp500")
+
+
+class TestTheTrustOfTheYearEarlierMonth:
+    """Both year-earlier closes rest on the check at the schedule that sets the later one."""
+
+    def test_the_earlier_close_needs_no_check_of_its_own_schedule(self) -> None:
+        """At May 2010 the closes are April 2009's and May 2009's, set by 2009-03-31 and 2009-06-30.
+
+        Only 2009-06-30's row is read, so a failed 2009-03-31 row does not miss.
+        """
+        chain = {
+            ("2010-03-31", 1): ("2009-12-31", 4),
+            ("2009-12-31", 4): ("2009-09-30", 7),
+            ("2009-09-30", 7): ("2009-06-30", 2),
+            ("2009-06-30", 2): ("2009-03-31", 9),
+        }
+        rows = [
+            _row("2010-03-31"),
+            _row("2009-12-31", 4),
+            _row("2009-09-30", 7),
+            _row("2009-06-30", 2),
+            _row("2009-03-31", 9, check="price"),
+        ]
+        by_key = {row.key: row for row in rows}
+        closes = _closes(WHOLE)
+        assert _reason(rows[0], _month("2010-05"), closes, by_key, chain) is None
+        failed = {**by_key, ("2009-06-30", 2): _row("2009-06-30", 2, check="price")}
+        assert _reason(rows[0], _month("2010-05"), closes, failed, chain) == "rank"
+
+    def test_a_failed_first_schedule_row_misses_its_rank_in_november_2009(self) -> None:
+        """November 2009 reads December 2008's return, which the first schedule sets."""
+        chain = {
+            ("2009-09-30", 1): ("2009-06-30", 2),
+            ("2009-06-30", 2): ("2009-03-31", 3),
+            ("2009-03-31", 3): ("2008-12-31", 4),
+        }
+        rows = [
+            _row("2009-09-30"),
+            _row("2009-06-30", 2),
+            _row("2009-03-31", 3),
+            _row("2008-12-31", 4, check="price"),
+        ]
+        by_key = {row.key: row for row in rows}
+        closes = _closes(WHOLE)
+        assert _reason(rows[0], _month("2009-11"), closes, by_key, chain) == "rank"
+        passed = {**by_key, ("2008-12-31", 4): _row("2008-12-31", 4)}
+        assert _reason(rows[0], _month("2009-11"), closes, passed, chain) is None
+
+
+class TestTheNextMonth:
+    MARCH = _month("2010-03")
+
+    def _reason(self, last: str) -> str | None:
+        row = _row("2010-03-31")
+        closes = _closes({"ALP": ("2000-01-03", last)})
+        return _reason(row, self.MARCH, closes, {row.key: row}, {})
+
+    def test_a_series_ending_on_the_month_end_itself_misses(self) -> None:
+        """Issue 336 drops it at that month-end, because it holds no close in April."""
+        assert self._reason("2010-03-31") == "next"
+
+    def test_a_series_ending_inside_the_next_month_is_covered(self) -> None:
+        assert self._reason("2010-04-01") is None
+        assert self._reason("2010-04-29") is None
+
+
+class TestTheGuards:
+    def test_a_ticker_with_no_span_holds_no_close(self) -> None:
+        assert not _closes({}).has("ALP", _month("2010-03"))
+
+    def test_a_month_with_no_trading_day_is_refused(self) -> None:
+        gap = CALENDAR[(CALENDAR < "2010-03-01") | (CALENDAR > "2010-03-31")]
+        with pytest.raises(PanelRefused, match="holds no trading day in 2010-03"):
+            month_end(gap, _month("2010-03"))
+
+    def test_an_unmapped_row_hands_no_ticker_to_the_fetch(self) -> None:
+        rows = [_row("2010-03-31"), MemberRow("2010-03-31", 2, "", "none", check="unmapped")]
+        assert tickers(rows) == ["ALP"]
+
+    def test_find_holes_reads_from_december_2007_to_september_2026(self) -> None:
+        days = CALENDAR
+        series = pd.Series(1.0, index=days)
+        for day in ("2007-12-31", "2026-09-30"):
+            series[pd.Timestamp(day)] = float("nan")
+        frame = pd.DataFrame({"ALP": series})
+        spans = {"ALP": ("2007-11-01", "2026-10-15")}
+        assert find_holes(frame, spans, CALENDAR) == {("ALP", "2007-12"), ("ALP", "2026-09")}
+
+    def test_an_unchecked_row_is_refused(self) -> None:
+        from chan.fund_holdings import IVV
+
+        rows = [
+            MemberRow(filing.report_date, 1, "ALP", "hand") for filing in sp500_panel.listed(IVV)
+        ]
+        with pytest.raises(PanelRefused, match="has not been checked"):
+            monthly_coverage(rows, WHOLE, frozenset(), CALENDAR)

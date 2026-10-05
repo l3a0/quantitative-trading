@@ -680,16 +680,21 @@ Example 7.7 trades every month on quarterly schedules.
 2. **Coverage is counted per month-end, on three closes.** Example 7.7 ranks
    on the return of the month a year before the month it holds. A member is
    covered at a month-end when its series holds that close, the closes twelve
-   and eleven months back, and the next month-end's close, or its series ends
-   inside that month. A month-end close is trusted on the check at the schedule
-   that sets the month. A year-earlier close is trusted on the check at the schedule that set its
-   month, where the member links back that far, and a member new to the index
-   is ranked on its series alone.
+   and eleven months back, and the next month-end's close, or its last row
+   falls between the two month-ends. A month-end close is trusted on the check
+   at the schedule that sets the month. The two year-earlier closes are the
+   ends of one month's return, so both are trusted on the check at the
+   schedule that sets that month, where the member links back that far, and a
+   member new to the index is ranked on its series alone. A series whose last
+   row is the month-end itself misses, because
+   [issue 336](https://github.com/l3a0/quantitative-trading/issues/336) drops
+   it there.
 3. **A second committed table says which month-end closes exist.** The report
    runs in CI and reads closes the check never looked at, so `check` writes
    `research/filings/ivv/holes.csv`, every month-end from 2007-12 to 2026-09
-   inside a series' span with no row on it. With the manifest's first and last dates, that answers
-   whether a close exists without committing a price.
+   inside a series' span with no row on it. With the manifest's first and
+   last dates, that answers whether a close exists without committing a
+   price.
 4. **The check knows six forms.** The shareholder reports and 2019-06-30's
    NPORT-EX print whole dollars and whole shares, like an N-Q, and the
    2025-09-30 amendment prints cents, like an N-PORT.

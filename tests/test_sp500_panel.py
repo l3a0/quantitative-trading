@@ -62,7 +62,7 @@ MEMBERS_SHA256 = "0b8e0f8ca7eaf388eda4784ebe30bd787b5bd4a857ffaf49c38a2567643544
 HOLES_SHA256 = "85c6c9498610e82f2852eafb9fcffcedabbfe8870ccc4f334f311f62de770158"
 
 #: The report's whole output on the pinned files, by sha256.
-REPORT_SHA256 = "4d574ea2deddf7737cc3ad9b30dd6ea7c171b247952560f5043e3b00373e3d32"
+REPORT_SHA256 = "bf56300d1ca02a34a020ed351632b31e749b528b517e224ed6e02d5700ddc307"
 
 #: Per month-end: members, covered, misses by reason, and covered members
 #: whose series ends inside the next month.
@@ -84,72 +84,72 @@ MONTHS = (
     ("2010-02", 500, 406, {"no-row": 43, "no-series": 17, "price": 31, "rank": 3}, 0),
     ("2010-03", 500, 395, {"no-row": 41, "no-series": 14, "price": 48, "rank": 2}, 0),
     ("2010-04", 500, 395, {"no-row": 41, "no-series": 14, "price": 48, "rank": 2}, 0),
-    ("2010-05", 500, 390, {"no-row": 41, "no-series": 14, "price": 48, "rank": 7}, 0),
+    ("2010-05", 500, 391, {"no-row": 41, "no-series": 14, "price": 48, "rank": 6}, 0),
     ("2010-06", 500, 420, {"no-row": 41, "no-series": 14, "price": 11, "rank": 14}, 0),
     ("2010-07", 500, 420, {"no-row": 41, "no-series": 14, "price": 11, "rank": 14}, 0),
-    ("2010-08", 500, 416, {"no-row": 41, "no-series": 14, "price": 11, "rank": 18}, 0),
+    ("2010-08", 500, 426, {"no-row": 41, "no-series": 14, "price": 11, "rank": 8}, 0),
     ("2010-09", 500, 408, {"no-row": 39, "no-series": 14, "price": 30, "rank": 9}, 0),
     ("2010-10", 500, 408, {"no-row": 39, "no-series": 14, "price": 30, "rank": 9}, 0),
-    ("2010-11", 500, 394, {"no-row": 39, "no-series": 14, "price": 30, "rank": 23}, 0),
+    ("2010-11", 500, 398, {"no-row": 39, "no-series": 14, "price": 30, "rank": 19}, 0),
     ("2010-12", 500, 416, {"no-row": 40, "no-series": 12, "price": 11, "rank": 21}, 0),
     ("2011-01", 500, 416, {"no-row": 40, "no-series": 12, "price": 11, "rank": 21}, 0),
-    ("2011-02", 500, 390, {"no-row": 40, "no-series": 12, "price": 11, "rank": 47}, 1),
+    ("2011-02", 500, 398, {"no-row": 40, "no-series": 12, "price": 11, "rank": 39}, 1),
     ("2011-03", 501, 386, {"no-row": 40, "no-series": 11, "price": 39, "rank": 25}, 0),
     ("2011-04", 501, 386, {"no-row": 40, "no-series": 11, "price": 39, "rank": 25}, 0),
-    ("2011-05", 501, 386, {"no-row": 40, "no-series": 11, "price": 39, "rank": 25}, 0),
+    ("2011-05", 501, 409, {"no-row": 40, "no-series": 11, "price": 39, "rank": 2}, 0),
     ("2011-06", 499, 442, {"no-row": 39, "no-series": 9, "price": 7, "rank": 2}, 0),
     ("2011-07", 499, 442, {"no-row": 39, "no-series": 9, "price": 7, "rank": 2}, 0),
-    ("2011-08", 499, 420, {"no-row": 39, "no-series": 9, "price": 7, "rank": 24}, 0),
+    ("2011-08", 499, 422, {"no-row": 39, "no-series": 9, "price": 7, "rank": 22}, 0),
     ("2011-09", 500, 393, {"no-row": 37, "no-series": 9, "price": 42, "rank": 19}, 0),
     ("2011-10", 500, 393, {"no-row": 37, "no-series": 9, "price": 42, "rank": 19}, 0),
-    ("2011-11", 500, 390, {"no-row": 37, "no-series": 9, "price": 42, "rank": 22}, 0),
+    ("2011-11", 500, 408, {"no-row": 37, "no-series": 9, "price": 42, "rank": 4}, 0),
     ("2011-12", 500, 443, {"no-row": 38, "no-series": 8, "price": 5, "rank": 6}, 0),
     ("2012-01", 500, 443, {"no-row": 38, "no-series": 8, "price": 5, "rank": 6}, 0),
-    ("2012-02", 500, 415, {"no-row": 38, "no-series": 8, "price": 5, "rank": 34}, 0),
+    ("2012-02", 500, 416, {"no-row": 38, "no-series": 8, "price": 5, "rank": 33}, 0),
     ("2012-03", 500, 401, {"no-row": 36, "no-series": 8, "price": 31, "rank": 24}, 0),
     ("2012-04", 500, 401, {"no-row": 36, "no-series": 8, "price": 31, "rank": 24}, 0),
-    ("2012-05", 500, 400, {"next": 1, "no-row": 36, "no-series": 8, "price": 31, "rank": 24}, 0),
+    ("2012-05", 500, 420, {"next": 1, "no-row": 36, "no-series": 8, "price": 31, "rank": 4}, 0),
     ("2012-06", 501, 447, {"no-row": 35, "no-series": 8, "price": 7, "rank": 4}, 0),
     ("2012-07", 501, 447, {"no-row": 35, "no-series": 8, "price": 7, "rank": 4}, 0),
     ("2012-08", 501, 415, {"no-row": 35, "no-series": 8, "price": 7, "rank": 36}, 0),
     ("2012-09", 501, 364, {"no-row": 33, "no-series": 8, "price": 69, "rank": 27}, 0),
     ("2012-10", 501, 365, {"no-row": 33, "no-series": 8, "price": 69, "rank": 26}, 0),
-    ("2012-11", 501, 365, {"no-row": 33, "no-series": 8, "price": 69, "rank": 26}, 0),
+    ("2012-11", 501, 388, {"no-row": 33, "no-series": 8, "price": 69, "rank": 3}, 0),
     ("2012-12", 500, 389, {"no-row": 33, "no-series": 7, "price": 69, "rank": 2}, 0),
     ("2013-01", 500, 389, {"no-row": 33, "no-series": 7, "price": 69, "rank": 2}, 0),
     ("2013-02", 500, 377, {"no-row": 33, "no-series": 7, "price": 69, "rank": 14}, 0),
     ("2013-03", 500, 385, {"no-row": 33, "no-series": 7, "price": 59, "rank": 16}, 0),
     ("2013-04", 500, 386, {"no-row": 33, "no-series": 7, "price": 59, "rank": 15}, 0),
-    ("2013-05", 500, 386, {"no-row": 33, "no-series": 7, "price": 59, "rank": 15}, 0),
+    ("2013-05", 500, 397, {"no-row": 33, "no-series": 7, "price": 59, "rank": 4}, 0),
     ("2013-06", 500, 410, {"no-row": 32, "no-series": 7, "price": 46, "rank": 5}, 0),
     ("2013-07", 500, 410, {"no-row": 32, "no-series": 7, "price": 46, "rank": 5}, 0),
-    ("2013-08", 500, 372, {"no-row": 32, "no-series": 7, "price": 46, "rank": 43}, 0),
+    ("2013-08", 500, 373, {"no-row": 32, "no-series": 7, "price": 46, "rank": 42}, 0),
     ("2013-09", 500, 374, {"no-row": 32, "no-series": 7, "price": 46, "rank": 41}, 0),
     ("2013-10", 500, 374, {"no-row": 32, "no-series": 7, "price": 46, "rank": 41}, 0),
-    ("2013-11", 500, 346, {"no-row": 32, "no-series": 7, "price": 46, "rank": 69}, 0),
+    ("2013-11", 500, 372, {"no-row": 32, "no-series": 7, "price": 46, "rank": 43}, 0),
     ("2013-12", 500, 387, {"no-row": 30, "no-series": 3, "price": 25, "rank": 55}, 0),
     ("2014-01", 500, 388, {"no-row": 30, "no-series": 3, "price": 25, "rank": 54}, 0),
-    ("2014-02", 500, 367, {"no-row": 30, "no-series": 3, "price": 25, "rank": 75}, 0),
+    ("2014-02", 500, 399, {"no-row": 30, "no-series": 3, "price": 25, "rank": 43}, 0),
     ("2014-03", 500, 403, {"no-row": 29, "no-series": 3, "price": 18, "rank": 47}, 0),
     ("2014-04", 500, 403, {"no-row": 29, "no-series": 3, "price": 18, "rank": 47}, 0),
-    ("2014-05", 500, 391, {"no-row": 29, "no-series": 3, "price": 18, "rank": 59}, 0),
+    ("2014-05", 500, 417, {"no-row": 29, "no-series": 3, "price": 18, "rank": 33}, 0),
     ("2014-06", 502, 425, {"no-row": 28, "no-series": 3, "price": 3, "rank": 43}, 1),
     ("2014-07", 502, 424, {"no-row": 28, "no-series": 3, "price": 3, "rank": 43, "stopped": 1}, 0),
     ("2014-08", 502, 424, {"no-row": 28, "no-series": 3, "price": 3, "rank": 43, "stopped": 1}, 0),
     ("2014-09", 502, 426, {"no-row": 27, "no-series": 3, "price": 3, "rank": 43}, 0),
     ("2014-10", 502, 425, {"next": 1, "no-row": 27, "no-series": 3, "price": 3, "rank": 43}, 0),
-    ("2014-11", 502, 413, {"close": 1, "no-row": 27, "no-series": 3, "price": 3, "rank": 55}, 0),
+    ("2014-11", 502, 445, {"close": 1, "no-row": 27, "no-series": 3, "price": 3, "rank": 23}, 0),
     ("2014-12", 502, 446, {"no-row": 27, "no-series": 3, "price": 3, "rank": 23}, 0),
     ("2015-01", 502, 446, {"no-row": 27, "no-series": 3, "price": 3, "rank": 23}, 2),
-    ("2015-02", 502, 433, {"no-row": 27, "no-series": 3, "price": 3, "rank": 34, "stopped": 2}, 1),
+    ("2015-02", 502, 451, {"no-row": 27, "no-series": 3, "price": 3, "rank": 16, "stopped": 2}, 1),
     ("2015-03", 502, 456, {"no-row": 27, "no-series": 3, "price": 2, "rank": 14}, 0),
     ("2015-04", 502, 457, {"no-row": 27, "no-series": 3, "price": 2, "rank": 13}, 0),
-    ("2015-05", 502, 457, {"no-row": 27, "no-series": 3, "price": 2, "rank": 13}, 2),
+    ("2015-05", 502, 470, {"no-row": 27, "no-series": 3, "price": 2}, 2),
     ("2015-06", 502, 469, {"no-row": 27, "no-series": 3, "price": 2, "rank": 1}, 3),
     ("2015-07", 502, 466, {"no-row": 27, "no-series": 3, "price": 2, "rank": 1, "stopped": 3}, 0),
     ("2015-08", 502, 466, {"no-row": 27, "no-series": 3, "price": 2, "rank": 1, "stopped": 3}, 1),
     ("2015-09", 505, 431, {"no-row": 26, "no-series": 3, "price": 43, "rank": 2}, 0),
-    ("2015-10", 505, 431, {"no-row": 26, "no-series": 3, "price": 43, "rank": 2}, 2),
+    ("2015-10", 505, 430, {"next": 1, "no-row": 26, "no-series": 3, "price": 43, "rank": 2}, 1),
     ("2015-11", 505, 429, {"no-row": 26, "no-series": 3, "price": 43, "rank": 2, "stopped": 2}, 1),
     ("2015-12", 504, 467, {"no-row": 27, "no-series": 3, "price": 2, "rank": 5}, 0),
     ("2016-01", 504, 468, {"no-row": 27, "no-series": 3, "price": 2, "rank": 4}, 0),
@@ -159,25 +159,25 @@ MONTHS = (
     (
         "2016-05",
         504,
-        470,
-        {"close": 1, "no-row": 20, "no-series": 2, "price": 2, "rank": 8, "stopped": 1},
-        1,
+        469,
+        {"close": 1, "next": 1, "no-row": 20, "no-series": 2, "price": 2, "rank": 8, "stopped": 1},
+        0,
     ),
     ("2016-06", 507, 478, {"no-row": 17, "no-series": 1, "price": 2, "rank": 9}, 1),
     ("2016-07", 507, 479, {"no-row": 17, "no-series": 1, "price": 2, "rank": 6, "stopped": 2}, 0),
     ("2016-08", 507, 440, {"no-row": 17, "no-series": 1, "price": 2, "rank": 45, "stopped": 2}, 0),
     ("2016-09", 505, 445, {"no-row": 14, "no-series": 1, "rank": 45}, 0),
     ("2016-10", 505, 446, {"no-row": 14, "no-series": 1, "rank": 44}, 0),
-    ("2016-11", 505, 446, {"no-row": 14, "no-series": 1, "rank": 44}, 0),
+    ("2016-11", 505, 485, {"no-row": 14, "no-series": 1, "rank": 5}, 0),
     ("2016-12", 505, 485, {"no-row": 14, "no-series": 1, "rank": 5}, 1),
     ("2017-01", 505, 485, {"no-row": 14, "no-series": 1, "rank": 4, "stopped": 1}, 0),
-    ("2017-02", 505, 485, {"no-row": 14, "no-series": 1, "rank": 4, "stopped": 1}, 0),
+    ("2017-02", 505, 487, {"no-row": 14, "no-series": 1, "rank": 2, "stopped": 1}, 2),
     ("2017-03", 505, 490, {"no-row": 12, "no-series": 1, "rank": 2}, 0),
     ("2017-04", 505, 491, {"no-row": 12, "no-series": 1, "rank": 1}, 0),
     ("2017-05", 505, 490, {"no-row": 12, "no-series": 1, "rank": 2}, 1),
     ("2017-06", 505, 489, {"no-row": 12, "no-series": 1, "rank": 3}, 1),
     ("2017-07", 505, 489, {"no-row": 12, "no-series": 1, "rank": 2, "stopped": 1}, 2),
-    ("2017-08", 505, 487, {"no-row": 12, "no-series": 1, "rank": 2, "stopped": 3}, 0),
+    ("2017-08", 505, 488, {"no-row": 12, "no-series": 1, "rank": 1, "stopped": 3}, 0),
     ("2017-09", 505, 491, {"no-row": 10, "no-series": 1, "rank": 3}, 1),
     ("2017-10", 505, 490, {"no-row": 10, "no-series": 1, "rank": 3, "stopped": 1}, 1),
     ("2017-11", 505, 489, {"no-row": 10, "no-series": 1, "rank": 3, "stopped": 2}, 0),
@@ -186,14 +186,14 @@ MONTHS = (
     ("2018-02", 504, 491, {"no-row": 10, "no-series": 1, "rank": 2}, 1),
     ("2018-03", 505, 492, {"no-row": 10, "no-series": 1, "rank": 2}, 0),
     ("2018-04", 505, 492, {"no-row": 10, "no-series": 1, "rank": 2}, 1),
-    ("2018-05", 505, 491, {"no-row": 10, "no-series": 1, "rank": 2, "stopped": 1}, 2),
+    ("2018-05", 505, 490, {"next": 1, "no-row": 10, "no-series": 1, "rank": 2, "stopped": 1}, 1),
     ("2018-06", 505, 491, {"no-row": 8, "no-series": 1, "price": 2, "rank": 3}, 0),
     ("2018-07", 505, 493, {"no-row": 8, "no-series": 1, "price": 2, "rank": 1}, 1),
     ("2018-08", 505, 492, {"no-row": 8, "no-series": 1, "price": 2, "rank": 1, "stopped": 1}, 1),
-    ("2018-09", 506, 496, {"no-row": 8, "no-series": 1, "rank": 1}, 2),
+    ("2018-09", 506, 495, {"next": 1, "no-row": 8, "no-series": 1, "rank": 1}, 1),
     ("2018-10", 506, 494, {"no-row": 8, "no-series": 1, "rank": 1, "stopped": 2}, 2),
     ("2018-11", 506, 492, {"no-row": 8, "no-series": 1, "rank": 1, "stopped": 4}, 2),
-    ("2018-12", 506, 496, {"no-row": 7, "no-series": 1, "rank": 2}, 1),
+    ("2018-12", 506, 495, {"next": 1, "no-row": 7, "no-series": 1, "rank": 2}, 0),
     ("2019-01", 506, 495, {"no-row": 7, "no-series": 1, "rank": 2, "stopped": 1}, 0),
     ("2019-02", 506, 495, {"no-row": 7, "no-series": 1, "rank": 2, "stopped": 1}, 0),
     ("2019-03", 505, 496, {"no-row": 4, "no-series": 1, "rank": 4}, 0),
@@ -201,7 +201,7 @@ MONTHS = (
     ("2019-05", 505, 494, {"no-row": 4, "no-series": 1, "rank": 6}, 0),
     ("2019-06", 505, 492, {"no-row": 4, "no-series": 1, "rank": 8}, 1),
     ("2019-07", 505, 491, {"no-row": 4, "no-series": 1, "rank": 8, "stopped": 1}, 0),
-    ("2019-08", 505, 491, {"no-row": 4, "no-series": 1, "rank": 8, "stopped": 1}, 1),
+    ("2019-08", 505, 493, {"no-row": 4, "no-series": 1, "rank": 6, "stopped": 1}, 1),
     ("2019-09", 505, 491, {"no-row": 3, "no-series": 1, "price": 4, "rank": 6}, 0),
     ("2019-10", 505, 492, {"no-row": 3, "no-series": 1, "price": 4, "rank": 5}, 1),
     ("2019-11", 505, 491, {"no-row": 3, "no-series": 1, "price": 4, "rank": 5, "stopped": 1}, 2),
@@ -216,16 +216,16 @@ MONTHS = (
     ("2020-08", 505, 495, {"no-row": 3, "no-series": 1, "price": 1, "rank": 5}, 0),
     ("2020-09", 505, 496, {"no-row": 3, "no-series": 1, "rank": 5}, 2),
     ("2020-10", 505, 494, {"no-row": 3, "no-series": 1, "rank": 5, "stopped": 2}, 1),
-    ("2020-11", 505, 492, {"no-row": 3, "no-series": 1, "rank": 6, "stopped": 3}, 0),
+    ("2020-11", 505, 495, {"no-row": 3, "no-series": 1, "rank": 3, "stopped": 3}, 0),
     ("2020-12", 505, 496, {"no-row": 3, "no-series": 1, "rank": 5}, 2),
     ("2021-01", 505, 494, {"no-row": 3, "no-series": 1, "rank": 5, "stopped": 2}, 0),
-    ("2021-02", 505, 493, {"no-row": 3, "no-series": 1, "rank": 6, "stopped": 2}, 0),
+    ("2021-02", 505, 494, {"no-row": 3, "no-series": 1, "rank": 5, "stopped": 2}, 0),
     ("2021-03", 505, 499, {"no-row": 2, "no-series": 1, "price": 1, "rank": 2}, 1),
     ("2021-04", 505, 498, {"no-row": 2, "no-series": 1, "price": 1, "rank": 2, "stopped": 1}, 1),
-    ("2021-05", 505, 496, {"no-row": 2, "no-series": 1, "price": 1, "rank": 3, "stopped": 2}, 0),
+    ("2021-05", 505, 497, {"no-row": 2, "no-series": 1, "price": 1, "rank": 2, "stopped": 2}, 0),
     ("2021-06", 505, 498, {"no-row": 2, "no-series": 1, "price": 1, "rank": 3}, 1),
     ("2021-07", 505, 497, {"no-row": 2, "no-series": 1, "price": 1, "rank": 3, "stopped": 1}, 0),
-    ("2021-08", 505, 497, {"no-row": 2, "no-series": 1, "price": 1, "rank": 3, "stopped": 1}, 1),
+    ("2021-08", 505, 498, {"no-row": 2, "no-series": 1, "price": 1, "rank": 2, "stopped": 1}, 1),
     ("2021-09", 505, 499, {"no-row": 2, "no-series": 1, "price": 1, "rank": 2}, 0),
     ("2021-10", 505, 499, {"no-row": 2, "no-series": 1, "price": 1, "rank": 2}, 0),
     ("2021-11", 505, 500, {"no-row": 2, "no-series": 1, "price": 1, "rank": 1}, 1),
@@ -385,9 +385,9 @@ class TestTheCoverage:
         assert [pin[0] for pin in MONTHS] == [str(month) for month in sp500_panel.months()]
         assert len(MONTHS) == 213
 
-    def test_coverage_runs_from_346_in_november_2013_to_501(self) -> None:
+    def test_coverage_runs_from_364_in_september_2012_to_501(self) -> None:
         low = min(MONTHS, key=lambda pin: pin[2])
-        assert (low[0], low[1], low[2]) == ("2013-11", 500, 346)
+        assert (low[0], low[1], low[2]) == ("2012-09", 501, 364)
         assert max(pin[2] for pin in MONTHS) == 501
         assert [pin[0] for pin in MONTHS if pin[2] == 501] == ["2025-09", "2025-10"]
         assert (min(pin[1] for pin in MONTHS), max(pin[1] for pin in MONTHS)) == (499, 507)
@@ -457,6 +457,40 @@ class TestTheManifestLines:
         absent = {row.ticker for row in ROWS if row.ticker and row.ticker not in recorded}
         assert absent == {row.ticker for row in ROWS if row.check == "no-series"}
         assert len(absent) == 22
+
+
+class TestTheBindings:
+    def test_load_refuses_a_file_that_is_not_the_panel(self, tmp_path) -> None:
+        short = tmp_path / "members.csv"
+        short.write_bytes(serialize_members(ROWS[1:]))
+        with pytest.raises(PanelRefused, match="lacks 1 they do"):
+            sp500_panel.load(short)
+
+    def test_spans_reads_only_the_sp500_lines(self) -> None:
+        lines = [
+            json.loads(line)
+            for line in archive._manifest_path(None).read_bytes().split(b"\n")
+            if line.strip()
+        ]
+        mine = {
+            line["symbol"]: (line["first_date"], line["last_date"])
+            for line in lines
+            if line.get("cross_section") == "sp500"
+        }
+        assert sp500_panel.spans() == mine
+
+    def test_check_asks_for_the_close_the_last_position_is_closed_at(self, monkeypatch) -> None:
+        seen = {}
+
+        def fake_check(fund, rows, closes, calendar, filings_dir=None, *, exit_on):
+            seen["exit_on"] = exit_on
+            return list(rows)
+
+        monkeypatch.setattr(sp500_panel, "read_cross_section", lambda *a, **k: ([], pd.DataFrame()))
+        monkeypatch.setattr(sp500_panel, "check_members", fake_check)
+        monkeypatch.setattr(sp500_panel, "find_holes", lambda *a: set())
+        sp500_panel.check()
+        assert seen["exit_on"] is sp500_panel.exit_close
 
 
 class TestTheCases:
