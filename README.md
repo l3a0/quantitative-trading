@@ -14,10 +14,10 @@ output saying why. A symbol that has paid nothing comes back unchanged, which
 is what makes the problem easy to miss.
 
 So a result computed from a series is committed next to the exact series it was
-computed from, and a result computed from none says so. Example 7.1 is the one
-exception: its two series of licensed minute bars stay in the owner's data
-archive and only their hashes are committed, as `docs/design.md`'s premise
-records. Everything else is
+computed from, and a result computed from none says so. Licensed data is the
+one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
+daily closes for the S&P 600 cross-section, stay in the owner's data archive
+and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
@@ -848,6 +848,24 @@ and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
 in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+
+The fetch writes Alpha Vantage's daily closes for a list of symbols into the
+owner's archive, one file per symbol, and records each one as a line of
+`data/archive_vintages.jsonl` under a cross-section name. It is the one command
+here that needs the owner's key, read from the environment of the run:
+
+```bash
+ALPHAVANTAGE_API_KEY=... QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.fetch_alphavantage --cross-section sp600 --symbols symbols.txt
+```
+
+The symbols file holds one symbol per line. A rerun skips every symbol already
+recorded, so a run that stopped resumes where it left off, and it never
+overwrites a file the archive already holds. The run opens on a line naming
+the archive and the manifest, each symbol it fetches or refuses prints one
+line, and the run ends on a tally of recorded, already recorded, failed and not
+reached.
+Run it after the close, from the branch that will commit the lines, because
+the lines are what a rerun reads.
 
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any

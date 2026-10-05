@@ -1296,6 +1296,18 @@ The archive copy is the only kept copy of these bytes. The archive's own
 `README.txt` marks both files as pinned by hash here, so a refresh writes a new
 file name and never rewrites one this record names.
 
+The same manifest can also record a cross-section of Alpha Vantage's daily
+closes, which the owner ruled into the exception on 2026-10-04 for the S&P 600,
+on [issue 335](https://github.com/l3a0/quantitative-trading/issues/335). Each
+stock is one file in the archive, at `sp600/daily_<SYMBOL>.csv`, and one line
+here carrying `"cross_section": "sp600"`. The file is the vendor's
+`TIME_SERIES_DAILY_ADJUSTED` response unchanged, so it holds the raw close
+beside the adjusted close, and its line records the basis as `adjusted`.
+`chan.fetch_alphavantage` writes both, and `chan.archive.read_cross_section`
+reads a cross-section back as a date-by-symbol frame of either close. No such
+line is recorded yet, so the table above still holds the two minute-bar files
+alone.
+
 ## Header shape
 
 The vintages here carry one of three header shapes.
