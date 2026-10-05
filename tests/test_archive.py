@@ -355,7 +355,7 @@ class TestACrossSectionLine:
             ({"path": "sp600/ABC.csv"}, "other than <cross_section>/daily_<symbol>.csv"),
             ({"path": "../daily_ABC.csv"}, "other than <cross_section>/daily_<symbol>.csv"),
             ({"price_basis": "raw"}, "cross-section price_basis other than adjusted"),
-            ({"cross_section": "sp500"}, "has not ruled into the archive"),
+            ({"cross_section": "russell2000"}, "has not ruled into the archive"),
             ({"symbol": "AB/C", "path": "sp600/daily_AB/C.csv"}, "SYMBOL_PATTERN"),
         ],
     )
@@ -540,7 +540,12 @@ class TestRecordingADailyFile:
         data_dir, store = empty_store(tmp_path)
         with pytest.raises(ValueError, match="has not ruled"):
             record_archive_file(
-                "sp500", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+                "russell2000",
+                "XYZ",
+                XYZ,
+                download_date="2026-10-05",
+                data_dir=data_dir,
+                directory=store,
             )
         assert list(store.iterdir()) == []
 

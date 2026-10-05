@@ -41,7 +41,7 @@ from __future__ import annotations
 import csv
 import io
 from collections import Counter
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from decimal import Decimal
 from pathlib import Path
@@ -50,6 +50,7 @@ import pandas as pd
 
 from chan.fund_holdings import (
     FILINGS_DIR,
+    Filing,
     Fund,
     Holding,
     holdings_path,
@@ -79,17 +80,31 @@ CHECKS = ("pass", "price", "no-row", "no-series", "unmapped")
 #: Whether a passing series holds its January exit close. Empty on any other row.
 EXITS = ("close", "stop", "")
 
-#: Half the unit each form reports a value in. N-Q prints whole dollars and
-#: N-PORT prints cents.
-HALF_UNIT = {"N-Q": Decimal("0.5"), "NPORT-P": Decimal("0.005")}
+#: The forms that print a schedule in HTML, with whole dollars and whole
+#: shares: the N-Q, the two shareholder reports, and IVV's one standalone
+#: NPORT-EX for 2019-06-30.
+WHOLE_UNIT_FORMS = ("N-Q", "N-CSR", "N-CSRS", "NPORT-EX")
 
-#: Half the unit each form reports a share count in. N-Q prints whole shares,
+#: The forms that print N-PORT's XML, with cents and shares to eight decimals.
+CENT_FORMS = ("NPORT-P", "NPORT-P/A")
+
+#: Half the unit each form reports a value in. An HTML schedule prints whole
+#: dollars and N-PORT prints cents.
+HALF_UNIT = {
+    **{form: Decimal("0.5") for form in WHOLE_UNIT_FORMS},
+    **{form: Decimal("0.005") for form in CENT_FORMS},
+}
+
+#: Half the unit each form reports a share count in. An HTML schedule prints whole shares,
 #: so a value computed on a fractional holding can sit up to half a share's
 #: price from the close times the printed count. Measured on 2010-12-31, Maidenform
 #: Brands prints 325,785 shares valued at $7,743,910, and 325,785 at the
 #: $23.77 close is $7,743,909.45. N-PORT prints the balance to eight decimals,
 #: so nothing is added there.
-HALF_SHARE = {"N-Q": Decimal("0.5"), "NPORT-P": Decimal(0)}
+HALF_SHARE = {
+    **{form: Decimal("0.5") for form in WHOLE_UNIT_FORMS},
+    **{form: Decimal(0) for form in CENT_FORMS},
+}
 
 
 class PanelRefused(Exception):
@@ -168,13 +183,21 @@ def _malformed(row: MemberRow) -> str | None:
     return None
 
 
-def require_panel(fund: Fund, rows: Sequence[MemberRow], filings_dir: Path | None = None) -> None:
+def require_panel(
+    fund: Fund,
+    rows: Sequence[MemberRow],
+    filings_dir: Path | None = None,
+    *,
+    whole_first: bool = False,
+) -> None:
     """A :class:`PanelRefused` unless the rows name every row of the panel and nothing else.
 
     A file missing a member would report a smaller year-end without saying so,
     and one naming a row no filing holds would fail later as a ``KeyError``.
+    ``whole_first`` is :func:`panel_keys`'s.
     """
-    held, wanted = {row.key for row in rows}, set(panel_keys(fund, filings_dir))
+    wanted = set(panel_keys(fund, filings_dir, whole_first=whole_first))
+    held = {row.key for row in rows}
     if held != wanted:
         stray, absent = sorted(held - wanted), sorted(wanted - held)
         raise PanelRefused(
@@ -205,6 +228,16 @@ def alpha_vantage_symbol(ticker: str) -> str:
 # --- Members and the links between filings -----------------------------------
 
 
+def listed(fund: Fund) -> tuple[Filing, ...]:
+    """The fund's filings that hold a full schedule, in order.
+
+    A filing the list skips has no holdings file. IVV's 2013-09-30 shareholder
+    report prints only a summary, so every step here passes over it, and the
+    filing before it links straight to the filing after.
+    """
+    return tuple(filing for filing in fund.filings if not filing.skipped)
+
+
 def numbered_members(
     fund: Fund, report_date: str, filings_dir: Path | None = None
 ) -> list[tuple[int, Holding]]:
@@ -224,7 +257,7 @@ def numbered_members(
 
 def previous_rows(fund: Fund, filings_dir: Path | None = None) -> dict[Key, Key]:
     """Each member linked to the filing before, mapped to the row it links to."""
-    dates = [filing.report_date for filing in fund.filings]
+    dates = [filing.report_date for filing in listed(fund)]
     numbered = {date: numbered_members(fund, date, filings_dir) for date in dates}
     links: dict[Key, Key] = {}
     for earlier, later in zip(dates, dates[1:], strict=False):
@@ -237,19 +270,23 @@ def previous_rows(fund: Fund, filings_dir: Path | None = None) -> dict[Key, Key]
     return links
 
 
-def panel_keys(fund: Fund, filings_dir: Path | None = None) -> list[Key]:
+def panel_keys(
+    fund: Fund, filings_dir: Path | None = None, *, whole_first: bool = False
+) -> list[Key]:
     """Every row a members file holds.
 
     Each member of every filing after the first, and each member of the first
     that links to one in the second, since its close is what ranks that member
-    at the second year-end.
+    at the second year-end. A panel whose first filing also sets months it
+    trades in passes ``whole_first``, and then every member of the first is a
+    row too. IVV's 2008-12-31 schedule sets December 2008 to February 2009.
     """
-    dates = [filing.report_date for filing in fund.filings]
+    dates = [filing.report_date for filing in listed(fund)]
     linked_into = set(previous_rows(fund, filings_dir).values())
     keys = [
         (dates[0], row)
         for row, _ in numbered_members(fund, dates[0], filings_dir)
-        if (dates[0], row) in linked_into
+        if whole_first or (dates[0], row) in linked_into
     ]
     for date in dates[1:]:
         keys.extend((date, row) for row, _ in numbered_members(fund, date, filings_dir))
@@ -257,7 +294,11 @@ def panel_keys(fund: Fund, filings_dir: Path | None = None) -> list[Key]:
 
 
 def carry_back(
-    fund: Fund, resolved: Mapping[Key, MemberRow], filings_dir: Path | None = None
+    fund: Fund,
+    resolved: Mapping[Key, MemberRow],
+    filings_dir: Path | None = None,
+    *,
+    whole_first: bool = False,
 ) -> list[MemberRow]:
     """Every row of the panel, each resolved row as given and the rest carried along links.
 
@@ -265,9 +306,9 @@ def carry_back(
     next filing that links to it, with source ``link``, walking forward until
     a resolved row is met. A row reaching no resolution is unmapped. A
     resolution for a row outside the panel is refused, because it would be a
-    mapping nothing reads.
+    mapping nothing reads. ``whole_first`` is :func:`panel_keys`'s.
     """
-    keys = panel_keys(fund, filings_dir)
+    keys = panel_keys(fund, filings_dir, whole_first=whole_first)
     outside = sorted(set(resolved) - set(keys))
     if outside:
         raise PanelRefused(f"a resolution names {outside[0]}, which is not a row of the panel")
@@ -316,6 +357,8 @@ def check_members(
     closes: pd.DataFrame,
     calendar: pd.DatetimeIndex,
     filings_dir: Path | None = None,
+    *,
+    exit_on: Callable[[pd.DatetimeIndex, str], pd.Timestamp] = exit_date,
 ) -> list[MemberRow]:
     """Each row with its check, gap and exit computed from raw closes.
 
@@ -325,19 +368,24 @@ def check_members(
     within half the filing's value unit of the filing's value, plus half a
     share at that close where the form prints whole shares.
 
+    ``exit_on`` gives the day whose close a passing row's ``exit`` asks about,
+    from the calendar and the report date. It defaults to :func:`exit_date`,
+    the January a year-end panel sells in. A panel that holds for a month
+    passes its own.
+
     Two members passing on one ticker at one year-end is refused, naming both,
     because one series cannot be two companies' prices. Two failing on one
     ticker stand, since that is a reused ticker caught by the check.
     """
     holdings = {
         filing.report_date: dict(numbered_members(fund, filing.report_date, filings_dir))
-        for filing in fund.filings
+        for filing in listed(fund)
     }
-    forms = {filing.report_date: filing.form for filing in fund.filings}
+    forms = {filing.report_date: filing.form for filing in listed(fund)}
     checked = []
     for row in rows:
         holding = holdings[row.report_date][row.row]
-        checked.append(_check_one(row, holding, forms[row.report_date], closes, calendar))
+        checked.append(_check_one(row, holding, forms[row.report_date], closes, calendar, exit_on))
     passing: dict[tuple[str, str], MemberRow] = {}
     for row in checked:
         if row.check != "pass":
@@ -352,7 +400,12 @@ def check_members(
 
 
 def _check_one(
-    row: MemberRow, holding: Holding, form: str, closes: pd.DataFrame, calendar: pd.DatetimeIndex
+    row: MemberRow,
+    holding: Holding,
+    form: str,
+    closes: pd.DataFrame,
+    calendar: pd.DatetimeIndex,
+    exit_on: Callable[[pd.DatetimeIndex, str], pd.Timestamp],
 ) -> MemberRow:
     blank = replace(row, check="", gap="", exit="")
     if not row.ticker:
@@ -376,7 +429,7 @@ def _check_one(
     if abs(price * shares - value) > HALF_UNIT[form] + price * HALF_SHARE[form]:
         gap = ((price - value / shares) * 100).quantize(Decimal("0.01"))
         return replace(blank, check="price", gap=str(gap))
-    after = series.get(exit_date(calendar, row.report_date))
+    after = series.get(exit_on(calendar, row.report_date))
     held = after is not None and not pd.isna(after)
     return replace(blank, check="pass", exit="close" if held else "stop")
 
@@ -417,7 +470,7 @@ def coverage(
     by_key = {row.key: row for row in rows}
     previous = previous_rows(fund, filings_dir)
     report = []
-    for filing in fund.filings[1:]:
+    for filing in listed(fund)[1:]:
         date = filing.report_date
         mine = [row for row in rows if row.report_date == date]
         misses: Counter[str] = Counter()

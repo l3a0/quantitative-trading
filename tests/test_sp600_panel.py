@@ -158,7 +158,7 @@ class TestTheManifestLines:
         lines = [
             line
             for line in (archive._manifest_path(None)).read_bytes().split(b"\n")
-            if b'"cross_section"' in line
+            if line.strip() and json.loads(line).get("cross_section") == "sp600"
         ]
         theirs = [line for line in lines if json.loads(line)["symbol"] in current]
         mine = [line for line in lines if json.loads(line)["symbol"] not in current]

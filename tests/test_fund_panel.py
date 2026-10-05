@@ -20,6 +20,8 @@ from chan import fund_holdings
 from chan.fund_holdings import Filing, Fund, Holding, NotStock
 from chan.fund_panel import (
     COLUMNS,
+    HALF_SHARE,
+    HALF_UNIT,
     MemberRow,
     PanelRefused,
     alpha_vantage_symbol,
@@ -27,6 +29,7 @@ from chan.fund_panel import (
     check_members,
     coverage,
     exit_date,
+    listed,
     numbered_members,
     panel_keys,
     previous_rows,
@@ -487,3 +490,76 @@ class TestTheRecord:
         path.write_text(",".join(COLUMNS) + "\n" + line + "\n" + line + "\n")
         with pytest.raises(PanelRefused, match="more than once"):
             read_members(path)
+
+
+class TestASkippedFiling:
+    """IVV's 2013-09-30 report prints only a summary, so its list skips the date."""
+
+    @pytest.fixture
+    def with_a_gap(self, tmp_path: Path) -> Fund:
+        gap = Filing("2009-06-30", "N-CSRS", "a-g", "2009-08-28", "d.htm", skipped="a summary")
+        fund = _fund(
+            tmp_path,
+            {
+                FIRST: [Holding("Alpha Inc", "100", "1000")],
+                SECOND: [Holding("Alpha Inc", "100", "1200")],
+            },
+        )
+        return replace(fund, filings=(FIRST, gap, SECOND))
+
+    def test_listed_leaves_it_out(self, with_a_gap: Fund) -> None:
+        assert [filing.report_date for filing in listed(with_a_gap)] == [
+            "2008-12-31",
+            "2009-12-31",
+        ]
+
+    def test_the_filing_before_it_links_to_the_filing_after(
+        self, with_a_gap: Fund, tmp_path: Path
+    ) -> None:
+        assert previous_rows(with_a_gap, tmp_path) == {("2009-12-31", 1): ("2008-12-31", 1)}
+        assert panel_keys(with_a_gap, tmp_path) == [("2008-12-31", 1), ("2009-12-31", 1)]
+
+    def test_the_check_and_coverage_pass_over_it(self, with_a_gap: Fund, tmp_path: Path) -> None:
+        rows = [
+            MemberRow("2008-12-31", 1, "ALP", "link"),
+            MemberRow("2009-12-31", 1, "ALP", "hand"),
+        ]
+        closes = _closes(ALP={"2008-12-31": 10.0, "2009-12-31": 12.0, "2010-01-29": 12.0})
+        checked = check_members(with_a_gap, rows, closes, CALENDAR, tmp_path)
+        assert [row.check for row in checked] == ["pass", "pass"]
+        (year,) = coverage(with_a_gap, checked, tmp_path)
+        assert (year.report_date, year.covered) == ("2009-12-31", 1)
+
+
+class TestTheExitDay:
+    def test_a_panel_can_name_its_own_exit_day(self, tmp_path: Path) -> None:
+        fund = _fund(tmp_path, {FIRST: [Holding("Alpha Inc", "100", "1000")]})
+        row = MemberRow("2008-12-31", 1, "ALP", "hand")
+        closes = _closes(ALP={"2008-12-31": 10.0, "2009-01-30": 9.0})
+        assert _one(fund, tmp_path, row, closes).exit == "close"
+        checked = check_members(
+            fund,
+            [row],
+            closes,
+            CALENDAR,
+            tmp_path,
+            exit_on=lambda days, d: pd.Timestamp("2009-03-31"),
+        )
+        assert checked[0].exit == "stop"
+
+
+class TestEveryFormHasAnAllowance:
+    @pytest.mark.parametrize("fund", list(fund_holdings.FUNDS.values()), ids=lambda f: f.symbol)
+    def test_every_form_a_funds_list_names_has_a_value_and_a_share_allowance(
+        self, fund: Fund
+    ) -> None:
+        forms = {filing.form for filing in listed(fund)}
+        assert forms <= set(HALF_UNIT) and forms <= set(HALF_SHARE)
+
+    @pytest.mark.parametrize("form", ["N-Q", "N-CSR", "N-CSRS", "NPORT-EX"])
+    def test_an_html_schedule_prints_whole_dollars_and_whole_shares(self, form: str) -> None:
+        assert (HALF_UNIT[form], HALF_SHARE[form]) == (Decimal("0.5"), Decimal("0.5"))
+
+    @pytest.mark.parametrize("form", ["NPORT-P", "NPORT-P/A"])
+    def test_an_nport_prints_cents_and_fractional_shares(self, form: str) -> None:
+        assert (HALF_UNIT[form], HALF_SHARE[form]) == (Decimal("0.005"), Decimal(0))

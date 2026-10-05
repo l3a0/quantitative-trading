@@ -677,7 +677,14 @@ IVV's. Beside IJR's, `research/filings/ijr/members.csv` maps each member to the
 ticker Alpha Vantage files it under and records whether that series' close
 agrees with the filing, which
 [issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built and
-[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. One replication
+[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins.
+`research/filings/ivv/members.csv` does the same for IVV's quarter-ends, and the
+report counts which members Example 7.7 can rank at each month-end from
+December 2008 to August 2026, which
+[issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
+[tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
+between 346 and 501 of the 499 to 507 members a month-end holds, the fewest in
+November 2013. One replication
 reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing.
 
@@ -1017,6 +1024,22 @@ many the panel covers, the January stops, the misses by reason, and how many
 missing members could change a tenth of Example 7.6's ranking. A line per
 missing member follows, giving its reason and marking those that threaten a
 tenth. `check` with no archive prints the archive's own one-line refusal.
+
+The S&P 500 panel does the same for IVV's quarter-end members, into the
+`sp500` cross-section, and its `fetch` hands IVV itself on too:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp500_panel fetch'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp500_panel check
+uv run python -m chan.sp500_panel report
+```
+
+Its report prints one line per month-end from December 2008 to August 2026,
+each carrying the schedule that sets the month, its members, how many the
+panel covers, the stops, and the misses by reason. A line per missing member
+follows with its reason. `check` also writes `research/filings/ivv/holes.csv`,
+which names every month-end a series' span covers with no row on it, so the
+report can run with no archive.
 
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any
