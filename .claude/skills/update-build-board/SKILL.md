@@ -39,8 +39,9 @@ that hits one and leaves has made the board wrong, and nothing else notices.
 3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
    flag is one of three things a card needs before it moves from waiting on a
    reviewer to waiting on the owner, which is the column the owner reads first.
-   The other two are green checks at the current head and no `WORKING` entry on
-   the card. The page's `owed` reads all three, in that order.
+   The other two are no `WORKING` entry on the card and green checks at the
+   current head. The page's `owed` reads all three, in that order, and the flow
+   note gives the first one a card still owes as its reason.
 4. **An issue is filed or closed.** That moves `TRACKER` and
    `STATE.issues.open`, and it is worth an update on its own. A filed issue's
    card stays off the board's default view until it has a `NEXT` entry, so
@@ -83,7 +84,15 @@ The price of keeping an entry until the hand-over is named rather than hidden.
 A session that ends without taking its entry out leaves its card under "Waiting
 on my review" until somebody removes it. That fails safe, because it delays a
 merge rather than inviting one too early. Defect 17 is the measurement that
-chose this side of the trade.
+chose this side of the trade. If the pull request then merges or closes while
+its issue stays open, the leftover entry sends the card to "Building" with a
+line saying no branch exists yet, which is the same stale entry showing in a
+different column.
+
+Any entry holds the card, whatever its `kind`. A decompose loop running on a
+card whose pull request is open also keeps it under "Waiting on my review",
+which is the owner's rule as given rather than a measured case, and the note's
+reason says a session is working on it rather than naming whose.
 
 Whoever adds an entry sets its `kind`, because that field decides whether the
 card keeps its plan marker. A build session writes `build` and a decompose loop
@@ -445,11 +454,15 @@ o.push("STRIP: "+s(store.strip.innerHTML));
 store.flow.innerHTML.split('<div class="col f-').slice(1).forEach(function(c){
   var h=c.match(/<span class="t">([^<]+)<\/span><span class="c">(\d+)<\/span>/);
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
-  o.push("flow  "+h[1]+"="+h[2]+": "+(ids.join(" ")||"(empty)"));});
+  var d=c.match(/<span class="d">([^<]*)<\/span>/);
+  o.push("flow  "+h[1]+"="+h[2]+": "+(ids.join(" ")||"(empty)"));
+  o.push("  sub "+(d?d[1]:"(none)"));});
 store.board.innerHTML.split('<div class="col k').slice(1).forEach(function(c){
   var h=c.match(/<span class="t">([^<]+)<\/span><span class="c">(\d+)<\/span>/);
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
-  o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));});
+  var d=c.match(/<span class="d">([^<]*)<\/span>/);
+  o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));
+  o.push("  sub "+(d?d[1]:"(none)"));});
 o.push("FLOWNOTE: "+s(store.flownote.innerHTML));
 o.push("BOARDNOTE: "+s(store.boardnote.innerHTML));
 o.push("KEY: "+s(store.key.innerHTML));
@@ -495,6 +508,11 @@ version of this harness skipped `foot`, `key` and `flowkey`, and `foot` is the
 largest prose block on the page and the one holding the most hand-written
 numbers. Planting a false figure in it left the output byte-identical, so the
 check could not see the surface it was most needed on.
+
+The column subtitles were the same gap a second time. The harness printed each
+column's title and count and skipped the subtitle under them, so a change
+rewriting the "Waiting on" subtitles for defect 17 could have been reverted
+without the output moving. Each column now prints a `sub` line under it.
 
 **Much of the page is dark when `PRS` and `WORKING` are empty**, which is the
 state it is in between batches and every time a session opens the first branch
@@ -674,8 +692,9 @@ the script beside it. Each row after them says how it was found.
     column and added a clause to the note saying its checks had not settled,
     which is the note working around a wrong test rather than the test being
     fixed, and it put the rule in a second place. That is defect 5 again. One
-    `handedOver` now decides it, the card stays on the reviewer's side until
-    both halves are done, and the note went back to one sentence.
+    `handedOver` came to decide it, the card stayed on the reviewer's side until
+    both halves were done, and the note went back to one sentence. Defect 17
+    later added a third condition.
 
     Three states stay on the reviewer's side and the third is the one to
     remember: a check still running, a check that failed, and no checks reported

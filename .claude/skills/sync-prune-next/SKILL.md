@@ -148,7 +148,8 @@ only names what a round usually changes.
 - `WORKING` entries are owed a removal by whoever added them, so report a stale
   one rather than deleting another session's entry. A build session keeps its
   entry until it hands its pull request over, so an entry on a card with an
-  open pull request is a branch still moving rather than a stale entry.
+  open pull request keeps that card out of the owner's queue whatever its
+  `kind`. Ask whoever added it before calling it stale.
 
 Nothing in a round waits on a suite run. The board stopped carrying the commit,
 the test count and the vintage counts on 2026-10-05 UTC, so every section is
