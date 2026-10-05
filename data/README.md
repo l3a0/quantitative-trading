@@ -664,9 +664,11 @@ Trading*, that his Example 7.2 reads.
 that example.
 [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) and
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) reproduce
-Examples 6.2 and 4.1 on the price file alone, and
+Examples 6.2 and 4.1 on the price file alone,
 [issue 296](https://github.com/l3a0/quantitative-trading/issues/296) reads its
-opens and closes for Examples 4.3 and 4.4.
+opens and closes for Examples 4.3 and 4.4, and
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343) reads its
+closes against the ETF file's SPY for Example 4.2.
 `inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held it on
 2012-04-24, with the same five fields per stock as the first two
 directories. `earnannfile/` holds his earnings-announcement flags for the same
@@ -675,7 +677,10 @@ holds only the companies still in the index on its date, so a figure computed
 from it is a figure about survivors.
 [`chan.cross_sectional_momentum`](../src/chan/cross_sectional_momentum.py) reads
 the price file's closes for Example 6.2, for
-[issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and
+[`chan.index_arbitrage`](../src/chan/index_arbitrage.py) reads them for
+Example 4.2, for
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) carries the
 measurements below.
 
@@ -699,6 +704,8 @@ measurements below.
    `indexArb.m` load the same name. Example 4.4's run lands on the six
    decimals its script printed, which
    [issue 296](https://github.com/l3a0/quantitative-trading/issues/296)
+   measured, and so does Example 4.2's, which
+   [issue 343](https://github.com/l3a0/quantitative-trading/issues/343)
    measured.
 
    ```text
@@ -731,7 +738,10 @@ measurements below.
    Examples 4.3 and 4.4 trade. One of them, CAH on 2009-09-02, reads as a data
    error or a corporate action rather than a crash, and
    `chan.khandani_lo_book_two`'s docstring says why that run computes across
-   them. They are pinned beside the others in
+   them. Example 4.2 reads across all 30 too, ETFC's 2007-11-12 in its 2007
+   training window and 29 in its 2008 to 2012 test, and
+   [issue 343](https://github.com/l3a0/quantitative-trading/issues/343)
+   decided to guard only its SPY leg. They are pinned beside the others in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **The size budget is raised.** The two directories hold 32.01 MB, which
    takes `data/` from 74.41 MB to 106.86 MB of file content. The owner decided
@@ -753,7 +763,7 @@ series, and the zip is the only free copy of them.
   stationarity tests on USD.CAD run those examples, and they are the first run
   here to read any of the seven.
 - The daily closes of USD.CAD, AUD.USD and AUD.CAD, which Examples 5.1 and 5.2
-  read.
+  read. Example 5.1 runs here, on the first two.
 - The monthly AUD and CAD interest rates, which Example 5.2 reads for its
   rollover interest.
 - The AUD.CAD returns Example 5.1 saved, which Chapter 8's Monte Carlo
@@ -861,14 +871,20 @@ the measurements below.
 8. **Three things cannot be checked here.**
    1. Whether the four currency files equal the `.mat` files Chan's MATLAB
       loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
-      Neither mirror holds any of them. The minute file has indirect evidence
-      instead. Four statistics computed from its 16:59 closes land every digit
-      `stationarityTests.m` prints for Examples 2.1, 2.3 and 2.4, which
-      Entry 22 of the [replication log](../docs/replication-log.md) records
-      and [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-      pins. Example 5.1 run as the MATLAB runs it can be compared with
-      `AUDCAD_unequal_ret.mat`, which is that MATLAB's own output, and that
-      belongs to Example 5.1's experiment.
+      Neither mirror holds any of them, so three have indirect evidence
+      instead and the AUD.CAD file has none. Example 5.1 run as the MATLAB
+      runs it, on the AUD.USD and USD.CAD daily files, returns all 612 of the
+      returns `AUDCAD_unequal_ret.mat` saved, within the 1e-9 declared before
+      any was computed. So those two files agree with the MATLAB's inputs up to
+      a constant scale on each leg, which no return can see. That is Entry 25
+      of the
+      [replication log](../docs/replication-log.md), which
+      [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py)
+      pins. The minute file's evidence is four statistics computed from its
+      16:59 closes, which land every digit `stationarityTests.m` prints for
+      Examples 2.1, 2.3 and 2.4, as Entry 22 records and
+      [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
+      pins.
    2. Who supplied the bars, and whether a bar's label is its first minute or
       its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
       and nothing in the files says more.
@@ -899,7 +915,11 @@ near delivery. His Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL
 strip named for 2012-08-13 to trade the gap between two crude contracts
 delivering 12 months apart. Two unnumbered experiments read the TU and VX
 strips. `VX_ES_rollreturn.m` also reads the VX strip, and `GLD_GC.m` reads the
-gold series. No replication reads any of them yet.
+gold series. Example 5.3 is the first replication to read any of them, five of
+the seven its script names, BR, C2, CL, HG and TU, through
+`chan.roll_returns`, for
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). It
+leaves out VX and HO2, for which the book prints no figure there.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 
@@ -1020,7 +1040,12 @@ the first run to read it, GLD and USO alone, under
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
 `chan.etf_cointegration`, for
-[issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
+[issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
+Example 4.2 reads SPY through `chan.index_arbitrage`, for
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
+Example 3.2 reads GLD and USO through `chan.bollinger`, which reuses Example
+3.1's reader, for
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
@@ -1444,9 +1469,10 @@ these files are committed as the zip shipped them, so no header of this
 repo's can be added to them. Every check that reads their dates knows each
 file's layout from the pin in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
-`load_close` reads the daily files like any other, and refuses the minute
+`chan.series.load_port_close` reads the daily files, and refuses the minute
 file, whose second column is a time. `chan.series.load_minute_close` reads
-that one.
+that one, and `chan.series.load_returns` reads the return file, which holds no
+dates.
 
 ## Verifying the bytes
 

@@ -111,6 +111,13 @@ comments of `PriceSpread.m`, `LogPriceSpread.m` and `Ratio.m` and nowhere in
 the book. The book's 10.9 percent is not its script's 0.108335 rounded. The
 replication log's Entry 21 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 3.2 splits the same way, and here the book's
+figures are its script's rounded. Location 1559 prints "APR = 17.8 percent,
+and Sharpe ratio of 0.96" and calls the result "quite an improvement" on the
+linear rule. The six-decimal figures, 0.178249 and 0.964673, sit in the
+closing comment of `bollinger.m` and nowhere in the book. The replication
+log's Entry 26 traces each to one or the other.
+
 *Algorithmic Trading*'s Examples 2.6 to 2.8 split the same way as its
 Example 7.2. The book's four figures are here: the CADF statistic of "about
 –3.64" at location 1292, the half-life of 23 days at 1347, and the APR of 12.6
@@ -120,6 +127,32 @@ figures `cointegrationTests.m` prints sit in its comments and nowhere in the
 book: −3.64346635, every Johansen statistic, critical value, eigenvalue and
 eigenvector, the half-life of 22.662578, and 0.125739 and 1.391310. The
 replication log's Entry 23 traces each to one or the other.
+
+*Algorithmic Trading*'s Example 4.2 splits the same way. The book's 98
+stocks, its APR of 4.5 percent and Sharpe ratio of 1.3, and its claims of
+cointegration "with better than 95 percent probability" and of two
+cointegrating relations are here, at location 2035. The figures `indexArb.m`
+prints sit in its comments and nowhere in the book: every Johansen statistic
+and critical value for the basket against SPY, its eigenvectors, and 0.044930
+and 1.319397. The replication log's Entry 24 traces each to one or the other.
+
+*Algorithmic Trading*'s Example 5.1 splits the same way. The book's figures
+are here, at location 2237: the APR of 11 percent, the Sharpe ratio of 1.6, and
+the window from December 18, 2009, to April 26, 2012. The figures
+`AUDCAD_unequal.m` prints, 0.112410, 1.610890 and a Kelly leverage of
+23.845328, sit in its comments and nowhere in the book. The replication log's
+Entry 25 traces each to one or the other.
+
+*Algorithmic Trading*'s Example 5.3 splits a third way, because its script
+records no figure. The book's are here: the whole of Table 5.1 in the
+recovered text of location 2399, with the corn row repeated at 2444, and
+Figure 5.5's first day, November 22, 2004, in the same passage. The claims at
+2399 and 2683 about which roll returns outweigh their spot returns are here
+too. `estimateFuturesReturns.m` prints its two figures and keeps neither in
+its comments. Chan's 2018 Python port of it does, for corn alone:
+`0.02805562210100287` and `-0.12775650227459556` sit in its comments and
+nowhere in the book. The replication log's Entry 27 traces each to one or the
+other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216

@@ -19,10 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22 and 23 carry their own, three, eleven, twelve, five, six, one, three, eight,
-six, two, eight, seven, twelve, six, two, five, three, three, three, seven and
-six,
-and they are listed in those entries rather than here, because the list is about an entry's rows and not
+22, 23, 24, 25, 26 and 27 carry their own, three, eleven, twelve, five, six,
+one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
+three, three, seven, six, seven, three, four and five, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -32,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22 and 23 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26 and 27 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -194,6 +193,30 @@ says.
   - [The verdicts](#the-verdicts-21)
   - [What the entry concludes](#what-the-entry-concludes-22)
   - [What this entry cannot say](#what-this-entry-cannot-say-20)
+- [Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*](#entry-24-spy-against-its-component-stocks-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-21)
+  - [What this repo computed](#what-this-repo-computed-23)
+  - [The verdicts](#the-verdicts-22)
+  - [What the entry concludes](#what-the-entry-concludes-23)
+  - [What this entry cannot say](#what-this-entry-cannot-say-21)
+- [Entry 25: AUD.USD against CAD.USD, Chan's *Algorithmic Trading*](#entry-25-audusd-against-cadusd-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-22)
+  - [What this repo computed](#what-this-repo-computed-24)
+  - [The verdicts](#the-verdicts-23)
+  - [What the entry concludes](#what-the-entry-concludes-24)
+  - [What this entry cannot say](#what-this-entry-cannot-say-22)
+- [Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*](#entry-26-bollinger-bands-on-gld-and-uso-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-23)
+  - [What this repo computed](#what-this-repo-computed-25)
+  - [The verdicts](#the-verdicts-24)
+  - [What the entry concludes](#what-the-entry-concludes-25)
+  - [What this entry cannot say](#what-this-entry-cannot-say-23)
+- [Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*](#entry-27-spot-and-roll-returns-of-five-futures-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-24)
+  - [What this repo computed](#what-this-repo-computed-26)
+  - [The verdicts](#the-verdicts-25)
+  - [What the entry concludes](#what-the-entry-concludes-26)
+  - [What this entry cannot say](#what-this-entry-cannot-say-24)
 
 ## How to read an entry
 
@@ -236,9 +259,15 @@ both.
    Entry 20, [tests/test_price_spread.py](../tests/test_price_spread.py)
    holds Entry 21,
    [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-   holds Entry 22, and
+   holds Entry 22,
    [tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) holds
-   Entry 23.
+   Entry 23,
+   [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py) holds
+   Entry 24,
+   [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py) holds
+   Entry 25, [tests/test_bollinger.py](../tests/test_bollinger.py) holds
+   Entry 26, and [tests/test_roll_returns.py](../tests/test_roll_returns.py)
+   holds Entry 27.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -351,7 +380,17 @@ rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
-and Entry 23's rows 15 to 20.
+Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
+Entry 26's rows 4 to 7, and Entry 27's rows 15 to 18.
+
+Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
+the run's 612 returns equal the ones Chan's script saved, which no source
+prints, so it carries no verdict of its own. Chan's saved returns give all
+three of his printed figures, so rows 2 to 4 cite row 5 as their evidence. Its
+criterion, a largest difference of at most 1e-9 on every row, was written on
+[issue 345](https://github.com/l3a0/quantitative-trading/issues/345) before any
+return was computed, because a tolerance chosen after the comparison could be
+set to pass it.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -453,6 +492,36 @@ was written on
 the statistics were measured. The script had printed both the statistics and
 the bars in 2012, so the criterion reads Chan's own table rather than choosing
 a line, and no figure computed here could move a verdict.
+
+Entry 24's rows 5 and 6 take it as well, each a claim about the basket the
+example builds against SPY, and they are the exception Entry 23's rows are.
+Their criteria, each test's statistic past its 95 percent value and each
+test's count of relations at 95 percent, were written on
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343) after
+the issue had read the statistics from the script's printout, though before
+any was computed here. Location 2035 names neither test, so the criteria read
+each separately, and each row carries one of the three verdicts per test
+rather than a fourth value. The criteria read Chan's own table, so no figure
+computed here could move a verdict.
+
+Entry 26's row 3 takes it as well, and like Entry 21's rows 7 and 8 its
+criterion was written on
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341) after a
+first transcription ran. Location 1559 calls the band "quite an improvement"
+on the linear rule, and the criterion reads that as both figures the book
+prints above Entry 21's on the same spread, with no margin. Choosing no margin
+was a reading made after the run. The band leads by +0.069915 on the APR and
++0.375022 on the Sharpe ratio, so any margin a reader would put on "quite"
+passes too.
+
+Entry 27's rows 13 and 14 take it too, each a claim about futures the book
+names, and like Entry 13's row 10 their criteria were written after the
+figures they judge were measured. The criteria, |γ| at least twice |α| for
+"much larger" and |γ| above |α| for "bigger", were written on
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347) after a
+scratch run had measured the figures, though before the build. The
+narrowest case clears the first by a factor of two, so the verdict does not
+rest on where that line sits.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -4504,7 +4573,7 @@ scripts' figures and prints no number for the ratio.
 | 8 | none, a claim | reproduced | The log price spread's APR and Sharpe ratio are both below the price spread's. The criterion was written after the first run, as row 7's was, and reads "lower" on both figures the sentence names. |
 | 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. The other two, keeping the first 20 days and Chan's Python port, match neither figure, which `TestTheRatio::test_keeping_the_first_20_days_matches_neither_figure` and `::test_chans_python_port_matches_neither_figure` hold. It lands both of the comment's figures to six digits. The two come from one return series, so they are not independent matches, but a coincidence would still have to land two different summaries of it. |
 | 10 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and a position earns from the next close, so every run holds its first position into 2006-06-22. |
-| 11 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN, and a zero pad holds zero gross dollars there, so the return is 0/0, and either NaN is set to 0. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
+| 11 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN. A zero pad divides by a price of 0, so the first row's profit is NaN over zero gross dollars, and either NaN is set to 0. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
 
 ### What the entry concludes
 
@@ -4530,6 +4599,7 @@ Three things.
    z-score with a fixed threshold, where no constant cancels, so
    [issue 341](https://github.com/l3a0/quantitative-trading/issues/341)
    cannot rely on this entry's figures to say which divisor its own need.
+   Entry 26 measures it, and there the divisor moves both figures.
 
 ### What this entry cannot say
 
@@ -4894,6 +4964,670 @@ none is in the script.
 **Whether another lag count changes the counts.** Every book-two script uses
 `k = 1`, and so does this entry. The relation counts in rows 6 and 9 are for
 that lag alone, and row 6's rests on a margin of 0.141.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 4.2, Kindle locations 2027 and 2035, and the
+script `indexArb.m` the example names. Shipped under
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343). Every
+example number and location in this entry is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Sixteen rows, all derivable from
+[tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py).
+
+Chan trades an index against the stocks inside it. He tests each stock in his
+2012 S&P 500 file against SPY over 2007 with the Johansen test, keeps the
+stocks that pass, and holds them with equal capital as one basket. A second
+Johansen test checks that the basket's log price cointegrates with SPY's, and
+its first eigenvector sets one dollar weight for every stock and another for
+SPY. From 2008 he trades that combination with the linear mean-reversion rule
+of Example 2.8, holding minus its 5-day z-score in dollars.
+
+**Every figure the script prints reproduces on Chan's own files, to every
+digit it prints, with his own signs on the eigenvectors.** The screen passes
+98 stocks, and the APR and Sharpe ratio land at 0.044930 and 1.319397. The
+prose claim that the basket cointegrates with SPY at better than 95 percent
+holds for the trace test and fails for the eigen test, which the script's
+own printout already shows.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdataohlcdaily_stocks_20120424/`, 497 members lifted
+   from Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25,
+   and `inputdata_etf/spy.csv`, lifted from `inputData_ETF.mat`, saved
+   2012-04-10. Both are read for the close through `chan.series.load_panel`,
+   and their 1,489 common days run from 2006-05-11 to 2012-04-09. The ETF file
+   adjusts for dividends by subtracting them in dollars, which
+   [data/README.md](../data/README.md) records. The second Johansen test runs
+   on log prices, where a subtracted dividend and a rescaled one differ, so
+   that property is part of the input this entry reproduces.
+2. **The specification.** `indexArb.m`, git blob `dcb079a`, at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
+   Training is 2007, 251 days, and the test is every later day, 1,076 of them.
+   The screen runs jplv7's `johansen(·, 0, 1)`, a constant and one lagged
+   difference, on each stock's close and SPY's, in prices. A stock is tested
+   only when more than 250 rows hold both, and it passes when the trace
+   statistic for r ≤ 0 is above its 90 percent value. The basket is the sum of
+   the passing stocks' log closes, tested against SPY's log close the same
+   way. The strategy holds each instrument's eigenvector weight times minus
+   the 5-day z-score in dollars, earns yesterday's dollars times today's
+   change in log price, and divides by yesterday's gross. The APR is
+   `prod(1 + r)^(252 / n) − 1` and the Sharpe ratio is `√252 · mean / std`
+   over all 1,076 test days, with no risk-free rate and no cost.
+   `chan.johansen.johansen` runs both tests.
+
+Every result here is **exploratory** and **survivor-only**. Reproducing
+Chan's figures spends the 2007 to 2012 sample on a rule he chose. The panel is
+the index as he held it on 2012-04-24, so the 2007 screen picks only from
+stocks that survived to 2012. The stocks and weights come from 2007 and trade
+from 2008, but location 2035 says the lookback of 5 was fixed "with the
+benefit of hindsight", so the APR and Sharpe ratio are not out-of-sample
+figures.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The test window | January 2, 2008, to April 9, 2012 | location 2035 |
+| 2 | Stocks passing the screen | 98 | script line 35, location 2035 |
+| 3 | Basket trace statistics, r ≤ 0 and r ≤ 1 | 15.869 and 6.197 | script lines 50 and 51 |
+| 4 | Basket eigen statistics | 9.671 and 6.197 | script lines 54 and 55 |
+| 5 | The basket cointegrates with SPY at better than 95 percent | a claim | location 2035 |
+| 6 | Two cointegrating relations | a claim | location 2035 |
+| 7 | The basket test's eigenvectors | 1.0939 and −0.2799 over −105.5600 and 56.0933 | script lines 61 and 62 |
+| 8 | The strategy's APR | 0.044930, "4.5 percent" | script line 83, location 2035 |
+| 9 | The strategy's Sharpe ratio | 1.319397, "1.3" | the same |
+| 10 | The stocks tested and skipped | none | n/a |
+| 11 | A plain ADF test of each 2007 log series | none | n/a |
+| 12 | The first day the strategy earns, and how many days it does | none | n/a |
+| 13 | The returns under a zero-padded `lag` | none | n/a |
+| 14 | The basket's stocks carrying a flagged scale-break day | none | n/a |
+| 15 | The screen's pass rate on random walks unrelated to SPY | none | n/a |
+| 16 | The trace test's rejection rate on two unrelated random walks | none | n/a |
+
+The critical values are pinned beside rows 3 and 4, at the three decimals
+the script prints. They come from statsmodels, which carries LeSage's tables.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | Every common day after 2007-12-31 | 2008-01-02 to 2012-04-09, 1,076 days | `TestRow1TheWindows::test_row_1_the_test_window_is_the_books` |
+| 2 | The screen over 2007 | 98 | `TestRow2TheScreen::test_row_2_98_stocks_pass` |
+| 3 | `johansen([basket, log SPY], 0, 1)` | 15.868648 and 6.197357 | `TestTheBasketTest::test_row_3_the_trace_statistics` |
+| 4 | The same | 9.671291 and 6.197357 | `TestTheBasketTest::test_row_4_the_eigen_statistics` |
+| 5 | Each test's r ≤ 0 statistic against its 95 percent value | the trace's 15.869 past 15.494 by 0.374, the eigen's 9.671 short of even 12.297 at 90 percent | `TestTheClaims::test_row_5_the_trace_rejects_r_le_0_at_95` and `::test_row_5_the_eigen_does_not_reject_r_le_0_even_at_90` |
+| 6 | Nulls rejected in order at 95 percent, up to the first that is not | 2 by the trace test and 0 by the eigen test | `TestTheClaims::test_row_6_the_trace_counts_two_relations_at_95` and `::test_row_6_the_eigen_counts_none_at_any_level` |
+| 7 | The same test as row 3 | 1.09386171 and −0.27989806 over −105.55999232 and 56.09328286 | `TestTheBasketTest::test_row_7_the_eigenvectors_are_chans_with_his_signs` |
+| 8 | A lookback of 5, the script's lines 70 to 77 | 0.0449298745 | `TestTheStrategy::test_row_8_the_apr` |
+| 9 | The same | 1.3193972970 | `TestTheStrategy::test_row_9_the_sharpe_ratio` |
+| 10 | The screen's rule on 497 stocks | 480 tested at a per-test 90 percent bar, 17 skipped | `TestRow2TheScreen::test_480_are_tested` and `::test_the_17_skipped_are_the_11_with_no_2007_close_and_6_listed_during_it` |
+| 11 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | −2.461086 for the basket and −2.381322 for SPY | `TestBesideTheReplication::test_neither_2007_log_series_rejects_a_unit_root_even_at_90` |
+| 12 | The first non-zero day of row 8's returns | 2008-01-09, the sixth test day, and 1,071 days from there on | `TestTheStrategy::test_the_first_return_is_on_the_sixth_test_row_and_every_later_day_has_one` |
+| 13 | LeSage's `lag`, which pads with zero, in place of `backshift` | the same returns to 10⁻¹⁵, and the same days at zero | `TestTheStrategy::test_zero_padding_the_lag_as_lesage_does_gives_the_same_series` |
+| 14 | `scale_breaks` on each of the 98 | CVH, MOS, PNC and STT, every flag in the test window | `TestTheScaleBreakDecision::test_four_of_the_baskets_stocks_carry_a_flag_all_in_the_test` |
+| 15 | The screen on 2,000 Gaussian random walks with no drift, seeded with 343, against SPY's 2007 closes | 561 pass, 28 percent, about 135 of 480 | `TestBesideTheReplication::test_the_screen_passes_561_of_2000_walks_unrelated_to_spy` |
+| 16 | `johansen(·, 0, 1)` on 2,000 pairs of such walks, seeded with 345 | r ≤ 0 rejected on 410 at the 90 percent value and 242 at the 95, about 20 and 12 percent | `TestBesideTheReplication::test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, dates | reproduced | Exact. |
+| 2 | 0 | reproduced | Exact. Chan's 98 are not named anywhere, so this run cannot say they are the same 98, only that the rule picks 98. |
+| 3 | 0.000 on each | reproduced | Exact. |
+| 4 | 0.000 on each | reproduced | Exact. |
+| 5 | none, a claim | reproduced by the trace test, did not reproduce by the eigen test | The trace statistic clears its 95 percent bar by 0.374. The eigen statistic falls short of even its 90 percent bar. Location 2035 names no statistic, so each is read on its own, as the criterion on the issue set out. |
+| 6 | none, a claim | reproduced by the trace test, did not reproduce by the eigen test | The trace test rejects r ≤ 0 and r ≤ 1 at 95 percent. The eigen test stops at r ≤ 0. What two relations between two series means is the subject of the third conclusion below. |
+| 7 | 0.0000 on each | reproduced | Exact at the four decimals printed, with Chan's signs. statsmodels makes the top-left element positive, and his 1.0939 already is. |
+| 8 | 0.000000, and 0.0 at the book's one decimal of a percent | reproduced | Exact. |
+| 9 | 0.000000, and 0.0 at the book's one decimal | reproduced | Exact. |
+| 10 | none | none, not a replication | Eleven stocks have no 2007 close and six listed during it. |
+| 11 | none | none, not a replication | Neither series rejects a unit root on its own, which is what row 6's reading turns on. |
+| 12 | none | none, not a replication | The moving deviation first fills on the fifth test day, so positions first earn on the sixth. |
+| 13 | none | none, not a replication | Under either pad the first five test days are not a number and become 0. |
+| 14 | none | none, not a replication | `indexArb.m` ran across these days as they stand, and the guard on SPY passes. |
+| 15 | none | none, not a replication | More walks pass than the 98 stocks do, so the screen's count does not by itself show cointegration. |
+| 16 | none | none, not a replication | The test with a constant rejects two to three times its nominal rate on walks with no drift, so a pass at either bar is weaker evidence than its label. |
+
+### What the entry concludes
+
+Four things.
+
+1. **The script reproduces on Chan's own files.** Every number `indexArb.m`
+   prints lands to its last digit, and the eigenvectors come back with his
+   signs, so the entry has nothing to say about the data. Rows 5 and 6 are
+   the exception, and the evidence against their eigen halves is the
+   printout that sits beside the example.
+2. **The screen's 98 is a count of tests passed, and no more than chance
+   gives.** The script tests 480 stocks at a per-test 90 percent bar, whose
+   nominal rate would put about 48 passes down to chance. The test does not
+   hold that rate. Row 16 shows the trace test with a constant rejecting about
+   20 percent of pairs of unrelated walks at its 90 percent value, and row 15
+   shows the screen passing 28 percent of such walks against SPY's own 2007
+   closes, about 135 of 480. The 98 stocks are fewer than that. Gaussian walks
+   with no drift are not stocks, so this does not say none of the 98
+   cointegrates with SPY. It says the count is no evidence that any does. No
+   false-discovery control is computed, because `coint_johansen` returns no
+   p-values to read.
+3. **The basket's two relations make the same claim Entry 23's pair did.**
+   Location 2035 reads two relations as a second portfolio Chan chose not to
+   use. A Johansen rank of 2 between two series says every combination is
+   stationary, including the basket and SPY each on its own around a
+   constant. Row 11 sits in tension with that. Neither rejects a unit root on
+   its own, at −2.46 and −2.38 against −2.57. A plain ADF over 251 days has
+   little power, so this is weak evidence rather than proof. The eigen test,
+   which finds no relation at all, does not support the full rank either, and
+   row 16 shows the trace test rejecting about 12 percent of unrelated pairs at
+   its 95 percent value, so row 5's trace pass is weaker than its label.
+4. **The 4.5 percent is in-sample on its lookback and survivor-only.** The
+   stocks and weights are fitted on 2007 and traded on 2008 to 2012, which
+   looks out-of-sample. Location 2035 says the lookback of 5 was chosen with
+   hindsight, so it was not, and the screen picks only from stocks that
+   survived to 2012. Nothing here measures how much either is worth.
+
+### What this entry cannot say
+
+Four things.
+
+**Which stocks cointegrate with SPY.** Conclusion 2 is why. Rows 15 and 16
+size the test on walks with no drift, which is enough to retire 48 and not
+enough to judge a stock. A screen with a false-discovery control, or one judged
+against a null built from real prices, is a search this repo would be running,
+so it needs a hypothesis written before its run, data it never loads, and its
+own issue.
+
+**Whether the strategy works with another lookback or with retraining.**
+Location 2035 suggests retraining the basket periodically. Each variant is a
+search too, for the same reason.
+
+**Anything about costs.** The rule rebalances 99 positions every day, and no
+cost is charged here, as none is in the script.
+
+**How much survivorship bias is worth.** No panel here holds the S&P 500's
+2007 members with the ones that later left, so the screen cannot be run on
+the index as it stood.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 25: AUD.USD against CAD.USD, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 5.1, Kindle locations 2186 to 2237, and the
+script `AUDCAD_unequal.m` the example names. Shipped under
+[issue 345](https://github.com/l3a0/quantitative-trading/issues/345). Every
+example number and location in this entry is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seven rows, all derivable from
+[tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py).
+
+Chan trades the Australian dollar against the Canadian dollar, two commodity
+currencies he expects to move together. Both are quoted against the US dollar,
+as AUD.USD and CAD.USD, so a point move in either is worth the same in
+dollars. That is why USD.CAD is inverted before the test. Each day the script runs the test on the 250 days before it, takes the first
+eigenvector as that day's hedge, and holds minus the portfolio's 20-day
+z-score in units of it. The return is the day's profit over the capital held
+the day before.
+
+**Every figure reproduces, because the run reproduces Chan's own saved returns
+on every one of the 612 days.** Chan's script saved the
+returns it traded, and that file is committed. The criterion for comparing
+them was written on the issue before any return was computed. So the match
+says the committed daily files agree with the inputs the MATLAB read, up to a
+constant scale on each leg, which
+[issue 301](https://github.com/l3a0/quantitative-trading/issues/301) could not
+check because the `.mat` files are in neither mirror.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `pythoncodesanddata/inputData_AUDUSD_20120426.csv` and
+   `pythoncodesanddata/inputData_USDCAD_20120426.csv`, from Chan's 2018 Python
+   port, saved 2018-12-12, 862 days from 2009-01-02 to 2012-04-26, as traded,
+   read through `chan.series.load_port_close`. Row 5 also reads
+   `pythoncodesanddata/AUDCAD_unequal_ret.csv`, the 612 returns the MATLAB
+   saved, saved 2018-12-26, through `chan.series.load_returns`.
+2. **The specification.** `AUDCAD_unequal.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `5b8fbc2`. The legs are AUD.USD and the inverse of USD.CAD. Each
+   day's hedge is the first eigenvector of jplv7's `johansen(·, 0, 1)`, a
+   constant and one lagged difference, on the 250 rows before the day, run by
+   `chan.johansen.johansen`. The units are minus the z-score of the portfolio
+   over the 20 rows ending on the day, with the n − 1 deviation. The return is
+   yesterday's positions times today's simple returns, summed, over yesterday's
+   gross. The figures are taken over the 612 days from 2009-12-18 on: the APR
+   is `prod(1 + r)^(252 / 612) − 1`, the Sharpe ratio is `√252 · mean / std`,
+   and the Kelly leverage is `mean / std²`, with no risk-free rate, no cost and
+   no rollover interest.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2009 to 2012 sample on a rule he chose, and location 2237 says the 250-day
+training length "gives better results in hindsight".
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The test window | 2009-12-18 to 2012-04-26, after the first 250 days | location 2237 |
+| 2 | Compounded APR | 0.112410, "11 percent" | script line 60, location 2237 |
+| 3 | Sharpe ratio | 1.610890, "1.6" | the same |
+| 4 | Kelly leverage, `mean / std²` | 23.845328 | script line 66 |
+| 5 | The 612 returns equal Chan's saved ones | `AUDCAD_unequal_ret.csv`, no printed figure | script line 69 |
+| 6 | How many training windows each Johansen statistic finds a relation in, at 95 percent | none | n/a |
+| 7 | The last day's hedge, with AUD.USD's weight scaled to 1 | none | n/a |
+
+Location 3342 gives a Kelly leverage of 18.4 for this strategy. Row 4 is the
+script's own 23.845328 instead, because neither the population variance nor
+the mean of squared returns takes the saved series to 18.4.
+[Issue 360](https://github.com/l3a0/quantitative-trading/issues/360) owns that
+figure.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | Rows 251 to 862 of the two daily files | 612 returns, 2009-12-18 to 2012-04-26 | `TestRow1TheTestWindow::test_612_returns_from_the_books_first_day_to_its_last` |
+| 2 | Over row 1's returns | 0.1124100634 | `TestRows2To4TheFigures::test_row_2_the_apr` |
+| 3 | The same | 1.6108902337 | `TestRows2To4TheFigures::test_row_3_the_sharpe_ratio` |
+| 4 | The same | 23.8453277641 | `TestRows2To4TheFigures::test_row_4_the_kelly_leverage` |
+| 5 | Each return against Chan's on the same row, criterion 1e-9 | no row over it | `TestRow5TheReturnsAreChans::test_every_row_agrees_within_the_declared_criterion` |
+| 6 | `Johansen.relations` on each of the 612 windows | the trace test in 26, two relations in 19 of them, and the eigen test in 11 | `TestBesideTheReplication::test_the_trace_test_finds_a_relation_in_26_of_612_windows` and `::test_the_eigen_test_finds_one_in_11` |
+| 7 | The eigenvector of 2012-04-26 over its first element, and that day's positions over the first | 1 unit of AUD.USD to −0.7796733233 of CAD.USD, and in dollars 1 to −0.7622442800 | `TestBesideTheReplication::test_the_last_days_hedge_holds_0_7797_of_cad_per_aud_short` |
+
+Row 5's largest difference is printed by the run rather than pinned, because
+it is rounding and moves with the platform. On the machine that built the
+entry it was 2.0e-15.
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, a window | reproduced | The first test day is row 251 of the files, 2009-12-18, and the last is their last, as location 2237 says. |
+| 2 | 0.000000, and 0 at the book's whole percent | reproduced | Row 5 holds, and Chan's saved returns give 0.112410 themselves. |
+| 3 | 0.000000, and 0.0 at the book's one decimal | reproduced | The same. |
+| 4 | 0.000000 | reproduced | The same. The n − 1 variance matters here: the population form gives 23.884354. |
+| 5 | none | none, not a replication | No source prints it. It is the evidence rows 2 to 4 cite, and it holds on every row. |
+| 6 | none | none, not a replication | The script trades every window whether or not either test finds a relation. |
+| 7 | none | none, not a replication | The weights count units, and a unit is worth its quote in dollars, so the split in capital is each weight times its quote. The strategy ended long AUD and short 0.7622 dollars of CAD for each dollar of AUD. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The committed currency files agree with the ones Chan's MATLAB read,
+   up to a constant scale on each leg.** The script loaded two minute `.mat`
+   files that neither mirror carries, and this run read the Python port's daily
+   copies. Every one of the 612 returns lands on the one Chan saved, inside the
+   1e-9 declared before the run, and the largest difference was 2.0e-15 where
+   the entry was built. Two things bound what that shows, and
+   `TestRow5TheReturnsAreChans` holds both.
+   1. Scaling either leg by a constant moves no return, because a simple
+      return ignores the scale and the eigenvector rescales to cancel it.
+   2. A change of 1e-6, one unit in the files' last decimal, on a close in
+      the test window breaks the match, because the close enters a simple
+      return directly. The same change on the first training row does not,
+      because that close reaches the returns only through the hedge.
+
+   So the match answers the question
+   [issue 301](https://github.com/l3a0/quantitative-trading/issues/301) left
+   open for these two files. It says nothing about the port's USD.CAD minute
+   file or its AUD.CAD file, which this script does not read.
+2. **The hedge was rarely one the Johansen test backed.** The trace test finds
+   a relation in 26 of the 612 training windows and the eigen test in 11. In
+   19 of those 26, the trace test finds two relations, which the test reads as
+   each currency being stationary on its own rather than the two sharing one.
+   That is a 95 percent rejection on overlapping windows of two rates close to
+   random walks, so it is weak evidence either way. So on nearly
+   every day the strategy traded an eigenvector of a pair the test did not call
+   cointegrated. Chan's rule never asks, and the figures are the rule's.
+3. **The Python port's version of this example is a different strategy.** It
+   ends the Johansen window and the z-score window a day earlier, and
+   [issue 301](https://github.com/l3a0/quantitative-trading/issues/301)
+   recorded that it prints a Sharpe ratio of 1.362926, which no test here
+   pins. Ending both windows a day earlier here leaves 611 of the 612 returns
+   over the criterion, every one but the first, which is 0 either way. Its
+   Sharpe ratio is 1.359568, not the port's 1.362926, so the port differs in
+   more than the windows and nothing here reproduces its printout.
+   `TestTheRule::test_ending_both_windows_a_day_earlier_breaks_row_5` holds
+   both. So the port's printout is no evidence about the data, and the MATLAB
+   is the specification.
+
+### What this entry cannot say
+
+Three things.
+
+**Anything about costs or rollover interest.** The rule trades every day, and
+no cost is charged, as none is in the script. Location 2205 sets rollover
+interest aside for this example as small for a short-term strategy, and
+nothing here measures how small.
+
+**Whether the 250-day training length was chosen on this sample.** Location
+2237 says it gives better results in hindsight. No row runs another length, and
+any that did would be searching the sample this entry already spent.
+
+**Whether the pair trades today.** The run ends on 2012-04-26 with Chan's
+data. It says whether his numbers reproduce on his files and nothing about the
+two currencies since.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 3.2, Kindle locations 1548 to 1559, and the
+script `bollinger.m` the example names. Shipped under
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341). The
+location numbers are that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seven rows, all derivable from
+[tests/test_bollinger.py](../tests/test_bollinger.py).
+
+**Both figures `bollinger.m` prints reproduce to six digits on Chan's own
+file, and the band beats Example 3.1's linear rule on both.** Entry 21's linear
+rule holds minus the spread's z-score in units of the pair every day, so it is
+always in the market. Example 3.2 trades the same GLD and USO price spread with
+a Bollinger band instead. It buys one unit when the z-score falls below −1,
+sells one short when it rises above 1, and holds either until the z-score
+crosses back through 0. On days with no signal it carries yesterday's units
+forward. Location 1559 reports an APR of 17.8 percent and a Sharpe ratio of
+0.96, "quite an improvement" on the linear rule.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** Entry 21's: `inputdata_etf/gld.csv` and
+   `inputdata_etf/uso.csv`, two of the 67 ETFs of Chan's `inputData_ETF.mat`,
+   saved 2012-04-10, read through `chan.series.load_panel`, 1,500 days from
+   2006-04-26 to 2012-04-09. The scale-break guard runs on both legs and
+   refuses nothing.
+2. **The specification.** `bollinger.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `6d80817`, the same blob as in ivanliu1989/algorithmic_trading at
+   `4567024`, with `fillMissingData.m` at `88632fc` in both. Everything up to
+   the units is Entry 21's price spread: the 20-row rolling hedge ratio, the
+   first 20 rows dropped, leaving 1,480 from 2006-05-24, and the 20-row
+   z-score from `movingAvg` and `movingStd`, MATLAB's n − 1 `std`. A long
+   enters below −1 and exits above 0, and a short enters above 1 and exits
+   below 0. Each side starts at 0 and `fillMissingData` carries its last value
+   over every row with no signal. One unit holds `[−h·GLD, USO]` dollars. The
+   return, the APR and the Sharpe ratio are Entry 21's, and no cost is
+   charged.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 to 2012 sample on a rule he chose, with a lookback Entry 21 records he
+tuned with "the benefit of hindsight", so the entry says whether his numbers
+reproduce on his file and nothing about whether the rule pays today.
+
+### What the book printed
+
+The script closes on a comment holding the six decimals its
+`fprintf('APR=%f Sharpe=%f')` prints, and location 1559 rounds both.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | APR | 0.178249, and "17.8 percent" | `bollinger.m`, location 1559 |
+| 2 | Sharpe ratio | 0.964673, and "0.96" | `bollinger.m`, location 1559 |
+| 3 | The band improves on the linear rule | "quite an improvement", a claim | location 1559 |
+| 4 to 7 | the divisor, the first position, the `lag` padding and the band at its edges | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `prod(1 + ret)^(252/1480) − 1` | 0.178249 | `TestTheFigures::test_the_apr_is_chans_0_178249` |
+| 2 | `√252 · mean(ret) / std(ret)` | 0.964673 | `TestTheFigures::test_the_sharpe_ratio_is_chans_0_964673` |
+| 3 | rows 1 and 2 against Entry 21's rows 1 and 2, 0.108335 and 0.589651 | both higher, by +0.069915 and +0.375022 | `TestTheClaim` |
+| 4 | rows 1 and 2 with `smartMovingStd`, which divides by n, in place of `movingStd` | 0.183306 and 0.984872, moved by +0.005057 and +0.020199 | `TestTheDivisor` |
+| 5 | the first day with units, and the first day a return is earned | 2006-06-21 and 2006-06-22 | `TestTheFigures::test_the_first_position_is_held_into_2006_06_22` |
+| 6 | the run with `lag` padding 0 rather than NaN | the same returns, exactly | `TestWhatMovesNothing` |
+| 7 | the units on synthetic arrays: a z-score of exactly −1 or 1, exactly 0, NaN, and a long turning short in one day | enters nothing, exits nothing, holds yesterday's units, and turns in one day | `TestBandUnits` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.000000 against the script, 0.0 against the book | reproduced | Chan's figure, on his own file, through his own script transcribed. The book's 17.8 percent is the script's figure rounded, unlike Entry 21's 10.9. |
+| 2 | 0.000000 against the script, 0.00 against the book | reproduced | The same as row 1. |
+| 3 | none, a claim | reproduced | The APR and the Sharpe ratio are both above the linear rule's on the same spread. The criterion was written on [issue 341](https://github.com/l3a0/quantitative-trading/issues/341) after a first transcription ran, as Entry 21's rows 7 and 8 were, and reads the sentence's comparison on the two figures the book prints. |
+| 4 | none | none, not a replication | `bollinger.m` calls `movingStd`, so n − 1 is the transcription. Entry 21's linear rule could not see the divisor, because a constant on every unit cancels out of profit over gross dollars. This rule compares the z-score with a fixed threshold, so the scale decides which days trade, and both figures move. |
+| 5 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and the band enters there, so the run holds its first position into 2006-06-22, the same days as Entry 21's row 10. |
+| 6 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN. A zero pad divides by a price of 0, so the first row's profit is NaN over zero gross dollars, and either NaN is set to 0. |
+| 7 | none | none, not a replication | No kept row of the real data has a z-score of exactly −1, 0 or 1, which `TestTheFigures::test_no_kept_row_sits_exactly_on_a_band` holds, so only synthetic arrays reach the edges of the band. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Example 3.2 reproduces exactly on Chan's own file.** Both figures the
+   script prints land to six digits, and the book's 17.8 percent and 0.96 are
+   those figures rounded.
+2. **The band beats the linear rule on this sample, by both measures the book
+   names.** The APR rises from 0.108335 to 0.178249 and the Sharpe ratio from
+   0.589651 to 0.964673. The two rules trade the same spread with the same
+   lookback, so the difference is the rule alone. Both share a lookback
+   tuned on this sample, so the comparison is between two in-sample figures.
+3. **The divisor of the moving deviation matters here, where it did not for
+   Entry 21.** Dividing by n rather than n − 1 shrinks the deviation, so the
+   z-score is larger and sits beyond ±1 on more days. The APR moves by
+   +0.005057 and the Sharpe ratio by +0.020199, so the book's 17.8 percent
+   and 0.96 would read 18.3 and 0.98. This answers the question Entry 21's
+   third conclusion left open: a rule with a fixed threshold needs the
+   divisor its script used, and a port reaching for `smartMovingStd` would
+   miss.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the reversion is real.** Entry 21's "What this entry cannot say"
+holds unchanged, because this run trades the same spread. GLD and USO do not
+cointegrate on this file, and the 20-day hedge ratio changes sign.
+
+**What costs would take.** No script charges any. The band's units change on
+162 of the 1,480 days, which `TestTheSpecification` holds, against every day
+for the linear rule. That understates how often the band trades, because a
+held unit's GLD leg is resized every day as the hedge ratio is refitted.
+Nothing here measures what a cost per trade would take from either rule.
+
+**Whether 1, 0 and 20 were fair choices.** Location 1548 calls the entry
+threshold and the lookback free parameters to be optimized on a training set.
+Location 1559 sets the thresholds without saying how they were chosen, and the
+lookback is the one Entry 21 records Chan tuned on this sample. Every figure
+above is in-sample.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 5.3, Kindle locations 2364 to 2444, with
+Table 5.1 recalled at 2683. Shipped under
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). The
+script is `estimateFuturesReturns.m`, in ericnberwick/EpchanPreview at
+`e4bc46f` under `public/img/book2/`, git blob `1a70a28`. Every location in
+this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eighteen rows, all derivable from
+[tests/test_roll_returns.py](../tests/test_roll_returns.py). Five do not match
+one printed figure to one computation, and each says so in its own cells. Row
+12 covers two figures from one computation, and rows 15 to 18 carry no
+published figure.
+
+A future's return splits into the move of the spot price under it and the
+return it earns by converging on that spot as it nears expiry, the roll return.
+Chan assumes both are constant and estimates each by regression, for the
+Brazilian real (BR), corn (C), WTI crude (CL), copper (HG) and the two-year
+Treasury note (TU). The spot return α is the slope of the log spot price on
+time. The roll return γ comes from one day's forward curve: the log prices of
+the five nearest contracts regressed on their time to maturity, fitted afresh
+each day. Chapter 6 uses the result to explain why BR, HG and TU trend.
+
+**Eight of Table 5.1's ten cells reproduce on Chan's own files, and HG's and
+TU's spot returns do not.** CL's γ starts on Figure 5.5's first day, and C's
+two figures agree with the ones Chan's Python port prints to within 10⁻¹².
+Separately, the script measures maturity in contract columns rather than
+months, which overstates the roll return of the three strips whose contracts
+are not one month apart.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** The five strips `inputdatadaily_br_20120813/`,
+   `inputdatadaily_c2_20120813/`, `inputdatadaily_cl_20120813/`,
+   `inputdatadaily_hg_20120813/` and `inputdatadaily_tu_20120813/`, vendor
+   `chan-mat`, basis `raw`, saved 2012-08-14, one vintage per contract and
+   one for the spot, read for the close through `chan.series.load_panel`.
+   Table 5.1's C is the C2 strip.
+2. **The specification.** α is 252 times the OLS slope of the log spot on the
+   strip's row number. The rows are numbered over every day of the file before
+   the days with no spot are dropped, so a gap still counts as elapsed days. γ
+   is −12 times the OLS slope of the five nearest priced contracts' log prices
+   on their column positions 1 to 5, on rows where those five are adjacent
+   columns, and the figure is its mean over the rows where it is defined.
+
+Every result here is **exploratory**. Reproducing Table 5.1 spends Chan's 1986
+to 2012 strips on a model he chose, so it says whether his numbers reproduce on
+his file and nothing about whether a roll return persists out of sample.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | BR, α | −2.7% | location 2399, Table 5.1 |
+| 2 | BR, γ | 10.8% | the same |
+| 3 | C, α | 2.8% | the same, and location 2444 |
+| 4 | C, γ | −12.8% | the same, and location 2444 |
+| 5 | CL, α | 7.3% | location 2399, Table 5.1 |
+| 6 | CL, γ | −7.1% | the same |
+| 7 | HG, α | 5.0% | the same |
+| 8 | HG, γ | 7.7% | the same |
+| 9 | TU, α | −0.0%, a negative number that rounds to zero | the same |
+| 10 | TU, γ | 3.2% | the same |
+| 11 | CL's first day with γ | November 22, 2004 | location 2399, Figure 5.5 |
+| 12 | C's α and γ in full | `0.02805562210100287` and `-0.12775650227459556` | the Python port's comments, not the book |
+| 13 | For BR, C and TU, \|γ\| is much larger than \|α\| | a claim | location 2399 |
+| 14 | BR, HG and TU each have \|γ\| bigger than \|α\| | a claim | location 2683 |
+| 15 | γ with maturity in months | none | n/a |
+| 16 | Rows 13 and 14 on the month-spaced γ | none | n/a |
+| 17 | The month gaps across the five contracts each day's γ reads | none | n/a |
+| 18 | The days with γ and their span | none | n/a |
+
+Row 12's port is `estimateFuturesReturns.py` in `PythonCodesAndData.zip` at
+the same commit, the zip [data/README.md](../data/README.md) records with its
+sha256. Its rule is the MATLAB script's.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | α on the BR strip | −0.026903 | `TestTheFigures::test_alpha_and_gamma_at_the_six_decimals_the_script_prints` |
+| 2 | γ on the BR strip | 0.108133 | the same |
+| 3 | α on the C2 strip | 0.028056 | the same |
+| 4 | γ on the C2 strip | −0.127757 | the same |
+| 5 | α on the CL strip | 0.073019 | the same |
+| 6 | γ on the CL strip | −0.070592 | the same |
+| 7 | α on the HG strip | 0.050567 | the same, and `TestTheFigures::test_hgs_alpha_rounds_to_5_1_not_the_printed_5_0` |
+| 8 | γ on the HG strip | 0.077172 | `TestTheFigures::test_alpha_and_gamma_at_the_six_decimals_the_script_prints` |
+| 9 | α on the TU strip | 0.000039, positive | the same, and `TestTheFigures::test_tus_alpha_is_positive_where_the_book_prints_a_negative_zero` |
+| 10 | γ on the TU strip | 0.032032 | `TestTheFigures::test_alpha_and_gamma_at_the_six_decimals_the_script_prints` |
+| 11 | CL's first and last day with γ | 2004-11-22 to 2012-08-13 | `TestTheFigures::test_cls_first_day_with_gamma_is_figure_5_5s_first_day` |
+| 12 | Rows 3 and 4 against the port | within 10⁻¹² of each | `TestTheFigures::test_c_agrees_with_the_python_ports_printed_figures` |
+| 13 | \|γ\| at least twice \|α\| | holds for all three, the narrowest BR at 4.02 times | `TestTheClaims::test_br_c_and_tu_each_have_a_roll_return_at_least_twice_their_spot_return` |
+| 14 | \|γ\| greater than \|α\| | holds for all three | `TestTheClaims::test_br_hg_and_tu_each_have_a_roll_return_bigger_than_their_spot_return` |
+| 15 | The same fit regressed on each contract's month offset from the nearest | BR 0.108133, C −0.053011, CL −0.070592, HG 0.038573 and TU 0.010677, so the script's γ is 2.4 times C's, 2.0 times HG's and 3.0 times TU's | `TestTheRowsBeside::test_gamma_with_maturity_in_months` and `::test_the_script_overstates_c_by_2_4_hg_by_2_0_and_tu_by_3_0` |
+| 16 | Rows 13's and 14's criteria on row 15 | row 13's holds for BR and TU and fails for C, at 1.89 times. Row 14's holds for BR and TU and fails for HG | `TestTheRowsBeside::test_location_2399_fails_for_c_on_the_month_spaced_gamma` and `::test_location_2683_fails_for_hg_on_the_month_spaced_gamma` |
+| 17 | Each row's gaps in months across its five contracts | all one month for BR and CL, all three for TU, five patterns for C and six for HG | `TestTheRowsBeside::test_the_spacings_each_strips_gamma_reads` |
+| 18 | Rows where γ is defined | BR 4,210 from 1995-11-09, CL 1,941 from 2004-11-22, HG 6,028 from 1986-11-03 and TU 1,087 from 2008-03-10, all four to 2012-08-13, and C 1,570 from 2005-12-19 to 2012-03-14 | `TestTheRowsBeside::test_the_days_with_gamma_and_their_span` and `::test_cs_gamma_stops_when_its_strip_runs_out_of_contracts` |
+
+`TestTheFigures::test_eight_of_table_5_1s_ten_cells_land_and_hg_and_tu_alpha_miss`
+holds which of rows 1 to 10 round to the book's figure, sign included.
+
+### The verdicts
+
+Rows 1 to 10 are compared at the book's one decimal of a percent, so each gap is
+in percentage points at that precision.
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0 | reproduced | −2.69 percent rounds to −2.7. |
+| 2 | 0.0 | reproduced | |
+| 3 | 0.0 | reproduced | |
+| 4 | 0.0 | reproduced | |
+| 5 | 0.0 | reproduced | |
+| 6 | 0.0 | reproduced | −7.06 percent rounds to −7.1. |
+| 7 | +0.1 | did not reproduce | 5.06 percent rounds to 5.1, on Chan's own saved file, so the vintage explanation is spent. Three readings were tried after the miss, and `TestTheReadingsTriedAfterTheMiss` pins each. Renumbering the rows after the spot's gaps are dropped gives 0.050587, and reading the prices at single precision gives 0.050567. Regressing on calendar days and annualizing by 365 gives 0.050315, which lands the cell. The specification stays the row number. The script reads `T=[1:length(spot)]'`, and the calendar-day reading moves C's α to 0.027998, off the 0.028056 the Python port printed, which the row number lands. |
+| 8 | 0.0 | reproduced | |
+| 9 | 0.0, with the opposite sign | did not reproduce | 0.0039 percent rounds to 0.0, but the book's −0.0 is a negative number and this one is positive. None of the three readings in row 7 turns it negative. |
+| 10 | 0.0 | reproduced | |
+| 11 | 0 days | reproduced | Exact. |
+| 12 | under 10⁻¹² on each | reproduced | The two programs sum in different orders, so the pin allows 10⁻¹². |
+| 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build but after a scratch run had measured the figures. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. Row 16 runs it on the month-spaced γ, and there it fails for C. |
+| 14 | none, a claim | reproduced | It holds under the script's γ, which is what printed Table 5.1. Row 16 is the same claim under the book's own description of the method, and there it fails for HG. |
+| 15 | none | none, not a replication | No figure is printed for it. Monthly strips give the same γ either way, to rounding. |
+| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
+| 17 | none | none, not a replication | It is why rows 15 and 16 move only C, HG and TU. |
+| 18 | none | none, not a replication | γ needs five priced contracts. C's strip ends at 2012Z, so after its March 2012 contract expires no day prices more than four. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The table reproduces on Chan's own files except for two spot returns.**
+   C's two figures agree with what his Python port printed on the same strip,
+   CL's γ starts on the day his figure does, and eight of ten cells land at the
+   book's precision. HG's and TU's α miss on Chan's own file, so no vintage
+   explanation is left. The one reading that lands HG, regression on calendar
+   days, is not what the mirrored script or the Python port computes. HG's
+   miss is one tenth of a point and TU's is a sign, so neither changes what
+   the table is used to argue.
+2. **The script measures maturity in columns, so three of its five γ figures
+   are not what the text describes.** The book says the fit regresses on time
+   to maturity "measured in months". The script regresses on 1 to 5 and
+   annualizes as if adjacent contracts were a month apart. That holds for BR
+   and CL. C's contracts sit two or three months apart, HG's mix gaps of one,
+   two and three months, and TU's sit three apart, so Table 5.1 overstates
+   their roll returns by 2.4, 2.0 and 3.0
+   times.
+3. **Under months, both claims lose a strip.** Location 2683 explains BR's,
+   HG's and TU's momentum by their roll returns exceeding their spot returns.
+   HG's month-spaced roll return, 3.86 percent, is smaller than its 5.06
+   percent spot return, so the comparison Chapter 6 rests its HG explanation
+   on holds only under the script's arithmetic. Location 2399's claim that
+   BR's, C's and TU's roll returns are much larger than their spot returns
+   holds for BR and TU either way. C's month-spaced roll return is 1.89 times
+   its spot return, short of the criterion's 2. Neither row tests whether a
+   roll return explains any momentum.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether returns are constant.** The model is the book's simplification, and
+location 2399 already says the fitted γ drifts from day to day. A mean of a
+drifting series is a summary, and this entry reproduces the summary without
+testing the model.
+
+**Whether the month-spaced γ is what Chan meant.** Rows 15 and 16 are this
+repo's reading of the book's sentence, declared on
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347) before the
+build.
+Chan printed no figure for them, so they carry no verdict.
+
+**Whether a roll return persists.** Every row is in-sample on 1986 to 2012.
+The two experiments that trade on γ, Example 5.4 and the TU momentum test,
+carry their own issues.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

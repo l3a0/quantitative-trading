@@ -214,6 +214,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: neither of Example 4.3's figures lands. ``TestTheScaleBreakDecision`` in
 #: ``tests/test_khandani_lo_book_two.py`` runs both refusals and pins CAH.
 #:
+#: [Issue 343](https://github.com/l3a0/quantitative-trading/issues/343) decided
+#: that ``chan.index_arbitrage`` guards SPY and not the stocks for *Algorithmic
+#: Trading*'s Example 4.2, on issue 295's reasoning. The run reads 2007-01-03 to
+#: 2012-04-09, which holds all 30 of the book-two S&P 500 file's flagged days,
+#: ETFC's 2007-11-12 in its training window and 29 in its test, and the guard
+#: refuses the 480 stocks it screens on 17 of them. ``indexArb.m`` ran on these
+#: prices as they stand. Four of the 98 stocks its screen passes carry a flag,
+#: all in the test. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_index_arbitrage.py`` runs the refusal and pins the four.
+#:
 #: [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) lifted
 #: Chan's book-two ETF file, and the guard flags 58 days in 8 of its 67 ETFs,
 #: every one a leveraged or inverse fund and every day between 2008-04-16 and
@@ -228,11 +238,35 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: Example 3.1, the first run to read this file. It reads GLD and USO over the
 #: file's whole span, neither carries a flagged day, and nothing is refused.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_price_spread.py`` holds both
-#: legs clean and a broken leg refused.
+#: legs clean and a broken leg refused. ``chan.bollinger`` reads the same two
+#: legs through the same reader for Example 3.2, under
+#: [issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 #: ``chan.etf_cointegration`` calls it on EWA, EWC and IGE over the same span
 #: for Examples 2.6 to 2.8, under
 #: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
-#: nothing is refused there either.
+#: nothing is refused there either. ``chan.index_arbitrage`` calls it on SPY
+#: over the days this file shares with the book-two S&P 500 file, for Example
+#: 4.2 under [issue 343](https://github.com/l3a0/quantitative-trading/issues/343),
+#: and SPY carries no flagged day there.
+#:
+#: [Issue 345](https://github.com/l3a0/quantitative-trading/issues/345) decided
+#: that ``chan.aud_cad_johansen`` calls the guard for *Algorithmic Trading*'s
+#: Example 5.1, on the AUD.USD and USD.CAD daily files of Chan's Python port
+#: over their whole span, 2009-01-02 to 2012-04-26, as ``chan.pead`` does for
+#: Example 7.2. Neither file carries a flagged day, so nothing is refused, and
+#: ``TestTheGuardAndTheReads`` in ``tests/test_aud_cad_johansen.py`` runs it.
+#:
+#: [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) decided
+#: that ``chan.roll_returns`` calls the guard for *Algorithmic Trading*'s
+#: Example 5.3, on the spot and every contract of the five strips it reads. It
+#: passes each member's own rows, ``closes[symbol].dropna()``, rather than its
+#: panel column, because a contract's column is NaN before it lists and after it
+#: expires, and the guard reports those days as having no readable move. Across a
+#: restart gap it compares the settlements on either side, and it flags nothing
+#: on any of the five. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_roll_returns.py`` holds a planted break refused and a panel
+#: column refused, and ``TestTheGuardFlagsNothing`` in
+#: ``tests/test_futures_strips.py`` holds the strips clean.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

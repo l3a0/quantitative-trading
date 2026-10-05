@@ -36,6 +36,7 @@ from chan.series import (
     DAILY_CLOSE_MINUTE,
     _parse_close,
     load_minute_close,
+    load_port_close,
     load_vintage,
     minute_close,
 )
@@ -69,10 +70,9 @@ MINUTES = "2018-10-13"
 
 
 def daily(symbol: str) -> pd.Series:
-    """One of the port's three daily files, through the parse every daily series takes."""
+    """One of the port's three daily files, through the reader Example 5.1's run takes."""
     (saved,) = [pin[3] for pin in PYTHON_PORT.values() if pin[1] == symbol and pin[5] == "daily"]
-    entry = resolve_vintage(vendor="chan-py", symbol=symbol, price_basis="raw", dated=saved)
-    return _parse_close(read_vintage(entry), symbol)
+    return load_port_close(symbol, dated=saved)[1]
 
 
 @pytest.fixture(scope="module")

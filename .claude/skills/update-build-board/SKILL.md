@@ -388,7 +388,7 @@ One more constant is not in the table because nothing should edit it.
 | --- | --- |
 | `STATE`, from `board/state` | `updatedAt` and `issues.open` |
 | `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
-| `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop. A build session's entry stays after its pull request opens and comes out at the hand-over, so an entry on a card with an open pull request holds it under "Waiting on my review" |
+| `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase the card draws only under "Waiting on my review". Under "Building" and "Being planned" the heading already names the session and the card's title names the same work, so the line is left off there. The screen-reader label keeps it everywhere, which matters for a phrase that adds a detail the title lacks, such as the name of the MATLAB file a build is transcribing. Lead the phrase with the session's verb, such as building or planning, because under "Waiting on my review" that verb is the only place the card says which kind of session is still on the branch. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop. A build session's entry stays after its pull request opens and comes out at the hand-over, so an entry on a card with an open pull request holds it under "Waiting on my review" |
 | `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column, the small number chip on the cards it names, and which cards the default view draws |
@@ -456,13 +456,17 @@ store.flow.innerHTML.split('<div class="col f-').slice(1).forEach(function(c){
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
   var d=c.match(/<span class="d">([^<]*)<\/span>/);
   o.push("flow  "+h[1]+"="+h[2]+": "+(ids.join(" ")||"(empty)"));
-  o.push("  sub "+(d?d[1]:"(none)"));});
+  o.push("  sub "+(d?d[1]:"(none)"));
+  var wk=(c.match(/<div class="wk">[^<]*<\/div>/g)||[]).map(s);
+  o.push("  wk  "+(wk.join(" | ")||"(none)"));});
 store.board.innerHTML.split('<div class="col k').slice(1).forEach(function(c){
   var h=c.match(/<span class="t">([^<]+)<\/span><span class="c">(\d+)<\/span>/);
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
   var d=c.match(/<span class="d">([^<]*)<\/span>/);
   o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));
-  o.push("  sub "+(d?d[1]:"(none)"));});
+  o.push("  sub "+(d?d[1]:"(none)"));
+  var wk=(c.match(/<div class="wk">[^<]*<\/div>/g)||[]).map(s);
+  o.push("  wk  "+(wk.join(" | ")||"(none)"));});
 o.push("FLOWNOTE: "+s(store.flownote.innerHTML));
 o.push("BOARDNOTE: "+s(store.boardnote.innerHTML));
 o.push("KEY: "+s(store.key.innerHTML));
@@ -513,6 +517,12 @@ The column subtitles were the same gap a second time. The harness printed each
 column's title and count and skipped the subtitle under them, so a change
 rewriting the "Waiting on" subtitles for defect 17 could have been reverted
 without the output moving. Each column now prints a `sub` line under it.
+
+The session line was the third. On 2026-10-05 the page stopped drawing a
+card's `what` phrase under "Building" and "Being planned", and the harness
+printed the same output for that page and for one with the change reverted,
+because it printed no card's lines at all. Each column now prints a `wk` line
+listing the session phrases its cards drew, and `(none)` where they drew none.
 
 **Much of the page is dark when `PRS` and `WORKING` are empty**, which is the
 state it is in between batches and every time a session opens the first branch
