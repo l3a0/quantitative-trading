@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-six replications run here, fifteen from Chan's *Quantitative Trading*
-and eleven from his *Algorithmic Trading*. The first two were ported from the
+Twenty-seven replications run here, fifteen from Chan's *Quantitative Trading*
+and twelve from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-four were built here.
+where they were first built. The other twenty-five were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -339,6 +339,20 @@ where they were first built. The other twenty-four were built here.
     improvement the book claims. Unlike item 21, the run depends on the
     moving deviation's divisor: n in place of the script's n − 1 gives
     0.183306 and 0.984872. Every figure is exploratory.
+27. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
+    Chan's own strips of BR, corn, CL, HG and TU. Eight of Table 5.1's ten
+    cells reproduce, and HG's and TU's spot returns do not: HG's 0.050567
+    rounds to 5.1 percent against the book's 5.0, and TU's 0.000039 is
+    positive where the book prints −0.0. Corn's two figures agree with the
+    ones Chan's Python port printed to within 10⁻¹². `estimateFuturesReturns.m`
+    measures a contract's maturity in columns rather than months, so beside
+    the replication runs the same fit in months, and the script's figures
+    overstate corn's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
+    Under months, HG's falls below its spot return, so the comparison
+    Chapter 6 rests its explanation of HG's momentum on holds only under the
+    script's arithmetic, and corn's is no longer twice its spot return.
+    `chan.roll_returns` exports the strip reader and both fits for Example
+    5.4 and the TU momentum experiment. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -553,7 +567,19 @@ are refused, that scaling either leg leaves the match and one digit on a close
 in the test window breaks it, and that ending both windows a day earlier, as
 the Python port does, breaks it too.
 
-All twenty-six replications reach a verdict in
+[tests/test_roll_returns.py](tests/test_roll_returns.py) does it for the spot
+and roll returns. It pins each strip's two figures at the six decimals the
+script's `%f` prints, which of Table 5.1's cells they round to with the sign
+included, corn's agreement with the Python port, and the two claims the book
+makes from the table under criteria fixed before the build, though after a
+scratch run had measured the figures. Beside them it
+pins the month-spaced roll return, the month gaps each day's fit reads, and
+the three readings of the spot return tried after HG's and TU's missed. On
+synthetic frames it holds the script's rule: no fit on a day with four priced
+contracts or with a gap among the nearest five, only the nearest five read,
+and a gap in the spot still counted as elapsed days.
+
+All twenty-seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -565,8 +591,8 @@ Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
-examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's and Entry 26
-Example 3.2's.
+examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
+3.2's and Entry 27 the spot and roll returns'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -705,7 +731,10 @@ as one vintage, under a symbol joining the code to the delivery month, such
 as `CL-2007F` for January 2007 crude oil, and `src/chan/mat_columns.py` writes
 them too.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
-that shape was decided. No replication reads them yet.
+that shape was decided. The spot and roll returns of Example 5.3 read five of
+them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). No
+replication reads the other three strips or the gold series yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
 them, under `data/pythoncodesanddata/`, for
@@ -1191,6 +1220,18 @@ It prints the three vintages and the test window, each figure the script
 prints beside the computed one and a verdict, the book's rounder figures, how
 far the 612 returns sit from Chan's saved ones, and the rows beside the
 replication.
+
+The spot and roll returns, Example 5.3 of *Algorithmic Trading*, take no
+option, because `estimateFuturesReturns.m` fixes the method and the book names
+the five strips:
+
+```bash
+uv run python -m chan.roll_returns
+```
+
+It prints the five strips' vintages, each strip's spot and roll returns beside
+Table 5.1's, and then the roll return with maturity in months, the days each
+fit covers and the month gaps between its contracts.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

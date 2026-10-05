@@ -143,6 +143,17 @@ the window from December 18, 2009, to April 26, 2012. The figures
 23.845328, sit in its comments and nowhere in the book. The replication log's
 Entry 25 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 5.3 splits a third way, because its script
+records no figure. The book's are here: the whole of Table 5.1 in the
+recovered text of location 2399, with the corn row repeated at 2444, and
+Figure 5.5's first day, November 22, 2004, in the same passage. The claims at
+2399 and 2683 about which roll returns outweigh their spot returns are here
+too. `estimateFuturesReturns.m` prints its two figures and keeps neither in
+its comments. Chan's 2018 Python port of it does, for corn alone:
+`0.02805562210100287` and `-0.12775650227459556` sit in its comments and
+nowhere in the book. The replication log's Entry 27 traces each to one or the
+other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
