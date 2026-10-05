@@ -15,6 +15,8 @@ which file it sat in.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
+from pathlib import Path
 
 import pytest
 
@@ -26,13 +28,30 @@ from chan.archive import ArchiveUnavailable, archive_dir
 RUN_ENV = "QT_ARCHIVE_RUN"
 
 
+def archive_skip_reason(
+    environ: Mapping[str, str] | None = None, config: Path | None = None
+) -> str | None:
+    """Why the archive pins should skip here, or None when they should run.
+
+    A function rather than inline in the fixture, so ``tests/test_cpo.py`` can
+    show the pins run when both conditions hold. An inverted condition would
+    otherwise skip every archive pin silently, on the one machine meant to run
+    them.
+    """
+    environ = os.environ if environ is None else environ
+    try:
+        archive_dir(environ, config)
+    except ArchiveUnavailable as absent:
+        return str(absent)
+    if environ.get(RUN_ENV) != "1":
+        return f"the archive pins take minutes, so they run only with {RUN_ENV}=1"
+    return None
+
+
 @pytest.fixture(scope="session")
 def cpo_result() -> cpo.Result:
     """One full run of Example 7.1, or a skip naming what is missing."""
-    try:
-        archive_dir()
-    except ArchiveUnavailable as absent:
-        pytest.skip(str(absent))
-    if os.environ.get(RUN_ENV) != "1":
-        pytest.skip(f"the archive pins take minutes, so they run only with {RUN_ENV}=1")
+    reason = archive_skip_reason()
+    if reason is not None:
+        pytest.skip(reason)
     return cpo.run()

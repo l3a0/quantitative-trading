@@ -48,6 +48,7 @@ from chan.cpo import (
     unconditional_cell,
     zscore,
 )
+from tests.conftest import archive_skip_reason
 
 # --- literal readings of the rules, the references the fast code is held to ---
 
@@ -416,6 +417,22 @@ class TestTheConditionalChoice:
 
 
 # --- the pins, on the owner's archive ---------------------------------------
+
+
+class TestWhenThePinsRun:
+    """The skip in ``tests/conftest.py``, which no archive pin can check from inside."""
+
+    def test_they_run_with_an_archive_and_the_flag(self, tmp_path):
+        environ = {"QT_ARCHIVE_DIR": str(tmp_path), "QT_ARCHIVE_RUN": "1"}
+        assert archive_skip_reason(environ, config=tmp_path / "absent") is None
+
+    def test_they_skip_without_the_flag(self, tmp_path):
+        environ = {"QT_ARCHIVE_DIR": str(tmp_path)}
+        assert "QT_ARCHIVE_RUN=1" in archive_skip_reason(environ, config=tmp_path / "absent")
+
+    def test_they_skip_without_an_archive(self, tmp_path):
+        reason = archive_skip_reason({"QT_ARCHIVE_RUN": "1"}, config=tmp_path / "absent")
+        assert reason.startswith("no data archive is configured")
 
 
 @pytest.fixture(scope="module")

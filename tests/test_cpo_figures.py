@@ -36,17 +36,28 @@ from chan.archive import ArchiveRefused, ArchiveUnavailable, read_archive_manife
 from chan.cpo_figures import CELLS_FIGURE, labelled_cells, make_cells_figure
 from chan.paths import FIGURES_DIR
 
-#: Where the synthetic run puts the three cells the figure must find.
-CHOSEN, HIGHEST, NEAREST = 42, 123, 250
+#: Where the synthetic run puts the three cells the figure must find, and a
+#: decoy that would be nearest if the line were measured against 1.95.
+CHOSEN, HIGHEST, NEAREST, DECOY = 42, 123, 250, 300
+
+#: The words each label must carry, so swapping two labels' roles fails.
+ROLES = {
+    "chosen": "chosen on the training years",
+    "highest": "highest test Sharpe ratio",
+    "nearest": "nearest Chan's 1.947",
+}
 
 
 def synthetic_result() -> cpo.Result:
     """A run of 400 cells whose three labelled cells sit where the test put them.
 
-    Every other cell's Sharpe ratio stays outside 1.6 to 2.3, so no cell
-    competes with ``NEAREST`` for the one nearest 1.947, and below 5.5, so none
-    competes with ``HIGHEST``. ``CHOSEN`` is not the highest, as on the real
-    run, so a figure that labelled the argmax as the chosen cell fails.
+    Every other cell's Sharpe ratio stays outside 1.6 to 2.3 and below 5.5, so
+    only the cells placed here compete. ``NEAREST`` sits at 1.946 and
+    ``DECOY`` at 1.949, so a figure measuring against 1.95 rather than 1.947
+    labels the decoy. ``CHOSEN`` is not the highest, as on the real run, so a
+    figure that labelled the argmax as the chosen cell fails. The re-chosen
+    arm's cells never include ``CHOSEN``, so a figure that read the chosen cell
+    from them fails too.
     """
     rng = np.random.default_rng(20261004)
     n = len(cpo.cells())
@@ -54,7 +65,8 @@ def synthetic_result() -> cpo.Result:
         np.concatenate([rng.uniform(0.5, 1.6, n), rng.uniform(2.3, 5.5, n)]), n, replace=False
     )
     sharpes[HIGHEST] = 6.0
-    sharpes[NEAREST] = 1.95
+    sharpes[NEAREST] = 1.946
+    sharpes[DECOY] = 1.949
     trips = rng.uniform(0.5, 60.0, n)
     by_symbol = {entry.symbol: entry for entry in read_archive_manifest()}
     days = pd.bdate_range(end="2020-12-31", periods=20)
@@ -65,7 +77,7 @@ def synthetic_result() -> cpo.Result:
         unconditional=cpo.cells()[CHOSEN],
         unconditional_returns=np.zeros(4),
         unconditional_trips=np.zeros(4, dtype=np.int64),
-        conditional_cells=np.full(4, CHOSEN),
+        conditional_cells=np.array([7, 8, 9, 10]),
         conditional_returns=np.zeros(4),
         conditional_trips=np.zeros(4, dtype=np.int64),
         cell_sharpes=sharpes,
@@ -113,6 +125,11 @@ class TestWhatItDraws:
         assert set(_by_gid(figure)["book-line"].get_ydata()) == {1.947}
         assert cpo.BOOK_UNCONDITIONAL["sharpe"] == 1.947
 
+    def test_the_line_s_label_names_1_947_and_sits_on_the_line(self, figure) -> None:
+        label = _by_gid(figure)["book-label"]
+        assert label.get_text() == "Chan's Sharpe ratio, 1.947"
+        assert label.xy[1] == 1.947
+
     def test_every_cell_is_inside_the_axes(self, figure, result) -> None:
         low, high = figure.axes[0].get_ylim()
         assert low < min(result.cell_sharpes.min(), 1.947)
@@ -131,8 +148,10 @@ class TestTheThreeLabels:
         mark = drawn[key]
         assert mark.get_xdata()[0] == result.cell_trips[at]
         assert mark.get_ydata()[0] == result.cell_sharpes[at]
-        label = drawn[f"{key}-label"].get_text()
-        assert label.startswith(cpo.cells()[at].label + ",")
+        anchor = drawn[f"{key}-label"]
+        assert anchor.xy == (result.cell_trips[at], result.cell_sharpes[at])
+        label = anchor.get_text()
+        assert label.startswith(f"{cpo.cells()[at].label}, {ROLES[key]}\n")
         assert f"Sharpe ratio {result.cell_sharpes[at]:.3f}" in label
         assert f"{result.cell_trips[at]:.3g} round trips a day" in label
 
@@ -148,8 +167,12 @@ class TestTheLabelling:
     ) -> None:
         note = figure.texts[-1].get_text()
         for entry in result.vintages:
-            assert f"{entry.path}, sha256 {entry.sha256[:8]}…" in note
+            assert (
+                f"{entry.symbol}: {entry.path}, sha256 {entry.sha256[:8]}…, "
+                f"downloaded {entry.download_date}"
+            ) in note
         assert "Nothing is charged for costs." in note
+        assert "weight_lookback_entry" in note
 
     def test_the_note_names_the_test_days_it_draws(self, figure, result) -> None:
         note = figure.texts[-1].get_text()
@@ -163,6 +186,13 @@ class TestWritingIt:
 
     def test_the_committed_figure_exists(self) -> None:
         assert (FIGURES_DIR / CELLS_FIGURE).is_file()
+
+    def test_main_draws_the_run_it_reads(self, monkeypatch, result) -> None:
+        drawn = []
+        monkeypatch.setattr(figures.cpo, "run", lambda: result)
+        monkeypatch.setattr(figures, "make_cells_figure", lambda run: drawn.append(run))
+        figures.main()
+        assert drawn == [result]
 
     @pytest.mark.parametrize("refusal", [ArchiveUnavailable, ArchiveRefused])
     def test_main_with_no_archive_exits_with_one_line(self, monkeypatch, refusal) -> None:
