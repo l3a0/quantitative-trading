@@ -4427,7 +4427,7 @@ scripts' figures and prints no number for the ratio.
 | 6 | +0.044141 | did not reproduce | The same as row 5. |
 | 7 | none, a claim | reproduced | The APR is below 0 on the published script and on the swapped legs both. The criterion was written on [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) after the first transcription ran, and it is the sentence's own word, negative, with no threshold to choose. |
 | 8 | none, a claim | reproduced | The log price spread's APR and Sharpe ratio are both below the price spread's. The criterion was written after the first run, as row 7's was, and reads "lower" on both figures the sentence names. |
-| 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. It lands both of the comment's figures to six digits. The two come from one return series, so they are not independent matches, but a coincidence would still have to land two different summaries of it. |
+| 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. The other two, keeping the first 20 days and Chan's Python port, match neither figure, which `TestTheRatio::test_keeping_the_first_20_days_matches_neither_figure` and `::test_chans_python_port_matches_neither_figure` hold. It lands both of the comment's figures to six digits. The two come from one return series, so they are not independent matches, but a coincidence would still have to land two different summaries of it. |
 | 10 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and a position earns from the next close, so every run holds its first position into 2006-06-22. |
 | 11 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN, and a zero pad holds zero gross dollars there, so the return is 0/0, and either NaN is set to 0. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
 
@@ -4466,12 +4466,17 @@ edited the script after running it, or ran an earlier one, is not recoverable
 here.
 
 **Whether the reversion is real.** Chan says GLD and USO do not cointegrate,
-and on his file they do not. Engle-Granger at one lag, USO on GLD over all
-1,500 days, gives −1.5150 against a 10% bar of −3.04, which
+and on his file the test does not come close to finding that they do.
+Engle-Granger at one lag, USO on GLD over all 1,500 days, gives −1.5150
+against a 10% bar of −3.04, which
 `TestThePairDoesNotCointegrate::test_engle_granger_does_not_reject_at_10_percent`
 holds. The 20-day hedge ratio is below zero on 334 of the 1,480 traded days,
-which `::test_the_20_day_hedge_ratio_changes_sign` holds. Nothing here
-separates a real short-term reversion from what a 20-day fit produces.
+which `::test_the_20_day_hedge_ratio_changes_sign` holds. The spread the
+scripts trade leaves out the 20-day fit's intercept, which tracks it at a
+correlation of 0.9987, and the fit's leftover traded alone earns an APR of
+−0.005130, which `::test_the_spread_is_almost_all_the_fits_intercept` holds.
+Nothing here separates a real short-term reversion from what a 20-day fit
+produces.
 
 **What costs would take.** No script charges any. Location 1505 names the
 extra cost of the log price spread, which rebalances both legs every day to

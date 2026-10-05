@@ -1,8 +1,13 @@
 """The pins for the price spread, log price spread and ratio, *Algorithmic Trading*'s Example 3.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.1. ``docs/replication-log.md`` Entry 21 carries the verdicts
-and points here row by row.
+about Example 3.1, with two exceptions, both in
+``blog/price-spread-ratio-lessons.md``. The post's figure has its own pins in
+``tests/test_price_spread_figures.py``, and what the post says about the file
+itself, its 67 ETFs, its dividends subtracted in dollars and GLD paying none,
+is held in ``tests/test_series.py``. README lists what the post says that
+nothing pins. ``docs/replication-log.md`` Entry 21 carries the verdicts and
+points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -28,9 +33,15 @@ location 1505 is pinned beside them.
 
 ``TestTheRatio`` holds the miss and its cause. ``Ratio.m`` as published does
 not land its comment's figures, and the same script with GLD and USO swapped
-lands both. The swap was the third reading tried after the miss, and
-[issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names
-the other two.
+lands both. The swap was the third reading tried after the miss, and the other
+two are pinned beside it, as
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340) named
+them.
+
+``TestThePairDoesNotCointegrate`` holds location 1505's statement that the
+pair does not cointegrate, and what the 20-day fit does instead: its hedge
+ratio changes sign, and the spread the scripts trade leaves out the fit's
+intercept, which carries almost all of it.
 
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a
 rule he chose. It first ran here on 2026-10-05.
@@ -41,7 +52,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
-from ithildincore.timeseries import EG_CRIT_N2
+from ithildincore.timeseries import EG_CRIT_N2, ols
 
 from chan import price_spread as module
 from chan.matlab_helpers import smart_moving_avg, smart_moving_std
@@ -58,6 +69,7 @@ from chan.price_spread import (
     Y_SYMBOL,
     ExampleThreeOne,
     Run,
+    Signal,
     daily_returns,
     example_three_one,
     linear_mean_reversion,
@@ -218,8 +230,9 @@ class TestTheRatio:
     def test_chans_python_port_matches_neither_figure(self, sources) -> None:
         """The second reading: ``Ratio.py`` from Chan's ``PythonCodesAndData.zip``, whose
         ``inputData_GLD_USO.csv`` equals the committed closes. It drops no rows, pandas
-        skips the NaN returns in the product, the mean and the n − 1 deviation, and the APR
-        still divides by all 1,500 rows."""
+        skips the NaN returns in the product, the mean and the deviation, which ``np.std``
+        on a pandas series takes over n rather than n − 1, and the APR still divides by
+        all 1,500 rows."""
         _, closes = sources
         prices = closes[[X_SYMBOL, Y_SYMBOL]]
         value = prices[Y_SYMBOL] / prices[X_SYMBOL]
@@ -231,6 +244,10 @@ class TestTheRatio:
         sharpe = np.sqrt(252) * np.mean(daily) / np.std(daily)
         assert (f"{apr:f}", f"{sharpe:f}") == ("-0.140674", "-0.749583"), SPEC
         assert (f"{apr:f}", f"{sharpe:f}") != SCRIPT_RATIO
+
+    def test_the_ratio_never_returns_above_0_45_after_2008(self, result: ExampleThreeOne) -> None:
+        signal = result.ratio.signal
+        assert round(float(signal.value[signal.days > "2008-12-31"].max()), 2) == 0.44, SPEC
 
     def test_uso_ends_at_a_quarter_of_its_starting_ratio_to_gld(
         self, result: ExampleThreeOne
@@ -277,6 +294,25 @@ class TestTheClaims:
         assert result.log_price_spread.sharpe < result.price_spread.sharpe, SPEC
 
 
+def _rolling_intercept(closes: pd.DataFrame) -> np.ndarray:
+    """The intercept of the 20-day regression the hedge ratio comes from, on the kept rows.
+
+    Each kept row's window reaches back into the 20 rows the scripts drop, so it is
+    fitted on the full closes and then cut the way the hedge ratio is.
+    """
+    gld, uso = closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy()
+    ones = np.ones(LOOKBACK)
+    return np.array(
+        [
+            ols(
+                uso[t - LOOKBACK + 1 : t + 1],
+                np.column_stack([gld[t - LOOKBACK + 1 : t + 1], ones]),
+            ).beta[1]
+            for t in range(LOOKBACK, len(gld))
+        ]
+    )
+
+
 class TestThePairDoesNotCointegrate:
     """Location 1505 says GLD and USO "are not, in fact, cointegrated", and the rule trades
     them anyway on a hedge ratio refitted every 20 days.
@@ -294,6 +330,46 @@ class TestThePairDoesNotCointegrate:
         assert result.hedge_ratio == pytest.approx(-0.2669, abs=5e-5), SPEC
         assert EG_CRIT_N2["10%"] == -3.04
         assert result.adf_stat > EG_CRIT_N2["10%"], SPEC
+
+    def test_engle_granger_does_not_reject_whichever_leg_is_regressed(self, sources) -> None:
+        _, closes = sources
+        result = engle_granger(closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy())
+        assert result.adf_stat > EG_CRIT_N2["10%"], SPEC
+
+    def test_the_spread_is_almost_all_the_fits_intercept(
+        self, sources, result: ExampleThreeOne
+    ) -> None:
+        """The 20-day regression fits ``USO = c + h·GLD + e``, and the scripts trade
+        ``USO − h·GLD``, which is ``c + e``. The intercept ``c`` moves with the window, and
+        it carries all but a quarter of a percent of the spread's variance. Traded alone by
+        the same rule, the leftover ``e`` earns nothing."""
+        signal = result.price_spread.signal
+        intercept = _rolling_intercept(sources[1])
+        np.testing.assert_allclose(
+            signal.value - intercept,
+            [
+                ols(u, np.column_stack([g, np.ones(LOOKBACK)])).resid[-1]
+                for g, u in (
+                    (
+                        sources[1][X_SYMBOL].to_numpy()[t - LOOKBACK + 1 : t + 1],
+                        sources[1][Y_SYMBOL].to_numpy()[t - LOOKBACK + 1 : t + 1],
+                    )
+                    for t in range(LOOKBACK, 1500)
+                )
+            ],
+            atol=1e-9,
+        )
+        leftover = signal.value - intercept
+        assert round(float(np.corrcoef(signal.value, intercept)[0, 1]), 4) == 0.9987, SPEC
+        assert round(float(signal.value.std(ddof=1)), 2) == 45.37, SPEC
+        assert round(float(leftover.std(ddof=1)), 2) == 2.27, SPEC
+        assert round(float(leftover.var(ddof=1) / signal.value.var(ddof=1)), 4) == 0.0025, SPEC
+        alone = linear_mean_reversion(
+            Signal(
+                "leftover", signal.days, signal.prices, signal.hedge, leftover, signal.unit_dollars
+            )
+        )
+        assert (f"{alone.apr:f}", f"{alone.sharpe:f}") == ("-0.005130", "0.082065"), SPEC
 
     def test_the_20_day_hedge_ratio_changes_sign(self, result: ExampleThreeOne) -> None:
         """Below zero, one unit is long USO and long GLD, so the spread is not a hedge."""

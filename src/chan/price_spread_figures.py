@@ -49,7 +49,7 @@ SIGNALS_FIGURE = "price_spread_signals.png"
 
 #: Each run's line on the bottom panel: its label, colour and dash.
 RUNS = (
-    ("price_spread", "price spread", INK, "-"),
+    ("price_spread", "price spread", GOOD, "-"),
     ("log_price_spread", "log price spread", ACCENT, "-"),
     ("ratio", "ratio, as Ratio.m publishes it", LOST, "-"),
     ("swapped_ratio", "ratio, GLD and USO swapped, tried after the miss", LOST, "--"),
@@ -89,9 +89,17 @@ def make_signals_figure(out: Path | None = None, result: ExampleThreeOne | None 
 
     hedge_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
     hedge_ax.fill_between(
-        days, hedge, 0, where=hedge < 0, color=LOST, alpha=0.25, lw=0, gid="negative"
+        days,
+        hedge,
+        0,
+        where=hedge < 0,
+        interpolate=True,
+        color=LOST,
+        alpha=0.25,
+        lw=0,
+        gid="negative",
     )
-    hedge_ax.plot(days, hedge, color=ACCENT, lw=1.1, gid="hedge")
+    hedge_ax.plot(days, hedge, color=GOOD, lw=1.1, gid="hedge")
     hedge_ax.set_ylabel("GLD shares per USO share", color=INK, fontsize=10)
     _heading(
         hedge_ax,
@@ -114,7 +122,7 @@ def make_signals_figure(out: Path | None = None, result: ExampleThreeOne | None 
         return_ax.plot(
             days,
             cumulative_return(run),
-            color=GOOD if attribute == "price_spread" else colour,
+            color=colour,
             ls=dash,
             lw=1.6 if attribute == "price_spread" else 1.2,
             gid=attribute,

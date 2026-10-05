@@ -103,7 +103,7 @@ class TestTheSignals:
     def test_the_shading_fills_only_the_days_below_zero(self, axes, result) -> None:
         shaded = _by_gid(axes["hedge"].collections)["negative"]
         vertices = np.concatenate([path.vertices for path in shaded.get_paths()])
-        assert (vertices[:, 1] <= 0).all()
+        assert (vertices[:, 1] <= 1e-12).all()
         assert vertices[:, 1].min() == pytest.approx(result.price_spread.signal.hedge.min())
 
     def test_the_spread_panel_draws_figure_3_1(self, axes, result) -> None:

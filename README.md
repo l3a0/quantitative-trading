@@ -422,7 +422,8 @@ transcription that takes returns before the cut fails a test.
 [tests/test_price_spread.py](tests/test_price_spread.py) does it for Example
 3.1. It pins each figure the three scripts print at their six decimals and
 again at eight, and the book's rounding beside them. It pins the ratio's miss
-and the swapped legs that land it, and both of location 1505's claims. It also
+and the swapped legs that land it, both of location 1505's claims, and the
+Engle-Granger test of its statement that the pair does not cointegrate. It also
 holds two choices no figure here can see, the padding of `lag` and the
 divisor of the moving deviation, so a reader does not take these figures as
 evidence about either. The blog post about it is the exception, and what it
@@ -2121,8 +2122,8 @@ post draws six lessons from Entry 21 of the replication log.
    equal dollars.
 3. `Ratio.m`'s comment matches the script with GLD and USO swapped, a reading
    found after the published script missed.
-4. The pair does not cointegrate on Chan's file, and the 20-day hedge ratio
-   changes sign.
+4. The pair shows no cointegration on Chan's file, the 20-day hedge ratio
+   changes sign, and the traded spread is mostly the fit's intercept.
 5. The rule's return cannot see how its units are scaled, so the deviation's
    divisor moves no figure.
 6. A reproduction checks the arithmetic and not the edge.
@@ -2144,34 +2145,45 @@ Five groups of its figures are not pinned here.
    `Ratio.m`, which `src/chan/price_spread.py`'s docstring records, and that
    the copy of the two closes in Chan's Python port equals the committed
    closes, which [data/README.md](data/README.md) records.
-3. Arithmetic no test asserts: that the return's numerator and denominator
-   both scale with every position, which the equation shows and
-   `TestWhatMovesNothing` checks only on Chan's file.
+3. Arithmetic no test asserts: that any positive constant on the positions
+   cancels out of the return, which the equation shows. The tests check a
+   factor of 2 on synthetic arrays and the two divisors on Chan's file.
 4. The book's Figures 3.1 and 3.2, which the post's figure redraws from the
    scripts' `plot` calls and which nothing compares with the book's own.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_price_spread.py](tests/test_price_spread.py) or
-[tests/test_price_spread_figures.py](tests/test_price_spread_figures.py). Five
-had no pin before it.
+[tests/test_price_spread.py](tests/test_price_spread.py), to
+[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, its
+dividends subtracted in dollars and GLD paying none, or to
+[tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) for
+the figure's own numbers. Six had no pin before it.
 
-1. Engle-Granger's −1.5150 for USO on GLD over all 1,500 days, and that it
-   does not reach the 10% bar of −3.04.
+1. Engle-Granger's −1.5150 for USO on GLD over all 1,500 days, that it does
+   not reach the 10% bar of −3.04, and its whole-period hedge ratio of
+   −0.2669.
 2. The 20-day hedge ratio's range, −0.948 to 2.168, and its 334 days below
    zero.
-3. The ratio's 1.03 on the first traded day, 0.24 on the last and 1.30 at its
-   highest.
-4. The two readings tried after the ratio missed: keeping the first 20 days,
+3. The 20-day fit's intercept against the spread: a correlation of 0.9987,
+   standard deviations of 45.37 for the spread and 2.27 for the leftover, a
+   quarter of a percent of the variance, and the leftover traded alone at
+   −0.005130 and 0.082065.
+4. The ratio's 1.03 on the first traded day, 0.24 on the last, 1.30 at its
+   highest and 0.44 at its highest after 2008.
+5. The two readings tried after the ratio missed: keeping the first 20 days,
    −0.140674 and −0.744310, and Chan's Python port, −0.140674 and −0.749583.
-5. The figure's own lines and labels.
+6. The figure's own lines and labels.
 
 Its one figure is drawn from the committed file by
 [src/chan/price_spread_figures.py](src/chan/price_spread_figures.py), which
 reads it through the same `read_sources` and `example_three_one` as
 `python -m chan.price_spread`, scale-break guard included. It draws four panels
-on one date axis: the hedge ratio, the price spread, the ratio, and every
-run's cumulative return, for Lessons 1, 3 and 4.
+on one date axis, for Lessons 1, 2 and 4.
+
+1. The 20-day hedge ratio, with its days below zero shaded.
+2. The price spread, the book's Figure 3.1.
+3. The ratio, the book's Figure 3.2.
+4. Every run's cumulative return, the swapped ratio dashed.
 
 ```bash
 uv run python -m chan.price_spread_figures
