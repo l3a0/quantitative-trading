@@ -3752,8 +3752,10 @@ Three things.
 3. **Seen after the run and deciding nothing, the crash Chan describes is in
    the file.** The strategy that earned a
    Sharpe ratio of 4.07 over 2007 lost 32 percent a year over 2008 and 2009,
-   with a drawdown of −0.606634 lasting 371 days, and earned 1.6 percent a
-   year after that. That is the collapse location 2890 describes, where
+   with a drawdown of −0.606634 from a high on 2008-07-14. It was still below
+   that high 371 days later, when the window ended, so the drawdown had not
+   finished. It earned 1.6 percent a year after that. That is the collapse
+   location 2890 describes, where
    momentum "vanished during the aftermath of the stock market crash".
 
 ### What this entry cannot say
@@ -3775,7 +3777,11 @@ cohort of 100 picks enters and the one formed 25 days earlier leaves.
 **Whether momentum pays today.** The sample ends in April 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/cross-sectional-momentum-lessons.md](../blog/cross-sectional-momentum-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.cross_sectional_momentum_figures`
+redraws.
 
 ## Entry 18: buy on gap and its mirror, Chan's *Algorithmic Trading*
 

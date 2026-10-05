@@ -78,6 +78,8 @@ moves a figure.
 4. A row with fewer than 50 returns that are not NaN is refused, where MATLAB
    would stop on an index below 1. No row of Chan's file comes near that.
 5. ``plot(cumret)`` is not carried. The run prints and draws nothing.
+   :mod:`chan.cross_sectional_momentum_figures` draws it once per window, the
+   way the script draws it once per run.
 
 **The scale-break guard is not called.** The guard flags 30 stock-days in this
 file, all in 2007 to 2009. ETFC's 2007-11-12 is inside the 2007 window and the
@@ -293,6 +295,20 @@ READINGS: dict[str, tuple[str, Callable[[np.ndarray], np.ndarray]]] = {
 }
 
 
+def window_returns(
+    daily: np.ndarray, days: pd.DatetimeIndex, window: str
+) -> tuple[pd.DatetimeIndex, np.ndarray]:
+    """Lines 11 and 12: the days of one of :data:`WINDOWS` and their returns.
+
+    :func:`window_figures` and :mod:`chan.cross_sectional_momentum_figures`
+    both slice a window here, so the printed figures and the drawn line cannot
+    disagree about which days a window holds.
+    """
+    start, end = (pd.Timestamp(each) for each in WINDOWS[window])
+    inside = (days >= start) & (days <= end)
+    return days[inside], daily[inside]
+
+
 def window_figures(
     daily: np.ndarray,
     days: pd.DatetimeIndex,
@@ -304,13 +320,11 @@ def window_figures(
     ``smartstd`` is book two's, which ``kentdaniel.m`` calls. The tests swap in
     the first edition's to show what that would move.
     """
-    start, end = (pd.Timestamp(each) for each in WINDOWS[window])
-    inside = (days >= start) & (days <= end)
-    r = daily[inside]
+    inside, r = window_returns(daily, days, window)
     mean = float(smartmean(r))
     max_dd, max_ddd = calculate_max_dd(np.cumprod(1 + r) - 1)
     return Figures(
-        days=days[inside],
+        days=inside,
         arithmetic_annual=TRADING_DAYS * mean,
         sharpe=float(np.sqrt(TRADING_DAYS) * mean / smartstd(r)),
         compounded_apr=float(np.prod(1 + r) ** (TRADING_DAYS / len(r)) - 1),

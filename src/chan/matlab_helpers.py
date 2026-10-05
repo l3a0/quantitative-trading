@@ -100,8 +100,10 @@ endings are stripped, measured on
 - :func:`calculate_max_dd` is ``calculateMaxDD``, the deepest drawdown of a
   compounded cumulative return and the longest run of days spent below a high.
   :func:`drawdown_path` is its loop, returning each day's high, drawdown and
-  duration, so a caller that needs to know where the longest run falls reads
-  the same calculation rather than a second copy of it.
+  duration, so a caller that needs to know where the longest run or the
+  deepest drawdown falls reads the same calculation rather than a second copy
+  of it. :func:`chan.pead_figures.longest_spell` locates the first and
+  :func:`chan.cross_sectional_momentum_figures.deepest_drawdown` the second.
 - :func:`calculate_returns` is ``calculateReturns``, each row's simple return
   over the row ``lag`` rows before it.
 - :func:`smart_moving_avg` is ``smartMovingAvg``, the mean of the finite

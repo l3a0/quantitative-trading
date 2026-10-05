@@ -406,6 +406,29 @@ class TestTheScaleBreakDecision:
         assert len(flagged) == 30
         assert counts == {"2007": 1, "2008-2009": 29, "2010-2012": 0}
 
+    def test_the_2007_day_is_etfcs_and_the_strategy_held_it_short_at_full_weight(
+        self, closes
+    ) -> None:
+        """ETFC's close fell from 85.9 to 35.5 into 2007-11-12.
+
+        ``daily_returns`` multiplies the position one row back by the day's
+        return, so the row that earns the flagged close is 2007-11-09, where
+        all 25 cohorts held ETFC short.
+        """
+        flagged = [
+            (symbol, day)
+            for symbol in closes.columns
+            for day in scale_breaks(closes[symbol].dropna())
+            if pd.Timestamp(WINDOWS["2007"][0]) <= day <= pd.Timestamp(WINDOWS["2007"][1])
+        ]
+        assert flagged == [("ETFC", pd.Timestamp("2007-11-12"))], SPEC
+        etfc = closes["ETFC"]
+        assert (etfc.loc["2007-11-09"], etfc.loc["2007-11-12"]) == (85.9, 35.5), SPEC
+        values = closes.to_numpy()
+        positions = overlapping_positions(*formations(ranking_returns(values)))
+        held = pd.Series(positions[:, list(closes.columns).index("ETFC")], index=closes.index)
+        assert held.loc["2007-11-09"] == -HOLD_DAYS, SPEC
+
     def test_the_guard_refuses_the_two_windows_the_book_prints(self, source) -> None:
         members, closes = source
         legs = [(m, closes[m.symbol].dropna()) for m in members]
