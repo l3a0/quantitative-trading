@@ -13,14 +13,16 @@ which file it sat in.
 
 The suite runs across pytest-xdist workers, and each worker holds a session of
 its own, so the run is built once in every worker that draws a test reading
-it. xdist hands each worker a batch of neighbouring tests, so the readers in
-one file tend to share a worker, but an archive run can still build the run on
-more than one worker at once. No archive run has happened in parallel yet, so
-that count is unmeasured. ``-n 0`` runs the suite in one process and builds it
-once. Keeping the readers on one worker would take ``--dist loadgroup``, which
-hands out every other test one at a time and so rebuilds each module-scoped
-fixture on more workers, a price every run would pay to save CPU on a run that
-happens by hand.
+it. ``--dist loadfile`` keeps each file on one worker, so an archive run builds
+it at most twice, once for each of the two files, at the same time. ``-n 0``
+runs the suite in one process and builds it once. The design doc's
+considered-and-rejected register says why one worker for both files was cut.
+
+The hook below caps each worker's numerical thread pools at one thread. A
+pool sizes itself to every core, so four workers on four cores ran up to four
+threads each. Two paired runs on CI's 4-core runner, measured on 2026-10-05,
+took 334 and 338 seconds with the cap and 465 and 557 without it, against 719
+and 769 serially.
 """
 
 from __future__ import annotations
@@ -33,6 +35,28 @@ import pytest
 
 from chan import cpo
 from chan.archive import ArchiveUnavailable, archive_dir
+
+#: The thread-count variables of OpenMP, OpenBLAS, MKL and Apple's Accelerate,
+#: which between them size every numerical thread pool this suite reaches.
+THREAD_ENVS = (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+)
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Give each xdist worker one numerical thread, before any worker starts.
+
+    It runs in the process that starts the workers, which inherit its
+    environment, and only when there will be workers, so ``-n 0`` keeps every
+    thread. ``setdefault`` leaves a value already in the environment alone.
+    """
+    if getattr(config.option, "numprocesses", 0) and not hasattr(config, "workerinput"):
+        for name in THREAD_ENVS:
+            os.environ.setdefault(name, "1")
+
 
 #: Set to 1 to run the archive pins. The full run takes minutes, and every
 #: session here runs the suite, so they do not run by default.
