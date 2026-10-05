@@ -8,7 +8,8 @@ Two kinds of test live here.
 2. **The pins**, on the owner's archive of Alpha Vantage minute bars. A public
    clone has no archive, and the full run takes minutes, so these skip unless
    an archive is configured and ``QT_ARCHIVE_RUN=1`` asks for them. The skip
-   reason says which of the two is missing.
+   reason says which of the two is missing. ``.claude/settings.json`` sets the
+   flag for every Claude Code session here.
 
 Every pinned figure names its vintages, the two archive files by their sha256
 in ``data/archive_vintages.jsonl``, and its specification, the readings

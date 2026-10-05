@@ -2208,6 +2208,11 @@ uv run pytest
 serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
+A Claude Code session here also runs the 16 archive pins of Example 7.1,
+because `.claude/settings.json` sets `QT_ARCHIVE_RUN=1`. They run only where
+the owner's archive is configured, and each test file that reads the run builds
+it in about six minutes. `QT_ARCHIVE_RUN=0` skips them for one run.
+
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.
 

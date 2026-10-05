@@ -58,8 +58,9 @@ def pytest_configure(config: pytest.Config) -> None:
             os.environ.setdefault(name, "1")
 
 
-#: Set to 1 to run the archive pins. The full run takes minutes, and every
-#: session here runs the suite, so they do not run by default.
+#: Set to 1 to run the archive pins. The full run takes minutes, so they do not
+#: run by default. ``.claude/settings.json`` sets it for every Claude Code
+#: session here, and the design doc's Configuration table says why.
 RUN_ENV = "QT_ARCHIVE_RUN"
 
 
