@@ -190,6 +190,7 @@ MUST_BE_SWEPT = frozenset(
         "research/book-notes/README.md",
         "research/book-notes/algorithmic-trading.md",
         "research/book-notes/quantitative-trading.md",
+        "research/filings/README.md",
         "research/papers/README.md",
     }
 )
