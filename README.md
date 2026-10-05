@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-four replications run here, fifteen from Chan's *Quantitative Trading*
-and nine from his *Algorithmic Trading*. The first two were ported from the
+Twenty-five replications run here, fifteen from Chan's *Quantitative Trading*
+and ten from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-two were built here.
+where they were first built. The other twenty-three were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -305,7 +305,21 @@ where they were first built. The other twenty-two were built here.
     not reproduce, because the eigen statistic finds none, which the script's
     own printout already shows. Every figure is exploratory, and the
     portfolio's weights are fitted on the days it trades.
-24. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
+24. SPY against the S&P 500 stocks that pass a cointegration screen, Example
+    4.2 of *Algorithmic Trading*, on Chan's own 2012 S&P 500 file and his ETF
+    file's SPY. `indexArb.m` tests each of 480 stocks against SPY over 2007
+    and keeps the 98 that pass a 90 percent bar. That bar passes about 28
+    percent of random walks unrelated to SPY, about 135 of 480, so the count
+    alone does not show that any stock cointegrates with SPY. It holds them with equal capital against SPY on the basket test's
+    first eigenvector and trades from 2008 with a lookback of 5. Every figure
+    the script prints reproduces to its last digit: the 98, both Johansen
+    statistics for the basket, the eigenvectors with Chan's own signs, and an
+    APR of 0.044930 with a Sharpe ratio of 1.319397, his 4.5 percent and 1.3.
+    The book's claim that the basket cointegrates with SPY at better than 95
+    percent holds for the trace test and not the eigen test. Every figure is
+    exploratory and survivor-only, and the lookback was chosen with hindsight,
+    so the 2008 to 2012 figures are not out of sample.
+25. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
     Chan's own strips of BR, corn, CL, HG and TU. Eight of Table 5.1's ten
     cells reproduce, and HG's and TU's spot returns do not: HG's 0.050567
     rounds to 5.1 percent against the book's 5.0, and TU's 0.000039 is
@@ -506,6 +520,12 @@ critical value as the script formatted it, and the book's rounder figures. It
 also holds that negating the eigenvector moves no figure, since statsmodels
 returns it with the opposite sign from Chan's, and that padding the lag with
 zeros as LeSage's `lag` does gives the same series.
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) does it for
+Example 4.2. It pins the screen's count with the 17 stocks it skips by name,
+every figure `indexArb.m` prints at the precision that is real and as the
+script printed it, and the screen's rules on frames built by hand. It also runs
+the scale-break guard on the stocks and holds that it would refuse the run,
+which is why only SPY is guarded.
 [tests/test_johansen.py](tests/test_johansen.py) holds what the wrapper adds:
 a known cointegrating vector recovered from a built system, real figures
 without a warning, and a refusal naming the column and row of any price that
@@ -523,7 +543,7 @@ synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
 and a gap in the spot still counted as elapsed days.
 
-All twenty-four replications reach a verdict in
+All twenty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -535,7 +555,7 @@ Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
-examples' and Entry 24 the spot and roll returns'.
+examples', Entry 24 Example 4.2's and Entry 25 the spot and roll returns'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -648,7 +668,9 @@ and 4.4, for
 factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
-[issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and so
+does Example 4.2, for
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 Example 3.1 reads GLD's and USO's closes from the ETF file, for
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and is
 the first run to read it. The lift for
@@ -657,7 +679,8 @@ it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
 The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
 closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
-and nothing else reads it yet.
+and Example 4.2 reads its SPY, for
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract
@@ -1120,6 +1143,19 @@ It prints the three vintages and the window, each figure the script prints
 beside the computed one and a verdict, the first eigenvector beside Chan's with
 its sign flipped, how many relations each Johansen statistic finds at each
 level, and the rows beside the replication.
+
+Example 4.2 of *Algorithmic Trading* takes no option either, because
+`indexArb.m` fixes both files, the screen, the windows and the lookback:
+
+```bash
+uv run python -m chan.index_arbitrage
+```
+
+It prints the two vintages and both windows, each figure the script prints
+beside the computed one and a verdict, how many relations each Johansen
+statistic finds for the basket, and the rows beside the replication: the 480
+stocks tested, the 17 skipped, a plain ADF test of each 2007 log series, and
+the first day the strategy earns.
 
 The spot and roll returns, Example 5.3 of *Algorithmic Trading*, take no
 option, because `estimateFuturesReturns.m` fixes the method and the book names

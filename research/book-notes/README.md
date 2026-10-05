@@ -121,6 +121,14 @@ book: −3.64346635, every Johansen statistic, critical value, eigenvalue and
 eigenvector, the half-life of 22.662578, and 0.125739 and 1.391310. The
 replication log's Entry 23 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 4.2 splits the same way. The book's 98
+stocks, its APR of 4.5 percent and Sharpe ratio of 1.3, and its claims of
+cointegration "with better than 95 percent probability" and of two
+cointegrating relations are here, at location 2035. The figures `indexArb.m`
+prints sit in its comments and nowhere in the book: every Johansen statistic
+and critical value for the basket against SPY, its eigenvectors, and 0.044930
+and 1.319397. The replication log's Entry 24 traces each to one or the other.
+
 *Algorithmic Trading*'s Example 5.3 splits a third way, because its script
 records no figure. The book's are here: the whole of Table 5.1 in the
 recovered text of location 2399, with the corn row repeated at 2444, and
@@ -129,7 +137,7 @@ Figure 5.5's first day, November 22, 2004, in the same passage. The claims at
 too. `estimateFuturesReturns.m` prints its two figures and keeps neither in
 its comments. Chan's 2018 Python port of it does, for corn alone:
 `0.02805562210100287` and `-0.12775650227459556` sit in its comments and
-nowhere in the book. The replication log's Entry 24 traces each to one or the
+nowhere in the book. The replication log's Entry 25 traces each to one or the
 other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
