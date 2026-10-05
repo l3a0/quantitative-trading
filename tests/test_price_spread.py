@@ -256,6 +256,7 @@ class TestTheRatio:
         value = result.ratio.signal.value
         assert (round(float(value[0]), 2), round(float(value[-1]), 2)) == (1.03, 0.24), SPEC
         assert round(float(value.max()), 2) == 1.30, SPEC
+        assert value.max() < 1.3, SPEC
 
     def test_the_swap_trades_gld_over_uso_and_buys_gld_on_a_positive_unit(
         self, sources, result: ExampleThreeOne

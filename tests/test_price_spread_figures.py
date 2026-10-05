@@ -79,11 +79,22 @@ class TestThePanels:
         assert axes["hedge"].get_shared_x_axes().joined(axes["hedge"], axes["returns"])
 
     def test_the_title_carries_the_label_and_the_note_names_the_file(self, figure) -> None:
-        assert figure._suptitle.get_text().startswith("Exploratory:")
-        note = " ".join(t.get_text() for t in figure.texts)
-        assert "2006-05-24 to 2012-04-09, the 1,480 days" in note, SPEC
-        assert "inputData_ETF.mat, saved 2012-04-10" in note
-        assert "chosen with hindsight" in note
+        assert figure._suptitle.get_text() == (
+            "Exploratory: Example 3.1 redrawn on Chan's own GLD and USO closes"
+        )
+        assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
+            "Example 3.1 of Algorithmic Trading, 2006-05-24 to 2012-04-09, the 1,480 days left "
+            "once the first 20 are dropped.\nPrices from inputData_ETF.mat, saved 2012-04-10. "
+            "Chan's 20-day lookback was chosen with hindsight, so every figure is in-sample."
+        ], SPEC
+
+    def test_drawing_with_no_result_reads_the_committed_file(self, tmp_path, result) -> None:
+        """``main`` and the committed PNG take this path, so it is drawn here too."""
+        drawn = make_signals_figure(out=tmp_path / SIGNALS_FIGURE)
+        hedge = _by_gid(drawn.axes[0].lines)["hedge"]
+        np.testing.assert_array_equal(hedge.get_ydata(), result.price_spread.signal.hedge)
+        returns = _by_gid(drawn.axes[3].lines)
+        np.testing.assert_array_equal(returns["ratio"].get_ydata(), cumulative_return(result.ratio))
 
 
 class TestTheSignals:
@@ -105,6 +116,20 @@ class TestTheSignals:
         vertices = np.concatenate([path.vertices for path in shaded.get_paths()])
         assert (vertices[:, 1] <= 1e-12).all()
         assert vertices[:, 1].min() == pytest.approx(result.price_spread.signal.hedge.min())
+
+    def test_the_shading_runs_from_zero_under_every_negative_day(self, axes, result) -> None:
+        """Each of the 334 days below zero has a vertex on the zero line beneath it."""
+        signal = result.price_spread.signal
+        shaded = _by_gid(axes["hedge"].collections)["negative"]
+        vertices = np.concatenate([path.vertices for path in shaded.get_paths()])
+        on_zero = set(np.round(vertices[np.abs(vertices[:, 1]) < 1e-12, 0], 6))
+        negative = np.round(date2num(signal.days[signal.hedge < 0]), 6)
+        assert len(negative) == 334, SPEC
+        assert set(negative) <= on_zero
+
+    def test_the_spread_and_returns_panels_mark_zero(self, axes) -> None:
+        for name in ("spread", "returns"):
+            assert list(_by_gid(axes[name].lines)["zero"].get_ydata()) == [0, 0], name
 
     def test_the_spread_panel_draws_figure_3_1(self, axes, result) -> None:
         line = _by_gid(axes["spread"].lines)["spread"]
@@ -145,8 +170,18 @@ class TestTheReturns:
 
     def test_only_the_swapped_ratio_is_dashed(self, axes) -> None:
         lines = _by_gid(axes["returns"].lines)
-        dashed = {gid for gid, line in lines.items() if line.get_linestyle() == "--"}
-        assert dashed == {"swapped_ratio"}
+        styles = {attribute: lines[attribute].get_linestyle() for attribute, *_ in RUNS}
+        assert styles == {
+            "price_spread": "-",
+            "log_price_spread": "-",
+            "ratio": "-",
+            "swapped_ratio": "--",
+        }
+
+    def test_the_heading_and_axis_read_as_compounded_percent(self, axes) -> None:
+        returns = axes["returns"]
+        assert _title(returns) == "Each run's compounded return, unlevered and before costs."
+        assert returns.yaxis.get_major_formatter()(0.5) == "50%"
 
     def test_the_legend_sets_each_runs_two_figures(self, axes) -> None:
         legend = [t.get_text() for t in axes["returns"].get_legend().get_texts()]
@@ -162,9 +197,14 @@ class TestTheReturns:
         assert legend_label(result.ratio, "x") == "x: APR -0.134608, Sharpe ratio -0.702522"
 
     def test_the_legend_sits_above_every_line(self, axes) -> None:
+        """The top leaves 45 percent of the lines' range clear for the legend, and the
+        bottom clears the lowest line."""
         lines = _by_gid(axes["returns"].lines)
-        highest = max(lines[attribute].get_ydata().max() for attribute, *_ in RUNS)
-        assert axes["returns"].get_ylim()[1] > highest * 1.3
+        ys = [lines[attribute].get_ydata() for attribute, *_ in RUNS]
+        low, high = min(y.min() for y in ys), max(y.max() for y in ys)
+        bottom, top = axes["returns"].get_ylim()
+        assert top == pytest.approx(high + 0.45 * (high - low))
+        assert bottom == pytest.approx(low - 0.08 * (high - low))
 
 
 class TestTheFile:
@@ -173,6 +213,14 @@ class TestTheFile:
 
     def test_the_committed_figure_exists(self) -> None:
         assert (FIGURES_DIR / SIGNALS_FIGURE).is_file()
+
+    def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
+        def fail(*_a, **_k):
+            raise ValueError("a bug, not a refusal")
+
+        monkeypatch.setattr(price_spread_figures, "make_signals_figure", fail)
+        with pytest.raises(ValueError, match="a bug, not a refusal"):
+            main()
 
     @pytest.mark.parametrize(
         "refusal",

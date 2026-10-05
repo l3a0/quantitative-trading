@@ -107,7 +107,7 @@ def make_signals_figure(out: Path | None = None, result: ExampleThreeOne | None 
         f"Below zero on {negative} of {len(days):,} days, when one unit holds both ETFs long.",
     )
 
-    spread_ax.axhline(0, color=MUTED, lw=0.9)
+    spread_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
     spread_ax.plot(days, result.price_spread.signal.value, color=INK, lw=1.0, gid="spread")
     spread_ax.set_ylabel("dollars", color=INK, fontsize=10)
     _heading(spread_ax, "Figure 3.1: the price spread USO − h·GLD.")
@@ -116,7 +116,7 @@ def make_signals_figure(out: Path | None = None, result: ExampleThreeOne | None 
     ratio_ax.set_ylabel("USO / GLD", color=INK, fontsize=10)
     _heading(ratio_ax, "Figure 3.2: the ratio USO/GLD.")
 
-    return_ax.axhline(0, color=MUTED, lw=0.9)
+    return_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
     for attribute, label, colour, dash in RUNS:
         run = getattr(result, attribute)
         return_ax.plot(
