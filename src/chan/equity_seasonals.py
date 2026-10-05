@@ -1122,8 +1122,8 @@ def year_end_slice(
 
 def slice_returns(
     sliced: pd.DataFrame,
-) -> tuple[pd.Timestamp, pd.Timestamp, NDArray[np.float64], NDArray[np.float64]]:
-    """The entry day, the exit day, and each column's annual and January return on one slice.
+) -> tuple[pd.Timestamp, pd.Timestamp, pd.Timestamp, NDArray[np.float64], NDArray[np.float64]]:
+    """The rank day, the entry day, the exit day, and each column's annual and January return.
 
     The days and returns are the ones :data:`MATLAB_JANUARY` reads: month-ends
     by row, ranking each December year-end against the one before it, and
@@ -1140,7 +1140,13 @@ def slice_returns(
         )
     level = sliced.to_numpy()
     before, now, after = level[decembers[0]], level[decembers[1]], level[januaries[-1]]
-    return days[decembers[1]], days[januaries[-1]], (now - before) / before, (after - now) / now
+    return (
+        days[decembers[0]],
+        days[decembers[1]],
+        days[januaries[-1]],
+        (now - before) / before,
+        (after - now) / now,
+    )
 
 
 def bounded_january(
@@ -1216,13 +1222,20 @@ def point_in_time_year(
     sliced = year_end_slice(closes[tickers], calendar, date)
     refuse_off_calendar(sliced, calendar)
     refuse_nonpositive(sliced)
-    entered, exited, annual, january = slice_returns(sliced)
+    ranked_on, entered, exited, annual, january = slice_returns(sliced)
     expected = (price_date(calendar, date), exit_date(calendar, date))
     if (entered, exited) != expected:
         raise PointInTimeRefused(
             f"{date}: the slice enters {entered.date()} and exits {exited.date()}, where the "
             f"filing's price date is {expected[0].date()} and January's last trading day "
             f"is {expected[1].date()}"
+        )
+    before = pd.Timestamp(date).year - 1
+    rank_day = calendar[(calendar.year == before) & (calendar.month == 12)][-1]
+    if ranked_on != rank_day:
+        raise PointInTimeRefused(
+            f"{date}: the slice ranks against {ranked_on.date()}, where the calendar's last "
+            f"trading day of December {before} is {rank_day.date()}"
         )
     ranked = int(np.isfinite(annual).sum())
     universe = ranked + len(year.missing)
@@ -1357,6 +1370,9 @@ def survivorship_gap(
     Issue 329 asks for the gap described rather than tested. Both runs read one
     cross-section, so it measures membership rather than two download dates.
     """
+    exits = [trade.exited for trade in survivors.effect.trades]
+    if exits != [year.trade.exited for year in run.year_ends]:
+        raise PointInTimeRefused("the survivor run's Januaries are not this run's, so no gap")
     per = tuple(
         (before - year.low, before - year.high)
         for before, year in zip(survivors.before, run.year_ends, strict=True)
@@ -1528,10 +1544,13 @@ def report_point_in_time(result: PointInTimeRun, survivors: SurvivorRun | None =
     print(f"  verdict: {result.verdict}")
     if survivors is not None:
         per, means = survivorship_gap(result, survivors)
-        print("  the survivor-only run less this one, described rather than tested")
+        print(
+            "  the survivor-only run less this one's low and high series, described rather "
+            "than tested"
+        )
         for year, (low, high) in zip(result.year_ends, per, strict=True):
-            print(f"    {year.trade.exited.year} January: {_span(low, high, '.4f')}")
-        print(f"    the mean: {_span(means[0], means[1], '.4f')}")
+            print(f"    {year.trade.exited.year} January: {low:.4f} and {high:.4f}")
+        print(f"    the mean: {means[0]:.4f} and {means[1]:.4f}")
 
 
 def run(*, data_dir: Path | None = None) -> None:

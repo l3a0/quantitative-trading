@@ -1701,6 +1701,17 @@ class TestThePointInTimeYear:
         with pytest.raises(seasonals.SurvivorRunRefused, match="S03 has a row on 2015-12-26"):
             self._run(monkeypatch, rows, year, closes, calendar, returns)
 
+    def test_a_rank_row_off_the_last_december_day_is_refused(self, monkeypatch) -> None:
+        """No member has a close on 2014-12-31, so the slice would rank against the day before."""
+        rows, year, closes, calendar, returns = synthetic_year()
+        closes = closes.drop(index=pd.Timestamp("2014-12-31"))
+        with pytest.raises(
+            seasonals.PointInTimeRefused,
+            match="ranks against 2014-12-30, where the calendar's last trading day of "
+            "December 2014 is 2014-12-31",
+        ):
+            self._run(monkeypatch, rows, year, closes, calendar, returns)
+
     def test_a_calendar_short_of_february_is_refused(self, monkeypatch) -> None:
         rows, year, closes, calendar, returns = synthetic_year()
         short = calendar[calendar < pd.Timestamp("2016-02-01")]
@@ -2008,6 +2019,11 @@ class TestThePointInTimePins:
         assert_reproduces(means[0], 0.11554359231461436, "0.1155", ".4f")
         assert_reproduces(means[1], -0.07706237313222761, "-0.0771", ".4f")
 
+    def test_the_gap_refuses_runs_on_different_januaries(self, point_in_time, survivors) -> None:
+        shifted = replace(point_in_time, year_ends=point_in_time.year_ends[1:])
+        with pytest.raises(seasonals.PointInTimeRefused, match="not this run's"):
+            seasonals.survivorship_gap(shifted, survivors)
+
     def test_the_report(self, point_in_time, survivors, capsys) -> None:
         seasonals.report_point_in_time(point_in_time, survivors)
         out = capsys.readouterr().out
@@ -2024,5 +2040,5 @@ class TestThePointInTimePins:
         assert "the low series: mean -0.1047, standard deviation 0.0896, t -4.96" in out
         assert "the high series: mean 0.0879, standard deviation 0.1007, t 3.70" in out
         assert "verdict: the free sources cannot decide it" in out
-        assert "    2009 January: 0.3213 to -0.3041" in out
-        assert "    the mean: 0.1155 to -0.0771" in out
+        assert "    2009 January: 0.3213 and -0.3041" in out
+        assert "    the mean: 0.1155 and -0.0771" in out
