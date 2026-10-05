@@ -318,9 +318,11 @@ nothing here asserts is listed below.
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
-builder who corrects his code fails a test rather than moving a pin. The blog
-post about them is the exception, and what it says that nothing here asserts
-is listed below.
+builder who corrects his code fails a test rather than moving a pin. Its
+survivor-run pins read the owner's archive and skip where none is configured,
+while the run's mechanics and its 603 manifest lines are held everywhere. The
+blog post about them is the exception, and what it says that nothing here
+asserts is listed below.
 
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
 reversal. It pins Chan's two figures at four decimals and at the book's two,
@@ -384,8 +386,8 @@ exception, and what it says that nothing here asserts is listed below.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
 each standalone line field for field everywhere, and the files' hashes and the
 minute bars' agreement with the committed daily closes wherever an archive is
-configured. The 603 lines of the `sp600` cross-section are held by the sha256
-of their bytes in
+configured. The 603 lines the survivor run reads from the `sp600`
+cross-section are held by the sha256 of their bytes in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), everywhere.
 
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
@@ -2134,7 +2136,8 @@ needs it. It is there so the committed figures can be redrawn and checked.
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a
 network at any point. Example 7.1 reads its bars from the owner's data archive,
-which is a folder on the owner's machine. If that folder is synced from a cloud
+and `chan.equity_seasonals --survivors` reads 603 daily files from it, which is
+a folder on the owner's machine. If that folder is synced from a cloud
 service, the first read of a file the service has not kept on disk downloads
 it, which this repo does not measure.
 

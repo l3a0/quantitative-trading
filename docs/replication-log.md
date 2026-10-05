@@ -319,7 +319,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18 and 23 to 29,
+than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 34,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -1964,9 +1964,10 @@ verdict even though their criterion was written on
 any return was computed. Data tilted toward the effect can speak in one
 direction only. The companies that left the index before 2025-12-31 are
 missing, so the losers held long are the ones that recovered and the winners
-held short are the ones that stalled. A mean not detectably above zero says
-the effect is small or absent even on that data. A mean above zero would have
-said nothing, because the bias alone could produce it.
+held short are mostly the ones that stalled. A mean not detectably above zero
+bounds the effect even on that data, at the X the test detects with 80%
+probability. A mean above zero would have said nothing, because the bias alone
+could produce it.
 
 ### What the book printed
 
@@ -1995,7 +1996,7 @@ said nothing, because the bias alone could produce it.
 | 21 | 7.6, January 2008, revised R | 0.0881 | as row 5 |
 | 22 | 7.7 average annual return over the most recent five years, revised MATLAB | "even worse" than the whole period, a claim, no figure | the revised Kindle edition, p. 180, directly after the MATLAB listing, as a session read it in the Kindle Cloud Reader on 2026-10-03 |
 | 23 to 29 | row 22's Sharpe ratio, the same two figures over the full run's last 60 months, and all four under the revised Python's rules | nothing | n/a |
-| 30 | 7.6, mean January return before costs, January 2009 to January 2026, IJR's members at 2025-12-31 | nothing, every January falls after the book | n/a |
+| 30 | 7.6, mean January return before costs, January 2009 to January 2026, IJR's members at 2025-12-31 | nothing, the book prints no figure for these Januaries | n/a |
 | 31 to 34 | row 30's standard deviation, its one-sided t-test, the mean the test detects with 80% probability, and the mean after costs | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
@@ -2082,7 +2083,7 @@ no published figure to take a gap from.
 | 21 | reproduced | Inferred rules, as for row 5. A tenth of 594 is 59.4, so R's rounding and MATLAB's give the same stocks. |
 | 22 | reproduced | The criterion was written on [issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before any five-year figure was computed, under the owner's ruling that the revised MATLAB's rules carry it. The post's running-sum figure, which shows the shape of those years, was already published then, as the issue records. P. 180 tells the reader to run the program on the most recent five years instead of the entire data period, so the program is rerun on the last five years of its input. The rerun's 47 months are the full run's last 47, value for value. The claim holds on Chan's file of survivors. The rerun's annual return has a standard error of 0.0281 a year, about eight times the 0.0036 gap, so the row says nothing about whether the effect weakened. `TestTheMostRecentFiveYears::test_the_gap_is_far_inside_the_noise_of_47_months` holds both figures. |
 | 23 to 29 | none, not a replication | Reported beside row 22 with no verdict. Rows 24, 25, 28 and 29 average the tail of the full run, a rule the book does not print, and p. 180 names the average returns rather than the Sharpe ratio. |
-| 30 | none, survivor-only and exploratory | No January effect detectable above about 2.4% a January, on members that favour the effect. The test fails to reject, so the reading takes the owner's wording for [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), with X at the measured deviation, and it never says the effect disappeared. Two ranked members have no exit close and are skipped as `smartmean` skips them: INDV, which has no row on 2019-01-31, and GES, delisted on 2026-01-22. |
+| 30 | none, survivor-only and exploratory | No January effect detectable above about 2.4% a January, on members that favour the effect. The test fails to reject, so the reading takes the owner's wording for [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), with X at the measured deviation, and it never says the effect disappeared. Two ranked members have no exit close and are skipped as `smartmean` skips them: INDV, which has no row on 2019-01-31, and GES, delisted on 2026-01-22. Two members are never ranked at all, because Alpha Vantage's NVRI and GTES hold nothing before 2026, so at most 601 of the 603 can rank. [Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) computes the per-January difference from these rows. |
 | 31 to 34 | none, survivor-only and exploratory | Reported beside row 30. Row 33 is 2.4% where the issue's power estimate before the run was 3.7%, because the measured deviation of 0.0398 is smaller than the 6.05% of Chan's three printed Januaries. |
 
 ### What the entry concludes
@@ -4309,7 +4310,7 @@ does.
 
 ### What the entry concludes
 
-Five things.
+Four things.
 
 1. **The verdicts were known before the work started.** Nothing can move an
    arithmetic result, which is Entry 2's first conclusion, and planning on the

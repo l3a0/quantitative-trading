@@ -1,4 +1,4 @@
-"""Chan's two equity seasonals, Examples 7.6 and 7.7, on the files he ran them on.
+"""Chan's two equity seasonals, Examples 7.6 and 7.7, on his files and on IJR's members.
 
 Chan publishes both strategies as already dead. At Kindle location 4425 he says
 the Heston and Sadka strategy returned more than 13 percent a year before 2002
@@ -103,10 +103,11 @@ The committed raw SPY vintage downloaded on 2026-10-03 is the run's calendar.
 That run is survivor-only, and it is read in one direction only. Companies
 that left the index before 2025-12-31 are missing, and on this strategy both
 legs gain from their absence, so the data lean toward finding a January
-effect. A January mean not detectably above zero says the effect is small or
-absent even so. One that is above zero gives no verdict, because the bias
-alone could produce it. The rule was written on the issue before any return
-was computed, and :func:`survivor_reading` words it.
+effect. A January mean not detectably above zero bounds the effect even so,
+at the mean the test detects with 80% probability. One that is above zero
+gives no verdict, because the bias alone could produce it. The rule was
+written on the issue before any return was computed, and
+:func:`survivor_reading` words it.
 
 ``tests/test_equity_seasonals.py`` is the single authority for every number
 any prose surface quotes about either example.
@@ -634,7 +635,9 @@ SURVIVOR_CROSS_SECTION = "sp600"
 #: company's whole history under its newest ticker, so fetching the old one
 #: returns nothing or another company. Two are share classes, which the filing
 #: writes with a slash and Alpha Vantage with a dash. Every other member is
-#: filed under the filing's ticker, including the 25 delisted in 2026.
+#: fetched under the filing's ticker, the ones delisted in 2026 included.
+#: Two of those, NVRI and GTES, came back holding nothing before 2026, which
+#: :func:`no_close_at_filing` reports rather than this map hiding.
 ALPHAVANTAGE_SYMBOLS: Mapping[str, str] = {
     "AHH": "AHRT",
     "ATGE": "CVSA",
@@ -754,6 +757,20 @@ def survivor_members(filings_dir: Path | None = None) -> tuple[tuple[str, str], 
     return pairs
 
 
+def survivor_calendar(data_dir: Path | None = None) -> tuple[VintageEntry, pd.Series]:
+    """The committed raw SPY vintage the run takes its trading days from."""
+    return load_vintage("SPY", unadjusted=True, dated=CALENDAR_DOWNLOAD, data_dir=data_dir)
+
+
+def missing_members(pairs: Sequence[tuple[str, str]], recorded: set[str]) -> tuple[str, ...]:
+    """Members whose symbol has no line, as ``TICKER``, or ``TICKER as SYMBOL`` when mapped."""
+    return tuple(
+        ticker if ticker == symbol else f"{ticker} as {symbol}"
+        for ticker, symbol in pairs
+        if symbol not in recorded
+    )
+
+
 def survivor_slice(closes: pd.DataFrame) -> pd.DataFrame:
     """The rows from :data:`SURVIVOR_SLICE_START` to the last row the fetch holds."""
     return closes.loc[closes.index >= SURVIVOR_SLICE_START]
@@ -770,8 +787,9 @@ def refuse_off_calendar(closes: pd.DataFrame, calendar: pd.DatetimeIndex) -> Non
     if len(off):
         day = off[0]
         symbol = closes.loc[day].first_valid_index()
+        named = "a row with no close" if symbol is None else f"{symbol} has a row"
         raise SurvivorRunRefused(
-            f"{symbol} has a row on {day.date()}, which the SPY calendar does not hold, "
+            f"{named} on {day.date()}, which the SPY calendar does not hold, "
             f"and {len(off)} such days in all"
         )
 
@@ -832,7 +850,8 @@ def before_costs(effect: JanuaryEffect) -> tuple[float, ...]:
     """Each January's return before costs.
 
     :func:`_rank_and_trade` charges :data:`ONE_WAY_COST` twice on every trade,
-    one constant, so adding it back is exact.
+    one constant, so adding it back recovers each return to floating-point
+    rounding.
     """
     return tuple(trade.ret + 2 * ONE_WAY_COST for trade in effect.trades)
 
@@ -873,6 +892,19 @@ def year_ends_missed(closes: pd.DataFrame) -> dict[str, tuple[pd.Timestamp, ...]
     }
 
 
+def no_close_at_filing(closes: pd.DataFrame) -> tuple[str, ...]:
+    """Members with no close on :data:`SURVIVOR_REPORT_DATE`, the day the filing lists them.
+
+    The fund held every member that day, so a series without a close there is
+    missing the member's own history rather than starting late. Such a member
+    is never ranked at the last year-end, and usually at none.
+    """
+    day = pd.Timestamp(SURVIVOR_REPORT_DATE)
+    if day not in closes.index:
+        return tuple(closes.columns)
+    return tuple(closes.columns[closes.loc[day].isna()])
+
+
 def survivor_reading(test: OneSided, detectable: float) -> str:
     """The reading the issue declared before any return was computed.
 
@@ -911,6 +943,8 @@ class SurvivorRun:
     after_mean: float
     no_exit: tuple[int, ...]
     missed: dict[str, tuple[pd.Timestamp, ...]]
+    #: Members whose series holds no close on the filing's own date.
+    no_close: tuple[str, ...]
 
     @property
     def reading(self) -> str:
@@ -932,13 +966,8 @@ def run_survivors(
         data_dir=data_dir,
         directory=directory,
     )
-    recorded = {entry.symbol for entry in entries}
-    missing = tuple(
-        ticker if ticker == symbol else f"{ticker} as {symbol}"
-        for ticker, symbol in pairs
-        if symbol not in recorded
-    )
-    calendar, spy = load_vintage("SPY", unadjusted=True, dated=CALENDAR_DOWNLOAD, data_dir=data_dir)
+    missing = missing_members(pairs, {entry.symbol for entry in entries})
+    calendar, spy = survivor_calendar(data_dir)
     effect = survivor_effect(closes, pd.DatetimeIndex(spy.index))
     before = before_costs(effect)
     test = one_sided_t(before)
@@ -954,6 +983,7 @@ def run_survivors(
         after_mean=float(np.mean([trade.ret for trade in effect.trades])),
         no_exit=ranked_without_exit(closes),
         missed=year_ends_missed(closes),
+        no_close=no_close_at_filing(closes),
     )
 
 
@@ -1047,6 +1077,13 @@ def report_survivors(result: SurvivorRun) -> None:
     print(f"  members with no series: {len(result.missing)}")
     for name in result.missing:
         print(f"    {name}")
+    print(
+        f"  members whose series has no close on {SURVIVOR_REPORT_DATE}, the filing's own "
+        f"date: {len(result.no_close)}"
+    )
+    for symbol in result.no_close:
+        entry = next(entry for entry in result.entries if entry.symbol == symbol)
+        print(f"    {symbol}: its series runs {entry.first_date} to {entry.last_date}")
     print(f"  members missing a year-end close: {len(result.missed)}")
     for symbol, days in sorted(result.missed.items()):
         print(f"    {symbol}: {_years(days)}")

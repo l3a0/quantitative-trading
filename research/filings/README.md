@@ -84,4 +84,6 @@ is also the first check that EDGAR still serves the bytes the index names.
 [tests/test_fund_holdings.py](../../tests/test_fund_holdings.py) is the
 authority for every count, including how many rows each filing holds, how many
 of them are companies' stocks, and how many of those can be paired with the
-filing before. No replication reads this directory yet.
+filing before. One replication reads it so far: `chan.equity_seasonals` runs
+Example 7.6 on the members of `ijr/2025-12-31.csv`, which Entry 7's rows 30 to
+34 in [docs/replication-log.md](../../docs/replication-log.md) record.

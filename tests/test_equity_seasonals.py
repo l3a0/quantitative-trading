@@ -62,6 +62,7 @@ holds it. First run on 2026-10-04.
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import replace
 from pathlib import Path
@@ -909,7 +910,7 @@ class TestTheReport:
 # --------------------------------------------------------------------------
 
 
-def synthetic_closes(start: str = "2007-11-01", end: str = "2026-02-27", members: int = 30):
+def synthetic_closes(start: str = "2005-06-01", end: str = "2026-02-27", members: int = 30):
     """Positive random walks on every weekday, with that same calendar beside them."""
     calendar = pd.bdate_range(start, end)
     rng = np.random.default_rng(333)
@@ -949,6 +950,22 @@ class TestTheSurvivorMembers:
 
         assert all(SYMBOL_PATTERN.fullmatch(s) for _, s in seasonals.survivor_members())
 
+    def test_a_member_with_no_ticker_is_refused(self, tmp_path) -> None:
+        from chan.fund_holdings import FILINGS_DIR
+
+        source = FILINGS_DIR / "ijr" / "2025-12-31.csv"
+        (tmp_path / "ijr").mkdir()
+        lines = source.read_text(encoding="utf-8").splitlines()
+        lines[5] = lines[5].rsplit(",", 1)[0] + ","
+        (tmp_path / "ijr" / "2025-12-31.csv").write_text("\n".join(lines) + "\n", "utf-8")
+        with pytest.raises(ValueError, match="1 members carry no ticker"):
+            seasonals.survivor_members(tmp_path)
+
+    def test_a_member_with_no_line_is_named_by_ticker_and_symbol(self) -> None:
+        pairs = [("STRA", "STRA"), ("AXL", "DCH"), ("GES", "GES")]
+        assert seasonals.missing_members(pairs, {"GES"}) == ("STRA", "AXL as DCH")
+        assert seasonals.missing_members(pairs, {"STRA", "DCH", "GES"}) == ()
+
     def test_two_members_on_one_symbol_are_refused(self, monkeypatch) -> None:
         monkeypatch.setitem(seasonals.ALPHAVANTAGE_SYMBOLS, "AXL", "STRA")
         with pytest.raises(ValueError, match="two members map to STRA"):
@@ -984,6 +1001,14 @@ class TestTheOneSidedTest:
         critical = stats.t.isf(0.05, 17)
         assert stats.nct.sf(critical, 17, x * math.sqrt(18) / 0.0605) == pytest.approx(0.8)
 
+    @pytest.mark.parametrize(("significance", "power"), [(0.05, 0.9), (0.01, 0.8), (0.1, 0.5)])
+    def test_x_follows_the_size_and_power_it_is_given(self, significance, power) -> None:
+        from scipy import stats
+
+        x = seasonals.detectable_mean(0.0605, 18, significance=significance, power=power)
+        critical = stats.t.isf(significance, 17)
+        assert stats.nct.sf(critical, 17, x * math.sqrt(18) / 0.0605) == pytest.approx(power)
+
     def test_the_normal_approximation_gives_3_55_percent(self) -> None:
         """The figure the issue quoted first, smaller because it treats the deviation as known."""
         from scipy import stats
@@ -1003,6 +1028,17 @@ class TestTheSurvivorRun:
         assert effect.trades[0].exited == pd.Timestamp("2009-01-30")
         assert effect.trades[-1].entered == pd.Timestamp("2025-12-31")
         assert effect.trades[-1].exited == pd.Timestamp("2026-01-30")
+
+    def test_the_calendar_is_the_committed_raw_spy_download(self) -> None:
+        entry, _ = seasonals.survivor_calendar()
+        assert entry.path == "yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv"
+
+    def test_the_counts_read_the_slice_and_not_the_years_before_it(self) -> None:
+        """Closes from 2005 would give two more Januaries and more year-ends unsliced."""
+        closes, _ = synthetic_closes()
+        closes.loc[:"2007-06-30", "S09"] = np.nan
+        assert len(seasonals.ranked_without_exit(closes)) == 18
+        assert "S09" not in seasonals.year_ends_missed(closes)
 
     def test_the_slice_drops_rows_before_december_2007(self) -> None:
         closes, _ = synthetic_closes()
@@ -1048,6 +1084,33 @@ class TestTheSurvivorRun:
         assert stray.entered == saturday
         assert stray.ranked == 1
         assert math.isnan(stray.ret)
+
+    def test_an_exit_off_the_calendars_last_january_day_is_refused(self) -> None:
+        closes, calendar = synthetic_closes()
+        closes = closes.drop(pd.Timestamp("2016-01-29"))
+        with pytest.raises(
+            seasonals.SurvivorRunRefused, match="entered 2015-12-31 and exited 2016-01-28"
+        ):
+            seasonals.survivor_effect(closes, calendar)
+
+    def test_the_earliest_off_calendar_day_is_named_with_the_count(self) -> None:
+        closes, calendar = synthetic_closes()
+        for day, symbol in (("2019-06-15", "S02"), ("2012-03-10", "S08")):
+            closes.loc[pd.Timestamp(day)] = np.nan
+            closes.loc[pd.Timestamp(day), symbol] = 10.0
+        closes = closes.sort_index()
+        with pytest.raises(
+            seasonals.SurvivorRunRefused,
+            match="S08 has a row on 2012-03-10, which the SPY calendar does not hold, and 2 such",
+        ):
+            seasonals.survivor_effect(closes, calendar)
+
+    def test_the_earliest_nonpositive_close_is_named(self) -> None:
+        closes, calendar = synthetic_closes()
+        closes.loc["2020-05-01", "S01"] = 0.0
+        closes.loc["2011-02-01", "S06"] = -2.0
+        with pytest.raises(seasonals.SurvivorRunRefused, match="S06 closes at -2.0 on 2011-02-01"):
+            seasonals.survivor_effect(closes, calendar)
 
     def test_a_trade_off_the_calendars_last_december_day_is_refused(self) -> None:
         """A calendar day no member trades on moves the year-end, and the run says so."""
@@ -1098,12 +1161,34 @@ class TestTheSurvivorRun:
         assert counts[-1] == 1
         assert sum(counts[:-1]) == 0
 
+    def test_a_member_unranked_that_year_is_not_counted_for_a_missing_exit(self) -> None:
+        """No close at the year-end before means no rank, so its missing exit counts for nothing."""
+        closes, _ = synthetic_closes()
+        closes.loc["2014-12-31", "S05"] = np.nan
+        closes.loc["2016-01-29", "S05"] = np.nan
+        counts = seasonals.ranked_without_exit(closes)
+        assert counts[7] == 0
+        assert sum(counts) == 0
+
     def test_a_member_that_lists_late_misses_its_early_year_ends(self) -> None:
         closes, _ = synthetic_closes()
         closes.loc[:"2010-06-30", "S09"] = np.nan
         missed = seasonals.year_ends_missed(closes)
         assert list(missed) == ["S09"]
         assert [day.year for day in missed["S09"]] == [2007, 2008, 2009]
+
+    def test_a_member_with_no_close_on_the_filings_date_is_named(self) -> None:
+        closes, _ = synthetic_closes()
+        closes.loc[:"2026-01-01", "S04"] = np.nan
+        closes.loc["2025-12-31", "S11"] = np.nan
+        assert seasonals.no_close_at_filing(closes) == ("S04", "S11")
+
+    def test_a_calendar_refusal_on_an_empty_row_names_no_symbol(self) -> None:
+        closes, calendar = synthetic_closes()
+        closes.loc[pd.Timestamp("2015-12-26")] = np.nan
+        closes = closes.sort_index()
+        with pytest.raises(seasonals.SurvivorRunRefused, match="a row with no close on 2015-12-26"):
+            seasonals.survivor_effect(closes, calendar)
 
     def test_a_member_ranks_only_from_its_second_year_end(self) -> None:
         closes, calendar = synthetic_closes()
@@ -1166,9 +1251,11 @@ class TestTheSurvivorRefusalsReachTheOperator:
             seasonals.main(["--survivors"])
 
 
-#: The sha256 of the 603 ``sp600`` lines in ``data/archive_vintages.jsonl``,
-#: joined in file order with a newline after each. A change to any line is a
+#: The sha256 of the 603 ``sp600`` lines the survivor run reads, one per member,
+#: joined in file order with a newline after each. A change to any of them is a
 #: change to which bytes the pins below rest on, so it fails here first, in CI.
+#: Lines the cross-section gains for other symbols, such as the past members
+#: issue 332 adds, are left out, so they do not move it.
 SURVIVOR_LINES_SHA256 = "6fbf738e08fb74ebc51f04af7bf9a285636b366e5691d1530f09e7a563eb8985"
 
 #: Each January's return before costs, entered at the 2008-12-31 year-end to the 2025-12-31 one.
@@ -1217,25 +1304,57 @@ SURVIVOR_COUNTS = [
 
 
 class TestTheSurvivorLines:
-    """The ``sp600`` cross-section's lines, committed, so these run everywhere."""
+    """The members' lines in the ``sp600`` cross-section, committed, so these run everywhere."""
 
     def test_the_lines_are_the_ones_the_pins_rest_on(self) -> None:
         import hashlib
 
         from chan.paths import DATA_DIR
 
+        symbols = {symbol for _, symbol in seasonals.survivor_members()}
         text = (DATA_DIR / "archive_vintages.jsonl").read_text(encoding="utf-8")
-        lines = [line for line in text.splitlines() if '"cross_section": "sp600"' in line]
+        lines = [
+            line
+            for line in text.splitlines()
+            if line.strip()
+            and json.loads(line).get("cross_section") == "sp600"
+            and json.loads(line)["symbol"] in symbols
+        ]
         assert len(lines) == 603
         digest = hashlib.sha256(("\n".join(lines) + "\n").encode("utf-8")).hexdigest()
         assert digest == SURVIVOR_LINES_SHA256
 
+    def test_the_figures_data_readme_quotes_for_the_lines(self) -> None:
+        """Rows, span, the 24 that end early and the bytes, from the committed lines."""
+        from chan.archive import read_archive_manifest
+        from chan.paths import DATA_DIR
+
+        symbols = {symbol for _, symbol in seasonals.survivor_members()}
+        lines = [
+            e for e in read_archive_manifest() if e.cross_section == "sp600" and e.symbol in symbols
+        ]
+        assert sum(e.row_count for e in lines) == 2_993_012
+        assert min(e.first_date for e in lines) == "1999-11-01"
+        assert max(e.last_date for e in lines) == "2026-10-02"
+        early = [e.last_date for e in lines if e.last_date < "2026-10-02"]
+        assert (len(early), min(early)) == (24, "2026-01-22")
+        text = (DATA_DIR / "archive_vintages.jsonl").read_text(encoding="utf-8")
+        size = sum(
+            len(line.encode("utf-8")) + 1
+            for line in text.splitlines()
+            if line.strip()
+            and json.loads(line).get("cross_section") == "sp600"
+            and json.loads(line)["symbol"] in symbols
+        )
+        assert size == 233_992
+
     def test_every_member_has_a_line_downloaded_on_2026_10_05(self) -> None:
         from chan.archive import read_archive_manifest
 
+        symbols = {symbol for _, symbol in seasonals.survivor_members()}
         lines = {e.symbol: e for e in read_archive_manifest() if e.cross_section == "sp600"}
-        assert set(lines) == {symbol for _, symbol in seasonals.survivor_members()}
-        assert {entry.download_date for entry in lines.values()} == {"2026-10-05"}
+        assert symbols <= set(lines)
+        assert {lines[symbol].download_date for symbol in symbols} == {"2026-10-05"}
 
 
 @pytest.fixture(scope="module")
@@ -1280,6 +1399,13 @@ class TestTheSurvivorPins:
 
     def test_the_calendar_is_the_committed_raw_spy_vintage(self, survivors) -> None:
         assert survivors.calendar.path == "yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv"
+
+    def test_two_members_have_no_close_on_the_filings_own_date(self, survivors) -> None:
+        """Alpha Vantage's NVRI and GTES hold nothing before 2026, so neither is ever ranked."""
+        assert survivors.no_close == ("GTES", "NVRI")
+        assert all(len(survivors.missed[symbol]) == 19 for symbol in survivors.no_close)
+        ranked = max(trade.ranked for trade in survivors.effect.trades)
+        assert ranked == 598 < 603 - len(survivors.no_close)
 
     def test_241_members_miss_2139_year_ends(self, survivors) -> None:
         assert len(survivors.missed) == 241
@@ -1350,10 +1476,32 @@ class TestTheSurvivorPins:
         assert "accession 0000940400-26-007526" in out
         assert "downloaded 2026-10-05" in out
         assert "members with no series: 0" in out
+        assert "no close on 2025-12-31, the filing's own date: 2" in out
+        assert "NVRI: its series runs 2026-05-27 to 2026-10-02" in out
         assert (
             "entered 2025-12-31 exited 2026-01-30: 0.0015   (60 long and 60 short of 598 "
             "ranked, 1 ranked with no exit close)"
         ) in out
         assert "mean 0.0108, standard deviation 0.0398, t 1.15, one-sided p 0.132" in out
+        assert "closes: 603 series from the sp600 cross-section" in out
+        assert "calendar: yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv" in out
+        assert "members missing a year-end close: 241" in out
+        assert "    GTES: 2007 to 2025" in out
+        assert "detectable with 80% probability at 5%: 0.0243 a January" in out
+        assert "after costs: mean 0.0098" in out
+
+    def test_the_report_names_a_missing_member_and_counts_series_not_members(
+        self, survivors, capsys
+    ) -> None:
+        """Nothing is missing on the real run, so a copy of it with one member gone is printed."""
+        gone = replace(
+            survivors,
+            entries=tuple(e for e in survivors.entries if e.symbol != "DCH"),
+            missing=("AXL as DCH",),
+        )
+        seasonals.report_survivors(gone)
+        out = capsys.readouterr().out
+        assert "closes: 602 series" in out
+        assert "members with no series: 1\n    AXL as DCH\n" in out
         assert "reading: no January effect detectable above about 2.4% a January" in out
         assert "Read one way only" in out

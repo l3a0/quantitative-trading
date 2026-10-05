@@ -1335,7 +1335,8 @@ size before it records them.
 lines field for field and hashes every line's file wherever an archive is
 configured, which takes about a second with the cross-section in place.
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds the
-603 lines by the sha256 of their bytes, everywhere.
+603 lines by the sha256 of their bytes, everywhere, and leaves out lines the
+cross-section gains for other symbols.
 
 ## Header shape
 
