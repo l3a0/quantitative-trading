@@ -715,16 +715,23 @@ cost is what the ordering rule was protecting against, and it is the reason a
 synthetic experiment can go ahead of the machinery while a series-reading one
 cannot.
 
-### Two candidates, named so they are not re-invented
+### One candidate, named so it is not re-invented
 
-Neither is committed to, and neither has an open issue.
+It is not committed to, and it has no open issue. A negative-results log, once
+a replication has failed in a way worth recording separately from its own
+entry.
 
-1. A negative-results log, once a replication has failed in a way worth
-   recording separately from its own entry.
-2. A registered experiment, which is a different object from a replication and
-   needs its hypothesis committed in writing before any number is seen. The
-   first one proposed, running Conditional Parameter Optimization on daily
-   closes, was declined, and `## Considered and rejected` records it.
+A registered experiment used to sit beside it as a second candidate. It is a
+different object from a replication, and it needs its hypothesis committed in
+writing before any number is seen. The first one proposed, running Conditional
+Parameter Optimization on daily closes, was declined, and
+`## Considered and rejected` records it. The first one run is Example 7.6 on
+the S&P 600 as it stood at each year-end, January 2009 to January 2026.
+[Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) wrote its
+claim, its test and the wording of its verdict before any return was computed,
+and the owner labelled it registered on 2026-10-04. Entry 7 of
+[the replication log](replication-log.md) carries its rows, and its verdict is
+that the free sources cannot decide it.
 
 Nothing else is planned past the experiments, on purpose. The ranking rule says
 evidence from real use decides the order, and this repo has run few enough

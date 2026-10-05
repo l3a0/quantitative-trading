@@ -34,6 +34,7 @@ from chan.fund_panel import (
     read_members,
     require_panel,
     serialize_members,
+    threat_sides,
     threats,
 )
 
@@ -427,6 +428,16 @@ class TestThreats:
         returns = {("d", n): Decimal(1) for n in (1, 2, 3)}
         returns.update({("d", n): Decimal(n) for n in range(4, 11)})
         assert threats(returns, [("d", 3), ("d", 4)], universe=5) == [("d", 3)]
+
+    def test_each_flag_names_the_tenth_it_threatens(self) -> None:
+        # Issue 329 inserts a flagged member into the tenth it threatens, so
+        # the low end is the losers, held long, and the high end the winners.
+        missing = [("d", n) for n in (2, 10, 19, 99)]
+        assert threat_sides(self._returns(), missing, universe=20) == {
+            ("d", 2): "long",
+            ("d", 19): "short",
+            ("d", 99): "unplaced",
+        }
 
 
 class TestTheRecord:

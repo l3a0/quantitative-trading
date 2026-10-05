@@ -451,31 +451,48 @@ def coverage(
     return report
 
 
-def threats(
+#: The tenth a flagged missing member threatens: the losers, held long, the
+#: winners, held short, or ``unplaced`` where no rough return places it.
+SIDES = ("long", "short", "unplaced")
+
+
+def threat_sides(
     returns: Mapping[Key, Decimal | None], missing: Iterable[Key], universe: int
-) -> list[Key]:
-    """The missing members that could change a tenth, by issue 329's rule.
+) -> dict[Key, str]:
+    """Each missing member that could change a tenth, mapped to the tenth it threatens.
 
     ``returns`` holds every member's rough calendar-year return, ``None`` where
     it cannot be placed. The tenth is MATLAB's rounding of a tenth of
     ``universe``. A missing member threatens when it cannot be placed, or when
     its return is no further in than the member twice a tenth in from either
     end of the placed returns. Ties at that boundary threaten, so the rule
-    errs toward flagging.
+    errs toward flagging. The side is one of :data:`SIDES`, and a member at the
+    low end is a loser, which Example 7.6 holds long.
     """
     tenth = int(round_half_away(universe / 10))
     margin = 2 * tenth
     placed = sorted(value for value in returns.values() if value is not None)
-    if not placed or margin == 0:
-        return [key for key in missing if returns.get(key) is None]
-    low = placed[min(margin, len(placed)) - 1]
-    high = placed[-min(margin, len(placed))]
-    flagged = []
+    sides: dict[Key, str] = {}
     for key in missing:
         value = returns.get(key)
-        if value is None or value <= low or value >= high:
-            flagged.append(key)
-    return flagged
+        if value is None:
+            sides[key] = "unplaced"
+        elif placed and margin:
+            if value <= placed[min(margin, len(placed)) - 1]:
+                sides[key] = "long"
+            elif value >= placed[-min(margin, len(placed))]:
+                sides[key] = "short"
+    return sides
+
+
+def threats(
+    returns: Mapping[Key, Decimal | None], missing: Iterable[Key], universe: int
+) -> list[Key]:
+    """The missing members that could change a tenth, by issue 329's rule, in the order given.
+
+    :func:`threat_sides` holds the rule, and this keeps only which members it flags.
+    """
+    return list(threat_sides(returns, missing, universe))
 
 
 def year_end_returns(

@@ -54,6 +54,14 @@ Vantage closes kept in the owner's archive, and its own docstring names that
 vintage. It is survivor-only and exploratory, read in one direction only, and
 its mechanics run in CI on synthetic closes.
 
+A fifth read is the S&P 600 as it stood at each year-end.
+``TestThePointInTimePins`` runs Example 7.6 on IJR's members at every
+year-end from 2008 to 2025, from ``research/filings/ijr/members.csv`` at the
+sha256 :data:`PIT_MEMBERS_SHA256` holds, on the 1,487 ``sp600`` lines it maps
+to, all downloaded 2026-10-05. Its own docstring names that vintage. It is
+registered, and its rules, its bound and the flags it reads from the committed
+files run in CI.
+
 The 2002 split is exploratory and carries no verdict. First run on 2026-10-02.
 P. 180's five-year claim carries one, under a criterion written on issue 254
 before any five-year figure was computed, and ``TestTheMostRecentFiveYears``
@@ -1505,3 +1513,500 @@ class TestTheSurvivorPins:
         assert "members with no series: 1\n    AXL as DCH\n" in out
         assert "reading: no January effect detectable above about 2.4% a January" in out
         assert "Read one way only" in out
+
+
+# --------------------------------------------------------------------------
+# Example 7.6 on the S&P 600 as it stood at each year-end, registered
+# --------------------------------------------------------------------------
+
+
+class TestTheUniverseKeyword:
+    """The tenth of the whole index, which the point-in-time run passes and every printout omits."""
+
+    def test_the_default_is_the_ranked_count(self, ijr) -> None:
+        assert january_effect(ijr, MATLAB_JANUARY, universe=None) == january_effect(
+            ijr, MATLAB_JANUARY
+        )
+
+    def test_a_larger_universe_takes_a_tenth_of_it(self, ijr) -> None:
+        trades = january_effect(ijr, MATLAB_JANUARY, universe=600).trades
+        assert [(t.ranked, t.longs, t.shorts) for t in trades] == [
+            (578, 60, 60),
+            (592, 60, 60),
+            (594, 60, 60),
+        ]
+
+    def test_the_ranked_count_itself_changes_nothing(self, ijr) -> None:
+        """578 is the first January's ranked count, so that January is the printed one."""
+        trade = january_effect(ijr.loc[:"2006-02-28"], MATLAB_JANUARY, universe=578).trades[-1]
+        assert_reproduces(trade.ret, -0.024368881797563913, "-0.0244", ".4f")
+
+    def test_a_universe_below_the_ranked_count_is_refused_naming_both(self, ijr) -> None:
+        with pytest.raises(ValueError, match="a universe of 500 is smaller than the 578 stocks"):
+            january_effect(ijr, MATLAB_JANUARY, universe=500)
+
+
+#: Ten stocks ranked on their annual return, each with a January return.
+ANNUAL = np.array([-0.5, -0.4, -0.3, -0.2, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
+JANUARY = np.array([0.10, 0.06, 0.03, 0.01, 0.0, -0.01, -0.02, -0.03, -0.05, -0.08])
+
+
+class TestTheBound:
+    """:func:`chan.equity_seasonals.bounded_january` on ten stocks and a tenth of two."""
+
+    def _percentiles(self) -> tuple[float, float]:
+        worst, best = np.percentile(JANUARY, [1, 99])
+        return float(worst), float(best)
+
+    def test_with_nothing_to_insert_both_are_the_covered_return_before_costs(self) -> None:
+        low, high = seasonals.bounded_january(ANNUAL, JANUARY, 2)
+        _, _, _, after = seasonals._rank_and_trade(ANNUAL, JANUARY, MATLAB_JANUARY, 20)
+        assert low == high == pytest.approx(((0.10 + 0.06) / 2 - (-0.05 - 0.08) / 2) / 2)
+        assert low == pytest.approx(after + 2 * seasonals.ONE_WAY_COST, abs=1e-15)
+
+    def test_a_loser_displaces_the_least_extreme_and_takes_each_percentile(self) -> None:
+        """The stock ranked second is displaced, and the worst-ranked one stays."""
+        worst, best = self._percentiles()
+        low, high = seasonals.bounded_january(ANNUAL, JANUARY, 2, long=1)
+        winners = (-0.05 - 0.08) / 2
+        assert low == pytest.approx(((0.10 + worst) / 2 - winners) / 2)
+        assert high == pytest.approx(((0.10 + best) / 2 - winners) / 2)
+
+    def test_a_winner_takes_the_99th_in_the_low_series_because_it_is_held_short(self) -> None:
+        worst, best = self._percentiles()
+        low, high = seasonals.bounded_january(ANNUAL, JANUARY, 2, short=1)
+        losers = (0.10 + 0.06) / 2
+        assert low == pytest.approx((losers - (-0.08 + best) / 2) / 2)
+        assert high == pytest.approx((losers - (-0.08 + worst) / 2) / 2)
+
+    def test_more_threats_than_places_fill_the_tenth(self) -> None:
+        worst, best = self._percentiles()
+        low, high = seasonals.bounded_january(ANNUAL, JANUARY, 2, long=5, short=3)
+        assert low == pytest.approx((worst - best) / 2)
+        assert high == pytest.approx((best - worst) / 2)
+
+    def test_an_unplaced_member_goes_where_it_does_most_harm_to_each_bound(self) -> None:
+        worst, best = self._percentiles()
+        as_loser = seasonals.bounded_january(ANNUAL, JANUARY, 2, long=1)
+        as_winner = seasonals.bounded_january(ANNUAL, JANUARY, 2, short=1)
+        low, high = seasonals.bounded_january(ANNUAL, JANUARY, 2, unplaced=1)
+        assert low == min(as_loser[0], as_winner[0])
+        assert high == max(as_loser[1], as_winner[1])
+        assert as_loser[0] != as_winner[0]
+
+    def test_a_january_with_no_exit_close_is_skipped_and_kept_out_of_the_percentiles(self) -> None:
+        january = JANUARY.copy()
+        january[9] = np.nan
+        low, high = seasonals.bounded_january(ANNUAL, january, 2)
+        assert low == high == pytest.approx(((0.10 + 0.06) / 2 - (-0.05)) / 2)
+        worst, _ = np.percentile(january[:9], [1, 99])
+        low, _ = seasonals.bounded_january(ANNUAL, january, 2, long=1)
+        assert low == pytest.approx(((0.10 + worst) / 2 - (-0.05)) / 2)
+
+
+PIT_DATE = "2015-12-31"
+
+
+def synthetic_year(missing_returns: dict[int, object] | None = None):
+    """Twenty covered members and two missing ones at 2015-12-31, on synthetic closes.
+
+    Row 21 is placed far below every covered member, so it threatens the
+    losers, and row 22 cannot be placed.
+    """
+    from decimal import Decimal
+
+    from chan.fund_panel import Coverage, MemberRow
+
+    closes, calendar = synthetic_closes(members=20)
+    rows = [
+        MemberRow(PIT_DATE, row, f"S{row - 1:02d}", "filing", check="pass", exit="close")
+        for row in range(1, 21)
+    ] + [MemberRow(PIT_DATE, row, "", "none", check="unmapped") for row in (21, 22)]
+    missing = ((PIT_DATE, 21), (PIT_DATE, 22))
+    year = Coverage(PIT_DATE, 22, 20, {"unmapped": 2}, 0, missing)
+    returns = {(PIT_DATE, row): Decimal(row) for row in range(1, 21)}
+    returns.update(
+        {(PIT_DATE, 21): Decimal(-100), (PIT_DATE, 22): None}
+        if missing_returns is None
+        else missing_returns
+    )
+    return rows, year, closes, calendar, returns
+
+
+class TestThePointInTimeYear:
+    """One year-end of the run on synthetic closes, so its rules hold in CI with no archive."""
+
+    def _run(self, monkeypatch, rows, year, closes, calendar, returns):
+        monkeypatch.setattr(seasonals, "year_end_returns", lambda *args: returns)
+        return seasonals.point_in_time_year(rows, year, closes, calendar)
+
+    def test_the_tenth_counts_the_missing_members(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        result = self._run(monkeypatch, rows, year, closes, calendar, returns)
+        assert (result.trade.ranked, result.universe) == (20, 22)
+        assert (result.trade.longs, result.trade.shorts) == (2, 2)
+        assert result.sides == {(PIT_DATE, 21): "long", (PIT_DATE, 22): "unplaced"}
+        assert (result.threatening("long"), result.threatening("unplaced")) == (1, 1)
+        assert not result.exact
+        assert result.low < result.trade.ret + 2 * seasonals.ONE_WAY_COST < result.high
+
+    def test_the_trade_is_the_one_january_of_the_slice(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        result = self._run(monkeypatch, rows, year, closes, calendar, returns)
+        assert result.trade.entered == pd.Timestamp("2015-12-31")
+        assert result.trade.exited == pd.Timestamp("2016-01-29")
+        sliced = seasonals.year_end_slice(closes, calendar, PIT_DATE)
+        assert (sliced.index[0], sliced.index[-1]) == (
+            pd.Timestamp("2014-12-01"),
+            pd.Timestamp("2016-02-01"),
+        )
+
+    def test_a_year_end_with_no_threat_is_exact(self, monkeypatch) -> None:
+        from decimal import Decimal
+
+        rows, year, closes, calendar, returns = synthetic_year(
+            {(PIT_DATE, 21): Decimal("10.5"), (PIT_DATE, 22): Decimal("11.5")}
+        )
+        result = self._run(monkeypatch, rows, year, closes, calendar, returns)
+        assert result.exact
+        assert result.low == result.high
+        assert result.low == pytest.approx(result.trade.ret + 2 * seasonals.ONE_WAY_COST)
+
+    def test_only_the_covered_members_are_ranked(self, monkeypatch) -> None:
+        """A column the year-end does not cover is in the closes and stays out of the ranking."""
+        rows, year, closes, calendar, returns = synthetic_year()
+        closes["OUTSIDER"] = closes["S00"] * 2
+        result = self._run(monkeypatch, rows, year, closes, calendar, returns)
+        assert result.trade.ranked == 20
+
+    def test_a_covered_member_with_no_series_is_refused(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        with pytest.raises(seasonals.PointInTimeRefused, match="the first S05"):
+            self._run(monkeypatch, rows, year, closes.drop(columns="S05"), calendar, returns)
+
+    def test_an_entry_off_the_filings_price_date_is_refused_naming_both(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        closes = closes.drop(index=pd.Timestamp("2015-12-31"))
+        with pytest.raises(
+            seasonals.PointInTimeRefused,
+            match="2015-12-31: the slice enters 2015-12-30 and exits 2016-01-29, where the "
+            "filing's price date is 2015-12-31",
+        ):
+            self._run(monkeypatch, rows, year, closes, calendar, returns)
+
+    def test_a_stray_row_is_refused(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        closes.loc[pd.Timestamp("2015-12-26"), "S03"] = 20.0
+        closes = closes.sort_index()
+        with pytest.raises(seasonals.SurvivorRunRefused, match="S03 has a row on 2015-12-26"):
+            self._run(monkeypatch, rows, year, closes, calendar, returns)
+
+    def test_a_calendar_short_of_february_is_refused(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        short = calendar[calendar < pd.Timestamp("2016-02-01")]
+        with pytest.raises(seasonals.PointInTimeRefused, match="to February 2016"):
+            self._run(monkeypatch, rows, year, closes, short, returns)
+
+
+def _test(mean: float, t: float, p: float) -> seasonals.OneSided:
+    return seasonals.OneSided(n=18, mean=mean, std=0.05, t=t, p=p)
+
+
+class TestTheVerdict:
+    """The three forms issue 329 worded before any return was computed."""
+
+    def test_neither_rejecting_quotes_the_larger_x(self) -> None:
+        verdict = seasonals.point_in_time_verdict(
+            _test(0.01, 0.8, 0.2), _test(0.02, 1.5, 0.07), 0.031, 0.044
+        )
+        assert verdict == "no January effect detectable above about 4.4% a January"
+
+    def test_both_rejecting_names_the_effect_with_both_series(self) -> None:
+        verdict = seasonals.point_in_time_verdict(
+            _test(0.03, 2.5, 0.011), _test(0.05, 3.1, 0.003), 0.03, 0.04
+        )
+        assert verdict == (
+            "a January effect above zero: a mean of 0.0300 to 0.0500 a January, t 2.50 to "
+            "3.10, p 0.011 to 0.003, over 18 Januaries"
+        )
+
+    def test_equal_series_print_one_figure(self) -> None:
+        test = _test(0.03, 2.5, 0.011)
+        verdict = seasonals.point_in_time_verdict(test, test, 0.03, 0.03)
+        assert "a mean of 0.0300 a January, t 2.50, p 0.011" in verdict
+
+    def test_series_that_disagree_cannot_decide_it(self) -> None:
+        verdict = seasonals.point_in_time_verdict(
+            _test(-0.1, -5.0, 1.0), _test(0.09, 3.7, 0.001), 0.055, 0.062
+        )
+        assert verdict.startswith("the free sources cannot decide it")
+        assert "next step is buying prices" in verdict
+
+
+#: The ranked covered members at each year-end, from the archive run below,
+#: which :class:`TestThePointInTimePins` holds. Covered less ranked is the
+#: members new to a filing whose series has no close at the year-end before.
+PIT_RANKED = (
+    433,
+    425,
+    425,
+    479,
+    456,
+    441,
+    501,
+    534,
+    547,
+    554,
+    554,
+    560,
+    571,
+    582,
+    585,
+    588,
+    588,
+    598,
+)
+
+#: Per year-end: missing members, then those threatening the losers, the
+#: winners, and those that cannot be placed, with the tenth sized on
+#: :data:`PIT_RANKED` plus the missing members.
+PIT_THREATS = (
+    ("2008-12-31", 161, 45, 24, 20),
+    ("2009-12-31", 174, 37, 39, 13),
+    ("2010-12-31", 175, 38, 43, 16),
+    ("2011-12-31", 119, 26, 28, 13),
+    ("2012-12-31", 144, 32, 29, 15),
+    ("2013-12-31", 158, 37, 35, 15),
+    ("2014-12-31", 95, 26, 17, 6),
+    ("2015-12-31", 60, 14, 11, 9),
+    ("2016-12-31", 50, 15, 8, 7),
+    ("2017-12-31", 46, 15, 7, 8),
+    ("2018-12-31", 44, 14, 7, 7),
+    ("2019-12-31", 40, 8, 6, 8),
+    ("2020-12-31", 28, 6, 7, 1),
+    ("2021-12-31", 14, 4, 4, 1),
+    ("2022-12-30", 11, 4, 2, 1),
+    ("2023-12-31", 9, 4, 1, 2),
+    ("2024-12-31", 8, 1, 2, 2),
+    ("2025-12-31", 2, 0, 1, 0),
+)
+
+#: The members file the point-in-time pins were measured on, by sha256, the
+#: same file ``tests/test_sp600_panel.py`` pins.
+PIT_MEMBERS_SHA256 = "c92cc2512ded3a054c861b48e17572c9ff708a4dcfb548e9e226901c14adda9b"
+
+
+class TestThePointInTimeFlags:
+    """Which missing members threaten a tenth, from committed files alone, so these run in CI."""
+
+    def test_the_members_file_is_the_one_measured(self) -> None:
+        import hashlib
+
+        from chan import sp600_panel
+
+        digest = hashlib.sha256(sp600_panel.MEMBERS_PATH.read_bytes()).hexdigest()
+        assert digest == PIT_MEMBERS_SHA256
+
+    def test_each_year_ends_flags_by_side(self) -> None:
+        from chan import sp600_panel
+        from chan.fund_holdings import IJR
+        from chan.fund_panel import coverage, threat_sides, year_end_returns
+
+        found = []
+        for year, ranked in zip(coverage(IJR, sp600_panel.load()), PIT_RANKED, strict=True):
+            returns = year_end_returns(IJR, year.report_date)
+            sides = threat_sides(returns, year.missing, ranked + len(year.missing))
+            counts = [list(sides.values()).count(side) for side in ("long", "short", "unplaced")]
+            found.append((year.report_date, len(year.missing), *counts))
+        assert tuple(found) == PIT_THREATS
+
+    def test_no_year_end_is_exact(self) -> None:
+        assert all(sum(pin[2:]) > 0 for pin in PIT_THREATS)
+
+
+class TestThePointInTimeCommand:
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            seasonals.PointInTimeRefused("2015-12-31: the slice enters 2015-12-30"),
+            seasonals.PanelRefused("the members file names 1 rows the filings do not hold"),
+            ArchiveUnavailable("no data archive is configured on this machine"),
+        ],
+        ids=lambda refusal: type(refusal).__name__,
+    )
+    def test_each_refusal_is_one_line(self, refusal, monkeypatch) -> None:
+        def refuse(**_kwargs):
+            raise refusal
+
+        monkeypatch.setattr(seasonals, "run_point_in_time", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main(["--point-in-time"])
+        assert stopped.value.code == str(refusal)
+
+    def test_the_two_archive_runs_are_one_or_the_other(self) -> None:
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main(["--survivors", "--point-in-time"])
+        assert stopped.value.code == 2
+
+
+@pytest.fixture(scope="module")
+def point_in_time() -> seasonals.PointInTimeRun:
+    """One run on the owner's archive, about ten seconds, or a skip naming what is missing."""
+    try:
+        return seasonals.run_point_in_time()
+    except ArchiveUnavailable as absent:
+        pytest.skip(str(absent))
+
+
+#: Each January before costs, the low series then the high.
+PIT_LOW = [
+    -0.3102916684682715, -0.19839476507411702, -0.192227314302099, -0.10870572849484236,
+    -0.15467069691120883, -0.1653363299933961, -0.13112900962243856, -0.09597216550984841,
+    -0.08469806698164244, -0.08838588652403147, -0.009638637680710993, -0.12694805604135495,
+    -0.18706825793047532, -0.007092727187004211, 0.051120529038608704, -0.049378548477207414,
+    -0.024022313935317015, -0.0023087433400641386,
+]  # fmt: skip
+PIT_HIGH = [
+    0.31512341488232387, 0.24494937260065897, 0.1889766558224868, 0.14492043392989745,
+    0.1457086223041022, 0.1597979963136514, 0.0686157912693974, 0.06014433261299512,
+    0.044717957152853684, 0.06835439802701994, 0.1306503085694603, -0.004070341602840345,
+    -0.09002848776268077, 0.03353559694544943, 0.08356653439121693, -0.019616922654241906,
+    0.0037277705788413724, 0.0026855572271426084,
+]  # fmt: skip
+
+
+class TestThePointInTimePins:
+    """Example 7.6 on the S&P 600 as it stood at each year-end, registered.
+
+    The vintage is three things.
+
+    1. The members, ``research/filings/ijr/members.csv``, whose sha256
+       :data:`PIT_MEMBERS_SHA256` holds, read from IJR's year-end filings from
+       2007 to 2025.
+    2. Their closes, Alpha Vantage's ``adjusted_close`` from
+       ``TIME_SERIES_DAILY_ADJUSTED``, the 1,487 ``sp600`` lines in
+       ``data/archive_vintages.jsonl`` the members file maps to, all downloaded
+       2026-10-05, with the bytes in the owner's archive.
+    3. The calendar, ``yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv``.
+
+    The specification is :data:`chan.equity_seasonals.MATLAB_JANUARY`
+    unchanged, one year-end at a time on its covered members, with the tenth
+    taken of the ranked covered members plus every missing member. January
+    2009 to January 2026, 18 Januaries, read before costs. Every year-end has
+    a missing member that could change a tenth, so every January is bounded by
+    the owner's ruling of 2026-10-04, with the percentiles set per leg as the
+    audit on issue 329 wrote before any return was computed. Each series is
+    tested one-sided at 5%, and X is the mean it detects with 80% probability.
+    Labelled registered: the criterion was written on issue 329 before any
+    return was seen. First run on 2026-10-05.
+
+    The read takes about ten seconds, so ``QT_ARCHIVE_RUN`` does not gate
+    these, and they skip with the reader's own message where no archive is.
+    """
+
+    def test_it_reads_one_download_of_every_mapped_ticker(self, point_in_time) -> None:
+        assert len(point_in_time.entries) == 1487
+        assert {entry.download_date for entry in point_in_time.entries} == {"2026-10-05"}
+        assert point_in_time.calendar.path == (
+            "yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv"
+        )
+
+    def test_the_18_entry_and_exit_days_are_the_survivor_runs(
+        self, point_in_time, survivors
+    ) -> None:
+        assert [(y.trade.entered, y.trade.exited) for y in point_in_time.year_ends] == [
+            (t.entered, t.exited) for t in survivors.effect.trades
+        ]
+
+    def test_the_ranked_counts_are_the_ones_the_flags_were_sized_on(self, point_in_time) -> None:
+        assert tuple(y.trade.ranked for y in point_in_time.year_ends) == PIT_RANKED
+
+    def test_the_tenths_and_the_threats(self, point_in_time) -> None:
+        assert [
+            (y.report_date, y.missing, y.threatening("long"), y.threatening("short"),
+             y.threatening("unplaced"))
+            for y in point_in_time.year_ends
+        ] == list(PIT_THREATS)  # fmt: skip
+        assert [(y.universe, y.trade.longs, y.trade.shorts) for y in point_in_time.year_ends] == [
+            (594, 59, 59), (599, 60, 60), (600, 60, 60), (598, 60, 60), (600, 60, 60),
+            (599, 60, 60), (596, 60, 60), (594, 59, 59), (597, 60, 60), (600, 60, 60),
+            (598, 60, 60), (600, 60, 60), (599, 60, 60), (596, 60, 60), (596, 60, 60),
+            (597, 60, 60), (596, 60, 60), (600, 60, 60),
+        ]  # fmt: skip
+
+    def test_every_january_is_bounded(self, point_in_time) -> None:
+        assert not any(year.exact for year in point_in_time.year_ends)
+
+    def test_ranked_members_with_no_exit_close(self, point_in_time) -> None:
+        assert [year.no_exit for year in point_in_time.year_ends] == [
+            0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 2, 4, 1, 1, 0, 3, 2, 1,
+        ]  # fmt: skip
+
+    def test_the_18_returns_of_each_series(self, point_in_time) -> None:
+        assert [y.low for y in point_in_time.year_ends] == pytest.approx(PIT_LOW, abs=1e-9)
+        assert [y.high for y in point_in_time.year_ends] == pytest.approx(PIT_HIGH, abs=1e-9)
+
+    def test_the_low_series_is_not_above_zero(self, point_in_time) -> None:
+        test = point_in_time.low
+        assert test.n == 18
+        assert_reproduces(test.mean, -0.1047304659686345, "-0.1047", ".4f")
+        assert_reproduces(test.std, 0.0896119544094856, "0.0896", ".4f")
+        assert_reproduces(test.t, -4.958420324916569, "-4.96", ".2f")
+        assert_reproduces(test.p, 0.9999402254003401, "1.000", ".3f")
+        assert not test.rejects
+
+    def test_the_high_series_is_above_zero(self, point_in_time) -> None:
+        test = point_in_time.high
+        assert test.n == 18
+        assert_reproduces(test.mean, 0.08787549947820747, "0.0879", ".4f")
+        assert_reproduces(test.std, 0.10072917438308693, "0.1007", ".4f")
+        assert_reproduces(test.t, 3.701253105374127, "3.70", ".2f")
+        assert_reproduces(test.p, 0.0008865014467510794, "0.001", ".3f")
+        assert test.rejects
+
+    def test_x_for_each_series(self, point_in_time) -> None:
+        assert_reproduces(point_in_time.x_low, 0.05474237393477483, "0.0547", ".4f")
+        assert_reproduces(point_in_time.x_high, 0.06153368896545796, "0.0615", ".4f")
+
+    def test_the_means_after_costs(self, point_in_time) -> None:
+        low, high = point_in_time.after_costs
+        assert_reproduces(low, -0.1057304659686345, "-0.1057", ".4f")
+        assert_reproduces(high, 0.08687549947820747, "0.0869", ".4f")
+
+    def test_the_verdict_is_that_the_free_sources_cannot_decide_it(self, point_in_time) -> None:
+        assert point_in_time.verdict == (
+            "the free sources cannot decide it: the low series gives p 1.000 and the high "
+            "series p 0.001, so the next step is buying prices for the members that "
+            "threaten a tenth"
+        )
+
+    def test_the_survivor_run_less_this_one(self, point_in_time, survivors) -> None:
+        """Issue 333's rows against these, described rather than tested."""
+        per, means = seasonals.survivorship_gap(point_in_time, survivors)
+        assert [low for low, _ in per] == pytest.approx(
+            [b - y for b, y in zip(SURVIVOR_BEFORE_COSTS, PIT_LOW, strict=True)], abs=1e-9
+        )
+        assert [high for _, high in per] == pytest.approx(
+            [b - y for b, y in zip(SURVIVOR_BEFORE_COSTS, PIT_HIGH, strict=True)], abs=1e-9
+        )
+        assert_reproduces(means[0], 0.11554359231461436, "0.1155", ".4f")
+        assert_reproduces(means[1], -0.07706237313222761, "-0.0771", ".4f")
+
+    def test_the_report(self, point_in_time, survivors, capsys) -> None:
+        seasonals.report_point_in_time(point_in_time, survivors)
+        out = capsys.readouterr().out
+        assert "at each year-end, registered" in out
+        assert "members: research/filings/ijr/members.csv" in out
+        assert "closes: 1487 series from the sp600 cross-section" in out
+        assert "downloaded 2026-10-05" in out
+        assert (
+            "    2008-12-31: entered 2008-12-31 exited 2009-01-30: -0.3103 to 0.3151   "
+            "(bounded; 59 long and 59 short of 433 ranked, a tenth of 594; 161 of 600 members "
+            "missing, 45 threatening the losers, 24 the winners, 20 unplaced; 0 ranked with no "
+            "exit close)"
+        ) in out
+        assert "the low series: mean -0.1047, standard deviation 0.0896, t -4.96" in out
+        assert "the high series: mean 0.0879, standard deviation 0.1007, t 3.70" in out
+        assert "verdict: the free sources cannot decide it" in out
+        assert "    2009 January: 0.3213 to -0.3041" in out
+        assert "    the mean: 0.1155 to -0.0771" in out
