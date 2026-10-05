@@ -20,7 +20,7 @@ The four lessons below say what the reproduction does teach. The code is open so
 
 What Chan says of each is not the same, and the difference matters for what a reproduction can find.
 
-1. **Seasonal strategies in stocks.** Much of the seasonality in equity markets “has weakened or even disappeared in recent years”, Chan writes (p. 174). The same sentence goes on to call some seasonal trades in commodity futures still profitable, and [the companion post on the commodity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/commodity-seasonals-lessons.md) tests that half. Earlier in the book he recalls praising a seasonal stock strategy on his blog, a reader backtesting it and finding it did not work, and his own backtest confirming the reader’s (p. 13). He names Example 7.6 as that strategy.
+1. **Seasonal strategies in stocks.** Much of the seasonality in equity markets “has weakened or even disappeared in recent years”, Chan writes (p. 175). The same sentence goes on to call some seasonal trades in commodity futures still profitable, and [the companion post on the commodity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/commodity-seasonals-lessons.md) tests that half. Earlier in the book he recalls praising a seasonal stock strategy on his blog, a reader backtesting it and finding it did not work, and his own backtest confirming the reader’s (p. 13). He names Example 7.6 as that strategy.
 2. **Example 7.6.** Its own text is not a death notice. The revised edition says the January effect failed in January 2006 and January 2007 and then “worked wonderfully” in January 2008 (p. 175).
 3. **Example 7.7.** This one is published as dead, in the sentence quoted above.
 
@@ -31,7 +31,7 @@ The examples read two of Chan’s own MATLAB data files, converted into one file
 
 The mirror of Chan’s first-edition code and data, named below, holds only an earlier save of the S&P 600 file, `IJR_20080114.mat`, which ends on 2008-01-14. The file his Example 7.6 script loads comes from [a public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84), a third party’s repost rather than Chan’s own. That copy also carries the earlier save, byte for byte as the mirror has it, which is why its later file is trusted. The two saves give the first two Januaries to the same digits. Both files hold only the companies in their index on the day Chan saved them, carried backwards. That limits everything below, and Lesson 4 comes back to it.
 
-**Which edition says what.** The first edition (2009) prints the examples in MATLAB, cited here by script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror. The revised edition (2021) prints both in MATLAB, Python and R at pp. 174 to 182. Its Python is cited as `example7_6.py` and `example7_7.py` at commit `653cf92` of liujiantong/epchan_books, a third-party copy whose five printed figures match the book. Page numbers here are the revised edition’s.
+**Which edition says what.** The first edition (2009) prints the examples in MATLAB, cited here by script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror. The revised edition (2021) prints both in MATLAB, Python and R at pp. 175 to 182. Its Python is cited as `example7_6.py` and `example7_7.py` at commit `653cf92` of liujiantong/epchan_books, a third-party copy whose five printed figures match the book. Page numbers here are the revised edition’s.
 
 Every result below is **exploratory**. Reproducing a printed figure tests a hypothesis Chan chose, on data he chose, so it can say whether the figure reproduces and nothing more.
 
@@ -147,7 +147,7 @@ On Chan’s own files, every printed figure his data reaches reproduces exactly.
 ## References
 
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Examples 7.6 and 7.7, cited by MATLAB script.
-- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 13, 174, 175, 179 and 180, and Examples 7.6 and 7.7 at pp. 174 to 182.
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 13, 175, 179 and 180, and Examples 7.6 and 7.7 at pp. 175 to 182.
 - Heston, S. L., & Sadka, R. (2007), as Chan (2021, p. 179) cites them, a working paper. Published as Heston, S. L., & Sadka, R. (2008). Seasonality in the cross-section of stock returns. *Journal of Financial Economics*, 87(2), 418–445.
 - Singal, V. (2006). *Beyond the Random Walk: A Guide to Stock Market Anomalies and Low-Risk Investing*. Oxford University Press. Cited by Chan (2021, p. 175) for the January effect.
 
