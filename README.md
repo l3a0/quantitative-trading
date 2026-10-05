@@ -1880,11 +1880,11 @@ Entry 16 of the replication log.
    Calmar ratio alone, so his claim fails. The re-chosen column is reproduced
    only in kind, because his rests on PredictNow's model.
 2. The book's own annual returns do not compound to its cumulative ones, under
-   either definition of annual return.
+   either definition of annual return, which arithmetic alone shows.
 3. The first run broke a declared reading on the 34 early closes. The code was
    fixed to the reading, and both runs are reported, unlike Entry 15, where the
    reading itself was corrected.
-4. The selection picks a cell that trades 46.7 round trips a day, whose edge
+4. The selection picks a cell that makes 46.7 round trips a day, whose edge
    before costs is under half a basis point a round trip, so 1 basis point a
    round trip turns both arms to losses.
 
@@ -1905,31 +1905,39 @@ Six groups of its figures are not pinned here.
    execute multiple round trips per day" is quoted from p. 140 and "random
    forest with boosting" from p. 142, which the notes hold at locations 3444
    and 3517 and the pages read on 2026-10-03 place on those pages. The
-   eleven tokens of the printed entry grid are quoted from p. 137.
+   eleven tokens of the printed entry grid and the stated start of January 1,
+   2006 are quoted from p. 137.
 2. The book's printed results on p. 145, the eight figures and "all other
-   metrics" improved, and Figure 7.1 on p. 146, which the committed notes do
-   not hold. The eight figures are `chan.cpo`'s constants `BOOK_UNCONDITIONAL`
+   metrics" improved, which the committed notes do not hold. The eight figures are `chan.cpo`'s constants `BOOK_UNCONDITIONAL`
    and `BOOK_CONDITIONAL`, but nothing ties those constants to the page.
-3. The third party's figures, a test Sharpe ratio of 5.974 at 50.1 round trips
-   a day and a gross edge of 0.425 basis points a round trip, cited as theirs
-   from jeffmcphail/mctheory-praxis at `b7c5b5d`.
-4. The first run's figures in Lesson 3, which the archive pins at `cb30336`,
-   the merge of the first run, asserted and which no test that runs today
-   asserts. `git show cb30336:tests/test_cpo.py` shows them.
+3. The third party's figures, a run on Kibot bars from 2009 with a test Sharpe
+   ratio of 5.974 at 50.1 round trips a day and a gross edge of 0.425 basis
+   points a round trip, cited as theirs from jeffmcphail/mctheory-praxis at
+   `b7c5b5d`.
+4. The first run's figures in Lesson 3. The archive pins at `cb30336`, the
+   merge of the first run, asserted them, and no test that runs today does.
+   `git show cb30336:tests/test_cpo.py` shows them.
 5. Arithmetic no test asserts: that three parameters and seven indicators on
    each of two funds at seven lookbacks make 101 features, against the book's
-   115 at p. 140, and that a cumulative return of 3.40 is 340%.
+   115 at p. 140, that
+   [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
+   19 readings, that a fraction such as 3.40 is the percentage 340%, and that
+   gaps of 2.67 and 0.4883 are 267 and 48.83 percentage points.
 6. Its references, cited rather than computed, and facts outside the data:
    that NYSE closes at 13:00 on some days such as the day after Thanksgiving,
    and that a basis point is a hundredth of a percent.
 
-Three of its figures had no pin before it, and `TestExample71OnTheArchive` now
-pins each.
+Five of its figures had no pin before it, and each now has one. The first
+runs on every clone, and the other four sit in `TestExample71OnTheArchive`.
 
-1. The fixed column as multiples of Chan's figures: 4.7, 3.8, 2.9 and 15.5.
-2. Each arm's gross return a round trip, 0.435 and 0.462 basis points, added
+1. The cap on what Chan's annual returns, read as arithmetic, can compound to
+   over three years: 68.0% and 81.0%, below his 73% and 83%.
+2. The fixed column as multiples of Chan's figures: 4.7, 3.8, 2.9 and 15.5.
+3. Each arm's gross return a round trip, 0.435 and 0.462 basis points, added
    after the result was seen.
-3. Spearman's rank correlation between the 400 cells' round trips a day and
+4. That only `2.5_30_0.2` trades more than the chosen cell, added after the
+   result was seen.
+5. Spearman's rank correlation between the 400 cells' round trips a day and
    their test Sharpe ratios, 0.95, added after the result was seen.
 
 Its one figure is drawn by

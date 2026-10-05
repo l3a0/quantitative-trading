@@ -3495,7 +3495,10 @@ The book's own figures disagree with each other. 17.29% a year compounds to
 61.4% over three years, not 73%, and 19.77% to 71.8%, not 83%, which
 `test_chan_s_annual_returns_do_not_compound_to_his_cumulative_ones` holds.
 Neither the compounded nor the arithmetic definition of annual return makes
-them agree, so rows 1 and 2 cannot both reproduce under either.
+them agree, so rows 1 and 2 cannot both reproduce under either. Read as
+arithmetic, 17.29% a year can compound to at most 68.0% over three years and
+19.77% to at most 81.0%, which
+`test_chan_s_annual_returns_read_as_arithmetic_cannot_reach_them_either` holds.
 
 ### What this repo computed
 
@@ -3578,6 +3581,19 @@ heavily. What a round trip in GLD actually costs is not measured here.
 **Anything a public clone can check.** The bars are licensed, so the pins run
 only where the owner's archive is. The hashes say exactly which bytes were
 read, and nothing here can show them to anyone else.
+
+Four more pins in `TestExample71OnTheArchive` hold figures that post quotes
+and the tables above do not, so they are named here.
+
+1. `test_rows_1_to_4_as_multiples_of_chan_s_figures`, the multiples above.
+2. `test_each_arm_earns_less_a_round_trip_than_a_round_trip_costs`, a gross
+   0.435 and 0.462 basis points a round trip against a cost of 1.
+3. `test_the_chosen_cell_is_the_second_busiest_of_the_400`, with only
+   `2.5_30_0.2` trading more.
+4. `test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells`,
+   Spearman's rank correlation of 0.95.
+
+The last three were added after the result was seen and decide nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

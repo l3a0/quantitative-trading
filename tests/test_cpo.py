@@ -13,6 +13,10 @@ Two kinds of test live here.
 Every pinned figure names its vintages, the two archive files by their sha256
 in ``data/archive_vintages.jsonl``, and its specification, the readings
 declared on issue 23 before any number was computed.
+
+``blog/conditional-parameter-optimization-lessons.md`` quotes these pins, and
+its figure's own labels are held by ``tests/test_cpo_figures.py``. What the
+post says that nothing here asserts is listed in README's ``## The write-up``.
 """
 
 from __future__ import annotations
@@ -336,6 +340,22 @@ class TestSelectionAndMetrics:
         assert (1 + cpo.BOOK_UNCONDITIONAL["annual"]) ** 3 - 1 == pytest.approx(0.614, abs=5e-4)
         assert (1 + cpo.BOOK_CONDITIONAL["annual"]) ** 3 - 1 == pytest.approx(0.718, abs=5e-4)
 
+    def test_chan_s_annual_returns_read_as_arithmetic_cannot_reach_them_either(self):
+        """An arithmetic annual return caps what three years can compound to.
+
+        Since ln(1 + r) <= r for every daily return, three years of daily
+        returns averaging ``a / 252`` compound to at most ``exp(3a) - 1``. That
+        bound sits below Chan's printed cumulative return for both arms, so his
+        table disagrees with itself under either definition, whatever the
+        daily returns were. Added for the post's Lesson 2.
+        """
+        unconditional = math.exp(3 * cpo.BOOK_UNCONDITIONAL["annual"]) - 1
+        conditional = math.exp(3 * cpo.BOOK_CONDITIONAL["annual"]) - 1
+        assert unconditional == pytest.approx(0.680, abs=5e-4)
+        assert conditional == pytest.approx(0.810, abs=5e-4)
+        assert unconditional < cpo.BOOK_UNCONDITIONAL["cumulative"]
+        assert conditional < cpo.BOOK_CONDITIONAL["cumulative"]
+
     def test_the_costed_returns_charge_one_basis_point_a_trip(self):
         assert costed(np.array([0.01]), np.array([3])).tolist() == pytest.approx([0.0097])
 
@@ -409,7 +429,7 @@ def result(cpo_result) -> cpo.Result:
 
 
 class TestExample71OnTheArchive:
-    """Rows 1 to 11 of Entry 16, all from one run.
+    """Rows 1 to 11 of Entry 16, all from one run, and three figures its post quotes.
 
     The vintages are the archive's `gld_intraday_1min.csv.gz`, sha256
     `3611a8f7…0de7a`, downloaded 2026-07-17, and `gdx_intraday_1min.csv.gz`,
@@ -503,8 +523,9 @@ class TestExample71OnTheArchive:
         assert sharpes[nearest] == pytest.approx(1.9311, abs=5e-5)
         assert result.cell_trips[nearest] == pytest.approx(1.19, abs=0.005)
 
-    # The three pins below were added for the post on this example, so that
-    # every figure it quotes traces to an assertion rather than to prose.
+    # The four pins below were added for the post on this example,
+    # blog/conditional-parameter-optimization-lessons.md, so that every figure
+    # it quotes traces to an assertion rather than to prose. Entry 16 names them.
 
     def test_rows_1_to_4_as_multiples_of_chan_s_figures(self, result):
         """Each computed figure over Chan's, which Entry 16 states and the post quotes.
@@ -538,6 +559,15 @@ class TestExample71OnTheArchive:
         assert round(unconditional * 1e4, 3) == 0.435
         assert round(conditional * 1e4, 3) == 0.462
         assert max(unconditional, conditional) < cpo.COST_PER_ROUND_TRIP
+
+    def test_the_chosen_cell_is_the_second_busiest_of_the_400(self, result):
+        """Added after the result was seen. Only ``2.5_30_0.2`` trades more, and it decides nothing.
+
+        Only the unconditional arm enters, so the model cannot move this.
+        """
+        chosen = cells().index(result.unconditional)
+        busier = np.flatnonzero(result.cell_trips > result.cell_trips[chosen])
+        assert [cells()[i].label for i in busier] == ["2.5_30_0.2"]
 
     def test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells(self, result):
         """Added after the result was seen. Spearman's rank correlation, deciding nothing."""

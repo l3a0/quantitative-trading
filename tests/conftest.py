@@ -5,10 +5,11 @@ what it computes: ``tests/test_cpo.py`` its figures, and
 ``tests/test_cpo_figures.py`` the cells its figure labels. A session-scoped
 fixture here makes them share that run rather than pay for it twice.
 
-It is named ``cpo_result`` rather than ``result`` because four other test files
-define a ``result`` fixture of their own. A shared one under that name would be
-shadowed in those files and reachable in the rest, so which run a test read
-would depend on which file it sat in.
+It is named ``cpo_result`` rather than ``result`` because other test files
+define a ``result`` fixture of their own, ``tests/test_cpo_figures.py`` with a
+synthetic run among them. A shared one under that name would be shadowed in
+those files and reachable in the rest, so which run a test read would depend on
+which file it sat in.
 """
 
 from __future__ import annotations

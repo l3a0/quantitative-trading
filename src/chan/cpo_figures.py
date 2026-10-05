@@ -9,17 +9,18 @@ axis, against its test Sharpe ratio before costs.
 
 1. **A horizontal line at Chan's 1.947**, his unconditional Sharpe ratio.
 2. **Three labelled cells**, each found from the run rather than named here:
-   the cell the train years chose, the cell with the highest test Sharpe ratio,
+   the cell the training years chose, the cell with the highest test Sharpe ratio,
    and the cell nearest 1.947.
 
-The scatter shows what no table in the post shows: the selection rule picks
-turnover, and Chan's figure sits among the cells that trade about once a day.
+The scatter shows what no table in the post shows: the selection rule lands on
+a cell near the top of the turnover range, and the cell nearest Chan's figure
+trades about once a day.
 Entry 16's row 10, which the figure draws, was added after the result was
 seen, so the title says so beside the exploratory label. The note names both
 vintages by hash prefix and says nothing is charged for costs. Every point is
 a test-day figure, and the test days end on 2020-12-31, so the figure draws
-nothing past the date ``docs/design.md``'s register row on the daily study
-protects.
+nothing after that date, which ``docs/design.md``'s register row on the daily
+study keeps out of every run.
 
 :func:`make_cells_figure` takes a :class:`chan.cpo.Result` rather than calling
 :func:`chan.cpo.run`, so ``tests/test_cpo_figures.py`` draws a synthetic one on
@@ -52,7 +53,7 @@ BOOK_SHARPE = cpo.BOOK_UNCONDITIONAL["sharpe"]
 def labelled_cells(result: cpo.Result) -> dict[str, int]:
     """The three cells the figure names, as positions in grid order.
 
-    ``chosen`` is the cell the train years chose, ``highest`` the cell with the
+    ``chosen`` is the cell the training years chose, ``highest`` the cell with the
     highest test Sharpe ratio, and ``nearest`` the cell whose test Sharpe ratio
     sits closest to Chan's 1.947.
     """
@@ -70,7 +71,7 @@ def labelled_cells(result: cpo.Result) -> dict[str, int]:
 #: the top right of the cloud, so the higher one's label hangs above it and the
 #: lower one's below, both to the left.
 LABELS = {
-    "chosen": ("chosen on the train years", (-12, -20), "right", LOST),
+    "chosen": ("chosen on the training years", (-12, -20), "right", LOST),
     "highest": ("highest test Sharpe ratio", (-12, 16), "right", INK),
     "nearest": ("nearest Chan's 1.947", (10, -24), "left", ACCENT),
 }
@@ -153,7 +154,7 @@ def make_cells_figure(result: cpo.Result, out: Path | None = None) -> Figure:
     )
     _title(
         fig,
-        "Exploratory, added after the result was seen: the selection picks turnover",
+        "Exploratory, added after the result was seen: turnover against Sharpe ratio",
         f"Example 7.1's {len(sharpes)} cells, weight_lookback_entry, on the "
         f"{len(days)} test days from {days[0].date()} to {days[-1].date()}.\n"
         "Nothing is charged for costs. Alpha Vantage one-minute bars, as traded:\n"
