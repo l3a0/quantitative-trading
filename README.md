@@ -579,7 +579,12 @@ restated, so each file is pinned by the filing's accession number rather than
 kept as a vintage, and that directory's README says why.
 `src/chan/fund_holdings.py` reads the filings, and
 [issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
-their shape. No replication reads them yet.
+their shape. Beside them, `research/filings/ijr/members.csv` maps each member
+to the ticker Alpha Vantage files it under and records whether that series'
+close agrees with the filing, which
+[issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built and
+[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. No replication
+reads them yet.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -876,6 +881,23 @@ line, and the run ends on a tally of recorded, already recorded, failed and not
 reached.
 Run it after the close, from the branch that will commit the lines, because
 the lines are what a rerun reads.
+
+The S&P 600 panel joins IJR's year-end members to those closes. `fetch` hands
+every ticker in `research/filings/ijr/members.csv` to the fetch above, `check`
+reads the archive and rewrites the file's check columns, and `report` reads
+only committed tables:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp600_panel fetch'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp600_panel check
+uv run python -m chan.sp600_panel report
+```
+
+The report prints one line per year-end from 2008 to 2025: its members, how
+many the panel covers, the January stops, the misses by reason, and how many
+missing members could change a tenth of Example 7.6's ranking. The members
+those are follow. `check` with no archive prints the archive's own one-line
+refusal.
 
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any

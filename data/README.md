@@ -1,6 +1,6 @@
 # Committed vintages
 
-The price series every run here reads, except the two
+The price series every run here reads, except the ones
 `## Two vintages kept in the owner's archive` describes, committed because the
 numbers the suite pins were computed from these exact bytes. A vendor restates an adjusted series
 without announcing it, so a result checked against a fresh download is a result
@@ -1304,9 +1304,25 @@ here carrying `"cross_section": "sp600"`. The file is the vendor's
 `TIME_SERIES_DAILY_ADJUSTED` response unchanged, so it holds the raw close
 beside the adjusted close, and its line records the basis as `adjusted`.
 `chan.fetch_alphavantage` writes both, and `chan.archive.read_cross_section`
-reads a cross-section back as a date-by-symbol frame of either close. No such
-line is recorded yet, so the table above still holds the two minute-bar files
-alone.
+reads a cross-section back as a date-by-symbol frame of either close.
+
+[Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) recorded
+896 lines on 2026-10-05 for the companies IJR held at a year-end from 2007 to
+2024 and no longer held at 2025-12-31, beside the 603 that
+[issue 333](https://github.com/l3a0/quantitative-trading/issues/333) recorded
+for the 2025-12-31 members. Each is under the ticker
+`research/filings/ijr/members.csv` maps the company to.
+
+| Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sp600`, [issue 332](https://github.com/l3a0/quantitative-trading/issues/332)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 896 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 3,653,318 |
+
+Some of those series belong to a later company that reused a ticker, because
+a ticker was fetched before the check could say whose prices it held. The
+members file's check is what says which series a member's close comes from.
+The 896 lines hold 347,681 bytes. With [issue 333](https://github.com/l3a0/quantitative-trading/issues/333)'s 603, `data/` held
+203.07 MB of file content before this paragraph, which leaves 1.93 MB under
+the 205 MB budget.
 
 ## Header shape
 
