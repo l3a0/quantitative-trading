@@ -1345,7 +1345,8 @@ size before it records them.
 
 [tests/test_archive.py](../tests/test_archive.py) pins the two standalone
 lines field for field and hashes every line's file wherever an archive is
-configured, which takes about a second with the cross-section in place.
+configured, which took 3.3 seconds on one machine with both cross-sections in
+place.
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds the
 603 lines by the sha256 of their bytes, everywhere, and leaves out lines the
 cross-section gains for other symbols.
@@ -1372,15 +1373,16 @@ count, their download date and their sha256. They take `data/` from the
 which leaves 1.93 MB under the 205 MB budget. Those two sizes were measured on
 this branch and no test holds them.
 
-The owner extended the exception the same day, 2026-10-04, to Alpha Vantage's
-daily closes for the S&P 500's members, on the same terms, which
+On 2026-10-04, the day of the S&P 600 ruling, the owner extended the exception
+to Alpha Vantage's daily closes for the S&P 500's members, on the same terms, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) records.
 Those lines carry `"cross_section": "sp500"`, and each file sits at
 `sp500/daily_<SYMBOL>.csv`. `chan.archive.CROSS_SECTIONS` names both. [Issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
 recorded 822 lines on 2026-10-05: one for IVV, whose trading days
 [issue 336](https://github.com/l3a0/quantitative-trading/issues/336) takes as
-its calendar, one for each ticker `research/filings/ivv/members.csv` maps a
-company to, and four for tickers tried and then replaced.
+its calendar, 817 for the tickers `research/filings/ivv/members.csv` maps a
+company to that Alpha Vantage holds a series for, and four for tickers tried
+and then replaced.
 
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -16,7 +16,7 @@ is what makes the problem easy to miss.
 So a result computed from a series is committed next to the exact series it was
 computed from, and a result computed from none says so. Licensed data is the
 one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
-daily closes for the S&P 600 cross-section, stay in the owner's data archive
+daily closes for the S&P 600 and S&P 500 cross-sections, stay in the owner's data archive
 and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
@@ -1036,7 +1036,8 @@ uv run python -m chan.sp500_panel report
 
 Its report prints one line per month-end from December 2008 to August 2026,
 each carrying the schedule that sets the month, its members, how many the
-panel covers, the stops, and the misses by reason. A line per missing member
+panel covers, the stops, which are covered members whose series ends inside
+the next month, and the misses by reason. A line per missing member
 follows with its reason. `check` also writes `research/filings/ivv/holes.csv`,
 which names every month-end a series' span covers with no row on it, so the
 report can run with no archive.

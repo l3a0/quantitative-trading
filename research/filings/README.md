@@ -152,16 +152,17 @@ skipped 2013-09-30 schedule has no rows, and 2013-06-30's members link straight
 to 2013-12-31's. Two columns read differently from IJR's.
 
 1. `exit` asks whether a passing series holds the close at which the last
-   position its schedule sets is closed. That is the month-end after the last
-   month the schedule sets, the next schedule's report date, or 2026-09-30
-   after the last one.
+   position its schedule sets is closed. That is the last trading day of the
+   month after the last month the schedule sets, the next schedule's price
+   date, or 2026-09-30 after the last one.
 2. The check allows half a dollar and half a share on every HTML schedule,
    the shareholder reports and 2019-06-30's NPORT-EX as well as the N-Q, and
    half a cent on an N-PORT and its amendment.
 
 `ivv/holes.csv` names every month-end, from 2007-12 to 2026-09, that falls
 inside a series' span and has no row in it, one `ticker,month` line each.
-`check` writes it beside the members file. The report needs it because it reads
+`check` writes it beside the members file, and like the members file it is
+not a filing, so the index does not name it. The report needs it because it reads
 month-end closes the check never looked at, and the manifest's first and last
 dates say only where each series starts and stops.
 

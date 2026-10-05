@@ -1,4 +1,4 @@
-"""A fund's year-end members, mapped to Alpha Vantage tickers and checked against its filings.
+"""A fund's members, mapped to Alpha Vantage tickers and checked against its filings.
 
 Example 7.6 ranks an index as it stood at each year-end, which needs a price
 series for companies that later left it. :mod:`chan.fund_holdings` reads which
@@ -8,8 +8,12 @@ a panel built that way covers.
 [Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) is the
 scope, for IJR and the S&P 600, and
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) reuses
-every function here for IVV, so each takes the fund, its members file and its
-cross-section as arguments. :mod:`chan.sp600_panel` binds IJR's.
+the record, the mapping and the check for IVV's quarter-ends, so each takes the
+fund, its members file and its cross-section as arguments.
+:mod:`chan.sp600_panel` binds IJR's and :mod:`chan.sp500_panel` binds IVV's.
+:func:`coverage`, :func:`threats` and :func:`year_end_returns` are the year-end
+panel's alone, and the S&P 500 panel counts its coverage month by month in its
+own module.
 
 The record is one members file per fund, beside the holdings files, with the
 columns :data:`COLUMNS`, one row per member and report date.
@@ -21,14 +25,16 @@ columns :data:`COLUMNS`, one row per member and report date.
    :data:`SOURCES` answered, and ``note`` names a hand row's evidence.
 3. ``check``, ``gap`` and ``exit`` are what :func:`check_members` computes from
    the archive. ``gap`` is the price miss in cents on a ``price`` row. ``exit``
-   says whether a passing series holds the close on the last trading day of
-   the following January.
+   says whether a passing series holds the close on the day the panel sells,
+   which ``check_members`` takes as ``exit_on``. That is the last trading day
+   of the following January for IJR, and for IVV the month-end after the last
+   month a schedule sets.
 
 The mapping is research rather than code. Its lookups ran through a connector
 in the session that built the file, so they cannot be rerun here. What holds a
 ticker is the check, which compares the series' raw close times the filing's
 share count with the filing's value. :func:`carry_back` is the one mapping step
-that is code: a company is resolved at the latest year-end it is a member,
+that is code: a company is resolved at the latest filing it is a member in,
 because Alpha Vantage files a company under its last ticker, and the ticker is
 carried back along :func:`chan.fund_holdings.link`.
 
@@ -74,10 +80,10 @@ COLUMNS = ("report_date", "row", "ticker", "source", "note", "check", "gap", "ex
 #: lookup's connector answered about five requests a minute.
 SOURCES = ("cusip", "filing", "link", "name", "hand", "none")
 
-#: What the check says about one member at one year-end.
+#: What the check says about one member at one report date.
 CHECKS = ("pass", "price", "no-row", "no-series", "unmapped")
 
-#: Whether a passing series holds its January exit close. Empty on any other row.
+#: Whether a passing series holds its exit close. Empty on any other row.
 EXITS = ("close", "stop", "")
 
 #: The forms that print a schedule in HTML, with whole dollars and whole
@@ -373,7 +379,7 @@ def check_members(
     the January a year-end panel sells in. A panel that holds for a month
     passes its own.
 
-    Two members passing on one ticker at one year-end is refused, naming both,
+    Two members passing on one ticker at one report date is refused, naming both,
     because one series cannot be two companies' prices. Two failing on one
     ticker stand, since that is a reused ticker caught by the check.
     """
@@ -465,7 +471,9 @@ def coverage(
     """Each year-end after the first, with its covered count, misses and January stops.
 
     A member is covered when its own row passes and, where it links to the
-    filing before, that row passed too.
+    filing before, that row passed too. The rule is Example 7.6's, for a panel
+    of year-ends whose ``exit`` is the January close. IVV's quarterly panel
+    counts its coverage with :func:`chan.sp500_panel.monthly_coverage` instead.
     """
     by_key = {row.key: row for row in rows}
     previous = previous_rows(fund, filings_dir)
