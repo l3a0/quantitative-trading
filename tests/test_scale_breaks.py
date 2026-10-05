@@ -238,7 +238,9 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: Example 3.1, the first run to read this file. It reads GLD and USO over the
 #: file's whole span, neither carries a flagged day, and nothing is refused.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_price_spread.py`` holds both
-#: legs clean and a broken leg refused.
+#: legs clean and a broken leg refused. ``chan.bollinger`` reads the same two
+#: legs through the same reader for Example 3.2, under
+#: [issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 #: ``chan.etf_cointegration`` calls it on EWA, EWC and IGE over the same span
 #: for Examples 2.6 to 2.8, under
 #: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and

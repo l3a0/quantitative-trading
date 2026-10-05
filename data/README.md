@@ -1039,6 +1039,9 @@ Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
 [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
 Example 4.2 reads SPY through `chan.index_arbitrage`, for
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
+Example 3.2 reads GLD and USO through `chan.bollinger`, which reuses Example
+3.1's reader, for
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
