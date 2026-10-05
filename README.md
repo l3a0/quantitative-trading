@@ -460,10 +460,12 @@ transcription that takes returns before the cut fails a test.
 [tests/test_price_spread.py](tests/test_price_spread.py) does it for Example
 3.1. It pins each figure the three scripts print at their six decimals and
 again at eight, and the book's rounding beside them. It pins the ratio's miss
-and the swapped legs that land it, and both of location 1505's claims. It also
+and the swapped legs that land it, both of location 1505's claims, and the
+Engle-Granger test of its statement that the pair does not cointegrate. It also
 holds two choices no figure here can see, the padding of `lag` and the
 divisor of the moving deviation, so a reader does not take these figures as
-evidence about either.
+evidence about either. The blog post about it is the exception, and what it
+says that nothing here asserts is listed below.
 
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
@@ -2247,6 +2249,91 @@ uv run python -m chan.cross_sectional_momentum_figures
 
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/price-spread-ratio-lessons.md](blog/price-spread-ratio-lessons.md) is a
+sixteenth post, about Example 3.1 of Chan's *Algorithmic Trading*, which trades
+GLD against USO on the price spread, the log price spread and the ratio with
+one linear mean-reversion rule. Chan reports about 10.9 percent and 0.59 for
+the price spread, 9 percent and 0.5 for the log price spread, and a negative
+APR for the ratio, and each script's closing comment prints six decimals. The
+post draws six lessons from Entry 21 of the replication log.
+
+1. Two scripts land to six digits, and the book's 10.9 percent is not its
+   script's 0.108335 rounded.
+2. The three signals hold three portfolios, fixed shares, fixed dollars and
+   equal dollars.
+3. `Ratio.m`'s comment matches the script with GLD and USO swapped, a reading
+   found after the published script missed.
+4. The pair shows no cointegration on Chan's file, the 20-day hedge ratio
+   changes sign, and the traded spread is mostly the fit's intercept.
+5. The rule's return cannot see how its units are scaled, so the deviation's
+   divisor moves no figure.
+6. A reproduction checks the arithmetic and not the edge.
+
+Five groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   That a stationary mix of log prices is a portfolio of constant dollar
+   weights rebalanced every day is at 1435. That a ratio is stationary only in
+   "a special case", that a ratio is unchanged when both prices scale
+   together, and that Chan knows no general answer are at 1476. "Are not, in
+   fact, cointegrated", "near-optimal" with "the benefit of hindsight", the
+   word stationary for the spread, "actually lower", the extra cost of the log
+   price spread, "a negative APR" and the caption "Ratio = USO/GLD" are at
+   1505. The book's figures are pinned, and its words are not.
+2. Facts outside the committed data. That two public copies of Chan's code
+   hold the three scripts byte for byte and neither holds another version of
+   `Ratio.m`, which `src/chan/price_spread.py`'s docstring records, and that
+   the copy of the two closes in Chan's Python port equals the committed
+   closes, which [data/README.md](data/README.md) records.
+3. Arithmetic no test asserts: that any positive constant on the positions
+   cancels out of the return, which the equation shows. The tests check a
+   factor of 2 on synthetic arrays and the two divisors on Chan's file.
+4. The book's Figures 3.1 and 3.2, which the post's figure redraws from the
+   scripts' `plot` calls and which nothing compares with the book's own.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_price_spread.py](tests/test_price_spread.py), to
+[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, its
+dividends subtracted in dollars and GLD paying none, or to
+[tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) for
+the figure's own numbers. Six had no pin before it.
+
+1. Engle-Granger's −1.5150 for USO on GLD over all 1,500 days, that it does
+   not reach the 10% bar of −3.04, and its whole-period hedge ratio of
+   −0.2669.
+2. The 20-day hedge ratio's range, −0.948 to 2.168, and its 334 days below
+   zero.
+3. The 20-day fit's intercept against the spread: a correlation of 0.9987,
+   standard deviations of 45.37 for the spread and 2.27 for the leftover, a
+   quarter of a percent of the variance, and the leftover traded alone at
+   −0.005130 and 0.082065.
+4. The ratio's 1.03 on the first traded day, 0.24 on the last, 1.30 at its
+   highest and 0.44 at its highest after 2008.
+5. The two readings tried after the ratio missed: keeping the first 20 days,
+   −0.140674 and −0.744310, and Chan's Python port, −0.140674 and −0.749583.
+6. The figure's own lines and labels.
+
+Its one figure is drawn from the committed file by
+[src/chan/price_spread_figures.py](src/chan/price_spread_figures.py), which
+reads it through the same `read_sources` and `example_three_one` as
+`python -m chan.price_spread`, scale-break guard included. It draws four panels
+on one date axis, for Lessons 1, 2 and 4.
+
+1. The 20-day hedge ratio, with its days below zero shaded.
+2. The price spread, the book's Figure 3.1.
+3. The ratio, the book's Figure 3.2.
+4. Every run's cumulative return, the swapped ratio dashed.
+
+```bash
+uv run python -m chan.price_spread_figures
+```
+
+[tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 ## Where the book's numbers come from

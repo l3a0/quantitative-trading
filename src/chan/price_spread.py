@@ -98,7 +98,8 @@ rather than write a second copy.
 
 1. The file is read as committed vintages through
    :func:`chan.series.load_panel` rather than loaded from the ``.mat``.
-2. The plots are not carried. The run prints and draws nothing.
+2. The plots are not carried. The run prints and draws nothing, and
+   :mod:`chan.price_spread_figures` draws them for the post.
 3. The three scripts share one code path, so the 20-row drop, the units and
    the return are written once rather than three times.
 4. The ratio runs a second time with the legs swapped, as a diagnostic.
