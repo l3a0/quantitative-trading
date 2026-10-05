@@ -234,11 +234,12 @@ complete one does, so its length reads as a count rather than as a cut. On
 under-counted the open total and dropped 21 cards' milestones and labels. Keep
 the limit well past the current count rather than at it.
 
-The second `gh issue list` command feeds every card's `ms` and `labels`. `ms` is the
-GitHub milestone title, printed on the card exactly as the tracker spells it,
-which is why it is queried rather than recalled from the five that exist. They are the tracker's own labels
-rather than a second vocabulary, so a label added on GitHub belongs on the card,
-and `LABEL_HUE` takes its colour from `gh label list --limit 1000 --json name,color`.
+The second `gh issue list` command feeds every card's `ms` and `labels`. `ms`
+is the GitHub milestone title, printed on the card exactly as the tracker
+spells it, which is why it is queried rather than recalled from the five that
+exist. They are the tracker's own labels rather than a second vocabulary, so a
+label added on GitHub belongs on the card, and `LABEL_HUE` takes its colour
+from `gh label list --limit 1000 --json name,color`.
 
 Two hues are deliberately not GitHub's, and the rule is readability rather than
 fidelity. A label colour on GitHub is a chip background, while here it is text,

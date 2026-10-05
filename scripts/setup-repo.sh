@@ -65,9 +65,10 @@ echo "== $repo =="
 
 # --- Ruleset -----------------------------------------------------------------
 # Match on the name rather than an id, since an id belongs to one repository
-# and this file is copied between them.
+# and this file is copied between them. --paginate because the endpoint returns
+# 30 rulesets a page without saying so, and a miss here creates a duplicate.
 ruleset_name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["name"])' "$ruleset_file")"
-existing_id="$(gh api "repos/$repo/rulesets" --jq \
+existing_id="$(gh api --paginate "repos/$repo/rulesets" --jq \
   ".[] | select(.name == \"$ruleset_name\") | .id" 2>/dev/null | head -1 || true)"
 
 if [[ -n "$existing_id" ]]; then
