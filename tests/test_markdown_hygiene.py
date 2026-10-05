@@ -159,7 +159,9 @@ def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
 
 # Every Markdown file this repo owns, named rather than counted for the reason
 # test_the_repo_has_markdown_to_sweep gives, since a sweep that reaches nothing
-# passes.
+# passes. That test asserts this set equals what discovery finds, so a change
+# that adds, renames or deletes a Markdown file edits this set in the same
+# change.
 MUST_BE_SWEPT = frozenset(
     {
         ".claude/skills/decompose-problem/SKILL.md",
@@ -229,9 +231,19 @@ def test_the_repo_has_markdown_to_sweep() -> None:
     does not announce itself: the suite goes green with fewer tests. An earlier
     count asked for at least three files against an actual eight, so five could
     vanish unnoticed.
+
+    The two sets must be equal rather than one inside the other. A subset check
+    guards only the files someone remembered to list. Under that check, deleting
+    a listed entry left the full suite green, so a file nobody listed could later
+    vanish from discovery unnoticed. The price is that discovery also counts
+    untracked files, so a stray scratch `.md` in a local checkout fails this test
+    until it is listed or deleted.
     """
     found = {path.relative_to(REPO_ROOT).as_posix() for path in markdown_files(REPO_ROOT)}
-    assert MUST_BE_SWEPT <= found, f"missing from discovery: {sorted(MUST_BE_SWEPT - found)}"
+    assert found == MUST_BE_SWEPT, (
+        f"listed but not discovered: {sorted(MUST_BE_SWEPT - found)}; "
+        f"discovered but not listed in MUST_BE_SWEPT: {sorted(found - MUST_BE_SWEPT)}"
+    )
 
 
 # --- The fence-closing decision ----------------------------------------------
