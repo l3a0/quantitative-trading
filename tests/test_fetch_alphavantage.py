@@ -127,8 +127,46 @@ class TestARun:
 
     def test_a_repeated_symbol_is_fetched_once(self, places):
         vendor = Vendor({"AAA": [GOOD]})
-        run(places, vendor, ["AAA", "AAA"])
+        tally = run(places, vendor, ["AAA", "AAA"])
         assert vendor.calls == ["AAA"]
+        assert tally.failed == [] and tally.complete
+
+    def test_a_standalone_line_for_the_symbol_does_not_count_as_recorded(self, places):
+        standalone = {
+            "vendor": "alphavantage",
+            "symbol": "AAA",
+            "price_basis": "raw",
+            "download_date": "2026-10-03",
+            "path": "aaa_intraday_1min.csv.gz",
+            "row_count": 3,
+            "sha256": "0" * 64,
+            "first_date": "2006-05-22",
+            "last_date": "2006-05-22",
+            "vendor_call": "TIME_SERIES_INTRADAY",
+        }
+        manifest = places[0] / ARCHIVE_MANIFEST_NAME
+        manifest.write_text(json.dumps(standalone) + "\n", encoding="utf-8")
+        vendor = Vendor({"AAA": [GOOD], "BBB": [KeyboardInterrupt()]})
+        tally = run(places, vendor, ["AAA", "BBB"])
+        assert vendor.calls == ["AAA", "BBB"]
+        assert (tally.already, tally.recorded) == ([], ["AAA"])
+        manifest.write_text(json.dumps(dict(standalone, symbol="CCC")) + "\n", encoding="utf-8")
+        tally = run(places, Vendor({"CCC": [KeyboardInterrupt()]}), ["CCC"])
+        assert (tally.recorded, tally.not_reached) == ([], ["CCC"])
+
+    def test_an_unruled_cross_section_makes_no_request(self, places):
+        vendor = Vendor({"AAA": [GOOD]})
+        with pytest.raises(ValueError, match="has not ruled"):
+            fetch(
+                "sp500",
+                ["AAA"],
+                key=KEY,
+                get=vendor,
+                sleep=Clock(),
+                data_dir=places[0],
+                directory=places[1],
+            )
+        assert vendor.calls == []
 
     def test_each_request_is_followed_by_the_pause(self, places):
         clock = Clock()
@@ -155,6 +193,12 @@ class TestWhatABodyMeans:
         assert recorded(places) == ["BBB"]
         assert "AAA: failed, Alpha Vantage answered 'Invalid API call." in capsys.readouterr().out
 
+    def test_an_error_message_beside_a_note_is_an_error_and_not_retried(self, places):
+        both = json.dumps({"Error Message": "Invalid API call.", "Note": "slow down"}).encode()
+        vendor = Vendor({"AAA": [both]})
+        tally = run(places, vendor, ["AAA"])
+        assert vendor.calls == ["AAA"] and tally.failed == ["AAA"]
+
     @pytest.mark.parametrize("body", [INFORMATION, NOTE])
     def test_a_throttle_that_clears_is_retried_and_recorded(self, places, body):
         clock = Clock()
@@ -180,9 +224,12 @@ class TestWhatABodyMeans:
         assert clock.waits == [TRANSPORT_WAIT_SECONDS, PAUSE_SECONDS]
 
     def test_a_transport_failure_that_persists_stops_the_run(self, places):
+        clock = Clock()
         vendor = Vendor({"AAA": [TimeoutError("timed out")], "BBB": [GOOD]})
-        tally = run(places, vendor, ["AAA", "BBB"])
+        tally = run(places, vendor, ["AAA", "BBB"], clock=clock)
         assert vendor.calls == ["AAA"] * ATTEMPTS
+        assert clock.waits == [TRANSPORT_WAIT_SECONDS * n for n in range(1, ATTEMPTS + 1)]
+        assert tally.line().startswith("stopped: recorded 0")
         assert tally.not_reached == ["AAA", "BBB"] and tally.stopped is not None
 
     def test_a_body_cut_off_mid_read_is_retried_and_stops_the_run_if_it_persists(self, places):
@@ -228,6 +275,7 @@ class TestWhatABodyMeans:
             (b"", "an empty body"),
             (daily(), "no rows under it"),
             (b'{"Something": "else"}', "neither Error Message, Information nor Note"),
+            (b"{not json at all", "neither Error Message, Information nor Note"),
             (b"<html>busy</html>", "neither CSV nor JSON"),
         ],
     )
@@ -244,6 +292,7 @@ class TestTheOperatorSeesLines:
         tally = run(places, vendor, ["AAA", "BBB", "CCC"])
         assert tally.interrupted and tally.recorded == ["AAA"]
         assert tally.not_reached == ["BBB", "CCC"]
+        assert not tally.complete
         assert tally.line().startswith("interrupted: recorded 1")
 
     def test_an_interrupt_after_a_line_lands_counts_the_symbol_as_recorded(
@@ -271,6 +320,21 @@ class TestTheOperatorSeesLines:
         monkeypatch.setattr(fetch_alphavantage, "_say", interrupted_on_failure)
         tally = run(places, Vendor({"AAA": [ERROR], "BBB": [GOOD]}), ["AAA", "BBB"])
         assert (tally.failed, tally.not_reached) == (["AAA"], ["BBB"])
+
+    def test_an_interrupt_after_every_symbol_is_recorded_still_reads_as_interrupted(
+        self, places, monkeypatch
+    ):
+        say = fetch_alphavantage._say
+
+        def interrupted_after_recording(text, key):
+            say(text, key)
+            if text.startswith("AAA: recorded"):
+                raise KeyboardInterrupt
+
+        monkeypatch.setattr(fetch_alphavantage, "_say", interrupted_after_recording)
+        tally = run(places, Vendor({"AAA": [GOOD]}), ["AAA"])
+        assert (tally.recorded, tally.not_reached) == (["AAA"], [])
+        assert tally.interrupted and not tally.complete
 
     def test_an_interrupt_through_main_prints_the_tally_and_no_traceback(
         self, places, monkeypatch, tmp_path, capsys
@@ -333,6 +397,21 @@ class TestTheOperatorSeesLines:
             fetch_alphavantage.main(["--cross-section", "sp600", "--symbols", str(symbols)])
         assert str(stopped.value) == f"{KEY_ENV} is not set, so no request was made"
 
+    def test_a_missing_symbols_file_prints_one_line(self, tmp_path, monkeypatch):
+        monkeypatch.setenv(KEY_ENV, KEY)
+        missing = tmp_path / "absent.txt"
+        with pytest.raises(SystemExit) as stopped:
+            fetch_alphavantage.main(["--cross-section", "sp600", "--symbols", str(missing)])
+        assert "absent.txt" in str(stopped.value)
+
+    def test_a_refusal_through_main_carries_no_key(self, tmp_path, monkeypatch):
+        symbols = tmp_path / "symbols.txt"
+        symbols.write_text(f"x{KEY}\n", encoding="utf-8")
+        monkeypatch.setenv(KEY_ENV, KEY)
+        with pytest.raises(SystemExit) as stopped:
+            fetch_alphavantage.main(["--cross-section", "sp600", "--symbols", str(symbols)])
+        assert "line 1" in str(stopped.value) and KEY not in str(stopped.value)
+
     def test_no_archive_prints_the_reader_s_line(self, tmp_path, monkeypatch):
         symbols = tmp_path / "symbols.txt"
         symbols.write_text("AAA\n", encoding="utf-8")
@@ -355,7 +434,8 @@ class TestTheOperatorSeesLines:
     ):
         data_dir, store = places
         monkeypatch.setattr(fetch_alphavantage.paths, "DATA_DIR", data_dir)
-        monkeypatch.setenv(KEY_ENV, KEY)
+        # A key exported with stray whitespace is stripped before it is sent.
+        monkeypatch.setenv(KEY_ENV, f"  {KEY}\n")
         monkeypatch.setenv(ARCHIVE_DIR_ENV, str(store))
         vendor = Vendor({"AAA": [GOOD], "BBB": [ERROR]})
         monkeypatch.setattr(fetch_alphavantage, "urllib_get", vendor)

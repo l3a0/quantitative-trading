@@ -411,6 +411,62 @@ class TestRecordingADailyFile:
         assert entry.sha256 == hashlib.sha256(XYZ).hexdigest()
         assert (entry.price_basis, entry.cross_section) == ("adjusted", "sp600")
 
+    def test_rows_in_any_order_give_the_earliest_and_latest_date(self, tmp_path):
+        data_dir, store = empty_store(tmp_path)
+        ascending = daily(
+            "2008-12-31,1,1,1,20.0,20.0,100,0,1",
+            "",
+            "2009-01-05,1,1,1,22.0,22.0,100,0,1",
+            "2009-01-02,1,1,1,21.0,21.0,100,0,1",
+        )
+        entry = record_archive_file(
+            "sp600",
+            "XYZ",
+            ascending,
+            download_date="2026-10-05",
+            data_dir=data_dir,
+            directory=store,
+        )
+        assert (entry.row_count, entry.first_date, entry.last_date) == (
+            3,
+            "2008-12-31",
+            "2009-01-05",
+        )
+        _, panel = read_cross_section("sp600", data_dir=data_dir, directory=store)
+        assert panel["XYZ"].tolist() == [20.0, 21.0, 22.0]
+
+    @pytest.mark.parametrize(
+        ("symbol", "day", "words"),
+        [("xyz", "2026-10-05", "SYMBOL_PATTERN"), ("XYZ", "5 Oct 2026", "ISO calendar date")],
+    )
+    def test_a_bad_symbol_or_day_is_refused_before_anything_is_written(
+        self, tmp_path, symbol, day, words
+    ):
+        data_dir, store = empty_store(tmp_path)
+        with pytest.raises(ValueError, match=words):
+            record_archive_file(
+                "sp600", symbol, XYZ, download_date=day, data_dir=data_dir, directory=store
+            )
+        assert list(store.iterdir()) == [] and read_archive_manifest(data_dir) == []
+
+    def test_bytes_on_disk_that_differ_from_the_payload_leave_no_file_and_no_line(
+        self, tmp_path, monkeypatch
+    ):
+        data_dir, store = empty_store(tmp_path)
+        real = Path.read_bytes
+
+        def tampered(path):
+            return b"other bytes" if path.name.startswith("daily_") else real(path)
+
+        monkeypatch.setattr(Path, "read_bytes", tampered)
+        with pytest.raises(OSError, match="does not match the bytes that were hashed"):
+            record_archive_file(
+                "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+            )
+        monkeypatch.undo()
+        assert not (store / "sp600" / "daily_XYZ.csv").exists()
+        assert read_archive_manifest(data_dir) == []
+
     def test_a_line_is_appended_after_one_missing_its_newline(self, tmp_path):
         data_dir, store = empty_store(tmp_path)
         (data_dir / ARCHIVE_MANIFEST_NAME).write_text(json.dumps(standalone()), encoding="utf-8")
@@ -582,6 +638,17 @@ class TestReadingACrossSection:
         )
         assert [entry.symbol for entry in entries] == ["XYZ"]
         assert list(panel.columns) == ["XYZ"]
+
+    def test_symbols_are_matched_after_stripping_and_narrowing_to_none_is_empty(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        entries, _ = read_cross_section(
+            "sp600", symbols=[" xyz "], data_dir=data_dir, directory=store
+        )
+        assert [entry.symbol for entry in entries] == ["XYZ"]
+        entries, panel = read_cross_section(
+            "sp600", symbols=["QQQ"], data_dir=data_dir, directory=store
+        )
+        assert entries == [] and panel.empty
 
     def test_an_unrecorded_name_is_a_lookup_error(self, tmp_path):
         data_dir, store = recorded_store(tmp_path)
