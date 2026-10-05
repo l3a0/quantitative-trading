@@ -5,8 +5,7 @@ default disagree, and asserts the default's answer beside the helper's. So a
 helper quietly swapped for the default fails rather than agreeing on easy
 inputs. Where a helper moves a figure Chan prints, that figure is pinned in
 ``tests/test_equity_seasonals.py``, ``tests/test_pead.py``,
-``tests/test_pca_factor.py``, ``tests/test_buy_on_gap.py`` or
-``tests/test_price_spread.py``, and the module
+``tests/test_pca_factor.py`` or ``tests/test_buy_on_gap.py``, and the module
 docstring of :mod:`chan.matlab_helpers` says which helpers those are.
 
 The two books' ``smartstd`` files are held against each other as well as

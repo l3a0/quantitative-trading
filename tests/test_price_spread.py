@@ -150,8 +150,8 @@ class TestTheFigures:
         self, result: ExampleThreeOne
     ) -> None:
         """Location 1505 prints "about 10.9 percent". The script's own 0.108335 rounds
-        to 10.8, so the book's figure sits 0.1 of a percent above what its script printed,
-        and the run lands the script."""
+        to 10.8, so the book's figure does not follow from what its script printed, and the
+        run lands the script."""
         apr = result.price_spread.apr
         assert round(100 * apr, 1) == 10.8, SPEC
         assert round(100 * float(SCRIPT_PRICE_SPREAD[0]), 1) == 10.8
@@ -219,7 +219,13 @@ class TestTheRatio:
 
 
 class TestTheClaims:
-    """Location 1505's two claims, with the criteria issue 340 fixed before building."""
+    """Location 1505's two claims, with the criteria issue 340 wrote after the first
+    transcription ran. Each is the sentence's own word, so no threshold was left to choose."""
+
+    def test_the_ratio_loses_13_5_or_14_2_percent_a_year(self, result: ExampleThreeOne) -> None:
+        """Entry 21's conclusion quotes both APRs at one decimal of a percent."""
+        assert round(100 * result.ratio.apr, 1) == -13.5, SPEC
+        assert round(100 * result.swapped_ratio.apr, 1) == -14.2, SPEC
 
     def test_the_ratio_loses_money(self, result: ExampleThreeOne) -> None:
         """Location 1505: "perform poorly, with a negative APR". It holds on the script as published
@@ -236,7 +242,7 @@ class TestTheClaims:
 
 
 class TestWhatMovesNothing:
-    """Three choices a port could get wrong that no Example 3.1 figure can see.
+    """Two choices a port could get wrong that no Example 3.1 figure can see.
 
     Each is held here so a reader does not mistake these figures for evidence
     about them. ``tests/test_matlab_helpers.py`` holds each helper on its own.
@@ -337,6 +343,24 @@ class TestTheRule:
     def test_series_of_two_shapes_are_refused(self) -> None:
         with pytest.raises(ValueError, match="two series of one shape"):
             rolling_hedge_ratio(np.ones(5), np.ones(4), 3)
+
+    def test_a_window_too_short_to_fit_a_slope_and_an_intercept_is_refused(self) -> None:
+        """Two rows fit both exactly, and one leaves the slope undetermined."""
+        with pytest.raises(ValueError, match="at least 3 rows, not 2"):
+            rolling_hedge_ratio(np.arange(5.0), np.arange(5.0), 2)
+
+    def test_a_window_holding_a_nan_gives_a_nan_slope_and_the_rest_still_fit(self) -> None:
+        """Chan's ``ols`` returns NaN on such a window rather than stopping the run."""
+        x = np.array([1.0, 3.0, 2.0, np.nan, 4.0, 7.0, 5.0, 6.0])
+        hedge = rolling_hedge_ratio(2.0 * x + 1.0, x, 3)
+        assert np.isnan(hedge[[0, 1, 3, 4, 5]]).all()
+        np.testing.assert_allclose(hedge[[2, 6, 7]], 2.0, rtol=0, atol=1e-12)
+
+    def test_days_of_another_length_are_refused(self) -> None:
+        x = np.arange(1.0, 9.0)
+        for build in (price_spread, log_price_spread, ratio):
+            with pytest.raises(ValueError, match="one length, not 7, 8 and 8"):
+                build(DAYS[:7], x, x + 1.0, 3)
 
     def test_each_signal_drops_the_first_lookback_rows(self) -> None:
         x = np.arange(1.0, 9.0)

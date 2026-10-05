@@ -491,7 +491,8 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand.
+stand. Example 3.1 calls it on GLD and USO over the ETF file's whole span, and
+neither carries a flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -557,7 +558,9 @@ factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
-No run reads the ETF file yet. The lift for
+Example 3.1 reads GLD's and USO's closes from the ETF file, for
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and is
+the first run to read it. The lift for
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
 it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.

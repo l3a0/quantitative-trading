@@ -345,7 +345,7 @@ any figure was computed. Entry 11's row 3 is one as well. The sidebar's claim
 names one trade, and its criterion, a profit in every year from 1995 to 2008,
 was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any
-trade was computed. Entry 13's row 10 is a claim too, and the exception
+trade was computed. Entry 13's row 10 is a claim too, and the first exception
 among them: its criterion was written on
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the
 overlap it judges was measured. Round-off would leave two books of one size
@@ -4338,7 +4338,7 @@ Eleven rows, all derivable from
 [tests/test_price_spread.py](../tests/test_price_spread.py).
 
 **Two of the three scripts reproduce to six digits on Chan's own file, and the
-third reproduces only with its two legs swapped.** A pair trade needs a signal
+third misses, landing only with its two legs swapped.** A pair trade needs a signal
 that reverts, and Example 3.1 asks which one to build from two prices. It runs
 one rule on the gold ETF GLD and the oil ETF USO three ways: on the price spread
 `USO − h·GLD`, on the log price spread `log USO − h·log GLD`, and on the ratio
@@ -4350,8 +4350,8 @@ whether there is enough short-term reversion to trade anyway.
 
 The price spread and the log price spread land all four figures their scripts
 print. `Ratio.m` as published misses both of its own. The same script with GLD
-and USO swapped lands both, to all six digits, and the book's sentence that the
-ratio loses money holds either way.
+and USO swapped lands both, to all six digits, a reading tried after the miss,
+and the book's sentence that the ratio loses money holds either way.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -4419,7 +4419,7 @@ scripts' figures and prints no number for the ratio.
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | 0.000000 against the script, −0.1 against the book | reproduced | Chan's figure, on his own file, through his own script transcribed. The book's "about 10.9 percent" is not the script's 0.108335 rounded, which is 10.8, so the book sits a tenth of a percent above its own script. |
+| 1 | 0.000000 against the script, −0.1 against the book | reproduced | Chan's figure, on his own file, through his own script transcribed. The book's "about 10.9 percent" is not the script's 0.108335 rounded, which is 10.8, so the book's figure does not follow from its own script's. |
 | 2 | 0.000000 against the script, 0.00 against the book | reproduced | The same as row 1. |
 | 3 | 0.000000 against the script, 0 against the book | reproduced | The same as row 1. |
 | 4 | 0.000000 against the script, 0.0 against the book | reproduced | The same as row 1. |
@@ -4427,7 +4427,7 @@ scripts' figures and prints no number for the ratio.
 | 6 | +0.044141 | did not reproduce | The same as row 5. |
 | 7 | none, a claim | reproduced | The APR is below 0 on the published script and on the swapped legs both. The criterion was written on [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) after the first transcription ran, and it is the sentence's own word, negative, with no threshold to choose. |
 | 8 | none, a claim | reproduced | The log price spread's APR and Sharpe ratio are both below the price spread's. The criterion was written after the first run, as row 7's was, and reads "lower" on both figures the sentence names. |
-| 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. It lands both of the comment's figures to six digits, which a coincidence would have to do twice. |
+| 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. It lands both of the comment's figures to six digits. The two come from one return series, so they are not independent matches, but a coincidence would still have to land two different summaries of it. |
 | 10 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and a position earns from the next close, so every run holds its first position into 2006-06-22. |
 | 11 | none | none, not a replication | Neither mirror holds `lag.m`, and each script's first position is NaN under either padding. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
 
@@ -4437,26 +4437,24 @@ Three things.
 
 1. **Example 3.1's price spread and log price spread reproduce exactly on
    Chan's own file.** All four figures the two scripts print land to six
-   digits, and the regression behind
-   [blog/price-spread-mean-reversion.md](../blog/price-spread-mean-reversion.md)
-   fits the hedge ratio. The book's "about 10.9 percent" is the one rounding
-   that does not follow from its script, which prints 10.8 percent to that
-   precision.
-2. **The ratio's printed figures come from a run with GLD and USO swapped.**
+   digits. The book's "about 10.9 percent" is the one rounding that does not
+   follow from its script, which prints 10.8 percent to that precision.
+2. **The ratio's printed figures match a run with GLD and USO swapped.**
    The book captions its Figure 3.2 "Ratio = USO/GLD", and the published
    `Ratio.m` computes USO/GLD. Its comment's two figures are what GLD/USO
    gives, with a positive unit buying GLD. The reading was found after the
    miss rather than declared, so it is the cause the evidence favours, not a
    reproduction. Chan's point survives either way: the ratio loses money on
-   this pair, by 13.5 or 14.2 percent a year.
+   this pair, by 13.5 or 14.2 percent a year, which
+   `TestTheClaims::test_the_ratio_loses_13_5_or_14_2_percent_a_year` holds.
 3. **The linear rule cannot see how the deviation is scaled.** Its return is
    profit over gross dollars, so multiplying every unit by one constant leaves
    it unchanged. Book two's `smartMovingStd`, which divides by n, gives the
    same figures here as `movingStd`, unlike Entries 12 and 18, where the
    choice of `smartstd` moved a printed digit. Example 3.2 compares the
-   z-score with a fixed threshold, so the divisor will reach its figures, and
+   z-score with a fixed threshold, where no constant cancels, so
    [issue 341](https://github.com/l3a0/quantitative-trading/issues/341)
-   inherits that.
+   cannot rely on this entry's figures to say which divisor its own need.
 
 ### What this entry cannot say
 

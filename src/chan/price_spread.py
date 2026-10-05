@@ -59,7 +59,7 @@ NaN moves nothing, because each script's first held position is NaN either
 way, and ``tests/test_price_spread.py`` runs both. :func:`chan.matlab_helpers.lag1`
 pads with NaN.
 
-**The ratio's printed figures come from swapped legs.** The price spread and
+**The ratio's printed figures match swapped legs.** The price spread and
 the log price spread land all four printed figures to six digits. ``Ratio.m``
 as published gives −0.134608 and −0.702522 against its closing comment's
 −0.141522 and −0.746663. The same script with GLD and USO swapped, so the
@@ -89,9 +89,9 @@ the run.
 **Example 3.2 builds on this.** Its ``bollinger.m`` computes the same hedge
 ratio, the same 20-row drop and the same price spread, and differs only in
 how it sets ``numUnits``. So :func:`price_spread`, :func:`zscore` and
-:func:`daily_returns` are public, and
-[issue 341](https://github.com/l3a0/quantitative-trading/issues/341) calls
-them rather than a second copy.
+:func:`daily_returns` are public, for
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341) to call
+rather than write a second copy.
 
 **What changed on the way over.** Four things, and none moves a figure.
 
@@ -197,22 +197,39 @@ def rolling_hedge_ratio(
     """The slope of ``ols(dependent, [independent ones])`` over each trailing ``lookback`` rows.
 
     Row t reads rows t − lookback + 1 through t, so the slope is first defined
-    on row ``lookback − 1`` and the rows before it are NaN.
+    on row ``lookback − 1`` counting from 0, which is MATLAB's row ``lookback``,
+    and the rows before it are NaN. A window holding a NaN gives a NaN slope
+    rather than stopping the run.
     """
     dependent = np.asarray(dependent, dtype=float)
     independent = np.asarray(independent, dtype=float)
     if dependent.shape != independent.shape or dependent.ndim != 1:
         raise ValueError("rolling_hedge_ratio takes two series of one shape")
+    if lookback < 3:
+        raise ValueError(
+            f"rolling_hedge_ratio takes a window of at least 3 rows, not {lookback}, because a "
+            "slope and an intercept leave no degree of freedom in fewer"
+        )
     hedge = np.full(len(dependent), np.nan)
     ones = np.ones(lookback)
     for t in range(lookback - 1, len(dependent)):
         window = slice(t - lookback + 1, t + 1)
+        if not (np.isfinite(dependent[window]).all() and np.isfinite(independent[window]).all()):
+            continue
         hedge[t] = ols(dependent[window], np.column_stack([independent[window], ones])).beta[0]
     return hedge
 
 
-def _kept(days: pd.DatetimeIndex, lookback: int) -> pd.DatetimeIndex:
-    """The rows every script keeps once it deletes its first ``lookback``."""
+def _kept(days: pd.DatetimeIndex, x: np.ndarray, y: np.ndarray, lookback: int) -> pd.DatetimeIndex:
+    """The rows every script keeps once it deletes its first ``lookback``.
+
+    The days and both legs must be one length, or the kept days would label the
+    wrong prices.
+    """
+    if not len(days) == len(x) == len(y):
+        raise ValueError(
+            f"the days and both legs must be one length, not {len(days)}, {len(x)} and {len(y)}"
+        )
     return days[lookback:]
 
 
@@ -221,11 +238,12 @@ def price_spread(
 ) -> Signal:
     """``PriceSpread.m``'s ``yport = y − h·x``, with ``h`` refitted over the last ``lookback``."""
     x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    kept = _kept(days, x, y, lookback)
     hedge = rolling_hedge_ratio(y, x, lookback)[lookback:]
     x, y = x[lookback:], y[lookback:]
     return Signal(
         name="price spread",
-        days=_kept(days, lookback),
+        days=kept,
         prices=np.column_stack([x, y]),
         hedge=hedge,
         value=y - hedge * x,
@@ -238,11 +256,12 @@ def log_price_spread(
 ) -> Signal:
     """``LogPriceSpread.m``'s ``log y − h·log x``, with ``h`` refitted on log prices."""
     x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    kept = _kept(days, x, y, lookback)
     hedge = rolling_hedge_ratio(np.log(y), np.log(x), lookback)[lookback:]
     x, y = x[lookback:], y[lookback:]
     return Signal(
         name="log price spread",
-        days=_kept(days, lookback),
+        days=kept,
         prices=np.column_stack([x, y]),
         hedge=hedge,
         value=np.log(y) - hedge * np.log(x),
@@ -259,11 +278,13 @@ def ratio(
     name: str = "ratio",
 ) -> Signal:
     """``Ratio.m``'s ``y / x``, with one dollar short ``x`` and one long ``y`` per unit."""
-    x, y = np.asarray(x, dtype=float)[lookback:], np.asarray(y, dtype=float)[lookback:]
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    kept = _kept(days, x, y, lookback)
+    x, y = x[lookback:], y[lookback:]
     ones = np.ones(len(x))
     return Signal(
         name=name,
-        days=_kept(days, lookback),
+        days=kept,
         prices=np.column_stack([x, y]),
         hedge=None,
         value=y / x,

@@ -42,6 +42,8 @@ Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`matlab_sort` for *Algorithmic Trading*'s Example 4.1.
 :mod:`chan.khandani_lo_book_two` calls :func:`backshift`, :func:`smartmean`
 and :func:`smartsum` for *Algorithmic Trading*'s Examples 4.3 and 4.4.
+:mod:`chan.price_spread` calls :func:`lag1` for *Algorithmic Trading*'s
+Example 3.1.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
@@ -80,8 +82,10 @@ because Examples 3.7 and 3.8 call the same helpers on the same file.
 
 **Book two's helpers.** Seven come from Chan's *Algorithmic Trading* code
 rather than his first edition's. :mod:`chan.pead` calls the first three,
-:mod:`chan.buy_on_gap` calls all but :func:`smartstd_book_two` directly and
-runs it through :func:`smart_moving_std`,
+:mod:`chan.buy_on_gap` calls each of the first five except
+:func:`smartstd_book_two` directly and runs that one through
+:func:`smart_moving_std`,
+:mod:`chan.price_spread` calls :func:`moving_avg` and :func:`moving_std`,
 :mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
 :func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
 :mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
