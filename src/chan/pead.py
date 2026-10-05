@@ -40,8 +40,8 @@ every trade at one thirtieth of its capital and leaves the rest idle.
 
 ``pead.m`` prints five figures, and :func:`pead` returns each.
 
-1. ``252 · smartmean(ret)``, the arithmetic annual return. This is the book's
-   "APR of 6.7 percent", printed by the script as 0.0667.
+1. ``252 · smartmean(ret)``, the arithmetic annual return. This is the
+   APR Chan gives as 6.7 percent, printed by the script as 0.0667.
 2. ``√252 · smartmean(ret) / smartstd(ret)``, the Sharpe ratio, printed as
    1.49, which the book rounds to 1.5.
 3. ``prod(1 + ret)^(252 / n) − 1``, the compounded APR, printed as 0.0680. The
