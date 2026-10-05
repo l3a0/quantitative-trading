@@ -121,12 +121,20 @@ book: −3.64346635, every Johansen statistic, critical value, eigenvalue and
 eigenvector, the half-life of 22.662578, and 0.125739 and 1.391310. The
 replication log's Entry 23 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 4.2 splits the same way. The book's 98
+stocks, its APR of 4.5 percent and Sharpe ratio of 1.3, and its claims of
+cointegration "with better than 95 percent probability" and of two
+cointegrating relations are here, at location 2035. The figures `indexArb.m`
+prints sit in its comments and nowhere in the book: every Johansen statistic
+and critical value for the basket against SPY, its eigenvectors, and 0.044930
+and 1.319397. The replication log's Entry 24 traces each to one or the other.
+
 *Algorithmic Trading*'s Example 5.1 splits the same way. The book's figures
 are here, at location 2237: the APR of 11 percent, the Sharpe ratio of 1.6, and
 the window from December 18, 2009, to April 26, 2012. The figures
 `AUDCAD_unequal.m` prints, 0.112410, 1.610890 and a Kelly leverage of
 23.845328, sit in its comments and nowhere in the book. The replication log's
-Entry 24 traces each to one or the other.
+Entry 25 traces each to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
