@@ -536,8 +536,14 @@ schedule of investments for every December 31 in a filing iShares Trust makes
 with the SEC, so [src/chan/fund_holdings.py](../src/chan/fund_holdings.py)
 reads those filings into [research/filings](../research/filings/README.md),
 under [issue 361](https://github.com/l3a0/quantitative-trading/issues/361).
+[Issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added
+IVV, iShares' S&P 500 fund, at every quarter-end from 2008-12-31 to
+2026-06-30 but one, for the S&P 500 panel
+[issue 373](https://github.com/l3a0/quantitative-trading/issues/373) builds.
 [tests/test_fund_holdings.py](../tests/test_fund_holdings.py) is the authority
-for every count quoted about it.
+for every count quoted about IJR, and
+[tests/test_ivv_holdings.py](../tests/test_ivv_holdings.py) for every count
+quoted about IVV.
 
 Four things follow.
 
@@ -552,18 +558,23 @@ Four things follow.
    for unrecorded files both require every CSV under `data/` to have a line in
    the manifest. That line's recorders take a dated series, or lifted columns
    whose fields come from `LIFTED_FIELDS` or `EVENT_FIELDS`, and a schedule of
-   holdings is neither. The record is one CSV per filing and an index naming
-   each accession, the primary document's sha256 and the CSV's sha256. The
-   documents themselves are not committed, because an N-Q runs to 38 MB, and
-   the sha256 says which bytes a regeneration has to match. The price is that
+   holdings is neither. The record is one CSV per fund and filing and an
+   index naming each accession, the primary document's sha256 and the CSV's
+   sha256. The documents themselves are not committed, because a shareholder
+   report runs to 59 MB, and the sha256 says which bytes a regeneration has to
+   match. The price is that
    [data/README.md](../data/README.md) and the manifest do not list these
-   files and the size cap on `data/` does not count them. They take 651,301
+   files and the size cap on `data/` does not count them. They take 2,672,010
    bytes, index included, which `tests/test_fund_holdings.py` pins.
-3. **Every N-Q year reconciles to the filing's own total.** An N-Q holds every
-   fund the trust reports at that quarter-end, so reading IJR's rows means
-   finding where its schedule starts and stops. The writer refuses an N-Q whose
-   rows do not sum to the "Total Common Stocks" it prints, so a parse that read
-   the wrong rows cannot be recorded. All twelve reconcile exactly.
+3. **Every HTML schedule reconciles to the filing's own total.** An N-Q holds
+   every fund the trust reports at that quarter-end, and so does a shareholder
+   report, so reading one fund's rows means finding where its schedule starts
+   and stops. The writer refuses a schedule whose rows do not sum to the "Total
+   Common Stocks" it prints, so a parse that read the wrong rows cannot be
+   recorded. IJR's twelve N-Q years and IVV's 42 HTML schedules all reconcile
+   exactly. One N-Q is one accession for every fund in it, so IJR's and IVV's
+   December N-Q share theirs, and the index finds a line by fund and accession
+   together.
 4. **A member is placed only when it can be paired without guessing.** Each
    member is paired with the same holding in the filing before, by CUSIP where
    both rows carry one and otherwise by name, and a pairing is kept only when
@@ -590,6 +601,14 @@ price does, and no dividend is in it. What reads it is the rule
 [issue 329](https://github.com/l3a0/quantitative-trading/issues/329) writes for
 a member with no return, which is why an unpaired member is left without one
 rather than given a guess.
+
+One of IVV's quarter-ends has no full schedule. The 2013-09-30 shareholder
+report prints a summary of 55 holdings and "Other securities", and no
+amendment was found. The date stays on IVV's list with the filing's accession
+and the reason, and nothing is written for it, so a reader asking for its
+members is told why rather than meeting a missing file. The price is that a
+reader of IVV's list cannot assume every entry has a file, which is why the
+reason refuses loudly rather than returning no members.
 
 ## How work is cut and ordered
 

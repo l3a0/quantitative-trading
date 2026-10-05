@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Cut from accession 0001752724-20-176909, document primary_doc.xml, the N-PORT holding IVV's schedule as of 2020-06-30. Kept: everything before the first holding and after the last, and two of the 509 holdings: T-Mobile's common stock and its right, which the filing files under assetConditional rather than as EC. --><edgarSubmission xmlns="http://www.sec.gov/edgar/nport" xmlns:com="http://www.sec.gov/edgar/common" xmlns:ncom="http://www.sec.gov/edgar/nportcommon" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sec.gov/edgar/nport eis_NPORT_Filer.xsd">
+  <headerData>
+    <submissionType>NPORT-P</submissionType>
+    <isConfidential>false</isConfidential>
+    <filerInfo>
+
+      <filer>
+        <issuerCredentials>
+          <cik>0001100663</cik>
+          <ccc>XXXXXXXX</ccc>
+        </issuerCredentials>
+      </filer>
+
+
+      <seriesClassInfo>
+        <seriesId>S000004310</seriesId>
+        <classId>C000012040</classId>
+      </seriesClassInfo>
+
+
+    </filerInfo>
+  </headerData>
+  <formData>
+    <genInfo>
+      <regName>iShares Trust</regName>
+      <regFileNumber>811-09729</regFileNumber>
+      <regCik>0001100663</regCik>
+      <regLei>5493000860OXIC4B5K91</regLei>
+      <regStreet1>400 Howard Street</regStreet1>
+      <regCity>San Francisco</regCity>
+      <regStateConditional regCountry="US" regState="US-CA"/>
+      <regZipOrPostalCode>94105</regZipOrPostalCode>
+      <regPhone>800-474-2737</regPhone>
+      <seriesName>iShares Core S&amp;P 500 ETF</seriesName>
+      <seriesId>S000004310</seriesId>
+      <seriesLei>5493007M4YMN8XL48C14</seriesLei>
+      <repPdEnd>2021-03-31</repPdEnd>
+      <repPdDate>2020-06-30</repPdDate>
+      <isFinalFiling>N</isFinalFiling>
+    </genInfo>
+    <fundInfo>
+      <totAssets>199287250207.48</totAssets>
+      <totLiabs>4527488133.00</totLiabs>
+      <netAssets>194759762074.48</netAssets>
+      <assetsAttrMiscSec>0.00000000</assetsAttrMiscSec>
+      <assetsInvested>0.00000000</assetsInvested>
+      <amtPayOneYrBanksBorr>0.00000000</amtPayOneYrBanksBorr>
+      <amtPayOneYrCtrldComp>0.00000000</amtPayOneYrCtrldComp>
+      <amtPayOneYrOthAffil>0.00000000</amtPayOneYrOthAffil>
+      <amtPayOneYrOther>0.00000000</amtPayOneYrOther>
+      <amtPayAftOneYrBanksBorr>0.00000000</amtPayAftOneYrBanksBorr>
+      <amtPayAftOneYrCtrldComp>0.00000000</amtPayAftOneYrCtrldComp>
+      <amtPayAftOneYrOthAffil>0.00000000</amtPayAftOneYrOthAffil>
+      <amtPayAftOneYrOther>0.00000000</amtPayAftOneYrOther>
+      <delayDeliv>0.00000000</delayDeliv>
+      <standByCommit>0.00000000</standByCommit>
+      <liquidPref>0.00000000</liquidPref>
+      <cshNotRptdInCorD>25450017.51000000</cshNotRptdInCorD>
+      <borrowers>
+        <borrower aggrVal="3285.00000000" lei="549300L8G1E7ZHVEOG75" name="Natixis Securities Americas LLC"/>
+        <borrower aggrVal="23275821.00000000" lei="549300RA02N3BNSWBV74" name="VIRTU AMERICAS, LLC"/>
+        <borrower aggrVal="43658186.18000000" lei="G5GSEF7VJP5I7OUK5573" name="BARCLAYS BANK PLC"/>
+        <borrower aggrVal="16290127.18000000" lei="AC28XWWI3WIBK2824319" name="BARCLAYS CAPITAL INC."/>
+        <borrower aggrVal="472280.35000000" lei="9J6MBOOO7BECTDTUZW19" name="DEUTSCHE BANK SECURITIES INC"/>
+        <borrower aggrVal="44050022.89000000" lei="MP6I5ZYZBEU3UXPYFY54" name="HSBC BANK PLC"/>
+        <borrower aggrVal="41051678.55000000" lei="9R7GPTSO7KV3UQJZQ078" name="MORGAN STANLEY &amp; CO. LLC (US EQUITY SEC LENDING)"/>
+        <borrower aggrVal="292200.00000000" lei="KBVRJ5K57JZ3E2AVWX40" name="ING FINANCIAL MARKETS LLC"/>
+        <borrower aggrVal="64743887.58000000" lei="T6FIZBDPKLYJKFCRVK44" name="UBS SECURITIES LLC"/>
+        <borrower aggrVal="95401930.96000000" lei="KB1H1DSPRFMYMCUFXT09" name="Wells Fargo Bank, National Association"/>
+        <borrower aggrVal="70806949.24000000" lei="BFM8T61CT2L1QCEMIK50" name="UBS AG"/>
+        <borrower aggrVal="8480.00000000" lei="RUC0QBLBRPRCU4W1NE59" name="BMO Capital Markets"/>
+        <borrower aggrVal="237468.00000000" lei="58PU97L1C0WSRCWADL48" name="Jefferies LLC"/>
+        <borrower aggrVal="32145496.16000000" lei="571474TGEMMWANRLN572" name="STATE STREET BANK &amp; TRUST COMPANY"/>
+        <borrower aggrVal="806682504.18000000" lei="549300HN4UKV1E2R3U73" name="BofA Securities, Inc."/>
+        <borrower aggrVal="2923911.14000000" lei="549300JRHF1MHHWUAW04" name="National Financial Services LLC"/>
+        <borrower aggrVal="32700299.19000000" lei="VYVVCKR63DVZZN70PB21" name="Wells Fargo Securities LLC"/>
+        <borrower aggrVal="300896589.95000000" lei="ZBUT11V806EZRVTWT807" name="JP MORGAN SECURITIES LLC"/>
+        <borrower aggrVal="204626731.51000000" lei="MBNUM2BPBDO7JBLYG310" name="CITIGROUP GLOBAL MARKETS INC."/>
+        <borrower aggrVal="248658670.79000000" lei="FOR8UP27PHTHYVLBNG30" name="GOLDMAN SACHS &amp; CO."/>
+        <borrower aggrVal="16589612.38000000" lei="1V8Y6QCX6YMJ2OELII46" name="CREDIT SUISSE SECURITIES (USA) LLC"/>
+        <borrower aggrVal="8021280.96000000" lei="RCNB6OTYUAMMP879YW96" name="BNP PARIBAS SECURITIES CORP"/>
+        <borrower aggrVal="709623.00000000" lei="7TK5RJIZDFROZCA6XF66" name="MIZUHO SECURITIES USA INC."/>
+        <borrower aggrVal="86249860.39000000" lei="549300KUN9K9K32C6D97" name="BNP PARIBAS PRIME BROKERAGE INTERNATIONAL LIMITED"/>
+        <borrower aggrVal="18914922.98000000" lei="549300BLWPABP1VNME36" name="Scotia Capital (USA) Inc"/>
+        <borrower aggrVal="1446247.00000000" lei="549300LCO2FLSSVFFR64" name="RBC Capital Markets LLC"/>
+        <borrower aggrVal="4704799.94000000" lei="OXTKY6Q8X53C9ILVV871" name="NOMURA SECURITIES INTERNATIONAL INC."/>
+        <borrower aggrVal="94898297.63000000" lei="549300F35UE0BOM1WJ55" name="SG AMERICAS SECURITIES LLC"/>
+      </borrowers>
+      <isNonCashCollateral>N</isNonCashCollateral>
+      <returnInfo>
+        <monthlyTotReturns>
+          <monthlyTotReturn classId="C000012040" rtn1="12.82000000" rtn2="4.76000000" rtn3="1.99000000"/>
+        </monthlyTotReturns>
+        <monthlyReturnCats>
+          <equityContracts>
+            <mon1 netRealizedGain="-1323983.37000000" netUnrealizedAppr="93489659.37000000"/>
+            <mon2 netRealizedGain="27594289.40000000" netUnrealizedAppr="1303199.55000000"/>
+            <mon3 netRealizedGain="75953979.78000000" netUnrealizedAppr="-69174549.97000000"/>
+            <futureCategory>
+              <instrMon1 netRealizedGain="-1323983.37000000" netUnrealizedAppr="93489659.37000000"/>
+              <instrMon2 netRealizedGain="27594289.40000000" netUnrealizedAppr="1303199.55000000"/>
+              <instrMon3 netRealizedGain="75953979.78000000" netUnrealizedAppr="-69174549.97000000"/>
+            </futureCategory>
+          </equityContracts>
+        </monthlyReturnCats>
+        <othMon1 netRealizedGain="860938325.34000000" netUnrealizedAppr="19809414804.62000000"/>
+        <othMon2 netRealizedGain="1039310772.46000000" netUnrealizedAppr="7125208066.11000000"/>
+        <othMon3 netRealizedGain="624608420.43000000" netUnrealizedAppr="2966934736.49000000"/>
+      </returnInfo>
+      <mon1Flow redemption="3227671627.33000000" reinvestment="0.00000000" sales="3071329186.60000000"/>
+      <mon2Flow redemption="4152159928.21000000" reinvestment="0.00000000" sales="2974968598.10000000"/>
+      <mon3Flow redemption="3658993996.53000000" reinvestment="0.00000000" sales="4799887751.85000000"/>
+
+
+    </fundInfo>
+    <invstOrSecs>
+      <invstOrSec>
+        <name>T-Mobile US Inc</name>
+        <lei>549300QHIJYOHPACPG31</lei>
+        <title>T-Mobile US Inc</title>
+        <cusip>872590104</cusip>
+        <identifiers>
+          <isin value="US8725901040"/>
+        </identifiers>
+        <balance>4318366.00000000</balance>
+        <units>NS</units>
+        <curCd>USD</curCd>
+        <valUSD>449757818.90000000</valUSD>
+        <pctVal>0.230929538067</pctVal>
+        <payoffProfile>Long</payoffProfile>
+        <assetCat>EC</assetCat>
+        <issuerCat>CORP</issuerCat>
+        <invCountry>US</invCountry>
+        <isRestrictedSec>N</isRestrictedSec>
+
+        <fairValLevel>1</fairValLevel>
+        <securityLending>
+          <isCashCollateral>N</isCashCollateral>
+          <isNonCashCollateral>N</isNonCashCollateral>
+          <isLoanByFund>N</isLoanByFund>
+        </securityLending>
+      </invstOrSec>
+      <invstOrSec>
+        <name>T-Mobile US Inc</name>
+        <lei>549300QHIJYOHPACPG31</lei>
+        <title>T-Mobile US Inc</title>
+        <cusip>872590112</cusip>
+        <identifiers>
+          <isin value="US8725901123"/>
+        </identifiers>
+        <balance>2898473.00000000</balance>
+        <units>NS</units>
+        <curCd>USD</curCd>
+        <valUSD>486943.46000000</valUSD>
+        <pctVal>0.000250022620</pctVal>
+        <payoffProfile>Long</payoffProfile>
+        <assetConditional assetCat="OTHER" desc="Rights"/>
+        <issuerCat>CORP</issuerCat>
+        <invCountry>US</invCountry>
+        <isRestrictedSec>N</isRestrictedSec>
+
+        <fairValLevel>1</fairValLevel>
+        <securityLending>
+          <isCashCollateral>N</isCashCollateral>
+          <isNonCashCollateral>N</isNonCashCollateral>
+          <loanByFundCondition isLoanByFund="Y" loanVal="6413.40000000"/>
+        </securityLending>
+      </invstOrSec>
+    </invstOrSecs>
+    <explntrNotes>
+
+
+      <explntrNote note="Monthly returns presented in Item B.5(a) have been calculated without deducting any applicable sales loads or redemption fees." noteItem="B.5.a"/>
+    </explntrNotes>
+    <signature>
+      <ncom:dateSigned>2020-07-30</ncom:dateSigned>
+      <ncom:nameOfApplicant>iShares Trust</ncom:nameOfApplicant>
+      <ncom:signature>Ann Frechette</ncom:signature>
+      <ncom:signerName>Ann Frechette</ncom:signerName>
+      <ncom:title>Assistant Treasurer</ncom:title>
+    </signature>
+  </formData>
+  <documents>XXXX</documents>
+</edgarSubmission>
