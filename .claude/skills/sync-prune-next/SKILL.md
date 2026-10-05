@@ -54,11 +54,21 @@ A worktree or branch is removable only when all four of these hold.
    prints `locked` with a pid for a sub-agent's worktree. If `ps -p <pid>`
    finds the process, the agent is still working.
 
-The third check is the one commit-based checks miss. On 2026-10-05 a planning
-session for [#335](https://github.com/l3a0/quantitative-trading/issues/335)
-showed `isRunning: false`, and its branch sat at `main` with no commits of its
-own. Its worktree held seven modified files, which were a build in progress.
-Judged by branch and session alone, it was safe to delete.
+`isRunning: false` does not mean a session has ended. A session waiting on its
+own background sub-agents reports it too, which is why the first check cannot
+stand alone. On 2026-10-05 the session building
+[#335](https://github.com/l3a0/quantitative-trading/issues/335) reported
+`isRunning: false`, and its branch sat at `main` with no commits of its own.
+Its worktree held seven modified files. Minutes later it opened
+[PR #369](https://github.com/l3a0/quantitative-trading/pull/369) from that
+branch, and the files turned out to be review fixes in progress. Judged by
+session and branch alone, the worktree was safe to delete. The third check is
+what kept it.
+
+The same evidence does not show that work has stalled. Before reporting a
+session as stuck, re-run `gh pr list --state open` and read its latest events
+with `list_events`, because a pull request may have opened since the branch
+was classified.
 
 A session that is not running but has an open pull request keeps its worktree,
 because review fixes land there.
