@@ -475,6 +475,10 @@ class TestTheRun:
         monkeypatch.setattr(module, "strip_returns", lambda strip: results[strip.root])
         run()
         out = capsys.readouterr().out
+        figures = [
+            r.split() for r in out.splitlines() if r.split()[1:2] and r.split()[1][-1].isdigit()
+        ]
+        assert [r[0] for r in figures] == ["BR", "C", "CL", "HG", "TU"] * 2
         for label, root in (("BR", "BR"), ("C", "C2"), ("CL", "CL"), ("HG", "HG"), ("TU", "TU")):
             alpha, gamma = COMPUTED[root]
             book_alpha, book_gamma = BOOK_TABLE_5_1[root]
@@ -484,11 +488,32 @@ class TestTheRun:
                 if r.split()[:1] == [label] and r.split()[1][-1].isdigit()
             ]
             assert rows[0] == [label, alpha, f"{book_alpha:.1f}%", gamma, f"{book_gamma:.1f}%"]
-            defined = str(int(results[root].gamma.notna().sum()))
-            assert rows[1][:4] == [label, gamma, COMPUTED_IN_MONTHS[root], defined]
+            defined = results[root].gamma.dropna().index
+            assert rows[1][:7] == [
+                label,
+                gamma,
+                COMPUTED_IN_MONTHS[root],
+                str(len(defined)),
+                str(defined[0].date()),
+                "to",
+                str(defined[-1].date()),
+            ]
         assert "inputdatadaily_hg_20120813/" in out
         assert "1-1-1-1 on 1941" in out
+        assert "2012-08-13  2-2-2-1 on 1417, 1-2-3-2 on 1070," in out
         assert "Exploratory" in out
+
+    def test_the_data_directory_reaches_every_read(self, panels, monkeypatch) -> None:
+        asked = []
+
+        def fake_load_panel(source, *, data_dir=None):
+            asked.append(data_dir)
+            return panels[next(r for r in ROOTS if SOURCE_FILES[r] == source)]
+
+        monkeypatch.setattr(module, "load_panel", fake_load_panel)
+        monkeypatch.setattr(module, "report", lambda results: None)
+        run(data_dir=Path("elsewhere"))
+        assert asked == [Path("elsewhere")] * len(ROOTS)
 
 
 # --- the rule on synthetic frames ------------------------------------------------
@@ -525,9 +550,12 @@ class TestTheRule:
         assert np.isnan(roll_returns_in_months(frame).iloc[1])
         assert np.isfinite(roll_returns(frame).drop(DAYS[1])).all()
 
-    def test_a_row_whose_first_five_priced_columns_skip_one_has_no_gamma(self) -> None:
+    @pytest.mark.parametrize("skipped", [1, 3, 4])
+    def test_a_row_whose_first_five_priced_columns_skip_one_has_no_gamma(self, skipped) -> None:
+        """Column 4 puts the skip between the fourth and fifth priced contracts, the last
+        gap the script checks."""
         prices = np.tile(_curve(0.08, np.arange(7.0)), (4, 1))
-        prices[2, 3] = np.nan
+        prices[2, skipped] = np.nan
         frame = pd.DataFrame(prices, index=DAYS, columns=MONTHLY)
         assert np.isnan(roll_returns(frame).iloc[2])
         assert np.isnan(roll_returns_in_months(frame).iloc[2])
@@ -570,6 +598,10 @@ class TestTheRule:
         with pytest.raises(ValueError, match="at least two priced days"):
             spot_return(pd.Series([np.nan, 3.0, np.nan]))
 
+    def test_the_spot_return_fits_on_two_priced_days(self) -> None:
+        spot = pd.Series([np.nan, 2.0, np.nan, 2.0 * np.exp(0.002)])
+        assert spot_return(spot) == pytest.approx(0.252, rel=1e-12)
+
     @pytest.mark.parametrize("fit", [roll_returns, roll_returns_in_months])
     def test_contracts_out_of_delivery_order_are_refused(self, fit) -> None:
         """Both fits read the nearest contracts by column position, so a reordered frame
@@ -583,7 +615,7 @@ class TestTheRule:
         assert contract_month("TU-2008H") - contract_month("TU-2007Z") == 3
         assert contract_month("HG-1987F") - contract_month("HG-1986Z") == 1
 
-    @pytest.mark.parametrize("symbol", ["CL-SPOT", "CL-2008", "CL-2008A", "CL-08F"])
+    @pytest.mark.parametrize("symbol", ["CL-SPOT", "CL-SPOTZ", "CL-2008", "CL-2008A", "CL-08F"])
     def test_a_symbol_naming_no_contract_is_refused(self, symbol) -> None:
         with pytest.raises(ValueError, match="does not name a contract"):
             contract_month(symbol)
@@ -601,6 +633,14 @@ class TestTheRefusals:
     def test_any_other_root_is_refused_naming_the_five(self, root) -> None:
         with pytest.raises(ValueError, match=f"BR, C2, CL, HG, TU, and not {root}$"):
             load_strip(root)
+
+    def test_a_member_with_no_priced_day_is_skipped_by_the_guard(self, panels, monkeypatch) -> None:
+        """No committed member is empty, and an empty one has no move for the guard to read."""
+        members, closes = panels["C2"]
+        empty = closes.copy()
+        empty[closes.columns[0]] = np.nan
+        monkeypatch.setattr(module, "load_panel", lambda *_a, **_k: (members, empty))
+        assert load_strip("C2").contracts[closes.columns[0]].isna().all()
 
     def test_a_strip_with_no_spot_column_is_refused(self, panels, monkeypatch) -> None:
         members, closes = panels["C2"]
