@@ -4429,7 +4429,7 @@ scripts' figures and prints no number for the ratio.
 | 8 | none, a claim | reproduced | The log price spread's APR and Sharpe ratio are both below the price spread's. The criterion was written after the first run, as row 7's was, and reads "lower" on both figures the sentence names. |
 | 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. It lands both of the comment's figures to six digits. The two come from one return series, so they are not independent matches, but a coincidence would still have to land two different summaries of it. |
 | 10 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and a position earns from the next close, so every run holds its first position into 2006-06-22. |
-| 11 | none | none, not a replication | Neither mirror holds `lag.m`, and each script's first position is NaN under either padding. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
+| 11 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN, and a zero pad holds zero gross dollars there, so the return is 0/0, and either NaN is set to 0. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
 
 ### What the entry concludes
 

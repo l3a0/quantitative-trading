@@ -249,8 +249,8 @@ class TestWhatMovesNothing:
     """
 
     def test_lag_padding_with_0_or_nan_gives_the_same_returns(self, sources) -> None:
-        """Neither mirror holds ``lag.m``. Each script's first held position is NaN,
-        so its first row comes out NaN and is set to 0 whichever padding runs."""
+        """Neither mirror holds ``lag.m``. A NaN pad makes the first row's return NaN, and
+        a zero pad holds zero gross dollars there, so the return is 0/0. Either is set to 0."""
         _, closes = sources
         nan_padded = example_three_one(closes)
         with pytest.MonkeyPatch.context() as patch:
@@ -281,12 +281,17 @@ class TestTheScaleBreakDecision:
         assert scale_breaks(closes[X_SYMBOL]) == []
         assert scale_breaks(closes[Y_SYMBOL]) == []
 
-    def test_a_leg_that_changed_scale_is_refused(self, sources, monkeypatch) -> None:
+    @pytest.mark.parametrize("symbol", [X_SYMBOL, Y_SYMBOL])
+    @pytest.mark.parametrize("row", [1, 700, 1499])
+    def test_either_leg_changing_scale_anywhere_in_the_span_is_refused(
+        self, sources, monkeypatch, symbol, row
+    ) -> None:
+        """The guard reads both legs over every day, the second and the last included."""
         members, closes = sources
         broken = closes.copy()
-        broken.loc[broken.index[700:], Y_SYMBOL] *= 10
+        broken.loc[broken.index[row:], symbol] *= 10
         monkeypatch.setattr(module, "load_panel", lambda *_a, **_k: (members, broken))
-        with pytest.raises(WindowCrossesScaleBreak, match="uso"):
+        with pytest.raises(WindowCrossesScaleBreak, match=f"{symbol.lower()}.csv"):
             read_sources()
 
 
@@ -339,6 +344,38 @@ class TestTheRule:
         before, after = rolling_hedge_ratio(y, x, 3), rolling_hedge_ratio(shocked, x, 3)
         assert after[2] == pytest.approx(before[2], abs=1e-12)
         assert after[3] != pytest.approx(before[3], abs=1e-6)
+
+    def test_the_z_score_lets_a_nan_spoil_its_window_where_the_smart_helpers_skip_it(
+        self,
+    ) -> None:
+        """The plain ``movingAvg`` and ``movingStd``, not the ``smart`` pair."""
+        z = zscore(np.array([1.0, 2.0, np.nan, 4.0, 5.0, 6.0]), 3)
+        assert np.isnan(z[:5]).all()
+        assert np.isfinite(z[5])
+
+    def test_the_z_scores_average_adds_its_window_oldest_first(self) -> None:
+        """Oldest first, the 1 is lost against 1e16 and the mean is 1/3. ``smartMovingAvg``
+        adds newest first, keeps it and gives 0, which moves the z-score's last bit."""
+        value = np.array([1e16, -1e16, 1.0])
+        spread = np.std(value, ddof=1)
+        assert zscore(value, 3)[2] == (1.0 - 1 / 3) / spread
+        assert zscore(value, 3)[2] != (1.0 - smart_moving_avg(value, 3)[2]) / spread
+
+    def test_another_lookback_reaches_every_step(self, sources) -> None:
+        """Every real-data pin runs at 20, so a step that drops its ``lookback`` would hide."""
+        _, closes = sources
+        result = example_three_one(closes, lookback=10)
+        x, y = closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy()
+        for each in _runs(result):
+            assert len(each.signal.days) == len(each.daily) == 1490, each.signal.name
+            assert np.flatnonzero(np.isfinite(each.units))[0] == 9, each.signal.name
+        np.testing.assert_array_equal(
+            result.price_spread.signal.hedge, rolling_hedge_ratio(y, x, 10)[10:]
+        )
+
+    def test_two_dimensional_series_are_refused(self) -> None:
+        with pytest.raises(ValueError, match="two series of one shape"):
+            rolling_hedge_ratio(np.ones((5, 2)), np.ones((5, 2)), 3)
 
     def test_series_of_two_shapes_are_refused(self) -> None:
         with pytest.raises(ValueError, match="two series of one shape"):
@@ -425,11 +462,21 @@ class TestTheRule:
             DAYS, np.arange(1.0, 9.0), np.array([3, 7, 8, 12, 16, 17, 22, 25.0]), 3
         )
         once = linear_mean_reversion(signal, 3)
+        assert np.count_nonzero(once.daily) > 0
         positions = 2.0 * once.positions
         np.testing.assert_allclose(daily_returns(positions, signal.prices), once.daily, atol=1e-15)
 
 
 class TestTheRefusals:
+    def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
+        def fail(*_a, **_k):
+            raise ValueError("a bug, not a refusal")
+
+        monkeypatch.setattr(module, "read_sources", fail)
+        monkeypatch.setattr("sys.argv", ["price_spread"])
+        with pytest.raises(ValueError, match="a bug, not a refusal"):
+            main()
+
     @pytest.mark.parametrize(
         "refusal",
         [

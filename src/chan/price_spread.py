@@ -55,8 +55,9 @@ Each script prints two figures with ``%f``, and :class:`Run` carries both.
    zero-fill in place.
 
 Neither mirror holds ``lag.m``. Whether it pads its first row with 0 or with
-NaN moves nothing, because each script's first held position is NaN either
-way, and ``tests/test_price_spread.py`` runs both. :func:`chan.matlab_helpers.lag1`
+NaN moves nothing. A NaN pad makes the first row's return NaN, and a zero pad
+holds zero gross dollars there, so the return is 0/0, which is NaN too, and
+either NaN is set to 0. ``tests/test_price_spread.py`` runs both. :func:`chan.matlab_helpers.lag1`
 pads with NaN.
 
 **The ratio's printed figures match swapped legs.** The price spread and
