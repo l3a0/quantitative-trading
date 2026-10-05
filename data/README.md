@@ -675,7 +675,10 @@ holds only the companies still in the index on its date, so a figure computed
 from it is a figure about survivors.
 [`chan.cross_sectional_momentum`](../src/chan/cross_sectional_momentum.py) reads
 the price file's closes for Example 6.2, for
-[issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
+[issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and
+[`chan.index_arbitrage`](../src/chan/index_arbitrage.py) reads them for
+Example 4.2, for
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250) carries the
 measurements below.
 
@@ -699,6 +702,8 @@ measurements below.
    `indexArb.m` load the same name. Example 4.4's run lands on the six
    decimals its script printed, which
    [issue 296](https://github.com/l3a0/quantitative-trading/issues/296)
+   measured, and so does Example 4.2's, which
+   [issue 343](https://github.com/l3a0/quantitative-trading/issues/343)
    measured.
 
    ```text
@@ -731,7 +736,10 @@ measurements below.
    Examples 4.3 and 4.4 trade. One of them, CAH on 2009-09-02, reads as a data
    error or a corporate action rather than a crash, and
    `chan.khandani_lo_book_two`'s docstring says why that run computes across
-   them. They are pinned beside the others in
+   them. Example 4.2 reads across all 30 too, ETFC's 2007-11-12 in its 2007
+   training window and 29 in its 2008 to 2012 test, and
+   [issue 343](https://github.com/l3a0/quantitative-trading/issues/343)
+   decided to guard only its SPY leg. They are pinned beside the others in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **The size budget is raised.** The two directories hold 32.01 MB, which
    takes `data/` from 74.41 MB to 106.86 MB of file content. The owner decided
@@ -1020,7 +1028,9 @@ the first run to read it, GLD and USO alone, under
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
 `chan.etf_cointegration`, for
-[issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
+[issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
+Example 4.2 reads SPY through `chan.index_arbitrage`, for
+[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 

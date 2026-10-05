@@ -16,7 +16,10 @@ carries his MATLAB header verbatim. Its detrending and lag matrix are not
 checked line by line against his ``johansen.m``. What vouches for them is
 that they land every statistic, critical value and eigenvalue
 ``cointegrationTests.m`` prints for EWA, EWC and IGE, which
-``tests/test_etf_cointegration.py`` pins. Nothing is ported. ``p`` is the
+``tests/test_etf_cointegration.py`` pins. They also land every statistic,
+critical value and eigenvector ``indexArb.m`` prints for its basket of stocks
+against SPY, in log prices, which ``tests/test_index_arbitrage.py`` pins.
+Nothing is ported. ``p`` is the
 deterministic term, as LeSage names it: −1 for none, 0 for a constant, 1 for a
 constant and a trend. ``k`` is the number of lagged differences. Chan's
 printouts check ``p = 0`` and ``k = 1`` only, the values every book-two script
@@ -48,7 +51,9 @@ reach a caller in a worse form.
 multiplies the whole eigenvector matrix by the sign of its top-left element
 (statsmodels issue 5517), so that element always comes back positive. MATLAB's
 ``eig`` makes no such promise, and on Chan's triplet it gave −1.0460 there, so
-every vector of his printout comes back here with its sign flipped. A stationary
+every vector of his printout comes back here with its sign flipped. On
+``indexArb.m``'s basket it gave 1.0939, already positive, so those come back
+with his signs. A stationary
 combination is still stationary when negated, and the half-life and the
 strategy Chan runs on it do not move, which the tests hold.
 """
