@@ -226,6 +226,22 @@ def _nearest_adjacent(prices: np.ndarray) -> np.ndarray | None:
     return nearest
 
 
+def _delivery_months(contracts: pd.DataFrame) -> np.ndarray:
+    """Each column's delivery month, refusing columns out of delivery order.
+
+    The fit reads the nearest contracts by column position, so a frame whose
+    columns are not in delivery order would give a wrong γ with nothing to say so.
+    """
+    months = np.array([contract_month(symbol) for symbol in contracts.columns], dtype=float)
+    backwards = np.flatnonzero(np.diff(months) <= 0)
+    if backwards.size:
+        first, second = contracts.columns[backwards[0]], contracts.columns[backwards[0] + 1]
+        raise ValueError(
+            f"the contracts must run in delivery order, and {first} before {second} does not"
+        )
+    return months
+
+
 def _fit_each_row(contracts: pd.DataFrame, maturities: np.ndarray | None) -> pd.Series:
     """γ on every row: −12 times the slope of the log prices on their maturities.
 
@@ -249,8 +265,10 @@ def roll_returns(contracts: pd.DataFrame) -> pd.Series:
 
     Each row reads its five nearest priced contracts when they are adjacent
     columns and regresses their log prices on ``1, 2, 3, 4, 5``, so maturity is
-    measured in columns. The NaN rows stay in place.
+    measured in columns. The NaN rows stay in place. Columns out of delivery
+    order are refused.
     """
+    _delivery_months(contracts)
     return _fit_each_row(contracts, None)
 
 
@@ -261,13 +279,12 @@ def roll_returns_in_months(contracts: pd.DataFrame) -> pd.Series:
     read off its symbol, so the NaN pattern is the same and a strip of monthly
     contracts gives the same series.
     """
-    months = np.array([contract_month(symbol) for symbol in contracts.columns], dtype=float)
-    return _fit_each_row(contracts, months).rename("gamma_in_months")
+    return _fit_each_row(contracts, _delivery_months(contracts)).rename("gamma_in_months")
 
 
 def maturity_spacings(contracts: pd.DataFrame) -> Counter[tuple[int, ...]]:
     """How many rows each pattern of month gaps across the five fitted contracts covers."""
-    months = np.array([contract_month(symbol) for symbol in contracts.columns])
+    months = _delivery_months(contracts)
     found: Counter[tuple[int, ...]] = Counter()
     for row in contracts.to_numpy(dtype=float):
         nearest = _nearest_adjacent(row)

@@ -460,11 +460,12 @@ the statistics were measured. The script had printed both the statistics and
 the bars in 2012, so the criterion reads Chan's own table rather than choosing
 a line, and no figure computed here could move a verdict.
 
-Entry 24's rows 13 and 14 take it as well, each a claim about futures the book
-names. Their criteria, |γ| at least twice |α| for "much larger" and
-|γ| above |α| for "bigger", were written on
-[issue 347](https://github.com/l3a0/quantitative-trading/issues/347) before the
-build, though after a scratch run had measured the figures they judge. The
+Entry 24's rows 13 and 14 take it too, each a claim about futures the book
+names, and like Entry 13's row 10 their criteria were written after the
+figures they judge were measured. The criteria, |γ| at least twice |α| for
+"much larger" and |γ| above |α| for "bigger", were written on
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347) after a
+scratch run had measured the figures, though before the build. The
 narrowest case clears the first by a factor of two, so the verdict does not
 rest on where that line sits.
 
@@ -4984,7 +4985,7 @@ his file and nothing about whether a roll return persists out of sample.
 | 13 | For BR, C and TU, \|γ\| is much larger than \|α\| | a claim | location 2399 |
 | 14 | BR, HG and TU each have \|γ\| bigger than \|α\| | a claim | location 2683 |
 | 15 | γ with maturity in months | none | n/a |
-| 16 | Row 14 on the month-spaced γ | none | n/a |
+| 16 | Rows 13 and 14 on the month-spaced γ | none | n/a |
 | 17 | The month gaps across the five contracts each day's γ reads | none | n/a |
 | 18 | The days with γ and their span | none | n/a |
 
@@ -5011,7 +5012,7 @@ sha256. Its rule is the MATLAB script's.
 | 13 | \|γ\| at least twice \|α\| | holds for all three, the narrowest BR at 4.02 times | `TestTheClaims::test_br_c_and_tu_each_have_a_roll_return_at_least_twice_their_spot_return` |
 | 14 | \|γ\| greater than \|α\| | holds for all three | `TestTheClaims::test_br_hg_and_tu_each_have_a_roll_return_bigger_than_their_spot_return` |
 | 15 | The same fit regressed on each contract's month offset from the nearest | BR 0.108133, C −0.053011, CL −0.070592, HG 0.038573 and TU 0.010677, so the script's γ is 2.4 times C's, 2.0 times HG's and 3.0 times TU's | `TestTheRowsBeside::test_gamma_with_maturity_in_months` and `::test_the_script_overstates_c_by_2_4_hg_by_2_0_and_tu_by_3_0` |
-| 16 | Row 14's criterion on row 15 | holds for BR and TU, fails for HG | `TestTheRowsBeside::test_location_2683_fails_for_hg_on_the_month_spaced_gamma` |
+| 16 | Rows 13's and 14's criteria on row 15 | row 13's holds for BR and TU and fails for C, at 1.89 times. Row 14's holds for BR and TU and fails for HG | `TestTheRowsBeside::test_location_2399_fails_for_c_on_the_month_spaced_gamma` and `::test_location_2683_fails_for_hg_on_the_month_spaced_gamma` |
 | 17 | Each row's gaps in months across its five contracts | all one month for BR and CL, all three for TU, five patterns for C and six for HG | `TestTheRowsBeside::test_the_spacings_each_strips_gamma_reads` |
 | 18 | Rows where γ is defined | BR 4,210 from 1995-11-09, CL 1,941 from 2004-11-22, HG 6,028 from 1986-11-03 and TU 1,087 from 2008-03-10, all four to 2012-08-13, and C 1,570 from 2005-12-19 to 2012-03-14 | `TestTheRowsBeside::test_the_days_with_gamma_and_their_span` and `::test_cs_gamma_stops_when_its_strip_runs_out_of_contracts` |
 
@@ -5031,16 +5032,16 @@ in percentage points at that precision.
 | 4 | 0.0 | reproduced | |
 | 5 | 0.0 | reproduced | |
 | 6 | 0.0 | reproduced | −7.06 percent rounds to −7.1. |
-| 7 | +0.1 | did not reproduce | 5.06 percent rounds to 5.1, on Chan's own saved file, so the vintage explanation is spent. Three readings were tried after the miss, and `TestTheReadingsTriedAfterTheMiss` pins each. Renumbering the rows after the spot's gaps are dropped gives 0.050587, and reading the prices at single precision gives 0.050567. Regressing on calendar days and annualizing by 365 gives 0.050315, which lands the cell. The specification stays the row number. The script reads `T=[1:length(spot)]'`, and the calendar-day reading moves C's α to 0.027998, off the 0.0280556 the Python port printed, which the row number lands. |
+| 7 | +0.1 | did not reproduce | 5.06 percent rounds to 5.1, on Chan's own saved file, so the vintage explanation is spent. Three readings were tried after the miss, and `TestTheReadingsTriedAfterTheMiss` pins each. Renumbering the rows after the spot's gaps are dropped gives 0.050587, and reading the prices at single precision gives 0.050567. Regressing on calendar days and annualizing by 365 gives 0.050315, which lands the cell. The specification stays the row number. The script reads `T=[1:length(spot)]'`, and the calendar-day reading moves C's α to 0.027998, off the 0.028056 the Python port printed, which the row number lands. |
 | 8 | 0.0 | reproduced | |
 | 9 | 0.0, with the opposite sign | did not reproduce | 0.0039 percent rounds to 0.0, but the book's −0.0 is a negative number and this one is positive. None of the three readings in row 7 turns it negative. |
 | 10 | 0.0 | reproduced | |
 | 11 | 0 days | reproduced | Exact. |
 | 12 | under 10⁻¹² on each | reproduced | The two programs sum in different orders, so the pin allows 10⁻¹². |
-| 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. |
+| 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build but after a scratch run had measured the figures. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. Row 16 runs it on the month-spaced γ, and there it fails for C. |
 | 14 | none, a claim | reproduced | It holds under the script's γ, which is what printed Table 5.1. Row 16 is the same claim under the book's own description of the method, and there it fails for HG. |
 | 15 | none | none, not a replication | No figure is printed for it. Monthly strips give the same γ either way, to rounding. |
-| 16 | none | none, not a replication | HG's month-spaced γ is smaller than its α. |
+| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. Issue 347 declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
 | 17 | none | none, not a replication | It is why rows 15 and 16 move only C, HG and TU. |
 | 18 | none | none, not a replication | γ needs five priced contracts. C's strip ends at 2012Z, so after its March 2012 contract expires no day prices more than four. |
 
@@ -5051,22 +5052,28 @@ Three things.
 1. **The table reproduces on Chan's own files except for two spot returns.**
    C's two figures agree with what his Python port printed on the same strip,
    CL's γ starts on the day his figure does, and eight of ten cells land at the
-   book's precision. HG's and TU's α miss with nothing left to blame. HG's miss
-   is one tenth of a point and TU's is a sign, so neither changes what the
-   table is used to argue.
+   book's precision. HG's and TU's α miss on Chan's own file, so no vintage
+   explanation is left. The one reading that lands HG, regression on calendar
+   days, is not what the mirrored script or the Python port computes. HG's
+   miss is one tenth of a point and TU's is a sign, so neither changes what
+   the table is used to argue.
 2. **The script measures maturity in columns, so three of its five γ figures
    are not what the text describes.** The book says the fit regresses on time
    to maturity "measured in months". The script regresses on 1 to 5 and
    annualizes as if adjacent contracts were a month apart. That holds for BR
-   and CL. C's and HG's contracts sit two or three months apart, and TU's
-   three, so Table 5.1 overstates their roll returns by 2.4, 2.0 and 3.0
+   and CL. C's contracts sit two or three months apart, HG's mix gaps of one,
+   two and three months, and TU's sit three apart, so Table 5.1 overstates
+   their roll returns by 2.4, 2.0 and 3.0
    times.
-3. **Chapter 6's explanation of HG's momentum rests on that overstatement.**
-   Location 2683 explains BR's, HG's and TU's momentum by their roll returns
-   exceeding their spot returns. Under months, HG's roll return is 3.86
-   percent against a spot return of 5.06, so the explanation holds for BR and
-   TU and not for HG. Location 2399's claim about BR, C and TU survives either
-   way.
+3. **Under months, both claims lose a strip.** Location 2683 explains BR's,
+   HG's and TU's momentum by their roll returns exceeding their spot returns.
+   HG's month-spaced roll return, 3.86 percent, is smaller than its 5.06
+   percent spot return, so the comparison Chapter 6 rests its HG explanation
+   on holds only under the script's arithmetic. Location 2399's claim that
+   BR's, C's and TU's roll returns are much larger than their spot returns
+   holds for BR and TU either way. C's month-spaced roll return is 1.89 times
+   its spot return, short of the criterion's 2. Neither row tests whether a
+   roll return explains any momentum.
 
 ### What this entry cannot say
 

@@ -235,7 +235,8 @@ class TestTheFigures:
 
 
 class TestTheClaims:
-    """Rows 13 and 14, with the criteria issue 347 fixed before the build."""
+    """Rows 13 and 14, with the criteria issue 347 fixed before the build, though after a
+    scratch run had measured the figures they judge."""
 
     def test_br_c_and_tu_each_have_a_roll_return_at_least_twice_their_spot_return(
         self, results
@@ -244,7 +245,8 @@ class TestTheClaims:
         the spot returns". BR is the narrowest, at four times."""
         ratios = {r: abs(results[r].mean_gamma) / abs(results[r].alpha) for r in ROOTS}
         assert all(ratios[r] >= 2 for r in ("BR", "C2", "TU")), SPEC
-        assert min(ratios[r] for r in ("BR", "C2", "TU")) == pytest.approx(4.02, abs=0.005)
+        assert min(("BR", "C2", "TU"), key=ratios.__getitem__) == "BR", SPEC
+        assert round(ratios["BR"], 2) == 4.02, SPEC
 
     def test_br_hg_and_tu_each_have_a_roll_return_bigger_than_their_spot_return(
         self, results
@@ -271,7 +273,11 @@ class TestTheRowsBeside:
         """The two fits differ only in where the regressor starts, so they agree to rounding."""
         result = results[root]
         np.testing.assert_allclose(
-            result.gamma_in_months.to_numpy(), result.gamma.to_numpy(), rtol=0, atol=1e-13
+            result.gamma_in_months.to_numpy(),
+            result.gamma.to_numpy(),
+            rtol=0,
+            atol=1e-13,
+            err_msg=SPEC,
         )
 
     def test_the_script_overstates_c_by_2_4_hg_by_2_0_and_tu_by_3_0(self, results) -> None:
@@ -287,6 +293,19 @@ class TestTheRowsBeside:
             for r in ("BR", "HG", "TU")
         }
         assert holds == {"BR": True, "HG": False, "TU": True}, SPEC
+
+    def test_location_2399_fails_for_c_on_the_month_spaced_gamma(self, results) -> None:
+        """Row 13's criterion, at least twice, on the month-spaced γ. C falls short at 1.89."""
+        ratios = {
+            r: abs(results[r].mean_gamma_in_months) / abs(results[r].alpha)
+            for r in ("BR", "C2", "TU")
+        }
+        assert {r: ratio >= 2 for r, ratio in ratios.items()} == {
+            "BR": True,
+            "C2": False,
+            "TU": True,
+        }, SPEC
+        assert round(ratios["C2"], 2) == 1.89, SPEC
 
     def test_the_spacings_each_strips_gamma_reads(self, strips) -> None:
         found = {root: dict(maturity_spacings(strips[root].contracts)) for root in ROOTS}
@@ -328,7 +347,7 @@ class TestTheRowsBeside:
             first,
             last,
         ), SPEC
-        assert results[root].gamma_in_months.dropna().index.equals(defined)
+        assert results[root].gamma_in_months.dropna().index.equals(defined), SPEC
 
     def test_cs_gamma_stops_when_its_strip_runs_out_of_contracts(self, strips) -> None:
         """The C2 strip's last contract is 2012Z, so after March 2012's expires no day
@@ -368,8 +387,9 @@ class TestTheReadingsTriedAfterTheMiss:
     None changes the specification, as issue 347 asked in advance. The
     calendar-day reading lands HG's cell, which the issue's scratch run had
     reported it did not, and still misses TU's. It also moves C's α off the
-    figure the Python port printed, which the row number lands to 1e-15, so
-    the port is evidence that Chan's code ran the row number.
+    figure the Python port printed, which the row number lands within the 1e-12
+    ``TestTheFigures`` pins, so the port is evidence that Chan's code ran the row
+    number.
     """
 
     @pytest.mark.parametrize(
@@ -438,7 +458,7 @@ class TestTheScaleBreakDecision:
         strip = strips["HG"]
         columns = [strip.spot, *(strip.contracts[s] for s in strip.contracts.columns)]
         restarted = [column.name for column in columns if _holes(column)]
-        assert len(restarted) == 29
+        assert len(restarted) == 29, SPEC
 
 
 def _holes(column: pd.Series) -> bool:
@@ -464,8 +484,8 @@ class TestTheRun:
                 if r.split()[:1] == [label] and r.split()[1][-1].isdigit()
             ]
             assert rows[0] == [label, alpha, f"{book_alpha:.1f}%", gamma, f"{book_gamma:.1f}%"]
-            assert rows[1][:4] == [label, gamma, COMPUTED_IN_MONTHS[root], rows[1][3]]
-        assert "TU -0.0%" not in out and "-0.0%" in out
+            defined = str(int(results[root].gamma.notna().sum()))
+            assert rows[1][:4] == [label, gamma, COMPUTED_IN_MONTHS[root], defined]
         assert "inputdatadaily_hg_20120813/" in out
         assert "1-1-1-1 on 1941" in out
         assert "Exploratory" in out
@@ -549,6 +569,15 @@ class TestTheRule:
     def test_the_spot_return_refuses_fewer_than_two_priced_days(self) -> None:
         with pytest.raises(ValueError, match="at least two priced days"):
             spot_return(pd.Series([np.nan, 3.0, np.nan]))
+
+    @pytest.mark.parametrize("fit", [roll_returns, roll_returns_in_months])
+    def test_contracts_out_of_delivery_order_are_refused(self, fit) -> None:
+        """Both fits read the nearest contracts by column position, so a reordered frame
+        would give a wrong γ without the refusal."""
+        prices = np.tile(_curve(0.08, np.arange(7.0)), (4, 1))
+        frame = pd.DataFrame(prices, index=DAYS, columns=MONTHLY).iloc[:, ::-1]
+        with pytest.raises(ValueError, match="X-2020N before X-2020M"):
+            fit(frame)
 
     def test_a_contracts_month_is_read_off_its_symbol(self) -> None:
         assert contract_month("TU-2008H") - contract_month("TU-2007Z") == 3

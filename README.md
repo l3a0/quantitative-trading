@@ -314,10 +314,11 @@ where they were first built. The other twenty-two were built here.
     measures a contract's maturity in columns rather than months, so beside
     the replication runs the same fit in months, and the script's figures
     overstate corn's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
-    HG's falls below its spot return, so
-    Chapter 6's explanation of HG's momentum holds only under the script's
-    arithmetic. `chan.roll_returns` exports the strip reader and both fits for
-    Example 5.4 and the TU momentum experiment. Every figure is exploratory.
+    Under months, HG's falls below its spot return, so the comparison
+    Chapter 6 rests its explanation of HG's momentum on holds only under the
+    script's arithmetic, and corn's is no longer twice its spot return.
+    `chan.roll_returns` exports the strip reader and both fits for Example
+    5.4 and the TU momentum experiment. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -514,7 +515,8 @@ is not a finite number.
 and roll returns. It pins each strip's two figures at the six decimals the
 script's `%f` prints, which of Table 5.1's cells they round to with the sign
 included, corn's agreement with the Python port, and the two claims the book
-makes from the table under criteria fixed before the build. Beside them it
+makes from the table under criteria fixed before the build, though after a
+scratch run had measured the figures. Beside them it
 pins the month-spaced roll return, the month gaps each day's fit reads, and
 the three readings of the spot return tried after HG's and TU's missed. On
 synthetic frames it holds the script's rule: no fit on a day with four priced
@@ -670,7 +672,7 @@ them too.
 that shape was decided. The spot and roll returns of Example 5.3 read five of
 them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347). No
-replication reads the other three yet.
+replication reads the other three strips or the gold series yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
 them, under `data/pythoncodesanddata/`, for
