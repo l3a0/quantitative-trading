@@ -1,0 +1,37 @@
+"""Fixtures more than one test file reads.
+
+One run of Example 7.1 on the owner's archive takes minutes, and two files pin
+what it computes: ``tests/test_cpo.py`` its figures, and
+``tests/test_cpo_figures.py`` the cells its figure labels. A session-scoped
+fixture here makes them share that run rather than pay for it twice.
+
+It is named ``cpo_result`` rather than ``result`` because four other test files
+define a ``result`` fixture of their own. A shared one under that name would be
+shadowed in those files and reachable in the rest, so which run a test read
+would depend on which file it sat in.
+"""
+
+from __future__ import annotations
+
+import os
+
+import pytest
+
+from chan import cpo
+from chan.archive import ArchiveUnavailable, archive_dir
+
+#: Set to 1 to run the archive pins. The full run takes minutes, and every
+#: session here runs the suite, so they do not run by default.
+RUN_ENV = "QT_ARCHIVE_RUN"
+
+
+@pytest.fixture(scope="session")
+def cpo_result() -> cpo.Result:
+    """One full run of Example 7.1, or a skip naming what is missing."""
+    try:
+        archive_dir()
+    except ArchiveUnavailable as absent:
+        pytest.skip(str(absent))
+    if os.environ.get(RUN_ENV) != "1":
+        pytest.skip(f"the archive pins take minutes, so they run only with {RUN_ENV}=1")
+    return cpo.run()

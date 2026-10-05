@@ -18,14 +18,13 @@ declared on issue 23 before any number was computed.
 from __future__ import annotations
 
 import math
-import os
 
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.stats import spearmanr
 
 from chan import cpo
-from chan.archive import ArchiveUnavailable, archive_dir
 from chan.cpo import (
     EXIT_FRACTION,
     Cell,
@@ -398,21 +397,15 @@ class TestTheConditionalChoice:
 
 # --- the pins, on the owner's archive ---------------------------------------
 
-#: Set to 1 to run the pins below. The full run takes minutes, and every
-#: session here runs the suite, so they do not run by default.
-RUN_ENV = "QT_ARCHIVE_RUN"
-
 
 @pytest.fixture(scope="module")
-def result() -> cpo.Result:
-    """One full run of Example 7.1, or a skip naming what is missing."""
-    try:
-        archive_dir()
-    except ArchiveUnavailable as absent:
-        pytest.skip(str(absent))
-    if os.environ.get(RUN_ENV) != "1":
-        pytest.skip(f"the archive pins take minutes, so they run only with {RUN_ENV}=1")
-    return cpo.run()
+def result(cpo_result) -> cpo.Result:
+    """One full run of Example 7.1, or a skip naming what is missing.
+
+    ``tests/conftest.py`` holds the run and its skip, so this file and
+    ``tests/test_cpo_figures.py`` read one run rather than paying for two.
+    """
+    return cpo_result
 
 
 class TestExample71OnTheArchive:
@@ -509,6 +502,48 @@ class TestExample71OnTheArchive:
         assert cells()[nearest].label == "3_60_2.5"
         assert sharpes[nearest] == pytest.approx(1.9311, abs=5e-5)
         assert result.cell_trips[nearest] == pytest.approx(1.19, abs=0.005)
+
+    # The three pins below were added for the post on this example, so that
+    # every figure it quotes traces to an assertion rather than to prose.
+
+    def test_rows_1_to_4_as_multiples_of_chan_s_figures(self, result):
+        """Each computed figure over Chan's, which Entry 16 states and the post quotes.
+
+        Only the unconditional arm enters, so the model cannot move these.
+        """
+        got = metrics(result.unconditional_returns)
+        multiples = {name: got[name] / cpo.BOOK_UNCONDITIONAL[name] for name in cpo.METRICS}
+        assert multiples["cumulative"] == pytest.approx(4.662467024139571, abs=1e-9)
+        assert multiples["annual"] == pytest.approx(3.8244484459093937, abs=1e-9)
+        assert multiples["sharpe"] == pytest.approx(2.927441409271616, abs=1e-9)
+        assert multiples["calmar"] == pytest.approx(15.497288333713197, abs=1e-8)
+        assert {name: round(value, 1) for name, value in multiples.items()} == {
+            "cumulative": 4.7,
+            "annual": 3.8,
+            "sharpe": 2.9,
+            "calmar": 15.5,
+        }
+
+    def test_each_arm_earns_less_a_round_trip_than_a_round_trip_costs(self, result):
+        """Added after the result was seen. It explains row 8 and decides nothing.
+
+        The edge is the sum of an arm's test-day returns over the sum of its
+        round trips, in basis points. The re-chosen arm's rests on the model, so
+        a lock update can move it, as it can rows 5 to 10.
+        """
+        unconditional = result.unconditional_returns.sum() / result.unconditional_trips.sum()
+        conditional = result.conditional_returns.sum() / result.conditional_trips.sum()
+        assert unconditional * 1e4 == pytest.approx(0.43520618072586204, abs=1e-9)
+        assert conditional * 1e4 == pytest.approx(0.461523503846464, abs=1e-9)
+        assert round(unconditional * 1e4, 3) == 0.435
+        assert round(conditional * 1e4, 3) == 0.462
+        assert max(unconditional, conditional) < cpo.COST_PER_ROUND_TRIP
+
+    def test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells(self, result):
+        """Added after the result was seen. Spearman's rank correlation, deciding nothing."""
+        rho = spearmanr(result.cell_trips, result.cell_sharpes).statistic
+        assert rho == pytest.approx(0.9485368645941135, abs=1e-9)
+        assert round(rho, 2) == 0.95
 
 
 # --- what the mutation lens of PR 285's review found unheld ------------------

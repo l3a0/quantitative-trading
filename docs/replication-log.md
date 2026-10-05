@@ -3580,7 +3580,11 @@ only where the owner's archive is. The hashes say exactly which bytes were
 read, and nothing here can show them to anyone else.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/conditional-parameter-optimization-lessons.md](../blog/conditional-parameter-optimization-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which draws row 10 and redraws only where the archive is, with
+`QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo_figures`.
 
 ## Entry 17: cross-sectional momentum, Chan's *Algorithmic Trading*
 
