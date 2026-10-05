@@ -880,7 +880,9 @@ same figures net of 1 basis point a round trip, the verdict on Chan's claim,
 and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
-in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. Run those
+pins with `-n 0`, because a parallel run builds the run once for each of the
+two test files that read it.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
@@ -2133,6 +2135,11 @@ uv run ruff check
 uv run ruff format --check
 uv run pytest
 ```
+
+`uv run pytest` runs the suite across one worker per core through
+`pytest-xdist`, which `pyproject.toml` turns on in `addopts`. Add `-n 0` for a
+serial run, which is the faster choice for a few tests, because every worker
+starts whatever the selection. `--pdb` runs serially on its own.
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.
