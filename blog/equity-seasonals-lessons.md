@@ -48,7 +48,7 @@ Here is every printout of Example 7.6, at the precision each source prints, one 
 \end{array}
 ```
 
-And every printout of Example 7.7, whose two figures are the average annual return and the Sharpe ratio. The annual return is a fraction too, so −0.0129 is a loss of 1.29 percent a year. The first edition’s −0.9167 is not a loss of 92 percent a year. It is in different units, which Lesson 2 explains.
+And every printout of Example 7.7, whose two figures are the average annual return and the Sharpe ratio. The annual return is a fraction too, so −0.0129 is a loss of 1.29 percent a year. The first edition’s −0.9167 is not a loss of 91.67 percent a year. It is in different units, which Lesson 2 explains.
 
 ```math
 \begin{array}{l|r|r}
@@ -65,12 +65,12 @@ That is nine figures for Example 7.6 and eight for Example 7.7. The MATLAB print
 None of them comes out of the strategy as described above. Each needs rules the description leaves out, and each of those rules moves a printed figure when it is changed. Seven of them, all read from code this repository holds, with the figure each change gives instead:
 
 1. **How many stocks make a tenth.** Example 7.6’s MATLAB rounds a tenth of the ranked stocks half away from zero. Rounding down instead gives −0.0234 for January 2006.
-2. **Which close keeps a stock in the ranking.** The first edition’s Example 7.7 decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives −1.0822 a year.
-3. **Which months the mean runs over.** The same script averages over 95 months, counting the 12 that hold no position as zero. Averaging over the 83 that hold positions gives −1.0492.
+2. **Which close keeps a stock in the ranking.** The first edition’s Example 7.7 decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives an annual return of −1.0822, in summed positions like the −0.9167 it replaces.
+3. **Which months the mean runs over.** The same script averages over 95 months, counting the 12 that hold no position as zero. Averaging over the 83 that hold positions gives an annual return of −1.0492, in the same units.
 4. **What the standard deviation does with a missing month.** The same script counts the one month with no return as zero. Skipping it gives a Sharpe ratio of −0.1049.
-5. **When a stock’s month ends.** The revised Python reads each stock’s own last priced day in the month. One shared month-end row for every stock gives −0.012917.
+5. **When a stock’s month ends.** The revised Python reads each stock’s own last priced day in the month. One shared month-end row for every stock gives an annual return of −0.012917.
 6. **What the standard deviation divides by.** The revised Python divides by the number of months, n. Dividing by n − 1 gives a Sharpe ratio of −0.121508.
-7. **Whether a stock missing a year-end close is ranked.** Example 7.6’s revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908.
+7. **Whether a stock missing a year-end close is ranked.** Example 7.6’s revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, or 130.56 percent, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908.
 
 ## Lesson 2: one strategy, four printouts, four answers
 
