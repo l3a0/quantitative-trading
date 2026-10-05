@@ -163,6 +163,7 @@ def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
 MUST_BE_SWEPT = frozenset(
     {
         ".claude/skills/decompose-problem/SKILL.md",
+        ".claude/skills/sync-prune-next/SKILL.md",
         ".claude/skills/update-build-board/SKILL.md",
         "CLAUDE.md",
         "README.md",
@@ -173,6 +174,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/calendar-spreads-lessons.md",
         "blog/coin-toss-expected-value-vs-growth.md",
         "blog/commodity-seasonals-lessons.md",
+        "blog/conditional-parameter-optimization-lessons.md",
         "blog/equity-seasonals-lessons.md",
         "blog/factor-models-lessons.md",
         "blog/gld-gdx-cointegration-lessons.md",
@@ -1127,6 +1129,7 @@ class TestTheFigureHasThreeCopies:
             "commodity-seasonals-lessons.md",
             "buy-on-gap-lessons.md",
             "calendar-spreads-lessons.md",
+            "conditional-parameter-optimization-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()

@@ -372,7 +372,8 @@ Optimization. Its mechanics run everywhere. The recursions, the rules and the
 round trips are each held against a literal loop over the book's rules, and the
 rest by worked examples. Its pins run only where the
 owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
-because the full run takes about five minutes.
+because the full run takes about five minutes. The blog post about it is the
+exception, and what it says that nothing here asserts is listed below.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
 each line field for field everywhere, and the files' hashes and their
 agreement with the committed daily closes wherever an archive is configured.
@@ -1876,6 +1877,95 @@ uv run python -m chan.calendar_spread_figures
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+[blog/conditional-parameter-optimization-lessons.md](blog/conditional-parameter-optimization-lessons.md)
+is a fourteenth post, about Conditional Parameter Optimization, Example 7.1 of
+the revised *Quantitative Trading*. A model re-chooses a GLD/GDX spread
+strategy's three parameters each evening, and Chan reports that this beats
+holding them fixed on every metric he prints. The post draws four lessons from
+Entry 16 of the replication log.
+
+1. Neither of Chan's columns reproduces, and re-choosing daily wins on the
+   Calmar ratio alone, so his claim fails. The re-chosen column is reproduced
+   only in kind, because his rests on PredictNow's model.
+2. The book's own annual returns do not compound to its cumulative ones, under
+   either definition of annual return, which arithmetic alone shows.
+3. The first run broke a declared reading on the 34 early closes. The code was
+   fixed to the reading, and both runs are reported, unlike Entry 15, where the
+   reading itself was corrected.
+4. The selection picks a cell that makes 46.7 round trips a day, whose edge
+   before costs is under half a basis point a round trip, so 1 basis point a
+   round trip turns both arms to losses.
+
+It is the first post here whose figures a public clone cannot re-run. Its
+computed figures trace to `TestExample71OnTheArchive` in
+[tests/test_cpo.py](tests/test_cpo.py), whose pins run only where the owner's
+archive of minute bars is and only when `QT_ARCHIVE_RUN=1` asks, because the
+bars are licensed and the repo commits only their hashes. Chan's arithmetic in
+Lesson 2, the early closes and the 12:59 fix in Lesson 3, and the grid and
+rules run on every clone.
+
+Six groups of its figures are not pinned here.
+
+1. Chan's words. "As frequently as they like" is quoted from location 3414 and
+   "but nobody (until they read this book!) is predicting the returns of this
+   particular GLD trading strategy" from location 3617, both through
+   [its committed notes](research/book-notes/quantitative-trading.md). "May
+   execute multiple round trips per day" is quoted from p. 140 and "random
+   forest with boosting" from p. 142, which the notes hold at locations 3444
+   and 3517 and the pages read on 2026-10-03 place on those pages. The
+   eleven tokens of the printed entry grid and the stated start of January 1,
+   2006 are quoted from p. 137.
+2. The book's printed results on p. 145, the eight figures and "all other
+   metrics" improved, which the committed notes do not hold. The eight figures are `chan.cpo`'s constants `BOOK_UNCONDITIONAL`
+   and `BOOK_CONDITIONAL`, but nothing ties those constants to the page.
+3. The third party's figures, a run on Kibot bars from 2009 with a test Sharpe
+   ratio of 5.974 at 50.1 round trips a day and a gross edge of 0.425 basis
+   points a round trip, cited as theirs from jeffmcphail/mctheory-praxis at
+   `b7c5b5d`.
+4. The first run's figures in Lesson 3. The archive pins at `cb30336`, the
+   merge of the first run, asserted them, and no test that runs today does.
+   `git show cb30336:tests/test_cpo.py` shows them.
+5. Arithmetic no test asserts: that three parameters and seven indicators on
+   each of two funds at seven lookbacks make 101 features, against the book's
+   115 at p. 140, that
+   [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
+   19 readings, that a fraction such as 3.40 is the percentage 340%, and that
+   gaps of 2.67 and 0.4883 are 267 and 48.83 percentage points.
+6. Its references, cited rather than computed, and facts outside the data:
+   that NYSE closes at 13:00 on some days such as the day after Thanksgiving,
+   and that a basis point is a hundredth of a percent.
+
+Five of its figures had no pin before it, and each now has one. The first
+runs on every clone, and the other four sit in `TestExample71OnTheArchive`.
+
+1. The cap on what Chan's annual returns, read as arithmetic, can compound to
+   over three years: 68.0% and 81.0%, below his 73% and 83%.
+2. The fixed column as multiples of Chan's figures: 4.7, 3.8, 2.9 and 15.5.
+3. Each arm's gross return a round trip, 0.435 and 0.462 basis points, added
+   after the result was seen.
+4. That only `2.5_30_0.2` trades more than the chosen cell, added after the
+   result was seen.
+5. Spearman's rank correlation between the 400 cells' round trips a day and
+   their test Sharpe ratios, 0.95, added after the result was seen.
+
+Its one figure is drawn by
+[src/chan/cpo_figures.py](src/chan/cpo_figures.py) from one run of
+`chan.cpo.run`. It plots the 400 cells' test Sharpe ratios against their round
+trips a day on a log axis, with Chan's 1.947 as a line and three cells
+labelled, for Lesson 4. The run reads the archive, so the committed PNG
+redraws only where the archive is, in about five minutes.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo_figures
+```
+
+[tests/test_cpo_figures.py](tests/test_cpo_figures.py) holds what it draws
+rather than its bytes, for the reason given above for the regime map. Its
+drawing runs on every clone against a synthetic run of 400 cells, and only its
+check that the three labels are the cells Entry 16 names needs the archive. A
+public clone can check what the code draws but cannot redraw the committed
+figure.
 
 ## Where the book's numbers come from
 
