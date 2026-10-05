@@ -114,7 +114,14 @@ where they were first built. The other eighteen were built here.
    of his S&P 500 file do even worse holds under a criterion written before
    the check ran: −0.0165 a year against −0.0129. The gap is far inside the
    noise of 47 months, so the verdict is about his file of survivors rather
-   than about whether the effect weakened.
+   than about whether the effect weakened. Example 7.6 also runs from January
+   2009 to January 2026 on the 603 companies IJR held at 2025-12-31, on Alpha
+   Vantage closes kept in the owner's archive. Those rows are survivor-only
+   and exploratory, and read in one direction only, because the companies
+   that left the index are missing and both legs gain from their absence. The
+   mean January before costs is 0.0108, with a one-sided p of 0.132, so no
+   January effect is detectable above about 2.4% a January, on members that
+   favour the effect.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -375,8 +382,11 @@ owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
 because the full run takes about five minutes. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
-each line field for field everywhere, and the files' hashes and their
-agreement with the committed daily closes wherever an archive is configured.
+each standalone line field for field everywhere, and the files' hashes and the
+minute bars' agreement with the committed daily closes wherever an archive is
+configured. The 603 lines of the `sp600` cross-section are held by the sha256
+of their bytes in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), everywhere.
 
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
 does it for cross-sectional momentum. It pins each figure `kentdaniel.m`
@@ -732,7 +742,8 @@ declared exactly one window. `--dated` names which `CADAUD=X` download to read,
 defaults to the one the suite pins, and is refused when the candidate named is
 one of the other two.
 
-Chan's equity seasonals are one command, and they take no option:
+Chan's equity seasonals are one command, and on Chan's files they take no
+option:
 
 ```bash
 uv run python -m chan.equity_seasonals
@@ -745,6 +756,23 @@ with the date the file ends, and the 2002 split of the revised Python prints
 under a line saying it carries no verdict. Last come both readings of p. 180's
 most recent five years under the revised MATLAB's and Python's rules, with the
 verdict printed beside the MATLAB's rerun alone.
+
+`--survivors` runs Example 7.6 instead on the 603 companies IJR held at
+2025-12-31, from January 2009 to January 2026. It reads their Alpha Vantage
+closes from the owner's archive, so it needs the archive's path, set as
+Example 7.1's command sets it:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --survivors
+```
+
+It prints the members with no series and the year-ends each member misses,
+then each January before costs with its ranked, long and short counts and how
+many ranked members have no exit close. Then come the mean, the standard
+deviation, the one-sided t-test, the smallest mean the test detects, the mean
+after costs, and the reading. The run is survivor-only, so the reading goes one
+way only, which the output says beside it. A machine with no archive gets one
+line naming both ways to set it, and so does every other refusal.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:

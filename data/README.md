@@ -1,7 +1,7 @@
 # Committed vintages
 
-The price series every run here reads, except the two
-`## Two vintages kept in the owner's archive` describes, committed because the
+The price series every run here reads, except the ones
+`## Vintages kept in the owner's archive` describes, committed because the
 numbers the suite pins were computed from these exact bytes. A vendor restates an adjusted series
 without announcing it, so a result checked against a fresh download is a result
 checked against different data. [docs/design.md](../docs/design.md) carries the
@@ -1253,10 +1253,11 @@ the measurements below.
    [issue 300](https://github.com/l3a0/quantitative-trading/issues/300). Past
    205 MB the work stops and asks the owner.
 
-## Two vintages kept in the owner's archive
+## Vintages kept in the owner's archive
 
-Two series a run reads are not in this directory. `archive_vintages.jsonl`
-records Alpha Vantage's one-minute bars for GLD and GDX, which
+Two kinds of series a run reads are not in this directory: two files of minute
+bars, and one cross-section of daily closes, the last part of this section.
+`archive_vintages.jsonl` records Alpha Vantage's one-minute bars for GLD and GDX, which
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) reads for
 Example 7.1, and the files themselves stay in the owner's data archive. The
 vendor's terms grant personal, non-commercial use, so the bytes may not be
@@ -1304,9 +1305,37 @@ here carrying `"cross_section": "sp600"`. The file is the vendor's
 `TIME_SERIES_DAILY_ADJUSTED` response unchanged, so it holds the raw close
 beside the adjusted close, and its line records the basis as `adjusted`.
 `chan.fetch_alphavantage` writes both, and `chan.archive.read_cross_section`
-reads a cross-section back as a date-by-symbol frame of either close. No such
-line is recorded yet, so the table above still holds the two minute-bar files
-alone.
+reads a cross-section back as a date-by-symbol frame of either close.
+
+[Issue 333](https://github.com/l3a0/quantitative-trading/issues/333) recorded
+the first 603 lines on 2026-10-05, one for each company IJR held at
+2025-12-31, under the symbol `chan.equity_seasonals.ALPHAVANTAGE_SYMBOLS` maps
+it to. The table above stays the two minute-bar files, because a table with a
+row per stock would be 603 rows long.
+
+| Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sp600` | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 603 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 2,993,012 |
+
+Twenty-four of the 603 end before 2026-10-02, the earliest on 2026-01-22,
+because those companies were delisted after the filing. Every file is the
+vendor's response for the symbol named in its line, and no file is in this
+directory.
+
+The lines count against the size budget, because the manifest is in this
+directory. The 603 lines hold 233,992 bytes. That takes `data/` from the
+202.48 MB of file content that point 9 of
+[issue 313](https://github.com/l3a0/quantitative-trading/issues/313)'s
+measurements above left it at, to 202.72 MB, which leaves 2.28 MB under the 205 MB budget.
+[Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) adds the
+companies that left the index to the same cross-section, and states its own
+size before it records them.
+
+[tests/test_archive.py](../tests/test_archive.py) pins the two standalone
+lines field for field and hashes every line's file wherever an archive is
+configured, which takes about a second with the cross-section in place.
+[tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds the
+603 lines by the sha256 of their bytes, everywhere.
 
 ## Header shape
 

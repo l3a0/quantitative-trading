@@ -48,6 +48,12 @@ Each rule that makes a printed figure land has a test asserting the figure the
 changed rule gives instead. A builder who corrects Chan's code fails one of
 those rather than quietly moving a pin.
 
+A fourth read is not one of Chan's files. ``TestTheSurvivorPins`` runs
+Example 7.6 on IJR's 603 members at 2025-12-31 from January 2009, on Alpha
+Vantage closes kept in the owner's archive, and its own docstring names that
+vintage. It is survivor-only and exploratory, read in one direction only, and
+its mechanics run in CI on synthetic closes.
+
 The 2002 split is exploratory and carries no verdict. First run on 2026-10-02.
 P. 180's five-year claim carries one, under a criterion written on issue 254
 before any five-year figure was computed, and ``TestTheMostRecentFiveYears``
@@ -58,12 +64,14 @@ from __future__ import annotations
 
 import math
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
 import chan.equity_seasonals as seasonals
+from chan.archive import ArchiveRefused, ArchiveUnavailable
 from chan.equity_seasonals import (
     FIRST_EDITION_MATLAB,
     JANUARY_RULES,
@@ -894,3 +902,458 @@ class TestTheReport:
             SystemExit, match="no committed vintage is lifted from IJR_20080131.mat"
         ):
             seasonals.main()
+
+
+# --------------------------------------------------------------------------
+# Example 7.6 on IJR's members at 2025-12-31, survivor-only
+# --------------------------------------------------------------------------
+
+
+def synthetic_closes(start: str = "2007-11-01", end: str = "2026-02-27", members: int = 30):
+    """Positive random walks on every weekday, with that same calendar beside them."""
+    calendar = pd.bdate_range(start, end)
+    rng = np.random.default_rng(333)
+    walks = np.exp(np.cumsum(rng.normal(0.0, 0.02, (len(calendar), members)), axis=0))
+    columns = [f"S{number:02d}" for number in range(members)]
+    return pd.DataFrame(20.0 * walks, index=calendar, columns=columns), calendar
+
+
+class TestTheSurvivorMembers:
+    """IJR's members at 2025-12-31, as ``research/filings/ijr/2025-12-31.csv`` records them.
+
+    That file is read from the Form N-PORT at accession ``0000940400-26-007526``
+    through ``chan.fund_holdings``' member rule, which drops OmniAb's two
+    earnout rows. It is committed, so these run everywhere.
+    """
+
+    def test_there_are_603_and_each_maps_to_its_own_symbol(self) -> None:
+        pairs = seasonals.survivor_members()
+        assert len(pairs) == 603
+        assert len({symbol for _, symbol in pairs}) == 603
+        assert seasonals.survivor_filing().accession == "0000940400-26-007526"
+
+    def test_every_map_entry_names_a_member(self) -> None:
+        tickers = {ticker for ticker, _ in seasonals.survivor_members()}
+        assert set(seasonals.ALPHAVANTAGE_SYMBOLS) <= tickers
+        assert len(seasonals.ALPHAVANTAGE_SYMBOLS) == 11
+
+    def test_only_the_two_share_classes_carry_a_slash(self) -> None:
+        """A ticker with a slash is not a symbol Alpha Vantage files, so each needs an entry."""
+        slashed = sorted(t for t, _ in seasonals.survivor_members() if not t.isalpha())
+        assert slashed == ["CWEN/A", "MOG/A"]
+        assert seasonals.ALPHAVANTAGE_SYMBOLS["CWEN/A"] == "CWEN-A"
+        assert seasonals.ALPHAVANTAGE_SYMBOLS["MOG/A"] == "MOG-A"
+
+    def test_every_symbol_is_one_the_fetch_accepts(self) -> None:
+        from chan.vintage import SYMBOL_PATTERN
+
+        assert all(SYMBOL_PATTERN.fullmatch(s) for _, s in seasonals.survivor_members())
+
+    def test_two_members_on_one_symbol_are_refused(self, monkeypatch) -> None:
+        monkeypatch.setitem(seasonals.ALPHAVANTAGE_SYMBOLS, "AXL", "STRA")
+        with pytest.raises(ValueError, match="two members map to STRA"):
+            seasonals.survivor_members()
+
+
+class TestTheOneSidedTest:
+    def test_it_agrees_with_scipys_one_sample_test(self) -> None:
+        from scipy import stats
+
+        returns = [0.03, -0.01, 0.05, 0.02, -0.04, 0.06, 0.01]
+        test = seasonals.one_sided_t(returns)
+        reference = stats.ttest_1samp(returns, 0.0, alternative="greater")
+        assert test.t == pytest.approx(reference.statistic, abs=1e-12)
+        assert test.p == pytest.approx(reference.pvalue, abs=1e-12)
+        assert test.std == pytest.approx(np.std(returns, ddof=1), abs=1e-15)
+        assert test.n == 7
+
+    @pytest.mark.parametrize(("p", "rejects"), [(0.0499, True), (0.05, False), (0.2, False)])
+    def test_it_rejects_strictly_below_five_percent(self, p, rejects) -> None:
+        assert seasonals.OneSided(n=18, mean=0.01, std=0.05, t=1.0, p=p).rejects is rejects
+
+    def test_x_is_3_70_percent_at_6_05_percent_and_18_januaries(self) -> None:
+        """The power the issue states before the run, on Chan's three printed Januaries."""
+        x = seasonals.detectable_mean(0.0605, 18)
+        assert x == pytest.approx(0.036958390706667864, abs=1e-12)
+        assert format(x, ".2%") == "3.70%"
+
+    def test_x_is_where_the_noncentral_t_rejects_with_80_percent(self) -> None:
+        from scipy import stats
+
+        x = seasonals.detectable_mean(0.0605, 18)
+        critical = stats.t.isf(0.05, 17)
+        assert stats.nct.sf(critical, 17, x * math.sqrt(18) / 0.0605) == pytest.approx(0.8)
+
+    def test_the_normal_approximation_gives_3_55_percent(self) -> None:
+        """The figure the issue quoted first, smaller because it treats the deviation as known."""
+        from scipy import stats
+
+        shift = stats.norm.isf(0.05) + stats.norm.isf(0.2)
+        assert format(shift * 0.0605 / math.sqrt(18), ".2%") == "3.55%"
+
+
+class TestTheSurvivorRun:
+    """The run's rules on synthetic closes, so they hold in CI with no archive."""
+
+    def test_a_slice_from_december_2007_yields_18_januaries(self) -> None:
+        closes, calendar = synthetic_closes()
+        effect = seasonals.survivor_effect(closes, calendar)
+        assert len(effect.trades) == 18
+        assert effect.trades[0].entered == pd.Timestamp("2008-12-31")
+        assert effect.trades[0].exited == pd.Timestamp("2009-01-30")
+        assert effect.trades[-1].entered == pd.Timestamp("2025-12-31")
+        assert effect.trades[-1].exited == pd.Timestamp("2026-01-30")
+
+    def test_the_slice_drops_rows_before_december_2007(self) -> None:
+        closes, _ = synthetic_closes()
+        assert seasonals.survivor_slice(closes).index[0] == pd.Timestamp("2007-12-03")
+
+    def test_closes_starting_in_2008_are_refused_for_one_january_short(self) -> None:
+        closes, calendar = synthetic_closes(start="2008-01-02")
+        with pytest.raises(seasonals.SurvivorRunRefused, match="yields 17 Januaries, not 18"):
+            seasonals.survivor_effect(closes, calendar)
+
+    def test_closes_ending_on_the_last_january_day_are_refused(self) -> None:
+        """2026-01-30 is the last row, so it ends no month and 2025-12-31 has no exit."""
+        closes, calendar = synthetic_closes(end="2026-01-30")
+        with pytest.raises(
+            seasonals.SurvivorRunRefused,
+            match="end 2026-01-30, before the January after 2025-12-31",
+        ):
+            seasonals.survivor_effect(closes, calendar)
+
+    def test_a_row_the_calendar_lacks_is_refused_by_symbol_and_date(self) -> None:
+        closes, calendar = synthetic_closes()
+        saturday = pd.Timestamp("2015-12-26")
+        closes.loc[saturday] = np.nan
+        closes.loc[saturday, "S07"] = 10.0
+        closes = closes.sort_index()
+        with pytest.raises(seasonals.SurvivorRunRefused, match="S07 has a row on 2015-12-26"):
+            seasonals.survivor_effect(closes, calendar)
+
+    def test_a_row_the_calendar_lacks_would_otherwise_become_a_year_end(self) -> None:
+        """Why the refusal exists: a stray Saturday after the last December day ends the year.
+
+        2016-12-30 is the last weekday of 2016. One series with a row on the
+        Saturday after it makes that row the year-end, on which only that
+        series has a close, so one stock is ranked and the January is NaN.
+        """
+        closes, _ = synthetic_closes()
+        saturday = pd.Timestamp("2016-12-31")
+        closes.loc[saturday] = np.nan
+        closes.loc[saturday, "S07"] = 10.0
+        closes = closes.sort_index()
+        effect = january_effect(seasonals.survivor_slice(closes), MATLAB_JANUARY)
+        (stray,) = [trade for trade in effect.trades if trade.entered.year == 2016]
+        assert stray.entered == saturday
+        assert stray.ranked == 1
+        assert math.isnan(stray.ret)
+
+    def test_a_trade_off_the_calendars_last_december_day_is_refused(self) -> None:
+        """A calendar day no member trades on moves the year-end, and the run says so."""
+        closes, calendar = synthetic_closes()
+        closes = closes.drop(pd.Timestamp("2015-12-31"))
+        with pytest.raises(
+            seasonals.SurvivorRunRefused, match="entered 2015-12-30 and exited 2016-01-29"
+        ):
+            seasonals.survivor_effect(closes, calendar)
+
+    @pytest.mark.parametrize("close", [0.0, -1.0])
+    def test_a_close_of_zero_or_below_is_refused_by_symbol_and_date(self, close) -> None:
+        closes, calendar = synthetic_closes()
+        closes.loc["2012-01-31", "S03"] = close
+        with pytest.raises(
+            seasonals.SurvivorRunRefused, match=f"S03 closes at {close} on 2012-01-31"
+        ):
+            seasonals.survivor_effect(closes, calendar)
+
+    def test_a_zero_exit_close_would_otherwise_be_averaged_in_as_a_total_loss(self) -> None:
+        closes, _ = synthetic_closes()
+        sliced = seasonals.survivor_slice(closes)
+        before = january_effect(sliced, MATLAB_JANUARY).trades[3].ret
+        zeroed = sliced.copy()
+        zeroed.loc["2012-01-31", :] = 0.0
+        after = january_effect(zeroed, MATLAB_JANUARY).trades[3].ret
+        assert after != pytest.approx(before)
+        assert after == pytest.approx(-2 * seasonals.ONE_WAY_COST)
+
+    def test_a_missing_close_is_not_refused(self) -> None:
+        closes, calendar = synthetic_closes()
+        closes.loc["2012-01-31", "S03"] = np.nan
+        assert len(seasonals.survivor_effect(closes, calendar).trades) == 18
+
+    def test_returns_before_costs_add_back_two_one_way_costs(self) -> None:
+        closes, calendar = synthetic_closes()
+        effect = seasonals.survivor_effect(closes, calendar)
+        before = seasonals.before_costs(effect)
+        assert [b - t.ret for b, t in zip(before, effect.trades, strict=True)] == pytest.approx(
+            [0.001] * 18, abs=1e-15
+        )
+
+    def test_a_member_with_no_exit_close_is_counted(self) -> None:
+        closes, _ = synthetic_closes()
+        closes.loc["2026-01-23":, "S05"] = np.nan
+        counts = seasonals.ranked_without_exit(closes)
+        assert len(counts) == 18
+        assert counts[-1] == 1
+        assert sum(counts[:-1]) == 0
+
+    def test_a_member_that_lists_late_misses_its_early_year_ends(self) -> None:
+        closes, _ = synthetic_closes()
+        closes.loc[:"2010-06-30", "S09"] = np.nan
+        missed = seasonals.year_ends_missed(closes)
+        assert list(missed) == ["S09"]
+        assert [day.year for day in missed["S09"]] == [2007, 2008, 2009]
+
+    def test_a_member_ranks_only_from_its_second_year_end(self) -> None:
+        closes, calendar = synthetic_closes()
+        closes.loc[:"2010-06-30", "S09"] = np.nan
+        ranked = [t.ranked for t in seasonals.survivor_effect(closes, calendar).trades]
+        assert ranked[:4] == [29, 29, 29, 30]
+
+
+class TestTheSurvivorReading:
+    def test_failing_to_reject_gives_the_owners_wording(self) -> None:
+        test = seasonals.OneSided(n=18, mean=0.004, std=0.06, t=0.28, p=0.39)
+        assert seasonals.survivor_reading(test, 0.0366) == (
+            "no January effect detectable above about 3.7% a January, on members that "
+            "favour the effect"
+        )
+
+    def test_rejecting_gives_no_verdict(self) -> None:
+        test = seasonals.OneSided(n=18, mean=0.04, std=0.06, t=2.83, p=0.006)
+        reading = seasonals.survivor_reading(test, 0.0366)
+        assert reading.startswith("above zero on survivors, no verdict: a mean of 0.0400")
+        assert "t 2.83, p 0.006, over 18 Januaries" in reading
+        assert "survivor bias alone could produce it" in reading
+        assert "disappeared" not in reading
+
+
+class TestTheSurvivorRefusalsReachTheOperator:
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            ArchiveUnavailable("no data archive is configured on this machine"),
+            ArchiveRefused("sp600/daily_STRA.csv hashes to 00, not ff"),
+            seasonals.SurvivorRunRefused("S07 has a row on 2015-12-26"),
+        ],
+        ids=lambda refusal: type(refusal).__name__,
+    )
+    def test_each_refusal_is_one_line(self, refusal, monkeypatch, capsys) -> None:
+        def refuse(**_kwargs):
+            raise refusal
+
+        monkeypatch.setattr(seasonals, "run_survivors", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main(["--survivors"])
+        assert stopped.value.code == str(refusal)
+        assert "\n" not in str(stopped.value.code)
+
+    def test_a_machine_with_no_archive_gets_the_readers_line(self, monkeypatch) -> None:
+        import chan.archive as archive
+
+        monkeypatch.delenv(archive.ARCHIVE_DIR_ENV, raising=False)
+        monkeypatch.setattr(archive, "ARCHIVE_DIR_CONFIG", Path("/nonexistent/archive_dir"))
+        with pytest.raises(SystemExit, match="no data archive is configured"):
+            seasonals.main(["--survivors"])
+
+    def test_a_bug_is_not_turned_into_a_line(self, monkeypatch) -> None:
+        def broken(**_kwargs):
+            raise ValueError("a bug")
+
+        monkeypatch.setattr(seasonals, "run_survivors", broken)
+        with pytest.raises(ValueError, match="a bug"):
+            seasonals.main(["--survivors"])
+
+
+#: The sha256 of the 603 ``sp600`` lines in ``data/archive_vintages.jsonl``,
+#: joined in file order with a newline after each. A change to any line is a
+#: change to which bytes the pins below rest on, so it fails here first, in CI.
+SURVIVOR_LINES_SHA256 = "6fbf738e08fb74ebc51f04af7bf9a285636b366e5691d1530f09e7a563eb8985"
+
+#: Each January's return before costs, entered at the 2008-12-31 year-end to the 2025-12-31 one.
+SURVIVOR_BEFORE_COSTS = [
+    0.0109878352639423,
+    0.03959431018322435,
+    0.0437343887556381,
+    0.07993112553055388,
+    -0.006311308645010345,
+    -0.0047755181428521705,
+    -0.03448782709144869,
+    -0.025391911944576386,
+    0.015670478679503344,
+    -0.012831740397399177,
+    0.06256583296485677,
+    -0.04280677611733347,
+    -0.02849998631720376,
+    0.018737208384723536,
+    0.09659059125843618,
+    -0.020807370559363342,
+    0.001279482522117216,
+    0.001457459899829136,
+]
+
+#: Ranked, long and short counts for each January, in the same order.
+SURVIVOR_COUNTS = [
+    (362, 36, 36),
+    (370, 37, 37),
+    (378, 38, 38),
+    (389, 39, 39),
+    (400, 40, 40),
+    (412, 41, 41),
+    (433, 43, 43),
+    (459, 46, 46),
+    (486, 49, 49),
+    (502, 50, 50),
+    (522, 52, 52),
+    (541, 54, 54),
+    (549, 55, 55),
+    (559, 56, 56),
+    (581, 58, 58),
+    (584, 58, 58),
+    (592, 59, 59),
+    (598, 60, 60),
+]
+
+
+class TestTheSurvivorLines:
+    """The ``sp600`` cross-section's lines, committed, so these run everywhere."""
+
+    def test_the_lines_are_the_ones_the_pins_rest_on(self) -> None:
+        import hashlib
+
+        from chan.paths import DATA_DIR
+
+        text = (DATA_DIR / "archive_vintages.jsonl").read_text(encoding="utf-8")
+        lines = [line for line in text.splitlines() if '"cross_section": "sp600"' in line]
+        assert len(lines) == 603
+        digest = hashlib.sha256(("\n".join(lines) + "\n").encode("utf-8")).hexdigest()
+        assert digest == SURVIVOR_LINES_SHA256
+
+    def test_every_member_has_a_line_downloaded_on_2026_10_05(self) -> None:
+        from chan.archive import read_archive_manifest
+
+        lines = {e.symbol: e for e in read_archive_manifest() if e.cross_section == "sp600"}
+        assert set(lines) == {symbol for _, symbol in seasonals.survivor_members()}
+        assert {entry.download_date for entry in lines.values()} == {"2026-10-05"}
+
+
+@pytest.fixture(scope="module")
+def survivors() -> seasonals.SurvivorRun:
+    """One run on the owner's archive, about ten seconds, or a skip naming what is missing."""
+    try:
+        return seasonals.run_survivors()
+    except ArchiveUnavailable as absent:
+        pytest.skip(str(absent))
+
+
+class TestTheSurvivorPins:
+    """Example 7.6 on IJR's 603 members at 2025-12-31, survivor-only and exploratory.
+
+    The vintage is three things.
+
+    1. The members, from IJR's Form N-PORT for 2025-12-31, accession
+       ``0000940400-26-007526``, through ``chan.fund_holdings``' member rule
+       and :data:`chan.equity_seasonals.ALPHAVANTAGE_SYMBOLS`.
+    2. Their closes, Alpha Vantage's ``adjusted_close`` from
+       ``TIME_SERIES_DAILY_ADJUSTED``, the 603 ``sp600`` lines in
+       ``data/archive_vintages.jsonl``, all downloaded 2026-10-05, whose bytes
+       :data:`SURVIVOR_LINES_SHA256` holds.
+    3. The calendar, ``yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv``.
+
+    The specification is :data:`chan.equity_seasonals.MATLAB_JANUARY`
+    unchanged, on rows from 2007-12-01 to 2026-10-02, in one call: January 2009
+    to January 2026, 18 Januaries. Returns are read before costs. The test is
+    one-sided at 5%, and X is the mean it detects with 80% probability at the
+    measured standard deviation. All of it was declared on issue 333 before any
+    return was computed. First run on 2026-10-05.
+
+    The figures need the archive, so they skip with the reader's own message
+    where none is configured, as ``tests/test_cpo.py``'s do. They take about
+    ten seconds, so ``QT_ARCHIVE_RUN`` does not gate them.
+    """
+
+    def test_every_member_has_a_series(self, survivors) -> None:
+        assert len(survivors.members) == 603
+        assert len(survivors.entries) == 603
+        assert survivors.missing == ()
+
+    def test_the_calendar_is_the_committed_raw_spy_vintage(self, survivors) -> None:
+        assert survivors.calendar.path == "yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv"
+
+    def test_241_members_miss_2139_year_ends(self, survivors) -> None:
+        assert len(survivors.missed) == 241
+        assert sum(len(days) for days in survivors.missed.values()) == 2139
+
+    def test_the_18_entry_and_exit_days(self, survivors) -> None:
+        assert [(str(t.entered.date()), str(t.exited.date())) for t in survivors.effect.trades] == [
+            ("2008-12-31", "2009-01-30"),
+            ("2009-12-31", "2010-01-29"),
+            ("2010-12-31", "2011-01-31"),
+            ("2011-12-30", "2012-01-31"),
+            ("2012-12-31", "2013-01-31"),
+            ("2013-12-31", "2014-01-31"),
+            ("2014-12-31", "2015-01-30"),
+            ("2015-12-31", "2016-01-29"),
+            ("2016-12-30", "2017-01-31"),
+            ("2017-12-29", "2018-01-31"),
+            ("2018-12-31", "2019-01-31"),
+            ("2019-12-31", "2020-01-31"),
+            ("2020-12-31", "2021-01-29"),
+            ("2021-12-31", "2022-01-31"),
+            ("2022-12-30", "2023-01-31"),
+            ("2023-12-29", "2024-01-31"),
+            ("2024-12-31", "2025-01-31"),
+            ("2025-12-31", "2026-01-30"),
+        ]
+
+    def test_the_ranked_long_and_short_counts(self, survivors) -> None:
+        counts = [(t.ranked, t.longs, t.shorts) for t in survivors.effect.trades]
+        assert counts == SURVIVOR_COUNTS
+
+    def test_the_18_returns_before_costs(self, survivors) -> None:
+        assert list(survivors.before) == pytest.approx(SURVIVOR_BEFORE_COSTS, abs=1e-9)
+
+    def test_two_ranked_members_have_no_exit_close(self, survivors) -> None:
+        """INDV has no row on 2019-01-31, and GES was delisted on 2026-01-22."""
+        expected = [0] * 18
+        expected[10] = 1
+        expected[17] = 1
+        assert list(survivors.no_exit) == expected
+
+    def test_the_mean_is_not_detectably_above_zero(self, survivors) -> None:
+        test = survivors.test
+        assert test.n == 18
+        assert_reproduces(test.mean, 0.010813126345979859, "0.0108", ".4f")
+        assert_reproduces(test.std, 0.03975601910659598, "0.0398", ".4f")
+        assert_reproduces(test.t, 1.153943750439647, "1.15", ".2f")
+        assert_reproduces(test.p, 0.13224437054261162, "0.132", ".3f")
+        assert not test.rejects
+
+    def test_x_is_2_4_percent_a_january(self, survivors) -> None:
+        assert_reproduces(survivors.detectable, 0.02428625598484838, "0.0243", ".4f")
+        assert format(survivors.detectable, ".1%") == "2.4%"
+
+    def test_the_mean_after_costs(self, survivors) -> None:
+        assert_reproduces(survivors.after_mean, 0.009813126345979858, "0.0098", ".4f")
+
+    def test_the_reading(self, survivors) -> None:
+        assert survivors.reading == (
+            "no January effect detectable above about 2.4% a January, on members that "
+            "favour the effect"
+        )
+
+    def test_the_report_prints_the_reading_beside_the_one_way_rule(self, survivors, capsys):
+        seasonals.report_survivors(survivors)
+        out = capsys.readouterr().out
+        assert "survivor-only and exploratory" in out
+        assert "accession 0000940400-26-007526" in out
+        assert "downloaded 2026-10-05" in out
+        assert "members with no series: 0" in out
+        assert (
+            "entered 2025-12-31 exited 2026-01-30: 0.0015   (60 long and 60 short of 598 "
+            "ranked, 1 ranked with no exit close)"
+        ) in out
+        assert "mean 0.0108, standard deviation 0.0398, t 1.15, one-sided p 0.132" in out
+        assert "reading: no January effect detectable above about 2.4% a January" in out
+        assert "Read one way only" in out
