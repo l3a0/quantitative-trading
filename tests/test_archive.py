@@ -379,6 +379,12 @@ class TestACrossSectionLine:
         with pytest.raises(ValueError, match="names sp600/ABC more than once"):
             read_archive_manifest(manifest_of(tmp_path, cross_line(), cross_line()))
 
+    def test_one_symbol_in_two_cross_sections_is_accepted(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(archive, "CROSS_SECTIONS", ("sp600", "sp400"))
+        later = cross_line(cross_section="sp400", path="sp400/daily_ABC.csv")
+        entries = read_archive_manifest(manifest_of(tmp_path, cross_line(), later))
+        assert [entry.cross_section for entry in entries] == ["sp600", "sp400"]
+
     def test_one_symbol_alone_and_in_a_cross_section_is_accepted(self, tmp_path):
         entries = read_archive_manifest(manifest_of(tmp_path, standalone(), cross_line()))
         assert [entry.cross_section for entry in entries] == [None, "sp600"]
@@ -441,6 +447,11 @@ class TestRecordingADailyFile:
             (MINUTE_SHAPED, "not the daily header"),
             (daily(), "no rows under it"),
             (daily("Jan 2,1,1,1,1,1,1,0,1"), "ISO date"),
+            (daily("2026-02-30,1,1,1,1,1,1,0,1"), "ISO date"),
+            (
+                daily("2009-01-02,1,1,1,1,1,1,0,1", "2009-01-02,1,1,1,1,1,1,0,1"),
+                "1 dates appear twice, the first 2009-01-02",
+            ),
             (b"", "not the daily header"),
         ],
     )
@@ -476,6 +487,34 @@ class TestRecordingADailyFile:
 
         monkeypatch.setattr(archive, "_append_line", interrupted)
         with pytest.raises(KeyboardInterrupt):
+            record_archive_file(
+                "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+            )
+        assert not (store / "sp600" / "daily_XYZ.csv").exists()
+        assert read_archive_manifest(data_dir) == []
+
+    @pytest.mark.parametrize("failure", [OSError("disk full"), KeyboardInterrupt()])
+    def test_a_failure_part_way_through_the_write_takes_the_file_back(
+        self, tmp_path, monkeypatch, failure
+    ):
+        data_dir, store = empty_store(tmp_path)
+
+        class Partial:
+            def __init__(self, path, mode):
+                self.handle = open(path, mode)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                self.handle.close()
+
+            def write(self, payload):
+                self.handle.write(payload[:10])
+                raise failure
+
+        monkeypatch.setattr(archive, "open", Partial, raising=False)
+        with pytest.raises(type(failure)):
             record_archive_file(
                 "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
             )

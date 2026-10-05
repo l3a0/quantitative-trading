@@ -8,6 +8,7 @@ calls, and a stub for ``sleep`` that records each wait instead of waiting.
 
 from __future__ import annotations
 
+import http.client
 import json
 import urllib.parse
 from datetime import date
@@ -15,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from chan import fetch_alphavantage
+from chan import archive, fetch_alphavantage
 from chan.archive import (
     ARCHIVE_DIR_ENV,
     ARCHIVE_MANIFEST_NAME,
@@ -184,12 +185,42 @@ class TestWhatABodyMeans:
         assert vendor.calls == ["AAA"] * ATTEMPTS
         assert tally.not_reached == ["AAA", "BBB"] and tally.stopped is not None
 
-    def test_a_csv_with_another_header_stops_the_run(self, places):
-        other = b"timestamp,open,high,low,close,volume\n2009-01-02,1,1,1,1,1\n"
+    def test_a_body_cut_off_mid_read_is_retried_and_stops_the_run_if_it_persists(self, places):
+        cut = http.client.IncompleteRead(b"abc", 100)
+        tally = run(places, Vendor({"AAA": [cut, GOOD], "BBB": [cut]}), ["AAA", "BBB"])
+        assert tally.recorded == ["AAA"]
+        assert tally.not_reached == ["BBB"] and "IncompleteRead" in tally.stopped
+
+    @pytest.mark.parametrize(
+        "other",
+        [
+            b"timestamp,open,high,low,close,volume\n2009-01-02,1,1,1,1,1\n",
+            b"date,open,high,low,close,adjusted_close\n2009-01-02,1,1,1,1,1\n",
+            b"\xef\xbb\xbf" + GOOD,
+        ],
+    )
+    def test_a_csv_with_another_header_stops_the_run(self, places, other):
         vendor = Vendor({"AAA": [other], "BBB": [GOOD]})
         tally = run(places, vendor, ["AAA", "BBB"])
         assert vendor.calls == ["AAA"]
         assert tally.not_reached == ["AAA", "BBB"] and "not the daily header" in tally.stopped
+
+    def test_a_failure_writing_the_archive_stops_the_run_with_its_tally(self, places, monkeypatch):
+        append = archive._append_line
+        calls = []
+
+        def second_fails(manifest, line):
+            calls.append(line)
+            if len(calls) == 2:
+                raise PermissionError("the manifest is read-only")
+            append(manifest, line)
+
+        monkeypatch.setattr(archive, "_append_line", second_fails)
+        vendor = Vendor({"AAA": [GOOD], "BBB": [GOOD], "CCC": [GOOD]})
+        tally = run(places, vendor, ["AAA", "BBB", "CCC"])
+        assert tally.recorded == ["AAA"] and tally.not_reached == ["BBB", "CCC"]
+        assert "writing to the archive failed" in tally.stopped
+        assert not (places[1] / "sp600" / "daily_BBB.csv").exists()
 
     @pytest.mark.parametrize(
         ("body", "words"),
@@ -214,6 +245,66 @@ class TestTheOperatorSeesLines:
         assert tally.interrupted and tally.recorded == ["AAA"]
         assert tally.not_reached == ["BBB", "CCC"]
         assert tally.line().startswith("interrupted: recorded 1")
+
+    def test_an_interrupt_after_a_line_lands_counts_the_symbol_as_recorded(
+        self, places, monkeypatch
+    ):
+        append = archive._append_line
+
+        def landed_then_interrupted(manifest, line):
+            append(manifest, line)
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(archive, "_append_line", landed_then_interrupted)
+        tally = run(places, Vendor({"AAA": [GOOD], "BBB": [GOOD]}), ["AAA", "BBB"])
+        assert tally.interrupted
+        assert (tally.recorded, tally.not_reached) == (["AAA"], ["BBB"])
+
+    def test_a_symbol_failed_before_an_interrupt_is_not_also_unreached(self, places, monkeypatch):
+        say = fetch_alphavantage._say
+
+        def interrupted_on_failure(text, key):
+            say(text, key)
+            if text.startswith("AAA: failed"):
+                raise KeyboardInterrupt
+
+        monkeypatch.setattr(fetch_alphavantage, "_say", interrupted_on_failure)
+        tally = run(places, Vendor({"AAA": [ERROR], "BBB": [GOOD]}), ["AAA", "BBB"])
+        assert (tally.failed, tally.not_reached) == (["AAA"], ["BBB"])
+
+    def test_an_interrupt_through_main_prints_the_tally_and_no_traceback(
+        self, places, monkeypatch, tmp_path, capsys
+    ):
+        data_dir, store = places
+        monkeypatch.setattr(fetch_alphavantage.paths, "DATA_DIR", data_dir)
+        monkeypatch.setenv(KEY_ENV, KEY)
+        monkeypatch.setenv(ARCHIVE_DIR_ENV, str(store))
+        vendor = Vendor({"AAA": [GOOD], "BBB": [KeyboardInterrupt()]})
+        monkeypatch.setattr(fetch_alphavantage, "urllib_get", vendor)
+        monkeypatch.setattr(fetch_alphavantage.time, "sleep", lambda seconds: None)
+        symbols = tmp_path / "symbols.txt"
+        symbols.write_text("AAA\nBBB\n", encoding="utf-8")
+        with pytest.raises(SystemExit) as stopped:
+            fetch_alphavantage.main(["--cross-section", "sp600", "--symbols", str(symbols)])
+        assert stopped.value.code == 1
+        out = capsys.readouterr()
+        assert out.out.splitlines()[-1] == (
+            "interrupted: recorded 1, already recorded 0, failed 0, not reached 1"
+        )
+        assert "Traceback" not in out.out + out.err
+
+    def test_an_interrupt_before_any_request_prints_one_line(self, tmp_path, monkeypatch):
+        symbols = tmp_path / "symbols.txt"
+        symbols.write_text("AAA\n", encoding="utf-8")
+        monkeypatch.setenv(KEY_ENV, KEY)
+
+        def interrupted(*args, **kwargs):
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(fetch_alphavantage, "archive_dir", interrupted)
+        with pytest.raises(SystemExit) as stopped:
+            fetch_alphavantage.main(["--cross-section", "sp600", "--symbols", str(symbols)])
+        assert str(stopped.value) == "interrupted before any symbol was fetched"
 
     def test_the_tally_line_names_each_failed_symbol(self, places):
         tally = run(places, Vendor({"AAA": [ERROR], "BBB": [ERROR]}), ["AAA", "BBB"])

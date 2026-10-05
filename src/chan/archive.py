@@ -51,7 +51,8 @@ that module's docstring records.
 The archive copy is the only kept copy of these bytes. The archive's own
 ``README.txt`` marks the two minute-bar files as pinned by hash here, and a
 recorded path is never rewritten, so a refresh writes a new file name, or for a
-cross-section a new cross-section name.
+cross-section a new cross-section name, which needs its own ruling before
+:data:`CROSS_SECTIONS` accepts it.
 """
 
 from __future__ import annotations
@@ -64,6 +65,7 @@ import os
 import re
 from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -147,7 +149,7 @@ class ArchiveEntry:
     cross-section line's is exactly ``<cross_section>/daily_<SYMBOL>.csv``, so
     no line can point a read outside the archive. ``row_count`` counts the
     file's data rows, extended-hours bars included, and ``first_date`` and
-    ``last_date`` are the calendar days of its first and last row.
+    ``last_date`` are the calendar days of its earliest and latest row.
     ``vendor_call`` names the request that produced the rows, because the same
     vendor answers differently with ``adjusted`` set either way.
     ``cross_section`` is ``None`` on a standalone line, and the line written
@@ -213,8 +215,8 @@ def read_archive_manifest(data_dir: Path | None = None) -> list[ArchiveEntry]:
     repeated = sorted({key for key in keys if keys.count(key) > 1})
     if repeated:
         raise ValueError(
-            f"{manifest} names {', '.join(repeated)} more than once, so a read by symbol "
-            f"could not say which archive file it meant"
+            f"{manifest} names {', '.join(repeated)} more than once, so a read could not "
+            f"say which archive file it meant"
         )
     return entries
 
@@ -298,9 +300,9 @@ def daily_span(payload: bytes) -> tuple[int, str, str]:
     """The row count, first date and last date of one daily file, or a ``ValueError``.
 
     The first line must be :data:`DAILY_HEADER`, at least one row must follow,
-    and every row must open on an ISO date. The dates are the smallest and the
-    largest rather than the first and last row, because Alpha Vantage writes
-    the newest row first.
+    every row must open on an ISO date that exists, and no date may appear
+    twice. The dates are the smallest and the largest rather than the first and
+    last row, because Alpha Vantage writes the newest row first.
     """
     try:
         lines = payload.decode("utf-8").splitlines()
@@ -312,12 +314,28 @@ def daily_span(payload: bytes) -> tuple[int, str, str]:
     dates = [row.split(",", 1)[0].strip() for row in lines[1:] if row.strip()]
     if not dates:
         raise ValueError("the daily header has no rows under it")
-    undated = [day for day in dates if not _DATE.fullmatch(day)]
+    undated = [day for day in dates if not _calendar_day(day)]
     if undated:
         raise ValueError(
             f"{len(undated)} rows do not open on an ISO date, the first {undated[0]!r}"
         )
+    repeated = sorted({day for day in dates if dates.count(day) > 1})
+    if repeated:
+        # Two rows for one day would make every later read of the cross-section
+        # fail on a duplicate index, and a recorded line is never rewritten.
+        raise ValueError(f"{len(repeated)} dates appear twice, the first {repeated[0]}")
     return len(dates), min(dates), max(dates)
+
+
+def _calendar_day(text: str) -> bool:
+    """Whether the text is an ISO date that exists, which the pattern alone does not check."""
+    if not _DATE.fullmatch(text):
+        return False
+    try:
+        date.fromisoformat(text)
+    except ValueError:
+        return False
+    return True
 
 
 def record_archive_file(
@@ -334,8 +352,8 @@ def record_archive_file(
     The file is written before the line, which is the reverse of
     :mod:`chan.vintage`. That module puts the record first because a file in
     ``data/`` with no line can reach a result unnoticed. An archive file
-    cannot, because every archive read goes through a manifest line. The
-    reverse order here would leave a line with no file, which a resumed fetch
+    cannot, because every archive read goes through a manifest line.
+    Writing the line first would leave a line with no file, which a resumed fetch
     skips forever and which makes :func:`read_cross_section` refuse the whole
     cross-section. So the file comes first, and only a hard crash between the
     two can leave a file with no line, which the next fetch names.
@@ -378,8 +396,7 @@ def record_archive_file(
     path = directory / entry.path
     path.parent.mkdir(exist_ok=True)
     try:
-        with open(path, "xb") as handle:
-            handle.write(payload)
+        handle = open(path, "xb")
     except FileExistsError as taken:
         # Nothing was created here, so nothing is removed.
         raise ArchiveRecordRefused(
@@ -388,13 +405,17 @@ def record_archive_file(
         ) from taken
     line = (entry.as_json() + "\n").encode("utf-8")
     try:
+        with handle:
+            handle.write(payload)
         if hashlib.sha256(path.read_bytes()).hexdigest() != entry.sha256:
             raise OSError(f"{path}: the file on disk does not match the bytes that were hashed")
         _append_line(manifest, line)
     except BaseException:
-        # The line may already be on disk if the interrupt landed after the
-        # write returned, and then the file stays with it. Otherwise the file
-        # goes, so a transient error does not retire this symbol.
+        # The exclusive create succeeded, so this call owns the file from here,
+        # a partial write included. The line may already be on disk if the
+        # interrupt landed after the append returned, and then the file stays
+        # with it. Otherwise the file goes, so a transient error does not
+        # retire this symbol.
         try:
             landed = line in manifest.read_bytes()
         except OSError:

@@ -14,10 +14,10 @@ output saying why. A symbol that has paid nothing comes back unchanged, which
 is what makes the problem easy to miss.
 
 So a result computed from a series is committed next to the exact series it was
-computed from, and a result computed from none says so. Example 7.1 is the one
-exception: its two series of licensed minute bars stay in the owner's data
-archive and only their hashes are committed, as `docs/design.md`'s premise
-records. Everything else is
+computed from, and a result computed from none says so. Licensed data is the
+one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
+daily closes for the S&P 600 cross-section, stay in the owner's data archive
+and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
@@ -859,8 +859,10 @@ ALPHAVANTAGE_API_KEY=... QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.f
 
 The symbols file holds one symbol per line. A rerun skips every symbol already
 recorded, so a run that stopped resumes where it left off, and it never
-overwrites a file the archive already holds. Each symbol prints one line, and
-the run ends on a tally of recorded, already recorded, failed and not reached.
+overwrites a file the archive already holds. The run opens on a line naming
+the archive and the manifest, each symbol it fetches or refuses prints one
+line, and the run ends on a tally of recorded, already recorded, failed and not
+reached.
 Run it after the close, from the branch that will commit the lines, because
 the lines are what a rerun reads.
 

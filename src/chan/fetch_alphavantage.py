@@ -41,11 +41,18 @@ for, and the same body answers every symbol. Six cases.
    than the symbol, and failing each symbol in turn would spend six attempts on
    each of 1,500.
 4. A transport failure is retried the same way, and stops the run if it
-   persists.
-5. A CSV with another header stops the run, because the endpoint changed and
+   persists. That covers ``OSError`` and ``http.client.HTTPException``, since a
+   body cut off mid-read raises ``IncompleteRead``, which is not an ``OSError``.
+5. A body whose first line is comma-separated but is not the daily header
+   stops the run, a byte-order mark included, because the endpoint changed and
    every symbol would fail the same way.
-6. Anything else fails that symbol: an empty body, a header with no rows, or
-   JSON carrying neither key.
+6. Anything else fails that symbol: an empty body, a header with no rows or
+   with a date that repeats or does not exist, JSON carrying neither key, or a
+   body whose first line holds no comma, such as an error page.
+
+A failure writing to the archive or the manifest stops the run too, because it
+is about the disk rather than the symbol. Every way a run ends prints the
+tally.
 
 The pacing, the test that a body opening with ``{`` is JSON, and the retry on
 ``Information`` and ``Note`` come from ``pipeline/download_intraday.py`` in the
@@ -62,6 +69,7 @@ case a transport error quotes it.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import sys
@@ -250,7 +258,21 @@ def fetch(
         _say(f"stopped at {stopped}", key)
     except KeyboardInterrupt:
         tally.interrupted = True
-        tally.not_reached = [symbol for symbol in todo[reached:] if symbol not in tally.recorded]
+        # An interrupt can land after a line is written and before the tally
+        # hears of it, so the manifest says what was recorded.
+        try:
+            now = {
+                entry.symbol
+                for entry in read_archive_manifest(data_dir)
+                if entry.cross_section == cross_section
+            }
+        except (OSError, ValueError):
+            now = held
+        for symbol in todo[reached:]:
+            if symbol in now and symbol not in held and symbol not in tally.recorded:
+                tally.recorded.append(symbol)
+        settled = set(tally.recorded) | set(tally.failed) | set(tally.already)
+        tally.not_reached = [symbol for symbol in todo[reached:] if symbol not in settled]
     return tally
 
 
@@ -278,6 +300,8 @@ def main(argv: list[str] | None = None) -> None:
         if not key:
             raise ValueError(f"{KEY_ENV} is not set, so no request was made")
         tally = fetch(args.cross_section, symbols, key=key)
+    except KeyboardInterrupt:
+        raise SystemExit("interrupted before any symbol was fetched") from None
     except (ArchiveUnavailable, ValueError, OSError) as refusal:
         # A refusal is worth nothing at the bottom of a traceback, which is the
         # reason `chan.equity_seasonals.main` gives for the same line.
@@ -293,7 +317,7 @@ def _request(symbol: str, key: str, get: Callable[[str], bytes], sleep: Callable
     for attempt in range(1, ATTEMPTS + 1):
         try:
             body = get(request_url(symbol, key))
-        except OSError as failure:
+        except (OSError, http.client.HTTPException) as failure:
             reason = f"the request failed with {type(failure).__name__}: {failure}"
             sleep(TRANSPORT_WAIT_SECONDS * attempt)
             continue
@@ -340,6 +364,8 @@ def _settle(
             )
         except (ValueError, ArchiveRecordRefused) as refused:
             reason = str(refused)
+        except OSError as failure:
+            raise RunStopped(f"{symbol}: writing to the archive failed, {failure}") from failure
         else:
             tally.recorded.append(symbol)
             _say(
@@ -348,7 +374,7 @@ def _settle(
                 key,
             )
             return
-    elif first.startswith("timestamp,"):
+    elif "," in first:
         raise RunStopped(f"{symbol}: the CSV opens with {first[:80]!r}, not the daily header")
     elif not stripped:
         reason = "an empty body"
