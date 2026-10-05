@@ -4465,9 +4465,13 @@ figures. Neither mirror holds another version of the script, so whether Chan
 edited the script after running it, or ran an earlier one, is not recoverable
 here.
 
-**Whether GLD and USO cointegrate.** Chan says they do not. Nothing here runs a
-cointegration test on the pair, and the rule trades whatever reversion a
-20-day window shows.
+**Whether the reversion is real.** Chan says GLD and USO do not cointegrate,
+and on his file they do not. Engle-Granger at one lag, USO on GLD over all
+1,500 days, gives −1.5150 against a 10% bar of −3.04, which
+`TestThePairDoesNotCointegrate::test_engle_granger_does_not_reject_at_10_percent`
+holds. The 20-day hedge ratio is below zero on 334 of the 1,480 traded days,
+which `::test_the_20_day_hedge_ratio_changes_sign` holds. Nothing here
+separates a real short-term reversion from what a 20-day fit produces.
 
 **What costs would take.** No script charges any. Location 1505 names the
 extra cost of the log price spread, which rebalances both legs every day to
@@ -4478,4 +4482,7 @@ benefit of hindsight, so the lookback was fitted to this sample, and every
 figure above is in-sample.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/price-spread-ratio-lessons.md](../blog/price-spread-ratio-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.price_spread_figures` redraws.

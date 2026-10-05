@@ -41,9 +41,11 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import EG_CRIT_N2
 
 from chan import price_spread as module
 from chan.matlab_helpers import smart_moving_avg, smart_moving_std
+from chan.pair_cointegration import engle_granger
 from chan.price_spread import (
     BOOK_LOG_PRICE_SPREAD,
     BOOK_PRICE_SPREAD,
@@ -204,6 +206,40 @@ class TestTheRatio:
         assert sharpe == pytest.approx(-0.74666317, abs=5e-9), SPEC
         assert (f"{apr:f}", f"{sharpe:f}") == SCRIPT_RATIO == ("-0.141522", "-0.746663"), SPEC
 
+    def test_keeping_the_first_20_days_matches_neither_figure(self, sources) -> None:
+        """The first reading tried after the miss: ``Ratio.m`` without its three deletions."""
+        _, closes = sources
+        signal = ratio(closes.index, closes[X_SYMBOL], closes[Y_SYMBOL], 0)
+        run = linear_mean_reversion(signal, LOOKBACK)
+        assert len(run.daily) == 1500, SPEC
+        assert (f"{run.apr:f}", f"{run.sharpe:f}") == ("-0.140674", "-0.744310"), SPEC
+        assert (f"{run.apr:f}", f"{run.sharpe:f}") != SCRIPT_RATIO
+
+    def test_chans_python_port_matches_neither_figure(self, sources) -> None:
+        """The second reading: ``Ratio.py`` from Chan's ``PythonCodesAndData.zip``, whose
+        ``inputData_GLD_USO.csv`` equals the committed closes. It drops no rows, pandas
+        skips the NaN returns in the product, the mean and the n − 1 deviation, and the APR
+        still divides by all 1,500 rows."""
+        _, closes = sources
+        prices = closes[[X_SYMBOL, Y_SYMBOL]]
+        value = prices[Y_SYMBOL] / prices[X_SYMBOL]
+        units = -(value - value.rolling(LOOKBACK).mean()) / value.rolling(LOOKBACK).std()
+        positions = pd.DataFrame(np.outer(units, [-1.0, 1.0]), index=prices.index)
+        pnl = np.sum(positions.shift().to_numpy() * prices.pct_change().to_numpy(), axis=1)
+        daily = pd.Series(pnl, index=prices.index) / positions.shift().abs().sum(axis=1)
+        apr = np.prod(1 + daily) ** (252 / len(daily)) - 1
+        sharpe = np.sqrt(252) * np.mean(daily) / np.std(daily)
+        assert (f"{apr:f}", f"{sharpe:f}") == ("-0.140674", "-0.749583"), SPEC
+        assert (f"{apr:f}", f"{sharpe:f}") != SCRIPT_RATIO
+
+    def test_uso_ends_at_a_quarter_of_its_starting_ratio_to_gld(
+        self, result: ExampleThreeOne
+    ) -> None:
+        """Figure 3.2's ratio over the traded days, from 1.03 to 0.24, never back above 1.3."""
+        value = result.ratio.signal.value
+        assert (round(float(value[0]), 2), round(float(value[-1]), 2)) == (1.03, 0.24), SPEC
+        assert round(float(value.max()), 2) == 1.30, SPEC
+
     def test_the_swap_trades_gld_over_uso_and_buys_gld_on_a_positive_unit(
         self, sources, result: ExampleThreeOne
     ) -> None:
@@ -239,6 +275,33 @@ class TestTheClaims:
         """Location 1505: "The APR of 9 percent and Sharpe ratio of 0.5 are actually lower"."""
         assert result.log_price_spread.apr < result.price_spread.apr, SPEC
         assert result.log_price_spread.sharpe < result.price_spread.sharpe, SPEC
+
+
+class TestThePairDoesNotCointegrate:
+    """Location 1505 says GLD and USO "are not, in fact, cointegrated", and the rule trades
+    them anyway on a hedge ratio refitted every 20 days.
+
+    The test is :func:`chan.pair_cointegration.engle_granger` at one lag, USO regressed on
+    GLD with an intercept over all 1,500 days, its residual's ADF statistic compared with
+    the Engle-Granger critical values for two series. It is the test
+    ``blog/price-spread-mean-reversion.md`` teaches, here on Chan's own ETF file.
+    """
+
+    def test_engle_granger_does_not_reject_at_10_percent(self, sources) -> None:
+        _, closes = sources
+        result = engle_granger(closes[Y_SYMBOL].to_numpy(), closes[X_SYMBOL].to_numpy())
+        assert result.adf_stat == pytest.approx(-1.5150, abs=5e-5), SPEC
+        assert result.hedge_ratio == pytest.approx(-0.2669, abs=5e-5), SPEC
+        assert EG_CRIT_N2["10%"] == -3.04
+        assert result.adf_stat > EG_CRIT_N2["10%"], SPEC
+
+    def test_the_20_day_hedge_ratio_changes_sign(self, result: ExampleThreeOne) -> None:
+        """Below zero, one unit is long USO and long GLD, so the spread is not a hedge."""
+        hedge = result.price_spread.signal.hedge
+        assert np.isfinite(hedge).all(), SPEC
+        assert (round(float(hedge.min()), 3), round(float(hedge.max()), 3)) == (-0.948, 2.168), SPEC
+        assert int((hedge < 0).sum()) == 334, SPEC
+        assert len(hedge) == 1480, SPEC
 
 
 class TestWhatMovesNothing:
