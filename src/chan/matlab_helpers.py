@@ -44,6 +44,8 @@ Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 and :func:`smartsum` for *Algorithmic Trading*'s Examples 4.3 and 4.4.
 :mod:`chan.price_spread` calls :func:`lag1` for *Algorithmic Trading*'s
 Example 3.1.
+:mod:`chan.etf_cointegration` calls :func:`backshift` and
+:func:`round_half_away` for *Algorithmic Trading*'s Examples 2.6 to 2.8.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
@@ -93,6 +95,7 @@ the revised edition's Example 7.7. :mod:`chan.usdcad_mean_reversion` calls
 :func:`moving_avg` and :func:`moving_std` for Example 2.5, with
 :func:`round_half_away` for the lookback, and :mod:`chan.stationarity_tests`
 calls :func:`round_half_away` to choose a row of jplv7's critical values.
+:mod:`chan.etf_cointegration` calls :func:`moving_avg` and :func:`moving_std`.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
@@ -175,11 +178,13 @@ too, and so does Example 2.5's ``stationarityTests.m``, which
 ``public/img/book2/`` in EpchanPreview at ``e4bc46f`` and under
 ``archived/matlab/`` in ivanliu1989/algorithmic_trading at ``4567024``. They
 landed here for
-[issue 340](https://github.com/l3a0/quantitative-trading/issues/340). Three
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
+Examples 2.6 to 2.8's ``cointegrationTests.m`` calls them too, for
+[issue 339](https://github.com/l3a0/quantitative-trading/issues/339). Three
 things changed on the way over.
 
 1. ``movingStd``'s optional third argument, which samples every ``period``
-   rows, is not carried, because none of the four scripts passes it.
+   rows, is not carried, because none of the six scripts passes it.
 2. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window,
    and ``movingStd`` refuses a window of one row for the reason
    :func:`smart_moving_std` does.

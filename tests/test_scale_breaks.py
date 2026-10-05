@@ -229,6 +229,10 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: file's whole span, neither carries a flagged day, and nothing is refused.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_price_spread.py`` holds both
 #: legs clean and a broken leg refused.
+#: ``chan.etf_cointegration`` calls it on EWA, EWC and IGE over the same span
+#: for Examples 2.6 to 2.8, under
+#: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
+#: nothing is refused there either.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

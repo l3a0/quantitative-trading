@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-two replications run here, fifteen from Chan's *Quantitative Trading*
-and seven from his *Algorithmic Trading*. The first two were ported from the
+Twenty-three replications run here, fifteen from Chan's *Quantitative Trading*
+and eight from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty were built here.
+where they were first built. The other twenty-one were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -291,6 +291,20 @@ where they were first built. The other twenty were built here.
     0.1141 after a fall of 0.6425, which is the claim the issue declared
     before any P&L was computed. Its lookback comes from the closes it trades,
     as the book says. Every figure is exploratory.
+23. The cointegration tests and mean-reverting portfolio of *Algorithmic
+    Trading*'s Examples 2.6 to 2.8, on the ETFs EWA, EWC and IGE in Chan's own
+    ETF file. Every figure `cointegrationTests.m` prints reproduces to its last
+    digit, the eigenvectors up to their sign: a CADF statistic of −3.64346635,
+    every Johansen statistic and eigenvalue, a half-life of 22.662578 days, and
+    an APR of 0.125739 with a Sharpe ratio of 1.391310, his 12.6 percent and
+    1.4. The Johansen test is statsmodels' `coint_johansen`, which carries the
+    critical-value tables of the jplv7 function Chan calls and lands its
+    output, wrapped once in `chan.johansen` for the three issues that need it
+    next. The book's claim
+    that both Johansen statistics find three relations for the triplet does
+    not reproduce, because the eigen statistic finds none, which the script's
+    own printout already shows. Every figure is exploratory, and the
+    portfolio's weights are fitted on the days it trades.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -469,7 +483,19 @@ three toolbox tests' rules on synthetic series: the row jplv7 drops, the bins
 of its critical values, `genhurst`'s indifference to level and scale, and the
 variance ratio's trim to whole periods.
 
-All twenty-two replications reach a verdict in
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) does it for
+the ETF cointegration examples. It pins every figure `cointegrationTests.m`
+prints at the precision that is real and as the script printed it, each
+critical value as the script formatted it, and the book's rounder figures. It
+also holds that negating the eigenvector moves no figure, since statsmodels
+returns it with the opposite sign from Chan's, and that padding the lag with
+zeros as LeSage's `lag` does gives the same series.
+[tests/test_johansen.py](tests/test_johansen.py) holds what the wrapper adds:
+a known cointegrating vector recovered from a built system, real figures
+without a warning, and a refusal naming the column and row of any price that
+is not a finite number.
+
+All twenty-three replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -479,8 +505,9 @@ seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
-panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's and Entry 22
-the stationarity tests on USD.CAD.
+panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
+the stationarity tests' on USD.CAD and Entry 23 the ETF cointegration
+examples'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -600,6 +627,9 @@ the first run to read it. The lift for
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
 it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
+The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
+closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
+and nothing else reads it yet.
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract
@@ -1023,6 +1053,19 @@ It prints the source, each test's figures beside the script's and the book's,
 Example 2.5's lookback, cumulative P&L and drawdown, and the two rows reported
 beside the script: `adfuller`'s statistic and the Python port's own Hurst
 exponent.
+
+The ETF cointegration examples, Examples 2.6 to 2.8 of *Algorithmic Trading*,
+take no option, because `cointegrationTests.m` fixes the file, the three ETFs
+and every test:
+
+```bash
+uv run python -m chan.etf_cointegration
+```
+
+It prints the three vintages and the window, each figure the script prints
+beside the computed one and a verdict, the first eigenvector beside Chan's with
+its sign flipped, how many relations each Johansen statistic finds at each
+level, and the rows beside the replication.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

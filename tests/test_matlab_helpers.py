@@ -228,6 +228,11 @@ class TestMovingAvg:
     def test_a_series_shorter_than_the_window_is_all_nan(self) -> None:
         assert np.isnan(moving_avg([1.0, 2.0], 3)).all()
 
+    def test_a_series_shorter_than_its_window_is_nan_at_its_own_length(self) -> None:
+        avg = moving_avg([1.0, 2.0], 3)
+        assert avg.shape == (2,)
+        assert np.isnan(avg).all()
+
     def test_a_window_below_one_row_is_refused(self) -> None:
         with pytest.raises(ValueError, match="at least 1 row, not 0"):
             moving_avg([1.0, 2.0], 0)
@@ -264,6 +269,11 @@ class TestMovingStd:
 
     def test_a_series_shorter_than_the_window_is_all_nan(self) -> None:
         assert np.isnan(moving_std([1.0, 2.0], 3)).all()
+
+    def test_a_series_shorter_than_its_window_is_nan_at_its_own_length(self) -> None:
+        sd = moving_std([1.0, 2.0], 3)
+        assert sd.shape == (2,)
+        assert np.isnan(sd).all()
 
 
 class TestCalculateReturns:

@@ -1009,7 +1009,7 @@ the decision behind the shape, and the build measured what follows.
     port list above is that change.
 
 `inputdata_etf/` is Chan's book-two ETF file, `inputData_ETF.mat`, which most
-of *Algorithmic Trading*'s ETF experiments not yet run here read. It holds 67 ETFs over 1,500
+of *Algorithmic Trading*'s ETF experiments read. It holds 67 ETFs over 1,500
 trading days, 2006-04-26 to 2012-04-09, with the same five fields per member
 as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
@@ -1018,6 +1018,9 @@ price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
 on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. Example 3.1 is
 the first run to read it, GLD and USO alone, under
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
+Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
+`chan.etf_cointegration`, for
+[issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
