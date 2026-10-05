@@ -1463,8 +1463,8 @@ Three groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. "More than 13
    percent" and "has disappeared since then" are on p. 179, "has weakened or
-   even disappeared in recent years" and "worked wonderfully" on p. 175,
-   beside the tax-loss reason Chan gives for the January effect. The
+   even disappeared in recent years" on p. 175, and "worked wonderfully" on
+   p. 175 too, beside the tax-loss reason Chan gives for the January effect. The
    reader whose backtest of Example 7.6 failed is on p. 13. "The most
    recent five years instead of the entire data period", and Chan's
    statement that those years do even worse, are on p. 180.
@@ -1663,20 +1663,20 @@ replication log.
 4. Reading one named contract from files numbered by expiry needs a calendar
    checked against something the files do not supply.
 
-It cites the revised edition by Kindle location, as the replication log does,
-because the session that wrote it could not reach the Kindle Cloud Reader that
-gave the equity seasonals post its pages. Four groups of its figures are not
-pinned here.
+It cites the revised edition by page, while the replication log cites the
+same passages by Kindle location. Four groups of its figures are not pinned
+here.
 
-1. Chan's words, each at its location in the revised edition. The pairing of
-   equity and commodity seasonals at location 4303, "alive and well", the
+1. Chan's words, each cited by its page in the revised edition. The pairing
+   of equity and commodity seasonals is on p. 175. "Alive and well", the
    demand from real economic need rather than speculation, and 19 profitable
-   years of the last 21 "as of 2015" with the last 9 out of sample at 4529,
-   the summer driving season, the profit every year since 1995 and the scan of
-   the literature at 4536, 13 consecutive years and the demand from power
-   generators at 4585, 14 consecutive years and the exit on April 15 at 4590,
-   "didn't hold up as well out-of-sample" at 4632, and the warning about
-   data-snooping and the suggestion to try nearby dates at 4637.
+   years of the last 21 "as of 2015" with the last 9 out of sample are on
+   p. 183, as are the summer driving season and the scan of the literature.
+   The gasoline rule's April dates and the profit every year since 1995 are
+   on p. 184. 13 consecutive years and the demand from power generators, 14
+   consecutive years and the exit on April 15, and "didn't hold up as well
+   out-of-sample" are on p. 185. The warning about data-snooping and the
+   suggestion to try nearby dates are on p. 186.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
