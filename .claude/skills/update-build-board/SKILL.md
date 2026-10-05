@@ -456,13 +456,17 @@ store.flow.innerHTML.split('<div class="col f-').slice(1).forEach(function(c){
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
   var d=c.match(/<span class="d">([^<]*)<\/span>/);
   o.push("flow  "+h[1]+"="+h[2]+": "+(ids.join(" ")||"(empty)"));
-  o.push("  sub "+(d?d[1]:"(none)"));});
+  o.push("  sub "+(d?d[1]:"(none)"));
+  var wk=(c.match(/<div class="wk">[^<]*<\/div>/g)||[]).map(s);
+  o.push("  wk  "+(wk.join(" | ")||"(none)"));});
 store.board.innerHTML.split('<div class="col k').slice(1).forEach(function(c){
   var h=c.match(/<span class="t">([^<]+)<\/span><span class="c">(\d+)<\/span>/);
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
   var d=c.match(/<span class="d">([^<]*)<\/span>/);
   o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));
-  o.push("  sub "+(d?d[1]:"(none)"));});
+  o.push("  sub "+(d?d[1]:"(none)"));
+  var wk=(c.match(/<div class="wk">[^<]*<\/div>/g)||[]).map(s);
+  o.push("  wk  "+(wk.join(" | ")||"(none)"));});
 o.push("FLOWNOTE: "+s(store.flownote.innerHTML));
 o.push("BOARDNOTE: "+s(store.boardnote.innerHTML));
 o.push("KEY: "+s(store.key.innerHTML));
@@ -513,6 +517,12 @@ The column subtitles were the same gap a second time. The harness printed each
 column's title and count and skipped the subtitle under them, so a change
 rewriting the "Waiting on" subtitles for defect 17 could have been reverted
 without the output moving. Each column now prints a `sub` line under it.
+
+The session line was the third. On 2026-10-05 the page stopped drawing a
+card's `what` phrase under "Building" and "Being planned", and the harness
+printed the same output for that page and for one with the change reverted,
+because it printed no card's lines at all. Each column now prints a `wk` line
+listing the session phrases its cards drew, and `(none)` where they drew none.
 
 **Much of the page is dark when `PRS` and `WORKING` are empty**, which is the
 state it is in between batches and every time a session opens the first branch
