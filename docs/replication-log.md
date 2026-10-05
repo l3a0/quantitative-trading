@@ -5041,7 +5041,7 @@ in percentage points at that precision.
 | 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build but after a scratch run had measured the figures. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. Row 16 runs it on the month-spaced γ, and there it fails for C. |
 | 14 | none, a claim | reproduced | It holds under the script's γ, which is what printed Table 5.1. Row 16 is the same claim under the book's own description of the method, and there it fails for HG. |
 | 15 | none | none, not a replication | No figure is printed for it. Monthly strips give the same γ either way, to rounding. |
-| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. Issue 347 declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
+| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
 | 17 | none | none, not a replication | It is why rows 15 and 16 move only C, HG and TU. |
 | 18 | none | none, not a replication | γ needs five priced contracts. C's strip ends at 2012Z, so after its March 2012 contract expires no day prices more than four. |
 
