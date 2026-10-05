@@ -695,7 +695,7 @@ class TestFetch:
         document = _fixture("nport-2022-title-and-cusip.xml")
         record(_FUND, _NPORT_FILING, document, tmp_path)
         other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
-        with pytest.raises(FilingRefused, match="the index records"):
+        with pytest.raises(FilingRefused, match="downloaded with sha256"):
             fund_holdings.fetch(
                 other,
                 filings_dir=tmp_path,
