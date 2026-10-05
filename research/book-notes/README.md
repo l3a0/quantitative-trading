@@ -63,6 +63,14 @@ The two figures `andrewlo_2007_2012.m` prints for Example 4.4, 0.731553 and
 4.713284, sit in its closing comment and nowhere in the book. The replication
 log's Entry 19 traces each to one or the other.
 
+Examples 2.1 to 2.5 split the same way. The book's figures are here: the ADF
+statistic of about −1.84 and the 10 percent critical value of −2.594 at
+location 1114, H of 0.49 at 1119, and the half-life of 115 days at 1193 and
+again at 1347. The six decimals of `stationarityTests.m`'s comments, −1.840744,
+0.994120, the 1 and 5 percent critical values, the variance ratio's 0.367281
+and 115.209794, sit in the script and nowhere in the book. The replication
+log's Entry 22 traces each to one or the other.
+
 Example 7.4 splits the same way. Its setup at location 4034 and its result at
 4051 are here, including the 2 and 4 percent and Chan's account of the gap
 between them as round-off. The figures its four programs print are not,

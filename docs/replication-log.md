@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 and 21 carry
-their own, three, eleven, twelve, five, six, one, three, eight, six, two,
-eight, seven, twelve, six, two, five, three and three,
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21
+and 22 carry their own, three, eleven, twelve, five, six, one, three, eight,
+six, two, eight, seven, twelve, six, two, five, three, three, three and seven,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -31,13 +31,15 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 and 21 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21 and 22 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
 and nothing about whether the trade works today. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
-states rather than picking one.
+states rather than picking one. Entry 20 works arithmetic on inputs the book
+states and is outside both for the same reason, which its first conclusion
+says.
 
 ## Contents
 
@@ -179,6 +181,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-19)
   - [What the entry concludes](#what-the-entry-concludes-20)
   - [What this entry cannot say](#what-this-entry-cannot-say-18)
+- [Entry 22: the stationarity tests on USD.CAD, Chan's *Algorithmic Trading*](#entry-22-the-stationarity-tests-on-usdcad-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-19)
+  - [What this repo computed](#what-this-repo-computed-21)
+  - [The verdicts](#the-verdicts-20)
+  - [What the entry concludes](#what-the-entry-concludes-21)
+  - [What this entry cannot say](#what-this-entry-cannot-say-19)
 
 ## How to read an entry
 
@@ -218,8 +226,10 @@ both.
    [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py)
    holds Entry 19,
    [tests/test_kelly_allocation.py](../tests/test_kelly_allocation.py) holds
-   Entry 20, and [tests/test_price_spread.py](../tests/test_price_spread.py)
-   holds Entry 21.
+   Entry 20, [tests/test_price_spread.py](../tests/test_price_spread.py)
+   holds Entry 21, and
+   [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
+   holds Entry 22.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -326,12 +336,12 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18 and 23 to 29,
+than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 34,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
-Entry 20's rows 11 to 13, and Entry 21's rows 9 to 11.
+Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, and Entry 22's rows 8 to 10.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -418,6 +428,12 @@ criteria were written on
 the first run. Each reads its criterion straight from location 1505's words,
 "a negative APR" and "actually lower" on both figures it names, so there was
 no threshold left to choose once the numbers were seen.
+
+Entry 22's row 7 takes it too. Location 1225 says the P&L of the strategy it
+names "manages to be positive", and the criterion, the sum of the daily P&L
+over all 1,216 rows above 0, was written on
+[issue 338](https://github.com/l3a0/quantitative-trading/issues/338) before
+any P&L was computed.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -1880,9 +1896,10 @@ to 18 shipped under
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), and rows 19
 to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225).
 Rows 22 to 29 shipped under
-[issue 254](https://github.com/l3a0/quantitative-trading/issues/254).
+[issue 254](https://github.com/l3a0/quantitative-trading/issues/254), and rows
+30 to 34 under [issue 333](https://github.com/l3a0/quantitative-trading/issues/333).
 
-Twenty-nine rows, all derivable from
+Thirty-four rows, all derivable from
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
 
 **Every figure the committed files reach reproduces, in every printout.** Chan
@@ -1914,6 +1931,14 @@ Each example reads one of two vintages.
 trusted. Each file holds only the companies in its index on the day Chan saved
 it, carried backwards, which is the first thing this entry cannot get past.
 
+Rows 30 to 34 read neither file. They run Example 7.6 on the 603 companies IJR
+held at 2025-12-31, from IJR's Form N-PORT at accession `0000940400-26-007526`
+as `research/filings/ijr/2025-12-31.csv` records it, carried back to 2007.
+Their closes are Alpha Vantage's adjusted closes, the 603 lines of the `sp600`
+cross-section in `data/archive_vintages.jsonl`, downloaded 2026-10-05, with
+the bytes in the owner's archive. The committed raw SPY vintage downloaded on
+2026-10-03 is the calendar.
+
 Rows 1 to 6 first ran on an earlier save, `data/ijr_20080114/`, saved
 2008-01-15 and ending on 2008-01-14, which stops short of January 2008's
 month-end. The two saves give rows 1 to 6 to every digit.
@@ -1924,8 +1949,9 @@ month-end. The two saves give rows 1 to 6 to every digit.
 
 The specification is the script. Rows 1 to 6 are Example 7.6, rows 7 to 14 are
 Example 7.7, rows 15 to 18 split one of them at 2002, rows 19 to 21 are
-Example 7.6's third January, and rows 22 to 29 are p. 180's most recent five
-years. Each row names the
+Example 7.6's third January, rows 22 to 29 are p. 180's most recent five
+years, and rows 30 to 34 are Example 7.6 from January 2009 to January 2026 on
+IJR's members at 2025-12-31. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
@@ -1962,6 +1988,17 @@ hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 carries a verdict, and the verdict is about Chan's file of survivors rather
 than about the effect.
 
+Rows 30 to 34 are **survivor-only** and **exploratory**, and they carry no
+verdict even though their criterion was written on
+[issue 333](https://github.com/l3a0/quantitative-trading/issues/333) before
+any return was computed. Data tilted toward the effect can speak in one
+direction only. The companies that left the index before 2025-12-31 are
+missing, so the losers held long are the ones that recovered and the winners
+held short are mostly the ones that stalled. A mean not detectably above zero
+bounds the effect even on that data, at the X the test detects with 80%
+probability. A mean above zero would have said nothing, because the bias alone
+could produce it.
+
 ### What the book printed
 
 | # | Row | Published | Where |
@@ -1989,6 +2026,8 @@ than about the effect.
 | 21 | 7.6, January 2008, revised R | 0.0881 | as row 5 |
 | 22 | 7.7 average annual return over the most recent five years, revised MATLAB | "even worse" than the whole period, a claim, no figure | the revised Kindle edition, p. 180, directly after the MATLAB listing, as a session read it in the Kindle Cloud Reader on 2026-10-03 |
 | 23 to 29 | row 22's Sharpe ratio, the same two figures over the full run's last 60 months, and all four under the revised Python's rules | nothing | n/a |
+| 30 | 7.6, mean January return before costs, January 2009 to January 2026, IJR's members at 2025-12-31 | nothing, the book prints no figure for these Januaries | n/a |
+| 31 to 34 | row 30's standard deviation, its one-sided t-test, the mean the test detects with 80% probability, and the mean after costs | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
 beside code rather than in a sentence somebody marked. Row 22's sentence is not
@@ -2035,6 +2074,11 @@ code behind rows 9, 10, 13 and 14 traces to
 | 27 | as row 26 | −0.294952 | none | as row 26 |
 | 28 | row 11's last 60 kept months, 2002-11-30 to 2007-10-31 | −0.017011 | none | as row 26 |
 | 29 | as row 28 | −0.259985 | none | as row 26 |
+| 30 | `MATLAB_JANUARY` unchanged, in one call on the closes from 2007-12-01 to 2026-10-02: 18 Januaries, from 36 long and 36 short of 362 ranked to 60 long and 60 short of 598 ranked, each return with its two one-way costs added back | 0.0108 | none, survivor-only and exploratory | `TestTheSurvivorPins::test_the_mean_is_not_detectably_above_zero` |
+| 31 | the standard deviation of row 30's 18 Januaries, with one degree of freedom removed | 0.0398 | none | as row 30 |
+| 32 | a one-sided t-test of row 30 against zero at 5%, at 17 degrees of freedom | t 1.15, p 0.132 | none | as row 30 |
+| 33 | the smallest mean the test detects with 80% probability at row 31's deviation, from the noncentral t | 0.0243 | none | `TestTheSurvivorPins::test_x_is_2_4_percent_a_january` |
+| 34 | row 30 after the two one-way costs of 5 basis points | 0.0098 | none | `TestTheSurvivorPins::test_the_mean_after_costs` |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
@@ -2069,10 +2113,12 @@ no published figure to take a gap from.
 | 21 | reproduced | Inferred rules, as for row 5. A tenth of 594 is 59.4, so R's rounding and MATLAB's give the same stocks. |
 | 22 | reproduced | The criterion was written on [issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before any five-year figure was computed, under the owner's ruling that the revised MATLAB's rules carry it. The post's running-sum figure, which shows the shape of those years, was already published then, as the issue records. P. 180 tells the reader to run the program on the most recent five years instead of the entire data period, so the program is rerun on the last five years of its input. The rerun's 47 months are the full run's last 47, value for value. The claim holds on Chan's file of survivors. The rerun's annual return has a standard error of 0.0281 a year, about eight times the 0.0036 gap, so the row says nothing about whether the effect weakened. `TestTheMostRecentFiveYears::test_the_gap_is_far_inside_the_noise_of_47_months` holds both figures. |
 | 23 to 29 | none, not a replication | Reported beside row 22 with no verdict. Rows 24, 25, 28 and 29 average the tail of the full run, a rule the book does not print, and p. 180 names the average returns rather than the Sharpe ratio. |
+| 30 | none, survivor-only and exploratory | No January effect detectable above about 2.4% a January, on members that favour the effect. The test fails to reject, so the reading takes the owner's wording for [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), with X at the measured deviation, and it never says the effect disappeared. Two ranked members have no exit close and are skipped as `smartmean` skips them: INDV, which has no row on 2019-01-31, and GES, delisted on 2026-01-22. Two members are never ranked at all, because Alpha Vantage's NVRI and GTES hold nothing before 2026, so at most 601 of the 603 can rank. [Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) computes the per-January difference from these rows. |
+| 31 to 34 | none, survivor-only and exploratory | Reported beside row 30. Row 33 is 2.4% where the issue's power estimate before the run was 3.7%, because the measured deviation of 0.0398 is smaller than the 6.05% of Chan's three printed Januaries. |
 
 ### What the entry concludes
 
-Four things.
+Five things.
 
 1. **Every reachable figure reproduces, and not under the strategy as
    described.** The seventeen rows land at the precision each printout gives.
@@ -2102,6 +2148,16 @@ Four things.
    23 months from January 2002 to November 2003, which return 0.069997 a year
    under the revised Python's rules, and that figure is exploratory like the
    split.
+5. **On IJR's members at 2025-12-31, no January effect is detectable above
+   about 2.4% a January, on data that favour it.** Rows 30 to 34 average
+   0.0108 a January before costs over 18 Januaries, with a one-sided p of
+   0.132. The data are survivors, tilted toward the effect, so this reading
+   goes one way only.
+   [Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) runs
+   the same rules on the members as they stood at each year-end, and computes
+   the per-January difference from these rows, described rather than tested.
+   Both runs read one cross-section, so the gap measures membership rather
+   than two download dates for every symbol the two share.
 
 ### What this entry cannot say
 
@@ -4491,3 +4547,142 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/price-spread-ratio-lessons.md](../blog/price-spread-ratio-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.price_spread_figures` redraws.
+
+## Entry 22: the stationarity tests on USD.CAD, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Examples 2.1 to 2.5, Kindle locations 1076 to 1225,
+with the half-life repeated at 1347. Shipped under
+[issue 338](https://github.com/l3a0/quantitative-trading/issues/338). One
+script, `stationarityTests.m`, runs all five examples in order on the same
+closes, and its comments print every figure but one. The script is in
+ericnberwick/EpchanPreview at `e4bc46f`, under `public/img/book2/`.
+
+Ten rows, all derivable from
+[tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py).
+Seven do not match one printed figure to one computation, and each says so in
+its own cells. Rows 1, 3, 5 and 6 each cover more than one figure from one
+computation. Rows 8 to 10 carry no published figure.
+
+**The closes.** Every row reads one vintage: Chan's minute file of USD.CAD,
+vendor `chan-py`, symbol `USDCAD`, basis `raw`, saved 2018-10-13, from his
+2018 Python port. The script keeps the bar stamped 16:59 New York time on each
+day, which gives 1,216 closes from 2007-07-23 to 2012-03-28. The script loads
+a MATLAB file of the same bars that neither public mirror holds, so the only
+evidence that the two hold the same closes is that every figure below except
+H lands every digit the script prints.
+
+**The three functions Chan did not write.**
+[src/chan/stationarity_tests.py](../src/chan/stationarity_tests.py) transcribes
+each, and its docstring names where each came from.
+
+1. James LeSage's jplv7 `adf`, with the critical values of its `ztcrit`. It
+   fits one row fewer than `statsmodels`' `adfuller` at the same lag, because
+   it trims the lagged level after trimming the lagged changes.
+2. Tomaso Aste's `genhurst`, from the MATLAB File Exchange. Every surviving
+   copy is dated 2013-01-30, and they run one algorithm.
+3. MATLAB's `vratiotest`, Lo and MacKinlay's variance ratio test with a
+   variance that allows for changing volatility. It trims the returns to a
+   whole number of periods before anything else.
+
+The half-life is `ithildincore`'s `ou_half_life`, which is the script's own
+regression, and Example 2.5 uses Chan's `movingAvg` and `movingStd`, which
+[src/chan/matlab_helpers.py](../src/chan/matlab_helpers.py) carries.
+
+**Example 2.5's claim was declared before its P&L existed.** Location 1225
+says the P&L "manages to be positive, albeit with a large drawdown".
+[Issue 338](https://github.com/l3a0/quantitative-trading/issues/338) wrote down
+that the claim holds when the sum of the daily P&L over all 1,216 rows is
+above 0. "Large" names no scale, so the drawdown is reported beside the claim
+and decides nothing.
+
+### What the book printed
+
+| # | Row | Published figure | Where the book prints it |
+| --- | --- | --- | --- |
+| 1 | 2.1, the ADF statistic at 1 lag | −1.840744, and "about −1.84" | the script's comment, location 1114 |
+| 2 | 2.1, the AR(1) estimate | 0.994120 | the script's comment |
+| 3 | 2.1, the 1, 5 and 10 percent critical values | −3.458, −2.871 and −2.594 | the script's comment, location 1114 for the 10 percent value |
+| 4 | 2.2, the Hurst exponent | 0.49 | location 1119 |
+| 5 | 2.3, the variance ratio test's decision and p-value | h=0, 0.367281 | the script's comment |
+| 6 | 2.4, the half-life | 115.209794, and 115 days | the script's comment, locations 1193 and 1347 |
+| 7 | 2.5, the cumulative P&L is positive | a claim | location 1225 |
+| 8 | 2.1, the statistic `adfuller` gives at the same lag | none, the book runs jplv7 | n/a |
+| 9 | 2.2, H from the Python port's own `genhurst` | none, the book runs Aste's | n/a |
+| 10 | 2.5, the deepest drawdown | none, the book says only "large" | location 1225 states the claim |
+
+### What this repo computed
+
+| # | Specification | Vintage | Computed | Assertion |
+| --- | --- | --- | --- | --- |
+| 1 | jplv7 `adf(y, 0, 1)` on the 1,216 closes, 1,213 rows fitted | `chan-py` USDCAD raw, saved 2018-10-13 | −1.840744089 | `TestExample21TheAdfTest::test_the_statistic_is_chans_minus_1_840744` |
+| 2 | The same regression's coefficient on the lagged level | the same | 0.9941196429 | `TestExample21TheAdfTest::test_the_ar1_estimate_is_chans_0_994120` |
+| 3 | `ztcrit`'s row for 1,216 observations at trend order 0 | the same | −3.45830, −2.87104 and −2.59369 | `TestExample21TheAdfTest::test_the_critical_values_are_chans` |
+| 4 | `genhurst(log(y), 2)`, window lengths 5 to 19 | the same | 0.4732326652 | `TestExample22TheHurstExponent::test_h_misses_the_books_0_49` |
+| 5 | `vratiotest(log(y))`, period 2, 1,214 returns | the same | h=0, p 0.3672813756 | `TestExample23TheVarianceRatio::test_the_decision_and_p_value_are_chans` |
+| 6 | `−log(2)/λ`, λ from the change on the previous close and a constant | the same | 115.2097944852 | `TestExample24TheHalfLife::test_the_half_life_is_chans_115_209794` |
+| 7 | The sum of the daily P&L, at a lookback of 115, the half-life rounded, so the first position is held on 2008-01-02 | the same | 0.1141168588 | `TestExample25LinearMeanReversion::test_the_cumulative_pnl_is_positive_as_location_1225_says` |
+| 8 | `adfuller(y, maxlag=1, regression='c', autolag=None)`, 1,214 rows fitted | the same | −1.8430182830 | `TestExample21TheAdfTest::test_adfuller_at_the_same_lag_misses_by_the_one_row_it_keeps` |
+| 9 | `genhurst.py` from Chan's 2018 Python port, on the log closes | the same | 0.4758441244 | `TestExample22TheHurstExponent::test_the_python_ports_own_genhurst_misses_too` |
+| 10 | The deepest fall of the cumulative P&L below its running high | the same | 0.6425313986, from 2008-07-22 to 2008-10-27 | `TestExample25LinearMeanReversion::test_the_drawdown_reported_beside_it` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | −0.000000 at six decimals | reproduced | Exact at the six decimals the script prints. Location 1114's reading survives: the statistic sits above the 10 percent value of −2.594, so a unit root is not rejected. |
+| 2 | −0.000000 at six decimals | reproduced | Exact at that precision. λ, the estimate less 1, is negative, which is location 1114's second reading. |
+| 3 | −0.000, −0.000 and +0.000 at three decimals | reproduced | Exact at that precision. 1,216 observations fall in the table's last bin, which every series of 425 or more reads. |
+| 4 | −0.02 at two decimals | did not reproduce | 0.4732 prints as 0.47 against the book's 0.49, on the closes every other test lands. The claim the figure was printed for survives: H is below 0.5, which location 1119 reads as weakly mean reverting. No cause outside the method is available. The only candidate is a `genhurst` older than the one every surviving copy carries, and that would be a different method rather than a different vintage. |
+| 5 | +0.000000 at six decimals | reproduced | The decision is exact and the p-value is exact at six decimals. The variance ratio is 0.9647, below 1, as a reverting series gives, and not significantly so. |
+| 6 | +0.000000 at six decimals, and 0 days | reproduced | Exact at the six decimals the script prints, and at the whole days the book prints. |
+| 7 | none, a claim | reproduced | The criterion written on [issue 338](https://github.com/l3a0/quantitative-trading/issues/338) before any P&L existed holds. The P&L ends at 0.1141, above 0. |
+| 8 | none | none, not a replication | Both `ithildincore`'s `adf_tstat` and the ADF line in Chan's 2018 Python port run `adfuller`, which fits the one row jplv7 drops. The Python port would print −1.843018 for the figure the book prints as −1.840744. |
+| 9 | none | none, not a replication | The port's `genhurst` is a different estimator, the slope of the log variance of τ-day changes on log τ, halved. It lands nearer the book than Aste's, at 0.48, and still misses 0.49. |
+| 10 | none | none, not a replication | The cumulative P&L reaches 0.1321 on 2008-07-22 and falls to −0.5104 on 2008-10-27, a drop more than five times what the run ends with. That reads as large on any scale, but the book gives none, so it decides nothing. |
+
+### What the entry concludes
+
+Four things.
+
+1. **The closes Chan ran are the closes committed here.** The MATLAB file
+   cannot be compared directly, and four independent statistics landing every
+   printed digit is stronger evidence than a comparison of a sample of days
+   would be.
+2. **The ADF figure depends on which toolbox runs it.** jplv7's `adf` and
+   `adfuller` agree on the regression and differ by one row of sample, and
+   that row moves the third decimal, from −1.8407 to −1.8430. This repo's
+   existing ADF lives in `ithildincore` and runs `adfuller`, so a replication
+   of a jplv7 figure needs jplv7's trimming, which is why
+   `chan.stationarity_tests` exists beside it.
+3. **H is the one figure that does not land, and it misses under both of
+   Chan's own implementations.** Aste's `genhurst` gives 0.47 and Chan's 2018
+   Python port gives 0.48, so the book's 0.49 is not what either computes on
+   these closes. Every reading of H here agrees with the book's conclusion,
+   that USD.CAD is at most weakly mean reverting, and the variance ratio test
+   says the same thing more carefully: not distinguishable from a random walk.
+4. **Example 2.5's claim survives, and it carries the look-ahead Chan names.**
+   The lookback of 115 days is the half-life of the same 1,216 closes the
+   strategy trades. Its P&L is positive by 0.1141 after a fall of 0.6425, and
+   whether that survives a lookback chosen without seeing the closes is a
+   question this entry does not ask.
+
+### What this entry cannot say
+
+Three things.
+
+**What computed the book's 0.49.** No surviving copy of `genhurst` gives it,
+and the script that printed it records no value. Searching for the variant
+that lands it would be choosing a reading after its number is seen.
+
+**Whether Example 2.5 would pay.** The look-ahead above, no transaction cost,
+and a position that grows without limit as the deviation does, all of which
+location 1225 names. The P&L is in units of the position's own scale rather
+than a return on capital, so it carries no Sharpe ratio or APR, and the book
+prints none.
+
+**Anything about USD.CAD after March 2012.** Every figure is exploratory, on a
+sample Chan already chose.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.

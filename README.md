@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-one replications run here, fifteen from Chan's *Quantitative Trading*
-and six from his *Algorithmic Trading*. The first two were ported from the
+Twenty-two replications run here, fifteen from Chan's *Quantitative Trading*
+and seven from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other nineteen were built here.
+where they were first built. The other twenty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -114,7 +114,14 @@ where they were first built. The other nineteen were built here.
    of his S&P 500 file do even worse holds under a criterion written before
    the check ran: −0.0165 a year against −0.0129. The gap is far inside the
    noise of 47 months, so the verdict is about his file of survivors rather
-   than about whether the effect weakened.
+   than about whether the effect weakened. Example 7.6 also runs from January
+   2009 to January 2026 on the 603 companies IJR held at 2025-12-31, on Alpha
+   Vantage closes kept in the owner's archive. Those rows are survivor-only
+   and exploratory, and read in one direction only, because the companies
+   that left the index are missing and both legs gain from their absence. The
+   mean January before costs is 0.0108, with a one-sided p of 0.132, so no
+   January effect is detectable above about 2.4% a January, on members that
+   favour the effect.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -272,6 +279,18 @@ where they were first built. The other nineteen were built here.
     script with GLD and USO swapped lands both, a reading found after the miss.
     Chan's claim that the ratio loses money holds either way. Every figure is
     exploratory.
+22. Four tests for mean reversion on USD.CAD and the trade they set, Examples
+    2.1 to 2.5 of *Algorithmic Trading*, on Chan's own minute file read at
+    16:59 each day. Every figure his script prints lands every digit: the ADF
+    statistic −1.840744 with its AR(1) estimate and critical values, the
+    variance ratio test's p-value of 0.367281, and the half-life of 115.209794
+    days. The ADF figure needs jplv7's regression, which fits one row fewer
+    than `adfuller`, whose −1.843018 misses. The Hurst exponent does not land:
+    0.4732 against the book's 0.49, and Chan's own Python port gives 0.4758,
+    though both agree H is below a half. Example 2.5's P&L ends positive at
+    0.1141 after a fall of 0.6425, which is the claim the issue declared
+    before any P&L was computed. Its lookback comes from the closes it trades,
+    as the book says. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -323,9 +342,11 @@ nothing here asserts is listed below.
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
-builder who corrects his code fails a test rather than moving a pin. The blog
-post about them is the exception, and what it says that nothing here asserts
-is listed below.
+builder who corrects his code fails a test rather than moving a pin. Its
+survivor-run pins read the owner's archive and skip where none is configured,
+while the run's mechanics and its 603 manifest lines are held everywhere. The
+blog post about them is the exception, and what it says that nothing here
+asserts is listed below.
 
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) does it for the
 reversal. It pins Chan's two figures at four decimals and at the book's two,
@@ -387,8 +408,11 @@ owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
 because the full run takes about five minutes. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
-each line field for field everywhere, and the files' hashes and their
-agreement with the committed daily closes wherever an archive is configured.
+each standalone line field for field everywhere, and the files' hashes and the
+minute bars' agreement with the committed daily closes wherever an archive is
+configured. The 603 lines the survivor run reads from the `sp600`
+cross-section are held by the sha256 of their bytes in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), everywhere.
 
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
 does it for cross-sectional momentum. It pins each figure `kentdaniel.m`
@@ -436,7 +460,18 @@ and pins the near miss beside them: solving along
 Chan's line without bounding it finds a higher growth rate by going short,
 over the gross cap.
 
-All twenty-one replications reach a verdict in
+[tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
+does it for the stationarity tests on USD.CAD. It pins each figure the script
+prints at the precision that is real and at the script's, H as a miss against
+the book's 0.49, and the ADF statistic `adfuller` gives beside jplv7's, so a
+port that reaches for the ADF this repo already held fails a test. It also
+recomputes Example 2.5's daily P&L with plain pandas.
+[tests/test_stationarity_tests.py](tests/test_stationarity_tests.py) holds the
+three toolbox tests' rules on synthetic series: the row jplv7 drops, the bins
+of its critical values, `genhurst`'s indifference to level and scale, and the
+variance ratio's trim to whole periods.
+
+All twenty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -446,7 +481,8 @@ seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
-panel's, Entry 20 the leverage examples' and Entry 21 Example 3.1's.
+panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's and Entry 22
+the stationarity tests on USD.CAD.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -585,8 +621,8 @@ them, under `data/pythoncodesanddata/`, for
 USD.CAD's one-minute bars, the daily closes of USD.CAD, AUD.USD and AUD.CAD,
 the monthly AUD and CAD interest rates, and the AUD.CAD returns his Example 5.1
 saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
-the daily close his Examples 2.1 to 2.5 read. No replication reads any of the
-seven yet.
+the daily close his Examples 2.1 to 2.5 read, and the stationarity tests on
+USD.CAD read it. No replication reads the other six yet.
 
 Four more of his MATLAB files hold his continuous futures series, four saves of one file named
 for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
@@ -597,14 +633,17 @@ is. His `VIX.csv` is committed beside them as one vintage under the vendor
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 their shape. No replication reads them yet.
 
-IJR's holdings at every year-end from 2007 to 2025 are committed under
+IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
+quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
 [research/filings](research/filings/README.md), read from the schedules
 iShares Trust files with the SEC rather than from a vendor. A filing is never
 restated, so each file is pinned by the filing's accession number rather than
 kept as a vintage, and that directory's README says why.
-`src/chan/fund_holdings.py` reads the filings, and
-[issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
-their shape. No replication reads them yet.
+`src/chan/fund_holdings.py` reads the filings.
+[Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
+IJR's shape and
+[issue 372](https://github.com/l3a0/quantitative-trading/issues/372) carries
+IVV's. No replication reads them yet.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -617,7 +656,11 @@ and the Newey-West significance block live in
 the sibling repo because both had the same copy. The dependency is a direct URL
 at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
 two cannot drift apart unnoticed. All three parts earn their place, and
-[docs/design.md](docs/design.md) says which failure each one closes.
+[docs/design.md](docs/design.md) says which failure each one closes. Two
+toolbox forms of the Dickey-Fuller test are the exception and live in
+`src/chan`, because each reproduces a figure the shared one cannot. So do the
+Hurst exponent and the variance ratio test Chan's scripts call, which the
+shared package does not carry. The design doc says why none of them moved.
 [tests/test_ithildincore_contract.py](tests/test_ithildincore_contract.py) is what
 tells a dependency change apart from a vintage change, since its cases read no
 vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
@@ -757,7 +800,8 @@ declared exactly one window. `--dated` names which `CADAUD=X` download to read,
 defaults to the one the suite pins, and is refused when the candidate named is
 one of the other two.
 
-Chan's equity seasonals are one command, and they take no option:
+Chan's equity seasonals are one command, and on Chan's files they take no
+option:
 
 ```bash
 uv run python -m chan.equity_seasonals
@@ -770,6 +814,23 @@ with the date the file ends, and the 2002 split of the revised Python prints
 under a line saying it carries no verdict. Last come both readings of p. 180's
 most recent five years under the revised MATLAB's and Python's rules, with the
 verdict printed beside the MATLAB's rerun alone.
+
+`--survivors` runs Example 7.6 instead on the 603 companies IJR held at
+2025-12-31, from January 2009 to January 2026. It reads their Alpha Vantage
+closes from the owner's archive, so it needs the archive's path, set as
+Example 7.1's command sets it:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --survivors
+```
+
+It prints the members with no series and the year-ends each member misses,
+then each January before costs with its ranked, long and short counts and how
+many ranked members have no exit close. Then come the mean, the standard
+deviation, the one-sided t-test, the smallest mean the test detects, the mean
+after costs, and the reading. The run is survivor-only, so the reading goes one
+way only, which the output says beside it. A machine with no archive gets one
+line naming both ways to set it, and so does every other refusal.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -882,7 +943,9 @@ same figures net of 1 basis point a round trip, the verdict on Chan's claim,
 and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
-in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. Run those
+pins with `-n 0`, because a parallel run builds the run once for each of the
+two test files that read it.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
@@ -948,6 +1011,20 @@ It prints Example 8.1's two days of resizing, each Example 8.2 figure beside
 the book's, the growth rate along the line Figure 8.1 plots, the line's
 stationary point outside the cap, and the cap above which the second strategy
 alone stops being best.
+
+The stationarity tests on USD.CAD, Examples 2.1 to 2.5 of *Algorithmic
+Trading*, read Chan's minute file and take no option, because his script fixes
+the closes, every test's settings and the trade, and the issue fixed Example
+2.5's claim before any P&L was computed:
+
+```bash
+uv run python -m chan.usdcad_mean_reversion
+```
+
+It prints the source, each test's figures beside the script's and the book's,
+Example 2.5's lookback, cumulative P&L and drawdown, and the two rows reported
+beside the script: `adfuller`'s statistic and the Python port's own Hurst
+exponent.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -2221,13 +2298,24 @@ uv run ruff format --check
 uv run pytest
 ```
 
+`uv run pytest` runs the suite across one worker per core through
+`pytest-xdist`, which `pyproject.toml` turns on in `addopts`. Add `-n 0` for a
+serial run, which is the faster choice for a few tests, because every worker
+starts whatever the selection. `--pdb` runs serially on its own.
+
+A Claude Code session here also runs the 16 archive pins of Example 7.1,
+because `.claude/settings.json` sets `QT_ARCHIVE_RUN=1`. They run only where
+the owner's archive is configured, and each test file that reads the run builds
+it in about six minutes. `QT_ARCHIVE_RUN=0` skips them for one run.
+
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.
 
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a
 network at any point. Example 7.1 reads its bars from the owner's data archive,
-which is a folder on the owner's machine. If that folder is synced from a cloud
+and `chan.equity_seasonals --survivors` reads 603 daily files from it, which is
+a folder on the owner's machine. If that folder is synced from a cloud
 service, the first read of a file the service has not kept on disk downloads
 it, which this repo does not measure.
 
