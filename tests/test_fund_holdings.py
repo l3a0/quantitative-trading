@@ -23,7 +23,9 @@ share-class suffix and then without it.
 
 from __future__ import annotations
 
+import http.client
 import json
+import urllib.error
 from decimal import Decimal
 from pathlib import Path
 
@@ -55,18 +57,18 @@ FIXTURES = Path(__file__).parent / "fixtures" / "filings"
 YEAR_ENDS = (
     ("2007-12-31", "N-Q", "0001193125-08-043324", 602, 602, None, None, 4_387_645_916),
     ("2008-12-31", "N-Q", "0001193125-09-040696", 600, 600, 509, 91, 3_739_702_606),
-    ("2009-12-31", "N-Q", "0001193125-10-044578", 600, 600, 542, 58, 5_291_542_066),
-    ("2010-12-31", "N-Q", "0001193125-11-052046", 600, 600, 542, 58, 6_744_797_324),
+    ("2009-12-31", "N-Q", "0001193125-10-044578", 600, 600, 543, 57, 5_291_542_066),
+    ("2010-12-31", "N-Q", "0001193125-11-052046", 600, 600, 543, 57, 6_744_797_324),
     ("2011-12-31", "N-Q", "0001193125-12-088646", 601, 600, 530, 70, 6_907_921_868),
     ("2012-12-31", "N-Q", "0001193125-13-086998", 602, 601, 551, 50, 8_067_128_852),
-    ("2013-12-31", "N-Q", "0001193125-14-076476", 602, 601, 548, 53, 14_298_541_057),
-    ("2014-12-31", "N-Q", "0001193125-15-065725", 602, 601, 534, 67, 14_759_607_541),
-    ("2015-12-31", "N-Q", "0001193125-16-480933", 602, 601, 509, 92, 16_970_976_697),
-    ("2016-12-31", "N-Q", "0001193125-17-065125", 603, 602, 515, 87, 26_388_125_504),
-    ("2017-12-31", "N-Q", "0001193125-18-063612", 603, 602, 526, 76, 35_999_526_395),
+    ("2013-12-31", "N-Q", "0001193125-14-076476", 602, 601, 549, 52, 14_298_541_057),
+    ("2014-12-31", "N-Q", "0001193125-15-065725", 602, 601, 535, 66, 14_759_607_541),
+    ("2015-12-31", "N-Q", "0001193125-16-480933", 602, 601, 525, 76, 16_970_976_697),
+    ("2016-12-31", "N-Q", "0001193125-17-065125", 603, 602, 516, 86, 26_388_125_504),
+    ("2017-12-31", "N-Q", "0001193125-18-063612", 603, 602, 527, 75, 35_999_526_395),
     ("2018-12-31", "N-Q", "0001193125-19-059323", 604, 603, 530, 73, 37_293_884_055),
-    ("2019-12-31", "NPORT-P", "0001752724-20-038667", 604, 603, 518, 85, None),
-    ("2020-12-31", "NPORT-P", "0001752724-21-040685", 601, 601, 529, 72, None),
+    ("2019-12-31", "NPORT-P", "0001752724-20-038667", 604, 603, 522, 81, None),
+    ("2020-12-31", "NPORT-P", "0001752724-21-040685", 601, 601, 528, 73, None),
     ("2021-12-31", "NPORT-P", "0001752724-22-046380", 602, 602, 537, 65, None),
     ("2022-12-30", "NPORT-P", "0001752724-23-037514", 603, 601, 536, 65, None),
     ("2023-12-31", "NPORT-P", "0001752724-24-038606", 604, 602, 503, 99, None),
@@ -137,6 +139,11 @@ class TestTheCommittedRecord:
         assert entry.printed_total == printed
         assert sum(int(holding.value) for holding in held) == printed
 
+    def test_the_record_takes_the_bytes_the_design_doc_quotes(self) -> None:
+        files = [fund_holdings.FILINGS_DIR / fund_holdings.INDEX_NAME]
+        files += [fund_holdings.FILINGS_DIR / entry.path for entry in read_index()]
+        assert sum(path.stat().st_size for path in files) == 651_301
+
     def test_nport_years_print_no_total(self) -> None:
         assert [e.printed_total for e in read_index() if e.form != "N-Q"] == [None] * 7
 
@@ -199,6 +206,21 @@ class TestPlacement:
             assert linked == (placement.linked_by is not None)
             assert linked == (placement.calendar_return is not None)
 
+    def test_a_reverse_split_that_changed_the_isin_is_left_unpaired(self) -> None:
+        # Nabors's Bermuda shares carry no CUSIP, and the 1-for-50 reverse split
+        # between the two filings gave them a new ISIN. Paired by name they read
+        # as a gain of about nineteen times.
+        nabors = [p for p in place(IJR, "2020-12-31") if p.holding.name.startswith("Nabors")]
+        assert len(nabors) == 1
+        assert nabors[0].previous is None
+
+    def test_a_restyled_name_still_pairs(self) -> None:
+        placement = next(
+            p for p in place(IJR, "2015-12-31") if p.holding.name == "UniFirst Corp./MA"
+        )
+        assert placement.previous.name == "UniFirst Corp."
+        assert placement.linked_by == "name"
+
     def test_the_return_is_the_change_in_value_over_shares(self) -> None:
         placement = next(
             p for p in place(IJR, "2010-12-31") if p.holding.name == "K-Swiss Inc. Class A"
@@ -224,6 +246,24 @@ class TestPlacement:
         )
         assert int(placement.previous.shares) / int(placement.holding.shares) > 20
         assert placement.calendar_return > 50
+
+    def test_a_zero_share_count_leaves_one_member_unplaced_and_the_rest_placed(
+        self, tmp_path: Path
+    ) -> None:
+        first = Filing("2023-12-31", "NPORT-P", "a-1", "2024-01-01", "primary_doc.xml")
+        second = Filing("2024-12-31", "NPORT-P", "a-2", "2025-01-01", "primary_doc.xml")
+        fund = Fund("XYZ", "S0", (), (first, second), ())
+        rows = {
+            first: [Holding("Zero Inc", "0", "0", "111111111"), Holding("Two Inc", "1", "2", "2")],
+            second: [Holding("Zero Inc", "5", "5", "111111111"), Holding("Two Inc", "1", "3", "2")],
+        }
+        for filing, held in rows.items():
+            path = fund_holdings.holdings_path(fund, filing, tmp_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(fund_holdings.serialize(held))
+        zero, two = place(fund, "2024-12-31", tmp_path)
+        assert (zero.linked_by, zero.calendar_return) == ("cusip", None)
+        assert two.calendar_return == Decimal("0.5")
 
     def test_the_first_filing_cannot_be_placed(self) -> None:
         with pytest.raises(ValueError, match="first filing"):
@@ -292,6 +332,50 @@ class TestLink:
         current = [Holding("Acme Inc", "1", "1"), Holding("Acme Inc Class B", "1", "1")]
         previous = [Holding("Acme Inc.", "1", "1")]
         assert link(current, previous) == [(previous[0], "name"), (None, None)]
+
+    def test_two_different_class_letters_are_never_paired(self) -> None:
+        current = [Holding("Acme Corp., Class B", "1", "1")]
+        previous = [Holding("Acme Corp. Class A", "1", "1")]
+        assert link(current, previous) == [(None, None)]
+
+    def test_class_and_series_with_one_letter_agree(self) -> None:
+        current = [Holding("Phibro Animal Health Corp., Class A", "1", "1")]
+        previous = [Holding("Phibro Animal Health Corp. Series A", "1", "1")]
+        assert link(current, previous) == [(previous[0], "name without class")]
+
+    def test_two_isins_that_disagree_without_cusips_are_never_paired(self) -> None:
+        current = [Holding("Nabors Industries Ltd", "1", "1", isin="BMG6359F1370")]
+        previous = [Holding("Nabors Industries Ltd", "1", "1", isin="BMG6359F1032")]
+        assert link(current, previous) == [(None, None)]
+
+    def test_an_isin_is_not_compared_where_one_row_has_a_cusip(self) -> None:
+        current = [Holding("Penguin Solutions Inc", "1", "1", "706915105", "US7069151055")]
+        previous = [Holding("Penguin Solutions Inc", "1", "1", "", "KYG8232Y1017")]
+        assert link(current, previous) == [(previous[0], "name")]
+
+    def test_the_cusip_match_is_not_taken_by_a_namesake_without_one(self) -> None:
+        current = [
+            Holding("Acme Inc", "1", "1", cusip="123456789"),
+            Holding("Acme Inc", "1", "1"),
+        ]
+        previous = [Holding("Acme Inc", "1", "1", cusip="123456789")]
+        assert link(current, previous) == [(previous[0], "cusip"), (None, None)]
+
+    @pytest.mark.parametrize(
+        ("one", "other"),
+        [
+            ("Marcus Corp. (The)", "Marcus Corp."),
+            ("UniFirst Corp./MA", "UniFirst Corp."),
+            ("Kulicke & Soffa Industries Inc.", "Kulicke and Soffa Industries Inc."),
+            ("Haverty Furniture Cos Inc", "Haverty Furniture Companies Inc."),
+            ("Cato Corp/The", "Cato Corp. (The)"),
+        ],
+    )
+    def test_the_restylings_between_years_normalise_alike(self, one: str, other: str) -> None:
+        assert fund_holdings.normalised_name(one) == fund_holdings.normalised_name(other)
+
+    def test_a_slash_inside_a_name_is_not_a_state(self) -> None:
+        assert fund_holdings.normalised_name("RE/MAX Holdings Inc") == "re max holdings inc"
 
 
 # --- Parsing an N-Q, one trap at a time ---------------------------------------
@@ -507,6 +591,31 @@ class TestFetch:
         assert [contact for _, contact in asked] == ["Name n@example.com"] * 2
         assert pauses == [fund_holdings.REQUEST_SPACING_SECONDS]
         assert fund_holdings.REQUEST_SPACING_SECONDS >= 0.1
+
+    @pytest.mark.parametrize(
+        "failure",
+        [
+            ConnectionResetError("reset by peer"),
+            TimeoutError("timed out"),
+            urllib.error.URLError("no route"),
+            http.client.IncompleteRead(b"partial"),
+        ],
+        ids=lambda failure: type(failure).__name__,
+    )
+    def test_a_failed_request_becomes_a_refusal(self, monkeypatch, failure: Exception) -> None:
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *details):
+                return False
+
+            def read(self):
+                raise failure
+
+        monkeypatch.setattr(fund_holdings.urllib.request, "urlopen", lambda *a, **k: Response())
+        with pytest.raises(FilingRefused, match="could not be read"):
+            fund_holdings._download("https://www.sec.gov/x", "n@example.com")
 
     def test_a_download_the_index_does_not_recognise_is_refused(self, tmp_path: Path) -> None:
         document = _fixture("nport-2022-title-and-cusip.xml")

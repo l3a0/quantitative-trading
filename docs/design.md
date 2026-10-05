@@ -529,8 +529,8 @@ Four things follow.
    documents themselves are not committed, because an N-Q runs to 38 MB, and
    the sha256 says which bytes a regeneration has to match. The price is that
    [data/README.md](../data/README.md) and the manifest do not list these
-   files and the size cap on `data/` does not count them. They took 651,301
-   bytes, index included, measured at `6f67008`.
+   files and the size cap on `data/` does not count them. They take 651,301
+   bytes, index included, which `tests/test_fund_holdings.py` pins.
 3. **Every N-Q year reconciles to the filing's own total.** An N-Q holds every
    fund the trust reports at that quarter-end, so reading IJR's rows means
    finding where its schedule starts and stops. The writer refuses an N-Q whose
@@ -539,16 +539,22 @@ Four things follow.
 4. **A member is placed only when it can be paired without guessing.** Each
    member is paired with the same holding in the filing before, by CUSIP where
    both rows carry one and otherwise by name, and a pairing is kept only when
-   it is one to one. The issue specified names that keep a share-class suffix,
-   which is what tells Central Garden & Pet's two lines apart. That alone left
-   115 of 2019's members unplaced, against 81 in 2018 and 72 in 2020,
-   because the 2018 N-Q prints "Lithia Motors Inc., Class A" where the 2019
-   N-PORT prints "Lithia Motors Inc" for a company IJR holds one line of. So a
-   second pass drops the suffix for what the first left, and the same
-   one-to-one rule keeps it from pairing Central Garden's two lines, whose
-   N-PORT titles are identical. It places 50 more members across the eighteen
-   years and brings 2019 to 85. The one-pass figures were measured on this
-   branch and no test holds them, while the two-pass ones are pinned.
+   it is one to one. Two rows whose identifiers disagree are never paired by
+   name. That covers two CUSIPs, and two ISINs where neither row has a CUSIP,
+   which is what keeps Nabors's 1-for-50 reverse split in 2020 from reading as
+   a gain of nineteen times. The names drop the restylings the filings make
+   between years, such as "(The)", a state after a slash and "&" against
+   "and", and keep a share-class suffix, which is what tells Central Garden &
+   Pet's two lines apart. That alone left 111 of 2019's members unplaced,
+   against 81 in 2018 and 73 in 2020, because the 2018 N-Q prints "Lithia
+   Motors Inc., Class A" where the 2019 N-PORT prints "Lithia Motors Inc" for a
+   company IJR holds one line of. So a last pass, which the issue did not
+   specify, drops the suffix for what the earlier ones left. It refuses two
+   names printing different class letters, and the one-to-one rule keeps it
+   from pairing Central Garden's two lines, whose N-PORT titles are identical.
+   It places 50 more members across the eighteen years and brings 2019 to 81.
+   The figures without it were measured on this branch and no test holds them,
+   while the figures with it are pinned.
 
 The return a placement carries is rough on purpose. It is value over shares in
 one filing against the same in the other, so a split moves it as much as a
@@ -643,7 +649,7 @@ candidate for a synonym.
 | **rate** | The third basis a vintage can carry, beside **raw price** and **adjusted price**. A rate vintage holds a series of rates, such as a Treasury-bill yield, recorded as the vendor publishes it. It has no raw or adjusted form, and the scale-break guard does not read it, because a rate near zero can move sixfold in a month without changing units. |
 | **event** | The fourth basis a vintage can carry. An event vintage holds a 0 or 1 for each day of a calendar, saying whether something happened that day, such as an earnings announcement, in one field named `Flag`. Every day of the calendar is kept, a 0 included, because a reader may cut its prices to the calendar's own days, and a file of events alone would start that calendar at its first event. It has no raw or adjusted form, the scale-break guard does not read it, and a panel read refuses to hand it back as a close. Decided on [issue 250](https://github.com/l3a0/quantitative-trading/issues/250) for Chan's earnings flags. |
 | **return** | The fifth basis a vintage can carry. A return vintage holds a strategy's period returns as its source wrote them, such as the AUD.CAD returns Chan's Example 5.1 saved for Chapter 8 to read. A return is a change in a price rather than a price, so it is neither a **raw price** nor an **adjusted price**. It is not a **rate**, which a vendor publishes for an instrument, and not an **event**, which is 0 or 1. The scale-break guard does not read it, a panel read refuses to hand it back as a close, and neither writer in `chan.vintage` records one, since each would write it under a `Close` header. Decided by the owner on 2026-10-04, on [issue 301](https://github.com/l3a0/quantitative-trading/issues/301). |
-| **accession** | The SEC's identifier for one filing. It names fixed bytes, and a correction is filed under a new accession rather than over an old one, so it pins what a record under [research/filings](../research/filings/README.md) was read from, the way a download date pins a **vintage**. A filing is not a vintage, because nothing restates it. Decided on [issue 361](https://github.com/l3a0/quantitative-trading/issues/361). |
+| **accession** | The SEC's identifier for one filing. It names fixed bytes, and a correction is filed under a new accession rather than over an old one, so it pins what a record under [research/filings](../research/filings/README.md) was read from, the way the edition pins a table printed in a book. A filing is not a **vintage**, because nothing restates it. Decided on [issue 361](https://github.com/l3a0/quantitative-trading/issues/361). |
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, against inputs the source itself prints, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |

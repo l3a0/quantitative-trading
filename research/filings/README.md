@@ -41,8 +41,8 @@ not list these files, and the size cap on `data/` does not count them.
 
 The CSV is written as the filing prints it, with three exceptions.
 
-1. An N-Q's numbers lose their thousands separators, and the one 2018 value
-   printed with a space inside it is read as one number.
+1. An N-Q's numbers lose their thousands separators, and the two 2018 values
+   printed with a space inside them are each read as one number.
 2. Footnote markers are dropped, and every run of whitespace becomes one space.
 3. An N-PORT row takes the holding's `title` for its name, because from 2022
    the XML cuts `name` at 30 characters, and a CUSIP of nine zeros is written

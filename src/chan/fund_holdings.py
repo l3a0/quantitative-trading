@@ -9,11 +9,9 @@ than guessed.
 scope, and [docs/design.md](../../docs/design.md)'s section "A record that
 reads a fund's filings" is the reasoning.
 
-**A filing is not a vintage.** A vendor restates a price series, so a vintage
-keeps the bytes. The SEC never restates a filing. An accession number names
-fixed bytes, and a correction arrives as a new accession. So the accession pins
-what was read, the way the edition pins a table printed in a book, and the
-record lives under ``research/filings/`` rather than in ``data/``.
+The record lives under ``research/filings/`` rather than in ``data/``, because
+a filing is pinned by its accession rather than kept as a vintage. The design
+doc's section says why.
 
 The record has two parts.
 
@@ -52,6 +50,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import http.client
 import io
 import json
 import os
@@ -59,7 +58,6 @@ import re
 import sys
 import tempfile
 import time
-import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -202,8 +200,10 @@ class Placement:
     """One member of a filing, and where its calendar year left it.
 
     ``previous`` is the row it was linked to in the filing before, and
-    ``linked_by`` says how, ``cusip`` or ``name``. An unlinked member carries
-    ``None`` in all three, because a return needs both ends.
+    ``linked_by`` says how, ``cusip``, ``name`` or ``name without class``, as
+    :func:`link` reports it. An unlinked member carries ``None`` in all three,
+    because a return needs both ends. A linked member carries ``None`` as its
+    return only where a zero share count or value leaves a price undefined.
     """
 
     holding: Holding
@@ -383,9 +383,11 @@ _FOOTNOTES = re.compile(r"(?:\s*\([a-z]\))+$")
 def _number(cell: str) -> str | None:
     """A printed whole number without its separators, or ``None`` for anything else.
 
-    2018 splits one value with a space, as "83,6 15,992". Closing the space
-    leaves a correctly grouped number, so it is read as one. Without that,
-    the year's sum falls short of its printed total by $124,344,900.
+    2018 splits two holdings' values with a space, "83,6 15,992" and
+    "40,72 8,908", and one industry subtotal. Closing the space leaves a
+    correctly grouped number, so each is read as one. Without that, the year's
+    sum falls short of its printed total by $124,344,900, which is the two
+    holdings together.
     """
     candidate = cell.removeprefix("$").strip().replace(" ", "")
     if not _GROUPED.fullmatch(candidate):
@@ -673,7 +675,9 @@ def _download(url: str, contact: str) -> bytes:
     try:
         with urllib.request.urlopen(request, timeout=120) as response:
             return response.read()
-    except (urllib.error.URLError, TimeoutError) as failure:
+    except (OSError, http.client.HTTPException) as failure:
+        # URLError and a timeout are both OSErrors, and so is a connection reset
+        # while the body is read. A body cut short is an HTTPException.
         raise FilingRefused(f"{url} could not be read: {failure}") from failure
 
 
@@ -731,7 +735,11 @@ def members(fund: Fund, filing: Filing, filings_dir: Path | None = None) -> tupl
 
 
 _PUNCTUATION = re.compile(r"[^\w\s]")
-_SHARE_CLASS = re.compile(r"\b(?:class [a-z]|series [a-z]|nvs)\b")
+# A state appended after a slash, as 2015 prints "UniFirst Corp./MA". Exactly
+# two letters and then the end of a word, so "RE/MAX" keeps its name.
+_STATE_SUFFIX = re.compile(r"/[a-z]{2}(?![a-z])", re.IGNORECASE)
+_SHARE_CLASS = re.compile(r"\b(?:class|series) ([a-z])\b|\bnvs\b")
+_SPELLINGS = {"cos": "companies"}
 
 
 def normalised_name(name: str) -> str:
@@ -739,12 +747,16 @@ def normalised_name(name: str) -> str:
 
     Case, punctuation, the registered-trademark sign and a curly apostrophe
     against a straight one all go. A full stop is deleted rather than spaced,
-    so "U.S." and "US" agree. Words stay, a share-class suffix such as
-    "Class A" among them, because that is what tells a fund's two lines in one
-    company apart.
+    so "U.S." and "US" agree. Four restylings the filings make between years go
+    too: a state after a slash such as "/IL", the word "The", "&" against
+    "and", and "Cos" against "Companies". Words stay otherwise, a share-class
+    suffix such as "Class A" among them, because that is what tells a fund's
+    two lines in one company apart.
     """
-    text = name.replace("’", "'").replace("®", " ").replace(".", "").casefold()
-    return _squash(_PUNCTUATION.sub(" ", text))
+    text = name.replace("’", "'").replace("®", " ").replace(".", "")
+    text = _STATE_SUFFIX.sub(" ", text).replace("&", " and ").casefold()
+    words = _PUNCTUATION.sub(" ", text).split()
+    return " ".join(_SPELLINGS.get(word, word) for word in words if word != "the")
 
 
 def _without_share_class(name: str) -> str:
@@ -752,15 +764,42 @@ def _without_share_class(name: str) -> str:
     return _squash(_SHARE_CLASS.sub(" ", normalised_name(name)))
 
 
+def _share_classes(name: str) -> set[str]:
+    """The class letters a name prints, so "Class A" and "Series A" agree."""
+    return {letter for letter in _SHARE_CLASS.findall(normalised_name(name)) if letter}
+
+
+def _two_securities(current: Holding, previous: Holding) -> bool:
+    """Whether the two rows' identifiers say they are different securities.
+
+    Two CUSIPs that disagree do. Where neither row carries a CUSIP, two ISINs
+    that disagree do too: Nabors's Bermuda shares carry no CUSIP, and their
+    ISIN changed with the 1-for-50 reverse split between 2019 and 2020.
+    """
+    if current.cusip and previous.cusip:
+        return current.cusip != previous.cusip
+    if not current.cusip and not previous.cusip and current.isin and previous.isin:
+        return current.isin != previous.isin
+    return False
+
+
+def _classes_disagree(current: Holding, previous: Holding) -> bool:
+    """Whether both names print a class letter and the letters differ."""
+    mine, theirs = _share_classes(current.name), _share_classes(previous.name)
+    return bool(mine and theirs and mine != theirs)
+
+
+Pairs = list[tuple[Holding | None, str | None]]
+
+
 def _pair(
     current: Sequence[Holding],
     previous: Sequence[Holding],
-    key: Callable[[str], str],
+    key: Callable[[Holding], str],
+    allowed: Callable[[Holding, Holding], bool],
     how: str,
-    pairs: list[tuple[Holding | None, str | None]],
-    *,
-    by_cusip: bool,
-) -> list[tuple[Holding | None, str | None]]:
+    pairs: Pairs,
+) -> Pairs:
     """One pass of :func:`link` over the members ``pairs`` leaves unpaired.
 
     A pairing is kept only when it is one to one. A key two previous rows
@@ -769,74 +808,71 @@ def _pair(
     pass already took is not offered again.
     """
     taken = {id(row) for row, _ in pairs if row is not None}
-    open_rows = [number for number, row in enumerate(previous) if id(row) not in taken]
-    cusips: dict[str, list[int]] = {}
     keys: dict[str, list[int]] = {}
-    for number in open_rows:
-        row = previous[number]
-        if row.cusip:
-            cusips.setdefault(row.cusip, []).append(number)
-        keys.setdefault(key(row.name), []).append(number)
+    for number, row in enumerate(previous):
+        if id(row) not in taken and key(row):
+            keys.setdefault(key(row), []).append(number)
 
-    proposed: list[tuple[int | None, str | None]] = []
+    proposed: list[int | None] = []
     for row, (paired, _) in zip(current, pairs, strict=True):
-        if paired is not None:
-            proposed.append((None, None))
-            continue
-        if by_cusip and row.cusip and row.cusip in cusips:
-            candidates, found_by = cusips[row.cusip], "cusip"
-        else:
-            # Two rows that each carry a CUSIP and disagree are two securities,
-            # whatever their names say.
-            candidates = [
-                number
-                for number in keys.get(key(row.name), [])
-                if not (row.cusip and previous[number].cusip)
-            ]
-            found_by = how
-        proposed.append((candidates[0], found_by) if len(candidates) == 1 else (None, None))
+        found = keys.get(key(row), []) if paired is None and key(row) else []
+        candidates = [number for number in found if allowed(row, previous[number])]
+        proposed.append(candidates[0] if len(candidates) == 1 else None)
 
     reached: dict[int, int] = {}
-    for target, _ in proposed:
+    for target in proposed:
         if target is not None:
             reached[target] = reached.get(target, 0) + 1
     return [
-        (previous[target], found_by)
-        if target is not None and reached[target] == 1
-        else (paired, paired_by)
-        for (target, found_by), (paired, paired_by) in zip(proposed, pairs, strict=True)
+        (previous[target], how) if target is not None and reached[target] == 1 else pair
+        for target, pair in zip(proposed, pairs, strict=True)
     ]
 
 
-def link(
-    current: Sequence[Holding], previous: Sequence[Holding]
-) -> list[tuple[Holding | None, str | None]]:
+def link(current: Sequence[Holding], previous: Sequence[Holding]) -> Pairs:
     """Pair each current member with the same holding in the previous filing.
 
-    Each pair comes with how it was found. Two passes, and the second only
-    reaches what the first left.
+    Each pair comes with how it was found. Three passes, each reaching only
+    what the ones before it left.
 
-    1. The CUSIP decides where both rows carry one. Otherwise the normalised
-       names decide, share-class suffix included, which is what keeps Central
-       Garden's two N-Q lines apart. That pairs as ``cusip`` or ``name``.
-    2. The names again with the share-class suffix taken out, as
-       ``name without class``. The 2018 N-Q prints "Lithia Motors Inc., Class A"
-       where the 2019 N-PORT prints "Lithia Motors Inc", for a company IJR holds
-       one line of. The one-to-one rule is what keeps this pass from guessing:
-       Central Garden's two lines share one name once the suffix goes, so
-       neither is paired.
+    1. ``cusip``, where both rows carry the same one. It runs first so that a
+       row with no CUSIP cannot take a previous row by name from the row whose
+       CUSIP matches it.
+    2. ``name``, on the normalised names with the share-class suffix kept,
+       which is what keeps Central Garden's two N-Q lines apart.
+    3. ``name without class``, on the names with the suffix taken out. The 2018
+       N-Q prints "Lithia Motors Inc., Class A" where the 2019 N-PORT prints
+       "Lithia Motors Inc", for a company IJR holds one line of. A pair whose
+       names print two different class letters is refused, and the one-to-one
+       rule keeps Central Garden's two lines unpaired once their suffixes go.
 
-    A member neither pass pairs is left unpaired.
+    Neither name pass pairs two rows whose identifiers say they are different
+    securities. A member no pass pairs is left unpaired.
     """
-    pairs: list[tuple[Holding | None, str | None]] = [(None, None)] * len(current)
-    pairs = _pair(current, previous, normalised_name, "name", pairs, by_cusip=True)
+    pairs: Pairs = [(None, None)] * len(current)
+    pairs = _pair(current, previous, lambda row: row.cusip, lambda a, b: True, "cusip", pairs)
+    pairs = _pair(
+        current,
+        previous,
+        lambda row: normalised_name(row.name),
+        lambda a, b: not _two_securities(a, b),
+        "name",
+        pairs,
+    )
     return _pair(
-        current, previous, _without_share_class, "name without class", pairs, by_cusip=False
+        current,
+        previous,
+        lambda row: _without_share_class(row.name),
+        lambda a, b: not _two_securities(a, b) and not _classes_disagree(a, b),
+        "name without class",
+        pairs,
     )
 
 
-def _price(holding: Holding) -> Decimal:
-    return Decimal(holding.value) / Decimal(holding.shares)
+def _price(holding: Holding) -> Decimal | None:
+    """Value over shares, or ``None`` where a zero share count leaves it undefined."""
+    shares = Decimal(holding.shares)
+    return Decimal(holding.value) / shares if shares else None
 
 
 def place(fund: Fund, report_date: str, filings_dir: Path | None = None) -> list[Placement]:
@@ -844,8 +880,10 @@ def place(fund: Fund, report_date: str, filings_dir: Path | None = None) -> list
 
     The return is value over shares in this filing, divided by the same in the
     filing linked to it, less one. A member the link leaves unpaired cannot be
-    placed. The first filing in the list has nothing before it, so it is
-    refused rather than reported as wholly unplaced.
+    placed. Nor can a linked one whose price is undefined, which is a zero share
+    count in either filing or a zero value in the earlier one, so it keeps its
+    link and carries no return. The first filing in the list has nothing before
+    it, so it is refused rather than reported as wholly unplaced.
 
     The return is rough on purpose. Value over shares moves with a split as
     well as with the price, so a member whose share count fell twentyfold
@@ -863,9 +901,10 @@ def place(fund: Fund, report_date: str, filings_dir: Path | None = None) -> list
     for holding, (linked, how) in zip(current, link(current, previous), strict=True):
         if linked is None:
             placements.append(Placement(holding, None, None, None))
-        else:
-            change = _price(holding) / _price(linked) - 1
-            placements.append(Placement(holding, linked, how, change))
+            continue
+        now, then = _price(holding), _price(linked)
+        change = now / then - 1 if now is not None and then else None
+        placements.append(Placement(holding, linked, how, change))
     return placements
 
 
