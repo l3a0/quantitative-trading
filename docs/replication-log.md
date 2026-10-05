@@ -4563,7 +4563,7 @@ and decides nothing.
 
 | # | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- |
-| 1 | jplv7 `adf(y, 0, 1)` on the 1,216 closes, 1,213 rows fitted | `chan-py` USDCAD raw, saved 2018-10-13 | −1.8407440891 | `TestExample21TheAdfTest::test_the_statistic_is_chans_minus_1_840744` |
+| 1 | jplv7 `adf(y, 0, 1)` on the 1,216 closes, 1,213 rows fitted | `chan-py` USDCAD raw, saved 2018-10-13 | −1.840744089 | `TestExample21TheAdfTest::test_the_statistic_is_chans_minus_1_840744` |
 | 2 | The same regression's coefficient on the lagged level | the same | 0.9941196429 | `TestExample21TheAdfTest::test_the_ar1_estimate_is_chans_0_994120` |
 | 3 | `ztcrit`'s row for 1,216 observations at trend order 0 | the same | −3.45830, −2.87104 and −2.59369 | `TestExample21TheAdfTest::test_the_critical_values_are_chans` |
 | 4 | `genhurst(log(y), 2)`, window lengths 5 to 19 | the same | 0.4732326652 | `TestExample22TheHurstExponent::test_h_misses_the_books_0_49` |
