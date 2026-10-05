@@ -174,6 +174,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/calendar-spreads-lessons.md",
         "blog/coin-toss-expected-value-vs-growth.md",
         "blog/commodity-seasonals-lessons.md",
+        "blog/conditional-parameter-optimization-lessons.md",
         "blog/equity-seasonals-lessons.md",
         "blog/factor-models-lessons.md",
         "blog/gld-gdx-cointegration-lessons.md",
@@ -1127,6 +1128,7 @@ class TestTheFigureHasThreeCopies:
             "commodity-seasonals-lessons.md",
             "buy-on-gap-lessons.md",
             "calendar-spreads-lessons.md",
+            "conditional-parameter-optimization-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()
