@@ -78,7 +78,7 @@ def result(sources) -> ExampleThreeTwo:
 
 @pytest.fixture(scope="module")
 def by_n(sources) -> ExampleThreeTwo:
-    """The run with book two's ``smartMovingStd``, which divides by n, for ``movingStd``."""
+    """The run with ``smartMovingStd``, which divides by n, in place of ``movingStd``."""
     _, closes = sources
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(price_spread, "moving_std", smart_moving_std)
@@ -173,6 +173,12 @@ class TestTheClaim:
         assert result.bollinger.apr > linear.apr, SPEC
         assert result.bollinger.sharpe > linear.sharpe, SPEC
 
+    def test_the_band_leads_by_0_069915_and_0_375022(self, result: ExampleThreeTwo) -> None:
+        """The criterion asks for no margin. These gaps are what a margin would have faced."""
+        apr_gap = result.bollinger.apr - result.linear.apr
+        sharpe_gap = result.bollinger.sharpe - result.linear.sharpe
+        assert (f"{apr_gap:+f}", f"{sharpe_gap:+f}") == ("+0.069915", "+0.375022"), SPEC
+
 
 class TestTheDivisor:
     """``smartMovingStd`` divides by n where ``movingStd`` divides by n − 1.
@@ -184,9 +190,14 @@ class TestTheDivisor:
     """
 
     def test_dividing_by_n_gives_0_183306_and_0_984872(self, by_n: ExampleThreeTwo) -> None:
+        """Rounded as the book rounds, that is 18.3 percent and 0.98, against 17.8 and 0.96."""
         assert by_n.bollinger.apr == pytest.approx(0.18330633, abs=5e-9), SPEC
         assert by_n.bollinger.sharpe == pytest.approx(0.98487233, abs=5e-9), SPEC
         assert (f"{by_n.bollinger.apr:f}", f"{by_n.bollinger.sharpe:f}") != SCRIPT_BOLLINGER
+        assert (round(100 * by_n.bollinger.apr, 1), round(by_n.bollinger.sharpe, 2)) == (
+            18.3,
+            0.98,
+        ), SPEC
 
     def test_dividing_by_n_moves_the_apr_by_0_005057_and_the_sharpe_ratio_by_0_020199(
         self, result: ExampleThreeTwo, by_n: ExampleThreeTwo
@@ -209,7 +220,8 @@ class TestTheDivisor:
 class TestWhatMovesNothing:
     def test_lag_padding_with_0_or_nan_gives_the_same_returns(self, sources, result) -> None:
         """Neither mirror holds ``lag.m``. A NaN pad makes the first row's return NaN, and
-        a zero pad holds zero gross dollars there, so the return is 0/0. Either is set to 0."""
+        a zero pad divides by a price of 0, so the first row's profit is NaN over zero gross
+        dollars. Either NaN is set to 0."""
         _, closes = sources
         with pytest.MonkeyPatch.context() as patch:
             patch.setattr(price_spread, "lag1", _zero_padded_lag)
@@ -323,10 +335,11 @@ class TestBandUnits:
         with pytest.raises(ValueError, match="one-dimensional"):
             band_units(flags, flags, flags, flags)
 
-    def test_a_z_score_in_place_of_a_boolean_is_refused(self) -> None:
-        """A float array indexes by position, so it would set the wrong rows silently."""
+    def test_an_array_of_0s_and_1s_in_place_of_a_boolean_is_refused(self) -> None:
+        """An integer array indexes by position, so ``[0, 1, 0, 0, 0, 0]`` would set rows 0
+        and 1 rather than row 1, silently."""
         with pytest.raises(ValueError, match="four boolean arrays"):
-            band_units(np.zeros(6), NONE, NONE, NONE)
+            band_units(_bools(1).astype(int), NONE, NONE, NONE)
 
 
 DAYS = pd.bdate_range("2020-01-01", periods=8)

@@ -390,7 +390,8 @@ class TestWhatMovesNothing:
 
     def test_lag_padding_with_0_or_nan_gives_the_same_returns(self, sources) -> None:
         """Neither mirror holds ``lag.m``. A NaN pad makes the first row's return NaN, and
-        a zero pad holds zero gross dollars there, so the return is 0/0. Either is set to 0."""
+        a zero pad divides by a price of 0, so the first row's profit is NaN over zero gross
+        dollars. Either NaN is set to 0."""
         _, closes = sources
         nan_padded = example_three_one(closes)
         with pytest.MonkeyPatch.context() as patch:

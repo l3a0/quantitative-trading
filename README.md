@@ -312,8 +312,8 @@ where they were first built. The other twenty-two were built here.
     of 0.178249 and a Sharpe ratio of 0.964673, his 17.8 percent and 0.96.
     Both beat the linear rule's 0.108335 and 0.589651, which is the
     improvement the book claims. Unlike item 21, the run depends on the
-    moving deviation's divisor: book two's n in place of the script's n − 1
-    gives 0.183306 and 0.984872. Every figure is exploratory.
+    moving deviation's divisor: n in place of the script's n − 1 gives
+    0.183306 and 0.984872. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming

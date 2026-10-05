@@ -4,8 +4,8 @@ Example 3.1 holds a position in proportion to how far the spread sits from its
 average, so it is always in the market and always rebalancing. Chan's Example
 3.2, at Kindle location 1559, trades the same GLD and USO price spread with a
 Bollinger band instead. It enters one unit when the spread's z-score passes
-one standard deviation and holds it until the z-score crosses back through its
-moving average. The book reports "APR = 17.8 percent, and Sharpe ratio of
+one standard deviation and holds it until the spread crosses back through its
+moving average, where the z-score is 0. The book reports "APR = 17.8 percent, and Sharpe ratio of
 0.96, quite an improvement from the linear mean reversal strategy".
 
 **The transcription.** Chan's ``bollinger.m`` is git blob ``6d80817`` under
@@ -45,7 +45,7 @@ own four arrays and calls the same function.
 
 **The divisor moves both figures here.** Example 3.1's return is profit over
 gross dollars, so a constant on every unit cancels and ``movingStd``'s n − 1
-gives the same figures as book two's ``smartMovingStd``, which divides by n.
+gives the same figures as ``smartMovingStd``, which divides by n.
 This rule compares the z-score with a fixed threshold, so a different scale
 changes which days trade. ``bollinger.m`` calls ``movingStd``, so n − 1 is the
 transcription, and ``tests/test_bollinger.py`` holds the n reading beside it as
@@ -69,7 +69,7 @@ The vintage and the scale-break guard are Example 3.1's, and
 :mod:`chan.price_spread` describes both.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
-to 2012 sample on thresholds and a lookback he chose with the sample in view,
+to 2012 sample on a rule he chose, with a lookback he tuned on that sample,
 so the run says whether his numbers reproduce on his file and nothing about
 whether the rule pays today.
 """
