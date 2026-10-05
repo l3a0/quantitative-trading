@@ -1712,6 +1712,31 @@ class TestThePointInTimeYear:
         ):
             self._run(monkeypatch, rows, year, closes, calendar, returns)
 
+    def test_a_slice_yielding_two_trades_is_refused(self, monkeypatch) -> None:
+        rows, year, closes, calendar, returns = synthetic_year()
+        real = seasonals.january_effect
+
+        def doubled(*args, **kwargs):
+            effect = real(*args, **kwargs)
+            return replace(effect, trades=effect.trades * 2)
+
+        monkeypatch.setattr(seasonals, "january_effect", doubled)
+        with pytest.raises(seasonals.PointInTimeRefused, match="yields 2 trades, not one"):
+            self._run(monkeypatch, rows, year, closes, calendar, returns)
+
+    def test_the_bound_disagreeing_with_january_effect_is_refused(self, monkeypatch) -> None:
+        """The bound recomputes the returns outside january_effect, so the two are compared."""
+        rows, year, closes, calendar, returns = synthetic_year()
+        real = seasonals._rank_and_trade
+
+        def shifted(*args):
+            ranked, longs, shorts, ret = real(*args)
+            return ranked, longs, shorts, ret + 0.01
+
+        monkeypatch.setattr(seasonals, "_rank_and_trade", shifted)
+        with pytest.raises(seasonals.PointInTimeRefused, match="where january_effect gives"):
+            self._run(monkeypatch, rows, year, closes, calendar, returns)
+
     def test_a_calendar_short_of_february_is_refused(self, monkeypatch) -> None:
         rows, year, closes, calendar, returns = synthetic_year()
         short = calendar[calendar < pd.Timestamp("2016-02-01")]
