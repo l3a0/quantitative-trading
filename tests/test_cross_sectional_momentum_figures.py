@@ -175,6 +175,15 @@ class TestTheLines:
             assert low < panel.cumret.min() and high > panel.cumret.max()
         assert figure.axes[0].yaxis.get_major_formatter().xmax == 1.0
 
+    def test_the_limits_leave_room_for_the_labels(self, figure, drawn) -> None:
+        """22 percent of the joint span on each side, where the high and trough labels sit."""
+        low = min(p.cumret.min() for p in drawn)
+        high = max(p.cumret.max() for p in drawn)
+        span = high - low
+        assert figure.axes[0].get_ylim() == pytest.approx(
+            (low - 0.22 * span, high + 0.22 * span), abs=1e-12
+        )
+
     def test_each_x_axis_is_its_windows_dates(self, pairs) -> None:
         """A panel drawn against row numbers would still pass the value checks."""
         for ax, panel in pairs:
@@ -309,6 +318,13 @@ class TestDeepestDrawdown:
         """``calculateMaxDD``'s high starts at 0, so a window opening on a fall falls from row 0."""
         cumret = np.array([0.0, -0.1, -0.2, -0.1])
         assert deepest_drawdown(cumret) == Drawdown(high=0, trough=2, depth=pytest.approx(-0.2))
+
+    def test_a_window_opening_below_zero_still_falls_from_row_0(self) -> None:
+        """Row 0's drawdown is forced to 0, so a later row above row 0 but below
+        zero is not a new high. Reading the high as the largest value before the
+        trough would put it on row 1 here."""
+        cumret = np.array([-0.05, -0.01, -0.2])
+        assert deepest_drawdown(cumret).high == 0
 
 
 class TestTheWords:

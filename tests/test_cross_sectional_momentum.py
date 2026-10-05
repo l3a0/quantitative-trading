@@ -433,8 +433,19 @@ class TestTheScaleBreakDecision:
         assert (etfc.loc["2007-11-09"], etfc.loc["2007-11-12"]) == (85.9, 35.5), SPEC
         values = closes.to_numpy()
         positions = overlapping_positions(*formations(ranking_returns(values)))
-        held = pd.Series(positions[:, list(closes.columns).index("ETFC")], index=closes.index)
-        assert held.loc["2007-11-09"] == -HOLD_DAYS, SPEC
+        column = list(closes.columns).index("ETFC")
+        row = closes.index.get_loc(pd.Timestamp("2007-11-09"))
+        assert positions[row, column] == -HOLD_DAYS, SPEC
+        # The flagged close is earned by that row's position alone: holding ETFC
+        # on 2007-11-09 and nothing else returns its move on the next day, which
+        # is 2007-11-12, and the short gains from the fall.
+        alone = np.zeros_like(positions)
+        alone[row, column] = positions[row, column]
+        divisor = 2 * TOP_N * HOLD_DAYS
+        earned = daily_returns(alone, values, divisor)
+        assert str(closes.index[row + 1].date()) == "2007-11-12"
+        assert earned[row + 1] == pytest.approx(-HOLD_DAYS * (35.5 / 85.9 - 1) / divisor), SPEC
+        assert earned[row + 1] > 0
 
     def test_the_guard_refuses_the_two_windows_the_book_prints(self, source) -> None:
         members, closes = source
