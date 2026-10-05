@@ -1,12 +1,13 @@
-"""A fund's year-end holdings, read from its SEC filings into a committed record.
+"""A fund's holdings, read from its SEC filings into a committed record.
 
-Example 7.6 ranks the S&P 600 as it stood at each December year-end, and
-nothing Chan saved says which companies those were. IJR, the iShares S&P 600
-fund, prints its whole schedule of investments for every December 31 in a
-filing iShares Trust makes with the SEC, so the membership can be read rather
-than guessed.
-[Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) is the
-scope, and [docs/design.md](../../docs/design.md)'s section "A record that
+Example 7.6 ranks the S&P 600 as it stood at each December year-end, Example
+7.7 ranks the S&P 500 at each month-end, and nothing Chan saved says which
+companies those were. IJR and IVV, the iShares funds that track the two
+indices, print their whole schedule of investments in the filings iShares
+Trust makes with the SEC, so the membership can be read rather than guessed.
+[Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) is IJR's
+scope and [issue 372](https://github.com/l3a0/quantitative-trading/issues/372)
+is IVV's. [docs/design.md](../../docs/design.md)'s section "A record that
 reads a fund's filings" is the reasoning.
 
 The record lives under ``research/filings/`` rather than in ``data/``, because
@@ -18,19 +19,21 @@ The record has two parts.
 1. One CSV per filing, at ``research/filings/<fund>/<report date>.csv``,
    holding the rows under common stocks in the filing's order, with the
    columns :data:`COLUMNS`.
-2. An index, ``research/filings/index.jsonl``, one line per filing, naming the
-   accession, the primary document's sha256 and the CSV's sha256.
+2. An index, ``research/filings/index.jsonl``, one line per fund and filing,
+   naming the accession, the primary document's sha256 and the CSV's sha256.
 
-The source documents are not committed, because each N-Q runs to 15 to 38 MB.
+The source documents are not committed, because each runs to 15 to 58 MB.
 The index's sha256 says which bytes were parsed, so a fetch refuses a download
 that differs from them.
 
 Two formats, read by two parsers.
 
-1. **N-Q**, 2007 to 2018. One HTML file holds every fund the trust reports at
-   that quarter-end. :func:`parse_nq` reads from the fund's first schedule
-   heading to its "Total Common Stocks" line, and refuses when a heading naming
-   another fund comes first.
+1. **HTML**: an N-Q to 2018, a shareholder report, which is an N-CSR or
+   N-CSRS, to 2019, and IVV's standalone NPORT-EX for 2019-06-30. One N-Q or
+   shareholder report holds every fund the trust reports at that date.
+   :func:`parse_nq` reads from the fund's first schedule heading to its "Total
+   Common Stocks" line, and refuses when a heading naming another fund comes
+   first.
 2. **N-PORT**, from 2019. One XML file per series. :func:`parse_nport` reads
    the ``invstOrSec`` rows whose ``assetCat`` is ``EC``.
 
@@ -105,8 +108,10 @@ class Filing:
     """One filing in a fund's committed list.
 
     ``document`` is the primary document's path inside the accession's
-    directory on EDGAR. ``report_date`` is the date the schedule is as of,
-    which is the last business day when December 31 is not one.
+    directory on EDGAR. ``report_date`` is the date the schedule is as of, as
+    the filing prints it. ``skipped`` is empty for a filing the reader
+    records, and otherwise says why the filing holds no full schedule, so the
+    date stays on the list with nothing written for it.
     """
 
     report_date: str
@@ -114,6 +119,7 @@ class Filing:
     accession: str
     filing_date: str
     document: str
+    skipped: str = ""
 
 
 @dataclass(frozen=True)
@@ -294,8 +300,125 @@ IJR = Fund(
     ),
 )
 
+# IVV's quarter-ends from 2008-12-31 to 2026-06-30, surveyed on EDGAR on
+# 2026-10-04 and recorded on 2026-10-05. IVV's fiscal year ends March 31, so
+# its March 31 schedule is in an N-CSR, its September 30 in an N-CSRS, and its
+# June 30 and December 31 in an N-Q to 2018. 2019-06-30 has only a standalone
+# NPORT-EX. From 2019-09-30 an NPORT-P covers every quarter-end and is the one
+# read, and where an N-CSR or N-CSRS shares its date it is not. 2025-09-30
+# reads the amendment rather than the NPORT-P it corrects. One N-Q holds every
+# fund in the trust, so each December N-Q here is the same accession IJR's
+# list names.
+
+_SUMMARY_ONLY = (
+    'the N-CSRS prints a summary schedule of 55 holdings and "Other securities" '
+    "rather than every holding, and a full-text search of the trust's filings from "
+    "October 2013 to June 2014 found no amendment carrying the full list"
+)
+
+IVV = Fund(
+    symbol="IVV",
+    series_id="S000004310",
+    schedule_names=("S&P 500 INDEX FUND", "CORE S&P 500 ETF"),
+    filings=(
+        Filing("2008-12-31", "N-Q", "0001193125-09-040696", "2009-02-27", "dnq.htm"),
+        Filing("2009-03-31", "N-CSR", "0001193125-09-126206", "2009-06-05", "dncsr.htm"),
+        Filing("2009-06-30", "N-Q", "0001193125-09-183934", "2009-08-28", "dnq.htm"),
+        Filing("2009-09-30", "N-CSRS", "0001193125-09-248357", "2009-12-07", "dncsrs.htm"),
+        Filing("2009-12-31", "N-Q", "0001193125-10-044578", "2010-03-01", "dnq.htm"),
+        Filing("2010-03-31", "N-CSR", "0001193125-10-133919", "2010-06-07", "dncsr.htm"),
+        Filing("2010-06-30", "N-Q", "0001193125-10-199353", "2010-08-27", "dnq.htm"),
+        Filing("2010-09-30", "N-CSRS", "0001193125-10-277292", "2010-12-09", "dncsrs.htm"),
+        Filing("2010-12-31", "N-Q", "0001193125-11-052046", "2011-03-01", "dnq.htm"),
+        Filing("2011-03-31", "N-CSR", "0001193125-11-162711", "2011-06-10", "dncsr.htm"),
+        Filing("2011-06-30", "N-Q", "0001193125-11-235651", "2011-08-29", "dnq.htm"),
+        Filing("2011-09-30", "N-CSRS", "0001193125-11-336349", "2011-12-09", "d249987dncsrs.htm"),
+        Filing("2011-12-31", "N-Q", "0001193125-12-088646", "2012-02-29", "d302216dnq.htm"),
+        Filing("2012-03-31", "N-CSR", "0001193125-12-264907", "2012-06-08", "d336639dncsr.htm"),
+        Filing("2012-06-30", "N-Q", "0001193125-12-373715", "2012-08-29", "d401274dnq.htm"),
+        Filing("2012-09-30", "N-CSRS", "0001193125-12-494940", "2012-12-07", "d425526dncsrs.htm"),
+        Filing("2012-12-31", "N-Q", "0001193125-13-086998", "2013-03-01", "d488313dnq.htm"),
+        Filing("2013-03-31", "N-CSR", "0001193125-13-251330", "2013-06-07", "d524429dncsr.htm"),
+        Filing("2013-06-30", "N-Q", "0001193125-13-351768", "2013-08-29", "d587788dnq.htm"),
+        Filing(
+            "2013-09-30",
+            "N-CSRS",
+            "0001193125-13-466531",
+            "2013-12-09",
+            "d609194dncsrs.htm",
+            skipped=_SUMMARY_ONLY,
+        ),
+        Filing("2013-12-31", "N-Q", "0001193125-14-076476", "2014-02-28", "d678190dnq.htm"),
+        Filing("2014-03-31", "N-CSR", "0001193125-14-230537", "2014-06-09", "d714017dncsr.htm"),
+        Filing("2014-06-30", "N-Q", "0001193125-14-327134", "2014-08-29", "d778190dnq.htm"),
+        Filing("2014-09-30", "N-CSRS", "0001193125-14-434445", "2014-12-05", "d804519dncsrs.htm"),
+        Filing("2014-12-31", "N-Q", "0001193125-15-065725", "2015-02-26", "d875299dnq.htm"),
+        Filing("2015-03-31", "N-CSR", "0001193125-15-216083", "2015-06-08", "d914945dncsr.htm"),
+        Filing("2015-06-30", "N-Q", "0001193125-15-306363", "2015-08-28", "d59070dnq.htm"),
+        Filing("2015-09-30", "N-CSRS", "0001193125-15-396474", "2015-12-07", "d93555dncsrs.htm"),
+        Filing("2015-12-31", "N-Q", "0001193125-16-480933", "2016-02-26", "d146052dnq.htm"),
+        Filing("2016-03-31", "N-CSR", "0001193125-16-613829", "2016-06-06", "d184535dncsr.htm"),
+        Filing("2016-06-30", "N-Q", "0001193125-16-695276", "2016-08-29", "d231174dnq.htm"),
+        Filing("2016-09-30", "N-CSRS", "0001193125-16-788378", "2016-12-08", "d270106dncsrs.htm"),
+        Filing("2016-12-31", "N-Q", "0001193125-17-065125", "2017-03-01", "d346678dnq.htm"),
+        Filing("2017-03-31", "N-CSR", "0001193125-17-194722", "2017-06-05", "d335700dncsr.htm"),
+        Filing("2017-06-30", "N-Q", "0001193125-17-271743", "2017-08-29", "d438168dnq.htm"),
+        Filing("2017-09-30", "N-CSRS", "0001193125-17-359934", "2017-12-04", "d462369dncsrs.htm"),
+        Filing("2017-12-31", "N-Q", "0001193125-18-063612", "2018-02-28", "d539192dnq.htm"),
+        Filing("2018-03-31", "N-CSR", "0001193125-18-186572", "2018-06-07", "d544791dncsr.htm"),
+        Filing("2018-06-30", "N-Q", "0001193125-18-261300", "2018-08-29", "d577177dnq.htm"),
+        Filing("2018-09-30", "N-CSRS", "0001193125-18-344229", "2018-12-07", "d586605dncsrs.htm"),
+        Filing("2018-12-31", "N-Q", "0001193125-19-059323", "2019-03-01", "d655820dnq.htm"),
+        Filing("2019-03-31", "N-CSR", "0001193125-19-167652", "2019-06-07", "d738391dncsr.htm"),
+        Filing(
+            "2019-06-30",
+            "NPORT-EX",
+            "0001752724-19-108752",
+            "2019-08-26",
+            "NPORT_8256597219292071.htm",
+        ),
+        Filing("2019-09-30", "NPORT-P", "0001752724-19-177847", "2019-11-25", _NPORT_DOCUMENT),
+        Filing("2019-12-31", "NPORT-P", "0001752724-20-038725", "2020-02-27", _NPORT_DOCUMENT),
+        Filing("2020-03-31", "NPORT-P", "0001752724-20-112027", "2020-06-01", _NPORT_DOCUMENT),
+        Filing("2020-06-30", "NPORT-P", "0001752724-20-176909", "2020-08-27", _NPORT_DOCUMENT),
+        Filing("2020-09-30", "NPORT-P", "0001752724-20-247818", "2020-11-25", _NPORT_DOCUMENT),
+        Filing("2020-12-31", "NPORT-P", "0001752724-21-040719", "2021-02-25", _NPORT_DOCUMENT),
+        Filing("2021-03-31", "NPORT-P", "0001752724-21-116363", "2021-05-27", _NPORT_DOCUMENT),
+        Filing("2021-06-30", "NPORT-P", "0001752724-21-186201", "2021-08-26", _NPORT_DOCUMENT),
+        Filing("2021-09-30", "NPORT-P", "0001752724-21-255857", "2021-11-24", _NPORT_DOCUMENT),
+        Filing("2021-12-31", "NPORT-P", "0001752724-22-046281", "2022-02-25", _NPORT_DOCUMENT),
+        Filing("2022-03-31", "NPORT-P", "0001752724-22-122805", "2022-05-26", _NPORT_DOCUMENT),
+        Filing("2022-06-30", "NPORT-P", "0001752724-22-193652", "2022-08-25", _NPORT_DOCUMENT),
+        Filing("2022-09-30", "NPORT-P", "0001752724-22-268673", "2022-11-28", _NPORT_DOCUMENT),
+        Filing("2022-12-31", "NPORT-P", "0001752724-23-039243", "2023-02-24", _NPORT_DOCUMENT),
+        Filing("2023-03-31", "NPORT-P", "0001752724-23-123220", "2023-05-26", _NPORT_DOCUMENT),
+        Filing("2023-06-30", "NPORT-P", "0001752724-23-191503", "2023-08-25", _NPORT_DOCUMENT),
+        Filing("2023-09-30", "NPORT-P", "0001752724-23-264277", "2023-11-22", _NPORT_DOCUMENT),
+        Filing("2023-12-31", "NPORT-P", "0001752724-24-043113", "2024-02-27", _NPORT_DOCUMENT),
+        Filing("2024-03-31", "NPORT-P", "0001752724-24-123331", "2024-05-28", _NPORT_DOCUMENT),
+        Filing("2024-06-30", "NPORT-P", "0001752724-24-194289", "2024-08-27", _NPORT_DOCUMENT),
+        Filing("2024-09-30", "NPORT-P", "0001752724-24-269943", "2024-11-26", _NPORT_DOCUMENT),
+        Filing("2024-12-31", "NPORT-P", "0001752724-25-043800", "2025-02-27", _NPORT_DOCUMENT),
+        Filing("2025-03-31", "NPORT-P", "0001752724-25-119791", "2025-05-27", _NPORT_DOCUMENT),
+        Filing("2025-06-30", "NPORT-P", "0001752724-25-210389", "2025-08-28", _NPORT_DOCUMENT),
+        Filing("2025-09-30", "NPORT-P/A", "0002071691-26-015790", "2026-07-13", _NPORT_DOCUMENT),
+        Filing("2025-12-31", "NPORT-P", "0002071691-26-004238", "2026-02-25", _NPORT_DOCUMENT),
+        Filing("2026-03-31", "NPORT-P", "0002071691-26-012459", "2026-05-28", _NPORT_DOCUMENT),
+        Filing("2026-06-30", "NPORT-P", "0002071691-26-019760", "2026-08-25", _NPORT_DOCUMENT),
+    ),
+    not_stocks=(
+        NotStock(
+            "2022-06-30",
+            "Under Armour Inc",
+            "904311206",
+            "a line for Under Armour's Class C shares holding zero shares at zero value, "
+            "so the fund held none of them that day",
+        ),
+    ),
+)
+
 #: Every fund the reader knows, by the symbol ``fetch`` takes.
-FUNDS: Mapping[str, Fund] = {IJR.symbol: IJR}
+FUNDS: Mapping[str, Fund] = {IJR.symbol: IJR, IVV.symbol: IVV}
 
 
 # --- Reading an N-Q's HTML ---------------------------------------------------
@@ -403,12 +526,17 @@ def _schedule_name(heading: str) -> str:
     return _squash(name).upper()
 
 
+_DATE_LINE = re.compile(r"[A-Z][a-z]+ \d{1,2}, \d{4}")
+
+
 def _headings(items: Sequence[tuple[str, str | tuple[str, ...]]]) -> Iterable[tuple[int, str]]:
     """Every schedule heading in an N-Q, as its position and the fund it names.
 
-    Two shapes. To 2017 a heading is the text line after one opening
-    "Schedule of Investments". In 2018 it is one table row whose first cell
-    opens that way and whose second names the fund.
+    Three shapes. Mostly a heading is the text line after one opening
+    "Schedule of Investments". The 2018-06-30 N-Q prints the fund on the line
+    before it and the date on the line after, so where the line after is a
+    date the line before is the heading. From late 2018 it is one table row
+    whose first cell opens that way and whose second names the fund.
     """
     for position, (kind, content) in enumerate(items):
         if kind == "row":
@@ -417,19 +545,54 @@ def _headings(items: Sequence[tuple[str, str | tuple[str, ...]]]) -> Iterable[tu
                 yield position, _schedule_name(content[1])
         elif position > 0:
             before_kind, before = items[position - 1]
-            if before_kind == "text" and str(before).lower().startswith("schedule of investments"):
+            if before_kind != "text" or not str(before).lower().startswith(
+                "schedule of investments"
+            ):
+                continue
+            if not _DATE_LINE.fullmatch(str(content)):
                 yield position, _schedule_name(str(content))
+            elif position > 1 and items[position - 2][0] == "text":
+                yield position - 2, _schedule_name(str(items[position - 2][1]))
+
+
+def _page_footer(row: tuple[str, ...]) -> bool:
+    """Whether a row is a shareholder report's running footer and page number.
+
+    Nine of IVV's shareholder reports from 2010-09-30 to 2019-03-31 end each
+    odd page inside a schedule with a row reading "SCHEDULES OF INVESTMENTS"
+    and the page number, letter-spaced in 2019. It has a number in its last
+    cell, so it would otherwise be refused as a row no year printed. The even
+    page's footer leads with its number and is passed already, as a row whose
+    last cell is not one.
+    """
+    return len(row) == 2 and "".join(row[0].split()).upper() == "SCHEDULESOFINVESTMENTS"
+
+
+def _name_start(cell: str) -> bool:
+    """Whether a row of one cell is the start of a name the next row finishes.
+
+    The 2010-09-30 N-CSRS wraps two names across two table rows, "E.I. du Pont
+    de Nemours" above "and Co." and "Discovery" above "Communications Inc.
+    Series A", and the first row carries no numbers. Every other row of one
+    cell under common stocks, in all of IVV's HTML schedules and IJR's N-Q
+    years, is an industry heading printing its percentage of net assets, an
+    industry heading carried onto a new page with "(continued)", or a subtotal.
+    One subtotal in IVV's 2011-12-31 N-Q prints as "7585,592,127" and passes
+    this test, and an industry heading follows it, so no name takes it.
+    """
+    return "%" not in cell and not cell.endswith("(continued)") and _number(cell) is None
 
 
 def parse_nq(document: bytes, schedule_names: Sequence[str]) -> Schedule:
-    """The fund's rows under common stocks in one N-Q, with the total it prints.
+    """The fund's rows under common stocks in one HTML schedule, with the total it prints.
 
     The fund's section opens at its first schedule heading. Rows are read from
     its "COMMON STOCKS" line to its "Total Common Stocks" line, and every row
     holding a name, a share count and a value is a holding. A row of one number
-    is an industry subtotal and a row of text is a heading, so both are passed.
-    Footnote markers are dropped: a ``<sup>`` by :class:`_Rows`, and a trailing
-    run such as "(a)(b)" here.
+    is an industry subtotal and a row of text is a heading, so both are passed,
+    except where :func:`_name_start` says the text is a name the row below
+    finishes. Footnote markers are dropped: a ``<sup>`` by :class:`_Rows`, and a
+    trailing run such as "(a)(b)" here.
 
     It refuses when the section never opens, when a heading naming another fund
     comes before the total, and when a row under common stocks has a shape no
@@ -450,6 +613,7 @@ def parse_nq(document: bytes, schedule_names: Sequence[str]) -> Schedule:
 
     holdings: list[Holding] = []
     started = False
+    name_start = ""
     for position in range(opening, boundary):
         kind, content = items[position]
         if kind != "row":
@@ -470,12 +634,14 @@ def parse_nq(document: bytes, schedule_names: Sequence[str]) -> Schedule:
             started = upper.startswith("COMMON STOCKS")
             continue
         numbers = [_number(cell) for cell in content]
+        held_over, name_start = name_start, ""
         if len(content) == 1:
+            name_start = first if _name_start(first) else ""
             continue
-        if numbers[-1] is None:
+        if _page_footer(content) or numbers[-1] is None:
             continue
         if len(content) == 3 and numbers[0] is None and numbers[1] is not None:
-            name = _FOOTNOTES.sub("", first).strip()
+            name = _FOOTNOTES.sub("", f"{held_over} {first}".strip()).strip()
             holdings.append(Holding(name=name, shares=str(numbers[1]), value=str(numbers[2])))
             continue
         raise ValueError(f"a row under common stocks has a shape no year printed: {content}")
@@ -525,11 +691,16 @@ def parse_nport(document: bytes, series_id: str) -> Schedule:
     return Schedule(tuple(holdings), None)
 
 
+#: The forms whose schedule is HTML, read by :func:`parse_nq`. An NPORT-EX is
+#: the exhibit an N-PORT files in HTML, which for IVV's 2019-06-30 stands alone.
+_HTML_FORMS = ("N-Q", "N-CSR", "N-CSRS", "NPORT-EX")
+
+
 def parse(document: bytes, fund: Fund, filing: Filing) -> Schedule:
     """The schedule one filing holds, read by the parser its form needs."""
-    if filing.form == "N-Q":
+    if filing.form in _HTML_FORMS:
         return parse_nq(document, fund.schedule_names)
-    if filing.form.startswith("NPORT"):
+    if filing.form in ("NPORT-P", "NPORT-P/A"):
         return parse_nport(document, fund.series_id)
     raise ValueError(f"no parser reads form {filing.form}")
 
@@ -589,11 +760,15 @@ def record(
     """Write one filing's holdings file and its index line, or refuse.
 
     A rerun that would write the same bytes changes nothing. One that would
-    write different bytes to an existing file, or a different line for an
-    accession the index already holds, refuses and names both hashes. An N-Q
+    write different bytes to an existing file, or a different line for a
+    fund's accession the index already holds, refuses and names both hashes.
+    The fund is part of that key because one N-Q holds every fund in the
+    trust, so IJR's and IVV's December N-Q share an accession. A schedule
     whose rows do not sum to the total it prints is refused too, because that
-    is a parse that read the wrong rows.
+    is a parse that read the wrong rows, and so is a filing the list skips.
     """
+    if filing.skipped:
+        raise FilingRefused(f"{fund.symbol} {filing.report_date} is skipped: {filing.skipped}")
     directory = FILINGS_DIR if filings_dir is None else filings_dir
     document_sha256 = _sha256(document)
     schedule = parse(document, fund, filing)
@@ -629,10 +804,18 @@ def record(
                 f"{entry.sha256}, so it was left alone"
             )
     entries = read_index(directory)
-    held = next((line for line in entries if line.accession == filing.accession), None)
+    held = next(
+        (
+            line
+            for line in entries
+            if (line.fund, line.accession) == (fund.symbol, filing.accession)
+        ),
+        None,
+    )
     if held is not None and held != entry:
         raise FilingRefused(
-            f"the index already records {filing.accession} with file sha256 {held.sha256} "
+            f"the index already records {fund.symbol} {filing.accession} "
+            f"with file sha256 {held.sha256} "
             f"and document sha256 {held.document_sha256}, and this parse gives "
             f"{entry.sha256} from {entry.document_sha256}"
         )
@@ -693,17 +876,18 @@ def fetch(
 
     Each document lands in a temporary directory the run removes once it is
     parsed. Where the index already names a document, a download whose sha256
-    differs is refused before anything is parsed.
+    differs is refused before anything is parsed. A filing the list skips is
+    not downloaded.
     """
     contact = user_agent() if contact is None else contact
-    held = {entry.accession: entry for entry in read_index(filings_dir)}
+    held = {(entry.fund, entry.accession): entry for entry in read_index(filings_dir)}
     written = []
     with tempfile.TemporaryDirectory(prefix="fund_holdings_") as scratch:
-        for number, filing in enumerate(fund.filings):
+        for number, filing in enumerate(f for f in fund.filings if not f.skipped):
             if number:
                 pause(REQUEST_SPACING_SECONDS)
             content = download(document_url(filing), contact)
-            known = held.get(filing.accession)
+            known = held.get((fund.symbol, filing.accession))
             if known is not None and _sha256(content) != known.document_sha256:
                 raise FilingRefused(
                     f"{filing.accession} downloaded with sha256 {_sha256(content)}, "
@@ -723,8 +907,13 @@ def members(fund: Fund, filing: Filing, filings_dir: Path | None = None) -> tupl
     """The rows of one holdings file that are not on the fund's list of non-stock rows.
 
     A second share class is a separate member, because the fund holds it as a
-    separate line.
+    separate line. A filing the list skips has no holdings file, so it is
+    refused with the reason rather than read as a missing file.
     """
+    if filing.skipped:
+        raise ValueError(
+            f"{fund.symbol} {filing.report_date} has no holdings file: {filing.skipped}"
+        )
     rows = read_holdings(holdings_path(fund, filing, filings_dir))
     excluded = {
         (entry.name, entry.cusip)
@@ -883,7 +1072,9 @@ def place(fund: Fund, report_date: str, filings_dir: Path | None = None) -> list
     placed. Nor can a linked one whose price is undefined, which is a zero share
     count in either filing or a zero value in the earlier one, so it keeps its
     link and carries no return. The first filing in the list has nothing before
-    it, so it is refused rather than reported as wholly unplaced.
+    it, so it is refused rather than reported as wholly unplaced. The filing
+    before is the one before in the list, a year for IJR and a quarter for IVV,
+    and one the list skips refuses with its reason.
 
     The return is rough on purpose. Value over shares moves with a split as
     well as with the price, so a member whose share count fell twentyfold
