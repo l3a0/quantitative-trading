@@ -13,19 +13,22 @@ Two kinds of test live here.
 Every pinned figure names its vintages, the two archive files by their sha256
 in ``data/archive_vintages.jsonl``, and its specification, the readings
 declared on issue 23 before any number was computed.
+
+``blog/conditional-parameter-optimization-lessons.md`` quotes these pins, and
+its figure's own labels are held by ``tests/test_cpo_figures.py``. What the
+post says that nothing here asserts is listed in README's ``## The write-up``.
 """
 
 from __future__ import annotations
 
 import math
-import os
 
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.stats import spearmanr
 
 from chan import cpo
-from chan.archive import ArchiveUnavailable, archive_dir
 from chan.cpo import (
     EXIT_FRACTION,
     Cell,
@@ -45,6 +48,7 @@ from chan.cpo import (
     unconditional_cell,
     zscore,
 )
+from tests.conftest import archive_skip_reason
 
 # --- literal readings of the rules, the references the fast code is held to ---
 
@@ -337,6 +341,22 @@ class TestSelectionAndMetrics:
         assert (1 + cpo.BOOK_UNCONDITIONAL["annual"]) ** 3 - 1 == pytest.approx(0.614, abs=5e-4)
         assert (1 + cpo.BOOK_CONDITIONAL["annual"]) ** 3 - 1 == pytest.approx(0.718, abs=5e-4)
 
+    def test_chan_s_annual_returns_read_as_arithmetic_cannot_reach_them_either(self):
+        """An arithmetic annual return caps what three years can compound to.
+
+        Since ln(1 + r) <= r for every daily return, three years of daily
+        returns averaging ``a / 252`` compound to at most ``exp(3a) - 1``. That
+        bound sits below Chan's printed cumulative return for both arms, so his
+        table disagrees with itself under either definition, whatever the
+        daily returns were. Added for the post's Lesson 2.
+        """
+        unconditional = math.exp(3 * cpo.BOOK_UNCONDITIONAL["annual"]) - 1
+        conditional = math.exp(3 * cpo.BOOK_CONDITIONAL["annual"]) - 1
+        assert unconditional == pytest.approx(0.680, abs=5e-4)
+        assert conditional == pytest.approx(0.810, abs=5e-4)
+        assert unconditional < cpo.BOOK_UNCONDITIONAL["cumulative"]
+        assert conditional < cpo.BOOK_CONDITIONAL["cumulative"]
+
     def test_the_costed_returns_charge_one_basis_point_a_trip(self):
         assert costed(np.array([0.01]), np.array([3])).tolist() == pytest.approx([0.0097])
 
@@ -398,25 +418,35 @@ class TestTheConditionalChoice:
 
 # --- the pins, on the owner's archive ---------------------------------------
 
-#: Set to 1 to run the pins below. The full run takes minutes, and every
-#: session here runs the suite, so they do not run by default.
-RUN_ENV = "QT_ARCHIVE_RUN"
+
+class TestWhenThePinsRun:
+    """The skip in ``tests/conftest.py``, which no archive pin can check from inside."""
+
+    def test_they_run_with_an_archive_and_the_flag(self, tmp_path):
+        environ = {"QT_ARCHIVE_DIR": str(tmp_path), "QT_ARCHIVE_RUN": "1"}
+        assert archive_skip_reason(environ, config=tmp_path / "absent") is None
+
+    def test_they_skip_without_the_flag(self, tmp_path):
+        environ = {"QT_ARCHIVE_DIR": str(tmp_path)}
+        assert "QT_ARCHIVE_RUN=1" in archive_skip_reason(environ, config=tmp_path / "absent")
+
+    def test_they_skip_without_an_archive(self, tmp_path):
+        reason = archive_skip_reason({"QT_ARCHIVE_RUN": "1"}, config=tmp_path / "absent")
+        assert reason.startswith("no data archive is configured")
 
 
 @pytest.fixture(scope="module")
-def result() -> cpo.Result:
-    """One full run of Example 7.1, or a skip naming what is missing."""
-    try:
-        archive_dir()
-    except ArchiveUnavailable as absent:
-        pytest.skip(str(absent))
-    if os.environ.get(RUN_ENV) != "1":
-        pytest.skip(f"the archive pins take minutes, so they run only with {RUN_ENV}=1")
-    return cpo.run()
+def result(cpo_result) -> cpo.Result:
+    """One full run of Example 7.1, or a skip naming what is missing.
+
+    ``tests/conftest.py`` holds the run and its skip, so this file and
+    ``tests/test_cpo_figures.py`` read one run rather than paying for two.
+    """
+    return cpo_result
 
 
 class TestExample71OnTheArchive:
-    """Rows 1 to 11 of Entry 16, all from one run.
+    """Rows 1 to 11 of Entry 16, all from one run, and three figures its post quotes.
 
     The vintages are the archive's `gld_intraday_1min.csv.gz`, sha256
     `3611a8f7…0de7a`, downloaded 2026-07-17, and `gdx_intraday_1min.csv.gz`,
@@ -509,6 +539,58 @@ class TestExample71OnTheArchive:
         assert cells()[nearest].label == "3_60_2.5"
         assert sharpes[nearest] == pytest.approx(1.9311, abs=5e-5)
         assert result.cell_trips[nearest] == pytest.approx(1.19, abs=0.005)
+
+    # The four pins below were added for the post on this example,
+    # blog/conditional-parameter-optimization-lessons.md, so that every figure
+    # it quotes traces to an assertion rather than to prose. Entry 16 names them.
+
+    def test_rows_1_to_4_as_multiples_of_chan_s_figures(self, result):
+        """Each computed figure over Chan's, which Entry 16 states and the post quotes.
+
+        Only the unconditional arm enters, so the model cannot move these.
+        """
+        got = metrics(result.unconditional_returns)
+        multiples = {name: got[name] / cpo.BOOK_UNCONDITIONAL[name] for name in cpo.METRICS}
+        assert multiples["cumulative"] == pytest.approx(4.662467024139571, abs=1e-9)
+        assert multiples["annual"] == pytest.approx(3.8244484459093937, abs=1e-9)
+        assert multiples["sharpe"] == pytest.approx(2.927441409271616, abs=1e-9)
+        assert multiples["calmar"] == pytest.approx(15.497288333713197, abs=1e-8)
+        assert {name: round(value, 1) for name, value in multiples.items()} == {
+            "cumulative": 4.7,
+            "annual": 3.8,
+            "sharpe": 2.9,
+            "calmar": 15.5,
+        }
+
+    def test_each_arm_earns_less_a_round_trip_than_a_round_trip_costs(self, result):
+        """Added after the result was seen. It explains row 8 and decides nothing.
+
+        The edge is the sum of an arm's test-day returns over the sum of its
+        round trips, in basis points. The re-chosen arm's rests on the model, so
+        a lock update can move it, as it can rows 5 to 10.
+        """
+        unconditional = result.unconditional_returns.sum() / result.unconditional_trips.sum()
+        conditional = result.conditional_returns.sum() / result.conditional_trips.sum()
+        assert unconditional * 1e4 == pytest.approx(0.43520618072586204, abs=1e-9)
+        assert conditional * 1e4 == pytest.approx(0.461523503846464, abs=1e-9)
+        assert round(unconditional * 1e4, 3) == 0.435
+        assert round(conditional * 1e4, 3) == 0.462
+        assert max(unconditional, conditional) < cpo.COST_PER_ROUND_TRIP
+
+    def test_the_chosen_cell_is_the_second_busiest_of_the_400(self, result):
+        """Added after the result was seen. Only ``2.5_30_0.2`` trades more, and it decides nothing.
+
+        Only the unconditional arm enters, so the model cannot move this.
+        """
+        chosen = cells().index(result.unconditional)
+        busier = np.flatnonzero(result.cell_trips > result.cell_trips[chosen])
+        assert [cells()[i].label for i in busier] == ["2.5_30_0.2"]
+
+    def test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells(self, result):
+        """Added after the result was seen. Spearman's rank correlation, deciding nothing."""
+        rho = spearmanr(result.cell_trips, result.cell_sharpes).statistic
+        assert rho == pytest.approx(0.9485368645941135, abs=1e-9)
+        assert round(rho, 2) == 0.95
 
 
 # --- what the mutation lens of PR 285's review found unheld ------------------

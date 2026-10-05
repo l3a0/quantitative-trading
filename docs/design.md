@@ -609,7 +609,7 @@ all.
 | Setting | Secret | Lives in | Read by |
 | --- | --- | --- | --- |
 | The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records |
-| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/test_cpo.py`, which runs its archive pins only when it is set, because the full run takes minutes |
+| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose one run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share, and which runs only when it is set, because the full run takes minutes |
 
 ## Considered and rejected
 
