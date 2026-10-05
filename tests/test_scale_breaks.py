@@ -256,6 +256,18 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: Example 7.2. Neither file carries a flagged day, so nothing is refused, and
 #: ``TestTheGuardAndTheReads`` in ``tests/test_aud_cad_johansen.py`` runs it.
 #:
+#: [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) decided
+#: that ``chan.roll_returns`` calls the guard for *Algorithmic Trading*'s
+#: Example 5.3, on the spot and every contract of the five strips it reads. It
+#: passes each member's own rows, ``closes[symbol].dropna()``, rather than its
+#: panel column, because a contract's column is NaN before it lists and after it
+#: expires, and the guard reports those days as having no readable move. Across a
+#: restart gap it compares the settlements on either side, and it flags nothing
+#: on any of the five. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_roll_returns.py`` holds a planted break refused and a panel
+#: column refused, and ``TestTheGuardFlagsNothing`` in
+#: ``tests/test_futures_strips.py`` holds the strips clean.
+#:
 #: [Issue 344](https://github.com/l3a0/quantitative-trading/issues/344) decided
 #: that ``chan.gold_miners_oil`` calls the guard on GLD, GDX and USO over
 #: 2006-05-23 to 2012-04-09, the span from GDX's first price to the file's

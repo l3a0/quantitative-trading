@@ -19,10 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26 and 27 carry their own, three, eleven, twelve, five, six, one,
-three, eight, six, two, eight, seven, twelve, six, two, five, three, three,
-three, seven, six, seven, three, four and eight,
-and they are listed in those entries rather than here, because the list is about an entry's rows and not
+22, 23, 24, 25, 26, 27 and 28 carry their own, three, eleven, twelve, five, six,
+one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
+three, three, seven, six, seven, three, four, five and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -32,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26 and 27 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27 and 28 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -212,12 +211,18 @@ says.
   - [The verdicts](#the-verdicts-24)
   - [What the entry concludes](#what-the-entry-concludes-25)
   - [What this entry cannot say](#what-this-entry-cannot-say-23)
-- [Entry 27: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*](#entry-27-gld-gdx-and-uso-around-july-2008-chans-algorithmic-trading)
+- [Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*](#entry-27-spot-and-roll-returns-of-five-futures-chans-algorithmic-trading)
   - [What the book printed](#what-the-book-printed-24)
   - [What this repo computed](#what-this-repo-computed-26)
   - [The verdicts](#the-verdicts-25)
   - [What the entry concludes](#what-the-entry-concludes-26)
   - [What this entry cannot say](#what-this-entry-cannot-say-24)
+- [Entry 28: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*](#entry-28-gld-gdx-and-uso-around-july-2008-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-25)
+  - [What this repo computed](#what-this-repo-computed-27)
+  - [The verdicts](#the-verdicts-26)
+  - [What the entry concludes](#what-the-entry-concludes-27)
+  - [What this entry cannot say](#what-this-entry-cannot-say-25)
 
 ## How to read an entry
 
@@ -267,9 +272,10 @@ both.
    Entry 24,
    [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py) holds
    Entry 25, [tests/test_bollinger.py](../tests/test_bollinger.py) holds
-   Entry 26, and
+   Entry 26, [tests/test_roll_returns.py](../tests/test_roll_returns.py)
+   holds Entry 27, and
    [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
-   Entry 27.
+   Entry 28.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -383,7 +389,8 @@ Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
-Entry 26's rows 4 to 7, and Entry 27's rows 7 to 14.
+Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, and Entry 28's rows 7 to
+14.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -516,7 +523,16 @@ was a reading made after the run. The band leads by +0.069915 on the APR and
 +0.375022 on the Sharpe ratio, so any margin a reader would put on "quite"
 passes too.
 
-Entry 27's rows 1 to 6 take it too. Location 1922 makes three claims about the
+Entry 27's rows 13 and 14 take it too, each a claim about futures the book
+names, and like Entry 13's row 10 their criteria were written after the
+figures they judge were measured. The criteria, |γ| at least twice |α| for
+"much larger" and |γ| above |α| for "bigger", were written on
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347) after a
+scratch run had measured the figures, though before the build. The
+narrowest case clears the first by a factor of two, so the verdict does not
+rest on where that line sits.
+
+Entry 28's rows 1 to 6 take it too. Location 1922 makes three claims about the
 ETFs it names and prints no statistic for any of them. Their criteria, each
 claim's count of relations at 99 percent on the trace and eigen statistics
 separately, were written on
@@ -5448,7 +5464,191 @@ above is in-sample.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 
-## Entry 27: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
+## Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 5.3, Kindle locations 2364 to 2444, with
+Table 5.1 recalled at 2683. Shipped under
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). The
+script is `estimateFuturesReturns.m`, in ericnberwick/EpchanPreview at
+`e4bc46f` under `public/img/book2/`, git blob `1a70a28`. Every location in
+this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eighteen rows, all derivable from
+[tests/test_roll_returns.py](../tests/test_roll_returns.py). Five do not match
+one printed figure to one computation, and each says so in its own cells. Row
+12 covers two figures from one computation, and rows 15 to 18 carry no
+published figure.
+
+A future's return splits into the move of the spot price under it and the
+return it earns by converging on that spot as it nears expiry, the roll return.
+Chan assumes both are constant and estimates each by regression, for the
+Brazilian real (BR), corn (C), WTI crude (CL), copper (HG) and the two-year
+Treasury note (TU). The spot return α is the slope of the log spot price on
+time. The roll return γ comes from one day's forward curve: the log prices of
+the five nearest contracts regressed on their time to maturity, fitted afresh
+each day. Chapter 6 uses the result to explain why BR, HG and TU trend.
+
+**Eight of Table 5.1's ten cells reproduce on Chan's own files, and HG's and
+TU's spot returns do not.** CL's γ starts on Figure 5.5's first day, and C's
+two figures agree with the ones Chan's Python port prints to within 10⁻¹².
+Separately, the script measures maturity in contract columns rather than
+months, which overstates the roll return of the three strips whose contracts
+are not one month apart.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** The five strips `inputdatadaily_br_20120813/`,
+   `inputdatadaily_c2_20120813/`, `inputdatadaily_cl_20120813/`,
+   `inputdatadaily_hg_20120813/` and `inputdatadaily_tu_20120813/`, vendor
+   `chan-mat`, basis `raw`, saved 2012-08-14, one vintage per contract and
+   one for the spot, read for the close through `chan.series.load_panel`.
+   Table 5.1's C is the C2 strip.
+2. **The specification.** α is 252 times the OLS slope of the log spot on the
+   strip's row number. The rows are numbered over every day of the file before
+   the days with no spot are dropped, so a gap still counts as elapsed days. γ
+   is −12 times the OLS slope of the five nearest priced contracts' log prices
+   on their column positions 1 to 5, on rows where those five are adjacent
+   columns, and the figure is its mean over the rows where it is defined.
+
+Every result here is **exploratory**. Reproducing Table 5.1 spends Chan's 1986
+to 2012 strips on a model he chose, so it says whether his numbers reproduce on
+his file and nothing about whether a roll return persists out of sample.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | BR, α | −2.7% | location 2399, Table 5.1 |
+| 2 | BR, γ | 10.8% | the same |
+| 3 | C, α | 2.8% | the same, and location 2444 |
+| 4 | C, γ | −12.8% | the same, and location 2444 |
+| 5 | CL, α | 7.3% | location 2399, Table 5.1 |
+| 6 | CL, γ | −7.1% | the same |
+| 7 | HG, α | 5.0% | the same |
+| 8 | HG, γ | 7.7% | the same |
+| 9 | TU, α | −0.0%, a negative number that rounds to zero | the same |
+| 10 | TU, γ | 3.2% | the same |
+| 11 | CL's first day with γ | November 22, 2004 | location 2399, Figure 5.5 |
+| 12 | C's α and γ in full | `0.02805562210100287` and `-0.12775650227459556` | the Python port's comments, not the book |
+| 13 | For BR, C and TU, \|γ\| is much larger than \|α\| | a claim | location 2399 |
+| 14 | BR, HG and TU each have \|γ\| bigger than \|α\| | a claim | location 2683 |
+| 15 | γ with maturity in months | none | n/a |
+| 16 | Rows 13 and 14 on the month-spaced γ | none | n/a |
+| 17 | The month gaps across the five contracts each day's γ reads | none | n/a |
+| 18 | The days with γ and their span | none | n/a |
+
+Row 12's port is `estimateFuturesReturns.py` in `PythonCodesAndData.zip` at
+the same commit, the zip [data/README.md](../data/README.md) records with its
+sha256. Its rule is the MATLAB script's.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | α on the BR strip | −0.026903 | `TestTheFigures::test_alpha_and_gamma_at_the_six_decimals_the_script_prints` |
+| 2 | γ on the BR strip | 0.108133 | the same |
+| 3 | α on the C2 strip | 0.028056 | the same |
+| 4 | γ on the C2 strip | −0.127757 | the same |
+| 5 | α on the CL strip | 0.073019 | the same |
+| 6 | γ on the CL strip | −0.070592 | the same |
+| 7 | α on the HG strip | 0.050567 | the same, and `TestTheFigures::test_hgs_alpha_rounds_to_5_1_not_the_printed_5_0` |
+| 8 | γ on the HG strip | 0.077172 | `TestTheFigures::test_alpha_and_gamma_at_the_six_decimals_the_script_prints` |
+| 9 | α on the TU strip | 0.000039, positive | the same, and `TestTheFigures::test_tus_alpha_is_positive_where_the_book_prints_a_negative_zero` |
+| 10 | γ on the TU strip | 0.032032 | `TestTheFigures::test_alpha_and_gamma_at_the_six_decimals_the_script_prints` |
+| 11 | CL's first and last day with γ | 2004-11-22 to 2012-08-13 | `TestTheFigures::test_cls_first_day_with_gamma_is_figure_5_5s_first_day` |
+| 12 | Rows 3 and 4 against the port | within 10⁻¹² of each | `TestTheFigures::test_c_agrees_with_the_python_ports_printed_figures` |
+| 13 | \|γ\| at least twice \|α\| | holds for all three, the narrowest BR at 4.02 times | `TestTheClaims::test_br_c_and_tu_each_have_a_roll_return_at_least_twice_their_spot_return` |
+| 14 | \|γ\| greater than \|α\| | holds for all three | `TestTheClaims::test_br_hg_and_tu_each_have_a_roll_return_bigger_than_their_spot_return` |
+| 15 | The same fit regressed on each contract's month offset from the nearest | BR 0.108133, C −0.053011, CL −0.070592, HG 0.038573 and TU 0.010677, so the script's γ is 2.4 times C's, 2.0 times HG's and 3.0 times TU's | `TestTheRowsBeside::test_gamma_with_maturity_in_months` and `::test_the_script_overstates_c_by_2_4_hg_by_2_0_and_tu_by_3_0` |
+| 16 | Rows 13's and 14's criteria on row 15 | row 13's holds for BR and TU and fails for C, at 1.89 times. Row 14's holds for BR and TU and fails for HG | `TestTheRowsBeside::test_location_2399_fails_for_c_on_the_month_spaced_gamma` and `::test_location_2683_fails_for_hg_on_the_month_spaced_gamma` |
+| 17 | Each row's gaps in months across its five contracts | all one month for BR and CL, all three for TU, five patterns for C and six for HG | `TestTheRowsBeside::test_the_spacings_each_strips_gamma_reads` |
+| 18 | Rows where γ is defined | BR 4,210 from 1995-11-09, CL 1,941 from 2004-11-22, HG 6,028 from 1986-11-03 and TU 1,087 from 2008-03-10, all four to 2012-08-13, and C 1,570 from 2005-12-19 to 2012-03-14 | `TestTheRowsBeside::test_the_days_with_gamma_and_their_span` and `::test_cs_gamma_stops_when_its_strip_runs_out_of_contracts` |
+
+`TestTheFigures::test_eight_of_table_5_1s_ten_cells_land_and_hg_and_tu_alpha_miss`
+holds which of rows 1 to 10 round to the book's figure, sign included.
+
+### The verdicts
+
+Rows 1 to 10 are compared at the book's one decimal of a percent, so each gap is
+in percentage points at that precision.
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0 | reproduced | −2.69 percent rounds to −2.7. |
+| 2 | 0.0 | reproduced | |
+| 3 | 0.0 | reproduced | |
+| 4 | 0.0 | reproduced | |
+| 5 | 0.0 | reproduced | |
+| 6 | 0.0 | reproduced | −7.06 percent rounds to −7.1. |
+| 7 | +0.1 | did not reproduce | 5.06 percent rounds to 5.1, on Chan's own saved file, so the vintage explanation is spent. Three readings were tried after the miss, and `TestTheReadingsTriedAfterTheMiss` pins each. Renumbering the rows after the spot's gaps are dropped gives 0.050587, and reading the prices at single precision gives 0.050567. Regressing on calendar days and annualizing by 365 gives 0.050315, which lands the cell. The specification stays the row number. The script reads `T=[1:length(spot)]'`, and the calendar-day reading moves C's α to 0.027998, off the 0.028056 the Python port printed, which the row number lands. |
+| 8 | 0.0 | reproduced | |
+| 9 | 0.0, with the opposite sign | did not reproduce | 0.0039 percent rounds to 0.0, but the book's −0.0 is a negative number and this one is positive. None of the three readings in row 7 turns it negative. |
+| 10 | 0.0 | reproduced | |
+| 11 | 0 days | reproduced | Exact. |
+| 12 | under 10⁻¹² on each | reproduced | The two programs sum in different orders, so the pin allows 10⁻¹². |
+| 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build but after a scratch run had measured the figures. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. Row 16 runs it on the month-spaced γ, and there it fails for C. |
+| 14 | none, a claim | reproduced | It holds under the script's γ, which is what printed Table 5.1. Row 16 is the same claim under the book's own description of the method, and there it fails for HG. |
+| 15 | none | none, not a replication | No figure is printed for it. Monthly strips give the same γ either way, to rounding. |
+| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
+| 17 | none | none, not a replication | It is why rows 15 and 16 move only C, HG and TU. |
+| 18 | none | none, not a replication | γ needs five priced contracts. C's strip ends at 2012Z, so after its March 2012 contract expires no day prices more than four. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The table reproduces on Chan's own files except for two spot returns.**
+   C's two figures agree with what his Python port printed on the same strip,
+   CL's γ starts on the day his figure does, and eight of ten cells land at the
+   book's precision. HG's and TU's α miss on Chan's own file, so no vintage
+   explanation is left. The one reading that lands HG, regression on calendar
+   days, is not what the mirrored script or the Python port computes. HG's
+   miss is one tenth of a point and TU's is a sign, so neither changes what
+   the table is used to argue.
+2. **The script measures maturity in columns, so three of its five γ figures
+   are not what the text describes.** The book says the fit regresses on time
+   to maturity "measured in months". The script regresses on 1 to 5 and
+   annualizes as if adjacent contracts were a month apart. That holds for BR
+   and CL. C's contracts sit two or three months apart, HG's mix gaps of one,
+   two and three months, and TU's sit three apart, so Table 5.1 overstates
+   their roll returns by 2.4, 2.0 and 3.0
+   times.
+3. **Under months, both claims lose a strip.** Location 2683 explains BR's,
+   HG's and TU's momentum by their roll returns exceeding their spot returns.
+   HG's month-spaced roll return, 3.86 percent, is smaller than its 5.06
+   percent spot return, so the comparison Chapter 6 rests its HG explanation
+   on holds only under the script's arithmetic. Location 2399's claim that
+   BR's, C's and TU's roll returns are much larger than their spot returns
+   holds for BR and TU either way. C's month-spaced roll return is 1.89 times
+   its spot return, short of the criterion's 2. Neither row tests whether a
+   roll return explains any momentum.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether returns are constant.** The model is the book's simplification, and
+location 2399 already says the fitted γ drifts from day to day. A mean of a
+drifting series is a summary, and this entry reproduces the summary without
+testing the model.
+
+**Whether the month-spaced γ is what Chan meant.** Rows 15 and 16 are this
+repo's reading of the book's sentence, declared on
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347) before the
+build.
+Chan printed no figure for them, so they carry no verdict.
+
+**Whether a roll return persists.** Every row is in-sample on 1986 to 2012.
+The two experiments that trade on γ, Example 5.4 and the TU momentum test,
+carry their own issues.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 28: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
 Rationale*, Wiley, 2013, Kindle location 1922, with the same story repeated
