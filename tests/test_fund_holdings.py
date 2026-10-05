@@ -116,6 +116,15 @@ class TestTheCommittedRecord:
         assert on_disk == named
 
     @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.report_date)
+    def test_each_file_is_what_the_writer_writes_from_its_rows(
+        self, entry: fund_holdings.IndexEntry
+    ) -> None:
+        content = (fund_holdings.FILINGS_DIR / entry.path).read_bytes()
+        assert b"\r" not in content
+        rows = read_holdings(fund_holdings.FILINGS_DIR / entry.path)
+        assert fund_holdings.serialize(rows) == content
+
+    @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.report_date)
     def test_each_file_hashes_to_its_index_line(self, entry: fund_holdings.IndexEntry) -> None:
         content = (fund_holdings.FILINGS_DIR / entry.path).read_bytes()
         assert fund_holdings._sha256(content) == entry.sha256
@@ -328,6 +337,11 @@ class TestLink:
         previous = [Holding("ACME INC", "1", "1")]
         assert link(current, previous) == [(None, None), (None, None)]
 
+    def test_a_key_two_previous_rows_share_pairs_with_neither(self) -> None:
+        current = [Holding("Acme Inc", "1", "1")]
+        previous = [Holding("Acme Inc Class A", "1", "1"), Holding("Acme Inc Class B", "1", "1")]
+        assert link(current, previous) == [(None, None)]
+
     def test_a_row_the_first_pass_took_is_not_offered_again(self) -> None:
         current = [Holding("Acme Inc", "1", "1"), Holding("Acme Inc Class B", "1", "1")]
         previous = [Holding("Acme Inc.", "1", "1")]
@@ -431,6 +445,13 @@ class TestParseNq:
         assert names[-1] == "Bel Fuse Inc. Class B"
         assert not any(name.startswith("Security") for name in names)
         assert schedule.printed_total == 14_298_541_057
+
+    def test_a_line_break_inside_a_cell_is_a_space(self) -> None:
+        schedule = _nq("nq-2016-line-break.htm")
+        assert [h.name for h in schedule.holdings] == [
+            "American Axle & Manufacturing Holdings Inc.",
+            "Consolidated Communications Holdings Inc.",
+        ]
 
     def test_the_2018_value_split_by_a_space_is_read_whole(self) -> None:
         schedule = _nq("nq-2018-split-number.htm")
@@ -543,6 +564,13 @@ class TestRecord:
         index.write_text(index.read_text().replace('"document_sha256": "', '"document_sha256": "0'))
         with pytest.raises(FilingRefused, match="already records 0001752724-23-037514"):
             record(_FUND, _NPORT_FILING, document, tmp_path)
+        assert not (tmp_path / "ijr" / "2022-12-30.csv").exists()
+
+    def test_a_total_missed_by_one_dollar_is_refused(self, tmp_path: Path, monkeypatch) -> None:
+        schedule = fund_holdings.Schedule((Holding("Acme Inc.", "10", "100"),), 101)
+        monkeypatch.setattr(fund_holdings, "parse", lambda *arguments: schedule)
+        with pytest.raises(FilingRefused, match="the rows sum to 100, and the filing prints 101"):
+            record(_FUND, _NQ_FILING, b"", tmp_path)
 
     def test_an_nq_whose_rows_miss_its_printed_total_is_refused(self, tmp_path: Path) -> None:
         with pytest.raises(FilingRefused, match="the filing prints 37,293,884,055"):
@@ -590,7 +618,7 @@ class TestFetch:
         assert [e.report_date for e in entries] == ["2022-12-30", "2023-12-31"]
         assert [contact for _, contact in asked] == ["Name n@example.com"] * 2
         assert pauses == [fund_holdings.REQUEST_SPACING_SECONDS]
-        assert fund_holdings.REQUEST_SPACING_SECONDS >= 0.1
+        assert fund_holdings.REQUEST_SPACING_SECONDS > 0.1
 
     @pytest.mark.parametrize(
         "failure",
