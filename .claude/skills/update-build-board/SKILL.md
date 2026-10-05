@@ -222,16 +222,23 @@ merge landed since its last read.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
-gh issue list --state open --limit 100 --json number --jq 'length'
-gh pr list --state open --json number,title,statusCheckRollup,closingIssuesReferences
-gh issue list --state open --limit 100 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
+gh issue list --state open --limit 1000 --json number --jq 'length'
+gh pr list --state open --limit 1000 --json number,title,statusCheckRollup,closingIssuesReferences
+gh issue list --state open --limit 1000 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
 ```
 
-The `gh issue list` command feeds every card's `ms` and `labels`. `ms` is the
+Every list command carries `--limit 1000` because `gh` stops at its limit
+without a warning, and the default is 30. A truncated list prints the same way a
+complete one does, so its length reads as a count rather than as a cut. On
+2026-10-05 the repo held 121 open issues and `--limit 100` returned 100, which
+under-counted the open total and dropped 21 cards' milestones and labels. Keep
+the limit well past the current count rather than at it.
+
+The second `gh issue list` command feeds every card's `ms` and `labels`. `ms` is the
 GitHub milestone title, printed on the card exactly as the tracker spells it,
 which is why it is queried rather than recalled from the five that exist. They are the tracker's own labels
 rather than a second vocabulary, so a label added on GitHub belongs on the card,
-and `LABEL_HUE` takes its colour from `gh label list --json name,color`.
+and `LABEL_HUE` takes its colour from `gh label list --limit 1000 --json name,color`.
 
 Two hues are deliberately not GitHub's, and the rule is readability rather than
 fidelity. A label colour on GitHub is a chip background, while here it is text,

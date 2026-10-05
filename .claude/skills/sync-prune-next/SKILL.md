@@ -84,7 +84,7 @@ branch, and the files turned out to be review fixes in progress. Check 4 is
 what kept the worktree.
 
 The same evidence does not show that work has stalled. Before reporting a
-session as stuck, re-run `gh pr list --state open` and read its latest events
+session as stuck, re-run `gh pr list --state open --limit 1000` and read its latest events
 with `list_events`, because a pull request may have opened since the worktree
 was classified.
 
