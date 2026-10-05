@@ -48,7 +48,7 @@ from chan.cpo import (
     unconditional_cell,
     zscore,
 )
-from tests.conftest import archive_skip_reason
+from tests.conftest import CPO_GROUP, archive_skip_reason
 
 # --- literal readings of the rules, the references the fast code is held to ---
 
@@ -433,6 +433,39 @@ class TestWhenThePinsRun:
     def test_they_skip_without_an_archive(self, tmp_path):
         reason = archive_skip_reason({"QT_ARCHIVE_RUN": "1"}, config=tmp_path / "absent")
         assert reason.startswith("no data archive is configured")
+
+
+class TestTheRunIsSharedAcrossWorkers:
+    """The hook in ``tests/conftest.py`` that keeps one run of Example 7.1 per suite.
+
+    Without it, each xdist worker drawing a pin builds the run again. The pins
+    skip on every machine without the archive, so nothing else here would
+    notice a run built ten times over.
+    """
+
+    def test_every_test_reading_the_run_is_in_its_group(self, request):
+        readers = [item for item in request.session.items if "cpo_result" in item.fixturenames]
+        if not readers:
+            pytest.skip("this selection collected no test that reads cpo_result")
+        groups = [[mark.args for mark in item.iter_markers("xdist_group")] for item in readers]
+        assert groups == [[(CPO_GROUP,)]] * len(readers)
+
+    def test_xdist_saw_the_group(self, request):
+        """xdist groups by a suffix it writes onto each node id, from the marks
+        it finds when its own collection hook runs. Measured on 16 readers, the
+        hook without ``tryfirst`` left all 16 marked and none suffixed, so the
+        test above passed while every reader still ran wherever it landed."""
+        if not hasattr(request.config, "workerinput"):
+            pytest.skip("only an xdist worker writes the group onto node ids")
+        readers = [item for item in request.session.items if "cpo_result" in item.fixturenames]
+        if not readers:
+            pytest.skip("this selection collected no test that reads cpo_result")
+        assert [item.nodeid for item in readers if not item.nodeid.endswith(f"@{CPO_GROUP}")] == []
+
+    def test_the_suite_runs_groups_on_one_worker(self, request):
+        """A group mark does nothing unless the run distributes by group."""
+        addopts = request.config.getini("addopts")
+        assert ["--dist", "loadgroup"] in [addopts[i : i + 2] for i in range(len(addopts))]
 
 
 @pytest.fixture(scope="module")
