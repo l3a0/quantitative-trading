@@ -1834,3 +1834,8 @@ class TestThePythonPortsDailyAndReturnFiles:
         assert returns[0] == 0.0
         assert returns[1] == float("-0.00651403021411835")
         assert returns[-1] == float("0.00248217282454894")
+
+    def test_the_return_symbol_is_matched_whatever_its_case(self) -> None:
+        np.testing.assert_array_equal(
+            load_returns("audcad-unequal")[1], load_returns("AUDCAD-UNEQUAL")[1]
+        )

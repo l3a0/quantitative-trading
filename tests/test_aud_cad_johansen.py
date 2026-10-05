@@ -218,7 +218,8 @@ class TestRow5TheReturnsAreChans:
         assert found.holds
         assert found.rows_over == 0
         assert found.first_over is None
-        assert found.largest <= AGREEMENT
+        assert 0 < found.largest <= AGREEMENT
+        assert found.largest == np.abs(result.test - saved).max()
 
     def test_chans_saved_returns_give_all_three_printed_figures(self, saved) -> None:
         """Measurement 1 on issue 345, which is what makes row 5 decide rows 2 to 4."""
@@ -266,6 +267,16 @@ class TestRow5TheReturnsAreChans:
     def test_series_of_different_lengths_are_refused(self, result, saved) -> None:
         with pytest.raises(ValueError, match="cannot be compared row by row"):
             agreement(result.test[1:], saved, result.test_days)
+
+    def test_a_calendar_of_another_length_is_refused(self, result, saved) -> None:
+        with pytest.raises(ValueError, match="cannot be compared row by row"):
+            agreement(result.test, saved, result.test_days[1:])
+
+    def test_a_difference_of_exactly_the_criterion_agrees(self) -> None:
+        """The criterion is "at most 1e-9", so the boundary row agrees."""
+        days = pd.bdate_range("2020-01-01", periods=2)
+        assert agreement(np.array([0.0, 0.0]), np.array([0.0, AGREEMENT]), days).holds
+        assert not agreement(np.array([0.0, 0.0]), np.array([0.0, 2 * AGREEMENT]), days).holds
 
 
 class TestBesideTheReplication:
@@ -361,6 +372,16 @@ class TestTheRule:
         assert found.rows_over == 611
         assert found.first_over == result.test_days[1]
         assert figures(shifted).sharpe == pytest.approx(1.359568, abs=1e-6)
+
+    def test_two_calendars_of_one_length_are_refused_too(self) -> None:
+        """Equal lengths are not equal dates, and the script would take AUD.USD's."""
+        days = pd.bdate_range("2020-01-01", periods=5)
+        aud = pd.Series([0.9, 0.91, 0.92, 0.91, 0.9], index=days)
+        cad = pd.Series(
+            [1.3, 1.31, 1.32, 1.31, 1.3], index=days[:4].append(days[4:] + pd.Timedelta(days=3))
+        )
+        with pytest.raises(ValueError, match="1 are AUD.USD's alone and 1 USD.CAD's alone"):
+            cross_rates(aud, cad)
 
     def test_two_series_on_different_dates_are_refused_by_name(self) -> None:
         days = pd.bdate_range("2020-01-01", periods=5)
