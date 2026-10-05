@@ -1,8 +1,15 @@
 """The pins for cross-sectional momentum, *Algorithmic Trading*'s Example 6.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 6.2. ``docs/replication-log.md`` Entry 17 carries the verdicts and
-points here row by row.
+about Example 6.2, with three exceptions, all in
+``blog/cross-sectional-momentum-lessons.md``. The post quotes each window's
+deepest drawdown and the dates of the 2008 and 2009 spell below the high, which
+``tests/test_cross_sectional_momentum_figures.py`` holds. It recalls Example
+7.2's 6.7 percent as the arithmetic figure, which ``tests/test_pead.py`` holds.
+And it quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which
+``tests/test_khandani_lo_book_two.py`` holds. README lists what the post says
+that nothing pins. ``docs/replication-log.md`` Entry 17 carries the verdicts
+and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -405,6 +412,40 @@ class TestTheScaleBreakDecision:
         }
         assert len(flagged) == 30
         assert counts == {"2007": 1, "2008-2009": 29, "2010-2012": 0}
+
+    def test_the_2007_day_is_etfcs_and_the_strategy_held_it_short_at_full_weight(
+        self, closes
+    ) -> None:
+        """ETFC's close fell from 85.9 to 35.5 into 2007-11-12.
+
+        ``daily_returns`` multiplies the position one row back by the day's
+        return, so the row that earns the flagged close is 2007-11-09, where
+        all 25 cohorts held ETFC short.
+        """
+        flagged = [
+            (symbol, day)
+            for symbol in closes.columns
+            for day in scale_breaks(closes[symbol].dropna())
+            if pd.Timestamp(WINDOWS["2007"][0]) <= day <= pd.Timestamp(WINDOWS["2007"][1])
+        ]
+        assert flagged == [("ETFC", pd.Timestamp("2007-11-12"))], SPEC
+        etfc = closes["ETFC"]
+        assert (etfc.loc["2007-11-09"], etfc.loc["2007-11-12"]) == (85.9, 35.5), SPEC
+        values = closes.to_numpy()
+        positions = overlapping_positions(*formations(ranking_returns(values)))
+        column = list(closes.columns).index("ETFC")
+        row = closes.index.get_loc(pd.Timestamp("2007-11-09"))
+        assert positions[row, column] == -HOLD_DAYS, SPEC
+        # The flagged close is earned by that row's position alone: holding ETFC
+        # on 2007-11-09 and nothing else returns its move on the next day, which
+        # is 2007-11-12, and the short gains from the fall.
+        alone = np.zeros_like(positions)
+        alone[row, column] = positions[row, column]
+        divisor = 2 * TOP_N * HOLD_DAYS
+        earned = daily_returns(alone, values, divisor)
+        assert str(closes.index[row + 1].date()) == "2007-11-12"
+        assert earned[row + 1] == pytest.approx(-HOLD_DAYS * (35.5 / 85.9 - 1) / divisor), SPEC
+        assert earned[row + 1] > 0
 
     def test_the_guard_refuses_the_two_windows_the_book_prints(self, source) -> None:
         members, closes = source

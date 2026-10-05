@@ -77,7 +77,7 @@ That phrase has a history in this book. In Example 7.2, Chan calls 252 times the
 
 Read the same way here, location 3509’s 8.7 percent would be the arithmetic annual return, 0.085279. At the book’s one decimal that is 8.5 percent, not 8.7. The 8.7 is the compounded APR from Lesson 1 under a second name. A check that read the label rather than the script would have set Chan’s figure against the wrong formula and reported a miss on a correct transcription.
 
-The word “APR” does the same thing. [Entry 17 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-17-cross-sectional-momentum-chans-algorithmic-trading) found that it names the arithmetic figure in Example 7.2 and the compounded one in Example 6.2. Within one book by one author, only the script says which formula produced a return.
+The word “APR” does the same thing. [The post on cross-sectional momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md) shows that it names the arithmetic figure in Example 7.2 and the compounded one in Example 6.2. Within one book by one author, only the script says which formula produced a return.
 
 ## Lesson 4: a mirror written down before the run lands at 12 percent, not 46
 

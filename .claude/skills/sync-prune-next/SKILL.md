@@ -137,8 +137,8 @@ in progress that nothing else announces, such as the worktree above.
 
 ## 3. Update the build board
 
-The `update-build-board` skill owns the procedure, the data blocks, the suite
-command and the checks, including the reconcile check on the totals. This step
+The `update-build-board` skill owns the procedure, the data blocks and the
+checks, including the reconcile check on the totals. This step
 only names what a round usually changes.
 
 - `PRS` takes each open pull request's checks at its current head and its
@@ -147,15 +147,10 @@ only names what a round usually changes.
   round. `PLANNED` and `NEXT` drop entries for closed issues.
 - `WORKING` entries are owed a removal by whoever added them, so report a stale
   one rather than deleting another session's entry.
-- `STATE.main`, `suite.tests` and the two vintage counts wait for one suite run
-  on a clean checkout of the new `main`. Everything else is written without
-  waiting.
 
-The suite takes minutes, and longer while other sessions run theirs, so start
-it in the background as soon as `main` has moved. `CLAUDE.md`'s
-`## Keep the main thread free` gives measured times. If `main` moves again
-before the run finishes, the run describes a commit that is no longer `main`,
-so run it again rather than write it.
+Nothing in a round waits on a suite run. The board stopped carrying the commit,
+the test count and the vintage counts on 2026-10-05 UTC, so every section is
+written as soon as it is measured.
 
 ## 4. Recommend what to take next
 

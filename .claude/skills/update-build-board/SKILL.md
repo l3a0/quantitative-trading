@@ -75,10 +75,26 @@ default rather than through a rule.
 
 ## What the page is made of
 
-A header strip and three sections, top to bottom. The strip is where every
-`STATE` figure renders: `main`, the vintages and their rows, the highlight
-count, the test count, the experiments tracked, the open issue count and the
-stamp. The sections are these.
+A header strip and three sections, top to bottom. The strip renders the two
+`STATE` figures: the open issue count, and the stamp drawn from `updatedAt`.
+
+It used to carry five more, and the owner removed all five on 2026-10-05 UTC.
+
+1. The commit `main` stood at.
+2. The vintage files and their rows.
+3. The committed highlights.
+4. The suite's test count.
+5. The experiments tracked.
+
+The test count alone cost a full suite run per update, 532 seconds on
+`ec44e94`, and a merge during that run made the count describe a commit that
+was no longer `main`, so the run had to start over. That happened the day they
+were removed, when
+[pull request 363](https://github.com/l3a0/quantitative-trading/pull/363)
+merged mid-run. None of the five said what to take next, which is the question
+this page answers, so do not add them back.
+
+The sections are these.
 
 1. **In flight**, five columns running most finished on the left: waiting on
    your review, waiting on my review, building, planned with no builder, and
@@ -166,14 +182,15 @@ session that changed the tracker in between then refuses the whole batch,
 rather than leaving a pull request entry against a card that has moved.
 
 Each document is `{ schema: 1, items: [...] }`, except `board/state`, which is
-`{ schema: 1, main, updatedAt, vintages, suite, notes, issues }`. The page
-adopts a section only when it passes `usableSection`. That check asks for the
-schema and the state's figures as numbers, and for every field on an item that
+`{ schema: 1, updatedAt, issues: { open } }`. The page adopts a section only
+when it passes `usableSection`. That check asks for the schema, for `updatedAt`
+as a string and `issues.open` as a number, and for every field on an item that
 the renderer reads without a guard. The redraw is also wrapped, so a write that
 passes the check but still breaks the drawing code is rolled back to the last
 good data. Either way the banner says live updates stopped and why. Both were
 exercised on 2026-10-02 by driving the page's `connect` with a fake database:
-a tracker item missing `needs`, a state with an empty `suite`, a tracker item
+a tracker item missing `needs`, a state with an empty `suite` (a field the
+check stopped asking for when the strip lost it), a tracker item
 whose `labels` was a string, and a renderer forced to throw. All four kept the
 last good board and lit the banner, and the next good write went live again.
 
@@ -192,63 +209,23 @@ scratch copy called `qt-board.html`, refresh its built-in copy with
 ## Measure everything, recall nothing
 
 Every figure on the page has a command behind it. Run them **from the repo
-root**, not from the scratch directory the rest of this page works in. Most fail
-loudly there. One does not: `uv run pytest` reports `no tests ran` and exits
-zero, which looks enough like a result to be written down.
+root**, not from the scratch directory the rest of this page works in, because
+`gh` reads the repository from the checkout it runs in.
 
 A count recalled from earlier in the session is the one that will be wrong, and
 it has been: an update shipped 39 open issues when a query said 40.
 
-**Run the suite against the commit the strip names, on a checkout of it.** Not
-in whichever worktree the session happens to be standing in, which is rarely
-`main`. An update published 243 tests beside `2938775`, where the real count was
-241, because the run happened in a branch that adds tests. The strip prints the
-count next to the commit, so a figure from another tree is attributed to a tree
-that never produced it. `git worktree add --detach <dir> origin/main` gives a
-clean one, and removing it afterwards is part of the same step.
-
-That one is worth reading twice, because its cover story arrived on its own.
-[PR 90](https://github.com/l3a0/quantitative-trading/pull/90) merged twenty minutes later and made 243 right for `main`, so a session
-checking the number afterwards would have found it correct and left the method
-that produced it in place.
-
-The run takes several minutes, and `CLAUDE.md`'s `## Keep the main thread free`
-gives the measured times, so it goes to a background shell or sub-agent. The
-rest of the update proceeds while it runs. Three things keep the count honest.
-
-1. The run names the commit it ran on, and removes its detached worktree when it
-   finishes, which is part of the same step.
-2. Only the fields measured on one commit wait for it: `main`, the test count
-   and the two vintage counts. They go into one pinned write together, so the
-   page never shows a new `main` beside an old count. Every other section, and
-   the rest of `state` such as the open issue count, is written without waiting,
-   because none of it depends on the run.
-3. If the re-measured `main` no longer equals the commit the run named, the run
-   is stale. Run it again rather than writing its count beside a commit that
-   never produced it.
-
-```bash
-D=$(mktemp -d) && git worktree add --detach "$D" origin/main && (cd "$D" && git log --oneline -1 && uv run pytest -q --no-header 2>&1 | tail -1); git worktree remove "$D"
-```
-
-The rest are quick and run in the foreground.
+None of them runs the suite. The page carries no figure that needs one, so a
+board update never waits on a test run. The first command feeds no figure
+either. It fetches, and the head it prints is how a session notices that a
+merge landed since its last read.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
 gh issue list --state open --limit 100 --json number --jq 'length'
 gh pr list --state open --json number,title,statusCheckRollup,closingIssuesReferences
-python3 -c "import json;print(sum(json.loads(l)['row_count'] for l in open('data/vintages.jsonl')))"
-wc -l < data/vintages.jsonl
-cat research/book-notes/*-trading.md | grep -c '^### Location'
 gh issue list --state open --limit 100 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
 ```
-
-`wc -l` on the manifest is `vintages.files`, and the line above it is
-`vintages.rows`. The `grep` is `notes.highlights`. The one figure with no
-command is `issues.tracked`, which counts the experiments the sibling
-experiments page lists and moves only when that page does. Leave it alone rather
-than deriving it from the open issue count, which is a different number and has
-been confused with it before.
 
 The `gh issue list` command feeds every card's `ms` and `labels`. `ms` is the
 GitHub milestone title, printed on the card exactly as the tracker spells it,
@@ -262,21 +239,6 @@ so a value that reads fine there can be invisible here. `enhancement` is
 `a2eeef` and `deferred` is `ededed`, both too pale to read as text on white, so
 the page substitutes a darker colour for each. Syncing `LABEL_HUE` straight from
 the command would undo both.
-
-The vintage row count comes from the manifest rather than from counting lines.
-Every hand-placed file but the seven of Chan's Python port, and every stock
-lifted from Chan's MATLAB files, carries three header lines, `Price,Close` then `Ticker,<SYM>` then `Date,`, widened to
-one cell per field for a lifted stock, while a recorded download carries one, so
-`wc -l` over every file, the lifted directories included, counts more lines than
-the manifest records rows. The manifest is the authority.
-
-Both figures count committed vintages only. `data/archive_vintages.jsonl`
-records two more, Example 7.1's minute bars, whose bytes live in the owner's
-archive rather than in `data/`, and the strip leaves them out. The suite total
-depends on the machine for the same reason: wherever an archive is configured,
-`tests/test_archive.py`'s checks of those two files run rather than skip, and
-`tests/test_cpo.py`'s pins run too when `QT_ARCHIVE_RUN=1` is set. Measure the
-suite on a checkout with neither, which is what CI runs.
 
 Three things decide where an open pull request's card goes, and none is
 guessable.
@@ -350,13 +312,11 @@ mid-update moves `STATE.issues.open` and owes `TRACKER` a card, so re-reading
 the count on its own leaves the page failing check 1. One was filed during the
 update this rule came from.
 
-The first command is in that set because it is the one that shows a merge, and a
-merge is what moves the four figures left out: `main` itself, the vintages and
-their rows, the suite total and the highlight count. Re-running it is what makes
-leaving those four alone safe, so excusing them and excusing it together would
-have been circular. Two figures are measured by none of this. `updatedAt` is
-written by the session rather than measured, and `issues.tracked` moves only
-when the sibling experiments page does.
+The first command is in that set because its printed head says which merges
+landed, and a merge is what closes issues and pull requests. The `gh` commands
+measure what that moves, `PRS`, `TRACKER` and the open issue count, so the first
+command explains a change rather than measuring one. `updatedAt` is the one
+figure none of this measures, because the session writes it.
 
 The price is one more round of queries per update. What it buys is a gap of
 seconds between the last measurement and the write rather than a gap the
@@ -388,7 +348,7 @@ One more constant is not in the table because nothing should edit it.
 
 | Part | Holds |
 | --- | --- |
-| `STATE`, from `board/state` | `main`, `updatedAt`, `vintages`, `suite.tests`, `notes.highlights`, `issues.open`, `issues.tracked` |
+| `STATE`, from `board/state` | `updatedAt` and `issues.open` |
 | `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
 | `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
 | `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
