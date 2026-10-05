@@ -1021,6 +1021,10 @@ the first run to read it, GLD and USO alone, under
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
 `chan.etf_cointegration`, for
 [issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
+The Johansen tests of location 1922 read GLD, GDX and USO from it through
+`chan.gold_miners_oil`, for
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344), with no
+script of Chan's behind them.
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 

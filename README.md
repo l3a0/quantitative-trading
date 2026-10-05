@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-three replications run here, fifteen from Chan's *Quantitative Trading*
-and eight from his *Algorithmic Trading*. The first two were ported from the
+Twenty-four replications run here, fifteen from Chan's *Quantitative Trading*
+and nine from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-one were built here.
+where they were first built. The other twenty-two were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -305,6 +305,17 @@ where they were first built. The other twenty-one were built here.
     not reproduce, because the eigen statistic finds none, which the script's
     own printout already shows. Every figure is exploratory, and the
     portfolio's weights are fitted on the days it trades.
+24. The Johansen tests on GLD and GDX around July 2008 in *Algorithmic
+    Trading*, and on the triplet with the oil fund USO added, on Chan's own
+    ETF file. The book prints no statistic, so its three claims were judged on
+    each Johansen statistic at 99 percent, with criteria written down before
+    any statistic was computed. All six rows hold. The pair finds one
+    relation from 2006-05-23 to 2008-07-14 and none from 2008-07-15 to
+    2012-04-09, even at 90 percent, and the triplet finds exactly one over the
+    whole 1,481 days. The control the book leaves out holds too: GLD and GDX
+    alone over the same days find none, at a trace statistic of 10.447
+    against a 90 percent bar of 13.429. Every figure is exploratory, and the
+    split date and the third ETF were chosen after the break was seen.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -497,7 +508,13 @@ a known cointegrating vector recovered from a built system, real figures
 without a warning, and a refusal naming the column and row of any price that
 is not a finite number.
 
-All twenty-three replications reach a verdict in
+[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) does it for
+the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
+issue declared them, every statistic and eigenvalue of the four tests at the
+precision that is real, the CADF and ADF rows beside them, and the cut to
+GDX's first price that keeps a missing price from reaching the test.
+
+All twenty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -508,8 +525,8 @@ Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
-the stationarity tests' on USD.CAD and Entry 23 the ETF cointegration
-examples'.
+the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
+examples' and Entry 24 the Johansen tests' on GLD, GDX and USO.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -631,7 +648,8 @@ it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
 The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
 closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
-and nothing else reads it yet.
+and the Johansen tests on GLD, GDX and USO read those three, for
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344).
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract
@@ -1091,6 +1109,18 @@ It prints the three vintages and the window, each figure the script prints
 beside the computed one and a verdict, the first eigenvector beside Chan's with
 its sign flipped, how many relations each Johansen statistic finds at each
 level, and the rows beside the replication.
+
+The Johansen tests on GLD, GDX and USO take no option either, because the
+issue fixed the windows, the three ETFs and the test before any statistic was
+computed:
+
+```bash
+uv run python -m chan.gold_miners_oil
+```
+
+It prints the three vintages and each window, each claim's count of relations
+at 99 percent and its verdict, every test's statistics against its critical
+values, and the rows beside the replication.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
