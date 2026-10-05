@@ -91,8 +91,11 @@ rather than his first edition's. :mod:`chan.pead` calls the first three,
 :mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
 :func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
 :mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
-the revised edition's Example 7.7. :mod:`chan.etf_cointegration` calls
-:func:`moving_avg` and :func:`moving_std`.
+the revised edition's Example 7.7. :mod:`chan.usdcad_mean_reversion` calls
+:func:`moving_avg` and :func:`moving_std` for Example 2.5, with
+:func:`round_half_away` for the lookback, and :mod:`chan.stationarity_tests`
+calls :func:`round_half_away` to choose a row of jplv7's critical values.
+:mod:`chan.etf_cointegration` calls :func:`moving_avg` and :func:`moving_std`.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
@@ -169,8 +172,9 @@ and :func:`smart_moving_avg` adds them in the same order, so each mean is the
 same double rather than numpy's pairwise sum.
 
 ``movingAvg.m`` and ``movingStd.m`` came for Example 3.1's ``PriceSpread.m``,
-``LogPriceSpread.m`` and ``Ratio.m``, and Example 3.2's ``bollinger.m`` calls
-them too. They are git blobs ``5b9f933`` and ``2f5f858`` under
+``LogPriceSpread.m`` and ``Ratio.m``. Example 3.2's ``bollinger.m`` calls them
+too, and so does Example 2.5's ``stationarityTests.m``, which
+:mod:`chan.usdcad_mean_reversion` transcribes. They are git blobs ``5b9f933`` and ``2f5f858`` under
 ``public/img/book2/`` in EpchanPreview at ``e4bc46f`` and under
 ``archived/matlab/`` in ivanliu1989/algorithmic_trading at ``4567024``. They
 landed here for
@@ -180,7 +184,7 @@ Examples 2.6 to 2.8's ``cointegrationTests.m`` calls them too, for
 things changed on the way over.
 
 1. ``movingStd``'s optional third argument, which samples every ``period``
-   rows, is not carried, because none of the five scripts passes it.
+   rows, is not carried, because none of the six scripts passes it.
 2. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window,
    and ``movingStd`` refuses a window of one row for the reason
    :func:`smart_moving_std` does.

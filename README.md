@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-two replications run here, fifteen from Chan's *Quantitative Trading*
-and seven from his *Algorithmic Trading*. The first two were ported from the
+Twenty-three replications run here, fifteen from Chan's *Quantitative Trading*
+and eight from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty were built here.
+where they were first built. The other twenty-one were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -272,7 +272,19 @@ where they were first built. The other twenty were built here.
     script with GLD and USO swapped lands both, a reading found after the miss.
     Chan's claim that the ratio loses money holds either way. Every figure is
     exploratory.
-22. The cointegration tests and mean-reverting portfolio of *Algorithmic
+22. Four tests for mean reversion on USD.CAD and the trade they set, Examples
+    2.1 to 2.5 of *Algorithmic Trading*, on Chan's own minute file read at
+    16:59 each day. Every figure his script prints lands every digit: the ADF
+    statistic −1.840744 with its AR(1) estimate and critical values, the
+    variance ratio test's p-value of 0.367281, and the half-life of 115.209794
+    days. The ADF figure needs jplv7's regression, which fits one row fewer
+    than `adfuller`, whose −1.843018 misses. The Hurst exponent does not land:
+    0.4732 against the book's 0.49, and Chan's own Python port gives 0.4758,
+    though both agree H is below a half. Example 2.5's P&L ends positive at
+    0.1141 after a fall of 0.6425, which is the claim the issue declared
+    before any P&L was computed. Its lookback comes from the closes it trades,
+    as the book says. Every figure is exploratory.
+23. The cointegration tests and mean-reverting portfolio of *Algorithmic
     Trading*'s Examples 2.6 to 2.8, on the ETFs EWA, EWC and IGE in Chan's own
     ETF file. Every figure `cointegrationTests.m` prints reproduces to its last
     digit, the eigenvectors up to their sign: a CADF statistic of −3.64346635,
@@ -448,6 +460,17 @@ and pins the near miss beside them: solving along
 Chan's line without bounding it finds a higher growth rate by going short,
 over the gross cap.
 
+[tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
+does it for the stationarity tests on USD.CAD. It pins each figure the script
+prints at the precision that is real and at the script's, H as a miss against
+the book's 0.49, and the ADF statistic `adfuller` gives beside jplv7's, so a
+port that reaches for the ADF this repo already held fails a test. It also
+recomputes Example 2.5's daily P&L with plain pandas.
+[tests/test_stationarity_tests.py](tests/test_stationarity_tests.py) holds the
+three toolbox tests' rules on synthetic series: the row jplv7 drops, the bins
+of its critical values, `genhurst`'s indifference to level and scale, and the
+variance ratio's trim to whole periods.
+
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) does it for
 the ETF cointegration examples. It pins every figure `cointegrationTests.m`
 prints at the precision that is real and as the script printed it, each
@@ -460,7 +483,7 @@ a known cointegrating vector recovered from a built system, real figures
 without a warning, and a refusal naming the column and row of any price that
 is not a finite number.
 
-All twenty-two replications reach a verdict in
+All twenty-three replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -470,8 +493,9 @@ seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
-panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's and Entry 22
-the ETF cointegration examples'.
+panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
+the stationarity tests' on USD.CAD and Entry 23 the ETF cointegration
+examples'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -613,8 +637,8 @@ them, under `data/pythoncodesanddata/`, for
 USD.CAD's one-minute bars, the daily closes of USD.CAD, AUD.USD and AUD.CAD,
 the monthly AUD and CAD interest rates, and the AUD.CAD returns his Example 5.1
 saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
-the daily close his Examples 2.1 to 2.5 read. No replication reads any of the
-seven yet.
+the daily close his Examples 2.1 to 2.5 read, and the stationarity tests on
+USD.CAD read it. No replication reads the other six yet.
 
 Four more of his MATLAB files hold his continuous futures series, four saves of one file named
 for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
@@ -645,7 +669,11 @@ and the Newey-West significance block live in
 the sibling repo because both had the same copy. The dependency is a direct URL
 at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
 two cannot drift apart unnoticed. All three parts earn their place, and
-[docs/design.md](docs/design.md) says which failure each one closes.
+[docs/design.md](docs/design.md) says which failure each one closes. Two
+toolbox forms of the Dickey-Fuller test are the exception and live in
+`src/chan`, because each reproduces a figure the shared one cannot. So do the
+Hurst exponent and the variance ratio test Chan's scripts call, which the
+shared package does not carry. The design doc says why none of them moved.
 [tests/test_ithildincore_contract.py](tests/test_ithildincore_contract.py) is what
 tells a dependency change apart from a vintage change, since its cases read no
 vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
@@ -910,7 +938,9 @@ same figures net of 1 basis point a round trip, the verdict on Chan's claim,
 and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
-in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. Run those
+pins with `-n 0`, because a parallel run builds the run once for each of the
+two test files that read it.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
@@ -976,6 +1006,20 @@ It prints Example 8.1's two days of resizing, each Example 8.2 figure beside
 the book's, the growth rate along the line Figure 8.1 plots, the line's
 stationary point outside the cap, and the cap above which the second strategy
 alone stops being best.
+
+The stationarity tests on USD.CAD, Examples 2.1 to 2.5 of *Algorithmic
+Trading*, read Chan's minute file and take no option, because his script fixes
+the closes, every test's settings and the trade, and the issue fixed Example
+2.5's claim before any P&L was computed:
+
+```bash
+uv run python -m chan.usdcad_mean_reversion
+```
+
+It prints the source, each test's figures beside the script's and the book's,
+Example 2.5's lookback, cumulative P&L and drawdown, and the two rows reported
+beside the script: `adfuller`'s statistic and the Python port's own Hurst
+exponent.
 
 The ETF cointegration examples, Examples 2.6 to 2.8 of *Algorithmic Trading*,
 take no option, because `cointegrationTests.m` fixes the file, the three ETFs
@@ -2176,6 +2220,11 @@ uv run ruff check
 uv run ruff format --check
 uv run pytest
 ```
+
+`uv run pytest` runs the suite across one worker per core through
+`pytest-xdist`, which `pyproject.toml` turns on in `addopts`. Add `-n 0` for a
+serial run, which is the faster choice for a few tests, because every worker
+starts whatever the selection. `--pdb` runs serially on its own.
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.

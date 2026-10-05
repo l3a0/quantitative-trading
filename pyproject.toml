@@ -48,6 +48,7 @@ dependencies = [
 dev = [
     "matplotlib>=3.9",
     "pytest>=8",
+    "pytest-xdist>=3.8.0",
     "ruff>=0.8",
 ]
 
@@ -71,7 +72,15 @@ testpaths = ["tests"]
 # Puts the repo root on the path, so a test can import both the package under
 # src/ and the helpers under tests/support/.
 pythonpath = ["."]
-addopts = "-ra"
+# Runs the suite across one pytest-xdist worker per core, so a plain
+# `uv run pytest` is the parallel run everywhere it is written down.
+# `loadfile` keeps each test file on one worker, so a module-scoped fixture is
+# built once, as it is serially. xdist's default spreads one file's tests over
+# several workers, and each builds the file's fixtures again. xdist starts
+# every worker whatever the selection, so `-n 0` is the faster choice for a few
+# tests. `--pdb` turns the workers off on its own. PYTEST_XDIST_AUTO_NUM_WORKERS
+# sets the count for a shell, such as a lower one when sessions share a machine.
+addopts = "-ra -n auto --dist loadfile"
 
 [tool.ruff]
 target-version = "py312"
