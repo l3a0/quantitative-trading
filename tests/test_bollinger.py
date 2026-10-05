@@ -154,7 +154,8 @@ class TestTheFigures:
 
     def test_no_kept_row_sits_exactly_on_a_band(self, result: ExampleThreeTwo) -> None:
         """So no figure here can tell a strict comparison from an inclusive one, and only
-        ``TestBandUnits`` reaches the boundaries."""
+        ``TestTheBandOnASignal::test_a_z_score_on_a_band_edge_trades_as_the_script_does``
+        reaches the edges through the rule."""
         z = result.zscore
         assert int(np.isnan(z).sum()) == LOOKBACK - 1, SPEC
         assert not np.isin(z, [-1.0, 0.0, 1.0]).any(), SPEC
@@ -242,10 +243,15 @@ class TestTheRun:
         ):
             row = next(r for r in out.splitlines() if r.strip().startswith(line + " "))
             assert row.split()[-3:] == list(figures), row
+        lines = [r.strip() for r in out.splitlines()]
+        header = lines.index(next(r for r in lines if r.startswith("Figure ")))
+        assert lines[header].split() == ["Figure", "Computed", "Script", "Book"]
+        assert lines[header + 1].startswith("Bollinger band, APR ")
         assert "inputdata_etf/gld.csv" in out and "inputdata_etf/uso.csv" in out
-        assert "2006-05-24 to 2012-04-09, 1480 trading days" in out
+        assert out.count("lifted from inputData_ETF.mat") == 2
+        assert "2006-05-24 to 2012-04-09, 1480 trading days after the first 20 are dropped" in out
         assert "z-score beyond 1 and exited at 0" in out
-        assert "Exploratory" in out
+        assert "Exploratory" in out and "docs/replication-log.md carries the verdicts" in out
 
 
 # --- the band on synthetic arrays ------------------------------------------------
@@ -335,11 +341,15 @@ class TestBandUnits:
         with pytest.raises(ValueError, match="one-dimensional"):
             band_units(flags, flags, flags, flags)
 
-    def test_an_array_of_0s_and_1s_in_place_of_a_boolean_is_refused(self) -> None:
+    @pytest.mark.parametrize("slot", range(4))
+    @pytest.mark.parametrize("dtype", [int, float])
+    def test_an_array_of_0s_and_1s_in_place_of_a_boolean_is_refused(self, slot, dtype) -> None:
         """An integer array indexes by position, so ``[0, 1, 0, 0, 0, 0]`` would set rows 0
-        and 1 rather than row 1, silently."""
+        and 1 rather than row 1, silently. Every slot is checked, entries and exits both."""
+        arrays = [NONE, NONE, NONE, NONE]
+        arrays[slot] = _bools(1).astype(dtype)
         with pytest.raises(ValueError, match="four boolean arrays"):
-            band_units(_bools(1).astype(int), NONE, NONE, NONE)
+            band_units(*arrays)
 
 
 DAYS = pd.bdate_range("2020-01-01", periods=8)
@@ -364,11 +374,33 @@ class TestTheBandOnASignal:
                     run_.positions, run_.units[:, None] * signal.unit_dollars
                 )
 
-    def test_another_lookback_reaches_the_z_score(self, sources) -> None:
+    @pytest.mark.parametrize(
+        ("z", "units"),
+        [
+            ([np.nan, -1.0, 1.0, -1.0, 1.0], [0, 0, 0, 0, 0]),
+            ([np.nan, -1.5, 0.0, 1.5, 0.0], [0, 1, 1, -1, -1]),
+        ],
+    )
+    def test_a_z_score_on_a_band_edge_trades_as_the_script_does(
+        self, monkeypatch, z, units
+    ) -> None:
+        """``bollinger.m`` compares strictly, so exactly −1 or 1 enters nothing and exactly
+        0 exits nothing. No real row lands on an edge, so the z-score is planted."""
+        x = np.arange(1.0, 9.0)
+        signal = price_spread.price_spread(DAYS, x, 3.0 * x + 0.1 * (-1.0) ** x, 3)
+        monkeypatch.setattr(module, "zscore", lambda *_a, **_k: np.array(z))
+        run_, _ = bollinger_band(signal, 3)
+        assert list(run_.units) == units
+
+    def test_another_lookback_reaches_the_z_score_and_the_linear_rule(self, sources) -> None:
         _, closes = sources
         result = example_three_two(closes, lookback=10)
         assert len(result.bollinger.daily) == 1490
         assert np.flatnonzero(np.isfinite(result.zscore))[0] == 9
+        np.testing.assert_array_equal(
+            result.linear.daily,
+            price_spread.linear_mean_reversion(result.bollinger.signal, 10).daily,
+        )
 
 
 class TestTheRefusals:
