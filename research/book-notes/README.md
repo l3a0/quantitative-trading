@@ -116,7 +116,7 @@ figures are its script's rounded. Location 1559 prints "APR = 17.8 percent,
 and Sharpe ratio of 0.96" and calls the result "quite an improvement" on the
 linear rule. The six-decimal figures, 0.178249 and 0.964673, sit in the
 closing comment of `bollinger.m` and nowhere in the book. The replication
-log's Entry 25 traces each to one or the other.
+log's Entry 26 traces each to one or the other.
 
 *Algorithmic Trading*'s Examples 2.6 to 2.8 split the same way as its
 Example 7.2. The book's four figures are here: the CADF statistic of "about
@@ -135,6 +135,13 @@ cointegrating relations are here, at location 2035. The figures `indexArb.m`
 prints sit in its comments and nowhere in the book: every Johansen statistic
 and critical value for the basket against SPY, its eigenvectors, and 0.044930
 and 1.319397. The replication log's Entry 24 traces each to one or the other.
+
+*Algorithmic Trading*'s Example 5.1 splits the same way. The book's figures
+are here, at location 2237: the APR of 11 percent, the Sharpe ratio of 1.6, and
+the window from December 18, 2009, to April 26, 2012. The figures
+`AUDCAD_unequal.m` prints, 0.112410, 1.610890 and a Kelly leverage of
+23.845328, sit in its comments and nowhere in the book. The replication log's
+Entry 25 traces each to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216

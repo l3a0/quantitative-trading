@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24 and 25 carry their own, three, eleven, twelve, five, six, one,
+22, 23, 24, 25 and 26 carry their own, three, eleven, twelve, five, six, one,
 three, eight, six, two, eight, seven, twelve, six, two, five, three, three,
-three, seven, six, seven and four,
+three, seven, six, seven, three and four,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -32,7 +32,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24 and 25 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25 and 26 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -200,12 +200,18 @@ says.
   - [The verdicts](#the-verdicts-22)
   - [What the entry concludes](#what-the-entry-concludes-23)
   - [What this entry cannot say](#what-this-entry-cannot-say-21)
-- [Entry 25: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*](#entry-25-bollinger-bands-on-gld-and-uso-chans-algorithmic-trading)
+- [Entry 25: AUD.USD against CAD.USD, Chan's *Algorithmic Trading*](#entry-25-audusd-against-cadusd-chans-algorithmic-trading)
   - [What the book printed](#what-the-book-printed-22)
   - [What this repo computed](#what-this-repo-computed-24)
   - [The verdicts](#the-verdicts-23)
   - [What the entry concludes](#what-the-entry-concludes-24)
   - [What this entry cannot say](#what-this-entry-cannot-say-22)
+- [Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*](#entry-26-bollinger-bands-on-gld-and-uso-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-23)
+  - [What this repo computed](#what-this-repo-computed-25)
+  - [The verdicts](#the-verdicts-24)
+  - [What the entry concludes](#what-the-entry-concludes-25)
+  - [What this entry cannot say](#what-this-entry-cannot-say-23)
 
 ## How to read an entry
 
@@ -252,8 +258,10 @@ both.
    [tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) holds
    Entry 23,
    [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py) holds
-   Entry 24, and [tests/test_bollinger.py](../tests/test_bollinger.py) holds
-   Entry 25.
+   Entry 24,
+   [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py) holds
+   Entry 25, and [tests/test_bollinger.py](../tests/test_bollinger.py) holds
+   Entry 26.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -366,8 +374,17 @@ rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
-Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, and Entry 25's rows 4
-to 7.
+Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
+and Entry 26's rows 4 to 7.
+
+Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
+the run's 612 returns equal the ones Chan's script saved, which no source
+prints, so it carries no verdict of its own. Chan's saved returns give all
+three of his printed figures, so rows 2 to 4 cite row 5 as their evidence. Its
+criterion, a largest difference of at most 1e-9 on every row, was written on
+[issue 345](https://github.com/l3a0/quantitative-trading/issues/345) before any
+return was computed, because a tolerance chosen after the comparison could be
+set to pass it.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -481,7 +498,7 @@ each separately, and each row carries one of the three verdicts per test
 rather than a fourth value. The criteria read Chan's own table, so no figure
 computed here could move a verdict.
 
-Entry 25's row 3 takes it as well, and like Entry 21's rows 7 and 8 its
+Entry 26's row 3 takes it as well, and like Entry 21's rows 7 and 8 its
 criterion was written on
 [issue 341](https://github.com/l3a0/quantitative-trading/issues/341) after a
 first transcription ran. Location 1559 calls the band "quite an improvement"
@@ -4567,7 +4584,7 @@ Three things.
    z-score with a fixed threshold, where no constant cancels, so
    [issue 341](https://github.com/l3a0/quantitative-trading/issues/341)
    cannot rely on this entry's figures to say which divisor its own need.
-   Entry 25 measures it, and there the divisor moves both figures.
+   Entry 26 measures it, and there the divisor moves both figures.
 
 ### What this entry cannot say
 
@@ -5125,7 +5142,170 @@ the index as it stood.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 
-## Entry 25: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
+## Entry 25: AUD.USD against CAD.USD, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 5.1, Kindle locations 2186 to 2237, and the
+script `AUDCAD_unequal.m` the example names. Shipped under
+[issue 345](https://github.com/l3a0/quantitative-trading/issues/345). Every
+example number and location in this entry is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seven rows, all derivable from
+[tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py).
+
+Chan trades the Australian dollar against the Canadian dollar, two commodity
+currencies he expects to move together. Both are quoted against the US dollar,
+as AUD.USD and CAD.USD, so a point move in either is worth the same in
+dollars. That is why USD.CAD is inverted before the test. Each day the script runs the test on the 250 days before it, takes the first
+eigenvector as that day's hedge, and holds minus the portfolio's 20-day
+z-score in units of it. The return is the day's profit over the capital held
+the day before.
+
+**Every figure reproduces, because the run reproduces Chan's own saved returns
+on every one of the 612 days.** Chan's script saved the
+returns it traded, and that file is committed. The criterion for comparing
+them was written on the issue before any return was computed. So the match
+says the committed daily files agree with the inputs the MATLAB read, up to a
+constant scale on each leg, which
+[issue 301](https://github.com/l3a0/quantitative-trading/issues/301) could not
+check because the `.mat` files are in neither mirror.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `pythoncodesanddata/inputData_AUDUSD_20120426.csv` and
+   `pythoncodesanddata/inputData_USDCAD_20120426.csv`, from Chan's 2018 Python
+   port, saved 2018-12-12, 862 days from 2009-01-02 to 2012-04-26, as traded,
+   read through `chan.series.load_port_close`. Row 5 also reads
+   `pythoncodesanddata/AUDCAD_unequal_ret.csv`, the 612 returns the MATLAB
+   saved, saved 2018-12-26, through `chan.series.load_returns`.
+2. **The specification.** `AUDCAD_unequal.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `5b8fbc2`. The legs are AUD.USD and the inverse of USD.CAD. Each
+   day's hedge is the first eigenvector of jplv7's `johansen(·, 0, 1)`, a
+   constant and one lagged difference, on the 250 rows before the day, run by
+   `chan.johansen.johansen`. The units are minus the z-score of the portfolio
+   over the 20 rows ending on the day, with the n − 1 deviation. The return is
+   yesterday's positions times today's simple returns, summed, over yesterday's
+   gross. The figures are taken over the 612 days from 2009-12-18 on: the APR
+   is `prod(1 + r)^(252 / 612) − 1`, the Sharpe ratio is `√252 · mean / std`,
+   and the Kelly leverage is `mean / std²`, with no risk-free rate, no cost and
+   no rollover interest.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2009 to 2012 sample on a rule he chose, and location 2237 says the 250-day
+training length "gives better results in hindsight".
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The test window | 2009-12-18 to 2012-04-26, after the first 250 days | location 2237 |
+| 2 | Compounded APR | 0.112410, "11 percent" | script line 60, location 2237 |
+| 3 | Sharpe ratio | 1.610890, "1.6" | the same |
+| 4 | Kelly leverage, `mean / std²` | 23.845328 | script line 66 |
+| 5 | The 612 returns equal Chan's saved ones | `AUDCAD_unequal_ret.csv`, no printed figure | script line 69 |
+| 6 | How many training windows each Johansen statistic finds a relation in, at 95 percent | none | n/a |
+| 7 | The last day's hedge, with AUD.USD's weight scaled to 1 | none | n/a |
+
+Location 3342 gives a Kelly leverage of 18.4 for this strategy. Row 4 is the
+script's own 23.845328 instead, because neither the population variance nor
+the mean of squared returns takes the saved series to 18.4.
+[Issue 360](https://github.com/l3a0/quantitative-trading/issues/360) owns that
+figure.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | Rows 251 to 862 of the two daily files | 612 returns, 2009-12-18 to 2012-04-26 | `TestRow1TheTestWindow::test_612_returns_from_the_books_first_day_to_its_last` |
+| 2 | Over row 1's returns | 0.1124100634 | `TestRows2To4TheFigures::test_row_2_the_apr` |
+| 3 | The same | 1.6108902337 | `TestRows2To4TheFigures::test_row_3_the_sharpe_ratio` |
+| 4 | The same | 23.8453277641 | `TestRows2To4TheFigures::test_row_4_the_kelly_leverage` |
+| 5 | Each return against Chan's on the same row, criterion 1e-9 | no row over it | `TestRow5TheReturnsAreChans::test_every_row_agrees_within_the_declared_criterion` |
+| 6 | `Johansen.relations` on each of the 612 windows | the trace test in 26, two relations in 19 of them, and the eigen test in 11 | `TestBesideTheReplication::test_the_trace_test_finds_a_relation_in_26_of_612_windows` and `::test_the_eigen_test_finds_one_in_11` |
+| 7 | The eigenvector of 2012-04-26 over its first element, and that day's positions over the first | 1 unit of AUD.USD to −0.7796733233 of CAD.USD, and in dollars 1 to −0.7622442800 | `TestBesideTheReplication::test_the_last_days_hedge_holds_0_7797_of_cad_per_aud_short` |
+
+Row 5's largest difference is printed by the run rather than pinned, because
+it is rounding and moves with the platform. On the machine that built the
+entry it was 2.0e-15.
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, a window | reproduced | The first test day is row 251 of the files, 2009-12-18, and the last is their last, as location 2237 says. |
+| 2 | 0.000000, and 0 at the book's whole percent | reproduced | Row 5 holds, and Chan's saved returns give 0.112410 themselves. |
+| 3 | 0.000000, and 0.0 at the book's one decimal | reproduced | The same. |
+| 4 | 0.000000 | reproduced | The same. The n − 1 variance matters here: the population form gives 23.884354. |
+| 5 | none | none, not a replication | No source prints it. It is the evidence rows 2 to 4 cite, and it holds on every row. |
+| 6 | none | none, not a replication | The script trades every window whether or not either test finds a relation. |
+| 7 | none | none, not a replication | The weights count units, and a unit is worth its quote in dollars, so the split in capital is each weight times its quote. The strategy ended long AUD and short 0.7622 dollars of CAD for each dollar of AUD. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The committed currency files agree with the ones Chan's MATLAB read,
+   up to a constant scale on each leg.** The script loaded two minute `.mat`
+   files that neither mirror carries, and this run read the Python port's daily
+   copies. Every one of the 612 returns lands on the one Chan saved, inside the
+   1e-9 declared before the run, and the largest difference was 2.0e-15 where
+   the entry was built. Two things bound what that shows, and
+   `TestRow5TheReturnsAreChans` holds both.
+   1. Scaling either leg by a constant moves no return, because a simple
+      return ignores the scale and the eigenvector rescales to cancel it.
+   2. A change of 1e-6, one unit in the files' last decimal, on a close in
+      the test window breaks the match, because the close enters a simple
+      return directly. The same change on the first training row does not,
+      because that close reaches the returns only through the hedge.
+
+   So the match answers the question
+   [issue 301](https://github.com/l3a0/quantitative-trading/issues/301) left
+   open for these two files. It says nothing about the port's USD.CAD minute
+   file or its AUD.CAD file, which this script does not read.
+2. **The hedge was rarely one the Johansen test backed.** The trace test finds
+   a relation in 26 of the 612 training windows and the eigen test in 11. In
+   19 of those 26, the trace test finds two relations, which the test reads as
+   each currency being stationary on its own rather than the two sharing one.
+   That is a 95 percent rejection on overlapping windows of two rates close to
+   random walks, so it is weak evidence either way. So on nearly
+   every day the strategy traded an eigenvector of a pair the test did not call
+   cointegrated. Chan's rule never asks, and the figures are the rule's.
+3. **The Python port's version of this example is a different strategy.** It
+   ends the Johansen window and the z-score window a day earlier, and
+   [issue 301](https://github.com/l3a0/quantitative-trading/issues/301)
+   recorded that it prints a Sharpe ratio of 1.362926, which no test here
+   pins. Ending both windows a day earlier here leaves 611 of the 612 returns
+   over the criterion, every one but the first, which is 0 either way. Its
+   Sharpe ratio is 1.359568, not the port's 1.362926, so the port differs in
+   more than the windows and nothing here reproduces its printout.
+   `TestTheRule::test_ending_both_windows_a_day_earlier_breaks_row_5` holds
+   both. So the port's printout is no evidence about the data, and the MATLAB
+   is the specification.
+
+### What this entry cannot say
+
+Three things.
+
+**Anything about costs or rollover interest.** The rule trades every day, and
+no cost is charged, as none is in the script. Location 2205 sets rollover
+interest aside for this example as small for a short-term strategy, and
+nothing here measures how small.
+
+**Whether the 250-day training length was chosen on this sample.** Location
+2237 says it gives better results in hindsight. No row runs another length, and
+any that did would be searching the sample this entry already spent.
+
+**Whether the pair trades today.** The run ends on 2012-04-26 with Chan's
+data. It says whether his numbers reproduce on his files and nothing about the
+two currencies since.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
 Rationale*, Wiley, 2013, Example 3.2, Kindle locations 1548 to 1559, and the

@@ -29,9 +29,10 @@ Five sources, told apart by what the manifest records rather than by a filename.
   its docstring says.
 - Chan's 2018 Python port, under the vendor ``chan-py``, whose files are
   committed as the zip shipped them. :func:`load_minute_close` reads the one
-  that holds minute bars, a close per day at 16:59 New York time. The daily
-  currency files parse through the same path as every other single series,
-  and nothing reads the rate and return files yet.
+  that holds minute bars, a close per day at 16:59 New York time.
+  :func:`load_port_close` reads the daily currency files, which parse through
+  the same path as every other single series. :func:`load_returns` reads the
+  return file, which holds no dates. Nothing reads the rate files yet.
 - Chan's ``VIX.csv``, one vintage under the vendor ``chan-csv``, which
   :func:`load_panel` reads by its file name too.
 
@@ -149,6 +150,12 @@ DAILY_CLOSE_MINUTE = 1659
 
 #: The header row of a file of minute bars as Chan's Python port ships it.
 MINUTE_HEADER = "Date,Time,Close"
+
+#: The header row of one of the Python port's daily files.
+DAILY_HEADER = "Date,Close"
+
+#: The header row of the Python port's return file, which is its only row that is not a value.
+RETURN_HEADER = "Return"
 
 
 class WindowCrossesScaleBreak(Exception):
@@ -290,6 +297,68 @@ def minute_close(payload: bytes, entry: VintageEntry, *, at: int = DAILY_CLOSE_M
         name=entry.symbol,
     )
     return series.sort_index()
+
+
+def load_port_close(
+    symbol: str,
+    *,
+    dated: str | None = None,
+    data_dir: Path | None = None,
+) -> tuple[VintageEntry, pd.Series]:
+    """One of the Python port's daily files: its ``chan-py`` entry and its closes, date-indexed.
+
+    ``dated`` names the saved date where the symbol has more than one ``raw``
+    entry, as USD.CAD does, with its minute file saved 2018-10-13 and its daily
+    file 2018-12-12. Naming the minute file's date reaches
+    :func:`_parse_close`'s refusal of minute bars, and :func:`load_minute_close`
+    is the reader for that file.
+
+    A file that opens with neither :data:`DAILY_HEADER` nor minute bars is
+    refused by name. :func:`_parse_close` drops every leading row whose first
+    field is not a date, so the return file, whose rows are all values, would
+    otherwise come back as an empty series rather than as an error.
+    """
+    entry = resolve_vintage(
+        vendor="chan-py", symbol=symbol.upper(), price_basis="raw", dated=dated, data_dir=data_dir
+    )
+    payload = read_vintage(entry, data_dir=data_dir)
+    if not _holds_minute_bars(payload) and _first_row(payload) != DAILY_HEADER:
+        raise VintageUnavailable(
+            f"{entry.path} does not open with {DAILY_HEADER}, so it holds no daily close to read"
+        )
+    return entry, _parse_close(payload, symbol)
+
+
+def load_returns(
+    symbol: str, *, data_dir: Path | None = None
+) -> tuple[VintageEntry, NDArray[np.float64]]:
+    """The Python port's return file: its ``chan-py`` entry and its values, in file order.
+
+    The file is one column headed :data:`RETURN_HEADER` and holds no dates, so
+    the values come back without any. Attaching a calendar is the caller's
+    claim about which days they fall on, and a reader that invented one would
+    make that claim for every caller. A file under any other header is refused
+    by name, which is what stops a price file read on the wrong basis from
+    coming back as a series of prices labelled as returns.
+    """
+    entry = resolve_vintage(
+        vendor="chan-py", symbol=symbol.upper(), price_basis="return", data_dir=data_dir
+    )
+    payload = read_vintage(entry, data_dir=data_dir)
+    if _first_row(payload) != RETURN_HEADER:
+        raise VintageUnavailable(
+            f"{entry.path} does not open with {RETURN_HEADER}, so it holds no returns to read"
+        )
+    cells = pd.read_csv(io.BytesIO(payload), dtype=str)[RETURN_HEADER]
+    return entry, _exact_numbers(cells)
+
+
+def _first_row(payload: bytes) -> str:
+    """``payload``'s first row as text, with a trailing carriage return stripped.
+
+    All seven of the Python port's files are stored with CRLF line endings.
+    """
+    return payload.split(b"\n", 1)[0].rstrip(b"\r").decode("utf-8")
 
 
 def _holds_minute_bars(payload: bytes) -> bool:
