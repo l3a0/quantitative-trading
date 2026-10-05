@@ -358,8 +358,12 @@ class TestBesideTheReplication:
         assert all(t > -2.57 for t in result.adf.values())
 
     def test_the_johansen_test_on_the_pair_is_the_wrappers(self, triplet, result) -> None:
+        # The slice is not contiguous where the run's column_stack is, so the
+        # linear algebra can take another path. CI's Linux build moved the trace
+        # by 1.6e-13 on 2026-10-05, so this asserts agreement far below any
+        # printed digit rather than equal bits.
         pair = johansen(triplet[:, :2])
-        np.testing.assert_array_equal(pair.trace, result.pair.trace)
+        np.testing.assert_allclose(pair.trace, result.pair.trace, rtol=1e-12, atol=0)
 
 
 class TestTheGuardAndTheReads:
