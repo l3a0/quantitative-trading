@@ -109,11 +109,14 @@ class TestTheCommittedRecord:
             assert entry.path == f"ijr/{filing.report_date}.csv"
 
     def test_the_directory_holds_no_file_the_index_does_not_name(self) -> None:
+        # A fund's members file sits beside its holdings files and is not a
+        # filing, so the index does not name it. Issue 332 records it.
         named = {entry.path for entry in read_index()}
+        members_files = {f"{symbol.lower()}/members.csv" for symbol in fund_holdings.FUNDS}
         on_disk = {
             path.relative_to(fund_holdings.FILINGS_DIR).as_posix()
             for path in fund_holdings.FILINGS_DIR.rglob("*.csv")
-        }
+        } - members_files
         assert on_disk == named
 
     @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.path)

@@ -1350,6 +1350,28 @@ configured, which takes about a second with the cross-section in place.
 603 lines by the sha256 of their bytes, everywhere, and leaves out lines the
 cross-section gains for other symbols.
 
+[Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) recorded
+896 lines on 2026-10-05 for the companies IJR held at a year-end from 2007 to
+2024 and no longer held at 2025-12-31, beside the 603 that
+[issue 333](https://github.com/l3a0/quantitative-trading/issues/333) recorded
+for the 2025-12-31 members. 884 are under a ticker
+`research/filings/ijr/members.csv` maps a company to, and 12 hold a ticker
+that was tried and then replaced, which no member reads.
+
+| Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sp600`, [issue 332](https://github.com/l3a0/quantitative-trading/issues/332)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 896 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 3,653,318 |
+
+Some of those series belong to a later company that reused a ticker, because
+a ticker was fetched before the check could say whose prices it held. The
+members file's check is what says which series a member's close comes from.
+The 896 lines hold 347,681 bytes, which
+[tests/test_sp600_panel.py](../tests/test_sp600_panel.py) pins with their row
+count, their download date and their sha256. They take `data/` from the
+202.72 MB above to 203.07 MB of file content, measured before this paragraph,
+which leaves 1.93 MB under the 205 MB budget. Those two sizes were measured on
+this branch and no test holds them.
+
 ## Header shape
 
 The vintages here carry one of three header shapes.
