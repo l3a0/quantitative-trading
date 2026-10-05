@@ -67,7 +67,10 @@ MEMBERS_NAME = "members.csv"
 #: The members file's columns, in order.
 COLUMNS = ("report_date", "row", "ticker", "source", "note", "check", "gap", "exit")
 
-#: Where a ticker came from, in the order the mapping tries them, then ``none``.
+#: Where a ticker came from, then ``none`` where nothing resolved it. Issue
+#: 332 ordered them as written. Its build tried Alpha Vantage's listings,
+#: recorded as ``filing`` or ``name``, before the CUSIP lookup, because the
+#: lookup's connector answered about five requests a minute.
 SOURCES = ("cusip", "filing", "link", "name", "hand", "none")
 
 #: What the check says about one member at one year-end.
@@ -134,13 +137,16 @@ def read_members(path: Path) -> tuple[MemberRow, ...]:
             raise PanelRefused(f"{path} has columns {reader.fieldnames}, not {list(COLUMNS)}")
         rows = []
         for number, line in enumerate(reader, start=2):
+            if not line["row"].isdigit():
+                raise PanelRefused(f"{path} line {number}: row {line['row']!r} is not a number")
             row = MemberRow(**{**line, "row": int(line["row"])})
             problem = _malformed(row)
             if problem:
                 raise PanelRefused(f"{path} line {number}: {problem}")
             rows.append(row)
-    keys = [row.key for row in rows]
-    repeated = sorted({key for key in keys if keys.count(key) > 1})
+    # Counted once rather than with list.count per row, which took five
+    # seconds on IJR's 11,334 rows.
+    repeated = sorted(key for key, seen in Counter(row.key for row in rows).items() if seen > 1)
     if repeated:
         raise PanelRefused(f"{path} names {repeated[0]} more than once")
     return tuple(rows)
@@ -160,6 +166,21 @@ def _malformed(row: MemberRow) -> str | None:
     if (row.gap != "") != (row.check == "price"):
         return "gap is given on a price row and nowhere else"
     return None
+
+
+def require_panel(fund: Fund, rows: Sequence[MemberRow], filings_dir: Path | None = None) -> None:
+    """A :class:`PanelRefused` unless the rows name every row of the panel and nothing else.
+
+    A file missing a member would report a smaller year-end without saying so,
+    and one naming a row no filing holds would fail later as a ``KeyError``.
+    """
+    held, wanted = {row.key for row in rows}, set(panel_keys(fund, filings_dir))
+    if held != wanted:
+        stray, absent = sorted(held - wanted), sorted(wanted - held)
+        raise PanelRefused(
+            f"the members file names {len(stray)} rows the filings do not hold and lacks "
+            f"{len(absent)} they do, the first {(stray or absent)[0]}"
+        )
 
 
 def serialize_members(rows: Iterable[MemberRow]) -> bytes:
@@ -345,9 +366,15 @@ def _check_one(
         return replace(blank, check="no-row")
     price = Decimal(repr(float(close)))
     shares, value = Decimal(holding.shares), Decimal(holding.value)
+    if shares <= 0 or value <= 0:
+        # Any close times no shares is no value, so the check would pass every
+        # ticker. No committed member holds none.
+        raise PanelRefused(
+            f"{row.report_date} row {row.row} holds {holding.shares} shares valued at "
+            f"{holding.value}, so no close can be checked against it"
+        )
     if abs(price * shares - value) > HALF_UNIT[form] + price * HALF_SHARE[form]:
-        filed = value / shares if shares else Decimal(0)
-        gap = ((price - filed) * 100).quantize(Decimal("0.01"))
+        gap = ((price - value / shares) * 100).quantize(Decimal("0.01"))
         return replace(blank, check="price", gap=str(gap))
     after = series.get(exit_date(calendar, row.report_date))
     held = after is not None and not pd.isna(after)
@@ -398,6 +425,8 @@ def coverage(
         stops = 0
         near = 0
         for row in mine:
+            if not row.check:
+                raise PanelRefused(f"{date} row {row.row} has not been checked")
             reason = row.check if row.check != "pass" else None
             near += row.check == "price" and abs(Decimal(row.gap)) <= 1
             before = previous.get(row.key)

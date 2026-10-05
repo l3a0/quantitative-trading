@@ -19,8 +19,9 @@ uv run python -m chan.sp600_panel report
    ``~/.zshrc`` exports, hence the interactive shell.
 2. ``check`` reads the archive and rewrites the members file's ``check``,
    ``gap`` and ``exit`` columns.
-3. ``report`` reads only committed tables and prints each year-end's coverage
-   and the missing members that threaten a tenth.
+3. ``report`` reads only committed tables and prints each year-end's coverage,
+   then every missing member with its reason, marking those that threaten a
+   tenth.
 
 The calendar is the committed raw SPY vintage, so a price date is a day the
 exchange traded rather than a day some series happens to carry.
@@ -45,7 +46,9 @@ from chan.fund_panel import (
     check_members,
     coverage,
     members_path,
+    numbered_members,
     read_members,
+    require_panel,
     serialize_members,
     threats,
     year_end_returns,
@@ -68,12 +71,18 @@ def tickers(rows: Sequence[MemberRow]) -> list[str]:
     return sorted({row.ticker for row in rows if row.ticker})
 
 
+def load(path: Path = MEMBERS_PATH) -> tuple[MemberRow, ...]:
+    """The members file, refused unless it names exactly the panel's rows."""
+    rows = read_members(path)
+    require_panel(FUND, rows)
+    return rows
+
+
 def check(path: Path = MEMBERS_PATH, *, directory: Path | None = None) -> list[MemberRow]:
     """The members file's rows with the check recomputed from the archive."""
-    rows = read_members(path)
-    wanted = tickers(rows)
+    rows = load(path)
     _, closes = read_cross_section(
-        CROSS_SECTION, column="close", symbols=wanted, directory=directory
+        CROSS_SECTION, column="close", symbols=tickers(rows), directory=directory
     )
     return check_members(FUND, rows, closes, calendar())
 
@@ -90,17 +99,17 @@ def threatening(rows: Sequence[MemberRow], report: Coverage) -> list[tuple[str, 
 
 
 def report_lines(rows: Sequence[MemberRow]) -> list[str]:
-    """One line per year-end, then one per missing member that threatens a tenth."""
-    names = {
-        (filing.report_date, row): holding.name
-        for filing in FUND.filings
-        for row, holding in _numbered(filing.report_date)
-    }
+    """One line per year-end, then one per missing member, marking those that threaten a tenth.
+
+    A missing member's reason is its own check, or ``rank`` where its own row
+    passed and the row it links to in the filing before did not.
+    """
+    by_key = {row.key: row for row in rows}
     lines = []
-    flagged_lines = []
+    missing_lines = []
     for year in coverage(FUND, rows):
         misses = ", ".join(f"{reason} {count}" for reason, count in sorted(year.misses.items()))
-        flagged = threatening(rows, year)
+        flagged = set(threatening(rows, year))
         lines.append(
             f"{year.report_date}  members {year.members}  covered {year.covered}  "
             f"January stops {year.stops}  missing {year.members - year.covered}"
@@ -109,14 +118,15 @@ def report_lines(rows: Sequence[MemberRow]) -> list[str]:
             + f"  threats {len(flagged)}"
             + ("  exact" if not flagged else "")
         )
-        flagged_lines.extend(f"  {key[0]} row {key[1]}: {names[key]}" for key in flagged)
-    return lines + (["threatening members:", *flagged_lines] if flagged_lines else [])
-
-
-def _numbered(report_date: str):
-    from chan.fund_panel import numbered_members
-
-    return numbered_members(FUND, report_date)
+        names = dict(numbered_members(FUND, year.report_date))
+        for key in year.missing:
+            row = by_key[key]
+            reason = row.check if row.check != "pass" else "rank"
+            missing_lines.append(
+                f"  {key[0]} row {key[1]} {row.ticker or '-'}: {names[key[1]].name}, {reason}"
+                + (", threatens a tenth" if key in flagged else "")
+            )
+    return lines + (["missing members:", *missing_lines] if missing_lines else [])
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -130,17 +140,17 @@ def main(argv: Sequence[str] | None = None) -> None:
             key = os.environ.get(fetch_alphavantage.KEY_ENV, "").strip()
             if not key:
                 raise SystemExit(f"{fetch_alphavantage.KEY_ENV} is not set, so no request was made")
-            tally = fetch_alphavantage.fetch(
-                CROSS_SECTION, tickers(read_members(MEMBERS_PATH)), key=key
-            )
-            print(fetch_alphavantage._redact(tally.line(), key))
+            tally = fetch_alphavantage.fetch(CROSS_SECTION, tickers(load()), key=key)
+            # The tally names each failed symbol, so it passes through the
+            # fetch's own redaction in case a failure ever quotes the key.
+            print(tally.line().replace(key, "<key>"))
             if not tally.complete:
                 raise SystemExit(1)
         elif command == "check":
             MEMBERS_PATH.write_bytes(serialize_members(check()))
             print(f"wrote {MEMBERS_PATH.relative_to(FILINGS_DIR.parent.parent)}")
         else:
-            print("\n".join(report_lines(read_members(MEMBERS_PATH))))
+            print("\n".join(report_lines(load())))
     except (ArchiveUnavailable, ArchiveRefused, PanelRefused) as refusal:
         # One line rather than a traceback, the way chan.equity_seasonals
         # reports a vintage it could not read.

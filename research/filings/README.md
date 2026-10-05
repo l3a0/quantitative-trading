@@ -102,15 +102,13 @@ filing.
 | `gap` | on a `price` row, the series' close less the filing's price, in cents |
 | `exit` | on a `pass` row, `close` when the series holds the last trading day of the next January, else `stop` |
 
-A company is resolved once, at the latest year-end it is a member, because
-Alpha Vantage files a company under its last ticker. A `link` row takes the
-ticker of the row in the next filing that the filings link it to.
-
-The check compares the series' raw close on the price date, times the
-filing's share count, against the filing's value, within half the unit the
-filing reports in. That is $0.50 on an N-Q's whole dollars and half a cent on
-an N-PORT's cents. The price date is the last day on or before the report date
-that the committed raw SPY vintage holds. The closes live in the owner's
+A `link` row takes the ticker of the row in the next filing that the filings
+link it to. The check compares the series' raw close on the price date, times
+the filing's share count, against the filing's value. The price date is the
+last day on or before the report date that the committed raw SPY vintage
+holds. [docs/design.md](../../docs/design.md)'s section "A record that reads a
+fund's filings" gives the tolerance and why a company is resolved at its
+latest year-end. The closes live in the owner's
 archive as the `sp600` cross-section, recorded in
 [data/archive_vintages.jsonl](../../data/archive_vintages.jsonl), so the check
 runs only where the archive is, and the report reads only this file and the

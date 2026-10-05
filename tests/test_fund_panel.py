@@ -32,6 +32,7 @@ from chan.fund_panel import (
     previous_rows,
     price_date,
     read_members,
+    require_panel,
     serialize_members,
     threats,
 )
@@ -150,6 +151,13 @@ class TestCarryBack:
         rows = {row.key: row for row in carry_back(three_years, {}, tmp_path)}
         assert rows[("2009-12-31", 2)] == MemberRow("2009-12-31", 2, "", "none")
 
+    def test_a_later_row_resolved_as_none_leaves_the_rows_behind_it_unmapped(
+        self, three_years: Fund, tmp_path: Path
+    ) -> None:
+        resolved = {("2010-12-31", 1): MemberRow("2010-12-31", 1, "", "none")}
+        rows = {row.key: row for row in carry_back(three_years, resolved, tmp_path)}
+        assert rows[("2008-12-31", 1)] == MemberRow("2008-12-31", 1, "", "none")
+
     def test_a_resolution_outside_the_panel_is_refused(
         self, three_years: Fund, tmp_path: Path
     ) -> None:
@@ -165,6 +173,16 @@ class TestCalendar:
 
     def test_the_exit_is_the_last_trading_day_of_the_next_january(self) -> None:
         assert exit_date(CALENDAR, "2009-12-31") == pd.Timestamp("2010-01-29")
+
+    def test_a_calendar_starting_after_the_report_date_is_refused(self) -> None:
+        with pytest.raises(PanelRefused, match="on or before 2000-12-31"):
+            price_date(CALENDAR, "2000-12-31")
+
+    def test_a_calendar_ending_on_the_last_friday_of_january_is_refused(self) -> None:
+        # 2011-01-31 is a Monday, so a calendar ending on the 28th lacks it.
+        short = CALENDAR[CALENDAR <= pd.Timestamp("2011-01-28")]
+        with pytest.raises(PanelRefused, match="end of January 2011"):
+            exit_date(short, "2010-12-31")
 
     def test_a_calendar_ending_inside_january_is_refused(self) -> None:
         short = CALENDAR[CALENDAR <= pd.Timestamp("2011-01-20")]
@@ -221,6 +239,47 @@ class TestCheck:
         assert _one(fund, tmp_path, row, _closes(ALP={"2010-12-31": 10.0})).check == "pass"
         assert _one(fund, tmp_path, row, _closes(ALP={"2010-12-31": 10.0001})).check == "price"
 
+    def test_an_nport_miss_of_exactly_half_a_cent_passes_and_more_fails(
+        self, tmp_path: Path
+    ) -> None:
+        # 100 shares at 20.00005 is 2000.005, half a cent from the filed
+        # 2000.00. Read through its repr the close is exact, so the miss sits on
+        # the boundary rather than a binary fraction past it.
+        fund = _fund(tmp_path, {THIRD: [Holding("Alpha Inc", "100", "2000.00")]})
+        row = MemberRow("2010-12-31", 1, "ALP", "cusip")
+        assert _one(fund, tmp_path, row, _closes(ALP={"2010-12-31": 20.00005})).check == "pass"
+        assert _one(fund, tmp_path, row, _closes(ALP={"2010-12-31": 20.00006})).check == "price"
+        assert _one(fund, tmp_path, row, _closes(ALP={"2010-12-31": 20.00004})).check == "pass"
+
+    @pytest.mark.parametrize(
+        ("close", "gap"), [(10.0123, "1.23"), (10.01235, "1.24"), (9.98, "-2.00")]
+    )
+    def test_the_gap_is_the_close_less_the_filed_price_in_cents_to_the_cent(
+        self, tmp_path: Path, close: float, gap: str
+    ) -> None:
+        fund = _fund(tmp_path, {FIRST: [Holding("Alpha Inc", "100000", "1000000")]})
+        row = MemberRow("2008-12-31", 1, "ALP", "hand")
+        assert _one(fund, tmp_path, row, _closes(ALP={"2008-12-31": close})).gap == gap
+
+    def test_a_missing_close_beside_another_series_is_no_row_and_a_missing_exit_a_stop(
+        self, tmp_path: Path
+    ) -> None:
+        fund = _fund(tmp_path, {FIRST: [Holding("Alpha Inc", "100", "1000")]})
+        closes = _closes(
+            ALP={"2008-12-30": 10.0, "2009-01-29": 9.0},
+            BET={"2008-12-31": 5.0, "2009-01-30": 5.0},
+        )
+        row = MemberRow("2008-12-31", 1, "ALP", "hand")
+        assert _one(fund, tmp_path, row, closes).check == "no-row"
+        closes.loc[pd.Timestamp("2008-12-31"), "ALP"] = 10.0
+        assert _one(fund, tmp_path, row, closes).exit == "stop"
+
+    def test_a_holding_of_nothing_is_refused(self, tmp_path: Path) -> None:
+        fund = _fund(tmp_path, {FIRST: [Holding("Empty Inc", "0", "0")]})
+        row = MemberRow("2008-12-31", 1, "EMP", "hand")
+        with pytest.raises(PanelRefused, match="holds 0 shares"):
+            _one(fund, tmp_path, row, _closes(EMP={"2008-12-31": 10.0}))
+
     def test_a_half_cent_close_passes_on_nport_cents(self, tmp_path: Path) -> None:
         fund = _fund(tmp_path, {THIRD: [Holding("Half Inc", "1000", "35135.00")]})
         row = MemberRow("2010-12-31", 1, "HLF", "filing")
@@ -272,6 +331,15 @@ class TestCheck:
         with pytest.raises(PanelRefused, match="rows 1 and 2 both pass on ALP"):
             check_members(fund, rows, _closes(ALP={"2008-12-31": 10.0}), CALENDAR, tmp_path)
 
+    def test_one_ticker_passing_at_two_year_ends_stands(self, three_years, tmp_path) -> None:
+        rows = [
+            MemberRow("2008-12-31", 1, "ALP", "link"),
+            MemberRow("2009-12-31", 1, "ALP", "link"),
+        ]
+        closes = _closes(ALP={"2008-12-31": 10.0, "2009-12-31": 12.0})
+        checked = check_members(three_years, rows, closes, CALENDAR, tmp_path)
+        assert [row.check for row in checked] == ["pass", "pass"]
+
     def test_a_rerun_replaces_the_previous_result(self, tmp_path: Path) -> None:
         fund = _fund(tmp_path, {FIRST: [Holding("Alpha Inc", "100", "1000")]})
         stale = MemberRow("2008-12-31", 1, "ALP", "hand", check="price", gap="3.00")
@@ -296,6 +364,11 @@ class TestCoverage:
         assert second.stops == 1
         assert (third.covered, third.misses) == (0, {"rank": 1, "unmapped": 1})
         assert third.missing == (("2010-12-31", 1), ("2010-12-31", 2))
+
+    def test_an_unchecked_row_is_refused(self, three_years: Fund, tmp_path: Path) -> None:
+        rows = [replace(row, check="", exit="") for row in self._rows("pass")]
+        with pytest.raises(PanelRefused, match="has not been checked"):
+            coverage(three_years, rows, tmp_path)
 
     def test_a_price_miss_within_a_cent_is_counted_apart(
         self, three_years: Fund, tmp_path: Path
@@ -340,6 +413,14 @@ class TestThreats:
         returns = self._returns()
         assert threats(returns, [("d", 6), ("d", 7)], universe=25) == [("d", 6)]
 
+    def test_a_universe_too_small_for_a_tenth_flags_only_the_unplaced(self) -> None:
+        returns = {("d", 1): None, ("d", 2): Decimal(1)}
+        assert threats(returns, [("d", 1), ("d", 2)], universe=4) == [("d", 1)]
+
+    def test_fewer_placed_members_than_the_margin_all_threaten(self) -> None:
+        returns = {("d", n): Decimal(n) for n in (1, 2, 3)}
+        assert threats(returns, [("d", 2)], universe=20) == [("d", 2)]
+
     def test_a_tie_at_the_boundary_threatens(self) -> None:
         # A tenth of 5 rounds to 1, so the margin is 2, and the third of three
         # members tied at the lowest return sits third yet still threatens.
@@ -371,6 +452,10 @@ class TestTheRecord:
             ("2009-12-31,1,SR,hand,,pass,,", "exit is close or stop on a pass row"),
             ("2009-12-31,1,sr,hand,,,,", "SYMBOL_PATTERN"),
             ("2009-12-31,1,SR,hand,,maybe,,", "check 'maybe'"),
+            ("2009-12-31,1,SR,none,,,,", "empty exactly when the source is none"),
+            ("2009-12-31,1,SR,hand,,no-row,1.00,", "gap is given on a price row"),
+            ("2009-12-31,1,SR,hand,,pass,,maybe", "exit is close or stop on a pass row"),
+            ("2009-12-31,x,SR,hand,,,,", "row 'x' is not a number"),
         ],
     )
     def test_a_malformed_line_is_refused_by_number(
@@ -380,6 +465,21 @@ class TestTheRecord:
         path.write_text(",".join(COLUMNS) + "\n" + line + "\n")
         with pytest.raises(PanelRefused, match=f"line 2: .*{problem}"):
             read_members(path)
+
+    def test_a_header_in_another_order_is_refused(self, tmp_path: Path) -> None:
+        path = tmp_path / "members.csv"
+        path.write_text(",".join(reversed(COLUMNS)) + "\n")
+        with pytest.raises(PanelRefused, match="has columns"):
+            read_members(path)
+
+    def test_a_file_that_is_not_the_panel_is_refused(self, three_years: Fund, tmp_path) -> None:
+        rows = carry_back(three_years, {}, tmp_path)
+        require_panel(three_years, rows, tmp_path)
+        with pytest.raises(PanelRefused, match="lacks 1 they do, the first"):
+            require_panel(three_years, rows[1:], tmp_path)
+        stray = [*rows, MemberRow("2009-12-31", 9, "", "none")]
+        with pytest.raises(PanelRefused, match="names 1 rows the filings do not hold"):
+            require_panel(three_years, stray, tmp_path)
 
     def test_a_key_given_twice_is_refused(self, tmp_path: Path) -> None:
         path = tmp_path / "members.csv"

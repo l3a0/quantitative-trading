@@ -1,6 +1,6 @@
 # Committed vintages
 
-The price series every run here reads, except the ones
+The price series every run here reads, except the two
 `## Two vintages kept in the owner's archive` describes, committed because the
 numbers the suite pins were computed from these exact bytes. A vendor restates an adjusted series
 without announcing it, so a result checked against a fresh download is a result
@@ -1310,8 +1310,9 @@ reads a cross-section back as a date-by-symbol frame of either close.
 896 lines on 2026-10-05 for the companies IJR held at a year-end from 2007 to
 2024 and no longer held at 2025-12-31, beside the 603 that
 [issue 333](https://github.com/l3a0/quantitative-trading/issues/333) recorded
-for the 2025-12-31 members. Each is under the ticker
-`research/filings/ijr/members.csv` maps the company to.
+for the 2025-12-31 members. 884 are under a ticker
+`research/filings/ijr/members.csv` maps a company to, and 12 hold a ticker
+that was tried and then replaced, which no member reads.
 
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1320,9 +1321,12 @@ for the 2025-12-31 members. Each is under the ticker
 Some of those series belong to a later company that reused a ticker, because
 a ticker was fetched before the check could say whose prices it held. The
 members file's check is what says which series a member's close comes from.
-The 896 lines hold 347,681 bytes. With [issue 333](https://github.com/l3a0/quantitative-trading/issues/333)'s 603, `data/` held
+The 896 lines hold 347,681 bytes, which
+[tests/test_sp600_panel.py](../tests/test_sp600_panel.py) pins with their row
+count, their download date and their sha256. With [issue 333](https://github.com/l3a0/quantitative-trading/issues/333)'s 603, `data/` held
 203.07 MB of file content before this paragraph, which leaves 1.93 MB under
-the 205 MB budget.
+the 205 MB budget. Those two sizes were measured on this branch and no test
+holds them.
 
 ## Header shape
 

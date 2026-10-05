@@ -895,9 +895,9 @@ uv run python -m chan.sp600_panel report
 
 The report prints one line per year-end from 2008 to 2025: its members, how
 many the panel covers, the January stops, the misses by reason, and how many
-missing members could change a tenth of Example 7.6's ranking. The members
-those are follow. `check` with no archive prints the archive's own one-line
-refusal.
+missing members could change a tenth of Example 7.6's ranking. A line per
+missing member follows, giving its reason and marking those that threaten a
+tenth. `check` with no archive prints the archive's own one-line refusal.
 
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any

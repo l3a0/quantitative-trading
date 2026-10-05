@@ -7,7 +7,8 @@ about ``research/filings/ijr/members.csv``.
 **The specification.** A member is a row :func:`chan.fund_holdings.members`
 keeps. Its ticker is the one the members file maps it to. Its check compares
 Alpha Vantage's raw ``close`` on the price date, times the filing's share
-count, with the filing's value, within half the filing's value unit. The price
+count, with the filing's value, within half the filing's value unit, plus
+half a share at the close on an N-Q, which prints whole shares. The price
 date is the last trading day on or before the report date in the committed raw
 SPY vintage, ``yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv``. A
 member is covered at a year-end when its row passes and, where
@@ -26,15 +27,20 @@ archive's own reason where there is none.
 from __future__ import annotations
 
 import hashlib
+import json
 from collections import Counter
+from decimal import Decimal
 
 import pandas as pd
 import pytest
 
-from chan import archive, sp600_panel
+from chan import archive, fetch_alphavantage, sp600_panel
 from chan.archive import ArchiveUnavailable, read_cross_section
 from chan.fund_holdings import IJR
 from chan.fund_panel import (
+    HALF_SHARE,
+    HALF_UNIT,
+    PanelRefused,
     coverage,
     numbered_members,
     panel_keys,
@@ -109,6 +115,9 @@ YEAR_ENDS = (
 SOURCES = {"cusip": 40, "filing": 791, "hand": 356, "link": 9538, "name": 609}
 CHECKS = {"no-row": 632, "no-series": 414, "pass": 10004, "price": 284}
 
+#: The report's whole output on the pinned members file, by sha256.
+REPORT_SHA256 = "3a4a3e23b9dbbcae8059bdc0a40dbb85897d7e1a1526bf8bda7d88343aa5d9e7"
+
 #: The members file this module pins, by sha256.
 MEMBERS_SHA256 = "c92cc2512ded3a054c861b48e17572c9ff708a4dcfb548e9e226901c14adda9b"
 
@@ -139,6 +148,73 @@ class TestTheCoverage:
     def test_the_sources_and_checks(self) -> None:
         assert dict(sorted(Counter(row.source for row in ROWS).items())) == SOURCES
         assert dict(sorted(Counter(row.check for row in ROWS).items())) == CHECKS
+
+
+class TestTheManifestLines:
+    """The ``sp600`` lines this panel recorded, beside issue 333's for the 2025-12-31 members."""
+
+    def _lines(self) -> tuple[list[bytes], list[bytes]]:
+        current = {row.ticker for row in ROWS if row.report_date == "2025-12-31"}
+        lines = [
+            line
+            for line in (archive._manifest_path(None)).read_bytes().split(b"\n")
+            if b'"cross_section"' in line
+        ]
+        theirs = [line for line in lines if json.loads(line)["symbol"] in current]
+        mine = [line for line in lines if json.loads(line)["symbol"] not in current]
+        return theirs, mine
+
+    def test_the_2025_members_read_issue_333s_lines_and_nothing_else(self) -> None:
+        theirs, _ = self._lines()
+        current = {row.ticker for row in ROWS if row.report_date == "2025-12-31"}
+        assert len(theirs) == len(current) == 603
+        assert {json.loads(line)["symbol"] for line in theirs} == current
+
+    def test_this_panel_recorded_896_lines_on_one_download_date(self) -> None:
+        _, mine = self._lines()
+        entries = [json.loads(line) for line in mine]
+        assert len(mine) == 896
+        assert sum(len(line) + 1 for line in mine) == 347_681
+        assert sum(entry["row_count"] for entry in entries) == 3_653_318
+        assert {entry["download_date"] for entry in entries} == {"2026-10-05"}
+        digest = hashlib.sha256(b"".join(sorted(line + b"\n" for line in mine))).hexdigest()
+        assert digest == "afcc113f0b023b1f7afe166e859402bf937e56af1ab7e65ec98e8304f8ebd5c3"
+
+    def test_twelve_lines_hold_a_ticker_tried_and_then_replaced(self) -> None:
+        _, mine = self._lines()
+        mapped = {row.ticker for row in ROWS if row.ticker}
+        unread = sorted(json.loads(line)["symbol"] for line in mine)
+        assert [symbol for symbol in unread if symbol not in mapped] == [
+            "ACI", "AMEH", "BELFA", "CBB-P-B", "CONN", "FRANQ",
+            "GCI", "IACVV", "NYMTZ", "RJET", "SPW", "ZYXI",
+        ]  # fmt: skip
+
+
+class TestTheNqAllowance:
+    def test_five_nq_passes_cannot_resolve_a_cent(self) -> None:
+        """Half a dollar and half a share at the close exceeds a cent of price on few rows.
+
+        The allowance resolves a cent only above 50 + 50 times the close shares.
+        Biglari's three passes hold under 20,000 shares at over $300, and
+        Cousins and Lumentum are one-share lots, which pass on almost any close.
+        """
+        forms = {filing.report_date: filing.form for filing in IJR.filings}
+        loose = []
+        for row in ROWS:
+            if row.check != "pass" or forms[row.report_date] != "N-Q":
+                continue
+            holding = dict(numbered_members(IJR, row.report_date))[row.row]
+            shares = Decimal(holding.shares)
+            price = Decimal(holding.value) / shares
+            if (HALF_UNIT["N-Q"] + price * HALF_SHARE["N-Q"]) / shares > Decimal("0.01"):
+                loose.append((row.report_date, row.ticker, holding.shares))
+        assert loose == [
+            ("2009-12-31", "BH", "16102"),
+            ("2010-12-31", "BH", "19996"),
+            ("2012-12-31", "BH", "18993"),
+            ("2016-12-31", "CUZ", "1"),
+            ("2018-12-31", "LITE", "1"),
+        ]
 
 
 class TestTheCases:
@@ -206,12 +282,61 @@ class TestTheArchive:
 
 
 class TestTheCommand:
-    def test_report_prints_one_line_per_year_end_then_the_threats(self, capsys) -> None:
+    def test_report_prints_one_line_per_year_end_then_every_missing_member(self, capsys) -> None:
         sp600_panel.main(["report"])
-        lines = capsys.readouterr().out.splitlines()
+        out = capsys.readouterr().out
+        lines = out.splitlines()
         assert [line.split()[0] for line in lines[:18]] == [pin[0] for pin in YEAR_ENDS]
-        assert lines[18] == "threatening members:"
-        assert len(lines) == 19 + sum(pin[6] for pin in YEAR_ENDS)
+        assert lines[17] == (
+            "2025-12-31  members 603  covered 601  January stops 1  missing 2 (no-row 2)  "
+            "price within a cent 0  threats 1"
+        )
+        assert lines[18] == "missing members:"
+        assert len(lines) == 19 + sum(pin[1] - pin[2] for pin in YEAR_ENDS)
+        assert (
+            "  2009-12-31 row 317 SR: Standard Register Co. (The), price, threatens a tenth"
+            in lines
+        )
+        assert sum(line.endswith(", threatens a tenth") for line in lines) == sum(
+            pin[6] for pin in YEAR_ENDS
+        )
+        assert hashlib.sha256(out.encode()).hexdigest() == REPORT_SHA256
+
+    def test_fetch_hands_on_every_ticker_and_redacts_the_key(self, monkeypatch, capsys) -> None:
+        handed = {}
+
+        def fake_fetch(cross_section, symbols, *, key):
+            handed.update(cross_section=cross_section, symbols=list(symbols), key=key)
+            return fetch_alphavantage.Tally(recorded=["AAA"], failed=[f"X{key}"])
+
+        monkeypatch.setenv("ALPHAVANTAGE_API_KEY", "SECRETKEY")
+        monkeypatch.setattr(fetch_alphavantage, "fetch", fake_fetch)
+        with pytest.raises(SystemExit) as stopped:
+            sp600_panel.main(["fetch"])
+        assert stopped.value.code == 1
+        assert handed["cross_section"] == "sp600"
+        assert handed["symbols"] == sp600_panel.tickers(ROWS)
+        assert "" not in handed["symbols"]
+        out = capsys.readouterr().out
+        assert "SECRETKEY" not in out
+        assert "X<key>" in out
+
+    def test_a_complete_fetch_exits_cleanly(self, monkeypatch, capsys) -> None:
+        monkeypatch.setenv("ALPHAVANTAGE_API_KEY", "SECRETKEY")
+        monkeypatch.setattr(
+            fetch_alphavantage, "fetch", lambda *a, **k: fetch_alphavantage.Tally(already=["A"])
+        )
+        sp600_panel.main(["fetch"])
+        assert capsys.readouterr().out.startswith("recorded 0, already recorded 1")
+
+    @pytest.mark.parametrize("refusal", [PanelRefused, archive.ArchiveRefused])
+    def test_a_refusal_is_one_line(self, monkeypatch, refusal) -> None:
+        def refuse(*args, **kwargs):
+            raise refusal("the one line")
+
+        monkeypatch.setattr(sp600_panel, "load", refuse)
+        with pytest.raises(SystemExit, match="^the one line$"):
+            sp600_panel.main(["report"])
 
     def test_check_with_no_archive_prints_one_line(self, monkeypatch, tmp_path) -> None:
         monkeypatch.delenv("QT_ARCHIVE_DIR", raising=False)
