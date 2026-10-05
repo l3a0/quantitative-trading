@@ -16,13 +16,14 @@ doc's section says why.
 
 The record has two parts.
 
-1. One CSV per filing, at ``research/filings/<fund>/<report date>.csv``,
+1. One CSV per fund and filing, at ``research/filings/<fund>/<report date>.csv``,
    holding the rows under common stocks in the filing's order, with the
    columns :data:`COLUMNS`.
 2. An index, ``research/filings/index.jsonl``, one line per fund and filing,
    naming the accession, the primary document's sha256 and the CSV's sha256.
 
-The source documents are not committed, because each runs to 15 to 58 MB.
+The source documents are not committed, because each N-Q or shareholder
+report runs to 15 to 59 MB.
 The index's sha256 says which bytes were parsed, so a fetch refuses a download
 that differs from them.
 
@@ -38,7 +39,7 @@ Two formats, read by two parsers.
    the ``invstOrSec`` rows whose ``assetCat`` is ``EC``.
 
 The N-PORT ``balance`` is not the share count the filing's own HTML exhibit
-prints, by a median 1.13% in 2019 and 0.046% in 2024 on the survey the issue
+prints, by a median 1.13% in 2019 and 0.046% in 2024 on the survey issue 361
 records. The prices agree, so value over shares is the holding's price in
 either format, which is all :func:`place` reads. Share counts are never
 compared across the two formats.
@@ -129,7 +130,7 @@ class NotStock:
     ``report_date``, ``name`` and ``cusip`` together name exactly one row of one
     holdings file, and ``reason`` says what the row is instead. The CUSIP is
     there because N-PORT gives OmniAb's two earnout rows one title, and it is
-    empty for an N-Q, which prints none.
+    empty for an HTML schedule, which prints none.
     """
 
     report_date: str
@@ -142,7 +143,7 @@ class NotStock:
 class Fund:
     """A fund the reader can record, and everything that differs between funds.
 
-    ``schedule_names`` are the names an N-Q's schedule heading gives the fund,
+    ``schedule_names`` are the names an HTML schedule's heading gives the fund,
     upper-cased with "iShares" and the registered-trademark sign removed, since
     a fund is renamed over the years. ``series_id`` is the N-PORT series.
     """
@@ -158,9 +159,9 @@ class Fund:
 class Holding:
     """One row under common stocks, written as the filing prints it.
 
-    An N-Q prints no identifiers, so its rows leave ``cusip``, ``isin`` and
-    ``ticker`` empty. An N-Q's numbers lose their thousands separators and
-    nothing else. An N-PORT's are the XML's own strings.
+    An HTML schedule prints no identifiers, so its rows leave ``cusip``,
+    ``isin`` and ``ticker`` empty, and its numbers lose their thousands
+    separators and nothing else. An N-PORT's are the XML's own strings.
     """
 
     name: str
@@ -175,7 +176,7 @@ class Holding:
 class Schedule:
     """What one filing holds under common stocks, and the total it prints for them.
 
-    ``printed_total`` is the N-Q's "Total Common Stocks" figure. N-PORT prints
+    ``printed_total`` is an HTML schedule's "Total Common Stocks" figure. N-PORT prints
     no such line, so it is ``None`` there.
     """
 
@@ -203,7 +204,11 @@ class IndexEntry:
 
 @dataclass(frozen=True)
 class Placement:
-    """One member of a filing, and where its calendar year left it.
+    """One member of a filing, and how it moved since the filing before.
+
+    ``calendar_return`` is named for IJR, whose list is one filing a year. It is
+    the change since the filing before in the fund's list, so on IVV's list it
+    is a quarter's change.
 
     ``previous`` is the row it was linked to in the filing before, and
     ``linked_by`` says how, ``cusip``, ``name`` or ``name without class``, as
@@ -309,6 +314,14 @@ IJR = Fund(
 # reads the amendment rather than the NPORT-P it corrects. One N-Q holds every
 # fund in the trust, so each December N-Q here is the same accession IJR's
 # list names.
+#
+# Six amendments are not read, and each was parsed on 2026-10-05 to the same
+# rows as the filing this list reads. They are 2025-09-30's original NPORT-P,
+# 0002071691-25-007634, and five shareholder-report amendments filed in 2017
+# and 2018: 0001193125-17-257378 for 2016-09-30, 0001193125-17-257387,
+# 0001193125-18-009766 and 0001193125-18-152961 for 2017-03-31, and
+# 0001193125-18-152996 for 2017-09-30. No test holds that, because their
+# documents are not committed.
 
 _SUMMARY_ONLY = (
     'the N-CSRS prints a summary schedule of 55 holdings and "Other securities" '
@@ -425,11 +438,12 @@ FUNDS: Mapping[str, Fund] = {IJR.symbol: IJR, IVV.symbol: IVV}
 
 
 class _Rows(HTMLParser):
-    """Flattens an N-Q into its text lines and its table rows, in document order.
+    """Flattens an HTML schedule into its text lines and table rows, in document order.
 
-    A ``<sup>`` is dropped with everything inside it. From 2012 to 2017 that is
-    where the footnote markers sit, and in some years the registered-trademark
-    sign in a fund's heading. Every run of whitespace, a non-breaking space
+    A ``<sup>`` is dropped with everything inside it. That is where most
+    footnote markers sit, in IJR's N-Q years from 2012 and in every IVV
+    schedule that prints one, and in some years the registered-trademark sign
+    in a fund's heading. Every run of whitespace, a non-breaking space
     included, becomes one space.
     """
 
@@ -555,17 +569,27 @@ def _headings(items: Sequence[tuple[str, str | tuple[str, ...]]]) -> Iterable[tu
                 yield position - 2, _schedule_name(str(items[position - 2][1]))
 
 
+def _letters(cell: str) -> str:
+    """A cell upper-cased with every space removed, so letter-spacing reads as a word."""
+    return "".join(cell.split()).upper()
+
+
 def _page_footer(row: tuple[str, ...]) -> bool:
     """Whether a row is a shareholder report's running footer and page number.
 
     Nine of IVV's shareholder reports from 2010-09-30 to 2019-03-31 end each
-    odd page inside a schedule with a row reading "SCHEDULES OF INVESTMENTS"
-    and the page number, letter-spaced in 2019. It has a number in its last
-    cell, so it would otherwise be refused as a row no year printed. The even
-    page's footer leads with its number and is passed already, as a row whose
-    last cell is not one.
+    page inside a schedule with a footer row, letter-spaced in 2019. An odd
+    page's reads "SCHEDULES OF INVESTMENTS" beside its number, and an even
+    page's prints its number beside the report's name, such as "2010 iSHARES
+    SEMI-ANNUAL REPORT TO SHAREHOLDERS". The odd page's has a number in its
+    last cell, so it would otherwise be refused as a row no year printed, and
+    neither may break a name :func:`_name_start` holds across the page.
     """
-    return len(row) == 2 and "".join(row[0].split()).upper() == "SCHEDULESOFINVESTMENTS"
+    if len(row) != 2:
+        return False
+    odd = _letters(row[0]) == "SCHEDULESOFINVESTMENTS" and _number(row[1]) is not None
+    even = _number(row[0]) is not None and "REPORTTOSHAREHOLDERS" in _letters(row[1])
+    return odd or even
 
 
 def _name_start(cell: str) -> bool:
@@ -575,12 +599,23 @@ def _name_start(cell: str) -> bool:
     de Nemours" above "and Co." and "Discovery" above "Communications Inc.
     Series A", and the first row carries no numbers. Every other row of one
     cell under common stocks, in all of IVV's HTML schedules and IJR's N-Q
-    years, is an industry heading printing its percentage of net assets, an
-    industry heading carried onto a new page with "(continued)", or a subtotal.
-    One subtotal in IVV's 2011-12-31 N-Q prints as "7585,592,127" and passes
-    this test, and an industry heading follows it, so no name takes it.
+    years, is one of four things this refuses: an industry heading printing
+    its percentage of net assets, a heading carried onto a new page with
+    "continued", a heading in capitals, or a subtotal, which has no letters.
+    It also refuses a line opening with a parenthesis, as a footnote does.
+
+    The values do not change when a name is joined, so the writer's check
+    against the printed total cannot see a wrong join. A heading in mixed case
+    that prints no percentage would be read as the start of a name. No filing
+    read so far prints one.
     """
-    return "%" not in cell and not cell.endswith("(continued)") and _number(cell) is None
+    text = cell.strip()
+    return (
+        "%" not in text
+        and not re.search(r"continued\)?$", text, re.IGNORECASE)
+        and not text.startswith("(")
+        and text != text.upper()
+    )
 
 
 def parse_nq(document: bytes, schedule_names: Sequence[str]) -> Schedule:
@@ -634,11 +669,13 @@ def parse_nq(document: bytes, schedule_names: Sequence[str]) -> Schedule:
             started = upper.startswith("COMMON STOCKS")
             continue
         numbers = [_number(cell) for cell in content]
-        held_over, name_start = name_start, ""
         if len(content) == 1:
             name_start = first if _name_start(first) else ""
             continue
-        if _page_footer(content) or numbers[-1] is None:
+        if _page_footer(content):
+            continue
+        held_over, name_start = name_start, ""
+        if numbers[-1] is None:
             continue
         if len(content) == 3 and numbers[0] is None and numbers[1] is not None:
             name = _FOOTNOTES.sub("", f"{held_over} {first}".strip()).strip()
@@ -763,7 +800,9 @@ def record(
     write different bytes to an existing file, or a different line for a
     fund's accession the index already holds, refuses and names both hashes.
     The fund is part of that key because one N-Q holds every fund in the
-    trust, so IJR's and IVV's December N-Q share an accession. A schedule
+    trust, so IJR's and IVV's December N-Q share an accession. A document is
+    still one set of bytes whichever fund reads it, so one whose sha256 differs
+    from any line naming its accession is refused too. A schedule
     whose rows do not sum to the total it prints is refused too, because that
     is a parse that read the wrong rows, and so is a filing the list skips.
     """
@@ -819,6 +858,12 @@ def record(
             f"and document sha256 {held.document_sha256}, and this parse gives "
             f"{entry.sha256} from {entry.document_sha256}"
         )
+    for line in entries:
+        if line.accession == filing.accession and line.document_sha256 != document_sha256:
+            raise FilingRefused(
+                f"the index records {filing.accession} for {line.fund} from document "
+                f"sha256 {line.document_sha256}, and this document is {document_sha256}"
+            )
     if not target.exists():
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
@@ -875,23 +920,23 @@ def fetch(
     """Download each filing in the fund's list, record it, and delete the download.
 
     Each document lands in a temporary directory the run removes once it is
-    parsed. Where the index already names a document, a download whose sha256
-    differs is refused before anything is parsed. A filing the list skips is
-    not downloaded.
+    parsed. Where the index already names a document, for this fund or any
+    other, a download whose sha256 differs is refused before anything is
+    parsed. A filing the list skips is not downloaded.
     """
     contact = user_agent() if contact is None else contact
-    held = {(entry.fund, entry.accession): entry for entry in read_index(filings_dir)}
+    held = read_index(filings_dir)
     written = []
     with tempfile.TemporaryDirectory(prefix="fund_holdings_") as scratch:
         for number, filing in enumerate(f for f in fund.filings if not f.skipped):
             if number:
                 pause(REQUEST_SPACING_SECONDS)
             content = download(document_url(filing), contact)
-            known = held.get((fund.symbol, filing.accession))
-            if known is not None and _sha256(content) != known.document_sha256:
+            known = sorted({e.document_sha256 for e in held if e.accession == filing.accession})
+            if known and known != [_sha256(content)]:
                 raise FilingRefused(
                     f"{filing.accession} downloaded with sha256 {_sha256(content)}, "
-                    f"and the index records {known.document_sha256}"
+                    f"and the index records {', '.join(known)}"
                 )
             saved = Path(scratch) / f"{filing.report_date}_{Path(filing.document).name}"
             saved.write_bytes(content)
@@ -1065,7 +1110,7 @@ def _price(holding: Holding) -> Decimal | None:
 
 
 def place(fund: Fund, report_date: str, filings_dir: Path | None = None) -> list[Placement]:
-    """Each member of one filing, with its rough calendar-year return where it can be had.
+    """Each member of one filing, with its rough return since the filing before.
 
     The return is value over shares in this filing, divided by the same in the
     filing linked to it, less one. A member the link leaves unpaired cannot be

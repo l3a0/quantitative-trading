@@ -514,7 +514,7 @@ reads those filings into [research/filings](../research/filings/README.md),
 under [issue 361](https://github.com/l3a0/quantitative-trading/issues/361).
 [Issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added
 IVV, iShares' S&P 500 fund, at every quarter-end from 2008-12-31 to
-2026-06-30, for the S&P 500 panel
+2026-06-30 but one, for the S&P 500 panel
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) builds.
 [tests/test_fund_holdings.py](../tests/test_fund_holdings.py) is the authority
 for every count quoted about IJR, and
@@ -534,10 +534,11 @@ Four things follow.
    for unrecorded files both require every CSV under `data/` to have a line in
    the manifest. That line's recorders take a dated series, or lifted columns
    whose fields come from `LIFTED_FIELDS` or `EVENT_FIELDS`, and a schedule of
-   holdings is neither. The record is one CSV per filing and an index naming
-   each accession, the primary document's sha256 and the CSV's sha256. The
-   documents themselves are not committed, because an N-Q runs to 38 MB, and
-   the sha256 says which bytes a regeneration has to match. The price is that
+   holdings is neither. The record is one CSV per fund and filing and an
+   index naming each accession, the primary document's sha256 and the CSV's
+   sha256. The documents themselves are not committed, because a shareholder
+   report runs to 59 MB, and the sha256 says which bytes a regeneration has to
+   match. The price is that
    [data/README.md](../data/README.md) and the manifest do not list these
    files and the size cap on `data/` does not count them. They take 2,672,010
    bytes, index included, which `tests/test_fund_holdings.py` pins.

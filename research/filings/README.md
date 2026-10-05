@@ -41,8 +41,8 @@ not list these files, and the size cap on `data/` does not count them.
    for an HTML schedule the "Total Common Stocks" it prints. One N-Q holds every
    fund in the trust, so IJR's and IVV's December N-Q are one accession with a
    line for each fund.
-2. **One CSV per filing**, at `<fund>/<report date>.csv`, holding the rows under
-   common stocks in the filing's order. The columns are
+2. **One CSV per fund and filing**, at `<fund>/<report date>.csv`, holding
+   the rows under common stocks in the filing's order. The columns are
    `name,shares,value,cusip,isin,ticker`.
 
 The CSV is written as the filing prints it, with three exceptions.
@@ -68,7 +68,8 @@ IVV's 2013-09-30 has no file. Its shareholder report prints only a summary
 schedule, so the date stays on the fund's list in the module with the reason,
 and reading its members refuses and says why.
 
-The source documents are not committed, because each runs to 15 to 58 MB.
+The source documents are not committed, because each N-Q or shareholder report
+runs to 15 to 59 MB.
 The index's `document_sha256` says which bytes were parsed.
 
 ## Regenerating a file

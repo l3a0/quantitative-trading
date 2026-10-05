@@ -23,6 +23,7 @@ recorded schedule before it, which for 2013-12-31 is 2013-06-30's, because
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -290,6 +291,18 @@ class TestTheCommittedRecord:
         for report_date, names in departed.items():
             assert set(names) <= {holding.name for holding in _held(report_date)}
 
+    def test_lines_sharing_an_accession_name_one_document(self) -> None:
+        by_accession: dict[str, set[str]] = {}
+        for entry in read_index():
+            by_accession.setdefault(entry.accession, set()).add(entry.document_sha256)
+        assert all(len(hashes) == 1 for hashes in by_accession.values())
+        shared = [
+            e
+            for e in read_index()
+            if e.fund == "IVV" and e.accession in {f.accession for f in IJR.filings}
+        ]
+        assert len(shared) == 11
+
     def test_the_amendment_is_what_2025_09_30_reads(self) -> None:
         entry = _entry("2025-09-30")
         assert (entry.form, entry.accession, entry.filing_date) == (
@@ -326,18 +339,20 @@ class TestTheMemberRule:
             assert len({h.name for h in alphabet}) == 2
 
 
+RECORDED = [filing for filing in IVV.filings if not filing.skipped]
+
+
 class TestLinks:
-    @pytest.mark.parametrize("at", range(1, len(QUARTER_ENDS)), ids=lambda at: QUARTER_ENDS[at][0])
-    def test_each_schedule_links_its_pinned_count_to_the_one_before(self, at: int) -> None:
-        current = members(IVV, _filing(QUARTER_ENDS[at][0]))
-        previous = members(IVV, _filing(QUARTER_ENDS[at - 1][0]))
+    @pytest.mark.parametrize("at", range(1, len(RECORDED)), ids=lambda at: RECORDED[at].report_date)
+    def test_each_schedule_links_its_pinned_count_to_the_one_recorded_before(self, at: int) -> None:
+        # The schedule before is the one before in the list that has a file,
+        # so 2013-12-31 is linked to 2013-06-30 across the skipped date.
+        current = members(IVV, RECORDED[at])
+        previous = members(IVV, RECORDED[at - 1])
         pairs = link(current, previous)
         linked = sum(1 for row, _ in pairs if row is not None)
-        assert (linked, len(current) - linked) == QUARTER_ENDS[at][5:7]
-
-    def test_the_link_across_the_skipped_date_reaches_back_two_quarters(self) -> None:
-        dates = [row[0] for row in QUARTER_ENDS]
-        assert dates[dates.index("2013-12-31") - 1] == "2013-06-30"
+        pinned = next(row for row in QUARTER_ENDS if row[0] == RECORDED[at].report_date)
+        assert (linked, len(current) - linked) == pinned[5:7]
 
 
 # --- Parsing the traps the survey met, one fixture each -----------------------
@@ -415,6 +430,102 @@ class TestParseHtml:
         schedule = parse(_fixture("nport-ex-2019-06-standalone.htm"), IVV, _filing("2019-06-30"))
         assert schedule.holdings[0] == Holding("Arconic Inc.", "2880822", "74382824")
         assert schedule.printed_total == 176_338_648_537
+
+
+#: One fixture per form IVV's list reads, with the filing it is parsed as.
+#: 2025-09-30's amendment is read as the 2020-06-30 N-PORT, since both are XML
+#: for IVV's series.
+ROUTES = {
+    "N-Q": ("nq-2014-06-split-total.htm", "2014-06-30", "Boeing Co. (The)"),
+    "N-CSR": (
+        "ncsr-2009-summary-first.htm",
+        "2009-03-31",
+        "Interpublic Group of Companies Inc. (The)",
+    ),
+    "N-CSRS": (
+        "ncsrs-2010-footer-and-wrapped-names.htm",
+        "2010-09-30",
+        "Interpublic Group of Companies Inc. (The)",
+    ),
+    "NPORT-EX": ("nport-ex-2019-06-standalone.htm", "2019-06-30", "Arconic Inc."),
+    "NPORT-P": ("nport-2020-06-right.xml", "2020-06-30", "T-Mobile US Inc"),
+    "NPORT-P/A": ("nport-2020-06-right.xml", "2025-09-30", "T-Mobile US Inc"),
+}
+
+
+class TestParseRoutes:
+    def test_every_form_on_the_list_has_a_route_here(self) -> None:
+        assert set(ROUTES) == {filing.form for filing in IVV.filings}
+
+    @pytest.mark.parametrize("form", sorted(ROUTES))
+    def test_each_form_reaches_the_parser_that_reads_it(self, form: str) -> None:
+        name, report_date, first = ROUTES[form]
+        filing = _filing(report_date)
+        assert filing.form == form
+        assert parse(_fixture(name), IVV, filing).holdings[0].name == first
+
+    def test_a_form_no_parser_reads_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="no parser reads form N-CSR/A"):
+            parse(b"", IVV, replace(_filing("2009-03-31"), form="N-CSR/A"))
+
+    def test_the_symbol_fetch_takes_is_the_fund(self) -> None:
+        assert fund_holdings.FUNDS["IVV"] is IVV
+        assert IVV.symbol == "IVV"
+
+
+def _rows(*rows: tuple[str, ...]) -> bytes:
+    """A schedule built by hand, for the name rule's cases no filing prints."""
+    cells = "".join("<TR>" + "".join(f"<TD>{c}</TD>" for c in row) + "</TR>" for row in rows)
+    return (
+        "<P>Schedule of Investments</P><P>iShares Core S&amp;P 500 ETF</P>"
+        f"<TABLE><TR><TD>COMMON STOCKS</TD></TR>{cells}"
+        "<TR><TD>TOTAL COMMON STOCKS</TD><TD>30</TD></TR></TABLE>"
+    ).encode()
+
+
+def _names(*rows: tuple[str, ...]) -> list[str]:
+    return [h.name for h in parse_nq(_rows(*rows), IVV.schedule_names).holdings]
+
+
+class TestTheNameRule:
+    def test_a_joined_start_is_not_carried_to_the_next_holding(self) -> None:
+        assert _names(
+            ("Discovery",), ("Communications Inc.", "1", "10"), ("Acme Inc.", "1", "20")
+        ) == [
+            "Discovery Communications Inc.",
+            "Acme Inc.",
+        ]
+
+    def test_a_start_is_held_across_both_page_footers(self) -> None:
+        names = _names(
+            ("E.I. du Pont de Nemours",),
+            ("SCHEDULES OF INVESTMENTS", "7"),
+            ("8", "2010 iSHARES SEMI-ANNUAL REPORT TO SHAREHOLDERS"),
+            ("and Co.", "1", "30"),
+        )
+        assert names == ["E.I. du Pont de Nemours and Co."]
+
+    @pytest.mark.parametrize(
+        "line",
+        [
+            "Media — 2.0%",
+            "AEROSPACE & DEFENSE",
+            "Chemicals (continued)",
+            "Chemicals (Continued)",
+            "Chemicals—continued",
+            "(a) Non-income earning security.",
+            "7585,592,127",
+        ],
+    )
+    def test_a_line_that_is_not_a_name_start_is_not_joined(self, line: str) -> None:
+        assert _names((line,), ("Acme Inc.", "1", "30")) == ["Acme Inc."]
+
+    def test_a_heading_after_a_start_clears_it(self) -> None:
+        assert _names(("Discovery",), ("Media — 2.0%",), ("Acme Inc.", "1", "30")) == ["Acme Inc."]
+
+    def test_a_row_of_a_name_and_one_number_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="a shape no year printed"):
+            parse_nq(_rows(("Acme Inc.", "10")), IVV.schedule_names)
 
 
 class TestParseNport:

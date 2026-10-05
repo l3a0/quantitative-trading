@@ -589,6 +589,15 @@ class TestRecord:
             tmp_path / "ijr" / "2022-12-30.csv"
         ).read_bytes()
 
+    def test_a_second_funds_line_from_other_bytes_is_refused(self, tmp_path: Path) -> None:
+        document = _fixture("nport-2022-title-and-cusip.xml")
+        record(_FUND, _NPORT_FILING, document, tmp_path)
+        other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
+        with pytest.raises(FilingRefused, match="for IJR from document sha256"):
+            record(other, _NPORT_FILING, document.replace(b"Moog Inc", b"Moog Inc "), tmp_path)
+        assert [e.fund for e in read_index(tmp_path)] == ["IJR"]
+        assert not (tmp_path / "ivv").exists()
+
     def test_a_total_missed_by_one_dollar_is_refused(self, tmp_path: Path, monkeypatch) -> None:
         schedule = fund_holdings.Schedule((Holding("Acme Inc.", "10", "100"),), 101)
         monkeypatch.setattr(fund_holdings, "parse", lambda *arguments: schedule)
@@ -680,22 +689,21 @@ class TestFetch:
                 pause=lambda s: None,
             )
 
-    def test_a_download_is_checked_against_its_own_funds_line(self, tmp_path: Path) -> None:
+    def test_a_download_is_checked_against_another_funds_line(self, tmp_path: Path) -> None:
+        # One N-Q is one set of bytes for every fund in it, so IVV's download
+        # of an accession IJR's line names must be the bytes IJR's line hashed.
         document = _fixture("nport-2022-title-and-cusip.xml")
         record(_FUND, _NPORT_FILING, document, tmp_path)
-        index = tmp_path / "index.jsonl"
-        index.write_text(index.read_text().replace('"document_sha256": "', '"document_sha256": "0'))
         other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
-        entries = fund_holdings.fetch(
-            other,
-            filings_dir=tmp_path,
-            contact="n@example.com",
-            download=lambda url, contact: document,
-            pause=lambda s: None,
-        )
-        assert [(e.fund, e.document_sha256) for e in entries] == [
-            ("IVV", fund_holdings._sha256(document))
-        ]
+        with pytest.raises(FilingRefused, match="the index records"):
+            fund_holdings.fetch(
+                other,
+                filings_dir=tmp_path,
+                contact="n@example.com",
+                download=lambda url, contact: document + b"\n",
+                pause=lambda s: None,
+            )
+        assert not (tmp_path / "ivv").exists()
 
     def test_the_downloads_are_deleted(self, tmp_path: Path, monkeypatch) -> None:
         scratch = tmp_path / "scratch"
