@@ -40,6 +40,8 @@ from chan.series import (
     close_identity,
     load_close,
     load_panel,
+    load_port_close,
+    load_returns,
     load_vintage,
     panel_line,
 )
@@ -1747,3 +1749,82 @@ class TestTheCommittedFlagsAreChansArray:
         _, rates = load_panel("R.mat", data_dir=directory)
 
         assert list(rates["TB"]) == [1.5, 1.6]
+
+
+class TestThePythonPortsDailyAndReturnFiles:
+    """``load_port_close`` and ``load_returns``, which Example 5.1 reads through.
+
+    The vintages are ``pythoncodesanddata/inputData_AUDUSD_20120426.csv`` and
+    ``inputData_USDCAD_20120426.csv``, chan-py, raw, saved 2018-12-12, and
+    ``AUDCAD_unequal_ret.csv``, chan-py, return, saved 2018-12-26, all three
+    from ``PythonCodesAndData.zip`` at EpchanPreview ``e4bc46f``.
+    """
+
+    def test_usdcad_names_its_daily_file_by_its_saved_date(self) -> None:
+        """Two raw entries carry the symbol, so the reader refuses to choose between them."""
+        with pytest.raises(VintageUnavailable, match="names 2 recorded vintages"):
+            load_port_close("USDCAD")
+
+        entry, closes = load_port_close("USDCAD", dated="2018-12-12")
+
+        assert entry.path == "pythoncodesanddata/inputData_USDCAD_20120426.csv"
+        assert len(closes) == 862
+        assert (str(closes.index[0].date()), str(closes.index[-1].date())) == (
+            "2009-01-02",
+            "2012-04-26",
+        )
+        assert closes.iloc[0] == 1.2059
+
+    def test_the_audusd_file_reads_whatever_the_symbols_case(self) -> None:
+        entry, closes = load_port_close("audusd")
+
+        assert entry.path == "pythoncodesanddata/inputData_AUDUSD_20120426.csv"
+        assert closes.name == "AUDUSD"
+        assert list(closes.iloc[:2]) == [0.711325, 0.71745]
+
+    def test_the_minute_files_date_reaches_the_minute_refusal(self) -> None:
+        with pytest.raises(VintageUnavailable, match="holds minute bars"):
+            load_port_close("USDCAD", dated="2018-10-13")
+
+    def test_the_return_file_is_not_a_raw_close(self) -> None:
+        with pytest.raises(VintageUnavailable, match="AUDCAD-UNEQUAL raw"):
+            load_port_close("AUDCAD-UNEQUAL")
+
+    def test_the_return_file_recorded_as_raw_is_refused_rather_than_read_empty(
+        self, committed_copy: Path
+    ) -> None:
+        """``_parse_close`` would drop all 613 rows as headers and hand back nothing."""
+        directory = committed_copy
+        rewrite_entry(directory, "pythoncodesanddata/AUDCAD_unequal_ret.csv", price_basis="raw")
+
+        with pytest.raises(VintageUnavailable, match="does not open with Date,Close"):
+            load_port_close("AUDCAD-UNEQUAL", data_dir=directory)
+
+    def test_a_price_file_is_not_a_return(self) -> None:
+        with pytest.raises(VintageUnavailable, match="AUDUSD return"):
+            load_returns("AUDUSD")
+
+    def test_a_price_file_recorded_as_returns_is_refused_by_its_header(
+        self, committed_copy: Path
+    ) -> None:
+        directory = committed_copy
+        rewrite_entry(
+            directory, "pythoncodesanddata/inputData_AUDUSD_20120426.csv", price_basis="return"
+        )
+
+        with pytest.raises(VintageUnavailable, match="does not open with Return"):
+            load_returns("AUDUSD", data_dir=directory)
+
+    def test_the_612_returns_come_back_undated_as_the_text_spells_them(self) -> None:
+        """The file holds no dates, so none come back and the caller names its calendar."""
+        entry, returns = load_returns("AUDCAD-UNEQUAL")
+
+        assert (entry.path, entry.saved_date) == (
+            "pythoncodesanddata/AUDCAD_unequal_ret.csv",
+            "2018-12-26",
+        )
+        assert returns.shape == (612,)
+        assert returns.dtype == np.float64
+        assert returns[0] == 0.0
+        assert returns[1] == float("-0.00651403021411835")
+        assert returns[-1] == float("0.00248217282454894")
