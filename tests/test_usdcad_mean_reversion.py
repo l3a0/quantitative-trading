@@ -3,7 +3,7 @@
 They are *Algorithmic Trading*'s Examples 2.1 to 2.5.
 
 This file is the single authority for every number any prose surface quotes
-about Examples 2.1 to 2.5. ``docs/replication-log.md`` Entry 21 carries the
+about Examples 2.1 to 2.5. ``docs/replication-log.md`` Entry 22 carries the
 verdicts and points here row by row.
 
 Every pin on the committed closes reads one vintage and one specification, so

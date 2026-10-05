@@ -314,7 +314,7 @@ def report(entry: VintageEntry, run: StationarityRun) -> None:
         "chose, and Example 2.5's lookback"
     )
     print(
-        "  comes from the closes it trades. docs/replication-log.md Entry 21 carries the verdicts."
+        "  comes from the closes it trades. docs/replication-log.md Entry 22 carries the verdicts."
     )
 
 

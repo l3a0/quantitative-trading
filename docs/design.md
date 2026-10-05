@@ -14,6 +14,7 @@ issue's own statement of what it waits on.
   - [The replications that read nothing](#the-replications-that-read-nothing)
   - [A replication that reads the book's own tables](#a-replication-that-reads-the-books-own-tables)
   - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
+  - [A record that reads a fund's filings](#a-record-that-reads-a-funds-filings)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
@@ -524,6 +525,72 @@ and on this repo's own SPY vintage the two forms are 5.74e-5 apart on the
 Sharpe ratio, which `tests/test_kelly_leverage.py` pins. The rule is that the
 form follows what the numbers are rather than what the last experiment picked.
 
+### A record that reads a fund's filings
+
+[Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) tests
+Example 7.6 on the S&P 600 as it stood at each year-end, and
+[issue 332](https://github.com/l3a0/quantitative-trading/issues/332) builds
+that panel. Nothing Chan saved says which companies were in the index at a
+year-end before his own. IJR, the iShares fund that tracks it, prints its whole
+schedule of investments for every December 31 in a filing iShares Trust makes
+with the SEC, so [src/chan/fund_holdings.py](../src/chan/fund_holdings.py)
+reads those filings into [research/filings](../research/filings/README.md),
+under [issue 361](https://github.com/l3a0/quantitative-trading/issues/361).
+[tests/test_fund_holdings.py](../tests/test_fund_holdings.py) is the authority
+for every count quoted about it.
+
+Four things follow.
+
+1. **A filing is not a vintage, and the vocabulary is extended rather than
+   stretched.** A vintage exists because a vendor restates a series. The SEC
+   never restates a filing: an **accession** names fixed bytes, and a
+   correction is filed as a new one. So the accession pins what was read, which
+   is the part the edition plays for the printed tables in the section above.
+2. **So the record lives outside `data/`, and no check gains an exclusion.**
+   `test_every_committed_series_has_exactly_one_entry` in
+   [tests/test_vintage.py](../tests/test_vintage.py) and `chan.vintage`'s check
+   for unrecorded files both require every CSV under `data/` to have a line in
+   the manifest. That line's recorders take a dated series, or lifted columns
+   whose fields come from `LIFTED_FIELDS` or `EVENT_FIELDS`, and a schedule of
+   holdings is neither. The record is one CSV per filing and an index naming
+   each accession, the primary document's sha256 and the CSV's sha256. The
+   documents themselves are not committed, because an N-Q runs to 38 MB, and
+   the sha256 says which bytes a regeneration has to match. The price is that
+   [data/README.md](../data/README.md) and the manifest do not list these
+   files and the size cap on `data/` does not count them. They take 651,301
+   bytes, index included, which `tests/test_fund_holdings.py` pins.
+3. **Every N-Q year reconciles to the filing's own total.** An N-Q holds every
+   fund the trust reports at that quarter-end, so reading IJR's rows means
+   finding where its schedule starts and stops. The writer refuses an N-Q whose
+   rows do not sum to the "Total Common Stocks" it prints, so a parse that read
+   the wrong rows cannot be recorded. All twelve reconcile exactly.
+4. **A member is placed only when it can be paired without guessing.** Each
+   member is paired with the same holding in the filing before, by CUSIP where
+   both rows carry one and otherwise by name, and a pairing is kept only when
+   it is one to one. Two rows whose identifiers disagree are never paired by
+   name. That covers two CUSIPs, and two ISINs where neither row has a CUSIP,
+   which is what keeps Nabors's 1-for-50 reverse split in 2020 from reading as
+   a gain of nineteen times. The names drop the restylings the filings make
+   between years, such as "(The)", a state after a slash and "&" against
+   "and", and keep a share-class suffix, which is what tells Central Garden &
+   Pet's two lines apart. That alone left 111 of 2019's members unplaced,
+   against 81 in 2018 and 73 in 2020, because the 2018 N-Q prints "Lithia
+   Motors Inc., Class A" where the 2019 N-PORT prints "Lithia Motors Inc" for a
+   company IJR holds one line of. So a last pass, which the issue did not
+   specify, drops the suffix for what the earlier ones left. It refuses two
+   names printing different class letters, and the one-to-one rule keeps it
+   from pairing Central Garden's two lines, whose N-PORT titles are identical.
+   It places 50 more members across the eighteen years and brings 2019 to 81.
+   The figures without it were measured on this branch and no test holds them,
+   while the figures with it are pinned.
+
+The return a placement carries is rough on purpose. It is value over shares in
+one filing against the same in the other, so a split moves it as much as a
+price does, and no dividend is in it. What reads it is the rule
+[issue 329](https://github.com/l3a0/quantitative-trading/issues/329) writes for
+a member with no return, which is why an unpaired member is left without one
+rather than given a guess.
+
 ## How work is cut and ordered
 
 The tracker carries the plan. Issues say what each deliverable is, milestones
@@ -610,6 +677,7 @@ candidate for a synonym.
 | **rate** | The third basis a vintage can carry, beside **raw price** and **adjusted price**. A rate vintage holds a series of rates, such as a Treasury-bill yield, recorded as the vendor publishes it. It has no raw or adjusted form, and the scale-break guard does not read it, because a rate near zero can move sixfold in a month without changing units. |
 | **event** | The fourth basis a vintage can carry. An event vintage holds a 0 or 1 for each day of a calendar, saying whether something happened that day, such as an earnings announcement, in one field named `Flag`. Every day of the calendar is kept, a 0 included, because a reader may cut its prices to the calendar's own days, and a file of events alone would start that calendar at its first event. It has no raw or adjusted form, the scale-break guard does not read it, and a panel read refuses to hand it back as a close. Decided on [issue 250](https://github.com/l3a0/quantitative-trading/issues/250) for Chan's earnings flags. |
 | **return** | The fifth basis a vintage can carry. A return vintage holds a strategy's period returns as its source wrote them, such as the AUD.CAD returns Chan's Example 5.1 saved for Chapter 8 to read. A return is a change in a price rather than a price, so it is neither a **raw price** nor an **adjusted price**. It is not a **rate**, which a vendor publishes for an instrument, and not an **event**, which is 0 or 1. The scale-break guard does not read it, a panel read refuses to hand it back as a close, and neither writer in `chan.vintage` records one, since each would write it under a `Close` header. Decided by the owner on 2026-10-04, on [issue 301](https://github.com/l3a0/quantitative-trading/issues/301). |
+| **accession** | The SEC's identifier for one filing. It names fixed bytes, and a correction is filed under a new accession rather than over an old one, so it pins what a record under [research/filings](../research/filings/README.md) was read from, the way the edition pins a table printed in a book. A filing is not a **vintage**, because nothing restates it. Decided on [issue 361](https://github.com/l3a0/quantitative-trading/issues/361). |
 | **replication** | An attempt to reproduce a specific published number from a named source, against a named vintage, against inputs the source itself prints, or against no data at all where the source's own number needs none. |
 | **published figure** | The number the source prints, quoted at the precision the source uses. |
 | **gap** | The difference between a published figure and what the replication computed, stated at the precision both support. |
@@ -641,6 +709,7 @@ only committed vintages runs with no configuration at all.
 | The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, and `chan.fetch_alphavantage`, which writes the daily closes there |
 | `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage` |
 | `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose one run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share, and which runs only when it is set, because the full run takes minutes |
+| SEC's User-Agent contact | no | `~/.config/quantitative-trading/sec_user_agent`, one line, or `QT_SEC_USER_AGENT` for one run | `chan.fund_holdings`, whose fetch SEC asks to name a contact. A contact identifies a person, which is why it is read from the machine rather than from this repo |
 
 ## Considered and rejected
 
@@ -712,3 +781,5 @@ change that cuts it.
 | Buying the minute bars from Kibot or FirstRate | Kibot quoted $83.62 for this slice and FirstRate about $400. The owner's premium Alpha Vantage key, which the owner keeps, supplied GDX at no extra cost, and GLD was already in the archive. Kibot stays the fallback if Alpha Vantage's terms ever rule the archive out. |
 | Running every archive pin on every local test run | The full run of Example 7.1 reads 3.0 million GLD bars and 2.7 million GDX bars and fits a model on more than a million rows, which takes about five minutes. Every session here runs the suite, so the pins skip unless `QT_ARCHIVE_RUN=1` asks for them, with a reason that says so. The checks that the archive files still hash to their lines and agree with the committed daily closes run wherever an archive is configured, in about 20 seconds. |
 | A fifth basis, for a close whose dividends were subtracted in dollars rather than rescaled | Chan's `inputData_ETF.mat` adjusts that way, measured on [issue 299](https://github.com/l3a0/quantitative-trading/issues/299). Against the committed raw SPY, his SPY moves off the raw close by more than a cent only on its 24 ex-dividend days, each time by that quarter's dividend, and 11 closes in three ETFs go below zero, which a rescaled close cannot do. A basis of its own would say that exactly. It would also touch `PRICE_BASES` and `PRICES` in [src/chan/vintage.py](../src/chan/vintage.py), the scale-break guard's skip and `close_identity`, for a distinction nothing reads. The basis field exists to tell one symbol's adjusted series from its as-traded one, and no reader branches on how the adjustment was made. The owner kept `adjusted` on 2026-10-04 and widened the **adjusted price** row above instead. The price is that `adjusted` no longer implies that a return computed from the series is the return a holder earned. [data/README.md](../data/README.md) says which method a file used wherever that was measured, and `TestTheETFFileSubtractsEachDividend` in [tests/test_series.py](../tests/test_series.py) pins this file's. A return series is a different question, because a return is not a price at all, and the owner ruled on it separately the same day for [issue 301](https://github.com/l3a0/quantitative-trading/issues/301). |
+| A sixth price basis, `holdings`, for a fund's schedule in `data/vintages.jsonl` | It would keep the checksum projection and the check for unrecorded files. The price is a basis that is not a price, a rule in `chan.series.load_panel` and `close_identity` to refuse it, a shape for the test helper that reads each file's dates, and a vocabulary entry calling a schedule a series. A filing is never restated, so what a vintage protects against cannot happen to it, and the accession pins it instead. Cut on [issue 361](https://github.com/l3a0/quantitative-trading/issues/361). |
+| One file for a fund's whole table of year-end holdings | It is the shape the row "One vintage per cross-section" above cut on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88), and it would be rewritten whole each time a year-end is added. One file per filing means a later year-end, or the earlier ones [issue 269](https://github.com/l3a0/quantitative-trading/issues/269) needs, adds a file and rewrites none. Cut on [issue 361](https://github.com/l3a0/quantitative-trading/issues/361). |

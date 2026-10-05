@@ -69,7 +69,7 @@ location 1114, H of 0.49 at 1119, and the half-life of 115 days at 1193 and
 again at 1347. The six decimals of `stationarityTests.m`'s comments, −1.840744,
 0.994120, the 1 and 5 percent critical values, the variance ratio's 0.367281
 and 115.209794, sit in the script and nowhere in the book. The replication
-log's Entry 21 traces each to one or the other.
+log's Entry 22 traces each to one or the other.
 
 Example 7.4 splits the same way. Its setup at location 4034 and its result at
 4051 are here, including the 2 and 4 percent and Chan's account of the gap
@@ -102,6 +102,14 @@ Its two 2007 figures, its −30 percent for 2008 and 2009 and its sentence that
 the return "did stabilize" afterwards all sit at location 2800, while the five
 figures its script's closing comment prints sit in `kentdaniel.m` and nowhere
 in the book. The replication log's Entry 17 traces each to one or the other.
+
+*Algorithmic Trading*'s Example 3.1 splits the same way, with one figure
+that disagrees. Location 1505 prints the price spread's "about 10.9 percent"
+and "about 0.59", the log price spread's 9 percent and 0.5, and the ratio's
+"negative APR" with no number. The six-decimal figures sit in the closing
+comments of `PriceSpread.m`, `LogPriceSpread.m` and `Ratio.m` and nowhere in
+the book. The book's 10.9 percent is not its script's 0.108335 rounded. The
+replication log's Entry 21 traces each to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
