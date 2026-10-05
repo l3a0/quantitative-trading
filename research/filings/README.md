@@ -94,7 +94,11 @@ parse disagrees with it.
 
 IJR's files were written on 2026-10-04 by `record` in that module, from the
 documents the survey on its issue downloaded that day. IVV's were written on
-2026-10-05 the same way. `fetch` wraps the same call around a download.
+2026-10-05 the same way. `fetch` wraps the same call around a download, and it
+has run against EDGAR once for each fund, on 2026-10-05. IJR's run downloaded
+all 19 documents and IVV's all 70. Each document's sha256 equalled the
+index's, and neither run wrote a byte, because every parse reproduced the
+committed file.
 
 ## What reads it
 
