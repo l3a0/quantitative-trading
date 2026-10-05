@@ -229,11 +229,13 @@ class TestMovingAvg:
         assert np.isnan(avg[0]).all()
         np.testing.assert_array_equal(avg[1:], [[2.0, 3.0], [4.0, 5.0]])
 
-    def test_a_window_below_one_row_or_above_the_series_is_refused(self) -> None:
+    def test_a_series_shorter_than_the_window_is_all_nan(self) -> None:
+        avg = moving_avg([1.0, 2.0], 3)
+        assert avg.shape == (2,) and np.isnan(avg).all()
+
+    def test_a_window_below_one_row_is_refused(self) -> None:
         with pytest.raises(ValueError, match="at least 1 row, not 0"):
             moving_avg([1.0, 2.0], 0)
-        with pytest.raises(ValueError, match="a 3-row window over 2 rows"):
-            moving_avg([1.0, 2.0], 3)
 
 
 class TestMovingStd:

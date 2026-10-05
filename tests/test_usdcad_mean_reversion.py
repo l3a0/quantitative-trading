@@ -39,11 +39,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import adf_tstat
 
 from chan import usdcad_mean_reversion
 from chan.matlab_helpers import moving_avg, moving_std
-from chan.series import scale_breaks
-from chan.stationarity_tests import ZTCRIT_CONSTANT
+from chan.series import WindowCrossesScaleBreak, scale_breaks
+from chan.stationarity_tests import ZTCRIT_CONSTANT, vratiotest
 from chan.usdcad_mean_reversion import (
     ADF_LAGS,
     ADF_ORDER,
@@ -60,7 +61,6 @@ from chan.usdcad_mean_reversion import (
     SCRIPT_VRATIO_P,
     SYMBOL,
     StationarityRun,
-    jplv7_lag,
     linear_mean_reversion,
     main,
     pnl_drawdown,
@@ -133,6 +133,16 @@ class TestTheVintage:
         _, closes = sources
         assert scale_breaks(closes) == []
 
+    def test_the_run_calls_the_guard(self, sources, monkeypatch) -> None:
+        """Removing the call moves no figure here, so only a guard that refuses can show it runs."""
+
+        def refuse(legs, *, start, end):
+            raise WindowCrossesScaleBreak(f"a break inside {start.date()} to {end.date()}")
+
+        monkeypatch.setattr(usdcad_mean_reversion, "refuse_window_crossing_a_break", refuse)
+        with pytest.raises(WindowCrossesScaleBreak, match="2007-07-23 to 2012-03-28"):
+            stationarity_tests(*sources)
+
 
 class TestExample21TheAdfTest:
     def test_the_statistic_is_chans_minus_1_840744(self, result: StationarityRun) -> None:
@@ -149,7 +159,7 @@ class TestExample21TheAdfTest:
         assert tuple(round(c, 3) for c in result.adf.critical) == SCRIPT_CRITICAL
 
     def test_the_regression_fits_1213_rows_at_1_lag(self, result: StationarityRun) -> None:
-        assert (result.adf.nobs, result.adf.lags) == (1213, 1)
+        assert result.adf.nobs == 1213
 
     def test_the_unit_root_is_not_rejected_at_90_percent_and_lambda_is_negative(
         self, result: StationarityRun
@@ -168,6 +178,7 @@ class TestExample21TheAdfTest:
         assert result.adfuller_statistic == pytest.approx(-1.8430182830, abs=5e-11)
         assert result.adfuller_ar1 == pytest.approx(0.9941138113, abs=5e-11)
         assert round(result.adfuller_statistic, 6) != SCRIPT_ADF
+        assert adf_tstat(result.closes.to_numpy(), 1)[1] == 1214
 
 
 class TestExample22TheHurstExponent:
@@ -193,7 +204,12 @@ class TestExample23TheVarianceRatio:
     def test_the_statistic_and_ratio(self, result: StationarityRun) -> None:
         assert result.vratio.statistic == pytest.approx(-0.9015774476, abs=5e-11)
         assert result.vratio.ratio == pytest.approx(0.9647450127, abs=5e-11)
-        assert (result.vratio.period, result.vratio.nobs) == (2, 1214)
+        assert result.vratio.nobs == 1214
+
+    def test_the_last_of_1215_returns_is_never_read(self, sources, result) -> None:
+        """1,215 returns is odd, so MATLAB's trim to whole periods drops the last one."""
+        _, closes = sources
+        assert vratiotest(np.log(closes.to_numpy()[:-1])) == result.vratio
 
 
 class TestExample24TheHalfLife:
@@ -260,6 +276,9 @@ class TestTheRun:
         ):
             (row,) = [each for each in out.splitlines() if line in each]
             assert all(figure in row.split() for figure in figures), row
+        (h_row,) = [each for each in out.splitlines() if "2.3 variance ratio h" in each]
+        assert h_row.split()[-3:] == ["0", "0", "none"], h_row
+        assert "2.5 lookback 115 days, the half-life rounded. First position on 2008-01-02." in out
         assert "cumulative P&L 0.114117. The claim declared on issue 338, positive, holds." in out
         assert "deepest drawdown 0.642531, from 2008-07-22 to 2008-10-27" in out
         assert "statistic -1.843018, AR(1) 0.994114" in out
@@ -268,9 +287,6 @@ class TestTheRun:
 
 
 class TestTheRule:
-    def test_jplv7s_lag_fills_with_zero_rather_than_nan(self) -> None:
-        np.testing.assert_array_equal(jplv7_lag(np.array([1.0, 2.0, 3.0])), [0.0, 1.0, 2.0])
-
     def test_the_rows_before_the_window_fills_earn_nothing(self) -> None:
         pnl = linear_mean_reversion(np.array([1.0, 2.0, 3.0, 2.0, 1.0, 2.0]), 3)
         np.testing.assert_array_equal(pnl[:3], [0.0, 0.0, 0.0])
@@ -295,6 +311,24 @@ class TestTheRule:
         d = pnl_drawdown(pnl)
         assert d.depth == 3.0
         assert (d.peak, d.trough) == (days[2], days[3])
+
+    def test_the_peak_is_the_last_day_at_the_high_before_the_trough(self) -> None:
+        days = pd.date_range("2020-01-01", periods=4)
+        d = pnl_drawdown(pd.Series([0.0, 1.0, 0.0, -3.0], index=days))
+        assert (d.depth, d.peak, d.trough) == (3.0, days[2], days[3])
+
+    def test_the_running_high_starts_at_the_first_day_rather_than_at_zero(self) -> None:
+        days = pd.date_range("2020-01-01", periods=3)
+        d = pnl_drawdown(pd.Series([-1.0, -1.0, 0.5], index=days))
+        assert (d.depth, d.peak, d.trough) == (1.0, days[0], days[1])
+
+    def test_the_lookback_rounds_a_half_away_from_zero_as_matlab_does(
+        self, sources, monkeypatch
+    ) -> None:
+        """Python's ``round`` sends 114.5 to the even 114, and MATLAB's sends it to 115."""
+        monkeypatch.setattr(usdcad_mean_reversion, "ou_half_life", lambda y: 114.5)
+        assert round(114.5) == 114
+        assert stationarity_tests(*sources).lookback == 115
 
     def test_a_run_that_never_falls_has_a_zero_drawdown(self) -> None:
         days = pd.date_range("2020-01-01", periods=3)

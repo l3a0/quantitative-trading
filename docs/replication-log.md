@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 and 21 carry
-their own, three, eleven, twelve, five, six, one, three, eight, six, two,
-eight, seven, twelve, six, two, five, three and six,
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 and 21
+carry their own, three, eleven, twelve, five, six, one, three, eight, six, two,
+eight, seven, twelve, six, two, five, three, three and seven,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -37,7 +37,9 @@ someone else already chose, and testing a claim the source states does the same,
 entry can say whether the number reproduces or the claim holds on its vintage
 and nothing about whether the trade works today. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
-states rather than picking one.
+states rather than picking one. Entry 20 works arithmetic on inputs the book
+states and is outside both for the same reason, which its first conclusion
+says.
 
 ## Contents
 
@@ -4336,8 +4338,8 @@ ericnberwick/EpchanPreview at `e4bc46f`, under `public/img/book2/`.
 
 Ten rows, all derivable from
 [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py).
-Six do not match one printed figure to one computation, and each says so in
-its own cells. Rows 3, 5 and 6 each cover more than one figure from one
+Seven do not match one printed figure to one computation, and each says so in
+its own cells. Rows 1, 3, 5 and 6 each cover more than one figure from one
 computation. Rows 8 to 10 carry no published figure.
 
 **The closes.** Every row reads one vintage: Chan's minute file of USD.CAD,
@@ -4397,7 +4399,7 @@ and decides nothing.
 | 4 | `genhurst(log(y), 2)`, window lengths 5 to 19 | the same | 0.4732326652 | `TestExample22TheHurstExponent::test_h_misses_the_books_0_49` |
 | 5 | `vratiotest(log(y))`, period 2, 1,214 returns | the same | h=0, p 0.3672813756 | `TestExample23TheVarianceRatio::test_the_decision_and_p_value_are_chans` |
 | 6 | `−log(2)/λ`, λ from the change on the previous close and a constant | the same | 115.2097944852 | `TestExample24TheHalfLife::test_the_half_life_is_chans_115_209794` |
-| 7 | The sum of the daily P&L, at a lookback of 115 | the same | 0.1141168588 | `TestExample25LinearMeanReversion::test_the_cumulative_pnl_is_positive_as_location_1225_says` |
+| 7 | The sum of the daily P&L, at a lookback of 115, the half-life rounded, so the first position is held on 2008-01-02 | the same | 0.1141168588 | `TestExample25LinearMeanReversion::test_the_cumulative_pnl_is_positive_as_location_1225_says` |
 | 8 | `adfuller(y, maxlag=1, regression='c', autolag=None)`, 1,214 rows fitted | the same | −1.8430182830 | `TestExample21TheAdfTest::test_adfuller_at_the_same_lag_misses_by_the_one_row_it_keeps` |
 | 9 | `genhurst.py` from Chan's 2018 Python port, on the log closes | the same | 0.4758441244 | `TestExample22TheHurstExponent::test_the_python_ports_own_genhurst_misses_too` |
 | 10 | The deepest fall of the cumulative P&L below its running high | the same | 0.6425313986, from 2008-07-22 to 2008-10-27 | `TestExample25LinearMeanReversion::test_the_drawdown_reported_beside_it` |

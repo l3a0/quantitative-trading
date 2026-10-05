@@ -93,9 +93,16 @@ class TestJplv7Adf:
         with pytest.raises(ValueError, match="no missing value"):
             jplv7_adf(x)
 
-    def test_too_many_lags_for_the_rows_is_refused(self) -> None:
+    @pytest.mark.parametrize("lags", [13, 14, 16])
+    def test_a_fit_with_no_more_rows_than_regressors_is_refused(self, lags: int) -> None:
+        """30 points at 13 lags fit 15 rows on 15 regressors, which ``adf.m``'s own guard passes."""
+        assert 30 - 2 * 13 + 1 >= 1
         with pytest.raises(ValueError, match="no degrees of freedom"):
-            jplv7_adf(_walk(30, seed=1), 0, 16)
+            jplv7_adf(_walk(30, seed=1), 0, lags)
+
+    def test_the_most_lags_that_leave_a_degree_of_freedom_run(self) -> None:
+        """30 points at 12 lags fit 16 rows on 14 regressors."""
+        assert jplv7_adf(_walk(30, seed=1), 0, 12).nobs == 16
 
 
 class TestZtcrit:
@@ -110,6 +117,21 @@ class TestZtcrit:
         """125 / 50 is 2.5. MATLAB's round gives bin 4, numpy's would give bin 3."""
         assert round(125 / 50) + 1 == 3
         assert ztcrit(125) == ZTCRIT_CONSTANT[3]
+
+    def test_the_rows_are_ztcrits_constant_rows_as_typed_from_it(self) -> None:
+        """Rows 2, 9, 16, ... 65 of ``ztcrit.m``'s table, retyped so a slip in either copy fails."""
+        assert ZTCRIT_CONSTANT == (
+            (-3.63993, -2.94935, -2.61560),
+            (-3.56634, -2.93701, -2.61518),
+            (-3.43911, -2.91515, -2.58414),
+            (-3.46419, -2.91242, -2.58837),
+            (-3.49260, -2.87595, -2.56885),
+            (-3.44558, -2.84182, -2.57313),
+            (-3.44036, -2.86974, -2.58294),
+            (-3.42692, -2.86280, -2.57220),
+            (-3.38577, -2.86443, -2.57318),
+            (-3.45830, -2.87104, -2.59369),
+        )
 
     def test_every_long_series_reads_the_last_row(self) -> None:
         assert ztcrit(1216) == ztcrit(100_000) == (-3.45830, -2.87104, -2.59369)
@@ -161,8 +183,6 @@ class TestGenhurst:
 class TestVratiotest:
     def test_the_returns_are_trimmed_to_a_whole_number_of_periods(self) -> None:
         """With an odd count of returns at period 2, the last one is never read."""
-        y = _walk(201, seed=2)
-        assert len(y) - 1 == 200
         y_odd = _walk(202, seed=2)
         moved = y_odd.copy()
         moved[-1] += 50.0

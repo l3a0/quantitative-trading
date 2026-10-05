@@ -1,10 +1,12 @@
 """The three toolbox tests *Algorithmic Trading*'s Chapter 2 calls, as Chan's scripts ran them.
 
 Chan's ``stationarityTests.m`` tests USD.CAD for mean reversion with three
-functions he did not write, and later scripts call the same three again:
-``cointegrationTests.m``, ``example_2_6.m`` and ``calendarSpdsMeanReversion.m``
-call ``adf``, and ``TU_mom.m`` calls ``genhurst`` and ``vratiotest``. Each is
-transcribed here once so that every replication reads one copy.
+functions he did not write, and later scripts call them again:
+``calendarSpdsMeanReversion.m`` calls ``adf``, and ``TU_mom.m`` calls
+``genhurst`` and ``vratiotest``. ``cointegrationTests.m`` and ``example_2_6.m``
+call ``cadf`` rather than ``adf``, which :func:`chan.pair_cointegration.lesage_cadf`
+reproduces. Each is transcribed here once so that every replication reads one
+copy.
 
 1. :func:`jplv7_adf` is ``adf`` from James LeSage's jplv7 toolbox, with the
    critical values of its ``ztcrit``.
@@ -39,8 +41,10 @@ statistic from −1.8430 to the −1.840744 his script prints.
   licence beyond LeSage's statement that it is free.
 - ``genhurst.m`` from the same repository and commit, under
   ``Algorithmic_Trading_Chan/``, git blob ``0cbf9a8``, dated 2013-01-30 by its
-  author. GitHub's code search finds 16 copies in 5 blobs, and they run one
-  algorithm once comments, whitespace and plotting lines are set aside. The
+  author. On 2026-10-05 GitHub's code search for ``genhurst`` in files named
+  ``genhurst.m`` found 17 copies in 6 blobs, all carrying that date, and they
+  run one algorithm once comments, whitespace and plotting lines are set
+  aside. The
   Sable/mcbench-benchmarks snapshot of the File Exchange holds the same code,
   so no earlier version survives.
 - ``vratiotest`` is MathWorks' and is not copied. :func:`vratiotest` implements
@@ -51,10 +55,11 @@ statistic from −1.8430 to the −1.840744 his script prints.
   three were read from MATLAB's own ``vratiotest.m``, and the p-value Chan
   printed is what vouches for them.
 
-The port landed here with the pull request for
+The port landed here with
+[PR #387](https://github.com/l3a0/quantitative-trading/pull/387), for
 [issue 338](https://github.com/l3a0/quantitative-trading/issues/338).
 
-**What changed on the way over.** Five things, and none moves a figure Chan
+**What changed on the way over.** Seven things, and none moves a figure Chan
 printed.
 
 1. ``adf`` takes only the trend order 0, a constant and no trend, and
@@ -71,7 +76,16 @@ printed.
 4. ``vratiotest`` refuses a missing value where MATLAB deletes it. A deleted
    row would join the two returns either side of it into one, which is a
    different series, so a caller has to say what it meant.
-5. ``vratiotest`` takes one period at a time rather than a vector of them.
+5. ``vratiotest`` takes one period at a time rather than a vector of them,
+   and its ``alpha`` is fixed at MATLAB's default of 0.05, the only level any
+   script reads ``h`` at.
+6. ``adf``'s lagged changes are padded with NaN by
+   :func:`chan.matlab_helpers.backshift` rather than with jplv7's zeros. The
+   padded rows are trimmed before the fit, so the padding never reaches it.
+7. ``adf.m`` refuses only when ``nobs − 2·lags + 1 < 1``, which still lets
+   through a fit with no degrees of freedom, and MATLAB would then divide by
+   zero. The refusal here asks for more rows than regressors, the condition
+   the fit needs.
 
 ``genhurst.m`` is distributed under this licence, which its redistribution
 requires be kept with the source:
@@ -109,10 +123,13 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 from scipy.stats import norm
 
-from chan.matlab_helpers import round_half_away
+from chan.matlab_helpers import backshift, round_half_away
+
+#: ``vratiotest``'s default ``alpha``, the level ``h`` reports a rejection at.
+VRATIO_ALPHA = 0.05
 
 #: ``ztcrit``'s 1, 5 and 10 percent critical values for trend order 0, one row
 #: per bin of 50 observations. ``ztcrit`` reads row ``(i − 1)·7 + p + 2`` of its
@@ -143,7 +160,6 @@ class Jplv7Adf:
     statistic: float
     ar1: float
     nobs: int
-    lags: int
     critical: tuple[float, float, float]
 
 
@@ -151,7 +167,8 @@ class Jplv7Adf:
 class VarianceRatio:
     """What MATLAB's ``vratiotest`` returns for one period.
 
-    ``rejects`` is ``h``, true when the random walk is rejected at ``alpha``.
+    ``rejects`` is ``h``, true when the random walk is rejected at
+    :data:`VRATIO_ALPHA`.
     ``statistic`` is the standard normal z, and ``ratio`` the variance of the
     overlapping ``period``-step returns over ``period`` times the variance of
     the one-step returns.
@@ -161,7 +178,6 @@ class VarianceRatio:
     p_value: float
     statistic: float
     ratio: float
-    period: int
     nobs: int
 
 
@@ -189,11 +205,6 @@ def ztcrit(nobs: int, order: int = 0) -> tuple[float, float, float]:
     return ZTCRIT_CONSTANT[min(i, 10) - 1]
 
 
-def _zero_lag(x: NDArray[np.float64], n: int) -> NDArray[np.float64]:
-    """jplv7's ``lag(x, n)``: ``x`` moved ``n`` rows later, the first ``n`` filled with 0."""
-    return np.r_[np.zeros(n), x[:-n]]
-
-
 def jplv7_adf(x: ArrayLike, order: int = 0, lags: int = 1) -> Jplv7Adf:
     """jplv7's ``adf(x, order, lags)``: the augmented Dickey-Fuller test as Chan ran it.
 
@@ -212,11 +223,14 @@ def jplv7_adf(x: ArrayLike, order: int = 0, lags: int = 1) -> Jplv7Adf:
             "trim the empty matrix of lagged changes it builds at 0"
         )
     nobs = len(values)
-    if nobs - 2 * lags + 1 < 1:
-        raise ValueError(f"{lags} lags leave no degrees of freedom in {nobs} observations")
+    if nobs - lags - 2 <= lags + 2:
+        raise ValueError(
+            f"{lags} lags leave no degrees of freedom in {nobs} observations, since the fit has "
+            f"{nobs - lags - 2} rows and {lags + 2} regressors"
+        )
     critical = ztcrit(nobs, order)
     changes = np.diff(values)
-    lagged = np.column_stack([_zero_lag(changes, k) for k in range(1, lags + 1)])[lags:]
+    lagged = np.column_stack([backshift(k, changes) for k in range(1, lags + 1)])[lags:]
     level = values[1:][lags:]
     regressors = np.column_stack([level[:-1], lagged[1:], np.ones(len(level) - 1)])
     target = level[1:]
@@ -229,7 +243,6 @@ def jplv7_adf(x: ArrayLike, order: int = 0, lags: int = 1) -> Jplv7Adf:
         statistic=float((beta[0] - 1) / se),
         ar1=float(beta[0]),
         nobs=len(target),
-        lags=lags,
         critical=critical,
     )
 
@@ -280,9 +293,7 @@ def genhurst(series: ArrayLike, q: float = 1, max_t: int = 19) -> float:
     return float(np.mean(estimates) / q)
 
 
-def vratiotest(
-    y: ArrayLike, period: int = 2, *, iid: bool = False, alpha: float = 0.05
-) -> VarianceRatio:
+def vratiotest(y: ArrayLike, period: int = 2, *, iid: bool = False) -> VarianceRatio:
     """MATLAB's ``vratiotest(y)`` at one ``period``: Lo and MacKinlay's variance ratio test.
 
     ``y`` is a level, such as a log price, and its one-step changes are the
@@ -329,10 +340,9 @@ def vratiotest(
     statistic = math.sqrt(n) * (ratio - 1) / math.sqrt(ratio_var)
     p_value = float(2 * norm.cdf(-abs(statistic)))
     return VarianceRatio(
-        rejects=p_value <= alpha,
+        rejects=p_value <= VRATIO_ALPHA,
         p_value=p_value,
         statistic=statistic,
         ratio=ratio,
-        period=period,
         nobs=n,
     )

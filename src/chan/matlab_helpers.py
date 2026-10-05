@@ -166,13 +166,16 @@ things changed on the way over.
 ``stationarityTests.m``, from the same directory of the same mirror at the same
 commit. Their git blobs are ``5b9f933`` and ``2f5f858``, the same blobs as
 EpchanPreview's ``public/img/book2/`` and ``public/img/book2/Utilities/``
-copies. They landed here with the pull request for
+copies. They landed here with
+[PR #387](https://github.com/l3a0/quantitative-trading/pull/387), for
 [issue 338](https://github.com/l3a0/quantitative-trading/issues/338). Three
 things changed on the way over.
 
-1. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window,
-   and so does a window longer than the series, which MATLAB would answer with
-   an error from ``zeros``.
+1. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window. A
+   window longer than the series gives a NaN for every row. MATLAB's
+   ``zeros`` reads a negative size as 0, so the ``.m`` file returns ``T − 1``
+   NaN rows there, more rows than it was given, and the same length as the
+   input is what every caller here reads.
 2. ``movingStd``'s optional third argument, which samples every ``period``
    rows, is not carried, because ``stationarityTests.m`` never passes it.
 3. ``movingStd`` refuses a window of one row, for the reason
@@ -380,13 +383,14 @@ def moving_avg(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
     rows = len(values)
     if lookback < 1:
         raise ValueError(f"moving_avg takes a window of at least 1 row, not {lookback}")
-    if lookback > rows:
-        raise ValueError(f"moving_avg cannot take a {lookback}-row window over {rows} rows")
-    total = np.zeros_like(values[: rows - lookback + 1])
+    mean = np.full_like(values, np.nan)
+    if rows < lookback:
+        return mean
+    total = np.zeros_like(values[lookback - 1 :])
     for i in range(lookback):
         total = total + values[i : rows - lookback + 1 + i]
-    padding = np.full((lookback - 1, *values.shape[1:]), np.nan)
-    return np.concatenate([padding, total / lookback])
+    mean[lookback - 1 :] = total / lookback
+    return mean
 
 
 def moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:

@@ -262,7 +262,7 @@ where they were first built. The other nineteen were built here.
     rounding an exact tie up, so the run prints three decimals.
 21. Four tests for mean reversion on USD.CAD and the trade they set, Examples
     2.1 to 2.5 of *Algorithmic Trading*, on Chan's own minute file read at
-    16:59 each day. Four figures his script prints land every digit: the ADF
+    16:59 each day. Every figure his script prints lands every digit: the ADF
     statistic −1.840744 with its AR(1) estimate and critical values, the
     variance ratio test's p-value of 0.367281, and the half-life of 115.209794
     days. The ADF figure needs jplv7's regression, which fits one row fewer
@@ -609,8 +609,9 @@ at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
 two cannot drift apart unnoticed. All three parts earn their place, and
 [docs/design.md](docs/design.md) says which failure each one closes. Two
 toolbox forms of the Dickey-Fuller test are the exception and live in
-`src/chan`, because each reproduces a figure the shared one cannot, and the
-design doc says why neither moved.
+`src/chan`, because each reproduces a figure the shared one cannot. So do the
+Hurst exponent and the variance ratio test Chan's scripts call, which the
+shared package does not carry. The design doc says why none of them moved.
 [tests/test_ithildincore_contract.py](tests/test_ithildincore_contract.py) is what
 tells a dependency change apart from a vintage change, since its cases read no
 vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,

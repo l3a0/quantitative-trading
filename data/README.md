@@ -749,7 +749,9 @@ port of *Algorithmic Trading*'s code, `PythonCodesAndData.zip`, committed byte
 for byte under the names the zip gives them. Neither `.mat` mirror holds these
 series, and the zip is the only free copy of them.
 
-- USD.CAD's one-minute bars, which Examples 2.1 to 2.5 read at 16:59.
+- USD.CAD's one-minute bars, which Examples 2.1 to 2.5 read at 16:59. The
+  stationarity tests on USD.CAD run those examples, and they are the first run
+  here to read any of the seven.
 - The daily closes of USD.CAD, AUD.USD and AUD.CAD, which Examples 5.1 and 5.2
   read.
 - The monthly AUD and CAD interest rates, which Example 5.2 reads for its

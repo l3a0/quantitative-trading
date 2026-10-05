@@ -51,8 +51,10 @@ one plus the high and so reads a compounded return, which a sum of P&L is not.
 **The scale-break guard runs** over the one series and its whole span, and
 flags nothing.
 
-**What changed on the way over from** ``stationarityTests.m``. Four things,
-and none moves a figure.
+**What changed on the way over from** ``stationarityTests.m``. Five things,
+and none moves a figure. The transcription landed here with
+[PR #387](https://github.com/l3a0/quantitative-trading/pull/387), for
+[issue 338](https://github.com/l3a0/quantitative-trading/issues/338).
 
 1. The closes are read from the committed minute file through the vintage
    manifest rather than loaded from the ``.mat``.
@@ -62,6 +64,16 @@ and none moves a figure.
 4. Rows the script does not compute are reported beside it: the ADF statistic
    ``adfuller`` gives at the same lag, the H that Chan's 2018 Python port of
    ``genhurst`` gives, and the Example 2.5 drawdown.
+5. jplv7's ``lag``, which fills its first row with 0, becomes
+   :func:`chan.matlab_helpers.lag1`, which fills it with NaN. Example 2.5's
+   first row is NaN either way, 0 times an infinity or NaN times a number, and
+   the script sets every NaN to 0.
+
+**The Python port's** ``genhurst`` is ``PythonCodesAndData/genhurst.py`` in
+Chan's ``PythonCodesAndData.zip``, the zip ``data/README.md`` names with
+sha256 ``91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317``,
+in EpchanPreview at ``e4bc46f``. It is not committed, and
+:func:`python_port_hurst` carries its arithmetic.
 
 Exploratory. Reproducing Chan's figures spends the 2007 to 2012 sample on
 tests he chose, so the run says whether his numbers reproduce on his closes and
@@ -83,7 +95,7 @@ import pandas as pd
 from ithildincore.timeseries import ols, ou_half_life
 from statsmodels.tsa.stattools import adfuller
 
-from chan.matlab_helpers import moving_avg, moving_std, round_half_away
+from chan.matlab_helpers import lag1, moving_avg, moving_std, round_half_away
 from chan.series import load_minute_close, refuse_window_crossing_a_break, vintage_line
 from chan.stationarity_tests import Jplv7Adf, VarianceRatio, genhurst, jplv7_adf, vratiotest
 from chan.vintage import VintageEntry, VintageUnavailable
@@ -150,24 +162,19 @@ class StationarityRun:
         return self.pnl.index[int(np.flatnonzero(self.pnl.to_numpy())[0])]
 
 
-def jplv7_lag(x: np.ndarray) -> np.ndarray:
-    """jplv7's ``lag(x, 1)``: ``x`` one row later, the first row filled with 0 rather than NaN."""
-    return np.r_[0.0, x[:-1]]
-
-
 def linear_mean_reversion(closes: np.ndarray, lookback: int) -> np.ndarray:
     """Example 2.5's daily P&L, lines 55 to 57 of ``stationarityTests.m``.
 
     ``mktVal`` is minus the close's distance from its ``lookback``-row moving
     average, in ``lookback``-row moving standard deviations. Each day's P&L is
     the previous day's ``mktVal`` times the day's return, and a NaN is set to
-    0. The first row divides by jplv7's zero-filled lag, and the rows before
-    the window fills multiply by NaN, so all of them are 0.
+    0. The first row has no previous day, and the rows before the window fills
+    multiply by NaN, so all of them are 0.
     """
-    previous = jplv7_lag(closes)
+    previous = lag1(closes)
     with np.errstate(invalid="ignore", divide="ignore"):
         market_value = -(closes - moving_avg(closes, lookback)) / moving_std(closes, lookback)
-        pnl = jplv7_lag(market_value) * (closes - previous) / previous
+        pnl = lag1(market_value) * (closes - previous) / previous
     return np.where(np.isnan(pnl), 0.0, pnl)
 
 
@@ -205,9 +212,10 @@ def python_port_hurst(log_closes: np.ndarray) -> float:
     The log variance of the τ-row differences, population variance, is fitted
     on log τ for τ from 1 to ``np.round(len / 10) − 1``, with a constant, and H
     is half the slope. τ = 0 is in the port's range and drops out, because its
-    variance is zero and its log is not finite. The port reads the variance
-    through pandas, where a one-column frame's ``var`` has since become a
-    series, so it no longer runs as shipped. This is its arithmetic.
+    variance is zero and its log is not finite. The port assigns a one-column
+    frame's ``var``, a one-element series, into one slot of a numpy array,
+    which numpy 2 refuses, so it no longer runs as shipped. This is its
+    arithmetic.
     """
     z = pd.Series(log_closes)
     taus = np.arange(int(np.round(len(z) / 10)))
@@ -269,7 +277,12 @@ def report(entry: VintageEntry, run: StationarityRun) -> None:
         ("2.2 Hurst exponent, q = 2", f"{run.hurst:.6f}", "none", f"{BOOK_HURST}"),
         ("2.3 variance ratio h", f"{int(v.rejects)}", f"{SCRIPT_VRATIO_H}", "none"),
         ("2.3 variance ratio p-value", f"{v.p_value:.6f}", f"{SCRIPT_VRATIO_P:.6f}", "none"),
-        ("2.4 half-life, days", f"{run.half_life:.6f}", f"{SCRIPT_HALF_LIFE:.6f}", "115"),
+        (
+            "2.4 half-life, days",
+            f"{run.half_life:.6f}",
+            f"{SCRIPT_HALF_LIFE:.6f}",
+            f"{BOOK_HALF_LIFE_DAYS}",
+        ),
     ]
     print(f"  {'Figure':<30} {'Computed':>20} {'Script':>20} {'Book':>12}")
     for label, computed, script, book in rows:
