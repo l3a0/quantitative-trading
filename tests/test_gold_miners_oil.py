@@ -31,6 +31,8 @@ was seen. Every test here first ran on 2026-10-05.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -58,7 +60,7 @@ from chan.gold_miners_oil import (
     read_sources,
     run,
 )
-from chan.johansen import johansen
+from chan.johansen import Johansen, johansen
 from chan.series import WindowCrossesScaleBreak, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -195,6 +197,47 @@ class TestTheClaims:
     def test_the_counts_at_90_and_95_agree_with_99_on_every_claim(self, result) -> None:
         for row in CLAIM_ROWS:
             assert {result.found(row, level) for level in (90, 95, 99)} == {result.found(row)}
+
+    def test_a_row_is_judged_at_99_and_counted_at_the_level_asked(self, result) -> None:
+        """On the file the counts agree at every level, so a stub makes them differ.
+
+        A first null of 17 clears its 90 and 95 percent bars and misses 99, so
+        row 3 holds on its 99 percent count of 0 and would fail on the others.
+        """
+        bars = np.array([[13.4294, 15.4943, 19.9349], [2.7055, 3.8415, 6.6349]])
+        stub = Johansen(
+            trace=np.array([17.0, 0.1]),
+            trace_critical=bars,
+            eigen=np.array([17.0, 0.1]),
+            eigen_critical=bars,
+            eigenvalues=np.array([0.01, 0.0001]),
+            eigenvectors=np.eye(2),
+        )
+        moved = dataclasses.replace(result, after=stub)
+        assert [moved.found(_row(3), level) for level in (90, 95, 99)] == [1, 1, 0]
+        assert moved.found(_row(3)) == 0
+        assert moved.holds(_row(3))
+
+    def test_the_report_prints_the_99_count_and_each_statistics_own_counts(
+        self, sources, result, capsys
+    ) -> None:
+        """On the file trace and eigen counts agree, so a stub makes them differ."""
+        bars = np.array([[13.4294, 15.4943, 19.9349], [2.7055, 3.8415, 6.6349]])
+        eigen_bars = np.array([[12.2971, 14.2639, 18.52], [2.7055, 3.8415, 6.6349]])
+        stub = Johansen(
+            trace=np.array([17.0, 0.1]),
+            trace_critical=bars,
+            eigen=np.array([1.0, 0.1]),
+            eigen_critical=eigen_bars,
+            eigenvalues=np.array([0.01, 0.0001]),
+            eigenvectors=np.eye(2),
+        )
+        module.report(sources[0], dataclasses.replace(result, after=stub))
+        lines = [line.strip() for line in capsys.readouterr().out.splitlines()]
+        assert "after    trace  1 at 90%, 1 at 95%, 0 at 99%" in lines
+        assert "after    eigen  0 at 90%, 0 at 95%, 0 at 99%" in lines
+        row_3 = next(line for line in lines if line.startswith("3  "))
+        assert row_3.split()[-2:] == ["0", "reproduced"]
 
     def test_a_miss_would_be_reported_as_one(self) -> None:
         """A row's verdict reads its criterion, so a count outside it does not reproduce."""
@@ -447,6 +490,32 @@ class TestTheRun:
         assert "control  trace  0 at 90%, 0 at 95%, 0 at 99%" in out
         assert "2006-05-23 to 2012-04-09, 1481 trading days" in out
         assert "Exploratory." in out
+        assert "inputdata_etf/" in out and "lifted from inputData_ETF.mat: GDX, GLD, USO" in out
+
+    def test_the_report_prints_each_figure_from_its_own_test(self, capsys, no_arguments) -> None:
+        main()
+        lines = [line.strip() for line in capsys.readouterr().out.splitlines()]
+        for expected in (
+            "r <= 0  trace 22.571096 against 13.429, 15.494, 19.935"
+            "   eigen 22.423682 against 12.297, 14.264, 18.520",
+            "r <= 0  trace  6.132867 against 13.429, 15.494, 19.935"
+            "   eigen  6.059166 against 12.297, 14.264, 18.520",
+            "r <= 0  trace 44.837732 against 27.067, 29.796, 35.463"
+            "   eigen 37.833231 against 18.893, 21.131, 25.865",
+            "r <= 0  trace 10.446773 against 13.429, 15.494, 19.935"
+            "   eigen 10.402109 against 12.297, 14.264, 18.520",
+            "r <= 0  trace  4.349962 against 13.429, 15.494, 19.935"
+            "   eigen  3.776364 against 12.297, 14.264, 18.520",
+            "r <= 1  trace  3.034162 against 2.705, 3.841, 6.635"
+            "   eigen  3.034162 against 2.705, 3.841, 6.635",
+            "GDX-USO  eigen  2 at 90%, 1 at 95%, 1 at 99%",
+            "triplet's first eigenvector, rows GLD, GDX, USO  0.033109, -0.177036, 0.002549",
+            "before   -3.724034 on 537 observations",
+            "after    -1.511680 on 940 observations",
+            "whole    -1.517588 on 1479 observations",
+            "4  GLD and GDX have lost it after       eigen     == 0       0          reproduced",
+        ):
+            assert expected in lines, expected
 
     def test_the_report_says_a_criterion_that_fails(
         self, sources, monkeypatch, capsys, no_arguments
