@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22 and 23 carry their own, three, eleven, twelve, five, six, one, three, eight,
-six, two, eight, seven, twelve, six, two, five, three, three, three, seven and
-six,
+22, 23 and 24 carry their own, three, eleven, twelve, five, six, one, three,
+eight, six, two, eight, seven, twelve, six, two, five, three, three, three,
+seven, six and four,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -32,7 +32,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22 and 23 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23 and 24 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -194,6 +194,12 @@ says.
   - [The verdicts](#the-verdicts-21)
   - [What the entry concludes](#what-the-entry-concludes-22)
   - [What this entry cannot say](#what-this-entry-cannot-say-20)
+- [Entry 24: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*](#entry-24-bollinger-bands-on-gld-and-uso-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-21)
+  - [What this repo computed](#what-this-repo-computed-23)
+  - [The verdicts](#the-verdicts-22)
+  - [What the entry concludes](#what-the-entry-concludes-23)
+  - [What this entry cannot say](#what-this-entry-cannot-say-21)
 
 ## How to read an entry
 
@@ -236,9 +242,10 @@ both.
    Entry 20, [tests/test_price_spread.py](../tests/test_price_spread.py)
    holds Entry 21,
    [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-   holds Entry 22, and
+   holds Entry 22,
    [tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) holds
-   Entry 23.
+   Entry 23, and [tests/test_bollinger.py](../tests/test_bollinger.py) holds
+   Entry 24.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -351,7 +358,7 @@ rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
-and Entry 23's rows 15 to 20.
+Entry 23's rows 15 to 20, and Entry 24's rows 4 to 7.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -453,6 +460,14 @@ was written on
 the statistics were measured. The script had printed both the statistics and
 the bars in 2012, so the criterion reads Chan's own table rather than choosing
 a line, and no figure computed here could move a verdict.
+
+Entry 24's row 3 takes it as well, and like Entry 21's rows 7 and 8 its
+criterion was written on
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341) after a
+first transcription ran. Location 1559 calls the band "quite an improvement"
+on the linear rule, and the criterion reads that as both figures the book
+prints above Entry 21's on the same spread, with no margin, so there was no
+threshold left to choose once the numbers were seen.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -4530,6 +4545,7 @@ Three things.
    z-score with a fixed threshold, where no constant cancels, so
    [issue 341](https://github.com/l3a0/quantitative-trading/issues/341)
    cannot rely on this entry's figures to say which divisor its own need.
+   Entry 24 measures it, and there the divisor moves both figures.
 
 ### What this entry cannot say
 
@@ -4894,6 +4910,131 @@ none is in the script.
 **Whether another lag count changes the counts.** Every book-two script uses
 `k = 1`, and so does this entry. The relation counts in rows 6 and 9 are for
 that lag alone, and row 6's rests on a margin of 0.141.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 24: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 3.2, Kindle locations 1548 to 1559, and the
+script `bollinger.m` the example names. Shipped under
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341). The
+location numbers are that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seven rows, all derivable from
+[tests/test_bollinger.py](../tests/test_bollinger.py).
+
+**Both figures `bollinger.m` prints reproduce to six digits on Chan's own
+file, and the band beats Example 3.1's linear rule on both.** Entry 21's linear
+rule holds minus the spread's z-score in units of the pair every day, so it is
+always in the market. Example 3.2 trades the same GLD and USO price spread with
+a Bollinger band instead. It buys one unit when the z-score falls below −1,
+sells one short when it rises above 1, and holds either until the z-score
+crosses back through 0. On days with no signal it carries yesterday's units
+forward. Location 1559 reports an APR of 17.8 percent and a Sharpe ratio of
+0.96, "quite an improvement" on the linear rule.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** Entry 21's: `inputdata_etf/gld.csv` and
+   `inputdata_etf/uso.csv`, two of the 67 ETFs of Chan's `inputData_ETF.mat`,
+   saved 2012-04-10, read through `chan.series.load_panel`, 1,500 days from
+   2006-04-26 to 2012-04-09. The scale-break guard runs on both legs and
+   refuses nothing.
+2. **The specification.** `bollinger.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `6d80817`, the same blob as in ivanliu1989/algorithmic_trading at
+   `4567024`, with `fillMissingData.m` at `88632fc` in both. Everything up to
+   the units is Entry 21's price spread: the 20-row rolling hedge ratio, the
+   first 20 rows dropped, leaving 1,480 from 2006-05-24, and the 20-row
+   z-score from `movingAvg` and `movingStd`, MATLAB's n − 1 `std`. A long
+   enters below −1 and exits above 0, and a short enters above 1 and exits
+   below 0. Each side starts at 0 and `fillMissingData` carries its last value
+   over every row with no signal. One unit holds `[−h·GLD, USO]` dollars. The
+   return, the APR and the Sharpe ratio are Entry 21's, and no cost is
+   charged.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 to 2012 sample on thresholds and a lookback he chose with the sample in
+view, so the entry says whether his numbers reproduce on his file and nothing
+about whether the rule pays today.
+
+### What the book printed
+
+The script closes on a comment holding the six decimals its
+`fprintf('APR=%f Sharpe=%f')` prints, and location 1559 rounds both.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | APR | 0.178249, and "17.8 percent" | `bollinger.m`, location 1559 |
+| 2 | Sharpe ratio | 0.964673, and "0.96" | `bollinger.m`, location 1559 |
+| 3 | The band improves on the linear rule | "quite an improvement", a claim | location 1559 |
+| 4 to 7 | the divisor, the first position, the `lag` padding and the band at its edges | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `prod(1 + ret)^(252/1480) − 1` | 0.178249 | `TestTheFigures::test_the_apr_is_chans_0_178249` |
+| 2 | `√252 · mean(ret) / std(ret)` | 0.964673 | `TestTheFigures::test_the_sharpe_ratio_is_chans_0_964673` |
+| 3 | rows 1 and 2 against Entry 21's rows 1 and 2, 0.108335 and 0.589651 | both higher | `TestTheClaim::test_both_figures_are_above_the_linear_rules` |
+| 4 | rows 1 and 2 with book two's `smartMovingStd`, which divides by n | 0.183306 and 0.984872, moved by +0.005057 and +0.020199 | `TestTheDivisor` |
+| 5 | the first day with units, and the first day a return is earned | 2006-06-21 and 2006-06-22 | `TestTheFigures::test_the_first_position_is_held_into_2006_06_22` |
+| 6 | the run with `lag` padding 0 rather than NaN | the same returns, exactly | `TestWhatMovesNothing` |
+| 7 | the units on synthetic arrays: a z-score of exactly −1 or 1, exactly 0, NaN, and a long turning short in one day | enters nothing, exits nothing, holds yesterday's units, and turns in one day | `TestBandUnits` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.000000 against the script, 0.0 against the book | reproduced | Chan's figure, on his own file, through his own script transcribed. The book's 17.8 percent is the script's figure rounded, unlike Entry 21's 10.9. |
+| 2 | 0.000000 against the script, 0.00 against the book | reproduced | The same as row 1. |
+| 3 | none, a claim | reproduced | The APR and the Sharpe ratio are both above the linear rule's on the same spread. The criterion was written on [issue 341](https://github.com/l3a0/quantitative-trading/issues/341) after a first transcription ran, as Entry 21's rows 7 and 8 were, and reads the sentence's comparison on the two figures the book prints. |
+| 4 | none | none, not a replication | `bollinger.m` calls `movingStd`, so n − 1 is the transcription. Entry 21's linear rule could not see the divisor, because a constant on every unit cancels out of profit over gross dollars. This rule compares the z-score with a fixed threshold, so the scale decides which days trade, and both figures move. |
+| 5 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and the band enters there, so the run holds its first position into 2006-06-22, the same days as Entry 21's row 10. |
+| 6 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN, and a zero pad holds zero gross dollars there, so the return is 0/0, and either NaN is set to 0. |
+| 7 | none | none, not a replication | No kept row of the real data has a z-score of exactly −1, 0 or 1, which `TestTheFigures::test_no_kept_row_sits_exactly_on_a_band` holds, so only synthetic arrays reach the edges of the band. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Example 3.2 reproduces exactly on Chan's own file.** Both figures the
+   script prints land to six digits, and the book's 17.8 percent and 0.96 are
+   those figures rounded.
+2. **The band beats the linear rule on this sample, by both measures the book
+   names.** The APR rises from 0.108335 to 0.178249 and the Sharpe ratio from
+   0.589651 to 0.964673. The two rules trade the same spread with the same
+   lookback, so the difference is the rule alone. Both were chosen with the
+   sample in view, so the comparison is between two in-sample figures.
+3. **The divisor of the moving deviation matters here, where it did not for
+   Entry 21.** Dividing by n rather than n − 1 shrinks the deviation, so the
+   z-score is larger and sits beyond ±1 on more days. The APR moves by
+   +0.005057 and the Sharpe ratio by +0.020199, enough to move the APR's
+   third decimal and the Sharpe ratio's second. This answers the question Entry 21's third conclusion left open: a
+   rule with a fixed threshold needs the divisor its script used, and a port
+   reaching for book two's `smartMovingStd` would miss.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the reversion is real.** Entry 21's "What this entry cannot say"
+holds unchanged, because this run trades the same spread. GLD and USO do not
+cointegrate on this file, and the 20-day hedge ratio changes sign.
+
+**What costs would take.** No script charges any. The band changes its units
+on 162 of the 1,480 days, which `TestTheSpecification` holds, where the linear
+rule rebalances every day, so a cost per trade would weigh more on the linear
+rule. Nothing here measures by how much.
+
+**Whether 1, 0 and 20 were fair choices.** Location 1548 calls the entry
+threshold and the lookback free parameters to be optimized on a training set,
+and the book's run sets them on the same sample it reports. Every figure above
+is in-sample.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

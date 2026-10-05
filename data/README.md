@@ -1021,6 +1021,9 @@ the first run to read it, GLD and USO alone, under
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
 `chan.etf_cointegration`, for
 [issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
+Example 3.2 reads GLD and USO through `chan.bollinger`, which reuses Example
+3.1's reader, for
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 

@@ -167,7 +167,7 @@ class Signal:
 
 @dataclass(frozen=True)
 class Run:
-    """One signal traded by the linear rule, and the two figures its script prints."""
+    """One signal traded by a rule, and the two figures its script prints."""
 
     signal: Signal
     units: np.ndarray

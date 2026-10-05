@@ -111,6 +111,13 @@ comments of `PriceSpread.m`, `LogPriceSpread.m` and `Ratio.m` and nowhere in
 the book. The book's 10.9 percent is not its script's 0.108335 rounded. The
 replication log's Entry 21 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 3.2 splits the same way, and here the book's
+figures are its script's rounded. Location 1559 prints "APR = 17.8 percent,
+and Sharpe ratio of 0.96" and calls the result "quite an improvement" on the
+linear rule. The six-decimal figures, 0.178249 and 0.964673, sit in the
+closing comment of `bollinger.m` and nowhere in the book. The replication
+log's Entry 24 traces each to one or the other.
+
 *Algorithmic Trading*'s Examples 2.6 to 2.8 split the same way as its
 Example 7.2. The book's four figures are here: the CADF statistic of "about
 –3.64" at location 1292, the half-life of 23 days at 1347, and the APR of 12.6
