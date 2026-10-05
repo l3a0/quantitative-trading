@@ -49,6 +49,9 @@ changed rule gives instead. A builder who corrects Chan's code fails one of
 those rather than quietly moving a pin.
 
 The 2002 split is exploratory and carries no verdict. First run on 2026-10-02.
+P. 180's five-year claim carries one, under a criterion written on issue 254
+before any five-year figure was computed, and ``TestTheMostRecentFiveYears``
+holds it. First run on 2026-10-04.
 """
 
 from __future__ import annotations
@@ -70,16 +73,21 @@ from chan.equity_seasonals import (
     R_HESTON_SADKA,
     R_JANUARY,
     REVISED_MATLAB,
+    TAIL_MONTHS,
+    FiveYearCheck,
+    HestonSadka,
     Mask,
     Statistic,
     Winners,
+    five_year_check,
     heston_sadka,
     january_effect,
     monthly_returns,
+    most_recent_five_years,
     split_at,
     summarize,
 )
-from chan.matlab_helpers import round_half_away
+from chan.matlab_helpers import round_half_away, smartstd_book_two
 from chan.series import departures, load_panel, panel_line, row_month_ends, vintage_overlap
 from chan.vintage import VintageUnavailable
 
@@ -675,6 +683,144 @@ class TestTheYearsInsideTheSplit:
         assert kept.cumsum().idxmax() == pd.Timestamp("2006-01-31")
 
 
+class TestTheMostRecentFiveYears:
+    """P. 180's claim that the most recent five years give even worse average returns.
+
+    The owner ruled on 2026-10-04 that the check runs under the revised MATLAB's
+    rules, with the revised Python's reported beside them. The criterion was
+    written on [issue 254](https://github.com/l3a0/quantitative-trading/issues/254)
+    before any five-year figure was computed, and these were first run on
+    2026-10-04 after it.
+
+    Reading 1 reruns the program unchanged on the rows of ``SPX_20071123`` dated
+    after 2002-11-23, and its annual return carries the verdict: reproduced if it
+    is below the whole period's at full precision. Reading 2 averages the full
+    run's last 60 kept months and carries no verdict, and neither does any Sharpe
+    ratio. The rerun's annual return has a standard error of 0.0281 a year, about
+    eight times its gap from the whole period's, so the verdict says whether
+    Chan's comparison holds on his file of survivors, not whether the effect
+    weakened.
+    """
+
+    def test_the_rerun_reads_the_rows_after_2002_11_23(self, spx) -> None:
+        assert seasonals.five_year_cutoff(spx) == pd.Timestamp("2002-11-23")
+        cut = most_recent_five_years(spx)
+        assert cut.index[0] == pd.Timestamp("2002-11-25")
+        assert cut.index[-1] == pd.Timestamp("2007-11-23")
+
+    @pytest.mark.parametrize(
+        "rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "python"]
+    )
+    def test_the_rerun_keeps_the_full_runs_last_47_months(self, spx, rules) -> None:
+        """Cutting the input changes which months are kept and none of their values."""
+        check = five_year_check(spx, rules)
+        assert len(check.rerun_kept) == 47
+        assert check.rerun_kept.index[0] == pd.Timestamp("2003-12-31")
+        assert check.rerun_kept.index[-1] == pd.Timestamp("2007-10-31")
+        assert check.rerun_kept.notna().all()
+        whole = check.whole.returns.iloc[rules.dropped :].iloc[-47:]
+        pd.testing.assert_series_equal(check.rerun_kept, whole)
+
+    @pytest.mark.parametrize(
+        ("rules", "first"),
+        [(REVISED_MATLAB, "2002-11-29"), (PYTHON_HESTON_SADKA, "2002-11-30")],
+        ids=["matlab", "python"],
+    )
+    def test_the_tail_starts_in_november_2002(self, spx, rules, first) -> None:
+        """The MATLAB finds a month-end by row and the Python by calendar."""
+        kept = five_year_check(spx, rules).whole.returns.iloc[rules.dropped :]
+        assert kept.iloc[-TAIL_MONTHS:].index[0] == pd.Timestamp(first)
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+
+    def test_a_row_on_the_cutoff_is_left_out(self) -> None:
+        """Rows after the cutoff, not from it. No row of the committed file sits on it."""
+        days = pd.DatetimeIndex(["2002-11-22", "2002-11-23", "2002-11-25", "2007-11-23"])
+        closes = pd.DataFrame({"X": [1.0, 2.0, 3.0, 4.0]}, index=days)
+        assert list(most_recent_five_years(closes).index) == list(days[2:])
+
+    def test_the_claim_is_pinned_as_chans_words(self) -> None:
+        assert seasonals.FIVE_YEAR_PAGE == 180
+        assert seasonals.FIVE_YEAR_CLAIM == (
+            "the most recent five years instead of the entire data period"
+        )
+
+    @pytest.mark.parametrize(
+        ("rerun", "whole", "worse"),
+        [
+            (-0.02, -0.01, True),
+            (-0.01001, -0.01, True),
+            (-0.01, -0.01, False),
+            (0.0, -0.01, False),
+        ],
+        ids=["below", "below-at-full-precision", "equal", "above"],
+    )
+    def test_the_verdict_reads_only_the_reruns_annual_return(self, rerun, whole, worse) -> None:
+        """Strictly below, on the annual return, whatever the Sharpe ratios and the tail say.
+
+        Every other figure the check computes is also worse than the whole period
+        on this file, so the real data cannot tell the declared rule from a swap.
+        """
+        empty = pd.Series(dtype=float)
+        check = FiveYearCheck(
+            whole=HestonSadka(returns=empty, annual_return=whole, sharpe=-9.0),
+            rerun=HestonSadka(returns=empty, annual_return=rerun, sharpe=9.0),
+            rerun_kept=empty,
+            tail=(60, 9.0, 9.0),
+        )
+        assert check.worse is worse
+
+    def test_the_23_months_the_rerun_leaves_out_of_the_split_made_money(self, kept) -> None:
+        """Exploratory, with no verdict, like the split.
+
+        The revised Python's 70 months from 2002 return 0.011967 a year and its
+        last 47 return -0.016431. The 23 between them, January 2002 to
+        November 2003, are what turn one into the other.
+        """
+        between = kept[(kept.index >= "2002-01-01") & (kept.index < "2003-12-01")]
+        assert len(between) == 23
+        assert between.index[0] == pd.Timestamp("2002-01-31")
+        assert between.index[-1] == pd.Timestamp("2003-11-30")
+        annual, _ = summarize(between, replace(PYTHON_HESTON_SADKA, dropped=0))
+        assert_reproduces(annual, 0.06999696732165601, "0.069997", ".6f")
+
+    def test_the_revised_matlab_reproduces_the_claim(self, spx) -> None:
+        check = five_year_check(spx, REVISED_MATLAB)
+        assert_reproduces(check.whole.annual_return, -0.012922703586771995, "-0.0129", ".4f")
+        assert_reproduces(check.rerun.annual_return, -0.016502156222333787, "-0.0165", ".4f")
+        assert check.worse
+
+    def test_the_gap_is_far_inside_the_noise_of_47_months(self, spx) -> None:
+        """The standard error of the rerun's annual return, on book two's ``smartstd``."""
+        check = five_year_check(spx, REVISED_MATLAB)
+        kept = check.rerun_kept.to_numpy()
+        monthly = smartstd_book_two(kept)
+        error = 12 * monthly / math.sqrt(len(kept))
+        gap = check.rerun.annual_return - check.whole.annual_return
+        assert monthly == pytest.approx(0.01607494842406708, abs=1e-9)
+        assert_reproduces(error, 0.028137266582467655, "0.0281", ".4f")
+        assert_reproduces(gap, -0.0035794526355617928, "-0.0036", ".4f")
+        assert format(error / abs(gap), ".1f") == "7.9"
+
+    def test_the_revised_matlab_figures_with_no_verdict(self, spx) -> None:
+        check = five_year_check(spx, REVISED_MATLAB)
+        assert_reproduces(check.rerun.sharpe, -0.296346964414183, "-0.2963", ".4f")
+        months, annual, sharpe = check.tail
+        assert months == 60
+        assert_reproduces(annual, -0.017065622236990454, "-0.0171", ".4f")
+        assert_reproduces(sharpe, -0.2608812443118037, "-0.2609", ".4f")
+
+    def test_the_revised_python_beside_it_with_no_verdict(self, spx) -> None:
+        check = five_year_check(spx, PYTHON_HESTON_SADKA)
+        assert_reproduces(check.whole.annual_return, -0.012679138708036275, "-0.012679", ".6f")
+        assert_reproduces(check.rerun.annual_return, -0.01643109580760715, "-0.016431", ".6f")
+        assert_reproduces(check.rerun.sharpe, -0.2949518936016059, "-0.294952", ".6f")
+        months, annual, sharpe = check.tail
+        assert months == 60
+        assert_reproduces(annual, -0.017010774055752898, "-0.017011", ".6f")
+        assert_reproduces(sharpe, -0.25998538649554387, "-0.259985", ".6f")
+        assert check.worse
+
+
 class TestTheReport:
     def test_every_figure_prints_beside_its_panel(self, capsys) -> None:
         seasonals.run()
@@ -694,11 +840,29 @@ class TestTheReport:
             "average annual return -0.01139674, Sharpe ratio -0.1095098",
             "-0.145387 a year, Sharpe ratio -0.859993",
             "0.011967 a year, Sharpe ratio 0.141777",
+            "rows after 2002-11-23",
+            "revised edition, reproduced: rerun on 47 months -0.0165 a year against the "
+            "whole period's -0.0129. Its Sharpe ratio -0.2963, no verdict.",
+            "The last 60 months -0.0171 a year, Sharpe ratio -0.2609, no verdict",
+            "example7_7.py, revised edition, no verdict: rerun on 47 months -0.016431 a "
+            "year against the whole period's -0.012679. Its Sharpe ratio -0.294952, no "
+            "verdict. The last 60 months -0.017011 a year, Sharpe ratio -0.259985, no verdict",
         ):
             assert figure in out
         assert out.count("exited 2008-01-31: 0.0881 ") == 2
+        assert out.count("rerun on ") == 2
         assert "not computable" not in out
         assert "Exploratory, no verdict" in out
+
+    def test_a_claim_that_fails_prints_as_not_reproduced(
+        self, large_caps, monkeypatch, capsys
+    ) -> None:
+        """The committed file reproduces the claim, so the other branch is driven by hand."""
+        monkeypatch.setattr(FiveYearCheck, "worse", property(lambda self: False))
+        seasonals.report_heston_sadka(*large_caps)
+        out = capsys.readouterr().out
+        assert "Example 7.7 in MATLAB, revised edition, not reproduced: rerun on 47" in out
+        assert "example7_7.py, revised edition, no verdict: rerun on 47" in out
 
     def test_each_holding_prints_with_its_positions(self, capsys) -> None:
         seasonals.run()

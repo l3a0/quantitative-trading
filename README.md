@@ -110,7 +110,11 @@ where they were first built. The other eighteen were built here.
    between −0.0114 and −0.0129 a year. Example 7.6's third January, the one
    that made money, reproduces as 0.0881 and 0.088486 on the later save of
    the S&P 600 file that Chan's script loads, committed from a repost of the
-   revised edition's code.
+   revised edition's code. Chan's p. 180 claim that the most recent five years
+   of his S&P 500 file do even worse holds under a criterion written before
+   the check ran: −0.0165 a year against −0.0129. The gap is far inside the
+   noise of 47 months, so the verdict is about his file of survivors rather
+   than about whether the effect weakened.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -727,7 +731,9 @@ It reads the S&P 600 file Chan's Example 7.6 loads and his S&P 500 file, and
 prints every figure each printout of Examples 7.6 and 7.7 reaches, beside the
 panel it came from. A January a file ends before would print as not computable
 with the date the file ends, and the 2002 split of the revised Python prints
-under a line saying it carries no verdict.
+under a line saying it carries no verdict. Last come both readings of p. 180's
+most recent five years under the revised MATLAB's and Python's rules, with the
+verdict printed beside the MATLAB's rerun alone.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -1448,7 +1454,9 @@ log.
 2. One strategy gives four answers across four printouts, and the first
    edition's is in different units from the other three.
 3. Reproducing a strategy published as dead checks its printed figures and not
-   its death, and the split at 2002 is exploratory with no verdict.
+   its death. The split at 2002 is exploratory with no verdict, and Chan's
+   claim that the most recent five years do worse holds on his own file under
+   a criterion written before the check ran.
 4. A file of survivors is the first thing the result cannot get past.
 
 Three groups of its figures are not pinned here.
@@ -1464,9 +1472,8 @@ Three groups of its figures are not pinned here.
    reproduced figures, nine for Example 7.6 and eight for Example 7.7, or the
    first edition's 95 months with a return and 83 with a position, which are
    its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that Chan's five years run roughly from late 2002
-   to late 2007, that a half's slope in the figure is its annual return over
-   12, that the revised Python copy's five printed figures match the book,
+   position. Nothing states that a half's slope in the figure is its annual
+   return over 12, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
    [data/README.md](data/README.md) records by its sha256.
