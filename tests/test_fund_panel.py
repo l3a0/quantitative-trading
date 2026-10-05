@@ -9,6 +9,7 @@ IJR's record.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -295,6 +296,16 @@ class TestCoverage:
         assert second.stops == 1
         assert (third.covered, third.misses) == (0, {"rank": 1, "unmapped": 1})
         assert third.missing == (("2010-12-31", 1), ("2010-12-31", 2))
+
+    def test_a_price_miss_within_a_cent_is_counted_apart(
+        self, three_years: Fund, tmp_path: Path
+    ) -> None:
+        rows = self._rows("price")
+        second, _ = coverage(three_years, rows, tmp_path)
+        assert second.within_a_cent == 1
+        wide = [replace(row, gap="1.01") if row.check == "price" else row for row in rows]
+        second, _ = coverage(three_years, wide, tmp_path)
+        assert second.within_a_cent == 0
 
     def test_a_member_new_to_the_index_needs_only_its_own_row(
         self, three_years: Fund, tmp_path: Path

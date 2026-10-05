@@ -105,6 +105,7 @@ def report_lines(rows: Sequence[MemberRow]) -> list[str]:
             f"{year.report_date}  members {year.members}  covered {year.covered}  "
             f"January stops {year.stops}  missing {year.members - year.covered}"
             + (f" ({misses})" if misses else "")
+            + f"  price within a cent {year.within_a_cent}"
             + f"  threats {len(flagged)}"
             + ("  exact" if not flagged else "")
         )

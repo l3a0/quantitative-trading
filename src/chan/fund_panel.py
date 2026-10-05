@@ -365,6 +365,9 @@ class Coverage:
     ``pass``, or ``rank`` for a linked member whose previous row did not pass,
     since its rank close is unverified. ``stops`` counts covered members whose
     series ends inside the following January, which the run keeps.
+    ``within_a_cent`` counts the ``price`` misses whose close is a cent or less
+    from the filing's price, which says how many misses are a disagreement
+    about the close rather than a different company.
     """
 
     report_date: str
@@ -373,6 +376,7 @@ class Coverage:
     misses: dict[str, int]
     stops: int
     missing: tuple[Key, ...]
+    within_a_cent: int = 0
 
 
 def coverage(
@@ -392,8 +396,10 @@ def coverage(
         misses: Counter[str] = Counter()
         missing = []
         stops = 0
+        near = 0
         for row in mine:
             reason = row.check if row.check != "pass" else None
+            near += row.check == "price" and abs(Decimal(row.gap)) <= 1
             before = previous.get(row.key)
             if reason is None and before is not None and by_key[before].check != "pass":
                 reason = "rank"
@@ -403,7 +409,15 @@ def coverage(
             misses[reason] += 1
             missing.append(row.key)
         report.append(
-            Coverage(date, len(mine), len(mine) - len(missing), dict(misses), stops, tuple(missing))
+            Coverage(
+                date,
+                len(mine),
+                len(mine) - len(missing),
+                dict(misses),
+                stops,
+                tuple(missing),
+                near,
+            )
         )
     return report
 
