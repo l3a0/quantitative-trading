@@ -2,7 +2,7 @@
 
 This file is the single authority for every number a prose surface quotes
 about these three examples and the rows beside them. ``docs/replication-log.md``
-Entry 21 carries the verdicts and points here row by row.
+Entry 22 carries the verdicts and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here.

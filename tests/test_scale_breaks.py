@@ -221,11 +221,18 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: 11 closes below zero. A dividend subtracted in dollars rather than rescaled
 #: is what lets a close go below zero, which
 #: ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` pins.
-#: The first run that reads it, :mod:`chan.etf_cointegration` for
-#: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), calls
-#: the guard on EWA, EWC and IGE over the whole file and passes, because none of
-#: the eight is read. No experiment issue 299 names reads any of them, so no
-#: decision about refusing a window has had to be made.
+#: No experiment issue 299 names reads any of the eight.
+#:
+#: [Issue 340](https://github.com/l3a0/quantitative-trading/issues/340) decided
+#: that ``chan.price_spread`` calls the guard for *Algorithmic Trading*'s
+#: Example 3.1, the first run to read this file. It reads GLD and USO over the
+#: file's whole span, neither carries a flagged day, and nothing is refused.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_price_spread.py`` holds both
+#: legs clean and a broken leg refused.
+#: ``chan.etf_cointegration`` calls it on EWA, EWC and IGE over the same span
+#: for Examples 2.6 to 2.8, under
+#: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
+#: nothing is refused there either.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

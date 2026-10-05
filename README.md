@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-one replications run here, fifteen from Chan's *Quantitative Trading*
-and six from his *Algorithmic Trading*. The first two were ported from the
+Twenty-two replications run here, fifteen from Chan's *Quantitative Trading*
+and seven from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other nineteen were built here.
+where they were first built. The other twenty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -260,7 +260,19 @@ where they were first built. The other nineteen were built here.
     at 0.82, and putting the whole cap on the second grows at 0.955, which the
     book prints as 0.96. Every printed figure lands. The 0.96 lands only by
     rounding an exact tie up, so the run prints three decimals.
-21. The cointegration tests and mean-reverting portfolio of *Algorithmic
+21. Price spread, log price spread and ratio, Example 3.1 of *Algorithmic
+    Trading*, which trades GLD against USO by holding minus the 20-day
+    z-score of a signal in units of the pair, with the hedge ratio refitted
+    every day over the last 20. On Chan's own ETF file the price spread and
+    the log price spread reproduce all four figures their scripts print, to six
+    decimals: an APR of 0.108335 and a Sharpe ratio of 0.589651, then 0.088863
+    and 0.504153. The book calls the first "about 10.9 percent", which is not
+    0.108335 rounded. The ratio's script as published gives −0.134608 and
+    −0.702522 and misses its comment's −0.141522 and −0.746663. The same
+    script with GLD and USO swapped lands both, a reading found after the miss.
+    Chan's claim that the ratio loses money holds either way. Every figure is
+    exploratory.
+22. The cointegration tests and mean-reverting portfolio of *Algorithmic
     Trading*'s Examples 2.6 to 2.8, on the ETFs EWA, EWC and IGE in Chan's own
     ETF file. Every figure `cointegrationTests.m` prints reproduces to its last
     digit, the eigenvectors up to their sign: a CADF statistic of −3.64346635,
@@ -421,6 +433,14 @@ reading of the `lag` the script calls, and the profit of Example 3.8's
 notebook without its fill, which computes the same rule by another route, so a
 transcription that takes returns before the cut fails a test.
 
+[tests/test_price_spread.py](tests/test_price_spread.py) does it for Example
+3.1. It pins each figure the three scripts print at their six decimals and
+again at eight, and the book's rounding beside them. It pins the ratio's miss
+and the swapped legs that land it, and both of location 1505's claims. It also
+holds two choices no figure here can see, the padding of `lag` and the
+divisor of the moving deviation, so a reader does not take these figures as
+evidence about either.
+
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
 Example 8.2 figure at six decimals and again at the precision the book prints,
@@ -440,7 +460,7 @@ a known cointegrating vector recovered from a built system, real figures
 without a warning, and a refusal naming the column and row of any price that
 is not a finite number.
 
-All twenty-one replications reach a verdict in
+All twenty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -450,8 +470,8 @@ seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
-panel's, Entry 20 the leverage examples' and Entry 21 the ETF cointegration
-examples'.
+panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's and Entry 22
+the ETF cointegration examples'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -498,7 +518,8 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand.
+stand. Example 3.1 calls it on GLD and USO over the ETF file's whole span, and
+neither carries a flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -564,12 +585,14 @@ factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
-The ETF file was committed by the lift for
-[issue 299](https://github.com/l3a0/quantitative-trading/issues/299), for
-*Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
+Example 3.1 reads GLD's and USO's closes from the ETF file, for
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and is
+the first run to read it. The lift for
+[issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
+it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
 The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
-closes, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
+closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
 and nothing else reads it yet.
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
@@ -600,6 +623,15 @@ its own calendar, and each is one vintage with all five fields, as a stock
 is. His `VIX.csv` is committed beside them as one vintage under the vendor
 `chan-csv`. Those five files hold 209 vintages, and
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
+their shape. No replication reads them yet.
+
+IJR's holdings at every year-end from 2007 to 2025 are committed under
+[research/filings](research/filings/README.md), read from the schedules
+iShares Trust files with the SEC rather than from a vendor. A filing is never
+restated, so each file is pinned by the filing's accession number rather than
+kept as a vintage, and that directory's README says why.
+`src/chan/fund_holdings.py` reads the filings, and
+[issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
 their shape. No replication reads them yet.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
@@ -921,6 +953,17 @@ uv run python -m chan.buy_on_gap
 
 It prints the source, the window, both rules, how many positions each side
 took, and each figure beside what `bog.m` and the book print.
+
+Example 3.1 reads GLD and USO from Chan's book-two ETF file and takes no
+option, because his three scripts fix the file, the lookback and the rule:
+
+```bash
+uv run python -m chan.price_spread
+```
+
+It prints the two vintages, the window, the rule, and each script's two
+figures beside its comment and the book, then the ratio again with GLD and USO
+swapped.
 
 The leverage examples, Examples 8.1 and 8.2 of *Algorithmic Trading*, read
 nothing and take no option, because the book fixes every input:
