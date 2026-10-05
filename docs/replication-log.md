@@ -3361,9 +3361,12 @@ two price series. A trade adds costs, roll timing and margin, and none of
 those are here.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit, and
-[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md)
-moves with it, since that post quotes the verdicts.
+change to any assertion named above moves this entry in the same commit.
+[blog/calendar-spreads-lessons.md](../blog/calendar-spreads-lessons.md) moves
+with it, since that post writes up every row, and so does
+[blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md),
+since that post quotes the verdicts. So does the calendar spreads post's
+figure, which `uv run python -m chan.calendar_spread_figures` redraws.
 
 ## Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*
 

@@ -301,8 +301,8 @@ the verdict, so a criterion edited after the fact fails a test. For the
 calendar spreads it pins how often the files hand over on the day each expiry
 rule says and on a day either side, so a rule moved by one day fails a test,
 and it pins the bars of both the declared null and the corrected one.
-The blog post about them is the exception, and what it says that nothing here
-asserts is listed below.
+The two blog posts about them are the exception, and what each says that
+nothing here asserts is listed below.
 
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) does it for
 the equity seasonals. It pins every printout's figures at its own printed
@@ -1255,6 +1255,8 @@ location 3951, the CAD/AUD cross rate and the bond pair tested on TLT and IEF.
 It draws six lessons from Entries 5 and 6 of the replication log. Its opening
 and its close also state the third candidate's verdicts, the calendar spreads
 of Entry 15, which `TestTheCalendarSpreadVerdicts` holds.
+[blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md), the
+thirteenth post below, is the one that covers them.
 
 1. A named series carries a verdict, while a class of instruments tested on
    stand-ins carries a finding.
@@ -1780,6 +1782,84 @@ uv run python -m chan.buy_on_gap_figures
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+[blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md) is a
+thirteenth post, about the third of Chan's stationary candidates at Kindle
+location 3951, the futures calendar spreads, tested on every pair of
+neighbouring natural gas and RBOB gasoline contracts in EIA's settlements. It
+draws four lessons from Entry 15 of the replication log.
+
+1. A claim with no number still needs a pass mark written down first, and a
+   batch of calendar spreads carries a verdict because each pair is a member
+   of the class Chan names rather than a stand-in for it.
+2. The simulated contracts have to move together like real ones, and
+   correlating them as the files are moved RBOB's verdict and not natural
+   gas's, with both readings reported.
+3. About 56 days cannot tell slow reversion from none, so RBOB's verdict is
+   not evidence that its spreads fail to cointegrate.
+4. A calendar that is one day wrong should cost nothing. The days each window
+   drops make that true, and the check of the expiry rule over every handover
+   forced one correction.
+
+Five groups of its figures are not pinned here.
+
+1. Chan's words. "The simplest examples of cointegrating futures pairs" is
+   quoted from location 3951 of *Quantitative Trading*. "Do not generally
+   mean-revert" is quoted from location 2321 of *Algorithmic Trading*, and the
+   12-month crude oil spread taken in logs, stationary
+   at 99% with a 36-day half-life, from
+   locations 2461 and 2471, both through
+   [its committed notes](research/book-notes/algorithmic-trading.md). The
+   suite reads the 36 days as an input rather than computing it.
+2. New York Harbor gasoline's two counts, a median of 42 days for a pair of
+   its neighbouring contracts and 141 of its 150 pairs keeping fewer than 50,
+   which [issue 137](https://github.com/l3a0/quantitative-trading/issues/137)
+   measured before any statistic.
+3. Facts outside the committed data. EIA publishing only the nearest four
+   contracts, numbered by expiry, RBOB replacing New York Harbor gasoline, and
+   29 and 30 October 2012 falling during Hurricane Sandy are each stated
+   rather than derived. So are the owner's ruling of 2026-10-03 that corrected
+   the null, and the request to the Massive futures data service that day
+   which returned no prices for the three natural gas contracts it asked for,
+   both of which
+   [issue 137](https://github.com/l3a0/quantitative-trading/issues/137)
+   records.
+4. Arithmetic no test asserts. That 57 against 47 is ten pairs clear and 14
+   against 31 seventeen short, that 14 against 13 is one pair clear under the
+   declared null, that the 975th of 1,000 rather than the 950th splits a 5%
+   chance of a false pass across two commodities, that requiring both
+   orientations costs natural gas five pairs and RBOB three against the
+   near-on-far orientation, that 250 and 255 of 360 are about seven in ten and
+   168 and 166 of 220 about three in four, that 316 less 298 is 18 and 213
+   less 202 is 11, that 580 is 360 and 220, that 2012-10-25 is two trading
+   days before 2012-10-29, and that a window opening after one expiry,
+   crossing two more and closing on a fourth rests on four, so each expiry
+   falls inside four pairs' windows.
+5. Its references. The four citations are cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
+which pins Entry 15's rows, to
+[tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
+16 contracts whose exchange dates check the expiry rule, or to
+[tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
+for the figure's own labels.
+
+Its one figure is drawn from the committed EIA files by
+[src/chan/calendar_spread_figures.py](src/chan/calendar_spread_figures.py),
+which reads them through the same `calendar_spread` as
+`python -m chan.stationary_candidates calendar-spread`. It draws one panel per
+commodity, with the 1,000 shares under each null as a histogram counted in
+pairs, each null's 975th share as a dashed line, and the real count as a solid
+line, for Lesson 2.
+
+```bash
+uv run python -m chan.calendar_spread_figures
+```
+
+[tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 
