@@ -444,23 +444,23 @@ class TestTheRunIsSharedAcrossWorkers:
     """
 
     def test_every_test_reading_the_run_is_in_its_group(self, request):
+        """Inside a worker it also checks the node ids, because xdist groups by
+        a suffix it writes onto each one from the marks it finds when its own
+        collection hook runs. Measured on 16 readers, the hook without
+        ``tryfirst`` left all 16 marked and none suffixed, so checking the marks
+        alone passed while every reader still ran wherever it landed.
+
+        One test rather than a second that skips outside a worker, so a serial
+        run and a parallel one report the same passed and skipped counts.
+        """
         readers = [item for item in request.session.items if "cpo_result" in item.fixturenames]
         if not readers:
             pytest.skip("this selection collected no test that reads cpo_result")
         groups = [[mark.args for mark in item.iter_markers("xdist_group")] for item in readers]
         assert groups == [[(CPO_GROUP,)]] * len(readers)
-
-    def test_xdist_saw_the_group(self, request):
-        """xdist groups by a suffix it writes onto each node id, from the marks
-        it finds when its own collection hook runs. Measured on 16 readers, the
-        hook without ``tryfirst`` left all 16 marked and none suffixed, so the
-        test above passed while every reader still ran wherever it landed."""
-        if not hasattr(request.config, "workerinput"):
-            pytest.skip("only an xdist worker writes the group onto node ids")
-        readers = [item for item in request.session.items if "cpo_result" in item.fixturenames]
-        if not readers:
-            pytest.skip("this selection collected no test that reads cpo_result")
-        assert [item.nodeid for item in readers if not item.nodeid.endswith(f"@{CPO_GROUP}")] == []
+        if hasattr(request.config, "workerinput"):
+            suffix = f"@{CPO_GROUP}"
+            assert [item.nodeid for item in readers if not item.nodeid.endswith(suffix)] == []
 
     def test_the_suite_runs_groups_on_one_worker(self, request):
         """A group mark does nothing unless the run distributes by group."""

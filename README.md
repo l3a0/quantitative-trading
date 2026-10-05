@@ -1986,6 +1986,11 @@ uv run ruff format --check
 uv run pytest
 ```
 
+`uv run pytest` runs the suite across one worker per core through
+`pytest-xdist`, which `pyproject.toml` turns on in `addopts`. Add `-n 0` for a
+serial run, which is the faster choice for a single test and the only one
+`--pdb` works with.
+
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.
 
