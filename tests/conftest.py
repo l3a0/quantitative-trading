@@ -12,9 +12,15 @@ those files and reachable in the rest, so which run a test read would depend on
 which file it sat in.
 
 The suite runs across pytest-xdist workers, and each worker holds a session of
-its own, so a session-scoped fixture is built once in every worker that runs a
-test reading it. The hook below sends every such test to one worker, which is
-what keeps this one run shared once the suite is parallel.
+its own, so the run is built once in every worker that draws a test reading
+it. xdist hands each worker a batch of neighbouring tests, so the readers in
+one file tend to share a worker, but an archive run can still build the run on
+more than one worker at once, which costs CPU rather than wall time. No
+archive run has happened in parallel yet, so that count is unmeasured. ``-n 0``
+builds it once. Keeping the readers on one worker would
+take ``--dist loadgroup``, which hands out every other test one at a time and
+so rebuilds each module-scoped fixture on more workers, a price every run
+would pay to save CPU on a run that happens by hand.
 """
 
 from __future__ import annotations
@@ -31,25 +37,6 @@ from chan.archive import ArchiveUnavailable, archive_dir
 #: Set to 1 to run the archive pins. The full run takes minutes, and every
 #: session here runs the suite, so they do not run by default.
 RUN_ENV = "QT_ARCHIVE_RUN"
-
-#: The xdist group every test reading ``cpo_result`` joins. ``--dist
-#: loadgroup`` in ``pyproject.toml`` runs a group on one worker and spreads
-#: every test outside a group the way the default mode does.
-CPO_GROUP = "cpo_result"
-
-
-@pytest.hookimpl(tryfirst=True)
-def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
-    """Put every test that reads ``cpo_result`` in one xdist group.
-
-    It matches on the fixture rather than on a list of files, so a third file
-    reading the run joins the group without an edit here. ``tryfirst`` because
-    xdist reads the group marks in a hook of its own, and a mark added after
-    that is a mark it never sees.
-    """
-    for item in items:
-        if "cpo_result" in getattr(item, "fixturenames", ()):
-            item.add_marker(pytest.mark.xdist_group(CPO_GROUP))
 
 
 def archive_skip_reason(
