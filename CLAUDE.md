@@ -447,7 +447,7 @@ The owner asked for this rule on 2026-10-04, after one session waited in the for
 
 What runs in the background:
 
-- The full test suite, and any measurement that waits on it, such as the board's test count.
+- The full test suite, and any measurement that waits on it.
 - A review's lenses and its verifiers, each as its own sub-agent, which `## Pull requests` already asks for in parallel.
 - Watching a pull request's checks until they settle.
 - A decompose loop, and a plan audit that sweeps many files.
