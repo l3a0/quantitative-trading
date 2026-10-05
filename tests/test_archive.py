@@ -11,20 +11,27 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from chan import archive
 from chan.archive import (
     ARCHIVE_DIR_ENV,
     ARCHIVE_MANIFEST_NAME,
+    DAILY_HEADER,
+    ArchiveRecordRefused,
     ArchiveRefused,
     ArchiveUnavailable,
     archive_dir,
+    daily_path,
     minute_bars,
     read_archive_manifest,
     read_archive_vintage,
+    read_cross_section,
+    record_archive_file,
     resolve_archive_vintage,
 )
 from chan.cpo import regular_session
@@ -106,11 +113,22 @@ def fixture_archive(tmp_path: Path, payload: bytes = CSV, **overrides) -> tuple[
 
 class TestTheCommittedManifest:
     def test_it_records_exactly_the_two_archive_files_issue_23_reads(self):
-        entries = {entry.symbol: entry for entry in read_archive_manifest()}
+        """Standalone lines only, so a cross-section's lines landing leave this standing."""
+        standalone = [entry for entry in read_archive_manifest() if entry.cross_section is None]
+        entries = {entry.symbol: entry for entry in standalone}
         assert set(entries) == set(COMMITTED)
         for symbol, fields in COMMITTED.items():
             for name, value in fields.items():
                 assert getattr(entries[symbol], name) == value, (symbol, name)
+
+    def test_each_standalone_line_is_written_back_byte_for_byte(self):
+        """The writer omits an unset cross_section, so the minute bars' lines keep their bytes."""
+        lines = (DATA_DIR / ARCHIVE_MANIFEST_NAME).read_text(encoding="utf-8").splitlines()
+        entries = read_archive_manifest()
+        assert len(lines) == len(entries)
+        for line, entry in zip(lines, entries, strict=True):
+            if entry.cross_section is None:
+                assert entry.as_json() == line
 
     def test_no_archive_file_is_also_committed_under_data(self):
         """An archive vintage committed in `data/` would be two records of one series."""
@@ -247,6 +265,327 @@ class TestAMalformedLineIsRefusedByNumber:
         manifest.write_text(manifest.read_text(encoding="utf-8") * 2, encoding="utf-8")
         with pytest.raises(ValueError, match="names ABC more than once"):
             read_archive_manifest(data_dir)
+
+
+def daily(*rows: str) -> bytes:
+    """A daily file as Alpha Vantage writes one, the newest row first."""
+    return (DAILY_HEADER + "\n" + "".join(row + "\n" for row in rows)).encode("utf-8")
+
+
+#: Two symbols' files, each newest first, with ABC missing the first day.
+ABC = daily("2009-01-05,1,1,1,12.0,6.0,100,0,1", "2009-01-02,1,1,1,10.0,5.0,100,0,1")
+XYZ = daily(
+    "2009-01-05,1,1,1,22.0,22.0,100,0,1",
+    "2009-01-02,1,1,1,21.0,21.0,100,0,1",
+    "2008-12-31,1,1,1,20.0,20.0,100,0,1",
+)
+
+
+#: A CSV opening on another header, as a changed endpoint would answer.
+MINUTE_SHAPED = b"timestamp,open,high,low,close,volume\n2009-01-02,1,1,1,1,1\n"
+
+
+def empty_store(tmp_path: Path) -> tuple[Path, Path]:
+    """A data directory holding an empty archive manifest, and an empty archive."""
+    data_dir = tmp_path / "data"
+    store = tmp_path / "archive"
+    data_dir.mkdir()
+    store.mkdir()
+    (data_dir / ARCHIVE_MANIFEST_NAME).write_bytes(b"")
+    return data_dir, store
+
+
+def cross_line(**overrides) -> dict:
+    """One valid cross-section line for ABC, before any override."""
+    line = {
+        "cross_section": "sp600",
+        "vendor": "alphavantage",
+        "symbol": "ABC",
+        "price_basis": "adjusted",
+        "download_date": "2026-10-05",
+        "path": "sp600/daily_ABC.csv",
+        "row_count": 2,
+        "sha256": hashlib.sha256(ABC).hexdigest(),
+        "first_date": "2009-01-02",
+        "last_date": "2009-01-05",
+        "vendor_call": "TIME_SERIES_DAILY_ADJUSTED, outputsize=full, datatype=csv",
+    }
+    line.update(overrides)
+    return line
+
+
+def manifest_of(tmp_path: Path, *lines: dict) -> Path:
+    """A data directory whose archive manifest holds exactly these lines."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(exist_ok=True)
+    payload = "".join(json.dumps(line, sort_keys=True) + "\n" for line in lines)
+    (data_dir / ARCHIVE_MANIFEST_NAME).write_text(payload, encoding="utf-8")
+    return data_dir
+
+
+def standalone(symbol: str = "ABC") -> dict:
+    """A standalone minute-bar line, as GLD's and GDX's are."""
+    return {
+        "vendor": "alphavantage",
+        "symbol": symbol,
+        "price_basis": "raw",
+        "download_date": "2026-10-03",
+        "path": f"{symbol.lower()}_intraday_1min.csv.gz",
+        "row_count": 3,
+        "sha256": "0" * 64,
+        "first_date": "2006-05-22",
+        "last_date": "2006-05-22",
+        "vendor_call": "TIME_SERIES_INTRADAY",
+    }
+
+
+class TestACrossSectionLine:
+    def test_a_valid_line_is_read_with_its_cross_section(self, tmp_path):
+        (entry,) = read_archive_manifest(manifest_of(tmp_path, cross_line()))
+        assert entry.cross_section == "sp600"
+        assert entry.path == daily_path("sp600", "ABC") == "sp600/daily_ABC.csv"
+
+    def test_the_line_is_written_back_byte_for_byte(self, tmp_path):
+        (entry,) = read_archive_manifest(manifest_of(tmp_path, cross_line()))
+        assert entry.as_json() == json.dumps(cross_line(), sort_keys=True)
+
+    @pytest.mark.parametrize(
+        ("override", "words"),
+        [
+            ({"path": "sp600/ABC.csv"}, "other than <cross_section>/daily_<symbol>.csv"),
+            ({"path": "../daily_ABC.csv"}, "other than <cross_section>/daily_<symbol>.csv"),
+            ({"price_basis": "raw"}, "cross-section price_basis other than adjusted"),
+            ({"cross_section": "sp500"}, "has not ruled into the archive"),
+            ({"symbol": "AB/C", "path": "sp600/daily_AB/C.csv"}, "SYMBOL_PATTERN"),
+        ],
+    )
+    def test_each_cross_section_rule_is_refused_by_name(self, tmp_path, override, words):
+        with pytest.raises(ValueError, match=re.escape(words)):
+            read_archive_manifest(manifest_of(tmp_path, cross_line(**override)))
+
+    def test_an_adjusted_basis_without_a_cross_section_is_refused(self, tmp_path):
+        line = standalone()
+        line["price_basis"] = "adjusted"
+        with pytest.raises(ValueError, match="other than raw"):
+            read_archive_manifest(manifest_of(tmp_path, line))
+
+    def test_a_null_cross_section_is_refused(self, tmp_path):
+        line = standalone()
+        line["cross_section"] = None
+        with pytest.raises(ValueError, match="not a name"):
+            read_archive_manifest(manifest_of(tmp_path, line))
+
+    def test_a_pair_recorded_twice_is_refused_naming_it(self, tmp_path):
+        with pytest.raises(ValueError, match="names sp600/ABC more than once"):
+            read_archive_manifest(manifest_of(tmp_path, cross_line(), cross_line()))
+
+    def test_one_symbol_alone_and_in_a_cross_section_is_accepted(self, tmp_path):
+        entries = read_archive_manifest(manifest_of(tmp_path, standalone(), cross_line()))
+        assert [entry.cross_section for entry in entries] == [None, "sp600"]
+
+    def test_a_lookup_by_symbol_reads_only_the_standalone_line(self, tmp_path):
+        data_dir = manifest_of(tmp_path, cross_line(), standalone())
+        assert resolve_archive_vintage("ABC", data_dir).cross_section is None
+
+    def test_a_symbol_only_in_a_cross_section_is_no_standalone_vintage(self, tmp_path):
+        with pytest.raises(LookupError, match="no archive vintage for ABC"):
+            resolve_archive_vintage("ABC", manifest_of(tmp_path, cross_line()))
+
+
+class TestRecordingADailyFile:
+    def test_the_file_and_the_line_agree_on_hash_rows_and_span(self, tmp_path):
+        data_dir, store = empty_store(tmp_path)
+        entry = record_archive_file(
+            "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+        )
+        assert (store / "sp600" / "daily_XYZ.csv").read_bytes() == XYZ
+        assert read_archive_manifest(data_dir) == [entry]
+        span = (entry.row_count, entry.first_date, entry.last_date)
+        assert span == (3, "2008-12-31", "2009-01-05")
+        assert entry.sha256 == hashlib.sha256(XYZ).hexdigest()
+        assert (entry.price_basis, entry.cross_section) == ("adjusted", "sp600")
+
+    def test_a_line_is_appended_after_one_missing_its_newline(self, tmp_path):
+        data_dir, store = empty_store(tmp_path)
+        (data_dir / ARCHIVE_MANIFEST_NAME).write_text(json.dumps(standalone()), encoding="utf-8")
+        record_archive_file(
+            "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+        )
+        assert [entry.symbol for entry in read_archive_manifest(data_dir)] == ["ABC", "XYZ"]
+
+    def test_a_file_already_in_the_archive_is_refused_and_left_untouched(self, tmp_path):
+        data_dir, store = empty_store(tmp_path)
+        (store / "sp600").mkdir()
+        (store / "sp600" / "daily_XYZ.csv").write_bytes(b"older bytes")
+        with pytest.raises(ArchiveRecordRefused, match="Move it aside"):
+            record_archive_file(
+                "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+            )
+        assert (store / "sp600" / "daily_XYZ.csv").read_bytes() == b"older bytes"
+        assert read_archive_manifest(data_dir) == []
+
+    def test_a_symbol_already_recorded_is_refused(self, tmp_path):
+        data_dir, store = empty_store(tmp_path)
+        record_archive_file(
+            "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+        )
+        (store / "sp600" / "daily_XYZ.csv").unlink()
+        with pytest.raises(ArchiveRecordRefused, match="already records sp600/XYZ"):
+            record_archive_file(
+                "sp600", "XYZ", XYZ, download_date="2026-10-06", data_dir=data_dir, directory=store
+            )
+
+    @pytest.mark.parametrize(
+        ("payload", "words"),
+        [
+            (MINUTE_SHAPED, "not the daily header"),
+            (daily(), "no rows under it"),
+            (daily("Jan 2,1,1,1,1,1,1,0,1"), "ISO date"),
+            (b"", "not the daily header"),
+        ],
+    )
+    def test_bytes_that_are_not_a_daily_file_leave_no_file_and_no_line(
+        self, tmp_path, payload, words
+    ):
+        data_dir, store = empty_store(tmp_path)
+        with pytest.raises(ValueError, match=words):
+            record_archive_file(
+                "sp600",
+                "XYZ",
+                payload,
+                download_date="2026-10-05",
+                data_dir=data_dir,
+                directory=store,
+            )
+        assert not (store / "sp600" / "daily_XYZ.csv").exists()
+        assert read_archive_manifest(data_dir) == []
+
+    def test_an_unruled_cross_section_is_refused_before_anything_is_written(self, tmp_path):
+        data_dir, store = empty_store(tmp_path)
+        with pytest.raises(ValueError, match="has not ruled"):
+            record_archive_file(
+                "sp500", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+            )
+        assert list(store.iterdir()) == []
+
+    def test_an_interrupt_before_the_line_lands_takes_the_file_back(self, tmp_path, monkeypatch):
+        data_dir, store = empty_store(tmp_path)
+
+        def interrupted(manifest, line):
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(archive, "_append_line", interrupted)
+        with pytest.raises(KeyboardInterrupt):
+            record_archive_file(
+                "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+            )
+        assert not (store / "sp600" / "daily_XYZ.csv").exists()
+        assert read_archive_manifest(data_dir) == []
+
+    def test_an_interrupt_after_the_line_lands_keeps_the_file(self, tmp_path, monkeypatch):
+        data_dir, store = empty_store(tmp_path)
+        append = archive._append_line
+
+        def landed_then_interrupted(manifest, line):
+            append(manifest, line)
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(archive, "_append_line", landed_then_interrupted)
+        with pytest.raises(KeyboardInterrupt):
+            record_archive_file(
+                "sp600", "XYZ", XYZ, download_date="2026-10-05", data_dir=data_dir, directory=store
+            )
+        (entry,) = read_archive_manifest(data_dir)
+        assert read_archive_vintage(entry, store) == XYZ
+
+
+def recorded_store(tmp_path: Path) -> tuple[Path, Path]:
+    """An archive holding ABC and XYZ under sp600, both recorded."""
+    data_dir, store = empty_store(tmp_path)
+    for symbol, payload in (("XYZ", XYZ), ("ABC", ABC)):
+        record_archive_file(
+            "sp600",
+            symbol,
+            payload,
+            download_date="2026-10-05",
+            data_dir=data_dir,
+            directory=store,
+        )
+    return data_dir, store
+
+
+class TestReadingACrossSection:
+    def test_the_frame_is_date_by_symbol_on_the_union_of_dates(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        entries, panel = read_cross_section("sp600", data_dir=data_dir, directory=store)
+        assert [entry.symbol for entry in entries] == ["ABC", "XYZ"]
+        assert list(panel.columns) == ["ABC", "XYZ"]
+        days = panel.index.strftime("%Y-%m-%d").tolist()
+        assert days == ["2008-12-31", "2009-01-02", "2009-01-05"]
+        assert panel["ABC"].tolist()[1:] == [5.0, 6.0]
+        assert pd.isna(panel["ABC"].iloc[0])
+        assert panel["XYZ"].tolist() == [20.0, 21.0, 22.0]
+
+    def test_the_raw_close_is_the_other_column(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        _, panel = read_cross_section("sp600", column="close", data_dir=data_dir, directory=store)
+        assert panel["ABC"].dropna().tolist() == [10.0, 12.0]
+
+    def test_any_other_column_is_refused(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        with pytest.raises(ValueError, match="column must be one of"):
+            read_cross_section("sp600", column="volume", data_dir=data_dir, directory=store)
+
+    def test_symbols_narrow_the_read_and_an_unrecorded_one_is_left_out(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        entries, panel = read_cross_section(
+            "sp600", symbols=["xyz", "QQQ"], data_dir=data_dir, directory=store
+        )
+        assert [entry.symbol for entry in entries] == ["XYZ"]
+        assert list(panel.columns) == ["XYZ"]
+
+    def test_an_unrecorded_name_is_a_lookup_error(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        with pytest.raises(LookupError, match="no cross-section named sp400"):
+            read_cross_section("sp400", data_dir=data_dir, directory=store)
+
+    def test_an_altered_file_is_refused(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        (store / "sp600" / "daily_ABC.csv").write_bytes(ABC.replace(b"12.0", b"12.5"))
+        with pytest.raises(ArchiveRefused):
+            read_cross_section("sp600", data_dir=data_dir, directory=store)
+
+    def test_a_missing_file_refuses_the_whole_read(self, tmp_path):
+        data_dir, store = recorded_store(tmp_path)
+        (store / "sp600" / "daily_ABC.csv").unlink()
+        with pytest.raises(ArchiveUnavailable, match="holds no sp600/daily_ABC.csv"):
+            read_cross_section("sp600", data_dir=data_dir, directory=store)
+
+    def test_a_row_count_the_file_does_not_hold_is_refused(self, tmp_path):
+        data_dir = manifest_of(tmp_path, cross_line(row_count=3))
+        store = tmp_path / "archive"
+        (store / "sp600").mkdir(parents=True)
+        (store / "sp600" / "daily_ABC.csv").write_bytes(ABC)
+        with pytest.raises(ArchiveRefused, match="parses to 2 rows, not the 3"):
+            read_cross_section("sp600", data_dir=data_dir, directory=store)
+
+    def test_a_file_with_another_header_is_refused(self, tmp_path):
+        other = MINUTE_SHAPED
+        data_dir = manifest_of(
+            tmp_path, cross_line(sha256=hashlib.sha256(other).hexdigest(), row_count=1)
+        )
+        store = tmp_path / "archive"
+        (store / "sp600").mkdir(parents=True)
+        (store / "sp600" / "daily_ABC.csv").write_bytes(other)
+        with pytest.raises(ValueError, match="not the daily header"):
+            read_cross_section("sp600", data_dir=data_dir, directory=store)
+
+    def test_no_archive_is_unavailable(self, tmp_path, monkeypatch):
+        data_dir, _ = recorded_store(tmp_path)
+        monkeypatch.delenv(ARCHIVE_DIR_ENV, raising=False)
+        monkeypatch.setattr(archive, "ARCHIVE_DIR_CONFIG", tmp_path / "absent")
+        with pytest.raises(ArchiveUnavailable, match="no data archive is configured"):
+            read_cross_section("sp600", data_dir=data_dir)
 
 
 @pytest.fixture(scope="module")

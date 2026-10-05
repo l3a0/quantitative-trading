@@ -848,6 +848,22 @@ sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
 in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
 
+The fetch writes Alpha Vantage's daily closes for a list of symbols into the
+owner's archive, one file per symbol, and records each one as a line of
+`data/archive_vintages.jsonl` under a cross-section name. It is the one command
+here that needs the owner's key, read from the environment of the run:
+
+```bash
+ALPHAVANTAGE_API_KEY=... QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.fetch_alphavantage --cross-section sp600 --symbols symbols.txt
+```
+
+The symbols file holds one symbol per line. A rerun skips every symbol already
+recorded, so a run that stopped resumes where it left off, and it never
+overwrites a file the archive already holds. Each symbol prints one line, and
+the run ends on a tally of recorded, already recorded, failed and not reached.
+Run it after the close, from the branch that will commit the lines, because
+the lines are what a rerun reads.
+
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any
 return was computed:
