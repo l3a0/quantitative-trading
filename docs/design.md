@@ -280,6 +280,30 @@ set aside, and two copies of one calculation drift without either looking
 wrong. A rule to keep them matching was considered and cut, for the reason in
 the register below.
 
+Two forms of the Dickey-Fuller test stay in `src/chan` all the same, and they
+are not a second copy of the shared one. Each reproduces a toolbox function
+Chan's scripts call, and each fits something `adfuller` does not, so each
+lands a printed figure the shared estimator misses.
+
+1. `lesage_cadf` in `src/chan/pair_cointegration.py` reconstructs LeSage's
+   `cadf`, whose source is not committed, and its covariance multiplies by the
+   raw regressors' cross-product. It lands the −3.18156477 the book prints for
+   GLD and GDX.
+2. `jplv7_adf` in `src/chan/stationarity_tests.py` is jplv7's `adf`, which
+   fits one row fewer than `adfuller`. It lands the −1.840744
+   `stationarityTests.m` prints for USD.CAD.
+
+Neither meets the shared package's bar of two repositories, because the
+sibling runs no toolbox that Chan called. The price is that a fix to the
+Dickey-Fuller regression in `ithildincore` does not reach either, which is
+right for a transcription. A transcription is held to Chan's output, and a fix
+would move it off that output.
+
+`src/chan/stationarity_tests.py` also holds Aste's `genhurst` and MATLAB's
+`vratiotest`. `ithildincore` carries neither, and the sibling at `477c594`
+holds no Hurst exponent and no variance ratio test, so there was nothing to
+share and no second consumer. The register below records the declined move.
+
 The Newey-West block took the other route in, and naming it here is what stops
 the two being read as one rule. `common/stats.py` was never duplicated here. It
 had eleven consumers next door and none in this repo, and it went over because
@@ -512,8 +536,14 @@ schedule of investments for every December 31 in a filing iShares Trust makes
 with the SEC, so [src/chan/fund_holdings.py](../src/chan/fund_holdings.py)
 reads those filings into [research/filings](../research/filings/README.md),
 under [issue 361](https://github.com/l3a0/quantitative-trading/issues/361).
+[Issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added
+IVV, iShares' S&P 500 fund, at every quarter-end from 2008-12-31 to
+2026-06-30 but one, for the S&P 500 panel
+[issue 373](https://github.com/l3a0/quantitative-trading/issues/373) builds.
 [tests/test_fund_holdings.py](../tests/test_fund_holdings.py) is the authority
-for every count quoted about it.
+for every count quoted about IJR, and
+[tests/test_ivv_holdings.py](../tests/test_ivv_holdings.py) for every count
+quoted about IVV.
 
 Four things follow.
 
@@ -528,18 +558,23 @@ Four things follow.
    for unrecorded files both require every CSV under `data/` to have a line in
    the manifest. That line's recorders take a dated series, or lifted columns
    whose fields come from `LIFTED_FIELDS` or `EVENT_FIELDS`, and a schedule of
-   holdings is neither. The record is one CSV per filing and an index naming
-   each accession, the primary document's sha256 and the CSV's sha256. The
-   documents themselves are not committed, because an N-Q runs to 38 MB, and
-   the sha256 says which bytes a regeneration has to match. The price is that
+   holdings is neither. The record is one CSV per fund and filing and an
+   index naming each accession, the primary document's sha256 and the CSV's
+   sha256. The documents themselves are not committed, because a shareholder
+   report runs to 59 MB, and the sha256 says which bytes a regeneration has to
+   match. The price is that
    [data/README.md](../data/README.md) and the manifest do not list these
-   files and the size cap on `data/` does not count them. They take 651,301
+   files and the size cap on `data/` does not count them. They take 2,672,010
    bytes, index included, which `tests/test_fund_holdings.py` pins.
-3. **Every N-Q year reconciles to the filing's own total.** An N-Q holds every
-   fund the trust reports at that quarter-end, so reading IJR's rows means
-   finding where its schedule starts and stops. The writer refuses an N-Q whose
-   rows do not sum to the "Total Common Stocks" it prints, so a parse that read
-   the wrong rows cannot be recorded. All twelve reconcile exactly.
+3. **Every HTML schedule reconciles to the filing's own total.** An N-Q holds
+   every fund the trust reports at that quarter-end, and so does a shareholder
+   report, so reading one fund's rows means finding where its schedule starts
+   and stops. The writer refuses a schedule whose rows do not sum to the "Total
+   Common Stocks" it prints, so a parse that read the wrong rows cannot be
+   recorded. IJR's twelve N-Q years and IVV's 42 HTML schedules all reconcile
+   exactly. One N-Q is one accession for every fund in it, so IJR's and IVV's
+   December N-Q share theirs, and the index finds a line by fund and accession
+   together.
 4. **A member is placed only when it can be paired without guessing.** Each
    member is paired with the same holding in the filing before, by CUSIP where
    both rows carry one and otherwise by name, and a pairing is kept only when
@@ -595,6 +630,14 @@ price does, and no dividend is in it. What reads it is the rule
 [issue 329](https://github.com/l3a0/quantitative-trading/issues/329) writes for
 a member with no return, which is why an unpaired member is left without one
 rather than given a guess.
+
+One of IVV's quarter-ends has no full schedule. The 2013-09-30 shareholder
+report prints a summary of 55 holdings and "Other securities", and no
+amendment was found. The date stays on IVV's list with the filing's accession
+and the reason, and nothing is written for it, so a reader asking for its
+members is told why rather than meeting a missing file. The price is that a
+reader of IVV's list cannot assume every entry has a file, which is why the
+reason refuses loudly rather than returning no members.
 
 ## How work is cut and ordered
 
@@ -713,7 +756,7 @@ only committed vintages runs with no configuration at all.
 | --- | --- | --- | --- |
 | The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, `chan.fetch_alphavantage`, which writes the daily closes there, and `chan.sp600_panel`, whose `fetch` and `check` read it |
 | `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage`, and `chan.sp600_panel fetch`, which hands it on |
-| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose one run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share, and which runs only when it is set, because the full run takes minutes |
+| `QT_ARCHIVE_RUN=1` | no | the environment of one test run | `tests/conftest.py`, whose run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share within each test worker, and which runs only when it is set, because the full run takes minutes. `-n 0` runs the suite in one process, so the run is built once |
 | SEC's User-Agent contact | no | `~/.config/quantitative-trading/sec_user_agent`, one line, or `QT_SEC_USER_AGENT` for one run | `chan.fund_holdings`, whose fetch SEC asks to name a contact. A contact identifies a person, which is why it is read from the machine rather than from this repo |
 
 ## Considered and rejected
@@ -746,6 +789,7 @@ change that cuts it.
 | Porting the sibling's `simulate_sizing` for the coin-flip simulation | It folds draws through `equity *= (1 + fraction * r)`, which is the identity Box 6.1 needs, and nothing around that line carries over: an empirical bag of trade outcomes rather than a known two-point distribution, percentiles and ruin probabilities rather than a growth rate, and `random.Random` rather than the `numpy.random.default_rng` this repo uses throughout. A port would have been a rewrite. |
 | Moving the growth arithmetic to `ithildincore` | The bar there is two repositories, not two call sites, and the duplication does not exist. `ithildincore` holds no growth function and the sibling holds one line inside a grid search, so a shared module today would have one consumer and a plan. The price is named rather than hidden: a second implementation later if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) needs the same arithmetic. That is the moment to re-ask, because it is the first at which a second real consumer could exist. Re-asked when [issue 14](https://github.com/l3a0/quantitative-trading/issues/14) shipped and the answer is unchanged. The sibling repo was searched at `cc1ec3a` and holds no leverage or growth arithmetic at all, only a Sharpe ratio written twice as a four-line private helper inside a strategy module, so there is still one consumer and a plan. [Issue 14](https://github.com/l3a0/quantitative-trading/issues/14)'s own arithmetic shares no function with the coin flip either, since one computes a leverage from a return series' moments and the other a growth rate over two outcomes. Re-asked for [issue 298](https://github.com/l3a0/quantitative-trading/issues/298), which added the Gaussian `g = r + F'M - F'CF / 2` in `chan.kelly_allocation` beside `chan.kelly_leverage`'s `levered_growth` and the coin flip's `growth_continuous`. That is three call sites in one repository. The sibling, searched at `477c594`, still holds only the one growth line inside `kelly_fraction`'s grid search, so there is still one repository with a consumer and the answer is unchanged. |
 | A figure for the coin-flip divergence | `docs/figures` held one image when this was decided, and it already cost three copies to keep in step, one file and two embeds, plus a redraw in the same change that moves it. The divergence is four rows of capital, which a terminal table and a log row carry without adding a third copy of a number the suite already pins. [blog/coin-toss-expected-value-vs-growth.md](../blog/coin-toss-expected-value-vs-growth.md) later added that third copy, as a four-row table of ratios, so a re-pin now moves three surfaces. That is still text a re-pin edits in place, where an image would need a redraw and its embeds. **Reversed by the owner on 2026-09-29**, who chose three figures for that post knowing this row: growth against the stake, a fan of capital paths, and the distribution of final balances. [src/chan/coin_flip_figures.py](../src/chan/coin_flip_figures.py) draws them and [tests/test_coin_flip_figures.py](../tests/test_coin_flip_figures.py) pins what they draw. The cost named above is now paid, three files and three embeds plus a redraw in any change that moves them. The owner added two more the same day, for Lesson 6, so the count is five of each. The row stays so the reasoning and its reversal are read together. |
+| Moving Chapter 2's toolbox tests to `ithildincore` | jplv7's `adf`, Aste's `genhurst` and MATLAB's `vratiotest` landed in `src/chan/stationarity_tests.py` under [issue 338](https://github.com/l3a0/quantitative-trading/issues/338). The shared package's bar is two repositories, and l3a0/trading-strategies at `477c594` calls none of the three. Each is a transcription held to Chan's printed output, and a shared copy changes only through a release that re-pins every consumer. That price buys nothing while one repository reads them. |
 | A constrained Kelly allocator for any number of strategies | Example 8.2 works two strategies on one line, `F1 + F2 = Fmax` with both long, and [src/chan/kelly_allocation.py](../src/chan/kelly_allocation.py) solves that in closed form. A general allocator is a quadratic program with a gross-leverage constraint, which is machinery no example in either book runs and nothing here would call a second time. The price is named rather than hidden: the two-strategy search is long-only, and with a strong positive correlation a short hedge inside the cap beats it. `tests/test_kelly_allocation.py` holds such a case, so the limit is tested rather than only stated. Cut while planning [issue 298](https://github.com/l3a0/quantitative-trading/issues/298). |
 | Figures for the stationary candidates | Ruled out on [issue 16](https://github.com/l3a0/quantitative-trading/issues/16), on the reasoning of the regime-map row above: the candidates' rolling scans are pinned, so a picture of them is presentation, and each of the three scans invites reading one window as a finding. **Reversed by the owner on 2026-10-02** for [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md), three times in one day: for a figure that draws no scan, then for the scans themselves, then for a lag sweep that draws none. The post carries all three. In the post's order, the first is two number lines carrying the bars of the ADF with a constant and of Engle-Granger, with the cross rate's and the bond pair's statistics over the whole test period on them. The second draws each candidate's statistic at every lag count up to the ceiling, filled where the residuals pass the check. Neither draws a window. The third draws the rolling scans, so its reversal reaches the whole ruling. It responds to the objection in words rather than avoiding it: its title reads "How often one-year windows reject says little about the whole test period", each panel's title gives the result over that period, its note says a window that clears a bar is not a finding, and its dots take each line's own colour rather than the green the regime map gives cointegrating windows. The post's Lesson 4 says the same beside it. [src/chan/stationary_candidates_figures.py](../src/chan/stationary_candidates_figures.py) draws all three and [tests/test_stationary_candidates_figures.py](../tests/test_stationary_candidates_figures.py) pins what they draw. The part of the objection none of them answers is the cost: three more files and three more embeds to keep in step, and a redraw in any change that moves a statistic, a lag sweep or a scan they draw. The owner's reversal reaches the third candidate's post too, [blog/calendar-spreads-lessons.md](../blog/calendar-spreads-lessons.md), which [issue 314](https://github.com/l3a0/quantitative-trading/issues/314) planned with a figure by default and the owner left that default standing on 2026-10-04. Its one figure draws, for each commodity, the 1,000 shares of pairs rejecting under the declared null and under the corrected one, each null's 975th share, and the real count. It draws no pair and no window, so the objection this row records does not reach it. [src/chan/calendar_spread_figures.py](../src/chan/calendar_spread_figures.py) draws it and [tests/test_calendar_spread_figures.py](../tests/test_calendar_spread_figures.py) pins what it draws. Its cost is the same kind: one more file, one more embed, and a redraw in any change that moves a null. The row stays so the ruling and its reversals are read together. |
 | A repo-wide `* text=auto eol=lf` | The exposure it would answer stops at `data/`. Measured on a clone of `main` made with `core.autocrlf=true`, `docs/figures/reproduction_regime_map.png` is byte-identical, because git detects a PNG as binary on its own, and `ruff check` and `ruff format --check` both pass over the rewritten sources. A rule reaching the whole repository would be fixing past the class it was written for. `.gitattributes` names `data/**` and stops there, which is what [issue 41](https://github.com/l3a0/quantitative-trading/issues/41) built. |
@@ -789,3 +833,6 @@ change that cuts it.
 | One file for a fund's whole table of year-end holdings | It is the shape the row "One vintage per cross-section" above cut on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88), and it would be rewritten whole each time a year-end is added. One file per filing means a later year-end, or the earlier ones [issue 269](https://github.com/l3a0/quantitative-trading/issues/269) needs, adds a file and rewrites none. Cut on [issue 361](https://github.com/l3a0/quantitative-trading/issues/361). |
 | Resolving every member through Massive's CUSIP lookup before any other source | [Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) planned it, because Massive keeps a company under its last ticker. The connector a build session reaches it through answered about five requests a minute on 2026-10-05, and eight parallel callers drew nothing but rate-limit refusals, so the 1,012 CUSIPs at the latest N-PORT rows would have taken hours. Alpha Vantage's own active and delisted listings, read once with the owner's key, matched 1,354 of 1,796 companies by ticker or name at no per-company cost, and the check catches a wrong match. Those counts were measured in the build session and no test holds them, because the listings are not committed. So the CUSIP lookup ran only for the N-PORT companies the listings missed. The price is that a renamed company the listings match under its old ticker reaches the check first and the lookup second. |
 | An N-Q check within half a dollar of the printed value alone | An N-Q prints whole shares, so a value computed on a fractional holding sits up to half a share's price from the close times the printed count. Maidenform Brands on 2010-12-31 is 325,785 shares at a $23.77 close, $7,743,909.45, against a printed $7,743,910. The check allows half a share at the close on top of the half dollar, so a close a cent off fails only on a holding above 50 + 50 times the close shares. On the committed file five passes fall short of that, Biglari's three and two one-share lots, which pass on almost any close, and [tests/test_sp600_panel.py](../tests/test_sp600_panel.py) names them. N-PORT prints the balance to eight decimals and gets no such allowance. Cut on [issue 332](https://github.com/l3a0/quantitative-trading/issues/332). |
+| xdist's default distribution, or `--dist loadscope`, for the parallel suite | The suite runs `--dist loadfile`, which keeps each test file on one worker so a module-scoped fixture is built once, as it is serially. xdist's default hands each worker a batch of neighbouring tests and so rebuilds a file's fixtures on several workers. On the owner's 10-core Mac, on `b1395d7` with `pytest-xdist` added on 2026-10-05, one run each took 185 seconds by default and 204 with `loadfile`, against 541 serially, and one run cannot separate those two. The cost showed on CI's 4-core runner, where the default took 854 and 798 seconds on two commits of this branch, while serial runs of `main` that hour took 452 and 795. On the Mac at `0c20ff8` the default used 960 seconds of CPU against 526 serially, both reporting 2949 passed and 19 skipped. `loadscope` keeps each class on one worker, and `tests/test_pca_factor.py` splits the readers of its module-scoped fixture of about 78 seconds across five classes, so it builds that fixture five times. It took 274 seconds on the Mac. |
+| `--dist loadgroup`, to keep every test reading `cpo_result` on one worker | Each xdist worker has its own session, so the session-scoped run of Example 7.1 in `tests/conftest.py` is built in every worker that draws a reader. A collection hook marking the readers into one group was built and then cut. `loadgroup` hands out every test outside a group one at a time, so each module-scoped fixture gets rebuilt on more workers, and every run would pay that to save CPU on an archive run that happens by hand and had never run in parallel. `-n 0` builds the run once, and `tests/conftest.py` says so. CI's 4-core runner hit the job's 15-minute ceiling on the one commit that ran it, after reaching 65 percent of the suite in under three minutes. |
+| Collecting the slowest files first in the parallel suite | One run with the five slowest files named first took 172 seconds against 185 in the order pytest collects. One run each cannot resolve a 13-second gap, and keeping it would take a hook that reorders collection. The floor is the module fixture in `tests/test_pca_factor.py`, which took 128 to 131 seconds to build in that run once ten workers shared the cores. |

@@ -1,14 +1,18 @@
 # Filings
 
-Example 7.6 ranks the S&P 600 as it stood at each December year-end, and
-nothing Chan saved says which companies those were. IJR, the iShares fund that
-tracks the S&P 600, prints its whole schedule of investments for every
-December 31 in a filing iShares Trust makes with the SEC. This directory holds
-what those filings say IJR held, so a panel can be built from the membership
-the fund reported rather than from today's list carried backwards.
-[Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) built it,
-and [src/chan/fund_holdings.py](../../src/chan/fund_holdings.py) reads and
-writes it.
+Example 7.6 ranks the S&P 600 as it stood at each December year-end, Example
+7.7 ranks the S&P 500 at each month-end, and nothing Chan saved says which
+companies those were. IJR and IVV, the iShares funds that track the two
+indices, print their whole schedule of investments in the filings iShares
+Trust makes with the SEC. This directory holds what those filings say the two
+funds held, so a panel can be built from the membership the fund reported
+rather than from today's list carried backwards.
+[Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) built it
+for IJR at every December 31 from 2007 to 2025, and
+[issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added IVV
+at every quarter-end from 2008-12-31 to 2026-06-30.
+[src/chan/fund_holdings.py](../../src/chan/fund_holdings.py) reads and writes
+it.
 
 ## Why a filing is pinned by its accession
 
@@ -31,28 +35,41 @@ not list these files, and the size cap on `data/` does not count them.
 
 ## What is here
 
-1. **`index.jsonl`**, one line per filing. It names the fund, the series, the
-   form, the accession, the filing and report dates, the primary document and
-   its sha256, the holdings file and its sha256 and row count, and for an N-Q
-   the "Total Common Stocks" the schedule prints.
-2. **One CSV per filing**, at `<fund>/<report date>.csv`, holding the rows under
-   common stocks in the filing's order. The columns are
+1. **`index.jsonl`**, one line per fund and filing. It names the fund, the
+   series, the form, the accession, the filing and report dates, the primary
+   document and its sha256, the holdings file and its sha256 and row count, and
+   for an HTML schedule the "Total Common Stocks" it prints. One N-Q holds every
+   fund in the trust, so IJR's and IVV's December N-Q are one accession with a
+   line for each fund.
+2. **One CSV per fund and filing**, at `<fund>/<report date>.csv`, holding
+   the rows under common stocks in the filing's order. The columns are
    `name,shares,value,cusip,isin,ticker`.
 
 The CSV is written as the filing prints it, with three exceptions.
 
-1. An N-Q's numbers lose their thousands separators, and the two 2018 values
-   printed with a space inside them are each read as one number.
-2. Footnote markers are dropped, and every run of whitespace becomes one space.
+1. An HTML schedule's numbers lose their thousands separators, and a number
+   printed with a space inside it, as IJR's 2018 N-Q does twice, is read as
+   one number.
+2. Footnote markers are dropped, every run of whitespace becomes one space,
+   and a name the 2010-09-30 shareholder report wraps across two table rows is
+   joined into one.
 3. An N-PORT row takes the holding's `title` for its name, because from 2022
    the XML cuts `name` at 30 characters, and a CUSIP of nine zeros is written
    empty.
 
-An N-Q prints no identifiers, so its rows leave the last three columns empty.
-An N-PORT's share counts and values are the XML's own strings, decimals
-included.
+Four forms carry the schedules, and three of them are HTML: an N-Q, a
+shareholder report, which is an N-CSR or N-CSRS, and the standalone NPORT-EX
+that holds IVV's 2019-06-30. HTML prints no identifiers, so those rows leave
+the last three columns empty. An N-PORT is XML, and its share counts and
+values are the XML's own strings, decimals included. IVV's N-PORT rows carry
+no ticker, while IJR's do from 2022.
 
-The source documents are not committed, because each N-Q runs to 15 to 38 MB.
+IVV's 2013-09-30 has no file. Its shareholder report prints only a summary
+schedule, so the date stays on the fund's list in the module with the reason,
+and reading its members refuses and says why.
+
+The source documents are not committed, because each N-Q or shareholder report
+runs to 15 to 59 MB.
 The index's `document_sha256` says which bytes were parsed.
 
 ## Regenerating a file
@@ -66,6 +83,8 @@ it is read from the machine rather than from this repo. Set
 uv run python -m chan.fund_holdings fetch IJR
 ```
 
+The same command with `IVV` regenerates IVV's files.
+
 The run downloads each filing in the fund's committed list into a temporary
 directory, parses it, and deletes it. Where the index already names a document,
 a download with a different sha256 is refused. Where a file already exists, a
@@ -74,11 +93,13 @@ different bytes is refused, naming both hashes. So to regenerate one file,
 delete it and run again. The index line stays, and the run refuses if the new
 parse disagrees with it.
 
-The committed files were written on 2026-10-04 by `record` in that module, from
-the documents the survey on the issue downloaded that day. `fetch` wraps the
-same call around a download. Its first run against EDGAR, on 2026-10-05,
-downloaded all 19 documents, found each one's sha256 equal to the index's, and
-wrote no byte, because every parse reproduced the committed file.
+IJR's files were written on 2026-10-04 by `record` in that module, from the
+documents the survey on its issue downloaded that day. IVV's were written on
+2026-10-05 the same way. `fetch` wraps the same call around a download, and it
+has run against EDGAR once for each fund, on 2026-10-05. IJR's run downloaded
+all 19 documents and IVV's all 70. Each document's sha256 equalled the
+index's, and neither run wrote a byte, because every parse reproduced the
+committed file.
 
 ## The members file
 
@@ -123,9 +144,11 @@ uv run python -m chan.sp600_panel report
 ## What reads it
 
 [tests/test_fund_holdings.py](../../tests/test_fund_holdings.py) is the
-authority for every count, including how many rows each filing holds, how many
-of them are companies' stocks, and how many of those can be paired with the
+authority for every count about IJR, and
+[tests/test_ivv_holdings.py](../../tests/test_ivv_holdings.py) for every count
+about IVV. Those counts include how many rows each filing holds, how many of
+them are companies' stocks, and how many of those can be paired with the
 filing before.
 [tests/test_sp600_panel.py](../../tests/test_sp600_panel.py) is the authority
-for every count about the members file, including each year-end's coverage.
+for every count about IJR's members file, including each year-end's coverage.
 No replication reads this directory yet.

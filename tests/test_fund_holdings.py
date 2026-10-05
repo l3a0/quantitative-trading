@@ -1,9 +1,10 @@
 """The pins for IJR's year-end holdings, read from its SEC filings.
 
 This file is the single authority for every number any prose surface quotes
-about ``research/filings/``. It needs no network. Every pin reads the committed
-record, and every parser test reads a few rows cut from the real document,
-under ``tests/fixtures/filings/``.
+about IJR's files under ``research/filings/``, and about the record as a
+whole, such as its size. ``tests/test_ivv_holdings.py`` holds IVV's. It needs
+no network. Every pin reads the committed record, and every parser test reads a
+few rows cut from the real document, under ``tests/fixtures/filings/``.
 
 **What pins a number here is the accession rather than a vintage.** An SEC
 filing is never restated, so the accession names fixed bytes, and the index's
@@ -96,7 +97,7 @@ class TestTheCommittedRecord:
         assert listed == [row[:3] for row in YEAR_ENDS]
 
     def test_the_index_holds_one_line_per_filing_in_the_list(self) -> None:
-        index = read_index()
+        index = [entry for entry in read_index() if entry.fund == "IJR"]
         assert [(e.report_date, e.form, e.accession) for e in index] == [
             row[:3] for row in YEAR_ENDS
         ]
@@ -118,7 +119,7 @@ class TestTheCommittedRecord:
         } - members_files
         assert on_disk == named
 
-    @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.report_date)
+    @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.path)
     def test_each_file_is_what_the_writer_writes_from_its_rows(
         self, entry: fund_holdings.IndexEntry
     ) -> None:
@@ -127,7 +128,7 @@ class TestTheCommittedRecord:
         rows = read_holdings(fund_holdings.FILINGS_DIR / entry.path)
         assert fund_holdings.serialize(rows) == content
 
-    @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.report_date)
+    @pytest.mark.parametrize("entry", read_index(), ids=lambda entry: entry.path)
     def test_each_file_hashes_to_its_index_line(self, entry: fund_holdings.IndexEntry) -> None:
         content = (fund_holdings.FILINGS_DIR / entry.path).read_bytes()
         assert fund_holdings._sha256(content) == entry.sha256
@@ -154,10 +155,11 @@ class TestTheCommittedRecord:
     def test_the_record_takes_the_bytes_the_design_doc_quotes(self) -> None:
         files = [fund_holdings.FILINGS_DIR / fund_holdings.INDEX_NAME]
         files += [fund_holdings.FILINGS_DIR / entry.path for entry in read_index()]
-        assert sum(path.stat().st_size for path in files) == 651_301
+        assert sum(path.stat().st_size for path in files) == 2_672_010
 
     def test_nport_years_print_no_total(self) -> None:
-        assert [e.printed_total for e in read_index() if e.form != "N-Q"] == [None] * 7
+        nport = [e.printed_total for e in read_index() if e.fund == "IJR" and e.form != "N-Q"]
+        assert nport == [None] * 7
 
     def test_the_2009_anchor(self) -> None:
         held = read_holdings(fund_holdings.holdings_path(IJR, _filing("2009-12-31")))
@@ -404,7 +406,11 @@ def _nq(name: str) -> fund_holdings.Schedule:
 
 class TestParseNq:
     def test_every_fixture_names_the_accession_it_was_cut_from(self) -> None:
-        accessions = {filing.accession: filing.document for filing in IJR.filings}
+        accessions = {
+            filing.accession: filing.document
+            for fund in fund_holdings.FUNDS.values()
+            for filing in fund.filings
+        }
         for path in sorted(FIXTURES.iterdir()):
             first = path.read_text(encoding="utf-8").splitlines()[0]
             if first.startswith("<?xml"):
@@ -565,9 +571,35 @@ class TestRecord:
         (tmp_path / "ijr" / "2022-12-30.csv").unlink()
         index = tmp_path / "index.jsonl"
         index.write_text(index.read_text().replace('"document_sha256": "', '"document_sha256": "0'))
-        with pytest.raises(FilingRefused, match="already records 0001752724-23-037514"):
+        with pytest.raises(FilingRefused, match="already records IJR 0001752724-23-037514"):
             record(_FUND, _NPORT_FILING, document, tmp_path)
         assert not (tmp_path / "ijr" / "2022-12-30.csv").exists()
+
+    def test_two_funds_reading_one_accession_each_keep_their_line(self, tmp_path: Path) -> None:
+        # One N-Q holds every fund in the trust, so IJR's and IVV's December
+        # N-Q are the same accession. A line is found by fund and accession.
+        document = _fixture("nport-2022-title-and-cusip.xml")
+        other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
+        record(_FUND, _NPORT_FILING, document, tmp_path)
+        record(other, _NPORT_FILING, document, tmp_path)
+        record(other, _NPORT_FILING, document, tmp_path)
+        lines = read_index(tmp_path)
+        assert [(e.fund, e.accession) for e in lines] == [
+            ("IJR", "0001752724-23-037514"),
+            ("IVV", "0001752724-23-037514"),
+        ]
+        assert (tmp_path / "ivv" / "2022-12-30.csv").read_bytes() == (
+            tmp_path / "ijr" / "2022-12-30.csv"
+        ).read_bytes()
+
+    def test_a_second_funds_line_from_other_bytes_is_refused(self, tmp_path: Path) -> None:
+        document = _fixture("nport-2022-title-and-cusip.xml")
+        record(_FUND, _NPORT_FILING, document, tmp_path)
+        other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
+        with pytest.raises(FilingRefused, match="for IJR from document sha256"):
+            record(other, _NPORT_FILING, document.replace(b"Moog Inc", b"Moog Inc "), tmp_path)
+        assert [e.fund for e in read_index(tmp_path)] == ["IJR"]
+        assert not (tmp_path / "ivv").exists()
 
     def test_a_total_missed_by_one_dollar_is_refused(self, tmp_path: Path, monkeypatch) -> None:
         schedule = fund_holdings.Schedule((Holding("Acme Inc.", "10", "100"),), 101)
@@ -660,6 +692,22 @@ class TestFetch:
                 pause=lambda s: None,
             )
 
+    def test_a_download_is_checked_against_another_funds_line(self, tmp_path: Path) -> None:
+        # One N-Q is one set of bytes for every fund in it, so IVV's download
+        # of an accession IJR's line names must be the bytes IJR's line hashed.
+        document = _fixture("nport-2022-title-and-cusip.xml")
+        record(_FUND, _NPORT_FILING, document, tmp_path)
+        other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
+        with pytest.raises(FilingRefused, match="downloaded with sha256"):
+            fund_holdings.fetch(
+                other,
+                filings_dir=tmp_path,
+                contact="n@example.com",
+                download=lambda url, contact: document + b"\n",
+                pause=lambda s: None,
+            )
+        assert not (tmp_path / "ivv").exists()
+
     def test_the_downloads_are_deleted(self, tmp_path: Path, monkeypatch) -> None:
         scratch = tmp_path / "scratch"
         scratch.mkdir()
@@ -683,4 +731,4 @@ class TestFetch:
 
     def test_an_unknown_fund_prints_the_usage(self) -> None:
         with pytest.raises(SystemExit, match="usage"):
-            fund_holdings.main(["fetch", "IVV"])
+            fund_holdings.main(["fetch", "SPY"])

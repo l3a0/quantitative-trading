@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty replications run here, fifteen from Chan's *Quantitative Trading*
-and five from his *Algorithmic Trading*. The first two were ported from the
+Twenty-two replications run here, fifteen from Chan's *Quantitative Trading*
+and seven from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other eighteen were built here.
+where they were first built. The other twenty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -260,6 +260,30 @@ where they were first built. The other eighteen were built here.
     at 0.82, and putting the whole cap on the second grows at 0.955, which the
     book prints as 0.96. Every printed figure lands. The 0.96 lands only by
     rounding an exact tie up, so the run prints three decimals.
+21. Price spread, log price spread and ratio, Example 3.1 of *Algorithmic
+    Trading*, which trades GLD against USO by holding minus the 20-day
+    z-score of a signal in units of the pair, with the hedge ratio refitted
+    every day over the last 20. On Chan's own ETF file the price spread and
+    the log price spread reproduce all four figures their scripts print, to six
+    decimals: an APR of 0.108335 and a Sharpe ratio of 0.589651, then 0.088863
+    and 0.504153. The book calls the first "about 10.9 percent", which is not
+    0.108335 rounded. The ratio's script as published gives −0.134608 and
+    −0.702522 and misses its comment's −0.141522 and −0.746663. The same
+    script with GLD and USO swapped lands both, a reading found after the miss.
+    Chan's claim that the ratio loses money holds either way. Every figure is
+    exploratory.
+22. Four tests for mean reversion on USD.CAD and the trade they set, Examples
+    2.1 to 2.5 of *Algorithmic Trading*, on Chan's own minute file read at
+    16:59 each day. Every figure his script prints lands every digit: the ADF
+    statistic −1.840744 with its AR(1) estimate and critical values, the
+    variance ratio test's p-value of 0.367281, and the half-life of 115.209794
+    days. The ADF figure needs jplv7's regression, which fits one row fewer
+    than `adfuller`, whose −1.843018 misses. The Hurst exponent does not land:
+    0.4732 against the book's 0.49, and Chan's own Python port gives 0.4758,
+    though both agree H is below a half. Example 2.5's P&L ends positive at
+    0.1141 after a fall of 0.6425, which is the claim the issue declared
+    before any P&L was computed. Its lookback comes from the closes it trades,
+    as the book says. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -407,6 +431,14 @@ reading of the `lag` the script calls, and the profit of Example 3.8's
 notebook without its fill, which computes the same rule by another route, so a
 transcription that takes returns before the cut fails a test.
 
+[tests/test_price_spread.py](tests/test_price_spread.py) does it for Example
+3.1. It pins each figure the three scripts print at their six decimals and
+again at eight, and the book's rounding beside them. It pins the ratio's miss
+and the swapped legs that land it, and both of location 1505's claims. It also
+holds two choices no figure here can see, the padding of `lag` and the
+divisor of the moving deviation, so a reader does not take these figures as
+evidence about either.
+
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
 Example 8.2 figure at six decimals and again at the precision the book prints,
@@ -414,7 +446,18 @@ and pins the near miss beside them: solving along
 Chan's line without bounding it finds a higher growth rate by going short,
 over the gross cap.
 
-All twenty replications reach a verdict in
+[tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
+does it for the stationarity tests on USD.CAD. It pins each figure the script
+prints at the precision that is real and at the script's, H as a miss against
+the book's 0.49, and the ADF statistic `adfuller` gives beside jplv7's, so a
+port that reaches for the ADF this repo already held fails a test. It also
+recomputes Example 2.5's daily P&L with plain pandas.
+[tests/test_stationarity_tests.py](tests/test_stationarity_tests.py) holds the
+three toolbox tests' rules on synthetic series: the row jplv7 drops, the bins
+of its critical values, `genhurst`'s indifference to level and scale, and the
+variance ratio's trim to whole periods.
+
+All twenty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -424,7 +467,8 @@ seasonals', Entry 12 post-earnings drift's, Entry 13 the PCA factor model's,
 Entry 14 the market and momentum factors', Entry 15 the calendar spreads',
 Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
-panel's and Entry 20 the leverage examples'.
+panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's and Entry 22
+the stationarity tests on USD.CAD.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -471,7 +515,8 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand.
+stand. Example 3.1 calls it on GLD and USO over the ETF file's whole span, and
+neither carries a flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -537,7 +582,9 @@ factor model reads the earlier S&P 600 save's closes, for
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
 Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297).
-No run reads the ETF file yet. The lift for
+Example 3.1 reads GLD's and USO's closes from the ETF file, for
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and is
+the first run to read it. The lift for
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
 it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
@@ -560,8 +607,8 @@ them, under `data/pythoncodesanddata/`, for
 USD.CAD's one-minute bars, the daily closes of USD.CAD, AUD.USD and AUD.CAD,
 the monthly AUD and CAD interest rates, and the AUD.CAD returns his Example 5.1
 saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
-the daily close his Examples 2.1 to 2.5 read. No replication reads any of the
-seven yet.
+the daily close his Examples 2.1 to 2.5 read, and the stationarity tests on
+USD.CAD read it. No replication reads the other six yet.
 
 Four more of his MATLAB files hold his continuous futures series, four saves of one file named
 for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
@@ -572,16 +619,19 @@ is. His `VIX.csv` is committed beside them as one vintage under the vendor
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 their shape. No replication reads them yet.
 
-IJR's holdings at every year-end from 2007 to 2025 are committed under
+IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
+quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
 [research/filings](research/filings/README.md), read from the schedules
 iShares Trust files with the SEC rather than from a vendor. A filing is never
 restated, so each file is pinned by the filing's accession number rather than
 kept as a vintage, and that directory's README says why.
-`src/chan/fund_holdings.py` reads the filings, and
-[issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
-their shape. Beside them, `research/filings/ijr/members.csv` maps each member
-to the ticker Alpha Vantage files it under and records whether that series'
-close agrees with the filing, which
+`src/chan/fund_holdings.py` reads the filings.
+[Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) carries
+IJR's shape and
+[issue 372](https://github.com/l3a0/quantitative-trading/issues/372) carries
+IVV's. Beside IJR's, `research/filings/ijr/members.csv` maps each member to the
+ticker Alpha Vantage files it under and records whether that series' close
+agrees with the filing, which
 [issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built and
 [tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. No replication
 reads them yet.
@@ -597,7 +647,11 @@ and the Newey-West significance block live in
 the sibling repo because both had the same copy. The dependency is a direct URL
 at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
 two cannot drift apart unnoticed. All three parts earn their place, and
-[docs/design.md](docs/design.md) says which failure each one closes.
+[docs/design.md](docs/design.md) says which failure each one closes. Two
+toolbox forms of the Dickey-Fuller test are the exception and live in
+`src/chan`, because each reproduces a figure the shared one cannot. So do the
+Hurst exponent and the variance ratio test Chan's scripts call, which the
+shared package does not carry. The design doc says why none of them moved.
 [tests/test_ithildincore_contract.py](tests/test_ithildincore_contract.py) is what
 tells a dependency change apart from a vintage change, since its cases read no
 vintage. [docs/design.md](docs/design.md) carries why the pin is not optional,
@@ -862,7 +916,9 @@ same figures net of 1 basis point a round trip, the verdict on Chan's claim,
 and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
-in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them.
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. Run those
+pins with `-n 0`, because a parallel run builds the run once for each of the
+two test files that read it.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
@@ -923,6 +979,17 @@ uv run python -m chan.buy_on_gap
 It prints the source, the window, both rules, how many positions each side
 took, and each figure beside what `bog.m` and the book print.
 
+Example 3.1 reads GLD and USO from Chan's book-two ETF file and takes no
+option, because his three scripts fix the file, the lookback and the rule:
+
+```bash
+uv run python -m chan.price_spread
+```
+
+It prints the two vintages, the window, the rule, and each script's two
+figures beside its comment and the book, then the ratio again with GLD and USO
+swapped.
+
 The leverage examples, Examples 8.1 and 8.2 of *Algorithmic Trading*, read
 nothing and take no option, because the book fixes every input:
 
@@ -934,6 +1001,20 @@ It prints Example 8.1's two days of resizing, each Example 8.2 figure beside
 the book's, the growth rate along the line Figure 8.1 plots, the line's
 stationary point outside the cap, and the cap above which the second strategy
 alone stops being best.
+
+The stationarity tests on USD.CAD, Examples 2.1 to 2.5 of *Algorithmic
+Trading*, read Chan's minute file and take no option, because his script fixes
+the closes, every test's settings and the trade, and the issue fixed Example
+2.5's claim before any P&L was computed:
+
+```bash
+uv run python -m chan.usdcad_mean_reversion
+```
+
+It prints the source, each test's figures beside the script's and the book's,
+Example 2.5's lookback, cumulative P&L and drawdown, and the two rows reported
+beside the script: `adfuller`'s statistic and the Python port's own Hurst
+exponent.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -2121,6 +2202,11 @@ uv run ruff check
 uv run ruff format --check
 uv run pytest
 ```
+
+`uv run pytest` runs the suite across one worker per core through
+`pytest-xdist`, which `pyproject.toml` turns on in `addopts`. Add `-n 0` for a
+serial run, which is the faster choice for a few tests, because every worker
+starts whatever the selection. `--pdb` runs serially on its own.
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.

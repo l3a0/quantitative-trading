@@ -1,6 +1,6 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. The board's data lives in the artifact's database, so an update is a pinned ArtifactData write, and the Artifact tool is needed only to change the page's code. Answering what to take next is a read and does not on its own call for a write.
+description: Update the Quantitative Trading Build Board whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, when a session hands its pull request over, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. The board's data lives in the artifact's database, so an update is a pinned ArtifactData write, and the Artifact tool is needed only to change the page's code. Answering what to take next is a read and does not on its own call for a write.
 ---
 
 # Update the build board
@@ -26,7 +26,7 @@ them as stale rather than updating them unasked.
 
 ## When to run it
 
-Seven moments, and each is one where the page's own answer changed. A session
+Eight moments, and each is one where the page's own answer changed. A session
 that hits one and leaves has made the board wrong, and nothing else notices.
 
 1. **A decompose loop exits.** Add the card to `PLANNED` with its pass count and
@@ -34,9 +34,14 @@ that hits one and leaves has made the board wrong, and nothing else notices.
 2. **A pull request opens or merges.** An open one moves the card out of the
    build order into the in-flight section, as a `PRS` entry. A merged one
    usually takes the card off the page, because the issue it closed is closed.
+   Opening one leaves the session's `WORKING` entry where it is. That entry
+   comes out at the hand-over, under the eighth moment.
 3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
-   flag is the only thing that moves a card from waiting on a reviewer to
-   waiting on the owner, and it is the column the owner reads first.
+   flag is one of three things a card needs before it moves from waiting on a
+   reviewer to waiting on the owner, which is the column the owner reads first.
+   The other two are no `WORKING` entry on the card and green checks at the
+   current head. The page's `owed` reads all three, in that order, and the flow
+   note gives the first one a card still owes as its reason.
 4. **An issue is filed or closed.** That moves `TRACKER` and
    `STATE.issues.open`, and it is worth an update on its own. A filed issue's
    card stays off the board's default view until it has a `NEXT` entry, so
@@ -51,6 +56,12 @@ that hits one and leaves has made the board wrong, and nothing else notices.
 7. **An issue is retitled or relabelled.** `TRACKER` carries `label`, `ms` and
    `labels` by hand, and none of them moves on its own. A decompose loop
    correcting a body counts under the first moment only if the loop exits.
+8. **A session hands its pull request over.** That means the review is posted,
+   its fixes are pushed, the checks are green at the current head, and nothing
+   more is coming. Take the session's `WORKING` entry out in the same pinned
+   batch that writes `reviewed` and `rollup`, so the card reaches "Waiting on
+   your review" in one step. Until that write it stays under "Waiting on my
+   review", whatever its review and checks say.
 
 A branch that closes no issue gets no card at all, because the page is built
 from the tracker. That has happened, and the fix was to file the issue and link
@@ -58,13 +69,30 @@ the branch to it rather than giving the page a second source of truth. Check
 `closingIssuesReferences` when a pull request opens, and if it is empty and the
 branch means to close something, fix the body before the board is touched.
 
-One section these seven do not maintain, said plainly rather than left to be
-discovered. `WORKING` marks a card a session is on right now, which is only
-knowable while a session is running, and every moment above fires when one
-finishes. So the Building column reads zero unless something outside this skill
-writes that array, and a stale entry in it has nothing to clear it. Treat an
-entry as owed a removal by whoever added it, and read an empty Building column
-as no information rather than as nobody working.
+One section these eight maintain only in part, said plainly rather than left
+to be discovered. `WORKING` marks a card a session is on right now, which is
+only knowable while a session is running. The session an entry describes is
+what writes it, since nothing in this skill adds one. A decompose loop takes its
+entry out when the loop exits. A build session keeps its entry after its pull
+request opens and takes it out at the hand-over, because until then the entry
+is the only thing on the page saying the branch is still moving. A stale entry
+has nothing else to clear it. Treat an entry as owed a removal by whoever added
+it, and read an empty Building column as no information rather than as nobody
+working.
+
+The price of keeping an entry until the hand-over is named rather than hidden.
+A session that ends without taking its entry out leaves its card under "Waiting
+on my review" until somebody removes it. That fails safe, because it delays a
+merge rather than inviting one too early. Defect 17 is the measurement that
+chose this side of the trade. If the pull request then merges or closes while
+its issue stays open, the leftover entry sends the card to "Building" with a
+line saying no branch exists yet, which is the same stale entry showing in a
+different column.
+
+Any entry holds the card, whatever its `kind`. A decompose loop running on a
+card whose pull request is open also keeps it under "Waiting on my review",
+which is the owner's rule as given rather than a measured case, and the note's
+reason says a session is working on it rather than naming whose.
 
 Whoever adds an entry sets its `kind`, because that field decides whether the
 card keeps its plan marker. A build session writes `build` and a decompose loop
@@ -99,8 +127,10 @@ The sections are these.
 1. **In flight**, five columns running most finished on the left: waiting on
    your review, waiting on my review, building, planned with no builder, and
    being planned. A card here is drawn once and left out of the build order.
-   Two of the five hold a card because a session is on it, and `kind` on the
-   `WORKING` entry is what separates a build session from a decompose loop.
+   Two of the five hold a card only because a session is on it, and `kind` on
+   the `WORKING` entry is what separates a build session from a decompose loop.
+   A third, waiting on my review, also holds a card whose branch is open and
+   whose session has not handed it over.
 2. **Build order**, four columns by dependency depth. By default they hold the
    ranked cards, and with Show all they hold everything not in flight.
    Within a column, cards sort by readiness, then by the priority order, then by
@@ -222,16 +252,24 @@ merge landed since its last read.
 
 ```bash
 git fetch --prune origin && git log --oneline -1 origin/main
-gh issue list --state open --limit 100 --json number --jq 'length'
-gh pr list --state open --json number,title,statusCheckRollup,closingIssuesReferences
-gh issue list --state open --limit 100 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
+gh issue list --state open --limit 1000 --json number --jq 'length'
+gh pr list --state open --limit 1000 --json number,title,statusCheckRollup,closingIssuesReferences
+gh issue list --state open --limit 1000 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
 ```
 
-The `gh issue list` command feeds every card's `ms` and `labels`. `ms` is the
-GitHub milestone title, printed on the card exactly as the tracker spells it,
-which is why it is queried rather than recalled from the five that exist. They are the tracker's own labels
-rather than a second vocabulary, so a label added on GitHub belongs on the card,
-and `LABEL_HUE` takes its colour from `gh label list --json name,color`.
+Every list command carries `--limit 1000` because `gh` stops at its limit
+without a warning, and the default is 30. A truncated list prints the same way a
+complete one does, so its length reads as a count rather than as a cut. On
+2026-10-05 the repo held 121 open issues and `--limit 100` returned 100, which
+under-counted the open total and dropped 21 cards' milestones and labels. Keep
+the limit well past the current count rather than at it.
+
+The second `gh issue list` command feeds every card's `ms` and `labels`. `ms`
+is the GitHub milestone title, printed on the card exactly as the tracker
+spells it, which is why it is queried rather than recalled from the five that
+exist. They are the tracker's own labels rather than a second vocabulary, so a
+label added on GitHub belongs on the card, and `LABEL_HUE` takes its colour
+from `gh label list --limit 1000 --json name,color`.
 
 Two hues are deliberately not GitHub's, and the rule is readability rather than
 fidelity. A label colour on GitHub is a chip background, while here it is text,
@@ -270,8 +308,8 @@ an author may leave one on their own pull request even though they may not
 approve it. If a session posts reviews that way, `reviews` becomes queryable and
 the comment count stops being needed. `reviewDecision` still will not move,
 because only an approval changes it, so it is not the field to read either way. Until then, count the comments that
-open with a review heading, because that flag is the only thing that moves a
-card into the column saying the next move is the owner's.
+open with a review heading, because a card cannot reach the column saying the
+next move is the owner's without that flag.
 
 That heading is a convention this command depends on and nothing else states, so
 it is stated here: **a session's review comment opens with a line reading
@@ -350,7 +388,7 @@ One more constant is not in the table because nothing should edit it.
 | --- | --- |
 | `STATE`, from `board/state` | `updatedAt` and `issues.open` |
 | `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
-| `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop |
+| `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase rendered on the card. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop. A build session's entry stays after its pull request opens and comes out at the hand-over, so an entry on a card with an open pull request holds it under "Waiting on my review" |
 | `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
 | `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column, the small number chip on the cards it names, and which cards the default view draws |
@@ -416,11 +454,15 @@ o.push("STRIP: "+s(store.strip.innerHTML));
 store.flow.innerHTML.split('<div class="col f-').slice(1).forEach(function(c){
   var h=c.match(/<span class="t">([^<]+)<\/span><span class="c">(\d+)<\/span>/);
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
-  o.push("flow  "+h[1]+"="+h[2]+": "+(ids.join(" ")||"(empty)"));});
+  var d=c.match(/<span class="d">([^<]*)<\/span>/);
+  o.push("flow  "+h[1]+"="+h[2]+": "+(ids.join(" ")||"(empty)"));
+  o.push("  sub "+(d?d[1]:"(none)"));});
 store.board.innerHTML.split('<div class="col k').slice(1).forEach(function(c){
   var h=c.match(/<span class="t">([^<]+)<\/span><span class="c">(\d+)<\/span>/);
   var ids=(c.match(/data-n="(\d+)"/g)||[]).map(function(m){return "#"+m.match(/\d+/)[0];});
-  o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));});
+  var d=c.match(/<span class="d">([^<]*)<\/span>/);
+  o.push("board "+h[1]+"="+h[2]+": "+ids.join(" "));
+  o.push("  sub "+(d?d[1]:"(none)"));});
 o.push("FLOWNOTE: "+s(store.flownote.innerHTML));
 o.push("BOARDNOTE: "+s(store.boardnote.innerHTML));
 o.push("KEY: "+s(store.key.innerHTML));
@@ -466,6 +508,11 @@ version of this harness skipped `foot`, `key` and `flowkey`, and `foot` is the
 largest prose block on the page and the one holding the most hand-written
 numbers. Planting a false figure in it left the output byte-identical, so the
 check could not see the surface it was most needed on.
+
+The column subtitles were the same gap a second time. The harness printed each
+column's title and count and skipped the subtitle under them, so a change
+rewriting the "Waiting on" subtitles for defect 17 could have been reverted
+without the output moving. Each column now prints a `sub` line under it.
 
 **Much of the page is dark when `PRS` and `WORKING` are empty**, which is the
 state it is in between batches and every time a session opens the first branch
@@ -611,8 +658,7 @@ and the ones a harness cannot see.
 Defects 13 and 14 are a third kind. Both were made and caught inside one session
 rather than by the owner reading the page. Defect 14 came from the harness
 output. Defect 13 could not, for the reason it records, and came from reading
-the script beside it. The two after them are back in the owner's group, and each
-says so.
+the script beside it. Each row after them says how it was found.
 
 13. **Bindings left behind when the sentence they fed moved.** The board note
     once described the cards a session was on. That sentence moved to the
@@ -646,8 +692,9 @@ says so.
     column and added a clause to the note saying its checks had not settled,
     which is the note working around a wrong test rather than the test being
     fixed, and it put the rule in a second place. That is defect 5 again. One
-    `handedOver` now decides it, the card stays on the reviewer's side until
-    both halves are done, and the note went back to one sentence.
+    `handedOver` came to decide it, the card stayed on the reviewer's side until
+    both halves were done, and the note went back to one sentence. Defect 17
+    later added a third condition.
 
     Three states stay on the reviewer's side and the third is the one to
     remember: a check still running, a check that failed, and no checks reported
@@ -659,6 +706,33 @@ says so.
     what a loop is not. A loop ends in a sharper plan and a builder ends in a branch,
     so they are different states and now have different columns. `kind` was
     already the field that told them apart, and the column test reads it.
+17. **A column test that could not see the session still working.** Caught by
+    the owner, after a session had recommended a merge from the column. On
+    2026-10-05
+    [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) sat
+    under "Waiting on your review". Its
+    [pull request 383](https://github.com/l3a0/quantitative-trading/pull/383)
+    had a review comment posted at 05:02Z and six green checks at `81b4e28`, so
+    both halves defect 15 asks for were done. Its session was not. At 05:15Z it
+    pushed a merge of `main`, moving the head to `125b5a6`, and it was then
+    rewriting the post, the README and Entry 21. `handedOver` read the review
+    and the checks and nothing about the session. The page's own comment said
+    an entry owes its removal when its pull request opens, so the card carried
+    no `WORKING` entry and no signal was left to read.
+
+    This is defect 15 on the other half of the same heading. That one read a
+    review and not the checks, and this one read both and not the session. The
+    fix reuses `WORKING` rather than adding a field. A build session's entry
+    now stays until it hands the pull request over, and comes out in the same
+    pinned write that records the hand-over. The page's `owed` returns the
+    first thing a branch still owes, which is a review, its session or its
+    checks. The column test and the flow note both call it, so the reason a
+    card gives for sitting on the reviewer's side is the rule that put it
+    there, which is defect 5's lesson.
+
+    The price is a card left under "Waiting on my review" when its session
+    ends without taking its entry out. That fails safe, because it delays a
+    merge rather than inviting one too early.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old

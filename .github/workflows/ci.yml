@@ -56,7 +56,9 @@ jobs:
 
       # The suite includes tests/test_markdown_hygiene.py, which runs the prose
       # checks CLAUDE.md names. They run here rather than in the docs job so a
-      # local `pytest` catches them too.
+      # local `pytest` catches them too. pyproject.toml's addopts spreads the
+      # run across one pytest-xdist worker per core, so this step needs no flag
+      # and runs the same command a local check does.
       - name: Run the test suite
         run: uv run pytest
 

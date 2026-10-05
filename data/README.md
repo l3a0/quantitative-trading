@@ -749,7 +749,9 @@ port of *Algorithmic Trading*'s code, `PythonCodesAndData.zip`, committed byte
 for byte under the names the zip gives them. Neither `.mat` mirror holds these
 series, and the zip is the only free copy of them.
 
-- USD.CAD's one-minute bars, which Examples 2.1 to 2.5 read at 16:59.
+- USD.CAD's one-minute bars, which Examples 2.1 to 2.5 read at 16:59. The
+  stationarity tests on USD.CAD run those examples, and they are the first run
+  here to read any of the seven.
 - The daily closes of USD.CAD, AUD.USD and AUD.CAD, which Examples 5.1 and 5.2
   read.
 - The monthly AUD and CAD interest rates, which Example 5.2 reads for its
@@ -859,9 +861,14 @@ the measurements below.
 8. **Three things cannot be checked here.**
    1. Whether the four currency files equal the `.mat` files Chan's MATLAB
       loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
-      Neither mirror holds any of them. Example 5.1 run as the MATLAB runs it
-      can be compared with `AUDCAD_unequal_ret.mat`, which is that MATLAB's
-      own output, and that belongs to Example 5.1's experiment.
+      Neither mirror holds any of them. The minute file has indirect evidence
+      instead. Four statistics computed from its 16:59 closes land every digit
+      `stationarityTests.m` prints for Examples 2.1, 2.3 and 2.4, which
+      Entry 22 of the [replication log](../docs/replication-log.md) records
+      and [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
+      pins. Example 5.1 run as the MATLAB runs it can be compared with
+      `AUDCAD_unequal_ret.mat`, which is that MATLAB's own output, and that
+      belongs to Example 5.1's experiment.
    2. Who supplied the bars, and whether a bar's label is its first minute or
       its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
       and nothing in the files says more.
@@ -1008,8 +1015,10 @@ as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
 mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
 price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
-on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. No run reads it
-yet. [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
+on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. Example 3.1 is
+the first run to read it, GLD and USO alone, under
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
+[Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
 1. **Where it came from.** Three copies exist, and all three are one git

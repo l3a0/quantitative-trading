@@ -84,9 +84,9 @@ branch, and the files turned out to be review fixes in progress. Check 4 is
 what kept the worktree.
 
 The same evidence does not show that work has stalled. Before reporting a
-session as stuck, re-run `gh pr list --state open` and read its latest events
-with `list_events`, because a pull request may have opened since the worktree
-was classified.
+session as stuck, re-run `gh pr list --state open --limit 1000` and read its
+latest events with `list_events`, because a pull request may have opened since
+the worktree was classified.
 
 This prints what checks 3 to 5 need for every worktree.
 
@@ -146,7 +146,10 @@ only names what a round usually changes.
 - `TRACKER` and `STATE.issues.open` take issues filed or closed since the last
   round. `PLANNED` and `NEXT` drop entries for closed issues.
 - `WORKING` entries are owed a removal by whoever added them, so report a stale
-  one rather than deleting another session's entry.
+  one rather than deleting another session's entry. A build session keeps its
+  entry until it hands its pull request over, so an entry on a card with an
+  open pull request keeps that card out of the owner's queue whatever its
+  `kind`. Ask whoever added it before calling it stale.
 
 Nothing in a round waits on a suite run. The board stopped carrying the commit,
 the test count and the vintage counts on 2026-10-05 UTC, so every section is
@@ -158,9 +161,12 @@ The ranking directive in `CLAUDE.md` decides the order, and the board's `NEXT`
 block stores it, so read `NEXT` rather than re-deriving it. Collect candidates
 from four places, and give the evidence for each one.
 
-1. **The owner's queue.** These are pull requests with a review and green
-   checks, `PLANNED` entries with `ready` of `decide`, and questions a session
-   handed back. Nothing moves until the owner answers, so they come first.
+1. **The owner's queue.** Nothing moves until the owner answers, so these come
+   first.
+   - Pull requests that are reviewed, green at the current head, and carry no
+     `WORKING` entry on their card.
+   - `PLANNED` entries with `ready` of `decide`.
+   - Questions a session handed back.
 2. **Plans ready to build with no builder.** These are `PLANNED` entries with
    `ready` of `build`, with no `WORKING` entry and no open pull request.
 3. **Blog drafts.** List the Substack drafts and their schedule. A merged or open
