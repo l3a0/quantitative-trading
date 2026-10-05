@@ -163,6 +163,7 @@ def test_discovery_fails_loudly_outside_a_repository(tmp_path: Path) -> None:
 MUST_BE_SWEPT = frozenset(
     {
         ".claude/skills/decompose-problem/SKILL.md",
+        ".claude/skills/sync-prune-next/SKILL.md",
         ".claude/skills/update-build-board/SKILL.md",
         "CLAUDE.md",
         "README.md",
