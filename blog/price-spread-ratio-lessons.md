@@ -124,10 +124,6 @@ The rule holds minus the z-score in units, so doubling every z-score doubles eve
 r_t = \frac{\sum_i P_{i,t-1}\,\Delta p_{i,t} / p_{i,t-1}}{\sum_i |P_{i,t-1}|}
 ```
 
-```latex
-r_t = \frac{\sum_i P_{i,t-1}\,\Delta p_{i,t} / p_{i,t-1}}{\sum_i |P_{i,t-1}|}
-```
-
 Here Pᵢ,ₜ₋₁ is yesterday’s dollar position in ETF i and Δpᵢ,ₜ / pᵢ,ₜ₋₁ is its return today. Multiply every position by any positive constant and rₜ does not move.
 
 That has a consequence for checking the code. Chan’s book ships two standard deviation helpers. The plain `movingStd` divides by n − 1, and `smartMovingStd`, which skips missing values, divides by n. Over 20 days that rescales every z-score by the same factor, so the two give the same daily returns here to within 10⁻¹², and the same figures. In the posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md), a standard deviation helper fed a fixed threshold, so its scale mattered and the choice of helper moved printed figures. Here nothing compares the z-score with a threshold, so these figures are no evidence about which helper is right. A matching figure only checks the parts of the code it can see.
