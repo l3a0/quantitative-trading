@@ -899,7 +899,11 @@ near delivery. His Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL
 strip named for 2012-08-13 to trade the gap between two crude contracts
 delivering 12 months apart. Two unnumbered experiments read the TU and VX
 strips. `VX_ES_rollreturn.m` also reads the VX strip, and `GLD_GC.m` reads the
-gold series. No replication reads any of them yet.
+gold series. Example 5.3 is the first replication to read any of them, five of
+the seven its script names, BR, C2, CL, HG and TU, through
+`chan.roll_returns`, for
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). It
+leaves out VX and HO2, for which the book prints no figure there.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 

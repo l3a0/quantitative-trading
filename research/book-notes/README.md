@@ -121,6 +121,17 @@ book: −3.64346635, every Johansen statistic, critical value, eigenvalue and
 eigenvector, the half-life of 22.662578, and 0.125739 and 1.391310. The
 replication log's Entry 23 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 5.3 splits a third way, because its script
+records no figure. The book's are here: the whole of Table 5.1 in the
+recovered text of location 2399, with the corn row repeated at 2444, and
+Figure 5.5's first day, November 22, 2004, in the same passage. The claims at
+2399 and 2683 about which roll returns outweigh their spot returns are here
+too. `estimateFuturesReturns.m` prints its two figures and keeps neither in
+its comments. Chan's 2018 Python port of it does, for corn alone:
+`0.02805562210100287` and `-0.12775650227459556` sit in its comments and
+nowhere in the book. The replication log's Entry 24 traces each to one or the
+other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
