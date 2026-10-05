@@ -78,14 +78,20 @@ What each one does:
 They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
-**Book two's helpers.** Five come from Chan's *Algorithmic Trading* code
+**Book two's helpers.** Seven come from Chan's *Algorithmic Trading* code
 rather than his first edition's. :mod:`chan.pead` calls the first three,
-:mod:`chan.buy_on_gap` calls all but :func:`smartstd_book_two` directly and
-runs it through :func:`smart_moving_std`,
+:mod:`chan.buy_on_gap` calls :func:`smart_moving_std`,
+:func:`calculate_max_dd`, :func:`calculate_returns` and
+:func:`smart_moving_avg` directly and runs :func:`smartstd_book_two` through
+the first,
 :mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
 :func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
 :mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
-the revised edition's Example 7.7.
+the revised edition's Example 7.7. :mod:`chan.usdcad_mean_reversion` calls the
+last two, :func:`moving_avg` and :func:`moving_std`, with
+:func:`round_half_away` for the lookback, for Example 2.5.
+:mod:`chan.stationarity_tests` calls :func:`round_half_away` too, to choose a
+row of jplv7's critical values.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
@@ -108,6 +114,10 @@ endings are stripped, measured on
   over the row ``lag`` rows before it.
 - :func:`smart_moving_avg` is ``smartMovingAvg``, the mean of the finite
   entries over a trailing window of rows, NaN until the window first fills.
+- :func:`moving_avg` is ``movingAvg``, the plain mean over a trailing window,
+  so a missing value anywhere in the window makes it missing.
+- :func:`moving_std` is ``movingStd``, MATLAB's ``std`` over a trailing
+  window, the n − 1 estimate, with the same rule for a missing value.
 
 Book two's ``smartmean``, ``smartsum`` and ``backshift`` compute what the first
 edition's do, so they are not carried twice.
@@ -151,6 +161,26 @@ things changed on the way over.
 2. ``smartMovingAvg``'s ``assert(T>0)`` becomes a refusal that names the
    window.
 3. ``calculateReturns``' commented-out log return is not carried.
+
+``movingAvg.m`` and ``movingStd.m`` came last, for Example 2.5's
+``stationarityTests.m``, from the same directory of the same mirror at the same
+commit. Their git blobs are ``5b9f933`` and ``2f5f858``, the same blobs as
+EpchanPreview's ``public/img/book2/`` and ``public/img/book2/Utilities/``
+copies. They landed here with the pull request for
+[issue 338](https://github.com/l3a0/quantitative-trading/issues/338). Three
+things changed on the way over.
+
+1. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window,
+   and so does a window longer than the series, which MATLAB would answer with
+   an error from ``zeros``.
+2. ``movingStd``'s optional third argument, which samples every ``period``
+   rows, is not carried, because ``stationarityTests.m`` never passes it.
+3. ``movingStd`` refuses a window of one row, for the reason
+   :func:`smart_moving_std` does.
+
+``movingAvg`` adds the shifted copies oldest row first, and :func:`moving_avg`
+adds them in that order, so each mean is the same double MATLAB's is. That is
+the opposite order to ``smartMovingAvg``'s, which starts from the current row.
 
 ``smartMovingAvg`` adds the window's rows one at a time, the current row first,
 and :func:`smart_moving_avg` adds them in the same order, so each mean is the
@@ -337,6 +367,45 @@ def smart_moving_avg(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
         count = count + np.isfinite(backshift(i, values))
     with np.errstate(invalid="ignore", divide="ignore"):
         return np.where(count > 0, total / count, np.nan)
+
+
+def moving_avg(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
+    """``movingAvg``: the mean of each trailing ``lookback`` rows, NaN until the window fills.
+
+    Unlike :func:`smart_moving_avg`, nothing is skipped, so a missing value
+    anywhere in a window makes that row's mean missing. The sum runs oldest
+    row first, as the ``.m`` file's loop does.
+    """
+    values = np.asarray(x, dtype=float)
+    rows = len(values)
+    if lookback < 1:
+        raise ValueError(f"moving_avg takes a window of at least 1 row, not {lookback}")
+    if lookback > rows:
+        raise ValueError(f"moving_avg cannot take a {lookback}-row window over {rows} rows")
+    total = np.zeros_like(values[: rows - lookback + 1])
+    for i in range(lookback):
+        total = total + values[i : rows - lookback + 1 + i]
+    padding = np.full((lookback - 1, *values.shape[1:]), np.nan)
+    return np.concatenate([padding, total / lookback])
+
+
+def moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
+    """``movingStd``: MATLAB's ``std``, the n − 1 estimate, over each trailing ``lookback`` rows.
+
+    The first ``lookback − 1`` rows are NaN because no window has filled, and a
+    missing value anywhere in a window makes that row missing, as MATLAB's
+    ``std`` does.
+    """
+    values = np.asarray(x, dtype=float)
+    if lookback < 2:
+        raise ValueError(
+            f"moving_std takes a window of at least 2 rows, not {lookback}, because "
+            "MATLAB reduces a one-row window across its columns"
+        )
+    spread = np.full_like(values, np.nan)
+    for t in range(lookback - 1, len(values)):
+        spread[t] = np.std(values[t - lookback + 1 : t + 1], axis=0, ddof=1)
+    return spread
 
 
 def drawdown_path(

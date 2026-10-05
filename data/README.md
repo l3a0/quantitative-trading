@@ -859,9 +859,14 @@ the measurements below.
 8. **Three things cannot be checked here.**
    1. Whether the four currency files equal the `.mat` files Chan's MATLAB
       loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
-      Neither mirror holds any of them. Example 5.1 run as the MATLAB runs it
-      can be compared with `AUDCAD_unequal_ret.mat`, which is that MATLAB's
-      own output, and that belongs to Example 5.1's experiment.
+      Neither mirror holds any of them. The minute file has indirect evidence
+      instead. Four statistics computed from its 16:59 closes land every digit
+      `stationarityTests.m` prints for Examples 2.1, 2.3 and 2.4, which
+      Entry 21 of the [replication log](../docs/replication-log.md) records
+      and [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
+      pins. Example 5.1 run as the MATLAB runs it can be compared with
+      `AUDCAD_unequal_ret.mat`, which is that MATLAB's own output, and that
+      belongs to Example 5.1's experiment.
    2. Who supplied the bars, and whether a bar's label is its first minute or
       its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
       and nothing in the files says more.

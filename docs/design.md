@@ -279,6 +279,24 @@ set aside, and two copies of one calculation drift without either looking
 wrong. A rule to keep them matching was considered and cut, for the reason in
 the register below.
 
+Two forms of the Dickey-Fuller test stay in `src/chan` all the same, and they
+are not a second copy of the shared one. Each transcribes a toolbox function
+Chan's scripts call, and each fits something `adfuller` does not, so each
+lands a printed figure the shared estimator misses.
+
+1. `lesage_cadf` in `src/chan/pair_cointegration.py` is LeSage's `cadf`,
+   whose covariance multiplies by the raw regressors' cross-product. It lands
+   the −3.18156477 the book prints for GLD and GDX.
+2. `jplv7_adf` in `src/chan/stationarity_tests.py` is jplv7's `adf`, which
+   fits one row fewer than `adfuller`. It lands the −1.840744
+   `stationarityTests.m` prints for USD.CAD.
+
+Neither meets the shared package's bar of two repositories, because the
+sibling runs no toolbox that Chan called. The price is that a fix to the
+Dickey-Fuller regression in `ithildincore` does not reach either, which is
+right for a transcription. A transcription is held to Chan's output, and a fix
+would move it off that output.
+
 The Newey-West block took the other route in, and naming it here is what stops
 the two being read as one rule. `common/stats.py` was never duplicated here. It
 had eleven consumers next door and none in this repo, and it went over because

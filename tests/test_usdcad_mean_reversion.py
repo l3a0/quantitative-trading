@@ -1,0 +1,323 @@
+"""The pins for the stationarity tests and linear mean reversion on USD.CAD.
+
+They are *Algorithmic Trading*'s Examples 2.1 to 2.5.
+
+This file is the single authority for every number any prose surface quotes
+about Examples 2.1 to 2.5. ``docs/replication-log.md`` Entry 21 carries the
+verdicts and points here row by row.
+
+Every pin on the committed closes reads one vintage and one specification, so
+both are stated once here and carried in every figure's failure message as
+:data:`SPEC`.
+
+- **Vintage.** ``pythoncodesanddata/inputData_USDCAD.csv``, vendor ``chan-py``,
+  symbol ``USDCAD``, basis ``raw``, saved 2018-10-13, the minute file of
+  Chan's 2018 Python port. Its identity is the row of ``PYTHON_PORT`` in
+  ``tests/support/committed_vintages.py``. The 16:59 bar of each day gives
+  1,216 closes from 2007-07-23 to 2012-03-28.
+- **Specification.** ``stationarityTests.m`` at the mirror commit
+  :mod:`chan.usdcad_mean_reversion` names. jplv7's ``adf`` at trend order 0
+  and 1 lag, with ``ztcrit``'s critical values. ``genhurst`` at q = 2 and its
+  default ``maxT`` of 19 on the log closes. ``vratiotest`` at its defaults,
+  period 2, heteroskedasticity-consistent and two-sided, on the log closes. The
+  half-life from the change regressed on the previous close and a constant.
+  Example 2.5's position is minus the close's distance from its moving average
+  in moving standard deviations, both over the half-life rounded, and its claim
+  is the one issue 338 declared before any P&L was computed: the sum of the
+  daily P&L over all 1,216 rows is greater than 0.
+
+Each figure Chan printed is pinned twice, at the precision he printed it and
+at the precision that is real, so a change cannot move it inside his rounding
+unnoticed. H is pinned against the book's 0.49 as a miss.
+
+Exploratory. Reproducing Chan's figures spends the 2007 to 2012 sample on
+tests he chose. It first ran here on 2026-10-05.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from chan import usdcad_mean_reversion
+from chan.matlab_helpers import moving_avg, moving_std
+from chan.series import scale_breaks
+from chan.stationarity_tests import ZTCRIT_CONSTANT
+from chan.usdcad_mean_reversion import (
+    ADF_LAGS,
+    ADF_ORDER,
+    BOOK_ADF,
+    BOOK_HALF_LIFE_DAYS,
+    BOOK_HURST,
+    HURST_Q,
+    MINUTES_DATED,
+    SCRIPT_ADF,
+    SCRIPT_AR1,
+    SCRIPT_CRITICAL,
+    SCRIPT_HALF_LIFE,
+    SCRIPT_VRATIO_H,
+    SCRIPT_VRATIO_P,
+    SYMBOL,
+    StationarityRun,
+    jplv7_lag,
+    linear_mean_reversion,
+    main,
+    pnl_drawdown,
+    read_sources,
+    run,
+    stationarity_tests,
+)
+from chan.vintage import VintageUnavailable
+from tests.support.committed_vintages import PYTHON_PORT
+
+SPEC = (
+    "inputData_USDCAD.csv saved 2018-10-13, 16:59 closes, jplv7 adf(y, 0, 1), "
+    "genhurst(log(y), 2), vratiotest(log(y)), half-life from ols(dy, [ylag 1]), "
+    "Example 2.5 over the rounded half-life"
+)
+MINUTE_FILE = "pythoncodesanddata/inputData_USDCAD.csv"
+
+
+@pytest.fixture(scope="module")
+def sources():
+    return read_sources()
+
+
+@pytest.fixture(scope="module")
+def result(sources) -> StationarityRun:
+    return stationarity_tests(*sources)
+
+
+class TestTheSpecification:
+    def test_the_calls_are_the_scripts(self) -> None:
+        assert (ADF_ORDER, ADF_LAGS, HURST_Q) == (0, 1, 2)
+
+    def test_the_printed_figures_are_transcribed_as_printed(self) -> None:
+        assert SCRIPT_ADF == -1.840744
+        assert SCRIPT_AR1 == 0.994120
+        assert SCRIPT_CRITICAL == (-3.458, -2.871, -2.594)
+        assert (SCRIPT_VRATIO_H, SCRIPT_VRATIO_P) == (0, 0.367281)
+        assert SCRIPT_HALF_LIFE == 115.209794
+        assert (BOOK_ADF, BOOK_HURST, BOOK_HALF_LIFE_DAYS) == (-1.84, 0.49, 115)
+
+
+class TestTheVintage:
+    def test_the_closes_are_the_pinned_minute_file(self, sources) -> None:
+        entry, _ = sources
+        vendor, symbol, basis, saved, workbook, shape = PYTHON_PORT[MINUTE_FILE]
+        assert (entry.path, entry.vendor, entry.symbol, entry.price_basis) == (
+            MINUTE_FILE,
+            vendor,
+            symbol,
+            basis,
+        )
+        assert entry.saved_date == saved == MINUTES_DATED
+        assert (entry.source_workbook, shape, entry.symbol) == (
+            "PythonCodesAndData.zip",
+            "minute",
+            SYMBOL,
+        )
+
+    def test_the_1659_bar_gives_1216_closes(self, sources) -> None:
+        _, closes = sources
+        assert len(closes) == 1216, SPEC
+        assert (str(closes.index[0].date()), str(closes.index[-1].date())) == (
+            "2007-07-23",
+            "2012-03-28",
+        )
+        assert closes.index.is_monotonic_increasing and closes.index.is_unique
+
+    def test_the_scale_break_guard_flags_nothing(self, sources) -> None:
+        """The run calls the guard, so a vintage that broke would refuse it. This one does not."""
+        _, closes = sources
+        assert scale_breaks(closes) == []
+
+
+class TestExample21TheAdfTest:
+    def test_the_statistic_is_chans_minus_1_840744(self, result: StationarityRun) -> None:
+        assert result.adf.statistic == pytest.approx(SCRIPT_ADF, abs=5e-7), SPEC
+        assert result.adf.statistic == pytest.approx(-1.8407440891, abs=5e-11), SPEC
+        assert round(result.adf.statistic, 2) == BOOK_ADF
+
+    def test_the_ar1_estimate_is_chans_0_994120(self, result: StationarityRun) -> None:
+        assert result.adf.ar1 == pytest.approx(SCRIPT_AR1, abs=5e-7), SPEC
+        assert result.adf.ar1 == pytest.approx(0.9941196429, abs=5e-11), SPEC
+
+    def test_the_critical_values_are_chans(self, result: StationarityRun) -> None:
+        assert result.adf.critical == ZTCRIT_CONSTANT[9] == (-3.45830, -2.87104, -2.59369)
+        assert tuple(round(c, 3) for c in result.adf.critical) == SCRIPT_CRITICAL
+
+    def test_the_regression_fits_1213_rows_at_1_lag(self, result: StationarityRun) -> None:
+        assert (result.adf.nobs, result.adf.lags) == (1213, 1)
+
+    def test_the_unit_root_is_not_rejected_at_90_percent_and_lambda_is_negative(
+        self, result: StationarityRun
+    ) -> None:
+        """Location 1114's two readings: above −2.594, and the slope on the level below 0."""
+        assert result.adf.statistic > result.adf.critical[2]
+        assert result.adf.ar1 - 1 < 0
+
+    def test_adfuller_at_the_same_lag_misses_by_the_one_row_it_keeps(
+        self, result: StationarityRun
+    ) -> None:
+        """``ithildincore``'s ``adf_tstat`` and Chan's Python port both run ``adfuller``.
+
+        Neither prints −1.840744, so the script's figure needs jplv7's regression.
+        """
+        assert result.adfuller_statistic == pytest.approx(-1.8430182830, abs=5e-11)
+        assert result.adfuller_ar1 == pytest.approx(0.9941138113, abs=5e-11)
+        assert round(result.adfuller_statistic, 6) != SCRIPT_ADF
+
+
+class TestExample22TheHurstExponent:
+    def test_h_misses_the_books_0_49(self, result: StationarityRun) -> None:
+        assert result.hurst == pytest.approx(0.4732326652, abs=5e-11), SPEC
+        assert round(result.hurst, 2) == 0.47 != BOOK_HURST
+
+    def test_h_is_still_below_a_half(self, result: StationarityRun) -> None:
+        """Location 1119's reading, weakly mean reverting, survives the miss."""
+        assert result.hurst < 0.5
+
+    def test_the_python_ports_own_genhurst_misses_too(self, result: StationarityRun) -> None:
+        assert result.python_port_hurst == pytest.approx(0.4758441244, abs=5e-11)
+        assert round(result.python_port_hurst, 2) == 0.48 != BOOK_HURST
+
+
+class TestExample23TheVarianceRatio:
+    def test_the_decision_and_p_value_are_chans(self, result: StationarityRun) -> None:
+        assert int(result.vratio.rejects) == SCRIPT_VRATIO_H, SPEC
+        assert result.vratio.p_value == pytest.approx(SCRIPT_VRATIO_P, abs=5e-7), SPEC
+        assert result.vratio.p_value == pytest.approx(0.3672813756, abs=5e-11), SPEC
+
+    def test_the_statistic_and_ratio(self, result: StationarityRun) -> None:
+        assert result.vratio.statistic == pytest.approx(-0.9015774476, abs=5e-11)
+        assert result.vratio.ratio == pytest.approx(0.9647450127, abs=5e-11)
+        assert (result.vratio.period, result.vratio.nobs) == (2, 1214)
+
+
+class TestExample24TheHalfLife:
+    def test_the_half_life_is_chans_115_209794(self, result: StationarityRun) -> None:
+        assert result.half_life == pytest.approx(SCRIPT_HALF_LIFE, abs=5e-7), SPEC
+        assert result.half_life == pytest.approx(115.2097944852, abs=5e-10), SPEC
+        assert round(result.half_life) == BOOK_HALF_LIFE_DAYS
+
+
+class TestExample25LinearMeanReversion:
+    def test_the_lookback_is_the_half_life_rounded(self, result: StationarityRun) -> None:
+        assert result.lookback == 115
+
+    def test_the_cumulative_pnl_is_positive_as_location_1225_says(
+        self, result: StationarityRun
+    ) -> None:
+        """The claim issue 338 declared before any P&L was computed."""
+        assert result.total_pnl > 0, SPEC
+        assert result.total_pnl == pytest.approx(0.1141168588, abs=5e-11), SPEC
+
+    def test_the_drawdown_reported_beside_it(self, result: StationarityRun) -> None:
+        """It decides nothing. It is more than five times what the run ends with."""
+        d = result.drawdown
+        assert d.depth == pytest.approx(0.6425313986, abs=5e-11)
+        assert (str(d.peak.date()), str(d.trough.date())) == ("2008-07-22", "2008-10-27")
+        cumulative = result.pnl.cumsum()
+        assert cumulative.max() == pytest.approx(0.1320839920, abs=5e-11)
+        assert cumulative.idxmax() == d.peak
+        assert cumulative.min() == pytest.approx(-0.5104474067, abs=5e-11)
+        assert cumulative.idxmin() == d.trough
+        assert 5 * result.total_pnl < d.depth < 6 * result.total_pnl
+
+    def test_the_first_position_is_the_day_after_the_window_fills(
+        self, result: StationarityRun
+    ) -> None:
+        assert str(result.first_position.date()) == "2008-01-02"
+        assert result.pnl.index.get_loc(result.first_position) == result.lookback
+        assert (result.pnl.iloc[: result.lookback] == 0).all()
+
+    def test_each_days_pnl_is_yesterdays_position_times_todays_return(
+        self, sources, result: StationarityRun
+    ) -> None:
+        """Recomputed by plain pandas, so a shifted position or a lost minus sign fails."""
+        _, closes = sources
+        y = closes.astype(float)
+        position = -(y - y.rolling(115).mean()) / y.rolling(115).std(ddof=1)
+        expected = (position.shift(1) * y.pct_change()).fillna(0.0)
+        np.testing.assert_allclose(result.pnl.to_numpy(), expected.to_numpy(), atol=1e-12)
+
+
+class TestTheRun:
+    def test_it_prints_each_figure_beside_chans(self, sources, monkeypatch, capsys) -> None:
+        monkeypatch.setattr(usdcad_mean_reversion, "read_sources", lambda data_dir=None: sources)
+        run()
+        out = capsys.readouterr().out
+        assert "1216 closes, 2007-07-23 to 2012-03-28" in out
+        for line, figures in (
+            ("2.1 ADF statistic", ["-1.840744", "-1.840744", "-1.84"]),
+            ("2.1 AR(1) estimate", ["0.994120", "0.994120"]),
+            ("2.1 critical values", ["-3.458/-2.871/-2.594", "-2.594"]),
+            ("2.2 Hurst exponent", ["0.473233", "0.49"]),
+            ("2.3 variance ratio p-value", ["0.367281", "0.367281"]),
+            ("2.4 half-life", ["115.209794", "115"]),
+        ):
+            (row,) = [each for each in out.splitlines() if line in each]
+            assert all(figure in row.split() for figure in figures), row
+        assert "cumulative P&L 0.114117. The claim declared on issue 338, positive, holds." in out
+        assert "deepest drawdown 0.642531, from 2008-07-22 to 2008-10-27" in out
+        assert "statistic -1.843018, AR(1) 0.994114" in out
+        assert "own genhurst: 0.475844" in out
+        assert "Exploratory." in out
+
+
+class TestTheRule:
+    def test_jplv7s_lag_fills_with_zero_rather_than_nan(self) -> None:
+        np.testing.assert_array_equal(jplv7_lag(np.array([1.0, 2.0, 3.0])), [0.0, 1.0, 2.0])
+
+    def test_the_rows_before_the_window_fills_earn_nothing(self) -> None:
+        pnl = linear_mean_reversion(np.array([1.0, 2.0, 3.0, 2.0, 1.0, 2.0]), 3)
+        np.testing.assert_array_equal(pnl[:3], [0.0, 0.0, 0.0])
+
+    def test_a_close_above_its_average_is_sold_and_earns_on_a_fall(self) -> None:
+        """Closes 1, 2, 3: the average is 2 and the deviation 1, so the position is −1.
+
+        The next close of 1.5 is a return of −0.5, and −1 times −0.5 is +0.5.
+        """
+        y = np.array([1.0, 2.0, 3.0, 1.5])
+        assert moving_avg(y, 3)[2] == 2.0 and moving_std(y, 3)[2] == 1.0
+        assert linear_mean_reversion(y, 3)[3] == pytest.approx(0.5, abs=1e-15)
+
+    def test_a_zero_deviation_leaves_the_day_at_zero_rather_than_nan(self) -> None:
+        """A flat window divides by a zero deviation, which is NaN for 0/0 and set to 0."""
+        y = np.array([2.0, 2.0, 2.0, 3.0])
+        assert linear_mean_reversion(y, 3)[3] == 0.0
+
+    def test_the_drawdown_finds_the_deepest_fall_and_its_dates(self) -> None:
+        days = pd.date_range("2020-01-01", periods=6)
+        pnl = pd.Series([0.0, 1.0, 1.0, -3.0, 1.0, 2.5], index=days)
+        d = pnl_drawdown(pnl)
+        assert d.depth == 3.0
+        assert (d.peak, d.trough) == (days[2], days[3])
+
+    def test_a_run_that_never_falls_has_a_zero_drawdown(self) -> None:
+        days = pd.date_range("2020-01-01", periods=3)
+        d = pnl_drawdown(pd.Series([0.0, 1.0, 2.0], index=days))
+        assert d.depth == 0.0 and d.trough == days[0]
+
+    def test_a_series_that_does_not_revert_is_refused(self, sources) -> None:
+        entry, closes = sources
+        trending = pd.Series(np.exp(np.arange(len(closes)) * 1e-3), index=closes.index)
+        with pytest.raises(ValueError, match="do not revert"):
+            stationarity_tests(entry, trending)
+
+
+class TestTheRefusals:
+    def test_main_prints_a_refusal_as_one_line(self, monkeypatch) -> None:
+        def refuse(data_dir=None):
+            raise VintageUnavailable(f"no committed vintage of {SYMBOL} saved {MINUTES_DATED}")
+
+        monkeypatch.setattr(usdcad_mean_reversion, "run", refuse)
+        monkeypatch.setattr("sys.argv", ["usdcad_mean_reversion"])
+        with pytest.raises(SystemExit, match="no committed vintage of USDCAD saved 2018-10-13"):
+            main()
+
+    def test_a_missing_vintage_reaches_the_reader(self, tmp_path) -> None:
+        with pytest.raises(VintageUnavailable):
+            read_sources(tmp_path)
