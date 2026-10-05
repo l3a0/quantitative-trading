@@ -41,6 +41,9 @@ from chan import paths
 from chan.gold_miners_oil import (
     AFTER,
     BEFORE,
+    BOOK_AFTER,
+    BOOK_BEFORE,
+    BOOK_TRIPLET,
     CLAIM_ROWS,
     JOHANSEN_K,
     JOHANSEN_P,
@@ -59,6 +62,8 @@ from chan.johansen import johansen
 from chan.series import WindowCrossesScaleBreak, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
+
+BOOK_NOTES = paths.REPO_ROOT / "research" / "book-notes" / "algorithmic-trading.md"
 
 
 @pytest.fixture(scope="module")
@@ -117,6 +122,15 @@ class TestTheSpecification:
         assert {count for count in possible if _row(n).holds_on(count)} == holding
 
 
+class TestTheBooksClaims:
+    @pytest.mark.parametrize("quoted", [BOOK_BEFORE, BOOK_AFTER, BOOK_TRIPLET])
+    def test_each_quote_is_location_1922s_highlight_verbatim(self, quoted) -> None:
+        notes = BOOK_NOTES.read_text(encoding="utf-8")
+        start = notes.index("### Location 1922")
+        highlight = notes[start : notes.index("### Location", start + 1)]
+        assert quoted in highlight
+
+
 class TestTheVintage:
     def test_the_three_members_are_the_pinned_source(self, sources) -> None:
         members, closes = sources
@@ -160,7 +174,8 @@ class TestTheClaims:
         assert result.holds(_row(n))
 
     def test_rows_1_and_2_the_pair_holds_one_relation_before(self, result) -> None:
-        """One relation, not a full rank, so the second conclusion's reading does not arise."""
+        """One relation, not a full rank, so the reading Entry 23's second conclusion weighs
+        does not arise here."""
         assert result.found(_row(1)) == 1
         assert result.found(_row(2)) == 1
 
@@ -271,7 +286,7 @@ class TestEachTestsTable:
 
 
 class TestBesideTheReplication:
-    """Rows 11 to 13. No book prints these, so none carries a verdict."""
+    """Rows 11 to 14. No book prints these, so none carries a verdict."""
 
     def test_row_11_the_triplets_first_eigenvector(self, result) -> None:
         """Rows GLD, GDX, USO, with statsmodels' sign, which makes the first row positive."""
@@ -279,8 +294,11 @@ class TestBesideTheReplication:
             result.triplet.eigenvectors[:, 0], [0.033109, -0.177036, 0.002549], atol=1e-6
         )
 
-    def test_row_12_the_cadf_sees_the_same_break(self, result) -> None:
-        """GLD on GDX rejects at 95 percent before the break and nowhere near it after."""
+    def test_row_12_the_cadf_rejects_at_95_before_and_not_at_99(self, result) -> None:
+        """GLD on GDX rejects at 95 percent before the break and nowhere near it after.
+
+        At the 99 percent level the claims are judged at, it rejects in neither window.
+        """
         t = {name: result.cadf[name].t for name in ("before", "after", "whole")}
         assert t == pytest.approx(
             {"before": -3.724034, "after": -1.511680, "whole": -1.517588}, abs=1e-6
@@ -300,6 +318,28 @@ class TestBesideTheReplication:
         assert all(
             t > ADF_CRIT_CONST["10%"] for stats in result.adf.values() for t in stats.values()
         )
+
+    def test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not(self, result):
+        """Added after review. The triplet's one relation may be GDX and USO's own."""
+        gld, gdx = result.with_oil["GLD"], result.with_oil["GDX"]
+        np.testing.assert_allclose(gld.trace, [4.349962, 0.573598], atol=1e-6)
+        np.testing.assert_allclose(gld.eigen, [3.776364, 0.573598], atol=1e-6)
+        np.testing.assert_allclose(gld.eigenvalues, [0.00255007, 0.00038775], atol=1e-8)
+        np.testing.assert_allclose(gdx.trace, [27.165550, 3.034162], atol=1e-6)
+        np.testing.assert_allclose(gdx.eigen, [24.131388, 3.034162], atol=1e-6)
+        np.testing.assert_allclose(gdx.eigenvalues, [0.01618363, 0.00204939], atol=1e-8)
+        for statistic in ("trace", "eigen"):
+            assert [gld.relations(statistic, level) for level in (90, 95, 99)] == [0, 0, 0]
+            assert [gdx.relations(statistic, level) for level in (90, 95, 99)] == [2, 1, 1]
+
+    def test_row_14_reads_the_triplets_days_with_uso_second(self, sources, result) -> None:
+        closes = sources[1]
+        for symbol in ("GLD", "GDX"):
+            alone = johansen(closes[[symbol, "USO"]].to_numpy(dtype=float))
+            np.testing.assert_allclose(alone.trace, result.with_oil[symbol].trace, atol=1e-12)
+            np.testing.assert_allclose(
+                alone.eigenvectors, result.with_oil[symbol].eigenvectors, atol=1e-12
+            )
 
     def test_the_cadf_regresses_gld_on_gdx(self, sources, result) -> None:
         """Entry 1's direction. The other way round gives a different statistic."""

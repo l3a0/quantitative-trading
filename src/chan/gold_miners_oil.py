@@ -51,6 +51,10 @@ nothing.
 4. A plain ADF test with a constant and one lag on each series in each window
    it enters, which is what a Johansen rank equal to the column count would
    have to be read against.
+5. GLD and USO, and GDX and USO, each alone over the triplet's days. The
+   review of the pull request added these after the first run. The control in
+   item 1 shows the triplet's relation is not GLD and GDX's own, and these two
+   ask whether it is either of the other pairs' instead.
 
 Every result here is exploratory, twice over. Reproducing the claims spends
 the 2006 to 2012 sample on a split Chan chose, and the split date and the
@@ -159,9 +163,10 @@ class GoldMinersOil:
 
     ``before`` and ``after`` test GLD and GDX either side of the break.
     ``triplet`` tests all three over the whole span and ``control`` tests GLD
-    and GDX alone over the same days. ``cadf`` and ``adf`` are keyed by the
-    window names in :data:`WINDOWS`, and ``adf`` holds each series that enters
-    that window's Johansen test.
+    and GDX alone over the same days. ``with_oil`` tests GLD and then GDX
+    against USO over the same days, keyed by the ETF paired with USO. ``cadf``
+    and ``adf`` are keyed by the window names in :data:`WINDOWS`, and ``adf``
+    holds each series that enters that window's Johansen test.
     """
 
     days: dict[str, pd.DatetimeIndex]
@@ -169,6 +174,7 @@ class GoldMinersOil:
     after: Johansen
     triplet: Johansen
     control: Johansen
+    with_oil: dict[str, Johansen]
     cadf: dict[str, Cadf]
     adf: dict[str, dict[str, float]]
 
@@ -195,6 +201,7 @@ def gold_miners_oil(closes: pd.DataFrame) -> GoldMinersOil:
         after=test("after", PAIR),
         triplet=test("whole", TRIPLET),
         control=test("whole", PAIR),
+        with_oil={s: test("whole", (s, USO)) for s in PAIR},
         cadf={
             name: Cadf(
                 *lesage_cadf(
@@ -264,8 +271,15 @@ def report(members: list[VintageEntry], result: GoldMinersOil) -> None:
         )
     print()
     print("  Relations found, counting rejected nulls up to the first that is not")
-    for name in ("before", "after", "triplet", "control"):
-        test = getattr(result, name)
+    tests = {
+        "before": result.before,
+        "after": result.after,
+        "triplet": result.triplet,
+        "control": result.control,
+        "GLD-USO": result.with_oil[GLD],
+        "GDX-USO": result.with_oil[GDX],
+    }
+    for name, test in tests.items():
         print(f"    {name:<8} trace  {_counts(test, 'trace')}")
         print(f"    {name:<8} eigen  {_counts(test, 'eigen')}")
     print()
@@ -275,6 +289,8 @@ def report(members: list[VintageEntry], result: GoldMinersOil) -> None:
         + _table("after", result.after, PAIR)
         + _table("triplet", result.triplet, TRIPLET)
         + _table("control", result.control, PAIR)
+        + _table("GLD with USO", result.with_oil[GLD], (GLD, USO))
+        + _table("GDX with USO", result.with_oil[GDX], (GDX, USO))
     ):
         print(line)
     print()

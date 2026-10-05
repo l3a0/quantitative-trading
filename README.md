@@ -314,8 +314,11 @@ where they were first built. The other twenty-two were built here.
     2012-04-09, even at 90 percent, and the triplet finds exactly one over the
     whole 1,481 days. The control the book leaves out holds too: GLD and GDX
     alone over the same days find none, at a trace statistic of 10.447
-    against a 90 percent bar of 13.429. Every figure is exploratory, and the
-    split date and the third ETF were chosen after the break was seen.
+    against a 90 percent bar of 13.429. GDX and USO alone find one relation
+    at 99 percent, though, so the triplet's result cannot tell the oil
+    hypothesis from a link between the miners and oil alone. Every figure is
+    exploratory, and the split date and the third ETF were chosen after the
+    break was seen.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -510,9 +513,11 @@ is not a finite number.
 
 [tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) does it for
 the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
-issue declared them, every statistic and eigenvalue of the four tests at the
-precision that is real, the CADF and ADF rows beside them, and the cut to
-GDX's first price that keeps a missing price from reaching the test.
+issue declared them, the book's three quotes against the highlight they come
+from, every statistic and eigenvalue of the four tests and of each ETF with
+USO alone at the precision that is real, the CADF and ADF rows beside them,
+and the cut to GDX's first price that keeps a missing price from reaching the
+test.
 
 All twenty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
