@@ -151,4 +151,6 @@ them are companies' stocks, and how many of those can be paired with the
 filing before.
 [tests/test_sp600_panel.py](../../tests/test_sp600_panel.py) is the authority
 for every count about IJR's members file, including each year-end's coverage.
-No replication reads this directory yet.
+One replication reads this directory so far: `chan.equity_seasonals` runs
+Example 7.6 on the members of `ijr/2025-12-31.csv`, which Entry 7's rows 30 to
+34 in [docs/replication-log.md](../../docs/replication-log.md) record.

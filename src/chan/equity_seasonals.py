@@ -1,4 +1,4 @@
-"""Chan's two equity seasonals, Examples 7.6 and 7.7, on the files he ran them on.
+"""Chan's two equity seasonals, Examples 7.6 and 7.7, on his files and on IJR's members.
 
 Chan publishes both strategies as already dead. At Kindle location 4425 he says
 the Heston and Sadka strategy returned more than 13 percent a year before 2002
@@ -83,17 +83,46 @@ the pair readers and :func:`chan.series.load_panel` does not call it. The
 comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py``
 says why for these files.
 
+**Example 7.6 on IJR's members at 2025-12-31.**
+[Issue 333](https://github.com/l3a0/quantitative-trading/issues/333) runs
+:data:`MATLAB_JANUARY` unchanged over January 2009 to January 2026, on the 603
+companies IJR held at 2025-12-31, carried back to 2007. It reads two more
+sources than the replications do.
+
+1. The member list, ``research/filings/ijr/2025-12-31.csv``, which
+   :mod:`chan.fund_holdings` reads from IJR's Form N-PORT, accession
+   ``0000940400-26-007526``, through its member rule.
+   :data:`ALPHAVANTAGE_SYMBOLS` takes eleven of its tickers to the symbols
+   Alpha Vantage files them under.
+2. Alpha Vantage's adjusted daily closes for those symbols, recorded as the
+   ``sp600`` cross-section in ``data/archive_vintages.jsonl``, with the bytes
+   in the owner's archive. :func:`chan.archive.read_cross_section` reads them.
+
+The committed raw SPY vintage downloaded on 2026-10-03 is the run's calendar.
+
+That run is survivor-only, and it is read in one direction only. Companies
+that left the index before 2025-12-31 are missing, and on this strategy both
+legs gain from their absence, so the data lean toward finding a January
+effect. A January mean not detectably above zero bounds the effect even so,
+at the mean the test detects with 80% probability. One that is above zero
+gives no verdict, because the bias alone could produce it. The rule was
+written on the issue before any return was computed, and
+:func:`survivor_reading` words it.
+
 ``tests/test_equity_seasonals.py`` is the single authority for every number
 any prose surface quotes about either example.
 
 Usage:
     python -m chan.equity_seasonals
+    python -m chan.equity_seasonals --survivors
 """
 
 from __future__ import annotations
 
+import argparse
 import math
-from collections.abc import Callable
+import sys
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -101,7 +130,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
+from scipy import optimize, stats
 
+from chan.archive import ArchiveEntry, ArchiveRefused, ArchiveUnavailable, read_cross_section
+from chan.fund_holdings import IJR, Filing, members
 from chan.matlab_helpers import (
     lag1,
     matlab_sort,
@@ -111,8 +143,8 @@ from chan.matlab_helpers import (
     smartstd_first_edition,
     smartsum,
 )
-from chan.series import load_panel, panel_line, row_month_ends
-from chan.vintage import VintageUnavailable
+from chan.series import load_panel, load_vintage, panel_line, row_month_ends, vintage_line
+from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The S&P 600 small-cap file Example 7.6 reads, the one Chan's script loads.
 SMALL_CAPS = "IJR_20080131.mat"
@@ -588,6 +620,374 @@ def five_year_check(closes: pd.DataFrame, rules: HestonSadkaRules) -> FiveYearCh
 
 
 # --------------------------------------------------------------------------
+# Example 7.6 on IJR's members at 2025-12-31, survivor-only
+# --------------------------------------------------------------------------
+
+#: The IJR year-end whose members the survivor run ranks over every January.
+SURVIVOR_REPORT_DATE = "2025-12-31"
+
+#: The archive cross-section holding the members' daily closes.
+SURVIVOR_CROSS_SECTION = "sp600"
+
+#: Each filing ticker Alpha Vantage files under another symbol, measured on
+#: 2026-10-04 against its active and delisted listings with the owner's key.
+#: Nine companies were renamed after the filing, and Alpha Vantage keeps a
+#: company's whole history under its newest ticker, so fetching the old one
+#: returns nothing or another company. Two are share classes, which the filing
+#: writes with a slash and Alpha Vantage with a dash. Every other member is
+#: fetched under the filing's ticker, the ones delisted in 2026 included.
+#: Two of those, NVRI and GTES, came back holding nothing before 2026, which
+#: :func:`no_close_at_filing` reports rather than this map hiding.
+ALPHAVANTAGE_SYMBOLS: Mapping[str, str] = {
+    "AHH": "AHRT",
+    "ATGE": "CVSA",
+    "AXL": "DCH",
+    "EXPI": "AGNT",
+    "FDP": "DMC",
+    "IAC": "PPLI",
+    "MODG": "CALY",
+    "MPW": "MPT",
+    "VSCO": "VSXY",
+    "CWEN/A": "CWEN-A",
+    "MOG/A": "MOG-A",
+}
+
+#: The first row the run reads. The 2008-12-31 ranking needs a December 2007
+#: row, because :func:`january_effect` ranks each year-end against the one
+#: before it, so a slice starting in 2008 yields one January fewer.
+SURVIVOR_SLICE_START = pd.Timestamp("2007-12-01")
+
+#: January 2009 to January 2026, as the issue declares.
+SURVIVOR_JANUARIES = 18
+
+#: The download date naming the committed raw SPY vintage the run takes its
+#: trading days from, so a later SPY download does not change the calendar.
+CALENDAR_DOWNLOAD = "2026-10-03"
+
+#: The one-sided test's size.
+SIGNIFICANCE = 0.05
+
+#: The probability with which :func:`detectable_mean` asks the test to reject.
+POWER = 0.8
+
+
+class SurvivorRunRefused(Exception):
+    """The survivor run stopped rather than compute a January from data it cannot trust.
+
+    One class for the four refusals the run makes itself, so :func:`main`
+    catches it by name. Catching ``ValueError`` instead would also turn a bug
+    into a one-line message.
+    """
+
+
+@dataclass(frozen=True)
+class OneSided:
+    """A one-sided t-test that a mean is above zero.
+
+    ``std`` removes one degree of freedom, and ``p`` reads the t distribution
+    at ``n - 1`` degrees of freedom.
+    """
+
+    n: int
+    mean: float
+    std: float
+    t: float
+    p: float
+
+    @property
+    def rejects(self) -> bool:
+        """Whether the mean is detectably above zero at :data:`SIGNIFICANCE`."""
+        return self.p < SIGNIFICANCE
+
+
+def one_sided_t(returns: Sequence[float]) -> OneSided:
+    """Test whether the mean of ``returns`` is above zero, one-sided.
+
+    Each January is one trade, so the returns do not overlap and need no
+    correction for it.
+    """
+    values = np.asarray(returns, dtype=float)
+    n = len(values)
+    mean = float(values.mean())
+    std = float(values.std(ddof=1))
+    t = mean / (std / math.sqrt(n))
+    return OneSided(n=n, mean=mean, std=std, t=t, p=float(stats.t.sf(t, n - 1)))
+
+
+def detectable_mean(
+    std: float, n: int, *, significance: float = SIGNIFICANCE, power: float = POWER
+) -> float:
+    """The smallest true mean the one-sided test detects with probability ``power``.
+
+    Under a true mean X, the statistic follows a noncentral t at ``n - 1``
+    degrees of freedom with noncentrality X √n over ``std``. X is the mean at
+    which that distribution exceeds the test's critical value with probability
+    ``power``. The normal approximation gives a smaller X, because it ignores
+    the uncertainty in ``std``.
+    """
+    df = n - 1
+    critical = stats.t.isf(significance, df)
+    noncentrality = optimize.brentq(
+        lambda shift: stats.nct.sf(critical, df, shift) - power, 0.0, 50.0, xtol=1e-12
+    )
+    return float(noncentrality * std / math.sqrt(n))
+
+
+def survivor_filing() -> Filing:
+    """IJR's filing for :data:`SURVIVOR_REPORT_DATE`."""
+    (filing,) = (filing for filing in IJR.filings if filing.report_date == SURVIVOR_REPORT_DATE)
+    return filing
+
+
+def survivor_members(filings_dir: Path | None = None) -> tuple[tuple[str, str], ...]:
+    """Each member as its filing ticker and the symbol Alpha Vantage files it under.
+
+    A ``ValueError`` if a member has no ticker or two members share a symbol,
+    because either would rank one company's series as another's.
+    """
+    rows = members(IJR, survivor_filing(), filings_dir)
+    pairs = tuple((row.ticker, ALPHAVANTAGE_SYMBOLS.get(row.ticker, row.ticker)) for row in rows)
+    blank = [row.name for row in rows if not row.ticker]
+    if blank:
+        raise ValueError(f"{len(blank)} members carry no ticker, the first {blank[0]!r}")
+    symbols = [symbol for _, symbol in pairs]
+    shared = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
+    if shared:
+        raise ValueError(f"two members map to {', '.join(shared)}")
+    return pairs
+
+
+def survivor_calendar(data_dir: Path | None = None) -> tuple[VintageEntry, pd.Series]:
+    """The committed raw SPY vintage the run takes its trading days from."""
+    return load_vintage("SPY", unadjusted=True, dated=CALENDAR_DOWNLOAD, data_dir=data_dir)
+
+
+def missing_members(pairs: Sequence[tuple[str, str]], recorded: set[str]) -> tuple[str, ...]:
+    """Members whose symbol has no line, as ``TICKER``, or ``TICKER as SYMBOL`` when mapped."""
+    return tuple(
+        ticker if ticker == symbol else f"{ticker} as {symbol}"
+        for ticker, symbol in pairs
+        if symbol not in recorded
+    )
+
+
+def survivor_slice(closes: pd.DataFrame) -> pd.DataFrame:
+    """The rows from :data:`SURVIVOR_SLICE_START` to the last row the fetch holds."""
+    return closes.loc[closes.index >= SURVIVOR_SLICE_START]
+
+
+def refuse_off_calendar(closes: pd.DataFrame, calendar: pd.DatetimeIndex) -> None:
+    """Refuse a row on a day the calendar holds no row for.
+
+    :func:`row_month_ends` reads the union of every member's dates. One series
+    with a row on a day the market was shut adds a row on which almost every
+    member is missing, and if that row ends a month it becomes the year-end.
+    """
+    off = closes.index.difference(calendar)
+    if len(off):
+        day = off[0]
+        symbol = closes.loc[day].first_valid_index()
+        named = "a row with no close" if symbol is None else f"{symbol} has a row"
+        raise SurvivorRunRefused(
+            f"{named} on {day.date()}, which the SPY calendar does not hold, "
+            f"and {len(off)} such days in all"
+        )
+
+
+def refuse_nonpositive(closes: pd.DataFrame) -> None:
+    """Refuse a close of zero or below, naming the earliest.
+
+    :func:`chan.matlab_helpers.smartmean` skips only a value that is not
+    finite. A zero on a January exit row would read as a −100% return and be
+    averaged in. A zero at a year-end would rank the stock as a −100% loser
+    and leave its January return undefined, so it would take a long slot and
+    add nothing. A missing close stays NaN and is not refused.
+    """
+    with np.errstate(invalid="ignore"):
+        bad = closes.to_numpy() <= 0
+    if bad.any():
+        row, column = np.argwhere(bad)[0]
+        raise SurvivorRunRefused(
+            f"{closes.columns[column]} closes at {closes.iat[row, column]} on "
+            f"{closes.index[row].date()}, and a close of zero or below has no return"
+        )
+
+
+def survivor_effect(closes: pd.DataFrame, calendar: pd.DatetimeIndex) -> JanuaryEffect:
+    """:data:`MATLAB_JANUARY` on the slice, in one call, refusing what it cannot read.
+
+    Membership is fixed, so the whole slice goes into one call. A member ranks
+    at a year-end only where it has a close there and at the year-end before,
+    so one listed after 2008 enters the ranking at its second year-end.
+    """
+    sliced = survivor_slice(closes)
+    refuse_off_calendar(sliced, calendar)
+    refuse_nonpositive(sliced)
+    effect = january_effect(sliced, MATLAB_JANUARY)
+    if effect.unreached:
+        raise SurvivorRunRefused(
+            f"the closes end {effect.file_end.date()}, before the January after "
+            f"{effect.unreached[0].date()}, so that year-end has no exit"
+        )
+    if len(effect.trades) != SURVIVOR_JANUARIES:
+        raise SurvivorRunRefused(
+            f"the slice yields {len(effect.trades)} Januaries, not {SURVIVOR_JANUARIES}"
+        )
+    days = calendar[(calendar >= sliced.index[0]) & (calendar <= sliced.index[-1])]
+    for trade in effect.trades:
+        december = days[(days.year == trade.entered.year) & (days.month == 12)][-1]
+        january = days[(days.year == trade.entered.year + 1) & (days.month == 1)][-1]
+        if (trade.entered, trade.exited) != (december, january):
+            raise SurvivorRunRefused(
+                f"the trade entered {trade.entered.date()} and exited {trade.exited.date()}, "
+                f"where the calendar's last December and January days are {december.date()} "
+                f"and {january.date()}"
+            )
+    return effect
+
+
+def before_costs(effect: JanuaryEffect) -> tuple[float, ...]:
+    """Each January's return before costs.
+
+    :func:`_rank_and_trade` charges :data:`ONE_WAY_COST` twice on every trade,
+    one constant, so adding it back recovers each return to floating-point
+    rounding.
+    """
+    return tuple(trade.ret + 2 * ONE_WAY_COST for trade in effect.trades)
+
+
+def ranked_without_exit(closes: pd.DataFrame) -> tuple[int, ...]:
+    """For each January, how many ranked members have no close on its exit row.
+
+    A member that stops trading inside January, by a takeover or a delisting,
+    has a NaN January return, which :func:`chan.matlab_helpers.smartmean`
+    skips. This count is what says how often that happened.
+    """
+    sliced = survivor_slice(closes)
+    days = sliced.index
+    ends = row_month_ends(days)
+    level = sliced.to_numpy()
+    decembers = [row for row in ends if days[row].month == 12]
+    exits = {days[row].year: row for row in ends if days[row].month == 1}
+    counts = []
+    for before, now in zip(decembers, decembers[1:], strict=False):
+        exit_row = exits.get(days[now].year + 1)
+        if exit_row is None:
+            continue
+        with np.errstate(invalid="ignore", divide="ignore"):
+            ranked = np.isfinite((level[now] - level[before]) / level[before])
+        counts.append(int((ranked & ~np.isfinite(level[exit_row])).sum()))
+    return tuple(counts)
+
+
+def year_ends_missed(closes: pd.DataFrame) -> dict[str, tuple[pd.Timestamp, ...]]:
+    """Each member with no close on one or more December year-end rows, and which."""
+    sliced = survivor_slice(closes)
+    decembers = [row for row in row_month_ends(sliced.index) if sliced.index[row].month == 12]
+    at = sliced.iloc[decembers]
+    return {
+        symbol: tuple(at.index[at[symbol].isna()])
+        for symbol in sliced.columns
+        if at[symbol].isna().any()
+    }
+
+
+def no_close_at_filing(closes: pd.DataFrame) -> tuple[str, ...]:
+    """Members with no close on :data:`SURVIVOR_REPORT_DATE`, the day the filing lists them.
+
+    The fund held every member that day, so a series without a close there is
+    missing the member's own history rather than starting late. Such a member
+    is never ranked at the last year-end, and usually at none.
+    """
+    day = pd.Timestamp(SURVIVOR_REPORT_DATE)
+    if day not in closes.index:
+        return tuple(closes.columns)
+    return tuple(closes.columns[closes.loc[day].isna()])
+
+
+def survivor_reading(test: OneSided, detectable: float) -> str:
+    """The reading the issue declared before any return was computed.
+
+    Failing to reject gives the owner's wording, with X at the measured
+    standard deviation. Rejecting gives no verdict, because the survivor bias
+    alone could produce a mean above zero.
+    """
+    if test.rejects:
+        return (
+            f"above zero on survivors, no verdict: a mean of {test.mean:.4f} a January, "
+            f"t {test.t:.2f}, p {test.p:.3f}, over {test.n} Januaries. The survivor bias "
+            f"alone could produce it"
+        )
+    return (
+        f"no January effect detectable above about {detectable:.1%} a January, on members "
+        f"that favour the effect"
+    )
+
+
+@dataclass(frozen=True)
+class SurvivorRun:
+    """Everything the survivor run computes, and what it read to compute it."""
+
+    #: Each member as its filing ticker and its Alpha Vantage symbol.
+    members: tuple[tuple[str, str], ...]
+    #: The cross-section lines read, one per member with a series.
+    entries: tuple[ArchiveEntry, ...]
+    #: Members whose symbol has no line, as ``TICKER`` or ``TICKER as SYMBOL``.
+    missing: tuple[str, ...]
+    calendar: VintageEntry
+    effect: JanuaryEffect
+    before: tuple[float, ...]
+    test: OneSided
+    #: X, the mean the test detects with :data:`POWER`, at the measured deviation.
+    detectable: float
+    after_mean: float
+    no_exit: tuple[int, ...]
+    missed: dict[str, tuple[pd.Timestamp, ...]]
+    #: Members whose series holds no close on the filing's own date.
+    no_close: tuple[str, ...]
+
+    @property
+    def reading(self) -> str:
+        return survivor_reading(self.test, self.detectable)
+
+
+def run_survivors(
+    *,
+    data_dir: Path | None = None,
+    directory: Path | None = None,
+    filings_dir: Path | None = None,
+) -> SurvivorRun:
+    """Read the members, their closes and the calendar, and run Example 7.6 on them."""
+    pairs = survivor_members(filings_dir)
+    entries, closes = read_cross_section(
+        SURVIVOR_CROSS_SECTION,
+        column="adjusted_close",
+        symbols=[symbol for _, symbol in pairs],
+        data_dir=data_dir,
+        directory=directory,
+    )
+    missing = missing_members(pairs, {entry.symbol for entry in entries})
+    calendar, spy = survivor_calendar(data_dir)
+    effect = survivor_effect(closes, pd.DatetimeIndex(spy.index))
+    before = before_costs(effect)
+    test = one_sided_t(before)
+    return SurvivorRun(
+        members=pairs,
+        entries=tuple(entries),
+        missing=missing,
+        calendar=calendar,
+        effect=effect,
+        before=before,
+        test=test,
+        detectable=detectable_mean(test.std, test.n),
+        after_mean=float(np.mean([trade.ret for trade in effect.trades])),
+        no_exit=ranked_without_exit(closes),
+        missed=year_ends_missed(closes),
+        no_close=no_close_at_filing(closes),
+    )
+
+
+# --------------------------------------------------------------------------
 # The report
 # --------------------------------------------------------------------------
 
@@ -654,6 +1054,65 @@ def report_heston_sadka(members, closes: pd.DataFrame) -> None:
         )
 
 
+def _years(days: Sequence[pd.Timestamp]) -> str:
+    years = [day.year for day in days]
+    if years == list(range(years[0], years[-1] + 1)) and len(years) > 2:
+        return f"{years[0]} to {years[-1]}"
+    return ", ".join(str(year) for year in years)
+
+
+def report_survivors(result: SurvivorRun) -> None:
+    filing = survivor_filing()
+    downloads = sorted({entry.download_date for entry in result.entries})
+    print("Example 7.6 on IJR's members at 2025-12-31, survivor-only and exploratory")
+    print(
+        f"  members: {len(result.members)} from IJR's {filing.form} for {filing.report_date}, "
+        f"accession {filing.accession}"
+    )
+    print(
+        f"  closes: {len(result.entries)} series from the {SURVIVOR_CROSS_SECTION} "
+        f"cross-section, Alpha Vantage adjusted, downloaded {', '.join(downloads)}"
+    )
+    print(f"  calendar: {vintage_line(result.calendar)}")
+    print(f"  members with no series: {len(result.missing)}")
+    for name in result.missing:
+        print(f"    {name}")
+    print(
+        f"  members whose series has no close on {SURVIVOR_REPORT_DATE}, the filing's own "
+        f"date: {len(result.no_close)}"
+    )
+    for symbol in result.no_close:
+        entry = next(entry for entry in result.entries if entry.symbol == symbol)
+        print(f"    {symbol}: its series runs {entry.first_date} to {entry.last_date}")
+    print(f"  members missing a year-end close: {len(result.missed)}")
+    for symbol, days in sorted(result.missed.items()):
+        print(f"    {symbol}: {_years(days)}")
+    print(f"  {MATLAB_JANUARY.source}, returns before costs")
+    for trade, before, no_exit in zip(
+        result.effect.trades, result.before, result.no_exit, strict=True
+    ):
+        print(
+            f"    entered {trade.entered.date()} exited {trade.exited.date()}: {before:.4f}   "
+            f"({trade.longs} long and {trade.shorts} short of {trade.ranked} ranked, "
+            f"{no_exit} ranked with no exit close)"
+        )
+    test = result.test
+    print(
+        f"  before costs: mean {test.mean:.4f}, standard deviation {test.std:.4f}, "
+        f"t {test.t:.2f}, one-sided p {test.p:.3f}, over {test.n} Januaries"
+    )
+    print(
+        f"  detectable with {POWER:.0%} probability at {SIGNIFICANCE:.0%}: "
+        f"{result.detectable:.4f} a January"
+    )
+    print(f"  after costs: mean {result.after_mean:.4f}")
+    print(f"  reading: {result.reading}")
+    print(
+        "  Read one way only: the companies that left the index are missing, and both "
+        "legs gain from their absence"
+    )
+
+
 def run(*, data_dir: Path | None = None) -> None:
     """Read both files and print every figure beside the panel it came from."""
     small = load_panel(SMALL_CAPS, data_dir=data_dir)
@@ -663,10 +1122,26 @@ def run(*, data_dir: Path | None = None) -> None:
     report_heston_sadka(*large)
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        prog="python -m chan.equity_seasonals",
+        description=(
+            "Examples 7.6 and 7.7 on Chan's files. With --survivors, Example 7.6 on IJR's "
+            "members at 2025-12-31 instead, which needs the owner's data archive."
+        ),
+    )
+    parser.add_argument(
+        "--survivors",
+        action="store_true",
+        help="run Example 7.6 from January 2009 on IJR's 2025-12-31 members",
+    )
+    args = parser.parse_args([] if argv is None else argv)
     try:
-        run()
-    except VintageUnavailable as refusal:
+        if args.survivors:
+            report_survivors(run_survivors())
+        else:
+            run()
+    except (VintageUnavailable, ArchiveUnavailable, ArchiveRefused, SurvivorRunRefused) as refusal:
         # A refusal naming which member is missing is worth nothing at the
         # bottom of a pandas traceback, which is the reason
         # `chan.stationary_candidates.main` gives for the same line.
@@ -674,4 +1149,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

@@ -1,4 +1,4 @@
-"""The archive manifest and its reader, which hold the bars a public clone cannot read.
+"""The archive manifest and its reader, which hold the files a public clone cannot read.
 
 `chan.archive` hands back an archive file's bytes only once they hash to the line
 `data/archive_vintages.jsonl` records. Most of what is held here runs anywhere,
