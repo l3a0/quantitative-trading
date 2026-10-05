@@ -18,9 +18,9 @@ and each says so in its own cells.
 4. Row 11 covers the two statistics Chan printed from what he read as one
    disagreement, and they come from two different tests.
 
-Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 and 19 carry
+Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 and 21 carry
 their own, three, eleven, twelve, five, six, one, three, eight, six, two,
-eight, seven, twelve, six, two, five and three,
+eight, seven, twelve, six, two, five, three and three,
 and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18 and 19 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 and 21 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -173,6 +173,12 @@ states rather than picking one.
   - [The verdicts](#the-verdicts-18)
   - [What the entry concludes](#what-the-entry-concludes-19)
   - [What this entry cannot say](#what-this-entry-cannot-say-17)
+- [Entry 21: price spread, log price spread and ratio, Chan's *Algorithmic Trading*](#entry-21-price-spread-log-price-spread-and-ratio-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-18)
+  - [What this repo computed](#what-this-repo-computed-20)
+  - [The verdicts](#the-verdicts-19)
+  - [What the entry concludes](#what-the-entry-concludes-20)
+  - [What this entry cannot say](#what-this-entry-cannot-say-18)
 
 ## How to read an entry
 
@@ -210,9 +216,10 @@ both.
    holds Entry 17, [tests/test_buy_on_gap.py](../tests/test_buy_on_gap.py)
    holds Entry 18,
    [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py)
-   holds Entry 19, and
+   holds Entry 19,
    [tests/test_kelly_allocation.py](../tests/test_kelly_allocation.py) holds
-   Entry 20.
+   Entry 20, and [tests/test_price_spread.py](../tests/test_price_spread.py)
+   holds Entry 21.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -324,7 +331,7 @@ Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
-and Entry 20's rows 11 to 13.
+Entry 20's rows 11 to 13, and Entry 21's rows 9 to 11.
 
 A row with no published *number* can still be a replication, which is the case
 [docs/design.md](design.md) covers by saying that where a source states a
@@ -338,7 +345,7 @@ any figure was computed. Entry 11's row 3 is one as well. The sidebar's claim
 names one trade, and its criterion, a profit in every year from 1995 to 2008,
 was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any
-trade was computed. Entry 13's row 10 is a claim too, and the exception
+trade was computed. Entry 13's row 10 is a claim too, and the first exception
 among them: its criterion was written on
 [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the
 overlap it judges was measured. Round-off would leave two books of one size
@@ -404,6 +411,13 @@ deeper drawdown of the two as `calculateMaxDD` measures it, was written on
 any return was computed. Its rows 5 and 6 are replications of printed figures,
 but the mirror's rule was read from one sentence, so it was declared on the
 same issue before any run, and the verdicts name it.
+
+Entry 21's rows 7 and 8 take it as well, and like Entry 13's row 10 their
+criteria were written on
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340) after
+the first run. Each reads its criterion straight from location 1505's words,
+"a negative APR" and "actually lower" on both figures it names, so there was
+no threshold left to choose once the numbers were seen.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -4306,6 +4320,162 @@ it prints a value, the row gains a published figure and a verdict.
 Gaussian by assumption. Whether a cap makes a real second strategy worth
 dropping depends on moments estimated from data, with the estimation error
 location 3235 warns about.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 21: price spread, log price spread and ratio, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 3.1, Kindle locations 1476 to 1505, and the
+scripts `PriceSpread.m`, `LogPriceSpread.m` and `Ratio.m` the example names.
+Shipped under
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340). The
+location numbers are that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eleven rows, all derivable from
+[tests/test_price_spread.py](../tests/test_price_spread.py).
+
+**Two of the three scripts reproduce to six digits on Chan's own file, and the
+third misses, landing only with its two legs swapped.** A pair trade needs a signal
+that reverts, and Example 3.1 asks which one to build from two prices. It runs
+one rule on the gold ETF GLD and the oil ETF USO three ways: on the price spread
+`USO − h·GLD`, on the log price spread `log USO − h·log GLD`, and on the ratio
+`USO / GLD`. The hedge ratio `h` is refitted every day by regression over the
+last 20 days. Each day the rule holds minus the signal's 20-day z-score in
+units of the pair, so it buys the spread in proportion as it falls below its
+moving average. Chan notes that GLD and USO are not cointegrated, and asks
+whether there is enough short-term reversion to trade anyway.
+
+The price spread and the log price spread land all four figures their scripts
+print. `Ratio.m` as published misses both of its own. The same script with GLD
+and USO swapped lands both, to all six digits, a reading tried after the miss,
+and the book's sentence that the ratio loses money holds either way.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdata_etf/gld.csv` and `inputdata_etf/uso.csv`, two
+   of the 67 ETFs of Chan's `inputData_ETF.mat`, saved 2012-04-10, read through
+   `chan.series.load_panel`, 1,500 days from 2006-04-26 to 2012-04-09. The file
+   folds dividends in by subtracting them in dollars, and GLD pays none.
+   Neither leg carries a day the scale-break guard flags, so the run calls the
+   guard and it refuses nothing.
+2. **The specification.** The three scripts at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   the same git blobs as in ivanliu1989/algorithmic_trading at `4567024`. The
+   hedge ratio is the slope of `ols(USO, [GLD ones])` over the 20 rows ending at
+   each row, on log prices for the log price spread. The first 20 rows are
+   dropped, leaving 1,480 from 2006-05-24. The units are minus the 20-row
+   z-score, from `movingAvg` and `movingStd`, the plain mean and MATLAB's
+   n − 1 `std`. One unit holds `[−h·GLD, USO]` dollars for the price spread,
+   `[−h, 1]` for the log price spread and `[−1, 1]` for the ratio. The return
+   is the day's profit on yesterday's dollars over the gross dollars held, with
+   a NaN day set to 0. The APR is compounded over all 1,480 rows at 252 a year,
+   and the Sharpe ratio uses MATLAB's n − 1 `std` and subtracts no risk-free
+   rate. No cost is charged.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 to 2012 sample on a rule he chose, with a lookback he calls
+"near-optimal" with "the benefit of hindsight", so the entry says whether his
+numbers reproduce on his file and nothing about whether the rule pays today.
+
+### What the book printed
+
+Each script closes on a comment holding the six decimals its
+`fprintf('APR=%f Sharpe=%f')` prints. Location 1505 rounds the first two
+scripts' figures and prints no number for the ratio.
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | Price spread, APR | 0.108335, and "about 10.9 percent" | `PriceSpread.m`, location 1505 |
+| 2 | Price spread, Sharpe ratio | 0.589651, and "about 0.59" | `PriceSpread.m`, location 1505 |
+| 3 | Log price spread, APR | 0.088863, and "9 percent" | `LogPriceSpread.m`, location 1505 |
+| 4 | Log price spread, Sharpe ratio | 0.504153, and "0.5" | `LogPriceSpread.m`, location 1505 |
+| 5 | Ratio, APR | −0.141522 | `Ratio.m` |
+| 6 | Ratio, Sharpe ratio | −0.746663 | `Ratio.m` |
+| 7 | The ratio loses money | "a negative APR", a claim | location 1505 |
+| 8 | The log price spread does worse than the price spread | "actually lower", a claim | location 1505 |
+| 9 to 11 | the swapped legs, the first position, and two choices that move nothing | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `prod(1 + ret)^(252/1480) − 1` on the price spread | 0.108335 | `TestTheFigures::test_the_price_spread_apr_is_chans_0_108335` and `::test_the_books_about_10_9_percent_is_not_its_scripts_figure_rounded` |
+| 2 | `√252 · mean(ret) / std(ret)` on the price spread | 0.589651 | `TestTheFigures::test_the_price_spread_sharpe_ratio_is_chans_0_589651` |
+| 3 | row 1 on the log price spread | 0.088863 | `TestTheFigures::test_the_log_price_spread_apr_is_chans_0_088863` |
+| 4 | row 2 on the log price spread | 0.504153 | `TestTheFigures::test_the_log_price_spread_sharpe_ratio_is_chans_0_504153` |
+| 5 | row 1 on the ratio, `Ratio.m` as published | −0.134608 | `TestTheRatio::test_the_published_script_misses_both_figures` |
+| 6 | row 2 on the ratio, `Ratio.m` as published | −0.702522 | `TestTheRatio::test_the_published_script_misses_both_figures` |
+| 7 | row 5, as published and with the legs swapped | −0.134608 and −0.141522, both below 0 | `TestTheClaims::test_the_ratio_loses_money` |
+| 8 | rows 3 and 4 against rows 1 and 2 | both lower | `TestTheClaims::test_the_log_price_spread_is_below_the_price_spread_on_both_figures` |
+| 9 | rows 5 and 6 with GLD and USO swapped, so the signal is GLD/USO | −0.141522 and −0.746663 | `TestTheRatio::test_the_script_with_gld_and_uso_swapped_lands_both` |
+| 10 | the first day with units, and the first day a return is earned, on every run | 2006-06-21 and 2006-06-22 | `TestTheFigures::test_the_first_position_is_held_into_2006_06_22` |
+| 11 | every run with `lag` padding 0 rather than NaN, and with book two's `smart` average and deviation | the same returns, exactly and within 1e-12 | `TestWhatMovesNothing` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.000000 against the script, −0.1 against the book | reproduced | Chan's figure, on his own file, through his own script transcribed. The book's "about 10.9 percent" is not the script's 0.108335 rounded, which is 10.8, so the book's figure does not follow from its own script's. |
+| 2 | 0.000000 against the script, 0.00 against the book | reproduced | The same as row 1. |
+| 3 | 0.000000 against the script, 0 against the book | reproduced | The same as row 1. |
+| 4 | 0.000000 against the script, 0.0 against the book | reproduced | The same as row 1. |
+| 5 | +0.006914 | did not reproduce | Chan's own file and his published script, so the vintage explanation is spent. The same script with the legs swapped lands the comment's figure exactly, row 9, so the evidence favours the comment coming from a different run rather than from this script. That cause is a different method, so it cannot turn the miss into a gap. |
+| 6 | +0.044141 | did not reproduce | The same as row 5. |
+| 7 | none, a claim | reproduced | The APR is below 0 on the published script and on the swapped legs both. The criterion was written on [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) after the first transcription ran, and it is the sentence's own word, negative, with no threshold to choose. |
+| 8 | none, a claim | reproduced | The log price spread's APR and Sharpe ratio are both below the price spread's. The criterion was written after the first run, as row 7's was, and reads "lower" on both figures the sentence names. |
+| 9 | none | none, not a replication | A reading chosen after row 5 missed, the third of three that [issue 340](https://github.com/l3a0/quantitative-trading/issues/340) names. It lands both of the comment's figures to six digits. The two come from one return series, so they are not independent matches, but a coincidence would still have to land two different summaries of it. |
+| 10 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and a position earns from the next close, so every run holds its first position into 2006-06-22. |
+| 11 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN, and a zero pad holds zero gross dollars there, so the return is 0/0, and either NaN is set to 0. The return is profit over gross dollars, so a deviation that divides by n rather than n − 1 scales every unit by one factor and cancels. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Example 3.1's price spread and log price spread reproduce exactly on
+   Chan's own file.** All four figures the two scripts print land to six
+   digits. The book's "about 10.9 percent" is the one rounding that does not
+   follow from its script, which prints 10.8 percent to that precision.
+2. **The ratio's printed figures match a run with GLD and USO swapped.**
+   The book captions its Figure 3.2 "Ratio = USO/GLD", and the published
+   `Ratio.m` computes USO/GLD. Its comment's two figures are what GLD/USO
+   gives, with a positive unit buying GLD. The reading was found after the
+   miss rather than declared, so it is the cause the evidence favours, not a
+   reproduction. Chan's point survives either way: the ratio loses money on
+   this pair, by 13.5 or 14.2 percent a year, which
+   `TestTheClaims::test_the_ratio_loses_13_5_or_14_2_percent_a_year` holds.
+3. **The linear rule cannot see how the deviation is scaled.** Its return is
+   profit over gross dollars, so multiplying every unit by one constant leaves
+   it unchanged. Book two's `smartMovingStd`, which divides by n, gives the
+   same figures here as `movingStd`, unlike Entries 12 and 18, where the
+   choice of `smartstd` moved a printed digit. Example 3.2 compares the
+   z-score with a fixed threshold, where no constant cancels, so
+   [issue 341](https://github.com/l3a0/quantitative-trading/issues/341)
+   cannot rely on this entry's figures to say which divisor its own need.
+
+### What this entry cannot say
+
+Four things.
+
+**Which run produced `Ratio.m`'s comment.** Swapping the legs lands both
+figures. Neither mirror holds another version of the script, so whether Chan
+edited the script after running it, or ran an earlier one, is not recoverable
+here.
+
+**Whether GLD and USO cointegrate.** Chan says they do not. Nothing here runs a
+cointegration test on the pair, and the rule trades whatever reversion a
+20-day window shows.
+
+**What costs would take.** No script charges any. Location 1505 names the
+extra cost of the log price spread, which rebalances both legs every day to
+hold its dollar split.
+
+**Whether 20 days was a fair choice.** Chan calls it near-optimal with the
+benefit of hindsight, so the lookback was fitted to this sample, and every
+figure above is in-sample.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
