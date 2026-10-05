@@ -108,4 +108,7 @@ authority for every count about IJR, and
 [tests/test_ivv_holdings.py](../../tests/test_ivv_holdings.py) for every count
 about IVV. Those counts include how many rows each filing holds, how many of
 them are companies' stocks, and how many of those can be paired with the
-filing before. No replication reads this directory yet.
+filing before. One replication reads this directory so far:
+`chan.equity_seasonals` runs Example 7.6 on the members of
+`ijr/2025-12-31.csv`, which Entry 7's rows 30 to 34 in
+[docs/replication-log.md](../../docs/replication-log.md) record.
