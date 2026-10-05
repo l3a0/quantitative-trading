@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-five replications run here, fifteen from Chan's *Quantitative Trading*
-and ten from his *Algorithmic Trading*. The first two were ported from the
+Twenty-six replications run here, fifteen from Chan's *Quantitative Trading*
+and eleven from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-three were built here.
+where they were first built. The other twenty-four were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -319,7 +319,18 @@ where they were first built. The other twenty-three were built here.
     percent holds for the trace test and not the eigen test. Every figure is
     exploratory and survivor-only, and the lookback was chosen with hindsight,
     so the 2008 to 2012 figures are not out of sample.
-25. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
+25. AUD.USD against CAD.USD with a rolling Johansen hedge, *Algorithmic
+    Trading*'s Example 5.1, on the daily closes in Chan's 2018 Python port.
+    Every figure `AUDCAD_unequal.m` prints reproduces: an APR of 0.112410 and
+    a Sharpe ratio of 1.610890, his 11 percent and 1.6, and a Kelly leverage of
+    23.845328. They reproduce because all 612 daily returns match the ones the
+    script saved, to within the 1e-9 declared before any return was computed,
+    which also shows the port's daily files agree with the inputs his MATLAB
+    read, up to a constant scale on each leg. The trace test finds a relation
+    in 26 of the 612 training windows, so on most days the rule traded a hedge
+    the test did not back. Every figure is
+    exploratory, and the 250-day training length was chosen in hindsight.
+26. The spot and roll returns of *Algorithmic Trading*'s Example 5.3, on
     Chan's own strips of BR, corn, CL, HG and TU. Eight of Table 5.1's ten
     cells reproduce, and HG's and TU's spot returns do not: HG's 0.050567
     rounds to 5.1 percent against the book's 5.0, and TU's 0.000039 is
@@ -531,6 +542,15 @@ a known cointegrating vector recovered from a built system, real figures
 without a warning, and a refusal naming the column and row of any price that
 is not a finite number.
 
+[tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py) does it for
+Example 5.1. It pins the three printed figures at the precision that is real,
+as the script printed them and as the book rounded them, and holds the 612
+returns against Chan's saved ones row by row. It also holds that negating or
+scaling one day's hedge moves no return, that two series on different dates
+are refused, that scaling either leg leaves the match and one digit on a close
+in the test window breaks it, and that ending both windows a day earlier, as
+the Python port does, breaks it too.
+
 [tests/test_roll_returns.py](tests/test_roll_returns.py) does it for the spot
 and roll returns. It pins each strip's two figures at the six decimals the
 script's `%f` prints, which of Table 5.1's cells they round to with the sign
@@ -543,7 +563,7 @@ synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
 and a gap in the spot still counted as elapsed days.
 
-All twenty-five replications reach a verdict in
+All twenty-six replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -555,7 +575,8 @@ Entry 16 Conditional Parameter Optimization's, Entry 17 cross-sectional
 momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
-examples', Entry 24 Example 4.2's and Entry 25 the spot and roll returns'.
+examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's and Entry 26 the
+spot and roll returns'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -704,7 +725,9 @@ USD.CAD's one-minute bars, the daily closes of USD.CAD, AUD.USD and AUD.CAD,
 the monthly AUD and CAD interest rates, and the AUD.CAD returns his Example 5.1
 saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
 the daily close his Examples 2.1 to 2.5 read, and the stationarity tests on
-USD.CAD read it. No replication reads the other six yet.
+USD.CAD read it. `chan.series.load_port_close` reads the AUD.USD and USD.CAD
+daily files and `chan.series.load_returns` reads the saved returns, all three
+for Example 5.1. No replication reads the other three yet.
 
 Four more of his MATLAB files hold his continuous futures series, four saves of one file named
 for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
@@ -1156,6 +1179,18 @@ beside the computed one and a verdict, how many relations each Johansen
 statistic finds for the basket, and the rows beside the replication: the 480
 stocks tested, the 17 skipped, a plain ADF test of each 2007 log series, and
 the first day the strategy earns.
+
+Example 5.1 of *Algorithmic Trading* takes no option either, because
+`AUDCAD_unequal.m` fixes the two files, the training length and the lookback:
+
+```bash
+uv run python -m chan.aud_cad_johansen
+```
+
+It prints the three vintages and the test window, each figure the script
+prints beside the computed one and a verdict, the book's rounder figures, how
+far the 612 returns sit from Chan's saved ones, and the rows beside the
+replication.
 
 The spot and roll returns, Example 5.3 of *Algorithmic Trading*, take no
 option, because `estimateFuturesReturns.m` fixes the method and the book names

@@ -129,6 +129,13 @@ prints sit in its comments and nowhere in the book: every Johansen statistic
 and critical value for the basket against SPY, its eigenvectors, and 0.044930
 and 1.319397. The replication log's Entry 24 traces each to one or the other.
 
+*Algorithmic Trading*'s Example 5.1 splits the same way. The book's figures
+are here, at location 2237: the APR of 11 percent, the Sharpe ratio of 1.6, and
+the window from December 18, 2009, to April 26, 2012. The figures
+`AUDCAD_unequal.m` prints, 0.112410, 1.610890 and a Kelly leverage of
+23.845328, sit in its comments and nowhere in the book. The replication log's
+Entry 25 traces each to one or the other.
+
 *Algorithmic Trading*'s Example 5.3 splits a third way, because its script
 records no figure. The book's are here: the whole of Table 5.1 in the
 recovered text of location 2399, with the corn row repeated at 2444, and
@@ -137,7 +144,7 @@ Figure 5.5's first day, November 22, 2004, in the same passage. The claims at
 too. `estimateFuturesReturns.m` prints its two figures and keeps neither in
 its comments. Chan's 2018 Python port of it does, for corn alone:
 `0.02805562210100287` and `-0.12775650227459556` sit in its comments and
-nowhere in the book. The replication log's Entry 25 traces each to one or the
+nowhere in the book. The replication log's Entry 26 traces each to one or the
 other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way

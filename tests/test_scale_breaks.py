@@ -247,6 +247,13 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: 4.2 under [issue 343](https://github.com/l3a0/quantitative-trading/issues/343),
 #: and SPY carries no flagged day there.
 #:
+#: [Issue 345](https://github.com/l3a0/quantitative-trading/issues/345) decided
+#: that ``chan.aud_cad_johansen`` calls the guard for *Algorithmic Trading*'s
+#: Example 5.1, on the AUD.USD and USD.CAD daily files of Chan's Python port
+#: over their whole span, 2009-01-02 to 2012-04-26, as ``chan.pead`` does for
+#: Example 7.2. Neither file carries a flagged day, so nothing is refused, and
+#: ``TestTheGuardAndTheReads`` in ``tests/test_aud_cad_johansen.py`` runs it.
+#:
 #: [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) decided
 #: that ``chan.roll_returns`` calls the guard for *Algorithmic Trading*'s
 #: Example 5.3, on the spot and every contract of the five strips it reads. It
