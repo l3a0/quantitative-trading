@@ -1008,8 +1008,10 @@ as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
 mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
 price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
-on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. No run reads it
-yet. [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
+on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. Examples 2.6 to
+2.8 are the one run that reads it so far, through `chan.etf_cointegration`,
+for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
+[Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
 1. **Where it came from.** Three copies exist, and all three are one git

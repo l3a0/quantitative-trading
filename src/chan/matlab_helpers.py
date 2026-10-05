@@ -78,14 +78,15 @@ What each one does:
 They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
-**Book two's helpers.** Five come from Chan's *Algorithmic Trading* code
+**Book two's helpers.** Seven come from Chan's *Algorithmic Trading* code
 rather than his first edition's. :mod:`chan.pead` calls the first three,
 :mod:`chan.buy_on_gap` calls all but :func:`smartstd_book_two` directly and
 runs it through :func:`smart_moving_std`,
 :mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
 :func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
 :mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
-the revised edition's Example 7.7.
+the revised edition's Example 7.7. :mod:`chan.etf_cointegration` calls
+:func:`moving_avg` and :func:`moving_std`.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
@@ -108,6 +109,10 @@ endings are stripped, measured on
   over the row ``lag`` rows before it.
 - :func:`smart_moving_avg` is ``smartMovingAvg``, the mean of the finite
   entries over a trailing window of rows, NaN until the window first fills.
+- :func:`moving_avg` and :func:`moving_std` are ``movingAvg`` and
+  ``movingStd``, the plain mean and the n − 1 standard deviation over a
+  trailing window of rows. Unlike the two ``smart`` versions, a NaN anywhere in
+  the window makes that row NaN.
 
 Book two's ``smartmean``, ``smartsum`` and ``backshift`` compute what the first
 edition's do, so they are not carried twice.
@@ -151,6 +156,25 @@ things changed on the way over.
 2. ``smartMovingAvg``'s ``assert(T>0)`` becomes a refusal that names the
    window.
 3. ``calculateReturns``' commented-out log return is not carried.
+
+``movingAvg.m`` and ``movingStd.m`` came third, for Examples 2.6 to 2.8's
+``cointegrationTests.m``, from ``public/img/book2/`` in EpchanPreview at
+``e4bc46f``, git blobs ``5b9f933`` and ``2f5f858``. They landed here for
+[issue 339](https://github.com/l3a0/quantitative-trading/issues/339). Three
+things changed on the way over.
+
+1. ``movingStd``'s optional third argument, which samples every ``period``
+   rows, is not carried, because ``cointegrationTests.m`` never passes it.
+2. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window, and
+   ``movingStd`` refuses a window of one row for the reason
+   ``smartMovingStd`` does.
+3. A series shorter than its window comes back as NaN on every row from
+   :func:`moving_avg`, which is what ``movingStd`` already gives there.
+   ``movingAvg`` would hand back ``T − 1`` rows of NaN and nothing else, a
+   different length from its input, which nothing calls.
+
+``movingAvg`` adds a window's rows oldest first, and :func:`moving_avg` does
+the same, so each mean is the same double MATLAB's is.
 
 ``smartMovingAvg`` adds the window's rows one at a time, the current row first,
 and :func:`smart_moving_avg` adds them in the same order, so each mean is the
@@ -337,6 +361,47 @@ def smart_moving_avg(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
         count = count + np.isfinite(backshift(i, values))
     with np.errstate(invalid="ignore", divide="ignore"):
         return np.where(count > 0, total / count, np.nan)
+
+
+def moving_avg(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
+    """``movingAvg``: the plain mean over each trailing window of ``lookback`` rows.
+
+    Row t holds the mean of rows t − lookback + 1 through t, column by column,
+    and the first ``lookback − 1`` rows are NaN. A NaN inside a window makes
+    that row NaN, where :func:`smart_moving_avg` would skip it. The rows are
+    added oldest first, the order of the ``.m`` file's loop.
+    """
+    values = np.asarray(x, dtype=float)
+    if lookback < 1:
+        raise ValueError(f"moving_avg takes a window of at least 1 row, not {lookback}")
+    mean = np.full_like(values, np.nan)
+    rows = len(values)
+    if rows < lookback:
+        return mean
+    total = np.zeros_like(values[lookback - 1 :])
+    for i in range(lookback):
+        total = total + values[i : rows - lookback + 1 + i]
+    mean[lookback - 1 :] = total / lookback
+    return mean
+
+
+def moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
+    """``movingStd``: MATLAB's n − 1 ``std`` over each trailing window of ``lookback`` rows.
+
+    Row t holds the standard deviation of rows t − lookback + 1 through t,
+    column by column, and the first ``lookback − 1`` rows are NaN. A NaN inside
+    a window makes that row NaN, where :func:`smart_moving_std` would skip it.
+    """
+    values = np.asarray(x, dtype=float)
+    if lookback < 2:
+        raise ValueError(
+            f"moving_std takes a window of at least 2 rows, not {lookback}, because "
+            "MATLAB reduces a one-row window across its columns"
+        )
+    spread = np.full_like(values, np.nan)
+    for t in range(lookback - 1, len(values)):
+        spread[t] = values[t - lookback + 1 : t + 1].std(axis=0, ddof=1)
+    return spread
 
 
 def drawdown_path(
