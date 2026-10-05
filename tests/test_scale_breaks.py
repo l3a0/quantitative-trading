@@ -214,6 +214,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: neither of Example 4.3's figures lands. ``TestTheScaleBreakDecision`` in
 #: ``tests/test_khandani_lo_book_two.py`` runs both refusals and pins CAH.
 #:
+#: [Issue 343](https://github.com/l3a0/quantitative-trading/issues/343) decided
+#: that ``chan.index_arbitrage`` guards SPY and not the stocks for *Algorithmic
+#: Trading*'s Example 4.2, on issue 295's reasoning. The run reads 2007-01-03 to
+#: 2012-04-09, which holds all 30 of the book-two S&P 500 file's flagged days,
+#: ETFC's 2007-11-12 in its training window and 29 in its test, and the guard
+#: refuses the 480 stocks it screens on 17 of them. ``indexArb.m`` ran on these
+#: prices as they stand. Four of the 98 stocks its screen passes carry a flag,
+#: all in the test. ``TestTheScaleBreakDecision`` in
+#: ``tests/test_index_arbitrage.py`` runs the refusal and pins the four.
+#:
 #: [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) lifted
 #: Chan's book-two ETF file, and the guard flags 58 days in 8 of its 67 ETFs,
 #: every one a leveraged or inverse fund and every day between 2008-04-16 and
@@ -234,7 +244,10 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``chan.etf_cointegration`` calls it on EWA, EWC and IGE over the same span
 #: for Examples 2.6 to 2.8, under
 #: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and
-#: nothing is refused there either.
+#: nothing is refused there either. ``chan.index_arbitrage`` calls it on SPY
+#: over the days this file shares with the book-two S&P 500 file, for Example
+#: 4.2 under [issue 343](https://github.com/l3a0/quantitative-trading/issues/343),
+#: and SPY carries no flagged day there.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
