@@ -27,6 +27,8 @@ from chan.matlab_helpers import (
     fwdshift,
     lag1,
     matlab_sort,
+    moving_avg,
+    moving_std,
     round_half_away,
     smart_moving_avg,
     smart_moving_std,
@@ -193,6 +195,75 @@ class TestSmartMovingAvg:
     def test_a_window_below_one_row_is_refused(self) -> None:
         with pytest.raises(ValueError, match="at least 1 row, not 0"):
             smart_moving_avg([1.0, 2.0], 0)
+
+
+class TestMovingAvg:
+    def test_the_rows_before_the_window_fills_are_nan(self) -> None:
+        avg = moving_avg(np.arange(1.0, 6.0)[:, None], 3)
+        assert np.isnan(avg[:2]).all()
+        np.testing.assert_array_equal(avg[2:, 0], [2.0, 3.0, 4.0])
+
+    def test_a_missing_entry_spoils_its_window_where_the_smart_mean_skips_it(self) -> None:
+        x = np.array([[1.0], [NAN], [4.0], [6.0], [8.0]])
+        avg = moving_avg(x, 2)
+        assert np.isnan(avg[1:3, 0]).all()
+        np.testing.assert_array_equal(avg[3:, 0], [5.0, 7.0])
+        assert smart_moving_avg(x, 2)[2, 0] == 4.0
+
+    def test_it_adds_the_oldest_row_first_as_the_m_file_does(self) -> None:
+        """Added oldest first, 1 is lost against 1e16 before the two large values cancel.
+
+        ``smartMovingAvg`` adds newest first and keeps it, so the two helpers give 0 and 1/3.
+        """
+        x = [1.0, 1e16, -1e16]
+        assert moving_avg(x, 3)[2] == 0.0
+        assert smart_moving_avg(x, 3)[2] == pytest.approx(1 / 3, abs=1e-15)
+
+    def test_its_order_is_not_numpys_mean_over_a_longer_window(self) -> None:
+        """Over 20 rows numpy's mean no longer adds left to right, and keeps the 1."""
+        x = np.array([1.0, 0.0, 1e16, -1e16] + [0.0] * 16)
+        assert moving_avg(x, 20)[19] == 0.0
+        assert np.mean(x) == pytest.approx(0.05, abs=1e-15)
+
+    def test_a_series_shorter_than_the_window_is_all_nan(self) -> None:
+        assert np.isnan(moving_avg([1.0, 2.0], 3)).all()
+
+    def test_a_window_below_one_row_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="at least 1 row, not 0"):
+            moving_avg([1.0, 2.0], 0)
+
+
+class TestMovingStd:
+    def test_each_row_divides_by_n_minus_1_where_book_twos_smartstd_divides_by_n(self) -> None:
+        x = np.array([[1.0, 4.0], [3.0, 8.0], [5.0, 6.0]])
+        spread = moving_std(x, 2)
+        assert np.isnan(spread[0]).all()
+        np.testing.assert_allclose(
+            spread[1:], [[math.sqrt(2), math.sqrt(8)], [math.sqrt(2), math.sqrt(2)]]
+        )
+        assert smart_moving_std(x, 2)[1, 0] == 1.0
+
+    def test_a_missing_entry_spoils_its_window_where_the_smart_spread_skips_it(self) -> None:
+        """A window of 3 still holds two finite entries beside the NaN, so a spread that
+        skipped it, as ``np.nanstd`` would, gives √2 on row 2 rather than NaN."""
+        x = [1.0, NAN, 3.0, 5.0, 7.0]
+        spread = moving_std(x, 3)
+        assert np.isnan(spread[1:4]).all()
+        assert spread[4] == pytest.approx(2.0, abs=1e-15)
+        assert np.nanstd(x[0:3], ddof=1) == pytest.approx(math.sqrt(2), abs=1e-15)
+        assert smart_moving_std(x, 3)[2] == 1.0
+
+    def test_the_window_trails_rather_than_leads(self) -> None:
+        spread = moving_std([0.0, 0.0, 0.0, 10.0], 2)
+        assert spread[2] == 0.0
+        assert spread[3] == pytest.approx(math.sqrt(50), abs=1e-12)
+
+    def test_a_one_row_window_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="at least 2 rows, not 1"):
+            moving_std([1.0, 2.0], 1)
+
+    def test_a_series_shorter_than_the_window_is_all_nan(self) -> None:
+        assert np.isnan(moving_std([1.0, 2.0], 3)).all()
 
 
 class TestCalculateReturns:

@@ -76,8 +76,9 @@ parse disagrees with it.
 
 The committed files were written on 2026-10-04 by `record` in that module, from
 the documents the survey on the issue downloaded that day. `fetch` wraps the
-same call around a download and has not yet run against EDGAR, so its first run
-is also the first check that EDGAR still serves the bytes the index names.
+same call around a download. Its first run against EDGAR, on 2026-10-05,
+downloaded all 19 documents, found each one's sha256 equal to the index's, and
+wrote no byte, because every parse reproduced the committed file.
 
 ## What reads it
 
