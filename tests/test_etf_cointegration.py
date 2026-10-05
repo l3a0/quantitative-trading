@@ -36,6 +36,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import EG_CRIT_N2
 
 from chan import etf_cointegration as module
 from chan import paths
@@ -148,6 +149,7 @@ class TestExample26TheCadfTest:
         one, five, ten = (float(v) for v in SCRIPT_CADF_CRITICAL)
         assert (one, five, ten) == (-3.880, -3.359, -3.038)
         assert one < result.cadf.t < five
+        assert result.cadf.t < EG_CRIT_N2["5%"] == -3.34
 
 
 class TestExample27TheJohansenTest:
@@ -306,6 +308,12 @@ class TestTheRule:
         daily = linear_mean_reversion(prices, np.array([1.0, 0.0]), 3)
         assert daily[6] < 0
 
+    def test_a_portfolio_that_does_not_revert_is_refused_by_name(self) -> None:
+        """``ou_half_life`` gives infinity here, which ``int`` would refuse with no reason."""
+        trend = np.column_stack([np.exp(np.linspace(0, 1, 50)), np.ones(50)])
+        with pytest.raises(ValueError, match="does not revert"):
+            strategy(trend, np.array([1.0, 0.0]))
+
     def test_a_day_with_no_gross_is_zero_rather_than_nan(self) -> None:
         """A weight of 0 everywhere leaves the gross at 0 and 0 / 0 at NaN, set to 0."""
         prices = np.column_stack([np.linspace(1, 2, 8), np.linspace(2, 3, 8)])
@@ -337,6 +345,7 @@ class TestBesideTheReplication:
         reordered = result.reordered_triplet.eigenvectors[[1, 0, 2]]
         signs = np.sign(reordered[0] / result.triplet.eigenvectors[0])
         np.testing.assert_allclose(reordered * signs, result.triplet.eigenvectors, atol=1e-10)
+        assert list(signs) == [-1, -1, 1]
 
     def test_the_first_eigenvector_reverts_fastest(self, result) -> None:
         """Location 1340 expects the half-lives to rise as the eigenvalues fall."""
@@ -357,9 +366,13 @@ class TestBesideTheReplication:
         )
         assert all(t > -2.57 for t in result.adf.values())
 
-    def test_the_johansen_test_on_the_pair_is_the_wrappers(self, triplet, result) -> None:
-        pair = johansen(triplet[:, :2])
-        np.testing.assert_array_equal(pair.trace, result.pair.trace)
+    def test_the_pair_is_tested_as_ewc_then_ewa(self, sources, result) -> None:
+        """The statistics do not depend on the order, so the eigenvector rows are what show it."""
+        closes = sources[1]
+        script_order = johansen(closes[["EWC", "EWA"]].to_numpy(dtype=float))
+        np.testing.assert_allclose(script_order.eigenvectors, result.pair.eigenvectors, atol=1e-10)
+        swapped = johansen(closes[["EWA", "EWC"]].to_numpy(dtype=float))
+        assert not np.allclose(np.abs(swapped.eigenvectors), np.abs(result.pair.eigenvectors))
 
 
 class TestTheGuardAndTheReads:
@@ -384,6 +397,14 @@ class TestTheGuardAndTheReads:
         monkeypatch.setattr(module, "refuse_window_crossing_a_break", refuse)
         with pytest.raises(WindowCrossesScaleBreak, match="flagged"):
             run()
+
+    def test_main_turns_a_guard_refusal_into_one_line(self, monkeypatch, no_arguments):
+        def refuse(legs, *, start, end):
+            raise WindowCrossesScaleBreak("inputdata_etf/ewa.csv changes scale on 2008-01-02")
+
+        monkeypatch.setattr(module, "refuse_window_crossing_a_break", refuse)
+        with pytest.raises(SystemExit, match="ewa.csv changes scale on 2008-01-02"):
+            main()
 
     def test_run_reads_the_directory_it_is_given(self, tmp_path) -> None:
         with pytest.raises(VintageUnavailable, match="inputData_ETF.mat"):

@@ -69,10 +69,9 @@ that reading depends on.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 to 2012 sample on a portfolio he chose, and the eigenvector is fitted on the
-same 1,500 days the strategy trades, so the APR is in-sample by construction.
-Location 1350 calls the strategy free of data-snooping because the lookback
-comes from the series. The weights come from the series as well, from all of
-it.
+same 1,500 days the strategy trades, so the APR carries look-ahead by
+construction. Chan names that bias at locations 1225 and 1429. Location 1350's
+claim, that the rule has no parameter to search over, is a different one.
 """
 
 from __future__ import annotations
@@ -91,7 +90,12 @@ from chan.khandani_lo import TRADING_DAYS, plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, gap, matches
 from chan.matlab_helpers import backshift, moving_avg, moving_std, round_half_away
 from chan.pair_cointegration import lesage_cadf
-from chan.series import load_panel, panel_line, refuse_window_crossing_a_break
+from chan.series import (
+    WindowCrossesScaleBreak,
+    load_panel,
+    panel_line,
+    refuse_window_crossing_a_break,
+)
 from chan.vintage import VintageEntry, VintageUnavailable
 
 SOURCE_FILE = "inputData_ETF.mat"
@@ -199,6 +203,11 @@ class Strategy:
 def strategy(prices: NDArray[np.float64], weights: NDArray[np.float64]) -> Strategy:
     """Lines 98 to 124: the portfolio, its half-life, the lookback, and the returns."""
     half_life = ou_half_life(portfolio_value(prices, weights))
+    if not np.isfinite(half_life):
+        raise ValueError(
+            "the portfolio does not revert, since its change does not fall with its "
+            "level, so it has no half-life to set the lookback"
+        )
     lookback = int(round_half_away(half_life))
     return Strategy(
         weights=weights,
@@ -242,8 +251,8 @@ class EtfCointegration:
 def etf_cointegration(closes: pd.DataFrame) -> EtfCointegration:
     """Run the script and the rows beside it on a frame holding EWA, EWC and IGE."""
     x, y, z = (closes[s].to_numpy(dtype=float) for s in (X, Y, Z))
-    pair = np.column_stack([y, x])
-    triplet = np.column_stack([y, x, z])
+    pair = closes[list(PAIR)].to_numpy(dtype=float)
+    triplet = closes[list(TRIPLET)].to_numpy(dtype=float)
     tested = johansen(triplet, JOHANSEN_P, JOHANSEN_K)
     return EtfCointegration(
         days=closes.index,
@@ -382,10 +391,10 @@ def main() -> None:
     ).parse_args()
     try:
         run()
-    except VintageUnavailable as unavailable:
-        # A refusal that names the source reaches the reader as one line, the
-        # way chan.khandani_lo_book_two.main does it.
-        raise SystemExit(str(unavailable)) from unavailable
+    except (VintageUnavailable, WindowCrossesScaleBreak) as refused:
+        # A refusal that names the source or the flagged day reaches the reader
+        # as one line, the way chan.pead.main does it.
+        raise SystemExit(str(refused)) from refused
 
 
 if __name__ == "__main__":

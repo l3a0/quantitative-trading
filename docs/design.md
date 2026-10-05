@@ -342,14 +342,15 @@ Two things did not move, and the reasons are worth keeping.
 
 The Johansen test took a third route, and nothing was ported or shared. No
 copy existed in either repository, and `statsmodels`, already a runtime
-dependency here, carries `coint_johansen`, whose detrending and critical-value
-tables are the jplv7 `johansen.m` Chan calls.
+dependency here, carries `coint_johansen`, whose critical-value tables are
+those of the jplv7 `johansen.m` Chan calls, header and all.
 [src/chan/johansen.py](../src/chan/johansen.py) wraps it once for the four
 issues that need it, starting with
 [issue 339](https://github.com/l3a0/quantitative-trading/issues/339). It
 stays here rather than in `ithildincore`, because the sibling retired its
-Chan material and has no consumer for it. What vouches for it is that it lands
-every statistic Chan's Example 2.7 prints, which
+Chan material and has no consumer for it. What vouches for the rest of it, the
+detrending and the lag matrix, is that it lands every statistic Chan's Example
+2.7 prints at a constant and one lag, which
 [tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) pins.
 [tests/test_johansen.py](../tests/test_johansen.py) reads no vintage, so a
 failure there points at statsmodels rather than at the data, the split

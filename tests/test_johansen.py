@@ -53,13 +53,20 @@ class TestAKnownSystem:
 
 
 class TestTheFiguresComeBackReal:
-    def test_statsmodels_hands_back_complex_arrays_and_warns(self, tethered) -> None:
-        """What the wrapper exists to remove, held so a statsmodels change is noticed."""
+    def test_statsmodels_hands_back_complex_arrays_from_numpy_2_5(self, tethered) -> None:
+        """What the wrapper exists to remove, held so a numpy or statsmodels change is noticed.
+
+        numpy 2.4 and earlier return real eigenvalues here, and the wrapper's
+        real branch covers that, so the expectation follows the installed numpy.
+        """
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
             raw = coint_johansen(tethered, 0, 1)
-        assert np.iscomplexobj(raw.eig) and np.iscomplexobj(raw.evec)
-        assert any(issubclass(w.category, np.exceptions.ComplexWarning) for w in caught)
+        complex_from = tuple(int(part) for part in np.__version__.split(".")[:2]) >= (2, 5)
+        assert np.iscomplexobj(raw.eig) is complex_from
+        assert np.iscomplexobj(raw.evec) is complex_from
+        warned = any(issubclass(w.category, np.exceptions.ComplexWarning) for w in caught)
+        assert warned is complex_from
 
     def test_the_wrapper_hands_back_reals_without_a_warning(self, tethered) -> None:
         with warnings.catch_warnings():
@@ -77,6 +84,17 @@ class TestTheFiguresComeBackReal:
 
         monkeypatch.setattr("chan.johansen.coint_johansen", lambda *_: Rotated)
         with pytest.raises(ValueError, match="eigenvalues came back complex"):
+            johansen(tethered)
+
+    def test_a_complex_eigenvector_is_refused(self, monkeypatch, tethered) -> None:
+        result = raw(tethered)
+
+        class Rotated:
+            lr1, lr2, cvt, cvm, eig = result.lr1, result.lr2, result.cvt, result.cvm, result.eig
+            evec = result.evec + 1e-3j
+
+        monkeypatch.setattr("chan.johansen.coint_johansen", lambda *_: Rotated)
+        with pytest.raises(ValueError, match="eigenvectors came back complex"):
             johansen(tethered)
 
 

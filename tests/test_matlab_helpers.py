@@ -253,6 +253,11 @@ class TestMovingStd:
             moving_std(x, 2)[1:], [[math.sqrt(2), 0.0], [math.sqrt(2), math.sqrt(450)]]
         )
 
+    def test_a_series_shorter_than_its_window_is_nan_at_its_own_length(self) -> None:
+        sd = moving_std([1.0, 2.0], 3)
+        assert sd.shape == (2,)
+        assert np.isnan(sd).all()
+
     def test_a_window_of_one_row_is_refused(self) -> None:
         with pytest.raises(ValueError, match="at least 2 rows, not 1"):
             moving_std([1.0, 2.0], 1)

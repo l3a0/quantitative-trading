@@ -10,24 +10,29 @@ from Example 2.7 onward, always through ``johansen(y, 0, 1)`` from James
 LeSage's jplv7 toolbox.
 
 **What runs.** :func:`johansen` calls
-``statsmodels.tsa.vector_ar.vecm.coint_johansen``, whose detrending, lag
-matrix and critical-value tables, ``c_sja`` and ``c_sjt``, are LeSage's.
-Nothing is ported. What vouches for it is that it lands every statistic,
-critical value and eigenvalue ``cointegrationTests.m`` prints for EWA, EWC and
-IGE, which ``tests/test_etf_cointegration.py`` pins. ``p`` is the
+``statsmodels.tsa.vector_ar.vecm.coint_johansen``. Its critical-value tables,
+``c_sja`` and ``c_sjt``, are LeSage's, and statsmodels' ``coint_tables`` module
+carries his MATLAB header verbatim. Its detrending and lag matrix are not
+checked line by line against his ``johansen.m``. What vouches for them is
+that they land every statistic, critical value and eigenvalue
+``cointegrationTests.m`` prints for EWA, EWC and IGE, which
+``tests/test_etf_cointegration.py`` pins. Nothing is ported. ``p`` is the
 deterministic term, as LeSage names it: −1 for none, 0 for a constant, 1 for a
 constant and a trend. ``k`` is the number of lagged differences. Chan's
 printouts check ``p = 0`` and ``k = 1`` only, the values every book-two script
-passes, so another ``k`` has nothing here vouching for it.
+passes, so a ``p`` of −1 or 1 or another ``k`` has nothing here vouching for
+it.
 
 Three things the wrapper adds, each because statsmodels' own answer would
 reach a caller in a worse form.
 
 1. **The figures come back real.** statsmodels takes the eigenvalues from
-   ``np.linalg.eig`` on a non-symmetric matrix, which hands back a complex
-   array, so its eigenvalues and eigenvectors carry a ``+0j`` and each use of
-   them warns. The wrapper refuses any non-zero imaginary part by message and
-   returns real arrays.
+   ``np.linalg.eig`` on a non-symmetric matrix. From numpy 2.5, which
+   ``uv.lock`` pins, that hands back a complex array even when every
+   eigenvalue is real, so statsmodels' eigenvalues and eigenvectors carry a
+   ``+0j`` and its statistics warn. numpy 2.4 and earlier hand back reals there.
+   The wrapper refuses any non-zero imaginary part by message and returns real
+   arrays under either.
 2. **A price that is not a finite number is refused by name.** statsmodels
    raises ``LinAlgError: SVD did not converge`` on a single NaN, which names
    neither the column nor the row. A panel read by
@@ -70,8 +75,10 @@ class Johansen:
 
     ``trace_critical`` and ``eigen_critical`` hold one row per null and one
     column per entry of :data:`LEVELS`. ``eigenvectors`` holds one vector per
-    column, ordered by decreasing eigenvalue, so column 0 is the combination
-    that reverts fastest.
+    column, ordered by decreasing eigenvalue. Chan expects column 0 to revert
+    fastest, and on his ETFs it does, but a larger eigenvalue does not
+    guarantee a shorter half-life, so a caller that needs the fastest measures
+    it.
     """
 
     trace: NDArray[np.float64]

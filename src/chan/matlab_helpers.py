@@ -42,6 +42,8 @@ Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
 :func:`matlab_sort` for *Algorithmic Trading*'s Example 4.1.
 :mod:`chan.khandani_lo_book_two` calls :func:`backshift`, :func:`smartmean`
 and :func:`smartsum` for *Algorithmic Trading*'s Examples 4.3 and 4.4.
+:mod:`chan.etf_cointegration` calls :func:`backshift` and
+:func:`round_half_away` for *Algorithmic Trading*'s Examples 2.6 to 2.8.
 :func:`fwdshift` has no caller
 yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
 finds month-ends by comparing each row with the next instead. Reversing the
@@ -396,7 +398,8 @@ def moving_std(x: ArrayLike, lookback: int) -> NDArray[np.float64]:
     if lookback < 2:
         raise ValueError(
             f"moving_std takes a window of at least 2 rows, not {lookback}, because "
-            "MATLAB reduces a one-row window across its columns"
+            "a one-row window has no n − 1 deviation, and MATLAB answers it with 0 "
+            "for one column and with a reduction across the columns for several"
         )
     spread = np.full_like(values, np.nan)
     for t in range(lookback - 1, len(values)):

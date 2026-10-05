@@ -216,9 +216,11 @@ both.
    holds Entry 17, [tests/test_buy_on_gap.py](../tests/test_buy_on_gap.py)
    holds Entry 18,
    [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py)
-   holds Entry 19, and
+   holds Entry 19,
    [tests/test_kelly_allocation.py](../tests/test_kelly_allocation.py) holds
-   Entry 20.
+   Entry 20, and
+   [tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) holds
+   Entry 21.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -4349,7 +4351,7 @@ half-life, and Example 2.8 trades it with a linear mean-reversion rule, holding
 minus its z-score in units of the portfolio.
 
 **Every figure the script prints reproduces on Chan's own file, to every
-digit.** The one claim that fails is in the prose, and the script's own
+digit it prints, with the eigenvectors' signs flipped.** The one claim that fails is in the prose, and the script's own
 printout already contradicts it. Location 1337 says both Johansen statistics
 find three relations for the triplet. The eigen statistic for the first null is
 16.897, short of even its 90 percent bar of 18.893.
@@ -4369,7 +4371,8 @@ here.
    run by `chan.pair_cointegration.lesage_cadf`. The Johansen test is jplv7's
    `johansen(·, 0, 1)`, a constant and one lagged difference, on columns
    ordered EWC, EWA, IGE, run by `chan.johansen.johansen` over statsmodels'
-   port of the same function. The half-life comes from a regression of the
+   `coint_johansen`, which carries LeSage's critical-value tables and matches
+   his function's output at these settings. The half-life comes from a regression of the
    portfolio's daily change on its lagged level with an intercept. The
    strategy's lookback is that half-life rounded half away from zero, the
    APR is `prod(1 + r)^(252 / n) − 1` and the Sharpe ratio is
@@ -4411,7 +4414,7 @@ decimals the script prints. The Johansen ones come from statsmodels, which
 carries LeSage's tables. The CADF ones are jplv7's own table, quoted rather
 than computed, since no code here carries it. MacKinnon's table, which
 `ithildincore` carries, puts the 5 percent bar at −3.34 and gives the same
-verdict.
+verdict, which `test_row_3_the_pair_cointegrates_at_95_percent` also asserts.
 
 ### What this repo computed
 
@@ -4433,7 +4436,7 @@ verdict.
 | 14 | The same | 1.3913100883 | `TestExample28TheStrategy::test_row_14_the_sharpe_ratio` |
 | 15 | `ols(EWC, [EWA, 1])` | 0.9624293987 | `TestBesideTheReplication::test_the_hedge_ratio_feeds_only_the_figure` |
 | 16 | `lesage_cadf(EWA, EWC, 1)` | −3.6405421403, 0.0029 less negative than row 1 | `TestBesideTheReplication::test_reversing_the_legs_moves_the_statistic_and_not_the_verdict` |
-| 17 | `johansen([EWA, EWC, IGE], 0, 1)` | every statistic and eigenvalue within 2 × 10⁻¹³ of rows 7, 8 and 10 | `TestBesideTheReplication::test_reordering_the_columns_leaves_every_statistic` |
+| 17 | `johansen([EWA, EWC, IGE], 0, 1)` | every statistic and eigenvalue within 10⁻¹¹ of rows 7, 8 and 10, and the eigenvectors' rows permuted with the first two columns negated | `TestBesideTheReplication::test_reordering_the_columns_leaves_every_statistic` |
 | 18 | `ou_half_life` on each eigenvector's portfolio | 22.662578, 43.731678 and 151.546826 days | `TestBesideTheReplication::test_the_first_eigenvector_reverts_fastest` |
 | 19 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | −1.863334 for EWA, −1.901877 for EWC and −2.078705 for IGE | `TestBesideTheReplication::test_no_etf_alone_rejects_a_unit_root_even_at_90` |
 | 20 | The first non-zero day of row 13's returns | 2006-05-30, row 23, and 1,477 days from there on | `TestExample28TheStrategy::test_the_first_return_is_on_row_23_and_every_later_day_has_one` |
@@ -4444,7 +4447,7 @@ verdict.
 | --- | --- | --- | --- |
 | 1 | 0.00000000 at the eight decimals the script prints | reproduced | Exact, and so at the book's two. |
 | 2 | 0.000000 | reproduced | Exact. |
-| 3 | none, a claim | reproduced | −3.643 is past −3.359 and short of −3.880, so the pair cointegrates at 95 percent and not at 99, as Chan says. |
+| 3 | none, a claim | reproduced | −3.643 is past −3.359, so the pair cointegrates at 95 percent, as Chan says. It is short of the 99 percent bar of −3.880, which he does not claim. |
 | 4 | 0.000 on each | reproduced | Exact. |
 | 5 | 0.000 on each | reproduced | Exact. |
 | 6 | none, a claim | reproduced | Both tests reject r ≤ 0 and r ≤ 1 at 95 percent, and the trace's 19.983 clears its 99 percent bar of 19.935. What two relations between two series means is the subject of the second conclusion below. |
@@ -4469,7 +4472,7 @@ Three things.
 
 1. **The script reproduces and the prose around it does not, in one
    place.** Every number `cointegrationTests.m` prints lands to its last digit
-   on Chan's own file, so the entry has nothing to say about the data. Row 9
+   on Chan's own file, the eigenvectors up to their sign, so the entry has nothing to say about the data. Row 9
    is the exception, and the evidence against it is Chan's own printout, which
    sits next to the sentence in the book. A reader who trusts the paragraph
    over the table takes away a stronger result than the run gave. The trace
@@ -4478,18 +4481,23 @@ Three things.
    it as.** Location 1324 explains the pair's two relations as two hedge
    ratios, one from each regression order. A Johansen rank equal to the number
    of series says something else: that every combination is stationary,
-   including each ETF on its own around a constant. Row 19 says neither EWA nor
-   EWC rejects a unit root on its own, at −1.86 and −1.90 against −2.57. So
-   the full-rank reading rests on the second null, where 3.983 clears 3.841 by
-   0.141, and the plain ADF disagrees with it. One relation, which the CADF test
-   found and which needs only the first null rejected, is the reading every
-   row here agrees with.
-3. **The strategy's 12.6 percent is in-sample in its weights as well as its
-   lookback.** Location 1350 calls the linear rule free of data-snooping
-   because the lookback comes from the series rather than from a search. The
-   weights come from the series too, and from all of it: the eigenvector is
-   fitted on the same 1,500 days the strategy then trades. Nothing in this
-   entry measures how much that is worth.
+   including each ETF on its own around a constant. The triplet's trace test
+   reaches full rank too, three relations among three series, so it says the
+   same of all three. Row 19 sits in tension with both. No ETF rejects a unit
+   root on its own, at −1.86, −1.90 and −2.08 against −2.57. A plain ADF on
+   levels has little power, so failing to reject is weak evidence of a unit
+   root rather than proof of one, and this run does not settle which reading
+   holds. What it does show is how thin the pair's full rank is: the second
+   null falls by 0.141, 3.983 against 3.841.
+3. **The strategy's 12.6 percent carries look-ahead in its weights as well
+   as its lookback.** The eigenvector is fitted on the same 1,500 days the
+   strategy then trades, and so is the half-life that sets the lookback. Chan
+   says as much: location 1225 names the look-ahead in fitting a half-life on
+   in-sample data, and location 1429 says the book's backtests use the same
+   data to find a hedge ratio and to test it. Location 1350's claim is a
+   different one, that the rule has no parameter to search over, so no
+   data-snooping. Both statements hold, and the figure is in-sample either way.
+   Nothing in this entry measures how much the look-ahead is worth.
 
 ### What this entry cannot say
 

@@ -220,9 +220,12 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: 2009-06-25. EDC, MWJ and SMN are among the eight, and they hold the file's
 #: 11 closes below zero. A dividend subtracted in dollars rather than rescaled
 #: is what lets a close go below zero, which
-#: ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` pins. No
-#: run reads this file yet, so no decision about refusing a window has been
-#: made, and no experiment issue 299 names reads any of the eight.
+#: ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` pins.
+#: The first run that reads it, :mod:`chan.etf_cointegration` for
+#: [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), calls
+#: the guard on EWA, EWC and IGE over the whole file and passes, because none of
+#: the eight is read. No experiment issue 299 names reads any of them, so no
+#: decision about refusing a window has had to be made.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

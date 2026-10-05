@@ -1002,7 +1002,7 @@ the decision behind the shape, and the build measured what follows.
     port list above is that change.
 
 `inputdata_etf/` is Chan's book-two ETF file, `inputData_ETF.mat`, which most
-of *Algorithmic Trading*'s ETF experiments not yet run here read. It holds 67 ETFs over 1,500
+of *Algorithmic Trading*'s ETF experiments read. It holds 67 ETFs over 1,500
 trading days, 2006-04-26 to 2012-04-09, with the same five fields per member
 as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and

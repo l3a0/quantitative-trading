@@ -263,11 +263,13 @@ where they were first built. The other nineteen were built here.
 21. The cointegration tests and mean-reverting portfolio of *Algorithmic
     Trading*'s Examples 2.6 to 2.8, on the ETFs EWA, EWC and IGE in Chan's own
     ETF file. Every figure `cointegrationTests.m` prints reproduces to its last
-    digit: a CADF statistic of −3.64346635, every Johansen statistic and
-    eigenvalue, a half-life of 22.662578 days, and an APR of 0.125739 with a
-    Sharpe ratio of 1.391310, his 12.6 percent and 1.4. The Johansen test is
-    statsmodels' port of the jplv7 function Chan calls, wrapped once in
-    `chan.johansen` for the three issues that need it next. The book's claim
+    digit, the eigenvectors up to their sign: a CADF statistic of −3.64346635,
+    every Johansen statistic and eigenvalue, a half-life of 22.662578 days, and
+    an APR of 0.125739 with a Sharpe ratio of 1.391310, his 12.6 percent and
+    1.4. The Johansen test is statsmodels' `coint_johansen`, which carries the
+    critical-value tables of the jplv7 function Chan calls and lands its
+    output, wrapped once in `chan.johansen` for the three issues that need it
+    next. The book's claim
     that both Johansen statistics find three relations for the triplet does
     not reproduce, because the eigen statistic finds none, which the script's
     own printout already shows. Every figure is exploratory, and the

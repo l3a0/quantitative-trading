@@ -95,6 +95,16 @@ the return "did stabilize" afterwards all sit at location 2800, while the five
 figures its script's closing comment prints sit in `kentdaniel.m` and nowhere
 in the book. The replication log's Entry 17 traces each to one or the other.
 
+*Algorithmic Trading*'s Examples 2.6 to 2.8 split the same way as its
+Example 7.2. The book's four figures are here: the CADF statistic of "about
+–3.64" at location 1292, the half-life of 23 days at 1347, and the APR of 12.6
+percent and Sharpe ratio of 1.4 at 1368. So are the claims at 1324 and 1337
+about how many cointegrating relations each Johansen statistic finds. The
+figures `cointegrationTests.m` prints sit in its comments and nowhere in the
+book: −3.64346635, every Johansen statistic, critical value, eigenvalue and
+eigenvector, the half-life of 22.662578, and 0.125739 and 1.391310. The
+replication log's Entry 21 traces each to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
