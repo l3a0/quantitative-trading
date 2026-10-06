@@ -33,7 +33,7 @@ The mirror of Chan’s first-edition code and data, named below, holds only an e
 
 **Which edition says what.** The first edition (2009) prints the examples in MATLAB, cited here by script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror. The revised edition (2021) prints both in MATLAB, Python and R at pp. 175 to 182. Its Python is cited as `example7_6.py` and `example7_7.py` at commit `653cf92` of liujiantong/epchan_books, a third-party copy whose five printed figures match the book. Page numbers here are the revised edition’s.
 
-Every result below is **exploratory**. Reproducing a printed figure tests a hypothesis Chan chose, on data he chose, so it can say whether the figure reproduces and nothing more.
+Every reproduction below is **exploratory**. Reproducing a printed figure tests a hypothesis Chan chose, on data he chose, so it can say whether the figure reproduces and nothing more.
 
 ## Lesson 1: every reachable figure reproduces, and only under each script’s own rules
 
@@ -132,7 +132,10 @@ Both strategies rank stocks on past returns and trade the tenth at each end, so 
 
 ## What this replication cannot say
 
-One question is beyond it: whether the effect existed before 2002. The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
+Two questions are beyond it.
+
+1. **Whether Heston and Sadka’s effect existed before 2002.** The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
+2. **Whether the January effect survived the book.** A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. Its claim, its test and the wording of its verdict were written down before any return was computed, which makes it **registered** rather than exploratory. Free daily prices cover most of the index’s members but not all of them, and at every year-end some member with no checked price could have fallen in a traded tenth. So each January was computed twice. The low version gives each such member a return near the worst of that January if the strategy would hold it long and near the best if it would short it, and the high version does the reverse. The low series averages −0.1047 a January before costs, nowhere near above zero. The high series averages 0.0879, well above it. Free data cannot decide between them, and prices for the members that could have fallen in a traded tenth are what could.
 
 ## What this means for a trader
 
@@ -142,7 +145,7 @@ Three habits follow from the lessons above.
 2. **Check a figure’s units before comparing two printouts.** The first edition’s −0.9167 and the revised edition’s −0.0129 come from one strategy, and only one of them is a return on capital.
 3. **Do not read a survivor file as evidence that an effect died or lived.** A file saved after the fact holds the stocks that made it, and a split through 83 months of them swings with a single year.
 
-On Chan’s own files, every printed figure his data reaches reproduces exactly. Whether the strategies died is a separate question, and it needs a criterion and a panel these files do not supply.
+On Chan’s own files, every printed figure his data reaches reproduces exactly. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a criterion written in advance and a panel that keeps the companies that left the index reach a bound, and the bound is too wide to read. It does not show that the effect died, and it does not show that it lived.
 
 ## References
 

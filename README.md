@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-seven replications run here, fifteen from Chan's *Quantitative Trading*
-and twelve from his *Algorithmic Trading*. The first two were ported from the
+Twenty-eight replications run here, fifteen from Chan's *Quantitative Trading*
+and thirteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-five were built here.
+where they were first built. The other twenty-six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -121,7 +121,16 @@ where they were first built. The other twenty-five were built here.
    that left the index are missing and both legs gain from their absence. The
    mean January before costs is 0.0108, with a one-sided p of 0.132, so no
    January effect is detectable above about 2.4% a January, on members that
-   favour the effect.
+   favour the effect. The same rules then ran on the members IJR held at each
+   year-end from 2008 to 2025, which keeps the companies that left. That run
+   is registered, because its criterion was written before any return was
+   computed. Every year-end has members with no checked price that could
+   change a tenth, so every January is bounded. The low series averages
+   −0.1047 a January before costs with a one-sided p of 1.000, and the high
+   series 0.0879 with a p of 0.001. The two disagree, so the free sources
+   cannot decide whether the January effect survived the book, and
+   [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
+   whether to buy prices for the members that threaten a tenth.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -353,6 +362,19 @@ where they were first built. The other twenty-five were built here.
     script's arithmetic, and corn's is no longer twice its spot return.
     `chan.roll_returns` exports the strip reader and both fits for Example
     5.4 and the TU momentum experiment. Every figure is exploratory.
+28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
+    Chapter 5, on Chan's own continuous futures. A regression of ES on VX
+    from August 2008 gives the hedge, and a band one training deviation wide
+    trades the residual. On the save of 2012-05-07, fitted on the first 500
+    days from 2008-08-04, the hedge of 0.390594, the APR of 0.122811 and the
+    Sharpe ratio of 1.393201 reproduce the book's 0.3906, 12.3 percent and
+    1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
+    dropping the first training day reaches $2,046.93. `VX_ES.m` as it ships
+    loads a later save, fits on the test days too and runs no trade. The
+    window comes from Chan's `VX_ES_rollreturn.m`, while the save and the exit
+    at the opposite band were chosen because they land the book's figures.
+    The test holds four positions in 449 days.
+    Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -405,8 +427,10 @@ nothing here asserts is listed below.
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
 builder who corrects his code fails a test rather than moving a pin. Its
-survivor-run pins read the owner's archive and skip where none is configured,
-while the run's mechanics and its 603 manifest lines are held everywhere. The
+survivor-run and point-in-time pins read the owner's archive and skip where
+none is configured. The survivor run's mechanics and its 603 manifest lines
+are held everywhere, and so are the point-in-time run's flags, bound, verdict
+and refusals. The
 blog post about them is the exception, and what it says that nothing here
 asserts is listed below.
 
@@ -579,7 +603,15 @@ synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
 and a gap in the spot still counted as elapsed days.
 
-All twenty-seven replications reach a verdict in
+[tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
+the four figures on the 2012-05-07 save at the precision that is real and at
+the book's, and each diagnostic beside them: the first training day dropped,
+an exit at the mean, a band started flat on the first test day, the printed
+hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
+It also holds the training and test spans, the four positions, and the
+scale-break guard on each leg of each save.
+
+All twenty-eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -592,7 +624,7 @@ momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
-3.2's and Entry 27 the spot and roll returns'.
+3.2's, Entry 27 the spot and roll returns' and Entry 28 VX against ES's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -640,7 +672,9 @@ Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
 stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
-span, and neither carries a flagged day, so nothing is refused.
+span, and neither carries a flagged day, so nothing is refused. VX against ES
+calls it on VX and ES over each leg's own span in each continuous futures save
+it reads, and nothing is refused there either.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -754,7 +788,9 @@ its own calendar, and each is one vintage with all five fields, as a stock
 is. His `VIX.csv` is committed beside them as one vintage under the vendor
 `chan-csv`. Those five files hold 209 vintages, and
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
-their shape. No replication reads them yet.
+their shape. VX against ES reads VX and ES from the 2012-05-07 and
+2012-05-17 saves, and its tests read the 2012-05-11 save too, for
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350).
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -777,9 +813,11 @@ December 2008 to August 2026, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
 between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
-September 2012. One replication
+September 2012. One module
 reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
-IJR's 2025-12-31 filing.
+IJR's 2025-12-31 filing as a replication, and on the members of every
+year-end from 2008 to 2025 through that members file as a registered
+experiment.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -936,8 +974,8 @@ declared exactly one window. `--dated` names which `CADAUD=X` download to read,
 defaults to the one the suite pins, and is refused when the candidate named is
 one of the other two.
 
-Chan's equity seasonals are one command, and on Chan's files they take no
-option:
+Chan's equity seasonals are one command. On Chan's files it takes no option,
+and two options run Example 7.6 on IJR's members instead:
 
 ```bash
 uv run python -m chan.equity_seasonals
@@ -967,6 +1005,21 @@ deviation, the one-sided t-test, the smallest mean the test detects, the mean
 after costs, and the reading. The run is survivor-only, so the reading goes one
 way only, which the output says beside it. A machine with no archive gets one
 line naming both ways to set it, and so does every other refusal.
+
+`--point-in-time` runs Example 7.6 over the same Januaries on the members IJR
+held at each year-end, as `research/filings/ijr/members.csv` records them. It
+reads the same archive:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --point-in-time
+```
+
+Each year-end ranks only its covered members, with the tenth taken of the
+whole index, and prints its January with the members missing and how many of
+them threaten each tenth. A January with any threat prints as a low and a high
+bound. Then come each series' test, its detectable mean and its mean after
+costs, the verdict, and the survivor run's January less this one's. The two
+options cannot be given together.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -1256,6 +1309,17 @@ uv run python -m chan.roll_returns
 It prints the five strips' vintages, each strip's spot and roll returns beside
 Table 5.1's, and then the roll return with maturity in months, the days each
 fit covers and the month gaps between its contracts.
+
+VX against ES takes no option, because the issue fixed the save, the window
+and the band:
+
+```bash
+uv run python -m chan.vx_es
+```
+
+It prints the vintage, the calendar, the training and test spans, the four
+figures beside the book's with a verdict, the diagnostics in a table, and the
+position held into the test with each change after it.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -2545,7 +2609,8 @@ needs it. It is there so the committed figures can be redrawn and checked.
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a
 network at any point. Example 7.1 reads its bars from the owner's data archive,
-and `chan.equity_seasonals --survivors` reads 603 daily files from it, which is
+and `chan.equity_seasonals --survivors` and `--point-in-time` read 603 and
+1,487 daily files from it, which is
 a folder on the owner's machine. If that folder is synced from a cloud
 service, the first read of a file the service has not kept on disk downloads
 it, which this repo does not measure.

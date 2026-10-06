@@ -1152,6 +1152,12 @@ and symbol.
 5. The two VIX-filtered variants at Kindle location 3509, of Examples 4.1 and 7.1,
    read `VIX.csv`.
 
+`VX_ES.m` loads the 2012-05-17 save, but the figures the book prints beside it
+come from the 2012-05-07 save, which
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350) measured.
+So `chan.vx_es` reads VX and ES from the 2012-05-07 save for the replication,
+and from the 2012-05-17 save for the script as it ships.
+
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.
 
