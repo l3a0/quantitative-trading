@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from matplotlib.colors import to_rgba
+from matplotlib.colors import same_color, to_rgba
 
 from chan import coin_flip_figures as figures
 from chan.coin_flip_figures import (
@@ -242,6 +242,17 @@ class TestThePathsFigure:
         assert list(red.get_ydata()) == pytest.approx(
             list(1000.0 * np.exp(moments.growth_exact * rounds)), rel=1e-12
         )
+
+    def test_the_fan_is_muted_and_shares_no_colour_with_the_two_lines(self, paths) -> None:
+        """Only colour and width part the fan from the two rates, so a fan
+        drawn in red would read as two hundred median traders."""
+        ax = paths.axes[0]
+        fan = [line for line in ax.lines if line.get_linewidth() == 0.5]
+        gold, red = _thick(ax)
+        assert all(same_color(line.get_color(), MUTED) for line in fan)
+        assert not same_color(gold.get_color(), red.get_color())
+        for line in (gold, red):
+            assert not same_color(line.get_color(), MUTED)
 
     def test_a_different_seed_draws_different_paths_and_says_so(self, tmp_path: Path) -> None:
         other = make_paths_figure(out=tmp_path / "seed7.png", seed=7)

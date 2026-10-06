@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from matplotlib.colors import same_color, to_rgb
 from matplotlib.dates import DateFormatter, YearLocator, date2num, num2date
 
 from chan import buy_on_gap
@@ -35,6 +36,7 @@ from chan.buy_on_gap import SPREAD_LOOKBACK, both_sides
 from chan.buy_on_gap_figures import CUMULATIVE_FIGURE, main, make_cumulative_figure, panel_heading
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import cumulative_return, longest_spell
+from chan.regime_figure import INK, LOST, RULE
 from chan.vintage import VintageUnavailable
 from tests.test_buy_on_gap import SPEC
 
@@ -209,6 +211,26 @@ class TestTheSpells:
         assert bottom["high-label"] == "high, 2008-11-21"
         assert bottom["trough-label"] == "deepest drawdown −0.064928,\n2009-02-03"
 
+    def test_each_spell_and_its_label_are_drawn_in_lost(self, figure) -> None:
+        """The red band is what marks the days spent below the high."""
+        for ax in figure.axes:
+            band = _by_gid(ax.patches)["spell"]
+            label = {t.get_gid(): t for t in ax.texts}["spell-label"]
+            assert same_color(to_rgb(band.get_facecolor()), LOST)
+            assert same_color(label.get_color(), LOST)
+
+    def test_the_trough_is_marked_in_lost_and_the_high_in_the_line_s_colour(self, figure) -> None:
+        """Swapped, the red mark would sit on the high and say the drawdown is there."""
+        for ax in figure.axes:
+            lines = _by_gid(ax.lines)
+            notes = {t.get_gid(): t for t in ax.texts}
+            assert same_color(lines["trough"].get_color(), LOST)
+            assert same_color(notes["trough-label"].get_color(), LOST)
+            assert same_color(lines["high"].get_color(), lines["cumulative"].get_color())
+            assert same_color(notes["high-label"].get_color(), lines["cumulative"].get_color())
+            assert same_color(lines["cumulative"].get_color(), INK)
+            assert not same_color(lines["trough"].get_color(), lines["high"].get_color())
+
     def test_each_label_points_at_the_row_it_names(self, panels) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""
         for ax, side in panels:
@@ -231,6 +253,14 @@ class TestTheIdleStart:
             assert rows == list(range(SPREAD_LOOKBACK)), SPEC
             assert not side.positions[rows].any(), SPEC
             assert _day(side, SPREAD_LOOKBACK) == "2006-09-19", SPEC
+
+    def test_each_band_is_grey_and_not_the_spell_s_colour(self, figure) -> None:
+        """An idle start shaded in the spell's red would read as a drawdown."""
+        for ax in figure.axes:
+            bands = _by_gid(ax.patches)
+            idle = to_rgb(bands["unfilled"].get_facecolor())
+            assert same_color(idle, RULE)
+            assert not same_color(idle, to_rgb(bands["spell"].get_facecolor()))
 
     def test_its_label_names_the_90_days_once(self, figure) -> None:
         top, bottom = (_texts(ax) for ax in figure.axes)

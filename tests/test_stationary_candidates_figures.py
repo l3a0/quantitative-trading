@@ -21,7 +21,7 @@ import dataclasses
 
 import pytest
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
-from matplotlib.colors import to_rgba
+from matplotlib.colors import same_color, to_rgba
 
 from chan.paths import FIGURES_DIR
 from chan.stationary_candidates import cross_rate, fixed_income, residuals_pass
@@ -540,8 +540,11 @@ class TestTheLags:
     )
     def test_each_panel_draws_its_own_bars(self, lags, panel, name, table) -> None:
         lines = _lines(lags.axes[panel])
-        for level in ("10%", "5%"):
-            assert set(lines[f"bar-{name}-{level}"].get_ydata()) == {table[level]}
+        for level, style in (("10%", "--"), ("5%", ":")):
+            bar = lines[f"bar-{name}-{level}"]
+            assert set(bar.get_ydata()) == {table[level]}
+            assert bar.get_linestyle() == style
+            assert same_color(bar.get_color(), LOST)
         assert {g for g in lines if g.startswith("bar-")} == {f"bar-{name}-10%", f"bar-{name}-5%"}
 
     def test_the_legend_names_each_orientation_in_its_line_s_colour(self, lags) -> None:
