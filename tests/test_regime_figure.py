@@ -26,6 +26,7 @@ import hashlib
 import struct
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from ithildincore.timeseries import EG_CRIT_N2
 from matplotlib.colors import same_color, to_rgb
@@ -96,6 +97,26 @@ class TestTheFigureDrawsTheScanThatIsPinned:
         assert len(adf) == 231
         assert int((adf < EG_CRIT_N2["10%"]).sum()) == 31
         assert int((adf < EG_CRIT_N2["5%"]).sum()) == 14
+
+    def test_the_passing_windows_by_where_they_end(self, drawn) -> None:
+        """``blog/gold-miners-oil-lessons.md`` quotes two of these.
+
+        Nine of the 45 windows ending inside Chan's second window for the
+        Johansen tests, 2008-07-15 to 2012-04-09, pass at 10 percent. The last
+        passing window before the 2016 to 2018 gap ends in October 2015.
+        """
+        fig, _ = drawn
+        line = fig.axes[0].lines[0]
+        ends = pd.DatetimeIndex(line.get_xdata())
+        passing = line.get_ydata() < EG_CRIT_N2["10%"]
+        inside = (ends >= "2008-07-15") & (ends <= "2012-04-09")
+        assert (int(inside.sum()), int((inside & passing).sum())) == (45, 9)
+        by_year = pd.Series(ends[passing].year).value_counts().sort_index().to_dict()
+        assert by_year == {
+            2007: 1, 2008: 1, 2009: 3, 2010: 3, 2011: 2, 2012: 2, 2013: 2,
+            2014: 7, 2015: 1, 2019: 2, 2022: 3, 2026: 4,
+        }  # fmt: skip
+        assert str(ends[passing & (ends.year < 2019)].max().date()) == "2015-10-22"
 
     def test_the_first_window_is_chans_era(self, drawn) -> None:
         """The annotation in the picture points at this value, so the line it
