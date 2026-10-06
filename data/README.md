@@ -1303,7 +1303,7 @@ the measurements below.
 ## Vintages kept in the owner's archive
 
 Two kinds of series a run reads are not in this directory: two files of minute
-bars, and one cross-section of daily closes, the last part of this section.
+bars, and two cross-sections of daily closes, the last part of this section.
 `archive_vintages.jsonl` records Alpha Vantage's one-minute bars for GLD and GDX, which
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) reads for
 Example 7.1, and the files themselves stay in the owner's data archive. The
@@ -1380,7 +1380,8 @@ size before it records them.
 
 [tests/test_archive.py](../tests/test_archive.py) pins the two standalone
 lines field for field and hashes every line's file wherever an archive is
-configured, which takes about a second with the cross-section in place.
+configured, which took 3.3 seconds on one machine with both cross-sections in
+place.
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds the
 603 lines by the sha256 of their bytes, everywhere, and leaves out lines the
 cross-section gains for other symbols.
@@ -1406,6 +1407,31 @@ count, their download date and their sha256. They take `data/` from the
 202.72 MB above to 203.07 MB of file content, measured before this paragraph,
 which leaves 1.93 MB under the 205 MB budget. Those two sizes were measured on
 this branch and no test holds them.
+
+On 2026-10-04, the day of the S&P 600 ruling, the owner extended the exception
+to Alpha Vantage's daily closes for the S&P 500's members, on the same terms, which
+[issue 373](https://github.com/l3a0/quantitative-trading/issues/373) records.
+Those lines carry `"cross_section": "sp500"`, and each file sits at
+`sp500/daily_<SYMBOL>.csv`. `chan.archive.CROSS_SECTIONS` names both. [Issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
+recorded 822 lines on 2026-10-05: one for IVV, whose trading days
+[issue 336](https://github.com/l3a0/quantitative-trading/issues/336) takes as
+its calendar, 817 for the tickers `research/filings/ivv/members.csv` maps a
+company to that Alpha Vantage holds a series for, and four for tickers tried
+and then replaced.
+
+| Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sp500`, [issue 373](https://github.com/l3a0/quantitative-trading/issues/373)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 822 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 4,305,502 |
+
+A company that sat in both indices has a line in each cross-section, fetched
+twice, because `sp600` was named for one index and a recorded line is never
+rewritten. Twenty-two mapped tickers have no line, because Alpha Vantage
+answered that it holds no series for them. One is Equity Residential, a member
+at every schedule. The 822 lines hold 318,413 bytes, which
+[tests/test_sp500_panel.py](../tests/test_sp500_panel.py) pins with their row
+count, their download date and their sha256. They take `data/` from 203.07 MB
+to 203.39 MB of file content, which leaves 1.61 MB under the 205 MB budget.
+Those two sizes were measured on this branch and no test holds them.
 
 ## Header shape
 

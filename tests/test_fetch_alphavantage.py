@@ -158,7 +158,7 @@ class TestARun:
         vendor = Vendor({"AAA": [GOOD]})
         with pytest.raises(ValueError, match="has not ruled"):
             fetch(
-                "sp500",
+                "russell2000",
                 ["AAA"],
                 key=KEY,
                 get=vendor,
@@ -426,7 +426,7 @@ class TestTheOperatorSeesLines:
         symbols.write_text("AAA\n", encoding="utf-8")
         monkeypatch.setenv(KEY_ENV, KEY)
         with pytest.raises(SystemExit) as stopped:
-            fetch_alphavantage.main(["--cross-section", "sp500", "--symbols", str(symbols)])
+            fetch_alphavantage.main(["--cross-section", "russell2000", "--symbols", str(symbols)])
         assert "has not ruled" in str(stopped.value)
 
     def test_a_complete_run_exits_cleanly_and_an_incomplete_one_does_not(

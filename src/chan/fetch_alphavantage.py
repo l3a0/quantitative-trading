@@ -4,8 +4,11 @@ The owner extended the archive exception on 2026-10-04 to Alpha Vantage's daily
 closes for the S&P 600 cross-section, and ruled the same day that the fetch
 lives here, reading ``ALPHAVANTAGE_API_KEY`` from the environment of one run.
 [Issue 335](https://github.com/l3a0/quantitative-trading/issues/335) records
-both. Each symbol is one ``TIME_SERIES_DAILY_ADJUSTED`` request with
-``outputsize=full`` and ``datatype=csv``, and its response is written to the
+both. A second ruling that day extended the exception to the S&P 500's members,
+which [issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
+records, so the fetch writes to either cross-section the archive names. Each
+symbol is one ``TIME_SERIES_DAILY_ADJUSTED`` request with ``outputsize=full``
+and ``datatype=csv``, and its response is written to the
 archive unchanged, because one response carries the raw close beside the
 adjusted close.
 
