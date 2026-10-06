@@ -570,8 +570,8 @@ separately, were written on
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344) before
 any statistic was computed.
 
-Entry 31's rows 3 and 4 do not take it, and they are the first claim rows
-that carry no verdict at all. Location 1726 says the filter's slope
+Entry 31's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
+claims and carry no verdict. Location 1726 says the filter's slope
 "oscillates around 1" and its intercept "increases monotonically with time",
 each a definite claim about the series the script computes. The only criteria
 for them were written on
@@ -580,7 +580,7 @@ scratch run had measured what they read, and unlike Entry 13's row 10 or
 Entry 27's rows 13 and 14, each verdict would rest on where its line sat. The
 owner ruled on 2026-10-06 that both rows report their figures as findings with
 no verdict, and that neither counts toward the entry's tally. Each verdict cell
-says so.
+says so, with the value "none, a finding" that Entry 5 carries as a whole.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -6363,7 +6363,7 @@ hedges EWA and EWC today.
 | --- | --- | --- | --- |
 | 1 | The script over all 1,500 rows | 0.26225194 | `TestTheFigures::test_the_apr_is_chans_0_262252` |
 | 2 | The same | 2.36116164 | `TestTheFigures::test_the_sharpe_ratio_is_chans_2_361162` |
-| 3 | The slope after each day's update, over all 1,500 rows | median 1.047367, mean 1.089693, above 1 on 894 rows, which is 59.6 percent, and 54 crossings of 1 | `TestTheSlopeFinding` |
+| 3 | The slope after each day's update, over all 1,500 rows | median 1.047367, mean 1.089693, above 1 on 894 rows, which is 59.6 percent, and 54 crossings of 1, the first of them on row 2 as the slope leaves its zero start | `TestTheSlopeFinding` |
 | 4 | The intercept after each day's update, over all 1,500 rows | yearly means 0.1440, 0.6336, 2.5795, 5.6350, 6.0380, 6.5851 and 6.7748 from 2006 to 2012. Falls in 3 of 24 quarterly steps, 9 of 72 monthly steps, 57 of 1,250 steps of a 250-day rolling mean and 513 of 1,499 daily steps. Peak 6.803488 on 2011-09-08, last 6.767360 | `TestTheInterceptFinding` |
 | 5 | Row 1's run | a short on 2006-04-26 with the slope at 0, and the first nonzero return on 2006-04-27 | `TestTheFirstRows::test_the_first_unit_is_a_short_held_while_the_slope_is_0`, `::test_the_first_nonzero_return_falls_on_2006_04_27` |
 | 6 | The four signal arrays false on rows 1 and 2, all 1,500 returns annualised | APR 0.26066891, Sharpe ratio 2.34946035 | `TestTheFigures::test_no_signal_on_rows_1_and_2_over_all_1500_rows` |
@@ -6375,10 +6375,10 @@ hedges EWA and EWC today.
 | --- | --- | --- | --- |
 | 1 | −0.000000, and +0.0 at the book's tenth of a percent | reproduced | Exact at the six decimals the script's comment prints, on Chan's own file through his own script. |
 | 2 | −0.000000, and −0.0 at the book's tenth | reproduced | The same. |
-| 3 | none, a claim | none, a finding | The median rounds to 1.0 and the mean to 1.1, and the slope crosses 1 54 times. The only criterion was written after the run, and the median sits 0.002633 inside the line it would have drawn, so the owner ruled the row carries no verdict. |
-| 4 | none, a claim | none, a finding | Every yearly mean is above the year before, and the intercept falls at every finer grain, including 513 of its 1,499 daily steps. It peaks on 2011-09-08 above its last value. The only criterion was written after the run and chose the one grain at which the claim holds, so the owner ruled the row carries no verdict. |
+| 3 | none, a claim | none, a finding | The median rounds to 1.0 and the mean to 1.1, and the slope crosses 1 54 times, one of them the step up from the zero start on row 2. The only criterion was written after the run, and the median sits 0.002633 inside the line it would have drawn, so the owner ruled the row carries no verdict. |
+| 4 | none, a claim | none, a finding | Every yearly mean is above the year before, and the intercept falls at every finer grain, including 513 of its 1,499 daily steps. It peaks on 2011-09-08 above its last value. The only criterion was written after the run and chose the yearly grain, at which the claim holds, after the finer grains had been seen to fall, so the owner ruled the row carries no verdict. |
 | 5 | none | none, not a replication | On row 1 the state is still 0, so the forecast is 0 and `e` is EWC's whole close. The script shorts EWC alone, with no EWA leg, on the file's first day. |
-| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent at the book's precision. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
+| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
 | 7 | none | none, not a replication | Row 2's state matches `c·y·[x 1]' / (c·(x² + 1) + Ve)` with `c = delta / (1 − delta)` to 1e-12, which is what the zero start predicts. |
 
 ### What the entry concludes
@@ -6394,8 +6394,9 @@ Three things.
    file's first day the filter has seen nothing, so its forecast of EWC is 0
    and the error is EWC's whole price. The script reads that as a spread far
    above its band and shorts EWC alone. Rows 5 and 6 measure it: withholding
-   the signal on the first two days moves the APR from 0.262252 to 0.260669,
-   which rounds to 26.1 percent rather than the book's 26.2.
+   the signal on the first two days moves the APR from 0.262252 to 0.260669
+   and the Sharpe ratio from 2.361162 to 2.349460, which round to 26.1 percent
+   and 2.3 rather than the book's 26.2 and 2.4.
 3. **The intercept rises as a trend, and not day by day.** The yearly means
    rise every year, from 0.1440 in 2006 to 6.7748 in 2012. At a quarter, a
    month, a 250-day window and a day, it falls, and 513 of its 1,499 daily

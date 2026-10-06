@@ -408,7 +408,8 @@ where they were first built. The other twenty-nine were built here.
     0.262252 and a Sharpe ratio of 2.361162, which the book rounds to 26.2
     percent and 2.4. The script shorts EWC alone on the file's first day,
     while the filter's slope is still 0, and withholding the signal on the
-    first two days gives 0.260669 and 2.349460. The book's two claims about
+    first two days gives 0.260669 and 2.349460, which round to 26.1 percent
+    and 2.3 rather than the book's figures. The book's two claims about
     the filter, a slope that "oscillates around 1" and an intercept that
     "increases monotonically", are carried as findings with no verdict,
     because the only criteria for them were written after a run. The slope's
@@ -672,10 +673,11 @@ commented-out formula without rollover bit for bit.
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) does it for the
 Kalman filter on EWA and EWC. It pins the script's two printed figures at its
 six decimals and at eight, the book's rounding of them, and the run with no
-signal on the first two days. It holds the filter's first two rows against
-their closed form, the first position and return, and every figure the two
-findings quote: the slope's median, mean, share above 1 and crossings, and the
-intercept's yearly means, its falls at each finer grain and its peak. It also
+signal on the first two days. It holds the filter's zero start on the first
+row, the second row against its closed form, the first position and return,
+and every figure the two findings quote: the slope's median, mean, share above
+1 and crossings, and the intercept's yearly means, its falls at each finer
+grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
 planted break in either is refused.
 
@@ -692,7 +694,7 @@ momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
-3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's and
+3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, and Entry 31 the Kalman filter's on EWA and EWC.
 

@@ -206,12 +206,16 @@ class TestTheFigures:
 
     def test_no_signal_on_rows_1_and_2_over_all_1500_rows(self, result) -> None:
         """The four arrays false on rows 1 and 2, and every one of the 1,500 returns
-        still annualised. The APR then rounds to 26.1 percent, not the book's 26.2."""
+        still annualised. The figures then round to 26.1 percent and 2.3, not the
+        book's 26.2 and 2.4."""
         quiet = result.quiet_start
         assert len(quiet.daily) == 1500
         assert quiet.apr == pytest.approx(0.26066891, abs=5e-9), SPEC
         assert quiet.sharpe == pytest.approx(2.34946035, abs=5e-9), SPEC
         assert round(100 * quiet.apr, 1) == 26.1
+        assert round(quiet.sharpe, 1) == 2.3
+        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT)
+        assert not matches(quiet.sharpe, BOOK_SHARPE)
         assert (quiet.daily[:2] == 0).all()
 
     def test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading(self, result) -> None:
@@ -238,7 +242,11 @@ class TestTheSlopeFinding:
         assert round(100 * s.rows_above_one / s.rows, 1) == 59.6
 
     def test_the_slope_crosses_1_54_times(self, result) -> None:
-        assert slope_findings(result.filter.slope).crossings == 54, SPEC
+        """One of the 54 is row 2, where the slope leaves its zero start."""
+        slope = result.filter.slope
+        assert slope_findings(slope).crossings == 54, SPEC
+        assert slope[0] < 1 < slope[1]
+        assert slope_findings(slope[1:]).crossings == 53, SPEC
 
     def test_a_crossing_is_a_change_of_side(self) -> None:
         assert slope_findings(np.array([0.0, 1.5, 1.2, 0.9, 0.8, 1.1])).crossings == 3
@@ -387,7 +395,9 @@ class TestTheReport:
 
     def test_it_prints_the_findings_with_no_verdict(self, printed) -> None:
         assert "carried as findings with no verdict" in printed
-        assert "median 1.047367, mean 1.089693, above 1 on 894 of 1500 rows" in printed
+        assert (
+            "median 1.047367, mean 1.089693, above 1 on 894 of 1500 rows (59.6 percent)"
+        ) in printed
         assert "54 crossings of 1" in printed
         assert "2006 0.1440" in printed and "2012 6.7748" in printed
         for line in (

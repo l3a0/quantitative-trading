@@ -55,14 +55,14 @@ beside it, and ``y`` is EWC's close.
 so the forecast is 0 and the error is EWC's whole close, far above
 ``sqrt(Q)``. The script enters a short on 2006-04-26 that holds EWC alone,
 with no EWA leg. :attr:`KalmanHedge.quiet_start` withholds the signal on rows 1
-and 2, which the script's own plot of ``e`` leaves out, and the APR then rounds
-to 26.1 percent rather than the book's 26.2.
+and 2, which the script's own plot of ``e`` leaves out, and the APR and Sharpe
+ratio then round to 26.1 percent and 2.3 rather than the book's 26.2 and 2.4.
 
 **What changed on the way over.** Three things, and none moves a figure.
 
 1. The two ETFs are read as committed vintages through
    :func:`chan.series.load_panel` rather than loaded from the ``.mat``.
-2. The plots, Figures 3.5 and 3.6, are not drawn. The run prints.
+2. The script's four plots, Figures 3.5 to 3.8, are not drawn. The run prints.
 3. The filter is the script's loop written out, rather than statsmodels'
    state-space models, because the script's start, a zero state with zero
    covariance, is part of the specification.
@@ -348,7 +348,8 @@ def report(members: list[VintageEntry], result: KalmanHedge) -> None:
     s = slope_findings(f.slope)
     print(
         f"  slope      median {s.median:.6f}, mean {s.mean:.6f}, above 1 on "
-        f"{s.rows_above_one} of {s.rows} rows, {s.crossings} crossings of 1"
+        f"{s.rows_above_one} of {s.rows} rows ({100 * s.rows_above_one / s.rows:.1f} percent), "
+        f"{s.crossings} crossings of 1"
     )
     i = intercept_findings(f.days, f.intercept)
     yearly = ", ".join(f"{year} {mean:.4f}" for year, mean in i.yearly.items())
