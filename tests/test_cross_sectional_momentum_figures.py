@@ -29,6 +29,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.colors import same_color
 from matplotlib.dates import DateFormatter, MonthLocator, YearLocator, date2num, num2date
 
 from chan import cross_sectional_momentum
@@ -45,6 +46,7 @@ from chan.cross_sectional_momentum_figures import (
 from chan.matlab_helpers import calculate_max_dd
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import longest_spell
+from chan.regime_figure import INK, LOST
 from chan.vintage import VintageUnavailable
 from tests.test_cross_sectional_momentum import SPEC
 
@@ -240,6 +242,15 @@ class TestTheDeepestDrawdowns:
                 assert date2num(x) == date2num(panel.days[row]), gid
                 assert y == panel.cumret[row], gid
 
+    def test_the_trough_is_marked_in_lost_and_the_high_in_ink(self, figure) -> None:
+        """Colour ties each point to its label, and only the fall wears the loss colour."""
+        for ax in figure.axes:
+            marks, notes = _by_gid(ax.lines), _by_gid(ax.texts)
+            for gid, colour in (("high", INK), ("trough", LOST)):
+                assert same_color(marks[gid].get_markerfacecolor(), colour), gid
+                assert same_color(notes[f"{gid}-label"].get_color(), colour), gid
+        assert not same_color(INK, LOST)
+
 
 class TestTheSpell:
     """The 2008 and 2009 spell below the high, the one duration the post quotes."""
@@ -277,6 +288,14 @@ class TestTheSpell:
             "still running when the window ends"
         )
         assert "spell-label" not in texts[0] and "spell-label" not in texts[2]
+
+    def test_the_band_and_its_label_wear_lost(self, figure) -> None:
+        """The colour is what ties the label to the shaded days below the high."""
+        ax = figure.axes[1]
+        band = _by_gid(ax.patches)["spell"]
+        assert same_color(band.get_facecolor()[:3], LOST)
+        assert band.get_alpha() < 1, "the line must show through the band"
+        assert same_color(_by_gid(ax.texts)["spell-label"].get_color(), LOST)
 
     @pytest.mark.parametrize("window", list(SPELLS_ELSEWHERE))
     def test_elsewhere_the_deepest_drawdown_falls_outside_the_longest_spell(
