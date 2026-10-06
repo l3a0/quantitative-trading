@@ -2766,10 +2766,14 @@ Five groups of its figures are not pinned here.
    that the file subtracts dividends in dollars, which
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a full rank makes every combination
-   stationary, including one ETF held alone, and the two formulas for the
-   trace and eigen statistics, which the post shows as equations.
+   stationary, including one ETF held alone, that the test's eigenvalues lie
+   between 0 and 1, and the two formulas for the trace and eigen statistics,
+   which the post shows as equations.
 4. The book's Figures 2.4, 2.6 and 2.7, which the post's figure redraws from
    the script's `plot` calls and which nothing compares with the book's own.
+   The alt text's description of shapes in the figure, such as EWC sitting
+   above EWA and both falling in late 2008, is read off the drawing rather
+   than asserted.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

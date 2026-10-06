@@ -12,13 +12,12 @@ The figure reads the vintage and the specification
 ``tests/test_etf_cointegration.py`` names as its ``SPEC``, which every failure
 message here carries too.
 
-Two things are pinned here and nowhere else.
-
-1. That the residual's mean, which the panel draws, equals the intercept of
-   the regression the hedge ratio comes from, 6.4113.
-2. That the deepest drawdown's trough sits inside the longest spell below the
-   high. ``calculateMaxDD`` returns the two separately, so this is a fact
-   about this run rather than about the helper.
+One thing is pinned here and nowhere else: that the residual's mean, which
+the panel draws, equals the intercept of the regression the hedge ratio comes
+from, 6.4113. That the deepest drawdown's trough sits inside the longest spell
+below the high is held here and in ``tests/test_etf_cointegration.py``.
+``calculateMaxDD`` returns the two separately, so it is a fact about this run
+rather than about the helper.
 
 Exploratory, like everything Examples 2.6 to 2.8 compute here.
 """
