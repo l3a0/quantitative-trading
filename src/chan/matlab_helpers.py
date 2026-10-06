@@ -48,9 +48,11 @@ Example 3.1.
 :func:`round_half_away` for *Algorithmic Trading*'s Examples 2.6 to 2.8.
 :mod:`chan.index_arbitrage` calls :func:`backshift` and :func:`smartsum` for
 *Algorithmic Trading*'s Example 4.2.
-:func:`fwdshift` has no caller
-yet. It is carried because Chan's ``example7_6.m`` calls it, and the build here
-finds month-ends by comparing each row with the next instead. Reversing the
+:mod:`chan.tu_momentum` calls :func:`backshift`, :func:`fwdshift` and
+:func:`smartmean` for *Algorithmic Trading*'s Example 6.1, and is the one
+caller of :func:`fwdshift`. Chan's ``example7_6.m`` calls it too, and the
+build of that example here finds month-ends by comparing each row with the
+next instead. Reversing the
 tie order in :func:`matlab_sort` moves no printed figure on these files. On
 the 2012 S&P 500 file Example 4.1 reads, no two stocks qualifying on one day
 tie at all, on either side, so it moves nothing there either.
@@ -99,6 +101,8 @@ the revised edition's Example 7.7. :mod:`chan.usdcad_mean_reversion` calls
 calls :func:`round_half_away` to choose a row of jplv7's critical values.
 :mod:`chan.etf_cointegration` calls :func:`moving_avg` and :func:`moving_std`,
 and so does :mod:`chan.index_arbitrage`, for Example 4.2.
+:mod:`chan.tu_momentum` calls :func:`smartstd_book_two` and
+:func:`calculate_max_dd` for Example 6.1.
 The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,

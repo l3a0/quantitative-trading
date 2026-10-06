@@ -1,13 +1,14 @@
 """The rules of the three toolbox tests in :mod:`chan.stationarity_tests`, on synthetic series.
 
-What vouches for each transcription against Chan's own output is
+What vouches for ``adf`` and ``vratiotest`` against Chan's own output is
 ``tests/test_usdcad_mean_reversion.py``, where each lands the digits
-``stationarityTests.m`` printed. This file holds what those digits cannot
-separate: the row jplv7's ``adf`` drops against ``adfuller``, the bins of
-``ztcrit``, ``genhurst``'s invariances, and the period trim and closed forms of
-``vratiotest``. Each class asserts the nearby wrong answer beside the right
-one, so a transcription swapped for the obvious library call fails here rather
-than agreeing on easy inputs.
+``stationarityTests.m`` printed. ``genhurst`` lands none of the book's figures,
+0.49 on USD.CAD and 0.44 on TU, so ``TestGenhurst`` here is all that holds it.
+This file holds what those digits cannot separate: the row jplv7's ``adf``
+drops against ``adfuller``, the bins of ``ztcrit``, ``genhurst``'s invariances,
+and the period trim and closed forms of ``vratiotest``. Each class asserts the
+nearby wrong answer beside the right one, so a transcription swapped for the
+obvious library call fails here rather than agreeing on easy inputs.
 """
 
 from __future__ import annotations

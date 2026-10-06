@@ -1157,8 +1157,9 @@ and symbol.
 1. `TU_mom_hypothesisTest.m` and `TU_mom.m`, Examples 1.1 and 6.1, read TU
    from the 2012-05-11 save.
 2. `CL_rev.m` reads CL from the 2012-05-04 save.
-3. `VX_ES.m` reads VX and ES, and `gapFutures_FSTX.m`, Example 7.1's gap on
-   Euro Stoxx 50 futures, reads FSTX, all from the 2012-05-17 save.
+3. `VX_ES.m` reads VX and ES, `gapFutures_FSTX.m`, Example 7.1's gap on
+   Euro Stoxx 50 futures, reads FSTX, and `correlationTest.m`, Example 6.1's
+   correlation table run alone, reads TU, all from the 2012-05-17 save.
 4. `VX_ES_rollreturn.m` reads ES from the 2012-05-07 save and the close of
    `VIX.csv`.
 5. The two VIX-filtered variants at Kindle location 3509, of Examples 4.1 and 7.1,
@@ -1169,6 +1170,12 @@ come from the 2012-05-07 save, which
 [issue 350](https://github.com/l3a0/quantitative-trading/issues/350) measured.
 So `chan.vx_es` reads VX and ES from the 2012-05-07 save for the replication,
 and from the 2012-05-17 save for the script as it ships.
+
+`chan.tu_momentum` reads TU from the 2012-05-11 save, which `TU_mom.m` loads
+and whose figures the book prints, as
+[issue 351](https://github.com/l3a0/quantitative-trading/issues/351) measured.
+It reads the 2012-05-17 save for one row beside the replication, because that
+is the save `correlationTest.m` loads.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.
