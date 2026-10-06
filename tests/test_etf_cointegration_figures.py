@@ -35,13 +35,13 @@ from chan import paths
 from chan.etf_cointegration import etf_cointegration, read_sources
 from chan.etf_cointegration_figures import (
     COINTEGRATION_FIGURE,
-    LEVELS,
     STATISTICS,
     cumulative_return,
     main,
     make_cointegration_figure,
     residual,
 )
+from chan.johansen import Johansen
 from chan.paths import FIGURES_DIR
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
@@ -50,6 +50,11 @@ from tests.test_etf_cointegration import SPEC
 #: The triplet's statistics as ``tests/test_etf_cointegration.py`` rows 7 and 8 pin them.
 TRACE = [34.428620, 17.531719, 4.471021]
 EIGEN = [16.896901, 13.060698, 4.471021]
+
+#: The dash each critical value is drawn in, as the post's alt text reads them: dotted at
+#: 90 percent, solid at 95 and dashed at 99. Written out rather than read from the
+#: module's ``LEVELS``, so a swap there fails here instead of moving both sides at once.
+DASHES = {90: ":", 95: "-", 99: "--"}
 
 
 @pytest.fixture(scope="module")
@@ -150,6 +155,9 @@ class TestTheCloses:
     def test_the_legend_names_both(self, axes) -> None:
         assert _legend(axes["closes"]) == ["EWA", "EWC"]
 
+    def test_the_axis_reads_in_dollars(self, axes) -> None:
+        assert axes["closes"].get_ylabel() == "adjusted close, dollars"
+
 
 class TestTheResidual:
     """Figure 2.6, ``y - hedgeRatio*x`` with the intercept left in."""
@@ -192,6 +200,9 @@ class TestTheResidual:
             (values.min() - 0.08 * span, values.max() + 0.32 * span), abs=1e-12
         )
 
+    def test_the_axis_reads_in_dollars(self, axes) -> None:
+        assert axes["residual"].get_ylabel() == "dollars"
+
 
 class TestTheStatistics:
     """The triplet's trace and eigen statistics, each crossed by its three critical values."""
@@ -216,15 +227,52 @@ class TestTheStatistics:
             assert sum(centres) / 2 == pytest.approx(i)
             assert trace.get_x() < eigen.get_x()
 
+    def test_each_tick_sits_under_the_bar_its_label_names(self, axes) -> None:
+        """The labels alone would pass with the trace label printed under the eigen bar."""
+        ax = axes["statistics"]
+        bars = self._bars(ax)
+        named = [bars[f"{name}-{i}"] for i in range(3) for name in ("trace", "eigen")]
+        labels = [t.get_text() for t in ax.get_xticklabels()]
+        assert [label.split("\n")[0] for label in labels] == ["trace", "eigen"] * 3
+        assert list(ax.get_xticks()) == pytest.approx(
+            [bar.get_x() + bar.get_width() / 2 for bar in named]
+        )
+        assert [label.split("\n")[1] for label in labels] == [
+            f"{bar.get_height():.3f}" for bar in named
+        ]
+
+    def test_every_bar_and_mark_lies_inside_the_axis(self, axes) -> None:
+        """A narrower axis would clip the first or the last null's group."""
+        ax = axes["statistics"]
+        low, high = ax.get_xlim()
+        bars = list(self._bars(ax).values())
+        assert len(bars) == 6
+        for bar in bars:
+            assert low < bar.get_x() and bar.get_x() + bar.get_width() < high, bar.get_gid()
+        for mark in ax.lines:
+            left, right = mark.get_xdata()
+            assert low < left and right < high, mark.get_gid()
+
+    def test_the_two_statistics_are_filled_apart(self, axes) -> None:
+        """One fill for both would leave the legend unable to tell them apart."""
+        bars = self._bars(axes["statistics"])
+        fills = {}
+        for name, _, _ in STATISTICS:
+            colours = {tuple(bars[f"{name}-{i}"].get_facecolor()) for i in range(3)}
+            assert len(colours) == 1, name
+            fills[name] = colours.pop()
+        assert fills["trace"] != fills["eigen"]
+        patches = axes["statistics"].get_legend().get_patches()
+        assert [tuple(p.get_facecolor()) for p in patches] == [fills["trace"], fills["eigen"]]
+
     def test_each_bar_is_crossed_by_its_own_critical_values(self, axes, result) -> None:
         lines = _by_gid(axes["statistics"].lines)
         bars = self._bars(axes["statistics"])
-        assert [level for level, _ in LEVELS] == [90, 95, 99]
         for name, _, _ in STATISTICS:
             critical = getattr(result.triplet, f"{name}_critical")
             for i in range(3):
                 bar = bars[f"{name}-{i}"]
-                for column, (level, dash) in enumerate(LEVELS):
+                for column, (level, dash) in enumerate(DASHES.items()):
                     mark = lines[f"{name}-{i}-{level}"]
                     assert list(mark.get_ydata()) == [critical[i, column]] * 2
                     assert mark.get_linestyle() == dash
@@ -271,6 +319,25 @@ class TestTheStatistics:
             "The eigen test finds 0, even at 90."
         ), SPEC
 
+    def test_the_heading_counts_at_the_levels_it_names(self, monkeypatch, tmp_path, sources):
+        """On this file the counts read the same at 90 and 95, so the levels asked are pinned.
+
+        The stand-in answers each question with its level, so a count asked at the
+        wrong level prints a number the heading's own words contradict.
+        """
+        asked = []
+
+        def relations(self, statistic: str, level: int) -> int:
+            asked.append((statistic, level))
+            return level
+
+        monkeypatch.setattr(Johansen, "relations", relations)
+        drawn = make_cointegration_figure(out=tmp_path / COINTEGRATION_FIGURE, sources=sources)
+        assert asked == [("trace", 95), ("eigen", 90)]
+        assert _title(drawn.axes[2]).endswith(
+            "The trace test finds 95 relations at 95 percent. The eigen test finds 90, even at 90."
+        )
+
     def test_the_legend_names_both_statistics_and_every_level(self, axes) -> None:
         assert _legend(axes["statistics"]) == [
             "trace statistic",
@@ -280,10 +347,21 @@ class TestTheStatistics:
             "99 percent critical value",
         ]
 
+    def test_each_legend_line_is_dashed_as_its_level_is_drawn(self, axes) -> None:
+        """The labels alone would pass with every legend line solid."""
+        ax = axes["statistics"]
+        drawn = _by_gid(ax.lines)
+        legend = ax.get_legend().get_lines()
+        assert len(legend) == len(DASHES)
+        for line, (level, dash) in zip(legend, DASHES.items(), strict=True):
+            assert line.get_linestyle() == dash, level
+            assert line.get_linestyle() == drawn[f"trace-0-{level}"].get_linestyle(), level
+
     def test_the_axis_holds_the_tallest_mark(self, axes, result) -> None:
         low, high = axes["statistics"].get_ylim()
         assert low == 0
         assert high > result.triplet.trace_critical.max() > result.triplet.trace.max()
+        assert axes["statistics"].get_ylabel() == "statistic"
 
 
 class TestTheReturn:
@@ -360,6 +438,11 @@ class TestTheReturn:
         low, high = axes["returns"].get_ylim()
         assert low < cumret.min() and high > cumret.max()
         assert axes["returns"].yaxis.get_major_formatter()(0.5) == "50%"
+        assert axes["returns"].get_ylabel() == "cumulative return, compounded"
+
+    def test_a_line_marks_zero(self, axes) -> None:
+        zero = _by_gid(axes["returns"].lines)["zero"]
+        assert list(zero.get_ydata()) == [0, 0]
 
 
 class TestTheReadPath:
