@@ -16,7 +16,7 @@ is what makes the problem easy to miss.
 So a result computed from a series is committed next to the exact series it was
 computed from, and a result computed from none says so. Licensed data is the
 one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
-daily closes for the S&P 600 cross-section, stay in the owner's data archive
+daily closes for the S&P 600 and S&P 500 cross-sections, stay in the owner's data archive
 and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-nine replications run here, fifteen from Chan's *Quantitative Trading*
-and fourteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty replications run here, fifteen from Chan's *Quantitative Trading*
+and fifteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-seven were built here.
+where they were first built. The other twenty-eight were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -389,6 +389,17 @@ where they were first built. The other twenty-seven were built here.
     hypothesis from a link between the miners and oil alone. Every figure is
     exploratory, and the split date and the third ETF were chosen after the
     break was seen.
+30. AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2, on
+    the daily closes and monthly interest rates in Chan's 2018 Python port.
+    Both figures `AUDCAD_daily.m` prints reproduce to their last digit, an APR
+    of 0.061564 and a Sharpe ratio of 0.541802, his 6.2 percent and 0.54, and
+    so do the 6.7 percent and 0.58 the book gives without the rollover. The
+    book's annualised rollover of "almost 5 percent" does not reproduce. The
+    interest differential the book defines comes to 0.032642 a year, while two
+    other readings land near 5 percent: the AUD rate alone at 0.046648, and
+    the differential annualised over 365 days at 0.047279. Every figure is
+    exploratory, and the script triples CAD's rollover on Thursdays where the
+    book's own settlement rule says Wednesday.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -634,7 +645,16 @@ and the cut to GDX's first price that keeps a missing price from reaching the
 test. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 
-All twenty-nine replications reach a verdict in
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
+Example 5.2. It pins the script's two printed figures, the book's four, and
+the annualised rollover against the criterion written before it was computed,
+each at the precision that is real. It also holds that a month the rate file
+lacks gets a rate of zero, that AUD triples on Wednesdays and CAD on
+Thursdays and a holiday multiplies nothing, that each day's return carries the
+previous day's position and rates, and that zero rates give the script's
+commented-out formula without rollover bit for bit.
+
+All thirty replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -648,7 +668,8 @@ panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's and
-Entry 29 the Johansen tests' on GLD, GDX and USO.
+Entry 29 the Johansen tests' on GLD, GDX and USO, and Entry 30 Example
+5.2's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -805,7 +826,9 @@ saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
 the daily close his Examples 2.1 to 2.5 read, and the stationarity tests on
 USD.CAD read it. `chan.series.load_port_close` reads the AUD.USD and USD.CAD
 daily files and `chan.series.load_returns` reads the saved returns, all three
-for Example 5.1. No replication reads the other three yet.
+for Example 5.1. Example 5.2 reads the AUD.CAD daily file through
+`chan.series.load_port_close` too, and the two rate files through
+`chan.series.load_rates`, so a replication reads each of the seven.
 
 Four more of his MATLAB files hold his continuous futures series, four saves of one file named
 for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
@@ -832,7 +855,14 @@ IVV's. Beside IJR's, `research/filings/ijr/members.csv` maps each member to the
 ticker Alpha Vantage files it under and records whether that series' close
 agrees with the filing, which
 [issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built and
-[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. One module
+[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins.
+`research/filings/ivv/members.csv` does the same for IVV's quarter-ends, and the
+report counts which members Example 7.7 can rank at each month-end from
+December 2008 to August 2026, which
+[issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
+[tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
+between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
+September 2012. One module
 reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
@@ -1190,6 +1220,23 @@ missing members could change a tenth of Example 7.6's ranking. A line per
 missing member follows, giving its reason and marking those that threaten a
 tenth. `check` with no archive prints the archive's own one-line refusal.
 
+The S&P 500 panel does the same for IVV's quarter-end members, into the
+`sp500` cross-section, and its `fetch` hands IVV itself on too:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp500_panel fetch'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp500_panel check
+uv run python -m chan.sp500_panel report
+```
+
+Its report prints one line per month-end from December 2008 to August 2026,
+each carrying the schedule that sets the month, its members, how many the
+panel covers, the stops, which are covered members whose series ends inside
+the next month, and the misses by reason. A line per missing member
+follows with its reason. `check` also writes `research/filings/ivv/holes.csv`,
+which names every month-end a series' span covers with no row on it, so the
+report can run with no archive.
+
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any
 return was computed:
@@ -1334,6 +1381,18 @@ uv run python -m chan.gold_miners_oil
 It prints the three vintages and each window, each claim's count of relations
 at 99 percent and its verdict, every test's statistics against its critical
 values, and the rows beside the replication.
+
+Example 5.2 takes no option either, because `AUDCAD_daily.m` fixes
+the files and the lookback:
+
+```bash
+uv run python -m chan.aud_cad_rollover
+```
+
+It prints the three vintages, the window and the days with no rate, each
+figure the script and the book print beside the computed one and a verdict,
+the annualised rollover against its criterion, and the rows beside the
+replication.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

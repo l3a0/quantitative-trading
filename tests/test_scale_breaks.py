@@ -280,6 +280,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: last. None of the three carries a flagged day, and nothing is refused.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_gold_miners_oil.py`` holds all
 #: three legs clean and a broken leg refused.
+#:
+#: [Issue 346](https://github.com/l3a0/quantitative-trading/issues/346) decided
+#: the same for Example 5.2 as issue 345 did for Example 5.1.
+#: ``chan.aud_cad_rollover`` calls the guard on the port's AUD.CAD daily file
+#: over its whole span, 2007-07-23 to 2012-04-26, as
+#: ``chan.usdcad_mean_reversion`` does for Examples 2.1 to 2.5. The guard reads
+#: prices, so the two rate files are not passed to it. The file carries no
+#: flagged day, and ``TestTheGuardAndTheReads`` in
+#: ``tests/test_aud_cad_rollover.py`` runs it.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

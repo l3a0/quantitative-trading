@@ -763,9 +763,9 @@ series, and the zip is the only free copy of them.
   stationarity tests on USD.CAD run those examples, and they are the first run
   here to read any of the seven.
 - The daily closes of USD.CAD, AUD.USD and AUD.CAD, which Examples 5.1 and 5.2
-  read. Example 5.1 runs here, on the first two.
+  read. Example 5.1 runs here on the first two, and Example 5.2 on the third.
 - The monthly AUD and CAD interest rates, which Example 5.2 reads for its
-  rollover interest.
+  rollover interest, through `chan.series.load_rates`.
 - The AUD.CAD returns Example 5.1 saved, which Chapter 8's Monte Carlo
   leverage, historical optimization and CPPI boxes read.
 
@@ -871,8 +871,8 @@ the measurements below.
 8. **Three things cannot be checked here.**
    1. Whether the four currency files equal the `.mat` files Chan's MATLAB
       loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
-      Neither mirror holds any of them, so three have indirect evidence
-      instead and the AUD.CAD file has none. Example 5.1 run as the MATLAB
+      Neither mirror holds any of them, so all four have indirect evidence
+      instead. Example 5.1 run as the MATLAB
       runs it, on the AUD.USD and USD.CAD daily files, returns all 612 of the
       returns `AUDCAD_unequal_ret.mat` saved, within the 1e-9 declared before
       any was computed. So those two files agree with the MATLAB's inputs up to
@@ -884,7 +884,15 @@ the measurements below.
       16:59 closes, which land every digit `stationarityTests.m` prints for
       Examples 2.1, 2.3 and 2.4, as Entry 22 records and
       [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-      pins.
+      pins. The AUD.CAD file's evidence is Example 5.2's two printed figures.
+      Run on it and on the two rate files, `AUDCAD_daily.m` gives an APR of
+      0.061564 and a Sharpe ratio of 0.541802, every digit its comment
+      prints, as Entry 30 records and
+      [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py)
+      pins. That is the weakest of the four. Log returns and the sign of a
+      z-score cannot see a constant scale, so the figures say nothing about
+      one, and two figures summing up 1,237 days cannot be compared with any
+      single day the way Entry 25's 612 returns can.
    2. Who supplied the bars, and whether a bar's label is its first minute or
       its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
       and nothing in the files says more.
@@ -1303,7 +1311,7 @@ the measurements below.
 ## Vintages kept in the owner's archive
 
 Two kinds of series a run reads are not in this directory: two files of minute
-bars, and one cross-section of daily closes, the last part of this section.
+bars, and two cross-sections of daily closes, the last part of this section.
 `archive_vintages.jsonl` records Alpha Vantage's one-minute bars for GLD and GDX, which
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) reads for
 Example 7.1, and the files themselves stay in the owner's data archive. The
@@ -1380,7 +1388,8 @@ size before it records them.
 
 [tests/test_archive.py](../tests/test_archive.py) pins the two standalone
 lines field for field and hashes every line's file wherever an archive is
-configured, which takes about a second with the cross-section in place.
+configured, which took 3.3 seconds on one machine with both cross-sections in
+place.
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) holds the
 603 lines by the sha256 of their bytes, everywhere, and leaves out lines the
 cross-section gains for other symbols.
@@ -1406,6 +1415,31 @@ count, their download date and their sha256. They take `data/` from the
 202.72 MB above to 203.07 MB of file content, measured before this paragraph,
 which leaves 1.93 MB under the 205 MB budget. Those two sizes were measured on
 this branch and no test holds them.
+
+On 2026-10-04, the day of the S&P 600 ruling, the owner extended the exception
+to Alpha Vantage's daily closes for the S&P 500's members, on the same terms, which
+[issue 373](https://github.com/l3a0/quantitative-trading/issues/373) records.
+Those lines carry `"cross_section": "sp500"`, and each file sits at
+`sp500/daily_<SYMBOL>.csv`. `chan.archive.CROSS_SECTIONS` names both. [Issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
+recorded 822 lines on 2026-10-05: one for IVV, whose trading days
+[issue 336](https://github.com/l3a0/quantitative-trading/issues/336) takes as
+its calendar, 817 for the tickers `research/filings/ivv/members.csv` maps a
+company to that Alpha Vantage holds a series for, and four for tickers tried
+and then replaced.
+
+| Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sp500`, [issue 373](https://github.com/l3a0/quantitative-trading/issues/373)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 822 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 4,305,502 |
+
+A company that sat in both indices has a line in each cross-section, fetched
+twice, because `sp600` was named for one index and a recorded line is never
+rewritten. Twenty-two mapped tickers have no line, because Alpha Vantage
+answered that it holds no series for them. One is Equity Residential, a member
+at every schedule. The 822 lines hold 318,413 bytes, which
+[tests/test_sp500_panel.py](../tests/test_sp500_panel.py) pins with their row
+count, their download date and their sha256. They take `data/` from 203.07 MB
+to 203.39 MB of file content, which leaves 1.61 MB under the 205 MB budget.
+Those two sizes were measured on this branch and no test holds them.
 
 ## Header shape
 
@@ -1455,8 +1489,8 @@ file's layout from the pin in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
 `chan.series.load_port_close` reads the daily files, and refuses the minute
 file, whose second column is a time. `chan.series.load_minute_close` reads
-that one, and `chan.series.load_returns` reads the return file, which holds no
-dates.
+that one, `chan.series.load_returns` reads the return file, which holds no
+dates, and `chan.series.load_rates` reads the two rate files.
 
 ## Verifying the bytes
 

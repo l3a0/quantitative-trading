@@ -32,7 +32,8 @@ Five sources, told apart by what the manifest records rather than by a filename.
   that holds minute bars, a close per day at 16:59 New York time.
   :func:`load_port_close` reads the daily currency files, which parse through
   the same path as every other single series. :func:`load_returns` reads the
-  return file, which holds no dates. Nothing reads the rate files yet.
+  return file, which holds no dates, and :func:`load_rates` reads the two
+  files of monthly interest rates.
 - Chan's ``VIX.csv``, one vintage under the vendor ``chan-csv``, which
   :func:`load_panel` reads by its file name too.
 
@@ -156,6 +157,9 @@ DAILY_HEADER = "Date,Close"
 
 #: The header row of the Python port's return file, which is its only row that is not a value.
 RETURN_HEADER = "Return"
+
+#: The header row of the Python port's two files of monthly interest rates.
+RATE_HEADER = "Year,Month,Rates"
 
 
 class WindowCrossesScaleBreak(Exception):
@@ -351,6 +355,39 @@ def load_returns(
         )
     cells = pd.read_csv(io.BytesIO(payload), dtype=str)[RETURN_HEADER]
     return entry, _exact_numbers(cells)
+
+
+def load_rates(symbol: str, *, data_dir: Path | None = None) -> tuple[VintageEntry, pd.Series]:
+    """One of the Python port's monthly rate files: its ``chan-py`` entry and its rates.
+
+    Each rate comes back in percent a year, as the file writes it, parsed the
+    way :func:`_exact_numbers` parses a close. The index is the first day of
+    each month, which is how the manifest dates a rate vintage. Turning a
+    monthly rate into a daily one belongs to the caller, because the divisor
+    and the days it falls on are a strategy's arithmetic rather than the
+    file's.
+
+    A file under any other header is refused by name, as :func:`minute_close`
+    refuses a file holding no minute bars. The parse picks its columns by
+    name, so a price file recorded on the rate basis would otherwise stop on a
+    ``KeyError`` and reach the operator as a traceback rather than one line.
+    """
+    entry = resolve_vintage(
+        vendor="chan-py", symbol=symbol.upper(), price_basis="rate", data_dir=data_dir
+    )
+    payload = read_vintage(entry, data_dir=data_dir)
+    if _first_row(payload) != RATE_HEADER:
+        raise VintageUnavailable(
+            f"{entry.path} does not open with {RATE_HEADER}, so it holds no monthly rates to read"
+        )
+    cells = pd.read_csv(io.BytesIO(payload), dtype=str)
+    months = pd.to_datetime(
+        {"year": cells["Year"].astype(int), "month": cells["Month"].astype(int), "day": 1}
+    )
+    rates = pd.Series(
+        _exact_numbers(cells["Rates"]), index=pd.DatetimeIndex(months), name=entry.symbol
+    )
+    return entry, rates
 
 
 def _first_row(payload: bytes) -> str:

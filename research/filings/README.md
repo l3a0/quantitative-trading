@@ -141,6 +141,37 @@ QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp600_panel check
 uv run python -m chan.sp600_panel report
 ```
 
+### IVV's members file and holes file
+
+`ivv/members.csv` does the same for IVV, with the same columns, at each of its
+70 listed quarter-ends from 2008-12-31 to 2026-06-30.
+[Issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built it
+for Example 7.7, which ranks at every month-end, and
+[src/chan/sp500_panel.py](../../src/chan/sp500_panel.py) binds it. The
+skipped 2013-09-30 schedule has no rows, and 2013-06-30's members link straight
+to 2013-12-31's. Two columns read differently from IJR's.
+
+1. `exit` asks whether a passing series holds the close at which the last
+   position its schedule sets is closed. That is the last trading day of the
+   month after the last month the schedule sets, the next schedule's price
+   date, or 2026-09-30 after the last one.
+2. The check allows half a dollar and half a share on every HTML schedule,
+   the shareholder reports and 2019-06-30's NPORT-EX as well as the N-Q, and
+   half a cent on an N-PORT and its amendment.
+
+`ivv/holes.csv` names every month-end, from 2007-12 to 2026-09, that falls
+inside a series' span and has no row in it, one `ticker,month` line each.
+`check` writes it beside the members file, and like the members file it is
+not a filing, so the index does not name it. The report needs it because it reads
+month-end closes the check never looked at, and the manifest's first and last
+dates say only where each series starts and stops.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp500_panel fetch'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp500_panel check
+uv run python -m chan.sp500_panel report
+```
+
 ## What reads it
 
 [tests/test_fund_holdings.py](../../tests/test_fund_holdings.py) is the
@@ -150,7 +181,9 @@ about IVV. Those counts include how many rows each filing holds, how many of
 them are companies' stocks, and how many of those can be paired with the
 filing before.
 [tests/test_sp600_panel.py](../../tests/test_sp600_panel.py) is the authority
-for every count about IJR's members file, including each year-end's coverage.
+for every count about IJR's members file, including each year-end's coverage,
+and [tests/test_sp500_panel.py](../../tests/test_sp500_panel.py) for IVV's
+members file and holes file, including each month-end's coverage.
 [tests/test_equity_seasonals.py](../../tests/test_equity_seasonals.py) holds
 the counts that need the run's own tenth: each year-end's ranked covered
 members and which missing members threaten each tenth.

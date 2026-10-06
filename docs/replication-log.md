@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28 and 29 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29 and 30 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight and five, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28 and 29 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29 and 30 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -231,6 +231,12 @@ says.
   - [The verdicts](#the-verdicts-27)
   - [What the entry concludes](#what-the-entry-concludes-28)
   - [What this entry cannot say](#what-this-entry-cannot-say-26)
+- [Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*](#entry-30-audcad-with-rollover-interest-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-27)
+  - [What this repo computed](#what-this-repo-computed-29)
+  - [The verdicts](#the-verdicts-28)
+  - [What the entry concludes](#what-the-entry-concludes-29)
+  - [What this entry cannot say](#what-this-entry-cannot-say-27)
 
 ## How to read an entry
 
@@ -282,9 +288,11 @@ both.
    Entry 25, [tests/test_bollinger.py](../tests/test_bollinger.py) holds
    Entry 26, [tests/test_roll_returns.py](../tests/test_roll_returns.py)
    holds Entry 27, [tests/test_vx_es.py](../tests/test_vx_es.py) holds
-   Entry 28, and
+   Entry 28,
    [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
-   Entry 29.
+   Entry 29, and
+   [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
+   Entry 30.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -399,7 +407,7 @@ Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
-and Entry 29's rows 7 to 14.
+Entry 29's rows 7 to 14, and Entry 30's rows 6 to 8.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -540,6 +548,12 @@ figures they judge were measured. The criteria, |γ| at least twice |α| for
 scratch run had measured the figures, though before the build. The
 narrowest case clears the first by a factor of two, so the verdict does not
 rest on where that line sits.
+Entry 30's row 5 takes it too. Location 2303's "almost 5 percent" is a
+hedged figure rather than an exact one, so it is judged against a criterion, the annualised differential
+location 2273 defines at least 0.045 and below 0.050, was written on
+[issue 346](https://github.com/l3a0/quantitative-trading/issues/346) before
+the row was computed. The issue also wrote that the two rates' monthly means
+were known when it chose the criterion, and that they pointed at a miss.
 
 Entry 29's rows 1 to 6 take it too. Location 1922 makes three claims about the
 ETFs it names and prints no statistic for any of them. Their criteria, each
@@ -6061,3 +6075,180 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md) moves
 with it, since that post quotes most of these figures. The post's one figure
 moves too, and `uv run python -m chan.gold_miners_oil_figures` redraws it.
+
+## Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 5.2, Kindle location 2303, with the rollover
+interest defined at location 2273, and the script `AUDCAD_daily.m` the example
+names. Shipped under
+[issue 346](https://github.com/l3a0/quantitative-trading/issues/346). Every
+example number and location in this entry is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eight rows, all derivable from
+[tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py). Rows 1
+and 2 each cover two printed figures from one computation, and rows 6 to 8
+carry no published figure.
+
+A currency position held past 5 p.m. New York time earns the interest rate of
+the currency it is long and pays the rate of the one it is short. Location 2273
+calls the difference the rollover interest, and Chan uses this example to show
+that a currency strategy's return has to include it. He trades the AUD.CAD
+cross rate with a linear mean-reverting rule. Each day the position is minus
+the sign of the close's 20-day z-score, so the strategy is long or short one
+unit and never flat once the window fills. The return is the next day's log
+move plus the rollover on the position held overnight.
+
+**The script's figures reproduce and the book's rollover figure does not.**
+Both figures `AUDCAD_daily.m` prints land every digit, and so do the two the
+book gives without rollover. The book's annualised rollover of "almost 5
+percent" misses the criterion written before it was computed. Two other
+readings land inside it, and nothing here chooses between them.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `pythoncodesanddata/inputData_AUDCAD_20120426.csv`, from
+   Chan's 2018 Python port, saved 2018-12-13, 1,237 days from 2007-07-23 to
+   2012-04-26, as traded, read through `chan.series.load_port_close`. The
+   rates are `pythoncodesanddata/AUD_interestRate.csv`, 147 months from
+   2000-01 to 2012-03, and `pythoncodesanddata/CAD_interestRate.csv`, 144
+   months from 2000-01 to 2011-12, both saved 2018-12-13, read through
+   `chan.series.load_rates`.
+2. **The specification.** `AUDCAD_daily.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `823983a`, as `chan.aud_cad_rollover` transcribes it. The position
+   is minus the sign of a 20-row z-score that includes the day, with the n − 1
+   deviation, held from the next day. Each day takes its calendar month's
+   rate, and 0 where the file holds no such month, divided by 365 and by 100.
+   AUD's daily rate is tripled on Wednesdays and CAD's on Thursdays. The return
+   is yesterday's position times today's log move plus yesterday's
+   `log(1 + aud) − log(1 + cad)`. The figures run over all 1,237 rows, the
+   first 20 of them 0: the APR is `prod(1 + r)^(252 / 1237) − 1`, which
+   compounds a log return as if it were simple, and the Sharpe ratio is
+   `√252 · mean / std`, with no risk-free rate and no cost.
+
+**Row 5's criterion was written before the row was computed.** Location 2273
+defines the rollover on a long position as the differential of the two rates.
+So row 5 is 252 times the mean, over every row, of the rollover term the
+script adds to a long position.
+[Issue 346](https://github.com/l3a0/quantitative-trading/issues/346) wrote on
+2026-10-05 that "almost 5 percent" holds when that value is at least 0.045 and
+below 0.050, because the words say below 5 and close enough to round to it.
+The criterion was written knowing the two monthly means from July 2007, 4.908
+percent for AUD and 1.592 for CAD, and the issue said so and named the AUD
+rate alone as the likely explanation of a miss. That reading is row 6, beside
+the replication rather than the criterion, because it contradicts the book's
+own definition. The review of this entry found a second reading that lands,
+the differential annualised over 365 days, which is row 8.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2007 to 2012 sample on a rule he chose, so the entry says whether his numbers
+reproduce on his files and nothing about whether the cross rate reverts today.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | APR with rollover interest | 0.061564, and 6.2 percent | script line 50, location 2303 |
+| 2 | Sharpe ratio with rollover interest | 0.541802, and 0.54 | the same |
+| 3 | APR without rollover interest | 6.7 percent | location 2303 |
+| 4 | Sharpe ratio without rollover interest | 0.58 | location 2303 |
+| 5 | Annualised average rollover interest | "almost 5 percent" | location 2303 |
+| 6 | Row 5 on the AUD rate alone | none | n/a |
+| 7 | Rows 1 and 2 with each missing month carried forward | none | n/a |
+| 8 | Row 5 annualised over 365 days rather than 252 | none | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | Line 43's returns over all 1,237 rows | 0.0615638271 | `TestRows1And2WithRollover::test_row_1_the_apr` |
+| 2 | The same | 0.5418018005 | `TestRows1And2WithRollover::test_row_2_the_sharpe_ratio` |
+| 3 | Line 44's returns, which are line 43's with both rates at 0 | 0.0671408367 | `TestRows3And4WithoutRollover::test_row_3_the_apr` |
+| 4 | The same | 0.5845063318 | `TestRows3And4WithoutRollover::test_row_4_the_sharpe_ratio` |
+| 5 | 252 times the mean of `lag(log(1 + aud) − log(1 + cad), 1)`, first row 0 | 0.0326416903 | `TestRow5TheAnnualisedRollover::test_row_5_misses_the_criterion` |
+| 6 | Row 5 with CAD's rate at 0 | 0.0466475912 | `TestBesideTheReplication::test_row_5_on_the_aud_rate_alone_lands_inside_the_criterion` |
+| 7 | Line 43 with each missing month given the last month its file holds | APR 0.0620850756, Sharpe ratio 0.5457420240 | `TestBesideTheReplication::test_rows_1_and_2_with_each_missing_month_carried_forward` |
+| 8 | 365 times row 5's mean, 365 being the divisor lines 21 and 33 apply | 0.0472786388 | `TestBesideTheReplication::test_row_5_annualised_over_365_days_lands_inside_the_criterion_too` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | −0.000000, and −0.0 at the book's tenth of a percent | reproduced | Exact at the six decimals the script prints. |
+| 2 | −0.000000, and +0.00 at the book's two decimals | reproduced | The same. |
+| 3 | +0.0 at the book's tenth of a percent | reproduced | Rows 1 and 2 land, so the inputs are the script's, and 6.71 percent rounds to the book's 6.7. |
+| 4 | +0.00 at the book's two decimals | reproduced | The same, at 0.5845. |
+| 5 | none, a criterion, and below its floor of 0.045 | did not reproduce | Rows 1 and 2 land every digit, so the input is not the cause, and the differential location 2273 defines averages 3.26 percent a year. Rows 6 and 8 are two explanations, and neither is ruled out. |
+| 6 | none | none, not a replication | The AUD rate alone gives 4.66 percent, inside row 5's criterion. That is the rate a long position earns rather than the differential it nets. |
+| 7 | none | none, not a replication | Carrying the last month forward gives CAD a rate in 2012 and AUD one in April 2012, and moves the APR from 0.061564 to 0.062085 and the Sharpe ratio from 0.541802 to 0.545742, which rounds to 0.55 rather than the book's 0.54. |
+| 8 | none | none, not a replication | The differential over 365 days gives 4.73 percent, inside row 5's criterion. The script divides each annual rate by 365, so annualising its daily term by 365 rather than by the 252 it uses for returns is a slip it invites. |
+
+### What the entry concludes
+
+Four things.
+
+1. **The AUD.CAD file and the two rate files give the figures Chan's MATLAB
+   printed.** The script loaded a minute `.mat` file that neither mirror
+   carries, and this run read the Python port's daily copy. Both printed
+   figures land every digit, which is indirect evidence that the copy holds
+   the 16:59 closes the MATLAB kept, up to a constant scale. Log moves and the
+   sign of a z-score cannot see a scale, and
+   `TestTheRule::test_a_constant_scale_on_every_close_moves_no_figure` holds
+   that. It is weaker evidence than Entry 25's 612 returns matched row by row,
+   since two figures sum up 1,237 days.
+2. **The book's rollover figure is not the differential it defines, and two
+   readings explain it.** The differential location 2273 defines gives 3.26
+   percent a year, which no reading of "almost 5 percent" reaches. The AUD
+   rate alone gives 4.66 percent, and the differential annualised over 365
+   days gives 4.73. Both land inside the criterion, and nothing in the book
+   or the script says which one Chan computed.
+3. **Rollover cost the strategy about half a point a year, because it was
+   short more often than long.** A long position earns the differential and a
+   short one pays it. The rule is short on 707 of the 1,217 days it holds a
+   position and long on 510, and the rollover it earned comes to −0.005221 a
+   year. That is close to the half point between the book's APR of 6.7
+   percent without rollover and 6.2 with it, and the two differ because the
+   APR compounds the returns while this is their mean.
+   `TestBesideTheReplication::test_the_rule_holds_short_on_707_days_and_long_on_510`
+   and `::test_the_rollover_the_strategy_earned_is_a_cost_of_0_005221` hold
+   those figures.
+4. **The book's Sharpe ratio of 0.54 depends on the zero fill.** The script
+   gives the 84 days of 2012 no CAD rate and the 19 days of April 2012 no AUD
+   rate. Row 7 carries each file's last month forward instead, and gives an
+   APR of 0.062085 and a Sharpe ratio of 0.545742 against the script's 0.061564
+   and 0.541802. The APR still rounds to 6.2 percent, and the Sharpe ratio
+   rounds to 0.55 rather than the book's 0.54.
+
+### What this entry cannot say
+
+Four things.
+
+**Whether the script's settlement rule is the right one.** Location 2273 says
+a cross triples its rollover when day T + 3 is a weekend, which is Wednesday
+for both currencies, and names T + 1 settlement as the exception for USD.CAD.
+The script triples CAD on Thursday, which is the USD.CAD rule applied to one
+leg of a cross. The run transcribes the script, and no row runs the book's
+rule, because choosing between the two after seeing the figures would be a
+search.
+
+**What holidays would add.** No day multiplies its rollover for a holiday.
+Seven weekdays are absent from the file: Christmas Day in 2007, 2008 and 2009,
+New Year's Day in 2008, 2009 and 2010, and 2011-12-23, an early close.
+`TestTheVintages::test_seven_weekdays_are_absent_and_none_is_a_weekend` holds
+the list. A position held across Christmas earns nothing for the day the
+market was shut.
+
+**What the 2012 rates were.** Row 7 says what carrying the last month forward
+moves, and it is a guess about four months of rates rather than a measurement
+of them. The rates were not checked against the Reserve Bank of Australia's or
+the Bank of Canada's own tables, which
+[data/README.md](../data/README.md) says cannot be done here.
+
+**Anything about costs.** The rule can reverse its position every day, and the
+script charges nothing for it.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
