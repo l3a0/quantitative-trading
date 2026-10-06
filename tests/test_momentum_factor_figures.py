@@ -25,13 +25,13 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
-from matplotlib.colors import to_rgba
+from matplotlib.colors import same_color, to_rgba
 
 import chan.momentum_factor_figures as figures
 from chan.momentum_factor import Comparison, EmptyLeg, autocorrelations, build_factors, read_sources
 from chan.momentum_factor_figures import AUTOCORRELATION_FIGURE, make_autocorrelation_figure
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import GOOD, LOST
+from chan.regime_figure import ACCENT, GOOD, INK, LOST
 from chan.vintage import VintageUnavailable
 
 
@@ -117,6 +117,23 @@ class TestTheFactors:
         mkt, wml = _by_gid(figure)["mkt"], _by_gid(figure)["wml"]
         assert to_rgba(mkt.get_color()) != to_rgba(wml.get_color())
         assert mkt.get_linestyle() != wml.get_linestyle()
+
+    @pytest.mark.parametrize(("tag", "colour", "style"), [("mkt", ACCENT, "-"), ("wml", INK, "--")])
+    def test_each_factor_wears_its_own_colour_and_dash(self, figure, tag, colour, style) -> None:
+        """The post's alt text tells the factors apart by dash, solid MKT and dashed WML."""
+        line = _by_gid(figure)[tag]
+        assert same_color(line.get_color(), colour)
+        assert line.get_linestyle() == style
+
+    @pytest.mark.parametrize("tag", ["mkt", "wml"])
+    def test_each_meeting_point_wears_its_factors_colour(self, figure, tag) -> None:
+        """The dot is where the factor's line meets the curve, so it reads as that line's."""
+        drawn = _by_gid(figure)
+        assert same_color(drawn[f"{tag}-meets"].get_color(), drawn[tag].get_color())
+
+    def test_the_median_line_is_dotted(self, figure) -> None:
+        """The post's alt text names it the dotted line, apart from both factors' dashes."""
+        assert _by_gid(figure)["median"].get_linestyle() == ":"
 
     def test_the_axes_show_the_whole_curve(self, figure) -> None:
         """A share runs from 0 to 1, so nothing the curve or a label sits on is clipped."""

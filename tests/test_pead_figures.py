@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from matplotlib.colors import same_color
 from matplotlib.dates import date2num, num2date
 
 from chan import pead
@@ -34,6 +35,9 @@ from chan.paths import FIGURES_DIR
 from chan.pead import LOOKBACK, SCRIPT_MAX_DD, SCRIPT_MAX_DDD, guarded_drift
 from chan.pead_figures import (
     CUMULATIVE_FIGURE,
+    INK,
+    LOST,
+    RULE,
     cumulative_return,
     longest_spell,
     main,
@@ -144,6 +148,20 @@ class TestTheSpell:
             f"deepest drawdown {SCRIPT_MAX_DD.replace('-', '−')},\n2011-11-02"
         )
 
+    def test_the_spell_is_shaded_in_lost(self, figure) -> None:
+        """The post's caption calls it the red band, against the idle start's grey."""
+        band = _by_gid(figure.axes[0].patches)["spell"]
+        assert same_color(band.get_facecolor()[:3], LOST)
+
+    def test_the_trough_and_the_spell_labels_wear_the_spells_colour(self, figure) -> None:
+        """The red point and its label belong to the spell, and the high belongs to the line."""
+        ax = figure.axes[0]
+        marks, texts = _by_gid(ax.lines), _by_gid(ax.texts)
+        for artist in (marks["trough"], texts["trough-label"], texts["spell-label"]):
+            assert same_color(artist.get_color(), LOST)
+        assert same_color(marks["high"].get_color(), marks["cumulative"].get_color())
+        assert same_color(marks["cumulative"].get_color(), INK)
+
     def test_a_tie_takes_the_first_spell(self) -> None:
         """Two dips of two rows each, so the first is the one drawn."""
         cumret = np.array([0.0, 0.1, 0.05, 0.06, 0.2, 0.15, 0.1, 0.3])
@@ -161,6 +179,12 @@ class TestTheIdleStart:
         assert rows == list(range(LOOKBACK - 1)), SPEC
         assert not drift.positions[rows].any(), SPEC
         assert drift.positions[LOOKBACK - 1 :].any(), SPEC
+
+    def test_it_is_shaded_in_rule_apart_from_the_spell(self, figure) -> None:
+        """The post's caption calls it the grey band, and the red one is the spell."""
+        bands = _by_gid(figure.axes[0].patches)
+        assert same_color(bands["unfilled"].get_facecolor()[:3], RULE)
+        assert not same_color(bands["unfilled"].get_facecolor()[:3], LOST)
 
     def test_its_label_names_the_89_days(self, figure) -> None:
         text = {t.get_gid(): t.get_text() for t in figure.axes[0].texts}["unfilled-label"]
