@@ -28,9 +28,10 @@ from pathlib import Path
 
 import pytest
 from ithildincore.timeseries import EG_CRIT_N2
+from matplotlib.colors import same_color, to_rgb
 
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import REPRO_HEDGE, make_regime_figure
+from chan.regime_figure import GOOD, LOST, REPRO_HEDGE, make_regime_figure
 
 COMMITTED = FIGURES_DIR / "reproduction_regime_map.png"
 
@@ -141,3 +142,30 @@ class TestTheCommittedImageIsThatFigure:
 
         assert out != COMMITTED
         assert hashlib.sha256(COMMITTED.read_bytes()).hexdigest() == before
+
+
+class TestTheColoursCarryTheirMeaning:
+    def test_the_cointegrating_windows_are_shaded_in_good(self, drawn) -> None:
+        fig, _ = drawn
+        bands = fig.axes[0].patches
+
+        assert len(bands) > 0
+        assert all(same_color(to_rgb(band.get_facecolor()), GOOD) for band in bands)
+
+    def test_the_legend_entry_wears_the_colour_of_the_bands(self, drawn) -> None:
+        """The legend is the only key saying a green band means a cointegrating window."""
+        fig, _ = drawn
+        legend = fig.axes[0].get_legend()
+        entries = list(zip(legend.get_texts(), legend.legend_handles, strict=True))
+
+        assert [text.get_text() for text, _ in entries] == ["cointegrates (10%)"]
+        assert same_color(to_rgb(entries[0][1].get_facecolor()), GOOD)
+
+    def test_both_critical_lines_and_their_labels_are_lost(self, drawn) -> None:
+        fig, _ = drawn
+        ax = fig.axes[0]
+        labels = [text for text in ax.texts if "critical" in text.get_text()]
+
+        assert len(labels) == 2
+        assert all(same_color(line.get_color(), LOST) for line in ax.lines[1:])
+        assert all(same_color(text.get_color(), LOST) for text in labels)
