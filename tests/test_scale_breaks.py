@@ -289,6 +289,14 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: prices, so the two rate files are not passed to it. The file carries no
 #: flagged day, and ``TestTheGuardAndTheReads`` in
 #: ``tests/test_aud_cad_rollover.py`` runs it.
+#:
+#: [Issue 354](https://github.com/l3a0/quantitative-trading/issues/354) decided
+#: that ``chan.cl_reversal_momentum`` calls the guard on CL over each span it
+#: reads: the 2012-05-04 and 2012-05-11 saves over the book's window, 2008-05-19
+#: to 2012-05-04, and the 2012-05-07 save over the 998 rows before it. CL flags
+#: in none of the four saves, so nothing is refused, and
+#: ``TestTheGuardAndTheReads`` in ``tests/test_cl_reversal_momentum.py`` runs it
+#: on each.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
