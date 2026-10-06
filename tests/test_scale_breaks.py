@@ -281,6 +281,13 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``TestTheScaleBreakDecision`` in ``tests/test_gold_miners_oil.py`` holds all
 #: three legs clean and a broken leg refused.
 #:
+#: [Issue 342](https://github.com/l3a0/quantitative-trading/issues/342) decided
+#: that ``chan.kalman_hedge`` calls the guard on EWA and EWC over the ETF
+#: file's whole span, 2006-04-26 to 2012-04-09, as ``chan.price_spread`` does
+#: for GLD and USO. Neither carries a flagged day, and nothing is refused.
+#: ``TestTheGuardAndTheReads`` in ``tests/test_kalman_hedge.py`` records the
+#: call and holds a broken leg refused.
+#:
 #: [Issue 346](https://github.com/l3a0/quantitative-trading/issues/346) decided
 #: the same for Example 5.2 as issue 345 did for Example 5.1.
 #: ``chan.aud_cad_rollover`` calls the guard on the port's AUD.CAD daily file

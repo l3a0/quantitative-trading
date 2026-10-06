@@ -170,6 +170,18 @@ it, and the annualised rollover of "almost 5 percent". The two figures
 nowhere in the book. The replication log's Entry 30 traces each to one or the
 other.
 
+*Algorithmic Trading*'s Kalman filter on EWA and EWC, in its Chapter 3, splits
+the same way as its Example 3.2, and the book's figures are its script's
+rounded. Location 1726 prints "a reasonable APR of 26.2 percent and a Sharpe
+ratio of 2.4", and makes the two claims about the filter's slope and intercept.
+The six-decimal figures, 0.262252 and 2.361162, sit in the closing comment of
+`KF_beta_EWA_EWC.m` and nowhere in the book. The filter's equations are absent
+the second way described below, as Examples 8.1 and 8.2's are. Locations 1658
+and 1760 are here, and each equation survives in them only as its number, such
+as "(3.5)". Box 3.1, which carries the equations the script labels 3.7 to
+3.12, is not among the highlights. The replication log's Entry 31 traces each
+figure to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an

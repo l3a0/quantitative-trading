@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty replications run here, fifteen from Chan's *Quantitative Trading*
-and fifteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-one replications run here, fifteen from Chan's *Quantitative Trading*
+and sixteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-eight were built here.
+where they were first built. The other twenty-nine were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -400,6 +400,21 @@ where they were first built. The other twenty-eight were built here.
     the differential annualised over 365 days at 0.047279. Every figure is
     exploratory, and the script triples CAD's rollover on Thursdays where the
     book's own settlement rule says Wednesday.
+31. A Kalman filter hedge ratio on EWA and EWC, from *Algorithmic Trading*'s
+    Chapter 3, on Chan's own ETF file. The filter re-estimates the slope and
+    intercept of EWC on EWA every day, and the band trades its forecast error
+    against the square root of its forecast variance. Both figures
+    `KF_beta_EWA_EWC.m` prints reproduce to their last digit, an APR of
+    0.262252 and a Sharpe ratio of 2.361162, which the book rounds to 26.2
+    percent and 2.4. The script shorts EWC alone on the file's first day,
+    while the filter's slope is still 0, and withholding the signal on the
+    first two days gives 0.260669 and 2.349460. The book's two claims about
+    the filter, a slope that "oscillates around 1" and an intercept that
+    "increases monotonically", are carried as findings with no verdict,
+    because the only criteria for them were written after a run. The slope's
+    median is 1.047367 and its mean 1.089693. The intercept's yearly mean
+    rises every year from 0.1440 in 2006 to 6.7748 in 2012, and 513 of its
+    1,499 daily steps fall. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -654,7 +669,17 @@ Thursdays and a holiday multiplies nothing, that each day's return carries the
 previous day's position and rates, and that zero rates give the script's
 commented-out formula without rollover bit for bit.
 
-All thirty replications reach a verdict in
+[tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) does it for the
+Kalman filter on EWA and EWC. It pins the script's two printed figures at its
+six decimals and at eight, the book's rounding of them, and the run with no
+signal on the first two days. It holds the filter's first two rows against
+their closed form, the first position and return, and every figure the two
+findings quote: the slope's median, mean, share above 1 and crossings, and the
+intercept's yearly means, its falls at each finer grain and its peak. It also
+holds that the read calls the scale-break guard on both legs and that a
+planted break in either is refused.
+
+All thirty-one replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -668,8 +693,8 @@ panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's and
-Entry 29 the Johansen tests' on GLD, GDX and USO, and Entry 30 Example
-5.2's.
+Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
+5.2's, and Entry 31 the Kalman filter's on EWA and EWC.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -717,7 +742,9 @@ Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
 stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
-span, and neither carries a flagged day, so nothing is refused. VX against ES
+span, and neither carries a flagged day, so nothing is refused. The Kalman
+filter calls it on EWA and EWC over the same span, and refuses nothing either.
+VX against ES
 calls it on VX and ES over each leg's own span in each continuous futures save
 it reads, and nothing is refused there either.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
@@ -798,7 +825,9 @@ closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/
 and Example 4.2 reads its SPY, for
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 Example 3.2 reads GLD and USO again, for
-[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341), and the
+Kalman filter reads EWA and EWC, for
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
 The Johansen tests of location 1922 read its GLD, GDX and USO, for
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344).
 
@@ -1393,6 +1422,17 @@ It prints the three vintages, the window and the days with no rate, each
 figure the script and the book print beside the computed one and a verdict,
 the annualised rollover against its criterion, and the rows beside the
 replication.
+
+The Kalman filter on EWA and EWC takes no option either, because
+`KF_beta_EWA_EWC.m` fixes the file and both of the filter's constants:
+
+```bash
+uv run python -m chan.kalman_hedge
+```
+
+It prints the vintage, the rows, the filter's constants, both figures beside
+the script's comment and the book with a verdict, the first position and the
+run with no signal on the first two days, and the two findings with no verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

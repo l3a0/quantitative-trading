@@ -39,10 +39,10 @@ everything before and after it is :mod:`chan.price_spread`'s.
 thresholds because the Kalman filter example's ``KF_beta_EWA_EWC.m`` compares
 the filter's error with ``±sqrt(Q)`` directly, and its exits sit on the entry band.
 Dividing that error by ``sqrt(Q)`` to make a z-score would be a different
-floating-point comparison from Chan's, so
-[issue 342](https://github.com/l3a0/quantitative-trading/issues/342) builds its
-own four arrays and calls the same function. :mod:`chan.vx_es` calls it too,
-for VX against ES under
+floating-point comparison from Chan's, so :mod:`chan.kalman_hedge` builds its
+own four arrays and calls the same function, under
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
+:mod:`chan.vx_es` calls it too, for VX against ES under
 [issue 350](https://github.com/l3a0/quantitative-trading/issues/350), with each
 exit on the opposite entry band.
 
