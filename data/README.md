@@ -1046,6 +1046,10 @@ Example 4.2 reads SPY through `chan.index_arbitrage`, for
 Example 3.2 reads GLD and USO through `chan.bollinger`, which reuses Example
 3.1's reader, for
 [issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
+The Johansen tests of location 1922 read GLD, GDX and USO from it through
+`chan.gold_miners_oil`, for
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344), with no
+script of Chan's behind them.
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 

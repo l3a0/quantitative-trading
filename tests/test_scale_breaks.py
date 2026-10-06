@@ -273,6 +273,13 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: each of the 2012-05-07, 2012-05-11 and 2012-05-17 continuous futures saves
 #: it reads. Only ZB and ZF flag in those saves, so nothing is refused, and
 #: ``TestTheGuardAndTheReads`` in ``tests/test_vx_es.py`` runs it on each.
+#:
+#: [Issue 344](https://github.com/l3a0/quantitative-trading/issues/344) decided
+#: that ``chan.gold_miners_oil`` calls the guard on GLD, GDX and USO over
+#: 2006-05-23 to 2012-04-09, the span from GDX's first price to the file's
+#: last. None of the three carries a flagged day, and nothing is refused.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_gold_miners_oil.py`` holds all
+#: three legs clean and a broken leg refused.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

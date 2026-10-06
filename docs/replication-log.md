@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27 and 28 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28 and 29 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five and seven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27 and 28 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28 and 29 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -225,6 +225,12 @@ says.
   - [The verdicts](#the-verdicts-26)
   - [What the entry concludes](#what-the-entry-concludes-27)
   - [What this entry cannot say](#what-this-entry-cannot-say-25)
+- [Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*](#entry-29-gld-gdx-and-uso-around-july-2008-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-26)
+  - [What this repo computed](#what-this-repo-computed-28)
+  - [The verdicts](#the-verdicts-27)
+  - [What the entry concludes](#what-the-entry-concludes-28)
+  - [What this entry cannot say](#what-this-entry-cannot-say-26)
 
 ## How to read an entry
 
@@ -275,8 +281,10 @@ both.
    [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py) holds
    Entry 25, [tests/test_bollinger.py](../tests/test_bollinger.py) holds
    Entry 26, [tests/test_roll_returns.py](../tests/test_roll_returns.py)
-   holds Entry 27, and [tests/test_vx_es.py](../tests/test_vx_es.py) holds
-   Entry 28.
+   holds Entry 27, [tests/test_vx_es.py](../tests/test_vx_es.py) holds
+   Entry 28, and
+   [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
+   Entry 29.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -390,8 +398,8 @@ Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
-Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, and Entry 28's rows 5 to
-11.
+Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
+and Entry 29's rows 7 to 14.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -532,6 +540,13 @@ figures they judge were measured. The criteria, |γ| at least twice |α| for
 scratch run had measured the figures, though before the build. The
 narrowest case clears the first by a factor of two, so the verdict does not
 rest on where that line sits.
+
+Entry 29's rows 1 to 6 take it too. Location 1922 makes three claims about the
+ETFs it names and prints no statistic for any of them. Their criteria, each
+claim's count of relations at 99 percent on the trace and eigen statistics
+separately, were written on
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344) before
+any statistic was computed.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -5847,6 +5862,197 @@ account cannot hold, and nothing here measures what rounding it would move.
 both fitted figures, and rows 1 to 4 use a neighbour of it that a script of
 Chan's names. Neither is confirmed by anything he printed, so the match is
 evidence that this window is close to his, and no more.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle location 1922, with the same story repeated
+at 3537 and 3570. No script ships for it. Shipped under
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344). Every
+location in this entry is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Fourteen rows, all derivable from
+[tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py).
+
+Chan pairs the gold fund GLD with the gold miners' fund GDX, since a miner's
+main asset is gold. He says the pair cointegrated until July 14, 2008, the day
+oil peaked near $145 a barrel, and stopped afterwards. His explanation is that
+dear oil makes gold dearer to mine, so the miners lag the metal. He tests it
+by adding the oil fund USO and finding that the three cointegrate over the
+whole span. The book offers this as an example of forming a hypothesis about
+why a strategy stopped working and testing it.
+
+**All three claims hold on Chan's own file, on both Johansen statistics, at 99
+percent and at 90.** The control the book leaves out holds as well. GLD and
+GDX alone over the triplet's days find no relation even at 90 percent, so the
+triplet's relation is not one the pair already had. It may be GDX and USO's
+own, though, because those two alone find one relation at 99 percent.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdata_etf/gld.csv`, `gdx.csv` and `uso.csv`, lifted
+   from Chan's `inputData_ETF.mat`, saved 2012-04-10, read for the close
+   through `chan.series.load_panel`. The file holds GLD and USO from
+   2006-04-26 and GDX from 2006-05-23, so the run cuts to GDX's first price.
+   That leaves 1,481 trading days to 2012-04-09, and Chan's first window starts
+   on the same day. The first window, to 2008-07-14, holds 539 of them, and
+   the second, from 2008-07-15, holds 942.
+2. **The specification.** No script ships, so it was declared on the issue
+   before any statistic was computed. The Johansen test is jplv7's
+   `johansen(·, 0, 1)`, a constant and one lagged difference, which every
+   book-two script passes, run by `chan.johansen.johansen`. The columns run
+   GLD, GDX and then USO. The book does not say which of the two Johansen
+   statistics it read, and Entry 23 found them disagreeing on Chan's own file.
+   So each claim is two rows, one per statistic, each judged at 99 percent,
+   the level all three claims name.
+
+Every result here is **exploratory**, twice over. Reproducing the claims
+spends the 2006 to 2012 sample on a split Chan chose. The split date and the
+third ETF were both chosen after the break was seen, so the triplet's result
+cannot confirm the oil hypothesis however it comes out.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | GLD and GDX cointegrate, 2006-05-23 to 2008-07-14, trace statistic | a claim, "cointegrate with 99 percent probability" | location 1922 |
+| 2 | The same, eigen statistic | the same claim | location 1922 |
+| 3 | GLD and GDX have lost it, 2008-07-15 to 2012-04-09, trace statistic | a claim, "have lost the cointegration" | location 1922 |
+| 4 | The same, eigen statistic | the same claim | location 1922 |
+| 5 | GLD, GDX and USO hold exactly one relation, 2006 to 2012, trace statistic | a claim, "a 99 percent probability that there exists one cointegrating relationship" | location 1922 |
+| 6 | The same, eigen statistic | the same claim | location 1922 |
+| 7 | The pair's statistics and eigenvalues before the break | none | n/a |
+| 8 | The pair's statistics and eigenvalues after the break | none | n/a |
+| 9 | The triplet's statistics and eigenvalues | none | n/a |
+| 10 | GLD and GDX alone over the triplet's 1,481 days | none, the control the book leaves out | n/a |
+| 11 | The triplet's first eigenvector | none, location 1922 says the triplet can be traded and prints no weights | location 1922 |
+| 12 | The CADF test of GLD on GDX in each window | none | n/a |
+| 13 | A plain ADF test of each ETF alone in each window it enters | none | n/a |
+| 14 | GLD and USO, and GDX and USO, each alone over the triplet's 1,481 days | none | n/a |
+
+Each row's claim criterion was written on the issue before any statistic was
+computed. Rows 1 and 2 hold on one relation or two, rows 3 and 4 on none, and
+rows 5 and 6 on exactly one. Row 14 was not on the issue. The pull request's
+review added it after the first run, to ask whether the triplet's relation is
+one of the other two pairs' own. The criteria are pinned in
+`TestTheSpecification::test_the_six_criteria_are_the_ones_issue_344_declared`.
+The critical values beside each statistic are LeSage's tables, which Entry 23
+checked against Chan's own printout.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `johansen([GLD, GDX], 0, 1)`, first window, trace | 1 relation at 99 percent, 22.571096 against 19.935 | `TestTheClaims::test_rows_1_and_2_the_pair_holds_one_relation_before` |
+| 2 | The same, eigen | 1 relation at 99 percent, 22.423682 against 18.520 | the same |
+| 3 | `johansen([GLD, GDX], 0, 1)`, second window, trace | 0 relations at 90, 95 and 99 percent, 6.132867 against 13.429 at 90 | `TestTheClaims::test_rows_3_and_4_the_pair_holds_none_after_even_at_90` |
+| 4 | The same, eigen | 0 relations at 90, 95 and 99 percent, 6.059166 against 12.297 at 90 | the same |
+| 5 | `johansen([GLD, GDX, USO], 0, 1)`, whole span, trace | 1 relation at 90, 95 and 99 percent | `TestTheClaims::test_rows_5_and_6_the_triplet_holds_one_at_every_level` |
+| 6 | The same, eigen | 1 relation at 90, 95 and 99 percent | the same |
+| 7 | As row 1 | trace 22.571096 and 0.147414, eigen 22.423682 and 0.147414, eigenvalues 0.04089749 and 0.00027448 | `TestEachTestsTable::test_row_7_the_pair_before` |
+| 8 | As row 3 | trace 6.132867 and 0.073701, eigen 6.059166 and 0.073701, eigenvalues 0.00642519 and 0.00007840 | `TestEachTestsTable::test_row_8_the_pair_after` |
+| 9 | As row 5 | trace 44.837732, 7.004501 and 0.164176, eigen 37.833231, 6.840326 and 0.164176, eigenvalues 0.02525587, 0.00461429 and 0.00011100 | `TestEachTestsTable::test_row_9_the_triplet` |
+| 10 | `johansen([GLD, GDX], 0, 1)`, whole span | trace 10.446773 and 0.044664, eigen 10.402109 and 0.044664, eigenvalues 0.00700853 and 0.00003020, so 0 relations even at 90 percent | `TestEachTestsTable::test_row_10_the_control_the_pair_alone_over_the_triplets_days` and `::test_row_10_the_control_finds_no_relation_even_at_90` |
+| 11 | Column 0 of row 9's eigenvectors, rows GLD, GDX, USO | 0.033109, −0.177036 and 0.002549 | `TestBesideTheReplication::test_row_11_the_triplets_first_eigenvector` |
+| 12 | `lesage_cadf(GLD, GDX, 1)` against MacKinnon's two-series bars, −3.34 at 95 percent and −3.90 at 99 | −3.724034 in the first window, −1.511680 in the second and −1.517588 over the whole span | `TestBesideTheReplication::test_row_12_the_cadf_rejects_at_95_before_and_not_at_99` |
+| 13 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | first window GLD −0.033875 and GDX −1.962727, second GLD −0.575590 and GDX −1.720225, whole span GLD −0.370352, GDX −2.371217 and USO −1.213340 | `TestBesideTheReplication::test_row_13_no_series_alone_rejects_a_unit_root_even_at_90` |
+| 14 | `johansen([GLD, USO], 0, 1)` and `johansen([GDX, USO], 0, 1)`, whole span | GLD and USO trace 4.349962 and 0.573598, 0 relations even at 90 percent. GDX and USO trace 27.165550 and 3.034162, eigen 24.131388 and 3.034162, 1 relation at 95 and 99 percent and 2 at 90 | `TestBesideTheReplication::test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not` |
+
+### The verdicts
+
+| # | Gap | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, a claim | reproduced | The trace statistic rejects no cointegration at 99 percent, clearing its bar by 2.636, and stops at one relation. |
+| 2 | none, a claim | reproduced | The eigen statistic does the same, clearing its bar by 3.904. |
+| 3 | none, a claim | reproduced | No relation at 99 percent, and none at 90 either. |
+| 4 | none, a claim | reproduced | The same on the eigen statistic. |
+| 5 | none, a claim | reproduced | One relation, and the second null stands at every level, 7.005 against 13.429 at 90 percent. |
+| 6 | none, a claim | reproduced | The same on the eigen statistic, 6.840 against 12.297 at 90 percent. |
+| 7 | none | none, not a replication | The book prints no statistic. |
+| 8 | none | none, not a replication | The book prints no statistic. |
+| 9 | none | none, not a replication | The book prints no statistic. |
+| 10 | none | none, not a replication | The pair alone finds nothing over the triplet's days, which is what row 5 needs to mean anything. |
+| 11 | none | none, not a replication | The sign is statsmodels', which makes the first row positive. |
+| 12 | none | none, not a replication | The CADF test rejects at 95 percent before the break and not after it. At the 99 percent level the claims are judged at, it rejects in neither window. |
+| 13 | none | none, not a replication | No series is stationary on its own in any window. |
+| 14 | none | none, not a replication | GDX and USO alone hold the relation the triplet finds, so the triplet's row cannot separate the oil hypothesis from that pair's own link. |
+
+### What the entry concludes
+
+Four things.
+
+1. **Every claim holds with room, on both statistics.** The nearest call is
+   row 1, whose trace statistic of 22.571 clears its 99 percent bar of 19.935
+   by 2.636. Every other claim clears or misses its bar by more,
+   `TestEachTestsTable::test_the_closest_call_is_row_1_clearing_its_bar_by_2_636`
+   lists each, and the counts at 90 and 95 percent agree with 99 on every
+   row. So the choice of statistic and the choice of level that the book left
+   open move nothing here, which is the opposite of what Entry 23 met. The
+   loss holds even at 90 percent, so the stronger reading of "lost" holds too.
+   The book's "99 percent probability" is a test level rather than a
+   probability. The test rejects no cointegration at the 1 percent level, and
+   it says nothing about how likely the pair is to cointegrate.
+2. **The control holds, and a second control weakens what it shows.** GLD
+   and GDX alone over the triplet's 1,481 days give a trace statistic of
+   10.447, short of even the 90 percent bar of 13.429. Adding USO raises the
+   first null's trace to 44.838, so the triplet's relation is not one the pair
+   already had. Row 14 asks the same of the other two pairs. GLD and USO alone
+   find nothing, at 4.350. GDX and USO alone find one relation at 99 percent,
+   at 27.166 against 19.935. So a triplet of rank 1 is also what a link
+   between the miners and oil alone would produce, with GLD along for the
+   ride, and that reading says nothing about oil restoring the link between
+   gold and the miners. Rank 1 cannot tell the two readings apart, and this
+   entry does not try. The eigenvector's entries are shares per unit of the
+   portfolio, so their sizes are not comparable across ETFs at different
+   prices, and no row here measures any weight in dollars.
+3. **The Engle-Granger family sees the same break, and no series is
+   stationary alone.** The CADF statistic of GLD on GDX is −3.724 before the
+   break, past the 95 percent bar of −3.34 and short of the 99 percent bar of
+   −3.90, and −1.512 after it. So that test rejects before the break at 95
+   percent rather than 99, and finds nothing after it. None of the seven ADF
+   statistics in row 13 rejects a unit root even at 90 percent. No rank in
+   rows 1 to 10 equals its column count, so the full-rank question Entry 23
+   left open does not arise there. GDX and USO alone in row 14 do reach full
+   rank at 90 percent, on a second null of 3.034 against 2.705, while neither
+   ETF rejects a unit root alone. That is Entry 23's tension again, at a level
+   no claim here is judged at.
+4. **The blog post's sixth detour bears on the same break.**
+   `blog/gld-gdx-cointegration-lessons.md` says the miners "detached from gold
+   somewhere in the 2010s", from yfinance closes and a rolling CADF. This run
+   reads Chan's file with the Johansen test and finds no relation over
+   2008-07-15 to 2012-04-09 as a whole. The two differ in file, test and
+   window. One test over a window that runs into 2012 cannot say where inside
+   it the link failed, so this entry does not date the break, and it says
+   nothing about the years after 2012. The post stays as it is until its
+   write-up, because it is kept in step with its Substack copy and an edit
+   there waits on the owner.
+
+### What this entry cannot say
+
+Four things.
+
+1. **Anything about oil itself.** USO holds front-month WTI futures rather
+   than oil, which location 1939 raises about a different pair. A futures fund
+   drifts from the spot price by its roll, so the triplet's relation is with
+   the fund, and whether it holds with the spot price is a different test.
+2. **Whether the break is where Chan put it.** The date was chosen by looking
+   at the data, so a test that splits there is favoured by construction. No
+   row here searches for the break or tests another date, and doing so would
+   be a search with its own rail.
+3. **How much the three tests confirm each other.** Each is a fixed-level test,
+   and the triplet's span contains both of the pair's windows, so the rows are
+   not independent. Nothing here corrects for running several tests on one
+   sample.
+4. **Whether the oil hypothesis holds.** It was formed on this sample and
+   tested on the same one. The test that would bear on it runs GLD, GDX and
+   USO after 2012-04-09, with the hypothesis written down first. That is a
+   registered experiment, which [docs/design.md](design.md) names as a
+   different object from a replication, and no issue carries it yet.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
