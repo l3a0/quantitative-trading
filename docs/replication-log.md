@@ -6021,8 +6021,8 @@ Four things.
    rank at 90 percent, on a second null of 3.034 against 2.705, while neither
    ETF rejects a unit root alone. That is Entry 23's tension again, at a level
    no claim here is judged at.
-4. **The blog post's sixth detour bears on the same break.**
-   `blog/gld-gdx-cointegration-lessons.md` says the miners "detached from gold
+4. **Detour 6 of `blog/gld-gdx-cointegration-lessons.md` bears on the same
+   break.** That post says the miners "detached from gold
    somewhere in the 2010s", from yfinance closes and a rolling CADF. This run
    reads Chan's file with the Johansen test and finds no relation over
    2008-07-15 to 2012-04-09 as a whole. The two differ in file, test and
@@ -6030,9 +6030,9 @@ Four things.
    it the link failed, so this entry does not date the break, and it says
    nothing about the years after 2012.
    [blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md), this
-   entry's write-up, sets the two side by side. The owner kept the earlier
-   post's sentence as it is on 2026-10-06, so that post and its Substack copy
-   are unchanged.
+   entry's write-up, sets the two side by side. On 2026-10-06 the owner chose
+   to keep the earlier post's sentence, so that post and its Substack copy are
+   unchanged.
 
 ### What this entry cannot say
 
@@ -6059,5 +6059,5 @@ Four things.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md) moves
-with it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.gold_miners_oil_figures` redraws.
+with it, since that post quotes most of these figures. The post's one figure
+moves too, and `uv run python -m chan.gold_miners_oil_figures` redraws it.

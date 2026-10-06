@@ -26,12 +26,14 @@ from chan import gold_miners_oil_figures
 from chan.gold_miners_oil import gold_miners_oil, read_sources
 from chan.gold_miners_oil_figures import (
     BREAK_FIGURE,
+    COLOURS,
     first_window_portfolio,
     main,
     make_break_figure,
     signed,
 )
 from chan.paths import FIGURES_DIR
+from chan.regime_figure import GOOD, LOST
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 
@@ -114,6 +116,19 @@ class TestTheCloses:
         legend = [t.get_text() for t in axes["prices"].get_legend().get_texts()]
         assert legend == ["GLD", "GDX", "USO"]
 
+    def test_each_line_and_its_legend_entry_share_one_colour(self, axes) -> None:
+        """The legend is the only key to which line is which ETF."""
+        lines = _by_gid(axes["prices"].lines)
+        handles = axes["prices"].get_legend().legend_handles
+        for symbol, handle in zip(("GLD", "GDX", "USO"), handles, strict=True):
+            assert lines[symbol].get_color() == COLOURS[symbol]
+            assert handle.get_color() == COLOURS[symbol]
+        assert len(set(COLOURS.values())) == 3
+
+    def test_the_peak_marker_is_usos_colour(self, axes) -> None:
+        lines = _by_gid(axes["prices"].lines)
+        assert lines["peak"].get_color() == lines["USO"].get_color()
+
     def test_usos_highest_close_is_the_split_day(self, axes, closes) -> None:
         """The fact Chan's oil story starts from, on his own file."""
         assert closes["USO"].idxmax() == SPLIT
@@ -152,6 +167,11 @@ class TestTheFirstWindowPortfolio:
         assert (before.min(), before.max()) == pytest.approx((-3.236791, 2.557621), abs=1e-6)
         assert (after.min(), after.max()) == pytest.approx((0.472953, 13.521362), abs=1e-6)
 
+    def test_before_the_split_it_crosses_its_mean_again_and_again(self, portfolio) -> None:
+        """The post says it keeps crossing its average. It changes sign 61 times."""
+        before = portfolio.z.loc[:"2008-07-14"].to_numpy()
+        assert int((np.diff(np.sign(before)) != 0).sum()) == 61
+
     def test_after_the_split_it_never_comes_back_to_the_first_windows_mean(self, portfolio):
         assert (portfolio.z.loc["2008-07-15":] > 0).all()
 
@@ -162,6 +182,11 @@ class TestThePortfolioPanel:
         np.testing.assert_array_equal(lines["before"].get_ydata(), portfolio.z.loc[:"2008-07-14"])
         np.testing.assert_array_equal(lines["after"].get_ydata(), portfolio.z.loc["2008-07-15":])
         assert list(lines["zero"].get_ydata()) == [0, 0]
+
+    def test_before_is_green_and_after_is_red(self, axes) -> None:
+        """No legend tells the two apart, so the colour is the claim."""
+        lines = _by_gid(axes["z"].lines)
+        assert (lines["before"].get_color(), lines["after"].get_color()) == (GOOD, LOST)
 
     def test_the_heading_sets_the_weights_and_both_ranges(self, axes) -> None:
         assert _title(axes["z"]) == (

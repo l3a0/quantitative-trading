@@ -2595,32 +2595,42 @@ replication log.
 4. The split date and the third ETF were both chosen after the break was seen,
    so the result is exploratory and cannot confirm the oil hypothesis.
 
-Five groups of its figures are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    "Until July 14, 2008, or thereabout", the three claims' quotes, the oil
-   peak at around $145 a barrel, the mining-cost explanation, the rule to stop
-   trading the pair above an oil threshold, and the framing of the example as
-   a hypothesis to test are all at 1922. The three claims' quotes are also
-   matched against that highlight by `TestTheBooksClaims`.
-2. Facts outside the committed data. That USO holds front-month crude oil
-   futures and drifts from the spot price as it rolls, which Entry 29 records,
-   and the earlier post's dating of the miners' detachment to the 2010s, which
-   that post and its own pins carry.
+   peak at around $145 a barrel, the mining-cost explanation, the suggestions
+   to trade the triplet or to stop trading the pair above an oil threshold,
+   and the framing of the example as a hypothesis to test are all at 1922.
+   The three claims' quotes are also matched against that highlight by
+   `TestTheBooksClaims`.
+2. Facts outside the committed data. That USO holds the crude oil futures
+   nearest expiry and drifts from the spot price as it rolls, which Entry 29
+   records, and that every Johansen call in Chan's scripts for the book passes
+   a constant and one lagged difference, which
+   [src/chan/gold_miners_oil.py](src/chan/gold_miners_oil.py)'s docstring
+   records.
 3. Two readings no test asserts: that a test level is not the probability a
    claim is true, and that a full Johansen rank says each series is
    stationary alone.
-4. The MacKinnon critical values of −3.34 and −3.90 for the CADF test, which
-   are constants of `ithildincore.timeseries` rather than something this
-   repository computes. The suite asserts that the statistic falls between
-   them.
-5. Its references, cited rather than computed.
+4. The MacKinnon critical values of −3.34 and −3.90 for the Engle-Granger
+   test, which are constants of `ithildincore.timeseries` rather than
+   something this repository computes. The suite asserts that the statistic
+   falls between them.
+5. The figure's alt text, whose readings of the lines, such as "about 23" and
+   "between about 40 and 66", are approximate by design.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py), or to
+[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py), to
 [tests/test_gold_miners_oil_figures.py](tests/test_gold_miners_oil_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, to
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) for the
+critical values checked against Chan's printout and the two Johansen
+statistics disagreeing on his file, or to
+[tests/test_regime_figure.py](tests/test_regime_figure.py) for the earlier
+post's rolling windows. Five had no pin before it.
 
 1. USO's highest close on the file, 117.48, on 2008-07-14, the last day of the
    first window.
@@ -2629,6 +2639,10 @@ for the figure's own numbers. Three had no pin before it.
 3. That portfolio in standard deviations from its first-window mean: −3.24 to
    2.56 over the 539 days before the split, and 0.47 to 13.52 over the 942
    after it, where it never returns to the mean.
+4. That portfolio crossing its first-window mean 61 times before the split.
+5. The rolling windows of the earlier post's regime map: 9 of the 45 ending
+   inside 2008-07-15 to 2012-04-09 pass at 10 percent, and the last to pass
+   before 2019 ends on 2015-10-22.
 
 Its one figure is drawn from the committed file by
 [src/chan/gold_miners_oil_figures.py](src/chan/gold_miners_oil_figures.py),
