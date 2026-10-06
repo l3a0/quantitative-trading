@@ -75,10 +75,18 @@ from chan.etf_cointegration import (
 )
 from chan.johansen import johansen
 from chan.khandani_lo_book_two import matches
-from chan.matlab_helpers import moving_avg, moving_std
+from chan.matlab_helpers import calculate_max_dd, drawdown_path, moving_avg, moving_std
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
+
+#: The module docstring's vintage and specification in one line, which
+#: ``tests/test_etf_cointegration_figures.py`` carries in its failure messages.
+SPEC = (
+    "inputdata_etf/ EWA, EWC and IGE closes over 1,500 days, cadf(EWC, EWA, 0, 1), "
+    "johansen(., 0, 1) on EWC, EWA, IGE, the first eigenvector traded with a 23-row "
+    "lookback, profit over gross dollars, compounded APR, n - 1 Sharpe ratio, no cost"
+)
 
 
 @pytest.fixture(scope="module")
@@ -237,6 +245,16 @@ class TestTheClaims:
         assert result.triplet.eigen[0] < result.triplet.eigen_critical[0, 0]
         assert [result.triplet.relations("eigen", level) for level in (90, 95, 99)] == [0, 0, 0]
 
+    def test_row_9_the_trace_test_finds_none_at_99(self, result) -> None:
+        """34.429 clears 29.796 at 95 and falls short of 35.463 at 99.
+
+        So at 99 percent the count stops at the first null, and neither test
+        finds a relation among the three.
+        """
+        assert result.triplet.trace_critical[0, 1] < result.triplet.trace[0]
+        assert result.triplet.trace[0] < result.triplet.trace_critical[0, 2]
+        assert [result.triplet.relations("trace", level) for level in (90, 95, 99)] == [3, 3, 0]
+
 
 class TestExample28TheStrategy:
     """Rows 13 and 14, and how the strategy gets there."""
@@ -379,6 +397,63 @@ class TestBesideTheReplication:
             {"EWA": -1.863334, "EWC": -1.901877, "IGE": -2.078705}, abs=1e-6
         )
         assert all(t > -2.57 for t in result.adf.values())
+
+    @pytest.mark.parametrize("which", ["pair", "triplet"])
+    def test_each_trace_statistic_sums_the_eigen_statistics_from_its_row_down(
+        self, result, which: str
+    ) -> None:
+        """The trace for r ≤ i adds the eigen statistics for r ≤ i and every row after it.
+
+        For the triplet that is 34.428620 = 16.896901 + 13.060698 + 4.471021,
+        then 17.531719 = 13.060698 + 4.471021, and 4.471021 alone.
+        """
+        tested = getattr(result, which)
+        np.testing.assert_allclose(
+            np.cumsum(tested.eigen[::-1])[::-1], tested.trace, rtol=0, atol=1e-9
+        )
+        assert tested.trace[-1] == tested.eigen[-1]
+
+    def test_the_first_eigenvector_holds_one_fund_long_against_two_short(
+        self, sources, result
+    ) -> None:
+        """Each ETF's dollars per unit on 2012-04-09, the weight times the last close.
+
+        The weights are 1.04602749, −0.7599635 and −0.22330592 shares, rows
+        EWC, EWA and IGE, at closes of 27.46, 22.93 and 38.00.
+        """
+        closes = sources[1][list(TRIPLET)]
+        assert str(closes.index[-1].date()) == "2012-04-09"
+        dollars = result.strategy.weights * closes.iloc[-1].to_numpy(dtype=float)
+        np.testing.assert_allclose(
+            dollars, [28.72391494, -17.42596314, -8.48562509], rtol=0, atol=1e-8
+        )
+        assert list(np.sign(dollars)) == [1, -1, -1]
+
+    def test_the_deepest_drawdown_and_the_longest_spell_below_a_high(self, result) -> None:
+        """``calculateMaxDD`` on ``cumprod(1 + ret) − 1``, with where each one falls.
+
+        The deepest drawdown bottoms on 2010-08-16. The longest spell below a
+        high runs 598 rows, from the day after the 2009-04-01 high to
+        2011-08-15, so the trough sits inside it.
+        """
+        cumret = np.cumprod(1 + result.strategy.daily) - 1
+        deepest, longest = calculate_max_dd(cumret)
+        assert deepest == pytest.approx(-0.10124855881644923, abs=1e-10)
+        assert longest == 598
+        _, drawdown, duration = drawdown_path(cumret)
+        trough = int(np.argmin(drawdown))
+        assert drawdown[trough] == deepest
+        assert str(result.days[trough].date()) == "2010-08-16"
+        last = int(np.argmax(duration))
+        first = last - longest + 1
+        assert duration[last] == longest
+        assert drawdown[first - 1] == 0 and drawdown[first] < 0
+        assert [str(result.days[row].date()) for row in (first - 1, first, last)] == [
+            "2009-04-01",
+            "2009-04-02",
+            "2011-08-15",
+        ]
+        assert first <= trough <= last
 
     def test_the_pair_is_tested_as_ewc_then_ewa(self, sources, result) -> None:
         """The statistics do not depend on the order, so the eigenvector rows are what show it."""

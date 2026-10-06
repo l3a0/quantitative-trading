@@ -5050,7 +5050,10 @@ none is in the script.
 that lag alone, and row 6's rests on a margin of 0.141.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.etf_cointegration_figures` redraws.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 
