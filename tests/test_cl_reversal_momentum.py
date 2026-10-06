@@ -342,6 +342,36 @@ class TestTheRules:
             1,
         ]
 
+    @pytest.mark.parametrize(
+        "values",
+        [
+            # The close ties the reversal lag while the momentum long holds.
+            [10, 20, 20],
+            # The close ties the reversal lag while the momentum short holds.
+            [30, 20, 20],
+            # The close ties the momentum lag while the reversal long holds.
+            [20, 30, 20],
+            # The close ties the momentum lag while the reversal short holds.
+            [20, 10, 20],
+        ],
+    )
+    def test_a_tie_leaves_the_combination_flat(self, values) -> None:
+        assert combination_positions(self._series(values), reversal=1, momentum=2)[-1] == 0
+
+    @pytest.mark.parametrize(
+        ("values", "position"),
+        [
+            # A tie with one lag counts as neither side of that condition, so
+            # the other condition alone decides.
+            ([10, 20, 20], 1),
+            ([30, 20, 20], -1),
+            ([20, 30, 20], 1),
+            ([20, 10, 20], -1),
+        ],
+    )
+    def test_a_tie_counts_for_neither_side_of_combo_or(self, values, position) -> None:
+        assert either_positions(self._series(values), reversal=1, momentum=2)[-1] == position
+
     def test_a_tie_with_a_lag_signals_nothing(self) -> None:
         closes = self._series([10, 10])
         assert momentum_positions(closes, lookback=1).tolist() == [0, 0]
@@ -350,6 +380,7 @@ class TestTheRules:
     def test_trade_earns_yesterday_s_position_on_today_s_move(self) -> None:
         closes = self._series([100, 110, 99])
         traded = trade(closes, np.array([1.0, -1.0, 0.0]))
+        assert traded.daily[0] == 0
         assert np.allclose(traded.daily, [0, 0.10, 0.10])
 
     def test_compounded_apr_is_the_script_s(self, book) -> None:
@@ -409,6 +440,44 @@ class TestTheGuardAndTheReads:
         with pytest.raises(WindowCrossesScaleBreak, match="flagged"):
             run()
 
+    def test_run_reads_every_save_from_the_directory_it_is_given(self, monkeypatch) -> None:
+        """Each of the three reads, so no row is read from a vintage the caller did not name."""
+        seen = []
+        real = module.read_cl
+
+        def record(source_file=SOURCE_FILE, *, start=None, end=None, data_dir=None):
+            seen.append((source_file, data_dir))
+            return real(source_file, start=start, end=end, data_dir=data_dir)
+
+        monkeypatch.setattr(module, "read_cl", record)
+        with redirect_stdout(io.StringIO()):
+            run(paths.DATA_DIR)
+        assert seen == [
+            (SOURCE_FILE, paths.DATA_DIR),
+            (LATER_SOURCE_FILE, paths.DATA_DIR),
+            (EARLIER_SOURCE_FILE, paths.DATA_DIR),
+        ]
+
+    def test_run_returns_the_specification_s_four_rules(self) -> None:
+        with redirect_stdout(io.StringIO()):
+            result = run()
+        assert _six(result.combination) == (0.117600, 1.100368)
+        assert _six(result.momentum) == (0.090228, 0.439049)
+
+    def test_main_lets_any_other_error_through(self, monkeypatch, no_arguments) -> None:
+        def broken(*_a, **_k):
+            raise ValueError("a programming error keeps its traceback")
+
+        monkeypatch.setattr(module, "run", broken)
+        with pytest.raises(ValueError, match="keeps its traceback"):
+            main()
+
+    def test_main_refuses_an_argument(self, monkeypatch) -> None:
+        monkeypatch.setattr("sys.argv", ["chan.cl_reversal_momentum", "--bogus"])
+        with pytest.raises(SystemExit) as refused:
+            main()
+        assert refused.value.code == 2
+
     def test_main_turns_a_guard_refusal_into_one_line(self, monkeypatch, no_arguments) -> None:
         def refuse(legs, *, start, end):
             raise WindowCrossesScaleBreak("inputdataohlcdaily_20120504/cl.csv changes scale")
@@ -432,6 +501,7 @@ class TestTheGuardAndTheReads:
         assert module._verdict(0.117600, SCRIPT_APR) == "reproduced"
         assert module._verdict(0.117226, SCRIPT_APR) == "gap -0.000374"
         assert module._verdict(1.100045, BOOK_SHARPE) == "reproduced"
+        assert module._verdict(0.117700, SCRIPT_APR) == "gap +0.0001"
 
 
 @pytest.fixture(scope="module")
@@ -467,6 +537,11 @@ class TestTheReport:
         assert "window    2008-05-19 to 2012-05-04, 1000 rows" in printed
         assert "long 98 rows, short 59, flat 843, 124 changes, first position 2008-07-18" in printed
         assert "Exploratory." in printed
+        assert printed.startswith(
+            "Crude oil reversal joined to momentum, Algorithmic Trading location 2701"
+        )
+        assert "Rows beside it. None carries a verdict." in printed
+        assert "Annualised over 252 days with no cost, flat rows included." in printed
 
     def test_it_prints_each_row_beside(self, printed) -> None:
         lines = printed.split("Before the book's window")
