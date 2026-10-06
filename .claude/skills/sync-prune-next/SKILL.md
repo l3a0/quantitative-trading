@@ -62,7 +62,12 @@ A worktree is removable only when all five of these hold.
    no branch names. The commit is safe when `origin/main` contains it, when a
    remote branch contains it (`git branch -r --contains`), or when it equals
    the `headRefOid` of a merged pull request. Squash merges make the last case
-   common, because the branch's commit never reaches `main`.
+   common, because the branch's commit never reaches `main`. Test that last case
+   by exact comparison against the list of merged heads. A
+   `gh pr list --search <sha>` matches any commit inside a pull request, not
+   only its head, so it does not test what this check states. `61f8892`
+   matched [PR #414](https://github.com/l3a0/quantitative-trading/pull/414),
+   whose head is `ab9be84`.
 4. **It holds no uncommitted changes.** `git status --porcelain` is empty.
    That listing omits ignored files, which `git worktree remove` deletes
    silently. `--ignored` shows them. Caches such as `.venv/` and
@@ -88,32 +93,73 @@ session as stuck, re-run `gh pr list --state open --limit 1000` and read its
 latest events with `list_events`, because a pull request may have opened since
 the worktree was classified.
 
+Check 3's last case needs the heads of the merged pull requests. Fetch them
+once into a file, so both loops below read the same list. A shell variable
+would not reach the second loop, because each Bash tool call starts a new
+shell. Replace `<scratch>` with the scratch directory in this block and the two
+after it.
+
+```bash
+MERGED="<scratch>/merged-heads.txt"
+gh pr list --repo l3a0/quantitative-trading --state merged --limit 1000 --json headRefOid --jq '.[].headRefOid' > "$MERGED"
+wc -l < "$MERGED"
+```
+
+A count of exactly 1000 means `gh` cut the list, so raise the limit and fetch
+again.
+
 This prints what checks 3 to 5 need for every worktree.
 
 ```bash
+MERGED="<scratch>/merged-heads.txt"
 git worktree list --porcelain | sed -n 's/^worktree //p' | while read -r w; do
-  h=$(git -C "$w" rev-parse HEAD)
+  if ! h=$(git -C "$w" rev-parse HEAD 2>/dev/null) || [ "$(git -C "$w" rev-parse --show-toplevel 2>/dev/null)" != "$w" ]; then
+    echo "$w unreadable, skipped"; continue
+  fi
   safe=$( { git merge-base --is-ancestor "$h" origin/main && echo main; } || git branch -r --contains "$h" | head -1 | tr -d ' ')
-  pr=$(gh pr list --state merged --search "$h" --json number --jq '.[0].number // empty')
-  echo "$w head=${h:0:7} branch=$(git -C "$w" branch --show-current) safe=[${safe}${pr:+ merged-pr-$pr}] dirty=$(git -C "$w" status --porcelain | wc -l | tr -d ' ') ignored=$(git -C "$w" status --porcelain --ignored | grep -c '^!!')"
+  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr-head"
+  echo "$w head=${h:0:7} branch=$(git -C "$w" branch --show-current) safe=[${safe}] dirty=$(git -C "$w" status --porcelain | wc -l | tr -d ' ') ignored=$(git -C "$w" status --porcelain --ignored | grep -c '^!!')"
 done
 git worktree list --porcelain | grep -B3 '^locked'
 ```
 
+A worktree printed as unreadable has a directory that is gone or a `.git` file
+that is broken. Its `HEAD` cannot be read, so none of the tests can pass for
+it, and the loop skips it rather than test an empty commit. Report it as kept.
+Before this guard, an empty `HEAD` reached `gh pr list --search ""`, which
+returns the newest merged pull request, so the line called an unchecked
+worktree safe.
+The `--show-toplevel` comparison catches a quieter case. The worktrees sit
+inside the main checkout, so a worktree directory with no `.git` file at all
+resolves to the main checkout, and without the comparison it reports the main
+checkout's `HEAD` as its own.
+
 A branch checked out in no worktree is removable when check 3 holds for its
 head. Git refuses to delete a branch that a worktree has checked out, which
-protects every branch in use.
+protects every branch in use. This loop runs the same three tests as the one
+above. Matching on the branch name instead, with `gh pr list --head <branch>`,
+finds a pull request only when the local branch name equals the one it was
+pushed under.
 
 ```bash
-git branch --format='%(refname:short)' | grep -v -e '^main$' -e '^(HEAD' | while read -r b; do
-  echo "$b $(git rev-parse --short "$b") ahead=$(git rev-list --count origin/main.."$b") $(git merge-base --is-ancestor "$b" origin/main && echo inmain) pr=[$(gh pr list --state all --head "$b" --json number,state,headRefOid --jq '.[]|"\(.number):\(.state):\(.headRefOid[0:7])"' | tr '\n' ' ')]"
+MERGED="<scratch>/merged-heads.txt"
+git branch --format='%(refname:short)' | grep -v -e '^main$' -e '^(HEAD' -e '^(no branch' | while read -r b; do
+  h=$(git rev-parse "$b")
+  safe=$( { git merge-base --is-ancestor "$h" origin/main && echo main; } || git branch -r --contains "$h" | head -1 | tr -d ' ')
+  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr-head"
+  echo "$b ${h:0:7} ahead=$(git rev-list --count origin/main.."$h") safe=[${safe}]"
 done
 ```
 
-Write `grep -v -e '^main$' -e '^(HEAD'` rather than joining the two patterns
-with `\|`. macOS's `/usr/bin/grep` reads the `$` before `\|` as a literal
-character, so the joined form keeps `main` in the list, and `main` then reads as
-safe to delete.
+When the loop runs from a worktree with no branch checked out, `git branch`
+adds a line for that worktree's `HEAD`. The line usually reads
+`(HEAD detached at <sha>)`. It reads `(no branch)` instead when the `HEAD`
+reflog does not record the detach, and `(no branch, rebasing <branch>)` during
+a rebase. The `^(HEAD` pattern misses both, so the third pattern removes them.
+
+Write one `-e` per pattern rather than joining them with `\|`. macOS's
+`/usr/bin/grep` reads the `$` before `\|` as a literal character, so the joined
+form keeps `main` in the list, and `main` then reads as safe to delete.
 
 Then remove with the commands that refuse to lose work. `git worktree remove`
 without `--force` refuses a worktree holding modified or untracked files, and
