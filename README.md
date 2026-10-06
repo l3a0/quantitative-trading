@@ -631,7 +631,8 @@ issue declared them, the book's three quotes against the highlight they come
 from, every statistic and eigenvalue of the four tests and of each ETF with
 USO alone at the precision that is real, the CADF and ADF rows beside them,
 and the cut to GDX's first price that keeps a missing price from reaching the
-test.
+test. The blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 All twenty-nine replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -2576,6 +2577,75 @@ uv run python -m chan.price_spread_figures
 
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/gold-miners-oil-lessons.md](blog/gold-miners-oil-lessons.md) is a
+seventeenth post, about location 1922 of Chan's *Algorithmic Trading*, where
+GLD and GDX cointegrate until July 14, 2008, stop afterwards, and regain one
+relation once the oil fund USO joins them. The book prints no statistic for
+any of the three claims. The post draws four lessons from Entry 29 of the
+replication log.
+
+1. Every claim holds on both Johansen statistics, with room, and the book's
+   "99 percent probability" is a test level rather than a probability.
+2. The control the book leaves out holds, since GLD and GDX alone over the
+   triplet's days find no relation even at 90 percent.
+3. A second control weakens the story, since GDX and USO alone find one
+   relation at 99 percent and GLD and USO find none.
+4. The split date and the third ETF were both chosen after the break was seen,
+   so the result is exploratory and cannot confirm the oil hypothesis.
+
+Five groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "Until July 14, 2008, or thereabout", the three claims' quotes, the oil
+   peak at around $145 a barrel, the mining-cost explanation, the rule to stop
+   trading the pair above an oil threshold, and the framing of the example as
+   a hypothesis to test are all at 1922. The three claims' quotes are also
+   matched against that highlight by `TestTheBooksClaims`.
+2. Facts outside the committed data. That USO holds front-month crude oil
+   futures and drifts from the spot price as it rolls, which Entry 29 records,
+   and the earlier post's dating of the miners' detachment to the 2010s, which
+   that post and its own pins carry.
+3. Two readings no test asserts: that a test level is not the probability a
+   claim is true, and that a full Johansen rank says each series is
+   stationary alone.
+4. The MacKinnon critical values of −3.34 and −3.90 for the CADF test, which
+   are constants of `ithildincore.timeseries` rather than something this
+   repository computes. The suite asserts that the statistic falls between
+   them.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py), or to
+[tests/test_gold_miners_oil_figures.py](tests/test_gold_miners_oil_figures.py)
+for the figure's own numbers. Three had no pin before it.
+
+1. USO's highest close on the file, 117.48, on 2008-07-14, the last day of the
+   first window.
+2. The first window's Johansen weights, 0.191134 shares of GLD and −0.513914
+   of GDX.
+3. That portfolio in standard deviations from its first-window mean: −3.24 to
+   2.56 over the 539 days before the split, and 0.47 to 13.52 over the 942
+   after it, where it never returns to the mean.
+
+Its one figure is drawn from the committed file by
+[src/chan/gold_miners_oil_figures.py](src/chan/gold_miners_oil_figures.py),
+which reads it through the same `read_sources` and `gold_miners_oil` as
+`python -m chan.gold_miners_oil`, scale-break guard included. It draws two
+panels on one date axis, for Lesson 1, with the split marked on both.
+
+1. The closes of GLD, GDX and USO, with USO's highest marked.
+2. GLD and GDX in the first window's Johansen weights, carried across the
+   split.
+
+```bash
+uv run python -m chan.gold_miners_oil_figures
+```
+
+[tests/test_gold_miners_oil_figures.py](tests/test_gold_miners_oil_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 ## Where the book's numbers come from

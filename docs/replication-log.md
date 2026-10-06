@@ -6028,9 +6028,11 @@ Four things.
    2008-07-15 to 2012-04-09 as a whole. The two differ in file, test and
    window. One test over a window that runs into 2012 cannot say where inside
    it the link failed, so this entry does not date the break, and it says
-   nothing about the years after 2012. The post stays as it is until its
-   write-up, because it is kept in step with its Substack copy and an edit
-   there waits on the owner.
+   nothing about the years after 2012.
+   [blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md), this
+   entry's write-up, sets the two side by side. The owner kept the earlier
+   post's sentence as it is on 2026-10-06, so that post and its Substack copy
+   are unchanged.
 
 ### What this entry cannot say
 
@@ -6055,4 +6057,7 @@ Four things.
    different object from a replication, and no issue carries it yet.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.gold_miners_oil_figures` redraws.
