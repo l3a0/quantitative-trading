@@ -887,7 +887,7 @@ the measurements below.
       pins. The AUD.CAD file's evidence is Example 5.2's two printed figures.
       Run on it and on the two rate files, `AUDCAD_daily.m` gives an APR of
       0.061564 and a Sharpe ratio of 0.541802, every digit its comment
-      prints, as Entry 28 records and
+      prints, as Entry 29 records and
       [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py)
       pins. That is the weakest of the four. Log returns and the sign of a
       z-score cannot see a constant scale, so the figures say nothing about
@@ -1159,6 +1159,12 @@ and symbol.
    `VIX.csv`.
 5. The two VIX-filtered variants at Kindle location 3509, of Examples 4.1 and 7.1,
    read `VIX.csv`.
+
+`VX_ES.m` loads the 2012-05-17 save, but the figures the book prints beside it
+come from the 2012-05-07 save, which
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350) measured.
+So `chan.vx_es` reads VX and ES from the 2012-05-07 save for the replication,
+and from the 2012-05-17 save for the script as it ships.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

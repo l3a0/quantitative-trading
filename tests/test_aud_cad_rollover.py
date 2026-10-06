@@ -1,7 +1,7 @@
 """The pins for AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md`` Entry 28
+about this example and the rows beside it. ``docs/replication-log.md`` Entry 29
 carries the verdicts and points here row by row.
 
 Every pin on the committed files reads one vintage and one specification, so

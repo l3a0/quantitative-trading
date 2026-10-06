@@ -94,6 +94,8 @@ how it sets ``numUnits``. So :mod:`chan.bollinger` calls :func:`read_sources`,
 :func:`price_spread`, :func:`zscore`, :func:`daily_returns` and :class:`Run`
 from here rather than write a second copy, under
 [issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
+:mod:`chan.vx_es` takes :func:`daily_returns` from here for the same reason,
+under [issue 350](https://github.com/l3a0/quantitative-trading/issues/350).
 
 **What changed on the way over.** Four things, and none moves a figure.
 
