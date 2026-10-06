@@ -392,6 +392,23 @@ class TestTheCoverage:
         assert [pin[0] for pin in MONTHS if pin[2] == 501] == ["2025-09", "2025-10"]
         assert (min(pin[1] for pin in MONTHS), max(pin[1] for pin in MONTHS)) == (499, 507)
 
+    def test_the_rule_on_its_own_gives_every_month_ends_misses(self) -> None:
+        """Issue 336's union mask asks :func:`sp500_panel.coverage_rule` about one row at a time."""
+        covers = sp500_panel.coverage_rule(
+            ROWS, sp500_panel.spans(), sp500_panel.read_holes(), sp500_panel.calendar()
+        )
+        by_schedule: dict[str, list] = {}
+        for row in ROWS:
+            by_schedule.setdefault(row.report_date, []).append(row)
+        for month, found in COVERAGE.items():
+            period = pd.Period(month, "M")
+            missed = {
+                row.key: reason
+                for row in by_schedule[found.schedule]
+                if (reason := covers(row, period)) is not None
+            }
+            assert missed == dict(zip(found.missing, found.reasons, strict=True)), month
+
     def test_2013_06_30_sets_six_month_ends(self) -> None:
         assert [month for month, found in COVERAGE.items() if found.schedule == "2013-06-30"] == [
             "2013-06",

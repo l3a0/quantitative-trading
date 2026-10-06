@@ -81,7 +81,7 @@ import io
 import os
 import sys
 from collections import Counter
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -359,10 +359,15 @@ def monthly_coverage(
     spans: Mapping[str, tuple[str, str]],
     holes: frozenset[tuple[str, str]],
     calendar: pd.DatetimeIndex,
+    *,
+    previous: Mapping[Key, Key] | None = None,
 ) -> list[MonthCoverage]:
-    """Each month-end from :data:`FIRST_MONTH` to :data:`LAST_MONTH`, with its coverage."""
+    """Each month-end from :data:`FIRST_MONTH` to :data:`LAST_MONTH`, with its coverage.
+
+    ``previous`` is :func:`coverage_rule`'s.
+    """
     by_key = {row.key: row for row in rows}
-    previous = previous_rows(FUND)
+    previous = previous_rows(FUND) if previous is None else previous
     closes = _Closes(spans, holes, calendar)
     by_schedule: dict[str, list[MemberRow]] = {}
     for row in rows:
@@ -399,6 +404,29 @@ def monthly_coverage(
             )
         )
     return report
+
+
+def coverage_rule(
+    rows: Sequence[MemberRow],
+    spans: Mapping[str, tuple[str, str]],
+    holes: frozenset[tuple[str, str]],
+    calendar: pd.DatetimeIndex,
+    *,
+    previous: Mapping[Key, Key] | None = None,
+) -> Callable[[MemberRow, pd.Period], str | None]:
+    """Why one row misses at one month-end, or ``None`` when it is covered.
+
+    It applies the rule :func:`monthly_coverage` applies, to any row at any
+    month-end, including one its own schedule does not set. Issue 336's union
+    mask asks it of a name a later schedule adds, at the months before that
+    schedule. ``previous`` is :func:`chan.fund_panel.previous_rows` for IVV,
+    passed by a caller that already holds it, since computing it reads every
+    holdings file.
+    """
+    by_key = {row.key: row for row in rows}
+    links = previous_rows(FUND) if previous is None else previous
+    closes = _Closes(spans, holes, calendar)
+    return lambda row, month: _reason(row, month, closes, by_key, links)
 
 
 def coverage_from_committed(rows: Sequence[MemberRow]) -> list[MonthCoverage]:
