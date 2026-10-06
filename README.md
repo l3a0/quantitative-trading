@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Twenty-seven replications run here, fifteen from Chan's *Quantitative Trading*
-and twelve from his *Algorithmic Trading*. The first two were ported from the
+Twenty-eight replications run here, fifteen from Chan's *Quantitative Trading*
+and thirteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-five were built here.
+where they were first built. The other twenty-six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -353,6 +353,17 @@ where they were first built. The other twenty-five were built here.
     script's arithmetic, and corn's is no longer twice its spot return.
     `chan.roll_returns` exports the strip reader and both fits for Example
     5.4 and the TU momentum experiment. Every figure is exploratory.
+28. AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2, on
+    the daily closes and monthly interest rates in Chan's 2018 Python port.
+    Both figures `AUDCAD_daily.m` prints reproduce to their last digit, an APR
+    of 0.061564 and a Sharpe ratio of 0.541802, his 6.2 percent and 0.54, and
+    so do the 6.7 percent and 0.58 the book gives without the rollover. The
+    book's annualised rollover of "almost 5 percent" does not reproduce. The
+    interest differential the book defines comes to 0.032642 a year, while two
+    other readings land near 5 percent: the AUD rate alone at 0.046648, and
+    the differential annualised over 365 days at 0.047279. Every figure is
+    exploratory, and the script triples CAD's rollover on Thursdays where the
+    book's own settlement rule says Wednesday.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -579,7 +590,16 @@ synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
 and a gap in the spot still counted as elapsed days.
 
-All twenty-seven replications reach a verdict in
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
+Example 5.2. It pins the script's two printed figures, the book's four, and
+the annualised rollover against the criterion written before it was computed,
+each at the precision that is real. It also holds that a month the rate file
+lacks gets a rate of zero, that AUD triples on Wednesdays and CAD on
+Thursdays and a holiday multiplies nothing, that each day's return carries the
+previous day's position and rates, and that zero rates give the script's
+commented-out formula without rollover bit for bit.
+
+All twenty-eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -592,7 +612,7 @@ momentum's, Entry 18 buy on gap's, Entry 19 the reversal on the 2012
 panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
-3.2's and Entry 27 the spot and roll returns'.
+3.2's, Entry 27 the spot and roll returns' and Entry 28 Example 5.2's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -745,7 +765,9 @@ saved. `chan.series.load_minute_close` reads the minute file's 16:59 bar as
 the daily close his Examples 2.1 to 2.5 read, and the stationarity tests on
 USD.CAD read it. `chan.series.load_port_close` reads the AUD.USD and USD.CAD
 daily files and `chan.series.load_returns` reads the saved returns, all three
-for Example 5.1. No replication reads the other three yet.
+for Example 5.1. Example 5.2 reads the AUD.CAD daily file through
+`chan.series.load_port_close` too, and the two rate files through
+`chan.series.load_rates`, so a replication reads each of the seven.
 
 Four more of his MATLAB files hold his continuous futures series, four saves of one file named
 for 2012-05-04, 2012-05-07, 2012-05-11 and 2012-05-17. Each symbol there is a
@@ -1232,6 +1254,18 @@ uv run python -m chan.roll_returns
 It prints the five strips' vintages, each strip's spot and roll returns beside
 Table 5.1's, and then the roll return with maturity in months, the days each
 fit covers and the month gaps between its contracts.
+
+Example 5.2 takes no option either, because `AUDCAD_daily.m` fixes
+the files and the lookback:
+
+```bash
+uv run python -m chan.aud_cad_rollover
+```
+
+It prints the three vintages, the window and the days with no rate, each
+figure the script and the book print beside the computed one and a verdict,
+the annualised rollover against its criterion, and the rows beside the
+replication.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
