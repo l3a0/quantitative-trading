@@ -251,6 +251,9 @@ class TestTheSlopeFinding:
     def test_a_crossing_is_a_change_of_side(self) -> None:
         assert slope_findings(np.array([0.0, 1.5, 1.2, 0.9, 0.8, 1.1])).crossings == 3
 
+    def test_a_slope_of_exactly_1_is_not_above_1(self) -> None:
+        assert slope_findings(np.array([0.0, 1.0, 1.5])).rows_above_one == 1
+
 
 @pytest.fixture(scope="module")
 def found(result):
@@ -291,6 +294,11 @@ class TestTheInterceptFinding:
         days = pd.date_range("2006-01-02", periods=4, freq="D")
         found = intercept_findings(days, np.array([1.0, 0.5, 2.0, 1.5]))
         assert (found.by_day.falls, found.by_day.steps) == (2, 3)
+
+    def test_a_flat_step_is_not_a_fall(self) -> None:
+        days = pd.date_range("2006-01-02", periods=3, freq="D")
+        found = intercept_findings(days, np.array([1.0, 1.0, 0.5]))
+        assert (found.by_day.falls, found.by_day.steps) == (1, 2)
 
 
 class TestTheGuardAndTheReads:
@@ -366,6 +374,7 @@ class TestTheGuardAndTheReads:
     def test_a_miss_is_reported_as_one(self) -> None:
         assert module._verdict(0.262252, "0.262252") == "reproduced"
         assert module._verdict(26.07, "26.2") == "did not reproduce, gap -0.1"
+        assert module._verdict(26.33, "26.2") == "did not reproduce, gap +0.1"
 
 
 @pytest.fixture(scope="module")
@@ -373,7 +382,7 @@ def printed() -> str:
     """What ``run`` prints, captured once for the tests that read it."""
     out = io.StringIO()
     with redirect_stdout(out):
-        run()
+        assert isinstance(run(), KalmanHedge)
     return out.getvalue()
 
 
@@ -386,12 +395,21 @@ class TestTheReport:
             row = next(r for r in printed.splitlines() if r.strip().startswith(label + " "))
             assert row.split()[-4:] == figures, row
         assert "inputdata_etf/" in printed
+        assert "inputData_ETF.mat: EWA, EWC" in printed
         assert "2006-04-26 to 2012-04-09, 1500 days" in printed
+        assert "delta 0.0001, Ve 0.001" in printed
+
+    def test_a_book_figure_that_misses_is_printed_as_a_miss(self, monkeypatch, capsys) -> None:
+        """Both precisions must match for the row to read reproduced."""
+        monkeypatch.setattr(module, "BOOK_APR_PERCENT", "26.1")
+        run()
+        row = next(r for r in capsys.readouterr().out.splitlines() if r.strip().startswith("APR "))
+        assert row.endswith("did not reproduce, gap +0.1, reproduced"), row
 
     def test_it_prints_the_first_rows_and_the_quiet_start(self, printed) -> None:
         assert "first units -1 on 2006-04-26 with the slope at 0" in printed
         assert "first return on 2006-04-27" in printed
-        assert "APR 0.26066891, Sharpe ratio 2.34946035" in printed
+        assert "all 1500 rows annualised: APR 0.26066891, Sharpe ratio 2.34946035" in printed
 
     def test_it_prints_the_findings_with_no_verdict(self, printed) -> None:
         assert "carried as findings with no verdict" in printed
