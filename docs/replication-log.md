@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27 and 28 carry their own, three, eleven, twelve, five, six,
-one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+22, 23, 24, 25, 26, 27, 28 and 29 carry their own, three, eleven, twelve, five,
+six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
+three, three, seven, six, seven, three, four, five, seven and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27 and 28 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28 and 29 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -217,12 +217,18 @@ says.
   - [The verdicts](#the-verdicts-25)
   - [What the entry concludes](#what-the-entry-concludes-26)
   - [What this entry cannot say](#what-this-entry-cannot-say-24)
-- [Entry 28: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*](#entry-28-gld-gdx-and-uso-around-july-2008-chans-algorithmic-trading)
+- [Entry 28: VX futures against E-mini futures, Chan's *Algorithmic Trading*](#entry-28-vx-futures-against-e-mini-futures-chans-algorithmic-trading)
   - [What the book printed](#what-the-book-printed-25)
   - [What this repo computed](#what-this-repo-computed-27)
   - [The verdicts](#the-verdicts-26)
   - [What the entry concludes](#what-the-entry-concludes-27)
   - [What this entry cannot say](#what-this-entry-cannot-say-25)
+- [Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*](#entry-29-gld-gdx-and-uso-around-july-2008-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-26)
+  - [What this repo computed](#what-this-repo-computed-28)
+  - [The verdicts](#the-verdicts-27)
+  - [What the entry concludes](#what-the-entry-concludes-28)
+  - [What this entry cannot say](#what-this-entry-cannot-say-26)
 
 ## How to read an entry
 
@@ -273,9 +279,10 @@ both.
    [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py) holds
    Entry 25, [tests/test_bollinger.py](../tests/test_bollinger.py) holds
    Entry 26, [tests/test_roll_returns.py](../tests/test_roll_returns.py)
-   holds Entry 27, and
+   holds Entry 27, [tests/test_vx_es.py](../tests/test_vx_es.py) holds
+   Entry 28, and
    [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
-   Entry 28.
+   Entry 29.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -389,8 +396,8 @@ Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
-Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, and Entry 28's rows 7 to
-14.
+Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
+and Entry 29's rows 7 to 14.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -532,7 +539,7 @@ scratch run had measured the figures, though before the build. The
 narrowest case clears the first by a factor of two, so the verdict does not
 rest on where that line sits.
 
-Entry 28's rows 1 to 6 take it too. Location 1922 makes three claims about the
+Entry 29's rows 1 to 6 take it too. Location 1922 makes three claims about the
 ETFs it names and prints no statistic for any of them. Their criteria, each
 claim's count of relations at 99 percent on the trace and eigen statistics
 separately, were written on
@@ -5648,7 +5655,171 @@ carry their own issues.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 
-## Entry 28: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
+## Entry 28: VX futures against E-mini futures, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle locations 2546 to 2559, and the script
+`VX_ES.m` the example names. Shipped under
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350). The
+location numbers are that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eleven rows, all derivable from
+[tests/test_vx_es.py](../tests/test_vx_es.py).
+
+**Three of the four printed figures reproduce at the book's precision, and the
+fourth misses by $2.09, on a save and an exit chosen because they land the
+printed figures.** Volatility rises when stocks fall, so VX, the VIX future,
+and ES, the E-mini S&P 500 future, should move against each other. Chan plots
+one against the other and sees two regimes, 2004 to May 2008 and August 2008
+to 2012. He regresses ES on VX over the second, with each price multiplied by
+its dollars per point, so the slope counts contracts. He reports that a
+portfolio long 0.3906 VX contracts and one ES contract should be stationary,
+with a residual standard deviation of $2,047. He then trades it against one
+training-set standard deviation and reports an APR of 12.3 percent and a
+Sharpe ratio of 1.4 from July 29, 2010, to May 8, 2012.
+
+The book names no exit, no training window and no save, and the script that
+ships cannot be what produced its figures. `VX_ES.m` fits on every day from
+2008-08-01 to the last day of a save made on 2012-05-17, so its fit includes
+the whole test set, and it prints nothing and runs no trade. Row 10 runs it.
+The run here takes three choices from elsewhere.
+
+1. **The save.** A sweep on
+   [issue 350](https://github.com/l3a0/quantitative-trading/issues/350) fitted
+   every window starting between 2008-07-01 and 2008-10-31 and ending between
+   2010-06-01 and 2010-09-30 on each of three saves, 22,446 windows in all.
+   Exactly one rounds to both 0.3906 and $2,047, on the 2012-05-07 save,
+   ending 2010-07-28, the day before the printed test begins. That save's last
+   day is the book's last test day. The suite does not run the sweep, so these
+   two counts are unpinned, and the issue records them.
+2. **The training window.** Chan's own `VX_ES_rollreturn.m`, the script behind
+   the roll-return trade that reuses this hedge, anchors at 2008-08-04 and
+   tests from the 501st row on. The run fits on rows 1 to 500, which ends on
+   2010-07-28 too.
+3. **The exit.** A position is held until the opposite band, since that is
+   the one rule tried that lands both the APR and the Sharpe ratio.
+
+Every row reads one of three vintages and one of two specifications, so they
+are stated once here.
+
+1. **The vintages.** Three saves of Chan's continuous futures, each rolled
+   from contract to contract and shifted at each roll, read for VX and ES
+   through `chan.series.load_panel`. Each leg keeps its own calendar, so each
+   is cut to its own rows and the two are intersected, as the script does.
+   1. `inputdataohlcdaily_20120507/`, saved 2012-05-09, 1,999 common days
+      from 2004-06-02 to 2012-05-08. Rows 1 to 8 and 11 read it.
+   2. `inputdataohlcdaily_20120517/`, saved 2012-05-18, the save `VX_ES.m`
+      loads, 1,999 common days from 2004-06-14 to 2012-05-17. Rows 9 and 10
+      read it.
+   3. `inputdataohlcdaily_20120511/`, saved 2012-05-12, read for row 9 only.
+
+   The scale-break guard runs on each leg over its own span in every save the
+   run reads, and refuses nothing.
+2. **The specification.** `ols(50·ES, [1000·VX, 1])` on the first 500 common
+   days on or after 2008-08-04, which are 2008-08-04 to 2010-07-28. The hedge
+   is minus the slope, and the residual's standard deviation divides by
+   n − 1. Each day from the anchor is scored as the portfolio less the
+   intercept, over that deviation. `chan.bollinger.band_units` goes long one
+   unit below −1 and short one unit above +1, and holds each until the
+   opposite band. Each day's return is profit on yesterday's dollar positions
+   over yesterday's gross dollars, measured on the 449 days from 2010-07-29 to
+   2012-05-08, annualised over 252 days with no cost.
+3. **The script as shipped.** `VX_ES.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `ca480c4`: the same regression on every common day from
+   2008-08-01 to the save's end.
+
+Every result here is **exploratory**, for two reasons. Reproducing Chan's
+figures spends the 2008 to 2012 sample on a rule he chose. And the save and
+the exit were each chosen because they land the printed figures, so the match
+is partly built in. The training window is the one a script of Chan's names,
+and it misses the printed deviation.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The hedge, VX contracts per ES contract | "0.3906" | location 2559 |
+| 2 | The residual's standard deviation | "$2,047" | location 2559 |
+| 3 | The test set's APR | "12.3 percent" | location 2559 |
+| 4 | The test set's Sharpe ratio | "1.4" | location 2559 |
+| 5 to 11 | the first training row, the exit, the first test day, the rounded hedge, the later saves, the script as shipped, and the holding periods | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | minus the slope of `50·ES` on `1000·VX` and a constant | 0.390594 | `TestTheSpecification::test_the_hedge` |
+| 2 | the residual's standard deviation, n − 1 | $2,044.91 | `TestTheSpecification::test_the_residual_standard_deviation_misses_by_two_dollars` |
+| 3 | `prod(1 + ret)^(252/449) − 1` | 0.122811 | `TestTheSpecification::test_the_apr` |
+| 4 | `√252 · mean(ret) / std(ret)` | 1.393201 | `TestTheSpecification::test_the_sharpe_ratio` |
+| 5 | rows 1 to 4 fitted on training rows 2 to 500, from 2008-08-05 | 0.390635, $2,046.93, 0.122804 and 1.393228 | `TestTheDiagnostics::test_dropping_the_first_training_row_reaches_both_printed_figures` |
+| 6 | rows 3 and 4 with each position closed when the z-score crosses 0, as `bollinger.m` exits | 0.068463 and 0.870716 | `TestTheDiagnostics::test_an_exit_at_the_mean_misses` |
+| 7 | rows 3 and 4 with the band started flat on 2010-07-29 | 0.124916 and 1.415772 | `TestTheDiagnostics::test_starting_flat_on_the_first_test_day_misses` |
+| 8 | rows 3 and 4 trading the printed 0.3906 in place of the fitted hedge | 0.122810 and 1.393205 | `TestTheDiagnostics::test_the_printed_constant_moves_nothing_that_prints` |
+| 9 | rows 1 to 4 on the 2012-05-17 save, the test cut at 2012-05-08, and on the 2012-05-11 save | 0.376431, $2,291.00, 0.056582 and 0.673910 on both | `TestTheDiagnostics::test_the_2012_05_17_save_misses` and `::test_the_2012_05_11_save_agrees_with_the_2012_05_17_save` |
+| 10 | `VX_ES.m` as shipped, 957 days from 2008-08-01 to 2012-05-17 on the 2012-05-17 save | 0.350731 and $2,373.59, and no trade | `TestTheDiagnostics::test_the_script_as_shipped` |
+| 11 | the position held into the test and the changes in it | long at the close of 2010-07-28, short on 2011-11-08, long on 2011-12-19 and short on 2012-02-17 | `TestTheTrade` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0000 | reproduced | 0.390594 rounds to the printed 0.3906. |
+| 2 | −$2, and −$2.09 before rounding | did not reproduce | The fit lands the hedge to four decimals and misses the deviation by a tenth of a percent. Row 5 shows that a window one day shorter lands it. Nothing that ships says why a row would be dropped. |
+| 3 | 0.0 | reproduced | 0.122811 rounds to 12.3 percent. |
+| 4 | 0.0 | reproduced | 1.393201 rounds to 1.4. |
+| 5 | none | none, not a replication | Fitting from 2008-08-05 lands both of row 1's and row 2's printed figures and moves rows 3 and 4 by less than their last printed digit. It is the one window of the sweep's 22,446 that lands both, so it was found by searching and is not evidence of anything else. Rows 1 to 4 keep the window a script of Chan's states. |
+| 6 | none | none, not a replication | The exit is what decides the trade's figures. Closing at the mean, the rule Chan's other Bollinger band uses, gives 6.8 percent against the printed 12.3. Holding until the opposite band is the one rule tried that lands both of rows 3 and 4. |
+| 7 | none | none, not a replication | On 2010-07-28 the z-score is −1.041, so the band is already long. Carrying that position into the test is what `VX_ES_rollreturn.m`'s slicing does, and starting flat moves the APR to 12.5 percent. |
+| 8 | none | none, not a replication | Trading the printed constant moves nothing that prints, so a run that takes 0.3906 as given, as the roll-return trade does, trades the same portfolio to the book's precision. |
+| 9 | none | none, not a replication | The 2012-05-11 and 2012-05-17 saves agree with each other over these days and disagree with the 2012-05-07 save, because the back-adjusted history was rewritten between them. On either, the specification misses all four figures. |
+| 10 | none | none, not a replication | The script as shipped fits on days that include the whole test set and runs no trade, so it cannot be the source of rows 3 and 4. Its hedge and deviation miss rows 1 and 2 as well. |
+| 11 | none | none, not a replication | The portfolio is in the market on all 449 test days and holds four positions. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The hedge, the APR and the Sharpe ratio reproduce on Chan's 2012-05-07
+   save.** The residual deviation misses by $2.09, and one dropped training
+   row closes it. That save's last day is the last day of the printed test,
+   which points to the same save by a route other than the figures.
+2. **The script that ships is not the run behind the figures.** It loads a
+   later save, fits on the test set and stops before any trade. The run that
+   lands the figures takes a save, a window and an exit from outside
+   `VX_ES.m`. The window comes from `VX_ES_rollreturn.m`. The save and the
+   exit were chosen because they land the figures.
+3. **The trade's figures rest on four bets.** The portfolio enters the test
+   already long and changes position three times in 449 days. An APR of 12.3
+   percent from four holding periods says little about how often the band
+   pays.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the portfolio is stationary.** The book argues it from a plot,
+Figure 5.11, and prints no statistic, and this run takes no test. The z-score
+sits beyond a band on 236 of the 449 test days against 113 of the 500
+training days, which `TestTheTrade` holds, so the test set strays more often
+than training did.
+
+**What costs would take.** The book charges none and this run charges none.
+Four positions in 449 days is few trades, but nothing here measures what a
+cost would take. Each unit also holds 0.39 of a VX contract, which a real
+account cannot hold, and nothing here measures what rounding it would move.
+
+**Whether the window is the book's.** The sweep found one window that lands
+both fitted figures, and rows 1 to 4 use a neighbour of it that a script of
+Chan's names. Neither is confirmed by anything he printed, so the match is
+evidence that this window is close to his, and no more.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
 Rationale*, Wiley, 2013, Kindle location 1922, with the same story repeated
