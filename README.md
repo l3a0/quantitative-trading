@@ -121,7 +121,16 @@ where they were first built. The other twenty-six were built here.
    that left the index are missing and both legs gain from their absence. The
    mean January before costs is 0.0108, with a one-sided p of 0.132, so no
    January effect is detectable above about 2.4% a January, on members that
-   favour the effect.
+   favour the effect. The same rules then ran on the members IJR held at each
+   year-end from 2008 to 2025, which keeps the companies that left. That run
+   is registered, because its criterion was written before any return was
+   computed. Every year-end has members with no checked price that could
+   change a tenth, so every January is bounded. The low series averages
+   −0.1047 a January before costs with a one-sided p of 1.000, and the high
+   series 0.0879 with a p of 0.001. The two disagree, so the free sources
+   cannot decide whether the January effect survived the book, and
+   [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
+   whether to buy prices for the members that threaten a tenth.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -418,8 +427,10 @@ nothing here asserts is listed below.
 the equity seasonals. It pins every printout's figures at its own printed
 precision, and the figure each of Chan's rules gives when it is changed, so a
 builder who corrects his code fails a test rather than moving a pin. Its
-survivor-run pins read the owner's archive and skip where none is configured,
-while the run's mechanics and its 603 manifest lines are held everywhere. The
+survivor-run and point-in-time pins read the owner's archive and skip where
+none is configured. The survivor run's mechanics and its 603 manifest lines
+are held everywhere, and so are the point-in-time run's flags, bound, verdict
+and refusals. The
 blog post about them is the exception, and what it says that nothing here
 asserts is listed below.
 
@@ -795,9 +806,11 @@ IVV's. Beside IJR's, `research/filings/ijr/members.csv` maps each member to the
 ticker Alpha Vantage files it under and records whether that series' close
 agrees with the filing, which
 [issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built and
-[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. One replication
+[tests/test_sp600_panel.py](tests/test_sp600_panel.py) pins. One module
 reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
-IJR's 2025-12-31 filing.
+IJR's 2025-12-31 filing as a replication, and on the members of every
+year-end from 2008 to 2025 through that members file as a registered
+experiment.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -954,8 +967,8 @@ declared exactly one window. `--dated` names which `CADAUD=X` download to read,
 defaults to the one the suite pins, and is refused when the candidate named is
 one of the other two.
 
-Chan's equity seasonals are one command, and on Chan's files they take no
-option:
+Chan's equity seasonals are one command. On Chan's files it takes no option,
+and two options run Example 7.6 on IJR's members instead:
 
 ```bash
 uv run python -m chan.equity_seasonals
@@ -985,6 +998,21 @@ deviation, the one-sided t-test, the smallest mean the test detects, the mean
 after costs, and the reading. The run is survivor-only, so the reading goes one
 way only, which the output says beside it. A machine with no archive gets one
 line naming both ways to set it, and so does every other refusal.
+
+`--point-in-time` runs Example 7.6 over the same Januaries on the members IJR
+held at each year-end, as `research/filings/ijr/members.csv` records them. It
+reads the same archive:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --point-in-time
+```
+
+Each year-end ranks only its covered members, with the tenth taken of the
+whole index, and prints its January with the members missing and how many of
+them threaten each tenth. A January with any threat prints as a low and a high
+bound. Then come each series' test, its detectable mean and its mean after
+costs, the verdict, and the survivor run's January less this one's. The two
+options cannot be given together.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -2557,7 +2585,8 @@ needs it. It is there so the committed figures can be redrawn and checked.
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a
 network at any point. Example 7.1 reads its bars from the owner's data archive,
-and `chan.equity_seasonals --survivors` reads 603 daily files from it, which is
+and `chan.equity_seasonals --survivors` and `--point-in-time` read 603 and
+1,487 daily files from it, which is
 a folder on the owner's machine. If that folder is synced from a cloud
 service, the first read of a file the service has not kept on disk downloads
 it, which this repo does not measure.
