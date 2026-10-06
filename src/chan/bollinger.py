@@ -41,7 +41,10 @@ the filter's error with ``±sqrt(Q)`` directly, and its exits sit on the entry b
 Dividing that error by ``sqrt(Q)`` to make a z-score would be a different
 floating-point comparison from Chan's, so
 [issue 342](https://github.com/l3a0/quantitative-trading/issues/342) builds its
-own four arrays and calls the same function.
+own four arrays and calls the same function. :mod:`chan.vx_es` calls it too,
+for VX against ES under
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350), with each
+exit on the opposite entry band.
 
 **The divisor moves both figures here.** Example 3.1's return is profit over
 gross dollars, so a constant on every unit cancels and ``movingStd``'s n − 1

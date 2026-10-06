@@ -154,6 +154,14 @@ its comments. Chan's 2018 Python port of it does, for corn alone:
 nowhere in the book. The replication log's Entry 27 traces each to one or the
 other.
 
+*Algorithmic Trading*'s VX against ES, in its Chapter 5, splits the same third
+way, because `VX_ES.m` records no figure either. All four figures the book
+prints are here, at location 2559: the hedge of 0.3906, the residual
+deviation of $2,047, and the APR of 12.3 percent and Sharpe ratio of 1.4 on
+the test set from July 29, 2010, to May 8, 2012.
+The script prints none of them, and no script that ships computes the trade.
+The replication log's Entry 28 traces each to the run that reaches it.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
