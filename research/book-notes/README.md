@@ -162,6 +162,14 @@ the test set from July 29, 2010, to May 8, 2012.
 The script prints none of them, and no script that ships computes the trade.
 The replication log's Entry 28 traces each to the run that reaches it.
 
+*Algorithmic Trading*'s Example 5.2 splits the same way as its Example 5.1.
+The book's five figures are here, at location 2303: the APR of 6.2 percent and
+Sharpe ratio of 0.54 with rollover interest, the 6.7 percent and 0.58 without
+it, and the annualised rollover of "almost 5 percent". The two figures
+`AUDCAD_daily.m` prints, 0.061564 and 0.541802, sit in its closing comment and
+nowhere in the book. The replication log's Entry 30 traces each to one or the
+other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an

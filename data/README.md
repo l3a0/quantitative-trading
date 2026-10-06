@@ -763,9 +763,9 @@ series, and the zip is the only free copy of them.
   stationarity tests on USD.CAD run those examples, and they are the first run
   here to read any of the seven.
 - The daily closes of USD.CAD, AUD.USD and AUD.CAD, which Examples 5.1 and 5.2
-  read. Example 5.1 runs here, on the first two.
+  read. Example 5.1 runs here on the first two, and Example 5.2 on the third.
 - The monthly AUD and CAD interest rates, which Example 5.2 reads for its
-  rollover interest.
+  rollover interest, through `chan.series.load_rates`.
 - The AUD.CAD returns Example 5.1 saved, which Chapter 8's Monte Carlo
   leverage, historical optimization and CPPI boxes read.
 
@@ -871,8 +871,8 @@ the measurements below.
 8. **Three things cannot be checked here.**
    1. Whether the four currency files equal the `.mat` files Chan's MATLAB
       loaded, `inputData_USDCAD.mat` and the three `_20120426.mat` files.
-      Neither mirror holds any of them, so three have indirect evidence
-      instead and the AUD.CAD file has none. Example 5.1 run as the MATLAB
+      Neither mirror holds any of them, so all four have indirect evidence
+      instead. Example 5.1 run as the MATLAB
       runs it, on the AUD.USD and USD.CAD daily files, returns all 612 of the
       returns `AUDCAD_unequal_ret.mat` saved, within the 1e-9 declared before
       any was computed. So those two files agree with the MATLAB's inputs up to
@@ -884,7 +884,15 @@ the measurements below.
       16:59 closes, which land every digit `stationarityTests.m` prints for
       Examples 2.1, 2.3 and 2.4, as Entry 22 records and
       [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py)
-      pins.
+      pins. The AUD.CAD file's evidence is Example 5.2's two printed figures.
+      Run on it and on the two rate files, `AUDCAD_daily.m` gives an APR of
+      0.061564 and a Sharpe ratio of 0.541802, every digit its comment
+      prints, as Entry 30 records and
+      [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py)
+      pins. That is the weakest of the four. Log returns and the sign of a
+      z-score cannot see a constant scale, so the figures say nothing about
+      one, and two figures summing up 1,237 days cannot be compared with any
+      single day the way Entry 25's 612 returns can.
    2. Who supplied the bars, and whether a bar's label is its first minute or
       its last. Chan's text calls the 16:59 bar the daily close at 16:59 ET,
       and nothing in the files says more.
@@ -1481,8 +1489,8 @@ file's layout from the pin in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py).
 `chan.series.load_port_close` reads the daily files, and refuses the minute
 file, whose second column is a time. `chan.series.load_minute_close` reads
-that one, and `chan.series.load_returns` reads the return file, which holds no
-dates.
+that one, `chan.series.load_returns` reads the return file, which holds no
+dates, and `chan.series.load_rates` reads the two rate files.
 
 ## Verifying the bytes
 

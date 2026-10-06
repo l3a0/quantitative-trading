@@ -41,6 +41,7 @@ from chan.series import (
     load_close,
     load_panel,
     load_port_close,
+    load_rates,
     load_returns,
     load_vintage,
     panel_line,
@@ -672,20 +673,24 @@ class TestTheParseReturnsTheNumberTheTextSpells:
         time of the bar, and the closes compared are the bars at 16:59. Its
         daily files read like any other. Its return file holds one value per
         row and no dates, and ``load_returns`` reads it. Its rate files are
-        left out, because nothing under ``src/`` reads them yet. Example 5.2 is
-        their reader, and adds the case when it lands.
+        read through ``load_rates``, and the rates compared are the third field
+        of each row.
         """
         misread = {}
         for entry in read_manifest():
             payload = (DATA_DIR / entry.path).read_bytes()
             lines = payload.decode("utf-8").splitlines()
             shape = PYTHON_PORT[entry.path][5] if entry.path in PYTHON_PORT else None
-            if shape == "rate":
-                continue
             if shape == "return":
                 expected = [float(line) for line in lines[1:]]
                 if list(load_returns(entry.symbol)[1]) != expected:
                     misread[(entry.path, 0)] = "the returns differ from the text"
+                continue
+            if shape == "rate":
+                expected = [float(line.split(",")[2]) for line in lines[1:]]
+                read = list(load_rates(entry.symbol)[1])
+                if read != expected:
+                    misread[(entry.path, 2)] = "the rates differ from the text"
                 continue
             if shape == "minute":
                 rows = [line.split(",") for line in lines[1:]]
@@ -1839,3 +1844,58 @@ class TestThePythonPortsDailyAndReturnFiles:
         np.testing.assert_array_equal(
             load_returns("audcad-unequal")[1], load_returns("AUDCAD-UNEQUAL")[1]
         )
+
+
+class TestThePythonPortsRateFiles:
+    """``load_rates``, which Example 5.2 reads its two interest rates through.
+
+    The vintages are ``pythoncodesanddata/AUD_interestRate.csv`` and
+    ``CAD_interestRate.csv``, chan-py, rate, saved 2018-12-13, from
+    ``PythonCodesAndData.zip`` at EpchanPreview ``e4bc46f``.
+    """
+
+    def test_the_aud_rates_come_back_in_percent_on_the_first_of_each_month(self) -> None:
+        entry, rates = load_rates("AUDRATE")
+
+        assert (entry.path, entry.price_basis) == (
+            "pythoncodesanddata/AUD_interestRate.csv",
+            "rate",
+        )
+        assert rates.name == "AUDRATE"
+        assert len(rates) == 147
+        assert (str(rates.index[0].date()), str(rates.index[-1].date())) == (
+            "2000-01-01",
+            "2012-03-01",
+        )
+        assert (rates.index.day == 1).all()
+        assert rates.iloc[1] == float("5.47619047619048")
+        assert rates.iloc[-1] == 4.25
+
+    def test_the_cad_rates_read_whatever_the_symbols_case(self) -> None:
+        entry, rates = load_rates("cadrate")
+
+        assert entry.path == "pythoncodesanddata/CAD_interestRate.csv"
+        assert rates.name == "CADRATE"
+        assert len(rates) == 144
+        assert str(rates.index[-1].date()) == "2011-12-01"
+        assert list(rates.iloc[:2]) == [4.77, 4.97]
+
+    def test_a_price_file_is_not_a_rate(self) -> None:
+        with pytest.raises(VintageUnavailable, match="AUDCAD rate"):
+            load_rates("AUDCAD")
+
+    def test_a_price_file_recorded_as_rates_is_refused_by_its_header(
+        self, committed_copy: Path
+    ) -> None:
+        """The parse would stop on a missing ``Year`` column, so the refusal names the file."""
+        directory = committed_copy
+        rewrite_entry(
+            directory, "pythoncodesanddata/inputData_AUDCAD_20120426.csv", price_basis="rate"
+        )
+
+        with pytest.raises(
+            VintageUnavailable,
+            match=r"^pythoncodesanddata/inputData_AUDCAD_20120426\.csv does not open with "
+            r"Year,Month,Rates",
+        ):
+            load_rates("AUDCAD", data_dir=directory)
