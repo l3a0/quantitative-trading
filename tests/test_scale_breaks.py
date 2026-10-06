@@ -274,6 +274,13 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: it reads. Only ZB and ZF flag in those saves, so nothing is refused, and
 #: ``TestTheGuardAndTheReads`` in ``tests/test_vx_es.py`` runs it on each.
 #:
+#: [Issue 344](https://github.com/l3a0/quantitative-trading/issues/344) decided
+#: that ``chan.gold_miners_oil`` calls the guard on GLD, GDX and USO over
+#: 2006-05-23 to 2012-04-09, the span from GDX's first price to the file's
+#: last. None of the three carries a flagged day, and nothing is refused.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_gold_miners_oil.py`` holds all
+#: three legs clean and a broken leg refused.
+#:
 #: [Issue 346](https://github.com/l3a0/quantitative-trading/issues/346) decided
 #: the same for Example 5.2 as issue 345 did for Example 5.1.
 #: ``chan.aud_cad_rollover`` calls the guard on the port's AUD.CAD daily file

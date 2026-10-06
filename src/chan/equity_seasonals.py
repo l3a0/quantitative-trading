@@ -67,7 +67,8 @@ Two limits, each stated where it applies.
    them, carried backwards. Whatever these files show about a disappearance,
    they show it about survivors.
    [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196) is
-   where the effect is tested on the rest.
+   where Example 7.7 is tested on the rest, and the point-in-time run below
+   is where Example 7.6 is.
 2. The 2002 split of the revised Python is exploratory. It was computed before
    any criterion for "disappeared" was written down, so it carries no verdict.
 
@@ -109,12 +110,38 @@ gives no verdict, because the bias alone could produce it. The rule was
 written on the issue before any return was computed, and
 :func:`survivor_reading` words it.
 
+**Example 7.6 on the S&P 600 as it stood at each year-end.**
+[Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) runs the
+same Januaries on the members IJR held at each year-end from 2008 to 2025, so
+the companies that left the index are in it. It reads two sources.
+
+1. The members file, ``research/filings/ijr/members.csv``, which
+   :mod:`chan.sp600_panel` reads. For each member of each year-end filing it
+   names an Alpha Vantage ticker and whether the series' raw close agrees with
+   the filing.
+   [Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built
+   it, and :func:`chan.fund_panel.coverage` says which members it covers.
+2. The adjusted closes of the ``sp600`` lines those tickers name, with the
+   bytes in the owner's archive, and the same SPY calendar as the survivor
+   run.
+
+Each year-end ranks only its covered members, one year-end at a time, because
+:func:`january_effect` reads no membership. The tenth is taken of the ranked
+covered members plus every missing member, through ``universe``. A missing
+member that could change a tenth is flagged from the filings alone by
+:func:`chan.fund_panel.threat_sides`, and a January with any flag is bounded
+by :func:`bounded_january`. Each series takes the one-sided test, and
+:func:`point_in_time_verdict` words the outcome. The claim, the test, the bound
+and the wording were written on the issue before any return was computed, so
+the result is labelled registered.
+
 ``tests/test_equity_seasonals.py`` is the single authority for every number
 any prose surface quotes about either example.
 
 Usage:
     python -m chan.equity_seasonals
     python -m chan.equity_seasonals --survivors
+    python -m chan.equity_seasonals --point-in-time
 """
 
 from __future__ import annotations
@@ -132,8 +159,20 @@ import pandas as pd
 from numpy.typing import NDArray
 from scipy import optimize, stats
 
+from chan import sp600_panel
 from chan.archive import ArchiveEntry, ArchiveRefused, ArchiveUnavailable, read_cross_section
 from chan.fund_holdings import IJR, Filing, members
+from chan.fund_panel import (
+    SIDES,
+    Coverage,
+    MemberRow,
+    PanelRefused,
+    coverage,
+    exit_date,
+    price_date,
+    threat_sides,
+    year_end_returns,
+)
 from chan.matlab_helpers import (
     lag1,
     matlab_sort,
@@ -220,10 +259,11 @@ def _rank_and_trade(
     annual: NDArray[np.float64],
     january: NDArray[np.float64],
     rules: JanuaryRules,
+    universe: int | None = None,
 ) -> tuple[int, int, int, float]:
     has = np.flatnonzero(np.isfinite(annual))
     order = has[matlab_sort(annual[has])]
-    top = int(rules.decile_size(len(order) / 10))
+    top = int(rules.decile_size(_universe(len(order), universe) / 10))
     losers = order[:top]
     if rules.winners is Winners.DECILE:
         winners = order[len(order) - top :]
@@ -233,8 +273,26 @@ def _rank_and_trade(
     return len(order), len(losers), len(winners), float(ret)
 
 
-def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
-    """Example 7.6 under one printout's rules, on the frame :func:`load_panel` returns."""
+def _universe(ranked: int, universe: int | None) -> int:
+    """The count a tenth is taken of: ``universe``, or the ranked count when it is None."""
+    if universe is None:
+        return ranked
+    if universe < ranked:
+        raise ValueError(f"a universe of {universe} is smaller than the {ranked} stocks ranked")
+    return universe
+
+
+def january_effect(
+    closes: pd.DataFrame, rules: JanuaryRules, *, universe: int | None = None
+) -> JanuaryEffect:
+    """Example 7.6 under one printout's rules, on the frame :func:`load_panel` returns.
+
+    ``universe`` is the count each tenth is taken of. Every printout takes it
+    of the stocks it ranked, which is the default. On a panel with members
+    missing, that is a tenth of the covered stocks rather than of the index, so
+    the point-in-time run passes the whole index's count. It applies to every
+    year-end the frame holds, so that run passes one year-end at a time.
+    """
     days = closes.index
     if rules.per_stock_period_ends:
         # The final year and the final January are dropped, as the script drops
@@ -274,7 +332,7 @@ def january_effect(closes: pd.DataFrame, rules: JanuaryRules) -> JanuaryEffect:
             unreached.append(entered)
             continue
         january = (jan_by_year[entered.year + 1] - at) / at
-        ranked, longs, shorts, ret = _rank_and_trade(annual, january, rules)
+        ranked, longs, shorts, ret = _rank_and_trade(annual, january, rules, universe)
         trades.append(
             JanuaryTrade(
                 entered=entered,
@@ -988,6 +1046,341 @@ def run_survivors(
 
 
 # --------------------------------------------------------------------------
+# Example 7.6 on the S&P 600 as it stood at each year-end, registered
+# --------------------------------------------------------------------------
+
+#: The percentiles of one January's covered returns that a member with no
+#: checked price is given when it is inserted into a tenth, the worse for the
+#: strategy first. Issue 329's owner ruling of 2026-10-04 names both.
+BOUND_PERCENTILES = (1.0, 99.0)
+
+
+class PointInTimeRefused(Exception):
+    """The point-in-time run stopped rather than compute a January it cannot trust.
+
+    The two refusals it shares with the survivor run raise
+    :class:`SurvivorRunRefused`, and :func:`main` catches both.
+    """
+
+
+@dataclass(frozen=True)
+class YearEnd:
+    """One year-end of the point-in-time run: who it ranks, who it misses, and its January.
+
+    ``trade`` is :data:`MATLAB_JANUARY` on the covered members alone, with the
+    tenth taken of ``universe``, after costs as every trade is. ``low`` and
+    ``high`` are before costs. They are equal, and equal to ``trade``'s return
+    with its costs added back, exactly when no missing member threatens a
+    tenth.
+    """
+
+    report_date: str
+    trade: JanuaryTrade
+    members: int
+    covered: int
+    #: The missing members, each of which counts toward the tenth.
+    missing: int
+    #: The ranked covered members plus every missing member.
+    universe: int
+    #: Each missing member that could change a tenth, mapped to the tenth it
+    #: threatens, as :func:`chan.fund_panel.threat_sides` names it.
+    sides: Mapping[tuple[str, int], str]
+    #: Ranked covered members with no close on the January exit row.
+    no_exit: int
+    low: float
+    high: float
+
+    @property
+    def exact(self) -> bool:
+        """Whether no missing member could change a tenth, so the January is the full panel's."""
+        return not self.sides
+
+    def threatening(self, side: str) -> int:
+        """How many missing members threaten ``side``, one of :data:`chan.fund_panel.SIDES`."""
+        return sum(1 for value in self.sides.values() if value == side)
+
+
+def year_end_slice(
+    closes: pd.DataFrame, calendar: pd.DatetimeIndex, report_date: str
+) -> pd.DataFrame:
+    """A year-end's rows, from the first trading day of the December before to February's first.
+
+    That is the span :func:`january_effect` needs for exactly one trade: two
+    December year-ends to rank between, and a February row that makes the
+    last January row a month-end.
+    """
+    year = pd.Timestamp(report_date).year
+    first = calendar[(calendar.year == year - 1) & (calendar.month == 12)]
+    last = calendar[(calendar.year == year + 1) & (calendar.month == 2)]
+    if len(first) == 0 or len(last) == 0:
+        raise PointInTimeRefused(
+            f"{report_date}: the calendar does not run from December {year - 1} "
+            f"to February {year + 1}"
+        )
+    return closes.loc[(closes.index >= first[0]) & (closes.index <= last[0])]
+
+
+def slice_returns(
+    sliced: pd.DataFrame,
+) -> tuple[pd.Timestamp, pd.Timestamp, pd.Timestamp, NDArray[np.float64], NDArray[np.float64]]:
+    """The rank day, the entry day, the exit day, and each column's annual and January return.
+
+    The days and returns are the ones :data:`MATLAB_JANUARY` reads: month-ends
+    by row, ranking each December year-end against the one before it, and
+    holding to the last row of the January after.
+    """
+    days = sliced.index
+    ends = row_month_ends(days)
+    decembers = [row for row in ends if days[row].month == 12]
+    januaries = [row for row in ends if days[row].month == 1]
+    if len(decembers) != 2 or days[januaries[-1]].year != days[decembers[1]].year + 1:
+        raise PointInTimeRefused(
+            f"the slice from {days[0].date()} to {days[-1].date()} does not hold two "
+            f"December year-ends and the January after the second"
+        )
+    level = sliced.to_numpy()
+    before, now, after = level[decembers[0]], level[decembers[1]], level[januaries[-1]]
+    return (
+        days[decembers[0]],
+        days[decembers[1]],
+        days[januaries[-1]],
+        (now - before) / before,
+        (after - now) / now,
+    )
+
+
+def bounded_january(
+    annual: NDArray[np.float64],
+    january: NDArray[np.float64],
+    tenth: int,
+    *,
+    long: int = 0,
+    short: int = 0,
+    unplaced: int = 0,
+) -> tuple[float, float]:
+    """One January's low and high return before costs, by the owner's ruling on issue 329.
+
+    Each member that threatens a tenth is inserted into it and displaces the
+    least extreme covered member there. A tenth with more threats than places
+    holds threats only. An inserted member's January return is a percentile of
+    the covered members' January returns, set per leg so that each series is
+    a bound. The low series gives an inserted loser, held long, the 1st
+    percentile, and an inserted winner, held short, the 99th. The high series
+    does the reverse. Every unplaced member takes the same return within a
+    series, so only how many of them go long matters. Every split is tried,
+    and the low series keeps the lowest return and the high series the highest.
+
+    With nothing to insert, both are the covered members' return, which is
+    :func:`_rank_and_trade`'s with its costs added back.
+    """
+    has = np.flatnonzero(np.isfinite(annual))
+    order = has[matlab_sort(annual[has])]
+    held = january[has]
+    held = held[np.isfinite(held)]
+    worst, best = np.percentile(held, BOUND_PERCENTILES)
+    bounds = []
+    for long_value, short_value, pick in ((worst, best, min), (best, worst, max)):
+        returns = []
+        for going_long in range(unplaced + 1):
+            in_long = min(tenth, long + going_long)
+            in_short = min(tenth, short + unplaced - going_long)
+            losers = np.concatenate(
+                [january[order[: tenth - in_long]], np.full(in_long, long_value)]
+            )
+            winners = np.concatenate(
+                [january[order[len(order) - (tenth - in_short) :]], np.full(in_short, short_value)]
+            )
+            returns.append(float((smartmean(losers) - smartmean(winners)) / 2))
+        bounds.append(pick(returns))
+    return bounds[0], bounds[1]
+
+
+def point_in_time_year(
+    rows: Sequence[MemberRow],
+    year: Coverage,
+    closes: pd.DataFrame,
+    calendar: pd.DatetimeIndex,
+    filings_dir: Path | None = None,
+) -> YearEnd:
+    """One year-end's January, exact or bounded, refusing what it cannot read.
+
+    The covered members' closes are sliced to this year-end alone, because
+    :func:`january_effect` reads no membership and would rank every column
+    with an annual return. The missing members are placed and flagged from the
+    filings, with the tenth sized on the ranked covered members plus every
+    missing member.
+    """
+    date = year.report_date
+    missing = set(year.missing)
+    tickers = [row.ticker for row in rows if row.report_date == date and row.key not in missing]
+    absent = [ticker for ticker in tickers if ticker not in closes.columns]
+    if absent:
+        raise PointInTimeRefused(
+            f"{date}: {len(absent)} covered members have no series in the closes read, "
+            f"the first {absent[0]}"
+        )
+    sliced = year_end_slice(closes[tickers], calendar, date)
+    refuse_off_calendar(sliced, calendar)
+    refuse_nonpositive(sliced)
+    ranked_on, entered, exited, annual, january = slice_returns(sliced)
+    expected = (price_date(calendar, date), exit_date(calendar, date))
+    if (entered, exited) != expected:
+        raise PointInTimeRefused(
+            f"{date}: the slice enters {entered.date()} and exits {exited.date()}, where the "
+            f"filing's price date is {expected[0].date()} and January's last trading day "
+            f"is {expected[1].date()}"
+        )
+    before = pd.Timestamp(date).year - 1
+    rank_day = calendar[(calendar.year == before) & (calendar.month == 12)][-1]
+    if ranked_on != rank_day:
+        raise PointInTimeRefused(
+            f"{date}: the slice ranks against {ranked_on.date()}, where the calendar's last "
+            f"trading day of December {before} is {rank_day.date()}"
+        )
+    ranked = int(np.isfinite(annual).sum())
+    universe = ranked + len(year.missing)
+    effect = january_effect(sliced, MATLAB_JANUARY, universe=universe)
+    if len(effect.trades) != 1:
+        raise PointInTimeRefused(f"{date}: the slice yields {len(effect.trades)} trades, not one")
+    (trade,) = effect.trades
+    if (trade.entered, trade.exited, trade.ranked) != (entered, exited, ranked):
+        raise PointInTimeRefused(
+            f"{date}: january_effect entered {trade.entered.date()} and ranked "
+            f"{trade.ranked}, where the slice gives {entered.date()} and {ranked}"
+        )
+    sides = threat_sides(year_end_returns(IJR, date, filings_dir), year.missing, universe)
+    counts = {side: sum(1 for value in sides.values() if value == side) for side in SIDES}
+    low, high = bounded_january(annual, january, trade.longs, **counts)
+    unbounded, _ = bounded_january(annual, january, trade.longs)
+    if not math.isclose(unbounded, trade.ret + 2 * ONE_WAY_COST, abs_tol=1e-12):
+        raise PointInTimeRefused(
+            f"{date}: the covered members' return is {unbounded} before costs where "
+            f"january_effect gives {trade.ret + 2 * ONE_WAY_COST}"
+        )
+    return YearEnd(
+        report_date=date,
+        trade=trade,
+        members=year.members,
+        covered=year.covered,
+        missing=len(year.missing),
+        universe=universe,
+        sides=sides,
+        no_exit=int((np.isfinite(annual) & ~np.isfinite(january)).sum()),
+        low=low,
+        high=high,
+    )
+
+
+def _span(low: float, high: float, spec: str) -> str:
+    """One figure where both series print the same, otherwise both, low first."""
+    first, second = format(low, spec), format(high, spec)
+    return first if first == second else f"{first} to {second}"
+
+
+def point_in_time_verdict(low: OneSided, high: OneSided, x_low: float, x_high: float) -> str:
+    """The verdict issue 329 worded before any return was computed.
+
+    Each series is tested on its own. If both fail to reject, the verdict is
+    the owner's wording with the larger X, since that is the size neither
+    series can rule out. If both reject, it names the effect with its mean, t,
+    p and count. If they differ, the free sources cannot decide it.
+    """
+    if low.rejects and high.rejects:
+        return (
+            f"a January effect above zero: a mean of {_span(low.mean, high.mean, '.4f')} a "
+            f"January, t {_span(low.t, high.t, '.2f')}, p {_span(low.p, high.p, '.3f')}, "
+            f"over {low.n} Januaries"
+        )
+    if not low.rejects and not high.rejects:
+        return f"no January effect detectable above about {max(x_low, x_high):.1%} a January"
+    return (
+        f"the free sources cannot decide it: the low series gives p {low.p:.3f} and the high "
+        f"series p {high.p:.3f}, so the next step is buying prices for the members that "
+        f"threaten a tenth"
+    )
+
+
+@dataclass(frozen=True)
+class PointInTimeRun:
+    """Everything the point-in-time run computes, and what it read to compute it."""
+
+    #: The cross-section lines read, one per mapped ticker with a series.
+    entries: tuple[ArchiveEntry, ...]
+    calendar: VintageEntry
+    year_ends: tuple[YearEnd, ...]
+    low: OneSided
+    high: OneSided
+    #: X for each series, the mean its test detects with :data:`POWER`.
+    x_low: float
+    x_high: float
+
+    @property
+    def verdict(self) -> str:
+        return point_in_time_verdict(self.low, self.high, self.x_low, self.x_high)
+
+    @property
+    def after_costs(self) -> tuple[float, float]:
+        """Each series' mean less the two one-way costs every trade pays."""
+        return self.low.mean - 2 * ONE_WAY_COST, self.high.mean - 2 * ONE_WAY_COST
+
+
+def run_point_in_time(
+    *,
+    data_dir: Path | None = None,
+    directory: Path | None = None,
+    filings_dir: Path | None = None,
+) -> PointInTimeRun:
+    """Read the members file, the closes and the calendar, and run every year-end."""
+    rows = sp600_panel.load()
+    entries, closes = read_cross_section(
+        sp600_panel.CROSS_SECTION,
+        column="adjusted_close",
+        symbols=sp600_panel.tickers(rows),
+        data_dir=data_dir,
+        directory=directory,
+    )
+    calendar, spy = survivor_calendar(data_dir)
+    days = pd.DatetimeIndex(spy.index)
+    year_ends = tuple(
+        point_in_time_year(rows, year, closes, days, filings_dir)
+        for year in coverage(IJR, rows, filings_dir)
+    )
+    if len(year_ends) != SURVIVOR_JANUARIES:
+        raise PointInTimeRefused(
+            f"the members file reaches {len(year_ends)} year-ends, not {SURVIVOR_JANUARIES}"
+        )
+    low = one_sided_t([year.low for year in year_ends])
+    high = one_sided_t([year.high for year in year_ends])
+    return PointInTimeRun(
+        entries=tuple(entries),
+        calendar=calendar,
+        year_ends=year_ends,
+        low=low,
+        high=high,
+        x_low=detectable_mean(low.std, low.n),
+        x_high=detectable_mean(high.std, high.n),
+    )
+
+
+def survivorship_gap(
+    run: PointInTimeRun, survivors: SurvivorRun
+) -> tuple[tuple[tuple[float, float], ...], tuple[float, float]]:
+    """The survivor run's January less this run's, per January and in the mean, low then high.
+
+    Issue 329 asks for the gap described rather than tested. Both runs read one
+    cross-section, so it measures membership rather than two download dates.
+    """
+    exits = [trade.exited for trade in survivors.effect.trades]
+    if exits != [year.trade.exited for year in run.year_ends]:
+        raise PointInTimeRefused("the survivor run's Januaries are not this run's, so no gap")
+    per = tuple(
+        (before - year.low, before - year.high)
+        for before, year in zip(survivors.before, run.year_ends, strict=True)
+    )
+    return per, (survivors.test.mean - run.low.mean, survivors.test.mean - run.high.mean)
+
+
+# --------------------------------------------------------------------------
 # The report
 # --------------------------------------------------------------------------
 
@@ -1113,6 +1506,53 @@ def report_survivors(result: SurvivorRun) -> None:
     )
 
 
+def report_point_in_time(result: PointInTimeRun, survivors: SurvivorRun | None = None) -> None:
+    downloads = sorted({entry.download_date for entry in result.entries})
+    print("Example 7.6 on the S&P 600 as it stood at each year-end, registered")
+    print(
+        f"  members: {sp600_panel.MEMBERS_PATH.relative_to(sp600_panel.FILINGS_DIR.parent.parent)}"
+        f", IJR's year-end filings, 2007 to 2025"
+    )
+    print(
+        f"  closes: {len(result.entries)} series from the {sp600_panel.CROSS_SECTION} "
+        f"cross-section, Alpha Vantage adjusted, downloaded {', '.join(downloads)}"
+    )
+    print(f"  calendar: {vintage_line(result.calendar)}")
+    print(f"  {MATLAB_JANUARY.source}, the tenth taken of the whole index, before costs")
+    for year in result.year_ends:
+        trade = year.trade
+        held = f"{year.low:.4f}" if year.exact else f"{year.low:.4f} to {year.high:.4f}"
+        print(
+            f"    {year.report_date}: entered {trade.entered.date()} exited "
+            f"{trade.exited.date()}: {held}   ({'exact' if year.exact else 'bounded'}; "
+            f"{trade.longs} long and {trade.shorts} short of {trade.ranked} ranked, a tenth of "
+            f"{year.universe}; {year.missing} of {year.members} members missing, "
+            f"{year.threatening('long')} threatening the losers, "
+            f"{year.threatening('short')} the winners, {year.threatening('unplaced')} "
+            f"unplaced; {year.no_exit} ranked with no exit close)"
+        )
+    for name, test, x, after in (
+        ("low", result.low, result.x_low, result.after_costs[0]),
+        ("high", result.high, result.x_high, result.after_costs[1]),
+    ):
+        print(
+            f"  the {name} series: mean {test.mean:.4f}, standard deviation {test.std:.4f}, "
+            f"t {test.t:.2f}, one-sided p {test.p:.3f}, over {test.n} Januaries; detectable "
+            f"with {POWER:.0%} probability at {SIGNIFICANCE:.0%}: {x:.4f} a January; after "
+            f"costs: mean {after:.4f}"
+        )
+    print(f"  verdict: {result.verdict}")
+    if survivors is not None:
+        per, means = survivorship_gap(result, survivors)
+        print(
+            "  the survivor-only run less this one's low and high series, described rather "
+            "than tested"
+        )
+        for year, (low, high) in zip(result.year_ends, per, strict=True):
+            print(f"    {year.trade.exited.year} January: {low:.4f} and {high:.4f}")
+        print(f"    the mean: {means[0]:.4f} and {means[1]:.4f}")
+
+
 def run(*, data_dir: Path | None = None) -> None:
     """Read both files and print every figure beside the panel it came from."""
     small = load_panel(SMALL_CAPS, data_dir=data_dir)
@@ -1127,21 +1567,37 @@ def main(argv: Sequence[str] | None = None) -> None:
         prog="python -m chan.equity_seasonals",
         description=(
             "Examples 7.6 and 7.7 on Chan's files. With --survivors, Example 7.6 on IJR's "
-            "members at 2025-12-31 instead, which needs the owner's data archive."
+            "members at 2025-12-31 instead, and with --point-in-time, on IJR's members at "
+            "each year-end. Both need the owner's data archive."
         ),
     )
-    parser.add_argument(
+    which = parser.add_mutually_exclusive_group()
+    which.add_argument(
         "--survivors",
         action="store_true",
         help="run Example 7.6 from January 2009 on IJR's 2025-12-31 members",
+    )
+    which.add_argument(
+        "--point-in-time",
+        action="store_true",
+        help="run Example 7.6 from January 2009 on IJR's members at each year-end",
     )
     args = parser.parse_args([] if argv is None else argv)
     try:
         if args.survivors:
             report_survivors(run_survivors())
+        elif args.point_in_time:
+            report_point_in_time(run_point_in_time(), run_survivors())
         else:
             run()
-    except (VintageUnavailable, ArchiveUnavailable, ArchiveRefused, SurvivorRunRefused) as refusal:
+    except (
+        VintageUnavailable,
+        ArchiveUnavailable,
+        ArchiveRefused,
+        SurvivorRunRefused,
+        PointInTimeRefused,
+        PanelRefused,
+    ) as refusal:
         # A refusal naming which member is missing is worth nothing at the
         # bottom of a pandas traceback, which is the reason
         # `chan.stationary_candidates.main` gives for the same line.

@@ -167,7 +167,7 @@ The book's five figures are here, at location 2303: the APR of 6.2 percent and
 Sharpe ratio of 0.54 with rollover interest, the 6.7 percent and 0.58 without
 it, and the annualised rollover of "almost 5 percent". The two figures
 `AUDCAD_daily.m` prints, 0.061564 and 0.541802, sit in its closing comment and
-nowhere in the book. The replication log's Entry 29 traces each to one or the
+nowhere in the book. The replication log's Entry 30 traces each to one or the
 other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way

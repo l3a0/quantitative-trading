@@ -151,6 +151,15 @@ them are companies' stocks, and how many of those can be paired with the
 filing before.
 [tests/test_sp600_panel.py](../../tests/test_sp600_panel.py) is the authority
 for every count about IJR's members file, including each year-end's coverage.
-One replication reads this directory so far: `chan.equity_seasonals` runs
-Example 7.6 on the members of `ijr/2025-12-31.csv`, which Entry 7's rows 30 to
-34 in [docs/replication-log.md](../../docs/replication-log.md) record.
+[tests/test_equity_seasonals.py](../../tests/test_equity_seasonals.py) holds
+the counts that need the run's own tenth: each year-end's ranked covered
+members and which missing members threaten each tenth.
+
+Two runs read this directory so far, both in `chan.equity_seasonals`.
+
+1. A replication runs Example 7.6 on the members of `ijr/2025-12-31.csv`,
+   which Entry 7's rows 30 to 34 in
+   [docs/replication-log.md](../../docs/replication-log.md) record.
+2. A registered experiment runs it on the members of every year-end from 2008
+   to 2025 through `ijr/members.csv`, placing missing members by the holdings
+   files, which Entry 7's rows 35 to 40 record.

@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28 and 29 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29 and 30 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven and five, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight and five, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,11 +31,13 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28 and 29 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29 and 30 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
-and nothing about whether the trade works today. Entries 2 and 9 spend no
+and nothing about whether the trade works today. Entry 7's rows 35 to 40 are
+the one exception, and they are **registered**: their claim, test and verdict
+wording were written before any return was computed. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
 states rather than picking one. Entry 20 works arithmetic on inputs the book
 states and is outside both for the same reason, which its first conclusion
@@ -223,12 +225,18 @@ says.
   - [The verdicts](#the-verdicts-26)
   - [What the entry concludes](#what-the-entry-concludes-27)
   - [What this entry cannot say](#what-this-entry-cannot-say-25)
-- [Entry 29: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*](#entry-29-audcad-with-rollover-interest-chans-algorithmic-trading)
+- [Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*](#entry-29-gld-gdx-and-uso-around-july-2008-chans-algorithmic-trading)
   - [What the book printed](#what-the-book-printed-26)
   - [What this repo computed](#what-this-repo-computed-28)
   - [The verdicts](#the-verdicts-27)
   - [What the entry concludes](#what-the-entry-concludes-28)
   - [What this entry cannot say](#what-this-entry-cannot-say-26)
+- [Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*](#entry-30-audcad-with-rollover-interest-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-27)
+  - [What this repo computed](#what-this-repo-computed-29)
+  - [The verdicts](#the-verdicts-28)
+  - [What the entry concludes](#what-the-entry-concludes-29)
+  - [What this entry cannot say](#what-this-entry-cannot-say-27)
 
 ## How to read an entry
 
@@ -280,9 +288,11 @@ both.
    Entry 25, [tests/test_bollinger.py](../tests/test_bollinger.py) holds
    Entry 26, [tests/test_roll_returns.py](../tests/test_roll_returns.py)
    holds Entry 27, [tests/test_vx_es.py](../tests/test_vx_es.py) holds
-   Entry 28, and
+   Entry 28,
+   [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
+   Entry 29, and
    [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
-   Entry 29.
+   Entry 30.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -389,7 +399,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 34,
+than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 40,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -397,7 +407,7 @@ Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
-and Entry 29's rows 6 to 8.
+Entry 29's rows 7 to 14, and Entry 30's rows 6 to 8.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -538,12 +548,19 @@ figures they judge were measured. The criteria, |γ| at least twice |α| for
 scratch run had measured the figures, though before the build. The
 narrowest case clears the first by a factor of two, so the verdict does not
 rest on where that line sits.
-Entry 29's row 5 takes it too. Location 2303's "almost 5 percent" is a
+Entry 30's row 5 takes it too. Location 2303's "almost 5 percent" is a
 hedged figure rather than an exact one, so it is judged against a criterion, the annualised differential
 location 2273 defines at least 0.045 and below 0.050, was written on
 [issue 346](https://github.com/l3a0/quantitative-trading/issues/346) before
 the row was computed. The issue also wrote that the two rates' monthly means
 were known when it chose the criterion, and that they pointed at a miss.
+
+Entry 29's rows 1 to 6 take it too. Location 1922 makes three claims about the
+ETFs it names and prints no statistic for any of them. Their criteria, each
+claim's count of relations at 99 percent on the trace and eigen statistics
+separately, were written on
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344) before
+any statistic was computed.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -2006,10 +2023,12 @@ to 18 shipped under
 [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), and rows 19
 to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225).
 Rows 22 to 29 shipped under
-[issue 254](https://github.com/l3a0/quantitative-trading/issues/254), and rows
-30 to 34 under [issue 333](https://github.com/l3a0/quantitative-trading/issues/333).
+[issue 254](https://github.com/l3a0/quantitative-trading/issues/254), rows
+30 to 34 under [issue 333](https://github.com/l3a0/quantitative-trading/issues/333),
+and rows 35 to 40 under
+[issue 329](https://github.com/l3a0/quantitative-trading/issues/329).
 
-Thirty-four rows, all derivable from
+Forty rows, all derivable from
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
 
 **Every figure the committed files reach reproduces, in every printout.** Chan
@@ -2049,6 +2068,15 @@ cross-section in `data/archive_vintages.jsonl`, downloaded 2026-10-05, with
 the bytes in the owner's archive. The committed raw SPY vintage downloaded on
 2026-10-03 is the calendar.
 
+Rows 35 to 40 read neither file either. They run Example 7.6 on the members
+IJR held at each year-end from 2008 to 2025, as
+`research/filings/ijr/members.csv` records them, at sha256 `c92cc251`. That
+file maps each member to an Alpha Vantage ticker and records whether the
+series' raw close agrees with the filing.
+[Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built it.
+Their closes are the adjusted closes of the 1,487 `sp600` lines it maps to,
+all downloaded 2026-10-05, and the calendar is the same SPY vintage.
+
 Rows 1 to 6 first ran on an earlier save, `data/ijr_20080114/`, saved
 2008-01-15 and ending on 2008-01-14, which stops short of January 2008's
 month-end. The two saves give rows 1 to 6 to every digit.
@@ -2060,8 +2088,9 @@ month-end. The two saves give rows 1 to 6 to every digit.
 The specification is the script. Rows 1 to 6 are Example 7.6, rows 7 to 14 are
 Example 7.7, rows 15 to 18 split one of them at 2002, rows 19 to 21 are
 Example 7.6's third January, rows 22 to 29 are p. 180's most recent five
-years, and rows 30 to 34 are Example 7.6 from January 2009 to January 2026 on
-IJR's members at 2025-12-31. Each row names the
+years, rows 30 to 34 are Example 7.6 from January 2009 to January 2026 on
+IJR's members at 2025-12-31, and rows 35 to 40 are the same Januaries on IJR's
+members at each year-end. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
@@ -2092,7 +2121,7 @@ Rows 5, 6 and 21, and the revised edition's half of rows 1, 2 and 19, rest on
 a different inference: the figures match the first edition's, so its rules are
 assumed.
 
-Every result here is **exploratory**. A replication spends the sample on a
+Every result in rows 1 to 34 is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
 "disappeared" was written down. Row 22's criterion was written first, so it
 carries a verdict, and the verdict is about Chan's file of survivors rather
@@ -2108,6 +2137,21 @@ held short are mostly the ones that stalled. A mean not detectably above zero
 bounds the effect even on that data, at the X the test detects with 80%
 probability. A mean above zero would have said nothing, because the bias alone
 could produce it.
+
+Rows 35 to 40 are **registered**, the first rows in this log to carry that
+label. [Issue 329](https://github.com/l3a0/quantitative-trading/issues/329)
+wrote the claim, the test, the bar and the wording of the verdict before any
+return was computed, and the owner labelled it registered on 2026-10-04. The
+claim is that Example 7.6 earns no January return detectably above zero in the
+Januaries after the book was published. The panel keeps the companies that
+left the index, but it does not cover every member. A member is covered when
+its series passes the filing check at the year-end and, where it was in the
+filing before, at that year-end too. Covered members run from 425 of 600 at 2010-12-31 to 601 of 603 at
+2025-12-31. A missing member counts toward the tenth. Where one could change a
+tenth, the January is computed twice, with each threatening member inserted
+into the tenth it threatens at the 1st or the 99th percentile of that
+January's covered returns. Every year-end has such a member, 741 member-years
+in all, so every January is bounded.
 
 ### What the book printed
 
@@ -2138,6 +2182,8 @@ could produce it.
 | 23 to 29 | row 22's Sharpe ratio, the same two figures over the full run's last 60 months, and all four under the revised Python's rules | nothing | n/a |
 | 30 | 7.6, mean January return before costs, January 2009 to January 2026, IJR's members at 2025-12-31 | nothing, the book prints no figure for these Januaries | n/a |
 | 31 to 34 | row 30's standard deviation, its one-sided t-test, the mean the test detects with 80% probability, and the mean after costs | nothing | n/a |
+| 35 | 7.6, mean January return before costs, January 2009 to January 2026, IJR's members at each year-end, the low and the high series | nothing, the book prints no figure for these Januaries | n/a |
+| 36 to 40 | row 35's standard deviations, each series' one-sided t-test, the mean each detects with 80% probability, the means after costs, and row 30's mean less row 35's | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
 beside code rather than in a sentence somebody marked. Row 22's sentence is not
@@ -2189,6 +2235,12 @@ code behind rows 9, 10, 13 and 14 traces to
 | 32 | a one-sided t-test of row 30 against zero at 5%, at 17 degrees of freedom | t 1.15, p 0.132 | none | as row 30 |
 | 33 | the smallest mean the test detects with 80% probability at row 31's deviation, from the noncentral t | 0.0243 | none | `TestTheSurvivorPins::test_x_is_2_4_percent_a_january` |
 | 34 | row 30 after the two one-way costs of 5 basis points | 0.0098 | none | `TestTheSurvivorPins::test_the_mean_after_costs` |
+| 35 | `MATLAB_JANUARY` unchanged, one year-end at a time on its covered members, with the tenth taken of the ranked covered members plus every missing member, from 59 long and 59 short of 433 ranked to 60 long and 60 short of 598 ranked. Every January is bounded, low then high | −0.1047 and 0.0879 | none, registered | `TestThePointInTimePins::test_the_low_series_is_not_above_zero` and `test_the_high_series_is_above_zero` |
+| 36 | the standard deviation of each series' 18 Januaries, with one degree of freedom removed | 0.0896 and 0.1007 | none | as row 35 |
+| 37 | a one-sided t-test of each series against zero at 5%, at 17 degrees of freedom | t −4.96, p 1.000, and t 3.70, p 0.001 | none | as row 35 |
+| 38 | the smallest mean each test detects with 80% probability at its own deviation | 0.0547 and 0.0615 | none | `TestThePointInTimePins::test_x_for_each_series` |
+| 39 | row 35 after the two one-way costs of 5 basis points | −0.1057 and 0.0869 | none | `TestThePointInTimePins::test_the_means_after_costs` |
+| 40 | row 30's mean less row 35's, described rather than tested. The per-January differences print from `--point-in-time`, and the same test pins them | 0.1155 and −0.0771 | none | `TestThePointInTimePins::test_the_survivor_run_less_this_one` |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
@@ -2223,12 +2275,14 @@ no published figure to take a gap from.
 | 21 | reproduced | Inferred rules, as for row 5. A tenth of 594 is 59.4, so R's rounding and MATLAB's give the same stocks. |
 | 22 | reproduced | The criterion was written on [issue 254](https://github.com/l3a0/quantitative-trading/issues/254) before any five-year figure was computed, under the owner's ruling that the revised MATLAB's rules carry it. The post's running-sum figure, which shows the shape of those years, was already published then, as the issue records. P. 180 tells the reader to run the program on the most recent five years instead of the entire data period, so the program is rerun on the last five years of its input. The rerun's 47 months are the full run's last 47, value for value. The claim holds on Chan's file of survivors. The rerun's annual return has a standard error of 0.0281 a year, about eight times the 0.0036 gap, so the row says nothing about whether the effect weakened. `TestTheMostRecentFiveYears::test_the_gap_is_far_inside_the_noise_of_47_months` holds both figures. |
 | 23 to 29 | none, not a replication | Reported beside row 22 with no verdict. Rows 24, 25, 28 and 29 average the tail of the full run, a rule the book does not print, and p. 180 names the average returns rather than the Sharpe ratio. |
-| 30 | none, survivor-only and exploratory | No January effect detectable above about 2.4% a January, on members that favour the effect. The test fails to reject, so the reading takes the owner's wording for [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), with X at the measured deviation, and it never says the effect disappeared. Two ranked members have no exit close and are skipped as `smartmean` skips them: INDV, which has no row on 2019-01-31, and GES, delisted on 2026-01-22. Two members are never ranked at all, because Alpha Vantage's NVRI and GTES hold nothing before 2026, so at most 601 of the 603 can rank. [Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) computes the per-January difference from these rows. |
+| 30 | none, survivor-only and exploratory | No January effect detectable above about 2.4% a January, on members that favour the effect. The test fails to reject, so the reading takes the owner's wording for [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), with X at the measured deviation, and it never says the effect disappeared. Two ranked members have no exit close and are skipped as `smartmean` skips them: INDV, which has no row on 2019-01-31, and GES, delisted on 2026-01-22. Two members are never ranked at all, because Alpha Vantage's NVRI and GTES hold nothing before 2026, so at most 601 of the 603 can rank. Row 40 takes these rows' mean less row 35's. |
 | 31 to 34 | none, survivor-only and exploratory | Reported beside row 30. Row 33 is 2.4% where the issue's power estimate before the run was 3.7%, because the measured deviation of 0.0398 is smaller than the 6.05% of Chan's three printed Januaries. |
+| 35 | none, registered | The free sources cannot decide it, which is the verdict's own wording rather than one of the three a replication takes. The low series is nowhere near above zero, with a p of 1.000, and the high series is, with a p of 0.001. The criterion takes a verdict only where both series give the same answer, so neither "no January effect detectable" nor "a January effect above zero" can be written. The width is the threatening members. At 2008-12-31, 89 of the 161 missing members threaten a tenth of 59, so most of both tenths hold an assumed return. The bound shrinks as coverage grows, to −0.0023 and 0.0027 at 2025-12-31, where one member threatens. The next step the owner's ruling names is buying prices for the threatening members alone, which [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) carries. |
+| 36 to 40 | none, registered | Reported beside row 35. Row 40 compares two runs on one cross-section, so it measures membership rather than two download dates. Its two figures differ in sign because the bound is wider than the gap it would measure, so it says nothing yet about what survivorship cost Example 7.6. |
 
 ### What the entry concludes
 
-Five things.
+Six things.
 
 1. **Every reachable figure reproduces, and not under the strategy as
    described.** The seventeen rows land at the precision each printout gives.
@@ -2263,15 +2317,23 @@ Five things.
    0.0108 a January before costs over 18 Januaries, with a one-sided p of
    0.132. The data are survivors, tilted toward the effect, so this reading
    goes one way only.
-   [Issue 329](https://github.com/l3a0/quantitative-trading/issues/329) runs
-   the same rules on the members as they stood at each year-end, and computes
-   the per-January difference from these rows, described rather than tested.
-   Both runs read one cross-section, so the gap measures membership rather
-   than two download dates for every symbol the two share.
+6. **On IJR's members as they stood at each year-end, the free sources cannot
+   decide whether the January effect survived the book.** This is the log's
+   first registered result. Rows 35 to 40 bound every January, because every
+   year-end has members with no checked price that could change a tenth. The
+   low series averages −0.1047 a January with a one-sided p of 1.000, and the
+   high series 0.0879 with a p of 0.001. A purchase of the threatening
+   members' prices is what could decide it.
 
 ### What this entry cannot say
 
-Two things.
+Three things.
+
+**Whether Example 7.6's January effect survived the book.** Rows 35 to 40
+were built to say, and the bound is too wide for either answer. Members with
+no checked price could change a tenth at every year-end, and the free sources
+hold no price for them. Rows 30 to 34 bound it in one direction only, on
+survivors.
 
 **Whether the effect existed before 2002.** Both files hold only the companies
 still in their index on the day Chan saved them, and the S&P 500 file starts
@@ -5818,7 +5880,198 @@ evidence that this window is close to his, and no more.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 
-## Entry 29: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*
+## Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle location 1922, with the same story repeated
+at 3537 and 3570. No script ships for it. Shipped under
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344). Every
+location in this entry is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Fourteen rows, all derivable from
+[tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py).
+
+Chan pairs the gold fund GLD with the gold miners' fund GDX, since a miner's
+main asset is gold. He says the pair cointegrated until July 14, 2008, the day
+oil peaked near $145 a barrel, and stopped afterwards. His explanation is that
+dear oil makes gold dearer to mine, so the miners lag the metal. He tests it
+by adding the oil fund USO and finding that the three cointegrate over the
+whole span. The book offers this as an example of forming a hypothesis about
+why a strategy stopped working and testing it.
+
+**All three claims hold on Chan's own file, on both Johansen statistics, at 99
+percent and at 90.** The control the book leaves out holds as well. GLD and
+GDX alone over the triplet's days find no relation even at 90 percent, so the
+triplet's relation is not one the pair already had. It may be GDX and USO's
+own, though, because those two alone find one relation at 99 percent.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdata_etf/gld.csv`, `gdx.csv` and `uso.csv`, lifted
+   from Chan's `inputData_ETF.mat`, saved 2012-04-10, read for the close
+   through `chan.series.load_panel`. The file holds GLD and USO from
+   2006-04-26 and GDX from 2006-05-23, so the run cuts to GDX's first price.
+   That leaves 1,481 trading days to 2012-04-09, and Chan's first window starts
+   on the same day. The first window, to 2008-07-14, holds 539 of them, and
+   the second, from 2008-07-15, holds 942.
+2. **The specification.** No script ships, so it was declared on the issue
+   before any statistic was computed. The Johansen test is jplv7's
+   `johansen(·, 0, 1)`, a constant and one lagged difference, which every
+   book-two script passes, run by `chan.johansen.johansen`. The columns run
+   GLD, GDX and then USO. The book does not say which of the two Johansen
+   statistics it read, and Entry 23 found them disagreeing on Chan's own file.
+   So each claim is two rows, one per statistic, each judged at 99 percent,
+   the level all three claims name.
+
+Every result here is **exploratory**, twice over. Reproducing the claims
+spends the 2006 to 2012 sample on a split Chan chose. The split date and the
+third ETF were both chosen after the break was seen, so the triplet's result
+cannot confirm the oil hypothesis however it comes out.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | GLD and GDX cointegrate, 2006-05-23 to 2008-07-14, trace statistic | a claim, "cointegrate with 99 percent probability" | location 1922 |
+| 2 | The same, eigen statistic | the same claim | location 1922 |
+| 3 | GLD and GDX have lost it, 2008-07-15 to 2012-04-09, trace statistic | a claim, "have lost the cointegration" | location 1922 |
+| 4 | The same, eigen statistic | the same claim | location 1922 |
+| 5 | GLD, GDX and USO hold exactly one relation, 2006 to 2012, trace statistic | a claim, "a 99 percent probability that there exists one cointegrating relationship" | location 1922 |
+| 6 | The same, eigen statistic | the same claim | location 1922 |
+| 7 | The pair's statistics and eigenvalues before the break | none | n/a |
+| 8 | The pair's statistics and eigenvalues after the break | none | n/a |
+| 9 | The triplet's statistics and eigenvalues | none | n/a |
+| 10 | GLD and GDX alone over the triplet's 1,481 days | none, the control the book leaves out | n/a |
+| 11 | The triplet's first eigenvector | none, location 1922 says the triplet can be traded and prints no weights | location 1922 |
+| 12 | The CADF test of GLD on GDX in each window | none | n/a |
+| 13 | A plain ADF test of each ETF alone in each window it enters | none | n/a |
+| 14 | GLD and USO, and GDX and USO, each alone over the triplet's 1,481 days | none | n/a |
+
+Each row's claim criterion was written on the issue before any statistic was
+computed. Rows 1 and 2 hold on one relation or two, rows 3 and 4 on none, and
+rows 5 and 6 on exactly one. Row 14 was not on the issue. The pull request's
+review added it after the first run, to ask whether the triplet's relation is
+one of the other two pairs' own. The criteria are pinned in
+`TestTheSpecification::test_the_six_criteria_are_the_ones_issue_344_declared`.
+The critical values beside each statistic are LeSage's tables, which Entry 23
+checked against Chan's own printout.
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `johansen([GLD, GDX], 0, 1)`, first window, trace | 1 relation at 99 percent, 22.571096 against 19.935 | `TestTheClaims::test_rows_1_and_2_the_pair_holds_one_relation_before` |
+| 2 | The same, eigen | 1 relation at 99 percent, 22.423682 against 18.520 | the same |
+| 3 | `johansen([GLD, GDX], 0, 1)`, second window, trace | 0 relations at 90, 95 and 99 percent, 6.132867 against 13.429 at 90 | `TestTheClaims::test_rows_3_and_4_the_pair_holds_none_after_even_at_90` |
+| 4 | The same, eigen | 0 relations at 90, 95 and 99 percent, 6.059166 against 12.297 at 90 | the same |
+| 5 | `johansen([GLD, GDX, USO], 0, 1)`, whole span, trace | 1 relation at 90, 95 and 99 percent | `TestTheClaims::test_rows_5_and_6_the_triplet_holds_one_at_every_level` |
+| 6 | The same, eigen | 1 relation at 90, 95 and 99 percent | the same |
+| 7 | As row 1 | trace 22.571096 and 0.147414, eigen 22.423682 and 0.147414, eigenvalues 0.04089749 and 0.00027448 | `TestEachTestsTable::test_row_7_the_pair_before` |
+| 8 | As row 3 | trace 6.132867 and 0.073701, eigen 6.059166 and 0.073701, eigenvalues 0.00642519 and 0.00007840 | `TestEachTestsTable::test_row_8_the_pair_after` |
+| 9 | As row 5 | trace 44.837732, 7.004501 and 0.164176, eigen 37.833231, 6.840326 and 0.164176, eigenvalues 0.02525587, 0.00461429 and 0.00011100 | `TestEachTestsTable::test_row_9_the_triplet` |
+| 10 | `johansen([GLD, GDX], 0, 1)`, whole span | trace 10.446773 and 0.044664, eigen 10.402109 and 0.044664, eigenvalues 0.00700853 and 0.00003020, so 0 relations even at 90 percent | `TestEachTestsTable::test_row_10_the_control_the_pair_alone_over_the_triplets_days` and `::test_row_10_the_control_finds_no_relation_even_at_90` |
+| 11 | Column 0 of row 9's eigenvectors, rows GLD, GDX, USO | 0.033109, −0.177036 and 0.002549 | `TestBesideTheReplication::test_row_11_the_triplets_first_eigenvector` |
+| 12 | `lesage_cadf(GLD, GDX, 1)` against MacKinnon's two-series bars, −3.34 at 95 percent and −3.90 at 99 | −3.724034 in the first window, −1.511680 in the second and −1.517588 over the whole span | `TestBesideTheReplication::test_row_12_the_cadf_rejects_at_95_before_and_not_at_99` |
+| 13 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | first window GLD −0.033875 and GDX −1.962727, second GLD −0.575590 and GDX −1.720225, whole span GLD −0.370352, GDX −2.371217 and USO −1.213340 | `TestBesideTheReplication::test_row_13_no_series_alone_rejects_a_unit_root_even_at_90` |
+| 14 | `johansen([GLD, USO], 0, 1)` and `johansen([GDX, USO], 0, 1)`, whole span | GLD and USO trace 4.349962 and 0.573598, 0 relations even at 90 percent. GDX and USO trace 27.165550 and 3.034162, eigen 24.131388 and 3.034162, 1 relation at 95 and 99 percent and 2 at 90 | `TestBesideTheReplication::test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not` |
+
+### The verdicts
+
+| # | Gap | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, a claim | reproduced | The trace statistic rejects no cointegration at 99 percent, clearing its bar by 2.636, and stops at one relation. |
+| 2 | none, a claim | reproduced | The eigen statistic does the same, clearing its bar by 3.904. |
+| 3 | none, a claim | reproduced | No relation at 99 percent, and none at 90 either. |
+| 4 | none, a claim | reproduced | The same on the eigen statistic. |
+| 5 | none, a claim | reproduced | One relation, and the second null stands at every level, 7.005 against 13.429 at 90 percent. |
+| 6 | none, a claim | reproduced | The same on the eigen statistic, 6.840 against 12.297 at 90 percent. |
+| 7 | none | none, not a replication | The book prints no statistic. |
+| 8 | none | none, not a replication | The book prints no statistic. |
+| 9 | none | none, not a replication | The book prints no statistic. |
+| 10 | none | none, not a replication | The pair alone finds nothing over the triplet's days, which is what row 5 needs to mean anything. |
+| 11 | none | none, not a replication | The sign is statsmodels', which makes the first row positive. |
+| 12 | none | none, not a replication | The CADF test rejects at 95 percent before the break and not after it. At the 99 percent level the claims are judged at, it rejects in neither window. |
+| 13 | none | none, not a replication | No series is stationary on its own in any window. |
+| 14 | none | none, not a replication | GDX and USO alone hold the relation the triplet finds, so the triplet's row cannot separate the oil hypothesis from that pair's own link. |
+
+### What the entry concludes
+
+Four things.
+
+1. **Every claim holds with room, on both statistics.** The nearest call is
+   row 1, whose trace statistic of 22.571 clears its 99 percent bar of 19.935
+   by 2.636. Every other claim clears or misses its bar by more,
+   `TestEachTestsTable::test_the_closest_call_is_row_1_clearing_its_bar_by_2_636`
+   lists each, and the counts at 90 and 95 percent agree with 99 on every
+   row. So the choice of statistic and the choice of level that the book left
+   open move nothing here, which is the opposite of what Entry 23 met. The
+   loss holds even at 90 percent, so the stronger reading of "lost" holds too.
+   The book's "99 percent probability" is a test level rather than a
+   probability. The test rejects no cointegration at the 1 percent level, and
+   it says nothing about how likely the pair is to cointegrate.
+2. **The control holds, and a second control weakens what it shows.** GLD
+   and GDX alone over the triplet's 1,481 days give a trace statistic of
+   10.447, short of even the 90 percent bar of 13.429. Adding USO raises the
+   first null's trace to 44.838, so the triplet's relation is not one the pair
+   already had. Row 14 asks the same of the other two pairs. GLD and USO alone
+   find nothing, at 4.350. GDX and USO alone find one relation at 99 percent,
+   at 27.166 against 19.935. So a triplet of rank 1 is also what a link
+   between the miners and oil alone would produce, with GLD along for the
+   ride, and that reading says nothing about oil restoring the link between
+   gold and the miners. Rank 1 cannot tell the two readings apart, and this
+   entry does not try. The eigenvector's entries are shares per unit of the
+   portfolio, so their sizes are not comparable across ETFs at different
+   prices, and no row here measures any weight in dollars.
+3. **The Engle-Granger family sees the same break, and no series is
+   stationary alone.** The CADF statistic of GLD on GDX is −3.724 before the
+   break, past the 95 percent bar of −3.34 and short of the 99 percent bar of
+   −3.90, and −1.512 after it. So that test rejects before the break at 95
+   percent rather than 99, and finds nothing after it. None of the seven ADF
+   statistics in row 13 rejects a unit root even at 90 percent. No rank in
+   rows 1 to 10 equals its column count, so the full-rank question Entry 23
+   left open does not arise there. GDX and USO alone in row 14 do reach full
+   rank at 90 percent, on a second null of 3.034 against 2.705, while neither
+   ETF rejects a unit root alone. That is Entry 23's tension again, at a level
+   no claim here is judged at.
+4. **The blog post's sixth detour bears on the same break.**
+   `blog/gld-gdx-cointegration-lessons.md` says the miners "detached from gold
+   somewhere in the 2010s", from yfinance closes and a rolling CADF. This run
+   reads Chan's file with the Johansen test and finds no relation over
+   2008-07-15 to 2012-04-09 as a whole. The two differ in file, test and
+   window. One test over a window that runs into 2012 cannot say where inside
+   it the link failed, so this entry does not date the break, and it says
+   nothing about the years after 2012. The post stays as it is until its
+   write-up, because it is kept in step with its Substack copy and an edit
+   there waits on the owner.
+
+### What this entry cannot say
+
+Four things.
+
+1. **Anything about oil itself.** USO holds front-month WTI futures rather
+   than oil, which location 1939 raises about a different pair. A futures fund
+   drifts from the spot price by its roll, so the triplet's relation is with
+   the fund, and whether it holds with the spot price is a different test.
+2. **Whether the break is where Chan put it.** The date was chosen by looking
+   at the data, so a test that splits there is favoured by construction. No
+   row here searches for the break or tests another date, and doing so would
+   be a search with its own rail.
+3. **How much the three tests confirm each other.** Each is a fixed-level test,
+   and the triplet's span contains both of the pair's windows, so the rows are
+   not independent. Nothing here corrects for running several tests on one
+   sample.
+4. **Whether the oil hypothesis holds.** It was formed on this sample and
+   tested on the same one. The test that would bear on it runs GLD, GDX and
+   USO after 2012-04-09, with the hypothesis written down first. That is a
+   registered experiment, which [docs/design.md](design.md) names as a
+   different object from a replication, and no issue carries it yet.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
 Rationale*, Wiley, 2013, Example 5.2, Kindle location 2303, with the rollover
