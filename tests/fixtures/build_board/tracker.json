@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "items": [
+    {
+      "n": 90501,
+      "ms": "The machinery",
+      "label": "Pin a vintage of EWA and EWC closes",
+      "kind": "ready",
+      "labels": ["vintage"],
+      "needs": []
+    },
+    {
+      "n": 90502,
+      "ms": "Chapter 7",
+      "label": "Reproduce the EWA and EWC pair",
+      "kind": "ready",
+      "labels": ["replication"],
+      "needs": [90501]
+    },
+    {
+      "n": 90503,
+      "ms": "Chapter 7",
+      "label": "Measure the pair's half-life on a rolling window",
+      "kind": "ready",
+      "labels": ["experiment"],
+      "needs": [90502]
+    },
+    {
+      "n": 90504,
+      "ms": "Open questions and deferred work",
+      "label": "Decide whether intraday bars belong in scope",
+      "kind": "decision",
+      "labels": ["decision"],
+      "needs": []
+    },
+    {
+      "n": 90505,
+      "ms": "Chapter 7",
+      "label": "Write up the EWA and EWC replication",
+      "kind": "ready",
+      "labels": ["docs"],
+      "needs": [90502]
+    }
+  ]
+}

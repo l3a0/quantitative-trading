@@ -1,9 +1,11 @@
 """The pins for VX against ES, *Algorithmic Trading*'s hedge from August 2008.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the diagnostics beside it.
-``docs/replication-log.md`` Entry 28 carries the verdicts and points here row
-by row.
+about this replication and the diagnostics beside it, with one exception, in
+``blog/vx-es-lessons.md``. The post's figure has its own pins in
+``tests/test_vx_es_figures.py``. README lists what the post says that nothing
+pins. ``docs/replication-log.md`` Entry 28 carries the verdicts and points
+here row by row.
 
 Every pin names one of three vintages and one of two specifications, so they
 are stated once here.
@@ -257,6 +259,80 @@ class TestTheTrade:
         assert whole.sharpe == result.trade.sharpe
 
 
+@pytest.fixture(scope="module")
+def cumulative(result) -> pd.Series:
+    """The test set's compounded cumulative return, ``cumprod(1 + ret) − 1``."""
+    return pd.Series(np.cumprod(1 + result.trade.daily) - 1, index=result.trade.test_days)
+
+
+class TestTheDowngrade:
+    """Location 2559: "particularly profitable starting around the time of the Standard and
+    Poor's downgrade of the U.S. credit rating", announced after the close of 2011-08-05.
+
+    ``blog/vx-es-lessons.md`` quotes each figure here. Each compounds the
+    specification's own test-set returns.
+    """
+
+    DOWNGRADE = pd.Timestamp("2011-08-05")
+
+    def test_the_test_set_ends_where_the_apr_says(self, result, cumulative) -> None:
+        assert cumulative.iloc[-1] == pytest.approx(0.229231, abs=5e-7)
+        assert cumulative.iloc[-1] == pytest.approx((1 + result.trade.apr) ** (449 / 252) - 1)
+
+    def test_it_is_down_at_the_close_of_the_downgrade_day(self, cumulative) -> None:
+        before = cumulative.loc[: self.DOWNGRADE]
+        assert len(before) == 259
+        assert before.iloc[-1] == pytest.approx(-0.045935, abs=5e-7)
+
+    def test_the_whole_gain_and_more_comes_after_that_close(self, cumulative) -> None:
+        """The share earned after the close is more than all of it, since it was a loss before."""
+        at_close = cumulative.loc[self.DOWNGRADE]
+        after = (1 + cumulative.iloc[-1]) / (1 + at_close) - 1
+        assert len(cumulative.loc[self.DOWNGRADE :]) - 1 == 190
+        assert after == pytest.approx(0.288414, abs=5e-7)
+        assert after > cumulative.iloc[-1] > 0 > at_close
+
+    def test_the_deepest_point_is_the_first_day_after_the_announcement(
+        self, result, cumulative
+    ) -> None:
+        assert str(cumulative.idxmin().date()) == "2011-08-08"
+        assert cumulative.min() == pytest.approx(-0.077553, abs=5e-7)
+        low = int(np.argmin(result.trade.zscore))
+        assert str(result.trade.days[low].date()) == "2011-08-08"
+        assert result.trade.zscore[low] == pytest.approx(-3.886, abs=5e-4)
+        assert result.trade.units[low] == 1
+
+    def test_each_of_the_four_bets_earns(self, result) -> None:
+        """What each holding period earned, compounded over the test days it was held.
+
+        A position taken at a day's close earns from the next day, so the long
+        carried in earns through 2011-11-08 and the short taken that evening
+        earns from 2011-11-09.
+        """
+        held = result.trade.units[TRAINING_DAYS - 1 : -1]
+        daily = pd.Series(result.trade.daily, index=result.trade.test_days)
+        starts = [0, *(np.flatnonzero(np.diff(held)) + 1), len(held)]
+        bets = [
+            (
+                str(daily.index[a].date()),
+                str(daily.index[b - 1].date()),
+                held[a],
+                b - a,
+                float(np.prod(1 + daily.iloc[a:b]) - 1),
+            )
+            for a, b in zip(starts, starts[1:], strict=False)
+        ]
+        assert [bet[:4] for bet in bets] == [
+            ("2010-07-29", "2011-11-08", 1, 325),
+            ("2011-11-09", "2011-12-19", -1, 28),
+            ("2011-12-20", "2012-02-17", 1, 41),
+            ("2012-02-21", "2012-05-08", -1, 55),
+        ]
+        assert [bet[4] for bet in bets] == pytest.approx(
+            [0.058104, 0.056144, 0.056877, 0.040777], abs=5e-7
+        )
+
+
 class TestTheDiagnostics:
     """The rows of the plan's table other than the specification."""
 
@@ -276,6 +352,7 @@ class TestTheDiagnostics:
         assert t.apr == pytest.approx(0.068463, abs=5e-7)
         assert t.sharpe == pytest.approx(0.870716, abs=5e-7)
         assert not matches(100 * t.apr, BOOK_APR_PERCENT)
+        assert not matches(t.sharpe, BOOK_SHARPE)
 
     def test_starting_flat_on_the_first_test_day_misses(self, result) -> None:
         t = result.flat_at_test
@@ -284,6 +361,10 @@ class TestTheDiagnostics:
         assert t.apr == pytest.approx(0.124916, abs=5e-7)
         assert t.sharpe == pytest.approx(1.415772, abs=5e-7)
         assert not matches(100 * t.apr, BOOK_APR_PERCENT)
+        assert gap(100 * t.apr, BOOK_APR_PERCENT) == pytest.approx(0.2)
+        # ``blog/vx-es-lessons.md`` says the flat start lands the Sharpe ratio and misses
+        # only the APR.
+        assert matches(t.sharpe, BOOK_SHARPE)
 
     def test_the_printed_constant_moves_nothing_that_prints(self, result) -> None:
         """Item 10: issue 357 takes 0.3906 as a constant, and this row says that is safe."""

@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-two replications run here, fifteen from Chan's *Quantitative Trading*
-and seventeen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-three replications run here, fifteen from Chan's *Quantitative Trading*
+and eighteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty were built here.
+where they were first built. The other thirty-one were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -430,6 +430,20 @@ where they were first built. The other thirty were built here.
     median is 1.047367 and its mean 1.089693. The intercept's yearly mean
     rises every year from 0.1440 in 2006 to 6.7748 in 2012, and 513 of its
     1,499 daily steps fall. Every figure is exploratory.
+33. Time-series momentum on TU, the two-year Treasury note future, Example
+    6.1 of *Algorithmic Trading*, on Chan's own 2012-05-11 continuous futures
+    save. Past returns over 250 days correlate with returns over the next 25
+    at 0.2719 with a p-value of 0.0238, the book's 0.27 and 0.02, and the
+    variance ratio test does not reject a random walk, as the book says. The
+    trade goes long when the 250-day return is positive and short when it is
+    negative, holding each day's call for 25 days with a twenty-fifth of the
+    capital. All six figures `TU_mom.m`'s comment prints reproduce on the full
+    2004 to 2012 window: an average annual return of 0.016699, a Sharpe ratio
+    of 1.041462, an APR of 0.016708, a maximum drawdown of −0.024847 lasting
+    343 days, and a Kelly f of 64.919535. The script's own active line starts
+    in 2009 and lands none of them. The Hurst exponent does not reproduce:
+    0.433357 against the book's 0.44, through the same `genhurst` that misses
+    USD.CAD's 0.49 in item 22. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -665,7 +679,8 @@ the book's, and each diagnostic beside them: the first training day dropped,
 an exit at the mean, a band started flat on the first test day, the printed
 hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
 It also holds the training and test spans, the four positions, and the
-scale-break guard on each leg of each save.
+scale-break guard on each leg of each save. The blog post about it is the
+exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) does it for
 the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
@@ -705,7 +720,16 @@ holds that the read calls the scale-break guard on both legs and that a
 planted break in either is refused. The blog post about it is the exception,
 and what it says that nothing here asserts is listed below.
 
-All thirty-two replications reach a verdict in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
+momentum. It pins the six figures of `TU_mom.m`'s comment, the 250/25
+correlation, H and the variance ratio test at six decimals and at the
+precision Chan printed, all 49 cells of the correlation table, the script's
+2009 window, and the 2012-05-17 save that `correlationTest.m` loads. It also
+holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
+start from, the rule on synthetic arrays, the refusal of a position larger
+than the tranche count, and the scale-break guard on TU.
+
+All thirty-three replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -720,8 +744,8 @@ the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
-5.2's, Entry 31 the crude oil rule's, and Entry 32 the Kalman filter's on
-EWA and EWC.
+5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
+EWA and EWC, and Entry 33 TU momentum's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1475,6 +1499,17 @@ uv run python -m chan.kalman_hedge
 It prints the vintage, the rows, the filter's constants, both figures beside
 the script's comment and the book with a verdict, the first position and the
 run with no signal on the first two days, and the two findings with no verdict.
+
+TU's momentum, Example 6.1 of *Algorithmic Trading*, takes no option either, because
+`TU_mom.m` fixes the table, the lookback and the hold:
+
+```bash
+uv run python -m chan.tu_momentum
+```
+
+It prints the vintage, the 49-cell correlation table, each figure beside the
+script's or the book's with a verdict, and then the six pairs the book calls
+the best compromises, the script's 2009 window and the 2012-05-17 save.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -2895,7 +2930,102 @@ uv run python -m chan.etf_cointegration_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-[blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a nineteenth
+[blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
+locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
+VIX future, against ES, the E-mini S&P 500 future, from August 2008 and trade
+the portfolio against a band one deviation wide. Chan reports a hedge of
+0.3906 VX contracts per ES contract, a residual standard deviation of \$2,047,
+and an APR of 12.3 percent with a Sharpe ratio of 1.4. The post draws four
+lessons from Entry 28 of the replication log.
+
+1. Three of the four figures land at the book's precision on Chan's
+   2012-05-07 save, and the residual deviation misses by \$2.09.
+2. The 2012-05-11 and 2012-05-17 saves miss all four, and `VX_ES.m` loads the
+   later one, fits on days that include the test set, and runs no trade.
+3. The exit the book leaves out decides the trade, since closing at the mean
+   gives 6.8 percent, and of the three rules tried only holding until the
+   opposite band lands both.
+4. The APR rests on four positions, all of them winners, and the whole of the
+   test set's gain came after the close of 2011-08-05.
+
+Seven groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "When the market goes down, volatility shoots up" is at 2546. The two
+   regimes, the second's lower volatility for a given index level, and the
+   warning against a regression across both are at 2552. The
+   dollars per point, the four figures, the long 0.3906 VX contracts and one
+   ES contract, the band of one training deviation, and "particularly
+   profitable" around the downgrade are at 2559. "0.3906 front contracts of
+   VX" in the roll-return trade is at 2754. The book's figures are pinned, and
+   its words are not.
+2. The search behind the window. Its 22,446 windows across the three saves,
+   and the one window among them that rounds to both fitted figures, are
+   recorded in Entry 28 and on the issue that shipped the run. No test reruns
+   the search.
+3. Facts outside the committed data. What ES and VX are and what the VIX
+   index measures. That Standard and Poor's announced its downgrade of the
+   U.S. credit rating after the close of Friday 2011-08-05. That a continuous
+   future shifts its history at each roll, and that VX's and ES's closes do
+   not move by one constant between saves, so how Chan's source rebuilt them
+   was not measured, both of which [data/README.md](data/README.md) records.
+4. What Chan's scripts at `e4bc46f` in `ericnberwick/EpchanPreview` do. That
+   `VX_ES.m` loads the 2012-05-17 save, keeps the days both legs traded,
+   draws the scatter and stops after the regression. That
+   `VX_ES_rollreturn.m` anchors at 2008-08-04, tests from the 501st row on,
+   computes every day's return before keeping those rows, reads ES from the
+   2012-05-07 save, and trades one VX contract against one ES contract with
+   every line holding 0.3906 commented out. That `bollinger.m` exits at a
+   z-score of 0.
+   [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
+   [data/README.md](data/README.md) record the first two.
+5. Arithmetic on pinned numbers that no test asserts as written: the
+   deviation missing by about a tenth of a percent, the APR on the later saves
+   falling by more than half, the 449 test days making about a year and three
+   quarters, and 236 of 449 days being more than half.
+6. The figure's alt text, whose readings of the points and lines, such as
+   "about 56,000 and 77,000 dollars" and "about minus 8 percent", are
+   approximate by design.
+7. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_vx_es.py](tests/test_vx_es.py), or to
+[tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) for the figure's
+own numbers. Three groups had no pin before it, and
+[tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
+
+1. The test set around the downgrade. It is down 0.045935 at the close of
+   2011-08-05, after 259 of the 449 test days, and grows 0.288414 over the
+   190 days after it to end at 0.229231. Its lowest, −0.077553, falls on
+   2011-08-08, the day the z-score reaches −3.886, its lowest since the
+   anchor.
+2. The four positions' returns over the test days each one earned: long for
+   325 days at 0.058104, short for 28 at 0.056144, long for 41 at 0.056877,
+   and short for 55 at 0.040777.
+3. That starting flat on the first test day lands the Sharpe ratio and misses
+   the APR by 0.2, and that closing at the mean misses the Sharpe ratio too.
+
+Its one figure is drawn from the committed save by
+[src/chan/vx_es_figures.py](src/chan/vx_es_figures.py), which reads it through
+the same `read_legs` and `vx_es` as `python -m chan.vx_es`, scale-break guard
+included. It draws three panels after the book's Figures 5.10 to 5.12.
+
+1. 50·ES against 1000·VX on the 1,999 common days, coloured by the two
+   regimes, with the fit on the 500 training days.
+2. The z-score from 2008-08-04 with the band at ±1, the last training day
+   marked, and each position the band holds shaded.
+3. The test set's compounded cumulative return, with the three changes of
+   position and 2011-08-05 marked.
+
+```bash
+uv run python -m chan.vx_es_figures
+```
+
+[tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) holds what it draws
+rather than its bytes, for the reason given above for the regime map.
+
+[blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a twentieth
 post, about Kindle locations 1633 to 1726 of Chan's *Algorithmic Trading*,
 where a Kalman filter re-estimates the slope and intercept of EWC on EWA every
 day and trades the filter's forecast error against a band its own forecast
