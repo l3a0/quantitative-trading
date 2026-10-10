@@ -18,7 +18,7 @@ The band, the linear rule and the spread come from
 :func:`chan.price_spread.read_sources` and
 :func:`chan.bollinger.example_three_two`, the run's own path, so the
 scale-break guard runs here too. The dashed line comes from
-:func:`divided_by_n` instead. It reuses that run's spread and recomputes the
+:func:`divided_by_n` instead. It takes that run's spread and recomputes the
 z-score with ``smartMovingStd`` in place of ``movingStd``, and
 ``tests/test_bollinger_figures.py`` holds it equal to the patched run that
 ``tests/test_bollinger.py`` builds. Redraw it with::
@@ -40,7 +40,14 @@ from chan.bollinger import ENTRY_ZSCORE, EXIT_ZSCORE, band_units, example_three_
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.matlab_helpers import moving_avg, smart_moving_std
 from chan.paths import FIGURES_DIR
-from chan.price_spread import LOOKBACK, SOURCE_FILE, Run, daily_returns, read_sources
+from chan.price_spread import (
+    LOOKBACK,
+    SOURCE_FILE,
+    Run,
+    Signal,
+    daily_returns,
+    read_sources,
+)
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageEntry, VintageUnavailable
@@ -67,13 +74,12 @@ def cumulative_return(run: Run) -> np.ndarray:
     return np.cumprod(1 + run.daily) - 1
 
 
-def divided_by_n(run: Run, lookback: int = LOOKBACK) -> Run:
-    """The band on ``run``'s spread with ``smartMovingStd``, which divides by n.
+def divided_by_n(signal: Signal, lookback: int = LOOKBACK) -> Run:
+    """The band on ``signal`` with ``smartMovingStd``, which divides by n.
 
     Everything else is :func:`chan.bollinger.bollinger_band`'s: the same
     ``movingAvg``, the same thresholds and the same returns.
     """
-    signal = run.signal
     with np.errstate(invalid="ignore", divide="ignore"):
         z = (signal.value - moving_avg(signal.value, lookback)) / smart_moving_std(
             signal.value, lookback
@@ -102,7 +108,7 @@ def make_bollinger_figure(
     result = example_three_two(closes)
     band = result.bollinger
     days = band.signal.days
-    runs = {"bollinger": band, "linear": result.linear, "by_n": divided_by_n(band)}
+    runs = {"bollinger": band, "linear": result.linear, "by_n": divided_by_n(band.signal)}
 
     fig = Figure(figsize=(10, 11.5), dpi=130)
     fig.patch.set_facecolor(SURFACE)

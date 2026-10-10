@@ -17,14 +17,18 @@ Exploratory, like everything Example 3.2 computes here.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
-from matplotlib.dates import DateFormatter, YearLocator, date2num
+from matplotlib.colors import same_color
+from matplotlib.dates import DateFormatter, YearLocator, date2num, num2date
 
+from chan import bollinger, paths, price_spread
 from chan import bollinger_figures as figures
-from chan import paths, price_spread
-from chan.bollinger import example_three_two
+from chan.bollinger import bollinger_band, example_three_two
 from chan.bollinger_figures import (
+    BANDS,
     BOLLINGER_FIGURE,
     RUNS,
     cumulative_return,
@@ -36,6 +40,7 @@ from chan.bollinger_figures import (
 from chan.matlab_helpers import smart_moving_std
 from chan.paths import FIGURES_DIR
 from chan.price_spread import read_sources
+from chan.regime_figure import ACCENT, GOOD, LOST
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.test_bollinger import SPEC
@@ -106,6 +111,12 @@ class TestThePanels:
         assert isinstance(axis.get_major_formatter(), DateFormatter)
         assert axis.get_major_formatter().fmt == "%Y"
 
+    def test_a_tick_falls_on_every_year_from_2006_to_2012(self, axes) -> None:
+        """The window runs from 2006-05-24 to 2012-04-09, so a tick every second year
+        would still read as years and only counting them tells the two apart."""
+        ticks = axes["returns"].xaxis.get_major_locator()()
+        assert [num2date(t).year for t in ticks] == list(range(2006, 2013)), SPEC
+
     def test_the_title_carries_the_exploratory_label(self, figure) -> None:
         assert figure._suptitle.get_text() == (
             "Exploratory: Example 3.2 redrawn on Chan's own GLD and USO closes"
@@ -117,6 +128,17 @@ class TestThePanels:
             "once the first 20 are dropped.\nPrices from inputData_ETF.mat, saved 2012-04-10. "
             "Chan's 20-day lookback was chosen with hindsight, so every figure is in-sample."
         ], SPEC
+
+    def test_the_note_names_every_saved_date(self, tmp_path, sources) -> None:
+        """Both legs were saved 2012-04-10, so the drawn note cannot tell a note that
+        names every leg's date from one that names only the first. Moving GLD's date a
+        day later can, and putting it first also checks that the dates read in order."""
+        members, closes = sources
+        assert [m.symbol for m in members] == ["GLD", "USO"]
+        moved = [replace(members[0], saved_date="2012-04-11"), *members[1:]]
+        drawn = make_bollinger_figure(out=tmp_path / BOLLINGER_FIGURE, sources=(moved, closes))
+        [note] = [t.get_text() for t in drawn.texts if t is not drawn._suptitle]
+        assert "Prices from inputData_ETF.mat, saved 2012-04-10, 2012-04-11. " in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
         for ax in figure.axes:
@@ -148,6 +170,14 @@ class TestTheZScore:
         bottom, top = axes["zscore"].get_ylim()
         assert bottom < np.nanmin(result.zscore) and np.nanmax(result.zscore) < top
         assert bottom == -top
+
+    def test_the_entry_lines_are_red(self, axes) -> None:
+        """The post's alt text calls the lines at −1 and 1 dashed red."""
+        lines = _by_gid(axes["zscore"].lines)
+        assert [gid for _, gid, _ in BANDS] == ["long-entry", "exit", "short-entry"]
+        for gid in ("long-entry", "short-entry"):
+            assert same_color(lines[gid].get_color(), LOST), gid
+        assert not same_color(lines["exit"].get_color(), LOST)
 
     def test_the_heading_names_the_rule(self, axes) -> None:
         assert _title(axes["zscore"]) == (
@@ -213,14 +243,43 @@ class TestTheReturns:
             assert last == pytest.approx((1 + run.apr) ** (1480 / 252) - 1, abs=1e-9), SPEC
 
     def test_the_diagnostic_is_the_band_with_the_deviation_divided_by_n(self, result, by_n) -> None:
-        diagnostic = divided_by_n(result.bollinger)
+        diagnostic = divided_by_n(result.bollinger.signal)
         np.testing.assert_array_equal(diagnostic.units, by_n.bollinger.units)
         np.testing.assert_array_equal(diagnostic.daily, by_n.bollinger.daily)
+
+    def test_the_diagnostic_compares_a_z_score_on_a_band_as_the_band_does(
+        self, monkeypatch, result
+    ) -> None:
+        """``divided_by_n`` repeats ``bollinger_band``'s four comparisons rather than
+        calling it, so the two can drift apart on a z-score sitting exactly on −1, 0 or 1.
+        No z-score in the committed data sits on one, so the data cannot catch that drift.
+        This test rounds the band's z-scores to whole numbers, hands both functions those
+        same values through a spread equal to them, and asserts they hold the same units."""
+        z = np.round(result.zscore)
+        on_a_band = np.isin(z, (-1.0, 0.0, 1.0))
+        assert on_a_band.sum() > 1000, SPEC
+        signal = replace(result.bollinger.signal, value=z)
+        monkeypatch.setattr(figures, "moving_avg", lambda v, n: np.zeros_like(v))
+        monkeypatch.setattr(figures, "smart_moving_std", lambda v, n: np.ones_like(v))
+        monkeypatch.setattr(bollinger, "zscore", lambda v, n: v)
+        expected, traded_on = bollinger_band(signal)
+        np.testing.assert_array_equal(traded_on, z)
+        assert set(np.unique(expected.units).tolist()) == {-1.0, 0.0, 1.0}
+        np.testing.assert_array_equal(divided_by_n(signal).units, expected.units)
 
     def test_only_the_diagnostic_is_dashed(self, axes) -> None:
         lines = _by_gid(axes["returns"].lines)
         styles = {gid: lines[gid].get_linestyle() for gid, *_ in RUNS}
         assert styles == {"bollinger": "-", "linear": "-", "by_n": "--"}
+
+    def test_the_band_and_its_diagnostic_are_green_and_the_linear_rule_brown(self, axes) -> None:
+        """The post's alt text names these colours, so a redraw that changed one would
+        leave the alt text describing a different figure."""
+        lines = _by_gid(axes["returns"].lines)
+        assert same_color(lines["bollinger"].get_color(), GOOD)
+        assert same_color(lines["by_n"].get_color(), GOOD)
+        assert same_color(lines["linear"].get_color(), ACCENT)
+        assert not same_color(GOOD, ACCENT)
 
     def test_the_legend_sets_each_runs_two_figures(self, axes) -> None:
         legend = [t.get_text() for t in axes["returns"].get_legend().get_texts()]
