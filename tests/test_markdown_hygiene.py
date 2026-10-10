@@ -204,8 +204,13 @@ MUST_BE_SWEPT = frozenset(
         "research/book-notes/quantitative-trading.md",
         "research/filings/README.md",
         "research/papers/README.md",
+        "tests/fixtures/substack/deep-headings.md",
         "tests/fixtures/substack/edge-cases.md",
         "tests/fixtures/substack/every-construct.md",
+        "tests/fixtures/substack/linked-images.md",
+        "tests/fixtures/substack/shape-edges.md",
+        "tests/fixtures/substack/subtitle-escapes.md",
+        "tests/fixtures/substack/tables.md",
     }
 )
 
