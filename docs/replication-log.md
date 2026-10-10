@@ -610,12 +610,16 @@ series it names, and prints no statistic. Its criterion, an ADF statistic
 below its 1 percent critical value, was written on
 [issue 348](https://github.com/l3a0/quantitative-trading/issues/348) after a
 scratch run had measured −4.727778, though before the build, which is the
-exception Entries 13 and 27 are. The verdict does not rest on where a line
-sits. The criterion reads "99 percent" as the 1 percent test level, the
-reading Entry 22's row 1 applies to a "90 percent" and Entry 29 declared on
+exception Entry 13's row 10 and Entry 27's rows 13 and 14 are. The criterion
+reads "99 percent" as the 1 percent test level, the reading Entry 22's row 1
+applies to a "90 percent" and Entry 29 declared on
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344) before
-any statistic was computed. So there was no threshold left to choose, and
-−4.727778 clears −3.4583 by 1.269478.
+any statistic was computed. So there was no threshold left to choose. Entry
+32's rows 3 and 4, below, carry no verdict on the owner's ruling on
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342), because
+each would rest on where its line sat. Here the line is the book's own level,
+as Entry 33's row 4 reads `vratiotest`'s 5 percent, and −4.727778 clears
+−3.4583 by 1.269478, so the verdict does not rest on where the line sits.
 
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
@@ -6876,18 +6880,30 @@ carry no published figure.
 A calendar spread is long one futures contract and short another on the same
 underlying with a different expiry. Under the constant-returns model of
 Entry 27, the log value of a spread long the far contract and short the near
-one is the roll return γ times the gap between their expiries. So the spread's
-signal depends on γ alone and not on the spot price, which is the book's point.
+one is γ(T1 − T2), where γ is the roll return, T1 the near expiry and T2 the
+later far one. That is minus γ times the gap between their expiries. So the
+spread's signal depends on γ alone and not on the spot price, which is the
+book's point.
 Chan tests whether γ on CL, WTI crude oil, reverts to its mean, and then
 trades it. Each day the z-score of γ over a lookback equal to its half-life
 decides the side. A pair of contracts a year apart is held until 10 days
 before the near one expires, the next pair takes over only when at least 63
 days remain before its own exit, and the spread is reversed when z is above 0.
 
-**The script's own window reproduces six of its eight printed figures and the
+**The script's own window reproduces six of the eight printed figures and the
 book's stationarity claim, and misses the comment's APR and Sharpe ratio.**
-Starting one day later lands every digit of the comment, and nothing committed
-says which start Chan ran.
+The script's comment prints five of the eight and the book three. Starting one
+day later lands every digit of the comment, and nothing committed says which
+start Chan ran.
+
+**Row 9's criterion was written after the statistic was measured.** Location
+2461 calls the spread "stationary with 99 percent probability" and prints no
+statistic. [Issue 348](https://github.com/l3a0/quantitative-trading/issues/348)
+wrote that the claim holds when jplv7's ADF statistic is below its 1 percent
+critical value. A scratch run had already measured −4.727778 when the issue
+wrote it, though the build had not run. The criterion reads "99 percent" as
+the 1 percent test level, so it left no threshold to choose, and the
+statistic clears the line by 1.269478.
 
 Every row reads one vintage and one specification unless it names another, so
 both are stated once here.
@@ -6940,11 +6956,11 @@ the script's window missed two of the comment's figures.
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | `ou_half_life` on the filled γ's 1,941 finite rows | 36.394034 | `TestTheFigures::test_each_runs_figures` |
-| 2 | The same | 36.394034 | `TestTheFigures::test_s_and_r1_both_match_the_books_figures` |
+| 2 | The same | 36.394034 | `TestTheFigures::test_each_runs_figures`, and `::test_s_and_r1_both_match_the_books_figures` for the rounding |
 | 3 | `prod(1 + ret)^(252 / 1164) − 1` | 0.082671 | `TestTheFigures::test_each_runs_figures` and `::test_s_misses_the_comments_apr_and_sharpe_ratio` |
-| 4 | The same, in percent | 8.267103 | `TestTheFigures::test_s_and_r1_both_match_the_books_figures` |
+| 4 | The same, in percent | 8.267103 | `TestTheReport::test_each_of_ss_eight_rows_carries_a_verdict`, and `TestTheFigures::test_s_and_r1_both_match_the_books_figures` for the rounding |
 | 5 | `√252 · mean(ret) / std(ret)` | 1.278216 | `TestTheFigures::test_each_runs_figures` and `::test_s_misses_the_comments_apr_and_sharpe_ratio` |
-| 6 | The same | 1.278216 | `TestTheFigures::test_s_and_r1_both_match_the_books_figures` |
+| 6 | The same | 1.278216 | `TestTheFigures::test_each_runs_figures`, and `::test_s_and_r1_both_match_the_books_figures` for the rounding |
 | 7 | `calculateMaxDD(cumprod(1 + ret) − 1)`, the deepest drawdown | −0.053222 | `TestTheFigures::test_each_runs_figures` |
 | 8 | The same, the longest run of days below a high | 206 | `TestTheFigures::test_each_runs_figures` |
 | 9 | jplv7's `adf(·, 0, 1)` on the filled γ's finite rows, against its 1 percent critical value | −4.727778 against −3.4583, a margin of 1.269478 | `TestTheTest::test_the_adf_statistic_clears_the_1_percent_critical_value` |
@@ -6979,14 +6995,14 @@ records them.
 | --- | --- | --- | --- |
 | 1 | −0.000000 | reproduced | Exact at the six decimals the script prints. |
 | 2 | +0 | reproduced | 36.394034 rounds to the book's 36. |
-| 3 | −0.000735 | did not reproduce | The script's own window on Chan's own file misses, so the vintage explanation is spent. Row 10 lands the figure by starting a day later, and nothing committed says which start printed it. |
+| 3 | −0.000735 | did not reproduce | The shipped file under the script's own window misses. Row 10 lands the figure by starting a day later, and nothing committed says which start printed it. |
 | 4 | −0.0 percent | reproduced | 8.27 percent rounds to the book's 8.3. |
 | 5 | −0.010445 | did not reproduce | The same as row 3. |
 | 6 | −0.0 | reproduced | 1.278216 rounds to the book's 1.3. |
 | 7 | +0.000000 | reproduced | Exact at the six decimals the script prints. |
 | 8 | 0 days | reproduced | Exact. |
 | 9 | none, a claim | reproduced | The statistic is below the 1 percent critical value, so the test rejects a unit root at the level "99 percent" names. |
-| 10 | none | none, not a replication | It lands every digit the comment prints. It drops 2008-01-02's return of −0.0028127, and setting that day to 0 instead gives 0.083331 and 1.288104, so the printed run left the row out rather than holding it flat. It was found by a scan, so it is not evidence of anything else, and rows 3 and 5 keep the window the script states. |
+| 10 | none | none, not a replication | It lands every digit the comment prints. It drops 2008-01-02's return of −0.0028127. Setting that day's return to 0 instead gives 0.083331 and 1.288104, which miss both of the comment's figures. So dropping the day lands them and holding it flat does not. It was found by a scan, so it is not evidence of what Chan ran, and rows 3 and 5 keep the window the script states. |
 | 11 | none | none, not a replication | Holding at least 61 days misses both book figures, at 6.7 percent and 1.04, so the script's 63 is the specification. Under 61 days a later pair leaves enough rows to be held, to 2012-07-06. |
 | 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row, and too few rows remain before it for their pairs to be held. The window's last 66 rows hold nothing and return exactly 0. |
 
@@ -6998,11 +7014,13 @@ Three things.
    file.** The ADF statistic of −4.727778 clears the 1 percent value by
    1.269478, the half-life rounds to 36 days, and the APR and Sharpe ratio
    round to the book's 8.3 percent and 1.3.
-2. **The comment's APR and Sharpe ratio come from a window one day shorter
-   than the script's.** The script reads `tday` in one line,
-   `idx=find(tday==20080102)`. So either Chan's own copy of the file labelled
-   its rows a day later than the shipped one, or the comment came from a run
-   with another `idx`. Entry 28's row 5, a window one day shorter found by a
+2. **Starting a day later lands the comment's APR and Sharpe ratio.** The
+   start was chosen because it lands them, by a scan rather than from
+   anything the script says. The script reads `tday` in one line,
+   `idx=find(tday==20080102)`. For that line to start on the shipped file's
+   2008-01-03 row, Chan's own copy of the file would have to label its rows a
+   day earlier than the shipped one. The other way to reach it is a run with
+   another `idx`. Entry 28's row 5, a window one day shorter found by a
    sweep, set the precedent that such a row carries no verdict.
 3. **The last three months of the window hold no position.** Contracts that
    were still trading when the file was saved look expired on its last day,

@@ -15,8 +15,8 @@ failure message.
   one vintage per contract, 89 of them from CL-2007F to CL-2014K, and one for
   ``CL-SPOT``, read through ``chan.roll_returns.load_strip``. The strip's
   identity is its row of ``LIFTED_SOURCES`` in
-  ``tests/support/committed_vintages.py``, which ``tests/test_roll_returns.py``
-  holds the members to.
+  ``tests/support/committed_vintages.py``, which ``TestTheVintage`` holds the
+  members to.
 - **S, the specification.** ``calendarSpdsMeanReversion.m`` at EpchanPreview
   ``e4bc46f``, git blob ``277d84d``, as :mod:`chan.calendar_spread_reversion`
   transcribes it. γ is ``chan.roll_returns.roll_returns`` on the contracts,
@@ -53,6 +53,7 @@ import pytest
 from ithildincore.timeseries import ou_half_life
 
 from chan import calendar_spread_reversion as module
+from chan import paths
 from chan.calendar_spread_reversion import (
     BOOK_APR_PERCENT,
     BOOK_HALFLIFE,
@@ -79,10 +80,11 @@ from chan.calendar_spread_reversion import (
 )
 from chan.khandani_lo import plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, gap, matches
-from chan.roll_returns import Strip, load_strip, roll_returns
+from chan.roll_returns import SOURCE_FILES, Strip, load_strip, roll_returns
 from chan.series import WindowCrossesScaleBreak
 from chan.stationarity_tests import jplv7_adf
 from chan.vintage import VintageUnavailable
+from tests.support.committed_vintages import LIFTED_SOURCES
 
 VINTAGE = (
     "inputdatadaily_cl_20120813/ chan-mat raw saved 2012-08-14, one vintage per contract "
@@ -153,6 +155,15 @@ class TestTheSpecification:
         assert (len(columns), columns[0], columns[-1]) == (89, "CL-2007F", "CL-2014K"), VINTAGE
         assert len(columns) - SPREAD_MONTH == 77
 
+    def test_cls_first_expiry_is_5044_rows_after_the_files_first_row(self, strip) -> None:
+        """The module docstring quotes it, as why a Python slice cannot wrap on CL."""
+        first = strip.contracts.iloc[:, 0]
+        expiry = first.last_valid_index()
+        assert (strip.contracts.index.get_loc(expiry), str(expiry.date())) == (
+            5044,
+            "2006-12-19",
+        ), VINTAGE
+
 
 class TestTheFigures:
     """Test 1 of the plan on issue 348: S, R1 and R2 at six decimals."""
@@ -173,9 +184,13 @@ class TestTheFigures:
         assert (f"{found.max_dd:.6f}", found.max_dd_days) == (max_dd, days), spec
 
     def test_each_window_runs_to_the_files_last_day(self, runs) -> None:
-        for key, first in (("S", "2008-01-02"), ("R1", "2008-01-03"), ("R2", "2008-01-02")):
+        for key, first, spec in (
+            ("S", "2008-01-02", S_SPEC),
+            ("R1", "2008-01-03", R1_SPEC),
+            ("R2", "2008-01-02", R2_SPEC),
+        ):
             index = runs[key].returns.index
-            assert (str(index[0].date()), str(index[-1].date())) == (first, "2012-08-13"), key
+            assert (str(index[0].date()), str(index[-1].date())) == (first, "2012-08-13"), spec
 
     def test_ss_lookback_is_36(self, runs) -> None:
         assert runs["S"].lookback == 36, S_SPEC
@@ -218,7 +233,10 @@ class TestTheFigures:
     def test_s_misses_the_comments_apr_and_sharpe_ratio(self, runs) -> None:
         s = runs["S"]
         assert not matches(s.apr, SCRIPT_APR) and not matches(s.sharpe, SCRIPT_SHARPE), S_SPEC
-        assert (gap(s.apr, SCRIPT_APR), gap(s.sharpe, SCRIPT_SHARPE)) == (-0.000735, -0.010445)
+        assert (gap(s.apr, SCRIPT_APR), gap(s.sharpe, SCRIPT_SHARPE)) == (
+            -0.000735,
+            -0.010445,
+        ), S_SPEC
 
     def test_s_reproduces_the_comments_half_life_and_drawdown(self, runs) -> None:
         s = runs["S"]
@@ -245,9 +263,50 @@ class TestTheTest:
 
     def test_the_half_life_and_adf_read_the_whole_filled_gamma(self, runs, gamma) -> None:
         """Lines 51 to 60 read every finite row, not the window, so the three runs agree."""
-        filled = gamma.ffill().dropna().to_numpy()
-        assert runs["S"].adf == jplv7_adf(filled, 0, 1) == runs["R1"].adf == runs["R2"].adf
-        assert runs["S"].half_life == ou_half_life(filled)
+        filled_series = gamma.ffill().dropna()
+        assert (len(filled_series), str(filled_series.index[0].date())) == (
+            1941,
+            "2004-11-22",
+        ), S_SPEC
+        filled = filled_series.to_numpy()
+        assert runs["S"].adf == jplv7_adf(filled, 0, 1) == runs["R1"].adf == runs["R2"].adf, S_SPEC
+        assert runs["S"].half_life == ou_half_life(filled), S_SPEC
+
+
+class TestTheArgumentsOnCl:
+    """Test 3 case 5: ``lookback`` and ``end`` on CL, which no CL row passes and issue 349's do.
+
+    Without these a ``run_spread`` that ignored either argument would pass
+    every pin above.
+    """
+
+    def test_a_passed_lookback_of_36_gives_s_exactly(self, strip, gamma, runs) -> None:
+        found = run_spread(strip.contracts, gamma, start=START, lookback=36)
+        s = runs["S"]
+        assert found.lookback == 36, S_SPEC
+        assert found.returns.equals(s.returns), S_SPEC
+        assert (found.apr, found.sharpe, found.last_held) == (s.apr, s.sharpe, s.last_held), S_SPEC
+
+    def test_a_passed_lookback_of_15_is_used(self, strip, gamma) -> None:
+        found = run_spread(strip.contracts, gamma, start=START, lookback=15)
+        spec = f"{S_SPEC}, with the lookback passed as 15"
+        assert found.lookback == 15, spec
+        assert (f"{found.apr:.6f}", f"{found.sharpe:.6f}") == ("0.074327", "1.156156"), spec
+
+    def test_an_end_cuts_the_returns_and_bounds_the_last_held_day(self, strip, gamma, runs) -> None:
+        end = pd.Timestamp("2010-12-31")
+        found = run_spread(strip.contracts, gamma, start=START, end=end)
+        spec = f"{S_SPEC}, cut at 2010-12-31"
+        assert found.returns.equals(runs["S"].returns.loc[:end]), spec
+        assert len(found.returns) == 757, spec
+        assert str(found.last_held.date()) == "2010-12-31", spec
+
+    def test_an_end_inside_the_flat_tail_keeps_the_schedules_last_held_day(
+        self, strip, gamma
+    ) -> None:
+        """No pair is held after 2012-05-08, so an end of 2012-06-29 is not a held day."""
+        found = run_spread(strip.contracts, gamma, start=START, end=pd.Timestamp("2012-06-29"))
+        assert str(found.last_held.date()) == "2012-05-08", f"{S_SPEC}, cut at 2012-06-29"
 
 
 # --- the rules on synthetic frames ---------------------------------------------
@@ -447,7 +506,51 @@ class TestTheRefusal:
         assert len(found.returns) == ROWS
 
 
-# --- main and the report ----------------------------------------------------------
+# --- the vintage, main and the report ----------------------------------------------
+
+
+class TestTheVintage:
+    """Test 6: the strip ``run`` reads, and that it reads it from the directory it is given."""
+
+    def test_run_reads_the_cl_strip_the_script_loads(self) -> None:
+        assert (module.ROOT, SOURCE_FILES[module.ROOT]) == ("CL", "inputDataDaily_CL_20120813.mat")
+
+    def test_the_strip_is_its_pinned_source(self, strip) -> None:
+        vendor, basis, saved, folder, count = LIFTED_SOURCES["inputDataDaily_CL_20120813.mat"]
+        assert {(m.vendor, m.price_basis, m.obtained) for m in strip.members} == {
+            (vendor, basis, saved)
+        }, VINTAGE
+        assert len(strip.members) == count == 90, VINTAGE
+        assert {m.path.split("/")[0] for m in strip.members} == {folder}, VINTAGE
+        columns = strip.contracts.columns
+        assert (columns[0], columns[-1]) == ("CL-2007F", "CL-2014K"), VINTAGE
+
+    def test_run_passes_its_directory_to_load_strip(self, strip, monkeypatch, tmp_path) -> None:
+        """``TestMain`` patches ``load_strip``, so it would pass a ``run`` that dropped it."""
+        asked = []
+
+        def fake_load_strip(root, data_dir=None):
+            asked.append((root, data_dir))
+            return strip
+
+        monkeypatch.setattr(module, "load_strip", fake_load_strip)
+        with redirect_stdout(io.StringIO()):
+            run(tmp_path)
+        assert asked == [("CL", tmp_path)]
+
+    def test_main_turns_a_missing_vintage_into_one_line(
+        self, monkeypatch, tmp_path, no_arguments
+    ) -> None:
+        monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
+        with pytest.raises(SystemExit, match="inputDataDaily_CL_20120813.mat") as stopped:
+            main()
+        assert "\n" not in str(stopped.value)
+
+    def test_main_refuses_an_argument(self, monkeypatch) -> None:
+        monkeypatch.setattr("sys.argv", ["chan.calendar_spread_reversion", "--bogus"])
+        with pytest.raises(SystemExit) as refused:
+            main()
+        assert refused.value.code == 2
 
 
 @pytest.fixture
@@ -527,29 +630,34 @@ class TestTheReport:
         self, printed, label, figures, verdict
     ) -> None:
         row = _row(printed, label)
-        assert all(figure in row.split() for figure in figures), row
-        assert row.rstrip().endswith(verdict), row
+        assert all(figure in row.split() for figure in figures), f"{S_SPEC}: {row}"
+        assert row.rstrip().endswith(verdict), f"{S_SPEC}: {row}"
 
     def test_the_adf_row_carries_its_verdict_and_criterion(self, printed) -> None:
         row = _row(printed, "ADF statistic, book")
-        assert "-4.727778" in row.split() and "99 percent" in row
-        assert "reproduced, criterion below the 1 percent critical value -3.4583" in row
+        assert "-4.727778" in row.split() and "99 percent" in row, f"{S_SPEC}: {row}"
+        assert "reproduced, criterion below the 1 percent critical value -3.4583" in row, (
+            f"{S_SPEC}: {row}"
+        )
 
     def test_the_rows_beside_carry_no_verdict(self, printed) -> None:
         beside = printed.split("Beside the replication.")[1]
-        assert "1163 days, APR 0.083406, Sharpe 1.288661" in _row(beside, "R1, from 2008-01-03")
+        r1 = _row(beside, "R1, from 2008-01-03")
+        assert "1163 days, APR 0.083406, Sharpe 1.288661" in r1, f"{R1_SPEC}: {r1}"
         r2 = _row(beside, "R2, holddays=61 from 2008-01-02")
-        assert "APR 0.067315, Sharpe 1.044327" in r2 and "last held 2012-07-06" in r2
-        assert _row(beside, "S, last day a pair is held").split()[-1] == "2012-05-08"
+        assert "APR 0.067315, Sharpe 1.044327" in r2, f"{R2_SPEC}: {r2}"
+        assert "last held 2012-07-06" in r2, f"{R2_SPEC}: {r2}"
+        last = _row(beside, "S, last day a pair is held")
+        assert last.split()[-1] == "2012-05-08", f"{S_SPEC}: {last}"
         assert "reproduce" not in beside
 
     def test_it_prints_the_vintage_the_window_and_the_label(self, printed) -> None:
-        assert "inputdatadaily_cl_20120813/" in _row(printed, "vintage")
+        assert "inputdatadaily_cl_20120813/" in _row(printed, "vintage"), VINTAGE
         assert _row(printed, "window").split()[1:] == [
             "2008-01-02",
             "to",
             "2012-08-13,",
             "1164",
             "days",
-        ]
+        ], S_SPEC
         assert "Exploratory. docs/replication-log.md carries the verdicts." in printed
