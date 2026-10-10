@@ -12,8 +12,15 @@
 //
 // Usage: paste this file at the top of the script sent to the page, then call
 // M2S.convert(markdown, images), M2S.canon(value) and M2S.walkLines(node).
-// md2substack.py's docstring lists what each Markdown shape becomes, and the
-// two files differ only in language.
+// md2substack.py's docstring lists what each Markdown shape becomes, including
+// pipe tables, headings of two to six hashes and linked images, and states the
+// rule that turns a table cell into LaTeX. The two files differ only in
+// language.
+//
+// The regular expressions here are the Python's, character for character, and
+// avoid ".", "\d", "\s" and "\w", which mean different things in the two
+// languages. Lines and cells are trimmed of ASCII whitespace only, never with
+// trim(), which also strips U+FEFF where Python's strip() does not.
 //
 // Where this came from. No repository held this file before. Sessions wrote
 // it in their scratchpads from 2026-10-03 and copied it from one scratchpad
@@ -32,7 +39,9 @@
 //
 // After the check-in, fenceEnd replaced the two fence loops, which looped
 // forever on a fence with no closing line. It throws instead, as the Python
-// does.
+// does. The change for issue 472 then taught both copies pipe tables, headings
+// of four to six hashes and linked images, unescaped the subtitle, and made the
+// two copies agree on whitespace and digits outside ASCII.
 var M2S = (function () {
   var LINK = { target: "_blank", rel: "noopener noreferrer nofollow", "class": null };
   var WIDGET = {
@@ -40,16 +49,31 @@ var M2S = (function () {
     attrs: { url: "%%checkout_url%%", text: "Subscribe", language: "en" },
     content: [{ type: "ctaCaption", content: [{ type: "text", text: "baowebdev is a reader-supported publication. To receive new posts and support my work, consider becoming a free or paid subscriber." }] }]
   };
+  var HEADING = /^(#{2,6}) /;
+  var IMAGE = /^!\[([^\n]*)\]\(([^)]+)\)$/;
+  var LINKED_IMAGE = /^\[!\[([^\n]*)\]\(([^)]+)\)\]\(([^)]+)\)$/;
+  var LIST_ITEM = /^([0-9]+\. |- )/;
+  var NESTED_ITEM = /^   ([0-9]+\. |- )/;
+  var BLOCK_START = /^(#{2,6} |```|!\[|[0-9]+\. |- )/;
+  var DELIMITER_CELL = /^:?-+:?$/;
+  var ASCII_PUNCTUATION = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+  var LATEX_SPECIAL = {
+    "$": "\\$", "%": "\\%", "&": "\\&", "#": "\\#", "_": "\\_", "{": "\\{", "}": "\\}",
+    "\\": "\\backslash", "~": "{\\sim}", "^": "{\\hat{}}"
+  };
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
+  // ASCII whitespace only, the set WHITESPACE names in the Python.
+  function trim(s) { return s.replace(/^[ \t\n\r\f\v]+|[ \t\n\r\f\v]+$/g, ""); }
+  // The backslash comes off \~ and \$ in body text and subtitle alike.
+  function unescape(t) { return t.split("\\~").join("~").split("\\$").join("$"); }
   function text(t, marks) {
-    t = t.split("\\~").join("~").split("\\$").join("$");
-    var node = { type: "text", text: t };
+    var node = { type: "text", text: unescape(t) };
     if (marks.length) node.marks = marks.slice();
     return node;
   }
   function inline(s, marks) {
     marks = marks || [];
-    var re = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)|`([^`]+)`|\*(.+?)\*/g;
+    var re = /\*\*([^\n]+?)\*\*|\[([^\]]+)\]\(([^)]+)\)|`([^`]+)`|\*([^\n]+?)\*/g;
     var out = [], pos = 0, m;
     while ((m = re.exec(s)) !== null) {
       if (m.index > pos) out.push(text(s.slice(pos, m.index), marks));
@@ -65,7 +89,6 @@ var M2S = (function () {
     return out.filter(function (n) { return n.text; });
   }
   function para(s) { return { type: "paragraph", attrs: { textAlign: null }, content: inline(s) }; }
-  var LISTSTART = /^(\d+\. |- )/;
   // The index of the line closing the fence opened on line i, the same as
   // _fence_end in the Python. A fence left open would otherwise loop forever.
   function fenceEnd(lines, i) {
@@ -74,20 +97,124 @@ var M2S = (function () {
     if (j === lines.length) throw new Error("unterminated fence opened on line " + (i + 1) + ": " + lines[i]);
     return j;
   }
+  // A table row's cells, untrimmed, split at each | with no backslash before it.
+  function cells(row) {
+    var s = trim(row);
+    if (s.indexOf("|") === 0) s = s.slice(1);
+    if (s.slice(-1) === "|" && s.slice(-2) !== "\\|") s = s.slice(0, -1);
+    var out = [], cell = "";
+    for (var k = 0; k < s.length; k++) {
+      if (s[k] === "|" && (k === 0 || s[k - 1] !== "\\")) { out.push(cell); cell = ""; }
+      else cell += s[k];
+    }
+    out.push(cell);
+    return out;
+  }
+  // Each column's alignment when a table starts on line i, else null.
+  function tableColumns(lines, i) {
+    if (lines[i].indexOf("|") !== 0 || i + 1 >= lines.length) return null;
+    var marks = cells(lines[i + 1]).map(trim);
+    if (!marks.every(function (c) { return DELIMITER_CELL.test(c); })) return null;
+    if (cells(lines[i]).length !== marks.length) return null;
+    return marks.map(function (c) {
+      return c[0] === ":" && c[c.length - 1] === ":" ? "c" : c[c.length - 1] === ":" ? "r" : "l";
+    });
+  }
+  function closingRun(s, j, run) {
+    while (j < s.length) {
+      if (s[j] === "`") {
+        var k = j;
+        while (k < s.length && s[k] === "`") k++;
+        if (k - j === run) return j;
+        j = k;
+      } else j++;
+    }
+    return -1;
+  }
+  function stripMarkup(s) {
+    var re = /!\[([^\]]*)\]\([^)]+\)|\[((?:!\[[^\]]*\]\([^)]+\)|[^\]])+)\]\([^)]+\)|\*\*([^\n]+?)\*\*|\*([^\n]+?)\*/g;
+    return s.replace(re, function (m, a, b, c, d) {
+      return stripMarkup([a, b, c, d].filter(function (g) { return g !== undefined; })[0]);
+    });
+  }
+  // A table cell's plain text, as cell_text reads it in the Python.
+  function cellText(cell) {
+    var held = [], out = [], i = 0;
+    function hold(t) { out.push("\\`" + held.length + "`"); held.push(t); }
+    while (i < cell.length) {
+      var ch = cell[i];
+      if (ch === "\\" && i + 1 < cell.length && ASCII_PUNCTUATION.indexOf(cell[i + 1]) >= 0) {
+        hold(cell[i + 1]); i += 2;
+      } else if (ch === "`") {
+        var j = i;
+        while (j < cell.length && cell[j] === "`") j++;
+        var close = closingRun(cell, j, j - i);
+        if (close < 0) { hold(cell.slice(i, j)); i = j; }
+        else {
+          var code = cell.slice(j, close);
+          if (code.slice(0, 1) === " " && code.slice(-1) === " " && /[^ ]/.test(code)) code = code.slice(1, -1);
+          hold(code);
+          i = close + (j - i);
+        }
+      } else { out.push(ch); i++; }
+    }
+    return stripMarkup(out.join("")).replace(/\\`([0-9]+)`/g, function (m, n) { return held[Number(n)]; });
+  }
+  function cellLatex(t) {
+    var out = [], run = "";
+    for (var k = 0; k < t.length; k++) {
+      if (Object.prototype.hasOwnProperty.call(LATEX_SPECIAL, t[k])) {
+        if (run) { out.push("\\text{" + run + "}"); run = ""; }
+        out.push(LATEX_SPECIAL[t[k]]);
+      } else run += t[k];
+    }
+    if (run) out.push("\\text{" + run + "}");
+    return out.join("");
+  }
+  function tableLatex(header, rows, columns) {
+    function row(cs) {
+      cs = cs.concat(columns.map(function () { return ""; })).slice(0, columns.length);
+      return cs.map(function (c) { return cellLatex(cellText(trim(c).split("\\|").join("|"))); }).join(" & ");
+    }
+    var out = ["\\begin{array}{" + columns.join("|") + "}", row(header) + " \\\\ \\hline"];
+    rows.forEach(function (r, k) { out.push(row(r) + (k < rows.length - 1 ? " \\\\" : "")); });
+    out.push("\\end{array}");
+    return out.join("\n");
+  }
+  function startsBlock(lines, i) {
+    return BLOCK_START.test(lines[i]) || LINKED_IMAGE.test(lines[i]) || tableColumns(lines, i) !== null;
+  }
+  // A captioned image, and the index of the line after it and its caption.
+  function figure(lines, i, images, alt, path, href) {
+    var img = images[path.split("/").pop()];
+    var node = { type: "captionedImage", content: [{ type: "image2", attrs: {
+      src: img.url, srcNoWatermark: null, fullscreen: null, imageSize: null, height: img.height, width: img.width,
+      resizeWidth: null, bytes: img.bytes, alt: alt, title: null, type: "image/png", href: href, belowTheFold: false,
+      topImage: false, internalRedirect: null, isProcessing: false, align: null, offset: false } }] };
+    var k = i + 1; while (!trim(lines[k])) k++;
+    var cap = lines[k];
+    if (cap[0] === "*" && cap[cap.length - 1] === "*" && cap.indexOf("**") !== 0) {
+      node.content.push({ type: "caption", content: inline(cap.slice(1, -1)) });
+      return [node, k + 1];
+    }
+    return [node, i + 1];
+  }
   function convert(md, images) {
     var lines = md.split("\n");
-    var title = lines[0].replace(/^# /, "").trim();
-    var subtitle = lines[2].trim().replace(/^\*+|\*+$/g, "");
-    var body = [], i = 3, nHeading = 0, eq = 0;
+    var title = trim(lines[0].replace(/^# /, ""));
+    var subtitle = unescape(trim(lines[2]).replace(/^\*+|\*+$/g, ""));
+    var body = [], i = 3, nHeading = 0, eq = 0, made;
     while (i < lines.length) {
       var line = lines[i];
-      if (!line.trim()) { i++; continue; }
-      if (line.indexOf("### ") === 0) {
-        body.push({ type: "heading", attrs: { textAlign: null, level: 2 }, content: inline(line.slice(4).trim()) }); i++;
-      } else if (line.indexOf("## ") === 0) {
-        nHeading++;
-        if (nHeading === 2) body.push(clone(WIDGET));
-        body.push({ type: "heading", attrs: { textAlign: null, level: 1 }, content: inline(line.slice(3).trim()) }); i++;
+      if (!trim(line)) { i++; continue; }
+      var heading = line.match(HEADING), linked = line.match(LINKED_IMAGE), columns = tableColumns(lines, i);
+      if (heading) {
+        var level = heading[1].length - 1;
+        if (level === 1) {
+          nHeading++;
+          if (nHeading === 2) body.push(clone(WIDGET));
+        }
+        body.push({ type: "heading", attrs: { textAlign: null, level: level }, content: inline(trim(line.slice(heading[0].length))) }); i++;
       } else if (line.indexOf("```math") === 0) {
         var j = fenceEnd(lines, i);
         eq++;
@@ -102,24 +229,28 @@ var M2S = (function () {
         body.push(cb);
         i = jj + 1;
       } else if (line.indexOf("![") === 0) {
-        var mm = line.match(/^!\[(.*)\]\(([^)]+)\)$/);
-        var alt = mm[1], path = mm[2], img = images[path.split("/").pop()];
-        var node = { type: "captionedImage", content: [{ type: "image2", attrs: {
-          src: img.url, srcNoWatermark: null, fullscreen: null, imageSize: null, height: img.height, width: img.width,
-          resizeWidth: null, bytes: img.bytes, alt: alt, title: null, type: "image/png", href: null, belowTheFold: false,
-          topImage: false, internalRedirect: null, isProcessing: false, align: null, offset: false } }] };
-        var k = i + 1; while (!lines[k].trim()) k++;
-        var cap = lines[k];
-        if (cap[0] === "*" && cap[cap.length - 1] === "*" && cap.indexOf("**") !== 0) {
-          node.content.push({ type: "caption", content: inline(cap.slice(1, -1)) }); i = k + 1;
-        } else i++;
-        body.push(node);
-      } else if (LISTSTART.test(line)) {
-        var ordered = /^\d+\. /.test(line), items = [];
-        while (i < lines.length && LISTSTART.test(lines[i])) {
-          items.push([lines[i].replace(LISTSTART, ""), []]); i++;
-          while (i < lines.length && /^   (\d+\. |- )/.test(lines[i])) {
-            items[items.length - 1][1].push([lines[i].indexOf("   - ") === 0, lines[i].replace(/^   (\d+\. |- )/, "")]); i++;
+        var mm = line.match(IMAGE);
+        made = figure(lines, i, images, mm[1], mm[2], null);
+        body.push(made[0]); i = made[1];
+      } else if (linked) {
+        var target = linked[3];
+        var href = /^https?:\/\//.test(target) ? target : null;
+        made = figure(lines, i, images, linked[1], linked[2], href);
+        body.push(made[0]); i = made[1];
+      } else if (columns) {
+        var end = i + 2;
+        while (end < lines.length && lines[end].indexOf("|") === 0) end++;
+        eq++;
+        body.push({ type: "latex_block", attrs: {
+          persistentExpression: tableLatex(cells(line), lines.slice(i + 2, end).map(cells), columns),
+          id: "EQSTAT" + (eq < 10 ? "0" : "") + eq } });
+        i = end;
+      } else if (LIST_ITEM.test(line)) {
+        var ordered = line.indexOf("- ") !== 0, items = [];
+        while (i < lines.length && LIST_ITEM.test(lines[i])) {
+          items.push([lines[i].replace(LIST_ITEM, ""), []]); i++;
+          while (i < lines.length && NESTED_ITEM.test(lines[i])) {
+            items[items.length - 1][1].push([lines[i].indexOf("   - ") === 0, lines[i].replace(NESTED_ITEM, "")]); i++;
           }
         }
         var li = items.map(function (it) {
@@ -134,7 +265,7 @@ var M2S = (function () {
         body.push(ordered ? { type: "ordered_list", attrs: { start: 1, type: null, order: 1 }, content: li } : { type: "bullet_list", content: li });
       } else {
         var buf = [line]; i++;
-        while (i < lines.length && lines[i].trim() && !/^(### |## |```|!\[|\d+\. |- )/.test(lines[i])) { buf.push(lines[i]); i++; }
+        while (i < lines.length && trim(lines[i]) && !startsBlock(lines, i)) { buf.push(lines[i]); i++; }
         body.push(para(buf.join(" ")));
       }
     }

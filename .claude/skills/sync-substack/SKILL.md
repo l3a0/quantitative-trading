@@ -21,8 +21,9 @@ this file.
    Markdown from GitHub at a pinned commit, converts it, and refuses to write
    unless the result hashes to the local conversion.
 
-`tests/test_substack_converter.py` pins the converter's output on two fixtures,
-converts every committed post, and checks that the two files agree. The Python
+`tests/test_substack_converter.py` pins the converter's output on the fixtures
+under `tests/fixtures/substack/`, converts every committed post, and checks
+that the two files agree. The Python
 file's docstring lists what each Markdown shape becomes.
 
 ## This file and the owner's notes
@@ -75,9 +76,10 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    owner's call. The choices so far have been to shorten the Markdown, or to
    create the draft with a blank subtitle and keep the Markdown as approved.
    Never cut it on Substack alone, since that makes the two copies differ.
-2. **The subtitle holds no Markdown.** The converter copies the italic line as
-   typed, escapes included, while the body loses them. A `\$` there would show
-   its backslash on Substack. Remove the escape from the value sent, and say so
+2. **The subtitle holds no Markdown beyond escapes.** The converter drops the
+   backslash from `\$` and `\~` in the subtitle through the same function the
+   body uses. Anything else there, such as a link or emphasis inside the
+   line, reaches Substack as typed. Remove it from the value sent, and say so
    in the report.
 3. **Every equation renders as Substack draws it.** Substack renders LaTeX with
    MathJax 3, recognisable by its `mjx-` elements, with the TeX packages `base`,
@@ -86,18 +88,20 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    every character prints as typed. A `\%` there prints its backslash, so write
    `8.7\%` in math mode rather than inside `\text{}`. A `\_` there prints its
    backslash too, so write `\texttt{VX}\_\texttt{ES.m}` rather than
-   `\texttt{VX\_ES.m}`. Fix the Markdown first, then the draft.
+   `\texttt{VX\_ES.m}`. Fix the Markdown first, then the draft. The converter
+   writes a pipe table's cells by the same rule, with every special character
+   outside `\text{}`, and its docstring states the rule.
 4. **The post names no issue or pull request.** The owner's rule for blog
    posts is to say what an issue held rather than cite it.
-5. **The post uses only shapes the converter handles.** It does not handle a
-   pipe table, a heading of four to six hashes, or a linked image such as
-   `[![alt](x.png)](x.png)`. Each comes out as a paragraph of literal
-   Markdown. `blog/gld-gdx-cointegration-lessons.md` and
-   `blog/price-spread-mean-reversion.md` use them. Their drafts were made by
-   another route before the converter existed, so neither can be synced
-   through it. A new post must avoid these shapes, or the converter must learn
-   them first, in both languages and with the fixtures extended. The test
-   suite names the two posts and fails on a third.
+5. **The post uses only shapes the converter handles.** The Python file's
+   docstring lists them. A pipe table becomes a LaTeX `array` in a math
+   block, by the owner's ruling of 2026-10-10, and its cells lose their links
+   and inline formatting. Read the converted table before sending it, since a
+   cell that relied on a link loses it. A shape the docstring does not list,
+   such as a block quote or a horizontal rule, comes out as a paragraph of
+   literal Markdown. A new shape needs the converter to learn it first, in
+   both languages and with the fixtures extended. The test suite fails when a
+   committed post leaves a paragraph opening `|`, `#` or `![`.
 
 To check an equation the way Substack draws it, open any published post page,
 where `window.MathJax` exists, and run `MathJax.tex2mml(expr, {display: true})`.
@@ -296,6 +300,34 @@ A run-level patch can split one text run into two neighbours with the same
 marks. They read identically but walk as two lines. When a draft's walk differs
 by only such a split, merge neighbouring runs that carry the same marks on both
 sides before comparing, and say in the notes that this draft needs it.
+
+## When the converter's output changes
+
+A change to the converter that changes what it produces for a post changes
+that post's `conversion_sha256`, `body_sha256` and `walk_sha256`. The hashes in
+a draft's record were read back from the live draft, so the first comparison
+in a sync still holds against them. What stops holding is the fallback, which
+compares the live body with a fresh conversion of the last synced commit.
+
+1. **Compare with the recorded hashes first.** They come from the live draft
+   and do not depend on the converter.
+2. **Convert old commits with the old converter.** Where the record holds no
+   body hash, convert the last synced commit with the converter as it stood
+   at that sync. `git log` on `md2substack.py` names the commits, and
+   `git show <commit>:.claude/skills/sync-substack/md2substack.py` gives the
+   file.
+3. **Expect the new conversion to differ in the touched blocks only.** Those
+   differences come from the converter rather than the owner, so the sync
+   writes them from the new conversion, and the report names each one.
+4. **Record a fresh baseline.** Once the write is verified, its hashes go into
+   the owner's notes as the next baseline.
+
+The converter learned pipe tables, headings of four to six hashes and linked
+images on 2026-10-10, and the subtitle lost its escapes the same day. A draft
+made from a post with a table, a deep heading, a linked image, or a `\$` or
+`\~` in its subtitle gets a new conversion hash from that change. Every other
+committed post converts to the hashes it had before, which the pull request
+measured.
 
 ## Update a published post
 

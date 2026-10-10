@@ -13,12 +13,16 @@ Three layers check it.
    fails here with a diff. One uses every Markdown shape the converter reads.
    The other puts each block shape straight under a paragraph line, with no
    blank line between, and holds an ordered list long enough to need
-   two-digit numbers.
+   two-digit numbers. Four more fixtures cover pipe tables, deep headings,
+   linked images and subtitle escapes, and their tests spell out the expected
+   output rather than pinning a regenerated tree.
 2. Every committed post converts, and the result keeps the facts that hold
    whatever the post says: its title, its subtitle, where the widgets go, and
-   one block per equation, code fence and figure.
+   one block per equation, table, code fence, heading and figure.
 3. The JavaScript copy produces the same canonical JSON and the same text-run
-   lines as the Python on the fixture and on every committed post.
+   lines as the Python on the fixtures, on every committed post, and on
+   strings built where Python's and JavaScript's regular expressions and
+   string methods disagree.
 
 The JavaScript runs under ``node`` where it is installed, which it is on
 GitHub's runners, and under ``osascript -l JavaScript`` otherwise, which is
@@ -49,6 +53,11 @@ FIXTURE = FIXTURE_DIR / "every-construct.md"
 EXPECTED = FIXTURE_DIR / "every-construct.json"
 EDGE = FIXTURE_DIR / "edge-cases.md"
 EDGE_EXPECTED = FIXTURE_DIR / "edge-cases.json"
+TABLES = FIXTURE_DIR / "tables.md"
+DEEP_HEADINGS = FIXTURE_DIR / "deep-headings.md"
+LINKED_IMAGES = FIXTURE_DIR / "linked-images.md"
+SUBTITLE_ESCAPES = FIXTURE_DIR / "subtitle-escapes.md"
+SHAPE_FIXTURES = [TABLES, DEEP_HEADINGS, LINKED_IMAGES, SUBTITLE_ESCAPES]
 POSTS = sorted((REPO_ROOT / "blog").glob("*.md"))
 
 # The fixture's figures were never uploaded, so their Substack fields are made up.
@@ -68,6 +77,15 @@ FIXTURE_IMAGES = {
 }
 
 IMAGE_LINE = re.compile(r"^!\[(.*)\]\(([^)]+)\)$")
+LINKED_IMAGE_LINE = re.compile(r"^\[!\[(.*)\]\(([^)]+)\)\]\(([^)]+)\)$")
+# The committed posts write every delimiter row with a pipe at each end.
+DELIMITER_ROW = re.compile(r"\|( *:?-+:? *\|)+ *")
+ASCII_WHITESPACE = " \t\n\r\f\v"
+
+
+def _figure_line(line: str) -> re.Match | None:
+    """The match for an image line or a linked image line, whose groups 1 and 2 are alt and path."""
+    return IMAGE_LINE.match(line) or LINKED_IMAGE_LINE.match(line)
 
 
 def _load_converter():
@@ -96,7 +114,7 @@ def images_for(post: Path) -> dict:
     """
     images = {}
     for line in post.read_text(encoding="utf-8").split("\n"):
-        found = IMAGE_LINE.match(line)
+        found = _figure_line(line)
         if found:
             figure = (post.parent / found.group(2)).resolve()
             width, height = _png_size(figure)
@@ -110,10 +128,10 @@ def images_for(post: Path) -> dict:
 
 
 def _cases() -> list[tuple[str, str, dict]]:
-    """The fixture and every committed post, each with its image map."""
+    """The fixtures and every committed post, each with its image map."""
     cases = [
-        (FIXTURE.name, FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES),
-        (EDGE.name, EDGE.read_text(encoding="utf-8"), FIXTURE_IMAGES),
+        (fixture.name, fixture.read_text(encoding="utf-8"), FIXTURE_IMAGES)
+        for fixture in [FIXTURE, EDGE, *SHAPE_FIXTURES]
     ]
     for post in POSTS:
         cases.append((post.name, post.read_text(encoding="utf-8"), images_for(post)))
@@ -234,10 +252,13 @@ def test_the_fixture_still_reaches_every_shape() -> None:
     nested_marks = {len(t.get("marks", [])) for t, _ in _text_nodes(body)}
     text = " ".join(t["text"] for t, _ in _text_nodes(body))
 
-    assert headings == {1, 2}
-    assert kinds.count("latex_block") == 2
+    assert headings == {1, 2, 3}
+    assert kinds.count("latex_block") == 3
+    latex = [n["attrs"]["persistentExpression"] for n in blocks if n["type"] == "latex_block"]
+    assert sum(e.startswith("\\begin{array}") for e in latex) == 1
     assert {"content" in n for n in code_blocks} == {True, False}
     assert {len(n["content"]) for n in figures} == {1, 2}
+    assert {n["content"][0]["attrs"]["href"] is None for n in figures} == {True, False}
     assert nested == {"ordered_list", "bullet_list"}
     assert "bullet_list" in kinds
     assert marks == {"strong", "em", "code", "link"}
@@ -246,17 +267,178 @@ def test_the_fixture_still_reaches_every_shape() -> None:
     assert kinds.count("subscribeWidget") == 2
 
 
-def test_the_subtitle_keeps_its_escapes_as_typed() -> None:
-    """The subtitle is copied from the Markdown, escapes and all.
+def _convert_fixture(path: Path) -> dict:
+    return m2s.convert(path.read_text(encoding="utf-8"), FIXTURE_IMAGES)
 
-    A ``\\$`` in the italic line reaches Substack as a backslash and a dollar
-    sign, unlike the same escape in the body. No committed post with a subtitle
-    short enough to send has one yet, which is why nothing changed it, and the
-    skill says to check the subtitle before sending it. This pins the
-    behaviour so a fix is a deliberate change rather than a surprise.
+
+def test_the_subtitle_loses_its_escapes_as_the_body_does() -> None:
+    """A ``\\$`` or ``\\~`` in the italic line reaches Substack without its backslash.
+
+    Before, the subtitle was copied as typed, so a ``\\$`` there showed its
+    backslash on Substack while the same escape in the body did not.
     """
-    draft = m2s.convert(FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES)
-    assert "\\$5" in draft["subtitle"]
+    draft = _convert_fixture(SUBTITLE_ESCAPES)
+    assert draft["subtitle"] == (
+        "A trade costs $5 and lasts ~30 days, and the subtitle loses both backslashes."
+    )
+    [paragraph, _] = draft["body"]["content"]
+    assert paragraph["content"] == [
+        {"type": "text", "text": "The body loses them too: a trade costs $5 and lasts ~30 days."}
+    ]
+    assert _convert_fixture(FIXTURE)["subtitle"].startswith("The subtitle line costs $5 ")
+
+
+# The tables fixture's three tables, as the arrays Substack receives. Every
+# alignment, every special character, a code span, a link, an image, a linked
+# image, emphasis, an escaped pipe, unmatched backticks, a short row and a long
+# row are in the first.
+FIRST_TABLE = "\n".join(
+    [
+        r"\begin{array}{l|l|r|c}",
+        r"\text{Left} & \text{Plain} & \text{Right} & \text{Centre} \\ \hline",
+        r"\text{a|b *c*} & \text{a link} & \text{bold and em} & \text{alt text} \\",
+        r"\$\text{ }\%\text{ }\&\text{ }\#\text{ }\_\text{ }\{\text{ }\}\text{ }\backslash"
+        r"\text{ }{\sim}\text{ }{\hat{}} & \$\text{ }{\sim}\text{ * }\backslash"
+        r" & \text{a`b} & \text{x} \\",
+        r"\text{short row} &  &  &  \\",
+        r"\text{one} & \text{two} & \text{three} & \text{four} \\",
+        r" & \text{inner} & \text{`open} & \text{2 * 3}",
+        r"\end{array}",
+    ]
+)
+HEADER_ONLY_TABLE = "\\begin{array}{l}\n\\text{Header only} \\\\ \\hline\n\\end{array}"
+LAST_TABLE = "\n".join(
+    [
+        r"\begin{array}{l}",
+        r"\text{Ends at a line} \\ \hline",
+        r"\text{that opens a pipe}",
+        r"\end{array}",
+    ]
+)
+
+
+def test_a_pipe_table_becomes_a_latex_array() -> None:
+    """Each table is one LaTeX block, numbered in sequence with the math fences.
+
+    A ``|`` line with no delimiter row under it, or with one whose cell count
+    differs, stays paragraph text. A table interrupts a paragraph, and a line
+    not opening ``|`` ends the table.
+    """
+    blocks = _convert_fixture(TABLES)["body"]["content"]
+    assert [n["type"] for n in blocks] == [
+        "paragraph",
+        "latex_block",
+        "latex_block",
+        "paragraph",
+        "latex_block",
+        "paragraph",
+        "paragraph",
+        "latex_block",
+        "paragraph",
+        "paragraph",
+        "subscribeWidget",
+    ]
+    tables = [n["attrs"] for n in blocks if n["type"] == "latex_block"][1:]
+    assert tables == [
+        {"persistentExpression": FIRST_TABLE, "id": "EQSTAT02"},
+        {"persistentExpression": HEADER_ONLY_TABLE, "id": "EQSTAT03"},
+        {"persistentExpression": LAST_TABLE, "id": "EQSTAT04"},
+    ]
+    texts = [n["content"][0]["text"] for n in blocks if n["type"] == "paragraph"]
+    assert texts[1:5] == [
+        "A paragraph line",
+        "| Not a table, since no delimiter row follows | | a paragraph line that opens a pipe |",
+        "| One | Two | | --- | | The delimiter row above has one cell for two headers, "
+        "so this is a paragraph |",
+        "and this line, which does not, starts a paragraph.",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("cell", "latex"),
+    [
+        (">90% conf.", r"\text{>90}\%\text{ conf.}"),
+        (r"\~10 days → \~10 days", r"{\sim}\text{10 days → }{\sim}\text{10 days}"),
+        ("", ""),
+        ("`a\\b` and \\\\", r"\text{a}\backslash\text{b and }\backslash"),
+        ("**[a *b*](u)** ![c](d)", r"\text{a b c}"),
+    ],
+)
+def test_a_cell_follows_the_stated_rule(cell: str, latex: str) -> None:
+    """The examples from the rule in ``md2substack.py``'s docstring."""
+    assert m2s.cell_latex(m2s.cell_text(cell)) == latex
+
+
+def test_headings_of_four_to_six_hashes_move_up_one_level() -> None:
+    """``####`` to ``######`` become levels 3 to 5, and only ``## `` places a widget."""
+    blocks = _convert_fixture(DEEP_HEADINGS)["body"]["content"]
+    shape = [(n["type"], (n.get("attrs") or {}).get("level")) for n in blocks]
+    assert shape == [
+        ("heading", 1),
+        ("heading", 2),
+        ("heading", 3),
+        ("heading", 4),
+        ("heading", 5),
+        ("paragraph", None),
+        ("paragraph", None),
+        ("paragraph", None),
+        ("heading", 3),
+        ("subscribeWidget", None),
+        ("heading", 1),
+        ("paragraph", None),
+        ("paragraph", None),
+        ("subscribeWidget", None),
+    ]
+    assert blocks[2]["content"] == [
+        {"type": "text", "text": "Level four with "},
+        {"type": "text", "text": "emphasis", "marks": [{"type": "em"}]},
+    ]
+    assert [blocks[k]["content"][0]["text"] for k in (4, 5, 6, 7, 8)] == [
+        "Level six",
+        "####### Seven hashes make a paragraph line",
+        "####No space makes a paragraph line too",
+        "A paragraph line",
+        "A level-four heading straight after text",
+    ]
+
+
+def test_a_linked_image_becomes_a_figure() -> None:
+    """The image keeps its caption, and links out only to a web address.
+
+    A relative target, such as the committed PNG a post links to, would point
+    nowhere on Substack, so ``href`` stays null for it. A line holding more
+    than the linked image stays a paragraph, as before.
+    """
+    blocks = _convert_fixture(LINKED_IMAGES)["body"]["content"]
+    assert [n["type"] for n in blocks] == [
+        "captionedImage",
+        "captionedImage",
+        "paragraph",
+        "captionedImage",
+        "paragraph",
+        "subscribeWidget",
+    ]
+    attrs = [blocks[k]["content"][0]["attrs"] for k in (0, 1, 3)]
+    assert [(a["src"], a["alt"], a["href"]) for a in attrs] == [
+        (
+            "https://example.invalid/first_figure.png",
+            "A figure linked to a web page",
+            "https://example.com/full-size",
+        ),
+        ("https://example.invalid/second_figure.png", "A figure linked to its own file", None),
+        (
+            "https://example.invalid/first_figure.png",
+            "A linked figure straight after text",
+            "http://example.com/plain",
+        ),
+    ]
+    assert blocks[0]["content"][1] == {
+        "type": "caption",
+        "content": [{"type": "text", "text": "Figure 1: the caption is the next italic line."}],
+    }
+    assert [len(blocks[k]["content"]) for k in (1, 3)] == [1, 1]
+    assert blocks[2]["content"] == [{"type": "text", "text": "A paragraph line"}]
+    assert blocks[4]["content"][-1]["text"].endswith("with text after it stays a paragraph.")
 
 
 def _unterminated(info: str) -> str:
@@ -292,16 +474,20 @@ def test_a_committed_post_converts_and_keeps_its_structure(post: Path) -> None:
     draft = m2s.convert(md, images_for(post))
     blocks = draft["body"]["content"]
 
-    assert draft["title"] == lines[0].removeprefix("# ").strip()
-    assert draft["subtitle"] == lines[2].strip().strip("*")
+    assert draft["title"] == lines[0].removeprefix("# ").strip(ASCII_WHITESPACE)
+    subtitle = lines[2].strip(ASCII_WHITESPACE).strip("*")
+    assert draft["subtitle"] == subtitle.replace("\\~", "~").replace("\\$", "$")
 
     outside = _outside_fences(lines[3:])
     fences = [info for _, info in outside if info is not None]
+    levels = [n["attrs"]["level"] for n in blocks if n["type"] == "heading"]
     level_one = [
         i for i, n in enumerate(blocks) if n["type"] == "heading" and n["attrs"]["level"] == 1
     ]
     widgets = [i for i, n in enumerate(blocks) if n["type"] == "subscribeWidget"]
-    assert len(level_one) == sum(line.startswith("## ") for line, _ in outside)
+    for hashes in range(2, 7):
+        written = sum(line.startswith("#" * hashes + " ") for line, _ in outside)
+        assert levels.count(hashes - 1) == written, f"headings of {hashes} hashes"
     assert widgets[-1] == len(blocks) - 1
     if len(level_one) >= 2:
         assert widgets == [level_one[1] - 1, len(blocks) - 1]
@@ -309,14 +495,18 @@ def test_a_committed_post_converts_and_keeps_its_structure(post: Path) -> None:
         assert widgets == [len(blocks) - 1]
 
     equations = [n for n in blocks if n["type"] == "latex_block"]
-    assert len(equations) == sum(info.startswith("math") for info in fences)
+    tables = sum(
+        line.startswith("|") and DELIMITER_ROW.fullmatch(below) is not None
+        for (line, _), (below, _) in zip(outside, outside[1:], strict=False)
+    )
+    assert len(equations) == sum(info.startswith("math") for info in fences) + tables
     assert [n["attrs"]["id"] for n in equations] == [
         f"EQSTAT{k:02d}" for k in range(1, len(equations) + 1)
     ]
     code_blocks = [n for n in blocks if n["type"] == "highlighted_code_block"]
     assert len(code_blocks) == sum(not info.startswith("math") for info in fences)
 
-    alts = [IMAGE_LINE.match(line).group(1) for line, _ in outside if IMAGE_LINE.match(line)]
+    alts = [_figure_line(line).group(1) for line, _ in outside if _figure_line(line)]
     figures = [n["content"][0]["attrs"]["alt"] for n in blocks if n["type"] == "captionedImage"]
     assert figures == alts
 
@@ -324,19 +514,6 @@ def test_a_committed_post_converts_and_keeps_its_structure(post: Path) -> None:
         assert node["text"], "an empty text node, which Substack refuses"
         if not inside_code:
             assert "\\~" not in node["text"] and "\\$" not in node["text"], node["text"]
-
-
-# Posts whose Markdown uses a shape the converter does not handle: a pipe
-# table, a heading of four to six hashes, or a linked image. Both had drafts
-# made by another route before the converter existed, and SKILL.md says they
-# cannot be synced through it. A third post using one of these shapes fails
-# below, because its draft would show the Markdown as literal text.
-UNSUPPORTED_SHAPES = frozenset(
-    {
-        "gld-gdx-cointegration-lessons.md",
-        "price-spread-mean-reversion.md",
-    }
-)
 
 
 def _paragraph_texts(node: dict):
@@ -347,21 +524,21 @@ def _paragraph_texts(node: dict):
         yield from _paragraph_texts(child)
 
 
-def test_only_the_named_posts_use_shapes_the_converter_does_not_handle() -> None:
-    """No converted paragraph opens with what an unhandled shape leaves behind.
+def test_no_committed_post_leaves_markdown_as_literal_text() -> None:
+    """No converted paragraph opens with what an unread shape would leave behind.
 
-    A table row opens ``|`` and a deep heading opens ``#``. A linked image
-    ``[![alt](x.png)](x.png)`` becomes a link whose text opens ``![``, which no
-    handled paragraph can, since a line opening ``![`` is read as an image.
-    The set must match exactly, so a post that stops using these shapes
-    leaves the list too.
+    A table row opens ``|`` and a deep heading opens ``#``. A linked image the
+    converter missed becomes a link whose text opens ``![``, which no other
+    paragraph can, since a line opening ``![`` is read as an image. Two posts
+    did this before the converter learned these shapes, and their drafts were
+    made by another route.
     """
     found = set()
     for post in POSTS:
         draft = m2s.convert(post.read_text(encoding="utf-8"), images_for(post))
         if any(t.startswith(("|", "#", "![")) for t in _paragraph_texts(draft["body"])):
             found.add(post.name)
-    assert found == UNSUPPORTED_SHAPES
+    assert found == set()
 
 
 # --- Python and JavaScript agree ------------------------------------------------
@@ -371,7 +548,8 @@ def test_only_the_named_posts_use_shapes_the_converter_does_not_handle() -> None
 # `print` in a bare JavaScriptCore shell, which has no console. osascript's
 # console.log reads its argument as a format string and prints `%%` as `%`, so
 # every percent sign is written as the JSON escape `%`, which parses back
-# to the same character.
+# to the same character. U+0085, U+2028 and U+2029 are written as escapes too,
+# because JSON leaves them raw and Python's splitlines() breaks a line at each.
 DRIVER = """
 (function () {
   var emit = function (line) {
@@ -384,7 +562,10 @@ DRIVER = """
       out.canon = M2S.canon(draft);
       out.walk = M2S.walkLines(draft.body);
     } catch (e) { out.error = String(e) + (e && e.stack ? "\\n" + e.stack : ""); }
-    emit("SUBSTACK_RESULT " + JSON.stringify(out).replace(/%/g, "\\\\u0025"));
+    var escape = function (c) {
+      return "\\\\u" + ("000" + c.charCodeAt(0).toString(16)).slice(-4);
+    };
+    emit("SUBSTACK_RESULT " + JSON.stringify(out).replace(/[%\\u0085\\u2028\\u2029]/g, escape));
   });
 })();
 void 0;
@@ -458,6 +639,84 @@ def test_python_and_javascript_produce_the_same_draft(
     assert result["walk"] == m2s.walk_lines(draft["body"])
 
 
+# Strings where Python's ``re`` and string methods read the same text
+# differently from JavaScript's. No committed post holds any of them. Each but
+# the last made the two converters disagree, or the JavaScript raise, before
+# both stopped using the construct.
+DIVERGENCES = {
+    # Python's \d matches any Unicode digit, JavaScript's only 0 to 9.
+    "non-ASCII digits": "# T\n\n*S*\n\n١٢. not an item\n\n- an item\n   ٣. not a nested item\n",
+    # JavaScript's trim() strips U+FEFF and Python's strip() does not.
+    "byte order marks": "\ufeff# Title\ufeff\n\n*Sub*\ufeff\n\n"
+    "## \ufeffHeading\ufeff\n\n\ufeff\n\nText\ufeff\n",
+    # Python's strip() strips U+001C to U+001F and U+0085, and trim() does not.
+    "separators Python strips": "# T\n\n*S*\n\n\x1c\n\n## Heading\x1f\n\nText\x85\n",
+    # JavaScript's . excludes \r, U+2028 and U+2029, and Python's excludes only \n.
+    "line separators": "# T\n\n*S*\n\n**bold\u2028text** and *em\u2029text*\n\n"
+    "![alt\u2028text](images/first_figure.png)\n\nEnd.\n",
+    "carriage returns": "# T\r\n\r\n*S*\r\n\r\n## Head\r\n\r\nText **a\r\nb** c\r\n\r\n"
+    "| a | b |\r\n| --- | --- |\r\n| 1 | 2 |\r\n",
+    # json.dumps and JSON.stringify could escape control characters differently.
+    # They agree today, and this case keeps them agreeing.
+    "control characters": "# T\n\n*S*\n\nText \x01\x7f\x1f\u2028 \U0001f600 end.\n",
+}
+
+
+@pytest.fixture(scope="module")
+def divergence_results(tmp_path_factory: pytest.TempPathFactory) -> dict[str, dict]:
+    cases = [(name, md, FIXTURE_IMAGES) for name, md in DIVERGENCES.items()]
+    return _run_javascript(cases, tmp_path_factory.mktemp("divergences"))
+
+
+@pytest.mark.parametrize("name", sorted(DIVERGENCES))
+def test_python_and_javascript_agree_where_their_languages_differ(
+    name: str, divergence_results: dict[str, dict]
+) -> None:
+    """Both converters read these strings the same way, one character set for both."""
+    result = divergence_results[name]
+    assert result["error"] is None, result["error"]
+    draft = m2s.convert(DIVERGENCES[name], FIXTURE_IMAGES)
+    assert result["canon"] == m2s.canonical(draft)
+    assert result["walk"] == m2s.walk_lines(draft["body"])
+
+
+def test_the_divergent_strings_read_as_intended() -> None:
+    """What the two converters agree on, spelled out for the decisive cases.
+
+    Only ASCII digits number a list item, and only ASCII whitespace is trimmed
+    or makes a line blank.
+    """
+
+    def kinds(name: str) -> list[str]:
+        blocks = m2s.convert(DIVERGENCES[name], FIXTURE_IMAGES)["body"]["content"]
+        return [n["type"] for n in blocks]
+
+    assert kinds("non-ASCII digits") == ["paragraph", "bullet_list", "paragraph", "subscribeWidget"]
+    marks = m2s.convert(DIVERGENCES["byte order marks"], {})
+    assert marks["title"] == "\ufeff# Title\ufeff"
+    assert [m2s.walk_lines(n)[0] for n in marks["body"]["content"][:3]] == [
+        "/0tex||\ufeffHeading\ufeff",
+        "/0tex||\ufeff",
+        "/0tex||Text\ufeff",
+    ]
+    assert kinds("separators Python strips") == [
+        "paragraph",
+        "heading",
+        "paragraph",
+        "subscribeWidget",
+    ]
+    assert kinds("line separators")[:2] == ["paragraph", "captionedImage"]
+    returns = m2s.convert(DIVERGENCES["carriage returns"], {})["body"]["content"]
+    assert [n["type"] for n in returns] == [
+        "heading",
+        "paragraph",
+        "latex_block",
+        "subscribeWidget",
+    ]
+    strong = {"type": "text", "text": "a\r b", "marks": [{"type": "strong"}]}
+    assert returns[1]["content"][1] == strong
+
+
 def test_the_canonical_form_ignores_key_order() -> None:
     """Substack returns a draft's keys in its own order, and the check must not care."""
     assert m2s.canonical({"b": [1, {"d": "é", "c": None}], "a": True}) == (
@@ -470,7 +729,7 @@ def test_the_summary_names_where_the_widgets_sit() -> None:
     summary = m2s.summary(draft, FIXTURE.read_bytes())
     blocks = draft["body"]["content"]
     assert summary["blocks"] == len(blocks)
-    assert summary["widgets_at"] == [13, len(blocks) - 1]
+    assert summary["widgets_at"] == [16, len(blocks) - 1]
     assert summary["walk_lines"] == len(m2s.walk_lines(draft["body"]))
     assert summary["subtitle_length"] == len(draft["subtitle"])
 
@@ -520,6 +779,22 @@ def test_the_command_line(tmp_path: Path) -> None:
     run.insert(2, "--summary")
     brief = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
     assert json.loads(brief.stdout) == m2s.summary(draft, FIXTURE.read_bytes())
+
+
+def test_the_command_line_reads_the_file_as_the_page_does(tmp_path: Path) -> None:
+    """Line endings stay as they are and a leading byte order mark goes.
+
+    The page reads the Markdown through fetch, and fetch's ``text()`` does
+    both. Reading the file as Python text would turn CRLF into LF and give
+    the in-page conversion a different tree to match.
+    """
+    raw = DIVERGENCES["carriage returns"].encode("utf-8")
+    post = tmp_path / "post.md"
+    post.write_bytes(b"\xef\xbb\xbf" + raw)
+    run = [sys.executable, str(SKILL_DIR / "md2substack.py"), str(post)]
+    done = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
+    assert json.loads(done.stdout) == m2s.convert(raw.decode("utf-8"), {})
+    assert json.loads(done.stdout) != m2s.convert(post.read_text(encoding="utf-8-sig"), {})
 
 
 def test_the_javascript_raises_on_an_unterminated_fence(tmp_path: Path) -> None:
