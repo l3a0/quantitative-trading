@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "items": [
+    {
+      "pr": 601,
+      "issue": 501,
+      "state": "open",
+      "linked": true,
+      "reviewed": false,
+      "rollup": [
+        ["test", "success"],
+        ["lint", "success"]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "items": [
+    {
+      "issue": 502,
+      "band": 1,
+      "ready": "build",
+      "why": "Its vintage is the only thing it waits on, and that branch is open."
+    }
+  ]
+}
