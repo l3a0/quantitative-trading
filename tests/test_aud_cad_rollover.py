@@ -1,8 +1,11 @@
 """The pins for AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md`` Entry 30
-carries the verdicts and points here row by row.
+about this example and the rows beside it, with one exception, in
+``blog/aud-cad-rollover-lessons.md``. The post's figure has its own pins in
+``tests/test_aud_cad_rollover_figures.py``. README lists what the post says
+that nothing pins. ``docs/replication-log.md`` Entry 30 carries the verdicts
+and points here row by row.
 
 Every pin on the committed files reads one vintage and one specification, so
 both are stated once here.
@@ -244,6 +247,47 @@ class TestBesideTheReplication:
     def test_the_rollover_the_strategy_earned_is_a_cost_of_0_005221(self, result) -> None:
         """252 times the mean of line 43 less line 44, which the long and short counts explain."""
         assert result.rollover_drag == pytest.approx(-0.0052212787, abs=1e-10)
+
+    def test_the_two_aprs_differ_by_more_than_the_rollover_the_strategy_earned(self, result):
+        """Row 3 less row 1, which is not the rollover the strategy earned.
+
+        The APR compounds the returns over 1,237 rows, while the rollover the
+        strategy earned is 252 times their mean, so the two differ in size.
+        """
+        difference = result.without_rollover.apr - result.with_rollover.apr
+        assert difference == pytest.approx(0.0055770095, abs=1e-10)
+        assert abs(difference) > abs(result.rollover_drag) + 1e-4
+        assert abs(result.rollover_drag) == pytest.approx(0.0052212787, abs=1e-10)
+
+    def test_the_net_share_of_held_days_times_row_5_is_near_what_the_strategy_earned(
+        self, result
+    ) -> None:
+        """(510 − 707) / 1,217 times row 5, beside the rollover the strategy earned.
+
+        A long day earns the rate difference and a short day pays it, so the
+        net share of days held long scales row 5 to the strategy's positions.
+        """
+        held = lag1(result.position)[SCRIPT_LOOKBACK:]
+        net = (np.count_nonzero(held > 0) - np.count_nonzero(held < 0)) / len(held)
+        assert net == pytest.approx((510 - 707) / 1217, abs=1e-15)
+        assert net == pytest.approx(-0.161873, abs=5e-7)
+        assert net * result.rollover == pytest.approx(-0.0052838233, abs=1e-10)
+        assert result.rollover_drag == pytest.approx(-0.0052212787, abs=1e-10)
+
+    def test_the_rate_difference_annualised_over_the_days_held_each_way(self, result) -> None:
+        """252 times the mean of row 5's term over the days held long, then held short.
+
+        The term is ``lag1(log(1 + aud) − log(1 + cad))``, over rows 21 onward.
+        Long days and short days see nearly the same difference, which is why
+        the net share of days alone explains the rollover the strategy earned.
+        """
+        held = lag1(result.position)[SCRIPT_LOOKBACK:]
+        term = lag1(np.log(1 + result.aud) - np.log(1 + result.cad))[SCRIPT_LOOKBACK:]
+        # The term rebuilt here is the one the run's returns carry, lags included.
+        added = (result.returns - result.without)[SCRIPT_LOOKBACK:] / held
+        np.testing.assert_allclose(added, term, rtol=0, atol=1e-15)
+        assert 252 * term[held > 0].mean() == pytest.approx(0.0328995788, abs=1e-10)
+        assert 252 * term[held < 0].mean() == pytest.approx(0.0328677609, abs=1e-10)
 
     def test_rows_1_and_2_with_each_missing_month_carried_forward(self, result) -> None:
         assert result.carried.apr == pytest.approx(0.0620850756, abs=1e-10)
