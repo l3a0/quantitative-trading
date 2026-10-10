@@ -1,8 +1,11 @@
 """The pins for AUD.USD against CAD.USD, *Algorithmic Trading*'s Example 5.1.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md`` Entry 25
-carries the verdicts and points here row by row.
+about this example and the rows beside it, with one exception, in
+``blog/aud-cad-johansen-lessons.md``. That post also quotes its figure's labels,
+which ``tests/test_aud_cad_johansen_figures.py`` holds, and README lists what it
+says that nothing asserts. ``docs/replication-log.md`` Entry 25 carries the
+verdicts and points here row by row.
 
 Every pin on the committed files reads one vintage and one specification, so
 both are stated once here.
@@ -37,6 +40,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from scipy import stats
 
 from chan import aud_cad_johansen as module
 from chan import paths
@@ -304,6 +308,84 @@ class TestBesideTheReplication:
             result.positions[-1] / result.positions[-1, 0], [1.0, -0.7622442800], rtol=0, atol=1e-10
         )
         assert result.units[-1] > 0
+
+    def test_the_trace_tests_26_windows_fall_in_three_stretches(self, result) -> None:
+        """Every two-relation window sits in the first or the third, and the eigen test's 11
+        all sit in the second."""
+        days = result.test_days
+        stretches = [
+            ("2010-02-09", "2010-04-08", [1, 14]),
+            ("2011-01-19", "2011-02-09", [6, 0]),
+            ("2011-08-08", "2011-08-15", [0, 5]),
+        ]
+        for first, last, (one, two) in stretches:
+            inside = (days >= first) & (days <= last)
+            found = result.trace_relations[inside]
+            assert [np.count_nonzero(found == 1), np.count_nonzero(found == 2)] == [one, two]
+            assert days[inside & (result.trace_relations > 0)][[0, -1]].strftime(
+                "%Y-%m-%d"
+            ).tolist() == [first, last]
+        eigen = days[result.eigen_relations > 0]
+        assert len(eigen) == 11
+        assert (str(eigen[0].date()), str(eigen[-1].date())) == ("2011-01-19", "2011-02-10")
+
+    def test_the_hedge_held_both_currencies_the_same_way_on_90_days(self, result) -> None:
+        """Eighty-five of them fall from 2010-06-01 to 2010-10-05, the longest run 65 days.
+
+        A positive dollar split is a hedge long both legs or short both, so on
+        those days the portfolio bet on the US dollar rather than on the spread.
+        """
+        split = result.dollar_split
+        days = result.test_days
+        same = split > 0
+        assert len(split) == 612
+        assert np.count_nonzero(same) == 90
+        in_2010 = (days >= "2010-06-01") & (days <= "2010-10-05")
+        assert np.count_nonzero(same & in_2010) == 85
+        assert (str(days[same][0].date()), str(days[same & in_2010][-1].date())) == (
+            "2010-06-01",
+            "2010-10-05",
+        )
+        assert np.count_nonzero(same & ~in_2010) == 5
+        edges = np.diff(np.concatenate(([0], same.astype(int), [0])))
+        starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
+        longest = int(np.argmax(ends - starts))
+        assert ends[longest] - starts[longest] == 65
+        assert (str(days[starts[longest]].date()), str(days[ends[longest] - 1].date())) == (
+            "2010-07-07",
+            "2010-10-05",
+        )
+
+    def test_the_dollar_split_is_the_last_days_positions(self, result) -> None:
+        """The last day's share is −0.4325, which is 1 to −0.7622 in dollars."""
+        share = result.dollar_split[-1]
+        assert share == pytest.approx(-0.4325417813, abs=1e-10)
+        assert share / (1 - abs(share)) == pytest.approx(-0.7622442800, abs=1e-10)
+        dollars = result.positions[-1]
+        assert share == pytest.approx(dollars[1] / np.abs(dollars).sum(), abs=1e-12)
+
+    def test_the_90_days_compound_to_0_1074_and_the_other_522_to_0_1696(self, result):
+        """Together they make the run's 0.2953, so 15 percent of the days carried about two
+        fifths of the growth."""
+        same = result.dollar_split > 0
+        test = result.test
+        those, rest = np.prod(1 + test[same]) - 1, np.prod(1 + test[~same]) - 1
+        assert those == pytest.approx(0.1073962686, abs=1e-10)
+        assert rest == pytest.approx(0.1696463785, abs=1e-10)
+        assert (1 + those) * (1 + rest) - 1 == pytest.approx(0.2952620351, abs=1e-10)
+        assert np.log1p(those) / np.log1p(0.2952620351) == pytest.approx(0.394, abs=5e-4)
+
+    def test_the_90_days_swung_twice_as_wide_and_a_welch_t_of_1_09_says_chance(self, result):
+        """The standard deviations are 0.0073 and 0.0035, and the means' gap has p of 0.28."""
+        same = result.dollar_split > 0
+        test = result.test
+        assert test[same].std(ddof=1) == pytest.approx(0.0072797972, abs=1e-10)
+        assert test[~same].std(ddof=1) == pytest.approx(0.0034753836, abs=1e-10)
+        assert test[same].mean() == pytest.approx(0.0011602616, abs=1e-10)
+        assert test[~same].mean() == pytest.approx(0.0003062562, abs=1e-10)
+        welch = stats.ttest_ind(test[same], test[~same], equal_var=False)
+        assert welch.statistic == pytest.approx(1.0916745496, abs=1e-9)
+        assert welch.pvalue == pytest.approx(0.2777053748, abs=1e-9)
 
 
 class TestTheRule:
