@@ -19,9 +19,9 @@ because the path to someone's archive is machine-specific and never belongs in
 a tracked file. This switch still names every committed vintage, and the
 archive's own manifest beside them, and nothing inside the archive.
 
-``FIGURES_DIR`` does the same for the committed figures, which
-:mod:`chan.regime_figure` and :mod:`chan.lag_residual_figure` draw from those
-same vintages.
+``FIGURES_DIR`` does the same for the committed figures. Each figure module
+here draws into it, :mod:`chan.regime_figure` among them, and most draw from
+those same vintages.
 
 **Where this came from.** ``common/paths.py`` in the sibling
 ``trading-strategies`` repo, at commit ``b27222b``, landed here in ``ce3f757``.

@@ -367,8 +367,9 @@ where they were first built. The other thirty-one were built here.
     Under months, HG's falls below its spot return, so the comparison
     Chapter 6 rests its explanation of HG's momentum on holds only under the
     script's arithmetic, and corn's is no longer twice its spot return.
-    `chan.roll_returns` exports the strip reader and both fits for Example
-    5.4 and the TU momentum experiment. Every figure is exploratory.
+    `chan.roll_returns` exports the strip reader and both fits for later
+    experiments to build on, Example 5.4 among them. Every figure is
+    exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
     from August 2008 gives the hedge, and a band one training deviation wide
@@ -779,7 +780,9 @@ The columns lifted from Chan's stock, ETF and strip files, below, report 171 mor
 his stock files most are real moves in single stocks, and the 58 in his ETF
 file fall in eight leveraged and inverse funds in 2008 and 2009. His
 continuous futures saves report 126 more, all in the ZB and ZF bond columns no
-script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27. The
+script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27.
+Each replication that reads one of these files decides whether to call the
+guard, and one that does not says why in its own docstring. The
 Khandani-Lo reversal's 2006 window spans one of the stock days, WYN's restart
 on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -787,8 +790,7 @@ that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
-without it. Post-earnings drift calls the guard on each stock from its first
-price, over its 2011 and 2012 window, and nothing there needs refusing. The
+without it. The
 reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
 30 of that file's flagged days, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
@@ -802,13 +804,9 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
-span, and neither carries a flagged day, so nothing is refused. The Kalman
-filter calls it on EWA and EWC over the same span, and refuses nothing either.
-VX against ES
-calls it on VX and ES over each leg's own span in each continuous futures save
-it reads, and nothing is refused there either. The crude oil rule calls it on
-CL over each span it reads in each of three saves, and refuses nothing.
+stand. Examples 3.1 and 3.2 are one case of a run that calls the guard. They
+read GLD and USO over the ETF file's whole span, where neither leg carries a
+flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -858,40 +856,14 @@ flag for every day of the file's calendar.
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
-[data/README.md](data/README.md) says what was measured on each file. The
-equity seasonals read the 2007 S&P 500 file and the later S&P 600 save, and
-the Khandani-Lo reversal reads the
-2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
-Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
-flags, for
-[issue 20](https://github.com/l3a0/quantitative-trading/issues/20). Buy on gap
-reads the same file's opens, highs, lows and closes, for
-[issue 295](https://github.com/l3a0/quantitative-trading/issues/295), and the
-reversal reads its opens and closes for *Algorithmic Trading*'s Examples 4.3
-and 4.4, for
-[issue 296](https://github.com/l3a0/quantitative-trading/issues/296). The PCA
-factor model reads the earlier S&P 600 save's closes, for
-[issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
-Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
-[issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and so
-does Example 4.2, for
-[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
-Example 3.1 reads GLD's and USO's closes from the ETF file, for
-[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and is
-the first run to read it. The lift for
+[data/README.md](data/README.md) says what was measured on each file. The Khandani-Lo reversal,
+for one, reads the 2007 S&P 500 file's closes for Example 3.7 and its opens
+for Example 3.8. Example 3.1 reads GLD's and USO's closes from the ETF file,
+for [issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
+is the first run to read it. The lift for
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
 it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
-The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
-closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
-and Example 4.2 reads its SPY, for
-[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
-Example 3.2 reads GLD and USO again, for
-[issue 341](https://github.com/l3a0/quantitative-trading/issues/341), and the
-Kalman filter reads EWA and EWC, for
-[issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
-The Johansen tests of location 1922 read its GLD, GDX and USO, for
-[issue 344](https://github.com/l3a0/quantitative-trading/issues/344).
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract
@@ -928,11 +900,10 @@ its own calendar, and each is one vintage with all five fields, as a stock
 is. His `VIX.csv` is committed beside them as one vintage under the vendor
 `chan-csv`. Those five files hold 209 vintages, and
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
-their shape. VX against ES reads VX and ES from the 2012-05-07 and
-2012-05-17 saves, and its tests read the 2012-05-11 save too, for
-[issue 350](https://github.com/l3a0/quantitative-trading/issues/350). The
-crude oil rule reads CL from the 2012-05-04, 2012-05-07 and 2012-05-11 saves,
-for [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
+their shape. VX against ES, for one, reads VX and ES from the 2012-05-07 and
+2012-05-17 saves for
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350), and its
+tests read the 2012-05-11 save too.
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -955,8 +926,8 @@ December 2008 to August 2026, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
 between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
-September 2012. One module
-reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
+September 2012.
+`chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
 experiment.
