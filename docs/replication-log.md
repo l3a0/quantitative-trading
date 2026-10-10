@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 and 36 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 and 37 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight and four, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 and 36 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 and 37 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -273,6 +273,12 @@ says.
   - [The verdicts](#the-verdicts-34)
   - [What the entry concludes](#what-the-entry-concludes-35)
   - [What this entry cannot say](#what-this-entry-cannot-say-33)
+- [Entry 37: three hypothesis tests on TU momentum, Chan's *Algorithmic Trading*](#entry-37-three-hypothesis-tests-on-tu-momentum-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-34)
+  - [What this repo computed](#what-this-repo-computed-36)
+  - [The verdicts](#the-verdicts-35)
+  - [What the entry concludes](#what-the-entry-concludes-36)
+  - [What this entry cannot say](#what-this-entry-cannot-say-34)
 
 ## How to read an entry
 
@@ -337,9 +343,11 @@ both.
    [tests/test_calendar_spread_reversion.py](../tests/test_calendar_spread_reversion.py)
    holds Entry 34,
    [tests/test_vx_calendar_spread.py](../tests/test_vx_calendar_spread.py)
-   holds Entry 35, and
+   holds Entry 35,
    [tests/test_roll_momentum.py](../tests/test_roll_momentum.py) holds
-   Entry 36.
+   Entry 36, and
+   [tests/test_tu_hypothesis_tests.py](../tests/test_tu_hypothesis_tests.py)
+   holds Entry 37.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -456,7 +464,7 @@ Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
-Entry 35's rows 4 to 9, and Entry 36's rows 7 to 14.
+Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, and Entry 37's rows 6 to 8.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -678,6 +686,16 @@ no criterion, and the figures before October 2008 were measured after the
 issue's table had been seen. A verdict would rest on a line chosen with the
 figures in view, so the row reports them as a finding with no verdict, as
 Entry 32's rows 3 and 4 do.
+
+Entry 37's row 5 carries no verdict for a third reason. It runs the third
+test of `TU_mom_hypothesisTest.m` as written, and the script adds each draw's
+shuffled tranches to the observed positions rather than to the simulated ones,
+so every simulated return is zero and the count is 0 whatever the data. A
+count that cannot fail cannot reproduce anything, so its cell reads "none, a
+finding", the value Entry 32's rows 3 and 4 carry, and row 4's corrected test
+carries the verdict.
+[Issue 352](https://github.com/l3a0/quantitative-trading/issues/352) declared
+both before any draw on the seed they share.
 
 Entry 1's rows 2 and 10, the first rows this section names, are in that entry
 because leaving them out misleads. Row 2 is the slope
@@ -6880,7 +6898,7 @@ and nothing about whether the rule pays today.
 | 12 | none | none, not a replication | The active line lands none of the comment's six figures, so the comment comes from `idx = 1`. The comment also prints no annual volatility although the printing line asks for one, so it was pasted from an earlier version of that line. |
 | 13 | none | none, not a replication | TU's close is the same on every day the two saves share, so only the window moves, four trading days later. That is enough to move the correlation to 0.29 at two decimals and the Kelly f off the printed digits, which places the book's figures on the 2012-05-11 save. |
 | 14 | none | none, not a replication | Tried after row 3 missed, as a diagnostic rather than a reading. |
-| 15 | none | none, not a replication | `TU_mom_hypothesisTest.m` prints 2.93, which is Example 1.1's figure, replicated under [issue 352](https://github.com/l3a0/quantitative-trading/issues/352). It is pinned here because it shows that the returns that issue imports are this entry's. |
+| 15 | none | none, not a replication | `TU_mom_hypothesisTest.m` prints 2.93, which is Example 1.1's figure, replicated as Entry 37's row 1. It is pinned here because it shows that the returns Entry 37 imports are this entry's. |
 
 ### What the entry concludes
 
@@ -6911,9 +6929,7 @@ Three things.
 **Whether 250/25 would be chosen without hindsight.** The pair was picked from
 a table of 49 computed on the 2004 to 2012 closes it then trades, so its
 p-value is not corrected for the other 48. Example 1.1's three tests of the
-same returns, under
-[issue 352](https://github.com/l3a0/quantitative-trading/issues/352), are
-where the significance question is asked.
+same returns, in Entry 37, are where the significance question is asked.
 
 **What computed the book's 0.44.** Row 14 found a `maxT` that lands it on TU
 and breaks USD.CAD. Searching further would be choosing a reading after its
@@ -7481,6 +7497,185 @@ was seen would be a search.
 
 **What a trader would earn.** The returns are on the notional value of one
 contract with no cost and no margin, as in Entry 33.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 37: three hypothesis tests on TU momentum, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 1.1, Kindle locations 606 to 674, with the
+count repeated at location 2923. Shipped under
+[issue 352](https://github.com/l3a0/quantitative-trading/issues/352). The
+script is `TU_mom_hypothesisTest.m`, in ericnberwick/EpchanPreview at
+`e4bc46f` under `public/img/book2/`, git blob `c0dda16`, and the line numbers
+below are that blob's. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eight rows, all derivable from
+[tests/test_tu_hypothesis_tests.py](../tests/test_tu_hypothesis_tests.py).
+Four do not match one printed figure to one computation, and each says so in
+its own cells. Row 5 runs a test that cannot fail, and rows 6 to 8 carry no
+published figure. Rows 2 and 3 judge one computed count, against the book's
+figure and against the script's.
+
+A backtest's average return means little until it is set against what chance
+alone would give. Example 1.1 asks that of Entry 33's TU momentum strategy
+three ways. The first test reads the strategy's daily returns as Gaussian. The
+second reruns the strategy on 10,000 simulated series of TU market returns
+that share the observed mean, standard deviation, skewness and kurtosis. The
+third shuffles the strategy's long and short entry days 100,000 times. Each of
+the last two counts how many draws earn an average return at or above the
+observed one. The book reads the second test's count as showing that "any
+random returns distribution with high kurtosis can be favorable to momentum
+strategies" (location 674).
+
+**The book's count reproduces, the script's does not, and the rows beside
+them point at TU's drift rather than its kurtosis.** The second test lands
+inside the band around the book's 1,166 and far outside the one around the
+script's 0.027500. Rows 6 to 8 were added after a scratch run had seen
+results, and they show that a normal draw gives the same count while removing
+the drift removes almost all of it.
+
+Every row reads one vintage and one specification unless it names another, so
+both are stated once here.
+
+1. **The vintage.** `inputdataohlcdaily_20120511/tu.csv`, vendor `chan-mat`,
+   basis `adjusted`, saved 2012-05-12, TU's column of Chan's
+   `inputDataOHLCDaily_20120511.mat`, the file the script loads. Its own rows
+   are 2,000 days from 2004-06-01 to 2012-05-11, read through
+   `chan.tu_momentum.read_sources`, which runs the scale-break guard over that
+   span and refuses nothing.
+2. **The specification.** Entry 33's strategy, through `chan.tu_momentum`'s
+   own functions, with a lookback of 250 and a hold of 25. The rest is the
+   declaration
+   [issue 352](https://github.com/l3a0/quantitative-trading/issues/352) wrote
+   before any draw on either seed, in four parts.
+   1. The second test takes L43's moments of the 2,000 market returns, the
+      first of which is 0: the mean, MATLAB's n − 1 `std`, and the biased
+      skewness and kurtosis, with kurtosis not in excess form. It draws series
+      i of 10,000 from row i of `default_rng(20261010).random((10_000,
+      2_000))` through the Pearson type IV inverse CDF, builds `cl_sim =
+      cumprod(1 + r) − 1`, reruns the strategy on it, and earns the simulated
+      returns themselves, as L68 does.
+   2. The corrected third test applies draw d of 100,000
+      `default_rng(20261011).permutation(2_000)` calls to both signal arrays,
+      which keeps 1,274 long days and 474 short days, rebuilds the positions
+      and earns the observed market returns.
+   3. A count lands when it lies within two binomial standard errors of the
+      printed figure, using the printed proportion and the test's own N. That
+      gives 1,102 to 1,230 for the book's 1,166, 243 to 307 for the script's
+      0.027500 at N = 10,000, and only 0 for the book's 0 of 100,000.
+   4. This is Chan's own saved file, so the vintage explanation is spent, and
+      a count outside its band did not reproduce.
+
+**Type IV is an inference about `pearsrnd`.** `pearsrnd` picks a member of
+the Pearson family from the four moments, and MathWorks' page names the types
+without stating its criterion. The standard criterion, as Heinrich (2004)
+gives it, puts TU's moments in type IV, at a κ of 0.004645. If `pearsrnd`
+chose the same type, these draws follow the script's null in distribution,
+though not draw for draw.
+
+**The third test cannot fail as written.** L88 sets `pos_sim` to zeros, and
+L99 and L100 then add the shuffled tranches to `pos`, the observed positions,
+rather than to `pos_sim`. So every simulated return at L103 is zero, the
+observed mean is positive, and the count is 0 whatever the data. Row 5 runs
+that loop and row 4 runs the corrected test.
+
+**Rows 6 to 8 were added after the scratch run saw results.** Each varies one
+input of row 2 to test a reason the book gives, and each runs on row 2's
+uniforms, so it differs from row 2 in that input alone. None is a candidate
+for a better p-value.
+
+Every result here is **exploratory**. The three tests are Chan's, on a
+strategy whose lookback and hold he picked from a table computed on the same
+closes. Rows 6 to 8 were chosen after a scratch run, so they can motivate a
+registered test of the drift reading and cannot confirm it.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The Gaussian test statistic, mean / std · √n | 2.93 | `TU_mom_hypothesisTest.m`'s comment at L40, and the statistic's definition at location 606 |
+| 2 | The randomized-returns test, draws at or above the observed mean | 1,166 of 10,000 | location 665 |
+| 3 | The same test's p-value | 0.027500 | the script's comment at L77 |
+| 4 | The randomized-trades test, corrected | 0 of 100,000 | location 672 |
+| 5 | The randomized-trades test, as written | 0, as location 672 prints it | location 672, and the script's L82 to L113 |
+| 6 to 8 | the observed positions on the simulated returns, a normal draw, and type IV with the mean set to zero | none here, as each row says | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `mean(ret) / std(ret) · √2000` with the n − 1 `std` | 2.933253, and a one-sided normal tail of 0.001677 | `TestRow1TheGaussianStatistic::test_it_lands_the_script_s_2_93` and `::test_its_one_sided_normal_tail` |
+| 2 | the declared second test, seed 20261010 | 1,221 of 10,000 | `TestRows2And3TheRandomizedReturns::test_the_count` and `::test_row_2_lands_the_book_s_1166` |
+| 3 | the same count as a proportion | 0.122100 | `TestRows2And3TheRandomizedReturns::test_row_3_misses_the_script_s_0_027500` |
+| 4 | the corrected third test, seed 20261011 | 0 of 100,000. The largest simulated mean is 3.973594e-05 against the observed 6.626644e-05, which sits 11.131886 standard deviations above the simulated means' average | `TestRow4TheCorrectedTrades::test_no_draw_reaches_the_observed_mean` and `::test_how_far_the_observed_mean_sits_above_them` |
+| 5 | the third test as written, 10 draws on seed 20261011 | 0 of 10, every simulated return 0, and every draw's tranches added to the observed positions | `TestRow5TheAsWrittenTrades::test_ret_sim_is_zero_on_every_draw` and `::test_the_tranches_land_in_pos` |
+| 6 | the observed positions applied to row 2's simulated returns, added after the scratch run | 277 of 10,000, 0.027700 | `TestTheRowsBesideAddedAfterTheScratchRun::test_the_observed_positions_on_the_simulated_returns` |
+| 7 | a normal draw with TU's mean and `std` on row 2's uniforms, added after the scratch run | 1,165 of 10,000, 0.116500 | `TestTheRowsBesideAddedAfterTheScratchRun::test_a_normal_draw_with_tu_s_mean_and_std` |
+| 8 | row 2's draws less their target mean, added after the scratch run | 19 of 10,000, 0.001900. The simulated means average 3.604899e-07, against 3.220302e-05 for row 2. Over row 2's first 1,000 draws the rule is long on 0.804654 of signal days on average, and 0.502401 with the mean removed | `TestTheRowsBesideAddedAfterTheScratchRun::test_type_iv_with_the_mean_set_to_zero`, `::test_the_drift_is_what_the_strategy_earns_on_simulated_returns` and `::test_a_drifting_series_is_long_on_most_signal_days` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | +0.00 | reproduced | 2.933253 rounds to the printed 2.93. Entry 33's row 15 pins the same figure. |
+| 2 | +55 | reproduced | 1,221 lies inside 1,102 to 1,230, nine counts from the band's top. |
+| 3 | +0.094600 | did not reproduce | 0.122100 lies far outside 243 to 307 of 10,000. So the second test this file carries does not give the script's comment on Chan's own file. Row 6 is the one test found to land it. |
+| 4 | +0 | reproduced | No draw of 100,000 reaches the observed mean, so the rule-of-three bound puts the p-value below 3e-05 at 95 percent. |
+| 5 | none | none, a finding | The count cannot fail, so it cannot reproduce anything. It is 0 because no draw writes to `pos_sim`, not because of any property of TU. |
+| 6 | none | none, not a replication | 277 lies inside the script's 243 to 307. Nothing in the script applies the observed positions to simulated returns, and the file has one commit, so the match is numerical rather than recovered history. |
+| 7 | none | none, not a replication | Removing the skewness and kurtosis leaves the count where row 2 put it, 1,165 against 1,221. |
+| 8 | none | none, not a replication | Removing the drift takes the count from 1,221 to 19, close to the 0.001677 one-sided tail of row 1's Gaussian statistic. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The book's 1,166 reproduces and the script's 0.027500 does not.** A type
+   IV generator with the script's moments lands inside the band around the
+   book's count on Chan's own file, so location 665's figure is consistent
+   with the test the script carries. The script's printed p-value lands only
+   on row 6, a different test that nothing in the file runs.
+2. **On this file, the rows beside point at TU's drift rather than its
+   kurtosis as what drives the second test.** A normal draw with TU's mean and
+   `std` gives 1,165 where type IV gives 1,221, so the shape location 674
+   credits moves the count by little. Setting the mean to zero gives 19, near
+   the Gaussian test's one-sided 0.001677. The mechanism is the rule itself. A
+   series with a positive drift has a positive 250-day return most of the
+   time, so the strategy is long most of the time and collects the drift,
+   which location 665's aside calls less likely because "the position can be
+   long or short". Over the first 1,000 declared draws, the strategy is long
+   on about 80 percent of signal days, against about 50 at a mean of zero.
+   Rows 7 and 8 were added after the scratch run, so this is a reading the
+   entry motivates and does not confirm.
+3. **The third test gives 0 for a reason the script does not show.** As
+   written it cannot give anything else. Corrected, it still gives 0 of
+   100,000, so location 672's sentence stands, and the observed mean sits
+   11.131886 standard deviations above what shuffled entry days earn. The
+   corrected test keeps each day's return and moves only the days, so what it
+   rejects is the claim that TU momentum's timing earns nothing beyond its mix
+   of long and short days.
+
+### What this entry cannot say
+
+Three things.
+
+**Which Pearson type `pearsrnd` drew from.** The type IV choice is inferred
+from the standard criterion rather than read from MathWorks' code. If
+`pearsrnd` drew from another type with the same four moments, row 2 judges a
+different null. Rows 7 and 8 suggest the count barely depends on the shape,
+which limits what a different type could move.
+
+**What computed the script's 0.027500.** Row 6 lands it with a test the
+script does not contain, and the file has one commit, so the history behind
+that comment is gone.
+
+**Whether drift explains momentum's significance elsewhere.** Rows 6 to 8
+were chosen after a scratch run on other seeds had seen results, on one
+strategy and one future. A registered test would declare the drift reading
+first and run it on data this entry never loaded.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

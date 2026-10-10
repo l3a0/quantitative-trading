@@ -322,6 +322,14 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: included, so the rebuilt level has no gap for a window-level call to read.
 #: ``TestTheGuardDecision`` in ``tests/test_roll_momentum.py`` records the 95
 #: calls and holds every row's contract priced on both days.
+#:
+#: [Issue 352](https://github.com/l3a0/quantitative-trading/issues/352) decided
+#: that ``chan.tu_hypothesis_tests`` adds no guard call of its own for
+#: *Algorithmic Trading*'s Example 1.1. It reads TU through
+#: ``chan.tu_momentum.read_sources``, which guards TU over its whole span in the
+#: 2012-05-11 save, and every other series it reads is simulated from that one.
+#: ``TestTheReport`` in ``tests/test_tu_hypothesis_tests.py`` holds that a guard
+#: refusal there reaches an operator as one line.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
