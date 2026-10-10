@@ -2,7 +2,10 @@
 
 This file is the single authority for every number a prose surface quotes
 about this replication and the rows beside it. ``docs/replication-log.md``
-Entry 31 carries the verdicts and points here row by row.
+Entry 31 carries the verdicts and points here row by row, and
+``blog/crude-oil-reversal-momentum-lessons.md`` quotes the same figures and
+the halves, the agreement counts, and each rule's average day and its
+standard deviation that ``TestTheJoinIsHalfOfEachRule`` pins for it.
 
 Every pin names one of three vintages and one specification, so they are
 stated once here.
@@ -159,6 +162,10 @@ class TestTheVintages:
         assert later_cl.index.equals(cl.index)
         assert np.allclose(later_cl.to_numpy() - cl.to_numpy(), 0.27)
 
+    def test_the_later_save_takes_the_same_positions(self, cl, later_cl) -> None:
+        """A uniform shift moves no comparison, so only each return's divisor changes."""
+        assert (combination_positions(later_cl) == combination_positions(cl)).all()
+
     def test_the_first_close_in_each_segment(self, cl, before_cl) -> None:
         assert round(cl.iloc[0], 2) == 175.48
         assert round(before_cl.iloc[0], 2) == 119.12
@@ -262,6 +269,79 @@ class TestBeforeTheBookSWindow:
     def test_momentum_alone_beats_the_combination_there(self, before) -> None:
         assert before.momentum.apr > before.combination.apr
         assert before.momentum.sharpe > before.combination.sharpe
+
+
+def _half_of_each(rules: FourRules) -> np.ndarray:
+    return (rules.momentum.positions + rules.reversal.positions) / 2
+
+
+def _both_lags(closes: pd.Series) -> np.ndarray:
+    return ~np.isnan(backshift(MOMENTUM_LOOKBACK, closes.to_numpy()))
+
+
+def _mean_and_deviation(traded: Trades) -> tuple[float, float]:
+    return round(traded.daily.mean(), 6), round(traded.daily.std(ddof=1), 6)
+
+
+class TestTheJoinIsHalfOfEachRule:
+    """Half a position in each rule is the join, outside the rows a lag is missing or tied.
+
+    Where the two rules agree, half of each is their shared position, and the
+    join holds it. Where they disagree, half of each sums to flat, and so does
+    the join. So the join earns the average of the two rules' daily returns,
+    which is what the post's Lessons 2 and 3 rest on.
+    """
+
+    def test_on_the_book_s_window_it_differs_on_the_10_warm_up_rows_only(self, book) -> None:
+        differ = book.combination.days[_half_of_each(book) != book.combination.positions]
+        assert len(differ) == 10
+        assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-01"), pd.Timestamp("2008-07-15"))
+
+    def test_so_the_join_earns_the_average_of_the_two_rules(self, book) -> None:
+        average = (book.momentum.daily + book.reversal.daily) / 2
+        differ = book.combination.days[~np.isclose(average, book.combination.daily, atol=1e-15)]
+        assert len(differ) == 10
+        assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-02"), pd.Timestamp("2008-07-16"))
+
+    def test_the_two_rules_agree_on_157_of_the_960_rows_both_lags_exist(self, cl, book) -> None:
+        both = _both_lags(cl)
+        agree = both & (book.momentum.positions == book.reversal.positions)
+        assert (int(both.sum()), int(agree.sum()), int((both & ~agree).sum())) == (960, 157, 803)
+
+    def test_where_they_disagree_their_positions_are_opposite(self, cl, book) -> None:
+        disagree = _both_lags(cl) & (book.momentum.positions != book.reversal.positions)
+        assert (book.momentum.positions[disagree] == -book.reversal.positions[disagree]).all()
+        assert not book.combination.positions[disagree].any()
+
+    def test_the_join_s_average_day_and_its_spread(self, book) -> None:
+        assert _mean_and_deviation(book.combination) == (0.000463, 0.006687)
+        assert _mean_and_deviation(book.momentum) == (0.000519, 0.018748)
+        assert _mean_and_deviation(book.reversal) == (0.000440, 0.018864)
+
+    def test_momentum_alone_earns_more_per_day_and_swings_far_more(self, book) -> None:
+        """The join beats momentum alone on both figures with a smaller average day."""
+        assert book.momentum.daily.mean() > book.combination.daily.mean()
+        assert book.combination.daily.std() < book.momentum.daily.std() / 2.5
+        assert book.combination.daily.std() < book.reversal.daily.std() / 2.5
+
+    def test_before_it_differs_on_the_warm_up_and_on_two_ties(self, before_cl, before) -> None:
+        differ = before.combination.days[_half_of_each(before) != before.combination.positions]
+        assert len(differ) == 12
+        close = before_cl.to_numpy()
+        ties = before_cl.index[close == backshift(MOMENTUM_LOOKBACK, close)]
+        assert list(ties) == [pd.Timestamp("2005-06-15"), pd.Timestamp("2007-04-17")]
+        assert set(ties) <= set(differ)
+        assert not (close == backshift(REVERSAL_LOOKBACK, close)).any()
+
+    def test_before_the_two_rules_agree_on_162_of_958_rows(self, before_cl, before) -> None:
+        both = _both_lags(before_cl)
+        agree = both & (before.momentum.positions == before.reversal.positions)
+        assert (int(both.sum()), int(agree.sum()), int((both & ~agree).sum())) == (958, 162, 796)
+
+    def test_before_the_average_day_and_its_spread(self, before) -> None:
+        assert _mean_and_deviation(before.combination) == (0.000091, 0.003922)
+        assert _mean_and_deviation(before.momentum) == (0.000406, 0.009765)
+        assert _mean_and_deviation(before.reversal) == (-0.000222, 0.009792)
 
 
 class TestTheMutations:
