@@ -19,10 +19,9 @@ Chan's two books ship two different ``smartstd`` files under one name, and
 each is what its own printouts imply, so both live here under names that say
 which book each belongs to. :func:`smartstd_first_edition` is the first
 edition of *Quantitative Trading*'s. :func:`smartstd_book_two` is *Algorithmic
-Trading*'s, and choosing it over the first edition's moves a figure Example 7.2
-prints, which ``tests/test_pead.py`` pins, both figures Example 4.1 prints,
-which ``tests/test_buy_on_gap.py`` pins, and the revised Example 7.7 Sharpe
-ratio above. The revised edition's Example 7.4
+Trading*'s, and choosing it over the first edition's moves figures several
+examples print, such as Example 7.2's, which ``tests/test_pead.py`` pins, and
+the revised Example 7.7 Sharpe ratio above. The revised edition's Example 7.4
 prints a Sharpe ratio that :func:`smartstd_book_two` lands and the first
 edition's misses, and the repost of its code named below carries book two's
 file, so :mod:`chan.pca_factor` calls :func:`smartstd_book_two`.
@@ -152,9 +151,8 @@ too, and so does Example 2.5's ``stationarityTests.m``. They are git blobs
 ``e4bc46f`` and under ``archived/matlab/`` in ivanliu1989/algorithmic_trading
 at ``4567024``. They landed here for
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
-Examples 2.6 to 2.8's ``cointegrationTests.m`` calls them too, for
-[issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and so
-does Example 4.2's ``indexArb.m``, for
+other scripts of Chan's that later replications transcribe call them too,
+Example 4.2's ``indexArb.m`` among them, for
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343). Three
 things changed on the way over.
 
