@@ -7074,7 +7074,7 @@ records them.
 
 ### What the entry concludes
 
-Three things.
+Four things.
 
 1. **Chan's stationarity claim and his rounded figures survive on his own
    file.** The ADF statistic of −4.727778 clears the 1 percent value by
@@ -7093,6 +7093,17 @@ Three things.
    so the rule lets go of its last pair on 2012-05-08. The final 66 rows of
    the window earn exactly 0, and the APR spreads the same compounded return
    over those extra days.
+4. **The trade bets the spread moves further from its average.** The log
+   spread is minus γ times the gap between expiries, so it falls when γ
+   rises, and on the window's 1,097 held rows the held pair's log spread
+   correlates with γ at −0.883910. Line 107 reverses the long-far, short-near
+   position where z is above 0, which is where the spread is low, so it sells
+   the spread low and buys it high, although line 71 calls the block a
+   "linear mean reversion strategy". Reversing every position, the bet location 2461 describes,
+   gives an APR of −0.080125 and a Sharpe ratio of −1.278216. The
+   `TestTheTradesDirection` class pins all three. The write-up found this.
+   Row 9's stationarity still holds, since it reads γ's long-run level
+   rather than the direction the trade bets.
 
 ### What this entry cannot say
 
@@ -7114,7 +7125,11 @@ trades. Entry 22 names the same limit for USD.CAD's lookback.
 closing one pair and opening the next.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.calendar_spread_reversion_figures`
+redraws.
 
 ## Entry 35: VIX futures calendar spreads on the ratio of back to front, Chan's *Algorithmic Trading*
 

@@ -465,7 +465,9 @@ where they were first built. The other thirty-four were built here.
     comment's APR of 0.083406 and Sharpe ratio of 1.288661 do not reproduce
     on that window, and starting a day later lands both to every digit. The
     book's 61 holding days in place of the script's 63 give 0.067315 and
-    1.044327. Every figure is exploratory.
+    1.044327. The spread falls as the roll return rises, so the script's sign
+    flip sells the spread when it is low, and reversing it, the bet the book
+    describes, gives an APR of −0.080125. Every figure is exploratory.
 35. VIX futures calendar spreads traded on the ratio of the back contract to
     the front, from *Algorithmic Trading*'s Chapter 5, on Chan's own VX
     strip, which has no spot column. No script ships under its own name, and
@@ -797,7 +799,9 @@ for the crude oil calendar spread. It pins the script's window and the window
 a day later at six decimals and at the precision Chan printed, the ADF
 statistic against its 1 percent critical value, the run holding each pair at
 least 61 days, the first and last days a pair is held, and the 66 rows at the
-window's end that return exactly 0. It also runs the script's window on CL
+window's end that return exactly 0. It pins the direction the trade bets too:
+the held spread's correlation with γ, the far leg's side against the z-score's
+sign, and the figures with every position reversed. It also runs the script's window on CL
 with a lookback and an end passed in, which no row above passes, and pins the
 CL strip as the vintage `run` reads from the directory it is given. On
 synthetic frames it holds the script's schedule, sign flip and return, and the
@@ -3734,6 +3738,84 @@ uv run python -m chan.khandani_lo_book_two_figures
 ```
 
 [tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/crude-oil-calendar-spread-lessons.md](blog/crude-oil-calendar-spread-lessons.md)
+is a twenty-sixth post, about Example 5.4 of Chan's *Algorithmic Trading*,
+which trades crude oil's 12-month calendar spread on the z-score of its roll
+return. Chan reports a half-life of 36 days, stationarity "with 99 percent
+probability", and an APR of 8.3 percent with a Sharpe ratio of 1.3 from
+2008-01-02 to 2012-08-13. The post links the earlier calendar-spreads post,
+the USD.CAD post and the price-spread-ratio post rather than repeating them,
+and draws five lessons from Entry 34 of the replication log.
+
+1. The book's figures reproduce on Chan's own file, and the script's comment
+   lands only on a window starting a day later, found by a scan.
+2. The spread moves against the roll return, and the script reverses its
+   position where the roll return's z-score is above 0, so it sells the spread
+   when the spread is low. Reversing every position, the bet the book
+   describes, gives an APR of −0.080125.
+3. The book's 61 holding days and the script's 63 give different trades, and
+   the script's is the one that printed the figures.
+4. The window's last 66 days hold nothing, because contracts still trading
+   when the file was saved look expired on its last day.
+5. The half-life that sets the lookback is measured on the days the trade
+   uses, and it measures reversion for a trade that bets against it.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   2321, 2326, 2364, 2449, 2453, 2461, 2471 and 2502, with Figure 5.7's
+   caption at 2471.
+2. Facts about the script rather than the data: the comments at its lines 71
+   and 99, its `idx=find(tday==20080102)` and `3*21`, and the expiry mark at
+   line 75, all at `e4bc46f` of ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the ADF test's long-run reversion and the
+   trade's short-run continuation can both hold of one series, that VIX's
+   ratio of back to front rises with its spread, and that any backtest
+   inferring expiry from the last price goes flat at the end of its file.
+4. Figures the post states in words or as percentages of pinned ones, such as
+   8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and 60
+   percent. The figure's alt text reads its curves approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
+or to
+[tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
+for the figure's own numbers. Seven had no pin before it.
+
+1. The held pair's log spread correlates with γ at −0.883910 on the window's
+   1,097 held days, and at −0.893686 on all 1,429 held days of the file.
+2. The far leg is short on all 554 held days of the window where γ's z-score
+   is above 0, and long on all 543 where it is below.
+3. Reversing every position gives an APR of −0.080125 and a Sharpe ratio of
+   −1.278216, and its compounded curve ends at −0.320073.
+4. Measured to 2012-05-09, the last day with a return, over 1,098 days, the
+   APR is 0.087853 and the Sharpe ratio 1.316295.
+5. The script's curve ends at a cumulative return of 0.443248.
+6. 1,164 of γ's 1,941 finite days lie in the traded window.
+7. `held_log_spread`, the log of the far contract less the log of the near
+   one on each row that holds exactly one pair, on synthetic frames.
+
+Its one figure is drawn from the committed CL strip by
+[src/chan/calendar_spread_reversion_figures.py](src/chan/calendar_spread_reversion_figures.py),
+which reads it through the same `run` as
+`python -m chan.calendar_spread_reversion`. It draws two panels.
+
+1. The script's cumulative compounded return from 2008-01-02, the book's
+   Figure 5.7, with the last 66 flat days shaded and the reversed trade dashed
+   beside it.
+2. The held pair's log spread against the roll return on the 1,097 held days,
+   for which the book draws no figure.
+
+```bash
+uv run python -m chan.calendar_spread_reversion_figures
+```
+
+[tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
