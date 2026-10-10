@@ -162,19 +162,28 @@ class StationarityRun:
         return self.pnl.index[int(np.flatnonzero(self.pnl.to_numpy())[0])]
 
 
+def market_value(closes: np.ndarray, lookback: int) -> np.ndarray:
+    """Example 2.5's ``mktVal``, the position held at each close.
+
+    It is minus the close's distance from its ``lookback``-row moving average,
+    in ``lookback``-row moving standard deviations, and NaN until the window
+    fills.
+    """
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return -(closes - moving_avg(closes, lookback)) / moving_std(closes, lookback)
+
+
 def linear_mean_reversion(closes: np.ndarray, lookback: int) -> np.ndarray:
     """Example 2.5's daily P&L, lines 55 to 57 of ``stationarityTests.m``.
 
-    ``mktVal`` is minus the close's distance from its ``lookback``-row moving
-    average, in ``lookback``-row moving standard deviations. Each day's P&L is
-    the previous day's ``mktVal`` times the day's return, and a NaN is set to
-    0. The first row has no previous day, and the rows before the window fills
-    multiply by NaN, so all of them are 0.
+    Each day's P&L is the previous day's :func:`market_value` times the day's
+    return, and a NaN is set to 0. The first row has no previous day, and the
+    rows before the window fills multiply by NaN, so all of them are 0.
     """
     previous = lag1(closes)
+    position = market_value(closes, lookback)
     with np.errstate(invalid="ignore", divide="ignore"):
-        market_value = -(closes - moving_avg(closes, lookback)) / moving_std(closes, lookback)
-        pnl = lag1(market_value) * (closes - previous) / previous
+        pnl = lag1(position) * (closes - previous) / previous
     return np.where(np.isnan(pnl), 0.0, pnl)
 
 

@@ -4,9 +4,11 @@ They are *Algorithmic Trading*'s Examples 2.1 to 2.5.
 
 This file is the single authority for every number any prose surface quotes
 about Examples 2.1 to 2.5, with one exception, in
-``blog/usdcad-stationarity-lessons.md``. That post also quotes H at a ``maxT``
-of 24, which ``tests/test_tu_momentum.py`` holds, and its figure's labels,
-which ``tests/test_usdcad_mean_reversion_figures.py`` holds. README lists what
+``blog/usdcad-stationarity-lessons.md``. That post also quotes numbers held
+elsewhere: H at a ``maxT`` of 24 in ``tests/test_tu_momentum.py``, CAD/AUD's
+half-life of 141.6 days in ``tests/test_stationary_candidates.py``, the book's
+23-day half-life in ``tests/test_etf_cointegration.py``, and its figure's
+labels in ``tests/test_usdcad_mean_reversion_figures.py``. README lists what
 the post says that nothing asserts. ``docs/replication-log.md`` Entry 22
 carries the verdicts and points here row by row.
 
@@ -67,6 +69,7 @@ from chan.usdcad_mean_reversion import (
     StationarityRun,
     linear_mean_reversion,
     main,
+    market_value,
     pnl_drawdown,
     read_sources,
     run,
@@ -269,15 +272,13 @@ class TestExample25LinearMeanReversion:
 
 
 def held_position(result: StationarityRun) -> pd.Series:
-    """The script's ``mktVal`` on each day, minus the close's 115-day z-score."""
+    """The run's ``mktVal`` on each day, over the run's own lookback."""
     y = result.closes.to_numpy(dtype=float)
-    lookback = result.lookback
-    z = (y - moving_avg(y, lookback)) / moving_std(y, lookback)
-    return pd.Series(-z, index=result.closes.index)
+    return pd.Series(market_value(y, result.lookback), index=result.closes.index)
 
 
 class TestBesideTheClaim:
-    """What the blog post on Examples 2.1 to 2.5 says about the drawdown, with no published figure.
+    """Numbers the blog post on Examples 2.1 to 2.5 quotes about the trade, none a published figure.
 
     None of these is a replication. Each reads the run's closes and P&L on the
     vintage and specification in :data:`SPEC`, so they are as exploratory as
@@ -293,7 +294,7 @@ class TestBesideTheClaim:
         assert at_trough / at_peak - 1 == pytest.approx(0.2841275351, abs=5e-11), SPEC
 
     def test_the_largest_short_is_held_inside_the_fall(self, result: StationarityRun) -> None:
-        """The position is largest when the move against it is, 4.12 deviations from the average."""
+        """The largest short, 4.12 moving deviations, falls inside the drawdown."""
         position = held_position(result)
         assert position.min() == pytest.approx(-4.1198560837, abs=5e-11), SPEC
         assert str(position.idxmin().date()) == "2008-10-10"
@@ -301,11 +302,39 @@ class TestBesideTheClaim:
         assert position.max() == pytest.approx(3.0442241430, abs=5e-11), SPEC
         assert str(position.idxmax().date()) == "2009-05-29"
 
+    def test_the_short_eases_while_the_close_keeps_rising(self, result: StationarityRun) -> None:
+        """The deviation widens with the close, so the trough holds a smaller short."""
+        position = held_position(result)
+        trough = result.drawdown.trough
+        assert result.closes[position.idxmin()] == 1.17325, SPEC
+        rise = result.closes[trough] / result.closes[position.idxmin()] - 1
+        assert rise == pytest.approx(0.1036437247, abs=5e-11), SPEC
+        assert position[trough] == pytest.approx(-3.8330290865, abs=5e-11), SPEC
+
+    def test_the_rule_is_short_on_all_69_days_of_the_fall(self, result: StationarityRun) -> None:
+        """Each day after the peak through the trough earns on yesterday's position."""
+        d = result.drawdown
+        held = held_position(result).shift(1)[d.peak : d.trough].iloc[1:]
+        assert len(held) == 69
+        assert (held < 0).all(), SPEC
+
+    def test_the_run_ends_below_its_high_after_climbing_back(self, result: StationarityRun) -> None:
+        cumulative = result.pnl.cumsum()
+        assert cumulative.max() - result.total_pnl == pytest.approx(0.0179671332, abs=5e-11)
+        assert result.total_pnl - cumulative.min() == pytest.approx(0.6245642655, abs=5e-11)
+
     def test_the_rule_holds_short_on_488_days_and_long_on_613(
         self, result: StationarityRun
     ) -> None:
-        """Counted on the day the P&L is earned, so on yesterday's position."""
+        """Counted on the day the P&L is earned, so on yesterday's position.
+
+        The P&L each held day earns has the sign of that position times the
+        day's return, which ties the count to the rule rather than to a copy.
+        """
         held = held_position(result).shift(1).dropna()
+        returns = result.closes.pct_change().loc[held.index]
+        earned = result.pnl.loc[held.index]
+        np.testing.assert_allclose(earned.to_numpy(), (held * returns).to_numpy(), atol=1e-12)
         assert len(held) == 1101 == len(result.closes) - result.lookback
         assert ((held < 0).sum(), (held > 0).sum()) == (488, 613), SPEC
 

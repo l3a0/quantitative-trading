@@ -688,8 +688,9 @@ recomputes Example 2.5's daily P&L with plain pandas.
 [tests/test_stationarity_tests.py](tests/test_stationarity_tests.py) holds the
 three toolbox tests' rules on synthetic series: the row jplv7 drops, the bins
 of its critical values, `genhurst`'s indifference to level and scale, and the
-variance ratio's trim to whole periods. The blog post about them is the
-exception, and what it says that nothing here asserts is listed below.
+variance ratio's trim to whole periods. The blog post about the USD.CAD
+examples is the exception, and what it says that nothing here asserts is listed
+below.
 
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) does it for
 the ETF cointegration examples. It pins every figure `cointegrationTests.m`
@@ -3453,39 +3454,43 @@ about −1.84, an H of 0.49 and a half-life of 115 days, and says the trade's P&
 lessons from Entry 22 of the replication log.
 
 1. Four statistics land every digit the script prints, so the closes are
-   Chan's, and none of the four tests can reject a random walk.
+   Chan's, and the ADF test cannot reject a random walk.
 2. The ADF figure depends on the toolbox, because jplv7's `adf` fits one row
    fewer than `adfuller` at the same lag.
-3. H misses 0.49 under both of Chan's own implementations and with a longer
-   window, while every reading stays below 0.5.
-4. The trade ends positive after a fall more than five times its profit, with
-   its largest short held inside that fall.
+3. H misses 0.49 under both implementations Chan's code uses and with a longer
+   window, and the variance ratio test cannot reject a random walk either.
+4. The trade ends positive after a fall more than five times its final P&L,
+   short on every day of that fall and at its largest short inside it.
 5. The lookback came from the closes the rule traded, so the result checks the
-   arithmetic and not the edge.
+   arithmetic and not whether the trade would pay.
 
 Five groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    Most prices as random walks is at 1036, the variance growing like τ²ᴴ at
-   1063, the reading of the statistic and of λ at 1114, H's meaning and the
-   0.49 at 1119, the variance ratio test as H's significance test at 1149, the
-   half-life and the warning about round trips at 1164, the case for trading
-   below 90 percent certainty at 1193, the linear rule at 1205, the claim and
-   its three cautions at 1225, the case for testing before a backtest at 1237,
-   the 23-day half-life at 1347 and the lookback with no parameters to
-   optimise at 1350. The book's figures are pinned, and its words are not.
+   1063, the critical value and its table at 1076, the reading of the
+   statistic and of λ at 1114, H's meaning and the 0.49 at 1119, the variance
+   ratio test as H's significance test at 1149, the half-life and the warning
+   about round trips at 1164, the case for trading below 90 percent certainty
+   at 1193, the linear rule at 1205, the claim and its three cautions at 1225,
+   the case for testing before a backtest at 1237, the 23-day half-life at 1347
+   and the lookback with no parameters to optimize at 1350. The book's figures
+   are pinned, and its words are not.
 2. Facts about the code rather than the data: that jplv7 trims one more row
-   when it lines up the lagged close, that every surviving copy of `genhurst`
-   is dated 2013-01-30 and runs one algorithm, and that Chan's 2018 Python port
-   and `ithildincore` both run `adfuller`.
-   [src/chan/stationarity_tests.py](src/chan/stationarity_tests.py)'s docstring
-   records each.
-3. Readings no test asserts: that the AR(1) estimate means each day keeps
-   roughly 99.41 percent of its distance from the mean, that a p-value of
-   0.367 means a random walk gives a ratio this far from 1 more than a third of
-   the time, and that the autumn of 2008 was when commodity prices fell and the
-   Canadian dollar with them.
+   when it lines up the lagged close, that `genhurst` averages over windows of
+   5 to 19 days, that every copy of it a search found is dated 2013-01-30 and
+   runs one algorithm, that Chan's 2018 Python port fits the log variance of
+   τ-day changes on log τ, and that the port and `ithildincore` both run
+   `adfuller`. [src/chan/stationarity_tests.py](src/chan/stationarity_tests.py)
+   and [src/chan/usdcad_mean_reversion.py](src/chan/usdcad_mean_reversion.py)
+   record each in their docstrings.
+3. Readings no test asserts: that each day keeps roughly 99.41 percent of its
+   distance from the mean, that a p-value of 0.367 means a random walk gives a
+   ratio this far from 1 more than a third of the time, that none of the four
+   statistics depends on the units of the closes, that a random walk has no
+   half-life, and that a fall in a commodity currency fits the autumn of 2008,
+   which the post says nothing here tests.
 4. The figure's alt text, whose readings of the lines, such as "near 1.05" and
    "about 0.92 in late 2007", are approximate by design. The book's own chart
    of the cumulative P&L is not compared with the redraw, and the post cites
@@ -3496,20 +3501,26 @@ Every other number in the post traces to an assertion in
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py), to
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) for H at a `maxT` of
 24, to [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py)
-for the 141.6-day half-life, or to
+for the 141.6-day half-life, to
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) for the
+book's 23 days, or to
 [tests/test_usdcad_mean_reversion_figures.py](tests/test_usdcad_mean_reversion_figures.py)
-for the figure's own numbers. Five had no pin before it, and
+for the figure's own numbers. Eight had no pin before it, and
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
-now pins them all.
+now pins them all, reading the position from the run's own `market_value`.
 
 1. The closes on the drawdown's two dates, 1.00835 and 1.29485, a rise of 28.4
    percent.
 2. The largest short, −4.12 on 2008-10-10 inside the fall, and the largest
    long, 3.04 on 2009-05-29.
-3. The rule holds a short on 488 days and a long on 613 of the 1,101 it holds
+3. The close on the day of the largest short, 1.17325, the further 10.4
+   percent it rose by the trough, and the short of −3.83 held there.
+4. The rule is short on all 69 days of the fall.
+5. The rule holds a short on 488 days and a long on 613 of the 1,101 it holds
    anything.
-4. The P&L ends 2008 at −0.2552, and the rest of the run adds 0.3693.
-5. The 1,216 closes span 10.6 half-lives.
+6. The P&L ends 2008 at −0.2552, and the rest of the run adds 0.3693.
+7. The run ends 0.0180 below its high, after climbing 0.6246 from its low.
+8. The 1,216 closes span 10.6 half-lives.
 
 Its one figure is drawn from the committed file by
 [src/chan/usdcad_mean_reversion_figures.py](src/chan/usdcad_mean_reversion_figures.py),
