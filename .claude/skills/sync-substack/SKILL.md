@@ -42,9 +42,14 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
 
 ## Before any write
 
-1. **Get the owner's approval in chat.** Creating a draft and changing one are
-   both writes to the owner's publication. A write to a published post is
-   public at once.
+1. **Know which writes need the owner.** Creating an unpublished draft and
+   syncing one need no ask, by the owner's standing approval of 2026-10-10.
+   Publishing, scheduling and sending stay the owner's call, and so does any
+   write to a post that is already published, as the last section explains.
+   The standing approval covers the write and not the comparison before it.
+   Every sync still compares the live draft with its recorded baseline first,
+   and an edit the owner made in the editor goes into the Markdown rather
+   than being overwritten.
 2. **Look for an existing draft.** Read the owner's notes, then list the
    drafts. Sessions have twice been sent to create a draft that already
    existed, and only this lookup stopped a duplicate.
@@ -258,7 +263,7 @@ reproduces the draft's image nodes.
 4. **Sort each difference into one of three kinds.**
    1. Text the owner changed goes into the Markdown first, through the usual
       pull request, and the draft is then written from that Markdown.
-   2. A change the editor made on its own is restored in the approved write,
+   2. A change the editor made on its own is restored in the sync's write,
       and the owner is told why.
       One editor save turned `4\%` into `4%` inside a LaTeX block, which breaks
       the block, and added a trailing space to a paragraph. Neither changes
@@ -291,13 +296,17 @@ sides before comparing, and say in the notes that this draft needs it.
 
 ## Update a published post
 
+Every write here waits for the owner's approval in chat. The standing approval
+for unpublished drafts does not reach a published post, because both steps
+below act on a post readers can already see.
+
 A published post takes two steps, and the first alone changes nothing a reader
 sees.
 
 1. `PUT /api/v1/drafts/<id>` changes the post's draft only. The public
    `GET /api/v1/posts/<slug>` keeps serving the old body.
-2. The live post changes when the owner, or a session with the owner's
-   approval, clicks the editor's Update button and then "Update now" in the
+2. The live post changes when the owner, or a session the owner approved for
+   that post, clicks the editor's Update button and then "Update now" in the
    panel that opens. On 2026-10-03 that panel offered no email option, sent
    no email, and kept the original publish date.
 
