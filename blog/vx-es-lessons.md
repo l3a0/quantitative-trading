@@ -89,7 +89,7 @@ The same specification on the other two saves misses everything.
 \text{2012-05-07 save} & 0.390594 & \$2{,}044.91 & 0.122811 & 1.393201 \\
 \text{2012-05-11 save} & 0.376431 & \$2{,}291.00 & 0.056582 & 0.673910 \\
 \text{2012-05-17 save} & 0.376431 & \$2{,}291.00 & 0.056582 & 0.673910 \\
-\texttt{VX\_ES.m}\text{ as it ships} & 0.350731 & \$2{,}373.59 & \text{none} & \text{none}
+\texttt{VX}\_\texttt{ES.m}\text{ as it ships} & 0.350731 & \$2{,}373.59 & \text{none} & \text{none}
 \end{array}
 ```
 
@@ -121,7 +121,7 @@ The book describes the entry and is silent about the exit. Two other readings of
 \end{array}
 ```
 
-Closing each position when the z-score crosses zero is what `bollinger.m`, Chan’s script for Example 3.2, does. That example trades GLD against USO with a band of the same kind, which Chan calls a Bollinger band, and [the post on price spreads](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md#lesson-5-a-return-that-cannot-see-its-own-scale) names it at its close. It has no post here yet. Read that way, this trade earns 6.8 percent a year rather than 12.3.
+Closing each position when the z-score crosses zero is what `bollinger.m`, Chan’s script for Example 3.2, does. That example trades GLD against USO with a band of the same kind, which Chan calls a Bollinger band, and [the post on price spreads](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md#lesson-5-a-return-that-cannot-see-its-own-scale) names it at its close. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md#the-rule-and-the-file) reproduces that example to six digits, exit at zero included. Read that way, this trade earns 6.8 percent a year rather than 12.3.
 
 Starting the band flat on the first test day, so nothing is carried in from training, lands the Sharpe ratio and misses the APR, at 12.5 percent. On 2010-07-28, the last training day, the z-score is −1.041, so the band is already long. `VX_ES_rollreturn.m` computes every day’s return first and then keeps the days from the 501st on, so its first test day earns the position held the day before. This run does the same.
 
