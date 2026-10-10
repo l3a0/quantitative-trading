@@ -667,7 +667,8 @@ each at the precision that is real. It also holds that a month the rate file
 lacks gets a rate of zero, that AUD triples on Wednesdays and CAD on
 Thursdays and a holiday multiplies nothing, that each day's return carries the
 previous day's position and rates, and that zero rates give the script's
-commented-out formula without rollover bit for bit.
+commented-out formula without rollover bit for bit. The blog post about it is
+the exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py) does
 it for the crude oil rule. It pins the two figures on the 2012-05-04 save at
@@ -2848,6 +2849,95 @@ uv run python -m chan.etf_cointegration_figures
 ```
 
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/aud-cad-rollover-lessons.md](blog/aud-cad-rollover-lessons.md) is a
+nineteenth post, about Example 5.2 of Chan's *Algorithmic Trading*, which adds
+the rollover interest a currency position earns or pays overnight to a rule
+that holds minus the sign of AUD.CAD's 20-day z-score. Chan reports an APR of
+6.2 percent and a Sharpe ratio of 0.54 with rollover interest, 6.7 percent and
+0.58 without it, and an annualised rollover interest of almost 5 percent. The
+post draws five lessons from Entry 30 of the replication log.
+
+1. The script's two printed figures and the book's four land every digit, and
+   a constant scale on the closes moves none of them.
+2. The book's "almost 5 percent" is not the rollover interest location 2273
+   defines, which misses the pass mark at 3.26 percent a year, while the AUD
+   rate alone and the difference over 365 days both land inside it.
+3. The rollover the strategy earned was a cost of about half a point a year,
+   because the rule held short on 707 days and long on 510.
+4. The book's Sharpe ratio of 0.54 depends on the script filling a missing
+   month's rate with zero.
+5. An exact reproduction checks the arithmetic and not the edge.
+
+Six groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The interest differential iB − iQ, "also called a rollover interest", the
+   5 p.m. close, the T + 3 rule for a cross and the T + 1 exception for
+   USD.CAD are at 2273. Adding the rollover interest to the cross rate's
+   percent change, after Dueker (2006), is at 2287. The three claims, "even
+   though", the linear mean-reverting strategy and the two central banks as
+   the rates' sources are at 2303.
+2. Facts outside the committed data. What T + 2 settlement is and why it makes
+   one weekday pay three days, and that the MATLAB script kept the 16:59 bar
+   of a minute file no public copy holds, which
+   [src/chan/aud_cad_rollover.py](src/chan/aud_cad_rollover.py)'s docstring
+   records. The script's line 50, `APR=0.061564 Sharpe=0.541802`, is pinned
+   through its constants, and its line number was read at `e4bc46f`.
+3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, that
+   the two monthly averages of 4.908 and 1.592 percent differ by about 3.3
+   points, that the reading over 365 days is the one over 252 scaled by
+   365 / 252, about 1.45, that the rule holds short on 197 more days than long
+   and that 1,020 of its days pair a long day with a short one.
+4. Two readings no test asserts: that the tripled day already pays for the
+   weekends, so annualising over 365 days overstates the year, and that the
+   stationary-candidates post finds the CAD/AUD rate reverting, which that
+   post's own tests pin.
+5. The figure's alt text, whose readings of the lines, such as AUD staying
+   above CAD in every month and the line without rollover interest sitting
+   above the line with it on every day after January 2008, were measured once
+   on the committed files and are not asserted.
+6. Its references, cited rather than computed. Dueker (2006) is named as the
+   book names it, without its full entry, which the committed notes do not
+   record.
+
+Every other number in the post traces to an assertion in
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py), or to
+[tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
+for the figure's own numbers, among them the rates' extremes, the close's
+low and high, where the two cumulative returns end, and their deepest fall
+from 2008-07-30 to 2008-10-08. Three had no pin before it, and
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) now pins
+them.
+
+1. The difference between the APR without rollover interest and the APR with
+   it, 0.0055770095.
+2. The net share of held days, (510 − 707) / 1,217, times the annualised
+   rollover interest, −0.0052838233, against the rollover the strategy earned
+   of −0.0052212787.
+3. The rollover interest annualised over the days held long, 0.0328995788, and
+   over the days held short, 0.0328677609.
+
+Its one figure is drawn from the committed files by
+[src/chan/aud_cad_rollover_figures.py](src/chan/aud_cad_rollover_figures.py),
+which reads them through the same `read_sources` and `aud_cad_rollover` as
+`python -m chan.aud_cad_rollover`, scale-break guard included. It draws three
+panels on one date axis, for Lessons 1, 3 and 4.
+
+1. The AUD and CAD monthly rates from July 2007, with the months each file
+   lacks marked.
+2. The AUD.CAD close, with the days held short and the days held long shaded.
+3. The cumulative return with and without rollover interest, compounded as the
+   script compounds it.
+
+```bash
+uv run python -m chan.aud_cad_rollover_figures
+```
+
+[tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
