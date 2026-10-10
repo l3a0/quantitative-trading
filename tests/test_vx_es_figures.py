@@ -239,6 +239,11 @@ class TestTheCumulativeReturn:
         t = result.trade
         assert list(line.get_xdata()) == list(t.test_days)
         np.testing.assert_allclose(line.get_ydata(), np.cumprod(1 + t.daily) - 1, rtol=1e-12)
+        assert axes["returns"].get_xlim() == (date2num(t.test_days[0]), date2num(t.test_days[-1]))
+
+    def test_the_axis_reads_the_return_as_a_percentage(self, axes) -> None:
+        """A cumulative return of 0.2 is labelled 20%, not 0.2%."""
+        assert axes["returns"].yaxis.get_major_formatter()(0.2) == "20%"
 
     def test_it_ends_where_the_apr_says(self, axes, result) -> None:
         ydata = _by_gid(axes["returns"].lines)["cumulative"].get_ydata()
