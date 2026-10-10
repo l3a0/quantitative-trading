@@ -5351,7 +5351,7 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 13 | LeSage's `lag`, which pads with zero, in place of `backshift` | the same returns to 10⁻¹⁵, and the same days at zero | `TestTheStrategy::test_zero_padding_the_lag_as_lesage_does_gives_the_same_series` |
 | 14 | `scale_breaks` on each of the 98 | CVH, MOS, PNC and STT, every flag in the test window | `TestTheScaleBreakDecision::test_four_of_the_baskets_stocks_carry_a_flag_all_in_the_test` |
 | 15 | The screen on 2,000 Gaussian random walks with no drift, seeded with 343, against SPY's 2007 closes | 561 pass, 28 percent, about 135 of 480 | `TestBesideTheReplication::test_the_screen_passes_561_of_2000_walks_unrelated_to_spy` |
-| 16 | `johansen(·, 0, 1)` on 2,000 pairs of such walks, seeded with 345 | r ≤ 0 rejected on 410 at the 90 percent value and 242 at the 95, about 20 and 12 percent | `TestBesideTheReplication::test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks` |
+| 16 | `johansen(·, 0, 1)` on 2,000 pairs of such walks, seeded with 345 | r ≤ 0 rejected on 410 at the 90 percent value and 242 at the 95, 20.5 and 12.1 percent | `TestBesideTheReplication::test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks` |
 
 ### The verdicts
 
@@ -5386,8 +5386,8 @@ Four things.
 2. **The screen's 98 is a count of tests passed, and no more than chance
    gives.** The script tests 480 stocks at a per-test 90 percent bar, whose
    nominal rate would put about 48 passes down to chance. The test does not
-   hold that rate. Row 16 shows the trace test with a constant rejecting about
-   20 percent of pairs of unrelated walks at its 90 percent value, and row 15
+   hold that rate. Row 16 shows the trace test with a constant rejecting 20.5
+   percent of pairs of unrelated walks at its 90 percent value, and row 15
    shows the screen passing 28 percent of such walks against SPY's own 2007
    closes, about 135 of 480. The 98 stocks are fewer than that. Gaussian walks
    with no drift are not stocks, so this does not say none of the 98
@@ -5402,7 +5402,7 @@ Four things.
    its own, at −2.46 and −2.38 against −2.57. A plain ADF over 251 days has
    little power, so this is weak evidence rather than proof. The eigen test,
    which finds no relation at all, does not support the full rank either, and
-   row 16 shows the trace test rejecting about 12 percent of unrelated pairs at
+   row 16 shows the trace test rejecting 12.1 percent of unrelated pairs at
    its 95 percent value, so row 5's trace pass is weaker than its label.
 4. **The 4.5 percent is in-sample on its lookback and survivor-only.** The
    stocks and weights are fitted on 2007 and traded on 2008 to 2012, which
@@ -5433,7 +5433,10 @@ cost is charged here, as none is in the script.
 the index as it stood.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/index-arbitrage-lessons.md](../blog/index-arbitrage-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.index_arbitrage_figures` redraws.
 
 ## Entry 25: AUD.USD against CAD.USD, Chan's *Algorithmic Trading*
 

@@ -280,10 +280,18 @@ from four places, and give the evidence for each one.
    open in `needs`, and no pull request merged with no `Part of`. That last one
    leaves the card only a close by hand, so it is not a candidate.
 3. **Blog drafts.** List the Substack drafts and their schedule. A merged or open
-   pull request that touches `blog/` can leave its draft stale, and syncing it
-   needs the owner's approval. A pull request's own session may already have
-   synced it, so compare before asking. The draft ids live outside this repo,
-   in Claude's local memory for it.
+   pull request that touches `blog/` can leave its draft stale. A stale draft
+   that is neither published nor scheduled is synced rather than asked about,
+   under the
+   owner's standing approval in `CLAUDE.md`'s
+   `## Write-ups and their Substack drafts`. A pull request's own session may
+   already have synced it. So first compare the live draft with the copy of it
+   recorded at the last sync, and pull any edit the owner made since then into
+   the Markdown rather than overwrite it. A change to a published or scheduled
+   post stays in the owner's queue, because writing to its draft changes what
+   goes out. Publishing, scheduling and sending stay there too. The draft ids
+   and the recorded copies live outside this repo, in Claude's local memory for
+   it.
 4. **The replication backlog**, in `NEXT`'s order, for when nothing above is
    waiting.
 
