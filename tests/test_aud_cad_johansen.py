@@ -347,6 +347,8 @@ class TestBesideTheReplication:
             "2010-10-05",
         )
         assert np.count_nonzero(same & ~in_2010) == 5
+        # None of the 90 falls in a window the trace test backed.
+        assert np.count_nonzero(same & (result.trace_relations > 0)) == 0
         edges = np.diff(np.concatenate(([0], same.astype(int), [0])))
         starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
         longest = int(np.argmax(ends - starts))
@@ -374,6 +376,16 @@ class TestBesideTheReplication:
         assert rest == pytest.approx(0.1696463785, abs=1e-10)
         assert (1 + those) * (1 + rest) - 1 == pytest.approx(0.2952620351, abs=1e-10)
         assert np.log1p(those) / np.log1p(0.2952620351) == pytest.approx(0.394, abs=5e-4)
+
+    def test_the_curve_climbed_from_0_0214_to_0_1170_across_the_2010_stretch(self, result):
+        """The compounded return on the last day before the first same-way day, and on the
+        last day of the 65-day run."""
+        curve = pd.Series(np.cumprod(1 + result.test) - 1, index=result.test_days)
+        assert str(curve.index[curve.index.get_loc(pd.Timestamp("2010-06-01")) - 1].date()) == (
+            "2010-05-31"
+        )
+        assert curve["2010-05-31"] == pytest.approx(0.0213815186, abs=1e-10)
+        assert curve["2010-10-05"] == pytest.approx(0.1170443008, abs=1e-10)
 
     def test_the_90_days_swung_twice_as_wide_and_a_welch_t_of_1_09_says_chance(self, result):
         """The standard deviations are 0.0073 and 0.0035, and the means' gap has p of 0.28."""
