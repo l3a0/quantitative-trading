@@ -38,6 +38,7 @@ from chan.roll_returns_figures import (
     ROLL_RETURNS_FIGURE,
     bar_heights,
     book_label,
+    curve_days,
     main,
     make_roll_returns_figure,
     read_results,
@@ -211,6 +212,28 @@ class TestFigure55:
     def test_a_line_marks_zero(self, axes) -> None:
         assert list(_by_gid(axes["gamma"].lines)["zero"].get_ydata()) == [0, 0]
 
+    def test_the_mean_line_reads_the_script_gamma_not_the_month_gamma(
+        self, tmp_path, results
+    ) -> None:
+        """CL's contracts are a month apart, so its two γ agree to 1e-14 on the
+        committed strip. Doubling the month-spaced series tells them apart."""
+        cl = results["CL"]
+        changed = dict(results)
+        changed["CL"] = dataclasses.replace(cl, gamma_in_months=2 * cl.gamma_in_months)
+        drawn = make_roll_returns_figure(out=tmp_path / ROLL_RETURNS_FIGURE, results=changed)
+        assert _by_gid(drawn.axes[1].lines)["mean"].get_ydata()[0] == cl.mean_gamma
+
+    def test_a_flat_day_counts_on_neither_side(self, results) -> None:
+        """CL's 2006-01-05 is −8.6e-15, rounding on a level curve, so it is neither
+        contango nor backwardation. A day set to a true 0 and one to 1e-13 count the
+        same way."""
+        gamma = results["CL"].gamma.dropna()
+        assert curve_days(gamma) == (1388, 552, 1), SPEC
+        planted = gamma.copy()
+        planted.iloc[0], planted.iloc[1] = 0.0, 1e-13
+        assert curve_days(planted)[2] == 3
+        assert curve_days(gamma.iloc[[0]] * 0 - 1e-11) == (1, 0, 0)
+
     @pytest.mark.parametrize(
         ("gid", "colour", "above"),
         [("backwardation", GOOD, True), ("contango", LOST, False)],
@@ -227,8 +250,8 @@ class TestFigure55:
     def test_the_heading_counts_the_days_on_each_side(self, axes) -> None:
         assert _title(axes["gamma"]) == (
             "Figure 5.5 redrawn: CL's roll return on its 1,941 days from 2004-11-22 to "
-            "2012-08-13.\nBelow zero, contango, on 1,389 days and above zero, backwardation, "
-            "on 552."
+            "2012-08-13.\nBelow zero, contango, on 1,388 days, above zero, backwardation, "
+            "on 552, and flat on 1."
         ), SPEC
         assert axes["gamma"].get_ylabel() == "roll return γ, annualized"
 

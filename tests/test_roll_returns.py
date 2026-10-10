@@ -372,9 +372,18 @@ class TestTheRowsBeside:
         assert int(after.notna().sum(axis=1).max()) == 4, SPEC
 
 
+#: Below this size a γ is zero apart from rounding, so its sign means nothing.
+#: CL has one such day and TU seventeen, each under 1.5e-14 in size.
+FLAT = 1e-12
+
+
 def _sign_runs(gamma: pd.Series) -> list[tuple[float, pd.Timestamp, pd.Timestamp, int]]:
-    """Each unbroken run of one sign in γ's defined days: sign, first day, last day, length."""
+    """Each unbroken run of one sign in γ's defined days: sign, first day, last day, length.
+
+    A flat day has no sign, so it is skipped rather than counted as a run of its own.
+    """
     defined = gamma.dropna()
+    defined = defined[defined.abs() >= FLAT]
     signs = np.sign(defined.to_numpy())
     runs, start = [], 0
     for end in range(1, len(signs) + 1):
@@ -393,13 +402,37 @@ class TestBesideThePost:
     series is Figure 5.5's, which the post's figure redraws.
     """
 
-    def test_cl_is_in_contango_on_1389_of_its_1941_days(self, results) -> None:
+    def test_cl_is_in_contango_on_1388_of_its_1941_days_and_flat_on_one(self, results) -> None:
         gamma = results["CL"].gamma.dropna()
-        assert (int((gamma < 0).sum()), int((gamma > 0).sum()), len(gamma)) == (
-            1389,
-            552,
-            1941,
-        ), SPEC
+        flat = gamma.abs() < FLAT
+        assert (
+            int((gamma[~flat] < 0).sum()),
+            int((gamma[~flat] > 0).sum()),
+            int(flat.sum()),
+            len(gamma),
+        ) == (1388, 552, 1, 1941), SPEC
+
+    def test_cls_flat_day_is_2006_01_05_where_contango_turns_to_backwardation(
+        self, results
+    ) -> None:
+        """The five nearest settlements that day rise and fall back evenly, 65.38 to
+        65.41 and back to 65.38, so the fitted slope is zero and the script's γ of
+        about −8.6e-15 is rounding. The day before is contango and the day after
+        backwardation, so skipping it moves where one sign change falls and not how
+        many there are."""
+        gamma = results["CL"].gamma.dropna()
+        flat = gamma[gamma.abs() < FLAT]
+        assert [str(day.date()) for day in flat.index] == ["2006-01-05"], SPEC
+        settled = results["CL"].strip.contracts.loc["2006-01-05"].dropna().iloc[:5]
+        assert list(settled) == [65.38, 65.40, 65.41, 65.40, 65.38], SPEC
+        at = gamma.index.get_loc(flat.index[0])
+        assert gamma.iloc[at - 1] < 0 and gamma.iloc[at + 1] > 0, SPEC
+        signs = np.sign(gamma.to_numpy())
+        assert int((signs[1:] != signs[:-1]).sum()) == 29, SPEC
+
+    def test_no_strip_the_post_counts_but_cl_has_a_flat_day(self, results) -> None:
+        for root in ("BR", "C2", "HG"):
+            assert not (results[root].gamma.dropna().abs() < FLAT).any(), (root, SPEC)
 
     def test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango(self, results) -> None:
         runs = _sign_runs(results["CL"].gamma)

@@ -3794,7 +3794,9 @@ Every other number in the post traces to an assertion in
 the figure's own numbers. Four had no pin before it, and
 `TestBesideThePost` there now pins them all.
 
-1. CL's γ is negative on 1,389 of its 1,941 days and positive on 552.
+1. CL's γ is negative on 1,388 of its 1,941 days and positive on 552. On
+   2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
+   apart from rounding, and the sign counts skip that day.
 2. It changes sign 29 times, and its longest run of one sign is contango from
    2008-10-09 to 2011-10-21, 766 days.
 3. Its highest value is 0.258871 on 2008-09-22 and its lowest −1.121372 on

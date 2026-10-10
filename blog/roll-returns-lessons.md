@@ -133,7 +133,7 @@ The figure below sets out Lessons 2 and 3 in its upper panel, each strip’s spo
 
 Table 5.1 prints one number per future, and the model behind it says γ is constant. Chan says himself that the estimate will not be: the fit depends on the day and the contracts trading then, so “we will still end up with a slowly varying estimated γ” (location 2399). The lower panel of the figure shows how far it varies for CL.
 
-1. **Mostly contango.** CL’s γ is negative on 1,389 of its 1,941 days and positive on 552.
+1. **Mostly contango.** CL’s γ is negative on 1,388 of its 1,941 days and positive on 552. On the remaining day, 2006-01-05, the five prices rise and fall back evenly, from 65.38 to 65.41 and back to 65.38, so the fitted slope and γ are zero apart from rounding.
 2. **Long runs, with many breaks.** It changes sign 29 times. Its longest run of one sign is contango, from 2008-10-09 to 2011-10-21, 766 days.
 3. **Extremes far from the mean.** Its highest value is 0.258871, on 2008-09-22. Its lowest is −1.121372, on 2009-01-15, less than four months later. The mean is −0.070592.
 

@@ -28,6 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from matplotlib.dates import DateFormatter, YearLocator
 from matplotlib.figure import Figure
 
@@ -46,6 +47,9 @@ FIGURE_5_5_ROOT = "CL"
 MUCH_LARGER = ("BR", "C2", "TU")
 #: How far either side of a group's centre its three bars sit.
 BAR_WIDTH = 0.26
+#: Below this size a γ is zero apart from rounding, so its sign means nothing.
+#: CL has one such day, 2006-01-05, at about −8.6e-15, which the heading calls flat.
+FLAT = 1e-12
 
 
 def book_label(root: str) -> str:
@@ -72,6 +76,16 @@ def bar_heights(results: dict[str, StripReturns]) -> dict[str, list[float]]:
     }
 
 
+def curve_days(gamma: pd.Series) -> tuple[int, int, int]:
+    """The days of contango, of backwardation and of a γ of zero, among those with γ."""
+    defined = gamma.dropna()
+    return (
+        int((defined <= -FLAT).sum()),
+        int((defined >= FLAT).sum()),
+        int((defined.abs() < FLAT).sum()),
+    )
+
+
 def _heading(ax, text: str) -> None:
     ax.set_title(text, loc="left", color=INK, fontsize=10.5, linespacing=1.4)
 
@@ -87,7 +101,7 @@ def make_roll_returns_figure(
     cl = results[FIGURE_5_5_ROOT]
     gamma = cl.gamma.dropna()
     days = gamma.index
-    contango, backwardation = int((gamma < 0).sum()), int((gamma > 0).sum())
+    contango, backwardation, flat = curve_days(gamma)
 
     fig = Figure(figsize=(10, 9.5), dpi=130)
     fig.patch.set_facecolor(SURFACE)
@@ -136,10 +150,10 @@ def make_roll_returns_figure(
 
     gamma_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
     gamma_ax.fill_between(
-        days, gamma, 0, where=gamma > 0, color=GOOD, alpha=0.35, lw=0, gid="backwardation"
+        days, gamma, 0, where=gamma >= FLAT, color=GOOD, alpha=0.35, lw=0, gid="backwardation"
     )
     gamma_ax.fill_between(
-        days, gamma, 0, where=gamma < 0, color=LOST, alpha=0.25, lw=0, gid="contango"
+        days, gamma, 0, where=gamma <= -FLAT, color=LOST, alpha=0.25, lw=0, gid="contango"
     )
     gamma_ax.plot(days, gamma, color=INK, lw=0.6, gid="gamma")
     gamma_ax.axhline(
@@ -156,7 +170,8 @@ def make_roll_returns_figure(
         gamma_ax,
         f"Figure 5.5 redrawn: CL's roll return on its {len(days):,} days from "
         f"{days[0].date()} to {days[-1].date()}.\nBelow zero, contango, on "
-        f"{contango:,} days and above zero, backwardation, on {backwardation:,}.",
+        f"{contango:,} days, above zero, backwardation, on {backwardation:,}, and flat "
+        f"on {flat:,}.",
     )
     gamma_ax.set_xlim(days[0], days[-1])
     gamma_ax.xaxis.set_major_locator(YearLocator())
