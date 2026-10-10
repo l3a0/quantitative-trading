@@ -211,6 +211,17 @@ print, a half-life of 36.394034, an APR of 0.083406, a Sharpe ratio of
 sit in the script and nowhere in the book. The replication log's Entry 34
 traces each figure to one or the other.
 
+*Algorithmic Trading*'s VX calendar spread, in its Chapter 5, is the opposite
+case from its crude oil rule: every figure is in the book and none is in a
+script. The claim that the ratio of back to front is "stationary with a 99
+percent probability", the APR of 17.7 percent and Sharpe ratio of 1.5 from
+October 27, 2008, to April 23, 2012, and the claim that it "performed much
+more poorly prior to October 2008" are all here, at location 2502. No script
+ships under the experiment's own name. `calendarSpdsMeanReversion.m` carries a
+commented-out load of the VX strip, and its comments print CL's figures, not
+VX's. The replication log's Entry 35 traces each figure to the rows run
+against it.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an

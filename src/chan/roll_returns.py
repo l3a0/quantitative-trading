@@ -61,11 +61,21 @@ says by how much. Three readings were tried after the miss, and
 lands HG's cell and still misses TU's, and it moves C's α off the figure the
 Python port printed, so the specification stays the script's row number.
 
-**The vintage.** The five strips :data:`SOURCE_FILES` names, vendor
-``chan-mat``, basis ``raw``, saved 2012-08-14, one vintage per contract and one
-for the spot, read through :func:`chan.series.load_panel`. Its index is the
-union of the members' days, which is the file's own ``tday``, so the panel's
-row number is the script's. Table 5.1's C is the C2 strip.
+**The vintage.** The five strips :data:`ROOTS` names in :data:`SOURCE_FILES`,
+vendor ``chan-mat``, basis ``raw``, saved 2012-08-14, one vintage per contract
+and one for the spot, read through :func:`chan.series.load_panel`. Its index is
+the union of the members' days, which is the file's own ``tday``, so the
+panel's row number is the script's. Table 5.1's C is the C2 strip.
+
+:data:`SOURCE_FILES` also names a sixth strip, VX, saved 2012-05-08, which
+:func:`load_strip` reads for the VX calendar spread of
+[issue 349](https://github.com/l3a0/quantitative-trading/issues/349). VIX is
+not a traded asset and the file holds no spot column, so :data:`NO_SPOT_ROOTS`
+declares VX a strip read without one, and its :attr:`Strip.spot` is ``None``.
+A Table 5.1 strip that has lost its spot is still refused, because
+:func:`spot_return` needs one and would otherwise fail on ``None`` rather than
+say what is missing. :data:`ROOTS` stays at the five, since :func:`run` reads
+each of them for Table 5.1.
 
 **The scale-break guard runs on each member's own rows.** :func:`load_strip`
 calls :func:`chan.series.refuse_window_crossing_a_break` on the spot and on
@@ -79,13 +89,13 @@ holder would see, and it flags none.
 this, and ``TestTheScaleBreakDecision`` in ``tests/test_roll_returns.py`` holds
 both halves.
 
-**What two later experiments import.** :data:`ROOTS`, :func:`load_strip`,
+**What later experiments import.** :data:`ROOTS`, :func:`load_strip`,
 :func:`spot_return`, :func:`roll_returns` and :func:`roll_returns_in_months`
-are the contract that
-[issue 348](https://github.com/l3a0/quantitative-trading/issues/348) and
-[issue 353](https://github.com/l3a0/quantitative-trading/issues/353) build
-against. :func:`roll_returns` keeps its NaN rows in place, because Example 5.4
-fills the full-length series and dropping them would lose the alignment.
+are the contract that an experiment reading a strip builds against, such as
+the CL calendar spread of
+[issue 348](https://github.com/l3a0/quantitative-trading/issues/348).
+:func:`roll_returns` keeps its NaN rows in place, because Example 5.4 fills
+the full-length series and dropping them would lose the alignment.
 
 **What changed on the way over.** Three things, and none moves a figure.
 
@@ -123,8 +133,16 @@ from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The five roots in Table 5.1's order. Table 5.1's C is the C2 strip.
 ROOTS = ("BR", "C2", "CL", "HG", "TU")
-#: Each root's strip, the file the script's load line names.
-SOURCE_FILES = {root: f"inputDataDaily_{root}_20120813.mat" for root in ROOTS}
+#: Each strip :func:`load_strip` reads, the file a script's load line names.
+#: The five of Table 5.1 are ``estimateFuturesReturns.m``'s, and VX's is the
+#: commented-out load line of ``calendarSpdsMeanReversion.m``.
+SOURCE_FILES = {
+    **{root: f"inputDataDaily_{root}_20120813.mat" for root in ROOTS},
+    "VX": "inputDataDaily_VX_20120507.mat",
+}
+#: The strips read without a spot. VX's file holds no ``0000$`` column,
+#: because VIX is not a traded asset.
+NO_SPOT_ROOTS = frozenset({"VX"})
 #: Table 5.1 at location 2399, α and γ in percent at one decimal. TU's α is
 #: printed as −0.0, a negative number that rounds to zero, so it is kept as
 #: ``-0.0`` with its sign.
@@ -155,12 +173,13 @@ class Strip:
 
     ``spot`` and ``contracts`` hold every day of the strip, with NaN where a
     column was not priced. ``contracts`` holds the contract columns in Chan's
-    order with the spot removed.
+    order with the spot removed. ``spot`` is ``None`` for a strip in
+    :data:`NO_SPOT_ROOTS`, whose file holds no spot.
     """
 
     root: str
     members: list[VintageEntry]
-    spot: pd.Series
+    spot: pd.Series | None
     contracts: pd.DataFrame
 
 
@@ -294,16 +313,18 @@ def maturity_spacings(contracts: pd.DataFrame) -> Counter[tuple[int, ...]]:
 
 
 def load_strip(root: str, data_dir: Path | None = None) -> Strip:
-    """One of the five strips, after the scale-break guard has read every member.
+    """One of the strips :data:`SOURCE_FILES` names, after the guard has read every member.
 
     This is the one read path. It reads the strip through
-    :func:`chan.series.load_panel` and runs the guard on each member's own
-    rows, from its first settlement to its last, for the reason the module
-    docstring gives.
+    :func:`chan.series.load_panel` and runs the scale-break guard on each
+    member's own rows, from its first settlement to its last, for the reason
+    the module docstring gives. A strip with no spot column is refused unless
+    :data:`NO_SPOT_ROOTS` declares it, and then its spot is ``None``.
     """
     if root not in SOURCE_FILES:
         raise ValueError(
-            f"load_strip reads the five strips of Table 5.1, {', '.join(ROOTS)}, and not {root}"
+            f"load_strip reads the five strips of Table 5.1, {', '.join(ROOTS)}, and VX, "
+            f"and not {root}"
         )
     members, closes = load_panel(SOURCE_FILES[root], data_dir=data_dir)
     for entry in members:
@@ -312,18 +333,22 @@ def load_strip(root: str, data_dir: Path | None = None) -> Strip:
             continue
         refuse_window_crossing_a_break([(entry, own)], start=own.index[0], end=own.index[-1])
     spot_symbol = f"{root}-SPOT"
-    if spot_symbol not in closes.columns:
+    if spot_symbol in closes.columns:
+        return Strip(
+            root=root,
+            members=members,
+            spot=closes[spot_symbol],
+            contracts=closes.drop(columns=spot_symbol),
+        )
+    if root not in NO_SPOT_ROOTS:
         raise VintageUnavailable(f"{SOURCE_FILES[root]} holds no {spot_symbol} column")
-    return Strip(
-        root=root,
-        members=members,
-        spot=closes[spot_symbol],
-        contracts=closes.drop(columns=spot_symbol),
-    )
+    return Strip(root=root, members=members, spot=None, contracts=closes)
 
 
 def strip_returns(strip: Strip) -> StripReturns:
-    """α and both γ series for one strip."""
+    """α and both γ series for one strip, which must hold a spot."""
+    if strip.spot is None:
+        raise ValueError(f"strip_returns needs a spot, and the {strip.root} strip holds none")
     return StripReturns(
         strip=strip,
         alpha=spot_return(strip.spot),

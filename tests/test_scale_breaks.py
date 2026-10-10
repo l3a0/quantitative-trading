@@ -270,6 +270,11 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``chan.calendar_spread_reversion`` reads the CL strip through the same
 #: ``load_strip`` for Example 5.4, under
 #: [issue 348](https://github.com/l3a0/quantitative-trading/issues/348).
+#: ``chan.vx_calendar_spread`` reads the VX strip, which has no spot, through
+#: the same ``load_strip`` once
+#: [issue 349](https://github.com/l3a0/quantitative-trading/issues/349) widened
+#: it, so the guard runs on VX's 72 contracts alone and flags none of them.
+#: ``TestTheVxStrip`` in ``tests/test_roll_returns.py`` holds that.
 #:
 #: [Issue 350](https://github.com/l3a0/quantitative-trading/issues/350) decided
 #: that ``chan.vx_es`` calls the guard on VX and ES, each over its own span, in
