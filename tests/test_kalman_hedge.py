@@ -255,8 +255,10 @@ class TestTheFigures:
 
 
 class TestTheHoldings:
-    """How often the script holds a position and how often it changes one, which is
-    what a cost would be charged on. The script charges none."""
+    """How often the script holds a position and how often it changes its units,
+    each a trade in both funds. Between those changes the EWA leg is resized to
+    each day's slope, which is a trade too and is not counted here. The script
+    charges for neither."""
 
     def test_it_is_long_on_358_short_on_350_and_flat_on_792_days(self, result) -> None:
         units = result.trade.units

@@ -3058,13 +3058,14 @@ Five groups of what it says are not pinned here.
    1760. The book's figures are pinned, and its words are not.
 2. Facts about the script rather than the data: its comment on `delta`, its
    zero start, and its chart of the forecast error plotting `e(3:end)` and
-   `sqrt(Q(3:end))`, which
-   [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records.
+   `sqrt(Q(3:end))`, which the script holds at `e4bc46f` of
+   ericnberwick/EpchanPreview, git blob `e2f8a62`.
+   [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records
+   the zero start and the two rows the plot leaves out, but not those words.
 3. Readings no test asserts: that the gain is large when the filter is unsure
-   and small when it is confident, that waiting a few days or starting from a
-   regression on earlier data would avoid the first trade, that a `delta` this
-   small lets the intercept move only slowly, and that a filter started from
-   the whole-file intercept might show no rise.
+   and small when it is confident, that starting the filter from a regression
+   would need data from before the file's first day, and that a filter
+   started from the whole-file intercept might show no rise.
 4. The figure's alt text, whose readings of the lines, such as "about 1.4"
    and "about 2.9 by September 2008", are approximate by design.
 5. Its references, cited rather than computed.
@@ -3072,11 +3073,13 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py), to
 [tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py) for
-the figure's own numbers, or to
+the figure's own numbers, to
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) and
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 for the slope of 0.9624 and the intercept of 6.4113 of one regression over the
-whole file. Four had no pin before it.
+whole file, or to [tests/test_price_spread.py](tests/test_price_spread.py) for
+the 20-day window of the earlier post's rolling slope. Four had no pin before
+it.
 
 1. Row 1's forecast error is EWC's whole close of 22.95, exactly.
 2. The short on EWC alone earns 0.0074074 on 2006-04-27, and the run with no
@@ -3084,8 +3087,9 @@ whole file. Four had no pin before it.
    returns differ only on 2006-04-27 and 2006-04-28.
 3. The script holds a long on 358 days, a short on 350 and nothing on 792, and
    its units change from one day to the next 875 times.
-4. The cumulative return ends at 2.999998 for the script and 2.970231 with no
-   signal on rows 1 and 2.
+4. The cumulative return the last panel draws ends at 2.999998 for the script
+   and 2.970231 with no signal on rows 1 and 2, which the alt text reads as
+   about 300 percent.
 
 Its one figure is drawn from the committed file by
 [src/chan/kalman_hedge_figures.py](src/chan/kalman_hedge_figures.py), which
