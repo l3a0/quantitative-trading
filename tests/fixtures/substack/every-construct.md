@@ -1,6 +1,6 @@
 # A post that uses every shape the Substack converter reads
 
-*The subtitle line costs \$5 and keeps its escape, because the converter copies it as typed.*
+*The subtitle line costs \$5 and loses its escape, as body text does.*
 
 This opening paragraph runs across two lines
 in the source, and the converter joins them with one space.
@@ -36,11 +36,21 @@ An empty fence still becomes a code block.
 ```text
 ```
 
+#### A level-3 heading
+
+A table becomes a third LaTeX block.
+
+| Shape | Becomes |
+| :--- | ---: |
+| `table` | an array, 100% |
+
 ## The second section, after the first widget
 
 ![A figure with a caption](images/first_figure.png)
 
 *Figure 1: the caption is the next italic line, with **bold** inside.*
+
+[![A linked figure with no caption](images/first_figure.png)](https://example.com/five)
 
 ![A figure with no caption](images/second_figure.png)
 
