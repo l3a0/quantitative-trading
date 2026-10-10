@@ -3,8 +3,12 @@
 They are *Algorithmic Trading*'s Examples 2.1 to 2.5.
 
 This file is the single authority for every number any prose surface quotes
-about Examples 2.1 to 2.5. ``docs/replication-log.md`` Entry 22 carries the
-verdicts and points here row by row.
+about Examples 2.1 to 2.5, with one exception, in
+``blog/usdcad-stationarity-lessons.md``. That post also quotes H at a ``maxT``
+of 24, which ``tests/test_tu_momentum.py`` holds, and its figure's labels,
+which ``tests/test_usdcad_mean_reversion_figures.py`` holds. README lists what
+the post says that nothing asserts. ``docs/replication-log.md`` Entry 22
+carries the verdicts and points here row by row.
 
 Every pin on the committed closes reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -262,6 +266,60 @@ class TestExample25LinearMeanReversion:
         position = -(y - y.rolling(115).mean()) / y.rolling(115).std(ddof=1)
         expected = (position.shift(1) * y.pct_change()).fillna(0.0)
         np.testing.assert_allclose(result.pnl.to_numpy(), expected.to_numpy(), atol=1e-12)
+
+
+def held_position(result: StationarityRun) -> pd.Series:
+    """The script's ``mktVal`` on each day, minus the close's 115-day z-score."""
+    y = result.closes.to_numpy(dtype=float)
+    lookback = result.lookback
+    z = (y - moving_avg(y, lookback)) / moving_std(y, lookback)
+    return pd.Series(-z, index=result.closes.index)
+
+
+class TestBesideTheClaim:
+    """What the blog post on Examples 2.1 to 2.5 says about the drawdown, with no published figure.
+
+    None of these is a replication. Each reads the run's closes and P&L on the
+    vintage and specification in :data:`SPEC`, so they are as exploratory as
+    the rest.
+    """
+
+    def test_the_dollar_rose_28_percent_on_the_canadian_dollar_across_the_fall(
+        self, result: StationarityRun
+    ) -> None:
+        d = result.drawdown
+        at_peak, at_trough = result.closes[d.peak], result.closes[d.trough]
+        assert (at_peak, at_trough) == (1.00835, 1.29485), SPEC
+        assert at_trough / at_peak - 1 == pytest.approx(0.2841275351, abs=5e-11), SPEC
+
+    def test_the_largest_short_is_held_inside_the_fall(self, result: StationarityRun) -> None:
+        """The position is largest when the move against it is, 4.12 deviations from the average."""
+        position = held_position(result)
+        assert position.min() == pytest.approx(-4.1198560837, abs=5e-11), SPEC
+        assert str(position.idxmin().date()) == "2008-10-10"
+        assert result.drawdown.peak < position.idxmin() < result.drawdown.trough
+        assert position.max() == pytest.approx(3.0442241430, abs=5e-11), SPEC
+        assert str(position.idxmax().date()) == "2009-05-29"
+
+    def test_the_rule_holds_short_on_488_days_and_long_on_613(
+        self, result: StationarityRun
+    ) -> None:
+        """Counted on the day the P&L is earned, so on yesterday's position."""
+        held = held_position(result).shift(1).dropna()
+        assert len(held) == 1101 == len(result.closes) - result.lookback
+        assert ((held < 0).sum(), (held > 0).sum()) == (488, 613), SPEC
+
+    def test_2008_ends_at_minus_0_2552_and_the_rest_adds_0_3693(
+        self, result: StationarityRun
+    ) -> None:
+        cumulative = result.pnl.cumsum()
+        end_of_2008 = cumulative[:"2008-12-31"].iloc[-1]
+        assert end_of_2008 == pytest.approx(-0.2552305412, abs=5e-11), SPEC
+        assert result.total_pnl - end_of_2008 == pytest.approx(0.3693474000, abs=5e-11), SPEC
+
+    def test_the_closes_span_10_6_half_lives(self, result: StationarityRun) -> None:
+        assert len(result.closes) / result.half_life == pytest.approx(10.5546581819, abs=5e-11)
+        assert round(len(result.closes) / result.half_life, 1) == 10.6
 
 
 class TestTheRun:
