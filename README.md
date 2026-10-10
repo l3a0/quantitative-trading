@@ -649,7 +649,8 @@ the book's, and each diagnostic beside them: the first training day dropped,
 an exit at the mean, a band started flat on the first test day, the printed
 hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
 It also holds the training and test spans, the four positions, and the
-scale-break guard on each leg of each save.
+scale-break guard on each leg of each save. The blog post about it is the
+exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) does it for
 the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
@@ -2850,6 +2851,96 @@ uv run python -m chan.etf_cointegration_figures
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+[blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
+locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
+VIX future, against ES, the E-mini S&P 500 future, from August 2008 and trade
+the portfolio against a band one deviation wide. Chan reports a hedge of
+0.3906 VX contracts per ES contract, a residual standard deviation of \$2,047,
+and an APR of 12.3 percent with a Sharpe ratio of 1.4. The post draws four
+lessons from Entry 28 of the replication log.
+
+1. Three of the four figures land at the book's precision on Chan's
+   2012-05-07 save, and the residual deviation misses by \$2.09.
+2. The 2012-05-11 and 2012-05-17 saves miss all four, and `VX_ES.m` loads the
+   later one, fits on days that include the test set, and runs no trade.
+3. The exit the book leaves out decides the trade, since closing at the mean
+   gives 6.8 percent and only holding until the opposite band lands both.
+4. The APR rests on four positions, all of them winners, and the whole of the
+   test set's gain came after the close of 2011-08-05.
+
+Seven groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "When the market goes down, volatility shoots up" is at 2546. The two
+   regimes and the warning against a regression across both are at 2552. The
+   dollars per point, the four figures, the long 0.3906 VX contracts and one
+   ES contract, the band of one training deviation, and "particularly
+   profitable" around the downgrade are at 2559. "0.3906 front contracts of
+   VX" in the roll-return trade is at 2754. The book's figures are pinned, and
+   its words are not.
+2. The search behind the window. Its 22,446 windows across the three saves,
+   and the one window among them that rounds to both fitted figures, are
+   recorded in Entry 28 and on the issue that shipped the run. No test reruns
+   the search.
+3. Facts outside the committed data. What ES and VX are and what the VIX
+   index measures. That Standard and Poor's announced its downgrade of the
+   U.S. credit rating after the close of Friday 2011-08-05. That a continuous
+   future shifts its history at each roll, which
+   [data/README.md](data/README.md) records.
+4. What Chan's scripts at `e4bc46f` in `ericnberwick/EpchanPreview` do. That
+   `VX_ES.m` loads the 2012-05-17 save, keeps the days both legs traded,
+   draws the scatter and stops after the regression. That
+   `VX_ES_rollreturn.m` anchors at 2008-08-04, tests from the 501st row on,
+   computes every day's return before keeping those rows, and reads ES from
+   the 2012-05-07 save. That `bollinger.m` exits at a z-score of 0.
+   [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
+   [data/README.md](data/README.md) record the first two.
+5. Arithmetic on pinned numbers that no test asserts as written: the
+   deviation missing by about a tenth of a percent, the APR on the later saves
+   falling by more than half, the 449 test days making about a year and three
+   quarters, and 236 of 449 days being more than half.
+6. The figure's alt text, whose readings of the points and lines, such as
+   "about 56,000 and 77,000 dollars" and "about minus 8 percent", are
+   approximate by design.
+7. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_vx_es.py](tests/test_vx_es.py), or to
+[tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) for the figure's
+own numbers. Three groups had no pin before it, and
+[tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
+
+1. The test set around the downgrade. It is down 0.045935 at the close of
+   2011-08-05, after 259 of the 449 test days, and grows 0.288414 over the
+   190 days after it to end at 0.229231. Its lowest, −0.077553, falls on
+   2011-08-08, the day the z-score reaches −3.886, its lowest since the
+   anchor.
+2. The four positions' returns over the test days each one earned: long for
+   325 days at 0.058104, short for 28 at 0.056144, long for 41 at 0.056877,
+   and short for 55 at 0.040777.
+3. That starting flat on the first test day lands the Sharpe ratio and misses
+   the APR by 0.2, and that closing at the mean misses the Sharpe ratio too.
+
+Its one figure is drawn from the committed save by
+[src/chan/vx_es_figures.py](src/chan/vx_es_figures.py), which reads it through
+the same `read_legs` and `vx_es` as `python -m chan.vx_es`, scale-break guard
+included. It draws three panels after the book's Figures 5.10 to 5.12.
+
+1. 50·ES against 1000·VX on the 1,999 common days, coloured by the two
+   regimes, with the fit on the 500 training days.
+2. The z-score from 2008-08-04 with the band at ±1, the last training day
+   marked, and each position the band holds shaded.
+3. The test set's compounded cumulative return, with the three changes of
+   position and 2011-08-05 marked.
+
+```bash
+uv run python -m chan.vx_es_figures
+```
+
+[tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) holds what it draws
+rather than its bytes, for the reason given above for the regime map.
 
 ## Where the book's numbers come from
 
