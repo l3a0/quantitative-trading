@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-four replications run here, fifteen from Chan's *Quantitative Trading*
-and nineteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-five replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-two were built here.
+where they were first built. The other thirty-three were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -368,8 +368,8 @@ where they were first built. The other thirty-two were built here.
     Chapter 6 rests its explanation of HG's momentum on holds only under the
     script's arithmetic, and corn's is no longer twice its spot return.
     `chan.roll_returns` exports the strip reader and both fits for later
-    experiments to build on, Example 5.4 among them. Every figure is
-    exploratory.
+    experiments to build on, Example 5.4 among them, and the reader also
+    takes the VX strip, which has no spot. Every figure is exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
     from August 2008 gives the hedge, and a band one training deviation wide
@@ -466,6 +466,24 @@ where they were first built. The other thirty-two were built here.
     on that window, and starting a day later lands both to every digit. The
     book's 61 holding days in place of the script's 63 give 0.067315 and
     1.044327. Every figure is exploratory.
+35. VIX futures calendar spreads traded on the ratio of the back contract to
+    the front, from *Algorithmic Trading*'s Chapter 5, on Chan's own VX
+    strip, which has no spot column. No script ships under its own name, and
+    Example 5.4's script carries a commented-out load of this strip, so the
+    specification is that script with the ratio as its signal, a 15-day
+    lookback and pairs a month apart, declared before any figure. Its ADF
+    statistic of −5.568107 clears the 1 percent critical value of −3.4583,
+    so the book's "stationary with a 99 percent probability" holds. Its APR
+    of −0.040454 and Sharpe ratio of −0.563912 have the wrong sign against
+    the book's 17.7 percent and 1.5. Of four rows declared beside it, B3
+    trades the ratio of the pair it holds with each pair held in turn, which
+    from 2008-10-27 is every pair from VX-2008X's to VX-2012K's. On the
+    book's window to 2012-04-23 it gives 0.176952 and 1.475658, which round
+    to the book's 17.7 percent and 1.5, and it alone does worse before
+    October 2008, as the book says. Its last pair ends on the book's end
+    date, but so does the row that holds pairs the same way on the
+    specification's signal, so the date does not single it out. B3 was picked
+    out after the run, so its match is a search. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -780,7 +798,18 @@ synthetic cases hold choices the CL strip cannot show.
    when its expiry comes sooner than `holddays + 10` rows in.
 7. Line 110's `smartsum`, which skips a leg whose return is infinite.
 
-All thirty-four replications reach a verdict in
+[tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) does it
+for the VX calendar spread. It pins the specification and the four rows
+declared beside it at six decimals, the book's three figures against the
+specification at the precision Chan printed, and the two measurements taken
+after the run, each marked as such. It also holds why the specification pairs
+contracts a month apart, the 64 of VX's 71 pairs and 68 of CL's 77 held under
+`holddays=0`, the 43 pairs B3 holds from 2008-10-27, and why its last pair
+ends on the book's end date. On synthetic frames it holds the two signals'
+rules: a row whose nearest two contracts skip one, the held pair across a
+roll, and the fill across days nothing is held.
+
+All thirty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -796,8 +825,8 @@ examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
-EWA and EWC, Entry 33 TU momentum's, and Entry 34 the crude oil calendar
-spread's.
+EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
+spread's, and Entry 35 the VX calendar spread's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -918,8 +947,9 @@ them too.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
 that shape was decided. The spot and roll returns of Example 5.3 read five of
 them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
-[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). No
-replication reads the other three strips or the gold series yet.
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347), and
+later replications read their strips through the same reader. No replication
+reads HO2, the CL save named for 2012-05-02 or the gold series yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
 them, under `data/pythoncodesanddata/`, for
@@ -1557,6 +1587,20 @@ It prints the vintage and the window, each figure the script's comment and the
 book print beside the computed one with a verdict, the ADF statistic against
 its criterion, and then the window a day later, the 61-day holding period and
 the last day a pair is held.
+
+The VX calendar spread of *Algorithmic Trading*'s Chapter 5 takes no option,
+because the issue declared the strip, the window and every row before the
+run:
+
+```bash
+uv run python -m chan.vx_calendar_spread
+```
+
+It prints the vintage and the window, the specification's ADF statistic, APR
+and Sharpe ratio beside the book's claims with a verdict, then the four rows
+declared beside it, B1 to B4. B3, the row that trades the held pair's ratio
+with each pair held in turn, is then measured on the book's window, and each
+row before October 2008. None of these carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

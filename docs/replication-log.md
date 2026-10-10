@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 and 34 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34 and 35 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight and four, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 and 34 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34 and 35 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -261,6 +261,12 @@ says.
   - [The verdicts](#the-verdicts-32)
   - [What the entry concludes](#what-the-entry-concludes-33)
   - [What this entry cannot say](#what-this-entry-cannot-say-31)
+- [Entry 35: VIX futures calendar spreads on the ratio of back to front, Chan's *Algorithmic Trading*](#entry-35-vix-futures-calendar-spreads-on-the-ratio-of-back-to-front-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-32)
+  - [What this repo computed](#what-this-repo-computed-34)
+  - [The verdicts](#the-verdicts-33)
+  - [What the entry concludes](#what-the-entry-concludes-34)
+  - [What this entry cannot say](#what-this-entry-cannot-say-32)
 
 ## How to read an entry
 
@@ -318,12 +324,14 @@ both.
    [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
    Entry 30,
    [tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py)
-   holds Entry 31, and
+   holds Entry 31,
    [tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) holds
    Entry 32, [tests/test_tu_momentum.py](../tests/test_tu_momentum.py) holds
-   Entry 33, and
+   Entry 33,
    [tests/test_calendar_spread_reversion.py](../tests/test_calendar_spread_reversion.py)
-   holds Entry 34.
+   holds Entry 34, and
+   [tests/test_vx_calendar_spread.py](../tests/test_vx_calendar_spread.py)
+   holds Entry 35.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -439,8 +447,8 @@ Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
-Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, and Entry 34's rows 10 to
-12.
+Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
+and Entry 35's rows 4 to 9.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -621,6 +629,13 @@ each would rest on where its line sat. Here the line is the book's own level,
 as Entry 33's row 4 reads `vratiotest`'s 5 percent, and −4.727778 clears
 −3.4583 by 1.269478, so the verdict does not rest on where the line sits.
 
+Entry 35's row 1 takes it too. Location 2502 says the ratio of VX's back
+contract to its front is "stationary with a 99 percent probability", a
+definite claim about one series it names, and prints no statistic. Its
+criterion, an ADF statistic below its 1 percent critical value, was written on
+[issue 349](https://github.com/l3a0/quantitative-trading/issues/349) on
+2026-10-05 before any statistic on VX was computed.
+
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
 "oscillates around 1" and its intercept "increases monotonically with time",
@@ -633,12 +648,22 @@ owner ruled on 2026-10-06 that both rows report their figures as findings with
 no verdict, and that neither counts toward the entry's tally. Each verdict cell
 says so, with the value "none, a finding" that Entry 5 carries as a whole.
 
-They are in their entries because leaving them out misleads. Row 2 is the slope
+Entry 35's row 10 does not take it either. Location 2502 says the strategy
+"performed much more poorly prior to October 2008", a definite claim, but the
+declaration on
+[issue 349](https://github.com/l3a0/quantitative-trading/issues/349) gave it
+no criterion, and the figures before October 2008 were measured after the
+issue's table had been seen. A verdict would rest on a line chosen with the
+figures in view, so the row reports them as a finding with no verdict, as
+Entry 32's rows 3 and 4 do.
+
+Entry 1's rows 2 and 10, the first rows this section names, are in that entry
+because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
 comparing two specifications. Row 10 is what the book's pair looks like twenty
 years on, which is the result that makes the shelf life visible.
 
-Row 11 is the opposite case and stays a replication. Chan prints three
+Entry 1's row 11 is the opposite case and stays a replication. Chan prints three
 statistics there, so there is something to reproduce. The figures reproduce and
 the conclusion he drew from them does not, so the verdict stays with the
 figures and the reason column carries the refutation.
@@ -7051,6 +7076,207 @@ trades. Entry 22 names the same limit for USD.CAD's lookback.
 
 **Anything about costs.** None is charged, though each roll trades four legs,
 closing one pair and opening the next.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 35: VIX futures calendar spreads on the ratio of back to front, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Chapter 5, Kindle location 2502. Shipped under
+[issue 349](https://github.com/l3a0/quantitative-trading/issues/349). No script
+ships under the experiment's own name. Example 5.4's
+`calendarSpdsMeanReversion.m`, in ericnberwick/EpchanPreview at `e4bc46f`
+under `public/img/book2/`, opens with a commented-out load of this strip above
+its live CL line, so Chan ran that script on VX. Every location in this entry
+is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Ten rows, all derivable from
+[tests/test_vx_calendar_spread.py](../tests/test_vx_calendar_spread.py). Eight
+do not match one printed figure to one computation, and each says so in its
+own cells. Rows 1 and 10 test claims that print no statistic, and rows 4 to 9
+carry no published figure.
+
+A VX future is a futures contract on the VIX volatility index. The book's
+point is that the VX future does not revert to a mean while the spread between
+two of its contracts does, and that no model of the forward curve Chan tried
+explains why. VIX is not a traded asset, so Entry 27's model of a future's
+price as the spot plus a roll return does not apply, and the evidence is
+empirical alone. Each day the z-score of the ratio of a back contract to a
+front one over a 15-day lookback decides the side. The spread is reversed when
+z is above 0, as in Entry 34.
+
+**The specification misses the trade with the wrong sign, and one of the four
+rows declared beside it lands.** The specification, S, passes the book's
+stationarity claim. Its APR and Sharpe ratio are negative where the book
+prints 17.7 percent and 1.5. B3, which trades the held pair's ratio with
+`holddays=0`, rounds to both printed figures on the book's own window, and it
+is the only row that does worse before October 2008. B3 was picked out after
+the run among five rows, so its match is a search rather than a registered
+result.
+
+Every row reads one vintage and one specification unless it names another, so
+both are stated once here.
+
+1. **The vintage.** `data/inputdatadaily_vx_20120507/`, vendor `chan-mat`,
+   basis `raw`, saved 2012-05-08, lifted from `inputDataDaily_VX_20120507.mat`,
+   the file the commented load line names. It is one vintage per contract, 72
+   of them from VX-2007F to VX-2012Z, each a month after the last, over 1,543
+   days from 2006-03-23 to 2012-05-07, with no spot column. It is read through
+   `chan.roll_returns.load_strip`, widened here to a strip with no spot, which
+   runs the scale-break guard on every member's own rows and refuses nothing.
+2. **The specification.** `calendarSpdsMeanReversion.m` as
+   `chan.calendar_spread_reversion` transcribes it, with five edits declared on
+   [issue 349](https://github.com/l3a0/quantitative-trading/issues/349) on
+   2026-10-05 at `f107b1f`, before any APR, Sharpe ratio or ADF statistic on
+   VX was computed.
+   1. The VX load line in place of the CL one.
+   2. `spreadMonth=1`. The strip lists 2 to 10 contracts a day, and the
+      shipped 12 holds 1,284 days, of which 84 have both legs priced, 1,183
+      the near leg alone and 17 neither.
+   3. The signal is the second-nearest priced contract over the nearest, not a
+      number where the two are not adjacent columns, then forward-filled as
+      the script fills γ. That leaves only the strip's first 148 rows empty,
+      all before 2006-10-23.
+   4. `lookback=15` in place of `round(halflife)`.
+   5. The window from 2008-10-27 to the file's last row, 2012-05-07, 889 rows.
+
+   Everything else is the script as shipped. jplv7's `adf(·, 0, 1)` and the
+   half-life read every finite row of the filled signal. The first pair of
+   adjacent contracts starts 73 rows before its near contract's last priced
+   row, every pair ends 10 rows before its own, and a later pair is skipped
+   when that leaves it fewer than 63 rows. The return is yesterday's positions times each leg's
+   return, summed over the legs that have one and divided by 2, annualised
+   over 252 days by compounding simple returns, with the Sharpe ratio on
+   MATLAB's n − 1 `std`, no risk-free rate and no cost.
+
+Four rows beside S were declared with it, and a row that lands while S misses
+is reported and not promoted to the specification.
+
+1. **B1** trades the held pair's ratio, the far contract over the near one
+   for the pair the schedule holds that day, filled forward across the days
+   nothing is held. The script's own comment calls those two the back and the
+   front.
+2. **B2** sets `holddays=0`, so each pair is held from the day after the
+   previous pair's last day to 10 rows before its own expiry. The first pair
+   is never held, because its window is one row, and pairs whose near
+   contract still trades on the file's last row are skipped once VX-2012K's
+   pair has taken the rows to the end. VX holds 64 of its 71 pairs.
+3. **B3** is B1's signal built on B2's schedule, run with `holddays=0`.
+4. **B4** is S measured to 2012-04-23, the book's end date, 879 rows.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends his
+2006 to 2012 strip on a rule he chose, S is this repo's reading of the book's
+text, and B3 was picked out after the run.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The ratio of back to front is stationary | a claim, "stationary with a 99 percent probability" | location 2502 |
+| 2 | The APR from October 27, 2008, to April 23, 2012 | 17.7 percent | location 2502 |
+| 3 | The Sharpe ratio over the same window | 1.5 | location 2502 |
+| 4 | The half-life of S's signal | none, the book gives the lookback as 15 days | n/a |
+| 5 | B1, the held pair's ratio | none | n/a |
+| 6 | B2, `holddays=0` | none | n/a |
+| 7 | B3, B1 and B2 together | none | n/a |
+| 8 | B4, S to the book's end date | none | n/a |
+| 9 | B3 on the book's window, measured after the run | none | n/a |
+| 10 | The strategy "performed much more poorly prior to October 2008" | a claim, with no criterion declared | location 2502 |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | jplv7's `adf(·, 0, 1)` on the filled ratio's 1,395 finite rows, against its 1 percent critical value | −5.568107 against −3.4583, a margin of 2.109807 | `TestTheRows::test_each_rows_figures`, `TestTheRows::test_the_1_percent_critical_value_is_minus_3_4583`, `TestTheClaims::test_ss_adf_statistic_clears_the_1_percent_critical_value` and, for the 1,395 rows, `TestTheSignalsOnVx::test_ss_signal_is_missing_only_on_its_first_148_rows` |
+| 2 | `prod(1 + ret)^(252 / 889) − 1`, in percent | −4.045401 | `TestTheReport::test_ss_apr_and_sharpe_ratio_carry_a_verdict` and `TestTheClaims::test_s_misses_the_apr_and_sharpe_ratio_with_the_wrong_sign` |
+| 3 | `√252 · mean(ret) / std(ret)` | −0.563912 | `TestTheRows::test_each_rows_figures`, `TestTheReport::test_ss_apr_and_sharpe_ratio_carry_a_verdict` and `TestTheClaims::test_s_misses_the_apr_and_sharpe_ratio_with_the_wrong_sign` |
+| 4 | `ou_half_life` on the filled ratio's finite rows | 13.036829, against the 15-day lookback | `TestTheRows::test_each_rows_figures` |
+| 5 | B1 | ADF −4.010034, half-life 20.509824, APR 0.033430, Sharpe 0.510861, drawdown −0.161533 over 628 days, last held 2012-03-07. Its half-life on the held rows alone is 15.106686 | `TestTheRows::test_each_rows_figures` and `TestTheSignalsOnVx::test_b1s_fill_moves_its_half_life_from_15_to_20` |
+| 6 | B2 | ADF −5.568107, half-life 13.036829, APR −0.113153, Sharpe −0.990744, drawdown −0.404239 over 870 days, last held 2012-04-23 | `TestTheRows::test_each_rows_figures` and `TestTheSignalsOnVx::test_holddays_0_holds_64_of_vxs_71_pairs` |
+| 7 | B3 | ADF −4.839517, half-life 16.273041, APR 0.173462, Sharpe 1.457009, drawdown −0.107287 over 166 days, last held 2012-04-23 | `TestTheRows::test_each_rows_figures` and `TestTheClaims::test_b3_rounds_to_the_sharpe_ratio_but_not_the_apr_to_the_files_end` |
+| 8 | B4 | APR −0.040905, Sharpe −0.567112, drawdown −0.255618 over 861 days, last held 2012-03-07. Against S, its APR is 0.000451 lower, its Sharpe ratio 0.003199 lower, and its drawdown the same but 10 days shorter | `TestTheRows::test_each_rows_figures` and `TestTheClaims::test_b4_misses_the_same_way_on_the_books_end_date` |
+| 9 | B3 on the 879 rows from 2008-10-27 to 2012-04-23 | APR 0.176952, Sharpe 1.475658, last held 2012-04-23 | `TestTheMeasurementsAfterTheRun::test_b3_on_the_books_window` |
+| 10 | Each row from the first row its flipped positions hold anything to 2008-10-24 | S from 2006-11-10, 492 rows, −0.027638 and −0.291914. B1 from 2006-11-10, 0.204377 and 2.279855. B2 from 2006-12-29, 459 rows, −0.018707 and −0.091522. B3 from 2007-01-23, 445 rows, −0.074173 and −0.562291 | `TestTheMeasurementsAfterTheRun::test_each_row_before_october_2008` and `::test_only_b3_does_worse_before_october_2008_than_after` |
+
+S's drawdown is −0.255618 over 871 days, and its last held day is 2012-03-07,
+which `TestTheRows::test_each_rows_figures` pins with the rest of its row.
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | none, a claim | reproduced | The statistic is below the 1 percent critical value, so the test rejects a unit root at the level "99 percent" names. |
+| 2 | −21.7 percent | did not reproduce | S runs on Chan's own file and returns a negative APR, so the vintage explanation is spent. S is a reading of the book's text rather than a script, which is a cause inside the method. |
+| 3 | −2.1 | did not reproduce | The same as row 2. |
+| 4 | none | none, not a replication | The book prints no half-life for VX. The script's half-life sets its lookback, and the book's 15 days replaces it. |
+| 5 | none | none, not a replication | Declared beside S. It is positive where S is negative, and well short of both printed figures. |
+| 6 | none | none, not a replication | Declared beside S. Setting `holddays=0` alone makes S worse. |
+| 7 | none | none, not a replication | Declared beside S, and the row that lands. Its Sharpe ratio rounds to 1.5. Its APR of 0.173462 misses 17.7 percent on the window to the file's end, a gap of −0.4 percent at the book's precision. It is reported and not promoted, because it was picked out after the run among five rows. |
+| 8 | none | none, not a replication | Declared beside S. Ending on the book's date lowers S's APR by 0.000451 and its Sharpe ratio by 0.003199, and shortens its longest drawdown by 10 days, the rows cut. |
+| 9 | none | none, not a replication | Measured after seeing rows 1 to 8. Both figures round to the printed 17.7 percent and 1.5. The last held day is the book's printed end date, as B2's is, so the date does not separate B3 from B2. |
+| 10 | none, a claim | none, a finding | Only B3 does worse before October 2008 than after it, on both figures, as the claim says. S, B1 and B2 each do better before. No criterion was declared, so the row carries no verdict. |
+
+### What the entry concludes
+
+Two things.
+
+1. **The specification fits the book's first claim and not its trade.** The
+   ratio's ADF statistic of −5.568107 clears the 1 percent value by 2.109807.
+   Trading it as the book's text describes, with the script's 63-day holding
+   period, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
+2. **The evidence favours B3 as what Chan ran.** Two things single it out
+   from the other four rows.
+   1. On the book's window it rounds to both printed figures, 0.176952 and
+      1.475658.
+   2. It is the only row that does worse before October 2008, as the book's
+      third claim says.
+
+   Its last held day, the book's printed end date of 2012-04-23, does not
+   single it out, because B2 ends there too. VX-2012K still trades on the
+   file's last row, 2012-05-07, so the schedule reads that row as its expiry,
+   and under `holddays=0` its pair ends 10 rows earlier, on 2012-04-23. The
+   date is evidence for holding each pair until 10 rows before its expiry,
+   which B2 and B3 share.
+
+   B3 was picked out after the run among five rows, and the window the first
+   point reads was chosen after seeing the table, so this is a search. A
+   registered test of B3 on VX data after 2012-05-07 is what would confirm it.
+
+### What this entry cannot say
+
+Four things.
+
+**Which rule Chan ran.** No script ships under the experiment's own name. The
+commented load line says which script he ran on VX. The book's text at
+location 2502 gives four things.
+
+1. VX as the instrument.
+2. The ratio of back to front as the signal.
+3. The 15-day lookback.
+4. The window, from October 27, 2008, to April 23, 2012.
+
+The rest of S is this repo's reading, in three choices.
+
+1. `spreadMonth=1`, forced by how few contracts the strip prices on a day.
+2. No signal where the nearest two priced contracts are not adjacent columns.
+3. Measuring to the file's last row, as the script measures to its own,
+   rather than to the book's printed end, which B4 does.
+
+**Whether B3's match is more than the best of five.** B3's match was found by
+looking at five rows, and the book's window was then measured because B3 had
+come closest on the file's window. Choosing among rows after seeing them is the
+search `CLAUDE.md`'s research pins put under their own rail.
+
+**The ADF statistic Chan saw.** The book prints none, so row 1 checks the
+"99 percent" and not a number.
+
+**Anything about costs.** None is charged. Under `holddays=0`, from
+2008-10-27, B3 holds a near leg in 43 pairs, every one from VX-2008X's to
+VX-2012K's, and enters 42 of them on or after that date.
+`TestTheSignalsOnVx::test_from_2008_10_27_b3_holds_43_pairs_and_enters_42`
+pins both counts. Each roll trades four legs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
