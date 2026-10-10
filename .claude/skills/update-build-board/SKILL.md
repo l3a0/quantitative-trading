@@ -1048,10 +1048,19 @@ rather than on refusals. Nothing in this skill starts anything, so the number is
 recorded here rather than enforced.
 
 One fact from the withdrawn text is about the page rather than about offering,
-so it stays. The "Planned, no builder" test asks only whether a plan exists,
-whether a branch exists and whether a session is on it. It never reads `needs`,
-so a plan-complete card sitting behind an open blocker lands there too, which
-qualifies the table's line above saying `needs` moves a card into a deeper
-column. The card still draws its own "waits on" line, so a reader is not misled,
-and no card has hit the case yet because every `PLANNED` entry so far has an
-empty `needs`.
+so it stays, corrected. The "Planned, no builder" test in `FLOW` asks five
+things of the state `flightCols` builds for a card.
+
+1. `s.plan`: a `PLANNED` entry exists.
+2. `!s.pr`: no open pull request carries the card.
+3. `!s.busy`: no session is on it.
+4. `!s.blocked`: nothing in its `needs` is still open.
+5. `!s.landed`: no pull request merged against it with no `Part of`.
+
+The withdrawn text said the test never read `needs`, so a plan-complete card
+behind an open blocker would land in that column too.
+[Issue 138](https://github.com/l3a0/quantitative-trading/issues/138) was the
+first card to reach that state, and the fourth condition was added for it, so
+such a card stays on the depth board under its own "waits on" line. The fifth
+came with the owner's ruling of 2026-10-10, under defect 18, because a card
+whose pull request merged with no `Part of` has no builder to wait for.

@@ -699,3 +699,142 @@ def test_a_missing_closing_link_names_the_open_branch(tmp_path: Path) -> None:
     assert "GitHub registered no closing link for PR #90601" in flownote
     assert "PR #90605" not in flownote
     assert "more than one open branch" not in flownote
+
+
+@pytest.mark.parametrize("state", ["open", "merged"])
+def test_the_flow_legend_explains_a_re_measured_plan_only_where_a_card_draws_it(
+    tmp_path: Path, state: str
+) -> None:
+    """Protects the flow legend from glossing a plan marker no card draws.
+
+    Fixture issue 90503 gets a finished plan, a decompose loop on it and a pull
+    request, either open or merged with no ``Part of``. Either one suppresses
+    the plan marker, so the legend has nothing to explain. It used to ask
+    ``PLANNED`` rather than the marker and explained "a second loop re-measuring
+    it" anyway. With the pull request gone, the card draws the marker and the
+    entry comes back, which shows the test can see it.
+    """
+    docs = fixture_docs()
+    docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
+    docs["working"]["items"].append({"n": 90503, "kind": "decompose", "what": "re-measuring"})
+    docs["prs"]["items"].append(_pull(90602, 90503, state, linked=False, part_of=False))
+    ids = run_page(tmp_path, db=True, steps=[docs])
+
+    assert 90503 in cards(ids, "flow")
+    assert "plan-" not in _card_tag(ids, "flow", 90503)
+    flowkey = text(ids, "flowkey")
+    assert "a session is on it now" in flowkey
+    assert "a second loop re-measuring it" not in flowkey
+
+    docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["pr"] != 90602]
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert "plan-build" in _card_tag(ids, "flow", 90503)
+    assert "a second loop re-measuring it" in text(ids, "flowkey")
+
+
+@pytest.mark.parametrize(("state", "part_of"), [("closed", False), ("merged", True)])
+def test_the_label_names_the_pull_request_that_holds_the_card(
+    tmp_path: Path, state: str, part_of: bool
+) -> None:
+    """Protects the label from naming a pull request that does not hold the card.
+
+    Fixture issue 90505 gets a closed pull request, or a merged ``Part of``,
+    listed ahead of one merged with no ``Part of``. Only that last one holds
+    the card for a close by hand, so the label names it, rather than whichever
+    entry ``prs`` lists first or the first one that merged.
+    """
+    docs = fixture_docs()
+    for card in docs["tracker"]["items"]:
+        if card["n"] == 90505:
+            card["needs"] = []
+    docs["next"]["items"].append({"issue": 90505, "band": 3, "ready": "build", "why": "x"})
+    docs["prs"]["items"] += [
+        _pull(90602, 90505, state, linked=False, part_of=part_of),
+        _pull(90603, 90505, "merged", linked=False, part_of=False),
+    ]
+    ids = run_page(tmp_path, db=True, steps=[docs])
+
+    tag = _card_tag(ids, "board", 90505)
+    assert "Pull request 90603 is merged against it." in tag
+    assert "Pull request 90602" not in tag
+
+
+def _show_all_page(tmp_path: Path) -> Path:
+    """A copy of the page that reads its show-all setting as on.
+
+    The stub has no ``localStorage``, so the page's own lookup fails and it
+    draws the short view. A deferred card is in the short view only through
+    the ranking, which leaves it out on purpose, so reading one needs this.
+    """
+    page = tmp_path / "board-all.html"
+    shim = 'var localStorage = { getItem: function () { return "1"; }, setItem: function () {} };'
+    page.write_text(
+        PAGE.read_text(encoding="utf-8").replace("<script>", "<script>\n" + shim, 1),
+        encoding="utf-8",
+    )
+    return page
+
+
+@pytest.mark.parametrize(
+    ("kind", "reason"),
+    [
+        ("decision", "need a decision rather than a session"),
+        ("deferred", "be deferred on purpose"),
+        ("parent", "be a parent whose children carry the work"),
+    ],
+)
+def test_a_card_held_for_a_close_by_hand_gives_no_kind_reason(
+    tmp_path: Path, kind: str, reason: str
+) -> None:
+    """Protects the board note's reasons from a kind the card no longer shows.
+
+    Fixture issue 90504 is the only card in the first column, given each kind
+    in turn. A pull request merged against it with no ``Part of`` hides its
+    kind word, so the note holds it for the close by hand and gives no reason
+    drawn from its kind. Without the pull request the kind reason returns,
+    which shows the test can see it.
+    """
+    page = _show_all_page(tmp_path)
+    docs = fixture_docs()
+    for card in docs["tracker"]["items"]:
+        if card["n"] == 90504:
+            card["kind"] = kind
+    docs["prs"]["items"].append(_pull(90602, 90504, "merged", linked=False, part_of=False))
+    ids = run_page(tmp_path, db=True, steps=[docs], page=page)
+
+    note = text(ids, "boardnote")
+    assert "out of 1 in the first column" in note
+    assert "have merged and need only closing by hand" in note
+    assert reason not in note
+
+    docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["pr"] != 90602]
+    ids = run_page(tmp_path, db=True, steps=[docs], page=page)
+    assert reason in text(ids, "boardnote")
+
+
+def test_a_planned_card_held_for_a_close_by_hand_keeps_its_plan_position(
+    tmp_path: Path,
+) -> None:
+    """Protects the sort's decision to read ``PLANNED`` rather than the marker.
+
+    Fixture issues 90503 and 90505 both sit in the first column, and the
+    ranking puts 90505 first. 90503 has a finished plan and a pull request
+    merged with no ``Part of``, so it draws no plan marker. The sort still
+    puts it first, because a card keeps its position whether or not its
+    marker is drawn, which the comment on ``landed`` records as accepted.
+    """
+    docs = fixture_docs()
+    for card in docs["tracker"]["items"]:
+        if card["n"] in (90503, 90505):
+            card["needs"] = []
+    docs["next"]["items"] += [
+        {"issue": 90505, "band": 2, "ready": "build", "why": "x"},
+        {"issue": 90503, "band": 3, "ready": "build", "why": "Only its close is left."},
+    ]
+    docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
+    docs["prs"]["items"].append(_pull(90602, 90503, "merged", linked=False, part_of=False))
+    ids = run_page(tmp_path, db=True, steps=[docs])
+
+    raw = ids["board"]["html"]
+    assert "plan-" not in _card_tag(ids, "board", 90503)
+    assert raw.index('data-n="90503"') < raw.index('data-n="90505"')

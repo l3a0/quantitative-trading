@@ -504,11 +504,12 @@ function source() {
    they were removed. None of the five said what to take next, which is the
    question this page answers. */
 
-/* One entry per open branch, and a merged one only while the board still has
-   something to say about it. The array is the whole account of what is open, so
-   this comment carries the rules for reading it rather than a sentence naming
-   today's branches, which is the first defect on the skill's list in the one
-   place a reader cannot see it render.
+/* One entry per open branch, plus a merged or closed one while its issue stays
+   open, because the card still says what became of it. Moments 2 and 5 of the
+   skill keep both kinds. The array is the whole account of the pull requests
+   against open issues, so this comment carries the rules for reading it rather
+   than a sentence naming today's branches, which is the first defect on the
+   skill's list in the one place a reader cannot see it render.
 
    A rollup is read against a branch's current head rather than the commit it
    opened on, because it is a claim about one merge ref at one moment and a
@@ -1294,10 +1295,15 @@ function buildOrder() {
      against the code, and a second loop re-measures that rather than doubting
      it: 122's verdict was taken at 036876a and four merges landed after it. So
      the marker keeps its swatch and says what is true of it now, which is
-     neither of the two things it used to be able to say. */
+     neither of the two things it used to be able to say.
+
+     It asks `planMarker` rather than `planOf`, so it calls a plan re-measured
+     only where the card draws the marker. A card with an open branch, or one
+     merged with no `Part of`, draws none, and asking `planOf` let the flow
+     legend explain "a second loop re-measuring it" for a marker no card drew. */
   const remeasuring = c => {
     const w = workOn.get(c.n);
-    return !!(w && w.kind !== "build" && planOf.has(c.n));
+    return !!(w && w.kind !== "build" && planMarker(c));
   };
 
   /* A card in flight is drawn once, in the section that says whose move it is,
@@ -1354,10 +1360,12 @@ function buildOrder() {
          ones included, because the line says what became of each one against
          an issue still open. Only an open one is a branch carrying the card, so
          `live` is what draws the accent border. The label names an open one
-         ahead of a merged or closed one for the same reason. */
+         ahead of the rest for the same reason. With none open it names a
+         merged one with no `Part of`, since that is the pull request the board
+         note holds the card for, and only then whichever entry comes first. */
       const ps = prOf.get(c.n) || [];
       const live = openBranches(prOf, c.n)[0];
-      const p = live || ps[0];
+      const p = live || ps.find(q => q.state === "merged" && !q.partOf) || ps[0];
       const waits = c.needs.filter(b => by.has(b));
       const soft = (c.after || []).filter(b => by.has(b));
       const note = waits.length
@@ -1624,7 +1632,7 @@ function buildOrder() {
      Only the wording is new: the mark itself is the one the plan already had. */
   const remeasured = set => {
     const c = set.find(remeasuring);
-    return c ? ["plan-" + planOf.get(c.n).ready,
+    return c ? ["plan-" + planMarker(c).ready,
       "plan run against the code, and a second loop re-measuring it"] : null;
   };
   legend("key", [
@@ -1776,9 +1784,14 @@ function buildOrder() {
      after the cards carrying them have gone. */
   const held = bucket[0].filter(c => !free.includes(c));
   const why = [];
-  if (held.some(c => c.kind === "decision")) why.push("need a decision rather than a session");
-  if (held.some(c => c.kind === "deferred")) why.push("be deferred on purpose");
-  if (held.some(c => c.kind === "parent")) why.push("be a parent whose children carry the work");
+  /* A card held for a close by hand draws no kind word, so its kind gives no
+     reason here either. Otherwise a decision card whose pull request merged
+     with no `Part of` made the note say a card "can need a decision" while no
+     card in the column said so. */
+  const kinded = held.filter(c => !handClose(c));
+  if (kinded.some(c => c.kind === "decision")) why.push("need a decision rather than a session");
+  if (kinded.some(c => c.kind === "deferred")) why.push("be deferred on purpose");
+  if (kinded.some(c => c.kind === "parent")) why.push("be a parent whose children carry the work");
   if (held.some(c => workOn.has(c.n))) why.push("already have somebody on it");
   /* Never fires today, for the reason given on `free`: no card on this board
      has an open branch. It stays beside `free`'s open-branch condition, so a
@@ -1993,7 +2006,16 @@ function flightCols({ by, planOf, workOn, prOf }) {
     /* A card whose pull request merged with no `Part of` has no builder to
        wait for, so it leaves "Planned, no builder" for the depth board, whose
        note holds it as needing only a close by hand. Left in the column, the
-       note under it called such a card planned and free for anyone to pick up. */
+       note under it called such a card planned and free for anyone to pick up.
+
+       `cardOrder` does not ask this, so a planned card held for a close by
+       hand still sorts above unplanned cards in its column while drawing no
+       marker. That is accepted rather than missed. The sort reads `PLANNED`
+       rather than the marker on purpose, so a card keeps its position whether
+       or not the marker is drawn, which the comment on `pn` in `card()` and
+       defect 11 in the skill both state. An open branch and a build session
+       already sort that way, and a third exception would make the order
+       depend on the same suppression rule the marker uses. */
     landed: closesByHand(prOf, c.n)
   });
   const cols = FLOW.map(() => []);
