@@ -2,7 +2,7 @@
 
 *Inputs at the edges of the shapes the converter reads.*
 
-<!-- markdownlint-disable-file MD003 MD018 MD055 MD056 MD058 MD060 -->
+<!-- markdownlint-disable-file MD003 MD018 MD022 MD032 MD055 MD056 MD058 MD060 -->
 
 Total
 | --- |
