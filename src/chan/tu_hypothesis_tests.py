@@ -96,13 +96,14 @@ that input alone.
    second inversion.
 
 **The draws run in two dimensions here.** :func:`chan.tu_momentum.positions`
-refuses input that is not one-dimensional, and one draw through it takes about
-2 ms, so 100,000 would take minutes. :func:`simulated_strategy_returns`,
-:func:`fixed_position_returns` and :func:`permuted_strategy_returns` compute a
-batch of draws at once with the same arithmetic in the same order, and
-``tests/test_tu_hypothesis_tests.py`` holds them equal to the one-dimensional
-functions draw by draw. Widening :func:`chan.tu_momentum.positions` was the
-alternative, and it would change a contract Example 6.1 shipped.
+refuses input that is not one-dimensional, and calling it once per draw for
+100,000 draws took over a minute in a scratch run, a wall-clock time no test
+holds. :func:`simulated_strategy_returns`, :func:`fixed_position_returns` and
+:func:`permuted_strategy_returns` compute a batch of draws at once with the
+same arithmetic in the same order, and ``tests/test_tu_hypothesis_tests.py``
+holds them equal to the one-dimensional functions draw by draw. Widening
+:func:`chan.tu_momentum.positions` was the alternative, and it would change a
+contract Example 6.1 shipped.
 
 No sibling code was ported. The sibling repository holds no moment-matched
 simulation, and its count-preserving label shuffles share the third test's
@@ -547,10 +548,10 @@ def report(entry: VintageEntry, result: HypothesisTests) -> None:
         ),
     ]
     for label, computed, printed, (low, high), count in rows:
-        print(
-            f"  {label:<46} {computed:>14}  {printed:>9}  {f'{low} to {high}':>14}  "
-            f"{band_verdict(count, (low, high))}"
-        )
+        verdict = band_verdict(count, (low, high))
+        if verdict != "reproduced":
+            verdict += f", gap {gap(float(computed), printed):+g}"
+        print(f"  {label:<46} {computed:>14}  {printed:>9}  {f'{low} to {high}':>14}  {verdict}")
     print(
         f"  {f'5 Randomized trades, as written, of {AS_WRITTEN_DRAWS}':<46} "
         f"{as_written_count:>14}  {BOOK_RANDOMIZED_TRADES_COUNT:>9}  {'n/a':>14}  "

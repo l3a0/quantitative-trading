@@ -1665,9 +1665,10 @@ declared both seeds and every draw method before the run:
 uv run python -m chan.tu_hypothesis_tests
 ```
 
-It prints the vintage and the seeds, the five rows beside the book's or the
-script's figure with a landing band and a verdict, and then the three rows
-added after the scratch run, none of which carries a verdict.
+It prints the vintage and the seeds, then the five rows beside the book's or
+the script's figure. Rows 2 to 4 carry a landing band, and every row but row 5
+carries a verdict. The three rows added after the scratch run come last, and
+none of them carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

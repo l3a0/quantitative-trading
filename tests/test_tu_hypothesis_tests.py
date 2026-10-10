@@ -523,7 +523,8 @@ class TestTheRowsBesideAddedAfterTheScratchRun:
         count = result.count(result.returns.normal)
         assert count == 1165
         assert count / RETURNS_DRAWS == pytest.approx(0.116500, abs=5e-7)
-        assert band_verdict(count, BOOK_RETURNS_BAND) == "reproduced"
+        low, high = BOOK_RETURNS_BAND
+        assert low <= count <= high
 
     def test_type_iv_with_the_mean_set_to_zero(self, result) -> None:
         count = result.count(result.returns.mean_zero)
@@ -531,11 +532,22 @@ class TestTheRowsBesideAddedAfterTheScratchRun:
         assert count / RETURNS_DRAWS == pytest.approx(0.001900, abs=5e-7)
 
     def test_the_drift_is_what_the_strategy_earns_on_simulated_returns(self, result) -> None:
-        """The average simulated mean falls from 3.2e-05 to 3.6e-07 when the drift goes."""
+        """The average simulated mean falls from row 2's 3.2e-05 to 3.6e-07 when the drift goes."""
         found = result.returns
-        assert float(found.normal.mean()) == pytest.approx(3.205921e-05, rel=5e-7)
+        assert float(found.declared.mean()) == pytest.approx(3.220302e-05, rel=5e-7)
         assert float(found.mean_zero.mean()) == pytest.approx(3.604899e-07, rel=5e-7)
         assert float(found.observed_positions.mean()) == pytest.approx(2.394932e-05, rel=5e-7)
+
+    def test_a_drifting_series_is_long_on_most_signal_days(self, params, moments) -> None:
+        """Why the drift pays: the rule goes long on most signal days of a drifting series."""
+        uniforms = np.random.default_rng(RETURNS_SEED).random((1_000, 2_000))
+        simulated = pearson_iv_draws(params, uniforms)
+        for draws, expected in ((simulated, 0.804654), (simulated - moments.mean, 0.502401)):
+            cl_sim = np.cumprod(1 + draws, axis=1) - 1
+            longs = cl_sim[:, LOOKBACK:] > cl_sim[:, :-LOOKBACK]
+            shorts = cl_sim[:, LOOKBACK:] < cl_sim[:, :-LOOKBACK]
+            share = (longs.sum(axis=1) / (longs.sum(axis=1) + shorts.sum(axis=1))).mean()
+            assert share == pytest.approx(expected, abs=5e-7)
 
 
 class TestTheReport:
@@ -549,6 +561,8 @@ class TestTheReport:
         ):
             row = next(r for r in printed.splitlines() if r.strip().startswith(label))
             assert all(f in row.split() for f in figures), row
+        row_3 = next(r for r in printed.splitlines() if r.strip().startswith("3 Randomized"))
+        assert "gap +0.0946" in row_3
 
     def test_it_prints_the_rows_beside_and_says_when_they_were_added(self, printed) -> None:
         assert "added after the scratch run saw results" in printed

@@ -79,7 +79,7 @@ so it is not a source of pins.
 
 **What Example 1.1 imports.** ``TU_mom_hypothesisTest.m``, git blob
 ``c0dda16``, runs these positions on simulated prices and on shuffled signals,
-which is [issue 352](https://github.com/l3a0/quantitative-trading/issues/352).
+which :mod:`chan.tu_hypothesis_tests` transcribes.
 So :data:`SOURCE_FILE`, :data:`SYMBOL`, :data:`LOOKBACK`, :data:`HOLD_DAYS`,
 :data:`SCRIPT_GAUSSIAN_STATISTIC`, :func:`read_sources`, :func:`signals`,
 :func:`positions`, :func:`market_returns`, :func:`strategy_returns` and

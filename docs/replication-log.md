@@ -6884,7 +6884,7 @@ and nothing about whether the rule pays today.
 | 12 | none | none, not a replication | The active line lands none of the comment's six figures, so the comment comes from `idx = 1`. The comment also prints no annual volatility although the printing line asks for one, so it was pasted from an earlier version of that line. |
 | 13 | none | none, not a replication | TU's close is the same on every day the two saves share, so only the window moves, four trading days later. That is enough to move the correlation to 0.29 at two decimals and the Kelly f off the printed digits, which places the book's figures on the 2012-05-11 save. |
 | 14 | none | none, not a replication | Tried after row 3 missed, as a diagnostic rather than a reading. |
-| 15 | none | none, not a replication | `TU_mom_hypothesisTest.m` prints 2.93, which is Example 1.1's figure, replicated as Entry 37's row 1. It is pinned here because it shows that the returns that issue imports are this entry's. |
+| 15 | none | none, not a replication | `TU_mom_hypothesisTest.m` prints 2.93, which is Example 1.1's figure, replicated as Entry 37's row 1. It is pinned here because it shows that the returns Entry 37 imports are this entry's. |
 
 ### What the entry concludes
 
@@ -7600,7 +7600,7 @@ registered test of the drift reading and cannot confirm it.
 | 5 | the third test as written, 10 draws on seed 20261011 | 0 of 10, every simulated return 0, and every draw's tranches added to the observed positions | `TestRow5TheAsWrittenTrades::test_ret_sim_is_zero_on_every_draw` and `::test_the_tranches_land_in_pos` |
 | 6 | the observed positions applied to row 2's simulated returns, added after the scratch run | 277 of 10,000, 0.027700 | `TestTheRowsBesideAddedAfterTheScratchRun::test_the_observed_positions_on_the_simulated_returns` |
 | 7 | a normal draw with TU's mean and `std` on row 2's uniforms, added after the scratch run | 1,165 of 10,000, 0.116500 | `TestTheRowsBesideAddedAfterTheScratchRun::test_a_normal_draw_with_tu_s_mean_and_std` |
-| 8 | row 2's draws less their target mean, added after the scratch run | 19 of 10,000, 0.001900. The simulated means average 3.604899e-07, against 3.205921e-05 for row 7 | `TestTheRowsBesideAddedAfterTheScratchRun::test_type_iv_with_the_mean_set_to_zero` and `::test_the_drift_is_what_the_strategy_earns_on_simulated_returns` |
+| 8 | row 2's draws less their target mean, added after the scratch run | 19 of 10,000, 0.001900. The simulated means average 3.604899e-07, against 3.220302e-05 for row 2. Over row 2's first 1,000 draws the rule is long on 0.804654 of signal days on average, and 0.502401 with the mean removed | `TestTheRowsBesideAddedAfterTheScratchRun::test_type_iv_with_the_mean_set_to_zero`, `::test_the_drift_is_what_the_strategy_earns_on_simulated_returns` and `::test_a_drifting_series_is_long_on_most_signal_days` |
 
 ### The verdicts
 
@@ -7621,19 +7621,21 @@ Three things.
 
 1. **The book's 1,166 reproduces and the script's 0.027500 does not.** A type
    IV generator with the script's moments lands inside the band around the
-   book's count on Chan's own file, so location 665's figure comes from the
-   test the script carries. The script's printed p-value lands only on row 6,
-   a different test that nothing in the file runs.
-2. **On this file, TU's drift drives the second test and its kurtosis does
-   not.** A normal draw with TU's mean and `std` gives 1,165 where type IV
-   gives 1,221, so the shape location 674 credits moves the count by little.
-   Setting the mean to zero gives 19, near the Gaussian test's one-sided
-   0.001677. The mechanism is the rule itself. A series with a positive drift
-   has a positive 250-day return most of the time, so the strategy is long
-   most of the time and collects the drift, which location 665's aside calls
-   less likely because "the position can be long or short". Rows 7 and 8 were
-   added after the scratch run, so this is a reading the entry motivates and
-   does not confirm.
+   book's count on Chan's own file, so location 665's figure is consistent
+   with the test the script carries. The script's printed p-value lands only
+   on row 6, a different test that nothing in the file runs.
+2. **On this file, the rows beside point at TU's drift rather than its
+   kurtosis as what drives the second test.** A normal draw with TU's mean and
+   `std` gives 1,165 where type IV gives 1,221, so the shape location 674
+   credits moves the count by little. Setting the mean to zero gives 19, near
+   the Gaussian test's one-sided 0.001677. The mechanism is the rule itself. A
+   series with a positive drift has a positive 250-day return most of the
+   time, so the strategy is long most of the time and collects the drift,
+   which location 665's aside calls less likely because "the position can be
+   long or short". Over the first 1,000 declared draws, the strategy is long
+   on about 80 percent of signal days, against about 50 at a mean of zero.
+   Rows 7 and 8 were added after the scratch run, so this is a reading the
+   entry motivates and does not confirm.
 3. **The third test gives 0 for a reason the script does not show.** As
    written it cannot give anything else. Corrected, it still gives 0 of
    100,000, so location 672's sentence stands, and the observed mean sits

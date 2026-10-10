@@ -237,10 +237,10 @@ The book's figures are here: the count of 1,166 of 10,000 random return sets
 at location 665, repeated as 12 percent at 2923, "not a single sample out of
 100,000" at 672, and the reading that high kurtosis favors momentum at 674.
 Location 606 defines the Gaussian statistic and prints no value for it, and
-locations 616 to 669 describe the three tests without a figure. The Gaussian
-statistic of 2.93 and the randomized-returns p-value of 0.027500 sit in the
-comments of `TU_mom_hypothesisTest.m` and nowhere in the book. The replication
-log's Entry 37 traces each figure to one or the other.
+locations 616 to 652 and 669 describe the three tests without a figure. The
+Gaussian statistic of 2.93 and the randomized-returns p-value of 0.027500 sit
+in the comments of `TU_mom_hypothesisTest.m` and nowhere in the book. The
+replication log's Entry 37 traces each figure to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
