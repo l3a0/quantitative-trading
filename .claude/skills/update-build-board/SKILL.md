@@ -133,7 +133,10 @@ A branch that closes no issue gets no card at all, because the page is built
 from the tracker. That has happened, and the fix was to file the issue and link
 the branch to it rather than giving the page a second source of truth. Check
 `closingIssuesReferences` when a pull request opens, and if it is empty and the
-branch means to close something, fix the body before the board is touched.
+branch means to close something, fix the body before the board is touched. A
+pull request into any branch but `main` is the exception. GitHub reads closing
+keywords only on a pull request into the default branch, so a stacked one shows
+an empty list until its base moves to `main`.
 
 One section these eight maintain only in part, said plainly rather than left
 to be discovered. `WORKING` marks a card a session is on right now, which is
@@ -472,7 +475,10 @@ it is stated here: **a session's review comment opens with a line reading
 in "Waiting on my review" until somebody notices.
 
 Read the checks against the pull request's current head, because a rollup is a
-claim about one merge ref at one moment and goes stale in both directions.
+claim about one merge ref at one moment and goes stale in both directions. A
+base change goes stale without a new head, so a pull request whose base moved
+after its last push is not green yet. The `sync-prune-next` skill's step 4 says
+how that happens to a stacked pull request and how to see it.
 
 Read `status` before `conclusion`. An in-progress run carries a null conclusion,
 so anything that tests for "not success" reads it as a failure, and only a
