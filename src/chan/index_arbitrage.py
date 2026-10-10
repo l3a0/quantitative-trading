@@ -58,7 +58,8 @@ dollars and earns log returns, so the formula differs.
    ``data/README.md`` records that the two names are one blob with one
    sha256.
 3. The two plot lines, 79 and 80, are not carried. The run prints and draws
-   nothing.
+   nothing, and :mod:`chan.index_arbitrage_figures` draws Figure 4.3 for the
+   post.
 4. :func:`chan.matlab_helpers.backshift` stands in for LeSage's ``lag``,
    which pads its first row with zero where ``backshift`` pads with NaN.
    Neither mirror holds a ``lag.m``, and the script already calls LeSage's
@@ -201,6 +202,20 @@ def screen(stocks: pd.DataFrame, index: pd.Series) -> Screen:
         if johansen(y2, JOHANSEN_P, JOHANSEN_K).relations("trace", SCREEN_LEVEL) >= 1:
             passed.append(symbol)
     return Screen(tested=tuple(tested), skipped=skipped, passed=tuple(passed))
+
+
+def walks_unrelated_to(index: pd.Series, count: int, seed: int) -> pd.DataFrame:
+    """``count`` Gaussian random walks on ``index``'s days, unit steps, no drift, from 100.
+
+    They share nothing with the index, so :func:`screen` run on them measures
+    how often the screen passes a series by chance.
+    """
+    rng = np.random.default_rng(seed)
+    return pd.DataFrame(
+        100 + np.cumsum(rng.normal(size=(len(index), count)), axis=0),
+        index=index.index,
+        columns=[f"W{i}" for i in range(count)],
+    )
 
 
 def basket_value(prices: NDArray[np.float64]) -> NDArray[np.float64]:
