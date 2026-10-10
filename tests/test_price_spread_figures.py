@@ -17,12 +17,16 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from matplotlib.colors import same_color, to_rgb
 from matplotlib.dates import date2num
 
 from chan import price_spread_figures
 from chan.paths import FIGURES_DIR
 from chan.price_spread import example_three_one, read_sources
 from chan.price_spread_figures import (
+    ACCENT,
+    GOOD,
+    LOST,
     RUNS,
     SIGNALS_FIGURE,
     cumulative_return,
@@ -127,6 +131,10 @@ class TestTheSignals:
         assert len(negative) == 334, SPEC
         assert set(negative) <= on_zero
 
+    def test_the_negative_days_are_shaded_in_lost(self, axes) -> None:
+        shaded = _by_gid(axes["hedge"].collections)["negative"]
+        assert same_color(to_rgb(shaded.get_facecolor()[0]), LOST)
+
     def test_the_spread_and_returns_panels_mark_zero(self, axes) -> None:
         for name in ("spread", "returns"):
             assert list(_by_gid(axes[name].lines)["zero"].get_ydata()) == [0, 0], name
@@ -177,6 +185,38 @@ class TestTheReturns:
             "ratio": "-",
             "swapped_ratio": "--",
         }
+
+    def test_each_run_wears_its_colour(self, axes) -> None:
+        """Both ratio readings share the ratio's colour, and the dash alone sets
+        the swapped one apart."""
+        lines = _by_gid(axes["returns"].lines)
+        expected = {
+            "price_spread": GOOD,
+            "log_price_spread": ACCENT,
+            "ratio": LOST,
+            "swapped_ratio": LOST,
+        }
+        for attribute, colour in expected.items():
+            assert same_color(lines[attribute].get_color(), colour), attribute
+
+    def test_no_two_runs_share_a_colour_and_a_dash(self, axes) -> None:
+        """Colour and dash together are the only key to which line is which run."""
+        lines = _by_gid(axes["returns"].lines)
+        keys = {
+            (to_rgb(lines[attribute].get_color()), lines[attribute].get_linestyle())
+            for attribute, *_ in RUNS
+        }
+        assert len(keys) == len(RUNS)
+
+    def test_each_legend_entry_wears_the_colour_and_dash_of_its_line(self, axes) -> None:
+        legend = axes["returns"].get_legend()
+        lines = {line.get_label(): line for line in axes["returns"].lines}
+        entries = list(zip(legend.get_texts(), legend.legend_handles, strict=True))
+        assert len(entries) == len(RUNS)
+        for text, handle in entries:
+            line = lines[text.get_text()]
+            assert same_color(handle.get_color(), line.get_color()), text.get_text()
+            assert handle.get_linestyle() == line.get_linestyle(), text.get_text()
 
     def test_the_heading_and_axis_read_as_compounded_percent(self, axes) -> None:
         returns = axes["returns"]

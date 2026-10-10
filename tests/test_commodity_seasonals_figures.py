@@ -141,7 +141,12 @@ class TestTheBars:
             assert len(colours) == 1
             assert not colours & verdicts
             for line in ax.lines:
-                assert to_rgba(line.get_color()) not in verdicts
+                for colour in (
+                    line.get_color(),
+                    line.get_markerfacecolor(),
+                    line.get_markeredgecolor(),
+                ):
+                    assert to_rgba(colour) not in verdicts
             for text in [
                 *ax.texts,
                 ax.title,

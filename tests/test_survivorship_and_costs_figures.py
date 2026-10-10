@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from matplotlib.colors import to_rgba
+from matplotlib.colors import same_color, to_rgba
 from matplotlib.dates import date2num
 
 from chan.khandani_lo import daily_book
@@ -102,6 +102,14 @@ class TestTheRunningTotals:
         lines = _lines(costs.axes[0])
         assert _rgb(lines["before"].get_color()) == _rgb(GOOD)
         assert _rgb(lines["after"].get_color()) == _rgb(LOST)
+
+    def test_each_end_label_wears_its_lines_colour(self, costs) -> None:
+        """No legend is drawn, so a label's colour is what ties it to its line."""
+        ax = costs.axes[0]
+        lines = _lines(ax)
+        for text, gid in zip(ax.texts, ("before", "after"), strict=True):
+            assert same_color(text.get_color(), lines[gid].get_color())
+        assert not same_color(lines["before"].get_color(), lines["after"].get_color())
 
     def test_each_end_is_labelled_with_its_own_total(self, costs) -> None:
         assert [text.get_text() for text in costs.axes[0].texts] == [
@@ -257,6 +265,25 @@ class TestTheToyBars:
     def test_the_segments_wear_loss_gain_and_neofs_colour(self, toy) -> None:
         colours = {p.get_gid(): _rgb(p.get_facecolor()) for p in toy.axes[0].patches if p.get_gid()}
         assert colours == {"loss": _rgb(LOST), "others": _rgb(GOOD), "neof": _rgb(ACCENT)}
+
+    def test_every_segment_wears_its_kinds_colour(self, toy) -> None:
+        """Both survivor bars, not only the last one drawn, since the post's alt text
+        calls NEOF's segment gold and the other nine's green in each."""
+        colours = {"loss": LOST, "others": GOOD, "neof": ACCENT}
+        segments = [p for p in toy.axes[0].patches if p.get_gid()]
+        assert [p.get_gid() for p in segments] == ["loss", "others", "neof", "others", "neof"]
+        for patch in segments:
+            assert same_color(patch.get_facecolor(), colours[patch.get_gid()])
+        assert len({_rgb(colour) for colour in colours.values()}) == 3
+
+    def test_neofs_label_outside_its_segment_wears_neofs_colour(self, toy) -> None:
+        """On one share basis the label sits past the bar's end, where only its colour ties it
+        to the gold segment. Inside the wider segment it is in the ground's colour."""
+        ax = toy.axes[0]
+        neof = {t.get_text(): t for t in ax.texts if t.get_text().startswith("NEOF")}
+        segment = [p for p in ax.patches if p.get_gid() == "neof"][-1]
+        assert same_color(neof["NEOF 21.89 points"].get_color(), segment.get_facecolor())
+        assert not same_color(neof["NEOF 308.86 points"].get_color(), segment.get_facecolor())
 
     def test_each_bar_is_labelled_with_its_own_numbers(self, toy) -> None:
         assert [text.get_text() for text in toy.axes[0].texts] == [

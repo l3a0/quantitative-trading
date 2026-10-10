@@ -29,11 +29,19 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.colors import same_color, to_rgb
 
 import chan.cpo_figures as figures
 from chan import cpo
 from chan.archive import ArchiveRefused, ArchiveUnavailable, read_archive_manifest
-from chan.cpo_figures import CELLS_FIGURE, labelled_cells, make_cells_figure
+from chan.cpo_figures import (
+    ACCENT,
+    CELLS_FIGURE,
+    INK,
+    LOST,
+    labelled_cells,
+    make_cells_figure,
+)
 from chan.paths import FIGURES_DIR
 
 #: Where the synthetic run puts the three cells the figure must find, and a
@@ -154,6 +162,32 @@ class TestTheThreeLabels:
         assert label.startswith(f"{cpo.cells()[at].label}, {ROLES[key]}\n")
         assert f"Sharpe ratio {result.cell_sharpes[at]:.3f}" in label
         assert f"{result.cell_trips[at]:.3g} round trips a day" in label
+
+    @pytest.mark.parametrize(
+        ("key", "colour"),
+        [("chosen", LOST), ("highest", INK), ("nearest", ACCENT)],
+        ids=["chosen", "highest", "nearest"],
+    )
+    def test_each_mark_and_its_label_wear_the_marks_colour(self, figure, key, colour) -> None:
+        """On the real run the chosen and the highest cells sit one above the other,
+        so colour is what ties each label to its point."""
+        drawn = _by_gid(figure)
+        assert same_color(drawn[key].get_color(), colour)
+        assert same_color(drawn[f"{key}-label"].get_color(), colour)
+
+    def test_the_three_marks_and_the_cloud_wear_four_colours(self, figure) -> None:
+        """A mark in the cloud's colour, or in another mark's, reads as no mark."""
+        drawn = _by_gid(figure)
+        colours = {to_rgb(drawn[key].get_color()) for key in ROLES}
+        colours.add(to_rgb(drawn["cells"].get_facecolor()[0]))
+        assert len(colours) == 4
+
+    def test_the_nearest_mark_wears_the_colour_of_chans_line(self, figure) -> None:
+        """The shared colour is what ties the cell to the figure it sits nearest."""
+        drawn = _by_gid(figure)
+        assert same_color(drawn["book-line"].get_color(), ACCENT)
+        assert same_color(drawn["book-label"].get_color(), ACCENT)
+        assert same_color(drawn["nearest"].get_color(), drawn["book-line"].get_color())
 
 
 class TestTheLabelling:
