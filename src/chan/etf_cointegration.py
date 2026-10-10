@@ -45,7 +45,8 @@ here for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339).
 1. The three ETFs are read as committed vintages through
    :func:`chan.series.load_panel` rather than from the ``.mat``.
 2. The six ``plot``, ``scatter`` and ``figure`` lines are not carried. The run
-   prints and draws nothing.
+   prints and draws nothing, and :mod:`chan.etf_cointegration_figures` draws
+   the plots for the post.
 3. LeSage's ``lag`` pads its first row with zero where
    :func:`chan.matlab_helpers.backshift` pads with NaN. The first row's return
    is not a number either way, since a zero price divides by zero, so it
