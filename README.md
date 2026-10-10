@@ -3211,9 +3211,11 @@ Six groups of what it says are not pinned here.
    above CAD in every month and the line without rollover interest sitting
    above the line with it on every day after January 2008, were measured once
    on the committed files and are not asserted.
-6. Its references, cited rather than computed. Dueker (2006) is named as the
-   book names it, without its full entry, which the committed notes do not
-   record.
+6. Its references, cited rather than computed. Location 2287 cites Dueker
+   and Neely's working paper as Dueker (2006). The book's bibliography, on
+   page 192 of the print edition, names both authors and the series number,
+   and the committed notes record that entry. The paper supplied its revision
+   date and its DOI, and Crossref's record supplied its journal version.
 
 Every other number in the post traces to an assertion in
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py), or to
