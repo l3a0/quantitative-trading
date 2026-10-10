@@ -3417,6 +3417,10 @@ it.
    and 2.970231 with no signal on rows 1 and 2, which the alt text reads as
    about 300 percent.
 
+Two more were pinned when Lesson 3 gained them after the post first merged. A
+300-day rolling mean of the intercept falls on 25 of its 1,200 steps, and a
+350-day one on none of its 1,150.
+
 Its one figure is drawn from the committed file by
 [src/chan/kalman_hedge_figures.py](src/chan/kalman_hedge_figures.py), which
 reads it through the same `read_sources` and `kalman_hedge` as
