@@ -29,10 +29,15 @@ git worktree list
 The log shows what merged since the last round, which is what moves the board
 and what can make a Substack draft stale.
 
-`--prune` drops a remote-tracking ref only when its branch was deleted on
-GitHub, and this repo does not delete a branch when its pull request merges. So
-remote branches pile up. Deleting them is the owner's call, and this skill
-leaves them alone.
+`--prune` drops a remote-tracking ref once its branch is gone from GitHub.
+Since 2026-10-10 GitHub deletes a pull request's branch when the pull request
+merges, because the owner turned on the repository's `delete_branch_on_merge`
+setting. So a merged pull request's `origin/<branch>` disappears on the next
+round, and step 2 cannot lean on it.
+
+The setting does not reach back. The branches of pull requests that merged
+before it stay on GitHub, 102 of them on 2026-10-10. Deleting those is the
+owner's call, and this skill leaves them alone.
 
 Fast-forward the main checkout only when it is clean and on `main`, since a
 session may be using it. `git -C` keeps the shell where it is, which matters
@@ -60,16 +65,28 @@ A worktree is removable only when all five of these hold.
 3. **Its `HEAD` commit is safe.** Test the worktree's `HEAD` itself, not only
    its branch, because a worktree with no branch checked out holds commits that
    no branch names. The commit is safe when `origin/main` contains it, when a
-   remote branch contains it (`git branch -r --contains`), or when it equals
-   the `headRefOid` of a merged pull request. Squash merges make the last case
-   common, because the branch's commit never reaches `main`. Test that last case
-   by exact comparison against the list of merged heads. A
-   `gh pr list --search <sha>` matches any commit inside a pull request, not
-   only its head, so it does not test what this check states. `61f8892`
-   matched [PR #414](https://github.com/l3a0/quantitative-trading/pull/414),
-   whose head is `ab9be84`. The search also matches a pull request that only
-   mentions the sha in its text. `b27222b`, a commit in the sibling repository
-   that this one does not hold, matched four merged pull requests here.
+   remote branch contains it (`git branch -r --contains`), or when it is one of
+   a merged pull request's commits. Squash merges make the last case common,
+   because the branch's commits never reach `main`, and deleting the branch on
+   merge leaves no remote branch to contain them either. GitHub keeps every
+   commit of a merged pull request, so any of them is safe, not only the head.
+   That matters for a review lens's worktree detached at an earlier commit of
+   the pull request, or a sub-agent's branch left there. On 2026-10-10 GitHub
+   deleted the branches of
+   [PR #433](https://github.com/l3a0/quantitative-trading/pull/433) and
+   [PR #447](https://github.com/l3a0/quantitative-trading/pull/447) as they
+   merged. Five sub-agent worktrees here sat at earlier commits of the two,
+   such as `d88745a` in the first, whose head is `886754e`. After the next
+   prune no remote branch contained them, and a test of the head alone would
+   have kept all five.
+
+   Test the last case by exact comparison against the commits GitHub lists for
+   each merged pull request. A commit made here on top of one of them is in no
+   list, so it stays unsafe, and so does an amended or rebased copy, whose sha
+   differs. Do not use `gh pr list --search <sha>` instead. It matches a
+   pull request that only mentions the sha in its text. `b27222b`, a commit in
+   the sibling repository that this one does not hold, matched five merged pull
+   requests here on 2026-10-10.
 4. **It holds no uncommitted changes.** `git status --porcelain` is empty.
    That listing omits ignored files, which `git worktree remove` deletes
    silently. `--ignored` shows them. Caches such as `.venv/` and
@@ -95,31 +112,45 @@ session as stuck, re-run `gh pr list --state open --limit 1000` and read its
 latest events with `list_events`, because a pull request may have opened since
 the worktree was classified.
 
-Check 3's last case needs the heads of the merged pull requests. Fetch them
+Check 3's last case needs the commits of the merged pull requests. Fetch them
 once into a file, so both loops below read the same list. A shell variable
 would not reach the second loop, because each Bash tool call starts a new
 shell. Replace `<scratch>` with the scratch directory in this block and the two
 after it.
 
 ```bash
-MERGED="<scratch>/merged-heads.txt"
-gh pr list --repo l3a0/quantitative-trading --state merged --limit 1000 --json headRefOid --jq '.[].headRefOid' > "$MERGED"
+MERGED="<scratch>/merged-commits.txt"
+gh api graphql --paginate -f query='query($endCursor: String) { repository(owner: "l3a0", name: "quantitative-trading") { pullRequests(states: MERGED, first: 100, after: $endCursor) { pageInfo { hasNextPage endCursor } nodes { headRefOid commits(first: 250) { nodes { commit { oid } } } } } } }' --jq '.data.repository.pullRequests.nodes[] | .headRefOid, .commits.nodes[].commit.oid' | sort -u > "$MERGED"
 wc -l < "$MERGED"
+grep -cvE '^[0-9a-f]{40}$' "$MERGED"
 ```
 
-A count of exactly 1000 means `gh` cut the list, so raise the limit and fetch
-again.
+`gh pr list --json commits` cannot fetch this list. It asks for each commit's
+authors too, and on 2026-10-10 GitHub refused the query for exceeding 500,000
+possible nodes at any limit of 50 or more. The query above pages through 100
+pull requests at a time, so no limit can cut it short. It reads the first 250
+commits of each pull request, and prints each head on its own line as well, so
+a longer pull request loses only its later commits from the list and never its
+head. The longest merged pull request had 70 commits on 2026-10-10.
+
+Every way this fetch can fail leaves the list shorter, and a shorter list only
+keeps more worktrees. A failure does not always leave the file empty, though.
+When GitHub rejects the query, `gh` writes the error as one line of JSON, and
+`--jq` never runs. So the block prints two counts. The first should be in the
+hundreds and the second, the lines that are not a full sha, should be 0.
+Anything else means the fetch failed, and the loops would then keep every
+worktree that is not on `main` or a remote branch.
 
 This prints what checks 3 to 5 need for every worktree.
 
 ```bash
-MERGED="<scratch>/merged-heads.txt"
+MERGED="<scratch>/merged-commits.txt"
 git worktree list --porcelain | sed -n 's/^worktree //p' | while read -r w; do
   if ! h=$(git -C "$w" rev-parse HEAD 2>/dev/null) || [ "$(git -C "$w" rev-parse --show-toplevel 2>/dev/null)" != "$w" ]; then
     echo "$w unreadable, skipped"; continue
   fi
   safe=$( { git merge-base --is-ancestor "$h" origin/main && echo main; } || git branch -r --contains "$h" | head -1 | tr -d ' ')
-  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr-head"
+  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr"
   echo "$w head=${h:0:7} branch=$(git -C "$w" branch --show-current) safe=[${safe}] dirty=$(git -C "$w" status --porcelain | wc -l | tr -d ' ') ignored=$(git -C "$w" status --porcelain --ignored | grep -c '^!!')"
 done
 git worktree list --porcelain | grep -B3 '^locked'
@@ -150,11 +181,11 @@ finds a pull request only when the local branch name equals the one it was
 pushed under.
 
 ```bash
-MERGED="<scratch>/merged-heads.txt"
+MERGED="<scratch>/merged-commits.txt"
 git branch --format='%(refname:short)' | grep -v -e '^main$' -e '^(HEAD' -e '^(no branch' | while read -r b; do
   h=$(git rev-parse "$b")
   safe=$( { git merge-base --is-ancestor "$h" origin/main && echo main; } || git branch -r --contains "$h" | head -1 | tr -d ' ')
-  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr-head"
+  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr"
   echo "$b ${h:0:7} ahead=$(git rev-list --count origin/main.."$h") safe=[${safe}]"
 done
 ```
@@ -240,7 +271,8 @@ from four places, and give the evidence for each one.
 1. **The owner's queue.** Nothing moves until the owner answers, so these come
    first.
    - Pull requests that are reviewed, green at the current head, and carry no
-     `WORKING` entry on their card.
+     `WORKING` entry on their card. Green does not count when the base moved
+     after the last push, as the paragraph after this list explains.
    - `PLANNED` entries with `ready` of `decide`.
    - Questions a session handed back.
 2. **Plans ready to build with no builder.** These are `PLANNED` entries with
@@ -254,6 +286,27 @@ from four places, and give the evidence for each one.
    in Claude's local memory for it.
 4. **The replication backlog**, in `NEXT`'s order, for when nothing above is
    waiting.
+
+A stacked pull request is the usual way a base moves without a push. It is one
+built on another pull request's branch rather than on `main`. GitHub's
+documentation on deleting branches says that deleting a merged pull request's
+branch moves every open pull request built on it onto the merged one's base. No
+stacked pull request here has been moved that way by the setting yet, so that
+case rests on the documentation rather than on a run. The move starts no CI
+run, because the workflow's `pull_request` trigger runs only on GitHub's
+default activity types and a base change is not one of them.
+[PR #466](https://github.com/l3a0/quantitative-trading/pull/466) shows the
+cost. While it sat on
+[PR #464](https://github.com/l3a0/quantitative-trading/pull/464)'s branch, only
+`docs` and `test` ran, because CodeQL's default setup scans only pull requests
+into the default branch or a protected one. Both were green, so the rollup read
+green with four checks missing. Its base was moved by hand on 2026-10-10, and
+no run started until its next push. This prints when a pull request's base
+moved, to compare with its last push.
+
+```bash
+gh api repos/l3a0/quantitative-trading/issues/<n>/timeline --jq '.[]|select(.event=="base_ref_changed")|.created_at'
+```
 
 Link every issue and pull request number. Say which candidates only the owner
 can act on, and which a new session can start without them.
