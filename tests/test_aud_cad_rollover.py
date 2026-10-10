@@ -283,6 +283,9 @@ class TestBesideTheReplication:
         """
         held = lag1(result.position)[SCRIPT_LOOKBACK:]
         term = lag1(np.log(1 + result.aud) - np.log(1 + result.cad))[SCRIPT_LOOKBACK:]
+        # The term rebuilt here is the one the run's returns carry, lags included.
+        added = (result.returns - result.without)[SCRIPT_LOOKBACK:] / held
+        np.testing.assert_allclose(added, term, rtol=0, atol=1e-15)
         assert 252 * term[held > 0].mean() == pytest.approx(0.0328995788, abs=1e-10)
         assert 252 * term[held < 0].mean() == pytest.approx(0.0328677609, abs=1e-10)
 

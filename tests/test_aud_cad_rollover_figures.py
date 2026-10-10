@@ -360,8 +360,12 @@ class TestTheFile:
     def test_drawing_to_out_leaves_the_committed_figure_alone(self, tmp_path, sources) -> None:
         committed = FIGURES_DIR / ROLLOVER_FIGURE
         before = committed.read_bytes()
+        touched = committed.stat().st_mtime_ns
         make_rollover_figure(out=tmp_path / ROLLOVER_FIGURE, sources=sources)
         assert committed.read_bytes() == before
+        # A redraw is deterministic, so a stray write would leave the bytes
+        # the same. Only the modification time shows it.
+        assert committed.stat().st_mtime_ns == touched
 
     def test_the_committed_figure_exists(self) -> None:
         assert (FIGURES_DIR / ROLLOVER_FIGURE).is_file()
