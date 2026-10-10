@@ -36,7 +36,7 @@ repository root, names every module under ``src/chan`` that imports one::
     grep -rlE '^ *(from|import) [^#]*matlab_helpers([ ,)]|$)' src/chan | sort
 
 Reversing the tie order in :func:`matlab_sort` moves no printed figure on the
-S&P 500 file Example 7.7 reads. On the 2012 S&P 500 file Example 4.1 reads, no
+two files Examples 7.6 and 7.7 read. On the 2012 S&P 500 file Example 4.1 reads, no
 two stocks qualifying on one day tie at all, on either side, so it moves
 nothing there either.
 
@@ -60,7 +60,9 @@ What each one does:
   deviation. A month that held no position counts as a month that returned
   nothing.
 - :func:`backshift`, :func:`lag1` and :func:`fwdshift` move rows down or up and
-  pad with NaN.
+  pad with NaN. :func:`fwdshift` is carried because Chan's ``example7_6.m``
+  calls it, though Example 7.6 here finds month-ends by comparing each row with
+  the next instead.
 - :func:`matlab_sort` orders a row ascending with NaN last and ties in column
   order.
 - :func:`round_half_away` is MATLAB's ``round``. numpy's ``round`` sends a half
@@ -157,7 +159,7 @@ does Example 4.2's ``indexArb.m``, for
 things changed on the way over.
 
 1. ``movingStd``'s optional third argument, which samples every ``period``
-   rows, is not carried, because none of the seven scripts passes it.
+   rows, is not carried, because no script transcribed here passes it.
 2. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window,
    and ``movingStd`` refuses a window of one row for the reason
    :func:`smart_moving_std` does.
