@@ -1156,7 +1156,11 @@ and symbol.
 
 1. `TU_mom_hypothesisTest.m` and `TU_mom.m`, Examples 1.1 and 6.1, read TU
    from the 2012-05-11 save.
-2. `CL_rev.m` reads CL from the 2012-05-04 save.
+2. `CL_rev.m` reads CL from the 2012-05-04 save. `chan.cl_reversal_momentum`
+   reads it there for the replication, reads the 2012-05-11 save over the same
+   days for one row beside it, and reads the 2012-05-07 save's CL before
+   2008-05-19 to run the rule on the four years before the book's window, per
+   [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
 3. `VX_ES.m` reads VX and ES, `gapFutures_FSTX.m`, Example 7.1's gap on
    Euro Stoxx 50 futures, reads FSTX, and `correlationTest.m`, Example 6.1's
    correlation table run alone, reads TU, all from the 2012-05-17 save.

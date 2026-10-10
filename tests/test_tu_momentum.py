@@ -1,7 +1,7 @@
 """The pins for time-series momentum on TU, *Algorithmic Trading*'s Example 6.1.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md`` Entry 31
+about this example and the rows beside it. ``docs/replication-log.md`` Entry 32
 carries the verdicts and points here row by row.
 
 Every pin on the committed files reads one of two vintages and one
@@ -574,7 +574,7 @@ class TestTheReport:
         assert "inputdataohlcdaily_20120511/tu.csv" in printed
         assert "inputdataohlcdaily_20120517/tu.csv" in printed
         assert "Exploratory." in printed
-        assert "Entry 31" in printed
+        assert "Entry 32" in printed
 
     def test_it_prints_the_table_and_the_rows_beside(self, printed) -> None:
         assert "0.2719 (0.0238)" in printed

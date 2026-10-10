@@ -48,6 +48,8 @@ Example 3.1.
 :func:`round_half_away` for *Algorithmic Trading*'s Examples 2.6 to 2.8.
 :mod:`chan.index_arbitrage` calls :func:`backshift` and :func:`smartsum` for
 *Algorithmic Trading*'s Example 4.2.
+:mod:`chan.cl_reversal_momentum` calls :func:`backshift` for *Algorithmic
+Trading*'s crude oil rule at location 2701.
 :mod:`chan.tu_momentum` calls :func:`backshift`, :func:`fwdshift` and
 :func:`smartmean` for *Algorithmic Trading*'s Example 6.1, and is the one
 caller of :func:`fwdshift`. Chan's ``example7_6.m`` calls it too, and the

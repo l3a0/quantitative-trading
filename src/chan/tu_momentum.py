@@ -502,7 +502,7 @@ def report(
         f"  Annualised over {TRADING_DAYS} days with no risk-free rate and no cost, on "
         "back-adjusted closes."
     )
-    print("  Exploratory. docs/replication-log.md Entry 31 carries the verdicts.")
+    print("  Exploratory. docs/replication-log.md Entry 32 carries the verdicts.")
 
 
 def run(data_dir: Path | None = None) -> tuple[TuMomentum, TuMomentum]:

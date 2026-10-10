@@ -170,6 +170,13 @@ it, and the annualised rollover of "almost 5 percent". The two figures
 nowhere in the book. The replication log's Entry 30 traces each to one or the
 other.
 
+*Algorithmic Trading*'s crude oil rule, in its Chapter 6, is the opposite
+case: both figures are in the book and in the script. The APR of 12 percent
+and the Sharpe ratio of 1.1 sit at location 2701. `CL_rev.m` computes them,
+and the comment under its `fprintf` records `APR=0.117600 Sharpe=1.100368`,
+which rounds to both. The replication log's Entry 31 traces both to the
+script's run.
+
 *Algorithmic Trading*'s Example 6.1 splits the way Examples 2.1 to 2.5 do. The
 book's figures are here: the 250/25 correlation of 0.27 with a p-value of 0.02
 at location 2659, H of 0.44 and the variance ratio test's failure to reject at
@@ -178,7 +185,7 @@ drawdown of 2.5 percent from June 1, 2004, to May 11, 2012, at 2668. The
 figures `TU_mom.m`'s comment prints, 0.0167 twice, 1.04, −0.024847, 343 days
 and a Kelly f of 64.919535, sit in the script and nowhere in the book. Table
 6.2 is named at 2668 and none of its rows is here. The replication log's
-Entry 31 traces each figure to one or the other.
+Entry 32 traces each figure to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
