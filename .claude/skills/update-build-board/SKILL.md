@@ -89,8 +89,16 @@ that hits one and leaves has made the board wrong, and nothing else notices.
 2. **A pull request opens or merges.** An open one moves the card out of the
    build order into the in-flight section, as a `PRS` entry. A merged one
    usually takes the card off the page, because the issue it closed is closed.
-   Opening one leaves the session's `WORKING` entry where it is. That entry
-   comes out at the hand-over, under the eighth moment.
+   A merged `Part of` leaves its issue open. Keep its entry, with `state` set
+   to `merged`, so the card says what landed. Only an open entry reads as a
+   branch, so that card no longer reads as carried by a branch and goes
+   wherever it would sit with no pull request. A merged entry with no `Part of`
+   whose issue is still open, linked or not, holds the card back under the
+   reason that it has merged and needs only closing by hand. Its work has
+   landed, so the owner ruled on 2026-10-10 that it is neither free nor
+   waiting for a builder. Opening a pull request leaves the session's
+   `WORKING` entry where it is. That entry comes out at the hand-over, under
+   the eighth moment.
 3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
    flag is one of three things a card needs before it moves from waiting on a
    reviewer to waiting on the owner, which is the column the owner reads first.
@@ -102,8 +110,11 @@ that hits one and leaves has made the board wrong, and nothing else notices.
    card stays off the board's default view until it has a `NEXT` entry, so
    decide whether it gets one rather than leaving that to chance.
 5. **A pull request closes unmerged.** In-flight membership asks whether a
-   `PRS` entry has `state` of `open`, so nothing removes a card on its own and
-   it sits in a review column indefinitely.
+   `PRS` entry has `state` of `open`, so until the entry changes the card sits
+   in a review column indefinitely. Keep the entry, with `state` set to
+   `closed`, while its issue stays open. The card's line then says the pull
+   request closed, and the card goes wherever it would sit with no pull
+   request.
 6. **A pull request's checks settle.** `rollup` is per check, and the footer
    warns that it decays. `CLAUDE.md` already makes a session watch its checks
    after pushing, so the outcome is always known and only writing it down is
@@ -324,9 +335,14 @@ refuses a document missing any field it reads, and refuses an empty tracker.
    target must be an open issue. A readback's `kind`, `needs`, `after` and
    `label` carry over for issues still open.
 3. `prs` holds one entry per open pull request, measured as a usual update
-   measures it. A pull request whose closing references are empty but whose
-   body writes `Part of` with an issue number takes that issue, `linked: false`
-   and `partOf: true`. One with neither gets no entry, and the report names it.
+   measures it, plus every merged or closed entry a readback carries whose
+   issue is still open. Those carry over unchanged, because the card still
+   reads each one. A merged `Part of` says what landed, a merged entry with no
+   `Part of` holds its card until it is closed by hand, and a closed entry says
+   the branch closed. A pull request whose closing references are empty but
+   whose body writes `Part of` with an issue number takes that issue,
+   `linked: false` and `partOf: true`. One with neither gets no entry, and the
+   report names it.
 4. `next` takes a readback's order, minus closed issues. Rank a new issue only
    where `CLAUDE.md`'s ranking directive clearly places it, and list the rest
    in the report for the owner. With no readback, rank the open issues by that
@@ -526,7 +542,7 @@ One more constant is not in the table because nothing should edit it.
 | Part | Holds |
 | --- | --- |
 | `STATE`, from `board/state` | `updatedAt` and `issues.open` |
-| `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
+| `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose. Every entry draws its line on the card. Only one whose `state` is `open` reads as a branch carrying the card, which the page's `openBranches` decides. A `merged` entry with no `partOf` holds the card back as needing only closing by hand, which `closesByHand` decides. A `closed` entry holds nothing |
 | `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase no card draws. Under "Building" and "Being planned" the heading already names the session and the card's title names the same work. Under "Waiting on my review" a phrase such as "building Example 3.2's transcription" sat above "review in progress" and described work the branch had already replaced, so the owner cut it there too on 2026-10-05. The `busy` stripe says a session still holds the card, and the flow note says what the branch still owes. The screen-reader label reads the phrase only while no branch is open, where it can add a detail the title lacks, such as the name of the MATLAB file a build is transcribing. Once a branch is open the label drops the phrase and says which kind of session still holds the card, because the stripe looks the same for both: a build session is still on the branch, and a decompose loop is still revising the plan. Lead the phrase with the session's verb, such as building or planning, because the label is read on its own without the column heading. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop. A build session's entry stays after its pull request opens and comes out at the hand-over, so an entry on a card with an open pull request holds it under "Waiting on my review" |
 | `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
@@ -889,6 +905,27 @@ the script beside it. Each row after them says how it was found.
     The price is a card left under "Waiting on my review" when its session
     ends without taking its entry out. That fails safe, because it delays a
     merge rather than inviting one too early.
+18. **A merged pull request read as a branch.** Found on 2026-10-10 by reading
+    the Show all view.
+    [Issue 431](https://github.com/l3a0/quantitative-trading/issues/431) and
+    [issue 432](https://github.com/l3a0/quantitative-trading/issues/432) each
+    had a pull request merged as `Part of`, with the issue left open for a link
+    and a reference. The board note left both out of the free list and gave
+    as its reason that a card can "already be written and waiting on a review",
+    which neither was. The note asked whether `PRS` held any entry for the
+    card, while the In flight section asked whether it held an open one, so
+    the two sections disagreed about one card. That is defect 5 again. The same
+    bare test also hid the plan marker, the kind word and the accent border on
+    such a card, and put "a pull request carries it" in the legend. One
+    function, `openBranches`, now answers the question for every reader.
+
+    Freeing every merged entry would have gone past the defect. A pull request
+    merged with no `Part of` was meant to close its issue, so the owner ruled
+    on 2026-10-10 that its card is held back as needing only closing by hand,
+    and `closesByHand` decides that for the free list, the plan marker, the
+    kind word and the "Planned, no builder" column. The same reading found a
+    closed entry's line repeating its old review text and, with no closing
+    link, saying what merging would do. It now says closed.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
@@ -1011,10 +1048,19 @@ rather than on refusals. Nothing in this skill starts anything, so the number is
 recorded here rather than enforced.
 
 One fact from the withdrawn text is about the page rather than about offering,
-so it stays. The "Planned, no builder" test asks only whether a plan exists,
-whether a branch exists and whether a session is on it. It never reads `needs`,
-so a plan-complete card sitting behind an open blocker lands there too, which
-qualifies the table's line above saying `needs` moves a card into a deeper
-column. The card still draws its own "waits on" line, so a reader is not misled,
-and no card has hit the case yet because every `PLANNED` entry so far has an
-empty `needs`.
+so it stays, corrected. The "Planned, no builder" test in `FLOW` asks five
+things of the state `flightCols` builds for a card.
+
+1. `s.plan`: a `PLANNED` entry exists.
+2. `!s.pr`: no open pull request carries the card.
+3. `!s.busy`: no session is on it.
+4. `!s.blocked`: nothing in its `needs` is still open.
+5. `!s.landed`: no pull request merged against it with no `Part of`.
+
+The withdrawn text said the test never read `needs`, so a plan-complete card
+behind an open blocker would land in that column too.
+[Issue 138](https://github.com/l3a0/quantitative-trading/issues/138) was the
+first card to reach that state, and the fourth condition was added for it, so
+such a card stays on the depth board under its own "waits on" line. The fifth
+came with the owner's ruling of 2026-10-10, under defect 18, because a card
+whose pull request merged with no `Part of` has no builder to wait for.

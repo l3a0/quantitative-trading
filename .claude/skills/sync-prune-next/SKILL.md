@@ -208,7 +208,10 @@ checks, including the reconcile check on the totals. This step
 only names what a round usually changes.
 
 - `PRS` takes each open pull request's checks at its current head and its
-  `## Review` count, and drops pull requests that merged or closed.
+  `## Review` count. A pull request that merged or closed keeps its entry, with
+  `state` set to `merged` or `closed`, while its issue stays open, because the
+  card still reads it. The entry drops once the issue closes. Moments 2 and 5
+  of `update-build-board` say what each kind of entry does to its card.
 - `TRACKER` and `STATE.issues.open` take issues filed or closed since the last
   round. `PLANNED` and `NEXT` drop entries for closed issues.
 - `WORKING` entries are owed a removal by whoever added them, so report a stale
@@ -241,7 +244,9 @@ from four places, and give the evidence for each one.
    - `PLANNED` entries with `ready` of `decide`.
    - Questions a session handed back.
 2. **Plans ready to build with no builder.** These are `PLANNED` entries with
-   `ready` of `build`, with no `WORKING` entry and no open pull request.
+   `ready` of `build`, with no `WORKING` entry, no open pull request, nothing
+   open in `needs`, and no pull request merged with no `Part of`. That last one
+   leaves the card only a close by hand, so it is not a candidate.
 3. **Blog drafts.** List the Substack drafts and their schedule. A merged or open
    pull request that touches `blog/` can leave its draft stale, and syncing it
    needs the owner's approval. A pull request's own session may already have
