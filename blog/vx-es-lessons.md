@@ -89,7 +89,7 @@ The same specification on the other two saves misses everything.
 \text{2012-05-07 save} & 0.390594 & \$2{,}044.91 & 0.122811 & 1.393201 \\
 \text{2012-05-11 save} & 0.376431 & \$2{,}291.00 & 0.056582 & 0.673910 \\
 \text{2012-05-17 save} & 0.376431 & \$2{,}291.00 & 0.056582 & 0.673910 \\
-\texttt{VX\_ES.m}\text{ as it ships} & 0.350731 & \$2{,}373.59 & \text{none} & \text{none}
+\texttt{VX}\_\texttt{ES.m}\text{ as it ships} & 0.350731 & \$2{,}373.59 & \text{none} & \text{none}
 \end{array}
 ```
 
