@@ -900,10 +900,7 @@ them too.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
 that shape was decided. The spot and roll returns of Example 5.3 read five of
 them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
-[issue 347](https://github.com/l3a0/quantitative-trading/issues/347).
-Example 5.4's calendar spread reads the CL strip through the same
-`load_strip`, in `chan.calendar_spread_reversion`, for
-[issue 348](https://github.com/l3a0/quantitative-trading/issues/348). No
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). No
 replication reads the other three strips or the gold series yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped

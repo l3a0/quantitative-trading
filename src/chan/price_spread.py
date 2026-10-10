@@ -95,11 +95,9 @@ how it sets ``numUnits``. So :mod:`chan.bollinger` calls :func:`read_sources`,
 from here rather than write a second copy, under
 [issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
 :mod:`chan.vx_es` takes :func:`daily_returns` from here for the same reason,
-under [issue 350](https://github.com/l3a0/quantitative-trading/issues/350).
-:mod:`chan.kalman_hedge` takes it too, under
-[issue 342](https://github.com/l3a0/quantitative-trading/issues/342), and
-:mod:`chan.calendar_spread_reversion` takes :func:`zscore`, under
-[issue 348](https://github.com/l3a0/quantitative-trading/issues/348).
+under [issue 350](https://github.com/l3a0/quantitative-trading/issues/350), and
+so does :mod:`chan.kalman_hedge`, under
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
 
 **What changed on the way over.** Four things, and none moves a figure.
 
