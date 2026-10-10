@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 and 33 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 and 34 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight and three, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 and 33 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 and 34 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -255,6 +255,12 @@ says.
   - [The verdicts](#the-verdicts-31)
   - [What the entry concludes](#what-the-entry-concludes-32)
   - [What this entry cannot say](#what-this-entry-cannot-say-30)
+- [Entry 34: mean reversion on crude oil's 12-month calendar spread, Chan's *Algorithmic Trading*](#entry-34-mean-reversion-on-crude-oils-12-month-calendar-spread-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-31)
+  - [What this repo computed](#what-this-repo-computed-33)
+  - [The verdicts](#the-verdicts-32)
+  - [What the entry concludes](#what-the-entry-concludes-33)
+  - [What this entry cannot say](#what-this-entry-cannot-say-31)
 
 ## How to read an entry
 
@@ -312,10 +318,13 @@ both.
    [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
    Entry 30,
    [tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py)
-   holds Entry 31, and
+   holds Entry 31,
    [tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) holds
-   Entry 32, and
-   [tests/test_tu_momentum.py](../tests/test_tu_momentum.py) holds Entry 33.
+   Entry 32,
+   [tests/test_tu_momentum.py](../tests/test_tu_momentum.py) holds Entry 33,
+   and
+   [tests/test_calendar_spread_reversion.py](../tests/test_calendar_spread_reversion.py)
+   holds Entry 34.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -431,7 +440,8 @@ Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
-Entry 32's rows 5 to 7, and Entry 33's rows 11 to 15.
+Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, and Entry 34's rows 10 to
+12.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -594,6 +604,22 @@ percent, was written on
 scratch run had read the test, though before the build. Like Entry 21's rows 7
 and 8, it reads the book's own words, and the 5 percent is the level the
 script reads `h` at, so there was no threshold left to choose.
+
+Entry 34's row 9 takes it too. Location 2461 says the 12-month log calendar
+spread of CL is "stationary with 99 percent probability", a definite claim
+about one series it names. Its criterion, an ADF statistic below the test's 1
+percent critical value, was written on
+[issue 348](https://github.com/l3a0/quantitative-trading/issues/348) after a
+scratch run had measured the statistic at −4.727778, as Entries 13 and 27
+wrote theirs after the figures they judge. It reads "99 percent" as the 1
+percent level of the test, the reading Entry 22's row 1 applies to location
+1114's "90 percent level" and Entry 29 declared on
+[issue 344](https://github.com/l3a0/quantitative-trading/issues/344) before
+computing, so there was no threshold left to choose. Entry 32's rows 3 and 4
+carry no verdict because each would rest on where its line sat. Here the line
+is the book's own level, as Entry 33's row 4 reads `vratiotest`'s 5 percent,
+and the statistic clears −3.4583 by 1.269478, so the verdict does not rest on
+where that line sits.
 
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
@@ -6831,6 +6857,182 @@ number is seen.
 contract with no cost and no margin, and location 2668 says leverage is
 needed to make the 1.7 percent worth having. Nothing here measures what costs
 or leverage would do.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 34: mean reversion on crude oil's 12-month calendar spread, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 5.4, Kindle locations 2461 and 2471. Shipped
+under [issue 348](https://github.com/l3a0/quantitative-trading/issues/348).
+The script is `calendarSpdsMeanReversion.m`, in ericnberwick/EpchanPreview at
+`e4bc46f` under `public/img/book2/`, git blob `277d84d`, with its lines counted
+from its first, `clear;`. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Twelve rows, all derivable from
+[tests/test_calendar_spread_reversion.py](../tests/test_calendar_spread_reversion.py).
+Three do not match one printed figure to one computation: rows 10 to 12 carry
+no published figure.
+
+A calendar spread is long one contract of a future and short another of the
+same future a fixed number of months away. Its log value moves with the roll
+return γ that Entry 27 estimates, and not with the spot price, because the spot
+cancels between the two legs. So a γ that keeps returning to its average gives
+a spread that does too. Example 5.4 tests that on CL, crude oil, with the near
+and far contracts a year apart, and then trades it. Each pair is held for a
+fixed stretch and rolled to the next pair 10 days before the near contract
+expires. The position is short the near contract and long the far one, and
+reversed on every day the z-score of γ is above 0.
+
+**The book's figures reproduce on the window the script states, and two of
+the comment's figures land one row later.** The half-life, the APR and the
+Sharpe ratio round to the book's 36 days, 8.3 percent and 1.3 from 2008-01-02,
+the day `idx=find(tday==20080102)` picks. The comment's half-life, drawdown
+and duration reproduce there too. The comment's APR of 0.083406 and Sharpe ratio of
+1.288661 miss there, and land to every printed digit from 2008-01-03.
+
+**Row 9's criterion reads the book's level.** Location 2461 says the spread is
+"stationary with 99 percent probability". Row 9 holds that claim when the ADF
+statistic lies below the test's 1 percent critical value. That criterion was
+written on
+[issue 348](https://github.com/l3a0/quantitative-trading/issues/348) after a
+scratch run had measured the statistic, and
+`### Rows that are not replications` says why the verdict does not rest on it.
+
+Every row reads one vintage and one specification unless it names another, so
+both are stated once here.
+
+1. **The vintage.** `inputdatadaily_cl_20120813/`, vendor `chan-mat`, basis
+   `raw`, saved 2012-08-14, lifted from `inputDataDaily_CL_20120813.mat`, the
+   file the script's load line names. It holds 89 contracts, CL-2007F to
+   CL-2014K, each a month after the last, and `CL-SPOT`, over 6,467 days from
+   1986-11-03 to 2012-08-13. All 77 pairs of contract c and contract c + 12 are
+   therefore a year apart. It is read through `chan.roll_returns.load_strip`,
+   whose scale-break guard runs on every member over its own rows and refuses
+   nothing. The other committed CL save, `inputdatadaily_cl_20120502/`, has no
+   spot and ends on 2012-05-02, so it cannot reach the book's last day.
+2. **The specification.** `calendarSpdsMeanReversion.m` as
+   `chan.calendar_spread_reversion` transcribes it. γ is
+   `chan.roll_returns.roll_returns`, Entry 27's γ, forward-filled. The ADF test
+   is jplv7's `adf(gamma, 0, 1)` and the half-life the regression of lines 55
+   to 60, both on the filled γ's 1,941 finite rows from 2004-11-22. The
+   z-score's lookback is the half-life rounded, 36 rows. Pair c is short
+   contract c and long contract c + 12. The first pair is held from 73 rows
+   before its near contract's last priced day, and each later pair from the
+   day after the last held pair's end, each to 10 rows before its own expiry.
+   A later pair with fewer than 63 rows is skipped. The spread is reversed
+   where the z-score is above 0 and flat where it is NaN. The daily return is
+   the sum of yesterday's positions times each leg's return, divided by 2. The
+   figures read the 1,164 rows from 2008-01-02 to 2012-08-13, annualised over
+   252 days with the n − 1 deviation, no risk-free rate and no cost.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2008 to 2012 sample on a rule he chose, and row 10's window was found by a scan
+after rows 3 and 5 missed, so the entry says whether his numbers reproduce on
+his file and nothing about whether the spread reverts today.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The half-life | 36.394034 days | `calendarSpdsMeanReversion.m`'s comment |
+| 2 | The half-life, in the book | 36 days | location 2461, and "about 36 days" at 2471 |
+| 3 | The APR | 0.083406 | the script's comment |
+| 4 | The APR, in the book | 8.3 percent | locations 2461 and 2471 |
+| 5 | The Sharpe ratio | 1.288661 | the script's comment |
+| 6 | The Sharpe ratio, in the book | 1.3 | locations 2461 and 2471 |
+| 7 | The maximum drawdown | −0.053222 | the script's comment |
+| 8 | The longest drawdown | 206 days | the script's comment |
+| 9 | The 12-month log calendar spread of CL is stationary | a claim, "stationary with 99 percent probability" | location 2461 |
+| 10 to 12 | the comment's window one row later, the book's 61-day hold, and the days S holds a pair | none here, as each row says | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | the regression of lines 55 to 60 on the filled γ's 1,941 finite rows | 36.394034 | `TestTheFigures::test_each_run_at_six_decimals` |
+| 2 | the same | the same | `TestTheFigures::test_s_and_r1_round_to_the_books_figures` |
+| 3 | `prod(1 + ret)^(252/1164) − 1` over the 1,164 rows from 2008-01-02 | 0.082671 | `TestTheFigures::test_each_run_at_six_decimals` |
+| 4 | the same, times 100 | 8.267103 | `TestTheFigures::test_s_and_r1_round_to_the_books_figures` |
+| 5 | `√252 · mean(ret) / std(ret)` over the same rows | 1.278216 | `TestTheFigures::test_each_run_at_six_decimals` |
+| 6 | the same | the same | `TestTheFigures::test_s_and_r1_round_to_the_books_figures` |
+| 7 | `calculateMaxDD(cumprod(1 + ret) − 1)`, the deepest drawdown | −0.053222 | `TestTheFigures::test_each_run_at_six_decimals` |
+| 8 | the same, the longest run of days below a high | 206 | the same |
+| 9 | jplv7 `adf(gamma, 0, 1)` on the same 1,941 rows | −4.727778, against a 1 percent critical value of −3.4583 | `TestTheAdfTest::test_the_statistic_clears_the_1_percent_critical_value` |
+| 10 | rows 3, 5, 7 and 8 over the 1,163 rows from 2008-01-03 | 0.083406, 1.288661, −0.053222 and 206 days | `TestTheFigures::test_each_run_at_six_decimals` and `::test_r1_matches_every_figure_the_comment_prints` |
+| 11 | rows 3, 5, 7 and 8 with `holddays=61`, from 2008-01-02 | 0.067315, 1.044327, −0.098047 and 208 days, last held on 2012-07-06 | `TestTheFigures::test_each_run_at_six_decimals` and `::test_the_last_held_days` |
+| 12 | the first and last days S holds a pair, the rows of the window that return exactly 0, and the window's first return | 2006-09-05 and 2012-05-08, the last 66 rows and no other, and −0.0028127 | `TestTheFigures::test_the_first_row_holding_anything_is_2006_09_05`, `::test_the_last_held_days`, `::test_the_windows_last_66_rows_and_no_other_return_exactly_zero` and `::test_the_first_days_return_and_what_zeroing_it_gives` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | −0.000000 | reproduced | Exact at the six decimals the script prints. |
+| 2 | +0 | reproduced | 36.394034 rounds to the printed 36. |
+| 3 | −0.000735 | did not reproduce | The script as written misses its own comment, on the file of the name its load line gives. Row 10 lands the comment one row later. |
+| 4 | −0.0 percent | reproduced | 8.267103 percent rounds to 8.3. |
+| 5 | −0.010445 | did not reproduce | The same miss as row 3, from the same returns. |
+| 6 | −0.0 | reproduced | 1.278216 rounds to 1.3. |
+| 7 | +0.000000 | reproduced | Exact at the six decimals the script prints. |
+| 8 | 0 days | reproduced | Exact. |
+| 9 | none, a claim | reproduced | −4.727778 lies below −3.4583 by 1.269478, so the test rejects a unit root at the level the book's "99 percent" names. |
+| 10 | none | none, not a replication | Starting one row later lands all five figures the comment prints. It drops 2008-01-02's return of −0.0028127. Setting that return to 0 instead gives 0.083331 and 1.288104, so the printed run left the row out rather than holding it flat. The window was found by a scan after rows 3 and 5 missed, so it is evidence of nothing else, and rows 3 to 8 keep the window the script states. |
+| 11 | none | none, not a replication | Location 2471 says a pair is held for "3 months (61 trading days)", and the script's `holddays=3*21` is 63. The book's 61 lands none of the figures, so the script's 63 is what printed them. Under 61 a later pair clears line 98's check, and the last held day moves to 2012-07-06. |
+| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so a contract still trading on 2012-08-13 expires on the file's last row and its pair is skipped. The last pair held ends on 2012-05-08, and the window's last 66 rows return exactly 0. Rows 3 to 8 include those rows, as the script does. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The book's figures reproduce on the window the script states.** Every
+   figure location 2461 prints rounds from the run that starts on 2008-01-02,
+   and the ADF claim holds by a margin of 1.269478 at the book's own level.
+   The comment's half-life, drawdown and duration reproduce exactly there too.
+2. **The comment's APR and Sharpe ratio come from one row later.** A scan
+   found the 2008-01-03 start the only window within 1e-6 on both, and the
+   zeroed first day shows the row was left out rather than held flat. The
+   script reads `tday` in one line, so either the `//dellquad` copy labelled
+   its rows a day later than the shipped file, or the comment came from a run
+   with a different `idx`.
+3. **The trade stops three months before the window does.** The script reads
+   a contract's last priced row as its expiry, so contracts still trading on
+   the file's last day hold no pair, and the APR and Sharpe ratio are averaged
+   over 66 flat rows at the end. Under the book's 61-day hold a later pair
+   clears the check and the run holds to 2012-07-06.
+
+### What this entry cannot say
+
+Four things.
+
+**Which of the two explanations moved the comment's window.** Nothing
+committed can tell a shifted `tday` in Chan's copy from a different `idx` in
+his run. The scan behind row 10 searched 172,056 windows, 856 starts from
+2006-01-01 to 2009-06-01 by the last 201 ends, and the next best missed by
+88e-6. A grid over `holddays` 55 to 70, `numDaysEnd` 5 to 15, the first pair's
+start offset 0 to 20 and the lookback 30 to 42 found no match, and neither did
+the alternatives to the script's `/2`, APR and Sharpe formulas. The suite runs
+neither, so those counts are unpinned, and the issue records them.
+
+**What ADF statistic Chan saw.** The script prints it through `prt` and keeps
+no value in its comment, so only the book's "99 percent" checks row 9.
+
+**Whether the lookback could be chosen beforehand.** The half-life is measured
+on all of γ, including the 2008 to 2012 rows the trade then runs on, so the
+z-score's lookback carries the look-ahead Entry 22 names for USD.CAD's.
+
+**What a trader would earn.** No cost is charged, though each roll trades four
+legs.
+
+Two other sets of figures are not pinned here either. The 2012-05-02 save
+equals the 2012-08-13 save on all 92,440 priced cells of its 2,867 days, which
+a scratch comparison found. `tests/test_futures_strips.py` pins those counts
+without running the comparison. Chan's Python port,
+`calendarSpdsMeanReversion.py`, reads the 2012-05-02 CSV, measures the full
+sample, never assigns its `fillna` and divides by the gross position. Its
+comment prints 0.024347 and 1.275860 and a half-life of 41.095, none of them
+the book's, and no test here pins them.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
