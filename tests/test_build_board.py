@@ -210,6 +210,103 @@ def test_six_valid_documents_draw_the_live_board(tmp_path: Path) -> None:
     assert "3 other open issues are not in the priority order" in text(ids, "more")
 
 
+def _card_tag(ids: dict, element: str, n: int) -> str:
+    """The opening tag of one card, which carries its classes and its label."""
+    raw = ids.get(element, {}).get("html", "")
+    found = re.search(r'<div class="tk[^"]*" data-n="' + str(n) + r'"[^>]*>', raw)
+    assert found, f"no card for {n} in {element}"
+    return found.group(0)
+
+
+@pytest.mark.parametrize("state", ["merged", "closed"])
+def test_a_landed_part_of_pull_request_leaves_its_card_free(tmp_path: Path, state: str) -> None:
+    """Protects the free list from a pull request that is no longer open.
+
+    On 2026-10-10 issues 431 and 432 each had a pull request merged as
+    ``Part of``, with the issue left open for what that pull request did not
+    do. The board note read any ``prs`` entry as work written and waiting on a
+    review, so it held both back from the free list for a reason true of
+    neither. Fixture issue 90505 is made ready and ranked here so the default
+    view draws it, and fixture issue 90504, a decision, carries the same kind
+    of pull request so its kind word can be read. Fixture issue 90503 gets a
+    finished plan and one more such pull request. An open branch hides the plan
+    marker, and a landed one must not, since the card then sits under "Planned,
+    no builder" and a missing marker there would contradict its own column.
+    """
+    docs = fixture_docs()
+    for card in docs["tracker"]["items"]:
+        if card["n"] in (90503, 90505):
+            card["needs"] = []
+    docs["next"]["items"] += [
+        {"issue": 90505, "band": 3, "ready": "build", "why": "Its part of the post is still to write."},
+        {"issue": 90504, "band": 3, "ready": "decide", "why": "Its scope is still the owner's."},
+    ]
+    docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
+    for pr, issue in ((90602, 90505), (90603, 90504), (90604, 90503)):
+        docs["prs"]["items"].append(
+            {
+                "pr": pr,
+                "issue": issue,
+                "state": state,
+                "linked": False,
+                "partOf": True,
+                "reviewed": True,
+                "review": "review posted",
+                "rollup": [["test", "success"]],
+            }
+        )
+    ids = run_page(tmp_path, db=True, steps=[docs])
+
+    assert cards(ids, "flow") == {90501, 90503}
+    assert {90504, 90505} <= cards(ids, "board")
+    note = text(ids, "boardnote")
+    assert "#90505" in note.split(" free for a session to take today")[1].split(".")[0]
+    assert "waiting on a review" not in note
+    assert "a pull request carries it" not in text(ids, "key")
+    landed = _card_tag(ids, "board", 90505)
+    assert "has-pr" not in landed
+    assert f"Pull request 90602 is {state} against it." in landed
+    assert "plan-build" in _card_tag(ids, "flow", 90503)
+    decision = _card_tag(ids, "board", 90504)
+    assert "It needs a decision, not a session." in decision
+    assert "needs a decision, not a session" in text(ids, "board")
+    assert "PR #90602" in text(ids, "board")
+
+    # With the fixture's one open branch gone, nothing in flight is carried by a
+    # pull request, so that legend's entry has no card to explain.
+    docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["state"] != "open"]
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert 90503 in cards(ids, "flow")
+    assert "a pull request carries it" not in text(ids, "flowkey")
+
+
+def test_an_open_branch_beside_a_landed_one_still_holds_its_card(tmp_path: Path) -> None:
+    """Protects what an open pull request does, from the fix for landed ones.
+
+    Fixture issue 90501 gets a merged ``Part of`` listed ahead of its open
+    pull request. The card stays in flight with the border an open branch
+    draws, and its label names the open one, which is the branch a reader acts
+    on, rather than whichever entry happens to come first in ``prs``.
+    """
+    docs = fixture_docs()
+    landed = {
+        "pr": 90605,
+        "issue": 90501,
+        "state": "merged",
+        "linked": False,
+        "partOf": True,
+        "reviewed": True,
+        "review": "review posted",
+        "rollup": [["test", "success"]],
+    }
+    docs["prs"]["items"].insert(0, landed)
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert cards(ids, "flow") == {90501}
+    tag = _card_tag(ids, "flow", 90501)
+    assert "has-pr" in tag
+    assert "Pull request 90601 is open against it." in tag
+
+
 def test_a_spliced_copy_still_draws_as_the_copy_built_into_the_page(tmp_path: Path) -> None:
     """Protects the skill's harness, which runs the page with no database.
 

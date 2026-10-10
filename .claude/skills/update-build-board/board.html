@@ -1265,8 +1265,10 @@ function buildOrder() {
      it. A decompose loop is not, because it revises the plan rather than
      carrying it out, so a card under one is still waiting for a builder. An
      entry with no kind is a decompose loop, which is the default this array has
-     always carried. */
-  const carriedOut = c => prOf.has(c.n) || (workOn.get(c.n) || {}).kind === "build";
+     always carried. A merged or closed pull request is not a branch, because
+     the issue still open behind it is the part nobody has carried out. */
+  const branched = c => openBranches(prOf, c.n).length > 0;
+  const carriedOut = c => branched(c) || (workOn.get(c.n) || {}).kind === "build";
   const planMarker = c => carriedOut(c) ? null : (planOf.get(c.n) || null);
   /* The same arrangement as `planMarker`, for the same reason. The card and the
      legend have to agree about whether a position is drawn, and the way they
@@ -1344,8 +1346,15 @@ function buildOrder() {
   }).join("");
 
   function card(c) {
+      /* Every pull request against the card draws its line, merged ones
+         included, because an issue left open behind a landed `Part of` is the
+         rest of that work and the line says what already landed. Only an open
+         one is a branch carrying the card, so `live` is what suppresses the
+         kind word and draws the accent border. The label names an open one
+         ahead of a landed one for the same reason. */
       const ps = prOf.get(c.n) || [];
-      const p = ps[0];
+      const live = openBranches(prOf, c.n)[0];
+      const p = live || ps[0];
       const waits = c.needs.filter(b => by.has(b));
       const soft = (c.after || []).filter(b => by.has(b));
       const note = waits.length
@@ -1362,8 +1371,9 @@ function buildOrder() {
          A pull request still suppresses it, and that is the one suppression
          there was ever a reason for: a card saying it needs a decision, under a
          branch that already made one, is two answers to one question. A blocker
-         is not an answer to what kind of thing the card is. */
-      const kindword = p ? "" : (KINDWORD[c.kind] || "");
+         is not an answer to what kind of thing the card is. Nor is a merged
+         `Part of`, which answered only the part it carried. */
+      const kindword = live ? "" : (KINDWORD[c.kind] || "");
       /* "nothing blocks it" is only true when nothing does. The clause was
          written when `after` and `needs` had never appeared on one card, so it
          asserted the absence of a blocker as part of announcing an ordering.
@@ -1422,7 +1432,7 @@ function buildOrder() {
          with no `kind` counts as a loop, as it does everywhere else. The same open-branch test
          `flightCols` uses decides it, so the label and the column cannot
          disagree. */
-      const onBranch = wk && ps.some(x => x.state === "open");
+      const onBranch = wk && !!live;
       /* A finished plan stops being news once somebody is carrying it out,
          which `planMarker` above decides and explains. The sort still reads
          `planOf` rather than the marker, so a planned card keeps its position
@@ -1442,8 +1452,8 @@ function buildOrder() {
       if (soft.length) says.push((waits.length ? `It should also land after ` :
         `Nothing blocks it, and it should land after `) +
         `${andlist(soft.map(b => "issue " + b))}.`);
-      if (!p && KINDSAYS[c.kind]) says.push(KINDSAYS[c.kind]);
-      return `<div class="tk k-${c.kind}${p ? " has-pr" : ""}${wk ? " busy" : ""}${
+      if (!live && KINDSAYS[c.kind]) says.push(KINDSAYS[c.kind]);
+      return `<div class="tk k-${c.kind}${live ? " has-pr" : ""}${wk ? " busy" : ""}${
         pn ? " plan-" + pn.ready : ""}" data-n="${c.n}" tabindex="0" role="button"
         aria-label="Issue ${c.n}. ${esc(c.label)}.${says.length ? " " + esc(says.join(" ")) : ""}${p ? ` Pull request ${p.pr} is ${p.state} against it.` : ""}${onBranch ? (wk.kind === "build" ? ` Its build session is still on the branch.`
           : ` A decompose loop is still revising its plan.`) : wk ? ` A session is working it: ${esc(wk.what)}.` : ""}${
@@ -1633,7 +1643,7 @@ function buildOrder() {
     ...(drew(rest, marked("decide"))
       ? [["plan-decide", "plan finished, one question left for the owner"]] : []),
     ...(remeasured(rest) ? [remeasured(rest)] : []),
-    ...(drew(rest, c => prOf.has(c.n)) ? [["has-pr", "a pull request carries it"]] : []),
+    ...(drew(rest, branched) ? [["has-pr", "a pull request carries it"]] : []),
     ...(drew(rest, c => workOn.has(c.n))
       ? [["busy", "a session is on it now, so nobody should start it again"]] : [])
   ]);
@@ -1652,7 +1662,7 @@ function buildOrder() {
     ...(drew(flown, marked("decide"))
       ? [["plan-decide", "plan finished, one question left for the owner"]] : []),
     ...(remeasured(flown) ? [remeasured(flown)] : []),
-    ...(drew(flown, c => prOf.has(c.n)) ? [["has-pr", "a pull request carries it"]] : []),
+    ...(drew(flown, branched) ? [["has-pr", "a pull request carries it"]] : []),
     /* Drawn here as well as on the board below, because a card can carry it in
        three of the five columns. Under "Waiting on my review" it is the mark of
        a branch whose session has not handed it over yet, which is what keeps a
@@ -1740,8 +1750,16 @@ function buildOrder() {
      sentence disagreeing with the one under it. */
   /* Anything already carried is subtracted, not only a session. An open pull
      request says the work is written, which is a stronger reason not to start
-     it than a session that may still end in nothing. */
-  const free = ready.filter(c => !workOn.has(c.n) && !prOf.has(c.n));
+     it than a session that may still end in nothing. A merged or closed one
+     says nothing of the kind: the issue is still open because part of it is
+     still to do, so the card is as free as one no branch ever touched. This
+     read the bare `prOf` entry until 2026-10-10, which held issues 431 and 432
+     back as waiting on a review after each one's `Part of` had merged. Today
+     the two "Waiting on" columns take every card with an open branch, so no
+     card here has one and the open-branch half of this test never fires. It
+     stays so that a change to `FLOW` cannot put a written card back in the
+     free list, which is defect 4. */
+  const free = ready.filter(c => !workOn.has(c.n) && !branched(c));
   /* The reasons a first-column card is not free are listed from the cards that
      are actually there, because a fixed list of three keeps offering reasons
      after the cards carrying them have gone. */
@@ -1751,7 +1769,7 @@ function buildOrder() {
   if (held.some(c => c.kind === "deferred")) why.push("be deferred on purpose");
   if (held.some(c => c.kind === "parent")) why.push("be a parent whose children carry the work");
   if (held.some(c => workOn.has(c.n))) why.push("already have somebody on it");
-  if (held.some(c => prOf.has(c.n))) why.push("already be written and waiting on a review");
+  if (held.some(branched)) why.push("already be written and waiting on a review");
   /* Every card tied at the top rather than whichever one sorted first. Taking
      [0] off a descending sort names one card and calls it "the single card",
      which is true only while nothing ties it. Closing issue 51 left #69 and #88
@@ -1919,6 +1937,18 @@ function cardOrder(by, planOf) {
     a.n - b.n;
 }
 
+/* The pull requests still open against a card. `PRS` also keeps a merged or
+   closed entry, so a card can say what landed against an issue that stays
+   open. So every reader asking whether a branch carries the card asks this,
+   never whether `prOf` holds anything. Asking the second question is what
+   held two cards back from the free list on 2026-10-10, as the comment on
+   `free` records. It is one function rather than a filter at each site,
+   because a test written out twice is what let the card and the legend
+   disagree in defect 6. */
+function openBranches(prOf, n) {
+  return (prOf.get(n) || []).filter(p => p.state === "open");
+}
+
 function flightCols({ by, planOf, workOn, prOf }) {
   const stateOf = c => ({
     plan: planOf.get(c.n),
@@ -1932,7 +1962,7 @@ function flightCols({ by, planOf, workOn, prOf }) {
        #124" and "ready to build" on one card, which is check 6: a marker and a
        position answering one question two ways. */
     blocked: c.needs.some(b => by.has(b)),
-    pr: (prOf.get(c.n) || []).find(x => x.state === "open")
+    pr: openBranches(prOf, c.n)[0]
   });
   const cols = FLOW.map(() => []);
   TRACKER.forEach(c => {
@@ -1980,7 +2010,7 @@ function inFlight(ctx) {
        the session. So the reason is read per card from `owed`, the same rule
        that put the card in this column, rather than assumed. */
     mine: col => {
-      const openPr = c => (ctx.prOf.get(c.n) || []).find(x => x.state === "open");
+      const openPr = c => openBranches(ctx.prOf, c.n)[0];
       const why = c => owed(openPr(c), ctx.workOn.get(c.n));
       const unreviewed = col.filter(c => why(c) === "review");
       const working = col.filter(c => why(c) === "session");
@@ -2026,7 +2056,7 @@ function inFlight(ctx) {
   /* A missing closing link is a fact about a branch, so it is reported where the
      branches are rather than under a board that no longer draws them. */
   const withPr = cols.filter((_, k) => FLOW[k].tone === "owner" || FLOW[k].tone === "mine").flat();
-  const openPrs = c => (ctx.prOf.get(c.n) || []).filter(x => x.state === "open");
+  const openPrs = c => openBranches(ctx.prOf, c.n);
   const loose = withPr.filter(c => openPrs(c).some(x => !x.linked && !x.partOf));
   if (loose.length) bits.push(`<b>GitHub registered no closing link for ` +
     `${andlist(loose.map(c => "PR #" + openPrs(c)[0].pr))}</b>, so merging would leave ` +

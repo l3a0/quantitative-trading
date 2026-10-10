@@ -89,7 +89,9 @@ that hits one and leaves has made the board wrong, and nothing else notices.
 2. **A pull request opens or merges.** An open one moves the card out of the
    build order into the in-flight section, as a `PRS` entry. A merged one
    usually takes the card off the page, because the issue it closed is closed.
-   Opening one leaves the session's `WORKING` entry where it is. That entry
+   A merged `Part of` leaves its issue open, and its entry can stay with
+   `state` of `merged` so the card says what landed. Only an open entry holds a
+   card, so that card reads as free again. Opening one leaves the session's `WORKING` entry where it is. That entry
    comes out at the hand-over, under the eighth moment.
 3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
    flag is one of three things a card needs before it moves from waiting on a
@@ -526,7 +528,7 @@ One more constant is not in the table because nothing should edit it.
 | Part | Holds |
 | --- | --- |
 | `STATE`, from `board/state` | `updatedAt` and `issues.open` |
-| `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose |
+| `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose. Every entry draws its line on the card, and only one whose `state` is `open` holds the card, which the page's `openBranches` decides |
 | `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase no card draws. Under "Building" and "Being planned" the heading already names the session and the card's title names the same work. Under "Waiting on my review" a phrase such as "building Example 3.2's transcription" sat above "review in progress" and described work the branch had already replaced, so the owner cut it there too on 2026-10-05. The `busy` stripe says a session still holds the card, and the flow note says what the branch still owes. The screen-reader label reads the phrase only while no branch is open, where it can add a detail the title lacks, such as the name of the MATLAB file a build is transcribing. Once a branch is open the label drops the phrase and says which kind of session still holds the card, because the stripe looks the same for both: a build session is still on the branch, and a decompose loop is still revising the plan. Lead the phrase with the session's verb, such as building or planning, because the label is read on its own without the column heading. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop. A build session's entry stays after its pull request opens and comes out at the hand-over, so an entry on a card with an open pull request holds it under "Waiting on my review" |
 | `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
 | `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
@@ -889,6 +891,19 @@ the script beside it. Each row after them says how it was found.
     The price is a card left under "Waiting on my review" when its session
     ends without taking its entry out. That fails safe, because it delays a
     merge rather than inviting one too early.
+18. **A merged pull request read as a branch.** Found on 2026-10-10 by reading
+    the Show all view.
+    [Issue 431](https://github.com/l3a0/quantitative-trading/issues/431) and
+    [issue 432](https://github.com/l3a0/quantitative-trading/issues/432) each
+    had a pull request merged as `Part of`, with the issue left open for a link
+    and a reference. The board note left both out of the free list and gave
+    as its reason that a card can "already be written and waiting on a review",
+    which neither was. The note asked whether `PRS` held any entry for the
+    card, while the In flight section asked whether it held an open one, so
+    the two sections disagreed about one card. That is defect 5 again. The same
+    bare test also hid the plan marker, the kind word and the accent border on
+    such a card, and put "a pull request carries it" in the legend. One
+    function, `openBranches`, now answers the question for every reader.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
