@@ -87,8 +87,10 @@ So :data:`SOURCE_FILE`, :data:`SYMBOL`, :data:`LOOKBACK`, :data:`HOLD_DAYS`,
 third test shuffles them first. ``hold_days`` appears in both
 :func:`positions` and :func:`strategy_returns`, and the two must agree,
 because the divisor is the tranche count. :func:`strategy_returns` refuses a
-position larger in magnitude than its ``hold_days``, which catches the
-mismatch in the direction that would overstate the return.
+position larger in magnitude than its ``hold_days``. That catches a mismatch
+which would overstate the return only when some position grows past the
+divisor. Shuffled signals that cancel can stay inside it, so a caller passes
+both functions the same ``hold_days`` rather than relying on the refusal.
 
 **The vintage.** ``inputdataohlcdaily_20120511/tu.csv``, one column of Chan's
 ``inputDataOHLCDaily_20120511.mat``, read through
@@ -242,10 +244,12 @@ def positions(
 
     Row t adds up the signals of rows t − hold_days + 1 through t, so a
     position runs from ``−hold_days`` to ``hold_days``. A row before the first
-    signal counts as no signal, which is the script's NaN read as false.
+    signal counts as no signal, which is the script's NaN read as false. A NaN
+    in a float signal reads as false too, where a plain cast to bool would open
+    a tranche.
     """
-    long_signal = np.asarray(longs, dtype=bool)
-    short_signal = np.asarray(shorts, dtype=bool)
+    long_signal = np.nan_to_num(np.asarray(longs, dtype=float), nan=0.0) != 0
+    short_signal = np.nan_to_num(np.asarray(shorts, dtype=float), nan=0.0) != 0
     if long_signal.shape != short_signal.shape or long_signal.ndim != 1:
         raise ValueError("positions takes a longs and a shorts of one length")
     if hold_days < 1:
@@ -277,7 +281,8 @@ def strategy_returns(
     The multiplication comes before the division, the script's order. A
     position larger in magnitude than ``hold_days`` is refused, because it
     means the positions were built with more tranches than this divides by,
-    which would overstate the return.
+    which would overstate the return. Positions built with more tranches whose
+    longs and shorts cancel can stay inside the bound, and those pass.
     """
     held = np.asarray(positions, dtype=float)
     returns = np.asarray(market, dtype=float)

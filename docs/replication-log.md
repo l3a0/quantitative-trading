@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 and 31 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 and 32 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -6560,8 +6560,9 @@ Three things.
 2. **`genhurst` misses on both series the book prints an H for.** USD.CAD's
    0.4732 against 0.49 in Entry 22 and TU's 0.4334 against 0.44 here run
    through the same transcription, on Chan's own data, and no `maxT` lands
-   both. No figure of Chan's holds the transcription. What holds it is the
-   invariances `TestGenhurst` checks on synthetic series.
+   both. No figure of Chan's vouches for the transcription. What checks its
+   rules is the invariances `TestGenhurst` checks on synthetic series, and
+   the two pins on USD.CAD and TU catch a change without showing it is right.
 3. **The momentum the table shows is thin.** The traded pair's correlation
    rests on 69 days, its p-value of 0.0238 is one of 49 tried, and the
    variance ratio test sees a random walk. Location 2646 reconciles the two

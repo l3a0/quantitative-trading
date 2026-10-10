@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-one replications run here, fifteen from Chan's *Quantitative Trading*
-and sixteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-two replications run here, fifteen from Chan's *Quantitative Trading*
+and seventeen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-nine were built here.
+where they were first built. The other thirty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -700,7 +700,7 @@ holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
 start from, the rule on synthetic arrays, the refusal of a position larger
 than the tranche count, and the scale-break guard on TU.
 
-All thirty-one replications reach a verdict in
+All thirty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity

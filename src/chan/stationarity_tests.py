@@ -20,8 +20,9 @@ the digits Chan printed from it on his own closes, which
 ``tests/test_usdcad_mean_reversion.py`` holds. :func:`genhurst` has no such
 check. Neither script that calls it prints an H in its closing comment, and
 the book's two figures both miss: 0.4732 against 0.49 on USD.CAD, and 0.4334
-against 0.44 on TU, which ``tests/test_tu_momentum.py`` holds. What holds
-:func:`genhurst` is ``TestGenhurst`` in ``tests/test_stationarity_tests.py``,
+against 0.44 on TU, which ``tests/test_tu_momentum.py`` holds. Those two pins
+catch a change to :func:`genhurst` without showing it is right. What checks
+its rules is ``TestGenhurst`` in ``tests/test_stationarity_tests.py``,
 which checks on synthetic series that H sits near a half on a random walk and
 well below it on a reverting series, that it ignores the series' level and
 scale, and that ``q`` and ``max_t`` each move it. That file also holds every

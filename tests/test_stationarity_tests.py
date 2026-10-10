@@ -3,7 +3,10 @@
 What vouches for ``adf`` and ``vratiotest`` against Chan's own output is
 ``tests/test_usdcad_mean_reversion.py``, where each lands the digits
 ``stationarityTests.m`` printed. ``genhurst`` lands none of the book's figures,
-0.49 on USD.CAD and 0.44 on TU, so ``TestGenhurst`` here is all that holds it.
+0.49 on USD.CAD and 0.44 on TU, so no figure of Chan's vouches for it.
+``TestGenhurst`` here holds its rules. That file and
+``tests/test_tu_momentum.py`` pin its output on USD.CAD and TU, which catches a
+change but does not show it is right.
 This file holds what those digits cannot separate: the row jplv7's ``adf``
 drops against ``adfuller``, the bins of ``ztcrit``, ``genhurst``'s invariances,
 and the period trim and closed forms of ``vratiotest``. Each class asserts the

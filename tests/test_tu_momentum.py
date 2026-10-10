@@ -257,6 +257,7 @@ class TestTheCorrelationTable:
             (250, 120): (0.5112, 0.0617),
         }
         assert all(result.correlations[pair].coefficient > 0 for pair in COMPROMISES)
+        assert result.correlations[(250, 120)].rows == 14
 
     def test_the_sample_keeps_every_min_lookback_hold_th_row(self) -> None:
         """A lookback of 5 and a hold of 10 keep every 5th row, so 21 of the 105 left."""
@@ -329,6 +330,7 @@ class TestTheFigures:
     def test_the_maximum_drawdown(self, result) -> None:
         found = result.figures.max_drawdown
         assert found == pytest.approx(-0.024847, abs=5e-7)
+        assert -100 * found == pytest.approx(2.484746, abs=5e-7)
         assert matches(found, SCRIPT_MAX_DRAWDOWN)
         assert matches(-100 * found, BOOK_MAX_DRAWDOWN_PERCENT)
 
@@ -483,6 +485,29 @@ class TestTheRule:
         with pytest.raises(ValueError, match="same hold_days"):
             strategy_returns(held, np.zeros(30), hold_days=20)
         strategy_returns(held, np.zeros(30), hold_days=25)
+
+    def test_a_mismatch_inside_the_bound_is_not_refused(self) -> None:
+        """The refusal reads the largest position, so cancelling tranches slip past it.
+
+        Built with 26 tranches, one long and one short alternating never pass 1,
+        so dividing by 25 goes through and the return is 26/25 of the right one.
+        """
+        longs = np.tile([True, False], 20)
+        held = positions(longs, ~longs, hold_days=26)
+        assert np.abs(held).max() == 1
+        market = np.linspace(0.0, 0.01, 40)
+        np.testing.assert_allclose(
+            strategy_returns(held, market, hold_days=25),
+            strategy_returns(held, market, hold_days=26) * 26 / 25,
+            rtol=1e-12,
+        )
+
+    def test_a_nan_signal_reads_as_false(self) -> None:
+        """The script's NaN comparison is false, and a bool cast would make it true."""
+        held = positions(np.array([np.nan, 0.0, 0.0]), np.zeros(3), hold_days=2)
+        assert held.tolist() == [0.0, 0.0, 0.0]
+        held = positions(np.array([1.0, np.nan, 0.0]), np.array([np.nan, 0.0, 0.0]), hold_days=2)
+        assert held.tolist() == [1.0, 1.0, 0.0]
 
     def test_mismatched_inputs_are_refused(self) -> None:
         with pytest.raises(ValueError, match="one length"):
