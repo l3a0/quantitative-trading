@@ -4993,7 +4993,7 @@ and decides nothing.
 | 5 | +0.000000 at six decimals | reproduced | The decision is exact and the p-value is exact at six decimals. The variance ratio is 0.9647, below 1, as a reverting series gives, and not significantly so. |
 | 6 | +0.000000 at six decimals, and 0 days | reproduced | Exact at the six decimals the script prints, and at the whole days the book prints. |
 | 7 | none, a claim | reproduced | The criterion written on [issue 338](https://github.com/l3a0/quantitative-trading/issues/338) before any P&L existed holds. The P&L ends at 0.1141, above 0. |
-| 8 | none | none, not a replication | Both `ithildincore`'s `adf_tstat` and the ADF line in Chan's 2018 Python port run `adfuller`, which fits the one row jplv7 drops. The Python port would print −1.843018 for the figure the book prints as −1.840744. |
+| 8 | none | none, not a replication | Both `ithildincore`'s `adf_tstat` and the ADF line in Chan's 2018 Python port run `adfuller`, which fits the one row jplv7 drops. The Python port would print −1.843018 for the figure the script's comment records as −1.840744. |
 | 9 | none | none, not a replication | The port's `genhurst` is a different estimator, the slope of the log variance of τ-day changes on log τ, halved. It lands nearer the book than Aste's, at 0.48, and still misses 0.49. |
 | 10 | none | none, not a replication | The cumulative P&L reaches 0.1321 on 2008-07-22 and falls to −0.5104 on 2008-10-27, a drop more than five times what the run ends with. That reads as large on any scale, but the book gives none, so it decides nothing. |
 
@@ -5011,9 +5011,9 @@ Four things.
    existing ADF lives in `ithildincore` and runs `adfuller`, so a replication
    of a jplv7 figure needs jplv7's trimming, which is why
    `chan.stationarity_tests` exists beside it.
-3. **H is the one figure that does not land, and it misses under both of
-   Chan's own implementations.** Aste's `genhurst` gives 0.47 and Chan's 2018
-   Python port gives 0.48, so the book's 0.49 is not what either computes on
+3. **H is the one figure that does not land, and it misses under both
+   implementations Chan's code uses.** Aste's `genhurst` gives 0.47 and Chan's
+   2018 Python port gives 0.48, so the book's 0.49 is not what either computes on
    these closes. Every reading of H here agrees with the book's conclusion,
    that USD.CAD is at most weakly mean reverting, and the variance ratio test
    says the same thing more carefully: not distinguishable from a random walk.
@@ -5041,7 +5041,10 @@ prints none.
 sample Chan already chose.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/usdcad-stationarity-lessons.md](../blog/usdcad-stationarity-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.usdcad_mean_reversion_figures` redraws.
 
 ## Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*
 
