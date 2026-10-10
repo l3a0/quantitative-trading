@@ -313,6 +313,100 @@ def test_live_data_lost_afterwards_stays_on_screen(tmp_path: Path) -> None:
     assert not ids["flightsec"]["hidden"]
 
 
+def test_a_live_board_still_loading_says_so_at_once(tmp_path: Path) -> None:
+    """Protects the view between opening the page and the first snapshot.
+
+    The page carries no copy, so a viewer would see a blank page until the
+    database answers. The banner says the board has not arrived yet instead.
+    """
+    ids = run_page(tmp_path, db=True, steps=[])
+    assert text(ids, "source") == (
+        "Showing no board data. The live board has not arrived yet, "
+        "and the page carries no copy of its own."
+    )
+    assert_no_board_data(ids)
+
+
+def test_a_document_that_arrives_is_no_longer_named(tmp_path: Path) -> None:
+    """Protects the banner from naming a section that has since arrived.
+
+    A new board's documents land one at a time, and until the sixth lands the
+    banner must name only the sections still missing.
+    """
+    docs = fixture_docs()
+    ids = run_page(
+        tmp_path, db=True, steps=[{"state": None, "prs": None}, {"state": docs["state"]}]
+    )
+    assert text(ids, "source") == "Showing no board data. The live board is missing prs."
+    assert_no_board_data(ids)
+
+
+def test_a_draw_that_throws_after_live_data_keeps_the_last_board(tmp_path: Path) -> None:
+    """Protects the last good board when a later write breaks the drawing code.
+
+    The banner says what is shown is the last live data, so the board must
+    still be drawn rather than hidden behind that claim.
+    """
+    broken = fixture_docs()["tracker"]
+    for item in broken["items"]:
+        item["after"] = 7
+    ids = run_page(tmp_path, db=True, steps=[fixture_docs(), {"tracker": broken}])
+    banner = text(ids, "source")
+    assert banner.startswith("Live updates stopped (a live section could not be drawn).")
+    assert "What is shown is the last live data" in banner
+    assert not ids["flightsec"]["hidden"]
+    assert cards(ids, "flow") == {90501}
+
+
+def _splice(tmp_path: Path, docs: dict, page: Path = PAGE) -> subprocess.CompletedProcess:
+    """Run ``with-db.py`` on ``page`` with ``docs`` written as its readback."""
+    folder = tmp_path / "readback"
+    folder.mkdir(exist_ok=True)
+    for name, doc in docs.items():
+        (folder / f"{name}.json").write_text(json.dumps(doc), encoding="utf-8")
+    return subprocess.run(
+        [sys.executable, str(WITH_DB), str(page), str(folder)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_the_splice_refuses_a_document_the_page_would_refuse(tmp_path: Path) -> None:
+    """Protects the harness from checking a document the page would not draw."""
+    docs = fixture_docs()
+    docs["prs"]["schema"] = 2
+    done = _splice(tmp_path, docs)
+    assert done.returncode != 0
+    assert "prs: schema 2, expected 1" in done.stderr
+
+
+def test_the_splice_survives_a_closing_script_tag_in_the_data(tmp_path: Path) -> None:
+    """Protects the spliced page from data that would end its script early.
+
+    A card label holding a closing script tag must be escaped, and the escape
+    must reach the page unchanged rather than be read as a replacement pattern.
+    """
+    docs = fixture_docs()
+    docs["tracker"]["items"][1]["label"] = "a </script> in a label"
+    done = _splice(tmp_path, docs)
+    assert done.returncode == 0, done.stderr
+    page = tmp_path / "spliced.html"
+    page.write_text(done.stdout, encoding="utf-8")
+    ids = run_page(tmp_path, db=False, steps=[], page=page)
+    assert cards(ids, "board") == {90502}
+
+
+def test_the_splice_refuses_a_page_with_two_copy_lines(tmp_path: Path) -> None:
+    """Protects the splice from filling one copy line and leaving another."""
+    line = "const FALLBACK = { none: true };"
+    page = tmp_path / "two.html"
+    page.write_text(PAGE.read_text(encoding="utf-8").replace(line, f"{line}\n{line}"), "utf-8")
+    done = _splice(tmp_path, fixture_docs(), page=page)
+    assert done.returncode != 0
+    assert "found 2" in done.stderr
+
+
 def test_no_tracked_file_links_to_a_claude_artifact() -> None:
     """Protects every machine from a board address only one account can reach.
 

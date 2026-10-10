@@ -2087,7 +2087,16 @@ function connect(db) {
   const absent = {};
   let had = false;
   const redraw = () => {
-    if (!SECTIONS.every(s => s in live)) return;
+    if (!SECTIONS.every(s => s in live)) {
+      /* A section arriving while others are still absent would otherwise leave
+         the banner naming it, so the banner is rebuilt from what is absent now. */
+      const gone = SECTIONS.filter(s => absent[s]);
+      if (!had && gone.length) {
+        SOURCE = { live: false, why: "empty", missing: andlist(gone) };
+        source();
+      }
+      return;
+    }
     /* With no data on screen, a failed first draw goes back to drawing none. */
     const last = NONE ? FALLBACK
       : { state: STATE, prs: PRS, working: WORKING, planned: PLANNED,
