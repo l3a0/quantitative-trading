@@ -10,12 +10,14 @@ Every pin on the committed files reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
 :data:`SPEC`.
 
-- **Vintage.** The five strips ``chan.roll_returns.SOURCE_FILES`` names,
-  ``inputdatadaily_{br,c2,cl,hg,tu}_20120813/``, chan-mat, raw, saved
-  2012-08-14, one vintage per contract and one for the spot, read for the
-  close through :func:`chan.series.load_panel`. Their identities are the rows
-  of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``, which
-  ``TestTheVintages`` holds the members to.
+- **Vintage.** The five strips ``chan.roll_returns.ROOTS`` names in
+  ``SOURCE_FILES``, ``inputdatadaily_{br,c2,cl,hg,tu}_20120813/``, chan-mat,
+  raw, saved 2012-08-14, one vintage per contract and one for the spot, read
+  for the close through :func:`chan.series.load_panel`. Their identities are
+  the rows of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``,
+  which ``TestTheVintages`` holds the members to. ``SOURCE_FILES`` also names
+  the VX strip, saved 2012-05-08 with no spot, which ``TestTheVxStrip`` reads
+  and which no figure here uses.
 - **Specification.** ``estimateFuturesReturns.m`` at the mirror commit
   :mod:`chan.roll_returns` names. α is 252 times the OLS slope of the log spot
   on the strip's row number, counted before the rows with no spot are dropped.
@@ -51,6 +53,7 @@ import pytest
 from chan import roll_returns as module
 from chan.roll_returns import (
     BOOK_TABLE_5_1,
+    NO_SPOT_ROOTS,
     PORT_C2,
     ROOTS,
     SOURCE_FILES,
@@ -136,14 +139,20 @@ class TestTheSpecification:
         assert ROOTS == ("BR", "C2", "CL", "HG", "TU")
 
     def test_each_root_reads_the_file_the_scripts_load_line_names(self) -> None:
-        """The script's load lines read ``inputDataDaily_<root>_20120813``."""
+        """``estimateFuturesReturns.m``'s load lines read ``inputDataDaily_<root>_20120813``,
+        and ``calendarSpdsMeanReversion.m``'s commented-out first load line reads VX's."""
         assert SOURCE_FILES == {
             "BR": "inputDataDaily_BR_20120813.mat",
             "C2": "inputDataDaily_C2_20120813.mat",
             "CL": "inputDataDaily_CL_20120813.mat",
             "HG": "inputDataDaily_HG_20120813.mat",
             "TU": "inputDataDaily_TU_20120813.mat",
+            "VX": "inputDataDaily_VX_20120507.mat",
         }
+
+    def test_vx_alone_is_read_without_a_spot(self) -> None:
+        assert NO_SPOT_ROOTS == frozenset({"VX"})
+        assert not NO_SPOT_ROOTS & set(ROOTS)
 
     def test_the_book_table_is_the_recovered_text_of_location_2399(self) -> None:
         text = BOOK_NOTES.read_text(encoding="utf-8")
@@ -628,10 +637,41 @@ class TestTheRule:
         assert dict(maturity_spacings(frame)) == {(3, 3, 3, 3): 3}
 
 
+class TestTheVxStrip:
+    """The VX strip through the same read path, which issue 349 widened to a strip with no spot."""
+
+    def test_vx_loads_72_contracts_and_no_spot_after_the_guard_reads_each(
+        self, monkeypatch
+    ) -> None:
+        guarded = []
+        guard = module.refuse_window_crossing_a_break
+
+        def record(legs, *, start, end):
+            guarded.append(legs[0][0].symbol)
+            return guard(legs, start=start, end=end)
+
+        monkeypatch.setattr(module, "refuse_window_crossing_a_break", record)
+        strip = load_strip("VX")
+        assert LIFTED_SOURCES[SOURCE_FILES["VX"]] == (
+            "chan-mat",
+            "raw",
+            "2012-05-08",
+            "inputdatadaily_vx_20120507",
+            72,
+        )
+        assert (strip.root, strip.spot, len(strip.members)) == ("VX", None, 72)
+        assert strip.contracts.shape == (1543, 72)
+        columns = list(strip.contracts.columns)
+        assert (columns[0], columns[-1]) == ("VX-2007F", "VX-2012Z")
+        assert sorted(guarded) == sorted(columns)
+
+
 class TestTheRefusals:
-    @pytest.mark.parametrize("root", ["VX", "HO2", "C", "cl"])
-    def test_any_other_root_is_refused_naming_the_five(self, root) -> None:
-        with pytest.raises(ValueError, match=f"BR, C2, CL, HG, TU, and not {root}$"):
+    @pytest.mark.parametrize("root", ["HO2", "C", "cl", "vx"])
+    def test_any_other_root_is_refused_naming_the_six(self, root) -> None:
+        with pytest.raises(
+            ValueError, match=f"BR, C2, CL, HG and TU, and the VX strip, and not {root}$"
+        ):
             load_strip(root)
 
     def test_a_member_with_no_priced_day_is_skipped_by_the_guard(self, panels, monkeypatch) -> None:

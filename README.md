@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-five replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty from his *Algorithmic Trading*. The first two were ported from the
+Thirty-six replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-one from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-three were built here.
+where they were first built. The other thirty-four were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -368,8 +368,8 @@ where they were first built. The other thirty-three were built here.
     Chapter 6 rests its explanation of HG's momentum on holds only under the
     script's arithmetic, and corn's is no longer twice its spot return.
     `chan.roll_returns` exports the strip reader and both fits for later
-    experiments to build on, Example 5.4 among them. Every figure is
-    exploratory.
+    experiments to build on, Example 5.4 among them, and the reader also
+    takes the VX strip, which has no spot. Every figure is exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
     from August 2008 gives the hedge, and a band one training deviation wide
@@ -466,7 +466,25 @@ where they were first built. The other thirty-three were built here.
     on that window, and starting a day later lands both to every digit. The
     book's 61 holding days in place of the script's 63 give 0.067315 and
     1.044327. Every figure is exploratory.
-35. TU momentum traded on the lagged roll return, location 2690 of
+35. VIX futures calendar spreads traded on the ratio of the back contract to
+    the front, from *Algorithmic Trading*'s Chapter 5, on Chan's own VX
+    strip, which has no spot column. No script ships under its own name, and
+    Example 5.4's script carries a commented-out load of this strip, so the
+    specification is that script with the ratio as its signal, a 15-day
+    lookback and pairs a month apart, declared before any figure. Its ADF
+    statistic of −5.568107 clears the 1 percent critical value of −3.4583,
+    so the book's "stationary with a 99 percent probability" holds. Its APR
+    of −0.040454 and Sharpe ratio of −0.563912 have the wrong sign against
+    the book's 17.7 percent and 1.5. Of four rows declared beside it, B3
+    trades the ratio of the pair it holds with each pair held in turn, which
+    from 2008-10-27 is every pair from VX-2008X's to VX-2012K's. On the
+    book's window to 2012-04-23 it gives 0.176952 and 1.475658, which round
+    to the book's 17.7 percent and 1.5, and it alone does worse before
+    October 2008, as the book says. Its last pair ends on the book's end
+    date, but so does the row that holds pairs the same way on the
+    specification's signal, so the date does not single it out. B3 was picked
+    out after the run, so its match is a search. Every figure is exploratory.
+36. TU momentum traded on the lagged roll return, location 2690 of
     *Algorithmic Trading*, on Chan's 2012-08-13 TU strip. The rule goes long
     when item 27's roll return is above 3 percent and short when it is below
     −3 percent, and holds the front contract, rebuilt from the strip because
@@ -757,7 +775,8 @@ and every figure the two findings quote: the slope's median, mean, share above
 1 and crossings, and the intercept's yearly means, its falls at each finer
 grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
-planted break in either is refused.
+planted break in either is refused. The blog post about it is the exception,
+and what it says that nothing here asserts is listed below.
 
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
 momentum. It pins the six figures of `TU_mom.m`'s comment, the 250/25
@@ -793,6 +812,17 @@ synthetic cases hold choices the CL strip cannot show.
    when its expiry comes sooner than `holddays + 10` rows in.
 7. Line 110's `smartsum`, which skips a leg whose return is infinite.
 
+[tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) does it
+for the VX calendar spread. It pins the specification and the four rows
+declared beside it at six decimals, the book's three figures against the
+specification at the precision Chan printed, and the two measurements taken
+after the run, each marked as such. It also holds why the specification pairs
+contracts a month apart, the 64 of VX's 71 pairs and 68 of CL's 77 held under
+`holddays=0`, the 43 pairs B3 holds from 2008-10-27, and why its last pair
+ends on the book's end date. On synthetic frames it holds the two signals'
+rules: a row whose nearest two contracts skip one, the held pair across a
+roll, and the fill across days nothing is held.
+
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) does it for TU's
 momentum on the roll return. It pins the three figures at six decimals and
 at the book's precision, Example 6.1's rule on the same rebuilt series and
@@ -801,7 +831,7 @@ that save's own close, and the month-unit and fifth-contract readings. It
 also holds the declared rule and the roll's off-by-one on synthetic strips,
 the March 2012 roll, and the scale-break guard on every member's own rows.
 
-All thirty-five replications reach a verdict in
+All thirty-six replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -818,7 +848,8 @@ examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
-spread's, and Entry 35 the roll-return rule's on TU.
+spread's, Entry 35 the VX calendar spread's, and Entry 36 the roll-return
+rule's on TU.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -939,8 +970,9 @@ them too.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
 that shape was decided. The spot and roll returns of Example 5.3 read five of
 them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
-[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). No
-replication reads the other three strips or the gold series yet.
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347), and
+later replications read their strips through the same reader. No replication
+reads HO2, the CL save named for 2012-05-02 or the gold series yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
 them, under `data/pythoncodesanddata/`, for
@@ -1578,6 +1610,20 @@ It prints the vintage and the window, each figure the script's comment and the
 book print beside the computed one with a verdict, the ADF statistic against
 its criterion, and then the window a day later, the 61-day holding period and
 the last day a pair is held.
+
+The VX calendar spread of *Algorithmic Trading*'s Chapter 5 takes no option,
+because the issue declared the strip, the window and every row before the
+run:
+
+```bash
+uv run python -m chan.vx_calendar_spread
+```
+
+It prints the vintage and the window, the specification's ADF statistic, APR
+and Sharpe ratio beside the book's claims with a verdict, then the four rows
+declared beside it, B1 to B4. B3, the row that trades the held pair's ratio
+with each pair held in turn, is then measured on the book's window, and each
+row before October 2008. None of these carries a verdict.
 
 TU momentum on the roll return takes no option either, because the issue
 declared its threshold, its lag and its roll row:
@@ -3304,6 +3350,94 @@ uv run python -m chan.bollinger_figures
 
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) holds what
 it draws rather than its bytes, for the reason given above for the regime map.
+
+[blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a
+twenty-second post, about Kindle locations 1633 to 1726 of Chan's
+*Algorithmic Trading*, where a Kalman filter re-estimates the slope and intercept of EWC on EWA every
+day and trades the filter's forecast error against a band its own forecast
+variance sets. Chan reports an APR of 26.2 percent and a Sharpe ratio of 2.4.
+The post draws four lessons from Entry 32 of the replication log.
+
+1. Both figures land on every digit of the script's closing comment, and the
+   book rounds them correctly.
+2. The script shorts EWC alone on the file's first day, before the filter has
+   any estimate, and with no signal on the first two days the figures round
+   to 26.1 percent and 2.3.
+3. Location 1726's two claims carry no verdict, because their only criteria
+   were written after a first run, and the grain chosen decides whether the
+   intercept rises "monotonically".
+4. An exact reproduction checks the arithmetic and not the edge, since the
+   two constants are Chan's and the script charges no cost.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   Example 3.2's band, entered at one standard deviation and exited at the
+   mean, is at 1559. "An abrupt and artificial impact on the hedge ratio" is
+   at 1633, "the expected value of a hidden variable" at 1644, the slope and
+   intercept as the hidden state at 1658, and the intercept "in place of the
+   moving average of the spread" at 1678. The two claims, the forecast error
+   as "the deviation of the spread EWC-EWA from its predicted mean value", the
+   rest of the code being `bollinger.m`'s, and "a reasonable APR of 26.2
+   percent and a Sharpe ratio of 2.4" are at 1726. The market-making use is at
+   1760. The book's figures are pinned, and its words are not.
+2. Facts about the script rather than the data: its comment on `delta`, its
+   zero start, and its chart of the forecast error plotting `e(3:end)` and
+   `sqrt(Q(3:end))`, which the script holds at `e4bc46f` of
+   ericnberwick/EpchanPreview, git blob `e2f8a62`.
+   [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records
+   the zero start and the two rows the plot leaves out, but not those words.
+3. Readings no test asserts: that the gain is large when the filter is unsure
+   and small when it is confident, that starting the filter from a regression
+   would need data from before the file's first day, and that a filter
+   started from the whole-file intercept might show no rise.
+4. The figure's alt text, whose readings of the lines, such as "about 1.4"
+   and "about 2.9 by September 2008", are approximate by design.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_kalman_hedge.py](tests/test_kalman_hedge.py), to
+[tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py) for
+the figure's own numbers, to
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) and
+[tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
+for the slope of 0.9624 and the intercept of 6.4113 of one regression over the
+whole file, or to [tests/test_price_spread.py](tests/test_price_spread.py) for
+the 20-day window of the earlier post's rolling slope. Four had no pin before
+it.
+
+1. Row 1's forecast error is EWC's whole close of 22.95, exactly.
+2. The short on EWC alone earns 0.0074074 on 2006-04-27, and the run with no
+   signal on rows 1 and 2 holds the script's units from row 3 on, so their
+   returns differ only on 2006-04-27 and 2006-04-28.
+3. The script holds a long on 358 days, a short on 350 and nothing on 792, and
+   its units change from one day to the next 875 times.
+4. The cumulative return the last panel draws ends at 2.999998 for the script
+   and 2.970231 with no signal on rows 1 and 2, which the alt text reads as
+   about 300 percent.
+
+Its one figure is drawn from the committed file by
+[src/chan/kalman_hedge_figures.py](src/chan/kalman_hedge_figures.py), which
+reads it through the same `read_sources` and `kalman_hedge` as
+`python -m chan.kalman_hedge`, scale-break guard included. It draws four
+panels on one date axis, after the book's Figures 3.5 to 3.8.
+
+1. The slope over all 1,500 rows, with its zero start marked and a line at 1.
+2. The intercept, with each year's mean drawn flat over its year and its
+   highest value marked.
+3. The forecast error and the band from row 3, with a note naming rows 1 and
+   2.
+4. The cumulative return of the script and, dashed, of the run with no signal
+   on rows 1 and 2.
+
+```bash
+uv run python -m chan.kalman_hedge_figures
+```
+
+[tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 

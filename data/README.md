@@ -921,15 +921,18 @@ a time. It splits each commodity's return into the part that comes from the
 commodity's own price and the part that comes from holding contracts as they
 near delivery. His Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL
 strip named for 2012-08-13 to trade the gap between two crude contracts
-delivering 12 months apart. Two unnumbered experiments read the TU and VX
-strips. `VX_ES_rollreturn.m` also reads the VX strip, and `GLD_GC.m` reads the
+delivering 12 months apart. An unnumbered experiment reads the TU strip. The
+VX calendar spread, which the book reports without a script of its own, is
+Example 5.4's script run on the VX strip, as its commented-out first load line
+shows. `VX_ES_rollreturn.m` also reads the VX strip, and `GLD_GC.m` reads the
 gold series. Example 5.3 is the first replication to read any of them, five of
 the seven its script names, BR, C2, CL, HG and TU, through
 `chan.roll_returns`, for
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347). It
-leaves out VX and HO2, for which the book prints no figure there. The
-unnumbered TU experiment, location 2690's revision of Example 6.1, reads the
-TU strip too, through `chan.roll_momentum` for
+leaves out VX and HO2, for which the book prints no figure there. The same
+reader takes the VX strip as well, the one strip it reads with no spot
+column. The unnumbered TU experiment, location 2690's revision of
+Example 6.1, reads the TU strip too, through `chan.roll_momentum` for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353).
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.

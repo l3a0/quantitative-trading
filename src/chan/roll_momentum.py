@@ -529,7 +529,7 @@ def report(
     )
     print()
     print("  Annualised over 252 days with no risk-free rate and no cost, on raw contract prices.")
-    print("  Exploratory. docs/replication-log.md Entry 35 carries the verdicts.")
+    print("  Exploratory. docs/replication-log.md Entry 36 carries the verdicts.")
 
 
 def run(data_dir: Path | None = None) -> tuple[RollMomentum, SaveCheck]:

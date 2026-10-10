@@ -15,11 +15,13 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from matplotlib.colors import same_color
 
 from chan.lag_residual_figure import (
     FIGURE_NAME,
     LAG_COUNTS,
     LOST,
+    MUTED,
     _signed,
     make_lag_residual_figure,
 )
@@ -86,6 +88,15 @@ class TestTheFigureDrawsTheCheck:
         for ax, lags in zip(fig.axes, LAG_COUNTS, strict=True):
             assert red_lags(ax) == OUTSIDE[lags]
 
+    def test_the_bars_inside_the_band_are_muted(self, drawn) -> None:
+        """Red is the only flag, so a bar the check passes wears the quiet colour
+        rather than a second one a reader would take for another verdict."""
+        fig, _ = drawn
+        for ax, lags in zip(fig.axes, LAG_COUNTS, strict=True):
+            for lag, bar in enumerate(ax.containers[0], 1):
+                if lag not in OUTSIDE[lags]:
+                    assert same_color(bar.get_facecolor(), MUTED), (lags, lag)
+
     def test_each_red_bar_carries_its_own_value(self, drawn) -> None:
         fig, _ = drawn
         for ax, check in zip(fig.axes, fig.checks, strict=True):
@@ -100,6 +111,15 @@ class TestTheFigureDrawsTheCheck:
             band = ax.patches[0]
             assert band.get_y() == pytest.approx(-check.band)
             assert band.get_height() == pytest.approx(2 * check.band)
+
+    def test_the_band_is_not_the_flag_colour(self, drawn) -> None:
+        """Red marks a bar outside the band, so a red band would put the bars
+        the check passes on the colour of the ones it flags."""
+        fig, _ = drawn
+        for ax in fig.axes:
+            bars = set(ax.containers[0])
+            (band,) = [patch for patch in ax.patches if patch not in bars]
+            assert not same_color(band.get_facecolor()[:3], LOST)
 
     def test_each_title_carries_its_lag_count_statistic_and_p_value(self, drawn) -> None:
         fig, _ = drawn

@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from matplotlib.colors import to_rgba
+from matplotlib.colors import same_color, to_rgba
 
 import chan.calendar_spread_figures as figures
 from chan.calendar_spread_figures import (
@@ -33,7 +33,7 @@ from chan.calendar_spread_figures import (
 )
 from chan.futures import settlements
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, LOST, MUTED
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.stationary_candidates import SPREAD_PRODUCTS
 from chan.vintage import VintageUnavailable
 
@@ -128,6 +128,17 @@ class TestTheRealCount:
         bins = [*drawn[f"{name}-declared-bin"], *drawn[f"{name}-corrected-bin"]]
         assert drawn[f"{name}-real-line"].get_zorder() > max(b.get_zorder() for b in bins)
 
+    def test_the_line_and_marker_wear_neither_null_s_colour(self, figure) -> None:
+        """In grey or brass the real count would read as one of the nulls."""
+        drawn = _by_gid(figure)
+        for name, _, _ in PANELS:
+            line, marker = drawn[f"{name}-real-line"], drawn[f"{name}-real"]
+            assert same_color(line.get_color(), INK)
+            assert same_color(marker.get_markerfacecolor(), INK)
+            for null in (DECLARED_COLOUR, CORRECTED_COLOUR):
+                assert not same_color(line.get_color(), null)
+                assert not same_color(marker.get_markerfacecolor(), null)
+
     def test_natural_gas_sits_past_both_bars_and_rbob_between_them(self, figure) -> None:
         """The picture of the two verdicts: the correction moves RBOB's and not natural gas's."""
         drawn = _by_gid(figure)
@@ -185,6 +196,10 @@ class TestTheHistograms:
     def test_the_note_s_grey_and_brass_are_the_nulls_colours(self) -> None:
         """The note names the declared null grey and the corrected one brass."""
         assert (DECLARED_COLOUR, CORRECTED_COLOUR) == (MUTED, ACCENT)
+
+    def test_the_two_nulls_wear_different_colours(self) -> None:
+        """Colour is the only key to which histogram is which null."""
+        assert not same_color(DECLARED_COLOUR, CORRECTED_COLOUR)
 
     @pytest.mark.parametrize(("name", "which", "n"), PANELS)
     @pytest.mark.parametrize(

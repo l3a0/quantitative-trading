@@ -27,12 +27,12 @@ edition's misses, and the repost of its code named below carries book two's
 file, so :mod:`chan.pca_factor` calls :func:`smartstd_book_two`.
 ``tests/test_pca_factor.py`` pins the figure the first edition's would give.
 
-The rest are Chan's helpers as his scripts call them. This docstring does not
-list which modules here call which helper, because a list kept by hand falls
-behind each time a replication adds a caller. This command, run from the
-repository root, names every module under ``src/chan`` that imports one::
-
-    grep -rlE '^ *(from|import) [^#]*matlab_helpers([ ,)]|$)' src/chan | sort
+The rest are Chan's helpers as his scripts call them. A change to one reaches
+every module here that imports it, such as
+:mod:`chan.cross_sectional_momentum`, which transcribes *Algorithmic Trading*'s
+Example 6.2. Its tests pin figures that a helper change can move, so a change
+here can fail a replication's own tests as well as
+``tests/test_matlab_helpers.py``.
 
 Reversing the tie order in :func:`matlab_sort` moves no printed figure on the
 two files Examples 7.6 and 7.7 read. On the 2012 S&P 500 file Example 4.1 reads, no

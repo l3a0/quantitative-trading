@@ -94,7 +94,12 @@ class TestTheLine:
         assert not ax.collections
         verdicts = {to_rgba(GOOD), to_rgba(LOST)}
         for line in ax.lines:
-            assert to_rgba(line.get_color()) not in verdicts
+            for colour in (
+                line.get_color(),
+                line.get_markerfacecolor(),
+                line.get_markeredgecolor(),
+            ):
+                assert to_rgba(colour) not in verdicts
         for text in [
             *ax.texts,
             *figure.texts,

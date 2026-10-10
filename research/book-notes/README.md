@@ -211,12 +211,25 @@ maximum drawdown of −0.053222 and a longest drawdown of 206 days, sit in the
 script and nowhere in the book. The replication log's Entry 34
 traces each figure to one or the other.
 
+Every figure of *Algorithmic Trading*'s VX calendar spread, in its Chapter 5,
+is in the book and none is in a script, the opposite of Example 5.4, whose
+six-decimal figures sit in the script and nowhere in the book. The claim that
+the ratio of back to front is "stationary with a 99 percent probability", the
+APR of 17.7 percent and Sharpe ratio of 1.5 from
+October 27, 2008, to April 23, 2012, and the claim that it "performed much
+more poorly prior to October 2008" are all here, at location 2502. No script
+ships under the experiment's own name. `calendarSpdsMeanReversion.m` carries a
+commented-out load of the VX strip, and its comments print CL's figures, not
+VX's. The replication log's Entry 35 traces each figure to the rows run
+against it.
+
 The revision of Example 6.1 that trades the lagged roll return has the
-opposite shape, with every figure in the book and none in a script. Location
+same shape as the VX calendar spread, with every figure in the book and none
+in a script. Location
 2690 prints the threshold of 3 percent, the window from January 2, 2009, to
 August 13, 2012, an APR of 2.5 percent, a Sharpe ratio of 2.1 and a maximum
 drawdown of 1.1 percent, and no script ships for it. So the notes are the only
-source of those figures, and the replication log's Entry 35 cites location
+source of those figures, and the replication log's Entry 36 cites location
 2690 for each of them.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
