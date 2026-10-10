@@ -1,8 +1,11 @@
 """The pins for GLD, GDX and USO around July 2008, *Algorithmic Trading*'s location 1922.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md``
-Entry 29 carries the verdicts and points here row by row.
+about this example and the rows beside it, with one exception, in
+``blog/gold-miners-oil-lessons.md``. The post's figure has its own pins in
+``tests/test_gold_miners_oil_figures.py``. README lists what the post says
+that nothing pins. ``docs/replication-log.md`` Entry 29 carries the verdicts
+and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here.

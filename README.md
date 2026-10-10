@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty replications run here, fifteen from Chan's *Quantitative Trading*
-and fifteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-one replications run here, fifteen from Chan's *Quantitative Trading*
+and sixteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-eight were built here.
+where they were first built. The other twenty-nine were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -400,6 +400,20 @@ where they were first built. The other twenty-eight were built here.
     the differential annualised over 365 days at 0.047279. Every figure is
     exploratory, and the script triples CAD's rollover on Thursdays where the
     book's own settlement rule says Wednesday.
+31. Crude oil reversal joined to momentum, from *Algorithmic Trading*'s
+    Chapter 6, on Chan's own continuous futures. The rule buys CL at the
+    close when it is below its price 30 trading days ago and above its price
+    40 trading days ago, shorts on the mirror, and is flat otherwise. On the
+    2012-05-04 save `CL_rev.m` loads, the APR of 0.117600 and the Sharpe
+    ratio of 1.100368 match the script's comment to every digit and the
+    book's 12 percent and 1.1. Momentum alone gives 0.090228 and 0.439049
+    and reversal alone 0.068326 and 0.370289, so on the book's window the
+    join beats each rule alone. On the four years before it, read from the
+    2012-05-07 save, the join gives 0.021324 and 0.369864 and momentum alone
+    beats it, on a series that
+    [issue 313](https://github.com/l3a0/quantitative-trading/issues/313)
+    found back-adjusted above the traded price. Swapping the two lookbacks
+    negates every position. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -595,7 +609,8 @@ prints at the precision that is real and as the script printed it, each
 critical value as the script formatted it, and the book's rounder figures. It
 also holds that negating the eigenvector moves no figure, since statsmodels
 returns it with the opposite sign from Chan's, and that padding the lag with
-zeros as LeSage's `lag` does gives the same series.
+zeros as LeSage's `lag` does gives the same series. The blog post about them
+is the exception, and what it says that nothing here asserts is listed below.
 [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) does it for
 Example 4.2. It pins the screen's count with the 17 stocks it skips by name,
 every figure `indexArb.m` prints at the precision that is real and as the
@@ -642,7 +657,8 @@ issue declared them, the book's three quotes against the highlight they come
 from, every statistic and eigenvalue of the four tests and of each ETF with
 USO alone at the precision that is real, the CADF and ADF rows beside them,
 and the cut to GDX's first price that keeps a missing price from reaching the
-test.
+test. The blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
 Example 5.2. It pins the script's two printed figures, the book's four, and
@@ -653,7 +669,15 @@ Thursdays and a holiday multiplies nothing, that each day's return carries the
 previous day's position and rates, and that zero rates give the script's
 commented-out formula without rollover bit for bit.
 
-All thirty replications reach a verdict in
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py) does
+it for the crude oil rule. It pins the two figures on the 2012-05-04 save at
+the script's six decimals and at the book's precision, the script's other
+three rules beside them, the 2012-05-11 save, and the three rules on the
+2012-05-07 save's four years before the window. It also holds the positions,
+the ten rows where ComboOR differs, five changes to the specification that
+each move a figure, and the scale-break guard on each span of each save.
+
+All thirty-one replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -667,8 +691,8 @@ panel's, Entry 20 the leverage examples', Entry 21 Example 3.1's, Entry 22
 the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's and
-Entry 29 the Johansen tests' on GLD, GDX and USO, and Entry 30 Example
-5.2's.
+Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example 5.2's
+and Entry 31 the crude oil rule's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -718,7 +742,8 @@ refuse both windows the book prints, and Chan's script ran across them as they
 stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
 span, and neither carries a flagged day, so nothing is refused. VX against ES
 calls it on VX and ES over each leg's own span in each continuous futures save
-it reads, and nothing is refused there either.
+it reads, and nothing is refused there either. The crude oil rule calls it on
+CL over each span it reads in each of three saves, and refuses nothing.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -838,7 +863,9 @@ is. His `VIX.csv` is committed beside them as one vintage under the vendor
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 their shape. VX against ES reads VX and ES from the 2012-05-07 and
 2012-05-17 saves, and its tests read the 2012-05-11 save too, for
-[issue 350](https://github.com/l3a0/quantitative-trading/issues/350).
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350). The
+crude oil rule reads CL from the 2012-05-04, 2012-05-07 and 2012-05-11 saves,
+for [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -1392,6 +1419,18 @@ It prints the three vintages, the window and the days with no rate, each
 figure the script and the book print beside the computed one and a verdict,
 the annualised rollover against its criterion, and the rows beside the
 replication.
+
+The crude oil rule takes no option either, because `CL_rev.m` fixes the save,
+the window and the two lookbacks:
+
+```bash
+uv run python -m chan.cl_reversal_momentum
+```
+
+It prints the vintage and the window, the two figures beside the script's and
+the book's with a verdict, the positions, the script's other three rules and
+the later save in a table, and the three rules on the four years before the
+window.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -2635,6 +2674,181 @@ uv run python -m chan.price_spread_figures
 
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/gold-miners-oil-lessons.md](blog/gold-miners-oil-lessons.md) is a
+seventeenth post, about location 1922 of Chan's *Algorithmic Trading*, where
+GLD and GDX cointegrate until July 14, 2008, stop afterwards, and regain one
+relation once the oil fund USO joins them. The book prints no statistic for
+any of the three claims. The post draws four lessons from Entry 29 of the
+replication log.
+
+1. Every claim holds on both Johansen statistics, with room, and the book's
+   "99 percent probability" is a test level rather than a probability.
+2. The control the book leaves out holds, since GLD and GDX alone over the
+   triplet's days find no relation even at 90 percent.
+3. A second control weakens the story, since GDX and USO alone find one
+   relation at 99 percent and GLD and USO find none.
+4. The split date and the third ETF were both chosen after the break was seen,
+   so the result is exploratory and cannot confirm the oil hypothesis.
+
+Six groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "Until July 14, 2008, or thereabout", the three claims' quotes, the oil
+   peak at around $145 a barrel, the mining-cost explanation, the suggestions
+   to trade the triplet or to stop trading the pair above an oil threshold,
+   and the framing of the example as a hypothesis to test are all at 1922.
+   The three claims' quotes are also matched against that highlight by
+   `TestTheBooksClaims`.
+2. Facts outside the committed data. That USO holds the crude oil futures
+   nearest expiry and drifts from the spot price as it rolls, which Entry 29
+   records, and that every Johansen call in Chan's scripts for the book passes
+   a constant and one lagged difference, which
+   [src/chan/gold_miners_oil.py](src/chan/gold_miners_oil.py)'s docstring
+   records.
+3. Two readings no test asserts: that a test level is not the probability a
+   claim is true, and that a full Johansen rank says each series is
+   stationary alone.
+4. The MacKinnon critical values of −3.34 and −3.90 for the Engle-Granger
+   test, which are constants of `ithildincore.timeseries` rather than
+   something this repository computes. The suite asserts that the statistic
+   falls between them.
+5. The figure's alt text, whose readings of the lines, such as "about 23" and
+   "between about 40 and 66", are approximate by design.
+6. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py), to
+[tests/test_gold_miners_oil_figures.py](tests/test_gold_miners_oil_figures.py)
+for the figure's own numbers, to
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) for the
+critical values checked against Chan's printout and the two Johansen
+statistics disagreeing on his file, or to
+[tests/test_regime_figure.py](tests/test_regime_figure.py) for the earlier
+post's rolling windows. Five had no pin before it.
+
+1. USO's highest close on the file, 117.48, on 2008-07-14, the last day of the
+   first window.
+2. The first window's Johansen weights, 0.191134 shares of GLD and −0.513914
+   of GDX.
+3. That portfolio in standard deviations from its first-window mean: −3.24 to
+   2.56 over the 539 days before the split, and 0.47 to 13.52 over the 942
+   after it, where it never returns to the mean.
+4. That portfolio crossing its first-window mean 61 times before the split.
+5. The rolling windows of the earlier post's regime map: 9 of the 45 ending
+   inside 2008-07-15 to 2012-04-09 pass at 10 percent, and the last to pass
+   before 2019 ends on 2015-10-22.
+
+Its one figure is drawn from the committed file by
+[src/chan/gold_miners_oil_figures.py](src/chan/gold_miners_oil_figures.py),
+which reads it through the same `read_sources` and `gold_miners_oil` as
+`python -m chan.gold_miners_oil`, scale-break guard included. It draws two
+panels on one date axis, for Lesson 1, with the split marked on both.
+
+1. The closes of GLD, GDX and USO, with USO's highest marked.
+2. GLD and GDX in the first window's Johansen weights, carried across the
+   split.
+
+```bash
+uv run python -m chan.gold_miners_oil_figures
+```
+
+[tests/test_gold_miners_oil_figures.py](tests/test_gold_miners_oil_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/johansen-etf-lessons.md](blog/johansen-etf-lessons.md) is an eighteenth
+post, about Examples 2.6 to 2.8 of Chan's *Algorithmic Trading*, which test
+EWA, EWC and IGE for cointegration with the CADF and Johansen tests and trade
+the triplet's first eigenvector with a linear mean-reversion rule. Chan reports
+a CADF statistic of about −3.64, a half-life of 23 days, and an APR of 12.6
+percent with a Sharpe ratio of 1.4. It is the blog's explanation of the
+Johansen test, built from the CADF test the earlier posts teach. The post
+draws six lessons from Entry 23 of the replication log.
+
+1. Every figure `cointegrationTests.m` prints reproduces to its last digit,
+   the eigenvectors with their signs flipped.
+2. One regression depends on which ETF goes on the left, and the Johansen
+   test does not depend on the column order.
+3. The trace test counts three relations among the three ETFs and the eigen
+   test counts none, though location 1337 says both count three.
+4. Two relations between two series is a full rank, which says each ETF
+   reverts alone, and a plain ADF on each rejects a unit root for none.
+5. The first eigenvector is long EWC and short EWA and IGE, and reverts
+   fastest of the three.
+6. An exact reproduction checks the arithmetic and not the edge.
+
+Five groups of its figures are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "The use of in-sample data to find the half-life" is at 1225. "Commodity
+   based, so they seem likely to cointegrate" is at 1264. The question of
+   swapping the legs, its answer "yes" and "try each variable as independent"
+   are at 1282. The 95 percent verdict is at 1292. The Johansen equation, the
+   counting rule and the eigenvectors as hedge ratios are at 1295. "Which are
+   not necessarily reciprocal of each other" and the test's independence of
+   order are at 1324. IGE joining is at 1334, "Both Trace statistic and Eigen
+   statistic tests conclude" at 1337, and the first eigenvector reverting
+   fastest at 1340. "No parameters to optimize", "continuously enters and
+   exits positions" and "obviously not a practical strategy" are at 1350, and
+   "the same data for parameter optimization (such as finding the best hedge
+   ratio) and for backtest" is at 1429. The book's figures are pinned, and its
+   words are not.
+2. Facts outside the committed data. That jplv7 is James LeSage's toolbox and
+   that statsmodels multiplies the eigenvector matrix by the sign of its
+   top-left element, which `src/chan/johansen.py`'s docstring records, and
+   that the file subtracts dividends in dollars, which
+   [data/README.md](data/README.md) records.
+3. Arithmetic no test asserts: that a full rank makes every combination
+   stationary, including one ETF held alone, that the test's eigenvalues lie
+   between 0 and 1, and the two formulas for the trace and eigen statistics,
+   which the post shows as equations.
+4. The book's Figures 2.4, 2.6 and 2.7, which the post's figure redraws from
+   the script's `plot` calls and which nothing compares with the book's own.
+   The alt text's description of shapes in the figure, such as EWC sitting
+   above EWA and both falling in late 2008, is read off the drawing rather
+   than asserted.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py), or to
+[tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
+for the figure's own numbers. Four had no pin before it, and
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) now pins
+them.
+
+1. That each trace statistic is the sum of the eigen statistics from its row
+   down, for the pair and the triplet.
+2. That the triplet's trace test counts three relations at 90 and 95 percent
+   and none at 99, since 34.429 falls short of 35.463.
+3. The first eigenvector's dollars per unit on 2012-04-09, 28.72 of EWC
+   against −17.43 of EWA and −8.49 of IGE.
+4. The strategy's deepest drawdown of −0.101249 on 2010-08-16, and its longest
+   spell below a high, 598 days from 2009-04-02 to 2011-08-15 after a high on
+   2009-04-01.
+
+Its one figure is drawn from the committed file by
+[src/chan/etf_cointegration_figures.py](src/chan/etf_cointegration_figures.py),
+which reads it through the same `read_sources` and `etf_cointegration` as
+`python -m chan.etf_cointegration`, scale-break guard included. It draws four
+panels, for Lessons 1, 3 and 6.
+
+1. EWA and EWC over the file, the book's Figure 2.4.
+2. The residual of EWC on EWA, the book's Figure 2.6.
+3. The triplet's trace and eigen statistics against their 90, 95 and 99
+   percent critical values, one group per null.
+4. The strategy's compounded cumulative return, the book's Figure 2.7, with
+   the deepest drawdown marked and the longest spell below a high shaded.
+
+```bash
+uv run python -m chan.etf_cointegration_figures
+```
+
+[tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 ## Where the book's numbers come from

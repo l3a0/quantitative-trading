@@ -170,6 +170,13 @@ it, and the annualised rollover of "almost 5 percent". The two figures
 nowhere in the book. The replication log's Entry 30 traces each to one or the
 other.
 
+*Algorithmic Trading*'s crude oil rule, in its Chapter 6, is the opposite
+case: both figures are in the book and in the script. The APR of 12 percent
+and the Sharpe ratio of 1.1 sit at location 2701. `CL_rev.m` computes them,
+and the comment under its `fprintf` records `APR=0.117600 Sharpe=1.100368`,
+which rounds to both. The replication log's Entry 31 traces both to the
+script's run.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an

@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29 and 30 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30 and 31 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight and five, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five and twelve, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29 and 30 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 and 31 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -237,6 +237,12 @@ says.
   - [The verdicts](#the-verdicts-28)
   - [What the entry concludes](#what-the-entry-concludes-29)
   - [What this entry cannot say](#what-this-entry-cannot-say-27)
+- [Entry 31: crude oil reversal joined to momentum, Chan's *Algorithmic Trading*](#entry-31-crude-oil-reversal-joined-to-momentum-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-28)
+  - [What this repo computed](#what-this-repo-computed-30)
+  - [The verdicts](#the-verdicts-29)
+  - [What the entry concludes](#what-the-entry-concludes-30)
+  - [What this entry cannot say](#what-this-entry-cannot-say-28)
 
 ## How to read an entry
 
@@ -290,9 +296,11 @@ both.
    holds Entry 27, [tests/test_vx_es.py](../tests/test_vx_es.py) holds
    Entry 28,
    [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
-   Entry 29, and
+   Entry 29,
    [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
-   Entry 30.
+   Entry 30, and
+   [tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py)
+   holds Entry 31.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -407,7 +415,8 @@ Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
-Entry 29's rows 7 to 14, and Entry 30's rows 6 to 8.
+Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, and Entry 31's rows 3 to
+14.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -4961,7 +4970,7 @@ verdict, which `test_row_3_the_pair_cointegrates_at_95_percent` also asserts.
 | 6 | Nulls rejected in order, up to the first that is not | 2 by each test at 95 percent, the trace's first also at 99 | `TestTheClaims::test_row_6_both_tests_find_two_relations_for_the_pair_at_95` and the two tests beside it |
 | 7 | `johansen([EWC, EWA, IGE], 0, 1)` | 34.428620, 17.531719 and 4.471021 | `TestExample27TheJohansenTest::test_row_7_the_triplet_trace_statistics` |
 | 8 | The same | 16.896901, 13.060698 and 4.471021 | `TestExample27TheJohansenTest::test_row_8_the_triplet_eigen_statistics` |
-| 9 | As row 6 | 3 by the trace test and 0 by the eigen test, at 90, 95 and 99 percent | `TestTheClaims::test_row_9_the_trace_test_finds_three_relations_at_95` and `::test_row_9_the_eigen_test_finds_none_even_at_90` |
+| 9 | As row 6 | 3 by the trace test at 90 and 95 percent and 0 at 99, and 0 by the eigen test at all three | `TestTheClaims::test_row_9_the_trace_test_finds_three_relations_at_95`, `::test_row_9_the_trace_test_finds_none_at_99` and `::test_row_9_the_eigen_test_finds_none_even_at_90` |
 | 10 | The same test as row 7 | 0.01121626, 0.00868086 and 0.00298021 | `TestExample27TheJohansenTest::test_row_10_the_triplet_eigenvalues` |
 | 11 | The same | Chan's matrix with every sign flipped, first column 1.0460, −0.7600, −0.2233 | `TestExample27TheJohansenTest::test_row_11_the_eigenvectors_are_chans_with_every_sign_flipped` |
 | 12 | `ou_half_life` on the first eigenvector's portfolio | 22.6625778505 | `TestExample27TheJohansenTest::test_row_12_the_half_life` |
@@ -5050,7 +5059,10 @@ none is in the script.
 that lag alone, and row 6's rests on a margin of 0.141.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.etf_cointegration_figures` redraws.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 
@@ -6035,16 +6047,18 @@ Four things.
    rank at 90 percent, on a second null of 3.034 against 2.705, while neither
    ETF rejects a unit root alone. That is Entry 23's tension again, at a level
    no claim here is judged at.
-4. **The blog post's sixth detour bears on the same break.**
-   `blog/gld-gdx-cointegration-lessons.md` says the miners "detached from gold
+4. **Detour 6 of `blog/gld-gdx-cointegration-lessons.md` bears on the same
+   break.** That post says the miners "detached from gold
    somewhere in the 2010s", from yfinance closes and a rolling CADF. This run
    reads Chan's file with the Johansen test and finds no relation over
    2008-07-15 to 2012-04-09 as a whole. The two differ in file, test and
    window. One test over a window that runs into 2012 cannot say where inside
    it the link failed, so this entry does not date the break, and it says
-   nothing about the years after 2012. The post stays as it is until its
-   write-up, because it is kept in step with its Substack copy and an edit
-   there waits on the owner.
+   nothing about the years after 2012.
+   [blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md), this
+   entry's write-up, sets the two side by side. On 2026-10-06 the owner chose
+   to keep the earlier post's sentence, so that post and its Substack copy are
+   unchanged.
 
 ### What this entry cannot say
 
@@ -6069,7 +6083,10 @@ Four things.
    different object from a replication, and no issue carries it yet.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md) moves
+with it, since that post quotes most of these figures. The post's one figure
+moves too, and `uv run python -m chan.gold_miners_oil_figures` redraws it.
 
 ## Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*
 
@@ -6244,6 +6261,159 @@ the Bank of Canada's own tables, which
 
 **Anything about costs.** The rule can reverse its position every day, and the
 script charges nothing for it.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 31: crude oil reversal joined to momentum, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle location 2701, and the script `CL_rev.m` that
+computes it. Shipped under
+[issue 354](https://github.com/l3a0/quantitative-trading/issues/354). The
+location number is that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Fourteen rows, all derivable from
+[tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py).
+
+**Both printed figures reproduce at the script's six decimals and at the
+book's precision. On the book's window the joined rule beats each rule alone,
+and on the four years before it momentum alone beats the joined rule.** A
+mean-reverting rule bets a move will undo itself and a momentum rule bets it
+will continue. On one shared lookback they take opposite sides every day, so
+joining them would cancel. Chan gives them different lookbacks and trades only
+on the days the two agree. His sentence is that "Sometimes, the combination of
+mean-reverting and momentum rules may work better than each strategy by
+itself." His rule on crude oil futures buys at the close when the price is
+below its level 30 trading days ago and above its level 40 trading days ago,
+shorts on the mirror, and is flat otherwise. He reports an APR of 12 percent and a Sharpe ratio of 1.1,
+names no window and no save, and prints no figure for either rule alone.
+
+`CL_rev.m` names both. It loads CL from the save Chan's file name dates
+2012-05-04, 1,000 rows from 2008-05-19 to 2012-05-04, runs the rule over
+every row, and its comment records `APR=0.117600 Sharpe=1.100368`. It runs
+three more rules on the same series and prints nothing for them: momentum
+alone against the 40-day lag, reversal alone against the 30-day lag, and a
+fourth it names "ComboOR", which takes a long wherever either long condition
+holds and a short wherever either short condition holds, and sums them.
+
+Every row reads one of three vintages and one specification, so they are
+stated once here.
+
+1. **The vintages.** Three saves of Chan's continuous futures, each rolled
+   from contract to contract and shifted at each roll, read for CL through
+   `chan.series.load_panel` and cut to CL's own rows. A save is named by the
+   date in its file name.
+   1. `inputdataohlcdaily_20120504/`, downloaded 2012-05-07, the save
+      `CL_rev.m` loads, 1,000 rows from 2008-05-19 to 2012-05-04. Rows 1 to
+      5 and 10 to 14 read it.
+   2. `inputdataohlcdaily_20120511/`, downloaded 2012-05-12, read over the
+      same 1,000 days for row 6. Its closes sit 0.27 higher on every one.
+   3. `inputdataohlcdaily_20120507/`, downloaded 2012-05-09. Its CL closes
+      equal the first save's on all 1,000 of those days, so its earlier rows
+      extend the same series backward. Rows 7 to 9 read its 998 rows from
+      2004-05-24 to 2008-05-16.
+
+   The scale-break guard runs on CL over each span read in each save, and
+   refuses nothing.
+2. **The specification.** `CL_rev.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `420d501`. Long where the close is below `backshift(30, cl)` and
+   above `backshift(40, cl)`, short where it is above the first and below the
+   second, flat otherwise. A comparison against the missing lag in the first
+   rows is false, so those rows are flat. Each day earns yesterday's position
+   on today's percentage move, with NaN set to 0. The APR is
+   `prod(1 + ret)^(252/n) − 1` and the Sharpe ratio `√252 · mean(ret) /
+   std(ret)` with n − 1, both over every row, flat rows included, with no
+   cost.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2008 to 2012 sample on a rule he chose, and nothing shows the lookbacks were
+fixed before the window they are reported on was seen. Rows 7 to 9 run on
+data the book did not report, but nothing was registered before they were
+read, so they are not a holdout.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The combination's APR | "12 percent", and `0.117600` in the script's comment | location 2701, and `CL_rev.m` |
+| 2 | The combination's Sharpe ratio | "1.1", and `1.100368` in the script's comment | location 2701, and `CL_rev.m` |
+| 3 to 14 | each rule alone, ComboOR, a later save, the four years before, the positions, and five changes to the specification | none, the book prints no such figures | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `prod(1 + ret)^(252/1000) − 1` | 0.117600 | `TestTheSpecification::test_the_apr_reproduces_the_script_s_comment` |
+| 2 | `√252 · mean(ret) / std(ret)` | 1.100368 | `TestTheSpecification::test_the_sharpe_ratio_reproduces_the_script_s_comment` |
+| 3 | rows 1 and 2 for momentum alone, long above the 40-day lag and short below | 0.090228 and 0.439049 | `TestTheRowsBeside::test_momentum_alone` |
+| 4 | rows 1 and 2 for reversal alone, long below the 30-day lag and short above | 0.068326 and 0.370289 | `TestTheRowsBeside::test_reversal_alone` |
+| 5 | rows 1 and 2 for ComboOR | 0.125917 and 1.123042 | `TestTheRowsBeside::test_combo_or` |
+| 6 | rows 1 and 2 on the 2012-05-11 save over the same days | 0.117226 and 1.100045 | `TestTheRowsBeside::test_the_later_save` |
+| 7 | rows 1 and 2 on the 998 rows before the book's window | 0.021324 and 0.369864 | `TestBeforeTheBookSWindow::test_the_combination` |
+| 8 | row 3 on those rows | 0.094589 and 0.660514 | `TestBeforeTheBookSWindow::test_momentum_alone` |
+| 9 | row 4 on those rows | −0.065694 and −0.359464 | `TestBeforeTheBookSWindow::test_reversal_alone` |
+| 10 | the combination's positions | long 98 rows, short 59, flat 843, 124 changes, the first on 2008-07-18 | `TestTheSpecification::test_the_position_is_flat_on_most_days` and `::test_the_first_position_is_taken_on_2008_07_18` |
+| 11 | rows 1 and 2 with the two lookbacks swapped | −0.115294 and −1.100368 | `TestTheMutations::test_swapping_the_lookbacks_negates_the_rule` |
+| 12 | rows 1 and 2 earning the same day's position rather than yesterday's | 0.008903 and 0.139324 | `TestTheMutations::test_trading_on_the_same_day_s_position` |
+| 13 | rows 1 and 2 measured from row 41, the first row both lags exist, over 960 rows | 0.122789 and 1.123147 | `TestTheMutations::test_measuring_from_the_first_row_both_lags_exist` |
+| 14 | row 2 dividing by n rather than n − 1 | 1.100919 | `TestTheMutations::test_dividing_the_sharpe_ratio_by_n` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.000000 against the script, 0 against the book | reproduced | 0.117600 is the script's comment to every digit and rounds to 12 percent. |
+| 2 | 0.000000 against the script, 0.0 against the book | reproduced | 1.100368 is the script's comment to every digit and rounds to 1.1. |
+| 3 | none | none, not a replication | Momentum alone earns less than the combination on both figures. |
+| 4 | none | none, not a replication | Reversal alone earns less than the combination on both figures, which with row 3 is the book's sentence, measured on its window. |
+| 5 | none | none, not a replication | ComboOR is the combination except on the 10 rows from 2008-07-01 to 2008-07-15, where the 30-day lag exists and the 40-day one does not and OR trades the reversal rule alone. Off those rows, a row where both conditions hold is long under both rules, a row where neither holds is short under both, and a row where one holds is flat under both, since OR sums a long and a short. |
+| 6 | none | none, not a replication | The 2012-05-11 save, whose file name is dated a week later, still rounds to 12 percent and 1.1 and misses the script's comment at the fourth decimal, so the save is part of the specification at six decimals and not at the book's precision. |
+| 7 to 9 | none | none, not a replication | On the four years before the window, momentum alone beats the combination on both figures, and reversal alone loses money. The series there is back-adjusted further from the traded price. It closes at 119.12 on 2004-05-24, against an EIA annual WTI spot average near $41 that year, a figure not measured here. So each percentage return divides by a price well above what traded. |
+| 10 | none | none, not a replication | The rule is flat on 843 of 1,000 days and cannot signal for the first 40, so the two figures rest on 157 days in the market. |
+| 11 | none | none, not a replication | Every long becomes a short, so the Sharpe ratio flips sign exactly. Which lookback carries which rule decides the sign of every position. |
+| 12 to 14 | none | none, not a replication | Each moves a figure the script prints, so the suite notices each one. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Both figures reproduce on the save the script loads.** The APR and the
+   Sharpe ratio match the output `CL_rev.m`'s comment records to six
+   decimals, and that output rounds to the book's two figures. Row 6 shows
+   another save also rounds to them, so nothing here shows which run the book
+   printed.
+2. **On the book's window the combination beats each rule alone.** It earns
+   more than momentum alone and reversal alone on both figures from
+   2008-05-19 to 2012-05-04. Rows 3 and 4 carry no verdict, because the book
+   prints no figure for either rule alone. ComboOR, the script's fourth curve, is the same rule outside
+   ten warm-up rows, so it adds no evidence of its own.
+3. **The combination does not beat momentum alone on the four years
+   before.** From 2004-05-24 to 2008-05-16, momentum alone earns more on both
+   figures. The book's "Sometimes" already allows that, so the segment shows
+   the advantage is not general rather than contradicting the book. Its
+   prices are distorted by the back-adjustment, so it is not a backtest
+   either.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the lookbacks were chosen on this window.** The book names 30 and
+40 days and nothing about how they were picked. A search over other lookbacks
+would be the many-hypotheses case `CLAUDE.md` puts behind its own rail, and
+this run tries none.
+
+**What costs would take.** The book charges none and this run charges none.
+The rule changes position 124 times in 1,000 days, and nothing here measures
+what a cost per change would take from 12 percent.
+
+**What the earlier segment would give on traded prices.** Rows 7 to 9 read a
+series back-adjusted above the price that traded, and no unadjusted CL series
+for those years is committed. So the earlier segment's figures are what the
+rule gives on Chan's series, not what a trader would have earned.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
