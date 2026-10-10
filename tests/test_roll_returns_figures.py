@@ -167,7 +167,7 @@ class TestTheBars:
             "twice the spot return",
             "spot return |α|",
             "roll return |γ|, the script's, on contract columns",
-            "roll return |γ| on months, as the text describes",
+            "roll return |γ| with maturity in months, the text's unit",
         ]
 
     def test_the_heading_quotes_hg_and_c_on_months(self, axes) -> None:

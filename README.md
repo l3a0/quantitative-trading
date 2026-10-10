@@ -3752,11 +3752,11 @@ replication log.
    overstates C's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
 3. With maturity in months, HG's roll return falls below its spot return and
    C's falls short of twice its spot return, so each of the book's two claims
-   loses a strip.
+   fails for one future.
 4. CL's roll return, the series behind the table's mean, sits in contango on
    most days, changes sign 29 times and reaches −1.121372, and HG's changes
-   sign 198 times, which location 2683's "does not vary very often" does not
-   describe.
+   sign 198 times, with no criterion for location 2683's "does not vary very
+   often" written down before the counts.
 
 Five groups of what it says are not pinned here.
 
@@ -3773,14 +3773,18 @@ Five groups of what it says are not pinned here.
 2. Facts about the script rather than the data: that it numbers the days with
    `T=[1:length(spot)]'`, prints with `%f`, and annualizes by 252 and by −12,
    which `estimateFuturesReturns.m` holds at `e4bc46f` of
-   ericnberwick/EpchanPreview.
+   ericnberwick/EpchanPreview, and that its Python port dates from 2018. The
+   figure number the caption cites, 5.5, is the one the notes record at
+   location 2399, which
+   [tests/test_book_notes.py](tests/test_book_notes.py) holds, and the book's
+   chart is compared with the redraw only by its first and last days.
 3. Readings no test asserts: the algebra of the model, that a held contract
    earns α + γ and that one day's log prices fall on a line of slope −γ, and
    the reading of location 2385 that the roll return separates a producer
    ETF from the commodity's future.
 4. Figures the post rounds from pinned ones or takes between them in words:
-   5.06, 3.86 and 0.0039 percent, "a little over half", and "less than four
-   months later". The figure's alt text reads its bars and its line
+   0.0039 percent, "a little over half", and "less than four months later".
+   The figure's heading test holds 5.06 and 3.86 percent. The figure's alt text reads its bars and its line
    approximately too, such as "about 5.3" and "about −1.1".
 5. Its references, cited rather than computed.
 

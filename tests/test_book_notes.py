@@ -147,3 +147,19 @@ def test_the_usdcad_post_cites_the_figure_number_the_notes_record() -> None:
     captions = [line for line in post.splitlines() if line.startswith("*USD.CAD’s closes")]
     assert len(captions) == 1
     assert re.findall(r"Figure (\d+\.\d+)", captions[0]) == [recorded.group(1)]
+
+
+def test_the_roll_returns_post_cites_the_figure_number_the_notes_record() -> None:
+    """The post's caption names Figure 5.5, which location 2399's recovered text captions.
+
+    Location 2399 holds two captions, Figure 5.4's scatter and Figure 5.5's line of
+    CL's roll return, so the caption must cite the one whose words name γ for CL.
+    """
+    notes = (NOTES_DIR / "algorithmic-trading.md").read_text(encoding="utf-8")
+    entry = notes.partition("### Location 2399 ")[2].partition("\n### ")[0]
+    recorded = re.search(r"FIGURE (\d+\.\d+) Values of the Roll Return γ for CL\.", entry)
+    assert recorded, "location 2399 holds no caption for CL's roll return"
+    post = (NOTES_DIR.parents[1] / "blog" / "roll-returns-lessons.md").read_text(encoding="utf-8")
+    captions = [line for line in post.splitlines() if line.startswith("*Each strip’s spot return")]
+    assert len(captions) == 1
+    assert re.findall(r"Figure (\d+\.\d+)", captions[0]) == [recorded.group(1)]

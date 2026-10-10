@@ -6,9 +6,9 @@ figure for it. :func:`make_roll_returns_figure` draws two panels.
 
 1. Each strip's spot return and both roll returns as bars, in percent: the
    script's γ, which regresses on contract columns and printed Table 5.1, and
-   the γ regressed on months, which the book's text describes. A tick over BR,
-   C and TU marks twice the spot return, the bar location 2399's claim was
-   read against. Neither of Chan's figures shows this, because both draw CL,
+   the γ regressed on months, the unit the book's text names. A tick over BR,
+   C and TU marks twice the spot return, the threshold location 2399's claim
+   was read against. Neither of Chan's figures shows this, because both draw CL,
    whose contracts are a month apart.
 2. CL's γ on every day it is defined, the book's Figure 5.5, shaded above zero
    for backwardation and below for contango, with its mean drawn across it.
@@ -101,7 +101,7 @@ def make_roll_returns_figure(
         (
             ("alpha", MUTED, "spot return |α|"),
             ("gamma-columns", ACCENT, "roll return |γ|, the script's, on contract columns"),
-            ("gamma-months", GOOD, "roll return |γ| on months, as the text describes"),
+            ("gamma-months", GOOD, "roll return |γ| with maturity in months, the text's unit"),
         ),
         strict=True,
     ):

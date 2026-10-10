@@ -2,9 +2,9 @@
 
 This file is the single authority for every number any prose surface quotes
 about Example 5.3, with one exception, in ``blog/roll-returns-lessons.md``.
-That post also quotes its figure's labels, which
-``tests/test_roll_returns_figures.py`` holds, and README lists what the post
-says that nothing asserts. ``docs/replication-log.md`` carries the verdicts
+That post also quotes two kinds of number held elsewhere: its figure's labels,
+which ``tests/test_roll_returns_figures.py`` holds, and the figures README
+lists as asserted nowhere. ``docs/replication-log.md`` carries the verdicts
 and points here row by row. The rows are the ones
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared
 before the build, under "The pins".
