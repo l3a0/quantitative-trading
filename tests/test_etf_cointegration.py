@@ -7,7 +7,9 @@ the intercept of the regression the hedge ratio comes from, which
 ``tests/test_etf_cointegration_figures.py`` holds.
 ``blog/kalman-hedge-lessons.md`` quotes the same intercept beside the
 whole-file slope, 0.9624, which is pinned here, so a change to either moves
-that post too. README lists what each post says that nothing here asserts.
+that post too. ``blog/usdcad-stationarity-lessons.md`` quotes the book's
+23-day half-life, so a change to that pin moves it too. README lists what each
+post says that nothing here asserts.
 ``docs/replication-log.md`` Entry 23 carries the verdicts and points here row
 by row.
 

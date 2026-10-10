@@ -291,7 +291,7 @@ from four places, and give the evidence for each one.
    post stays in the owner's queue, because writing to its draft changes what
    goes out. Publishing, scheduling and sending stay there too. The draft ids
    and the recorded copies live outside this repo, in Claude's local memory for
-   it.
+   it. The `sync-substack` skill carries the procedure for a sync.
 4. **The replication backlog**, in `NEXT`'s order, for when nothing above is
    waiting.
 

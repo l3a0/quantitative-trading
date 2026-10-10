@@ -3,7 +3,9 @@
 This file is the single authority for every number any prose surface quotes
 about the three candidates. ``docs/replication-log.md`` Entry 5 carries the
 fixed-income finding, Entry 6 the cross-rate verdict and Entry 15 the
-calendar-spread verdicts, and each points here row by row. The fixed-income
+calendar-spread verdicts, and each points here row by row.
+``blog/usdcad-stationarity-lessons.md`` quotes the cross rate's half-life of
+141.6 days, so a change to that pin moves that post too. The fixed-income
 classes come first, then the cross-rate classes, then the calendar-spread
 classes, each under a statement of its vintage and specification.
 

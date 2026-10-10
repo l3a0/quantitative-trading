@@ -3,6 +3,9 @@
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it. ``docs/replication-log.md`` Entry 33
 carries the verdicts and points here row by row.
+``blog/usdcad-stationarity-lessons.md`` quotes USD.CAD's H at a ``maxT`` of
+24, which ``TestTheTwoTests`` pins here, so a change to that pin moves that
+post too.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.
