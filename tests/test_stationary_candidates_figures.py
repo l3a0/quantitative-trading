@@ -377,6 +377,9 @@ class TestTheWindows:
             assert set(bar.get_ydata()) == {table[level]}
             assert bar.get_linestyle() == style
             assert _rgb(bar.get_color()) == _rgb(LOST)
+            labels = [t for t in ax.texts if t.get_text().startswith(f"{level}  ")]
+            assert len(labels) == 1, level
+            assert _rgb(labels[0].get_color()) == _rgb(LOST)
         assert {g for g in lines if g.startswith("bar-")} == {f"bar-{name}-10%", f"bar-{name}-5%"}
 
     def test_the_legend_names_each_orientation_in_its_line_s_colour(self, windows) -> None:
@@ -539,12 +542,16 @@ class TestTheLags:
         ("panel", "name", "table"), [(0, "adf", ADF_CRIT_CONST), (1, "eg", EG_CRIT_N2)]
     )
     def test_each_panel_draws_its_own_bars(self, lags, panel, name, table) -> None:
-        lines = _lines(lags.axes[panel])
+        ax = lags.axes[panel]
+        lines = _lines(ax)
         for level, style in (("10%", "--"), ("5%", ":")):
             bar = lines[f"bar-{name}-{level}"]
             assert set(bar.get_ydata()) == {table[level]}
             assert bar.get_linestyle() == style
             assert same_color(bar.get_color(), LOST)
+            labels = [t for t in ax.texts if t.get_text().startswith(f"{level}  ")]
+            assert len(labels) == 1, level
+            assert same_color(labels[0].get_color(), LOST)
         assert {g for g in lines if g.startswith("bar-")} == {f"bar-{name}-10%", f"bar-{name}-5%"}
 
     def test_the_legend_names_each_orientation_in_its_line_s_colour(self, lags) -> None:

@@ -63,6 +63,7 @@ from chan.risk_parity_figures import (
     RATE_MARGIN,
     RATE_RANGE,
     RATE_STEPS,
+    RULE,
     SPLIT_FIGURE,
     SURFACE,
     T_BAR,
@@ -1119,6 +1120,16 @@ class TestTheLeveragePanel:
         )
         assert "1.8's rounding" in _plain_texts(ax)
 
+    def test_the_leverage_band_is_grey_apart_from_what_the_weights_allow(
+        self, decode_figure
+    ) -> None:
+        """GOOD in this panel marks the correlations 23-77 and 1.8 allow, so the
+        band of leverages that round to 1.8 must not wear it too."""
+        ax = decode_figure.axes[1]
+        (span,) = [p for p in ax.patches if p.get_width() > 0.9]
+        assert _rgb(span.get_facecolor()) == _rgb(RULE)
+        assert _rgb(span.get_facecolor()) != _rgb(GOOD)
+
     def test_each_point_is_drawn_and_labelled(self, decode_figure) -> None:
         ax = decode_figure.axes[1]
         drawn = decode_figure.decoding
@@ -1375,8 +1386,9 @@ class TestTheRatePanel:
     def test_the_shading_is_muted_rather_than_the_colour_of_a_risk_parity_lead(
         self, rate_figure
     ) -> None:
-        """Every other figure in the post shades in GOOD where risk parity
-        leads. This shading marks where 60/40 wins, so it must not wear GOOD."""
+        """The figure of each period's hurdle and the figure of the hurdle
+        against the correlation shade in GOOD where risk parity leads. This
+        shading marks where 60/40 wins, so it must not wear GOOD."""
         (shade,) = rate_figure.axes[0].patches
         assert same_color(shade.get_facecolor()[:3], MUTED)
         assert not same_color(MUTED, GOOD)

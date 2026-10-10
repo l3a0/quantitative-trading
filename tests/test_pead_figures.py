@@ -35,7 +35,6 @@ from chan.paths import FIGURES_DIR
 from chan.pead import LOOKBACK, SCRIPT_MAX_DD, SCRIPT_MAX_DDD, guarded_drift
 from chan.pead_figures import (
     CUMULATIVE_FIGURE,
-    INK,
     LOST,
     RULE,
     cumulative_return,
@@ -160,7 +159,8 @@ class TestTheSpell:
         for artist in (marks["trough"], texts["trough-label"], texts["spell-label"]):
             assert same_color(artist.get_color(), LOST)
         assert same_color(marks["high"].get_color(), marks["cumulative"].get_color())
-        assert same_color(marks["cumulative"].get_color(), INK)
+        assert same_color(texts["high-label"].get_color(), marks["cumulative"].get_color())
+        assert not same_color(marks["high"].get_color(), marks["trough"].get_color())
 
     def test_a_tie_takes_the_first_spell(self) -> None:
         """Two dips of two rows each, so the first is the one drawn."""

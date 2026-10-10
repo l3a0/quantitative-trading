@@ -27,6 +27,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from ithildincore.timeseries import ols
+from matplotlib.colors import same_color, to_rgb
 from matplotlib.dates import DateFormatter, YearLocator, date2num
 
 from chan import etf_cointegration as experiment
@@ -43,6 +44,7 @@ from chan.etf_cointegration_figures import (
 )
 from chan.johansen import Johansen
 from chan.paths import FIGURES_DIR
+from chan.regime_figure import ACCENT, GOOD, INK, LOST
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.test_etf_cointegration import SPEC
@@ -93,6 +95,12 @@ def _title(ax) -> str:
 
 def _legend(ax) -> list[str]:
     return [t.get_text() for t in ax.get_legend().get_texts()]
+
+
+def _handles(ax) -> dict:
+    """Each legend entry's handle, by the text beside it."""
+    legend = ax.get_legend()
+    return dict(zip(_legend(ax), legend.legend_handles, strict=True))
 
 
 class TestThePanels:
@@ -155,6 +163,15 @@ class TestTheCloses:
     def test_the_legend_names_both(self, axes) -> None:
         assert _legend(axes["closes"]) == ["EWA", "EWC"]
 
+    def test_each_close_wears_its_own_colour_and_its_legend_entry_matches(self, axes) -> None:
+        """Colour is the only thing telling the two lines apart, and the legend its only key."""
+        ax = axes["closes"]
+        lines, handles = _by_gid(ax.lines), _handles(ax)
+        for symbol, colour in (("EWA", ACCENT), ("EWC", INK)):
+            assert same_color(lines[symbol].get_color(), colour), symbol
+            assert same_color(handles[symbol].get_color(), lines[symbol].get_color()), symbol
+        assert not same_color(lines["EWA"].get_color(), lines["EWC"].get_color())
+
     def test_the_axis_reads_in_dollars(self, axes) -> None:
         assert axes["closes"].get_ylabel() == "adjusted close, dollars"
 
@@ -192,6 +209,15 @@ class TestTheResidual:
             "Figure 2.6: the residual EWC − 0.9624·EWA, the hedge ratio from EWC on EWA with "
             "an intercept.\nIts CADF statistic is −3.6435, past the 95 percent bar of −3.359."
         ), SPEC
+
+    def test_each_legend_entry_wears_its_lines_colour_and_dash(self, axes) -> None:
+        """The residual alone is plain ink, so only the key's match to its lines is pinned."""
+        ax = axes["residual"]
+        lines = _by_gid(ax.lines)
+        handles = list(_handles(ax).values())
+        for handle, gid in zip(handles, ("residual", "mean"), strict=True):
+            assert same_color(handle.get_color(), lines[gid].get_color()), gid
+            assert handle.get_linestyle() == lines[gid].get_linestyle(), gid
 
     def test_the_legend_sits_above_the_residuals_highest_point(self, axes, sources, result):
         values = residual(sources[1], result)
@@ -264,6 +290,18 @@ class TestTheStatistics:
         assert fills["trace"] != fills["eigen"]
         patches = axes["statistics"].get_legend().get_patches()
         assert [tuple(p.get_facecolor()) for p in patches] == [fills["trace"], fills["eigen"]]
+
+    def test_the_trace_bars_are_accent_and_the_eigen_bars_good(self, axes) -> None:
+        """A swap of the two fills in ``STATISTICS`` moves the legend with the bars, so
+        only a pin on the constants notices it."""
+        ax = axes["statistics"]
+        bars, handles = self._bars(ax), _handles(ax)
+        for name, colour in (("trace", ACCENT), ("eigen", GOOD)):
+            for i in range(3):
+                assert same_color(to_rgb(bars[f"{name}-{i}"].get_facecolor()), colour), name
+            handle = handles[f"{name} statistic"]
+            assert same_color(handle.get_facecolor(), bars[f"{name}-0"].get_facecolor()), name
+        assert not same_color(bars["trace-0"].get_facecolor(), bars["eigen-0"].get_facecolor())
 
     def test_each_bar_is_crossed_by_its_own_critical_values(self, axes, result) -> None:
         lines = _by_gid(axes["statistics"].lines)
@@ -414,6 +452,18 @@ class TestTheReturn:
         assert texts["spell-label"] == "598 days below the high,\n2009-04-02 to 2011-08-15", SPEC
         assert texts["high-label"] == "high, 2009-04-01", SPEC
         assert texts["trough-label"] == "deepest drawdown −0.101249,\n2010-08-16", SPEC
+
+    def test_the_spell_and_the_trough_wear_lost_and_the_high_the_lines_colour(self, axes) -> None:
+        """Swapped, the red mark would sit on the high and say the drawdown is there."""
+        ax = axes["returns"]
+        lines, notes = _by_gid(ax.lines), _by_gid(ax.texts)
+        assert same_color(to_rgb(_by_gid(ax.patches)["spell"].get_facecolor()), LOST)
+        assert same_color(notes["spell-label"].get_color(), LOST)
+        line = lines["cumulative"].get_color()
+        for gid, colour in (("high", line), ("trough", LOST)):
+            assert same_color(lines[gid].get_markerfacecolor(), colour), gid
+            assert same_color(notes[f"{gid}-label"].get_color(), colour), gid
+        assert not same_color(lines["high"].get_markerfacecolor(), LOST)
 
     def test_each_label_points_at_the_row_it_names(self, axes, result) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""

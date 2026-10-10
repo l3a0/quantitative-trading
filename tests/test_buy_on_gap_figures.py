@@ -36,7 +36,7 @@ from chan.buy_on_gap import SPREAD_LOOKBACK, both_sides
 from chan.buy_on_gap_figures import CUMULATIVE_FIGURE, main, make_cumulative_figure, panel_heading
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import cumulative_return, longest_spell
-from chan.regime_figure import INK, LOST, RULE
+from chan.regime_figure import LOST, RULE
 from chan.vintage import VintageUnavailable
 from tests.test_buy_on_gap import SPEC
 
@@ -228,7 +228,6 @@ class TestTheSpells:
             assert same_color(notes["trough-label"].get_color(), LOST)
             assert same_color(lines["high"].get_color(), lines["cumulative"].get_color())
             assert same_color(notes["high-label"].get_color(), lines["cumulative"].get_color())
-            assert same_color(lines["cumulative"].get_color(), INK)
             assert not same_color(lines["trough"].get_color(), lines["high"].get_color())
 
     def test_each_label_points_at_the_row_it_names(self, panels) -> None:

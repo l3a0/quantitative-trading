@@ -46,7 +46,7 @@ from chan.cross_sectional_momentum_figures import (
 from chan.matlab_helpers import calculate_max_dd
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import longest_spell
-from chan.regime_figure import INK, LOST
+from chan.regime_figure import LOST
 from chan.vintage import VintageUnavailable
 from tests.test_cross_sectional_momentum import SPEC
 
@@ -242,14 +242,15 @@ class TestTheDeepestDrawdowns:
                 assert date2num(x) == date2num(panel.days[row]), gid
                 assert y == panel.cumret[row], gid
 
-    def test_the_trough_is_marked_in_lost_and_the_high_in_ink(self, figure) -> None:
+    def test_the_trough_is_marked_in_lost_and_the_high_in_the_line_s_colour(self, figure) -> None:
         """Colour ties each point to its label, and only the fall wears the loss colour."""
         for ax in figure.axes:
             marks, notes = _by_gid(ax.lines), _by_gid(ax.texts)
-            for gid, colour in (("high", INK), ("trough", LOST)):
+            line = marks["cumulative"].get_color()
+            for gid, colour in (("high", line), ("trough", LOST)):
                 assert same_color(marks[gid].get_markerfacecolor(), colour), gid
                 assert same_color(notes[f"{gid}-label"].get_color(), colour), gid
-        assert not same_color(INK, LOST)
+            assert not same_color(marks["high"].get_markerfacecolor(), LOST)
 
 
 class TestTheSpell:
