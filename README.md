@@ -2850,7 +2850,10 @@ Five groups of its figures are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_price_spread.py](tests/test_price_spread.py), to
 [tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, its
-dividends subtracted in dollars and GLD paying none, or to
+dividends subtracted in dollars and GLD paying none, to
+[tests/test_bollinger.py](tests/test_bollinger.py) for Example 3.2's APR and
+Sharpe ratio under either divisor, which Lesson 5's link to the Bollinger band
+post quotes, or to
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) for
 the figure's own numbers. Six had no pin before it.
 
@@ -3026,7 +3029,10 @@ Five groups of its figures are not pinned here.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py), or to
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py), to
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) for the two
+relations the trace test counts at 95 percent and none the eigen test finds in
+the Entry 24 post that Lesson 4 links, or to
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 for the figure's own numbers. Four had no pin before it, and
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) now pins
