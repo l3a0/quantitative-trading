@@ -1,0 +1,740 @@
+{
+ "title": "A post that uses every shape the Substack converter reads",
+ "subtitle": "The subtitle line costs \\$5 and keeps its escape, because the converter copies it as typed.",
+ "body": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "This opening paragraph runs across two lines in the source, and the converter joins them with one space."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "A second paragraph mixes "
+     },
+     {
+      "type": "text",
+      "text": "bold text",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "text": "italic text",
+      "marks": [
+       {
+        "type": "em"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "text": "inline code",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": " and "
+     },
+     {
+      "type": "text",
+      "text": "a link",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "https://example.com/one",
+         "target": "_blank",
+         "rel": "noopener noreferrer nofollow",
+         "class": null
+        }
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": ". It nests marks too: "
+     },
+     {
+      "type": "text",
+      "text": "bold with ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "code",
+      "marks": [
+       {
+        "type": "strong"
+       },
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": " inside",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "text": "a ",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "https://example.com/two",
+         "target": "_blank",
+         "rel": "noopener noreferrer nofollow",
+         "class": null
+        }
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "bold",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "https://example.com/two",
+         "target": "_blank",
+         "rel": "noopener noreferrer nofollow",
+         "class": null
+        }
+       },
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": " link",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "https://example.com/two",
+         "target": "_blank",
+         "rel": "noopener noreferrer nofollow",
+         "class": null
+        }
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": ", and "
+     },
+     {
+      "type": "text",
+      "text": "italic with ",
+      "marks": [
+       {
+        "type": "em"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "a link",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "https://example.com/three",
+         "target": "_blank",
+         "rel": "noopener noreferrer nofollow",
+         "class": null
+        }
+       },
+       {
+        "type": "em"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": ". An escaped tilde reads ~30 and an escaped dollar reads $2.09."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "textAlign": null,
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "The first section"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "The first level-1 heading has no widget before it, because the opening section is still running."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "textAlign": null,
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "A level-2 heading"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "A display equation follows."
+     }
+    ]
+   },
+   {
+    "type": "latex_block",
+    "attrs": {
+     "persistentExpression": "\\hat{\\beta} = \\frac{\\sum x_t y_t}{\\sum x_t^2}",
+     "id": "EQSTAT01"
+    }
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Its source follows in a plain fence."
+     }
+    ]
+   },
+   {
+    "type": "highlighted_code_block",
+    "attrs": {
+     "language": "plaintext",
+     "nodeId": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "\\hat{\\beta} = \\frac{\\sum x_t y_t}{\\sum x_t^2}"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "A second equation takes the next id."
+     }
+    ]
+   },
+   {
+    "type": "latex_block",
+    "attrs": {
+     "persistentExpression": "\\text{cost} = 8.7\\%",
+     "id": "EQSTAT02"
+    }
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "An empty fence still becomes a code block."
+     }
+    ]
+   },
+   {
+    "type": "highlighted_code_block",
+    "attrs": {
+     "language": "plaintext",
+     "nodeId": null
+    }
+   },
+   {
+    "type": "subscribeWidget",
+    "attrs": {
+     "url": "%%checkout_url%%",
+     "text": "Subscribe",
+     "language": "en"
+    },
+    "content": [
+     {
+      "type": "ctaCaption",
+      "content": [
+       {
+        "type": "text",
+        "text": "baowebdev is a reader-supported publication. To receive new posts and support my work, consider becoming a free or paid subscriber."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "textAlign": null,
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "The second section, after the first widget"
+     }
+    ]
+   },
+   {
+    "type": "captionedImage",
+    "content": [
+     {
+      "type": "image2",
+      "attrs": {
+       "src": "https://example.invalid/first_figure.png",
+       "srcNoWatermark": null,
+       "fullscreen": null,
+       "imageSize": null,
+       "height": 900,
+       "width": 1300,
+       "resizeWidth": null,
+       "bytes": 123456,
+       "alt": "A figure with a caption",
+       "title": null,
+       "type": "image/png",
+       "href": null,
+       "belowTheFold": false,
+       "topImage": false,
+       "internalRedirect": null,
+       "isProcessing": false,
+       "align": null,
+       "offset": false
+      }
+     },
+     {
+      "type": "caption",
+      "content": [
+       {
+        "type": "text",
+        "text": "Figure 1: the caption is the next italic line, with "
+       },
+       {
+        "type": "text",
+        "text": "bold",
+        "marks": [
+         {
+          "type": "strong"
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": " inside."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "captionedImage",
+    "content": [
+     {
+      "type": "image2",
+      "attrs": {
+       "src": "https://example.invalid/second_figure.png",
+       "srcNoWatermark": null,
+       "fullscreen": null,
+       "imageSize": null,
+       "height": 480,
+       "width": 640,
+       "resizeWidth": null,
+       "bytes": 2048,
+       "alt": "A figure with no caption",
+       "title": null,
+       "type": "image/png",
+       "href": null,
+       "belowTheFold": false,
+       "topImage": false,
+       "internalRedirect": null,
+       "isProcessing": false,
+       "align": null,
+       "offset": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Bold opening text",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": " makes this line a paragraph rather than a caption, although it "
+     },
+     {
+      "type": "text",
+      "text": "ends in an asterisk",
+      "marks": [
+       {
+        "type": "em"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "ordered_list",
+    "attrs": {
+     "start": 1,
+     "type": null,
+     "order": 1
+    },
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "attrs": {
+         "textAlign": null
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "The first numbered item, with "
+         },
+         {
+          "type": "text",
+          "text": "italic",
+          "marks": [
+           {
+            "type": "em"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " text."
+         }
+        ]
+       },
+       {
+        "type": "ordered_list",
+        "attrs": {
+         "start": 1,
+         "type": null,
+         "order": 1
+        },
+        "content": [
+         {
+          "type": "list_item",
+          "content": [
+           {
+            "type": "paragraph",
+            "attrs": {
+             "textAlign": null
+            },
+            "content": [
+             {
+              "type": "text",
+              "text": "A nested numbered item."
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "type": "list_item",
+          "content": [
+           {
+            "type": "paragraph",
+            "attrs": {
+             "textAlign": null
+            },
+            "content": [
+             {
+              "type": "text",
+              "text": "A second nested numbered item."
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "attrs": {
+         "textAlign": null
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "The second numbered item."
+         }
+        ]
+       },
+       {
+        "type": "bullet_list",
+        "content": [
+         {
+          "type": "list_item",
+          "content": [
+           {
+            "type": "paragraph",
+            "attrs": {
+             "textAlign": null
+            },
+            "content": [
+             {
+              "type": "text",
+              "text": "A nested bullet under a numbered item."
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "type": "list_item",
+          "content": [
+           {
+            "type": "paragraph",
+            "attrs": {
+             "textAlign": null
+            },
+            "content": [
+             {
+              "type": "text",
+              "text": "A second nested bullet."
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "attrs": {
+         "textAlign": null
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "The third numbered item, with no nested list."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "attrs": {
+         "textAlign": null
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "A bullet with "
+         },
+         {
+          "type": "text",
+          "text": "code",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "attrs": {
+         "textAlign": null
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "A bullet with "
+         },
+         {
+          "type": "text",
+          "text": "a link",
+          "marks": [
+           {
+            "type": "link",
+            "attrs": {
+             "href": "https://example.com/four",
+             "target": "_blank",
+             "rel": "noopener noreferrer nofollow",
+             "class": null
+            }
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "textAlign": null,
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "The closing section"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "The last paragraph comes before the closing widget."
+     }
+    ]
+   },
+   {
+    "type": "subscribeWidget",
+    "attrs": {
+     "url": "%%checkout_url%%",
+     "text": "Subscribe",
+     "language": "en"
+    },
+    "content": [
+     {
+      "type": "ctaCaption",
+      "content": [
+       {
+        "type": "text",
+        "text": "baowebdev is a reader-supported publication. To receive new posts and support my work, consider becoming a free or paid subscriber."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}
