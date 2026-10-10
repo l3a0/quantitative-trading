@@ -99,3 +99,22 @@ def test_every_note_is_covered() -> None:
     present = {path.name for path in NOTES_DIR.glob("*.md")} - {"README.md"}
     assert present == set(EXPECTED_HIGHLIGHTS)
     assert present == set(EXPECTED_RECOVERED)
+
+
+def test_the_bibliography_section_survives_a_re_extraction() -> None:
+    """The Algorithmic Trading note's bibliography section is added by hand.
+
+    A re-extraction rebuilds only the highlights, so it would drop the section
+    without changing any count above. The AUD.CAD post's reference to Dueker
+    and Neely cites this entry, which is why its absence fails here.
+    """
+    text = (NOTES_DIR / "algorithmic-trading.md").read_text(encoding="utf-8")
+    _, found, section = text.partition("\n## Bibliography\n")
+    assert found, "algorithmic-trading.md has lost its ## Bibliography section"
+    assert "### Page 192 · bibliography" in section
+    assert (
+        "Dueker, Michael J., and Christopher J. Neely. “Can Markov Switching Models"
+        " Predict Excess Foreign Exchange Returns?” Federal Reserve Bank of St. Louis"
+        " Working Paper 2001-021F, 2001." in section
+    )
+    assert not re.search(r"^### Location ", section, re.MULTILINE)
