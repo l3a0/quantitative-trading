@@ -379,7 +379,8 @@ const PRU = "https://github.com/l3a0/quantitative-trading/pull/";
    edit. Splitting by section is what keeps that rare: a session marking a
    decompose loop touches board/working and nothing else, so it never collides
    with one recording a pull request. The update-build-board skill carries the
-   procedure, and republishing this page is now only for changes to the code.
+   procedure, and publishing this page is now only for changes to the code and
+   for starting a new board.
 
    Each document is { schema: 1, items: [...] }, except board/state, which is
    { schema: 1, updatedAt, issues: { open } }. The page subscribes to all six and
@@ -2060,13 +2061,16 @@ function inFlight(ctx) {
 
 /* With no board data only the banner is drawn, and both card sections and the
    footer are hidden, since each states facts about the tracker. The platform's
-   page wrapper makes `hidden` win over a section's own display rule. */
+   page wrapper makes `hidden` win over a section's own display rule. The strip
+   sits outside those sections, so it is emptied: a first live draw that throws
+   after strip() has run rolls back to no data, and the strip would otherwise
+   keep that draw's count beside a banner saying no board data is shown. */
 function render() {
   ["flightsec", "ordersec", "foot"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.hidden = NONE;
   });
-  if (NONE) { source(); return; }
+  if (NONE) { document.getElementById("strip").innerHTML = ""; source(); return; }
   strip(); source(); buildOrder(); more(); stamped();
 }
 adopt(FALLBACK);

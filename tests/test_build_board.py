@@ -89,9 +89,13 @@ def _engine() -> list[str]:
 
 def _page_script(page: Path) -> str:
     """The page's one inline script, as the skill's harness extracts it."""
-    match = re.search(r"<script>(.*?)</script>", page.read_text(encoding="utf-8"), re.S)
-    assert match, f"{page} has no inline script"
-    return match.group(1)
+    text = page.read_text(encoding="utf-8")
+    start = text.find("<script>")
+    assert start >= 0, f"{page} has no inline script"
+    start += len("<script>")
+    end = text.find("</script>", start)
+    assert end >= 0, f"{page} never closes its script"
+    return text[start:end]
 
 
 def _prelude(db: bool, steps: list[dict]) -> str:
@@ -191,8 +195,8 @@ def test_a_database_with_no_documents_says_the_board_is_empty(tmp_path: Path) ->
 def test_six_valid_documents_draw_the_live_board(tmp_path: Path) -> None:
     """Protects the path every viewer takes once the database holds a board.
 
-    Issue 501 has an open pull request, so it belongs in flight and nowhere
-    else. Issue 502 is the one card the fixture ranks, so the default view draws
+    Fixture issue 90501 has an open pull request, so it belongs in flight and nowhere
+    else. Fixture issue 90502 is the one card the fixture ranks, so the default view draws
     it in the build order and hides the other three.
     """
     ids = run_page(tmp_path, db=True, steps=[fixture_docs()])
@@ -201,8 +205,8 @@ def test_six_valid_documents_draw_the_live_board(tmp_path: Path) -> None:
     for element in CONTENT:
         assert not ids[element]["hidden"], f"{element} is hidden on a live board"
     assert text(ids, "strip").startswith("5 open issues")
-    assert cards(ids, "flow") == {501}
-    assert cards(ids, "board") == {502}
+    assert cards(ids, "flow") == {90501}
+    assert cards(ids, "board") == {90502}
     assert "3 other open issues are not in the priority order" in text(ids, "more")
 
 
@@ -225,8 +229,8 @@ def test_a_spliced_copy_still_draws_as_the_copy_built_into_the_page(tmp_path: Pa
     banner = text(ids, "source")
     assert banner.startswith("Showing the copy built into the page, measured ")
     assert "so anything a session wrote since then is missing here" in banner
-    assert cards(ids, "flow") == {501}
-    assert cards(ids, "board") == {502}
+    assert cards(ids, "flow") == {90501}
+    assert cards(ids, "board") == {90502}
     assert text(ids, "strip").startswith("5 open issues")
 
 
@@ -245,6 +249,21 @@ def test_one_missing_document_is_named_and_draws_nothing(tmp_path: Path, missing
     assert_no_board_data(ids)
 
 
+def test_every_missing_document_is_named(tmp_path: Path) -> None:
+    """Protects the banner's list when more than one document is missing.
+
+    An earlier page named only the last section reported absent, so a board
+    missing two sections told the reader about one of them.
+    """
+    docs = fixture_docs()
+    docs["prs"] = None
+    docs["next"] = None
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    banner = text(ids, "source")
+    assert banner == "Showing no board data. The live board is missing prs and next."
+    assert_no_board_data(ids)
+
+
 def test_a_bad_section_before_any_live_data_draws_nothing(tmp_path: Path) -> None:
     """Protects the shape check when there is no earlier board to keep.
 
@@ -260,6 +279,26 @@ def test_a_bad_section_before_any_live_data_draws_nothing(tmp_path: Path) -> Non
     assert_no_board_data(ids)
 
 
+def test_a_first_draw_that_throws_leaves_no_board_data(tmp_path: Path) -> None:
+    """Protects the strip when the first live draw fails partway.
+
+    ``usableSection`` leaves ``after`` unchecked, so a tracker item with a
+    number there passes the check and throws while the build order draws, after
+    the strip has drawn. The page rolls back to no data, and the strip must not
+    keep that draw's count beside a banner saying no board data is shown.
+    """
+    docs = fixture_docs()
+    docs["tracker"]["items"][0]["after"] = 5
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    banner = text(ids, "source")
+    assert banner.startswith("Live updates stopped (a live section could not be drawn).")
+    assert text(ids, "strip") == ""
+    # The build order drew part of itself before throwing, inside a section the
+    # page then hides, so no viewer sees it.
+    for element in CONTENT:
+        assert ids[element]["hidden"], f"{element} is not hidden"
+
+
 def test_live_data_lost_afterwards_stays_on_screen(tmp_path: Path) -> None:
     """Protects the last live board when a section disappears after it drew.
 
@@ -270,19 +309,22 @@ def test_live_data_lost_afterwards_stays_on_screen(tmp_path: Path) -> None:
     banner = text(ids, "source")
     assert banner.startswith("Live updates stopped (state removed).")
     assert "What is shown is the last live data" in banner
-    assert cards(ids, "flow") == {501}
+    assert cards(ids, "flow") == {90501}
     assert not ids["flightsec"]["hidden"]
 
 
 def test_no_tracked_file_links_to_a_claude_artifact() -> None:
-    """Protects the repository from links to pages that stopped resolving.
+    """Protects every machine from a board address only one account can reach.
 
-    The artifacts that hosted the board and its two sibling pages became
-    unreachable, and a link to one is a dead end for every reader. The pattern
-    is assembled from pieces so this file does not match itself.
+    A claude.ai artifact belongs to one account, so an address written into
+    this repository points every machine at a page that a machine signed in
+    elsewhere cannot open. That is how the first board, and the three pages it
+    linked to, were lost here on 2026-10-09. A board's address lives in a file
+    on the machine, per the Configuration section of ``docs/design.md``. The
+    pattern is assembled from pieces so this file does not match itself.
     """
     host = re.escape("claude" + ".ai/")
-    pattern = re.compile((host + r"(?:code/)?" + "arti" + "fact/").encode())
+    pattern = re.compile((host + r"(?:code/|public/)?" + "arti" + r"facts?/").encode())
     listed = subprocess.run(
         ["git", "ls-files", "-z"], cwd=REPO_ROOT, capture_output=True, check=True
     ).stdout

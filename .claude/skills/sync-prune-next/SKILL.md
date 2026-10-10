@@ -217,8 +217,9 @@ only names what a round usually changes.
   open pull request keeps that card out of the owner's queue whatever its
   `kind`. Ask whoever added it before calling it stale.
 
-That skill reads the board's URL from a file on this machine, and when the file
-names no single URL it skips the board and the round says so. Steps 1, 2 and 4
+That skill reads the board's URL from a file on this machine. When the file
+names no single URL, or names a board this account cannot reach, it skips the
+board and the round says so. Steps 1, 2 and 4
 still run. Step 4 then reads the open pull requests, their checks and their
 reviews straight from GitHub, ranks by `CLAUDE.md`'s directive rather than by
 `NEXT`, and says it had no `WORKING` or `PLANNED` entries to read.

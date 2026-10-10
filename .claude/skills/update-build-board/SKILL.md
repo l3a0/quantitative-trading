@@ -1,6 +1,6 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, when a session hands its pull request over, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. The board's data lives in the artifact's database, so an update is a pinned ArtifactData write, and the Artifact tool is needed only to change the page's code. Answering what to take next is a read and does not on its own call for a write.
+description: Update the Quantitative Trading Build Board whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, when a session hands its pull request over, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. The board's data lives in the artifact's database, so an update is a pinned ArtifactData write, and the Artifact tool is needed only to change the page's code or start a new board. Answering what to take next is a read and does not on its own call for a write.
 ---
 
 # Update the build board
@@ -36,13 +36,14 @@ here, and this machine's Claude Code could no longer reach the account that
 owned it. Read the URL before anything else.
 
 ```bash
-if [ -n "${QT_BOARD_URL:-}" ]; then printf '%s\n' "$QT_BOARD_URL"
-else tr -d '\r' < "$HOME/.config/quantitative-trading/board_url"; fi \
+u=$(printf '%s' "${QT_BOARD_URL:-}" | tr -d '[:space:]')
+if [ -n "$u" ]; then printf '%s\n' "$u"
+else tr -d '\r' < "$HOME/.config/quantitative-trading/board_url" 2>/dev/null; fi \
   | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d'
 ```
 
 `QT_BOARD_URL` names a board for one run, the way `QT_ARCHIVE_DIR` names the
-archive. Otherwise `~/.config/quantitative-trading/board_url` holds it on one
+archive, and a value of only spaces counts as unset. Otherwise `~/.config/quantitative-trading/board_url` holds it on one
 line, and `docs/design.md`'s Configuration section lists that file with the
 others. The `sed` drops carriage returns, spaces around the URL and blank
 lines, so a file saved by any editor reads the same.
@@ -52,7 +53,14 @@ The URL is usable when the command prints exactly one line, and every
 one line, skip the board. Do not guess a URL, do not pick one of several, and
 do not reuse one from an earlier report, an old version of this file or the git
 history. Tell the owner the board was not updated, and that the fix is that
-file holding the board's URL on one line. A session only reads the file.
+file holding the board's URL on one line.
+
+A file naming one URL can still name a board this account cannot reach, which
+is exactly how the first board failed. An `ArtifactData list` refused with no
+access, or an `Artifact read` answering "artifact not found", means that. Skip
+the board the same way, and tell the owner the file names a board this
+account cannot reach. Never start a new board to get round it without the
+owner's approval, and never read that refusal as a board with no documents. A session only reads the file.
 Writing it is the owner's call, like everything under `~/.config/`, per
 `CLAUDE.md`.
 
@@ -63,8 +71,8 @@ rather than skipping.
 
 ### Start a new board
 
-Publishing changes the owner's account, so a session starts a board only with
-the owner's approval. Publish `main`'s `board.html` with the Artifact tool and
+A session starts a board only with the owner's approval, because only the owner
+writes the file above, and a board nobody points that file at is never updated. Publish `main`'s `board.html` with the Artifact tool and
 `capabilities: {"db": {}}`. Every later publish leaves `capabilities` out, which
 keeps what the artifact already has. A page published without `db` can only
 show its banner saying it cannot reach the live board. Then the owner writes the
@@ -286,23 +294,52 @@ it.
 ### A board with no document yet
 
 A new board's database starts empty, so the first update against it reads none
-of the six documents. There is nothing to edit, so the update builds every
-section from the tracker and creates it.
+of the six documents. A `list` that succeeds and returns nothing means this. A
+`list` refused with no access, or a read answering "artifact not found", means
+the file names a board this account cannot reach, per "Find the board" above,
+and builds nothing. There is nothing to edit, so the update builds every
+section and creates it.
 
-1. `state` takes `schema: 1`, the open issue count from GitHub as
-   `issues.open`, and the time of the write as `updatedAt`.
-2. `tracker` and `prs` come from GitHub exactly as a usual update's do, per
-   "Measure everything, recall nothing" below, with `--limit 1000` on every
-   list.
-3. `next` ranks the open issues per `CLAUDE.md`'s ranking directive and each
-   issue's own statement of what it waits on. Say in the report that the order
-   was rebuilt rather than carried over, since the old board's order is gone
-   with it.
-4. `planned` is rebuilt from the verdicts decompose loops wrote on their
-   issues, or starts as `[]` when the update does not read them.
-5. `working` starts as `[]`. Its entries came from other sessions, and the
-   tracker cannot rebuild them. Say so in the report, so a session still
-   building or planning adds its own entry back.
+Look for a readback of the old board first. A scratch `qt-board.html` that
+`with-db.py` spliced holds every section on its `const FALLBACK` line, and the
+first restore on 2026-10-10 started from one taken four days earlier. Where one
+survives, carry its hand-kept judgements over and re-measure everything
+volatile. Where none does, build from the tracker alone. Say in the report which
+happened.
+
+Every document except `state` is `{ schema: 1, items: [...] }`, with the item
+fields the table under "The data, and what each part owns" lists. The page
+refuses a document missing any field it reads, and refuses an empty tracker.
+
+1. `state` is `{ schema: 1, updatedAt, issues: { open } }`. `updatedAt` is the
+   time of the write as an ISO 8601 UTC string such as `2026-10-10T02:44:13Z`,
+   and `issues.open` is the open issue count from GitHub.
+2. `tracker` holds one card per open issue. GitHub supplies `n`, `ms` and
+   `labels`, with `--limit 1000` on the list, and `ms` must be a string even
+   for an issue with no milestone. `label` is the sentence the card prints. It
+   is the issue's title unless an older readback carries a rewrite, and the
+   first restore found 24 deliberate rewrites. `kind` is one of `KINDWORD`'s
+   keys: `ready`, `decision`, `deferred`, `data` or `parent`. `needs` and
+   `after` come from each issue's own statement of what it waits on, and every
+   target must be an open issue. A readback's `kind`, `needs`, `after` and
+   `label` carry over for issues still open.
+3. `prs` holds one entry per open pull request, measured as a usual update
+   measures it. A pull request whose closing references are empty but whose
+   body writes `Part of` with an issue number takes that issue, `linked: false`
+   and `partOf: true`. One with neither gets no entry, and the report names it.
+4. `next` takes a readback's order, minus closed issues. Rank a new issue only
+   where `CLAUDE.md`'s ranking directive clearly places it, and list the rest
+   in the report for the owner. With no readback, rank the open issues by that
+   directive and each issue's own statement of what it waits on.
+5. `planned` holds a card whose decompose loop wrote an exit verdict on its
+   issue, with `passes` and `ready` of `build` or `decide`. A loop with passes
+   and no exit is not planned. Search issue comments for exit verdicts newer
+   than any readback.
+6. `working` starts as `{ schema: 1, items: [] }`. Its entries came from other
+   sessions, and the tracker cannot rebuild them. An empty section makes every
+   card a session holds read as free. So list a readback's entries in the
+   report, and check recent issue comments for sessions that started since, so
+   a session still building or planning adds its own entry back.
 
 Write them as one batch of `set` entries with no `if_version`, because the pin
 applies only to a document that already exists.
@@ -315,10 +352,10 @@ ArtifactData action="batch" url="<board url>"
 
 This cannot overwrite another session's board. The tool refuses a write without
 `if_version` to a document that already exists, so if another session created
-one first, that entry is refused. A batch with no pinned entry applies one write
-at a time in order rather than all at once, so the entries before the refused
-one have landed. Re-read all six with the usual `list` and carry on as a usual
-update. Where `list` returns some sections and not others, as after an
+one first, that entry is refused. The result says whether the batch applied as
+one unit or one write at a time. In the second case the entries before the
+refused one have landed. Either way, re-read all six with the usual `list` and
+carry on as a usual update. Where `list` returns some sections and not others, as after an
 interrupted creation, create only the missing ones the same way and leave the
 rest to pinned writes.
 
@@ -328,8 +365,8 @@ Run the harness on the built files before writing, as on any update.
 
 Change it only when the rendering has to change. The source is `board.html`
 beside this skill, so the change is a pull request like any other. Edit that
-file, run `tests/test_build_board.py` and the harness below, and merge. Then
-publish `main`'s `board.html` to `<board url>` with the Artifact tool and a
+file, run `tests/test_build_board.py` and the harness below, and open the pull
+request. Once it merges, publish `main`'s `board.html` to `<board url>` with the Artifact tool and a
 short `label`, and omit `capabilities` so the stored `db` declaration carries
 forward.
 
@@ -444,7 +481,7 @@ inside one session.
    exist when that update started. By the time it was ready to publish they had
    emptied the Building column and moved two cards a whole stage each.
 
-So re-run the volatile commands as the last step before publishing, and publish
+So re-run the volatile commands as the last step before writing, and write
 what those say rather than what the session opened with. Volatile means the
 first command, the open pull request list, every per-branch query, and both
 issue commands rather than only the one that counts them. An issue filed
