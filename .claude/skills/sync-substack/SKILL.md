@@ -43,9 +43,12 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
 ## Before any write
 
 1. **Know which writes need the owner.** Creating an unpublished draft and
-   syncing one need no ask, by the owner's standing approval of 2026-10-10.
+   syncing one need no ask, by the owner's standing approval of 2026-10-10,
+   which `CLAUDE.md`'s `## Write-ups and their Substack drafts` records.
    Publishing, scheduling and sending stay the owner's call, and so does any
    write to a post that is already published, as the last section explains.
+   A draft the owner has scheduled counts as published, because a write to it
+   changes what goes out.
    The standing approval covers the write and not the comparison before it.
    Every sync still compares the live draft with its recorded baseline first,
    and an edit the owner made in the editor goes into the Markdown rather
@@ -298,7 +301,8 @@ sides before comparing, and say in the notes that this draft needs it.
 
 Every write here waits for the owner's approval in chat. The standing approval
 for unpublished drafts does not reach a published post, because both steps
-below act on a post readers can already see.
+below act on a post readers can already see. A scheduled draft falls under
+this section too.
 
 A published post takes two steps, and the first alone changes nothing a reader
 sees.
