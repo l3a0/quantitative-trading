@@ -71,7 +71,7 @@ A miss cannot say whether Chan computed a different number or read his own sente
 
 The figure below draws both rules on the rebuilt series. The book prints no chart for this experiment, so the figure is this repository’s own.
 
-![FIGURE_ALT](../docs/figures/roll_momentum.png)
+![Two charts sharing a date axis from January 2009 to August 2012, with the same rows shaded grey in both. The top chart is the compounded cumulative return of two rules on TU, in percent, before costs. The brown line, Example 6.1’s rule, wanders around zero through mid-2009, climbs to about 3.8 percent by late 2010, dips, rises to about 5 percent by late 2011 and ends at 4.9 percent. The green line, the declared rule, is flat at zero for the first months, flat again through each shaded stretch, and otherwise moves with the brown line. It ends just above it, at 5.1 percent. Its heading sets the declared rule’s APR of 0.013725 and Sharpe ratio of 1.803348 beside the book’s 2.5 percent and 2.1, gives Example 6.1’s rule 0.013377 and 1.196742, and says Example 6.1’s rule holds all 25 tranches long on every window row, so its line is holding TU. The bottom chart is the roll return γ in column units, a step-like line between about 0 and 7.3 percent, with dashed lines at 3 and −3 percent. The shaded stretches follow γ’s spells below 3 percent, one row late, and γ never comes near −3 percent. Its heading says γ peaks at 0.073403 on 2009-10-12 and the rule is long on 572 rows, short on none and flat on the 341 shaded rows. The title calls the figure exploratory, and the note names Chan’s TU strip, saved 2012-08-14, the front contract rebuilt from it, and the rule declared after about 90 scratch readings.](../docs/figures/roll_momentum.png)
 
 *Above, the compounded cumulative return of both rules on the rebuilt front contract, with the rows the declared rule sits flat shaded. Below, the roll return γ in column units against the 3 percent thresholds.*
 
@@ -99,6 +99,8 @@ In this window Example 6.1 never leaves the market. On every day it opened a tra
 The declared rule is that same long position with 341 rows taken out. Over those 341 rows, TU’s return compounds to −0.001244, close to nothing. Over the 572 rows the rule is long, it compounds to 0.050629, which is the declared rule’s whole return. So the two rules earn almost the same. The declared rule’s average annual return is 0.013661 against 0.013351.
 
 What differs is the risk. Sitting out 341 rows that went nowhere removes their day-to-day swings without removing any return. The declared rule’s annual volatility is 0.007575 against 0.011156 for holding TU. Divide each average return by its volatility and the Sharpe ratios of 1.80 and 1.20 follow.
+
+The figure’s top panel shows it. The declared rule’s line goes flat through every shaded stretch, while Example 6.1’s line wanders up in some of them and down in others, and the two end close together.
 
 So on this window the roll-return signal’s advantage is that it was out of the market on 341 of the 913 days, and those days happened to earn nothing. That is a real difference between the rules. It is also a narrow one. It says nothing about Example 6.1 in a window where TU fell, where Example 6.1 would go short and the declared rule, never short here, could not.
 
