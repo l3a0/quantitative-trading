@@ -259,7 +259,7 @@ many were recovered. Both totals are asserted in `tests/test_book_notes.py`, so
 a re-extraction that returns fewer highlights fails the suite instead of
 passing quietly.
 
-The *Algorithmic Trading* note also ends with a `## Bibliography` section,
+The *Algorithmic Trading* note also carries a `## Bibliography` section,
 which holds bibliography entries that nobody highlighted, such as the full
 entry behind location 2287's "(Dueker, 2006)". Each one comes from a page of
 the print edition and cites that page, so its heading does not open with
@@ -270,8 +270,9 @@ the highlights, so whoever re-extracts carries that section over by hand, and
 A `## Figure captions` section follows it, for captions that nobody
 highlighted. The first is Example 2.5's Figure 2.3, which the USD.CAD post's
 figure caption cites. The Cloud Reader shows no location for this book, so
-each entry names the highlights it sits between instead. It is carried over by
-hand the same way, and the same test file fails if it goes missing.
+each entry names the highlights it sits between instead. Whoever re-extracts
+carries this section over by hand too, and the same test file fails if it goes
+missing or if the post's caption cites a different number.
 
 ## These files are quoted, not authored
 

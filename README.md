@@ -3587,7 +3587,9 @@ Five groups of what it says are not pinned here.
    "about 0.92 in late 2007", are approximate by design. The book's own chart
    of the cumulative P&L, its Figure 2.3, is not compared with the redraw. The
    post cites that number from the caption recorded in
-   [research/book-notes/algorithmic-trading.md](research/book-notes/algorithmic-trading.md).
+   [research/book-notes/algorithmic-trading.md](research/book-notes/algorithmic-trading.md),
+   and [tests/test_book_notes.py](tests/test_book_notes.py) fails if the two
+   disagree.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

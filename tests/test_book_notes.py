@@ -133,3 +133,17 @@ def test_the_figure_captions_section_survives_a_re_extraction() -> None:
     assert "### Example 2.5 · figure caption" in section
     assert "> FIGURE 2.3 Equity Curve of Linear Trading Strategy on AUDCAD." in section
     assert not re.search(r"^### Location ", section, re.MULTILINE)
+
+
+def test_the_usdcad_post_cites_the_figure_number_the_notes_record() -> None:
+    """The post's caption quotes a number the notes hold, so the two cannot drift apart."""
+    notes = (NOTES_DIR / "algorithmic-trading.md").read_text(encoding="utf-8")
+    entry = notes.partition("### Example 2.5 · figure caption\n")[2]
+    recorded = re.search(r"^> FIGURE (\d+\.\d+) ", entry, re.MULTILINE)
+    assert recorded, "the notes hold no caption for Example 2.5's chart"
+    post = (NOTES_DIR.parents[1] / "blog" / "usdcad-stationarity-lessons.md").read_text(
+        encoding="utf-8"
+    )
+    captions = [line for line in post.splitlines() if line.startswith("*USD.CAD’s closes")]
+    assert len(captions) == 1
+    assert re.findall(r"Figure (\d+\.\d+)", captions[0]) == [recorded.group(1)]
