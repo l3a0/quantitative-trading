@@ -934,6 +934,9 @@ reader takes the VX strip as well, the one strip it reads with no spot
 column. The unnumbered TU experiment, location 2690's revision of
 Example 6.1, reads the TU strip too, through `chan.roll_momentum` for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353).
+`GLD_GC.m`'s trade of GLD against gold futures runs here through
+`chan.gld_gc`, for
+[issue 355](https://github.com/l3a0/quantitative-trading/issues/355).
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 
@@ -1029,6 +1032,13 @@ the decision behind the shape, and the build measured what follows.
    basis is also what keeps them apart. The file also holds `hhmm`, 18,326
    times of day taking 27 values, against 761 closes, so it does not index
    them. `GLD_GC.m` loads `hhmm` but never uses it, so the lift drops it.
+   [Issue 355](https://github.com/l3a0/quantitative-trading/issues/355)
+   measured that the closes are sampled at 16:00, as the file's name says,
+   rather than at the 1:30 p.m. settlement *Algorithmic Trading*'s location
+   2730 describes. The series holds 9 US exchange holidays that GLD lacks,
+   and it never equals the GC close of `inputDataOHLCDaily_20120507.mat` on
+   the 752 days the two share. `tests/test_gld_gc.py` pins both, and the
+   replication log's Entry 38 gives the third measurement.
 10. **The scale-break guard flags nothing.** It reads all 1,232 members as
     prices, because their basis is `raw`, and no close in any of them sits
     below 0.625 or above 1.6 times the one before.

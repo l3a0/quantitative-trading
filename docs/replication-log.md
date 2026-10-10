@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 and 37 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 and 38 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight and four, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four and five, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 and 37 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 and 38 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -279,6 +279,12 @@ says.
   - [The verdicts](#the-verdicts-35)
   - [What the entry concludes](#what-the-entry-concludes-36)
   - [What this entry cannot say](#what-this-entry-cannot-say-34)
+- [Entry 38: long GLD and short gold futures, Chan's *Algorithmic Trading*](#entry-38-long-gld-and-short-gold-futures-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-35)
+  - [What this repo computed](#what-this-repo-computed-37)
+  - [The verdicts](#the-verdicts-36)
+  - [What the entry concludes](#what-the-entry-concludes-37)
+  - [What this entry cannot say](#what-this-entry-cannot-say-35)
 
 ## How to read an entry
 
@@ -345,9 +351,10 @@ both.
    [tests/test_vx_calendar_spread.py](../tests/test_vx_calendar_spread.py)
    holds Entry 35,
    [tests/test_roll_momentum.py](../tests/test_roll_momentum.py) holds
-   Entry 36, and
+   Entry 36,
    [tests/test_tu_hypothesis_tests.py](../tests/test_tu_hypothesis_tests.py)
-   holds Entry 37.
+   holds Entry 37, and [tests/test_gld_gc.py](../tests/test_gld_gc.py) holds
+   Entry 38.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -464,7 +471,8 @@ Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
-Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, and Entry 37's rows 6 to 8.
+Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8, and
+Entry 38's rows 8 to 11.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -7676,6 +7684,154 @@ that comment is gone.
 were chosen after a scratch run on other seeds had seen results, on one
 strategy and one future. A registered test would declare the drift reading
 first and run it on data this entry never loaded.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 38: long GLD and short gold futures, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle locations 2718 and 2730, in Chapter 6's
+discussion of roll returns. Shipped under
+[issue 355](https://github.com/l3a0/quantitative-trading/issues/355). The
+script is `GLD_GC.m`, in ericnberwick/EpchanPreview at `e4bc46f` under
+`public/img/book2/`. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Eleven rows, all derivable from
+[tests/test_gld_gc.py](../tests/test_gld_gc.py). Five do not match one
+printed figure to one computation, and each says so in its own cells. Row 6
+checks one printed figure against two computations, because the text's
+"annualized return" could be either of the two the script prints, and rows 8
+to 11 carry no published figure.
+
+A future's total return is its spot return plus its roll return, the part
+that comes from converging on the spot as it nears expiry. Gold futures carry
+a negative roll return, so owning the metal and shorting the future should
+collect it. GLD owns physical gold, which makes it the long leg. Location 2718
+reports that the trade "yields an annualized return of 1.9 percent and a
+maximum drawdown of 0.8 percent from August 3, 2007, to August 2, 2010". It
+then spends the result. GLD's financing cost "is not very different from 1.9
+percent over the backtest period", so "the excess return of this strategy is
+close to zero".
+
+**Every figure reproduces, and the bill rate takes about half of the return
+rather than all of it.** Rows 1 to 7 land on the printed digits. Row 8 sets
+the three-month bill rate over the window against the return. The bill rate
+is a floor on what financing GLD costs, so it cannot refute the book's "close
+to zero" either.
+
+Every row reads two vintages and one specification unless it names another,
+so they are stated once here.
+
+1. **The vintages.** GC is `inputdata_gc_1600_20100802/gc.csv`, vendor
+   `chan-mat`, basis `raw`, saved 2012-05-07, 761 rows from 2007-08-03 to
+   2010-08-02, the book's window exactly. GLD is `inputdata_etf/gld.csv`,
+   vendor `chan-mat`, basis `adjusted`, saved 2012-04-10. GLD pays no
+   dividend, so its adjusted close is its close. The scale-break guard reads
+   each over the window on its own calendar and flags nothing.
+2. **The specification S.** `GLD_GC.m` as shipped. The two calendars are
+   intersected, which keeps 752 days. `ret` is GLD's daily return minus
+   GC's, each taken across the kept rows, with every NaN set to 0, which
+   zeroes the first row. The script then prints `252 · smartmean(ret)`, the
+   Sharpe ratio `√252 · smartmean(ret − rf) / smartstd(ret − rf)` with
+   `rf = 0.02 / 252` and book two's divide-by-n `smartstd`, the APR
+   `prod(1 + ret)^(252/752) − 1`, and `calculateMaxDD(cumprod(1 + ret) − 1)`.
+
+**The criterion was declared before any figure.**
+[Issue 355](https://github.com/l3a0/quantitative-trading/issues/355) wrote S
+and its criterion on 2026-10-10 at `a331fea`, before any of the five figures
+had been computed. A printed figure reproduces when the computed one rounds to
+it at the decimals it prints, through `chan.khandani_lo_book_two.matches`, and
+the duration reproduces when it equals 91. The text's 1.9 and 0.8 percent are
+checked the same way at one decimal. One disclosure goes with it. A
+measurement of the series made before the criterion printed the ratio
+GC / GLD on its first and last days, 10.822 and 10.235, and their drift
+implies roughly the book's annual return. The criterion is the rule earlier
+book-two entries already use, so it was not chosen against that.
+
+Every result here is **exploratory**. The window is the book's own, so
+reproducing its figures spends no fresh sample, and nothing here tests the
+trade on later data.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The average annual return | 0.0190 | `GLD_GC.m`'s closing comment, no location |
+| 2 | The Sharpe ratio | −.07 | the same comment |
+| 3 | The APR | 0.0191 | the same comment |
+| 4 | The maximum drawdown | −0.008247 | the same comment |
+| 5 | The maximum drawdown's duration | 91 days | the same comment |
+| 6 | The annualized return | 1.9 percent | location 2718 |
+| 7 | The maximum drawdown | 0.8 percent | location 2718 |
+| 8 | The financing cost | none, "not very different from 1.9 percent" | location 2718 |
+| 9 to 11 | The two calendars, the series against the OHLC save's GC, and the daily change in log(GC / GLD) | none here, as each row says | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `252 · smartmean(ret)` under S | 0.019014 | `TestTheBooksFigures::test_row_1_the_average_annual_return_reproduces` |
+| 2 | `√252 · smartmean(ret − rf) / smartstd(ret − rf)` | −0.066564 | `TestTheBooksFigures::test_row_2_the_sharpe_ratio_reproduces` |
+| 3 | `prod(1 + ret)^(252/752) − 1` | 0.019084 | `TestTheBooksFigures::test_row_3_the_apr_reproduces` |
+| 4 | `calculateMaxDD(cumprod(1 + ret) − 1)` | −0.0082465 | `TestTheBooksFigures::test_row_4_the_maximum_drawdown_reproduces` |
+| 5 | the same call's duration | 91 | `TestTheBooksFigures::test_row_5_the_drawdown_lasts_91_days` |
+| 6 | rows 1 and 3 in percent | 1.901433 and 1.908382 percent | `TestTheBooksFigures::test_row_6_the_text_s_1_9_percent_reproduces_on_both_returns` |
+| 7 | row 4 in percent, in size | 0.824652 percent | `TestTheBooksFigures::test_row_7_the_text_s_0_8_percent_reproduces` |
+| 8 | B1, FRED's TB3MS, `rate`, downloaded 2026-09-30, averaged over August 2007 to August 2010 through `chan.bill_rates.average`, and row 1 less it | 0.010141 over 37 months, leaving +0.008874 | `TestTheFinancingCost::test_the_bill_rate_over_the_window` and `::test_what_is_left_above_it` |
+| 9 | the rows GC holds and GLD lacks, and the reverse inside the window | 9 GC rows, 2007-11-22, 2008-01-21, 2008-02-18, 2008-05-26, 2008-07-04, 2008-09-01, 2008-11-27, 2009-01-19 and 2009-02-16, each a US exchange holiday. 3 GLD rows, 2007-09-19, 2007-12-24 and 2009-12-24 | `TestTheSeriesIdentity::test_gc_holds_9_us_exchange_holidays_gld_lacks` and `::test_gld_holds_3_days_gc_lacks` |
+| 10 | GC against the GC close of `inputdataohlcdaily_20120507/gc.csv`, chan-mat, adjusted, saved 2012-05-09, a continuous series shifted at each roll, on the 752 kept days | equal on 0 of 752, the nearest 9.30 apart, daily return correlation 0.824035 | `TestTheSeriesIdentity::test_the_ohlc_save_s_gc_never_equals_it` and `::test_their_daily_returns_correlate_at_0_82` |
+| 11 | the daily change in log(GC / GLD) over the 752 kept days, for each GC series: its standard deviation over n, its largest move, and its moves past 2 percent | 0.000933, 0.007082 and none on this GC. 0.009243, 0.097332 and 20 on the OHLC save's | `TestTheSeriesIdentity::test_the_log_ratio_moves_little_on_the_16_00_series` and `::test_the_log_ratio_moves_ten_times_as_much_on_the_ohlc_save` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | 0.0000 | reproduced | Chan's own saves under his own script land the printed digits, as the criterion asks. |
+| 2 | 0.00 | reproduced | The same. The risk-free rate of 2 percent a year is what makes it negative, which `TestTheBooksFigures::test_the_sharpe_ratio_rounds_to_the_book_only_with_the_risk_free_rate` holds. |
+| 3 | 0.0000 | reproduced | The same as row 1. |
+| 4 | 0.000000 | reproduced | The same as row 1. |
+| 5 | 0 | reproduced | The same as row 1. |
+| 6 | 0.0 percent on both | reproduced | Both of the script's annual returns round to 1.9 percent, so the text's figure does not have to be assigned to one of them. |
+| 7 | 0.0 percent | reproduced | The same as row 1. |
+| 8 | none | none, declared beside S | The bill rate takes 1.0141 percent of the 1.9014 percent, so 0.8874 percent is left above it. The book gives no bound for "not very different", so this row carries no verdict. The bill rate is a floor on financing, because a trader borrows above it, and the book's "close to zero" is a claim about the rate a trader pays. |
+| 9 | none | none, not a replication | A settlement series has no row on a day the exchange is shut, and this series has 9 such rows. So it is not the 1:30 p.m. settlement location 2730 describes. |
+| 10 | none | none, not a replication | This series never equals the OHLC save's GC and moves with it only loosely, so the two are different series of the same metal. |
+| 11 | none | none, not a replication | A gold future and a fund that owns gold, both read at 16:00, should keep a nearly constant ratio from one day to the next, and this one does. The OHLC save's GC moves against GLD by more than 2 percent on 20 days. Its rolls or a price set at another hour could each do that, and the entry does not separate the two. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Chan's saves reproduce his script exactly.** All five figures of the
+   closing comment and both of the text's land on the printed digits.
+2. **The series the script reads is GC sampled at 16:00, not the 1:30 p.m.
+   settlement.** Rows 9 to 11 point the same way. Location 2730 warns that GC
+   settles two and a half hours before GLD closes. That gap is not in the
+   series the script reads, so the asynchronicity the book excuses is not in
+   the backtest at all.
+3. **The bill rate leaves about half the return standing.** Over the window
+   it averages 1.0141 percent against a return of 1.9014 percent. The book's
+   "close to zero" needs GLD's financing to sit about 0.89 percent a year
+   above the bill rate. Whether its holders paid that is not something this
+   repo holds data on.
+
+### What this entry cannot say
+
+Three things.
+
+**What financing GLD actually cost.** The bill rate is a floor. A broker's
+rate on a long ETF position sits above it by a spread this repo has no data
+for, so row 8 bounds the excess return from above and cannot say whether it
+is close to zero.
+
+**Whether the trade would work on the 1:30 p.m. settlement.** That needs the
+OHLC save's GC, whose returns are shifted at each roll and need their own
+reading. The issue puts it out of scope.
+
+**Whether the trade works after 2010.** The window is the book's, and nothing
+here reads later data.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

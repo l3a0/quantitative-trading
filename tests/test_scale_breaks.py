@@ -330,6 +330,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: 2012-05-11 save, and every other series it reads is simulated from that one.
 #: ``TestTheReport`` in ``tests/test_tu_hypothesis_tests.py`` holds that a guard
 #: refusal there reaches an operator as one line.
+#:
+#: [Issue 355](https://github.com/l3a0/quantitative-trading/issues/355) decided
+#: that ``chan.gld_gc`` calls the guard for *Algorithmic Trading*'s long GLD,
+#: short GC trade on each of the three series it reads, over the book's window,
+#: 2007-08-03 to 2010-08-02, each on its own calendar. Those are GC in
+#: ``inputData_GC_1600_20100802.mat``, GLD in the book-two ETF file, and GC in
+#: the 2012-05-07 OHLC save, which it reads only to show the first is sampled at
+#: 16:00. None of the three flags in the window, so nothing is refused, and
+#: ``TestTheGuardAndTheReads`` in ``tests/test_gld_gc.py`` records the three
+#: calls and holds a planted break in either leg refused.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
