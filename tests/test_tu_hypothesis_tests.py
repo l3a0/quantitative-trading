@@ -37,6 +37,7 @@ the declared seeds on 2026-10-10.
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import math
 from contextlib import redirect_stdout
@@ -73,6 +74,7 @@ from chan.tu_hypothesis_tests import (
     permuted_strategy_returns,
     randomized_returns,
     randomized_trades,
+    report,
     run,
     script_moments,
     simulated_strategy_returns,
@@ -289,6 +291,28 @@ class TestThePearsonIV:
         with pytest.raises(ValueError, match="outside type IV"):
             pearson_iv_parameters(0.0, 1.0, skewness, kurtosis)
 
+    def test_type_vi_just_past_type_iv_is_refused_on_the_module_s_own_kappa(self) -> None:
+        """A skewness of 1.5 and a kurtosis of 7.5 give κ = 1.185, type VI.
+
+        ``test_the_moments_put_tu_in_type_iv`` recomputes κ rather than reading
+        the module's, and the refusals above still refuse with the sign inside
+        ``4·β₂ − 3·β₁`` flipped. These moments do not. The flipped sign gives
+        them 0.75, so they pass as type IV and then fail on a negative square
+        root, whose message does not name the type.
+        """
+        with pytest.raises(ValueError, match=r"Pearson κ of 1\.18548, outside type IV"):
+            pearson_iv_parameters(0.0, 1.0, 1.5, 7.5)
+
+    def test_moments_that_zero_kappa_s_denominator_are_refused_by_type(self) -> None:
+        """A skewness of 2 and a kurtosis of 3 make 4·β₂ equal 3·β₁.
+
+        No distribution has them, since kurtosis is at least skewness² + 1.
+        κ's denominator is zero there, so the refusal has to come before κ is
+        computed, or the caller meets a ``ZeroDivisionError`` instead.
+        """
+        with pytest.raises(ValueError, match="outside type IV"):
+            pearson_iv_parameters(0.0, 1.0, 2.0, 3.0)
+
     def test_the_mean_moves_only_lambda(self, moments, params) -> None:
         """Why the mean-zero row is the declared draws less their target mean."""
         centred = pearson_iv_parameters(0.0, moments.std, moments.skewness, moments.kurtosis)
@@ -419,6 +443,19 @@ class TestTheVectorizedForm:
                 strategy["longs"], strategy["shorts"], strategy["market"], draws=2_500, batch=batch
             )
             np.testing.assert_array_equal(found, result.trades[:2_500])
+
+    def test_a_last_batch_of_one_draw_is_kept(self, strategy, result) -> None:
+        """701 draws in batches of 700 leave one draw for a second batch.
+
+        The batch sizes in the two tests above leave a last batch of 44 or 400
+        draws, or none, so a loop that stops one draw short of the total still
+        reaches every batch there.
+        """
+        found = randomized_trades(
+            strategy["longs"], strategy["shorts"], strategy["market"], draws=701, batch=700
+        )
+        assert len(found) == 701
+        np.testing.assert_array_equal(found, result.trades[:701])
 
     def test_the_second_test_earns_the_simulated_returns_not_cl_sim_s(self) -> None:
         """L68 multiplies by ``marketRet_sim``. ``cl_sim``'s own returns would differ."""
@@ -572,6 +609,44 @@ class TestTheReport:
         assert "inputdataohlcdaily_20120511/tu.csv" in printed
         assert "Exploratory." in printed
         assert "Entry 37" in printed
+
+    def test_rows_1_and_4_say_when_their_figures_miss(self, sources, result) -> None:
+        """On the declared seeds both rows reproduce, and row 4's count equals row 5's.
+
+        So the real printout cannot tell a verdict that reads its own figure
+        from one that is always "reproduced" or reads row 5's count. This
+        report gets a statistic of 3.5, which misses the script's 2.93, and
+        three trade means above the observed mean.
+        """
+        trades = result.trades.copy()
+        trades[:3] = 2 * result.observed_mean
+        missed = dataclasses.replace(result, statistic=3.5, trades=trades)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            report(sources[0], missed)
+        lines = out.getvalue().splitlines()
+        row_1 = next(r for r in lines if r.strip().startswith("1 Gaussian"))
+        assert "did not reproduce, gap +0.57" in row_1, row_1
+        row_4 = next(r for r in lines if r.strip().startswith("4 Randomized trades"))
+        assert row_4.split()[6:11] == ["3", "0", "0", "to", "0"], row_4
+        assert row_4.endswith("did not reproduce, gap +3"), row_4
+
+    def test_it_prints_the_normal_tail_and_the_pooled_std(self, printed) -> None:
+        lines = printed.splitlines()
+        tail = next(r for r in lines if "one-sided normal tail" in r)
+        assert "is 0.001677." in tail, tail
+        pooled = next(r for r in lines if "pooled mean" in r)
+        assert "a std of 1.095392e-03, against" in pooled, pooled
+
+    def test_each_row_beside_prints_its_own_count_and_side_of_the_band(self, printed) -> None:
+        """1,165 lies above the script's 243 to 307 and 19 below it, so both are outside."""
+        lines = printed.splitlines()
+        for label, figures in (
+            ("a normal draw with TU's mean and std", "1165 of 10000, 0.116500, outside"),
+            ("Pearson type IV with the mean set to zero", "19 of 10000, 0.001900, outside"),
+        ):
+            row = next(r for r in lines if label in r)
+            assert figures in row, row
 
     def test_main_turns_a_guard_refusal_into_one_line(self, monkeypatch, no_arguments) -> None:
         def refuse(legs, *, start, end):
