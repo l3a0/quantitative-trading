@@ -70,8 +70,9 @@ without committing a price.
 
 The calendar is the committed raw SPY vintage, as the S&P 600 panel's is, so a
 month-end is a day the exchange traded rather than a day some series happens to
-carry. Issue 336 takes IVV's own trading days, and
-``tests/test_sp500_panel.py`` holds that the two agree at every month-end.
+carry. Issue 336's plan named IVV's own trading days, and its run takes this
+calendar instead. ``tests/test_sp500_panel.py`` holds that the two agree at
+every month-end.
 """
 
 from __future__ import annotations
@@ -470,8 +471,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             key = os.environ.get(fetch_alphavantage.KEY_ENV, "").strip()
             if not key:
                 raise SystemExit(f"{fetch_alphavantage.KEY_ENV} is not set, so no request was made")
-            # IVV's own series is fetched too, because issue 336 takes its
-            # trading days as the run's calendar.
+            # IVV's own series is fetched too, so a test can hold that its
+            # month-ends are the SPY calendar's, which issue 336's run takes.
             symbols = [FUND.symbol, *tickers(load())]
             tally = fetch_alphavantage.fetch(CROSS_SECTION, symbols, key=key)
             # The tally names each failed symbol, so it passes through the

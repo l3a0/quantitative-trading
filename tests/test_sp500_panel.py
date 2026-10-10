@@ -575,7 +575,7 @@ class TestTheArchive:
         assert holes == set(sp500_panel.read_holes())
 
     def test_ivv_trades_on_the_same_month_end_days_as_the_spy_calendar(self) -> None:
-        """Issue 336 takes IVV's trading days, and this panel takes SPY's."""
+        """Issue 336's plan named IVV's trading days, and its run takes SPY's like this panel."""
         store = _store()
         entries, closes = read_cross_section(
             "sp500", column="close", symbols=["IVV"], directory=store

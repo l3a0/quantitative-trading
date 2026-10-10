@@ -2326,7 +2326,7 @@ no published figure to take a gap from.
 | 35 | none, registered | The free sources cannot decide it, which is the verdict's own wording rather than one of the three a replication takes. The low series is nowhere near above zero, with a p of 1.000, and the high series is, with a p of 0.001. The criterion takes a verdict only where both series give the same answer, so neither "no January effect detectable" nor "a January effect above zero" can be written. The width is the threatening members. At 2008-12-31, 89 of the 161 missing members threaten a tenth of 59, so most of both tenths hold an assumed return. The bound shrinks as coverage grows, to −0.0023 and 0.0027 at 2025-12-31, where one member threatens. The next step the owner's ruling names is buying prices for the threatening members alone, which [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) carries. |
 | 36 to 40 | none, registered | Reported beside row 35. Row 40 compares two runs on one cross-section, so it measures membership rather than two download dates. Its two figures differ in sign because the bound is wider than the gap it would measure, so it says nothing yet about what survivorship cost Example 7.6. |
 | 41 | none, registered | The registered verdict is "no return detectable above about 4.2% a year", the criterion's own wording rather than one of the three a replication takes. The mean is −0.0001 a month with a one-sided p of 0.539, so the test does not reject. The 4.2% is row 44's X at one decimal of a percent, as the issue fixed. A true return below that size could pass undetected, so the verdict never says the strategy is dead. It is before costs and on covered members only. Its membership is carried forward between quarterly schedules, and it lacks the return a failing stock takes when it leaves, which the free source does not carry. `TestTheMonthlyPins::test_the_verdict` holds the wording. |
-| 42 to 49 | none, registered | Reported beside row 41. Row 45 equals row 41 because the printouts' differences never bind on this panel. Every ranked member has the closes its month needs, so keeping a stock on its own close and keeping it on its own return keep the same stocks. Rows 46 and 47 measure what carrying a schedule forward misdates, and both bracketing means are, like row 41's, not above zero. Row 48's positions earn their return to the last close and nothing after it. Row 49 tests the argument the dropped members rest on. Departing names land in a tenth more often than staying ones, most of all in the short tenth, so on the covered members a name that leaves is not neutral. Which way that moves row 41's mean is not measured. The chi-square p prints as 0.000 and decides nothing, because member-months repeat the same names. |
+| 42 to 49 | none, registered | Reported beside row 41. Row 45 equals row 41 because the printouts' differences never bind on this panel. Every ranked member has the closes its month needs, so keeping a stock on its own close and keeping it on its own return keep the same stocks. Rows 46 and 47 measure what carrying a schedule forward misdates, and both bracketing means are negative, like row 41's. Row 48's positions earn their return to the last close and nothing after it. Row 49 tests the argument the dropped members rest on. Among covered members, names that leave the index within a year land in a tenth more often than names that stay, most of all in the short tenth. The issue said before the run that a clear difference would count as evidence against the argument that dropping a missing member is neutral, and this is such a difference. Which way it moves row 41's mean is not measured. The chi-square p prints as 0.000 and decides nothing, because member-months repeat the same names. |
 
 ### What the entry concludes
 
@@ -2376,8 +2376,8 @@ Seven things.
    detectable above about 4.2% a year after the book.** This is registered.
    Row 41 averages −0.0001 a month before costs over the 213 months from
    January 2009 to September 2026, with a one-sided p of 0.539. The revised
-   Python's rules give the same months, and neither bracketing mask moves the
-   mean above zero.
+   Python's rules give the same months, and the means on both bracketing
+   masks are negative too, with no verdict.
 
 ### What this entry cannot say
 
@@ -2407,9 +2407,9 @@ pass undetected. The verdict also leaves out four things.
    cannot turn this result into a finding, and no after-cost figure is
    pinned.
 2. **Members with no checked price.** They are dropped, as the owner ruled,
-   so coverage falls as low as 364 of 501 in 2012-09. Row 49 says the names
-   that leave the index are not neutral, so the bias from dropping them is
-   reported rather than removed.
+   so coverage falls as low as 364 of 501 in 2012-09. Row 49 is evidence
+   against the argument that dropping them is neutral, so the bias from
+   dropping them is reported rather than removed.
 3. **Membership between schedules.** IVV's schedules are quarterly, so each is
    carried forward, and 378 positions sit on names that changed between two
    schedules. Row 46 brackets the mean on either side of that misdating,

@@ -2685,6 +2685,44 @@ class TestTheScheduleChanges:
         assert wide[4] == 5
 
 
+#: The months whose coverage the stop rule moves from ``tests/test_sp500_panel.py``'s
+#: pins: members, covered members and stops under the rule.
+MONTHLY_COVERAGE_MOVED = {
+    "2010-02": (500, 405, 0),
+    "2010-03": (500, 395, 1),
+    "2010-04": (500, 394, 0),
+    "2010-05": (500, 390, 1),
+    "2011-01": (500, 416, 1),
+    "2011-02": (500, 396, 0),
+    "2012-03": (500, 400, 0),
+    "2012-04": (500, 400, 0),
+    "2012-05": (500, 419, 0),
+    "2013-04": (500, 386, 1),
+    "2013-05": (500, 396, 1),
+    "2014-06": (502, 424, 0),
+    "2014-12": (502, 446, 2),
+    "2015-01": (502, 444, 0),
+    "2016-04": (504, 471, 2),
+    "2016-06": (507, 477, 0),
+    "2017-05": (505, 490, 2),
+    "2017-06": (505, 489, 2),
+    "2017-07": (505, 488, 1),
+    "2017-10": (505, 489, 0),
+    "2017-11": (505, 489, 1),
+    "2018-09": (506, 495, 2),
+    "2018-10": (506, 493, 2),
+    "2018-11": (506, 491, 1),
+    "2021-07": (505, 497, 1),
+    "2021-08": (505, 497, 0),
+    "2022-03": (505, 500, 2),
+    "2022-05": (505, 498, 1),
+    "2022-08": (504, 499, 1),
+    "2022-09": (503, 497, 2),
+    "2022-11": (503, 495, 1),
+    "2025-06": (504, 500, 3),
+}
+
+
 @pytest.fixture(scope="module")
 def monthly() -> seasonals.MonthlyRun:
     """One run on the owner's archive, or a skip naming what is missing."""
@@ -2767,6 +2805,21 @@ class TestTheMonthlyPins:
         assert (monthly.covered, monthly.members, monthly.stops_inside) == (98321, 107115, 83)
         assert len(monthly.coverage) == 213
         assert (monthly.coverage[0].month, monthly.coverage[-1].month) == ("2008-12", "2026-08")
+
+    def test_each_months_coverage_under_the_stop_rule(self, monthly) -> None:
+        """Every month's members, covered members and stops, as the run computes them.
+
+        ``tests/test_sp500_panel.py`` pins issue 373's coverage on each series'
+        manifest span. The stop rule cuts 121 of those spans short, which moves
+        32 of the 213 months, 21 of them in covered members. Every other month
+        is that file's row unchanged.
+        """
+        from tests.test_sp500_panel import MONTHS
+
+        expected = {row[0]: (row[1], row[2], row[4]) for row in MONTHS}
+        expected.update(MONTHLY_COVERAGE_MOVED)
+        assert [m.month for m in monthly.coverage] == list(expected)
+        assert {m.month: (m.members, m.covered, m.stops) for m in monthly.coverage} == expected
 
     def test_the_lowest_and_highest_months_coverage(self, monthly) -> None:
         shares = {m.month: (m.covered, m.members) for m in monthly.coverage}
