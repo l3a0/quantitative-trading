@@ -2875,7 +2875,8 @@ Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
-   The interest differential iB − iQ, "also called a rollover interest", the
+   The difference iB − iQ, which Chan calls "the interest differential" and
+   "also called a rollover interest", the
    5 p.m. close, the T + 3 rule for a cross and the T + 1 exception for
    USD.CAD are at 2273. Adding the rollover interest to the cross rate's
    percent change, after Dueker (2006), is at 2287. The three claims, "even
@@ -2886,16 +2887,21 @@ Six groups of what it says are not pinned here.
    of a minute file no public copy holds, which
    [src/chan/aud_cad_rollover.py](src/chan/aud_cad_rollover.py)'s docstring
    records. The script's line 50, `APR=0.061564 Sharpe=0.541802`, is pinned
-   through its constants, and its line number was read at `e4bc46f`.
+   through its constants, and its line number was read at `e4bc46f`. So were
+   two more readings of the script: that its line 44, the return without
+   rollover interest, is commented out, and that it computes no rollover
+   figure.
 3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, that
    the two monthly averages of 4.908 and 1.592 percent differ by about 3.3
    points, that the reading over 365 days is the one over 252 scaled by
-   365 / 252, about 1.45, that the rule holds short on 197 more days than long
-   and that 1,020 of its days pair a long day with a short one.
-4. Two readings no test asserts: that the tripled day already pays for the
-   weekends, so annualising over 365 days overstates the year, and that the
-   stationary-candidates post finds the CAD/AUD rate reverting, which that
-   post's own tests pin.
+   365 / 252, about 1.45, and that the rule holds short on 197 more days than
+   long.
+4. Three readings no test asserts: that the tripled day already pays for the
+   weekends, so annualising over 365 days overstates the year, that long and
+   short days cancel in total when they see about the same rollover interest,
+   and that the stationary-candidates post finds the CAD/AUD rate reverting,
+   which that post's own tests pin. That neither location 2303 nor the script
+   mentions the zero fill is read from the book notes and the script.
 5. The figure's alt text, whose readings of the lines, such as AUD staying
    above CAD in every month and the line without rollover interest sitting
    above the line with it on every day after January 2008, were measured once

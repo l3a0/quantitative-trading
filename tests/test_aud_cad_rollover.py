@@ -256,7 +256,7 @@ class TestBesideTheReplication:
         """
         difference = result.without_rollover.apr - result.with_rollover.apr
         assert difference == pytest.approx(0.0055770095, abs=1e-10)
-        assert abs(difference) != pytest.approx(abs(result.rollover_drag), abs=1e-5)
+        assert abs(difference) > abs(result.rollover_drag) + 1e-4
         assert abs(result.rollover_drag) == pytest.approx(0.0052212787, abs=1e-10)
 
     def test_the_net_share_of_held_days_times_row_5_is_near_what_the_strategy_earned(
