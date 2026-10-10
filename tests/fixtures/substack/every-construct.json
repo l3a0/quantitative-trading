@@ -1,6 +1,6 @@
 {
  "title": "A post that uses every shape the Substack converter reads",
- "subtitle": "The subtitle line costs \\$5 and keeps its escape, because the converter copies it as typed.",
+ "subtitle": "The subtitle line costs $5 and loses its escape, as body text does.",
  "body": {
   "type": "doc",
   "content": [
@@ -324,6 +324,38 @@
     }
    },
    {
+    "type": "heading",
+    "attrs": {
+     "textAlign": null,
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "A level-3 heading"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "attrs": {
+     "textAlign": null
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "A table becomes a third LaTeX block."
+     }
+    ]
+   },
+   {
+    "type": "latex_block",
+    "attrs": {
+     "persistentExpression": "\\begin{array}{l|r}\n\\text{Shape} & \\text{Becomes} \\\\ \\hline\n\\text{table} & \\text{an array, 100}\\%\n\\end{array}",
+     "id": "EQSTAT03"
+    }
+   },
+   {
     "type": "subscribeWidget",
     "attrs": {
      "url": "%%checkout_url%%",
@@ -402,6 +434,34 @@
         "text": " inside."
        }
       ]
+     }
+    ]
+   },
+   {
+    "type": "captionedImage",
+    "content": [
+     {
+      "type": "image2",
+      "attrs": {
+       "src": "https://example.invalid/first_figure.png",
+       "srcNoWatermark": null,
+       "fullscreen": null,
+       "imageSize": null,
+       "height": 900,
+       "width": 1300,
+       "resizeWidth": null,
+       "bytes": 123456,
+       "alt": "A linked figure with no caption",
+       "title": null,
+       "type": "image/png",
+       "href": "https://example.com/five",
+       "belowTheFold": false,
+       "topImage": false,
+       "internalRedirect": null,
+       "isProcessing": false,
+       "align": null,
+       "offset": false
+      }
      }
     ]
    },
