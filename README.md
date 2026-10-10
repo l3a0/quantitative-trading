@@ -466,8 +466,8 @@ where they were first built. The other thirty-five were built here.
     on that window, and starting a day later lands both to every digit. The
     book's 61 holding days in place of the script's 63 give 0.067315 and
     1.044327. The spread falls as the roll return rises, so the script's sign
-    flip sells the spread when it is low, and reversing it, the bet the book
-    describes, gives an APR of −0.080125. Every figure is exploratory.
+    flip mostly sells the spread when it is low, and reversing it gives an APR
+    of −0.080125. Every figure is exploratory.
 35. VIX futures calendar spreads traded on the ratio of the back contract to
     the front, from *Algorithmic Trading*'s Chapter 5, on Chan's own VX
     strip, which has no spot column. No script ships under its own name, and
@@ -812,8 +812,10 @@ a day later at six decimals and at the precision Chan printed, the ADF
 statistic against its 1 percent critical value, the run holding each pair at
 least 61 days, the first and last days a pair is held, and the 66 rows at the
 window's end that return exactly 0. It pins the direction the trade bets too:
-the held spread's correlation with γ, the far leg's side against the z-score's
-sign, and the figures with every position reversed. It also runs the script's window on CL
+the held spread's correlation with γ, its own z-score's sign against γ's, the
+far leg's side against the z-score's sign, the figures with every position
+reversed or flipped on the spread's own z-score, the rule before the window,
+and each calendar year. It also runs the script's window on CL
 with a lookback and an end passed in, which no row above passes, and pins the
 CL strip as the vintage `run` reads from the directory it is given. On
 synthetic frames it holds the script's schedule, sign flip and return, and the
@@ -832,6 +834,9 @@ synthetic cases hold choices the CL strip cannot show.
 6. Line 85's `max(1, ...)`, which starts a first pair on the file's first row
    when its expiry comes sooner than `holddays + 10` rows in.
 7. Line 110's `smartsum`, which skips a leg whose return is infinite.
+
+The blog post about it is the exception, and what it says that nothing here
+asserts is listed below.
 
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) does it
 for the VX calendar spread. It pins the specification and the four rows
@@ -3781,21 +3786,23 @@ which trades crude oil's 12-month calendar spread on the z-score of its roll
 return. Chan reports a half-life of 36 days, stationarity "with 99 percent
 probability", and an APR of 8.3 percent with a Sharpe ratio of 1.3 from
 2008-01-02 to 2012-08-13. The post links the earlier calendar-spreads post,
-the USD.CAD post and the price-spread-ratio post rather than repeating them,
-and draws five lessons from Entry 34 of the replication log.
+the USD.CAD post, the price-spread-ratio post and the VX against E-mini post
+rather than repeating them, and draws five lessons from Entry 34 of the
+replication log.
 
-1. The book's figures reproduce on Chan's own file, and the script's comment
-   lands only on a window starting a day later, found by a scan.
+1. The book's figures reproduce on Chan's own file, and the figures in the
+   script's comment land only on a window starting a day later, found by a
+   scan.
 2. The spread moves against the roll return, and the script reverses its
-   position where the roll return's z-score is above 0, so it sells the spread
-   when the spread is low. Reversing every position, the bet the book
-   describes, gives an APR of −0.080125.
+   position where the roll return's z-score is above 0, so it mostly sells the
+   spread when the spread is low. Reversing every position gives an APR of
+   −0.080125, and reversion on the spread's own z-score loses too.
 3. The book's 61 holding days and the script's 63 give different trades, and
    the script's is the one that printed the figures.
-4. The window's last 66 days hold nothing, because contracts still trading
+4. The window's last 66 days earn nothing, because contracts still trading
    when the file was saved look expired on its last day.
 5. The half-life that sets the lookback is measured on the days the trade
-   uses, and it measures reversion for a trade that bets against it.
+   uses, and it measures a reversion the trade bets against.
 
 Five groups of what it says are not pinned here.
 
@@ -3806,20 +3813,26 @@ Five groups of what it says are not pinned here.
 2. Facts about the script rather than the data: the comments at its lines 71
    and 99, its `idx=find(tday==20080102)` and `3*21`, and the expiry mark at
    line 75, all at `e4bc46f` of ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the ADF test's long-run reversion and the
-   trade's short-run continuation can both hold of one series, that VIX's
-   ratio of back to front rises with its spread, and that any backtest
-   inferring expiry from the last price goes flat at the end of its file.
+3. Readings no test asserts: that the correlation is strong but not the
+   one-for-one the model gives, that the ADF test's long-run reversion and the
+   trade's short-run continuation can both hold of one series, that the half-life
+   measures a reversion the trade bets against, that the log of VIX's ratio of
+   back to front is its spread, and that any backtest inferring expiry from
+   the last price goes flat at the end of a file saved while contracts trade.
 4. Figures the post states in words or as percentages of pinned ones, such as
-   8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and 60
-   percent. The figure's alt text reads its curves approximately too.
+   8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
+   about three days in four. The figure's alt text reads its curves and the
+   scatter's ranges approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
-or to
+to
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
-for the figure's own numbers. Seven had no pin before it.
+for the figure's own numbers, or to
+[tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's 6,467
+days from 1986-11-03 and γ as −12 times the slope. Twelve things had no pin
+before it.
 
 1. The held pair's log spread correlates with γ at −0.883910 on the window's
    1,097 held days, and at −0.893686 on all 1,429 held days of the file.
@@ -3831,12 +3844,24 @@ for the figure's own numbers. Seven had no pin before it.
    APR is 0.087853 and the Sharpe ratio 1.316295.
 5. The script's curve ends at a cumulative return of 0.443248.
 6. 1,164 of γ's 1,941 finite days lie in the traded window.
-7. `held_log_spread`, the log of the far contract less the log of the near
-   one on each row that holds exactly one pair, on synthetic frames.
+7. The held pair's own 36-day z-score has the opposite sign to γ's on 841 of
+   the 1,097 held days and the same on 256, and the two correlate at
+   −0.766342.
+8. Within one pair, the day-to-day changes of the spread and of γ correlate at
+   −0.510282 over 1,082 days, and the script's daily return correlates at
+   0.999030 with yesterday's far-leg position times today's change in the
+   spread.
+9. Line 107 run on the spread's own z-score gives an APR of −0.027380 and a
+   Sharpe ratio of −0.402360.
+10. The script's rule on the 332 days before the window, from 2006-09-05 to
+    2007-12-31, earns 0.050334, an APR of 0.037979 with a Sharpe ratio of
+    0.770953.
+11. The script's compounded return in each calendar year from 2008 to 2012.
+12. `held_log_spread` and `held_spread_zscore`, on synthetic frames.
 
 Its one figure is drawn from the committed CL strip by
 [src/chan/calendar_spread_reversion_figures.py](src/chan/calendar_spread_reversion_figures.py),
-which reads it through the same `run` as
+which reads it through the same `load_strip` and `run_spread` steps as
 `python -m chan.calendar_spread_reversion`. It draws two panels.
 
 1. The script's cumulative compounded return from 2008-01-02, the book's

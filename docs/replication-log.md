@@ -7111,19 +7111,22 @@ Four things.
    over those extra days.
 4. **The trade bets the spread moves further from its average.** The log
    spread is minus γ times the gap between expiries, so it falls when γ
-   rises, and on the window's 1,097 held rows the held pair's log spread
-   correlates with γ at −0.883910. Line 107 reverses the long-far, short-near
-   position where z is above 0, which is where the spread is low, so it sells
-   the spread low and buys it high, although line 71 calls the block a
-   "linear mean reversion strategy". Reversing every position, the bet location 2461 describes,
-   gives an APR of −0.080125 and a Sharpe ratio of −1.278216. The
-   `TestTheTradesDirection` class pins all three. The write-up found this.
-   Row 9's stationarity still holds, since it reads γ's long-run level
-   rather than the direction the trade bets.
+   rises. On the window's 1,097 held rows the held pair's log spread
+   correlates with γ at −0.883910, and its own 36-day z-score has the
+   opposite sign to γ's on 841 of them. Line 107 reverses the long-far,
+   short-near position where γ's z-score is above 0, so it mostly sells the
+   spread low and buys it high. Line 71 still calls the block a "linear mean
+   reversion strategy". Reversing every position, the direction location 2471
+   describes for γ, gives an APR of −0.080125 and a Sharpe ratio of
+   −1.278216. Reversion on the spread's own z-score, closer to location
+   2461's words, gives −0.027380 and −0.402360. `TestTheTradesDirection` and
+   `TestTheSpreadsOwnAverage` pin them. Writing the post found this. Row 9's
+   stationarity still holds, since it reads γ's long-run level rather than
+   the direction the trade bets.
 
 ### What this entry cannot say
 
-Four things.
+Five things.
 
 **Which day the comment's run started on.** Rows 3, 5 and 10 narrow it to the
 script's 2008-01-02 against a start one day later, and nothing committed tells
@@ -7139,6 +7142,11 @@ trades. Entry 22 names the same limit for USD.CAD's lookback.
 
 **Anything about costs.** None is charged, though each roll trades four legs,
 closing one pair and opening the next.
+
+**Whether the direction holds outside 2008 to 2012.** The script's rule also
+earns on the file's 332 rows before the window, 0.050334 from 2006-09-05 to
+2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is the same file
+and before costs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
