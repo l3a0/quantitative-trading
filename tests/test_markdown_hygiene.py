@@ -166,6 +166,7 @@ MUST_BE_SWEPT = frozenset(
     {
         ".claude/skills/decompose-problem/SKILL.md",
         ".claude/skills/sync-prune-next/SKILL.md",
+        ".claude/skills/sync-substack/SKILL.md",
         ".claude/skills/update-build-board/SKILL.md",
         "CLAUDE.md",
         "README.md",
@@ -199,6 +200,7 @@ MUST_BE_SWEPT = frozenset(
         "research/book-notes/quantitative-trading.md",
         "research/filings/README.md",
         "research/papers/README.md",
+        "tests/fixtures/substack/every-construct.md",
     }
 )
 
