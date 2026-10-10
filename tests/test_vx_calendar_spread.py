@@ -382,6 +382,10 @@ class TestTheMeasurementsAfterTheRun:
         ]
         assert worse == ["B3"], AFTER_THE_RUN
 
+    def test_the_rows_before_october_2008_are_s_and_b1_to_b3(self, result) -> None:
+        """B4 differs from S only in its end, so before October 2008 it would repeat S."""
+        assert list(result.before) == ["S", "B1", "B2", "B3"], AFTER_THE_RUN
+
 
 # --- the rules on synthetic frames ---------------------------------------------
 
@@ -417,6 +421,12 @@ class TestTheNearestTwoRatio:
     def test_it_is_on_the_contracts_index(self) -> None:
         contracts = _frame([[20.0, 25.0, 30.0], [20.0, NAN, 30.0]])
         assert nearest_two_ratio(contracts).index.equals(contracts.index)
+
+    def test_a_skipping_row_after_a_priced_one_stays_nan(self) -> None:
+        """The function fills nothing forward, which :func:`run_spread` does for every signal."""
+        ratio = nearest_two_ratio(_frame([[20.0, 25.0, 30.0], [20.0, NAN, 30.0]]))
+        assert ratio.iloc[0] == 1.25
+        assert np.isnan(ratio.iloc[1])
 
 
 def _schedule(rows: list[list[float]]) -> pd.DataFrame:
@@ -631,6 +641,13 @@ class TestTheReport:
         assert "APR 0.176952, Sharpe 1.475658" in _row(after, "B3 on the book's window")
         assert "APR -0.074173, Sharpe -0.562291" in _row(after, "B3   2007-01-23")
         assert "reproduce" not in beside
+
+    def test_every_declared_row_prints_its_figures(self, printed, result) -> None:
+        beside = printed.split("Beside S, declared with it on issue 349.")[1]
+        for key in ROWS:
+            found = result.rows[key]
+            row = _row(beside, f"{key} ").split()
+            assert f"{found.apr:.6f}" in row and f"{found.sharpe:.6f}" in row, SPECS[key]
 
     def test_it_prints_the_vintage_the_window_and_the_label(self, printed) -> None:
         assert "inputdatadaily_vx_20120507/" in _row(printed, "vintage")
