@@ -205,10 +205,10 @@ The book's figures are here: the half-life of 36 days and the claim that CL's
 location 2461, and the APR of 8.3 percent and Sharpe ratio of 1.3 from January
 2, 2008, to August 13, 2012, at 2461 and again at 2471. Location 2471 holds a
 pair for "3 months (61 trading days)", while `calendarSpdsMeanReversion.m`
-sets `holddays=3*21`, which is 63. The five figures the script's comments
-print, a half-life of 36.394034, an APR of 0.083406, a Sharpe ratio of
-1.288661, a maximum drawdown of −0.053222 and a longest drawdown of 206 days,
-sit in the script and nowhere in the book. The replication log's Entry 34
+sets `holddays=3*21`, which is 63. The figures the script's comments print,
+a half-life of 36.394034, an APR of 0.083406, a Sharpe ratio of 1.288661, a
+maximum drawdown of −0.053222 and a longest drawdown of 206 days, sit in the
+script and nowhere in the book. The replication log's Entry 34
 traces each figure to one or the other.
 
 *Algorithmic Trading*'s VX calendar spread, in its Chapter 5, is the opposite

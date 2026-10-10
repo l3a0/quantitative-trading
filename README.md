@@ -771,11 +771,22 @@ than the tranche count, and the scale-break guard on TU.
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py) does it
 for the crude oil calendar spread. It pins the script's window and the window
 a day later at six decimals and at the precision Chan printed, the ADF
-statistic against its 1 percent critical value, the run holding each pair 61
-days, the first and last days a pair is held, and the 66 rows at the window's
-end that return exactly 0. On synthetic frames it holds the script's
-schedule, sign flip and return, four choices the CL strip cannot show, and
-the refusal of a signal on an index other than the contracts'.
+statistic against its 1 percent critical value, the run holding each pair at
+least 61 days, the first and last days a pair is held, and the 66 rows at the
+window's end that return exactly 0. It also runs the script's window on CL
+with a lookback and an end passed in, which no row above passes, and pins the
+CL strip as the vintage `run` reads from the directory it is given. On
+synthetic frames it holds the script's schedule, sign flip and return, and the
+refusal of a signal on an index other than the contracts'. Four of those
+synthetic cases hold choices the CL strip cannot show.
+
+1. Line 98's strict comparison, which never holds a one-row window.
+2. Line 83's last mark, which expires a contract with a gap in its prices on
+   its last priced row.
+3. Line 107's strict comparison, which keeps the schedule's sign where the
+   z-score is exactly 0.
+4. The lookback's rounding, which takes a half-life with a fractional part of
+   at least 0.5 up.
 
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) does it
 for the VX calendar spread. It pins the specification and the four rows
@@ -1980,8 +1991,9 @@ Four groups of its figures are not pinned here.
    crude oil calendar spread is quoted from *Algorithmic Trading* Example 5.4,
    and so is the description of Chan's rule as measuring the distance from a
    moving average. [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
-   now computes and pins the half-life on Chan's own CL strip, while the model
-   behind Lesson 6 still reads 36 as an input rather than computing it.
+   now computes and pins the half-life and the book's "stationary with 99
+   percent probability" on Chan's own CL strip, while the model behind Lesson
+   6 still reads 36 as an input rather than computing it.
 2. Facts about the instruments. TLT holding Treasuries maturing in twenty years
    or more and IEF seven to ten are the funds' descriptions, not derivable from
    committed closes. That a cross rate is, in logs, a spread between two dollar
@@ -2515,8 +2527,8 @@ Five groups of its figures are not pinned here.
    locations 2461 and 2471, both through
    [its committed notes](research/book-notes/algorithmic-trading.md).
    [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
-   now computes and pins the 36 days and the 99 percent claim on Chan's own CL
-   strip, while the power simulation still reads 36 as an input.
+   now computes and pins the half-life and the 99 percent claim on Chan's own
+   CL strip, while the power simulation still reads 36 as an input.
 2. New York Harbor gasoline's two counts, a median of 42 days for a pair of
    its neighbouring contracts and 141 of its 150 pairs keeping fewer than 50,
    which [issue 137](https://github.com/l3a0/quantitative-trading/issues/137)

@@ -3,7 +3,8 @@
 A calendar spread is long one futures contract and short another on the same
 underlying with a different expiry. Under the constant-returns model of
 Example 5.3, the log value of a spread long the far contract and short the
-near one is γ times the gap between their expiries, so its signal depends on
+near one is γ(T1 − T2), where T1 is the near expiry and T2 the later far one.
+That is minus γ times the gap between their expiries, so its signal depends on
 the roll return γ alone and not on the spot price. At Kindle location 2461
 Chan runs the ADF test on CL's 12-month log calendar spread and finds it
 "stationary with 99 percent probability, and a half-life of 36 days". He then
@@ -53,12 +54,15 @@ way and which falls outside the window.
 figure on CL.
 
 1. Lines 59 and 60 give a negative half-life when the signal does not revert,
-   where :func:`ithildincore.timeseries.ou_half_life` returns infinity. The
-   lookback is then not a number either way.
+   where :func:`ithildincore.timeseries.ou_half_life` returns infinity. Either
+   way the run stops. MATLAB rounds the negative half-life to a negative
+   lookback, and ``movingAvg.m``'s ``assert(T>0)`` refuses it. Python's
+   ``int(round_half_away(inf))`` raises ``OverflowError``.
 2. Line 85's ``max(1, ...)`` is one-based, so the zero-based row is
    ``max(0, ...)``. A first contract expiring within 10 rows of the file's
    first row gives a negative end row, which MATLAB refuses and a Python slice
-   wraps. CL's first expiry is 5,044 rows in.
+   wraps. CL's first expiry is 5,044 rows after the file's first row, on
+   2006-12-19.
 
 **What the script's spread month counts.** ``spread_month`` counts columns,
 as line 81's loop does, although line 80's comment says months, in the way
@@ -72,7 +76,7 @@ not.** The script's line 113 starts on 2008-01-02, which gives an APR of
 0.082671 and a Sharpe ratio of 1.278216. Its comment prints 0.083406 and
 1.288661, which the window from 2008-01-03 lands to every digit. Nothing
 committed says whether Chan's own copy of the file labelled its rows a day
-later or the comment came from a run with another ``idx``, so the
+earlier or the comment came from a run with another ``idx``, so the
 specification keeps the window the script states and the later start runs
 beside it with no verdict. ``tests/test_calendar_spread_reversion.py`` pins
 every figure.
