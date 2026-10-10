@@ -358,6 +358,10 @@ class TestTheInterceptFinding:
         found = intercept_findings(days, np.array([1.0, 1.0, 0.5]))
         assert (found.by_day.falls, found.by_day.steps) == (1, 2)
 
+    def test_any_drop_however_small_is_a_fall(self) -> None:
+        falls = rolling_falls(np.array([1.0, 1.0, 1.0 - 1e-14]), 1)
+        assert (falls.falls, falls.steps) == (1, 2)
+
 
 class TestTheGuardAndTheReads:
     def test_read_sources_guards_both_legs_over_the_whole_file(self, monkeypatch) -> None:

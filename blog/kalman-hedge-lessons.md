@@ -138,7 +138,7 @@ At every finer grain, some steps fall.
 \end{array}
 ```
 
-The rolling mean shows the grain deciding the answer inside one family of windows. Lengthen the window from 250 days to 300 and the falls drop from 57 of 1,250 steps to 25 of 1,200. At 350 days, none of the 1,150 steps falls. So the window’s length alone decides whether this measure finds any fall, and the claim names no length.
+The rolling mean shows the grain deciding the answer even when only the window’s length changes. Lengthen the window from 250 days to 300 and the falls drop from 57 of 1,250 steps to 25 of 1,200. At 350 days, none of the 1,150 steps falls. The window’s length alone decides whether this measure finds any fall, and the claim names no length.
 
 The intercept also peaks at 6.803488 on 2011-09-08, above its last value of 6.767360 on the file’s final day. So it ends lower than it has been.
 
