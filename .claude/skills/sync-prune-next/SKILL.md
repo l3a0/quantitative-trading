@@ -294,10 +294,10 @@ branch moves every open pull request built on it onto the merged one's base. No
 stacked pull request here has been moved that way by the setting yet, so that
 case rests on the documentation rather than on a run. The move starts no CI
 run, because the workflow's `pull_request` trigger runs only on GitHub's
-default activity types and a base change is not one of them. [PR
-#466](https://github.com/l3a0/quantitative-trading/pull/466) shows the cost.
-While it sat on [PR
-#464](https://github.com/l3a0/quantitative-trading/pull/464)'s branch, only
+default activity types and a base change is not one of them.
+[PR #466](https://github.com/l3a0/quantitative-trading/pull/466) shows the
+cost. While it sat on
+[PR #464](https://github.com/l3a0/quantitative-trading/pull/464)'s branch, only
 `docs` and `test` ran, because CodeQL's default setup scans only pull requests
 into the default branch or a protected one. Both were green, so the rollup read
 green with four checks missing. Its base was moved by hand on 2026-10-10, and
