@@ -1105,8 +1105,8 @@ class TestTheRefusals:
 
         It is raised inside the join rather than here, so a module that reads a
         pair and forgets it lets the refusal through as a traceback.
-        `chan.pair_cointegration.main` is one that names it, and this case is
-        what stops this module forgetting it.
+        `chan.pair_cointegration.main` names it, for one, and this case stops
+        this module from forgetting it.
         """
 
         def raise_it(*args, **kwargs):

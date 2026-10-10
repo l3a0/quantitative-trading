@@ -1029,9 +1029,9 @@ class TestAWindowThatCrossesABreakStops:
     def test_a_break_in_the_second_leg_refuses_too(self, committed_copy: Path) -> None:
         """The union across the legs, which every other case here reaches through leg A.
 
-        The ``halved`` fixture breaks GLD, and every other case here that
-        reads it passes GLD as ``a``, the leg it is where
-        :mod:`chan.regime_figure` reads the pair. So a guard reading only the
+        The ``halved`` fixture breaks GLD. Every other case here that uses the
+        fixture passes GLD as ``a``, the first leg, which is where
+        :mod:`chan.regime_figure` puts it too. So a guard reading only the
         first leg passed them all.
         Measured: truncating the loop to ``list(legs)[:1]`` left the whole
         suite green.

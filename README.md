@@ -771,8 +771,8 @@ his stock files most are real moves in single stocks, and the 58 in his ETF
 file fall in eight leveraged and inverse funds in 2008 and 2009. His
 continuous futures saves report 126 more, all in the ZB and ZF bond columns no
 script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27.
-Each run that reads one of these files decides whether to call the guard, and
-a run that does not says why in its own docstring. The
+Each replication that reads one of these files decides whether to call the
+guard, and one that does not says why in its own docstring. The
 Khandani-Lo reversal's 2006 window spans one of the stock days, WYN's restart
 on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -794,9 +794,9 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand. A run that does call it prints a number only when its window crosses
-no flagged day, as Examples 3.1 and 3.2 do on GLD and USO over the ETF file's
-whole span, where neither leg carries one.
+stand. Examples 3.1 and 3.2 are one case of a run that calls the guard. They
+read GLD and USO over the ETF file's whole span, where neither leg carries a
+flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -846,8 +846,7 @@ flag for every day of the file's calendar.
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
-[data/README.md](data/README.md) says what was measured on each file. Each
-replication's docstring names the files it reads. The Khandani-Lo reversal,
+[data/README.md](data/README.md) says what was measured on each file. The Khandani-Lo reversal,
 for one, reads the 2007 S&P 500 file's closes for Example 3.7 and its opens
 for Example 3.8. Example 3.1 reads GLD's and USO's closes from the ETF file,
 for [issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
@@ -891,11 +890,10 @@ its own calendar, and each is one vintage with all five fields, as a stock
 is. His `VIX.csv` is committed beside them as one vintage under the vendor
 `chan-csv`. Those five files hold 209 vintages, and
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
-their shape. A replication reading them names the saves it reads, as VX
-against ES does for
-[issue 350](https://github.com/l3a0/quantitative-trading/issues/350): VX and
-ES from the 2012-05-07 and 2012-05-17 saves, and the 2012-05-11 save in its
-tests.
+their shape. VX against ES, for one, reads VX and ES from the 2012-05-07 and
+2012-05-17 saves for
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350), and its
+tests read the 2012-05-11 save too.
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -918,8 +916,8 @@ December 2008 to August 2026, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
 between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
-September 2012. One module
-reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
+September 2012.
+`chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
 experiment.

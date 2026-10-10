@@ -81,7 +81,7 @@ to it.
 
 The scale-break guard is not applied. :func:`chan.series.load_panel` does not
 call ``refuse_window_crossing_a_break``, so a run reading a panel applies the
-guard only by calling it itself, and this one does not. The
+guard only by calling it itself. The
 comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py``
 says why for these files.
 

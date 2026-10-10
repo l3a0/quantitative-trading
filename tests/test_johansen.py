@@ -1,9 +1,9 @@
 """What :func:`chan.johansen.johansen` adds to statsmodels' test, held on synthetic series.
 
-The figures it computes for Chan's printouts are pinned in the test file of
-each replication that prints them, such as ``tests/test_etf_cointegration.py``
-for his ETFs, and agreeing with them is what shows the wrapper is LeSage's
-``johansen.m``. This file holds the parts no printout reaches: that a
+Where Chan prints a Johansen figure, the test file of the replication that
+reproduces it pins the wrapper's figure, as ``tests/test_etf_cointegration.py``
+does for his ETFs. Matching those printouts is what shows the wrapper is
+LeSage's ``johansen.m``. This file holds the parts no printout reaches: that a
 known cointegrating vector comes back, how the relations are counted, the sign
 rule, and each refusal.
 """

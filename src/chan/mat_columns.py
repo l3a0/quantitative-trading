@@ -3,9 +3,9 @@
 Chan's examples read five price files of this shape. Three come from his
 first-edition code: the S&P 500 as it stood on 2007-11-23, and the S&P 600 in
 two saves named for 2008-01-14 and 2008-01-31. Two come from his second book's
-code: the S&P 500 as he held it on 2012-04-24, which several of his examples
-read, Example 7.2 among them, and ``inputData_ETF.mat``, 67 ETFs saved on
-2012-04-10, which most of the book's ETF experiments read. Each holds date-by-symbol
+code. One is the S&P 500 as he held it on 2012-04-24, which several of his
+examples read, such as Example 7.2. The other is ``inputData_ETF.mat``, 67
+ETFs saved on 2012-04-10, which most of the book's ETF experiments read. Each holds date-by-symbol
 arrays of closes, highs, lows, opens and volumes, and
 [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) decided that
 such a file is recorded as one ordinary vintage per stock rather than as one
