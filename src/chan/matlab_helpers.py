@@ -28,36 +28,17 @@ edition's misses, and the repost of its code named below carries book two's
 file, so :mod:`chan.pca_factor` calls :func:`smartstd_book_two`.
 ``tests/test_pca_factor.py`` pins the figure the first edition's would give.
 
-The rest are Chan's helpers as his scripts call them. :func:`smartmean`,
-:func:`smartsum`, :func:`lag1` and :func:`matlab_sort` run in Example 7.7,
-and the first three run in Examples 3.7 and 3.8 in :mod:`chan.khandani_lo` too.
-:func:`backshift` runs through :func:`lag1` there, and :mod:`chan.pead` calls
-it, :func:`smartmean` and :func:`smartsum` directly for *Algorithmic
-Trading*'s Example 7.2. :mod:`chan.pca_factor` calls :func:`backshift`,
-:func:`smartmean`, :func:`smartsum` and :func:`matlab_sort` for Example 7.4.
-:mod:`chan.cross_sectional_momentum` calls :func:`backshift`, :func:`lag1`,
-:func:`smartmean`, :func:`smartsum`, :func:`matlab_sort` and
-:func:`round_half_away` for *Algorithmic Trading*'s Example 6.2.
-:mod:`chan.buy_on_gap` calls :func:`backshift`, :func:`smartsum` and
-:func:`matlab_sort` for *Algorithmic Trading*'s Example 4.1.
-:mod:`chan.khandani_lo_book_two` calls :func:`backshift`, :func:`smartmean`
-and :func:`smartsum` for *Algorithmic Trading*'s Examples 4.3 and 4.4.
-:mod:`chan.price_spread` calls :func:`lag1` for *Algorithmic Trading*'s
-Example 3.1.
-:mod:`chan.etf_cointegration` calls :func:`backshift` and
-:func:`round_half_away` for *Algorithmic Trading*'s Examples 2.6 to 2.8.
-:mod:`chan.index_arbitrage` calls :func:`backshift` and :func:`smartsum` for
-*Algorithmic Trading*'s Example 4.2.
-:mod:`chan.cl_reversal_momentum` calls :func:`backshift` for *Algorithmic
-Trading*'s crude oil rule at location 2701.
-:mod:`chan.tu_momentum` calls :func:`backshift`, :func:`fwdshift` and
-:func:`smartmean` for *Algorithmic Trading*'s Example 6.1, and is the one
-caller of :func:`fwdshift`. Chan's ``example7_6.m`` calls it too, and the
-build of that example here finds month-ends by comparing each row with the
-next instead. Reversing the
-tie order in :func:`matlab_sort` moves no printed figure on these files. On
-the 2012 S&P 500 file Example 4.1 reads, no two stocks qualifying on one day
-tie at all, on either side, so it moves nothing there either.
+The rest are Chan's helpers as his scripts call them. This docstring does not
+list which modules here call which helper, because a list kept by hand falls
+behind each time a replication adds a caller. This command, run from the
+repository root, names every module under ``src/chan`` that imports one::
+
+    grep -rlE '^ *(from|import) [^#]*matlab_helpers([ ,)]|$)' src/chan | sort
+
+Reversing the tie order in :func:`matlab_sort` moves no printed figure on the
+two files Examples 7.6 and 7.7 read. On the 2012 S&P 500 file Example 4.1 reads, no
+two stocks qualifying on one day tie at all, on either side, so it moves
+nothing there either.
 
 The source is Chan's first-edition mirror,
 [egorpe/EPChan-QuantitativeTrading](https://github.com/egorpe/EPChan-QuantitativeTrading)
@@ -79,7 +60,9 @@ What each one does:
   deviation. A month that held no position counts as a month that returned
   nothing.
 - :func:`backshift`, :func:`lag1` and :func:`fwdshift` move rows down or up and
-  pad with NaN.
+  pad with NaN. :func:`fwdshift` is carried because Chan's ``example7_6.m``
+  calls it, though Example 7.6 here finds month-ends by comparing each row with
+  the next instead.
 - :func:`matlab_sort` orders a row ascending with NaN last and ties in column
   order.
 - :func:`round_half_away` is MATLAB's ``round``. numpy's ``round`` sends a half
@@ -89,23 +72,7 @@ They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
 **Book two's helpers.** Seven come from Chan's *Algorithmic Trading* code
-rather than his first edition's. :mod:`chan.pead` calls the first three,
-:mod:`chan.buy_on_gap` calls each of the first five except
-:func:`smartstd_book_two` directly and runs that one through
-:func:`smart_moving_std`,
-:mod:`chan.price_spread` calls :func:`moving_avg` and :func:`moving_std`,
-:mod:`chan.cross_sectional_momentum` calls :func:`smartstd_book_two` and
-:func:`calculate_max_dd`, and :mod:`chan.pca_factor` and
-:mod:`chan.equity_seasonals` call :func:`smartstd_book_two`, the second for
-the revised edition's Example 7.7. :mod:`chan.usdcad_mean_reversion` calls
-:func:`moving_avg` and :func:`moving_std` for Example 2.5, with
-:func:`round_half_away` for the lookback, and :mod:`chan.stationarity_tests`
-calls :func:`round_half_away` to choose a row of jplv7's critical values.
-:mod:`chan.etf_cointegration` calls :func:`moving_avg` and :func:`moving_std`,
-and so does :mod:`chan.index_arbitrage`, for Example 4.2.
-:mod:`chan.tu_momentum` calls :func:`smartstd_book_two` and
-:func:`calculate_max_dd` for Example 6.1.
-The revised edition of
+rather than his first edition's. The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
 ``7430b84`` carries ``smartstd.m``, ``smartmean.m``, ``smartsum.m``,
 ``backshift.m`` and ``fillMissingData.m`` identical to book two's once line
@@ -121,8 +88,7 @@ endings are stripped, measured on
   :func:`drawdown_path` is its loop, returning each day's high, drawdown and
   duration, so a caller that needs to know where the longest run or the
   deepest drawdown falls reads the same calculation rather than a second copy
-  of it. :func:`chan.pead_figures.longest_spell` locates the first and
-  :func:`chan.cross_sectional_momentum_figures.deepest_drawdown` the second.
+  of it.
 - :func:`calculate_returns` is ``calculateReturns``, each row's simple return
   over the row ``lag`` rows before it.
 - :func:`smart_moving_avg` is ``smartMovingAvg``, the mean of the finite
@@ -130,8 +96,7 @@ endings are stripped, measured on
 - :func:`moving_avg` and :func:`moving_std` are ``movingAvg`` and
   ``movingStd``, the plain mean and MATLAB's n − 1 standard deviation over a
   trailing window of rows. Unlike the ``smart`` pair, a NaN anywhere in a
-  window makes that row NaN. :mod:`chan.price_spread` calls both for
-  Example 3.1.
+  window makes that row NaN.
 
 Book two's ``smartmean``, ``smartsum`` and ``backshift`` compute what the first
 edition's do, so they are not carried twice.
@@ -182,11 +147,10 @@ same double rather than numpy's pairwise sum.
 
 ``movingAvg.m`` and ``movingStd.m`` came for Example 3.1's ``PriceSpread.m``,
 ``LogPriceSpread.m`` and ``Ratio.m``. Example 3.2's ``bollinger.m`` calls them
-too, and so does Example 2.5's ``stationarityTests.m``, which
-:mod:`chan.usdcad_mean_reversion` transcribes. They are git blobs ``5b9f933`` and ``2f5f858`` under
-``public/img/book2/`` in EpchanPreview at ``e4bc46f`` and under
-``archived/matlab/`` in ivanliu1989/algorithmic_trading at ``4567024``. They
-landed here for
+too, and so does Example 2.5's ``stationarityTests.m``. They are git blobs
+``5b9f933`` and ``2f5f858`` under ``public/img/book2/`` in EpchanPreview at
+``e4bc46f`` and under ``archived/matlab/`` in ivanliu1989/algorithmic_trading
+at ``4567024``. They landed here for
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
 Examples 2.6 to 2.8's ``cointegrationTests.m`` calls them too, for
 [issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and so
@@ -195,7 +159,7 @@ does Example 4.2's ``indexArb.m``, for
 things changed on the way over.
 
 1. ``movingStd``'s optional third argument, which samples every ``period``
-   rows, is not carried, because none of the seven scripts passes it.
+   rows, is not carried, because no script transcribed here passes it.
 2. ``movingAvg``'s ``assert(T>0)`` becomes a refusal that names the window,
    and ``movingStd`` refuses a window of one row for the reason
    :func:`smart_moving_std` does.

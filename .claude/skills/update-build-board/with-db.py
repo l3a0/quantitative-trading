@@ -1,10 +1,10 @@
 """Splice the board's live database documents into a copy of its page.
 
 The page draws from its database, and the verification harness runs the page's
-script with no database at all, so on its own the harness would check the copy
-built into the page rather than what a viewer sees. This writes a copy of the
-page whose built-in copy is the documents just read, so the harness checks the
-live data.
+script with no database at all. The page carries no copy of the board, its
+FALLBACK line reading `{ none: true }`, so on its own the harness would see
+only the banner. This writes a scratch copy of the page whose FALLBACK is the
+documents just read, so the harness checks the data a viewer is about to see.
 
 Usage, from the scratch directory:
 
@@ -12,8 +12,9 @@ Usage, from the scratch directory:
 
 `readback/board` is the directory an `ArtifactData` list of the `board`
 collection with `out_dir` set to `readback` writes, one JSON file per section.
-The same output is what a renderer republish should send, so the built-in copy
-it carries is no older than the publish.
+The output is for the harness only. A publish sends the page with FALLBACK left
+as `{ none: true }`, because a copy carried by the published page goes stale
+with nothing to refresh it.
 """
 
 from __future__ import annotations

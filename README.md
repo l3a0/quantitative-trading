@@ -680,7 +680,8 @@ the book's, and each diagnostic beside them: the first training day dropped,
 an exit at the mean, a band started flat on the first test day, the printed
 hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
 It also holds the training and test spans, the four positions, and the
-scale-break guard on each leg of each save.
+scale-break guard on each leg of each save. The blog post about it is the
+exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) does it for
 the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
@@ -698,7 +699,8 @@ each at the precision that is real. It also holds that a month the rate file
 lacks gets a rate of zero, that AUD triples on Wednesdays and CAD on
 Thursdays and a holiday multiplies nothing, that each day's return carries the
 previous day's position and rates, and that zero rates give the script's
-commented-out formula without rollover bit for bit.
+commented-out formula without rollover bit for bit. The blog post about it is
+the exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py) does
 it for the crude oil rule. It pins the two figures on the 2012-05-04 save at
@@ -2929,8 +2931,197 @@ uv run python -m chan.etf_cointegration_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+[blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
+locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
+VIX future, against ES, the E-mini S&P 500 future, from August 2008 and trade
+the portfolio against a band one deviation wide. Chan reports a hedge of
+0.3906 VX contracts per ES contract, a residual standard deviation of \$2,047,
+and an APR of 12.3 percent with a Sharpe ratio of 1.4. The post draws four
+lessons from Entry 28 of the replication log.
+
+1. Three of the four figures land at the book's precision on Chan's
+   2012-05-07 save, and the residual deviation misses by \$2.09.
+2. The 2012-05-11 and 2012-05-17 saves miss all four, and `VX_ES.m` loads the
+   later one, fits on days that include the test set, and runs no trade.
+3. The exit the book leaves out decides the trade, since closing at the mean
+   gives 6.8 percent, and of the three rules tried only holding until the
+   opposite band lands both.
+4. The APR rests on four positions, all of them winners, and the whole of the
+   test set's gain came after the close of 2011-08-05.
+
+Seven groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "When the market goes down, volatility shoots up" is at 2546. The two
+   regimes, the second's lower volatility for a given index level, and the
+   warning against a regression across both are at 2552. The
+   dollars per point, the four figures, the long 0.3906 VX contracts and one
+   ES contract, the band of one training deviation, and "particularly
+   profitable" around the downgrade are at 2559. "0.3906 front contracts of
+   VX" in the roll-return trade is at 2754. The book's figures are pinned, and
+   its words are not.
+2. The search behind the window. Its 22,446 windows across the three saves,
+   and the one window among them that rounds to both fitted figures, are
+   recorded in Entry 28 and on the issue that shipped the run. No test reruns
+   the search.
+3. Facts outside the committed data. What ES and VX are and what the VIX
+   index measures. That Standard and Poor's announced its downgrade of the
+   U.S. credit rating after the close of Friday 2011-08-05. That a continuous
+   future shifts its history at each roll, and that VX's and ES's closes do
+   not move by one constant between saves, so how Chan's source rebuilt them
+   was not measured, both of which [data/README.md](data/README.md) records.
+4. What Chan's scripts at `e4bc46f` in `ericnberwick/EpchanPreview` do. That
+   `VX_ES.m` loads the 2012-05-17 save, keeps the days both legs traded,
+   draws the scatter and stops after the regression. That
+   `VX_ES_rollreturn.m` anchors at 2008-08-04, tests from the 501st row on,
+   computes every day's return before keeping those rows, reads ES from the
+   2012-05-07 save, and trades one VX contract against one ES contract with
+   every line holding 0.3906 commented out. That `bollinger.m` exits at a
+   z-score of 0.
+   [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
+   [data/README.md](data/README.md) record the first two.
+5. Arithmetic on pinned numbers that no test asserts as written: the
+   deviation missing by about a tenth of a percent, the APR on the later saves
+   falling by more than half, the 449 test days making about a year and three
+   quarters, and 236 of 449 days being more than half.
+6. The figure's alt text, whose readings of the points and lines, such as
+   "about 56,000 and 77,000 dollars" and "about minus 8 percent", are
+   approximate by design.
+7. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_vx_es.py](tests/test_vx_es.py), or to
+[tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) for the figure's
+own numbers. Three groups had no pin before it, and
+[tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
+
+1. The test set around the downgrade. It is down 0.045935 at the close of
+   2011-08-05, after 259 of the 449 test days, and grows 0.288414 over the
+   190 days after it to end at 0.229231. Its lowest, −0.077553, falls on
+   2011-08-08, the day the z-score reaches −3.886, its lowest since the
+   anchor.
+2. The four positions' returns over the test days each one earned: long for
+   325 days at 0.058104, short for 28 at 0.056144, long for 41 at 0.056877,
+   and short for 55 at 0.040777.
+3. That starting flat on the first test day lands the Sharpe ratio and misses
+   the APR by 0.2, and that closing at the mean misses the Sharpe ratio too.
+
+Its one figure is drawn from the committed save by
+[src/chan/vx_es_figures.py](src/chan/vx_es_figures.py), which reads it through
+the same `read_legs` and `vx_es` as `python -m chan.vx_es`, scale-break guard
+included. It draws three panels after the book's Figures 5.10 to 5.12.
+
+1. 50·ES against 1000·VX on the 1,999 common days, coloured by the two
+   regimes, with the fit on the 500 training days.
+2. The z-score from 2008-08-04 with the band at ±1, the last training day
+   marked, and each position the band holds shaded.
+3. The test set's compounded cumulative return, with the three changes of
+   position and 2011-08-05 marked.
+
+```bash
+uv run python -m chan.vx_es_figures
+```
+
+[tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) holds what it draws
+rather than its bytes, for the reason given above for the regime map.
+
+[blog/aud-cad-rollover-lessons.md](blog/aud-cad-rollover-lessons.md) is a
+twentieth post, about Example 5.2 of Chan's *Algorithmic Trading*, which adds
+the rollover interest a currency position earns or pays overnight to a rule
+that holds minus the sign of AUD.CAD's 20-day z-score. Chan reports an APR of
+6.2 percent and a Sharpe ratio of 0.54 with rollover interest, 6.7 percent and
+0.58 without it, and an annualised rollover interest of almost 5 percent. The
+post draws five lessons from Entry 30 of the replication log.
+
+1. The script's two printed figures and the book's four land every digit, and
+   a constant scale on the closes moves none of them.
+2. The book's "almost 5 percent" is not the rollover interest location 2273
+   defines, which misses the pass mark at 3.26 percent a year, while the AUD
+   rate alone and the difference over 365 days both land inside it.
+3. The rollover the strategy earned was a cost of about half a point a year,
+   because the rule held short on 707 days and long on 510.
+4. The book's Sharpe ratio of 0.54 depends on the script filling a missing
+   month's rate with zero.
+5. An exact reproduction checks the arithmetic and not the edge.
+
+Six groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The difference iB − iQ, which Chan calls "the interest differential" and
+   "also called a rollover interest", the
+   5 p.m. close, the T + 3 rule for a cross and the T + 1 exception for
+   USD.CAD are at 2273. Adding the rollover interest to the cross rate's
+   percent change, after Dueker (2006), is at 2287. The three claims, "even
+   though", the linear mean-reverting strategy and the two central banks as
+   the rates' sources are at 2303.
+2. Facts outside the committed data. What T + 2 settlement is and why it makes
+   one weekday pay three days, and that the MATLAB script kept the 16:59 bar
+   of a minute file no public copy holds, which
+   [src/chan/aud_cad_rollover.py](src/chan/aud_cad_rollover.py)'s docstring
+   records. The script's line 50, `APR=0.061564 Sharpe=0.541802`, is pinned
+   through its constants, and its line number was read at `e4bc46f`. So were
+   two more readings of the script: that its line 44, the return without
+   rollover interest, is commented out, and that it computes no rollover
+   figure.
+3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, that
+   the two monthly averages of 4.908 and 1.592 percent differ by about 3.3
+   points, that the reading over 365 days is the one over 252 scaled by
+   365 / 252, about 1.45, and that the rule holds short on 197 more days than
+   long.
+4. Three readings no test asserts: that the tripled day already pays for the
+   weekends, so annualising over 365 days overstates the year, that long and
+   short days cancel in total when they see about the same rollover interest,
+   and that the stationary-candidates post finds the CAD/AUD rate reverting,
+   which that post's own tests pin. That neither location 2303 nor the script
+   mentions the zero fill is read from the book notes and the script.
+5. The figure's alt text, whose readings of the lines, such as AUD staying
+   above CAD in every month and the line without rollover interest sitting
+   above the line with it on every day after January 2008, were measured once
+   on the committed files and are not asserted.
+6. Its references, cited rather than computed. Dueker (2006) is named as the
+   book names it, without its full entry, which the committed notes do not
+   record.
+
+Every other number in the post traces to an assertion in
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py), or to
+[tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
+for the figure's own numbers, among them the rates' extremes, the close's
+low and high, where the two cumulative returns end, and their deepest fall
+from 2008-07-30 to 2008-10-08. Three had no pin before it, and
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) now pins
+them.
+
+1. The difference between the APR without rollover interest and the APR with
+   it, 0.0055770095.
+2. The net share of held days, (510 − 707) / 1,217, times the annualised
+   rollover interest, −0.0052838233, against the rollover the strategy earned
+   of −0.0052212787.
+3. The rollover interest annualised over the days held long, 0.0328995788, and
+   over the days held short, 0.0328677609.
+
+Its one figure is drawn from the committed files by
+[src/chan/aud_cad_rollover_figures.py](src/chan/aud_cad_rollover_figures.py),
+which reads them through the same `read_sources` and `aud_cad_rollover` as
+`python -m chan.aud_cad_rollover`, scale-break guard included. It draws three
+panels on one date axis, for Lessons 1, 3 and 4.
+
+1. The AUD and CAD monthly rates from July 2007, with the months each file
+   lacks marked.
+2. The AUD.CAD close, with the days held short and the days held long shaded.
+3. The cumulative return with and without rollover interest, compounded as the
+   script compounds it.
+
+```bash
+uv run python -m chan.aud_cad_rollover_figures
+```
+
+[tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 [blog/bollinger-band-lessons.md](blog/bollinger-band-lessons.md) is a
-nineteenth post, about Example 3.2 of Chan's *Algorithmic Trading*, which
+twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
 trades Example 3.1's GLD and USO price spread with a Bollinger band instead of
 the linear rule. It holds one unit at most, entering when the 20-day z-score
 passes ±1 and leaving when it crosses 0. Chan reports an APR of 17.8 percent

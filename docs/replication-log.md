@@ -5929,7 +5929,10 @@ Chan's names. Neither is confirmed by anything he printed, so the match is
 evidence that this window is close to his, and no more.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/vx-es-lessons.md](../blog/vx-es-lessons.md), this entry's write-up,
+moves with it, since that post quotes most of these figures. The post's one
+figure moves too, and `uv run python -m chan.vx_es_figures` redraws it.
 
 ## Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
 
@@ -6302,7 +6305,10 @@ the Bank of Canada's own tables, which
 script charges nothing for it.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/aud-cad-rollover-lessons.md](../blog/aud-cad-rollover-lessons.md) moves
+with it, since that post quotes most of these figures. The post's one figure
+moves too, and `uv run python -m chan.aud_cad_rollover_figures` redraws it.
 
 ## Entry 31: crude oil reversal joined to momentum, Chan's *Algorithmic Trading*
 
