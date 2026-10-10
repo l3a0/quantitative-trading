@@ -640,10 +640,16 @@ class TestReadingACrossSection:
         _, panel = read_cross_section("sp600", column="close", data_dir=data_dir, directory=store)
         assert panel["ABC"].dropna().tolist() == [10.0, 12.0]
 
+    def test_the_volume_is_the_third_column(self, tmp_path):
+        """Issue 336's stop rule reads it, to find a series' last row that traded."""
+        data_dir, store = recorded_store(tmp_path)
+        _, panel = read_cross_section("sp600", column="volume", data_dir=data_dir, directory=store)
+        assert panel["XYZ"].tolist() == [100, 100, 100]
+
     def test_any_other_column_is_refused(self, tmp_path):
         data_dir, store = recorded_store(tmp_path)
         with pytest.raises(ValueError, match="column must be one of"):
-            read_cross_section("sp600", column="volume", data_dir=data_dir, directory=store)
+            read_cross_section("sp600", column="open", data_dir=data_dir, directory=store)
 
     def test_symbols_narrow_the_read_and_an_unrecorded_one_is_left_out(self, tmp_path):
         data_dir, store = recorded_store(tmp_path)

@@ -3,10 +3,10 @@
 Every class here holds at least one input on which a helper and the numpy
 default disagree, and asserts the default's answer beside the helper's. So a
 helper quietly swapped for the default fails rather than agreeing on easy
-inputs. Where a helper moves a figure Chan prints, that figure is pinned in
-``tests/test_equity_seasonals.py``, ``tests/test_pead.py``,
-``tests/test_pca_factor.py`` or ``tests/test_buy_on_gap.py``, and the module
-docstring of :mod:`chan.matlab_helpers` says which helpers those are.
+inputs. Where a helper moves a figure Chan prints, the test file of the
+replication that prints it pins the move, as ``TestTheHelperMovesADigit`` in
+``tests/test_pead.py`` does for Example 7.2. The module docstring of
+:mod:`chan.matlab_helpers` says which helpers move a figure.
 
 The two books' ``smartstd`` files are held against each other as well as
 against numpy, on one input where all three disagree, because swapping one
