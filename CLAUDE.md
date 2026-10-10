@@ -428,6 +428,21 @@ PR titles use a Conventional Commits prefix. The form is `type(scope): summary`.
 
 PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`, then `## What`. Add situational sections after as the change needs them, like `## Scope`, `## Notes`, or `## Evidence`. The body's prose obeys the writing-style rules above. So clear, short sentences and no em dashes. End every body with the footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
+## Write-ups and their Substack drafts
+
+On 2026-10-10 eleven open write-up issues were blocked on nothing in the code. Each said its outline waited on the owner asking for the post, and each post's Substack draft waited on an approval in chat. The owner removed both waits that day.
+
+**A filed write-up issue is approved to plan and write (owner directive, 2026-10-10).** The ruling was "Write-up issues are approved to plan and write once filed." An issue titled "Write up the lessons of Entry N ..." is work a session starts like any other deliverable. A write-up issue filed from now on says so, rather than saying its outline waits on the owner.
+
+**Creating or syncing an unpublished Substack draft needs no ask in chat (owner directive, 2026-10-10).** The owner extended the first ruling with "Yes, and substack too." Two guards still hold before any write to a draft.
+
+1. Compare the live draft with its recorded baseline.
+2. If the owner has edited the draft, pull those edits into the Markdown and never overwrite them.
+
+**Publishing stays with the owner.** Publishing, scheduling and sending a post are the owner's call. So is any change to a post that is already published, because writing to a published post's draft changes the live post.
+
+The price is throughput rather than safety. Every write-up edits `README.md`, `docs/replication-log.md` and `tests/test_markdown_hygiene.py`, so write-ups started all at once conflict with each other. Run them in small batches, in the build board's order.
+
 ## Keep the build board current
 
 The build board is a page that answers what is in flight and what to take next. It reads no disk and polls no API, so every figure on it was measured by hand. A session that changes what it shows and then leaves has made it wrong, and nothing else notices.
@@ -461,7 +476,7 @@ Backgrounding a step does not release what waits on it. A pull request is still 
 Two things stay in the foreground.
 
 1. A step whose result the very next action needs, when nothing else can usefully happen meanwhile. Say in a line what it is waiting on, so the owner knows the thread is busy.
-2. Anything only the owner can answer, which includes every approval, such as an edit to a Substack draft. That is a conversation, so it happens on the main thread, while the checks before and after it can run anywhere. A background decompose loop that reaches a question only the owner can answer hands back at once, the main thread asks it, and the loop resumes with the ruling.
+2. Anything only the owner can answer, which includes every approval, such as publishing a Substack post. That is a conversation, so it happens on the main thread, while the checks before and after it can run anywhere. A background decompose loop that reaches a question only the owner can answer hands back at once, the main thread asks it, and the loop resumes with the ruling.
 
 The price is named rather than hidden. A sub-agent starts with none of the session's context, so its prompt has to carry everything it needs, as a spawned session's prompt already does. Two background workers can also reach the same shared state at once. Each board write names the version it read, so the second writer is refused and has to re-read and redo its write. State with no such check, such as an issue body, gets one writer: background agents report what to change, and the main thread writes it.
 
