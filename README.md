@@ -3480,15 +3480,22 @@ Five groups of what it says are not pinned here.
    against momentum is at 2890. The book's figures are pinned, and its words
    are not.
 2. Facts about the script rather than the data: that both of its `plot` lines
-   compound, and that its cost lines are commented out, which
-   `andrewlo_2007_2012.m` holds at `e4bc46f` of ericnberwick/EpchanPreview.
+   compound, that its cost lines are commented out, and that its comment for
+   Example 4.3 reads 13.7 percent and 1.3, which `andrewlo_2007_2012.m` holds
+   at `e4bc46f` of ericnberwick/EpchanPreview. That a second copy holds the
+   script byte for byte is recorded in
+   [src/chan/khandani_lo_book_two.py](src/chan/khandani_lo_book_two.py)'s
+   docstring.
 3. Readings no test asserts: that most of the scale-break guard's flags on
    this window fall in the 2008 crisis, that CAH's prices read as a data error
    or a corporate action, and that a longer stretch of survivors leaves out
-   more failed companies.
+   more of the companies that left the index. The survivor horizons of five
+   years and under two are arithmetic on the two files' membership dates.
 4. Ratios the post takes between pinned figures in words: about five times,
-   nearly four times, four times the average return, by about a third, and
-   less than a third.
+   nearly four times, four times the average return, about the same standard
+   deviation, more than twice, by about a third, and less than a third. So is
+   what a figure would print as at the book's precision, such as 1.2, 10, 13.3
+   and 0.731552.
    The figure's alt text reads its curves approximately too, such as "about 70
    percent" and "about 1,460 percent".
 5. Its references, cited rather than computed.

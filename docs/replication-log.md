@@ -2687,6 +2687,9 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its
 running-profit figure, which `uv run python -m chan.survivorship_and_costs_figures`
 redraws.
+[blog/khandani-lo-reversal-lessons.md](../blog/khandani-lo-reversal-lessons.md)
+moves with it too, since it quotes the before-cost and after-cost figures and
+the average day of 2006 beside the 2012 panel's.
 
 ## Entry 9: the survivorship toy, Chan's *Quantitative Trading*
 
@@ -4560,9 +4563,9 @@ Three things.
    panel earns 1.2219 before costs, near book two's 1.2595 on the same days
    (row 10). Taking the rule first gives the same answer: on the first book's
    year it moves 0.2510 to 0.5484 (row 9), less than the rest of the way to
-   1.2595. Of that 0.2974, the two days the cut zeroes carry 0.1313, nearly
-   half (row 11), because a window of 251 days lets two days move a Sharpe
-   ratio by a third. Both differences are taken on the unrounded figures,
+   1.2595. Of that 0.2974, the two days the cut zeroes carry 0.1313, 0.44
+   of it (row 11), because a window of 251 days lets two days move a Sharpe
+   ratio by a third. Both differences come from the unrounded figures,
    which `TestBesideTheFirstBook::test_the_differences_the_post_quotes_round_from_the_unrounded_figures`
    holds. The data include a longer survivor horizon, since this
    panel carries 2012-04-24's membership back to 2007, five years, where

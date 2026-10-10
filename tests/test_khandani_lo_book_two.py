@@ -6,7 +6,7 @@ the first book's Examples 3.7 and 3.8. ``docs/replication-log.md`` Entry 19
 carries the verdicts and points here row by row, and
 ``blog/khandani-lo-reversal-lessons.md`` quotes the same figures and the
 yearly APRs, the annual mean and deviation, the bridge differences and the
-average day that were pinned for it.
+average day that this file pins for it.
 
 Every pin on the committed panel reads one vintage and one specification, so
 both are stated once here.
@@ -247,26 +247,26 @@ class TestEachYear:
         assert all(a > b for a, b in zip(later, later[1:], strict=False))
 
 
-class TestTheMeanAndTheSwing:
-    """Why 4.7 is so far above 1.3: the swings are close and the means are not.
+class TestTheMeanAndTheDeviation:
+    """Why 4.7 is so far above 1.3: the deviations are close and the means are not.
 
     The annual mean is ``252 · mean`` and the annual deviation ``√252 · std``
     with n − 1, so their ratio is each example's pinned Sharpe ratio.
     """
 
     @pytest.mark.parametrize(
-        ("example", "mean", "swing"),
+        ("example", "mean", "deviation"),
         [("4.3", 0.1338, 0.1063), ("4.4", 0.5565, 0.1181)],
     )
     def test_each_examples_annual_mean_and_deviation(
-        self, result: BookTwo, example, mean, swing
+        self, result: BookTwo, example, mean, deviation
     ) -> None:
         run = result.close_to_close if example == "4.3" else result.open_to_close
         annual_mean = 252 * run.daily.mean()
-        annual_swing = np.sqrt(252) * run.daily.std(ddof=1)
+        annual_deviation = np.sqrt(252) * run.daily.std(ddof=1)
         assert annual_mean == pytest.approx(mean, abs=5e-5)
-        assert annual_swing == pytest.approx(swing, abs=5e-5)
-        assert annual_mean / annual_swing == pytest.approx(run.sharpe, abs=1e-12)
+        assert annual_deviation == pytest.approx(deviation, abs=5e-5)
+        assert annual_mean / annual_deviation == pytest.approx(run.sharpe, abs=1e-12)
 
 
 class TestTheFirstDays:
@@ -390,7 +390,8 @@ class TestWhatAnAverageDayCostsOnThePanel:
     """The first book's rule on this panel, as ``TestWhatAnAverageDayCosts`` reads 2006.
 
     That class, in ``tests/test_khandani_lo.py``, pins 2006's average day: a
-    profit of 0.5276 basis points of the book, a cost of 7.2525, 13.7453 times
+    profit of 0.5276 basis points of the rule's average gross position, a
+    cost of 7.2525, 13.7453 times
     the profit, and a turnover of 1.4505. On the panel the turnover and the
     cost barely move and the profit is about twenty times larger.
     """

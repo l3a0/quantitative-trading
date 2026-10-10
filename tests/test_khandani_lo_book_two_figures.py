@@ -11,10 +11,10 @@ bytes, for the reason ``tests/test_regime_figure.py`` gives.
 The figure reads the vintage and the specification
 ``tests/test_khandani_lo_book_two.py`` names in its docstring.
 
-One number is pinned here and nowhere else: where each cumulative line ends,
+Two numbers are pinned here and nowhere else: where each cumulative line ends,
 0.898341 for Example 4.3 and 14.566046 for Example 4.4. Each is tied to its
-example's APR by the compounding the APR undoes, over 1,260 days of 252, which
-is five years.
+example's APR by the compounding the APR undoes, over 1,260 days at 252 a
+year, which is five years.
 
 Exploratory, like everything ``andrewlo_2007_2012.m`` computes here.
 """
@@ -175,7 +175,7 @@ class TestTheCurves:
         ("gid", "end"), [("close-to-close", 0.898341), ("open-to-close", 14.566046)]
     )
     def test_each_line_ends_where_its_apr_says(self, axes, runs, gid, end) -> None:
-        """The APR carried back over 1,260 of 252 days ties each line to its pin."""
+        """The APR carried over 1,260 days at 252 a year ties each line to its pin."""
         last = _by_gid(axes[gid].lines)[gid].get_ydata()[-1]
         assert last == pytest.approx((1 + runs[gid].apr) ** 5 - 1, abs=1e-12)
         assert last == pytest.approx(end, abs=5e-7)
