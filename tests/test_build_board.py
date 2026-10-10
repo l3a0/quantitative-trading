@@ -238,7 +238,7 @@ def test_a_landed_part_of_pull_request_leaves_its_card_free(tmp_path: Path, stat
         if card["n"] in (90503, 90505):
             card["needs"] = []
     docs["next"]["items"] += [
-        {"issue": 90505, "band": 3, "ready": "build", "why": "Its part of the post is still to write."},
+        {"issue": 90505, "band": 3, "ready": "build", "why": "Its remainder is still to write."},
         {"issue": 90504, "band": 3, "ready": "decide", "why": "Its scope is still the owner's."},
     ]
     docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
