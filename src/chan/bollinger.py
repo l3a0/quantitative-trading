@@ -64,7 +64,7 @@ lands both of its comment's figures, so the port explains no miss.
 1. The file is read as committed vintages through
    :func:`chan.price_spread.read_sources` rather than loaded from the ``.mat``.
 2. The plot of cumulative returns, Figure 3.3, is not carried. The run prints
-   and draws nothing.
+   and draws nothing, and :mod:`chan.bollinger_figures` draws it for the post.
 3. ``fillMissingData`` is written inside :func:`band_units` rather than as a
    helper, because nothing else here forward-fills an array of units.
 
