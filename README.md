@@ -847,6 +847,8 @@ each claim's margin, the rebuild against the 2012-05-11 save, both rules on
 that save's own close, and the month-unit and fifth-contract readings. It
 also holds the declared rule and the roll's off-by-one on synthetic strips,
 the March 2012 roll, and the scale-break guard on every member's own rows.
+The blog post about it is the exception, and what it says that nothing here
+asserts is listed below.
 
 [tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) does it
 for Example 1.1's three hypothesis tests on TU. It pins every count exactly at
@@ -3768,6 +3770,86 @@ uv run python -m chan.khandani_lo_book_two_figures
 ```
 
 [tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/roll-momentum-lessons.md](blog/roll-momentum-lessons.md) is a
+twenty-sixth post, about location 2690 of Chan's *Algorithmic Trading*, which
+revises Example 6.1 to trade TU, the two-year Treasury note future, on the
+lagged roll return instead of the past 250-day return. Chan reports an APR of
+2.5 percent, a Sharpe ratio of 2.1 and a maximum drawdown of 1.1 percent from
+2009-01-02 to 2012-08-13, each better than Example 6.1's. The post draws four
+lessons from Entry 36 of the replication log.
+
+1. The declared rule misses all three printed figures, and Chan's 2012-05-11
+   save lands near the rebuilt series, so the vintage does not explain the
+   miss.
+2. It beats Example 6.1 on all three on one series, by stepping aside. Example
+   6.1 is fully long on every window row, so it is holding TU, and the 341
+   rows the declared rule sits out compound to about nothing while its
+   volatility falls.
+3. No saved series reaches the window, so the front contract is rebuilt from
+   the strip, and every change that differs from the save falls on the roll
+   row where the save's back-adjustment jumps.
+4. The rule was declared after about 90 scratch readings, and the
+   fifth-contract reading that lands two of the book's figures is set aside.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   Example 5.3's regression on "time to maturity" is at 2399. "A respectable
+   1", the 1.7 and 2.5 percent, and TU's notional value of about $200,000
+   against a margin of about $400 are at 2668. "The sign of roll returns does
+   not vary very often" is at 2683. "A cleaner and potentially better momentum
+   signal", the 3 percent threshold, and the 2.5 percent, 2.1 and 1.1 percent
+   are at 2690. The book's figures are pinned, and its words are not.
+2. Facts from the run's own disclosure rather than the data: the count of
+   about 90 scratch readings, and the 1.801 a scratch fit of γ on the four
+   nearest contracts gave the fifth-contract reading. No test repeats either.
+3. Readings no test asserts: that a low close on the fifth contract would
+   raise γ and put the rule long the same contract, that Example 6.1 would go
+   short in a window where TU fell, and that a position on TU's notional value
+   would be leveraged.
+4. Arithmetic the post takes between pinned figures in words: the 1.80 and
+   1.20 that average return over volatility gives, the 64 rows no save
+   covers, a third of γ as three times the month reading, and 341 of 913 as
+   the rows outside the 572.
+   The figure's alt text reads its curves approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_roll_momentum.py](tests/test_roll_momentum.py) or to
+[tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
+for the figure's own numbers. Three had no pin before it.
+
+1. Example 6.1 holds all 25 tranches long on every one of the 913 window rows,
+   so its returns are the rebuilt series' own.
+2. The 341 rows the declared rule sits flat compound to −0.001244, and the 572
+   long rows to 0.050629, the rule's whole return.
+3. The two rules' annual volatilities, 0.007575 and 0.011156, and average
+   annual returns, 0.013661 and 0.013351.
+
+[tests/test_roll_momentum.py](tests/test_roll_momentum.py) pins all three, and
+[tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
+pins the figure's lines and labels.
+
+Its one figure is drawn from the committed strip by
+[src/chan/roll_momentum_figures.py](src/chan/roll_momentum_figures.py), which
+reads it through the same `load_strip` and `roll_momentum` as
+`python -m chan.roll_momentum`. It draws two panels on one date axis, with the
+rows the declared rule sits flat shaded in both.
+
+1. Both rules' compounded cumulative returns on the rebuilt front contract over
+   the 913 window rows, ending at 0.050629 and 0.049322.
+2. γ in column units against the thresholds at 3 and −3 percent. It peaks at
+   0.073403 on 2009-10-12 and never falls below −3 percent.
+
+```bash
+uv run python -m chan.roll_momentum_figures
+```
+
+[tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
