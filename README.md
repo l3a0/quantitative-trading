@@ -3820,7 +3820,9 @@ Five groups of what it says are not pinned here.
    much as the other years combined, four trading days between the two saves'
    first days, 2.484746 percent rounding to 2.5, and what a figure prints as
    at the book's precision, such as 0.43, 0.45 and 0.29. The figure's alt text
-   reads TU's closes approximately too, as drifting down and then climbing.
+   reads both curves approximately too, such as TU's closes drifting down
+   until mid-2007 and the cumulative return dipping below zero in 2005 and
+   flattening through 2009.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
