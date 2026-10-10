@@ -106,7 +106,10 @@ BEFORE_END = pd.Timestamp("2008-10-24")
 LOOKBACK = 15
 #: One column apart, which on this strip is one month.
 SPREAD_MONTH = 1
-#: B2's and B3's holding period, under which each pair is held in turn.
+#: B2's and B3's holding period. Each pair is then held in turn, apart from the
+#: strip's first pair and the pairs whose near contract still trades on the
+#: file's last row. Neither changes what is held from 2008-10-27, which is
+#: each pair from VX-2008X's to VX-2012K's in order.
 EACH_IN_TURN = 0
 
 #: Location 2502. The APR is compared against 100 times the computed one.
@@ -158,6 +161,13 @@ def held_pair_ratio(contracts: pd.DataFrame, schedule: pd.DataFrame) -> pd.Serie
     near contract and +1 on the far one, and it holds at most one pair a row.
     The ratio is filled forward across the rows where nothing is held, so it is
     NaN only before the first held row.
+
+    The check below refuses a schedule built on other days or columns. It
+    cannot catch the flipped positions
+    :attr:`~chan.calendar_spread_reversion.CalendarSpreadRun.positions` carries
+    passed in place of the unflipped schedule, because those share the
+    schedule's days and columns. On every row the flip reverses, the result
+    would then be the near contract over the far one.
     """
     if not (schedule.index.equals(contracts.index) and schedule.columns.equals(contracts.columns)):
         raise ValueError(

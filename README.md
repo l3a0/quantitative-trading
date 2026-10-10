@@ -475,12 +475,15 @@ where they were first built. The other thirty-three were built here.
     statistic of −5.568107 clears the 1 percent critical value of −3.4583,
     so the book's "stationary with a 99 percent probability" holds. Its APR
     of −0.040454 and Sharpe ratio of −0.563912 have the wrong sign against
-    the book's 17.7 percent and 1.5. Of four rows declared beside it, the one
-    trading the held pair's ratio with each pair held in turn gives 0.176952
-    and 1.475658 on the book's window to 2012-04-23, both of the book's
-    figures, holds its last pair on that date, and alone does worse before
-    October 2008, as the book says. That row was picked out after the run, so
-    its match is a search. Every figure is exploratory.
+    the book's 17.7 percent and 1.5. Of four rows declared beside it, B3
+    trades the ratio of the pair it holds with each pair held in turn, which
+    from 2008-10-27 is every pair from VX-2008X's to VX-2012K's. On the
+    book's window to 2012-04-23 it gives 0.176952 and 1.475658, which round
+    to the book's 17.7 percent and 1.5, and it alone does worse before
+    October 2008, as the book says. Its last pair ends on the book's end
+    date, but so does the row that holds pairs the same way on the
+    specification's signal, so the date does not single it out. B3 was picked
+    out after the run, so its match is a search. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -799,10 +802,11 @@ for the VX calendar spread. It pins the specification and the four rows
 declared beside it at six decimals, the book's three figures against the
 specification at the precision Chan printed, and the two measurements taken
 after the run, each marked as such. It also holds why the specification pairs
-contracts a month apart, the 64 of VX's 71 pairs and 68 of CL's 77 held when
-each is held in turn, and, on synthetic frames, the two signals' rules: a row whose nearest two
-contracts skip one, the held pair across a roll, and the fill across days
-nothing is held.
+contracts a month apart, the 64 of VX's 71 pairs and 68 of CL's 77 held under
+`holddays=0`, the 43 pairs B3 holds from 2008-10-27, and why its last pair
+ends on the book's end date. On synthetic frames it holds the two signals'
+rules: a row whose nearest two contracts skip one, the held pair across a
+roll, and the fill across days nothing is held.
 
 All thirty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -1593,8 +1597,9 @@ uv run python -m chan.vx_calendar_spread
 
 It prints the vintage and the window, the specification's ADF statistic, APR
 and Sharpe ratio beside the book's claims with a verdict, then the four rows
-declared beside it, B3 on the book's window and each row before October 2008,
-none with a verdict.
+declared beside it, B1 to B4. B3, the row that trades the held pair's ratio
+with each pair held in turn, is then measured on the book's window, and each
+row before October 2008. None of these carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

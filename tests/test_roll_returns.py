@@ -669,14 +669,10 @@ class TestTheVxStrip:
 class TestTheRefusals:
     @pytest.mark.parametrize("root", ["HO2", "C", "cl", "vx"])
     def test_any_other_root_is_refused_naming_the_six(self, root) -> None:
-        with pytest.raises(ValueError, match=f"BR, C2, CL, HG, TU, and VX, and not {root}$"):
+        with pytest.raises(
+            ValueError, match=f"BR, C2, CL, HG and TU, and the VX strip, and not {root}$"
+        ):
             load_strip(root)
-
-    def test_strip_returns_refuses_a_strip_with_no_spot(self, strips) -> None:
-        """α needs a spot, so a strip read without one is refused in words."""
-        no_spot = Strip(root="VX", members=[], spot=None, contracts=strips["CL"].contracts)
-        with pytest.raises(ValueError, match="needs a spot, and the VX strip holds none"):
-            strip_returns(no_spot)
 
     def test_a_member_with_no_priced_day_is_skipped_by_the_guard(self, panels, monkeypatch) -> None:
         """No committed member is empty, and an empty one has no move for the guard to read."""

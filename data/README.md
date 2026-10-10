@@ -923,7 +923,7 @@ near delivery. His Example 5.4, `calendarSpdsMeanReversion.m`, reads the CL
 strip named for 2012-08-13 to trade the gap between two crude contracts
 delivering 12 months apart. An unnumbered experiment reads the TU strip. The
 VX calendar spread, which the book reports without a script of its own, is
-that same script run on the VX strip, as its commented-out first load line
+Example 5.4's script run on the VX strip, as its commented-out first load line
 shows. `VX_ES_rollreturn.m` also reads the VX strip, and `GLD_GC.m` reads the
 gold series. Example 5.3 is the first replication to read any of them, five of
 the seven its script names, BR, C2, CL, HG and TU, through

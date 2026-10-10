@@ -211,10 +211,11 @@ maximum drawdown of −0.053222 and a longest drawdown of 206 days, sit in the
 script and nowhere in the book. The replication log's Entry 34
 traces each figure to one or the other.
 
-*Algorithmic Trading*'s VX calendar spread, in its Chapter 5, is the opposite
-case from its crude oil rule: every figure is in the book and none is in a
-script. The claim that the ratio of back to front is "stationary with a 99
-percent probability", the APR of 17.7 percent and Sharpe ratio of 1.5 from
+Every figure of *Algorithmic Trading*'s VX calendar spread, in its Chapter 5,
+is in the book and none is in a script, the opposite of Example 5.4, whose
+six-decimal figures sit in the script and nowhere in the book. The claim that
+the ratio of back to front is "stationary with a 99 percent probability", the
+APR of 17.7 percent and Sharpe ratio of 1.5 from
 October 27, 2008, to April 23, 2012, and the claim that it "performed much
 more poorly prior to October 2008" are all here, at location 2502. No script
 ships under the experiment's own name. `calendarSpdsMeanReversion.m` carries a

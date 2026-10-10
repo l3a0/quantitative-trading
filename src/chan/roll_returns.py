@@ -78,11 +78,12 @@ say what is missing. :data:`ROOTS` stays at the five, since :func:`run` reads
 each of them for Table 5.1.
 
 **The scale-break guard runs on each member's own rows.** :func:`load_strip`
-calls :func:`chan.series.refuse_window_crossing_a_break` on the spot and on
-every contract, reading each as ``closes[symbol].dropna()`` over its own first
-and last day. A contract's panel column is NaN on every day before it listed
-and after it expired, so passing the columns over the strip's span would have
-the guard report a day with no readable move on every strip. Over a restart
+calls :func:`chan.series.refuse_window_crossing_a_break` on every member, the
+spot among them where the strip has one, reading each as
+``closes[symbol].dropna()`` over its own first and last day. A contract's panel
+column is NaN on every day before it listed and after it expired, so passing
+the columns over the strip's span would have the guard report a day with no
+readable move on every strip. Over a restart
 gap the guard compares the settlements on either side, which is the move a
 holder would see, and it flags none.
 [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) decided
@@ -323,8 +324,8 @@ def load_strip(root: str, data_dir: Path | None = None) -> Strip:
     """
     if root not in SOURCE_FILES:
         raise ValueError(
-            f"load_strip reads the five strips of Table 5.1, {', '.join(ROOTS)}, and VX, "
-            f"and not {root}"
+            f"load_strip reads the five strips of Table 5.1, {', '.join(ROOTS[:-1])} and "
+            f"{ROOTS[-1]}, and the VX strip, and not {root}"
         )
     members, closes = load_panel(SOURCE_FILES[root], data_dir=data_dir)
     for entry in members:
@@ -347,8 +348,6 @@ def load_strip(root: str, data_dir: Path | None = None) -> Strip:
 
 def strip_returns(strip: Strip) -> StripReturns:
     """α and both γ series for one strip, which must hold a spot."""
-    if strip.spot is None:
-        raise ValueError(f"strip_returns needs a spot, and the {strip.root} strip holds none")
     return StripReturns(
         strip=strip,
         alpha=spot_return(strip.spot),

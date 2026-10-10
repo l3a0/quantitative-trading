@@ -160,10 +160,12 @@ class TestTheVintage:
 class TestTheSignalsOnVx:
     def test_ss_signal_is_missing_only_on_its_first_148_rows(self, strip) -> None:
         """The nearest two priced columns skip a contract only before 2006-10-23, so the
-        forward fill changes nothing inside the window."""
+        forward fill changes nothing inside the window, and the ADF test and the half-life
+        read the other 1,395 rows."""
         signal = nearest_two_ratio(strip.contracts)
         missing = signal.index[signal.isna().to_numpy()]
         assert len(missing) == 148, S_SPEC
+        assert int(signal.notna().sum()) == 1395, S_SPEC
         assert str(signal.first_valid_index().date()) == "2006-10-23", S_SPEC
         assert missing.equals(signal.index[:148]), S_SPEC
 
@@ -198,6 +200,32 @@ class TestTheSignalsOnVx:
         last_near = schedule.columns[(schedule.iloc[-1] == -1).to_numpy()]
         assert list(last_near) == [], SPECS["B2"]
         assert schedule["VX-2012K"].iloc[-11] == -1 and strip.contracts["VX-2012K"].iloc[-1] > 0
+
+    def test_holddays_0_ends_its_last_pair_on_the_books_end_date(self, strip) -> None:
+        """VX-2012K still trades on the file's last row, 2012-05-07, so the schedule reads
+        that row as its expiry, and its pair ends 10 rows earlier, on 2012-04-23. B2 and B3
+        share the schedule, so the date does not tell them apart."""
+        schedule = calendar_schedule(
+            strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
+        )
+        assert str(schedule.index[-11].date()) == "2012-04-23", SPECS["B2"]
+        assert (schedule.iloc[-10:] == 0).all().all(), SPECS["B2"]
+        last_priced = strip.contracts["VX-2012K"].last_valid_index()
+        assert str(last_priced.date()) == "2012-05-07", VINTAGE
+
+    def test_from_2008_10_27_b3_holds_43_pairs_and_enters_42(self, strip) -> None:
+        """Each pair is held in turn from VX-2008X's to VX-2012K's, and only VX-2008X's
+        pair was entered before the window starts. The count the entry's cost sentence
+        quotes."""
+        schedule = calendar_schedule(
+            strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
+        )
+        near = schedule.columns[(schedule.loc[START:] == -1).any(axis=0).to_numpy()]
+        assert (len(near), near[0], near[-1]) == (43, "VX-2008X", "VX-2012K"), SPECS["B3"]
+        months = np.array([contract_month(symbol) for symbol in near])
+        assert (np.diff(months) == 1).all(), SPECS["B3"]
+        entered = [schedule.index[(schedule[c] == -1).to_numpy()][0] for c in near]
+        assert sum(day >= START for day in entered) == 42, SPECS["B3"]
 
     def test_the_shipped_spread_month_of_12_holds_the_front_contract_alone(self, strip) -> None:
         """Why S edits ``spreadMonth``. The strip lists 2 to 10 contracts a day, so pairing
@@ -275,18 +303,27 @@ class TestTheClaims:
         assert s.apr < 0 and s.sharpe < 0, S_SPEC
 
     def test_b4_misses_the_same_way_on_the_books_end_date(self, result) -> None:
-        b4 = result.rows["B4"]
+        """Cutting S's last 10 rows lowers its APR and Sharpe ratio a little, keeps its
+        drawdown, and shortens that drawdown by the 10 rows cut."""
+        s, b4 = result.rows["S"], result.rows["B4"]
         assert b4.apr < 0 and b4.sharpe < 0, SPECS["B4"]
+        assert (f"{s.apr - b4.apr:.6f}", f"{s.sharpe - b4.sharpe:.6f}") == (
+            "0.000451",
+            "0.003199",
+        ), SPECS["B4"]
+        assert (s.max_dd == b4.max_dd, s.max_dd_days - b4.max_dd_days) == (True, 10), SPECS["B4"]
 
     def test_b3_rounds_to_the_sharpe_ratio_but_not_the_apr_to_the_files_end(self, result) -> None:
         """No verdict. B3 is a row beside the specification."""
         b3 = result.rows["B3"]
         assert matches(b3.sharpe, BOOK_SHARPE), SPECS["B3"]
         assert not matches(100 * b3.apr, BOOK_APR_PERCENT), SPECS["B3"]
+        assert gap(100 * b3.apr, BOOK_APR_PERCENT) == -0.4, SPECS["B3"]
 
     def test_only_b2_and_b3_hold_a_pair_on_the_books_end_date(self, result) -> None:
+        """Both run ``holddays=0``, so the date does not separate B3 from B2."""
         held_to_end = [key for key in ROWS if result.rows[key].last_held == BOOK_END]
-        assert held_to_end == ["B2", "B3"]
+        assert held_to_end == ["B2", "B3"], f"{SPECS['B2']}; {SPECS['B3']}"
 
 
 class TestTheMeasurementsAfterTheRun:

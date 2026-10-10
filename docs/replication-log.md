@@ -657,12 +657,13 @@ issue's table had been seen. A verdict would rest on a line chosen with the
 figures in view, so the row reports them as a finding with no verdict, as
 Entry 32's rows 3 and 4 do.
 
-They are in their entries because leaving them out misleads. Row 2 is the slope
+Entry 1's rows 2 and 10, the first rows this section names, are in that entry
+because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
 comparing two specifications. Row 10 is what the book's pair looks like twenty
 years on, which is the result that makes the shelf life visible.
 
-Row 11 is the opposite case and stays a replication. Chan prints three
+Entry 1's row 11 is the opposite case and stays a replication. Chan prints three
 statistics there, so there is something to reproduce. The figures reproduce and
 the conclusion he drew from them does not, so the verdict stays with the
 figures and the reason column carries the refutation.
@@ -7104,9 +7105,9 @@ z is above 0, as in Entry 34.
 **The specification misses the trade with the wrong sign, and one of the four
 rows declared beside it lands.** The specification, S, passes the book's
 stationarity claim. Its APR and Sharpe ratio are negative where the book
-prints 17.7 percent and 1.5. B3, which trades the held pair's ratio with each
-pair held in turn, rounds to both printed figures on the book's own window and
-holds its last pair on the book's printed end date. B3 was picked out after
+prints 17.7 percent and 1.5. B3, which trades the held pair's ratio with
+`holddays=0`, rounds to both printed figures on the book's own window, and it
+is the only row that does worse before October 2008. B3 was picked out after
 the run among five rows, so its match is a search rather than a registered
 result.
 
@@ -7183,14 +7184,14 @@ text, and B3 was picked out after the run.
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
-| 1 | jplv7's `adf(·, 0, 1)` on the filled ratio's 1,395 finite rows, against its 1 percent critical value | −5.568107 against −3.4583, a margin of 2.109807 | `TestTheRows::test_each_rows_figures` and `TestTheClaims::test_ss_adf_statistic_clears_the_1_percent_critical_value` |
-| 2 | `prod(1 + ret)^(252 / 889) − 1`, in percent | −4.045401 | `TestTheRows::test_each_rows_figures` and `TestTheClaims::test_s_misses_the_apr_and_sharpe_ratio_with_the_wrong_sign` |
-| 3 | `√252 · mean(ret) / std(ret)` | −0.563912 | the same two |
+| 1 | jplv7's `adf(·, 0, 1)` on the filled ratio's 1,395 finite rows, against its 1 percent critical value | −5.568107 against −3.4583, a margin of 2.109807 | `TestTheRows::test_each_rows_figures`, `TestTheRows::test_the_1_percent_critical_value_is_minus_3_4583`, `TestTheClaims::test_ss_adf_statistic_clears_the_1_percent_critical_value` and, for the 1,395 rows, `TestTheSignalsOnVx::test_ss_signal_is_missing_only_on_its_first_148_rows` |
+| 2 | `prod(1 + ret)^(252 / 889) − 1`, in percent | −4.045401 | `TestTheReport::test_ss_apr_and_sharpe_ratio_carry_a_verdict` and `TestTheClaims::test_s_misses_the_apr_and_sharpe_ratio_with_the_wrong_sign` |
+| 3 | `√252 · mean(ret) / std(ret)` | −0.563912 | `TestTheRows::test_each_rows_figures`, `TestTheReport::test_ss_apr_and_sharpe_ratio_carry_a_verdict` and `TestTheClaims::test_s_misses_the_apr_and_sharpe_ratio_with_the_wrong_sign` |
 | 4 | `ou_half_life` on the filled ratio's finite rows | 13.036829, against the 15-day lookback | `TestTheRows::test_each_rows_figures` |
 | 5 | B1 | ADF −4.010034, half-life 20.509824, APR 0.033430, Sharpe 0.510861, drawdown −0.161533 over 628 days, last held 2012-03-07. Its half-life on the held rows alone is 15.106686 | `TestTheRows::test_each_rows_figures` and `TestTheSignalsOnVx::test_b1s_fill_moves_its_half_life_from_15_to_20` |
 | 6 | B2 | ADF −5.568107, half-life 13.036829, APR −0.113153, Sharpe −0.990744, drawdown −0.404239 over 870 days, last held 2012-04-23 | `TestTheRows::test_each_rows_figures` and `TestTheSignalsOnVx::test_holddays_0_holds_64_of_vxs_71_pairs` |
-| 7 | B3 | ADF −4.839517, half-life 16.273041, APR 0.173462, Sharpe 1.457009, drawdown −0.107287 over 166 days, last held 2012-04-23 | `TestTheRows::test_each_rows_figures` |
-| 8 | B4 | APR −0.040905, Sharpe −0.567112, drawdown −0.255618 over 861 days, last held 2012-03-07 | `TestTheRows::test_each_rows_figures` |
+| 7 | B3 | ADF −4.839517, half-life 16.273041, APR 0.173462, Sharpe 1.457009, drawdown −0.107287 over 166 days, last held 2012-04-23 | `TestTheRows::test_each_rows_figures` and `TestTheClaims::test_b3_rounds_to_the_sharpe_ratio_but_not_the_apr_to_the_files_end` |
+| 8 | B4 | APR −0.040905, Sharpe −0.567112, drawdown −0.255618 over 861 days, last held 2012-03-07. Against S, its APR is 0.000451 lower, its Sharpe ratio 0.003199 lower, and its drawdown the same but 10 days shorter | `TestTheRows::test_each_rows_figures` and `TestTheClaims::test_b4_misses_the_same_way_on_the_books_end_date` |
 | 9 | B3 on the 879 rows from 2008-10-27 to 2012-04-23 | APR 0.176952, Sharpe 1.475658, last held 2012-04-23 | `TestTheMeasurementsAfterTheRun::test_b3_on_the_books_window` |
 | 10 | Each row from the first row its flipped positions hold anything to 2008-10-24 | S from 2006-11-10, 492 rows, −0.027638 and −0.291914. B1 from 2006-11-10, 0.204377 and 2.279855. B2 from 2006-12-29, 459 rows, −0.018707 and −0.091522. B3 from 2007-01-23, 445 rows, −0.074173 and −0.562291 | `TestTheMeasurementsAfterTheRun::test_each_row_before_october_2008` and `::test_only_b3_does_worse_before_october_2008_than_after` |
 
@@ -7206,10 +7207,10 @@ which `TestTheRows::test_each_rows_figures` pins with the rest of its row.
 | 3 | −2.1 | did not reproduce | The same as row 2. |
 | 4 | none | none, not a replication | The book prints no half-life for VX. The script's half-life sets its lookback, and the book's 15 days replaces it. |
 | 5 | none | none, not a replication | Declared beside S. It is positive where S is negative, and well short of both printed figures. |
-| 6 | none | none, not a replication | Declared beside S. Holding each pair in turn alone makes S worse. |
-| 7 | none | none, not a replication | Declared beside S, and the row that lands. Its Sharpe ratio rounds to 1.5 and its APR of 17.3 percent misses 17.7 by 0.4 on the window to the file's end. It is reported and not promoted, because it was picked out after the run among five rows. |
-| 8 | none | none, not a replication | Declared beside S. Ending on the book's date moves S's figures by less than 0.005. |
-| 9 | none | none, not a replication | Measured after seeing rows 1 to 8. Both figures round to the printed 17.7 percent and 1.5, and the last held day is the book's printed end date. |
+| 6 | none | none, not a replication | Declared beside S. Setting `holddays=0` alone makes S worse. |
+| 7 | none | none, not a replication | Declared beside S, and the row that lands. Its Sharpe ratio rounds to 1.5. Its APR of 0.173462 misses 17.7 percent on the window to the file's end, a gap of −0.4 percent at the book's precision. It is reported and not promoted, because it was picked out after the run among five rows. |
+| 8 | none | none, not a replication | Declared beside S. Ending on the book's date lowers S's APR by 0.000451 and its Sharpe ratio by 0.003199, and shortens its longest drawdown by 10 days, the rows cut. |
+| 9 | none | none, not a replication | Measured after seeing rows 1 to 8. Both figures round to the printed 17.7 percent and 1.5. The last held day is the book's printed end date, as B2's is, so the date does not separate B3 from B2. |
 | 10 | none, a claim | none, a finding | Only B3 does worse before October 2008 than after it, on both figures, as the claim says. S, B1 and B2 each do better before. No criterion was declared, so the row carries no verdict. |
 
 ### What the entry concludes
@@ -7219,14 +7220,20 @@ Two things.
 1. **The specification fits the book's first claim and not its trade.** The
    ratio's ADF statistic of −5.568107 clears the 1 percent value by 2.109807.
    Trading it as the book's text describes, with the script's 63-day holding
-   period, loses 4.05 percent a year with a Sharpe ratio of −0.564.
-2. **The evidence favours B3 as what Chan ran.** Three things point at it.
+   period, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
+2. **The evidence favours B3 as what Chan ran.** Two things single it out
+   from the other four rows.
    1. On the book's window it rounds to both printed figures, 0.176952 and
       1.475658.
-   2. Its last held day is the book's printed end date, 2012-04-23, which
-      the run never aimed at, while the file runs to 2012-05-07.
-   3. It is the only row that does worse before October 2008, as the book's
+   2. It is the only row that does worse before October 2008, as the book's
       third claim says.
+
+   Its last held day, the book's printed end date of 2012-04-23, does not
+   single it out, because B2 ends there too. VX-2012K still trades on the
+   file's last row, 2012-05-07, so the schedule reads that row as its expiry,
+   and under `holddays=0` its pair ends 10 rows earlier, on 2012-04-23. The
+   date is evidence for holding each pair until 10 rows before its expiry,
+   which B2 and B3 share.
 
    B3 was picked out after the run among five rows, and the window the first
    point reads was chosen after seeing the table, so this is a search. A
@@ -7237,9 +7244,20 @@ Two things.
 Four things.
 
 **Which rule Chan ran.** No script ships under the experiment's own name. The
-commented load line says which script he ran on VX, and the book's text names
-two of his edits, the ratio and the 15-day lookback. The rest of S is this
-repo's reading of that text.
+commented load line says which script he ran on VX. The book's text at
+location 2502 gives four things.
+
+1. VX as the instrument.
+2. The ratio of back to front as the signal.
+3. The 15-day lookback.
+4. The window, from October 27, 2008, to April 23, 2012.
+
+The rest of S is this repo's reading, in three choices.
+
+1. `spreadMonth=1`, forced by how few contracts the strip prices on a day.
+2. No signal where the nearest two priced contracts are not adjacent columns.
+3. Measuring to the file's last row, as the script measures to its own,
+   rather than to the book's printed end, which B4 does.
 
 **Whether B3's match is more than the best of five.** B3's match was found by
 looking at five rows, and the book's window was then measured because B3 had
@@ -7249,8 +7267,11 @@ search `CLAUDE.md`'s research pins put under their own rail.
 **The ADF statistic Chan saw.** The book prints none, so row 1 checks the
 "99 percent" and not a number.
 
-**Anything about costs.** None is charged. Under `holddays=0` B3 rolls into
-each of 64 pairs in turn, and each roll trades four legs.
+**Anything about costs.** None is charged. Under `holddays=0`, from
+2008-10-27, B3 holds a near leg in 43 pairs, every one from VX-2008X's to
+VX-2012K's, and enters 42 of them on or after that date.
+`TestTheSignalsOnVx::test_from_2008_10_27_b3_holds_43_pairs_and_enters_42`
+pins both counts. Each roll trades four legs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
