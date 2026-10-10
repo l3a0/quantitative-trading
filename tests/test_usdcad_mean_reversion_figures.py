@@ -281,6 +281,20 @@ class TestTheReadPath:
         np.testing.assert_array_equal(line.get_ydata(), expected)
         assert not np.array_equal(expected, result.pnl.cumsum().to_numpy())
 
+    def test_the_average_follows_the_runs_lookback_rather_than_115(self, tmp_path, sources) -> None:
+        """The first 800 closes have a half-life that rounds to 100 days, so a figure that
+        drew a 115-day average, or wrote 115 into its legend, would fail here."""
+        entry, closes = sources
+        shorter = closes.iloc[:800]
+        run = stationarity_tests(entry, shorter)
+        assert run.lookback == 100
+        drawn = make_usdcad_figure(out=tmp_path / USDCAD_FIGURE, sources=(entry, shorter))
+        line = _by_gid(drawn.axes[0].lines)["moving-average"]
+        expected = moving_avg(shorter.to_numpy(dtype=float), run.lookback)
+        np.testing.assert_array_equal(line.get_ydata(), expected)
+        assert int(np.flatnonzero(np.isfinite(line.get_ydata()))[0]) == run.lookback - 1
+        assert line.get_label() == "100-day moving average"
+
     def test_the_guard_runs_on_the_default_path(self, monkeypatch, tmp_path) -> None:
         """The figure reads through ``stationarity_tests``, so a flagged day stops it too."""
 

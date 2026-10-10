@@ -421,6 +421,14 @@ class TestTheRule:
         assert round(114.5) == 114
         assert stationarity_tests(*sources).lookback == 115
 
+    def test_the_deepest_fall_need_not_end_at_the_lowest_point(self) -> None:
+        """Cumulative 0, 1, −0.5, 5, 4.5, −0.2: the fall from 5 is deepest, and −0.5 is lower."""
+        days = pd.date_range("2020-01-01", periods=6)
+        pnl = pd.Series(np.diff([0.0, 0.0, 1.0, -0.5, 5.0, 4.5, -0.2]), index=days)
+        d = pnl_drawdown(pnl)
+        assert d.depth == pytest.approx(5.2)
+        assert (d.peak, d.trough) == (days[3], days[5])
+
     def test_a_run_that_never_falls_has_a_zero_drawdown(self) -> None:
         days = pd.date_range("2020-01-01", periods=3)
         d = pnl_drawdown(pd.Series([0.0, 1.0, 2.0], index=days))
