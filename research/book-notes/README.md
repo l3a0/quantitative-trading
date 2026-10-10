@@ -199,6 +199,14 @@ and a Kelly f of 64.919535, sit in the script and nowhere in the book. Table
 6.2 is named at 2668 and none of its rows is here. The replication log's
 Entry 33 traces each figure to one or the other.
 
+The revision of Example 6.1 that trades the lagged roll return has the
+opposite shape, with every figure in the book and none in a script. Location
+2690 prints the threshold of 3 percent, the window from January 2, 2009, to
+August 13, 2012, an APR of 2.5 percent, a Sharpe ratio of 2.1 and a maximum
+drawdown of 1.1 percent, and no script ships for it. So the notes are the only
+source of those figures, and the replication log's Entry 34 cites location
+2690 for each of them.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an

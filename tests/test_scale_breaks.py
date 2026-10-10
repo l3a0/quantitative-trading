@@ -311,6 +311,17 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: again in the 2012-05-17 save. TU flags nothing in either, so nothing is
 #: refused, and ``TestTheGuardAndTheReads`` in ``tests/test_tu_momentum.py``
 #: holds TU clean and a planted break refused.
+#:
+#: [Issue 353](https://github.com/l3a0/quantitative-trading/issues/353) decided
+#: that ``chan.roll_momentum`` adds no guard call of its own for the roll-return
+#: revision of Example 6.1. It reads the TU strip through
+#: ``chan.roll_returns.load_strip``, which guards every member over its own
+#: rows, and the 2012-05-11 save through ``chan.tu_momentum.read_sources``,
+#: which guards TU over its span. Every return it takes is within one contract,
+#: priced on both days on every row of the strip, ``TU-1998M``'s restart
+#: included, so the rebuilt level has no gap for a window-level call to read.
+#: ``TestTheGuardDecision`` in ``tests/test_roll_momentum.py`` records the 95
+#: calls and holds every row's contract priced on both days.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

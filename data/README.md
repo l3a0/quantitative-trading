@@ -927,7 +927,11 @@ gold series. Example 5.3 is the first replication to read any of them, five of
 the seven its script names, BR, C2, CL, HG and TU, through
 `chan.roll_returns`, for
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347). It
-leaves out VX and HO2, for which the book prints no figure there.
+leaves out VX and HO2, for which the book prints no figure there. The
+unnumbered TU experiment, location 2690's revision of Example 6.1, is the
+second to read the TU strip, through `chan.roll_momentum` for
+[issue 353](https://github.com/l3a0/quantitative-trading/issues/353). No
+module reads the VX strip yet.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 

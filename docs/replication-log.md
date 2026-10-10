@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 and 33 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 and 34 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight and eight, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 and 33 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 and 34 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -255,6 +255,12 @@ says.
   - [The verdicts](#the-verdicts-31)
   - [What the entry concludes](#what-the-entry-concludes-32)
   - [What this entry cannot say](#what-this-entry-cannot-say-30)
+- [Entry 34: TU momentum traded on the lagged roll return, Chan's *Algorithmic Trading*](#entry-34-tu-momentum-traded-on-the-lagged-roll-return-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-31)
+  - [What this repo computed](#what-this-repo-computed-33)
+  - [The verdicts](#the-verdicts-32)
+  - [What the entry concludes](#what-the-entry-concludes-33)
+  - [What this entry cannot say](#what-this-entry-cannot-say-31)
 
 ## How to read an entry
 
@@ -314,8 +320,10 @@ both.
    [tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py)
    holds Entry 31, and
    [tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) holds
-   Entry 32, and
-   [tests/test_tu_momentum.py](../tests/test_tu_momentum.py) holds Entry 33.
+   Entry 32,
+   [tests/test_tu_momentum.py](../tests/test_tu_momentum.py) holds Entry 33,
+   and [tests/test_roll_momentum.py](../tests/test_roll_momentum.py) holds
+   Entry 34.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -431,7 +439,7 @@ Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
-Entry 32's rows 5 to 7, and Entry 33's rows 11 to 15.
+Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, and Entry 34's rows 7 to 14.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -594,6 +602,19 @@ percent, was written on
 scratch run had read the test, though before the build. Like Entry 21's rows 7
 and 8, it reads the book's own words, and the 5 percent is the level the
 script reads `h` at, so there was no threshold left to choose.
+
+Entry 34's rows 4 to 6 take it too. Location 2690 says its revised rule
+yields "a higher APR" and Sharpe ratio than Example 6.1, "with a reduced
+maximum drawdown", three definite claims about one strategy it names. Their
+criterion, the revised rule's figure the better one when both rules run on
+one rebuilt series over one window with one arithmetic, was written on
+[issue 353](https://github.com/l3a0/quantitative-trading/issues/353) after
+the scratch runs had measured it, though before the build, the order Entry
+13's row 10 allows when it is stated. The criterion reads the book's words
+with no margin, and a test pins each margin, because row 4's is about the
+size of the rebuild's own error. Rows 1 to 3 of the same entry are
+replications of printed figures under a rule declared after the scratch
+runs, so their verdicts name that rule.
 
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
@@ -6763,6 +6784,171 @@ number is seen.
 contract with no cost and no margin, and location 2668 says leverage is
 needed to make the 1.7 percent worth having. Nothing here measures what costs
 or leverage would do.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 34: TU momentum traded on the lagged roll return, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle location 2690, the revision of Example 6.1
+that follows the book's explanation of futures momentum. Shipped under
+[issue 353](https://github.com/l3a0/quantitative-trading/issues/353). No
+script ships for it. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Fourteen rows, all derivable from
+[tests/test_roll_momentum.py](../tests/test_roll_momentum.py). Eight do not
+match one printed figure to one computation, and each says so in its own
+cells. Row 7 sets two of the book's printed sets against each other with no
+computation, and rows 8 to 14 carry no published figure.
+
+Location 2683 explains futures momentum by the roll return, the part of a
+future's return that comes from converging on the spot as it nears expiry,
+which Entry 27 estimates as γ. The sign of γ rarely changes, so a future held
+for a long time keeps earning in one direction. If that is the cause, γ itself
+should be a cleaner signal than the past total return Example 6.1 trades.
+Location 2690 tries it on TU, the two-year Treasury note future: long when the
+lagged γ is above 3 percent, short when it is below −3 percent, and flat
+otherwise. It reports a higher APR, a higher Sharpe ratio and a smaller
+maximum drawdown than Example 6.1.
+
+**The rule misses all three printed figures and beats Example 6.1 on all
+three.** Rows 1 to 3 land well below the book. Rows 4 to 6 hold, because the
+revised rule beats Example 6.1's when both run on one series over one window,
+and they hold on Chan's own close too.
+
+Every row reads one vintage and one specification unless it names another, so
+both are stated once here.
+
+1. **The vintage.** `inputdatadaily_tu_20120813/`, vendor `chan-mat`, basis
+   `raw`, saved 2012-08-14, 93 contracts and `TU-SPOT` over 5,565 days from
+   1990-06-22 to 2012-08-13, read through `chan.roll_returns.load_strip`,
+   which runs the scale-break guard on each member's own rows. This strip is
+   the only committed save that covers the book's window. Example 6.1 trades
+   the continuous `TU` close of the OHLC saves, and those end in May 2012.
+2. **The specification.** The rule
+   [issue 353](https://github.com/l3a0/quantitative-trading/issues/353)
+   declares, in five parts.
+   1. γ is Entry 27's `roll_returns` in the script's column units.
+   2. Long where γ > 0.03 and short where γ < −0.03, both strict, with a NaN
+      comparison false.
+   3. The return is yesterday's position times today's return on the
+      rebuilt front contract, with NaN set to 0. With L the held contract's
+      last priced row, row t earns `close(t) / close(t−1) − 1` of the nearest
+      contract that was priced at t−1 and has L − t ≥ 7, or of the contract
+      still trading on the file's last row. So the old contract earns through
+      row L − 7 and the new one from row L − 6.
+   4. Every series runs on the full 5,565-row index, and the cut to
+      2009-01-02 to 2012-08-13, 913 rows, comes last.
+   5. The figures are `TU_mom.m`'s arithmetic, through
+      `chan.tu_momentum.figures`, annualised over 252 days with no risk-free
+      rate and no cost.
+
+   Example 6.1's rule, for rows 4 to 6, is `chan.tu_momentum`'s own
+   `signals` on the rebuilt level, then `positions`, then `strategy_returns`
+   on the rebuilt return. The level adds up the held contract's price changes,
+   which is an additive back-adjustment.
+
+**The rule was declared after the scratch runs.** The issue said these
+choices had to be declared before any figure was computed. Two scratch runs
+read about 90 variants first, across lags, held contracts, units, thresholds
+and roll rules, and one of them came close to the book. The declaration rests
+on grounds the runs did not choose. The lag is Example 6.1's own convention,
+the series is the one the book says it revises, and the roll row was read off
+the 2012-05-11 save rather than chosen by any strategy figure. Row 14 is the
+reading that came close, and it is never the verdict.
+
+Every result here is **exploratory**. The declaration came after the
+readings, so this entry cannot count as a registered test of the roll-return
+signal either. A registered test would
+declare its rule before any reading and run it on data this search never
+loaded.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The APR | 2.5 percent | location 2690 |
+| 2 | The Sharpe ratio | 2.1 | location 2690 |
+| 3 | The maximum drawdown | 1.1 percent | location 2690 |
+| 4 | A higher APR than Example 6.1 | a claim, "a higher APR" | location 2690 |
+| 5 | A higher Sharpe ratio than Example 6.1 | a claim, the same "higher" | location 2690 |
+| 6 | A smaller maximum drawdown than Example 6.1 | a claim, "a reduced maximum drawdown" | location 2690 |
+| 7 | The book's own comparison | rows 1 to 3 against Example 6.1's 1.7 percent, 1 and 2.5 percent | locations 2690 and 2668 |
+| 8 to 14 | Example 6.1 cut first, the rebuild against the save, both rules on the save, the position's shares, the flat start, the month-unit γ and the fifth contract | none here, as each row says | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `prod(1 + ret)^(252/913) − 1` under the declared rule | 0.013725 | `TestTheSixRows::test_row_1_the_apr_misses` |
+| 2 | `√252 · smartmean(ret) / smartstd(ret)` | 1.803348 | `TestTheSixRows::test_row_2_the_sharpe_ratio_misses` |
+| 3 | `calculateMaxDD(cumprod(1 + ret) − 1)` | −0.007299 | `TestTheSixRows::test_row_3_the_maximum_drawdown_misses` |
+| 4 | the declared rule's APR less Example 6.1's on the same series and rows, which is 0.013377 | +0.000348 | `TestTheComparisonMargins::test_each_margin` and `::test_example_6_1_on_the_rebuild` |
+| 5 | the same for the Sharpe ratio, against 1.196742 | +0.606606 | the same |
+| 6 | Example 6.1's drawdown magnitude less the declared rule's, against −0.009167 | +0.001868 | the same |
+| 7 | none, the book's figures alone | n/a | `TestTheRowsBeside::test_the_book_s_own_comparison` |
+| 8 | Example 6.1's rule with the window cut before any series is computed | APR 0.008435, the signal live on 663 of 913 rows | `TestTheComparisonMargins::test_cutting_the_window_first_moves_example_6_1` |
+| 9 | the rebuild against `inputdataohlcdaily_20120511/tu.csv`, chan-mat, adjusted, saved 2012-05-12, over the 1,999 changes they share | return correlation 0.998359. 30 changes differ by more than 1.5e-4, all on row L − 7, and the span holds 32 rolls | `TestTheRebuildAgainstTheSave::test_the_two_agree_on_every_day_but_the_jump_row` and `::test_the_save_s_span_holds_32_rolls` |
+| 10 | both rules over the 849 window rows that save covers, on its own close and on the rebuild | the declared rule 1.437321 percent, 1.791969 and −0.807695 percent on the save, and 1.468184 percent, 1.870808 and −0.729860 percent on the rebuild. Example 6.1 1.445672 percent, 1.250783 and −0.916666 percent on the rebuild, and Entry 33's row 12 on the save | `TestTheRowsBeside::test_the_revised_rule_on_the_save_s_own_close`, `::test_both_rules_on_the_rebuild_over_the_same_rows` and `::test_example_6_1_on_the_save_is_entry_33_s_pin` |
+| 11 | the position each window row earns on | long on 572 of 913 rows, 62.65 percent, short on 0, 21 changes | `TestTheRowsBeside::test_the_rule_is_long_or_flat_and_never_short` |
+| 12 | γ on the last day before the window and its first three days | 0.0161092 on 2008-12-31, and below 1e-13 in size on 2009-01-02, 01-05 and 01-06 | `TestTheRowsBeside::test_the_window_starts_flat` |
+| 13 | `roll_returns_in_months` under the same threshold, and γ's window mean | a third of γ on every row, a peak of 0.02447, flat on all 913 rows. γ's mean is 0.035943 | `TestTheRowsBeside::test_the_month_unit_gamma_never_trades` and `::test_gamma_has_no_nan_in_the_window` |
+| 14 | the declared position held on the fifth contract priced the day before, and on the fifth of those priced on both days | 0.024712, 2.144165 and −0.011583, and a Sharpe ratio of 1.957852 | `TestTheRowsBeside::test_the_fifth_contract_reading` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | −1.1 percent | did not reproduce | Under the declared rule, 1.3725 percent against 2.5. Chan's own close covers 849 of the 913 rows and lands near the rebuild under row 10, so the vintage explanation is not available. The 64 rows no committed save covers would have to carry the rest, and Entry 33's row 13 found TU's close the same on every day two saves share. A miss also cannot tell a different number from a different reading of location 2690, and the reading is part of the method. |
+| 2 | −0.3 | did not reproduce | Under the declared rule, 1.803348 against 2.1, for the reason row 1 gives. |
+| 3 | −0.4 percent | did not reproduce | Under the declared rule, a drawdown of 0.7299 percent against 1.1, for the reason row 1 gives. This miss runs the other way from rows 1 and 2, a shallower drawdown than the book printed. |
+| 4 | none, a claim | reproduced | 0.013725 against 0.013377. The margin, +0.000348, is about the size of the rebuild's own error, since the rebuild's APR over row 10's 849 rows sits 0.000309 above the save's, which `TestTheComparisonMargins::test_row_4_s_margin_is_about_the_rebuild_s_own_error` holds. The claim holds on the save's own close as well, 1.437321 percent against Entry 33's 1.4069. |
+| 5 | none, a claim | reproduced | 1.803348 against 1.196742, and 1.791969 against 1.187438 on the save. |
+| 6 | none, a claim | reproduced | −0.007299 against −0.009167, and −0.807695 percent against −0.9851 percent on the save. |
+| 7 | none | none, not a replication | The book's 2.5 percent, 2.1 and 1.1 percent are higher, higher and smaller than Example 6.1's printed 1.7 percent, 1 and 2.5 percent. Those sit on 2004-06-01 to 2012-05-11 rather than this window, so the book's own sentence compares two windows, which is why rows 4 to 6 run both rules on one. |
+| 8 | none | none, not a replication | Cutting first leaves Example 6.1's 250-day signal off for the window's first 250 rows, so rows 4 to 6 would compare against a rule that is not trading for much of the window. |
+| 9 | none | none, not a replication | The save follows the same contracts as the rebuild on every row but row L − 7, where its back-adjustment jumps and the rebuild takes a return within one contract instead. |
+| 10 | none | none, not a replication | The rebuild's error over these rows is a small part of the gap to the book. |
+| 11 | none | none, not a replication | γ stays above about 0 in the window, so the rule is long or flat and never short. |
+| 12 | none | none, not a replication | All five contracts share one price on the three days, so γ is about 0 there and the window opens flat. |
+| 13 | none | none, not a replication | Every contract is a quarter from the next, so the month reading divides γ by 3 and never reaches the threshold. That is why the declared rule reads γ in column units. |
+| 14 | none | none, not a replication | Lands 2.5 percent and 2.1 at the book's precision, and misses the 1.1 percent drawdown. It came out of the scratch search, and a scratch fit of γ on the four nearest contracts, which no test here repeats, gave it a Sharpe ratio of 1.801. So the match leans on γ moving against the held contract's own price. |
+
+### What the entry concludes
+
+Three things.
+
+1. **The roll-return signal beats Example 6.1's on TU, by little on the
+   APR.** Rows 4 to 6 hold on the rebuild and on Chan's own close. The Sharpe
+   ratio's margin is the large one. Row 4's margin is about the size of the
+   rebuild's own error, so the APR half of the claim is the weakest of the
+   three.
+2. **The book's figures came from a reading this search did not declare.**
+   The declared rule lands none of rows 1 to 3. The one reading that lands two
+   of them holds a contract γ is fitted on, and the fit's own use of that
+   contract's price is what lifts it.
+3. **The book's comparison spans two windows.** Example 6.1's printed figures
+   run from 2004 and these from 2009. On one window the declared rule's APR
+   margin is 0.000348, far smaller than the gap between the printed 2.5 and
+   1.7 percent.
+
+### What this entry cannot say
+
+Three things.
+
+**Whether the signal works out of sample.** The rule was declared after about
+90 readings on the same strip, so its margins are not a test. A registered
+test would fix the rule first and read data this search never loaded.
+
+**What Chan held.** No script ships for location 2690, and the book does not
+say how far the roll return is lagged or which price the position earns. Row
+14 shows a reading that lands near the book, and choosing it after its number
+was seen would be a search.
+
+**What a trader would earn.** The returns are on the notional value of one
+contract with no cost and no margin, as in Entry 33.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
