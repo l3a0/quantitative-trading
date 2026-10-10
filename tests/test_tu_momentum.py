@@ -5,7 +5,10 @@ about this example and the rows beside it. ``docs/replication-log.md`` Entry 33
 carries the verdicts and points here row by row.
 ``blog/usdcad-stationarity-lessons.md`` quotes USD.CAD's H at a ``maxT`` of
 24, which ``TestTheTwoTests`` pins here, so a change to that pin moves that
-post too.
+post too. ``blog/tu-momentum-lessons.md`` teaches this example and quotes most
+of these pins, with the numbers it adds in ``TestBesideThePost`` and its
+figure's in ``tests/test_tu_momentum_figures.py``. README lists what the post
+says that nothing asserts.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.
@@ -446,6 +449,55 @@ class TestTheGaussianStatistic:
         script = backshift(1, result.positions) * (cl - before) / before / HOLD_DAYS
         script[np.isnan(script)] = 0
         np.testing.assert_allclose(result.daily, script, rtol=1e-14, atol=0)
+
+
+class TestBesideThePost:
+    """Numbers ``blog/tu-momentum-lessons.md`` quotes about the table and the trade.
+
+    None is a published figure, so none is a replication. Each reads the run on
+    the vintage and specification stated at the top of this file, so they are as
+    exploratory as the rest.
+    """
+
+    def test_14_of_the_49_cells_are_significant_and_the_negative_four_are_the_shortest(
+        self, result
+    ) -> None:
+        """Ten positive and four negative, against the 2.45 that 49 independent tests would give."""
+        significant = {
+            pair: cell for pair, cell in result.correlations.items() if cell.p_value < 0.05
+        }
+        assert len(result.correlations) == 49
+        assert len(significant) == 14
+        assert sum(cell.coefficient > 0 for cell in significant.values()) == 10
+        assert {pair for pair, cell in significant.items() if cell.coefficient < 0} == {
+            (1, 1),
+            (1, 5),
+            (5, 1),
+            (5, 5),
+        }
+        assert len(result.correlations) * 0.05 == pytest.approx(2.45)
+
+    def test_the_position_is_fully_long_on_1176_of_the_2000_days(self, result) -> None:
+        """+25 on 1,176 days, −25 on 397 and 0 on 251, of which 250 precede the first signal."""
+        held = result.positions
+        assert len(held) == 2000
+        assert int((held == HOLD_DAYS).sum()) == 1176
+        assert int((held == -HOLD_DAYS).sum()) == 397
+        assert int((held == 0).sum()) == 251
+        assert np.flatnonzero(held)[0] == 250
+
+    def test_tu_s_close_rose_from_the_first_day_to_the_last(self, result) -> None:
+        assert result.closes[0] == 97.9219
+        assert result.closes[-1] == 110.2734
+
+    def test_2008_alone_against_every_other_year(self, result) -> None:
+        """Calendar 2008 against every other year of the run, each compounded on its own."""
+        growth = (1 + pd.Series(result.daily, index=result.days)).groupby(result.days.year).prod()
+        in_2008 = growth[2008] - 1
+        the_rest = growth.drop(2008).prod() - 1
+        assert in_2008 == pytest.approx(0.060565, abs=5e-7)
+        assert the_rest == pytest.approx(0.075414, abs=5e-7)
+        assert (1 + in_2008) * (1 + the_rest) == pytest.approx(np.prod(1 + result.daily))
 
 
 class TestTheRule:
