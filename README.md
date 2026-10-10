@@ -762,7 +762,7 @@ window's end that return exactly 0. It also runs the script's window on CL
 with a lookback and an end passed in, which no row above passes, and pins the
 CL strip as the vintage `run` reads from the directory it is given. On
 synthetic frames it holds the script's schedule, sign flip and return, and the
-refusal of a signal on an index other than the contracts'. Four of those
+refusal of a signal on an index other than the contracts'. Seven of those
 synthetic cases hold choices the CL strip cannot show.
 
 1. Line 98's strict comparison, which never holds a one-row window.
@@ -772,6 +772,11 @@ synthetic cases hold choices the CL strip cannot show.
    z-score is exactly 0.
 4. The lookback's rounding, which takes a half-life with a fractional part of
    at least 0.5 up.
+5. Line 42's forward fill, which the half-life, the ADF test and the z-score
+   all read, since γ on CL has no gap after its first value.
+6. Line 85's `max(1, ...)`, which starts a first pair on the file's first row
+   when its expiry comes sooner than `holddays + 10` rows in.
+7. Line 110's `smartsum`, which skips a leg whose return is infinite.
 
 All thirty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
