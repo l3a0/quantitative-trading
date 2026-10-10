@@ -16,7 +16,7 @@ import re
 from datetime import date, timedelta
 
 import pytest
-from matplotlib.colors import to_rgba
+from matplotlib.colors import same_color, to_rgba
 from matplotlib.text import Text
 
 from chan.bill_rates import average
@@ -63,6 +63,7 @@ from chan.risk_parity_figures import (
     RATE_MARGIN,
     RATE_RANGE,
     RATE_STEPS,
+    RULE,
     SPLIT_FIGURE,
     SURFACE,
     T_BAR,
@@ -117,6 +118,15 @@ def _rgb(colour) -> tuple[float, float, float]:
 
 def _segments(ax) -> list:
     return list(ax.patches)
+
+
+def _legend_by_label(ax) -> dict:
+    """Each legend handle under the text it carries, so a key is read by name."""
+    legend = ax.get_legend()
+    return {
+        text.get_text(): handle
+        for text, handle in zip(legend.get_texts(), legend.legend_handles, strict=True)
+    }
 
 
 class TestTheBars:
@@ -246,6 +256,18 @@ class TestWhereEachMarkSits:
         swatches = [_rgb(handle.get_facecolor()) for handle in legend.legend_handles]
         assert swatches == [_rgb(ACCENT), _rgb(GOOD)]
 
+    def test_each_legend_swatch_wears_the_colour_of_its_legs_segments(self, figure) -> None:
+        """The legend is the only key to which segment is which leg."""
+        swatches = _legend_by_label(figure.axes[0])
+        segments = _segments(figure.axes[0])
+        for label, legs_segments, colour in (
+            ("stocks, SPY", segments[0::2], ACCENT),
+            ("bonds, AGG", segments[1::2], GOOD),
+        ):
+            assert same_color(swatches[label].get_facecolor(), colour)
+            assert all(same_color(seg.get_facecolor(), colour) for seg in legs_segments)
+        assert not same_color(ACCENT, GOOD)
+
     def test_the_axis_shows_every_bar_whole_in_percent(self, figure) -> None:
         ax = figure.axes[0]
         assert ax.get_xlim()[0] == 0.0
@@ -295,6 +317,13 @@ def _dots(ax) -> list:
 
 def _filled(line) -> bool:
     return line.get_markerfacecolor() != "none"
+
+
+def _wears_the_marker_of(line, handle) -> bool:
+    """Whether a drawn dot shows the face and edge its legend entry shows."""
+    return same_color(line.get_markerfacecolor(), handle.get_markerfacecolor()) and same_color(
+        line.get_markeredgecolor(), handle.get_markeredgecolor()
+    )
 
 
 def _arrows(ax) -> list:
@@ -544,6 +573,18 @@ class TestTheSharpePanel:
         bench, parity = legend.legend_handles
         assert not _filled(bench) and _rgb(bench.get_markeredgecolor()) == _rgb(INK)
         assert _filled(parity) and _rgb(parity.get_color()) == _rgb(ACCENT)
+
+    def test_each_dot_wears_the_marker_its_legend_entry_shows(self, claim_figure) -> None:
+        """The legend is the only key to which dot is which portfolio, and a
+        dot's visible face can differ from its line colour."""
+        ax = claim_figure.axes[2]
+        handles = _legend_by_label(ax)
+        dots = _dots(ax)
+        for label, drawn in (("risk parity", dots[0::2]), ("60/40", dots[1::2])):
+            assert all(_wears_the_marker_of(dot, handles[label]) for dot in drawn)
+        assert same_color(handles["risk parity"].get_markerfacecolor(), ACCENT)
+        assert same_color(handles["60/40"].get_markeredgecolor(), INK)
+        assert not _wears_the_marker_of(handles["60/40"], handles["risk parity"])
 
 
 class TestTheClaimFiguresText:
@@ -1079,6 +1120,16 @@ class TestTheLeveragePanel:
         )
         assert "1.8's rounding" in _plain_texts(ax)
 
+    def test_the_leverage_band_is_grey_apart_from_what_the_weights_allow(
+        self, decode_figure
+    ) -> None:
+        """GOOD in this panel marks the correlations 23-77 and 1.8 allow, so the
+        band of leverages that round to 1.8 must not wear it too."""
+        ax = decode_figure.axes[1]
+        (span,) = [p for p in ax.patches if p.get_width() > 0.9]
+        assert _rgb(span.get_facecolor()) == _rgb(RULE)
+        assert _rgb(span.get_facecolor()) != _rgb(GOOD)
+
     def test_each_point_is_drawn_and_labelled(self, decode_figure) -> None:
         ax = decode_figure.axes[1]
         drawn = decode_figure.decoding
@@ -1120,6 +1171,26 @@ class TestTheLeveragePanel:
         faint, solid, dashed = legend.get_lines()
         assert faint.get_alpha() < 0.5
         assert solid.get_linestyle() == "-" and dashed.get_linestyle() == "--"
+
+    def test_each_legend_entry_wears_its_curves_colour_and_dash(self, decode_figure) -> None:
+        """The legend is the only key to which curve is whose weights."""
+        ax = decode_figure.axes[1]
+        handles = _legend_by_label(ax)
+        faint_a, faint_b, qian, run = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        keys = {}
+        for label, curves, colour in (
+            ("ends of 23-77's rounding", (faint_a, faint_b), INK),
+            ("Qian's 23-77 weights", (qian,), INK),
+            ("SPY and AGG's 21.8% weights", (run,), MUTED),
+        ):
+            handle = handles[label]
+            assert same_color(handle.get_color(), colour)
+            for curve in curves:
+                assert same_color(curve.get_color(), handle.get_color())
+                assert curve.get_linestyle() == handle.get_linestyle()
+                assert curve.get_alpha() == handle.get_alpha()
+            keys[label] = (to_rgba(colour), handle.get_linestyle(), handle.get_alpha())
+        assert len(set(keys.values())) == 3
 
     def test_the_axes(self, decode_figure) -> None:
         ax = decode_figure.axes[1]
@@ -1311,6 +1382,16 @@ class TestTheRatePanel:
             t.get_text(): t.get_position()[1] for t in ax.texts if t.get_text().endswith("leads")
         }
         assert leads["risk parity leads"] > 0 > leads["60/40 leads"]
+
+    def test_the_shading_is_muted_rather_than_the_colour_of_a_risk_parity_lead(
+        self, rate_figure
+    ) -> None:
+        """The figure of each period's hurdle and the figure of the hurdle
+        against the correlation shade in GOOD where risk parity leads. This
+        shading marks where 60/40 wins, so it must not wear GOOD."""
+        (shade,) = rate_figure.axes[0].patches
+        assert same_color(shade.get_facecolor()[:3], MUTED)
+        assert not same_color(MUTED, GOOD)
 
     def test_the_axes(self, rate_figure) -> None:
         """The alt text and README quote 0% to 5%, so the range is pinned as a
@@ -1678,6 +1759,17 @@ class TestTheWindowPanel:
         assert not _filled(bench) and _rgb(bench.get_markeredgecolor()) == _rgb(INK)
         assert _filled(parity) and _rgb(parity.get_color()) == _rgb(ACCENT)
 
+    def test_each_dot_wears_the_marker_its_legend_entry_shows(self, window_figure) -> None:
+        """The legend is the only key to which dot is which portfolio."""
+        ax = window_figure.axes[0]
+        handles = _legend_by_label(ax)
+        dots = _dots(ax)
+        for label, drawn in (("risk parity", dots[0::2]), ("60/40", dots[1::2])):
+            assert all(_wears_the_marker_of(dot, handles[label]) for dot in drawn)
+        assert same_color(handles["risk parity"].get_markerfacecolor(), ACCENT)
+        assert same_color(handles["60/40"].get_markeredgecolor(), INK)
+        assert not _wears_the_marker_of(handles["60/40"], handles["risk parity"])
+
 
 def _window_text_boxes(fig):
     from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -1945,6 +2037,23 @@ class TestTheCorrelationPanel:
             "weights fitted to the later period with hindsight (26.6% stocks)",
             "weights carried from the earlier period (20.5% stocks)",
         ]
+
+    def test_each_legend_entry_wears_its_curves_colour_and_dash(self, correlation_figure) -> None:
+        """The legend is the only key to which curve is which set of weights."""
+        ax = correlation_figure.axes[0]
+        handles = _legend_by_label(ax)
+        fitted, carried = [line for line in ax.lines if len(line.get_xdata()) > 2]
+        keys = []
+        for label, curve, colour in (
+            ("weights fitted to the later period with hindsight (26.6% stocks)", fitted, INK),
+            ("weights carried from the earlier period (20.5% stocks)", carried, MUTED),
+        ):
+            handle = handles[label]
+            assert same_color(handle.get_color(), colour)
+            assert same_color(curve.get_color(), handle.get_color())
+            assert curve.get_linestyle() == handle.get_linestyle()
+            keys.append((to_rgba(colour), handle.get_linestyle()))
+        assert len(set(keys)) == 2
 
     def test_the_axes(self, correlation_figure) -> None:
         """Ticks every quarter, printed to two places. One place printed 0.75
