@@ -1,7 +1,10 @@
 """The pins for SPY against the S&P 500 stocks, *Algorithmic Trading*'s Example 4.2.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md`` Entry 24
+about this example and the rows beside it, with one exception.
+``blog/index-arbitrage-lessons.md`` also quotes its figure's numbers, which
+``tests/test_index_arbitrage_figures.py`` holds, and claims no test asserts,
+which README lists. ``docs/replication-log.md`` Entry 24
 carries the verdicts and points here row by row.
 
 Every pin on the committed files reads one vintage and one specification, so
@@ -74,6 +77,7 @@ from chan.index_arbitrage import (
     report,
     run,
     screen,
+    walks_unrelated_to,
     windows,
 )
 from chan.johansen import johansen
@@ -305,6 +309,13 @@ class TestTheStrategy:
         assert (weights[:-1] == result.basket.eigenvectors[0, 0]).all()
         assert weights[-1] == result.basket.eigenvectors[1, 0]
 
+    def test_the_98_stocks_together_carry_107_198_against_spys_105_560(self, result) -> None:
+        """One unit is long about as many dollars of stocks as it is short of SPY."""
+        stocks, spy = result.weights[:-1].sum(), result.weights[-1]
+        assert stocks == pytest.approx(107.198448, abs=1e-6)
+        assert spy == pytest.approx(-105.559992, abs=1e-6)
+        assert stocks + spy == pytest.approx(1.638456, abs=1e-6)
+
     def test_the_first_return_is_on_the_sixth_test_row_and_every_later_day_has_one(
         self, result
     ) -> None:
@@ -480,13 +491,7 @@ class TestBesideTheReplication:
         is not what chance alone gives.
         """
         spy = sources[3].loc[result.train_days]
-        rng = np.random.default_rng(343)
-        walks = pd.DataFrame(
-            100 + np.cumsum(rng.normal(size=(len(spy), 2000)), axis=0),
-            index=spy.index,
-            columns=[f"W{i}" for i in range(2000)],
-        )
-        found = screen(walks, spy)
+        found = screen(walks_unrelated_to(spy, 2000, 343), spy)
         assert len(found.tested) == 2000
         assert len(found.passed) == 561
         assert 480 * len(found.passed) / 2000 == pytest.approx(134.64)
@@ -496,7 +501,7 @@ class TestBesideTheReplication:
         """Two independent walks of 251 days, 2,000 pairs seeded with 345.
 
         ``johansen(·, 0, 1)``'s trace test rejects r ≤ 0 on 410 pairs at its 90
-        percent value and on 242 at its 95, about 20 and 12 percent where 10
+        percent value and on 242 at its 95, 20.5 and 12.1 percent where 10
         and 5 are nominal. So a pass at either bar, the screen's or row 5's, is
         weaker evidence than its label.
         """
