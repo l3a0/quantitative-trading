@@ -30,8 +30,8 @@ file, so :mod:`chan.pca_factor` calls :func:`smartstd_book_two`.
 The rest are Chan's helpers as his scripts call them. A change to one reaches
 every module here that imports it, such as
 :mod:`chan.cross_sectional_momentum`, which transcribes *Algorithmic Trading*'s
-Example 6.2. Some of those changes move a printed figure, as the paragraphs
-above show, so a change here can fail a replication's own tests as well as
+Example 6.2. Its tests pin figures that a helper change can move, so a change
+here can fail a replication's own tests as well as
 ``tests/test_matlab_helpers.py``.
 
 Reversing the tie order in :func:`matlab_sort` moves no printed figure on the
