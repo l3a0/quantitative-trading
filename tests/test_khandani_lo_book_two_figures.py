@@ -184,6 +184,11 @@ class TestTheCurves:
         assert _legend(axes["close-to-close"]) == ["APR 0.136776, Sharpe ratio 1.259478"]
         assert _legend(axes["open-to-close"]) == ["APR 0.731553, Sharpe ratio 4.713284"]
 
+    def test_each_legend_sits_lower_right_clear_of_the_year_labels(self, axes) -> None:
+        """The year labels hold the top of each panel, so a legend there would cover them."""
+        for ax in axes.values():
+            assert ax.get_legend()._loc == 4  # matplotlib's code for "lower right"
+
     def test_each_heading_sets_the_books_figures(self, axes) -> None:
         assert _title(axes["close-to-close"]) == (
             "Figure 4.4: Example 4.3, each day's weights held from one close to the next.\n"
@@ -247,6 +252,8 @@ class TestTheYears:
                 (date2num(inside[0]), date2num(inside[-1])), abs=1e-9
             )
             assert to_hex(shades[f"shade-{year}"].get_facecolor()) == ACCENT.lower()
+            # Light enough that the curve and its grid read through the shade.
+            assert shades[f"shade-{year}"].get_alpha() == 0.12
         assert not [p for p in axes["open-to-close"].patches if p.get_gid()]
         for gid, ax in axes.items():
             for year in range(2007, 2012):
