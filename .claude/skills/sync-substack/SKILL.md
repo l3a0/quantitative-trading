@@ -59,9 +59,11 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    `GET /api/v1/post_management/drafts?offset=0&limit=50&order_by=draft_updated_at&order_direction=desc`
    lists unpublished drafts. `GET /api/v1/drafts` looks like the same list but
    returned only published posts, so it misses every draft. Check
-   `/api/v1/post_management/scheduled` and `/api/v1/post_management/published`
-   too. The published list refused a request with no `order_by`, and
-   `order_by=post_date&order_direction=desc` worked.
+   `/api/v1/post_management/scheduled?offset=0&limit=50&order_by=trigger_at&order_direction=asc`
+   and `/api/v1/post_management/published` too. The published list refused a
+   request with no `order_by`, and `order_by=post_date&order_direction=desc`
+   worked. The scheduled list needs `order_by=trigger_at&order_direction=asc`
+   and refuses `order_by=post_date`.
 3. **Pin the commit.** The page reads the Markdown and the figures from
    `raw.githubusercontent.com` at a commit, so that commit must be pushed. Run
    `git log` on the post right before writing, not only at the start, because
@@ -175,7 +177,7 @@ const EXPECT = { md: "<md_sha256>", conversion: "<conversion_sha256>" };
 const IMAGES = { /* the contents of images.json */ };
 const LISTS = [
   "/api/v1/post_management/drafts?offset=0&limit=50&order_by=draft_updated_at&order_direction=desc",
-  "/api/v1/post_management/scheduled",
+  "/api/v1/post_management/scheduled?offset=0&limit=50&order_by=trigger_at&order_direction=asc",
   "/api/v1/post_management/published?offset=0&limit=50&order_by=post_date&order_direction=desc",
 ];
 const sha = async (s) => Array.from(new Uint8Array(await crypto.subtle.digest(
