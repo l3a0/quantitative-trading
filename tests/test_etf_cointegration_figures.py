@@ -14,8 +14,10 @@ message here carries too.
 
 One thing is pinned here and nowhere else: that the residual's mean, which
 the panel draws, equals the intercept of the regression the hedge ratio comes
-from, 6.4113. That the deepest drawdown's trough sits inside the longest spell
-below the high is held here and in ``tests/test_etf_cointegration.py``.
+from, 6.4113. ``blog/johansen-etf-lessons.md`` draws it and
+``blog/kalman-hedge-lessons.md`` quotes it, so a change to it moves both posts.
+That the deepest drawdown's trough sits inside the longest spell below the
+high is held here and in ``tests/test_etf_cointegration.py``.
 ``calculateMaxDD`` returns the two separately, so it is a fact about this run
 rather than about the helper.
 

@@ -1,12 +1,15 @@
 """The pins for EWA, EWC and IGE, *Algorithmic Trading*'s Examples 2.6 to 2.8.
 
 This file is the single authority for every number a prose surface quotes
-about these three examples and the rows beside them, with one exception, in
-``blog/johansen-etf-lessons.md``. The post's figure draws the residual's mean,
-6.4113, the intercept of the regression the hedge ratio comes from, which
-``tests/test_etf_cointegration_figures.py`` holds. README lists what the post
-says that nothing here asserts. ``docs/replication-log.md`` Entry 23 carries
-the verdicts and points here row by row.
+about these three examples and the rows beside them, with one exception. The
+figure in ``blog/johansen-etf-lessons.md`` draws the residual's mean, 6.4113,
+the intercept of the regression the hedge ratio comes from, which
+``tests/test_etf_cointegration_figures.py`` holds.
+``blog/kalman-hedge-lessons.md`` quotes the same intercept beside the
+whole-file slope, 0.9624, which is pinned here, so a change to either moves
+that post too. README lists what each post says that nothing here asserts.
+``docs/replication-log.md`` Entry 23 carries the verdicts and points here row
+by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here.
