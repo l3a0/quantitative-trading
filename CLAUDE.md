@@ -430,18 +430,20 @@ PR bodies use Markdown section headings, not a wall of prose. Lead with `## Why`
 
 ## Write-ups and their Substack drafts
 
-On 2026-10-10 eleven open write-up issues were blocked on nothing in the code. Each said its outline waited on the owner asking for the post, and each post's Substack draft waited on an approval in chat. The owner removed both waits that day.
+On 2026-10-10, eleven open write-up issues were blocked on nothing in the code. Each said its outline waited on the owner asking for the post, and each post's Substack draft waited on an approval in chat. The owner removed both waits that day.
 
 **A filed write-up issue is approved to plan and write (owner directive, 2026-10-10).** The ruling was "Write-up issues are approved to plan and write once filed." An issue titled "Write up the lessons of Entry N ..." is work a session starts like any other deliverable. A write-up issue filed from now on says so, rather than saying its outline waits on the owner.
 
+The approval removes the wait for the owner to ask for the post, and nothing more. A question the issue reserves for the owner, such as whether a figure gains a second panel, is still the owner's to answer. The session that plans the post asks it rather than deciding it, as with any question only the owner can answer.
+
 **Creating or syncing an unpublished Substack draft needs no ask in chat (owner directive, 2026-10-10).** The owner extended the first ruling with "Yes, and substack too." Two guards still hold before any write to a draft.
 
-1. Compare the live draft with its recorded baseline.
+1. Compare the live draft with the copy of it recorded at the last sync, so any edit the owner made since then shows up.
 2. If the owner has edited the draft, pull those edits into the Markdown and never overwrite them.
 
-**Publishing stays with the owner.** Publishing, scheduling and sending a post are the owner's call. So is any change to a post that is already published, because writing to a published post's draft changes the live post.
+**Publishing stays with the owner.** Publishing, scheduling and sending a post are the owner's call. So is any change to a post that is already published, because writing to a published post's draft changes the live post. A draft the owner has scheduled counts as published here, because a write to it changes what goes out.
 
-The price is throughput rather than safety. Every write-up edits `README.md`, `docs/replication-log.md` and `tests/test_markdown_hygiene.py`, so write-ups started all at once conflict with each other. Run them in small batches, in the build board's order.
+The price is throughput. Every write-up edits `README.md`, `docs/replication-log.md` and `tests/test_markdown_hygiene.py`, so write-ups started all at once conflict with each other. Run them in small batches, in the build board's order.
 
 ## Keep the build board current
 
