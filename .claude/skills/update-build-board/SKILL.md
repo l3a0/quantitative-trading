@@ -203,11 +203,17 @@ The sections are these.
    second telling of what the cards say. Do not grow it back.
 
 Between the strip and the first section sits a banner that is empty while the
-page shows live data. It speaks only when the page is drawing its built-in copy
-or has stopped taking live updates, and it says which and how old the data is.
-The harness has no database, so every harness run prints it as
+page shows live data. It speaks when the page has no board data to show, when
+it is drawing a copy spliced in for the harness, or when it has stopped taking
+live updates. It says which, and how old any data on screen is. With no board
+data the page hides both sections and the footer and draws only the banner, so
+a new board with no documents shows "The live board holds no document yet"
+rather than an empty board that reads as real. The harness has no database, so
+every harness run prints the banner as
 `OTHER[source] ... This view cannot reach the live board`. That line is the
-banner working, not a defect. The default view also prints the count line, as
+banner working, not a defect. Every run also prints empty `OTHER[flightsec]`
+and `OTHER[ordersec]` lines, which are the sections the page hides when it has
+no data. The default view also prints the count line, as
 `OTHER[more] Showing the N ranked cards. M other open issues are not in the
 priority order. Show all N+M`, and the Show all view prints it as
 `OTHER[more] Showing all N+M open issues not in flight. Show only the ranked
@@ -520,11 +526,15 @@ thinking goes.
 ## Verify by executing, never by reading
 
 A parse check is not enough, because a comma dropped inside a nested array still
-parses. The page has no suite, so running it is the only check there is.
+parses. `tests/test_build_board.py` runs the page against an invented fixture,
+which catches a page that throws, draws a section from the wrong document, or
+mislabels an empty board. It cannot read the live data, so running the page on
+what is about to be written is still the check on what a viewer will see.
 
-The harness runs the page's script with no database, so on its own it checks
-the copy built into the page rather than the live data. So splice the documents
-just read into a copy of the page first. Copy `board.html` from this checkout
+The harness runs the page's script with no database, and the checked-in page
+carries no copy of the board, so on its own it would draw only the banner and
+then throw at `store.strip`. So splice the documents just read into a copy of
+the page first. Copy `board.html` from this checkout
 into the scratch directory as `qt-board.html`, then run this from the scratch
 directory, with `$REPO` set to this checkout.
 
