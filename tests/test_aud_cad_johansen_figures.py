@@ -207,6 +207,8 @@ class TestTheDollarSplit:
             "trace test finds 1 relation",
             "trace test finds 2 relations",
         ]
+        # Upper center, over the stretch of 2011 where the line sits near −0.8.
+        assert axes["split"].get_legend()._loc == 9
 
     def test_the_heading_sets_the_scale_the_counts_and_the_last_day(self, axes) -> None:
         assert _title(axes["split"]) == (

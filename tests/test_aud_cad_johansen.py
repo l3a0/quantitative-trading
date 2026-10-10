@@ -37,6 +37,8 @@ example first ran on 2026-10-05.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -365,6 +367,17 @@ class TestBesideTheReplication:
         assert share / (1 - abs(share)) == pytest.approx(-0.7622442800, abs=1e-10)
         dollars = result.positions[-1]
         assert share == pytest.approx(dollars[1] / np.abs(dollars).sum(), abs=1e-12)
+
+    def test_the_split_ignores_the_eigenvectors_sign(self, result) -> None:
+        """The eigenvector's sign moves no return, so it must not move the split either.
+
+        AUD.USD's weight is positive on every test day here, which hides a split
+        that skipped holding AUD.USD long, so every other row's hedge is negated.
+        """
+        flip = np.where(np.arange(len(result.hedge)) % 2, -1.0, 1.0)[:, None]
+        flipped = dataclasses.replace(result, hedge=result.hedge * flip)
+        np.testing.assert_array_equal(flipped.dollar_split, result.dollar_split)
+        assert (flipped.hedge[result.training :, 0] < 0).any()
 
     def test_the_90_days_compound_to_0_1074_and_the_other_522_to_0_1696(self, result):
         """Together they make the run's 0.2953, so 15 percent of the days carried about two
