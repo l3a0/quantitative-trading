@@ -53,7 +53,7 @@ A rolling strategy needs a window for each, and the filter needs none.
 1. **A short** enters when the forecast error rises above the upper band, because EWC has closed further above its forecast than the filter expected. It exits when the forecast error falls back below the upper band.
 2. **A long** enters when the forecast error falls below the lower band, and exits when it rises back above the lower band.
 
-Each exit sits on its own entry band. That differs from Example 3.2, the band strategy the book trades on gold and oil just before this one. There, a position enters one standard deviation from a rolling mean and exits at the mean itself (Chan, 2013, location 1559). Location 1726 says the rest of the Kalman code is the same as that example’s, with the filter’s slope in place of the rolling one.
+Each exit sits on its own entry band. That differs from Example 3.2, the band strategy the book trades on gold and oil just before this one. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md) covers it. There, a position enters one standard deviation from a rolling mean and exits at the mean itself (Chan, 2013, location 1559). Location 1726 says the rest of the Kalman code is the same as that example’s, with the filter’s slope in place of the rolling one.
 
 One long unit is short the slope’s worth of EWA shares and long one share of EWC. A short unit is the reverse. Each day’s return is the profit on yesterday’s positions divided by the gross dollars they held, as in the earlier posts, and no cost is charged. Each trading day is one row of the file, and all 1,500 rows count toward the figures.
 

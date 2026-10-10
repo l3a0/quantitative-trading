@@ -3217,7 +3217,7 @@ uv run python -m chan.bollinger_figures
 it draws rather than its bytes, for the reason given above for the regime map.
 
 [blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a
-twenty-first post, about Kindle locations 1633 to 1726 of Chan's
+twenty-second post, about Kindle locations 1633 to 1726 of Chan's
 *Algorithmic Trading*, where a Kalman filter re-estimates the slope and intercept of EWC on EWA every
 day and trades the filter's forecast error against a band its own forecast
 variance sets. Chan reports an APR of 26.2 percent and a Sharpe ratio of 2.4.
