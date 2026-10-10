@@ -16,7 +16,7 @@ rather than a transcription. It landed here for
 
 1. γ is :func:`chan.roll_returns.roll_returns` on the TU strip, Example 5.3's
    fit in the script's column units. :func:`chan.roll_returns.roll_returns_in_months`
-   is exactly a third of it on TU, because every contract is a quarter from the
+   is a third of it on every row of TU, to rounding, because every contract is a quarter from the
    next, and it never reaches 0.03 in the window. So the column units are what
    the data allows rather than a preference.
 2. :func:`roll_signals` reads today's γ: ``longs = γ > 0.03`` and
@@ -41,8 +41,8 @@ grounds the runs did not choose: Example 6.1's convention for the lag, Example
 row. Rows 1 to 3 miss the book under it, and the run tries no second rule.
 
 **The rebuild and its check.** The position earns Example 6.1's series, the
-continuous front-contract close. No committed save of that series reaches the
-window, since the four OHLC saves end in May 2012, so :func:`held_returns`
+continuous front-contract close. No committed save of that series covers the
+whole window, since the four OHLC saves end in May 2012, so :func:`held_returns`
 rebuilds it from the strip. With L a contract's last priced row, row t earns
 ``close(t) / close(t−1) − 1`` of the nearest contract that was priced at t−1
 and has L − t ≥ 7, where a contract still priced on the file's last row counts
@@ -75,9 +75,7 @@ one row beside the replication, and it is never the verdict.
 
 **Nothing is ported.** No script ships for location 2690, and the sibling
 search on the issue found no roll-return signal to bring over. Everything
-reused comes from this repo's own :mod:`chan.roll_returns`,
-:mod:`chan.tu_momentum`, :mod:`chan.matlab_helpers` and
-:mod:`chan.khandani_lo_book_two`.
+reused comes from this repo's own modules.
 
 **The vintage.** ``inputdatadaily_tu_20120813/``, chan-mat, raw, saved
 2012-08-14, 93 contracts and ``TU-SPOT`` over 5,565 days from 1990-06-22 to
@@ -137,8 +135,11 @@ ROLL_ROWS = 7
 THRESHOLD = 0.03
 WINDOW_START = pd.Timestamp("2009-01-02")
 WINDOW_END = pd.Timestamp("2012-08-13")
-#: The 2012-05-11 save prints four decimals, so two rounded closes can differ by
-#: up to 1e-4 on a change, and anything past this is more than rounding.
+#: Both the 2012-05-11 save and the strip print four decimals, so rounding can
+#: move each file's change by up to 1e-4. The two changes off the roll row stay
+#: within 1e-4 of each other here, and the roll row's jumps are far larger, so a
+#: difference past this is more than rounding. ``TestTheRebuildAgainstTheSave``
+#: holds both sides of that gap.
 SAVE_ROUNDING = 1.5e-4
 #: Location 2690.
 BOOK_APR_PERCENT = "2.5"
@@ -194,7 +195,8 @@ def held_returns(contracts: pd.DataFrame, roll_rows: int = ROLL_ROWS) -> pd.Seri
     The held contract on row t is the nearest one priced at t−1 with at least
     ``roll_rows`` rows left to its last priced row, or the one still trading on
     the file's last row. The first row is NaN, and so is a row no contract
-    qualifies for.
+    qualifies for or a row on which the held contract, priced at t−1, has no
+    price at t. TU's strip has none of the last kind.
     """
     today, before = _held_prices(contracts, roll_rows)
     with np.errstate(invalid="ignore", divide="ignore"):

@@ -318,7 +318,7 @@ both.
    [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
    Entry 30,
    [tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py)
-   holds Entry 31, and
+   holds Entry 31,
    [tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) holds
    Entry 32,
    [tests/test_tu_momentum.py](../tests/test_tu_momentum.py) holds Entry 33,
@@ -612,7 +612,8 @@ one rebuilt series over one window with one arithmetic, was written on
 the scratch runs had measured it, though before the build, the order Entry
 13's row 10 allows when it is stated. The criterion reads the book's words
 with no margin, and a test pins each margin, because row 4's is about the
-size of the rebuild's own error. Rows 1 to 3 of the same entry are
+size of the rebuild's own error. All three claims also hold on Chan's own
+2012-05-11 close over the rows it covers, under row 10. Rows 1 to 3 of the same entry are
 replications of printed figures under a rule declared after the scratch
 runs, so their verdicts name that rule.
 
@@ -6920,7 +6921,8 @@ both are stated once here.
 
 **The rule was declared after the scratch runs.** The issue said these
 choices had to be declared before any figure was computed. Two scratch runs
-read about 90 variants first, across lags, held contracts, units, thresholds
+read about 90 variants first, a count from the issue's disclosure that no
+test here pins, across lags, held contracts, units, thresholds
 and roll rules, and one of them came close to the book. The declaration rests
 on grounds the runs did not choose. The lag is Example 6.1's own convention,
 the series is the one the book says it revises, and the roll row was read off
@@ -6962,7 +6964,7 @@ loaded.
 | 10 | both rules over the 849 window rows that save covers, on its own close and on the rebuild | the declared rule 1.437321 percent, 1.791969 and −0.807695 percent on the save, and 1.468184 percent, 1.870808 and −0.729860 percent on the rebuild. Example 6.1 1.445672 percent, 1.250783 and −0.916666 percent on the rebuild, and Entry 33's row 12 on the save | `TestTheRowsBeside::test_the_revised_rule_on_the_save_s_own_close`, `::test_both_rules_on_the_rebuild_over_the_same_rows` and `::test_example_6_1_on_the_save_is_entry_33_s_pin` |
 | 11 | the position each window row earns on | long on 572 of 913 rows, 62.65 percent, short on 0, 21 changes | `TestTheRowsBeside::test_the_rule_is_long_or_flat_and_never_short` |
 | 12 | γ on the last day before the window and its first three days | 0.0161092 on 2008-12-31, and below 1e-13 in size on 2009-01-02, 01-05 and 01-06 | `TestTheRowsBeside::test_the_window_starts_flat` |
-| 13 | `roll_returns_in_months` under the same threshold, and γ's window mean | a third of γ on every row, a peak of 0.02447, flat on all 913 rows. γ's mean is 0.035943 | `TestTheRowsBeside::test_the_month_unit_gamma_never_trades` and `::test_gamma_has_no_nan_in_the_window` |
+| 13 | `roll_returns_in_months` under the same threshold, and γ's window mean | a third of γ on every row where γ is defined, a peak of 0.02447, flat on all 913 rows. γ's mean is 0.035943 | `TestTheRowsBeside::test_the_month_unit_gamma_never_trades` and `::test_gamma_has_no_nan_in_the_window` |
 | 14 | the declared position held on the fifth contract priced the day before, and on the fifth of those priced on both days | 0.024712, 2.144165 and −0.011583, and a Sharpe ratio of 1.957852 | `TestTheRowsBeside::test_the_fifth_contract_reading` |
 
 ### The verdicts
@@ -6993,10 +6995,12 @@ Three things.
    ratio's margin is the large one. Row 4's margin is about the size of the
    rebuild's own error, so the APR half of the claim is the weakest of the
    three.
-2. **The book's figures came from a reading this search did not declare.**
-   The declared rule lands none of rows 1 to 3. The one reading that lands two
-   of them holds a contract γ is fitted on, and the fit's own use of that
-   contract's price is what lifts it.
+2. **The declared rule lands none of the book's figures, and the reading
+   that comes close is suspect.** Row 14 lands two of rows 1 to 3 by holding a
+   contract γ is fitted on. A scratch fit that left that contract out fell to
+   a Sharpe ratio of 1.801, which no test here repeats. So the fit's own use
+   of the held contract's price is a candidate for what lifts row 14, not a
+   finding, and the entry cannot say which reading Chan held.
 3. **The book's comparison spans two windows.** Example 6.1's printed figures
    run from 2004 and these from 2009. On one window the declared rule's APR
    margin is 0.000348, far smaller than the gap between the printed 2.5 and

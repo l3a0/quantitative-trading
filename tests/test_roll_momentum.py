@@ -286,6 +286,21 @@ class TestTheRebuildAgainstTheSave:
         assert check.beyond_rounding == 30
         assert check.beyond_rounding_on_jump_row == 30
 
+    def test_the_rounding_threshold_sits_between_rounding_and_the_jumps(self, result, save) -> None:
+        """Off the roll row the changes agree within 1e-4, and every jump beyond is 0.0078 or more.
+
+        Both files print four decimals, so that is what rounding alone allows,
+        and any threshold between the two counts the same 30 changes.
+        """
+        closes = save[1]
+        span = np.asarray(result.days.isin(closes.index))
+        difference = np.abs(np.diff(closes.to_numpy(dtype=float)) - np.diff(result.level[span]))
+        within = difference[difference <= SAVE_ROUNDING]
+        beyond = difference[difference > SAVE_ROUNDING]
+        assert within.max() == pytest.approx(1e-4, abs=1e-9), SPEC
+        assert beyond.min() == pytest.approx(0.0078, abs=1e-9), SPEC
+        assert len(beyond) == 30
+
     def test_the_save_s_span_holds_32_rolls(self, strip, save) -> None:
         """The held contract changes 32 times, so 30 of the 32 jump rows differ beyond rounding.
 
@@ -447,6 +462,15 @@ class TestTheRowsBeside:
         )
         assert np.nanmax(result.gamma_in_months[window]) == pytest.approx(0.02447, abs=5e-6)
         assert (result.month_position == 0).all()
+
+    def test_the_month_unit_gamma_is_a_third_on_every_defined_row(self, result) -> None:
+        """Every TU contract is a quarter from the next, so the ratio holds on the full index."""
+        defined = np.isfinite(result.gamma)
+        assert defined.sum() == 1087
+        np.testing.assert_array_equal(np.isfinite(result.gamma_in_months), defined)
+        np.testing.assert_allclose(
+            result.gamma_in_months[defined], result.gamma[defined] / 3, rtol=1e-9, atol=1e-13
+        )
 
     def test_the_fifth_contract_reading(self, result) -> None:
         found = result.fifth_figures

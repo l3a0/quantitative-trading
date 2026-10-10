@@ -456,15 +456,16 @@ where they were first built. The other thirty-two were built here.
     *Algorithmic Trading*, on Chan's 2012-08-13 TU strip. The rule goes long
     when item 27's roll return is above 3 percent and short when it is below
     −3 percent, and holds the front contract, rebuilt from the strip because
-    no committed continuous save reaches the book's 2009 to 2012 window. It
-    misses all three printed figures, with an APR of 0.013725, a Sharpe
-    ratio of 1.803348 and a maximum drawdown of −0.007299 against the book's
-    2.5 percent, 2.1 and 1.1 percent. It beats Example 6.1's rule on all
+    no committed continuous save covers the whole of the book's 2009 to 2012
+    window. It misses all three printed figures, with an APR of 0.013725, a
+    Sharpe ratio of 1.803348 and a maximum drawdown of −0.007299 against the
+    book's 2.5 percent, 2.1 and 1.1 percent. It beats Example 6.1's rule on all
     three when both run on the same series, which is the claim the book's
     "higher" and "reduced" make, though its APR leads by only 0.000348.
     The rebuild agrees with Chan's 2012-05-11 save at a return correlation
-    of 0.998359. The rule was declared after about 90 scratch readings,
-    which the module says, so every figure is exploratory.
+    of 0.998359. The rule was declared after about 90 scratch readings, a
+    count from the issue's disclosure that no test pins, and the module says
+    so. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
