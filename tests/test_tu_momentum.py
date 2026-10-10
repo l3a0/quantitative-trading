@@ -486,6 +486,17 @@ class TestTheRule:
             strategy_returns(held, np.zeros(30), hold_days=20)
         strategy_returns(held, np.zeros(30), hold_days=25)
 
+    def test_the_refusal_reads_short_positions_and_its_boundary(self) -> None:
+        """A short position counts by its size, and one tranche past the divisor is refused."""
+        short = positions(np.zeros(30, dtype=bool), np.ones(30, dtype=bool), hold_days=25)
+        assert short.min() == -25
+        with pytest.raises(ValueError, match="same hold_days"):
+            strategy_returns(short, np.zeros(30), hold_days=20)
+        held = positions(np.ones(30, dtype=bool), np.zeros(30, dtype=bool), hold_days=21)
+        with pytest.raises(ValueError, match="same hold_days"):
+            strategy_returns(held, np.zeros(30), hold_days=20)
+        strategy_returns(held, np.zeros(30), hold_days=21)
+
     def test_a_mismatch_inside_the_bound_is_not_refused(self) -> None:
         """The refusal reads the largest position, so cancelling tranches slip past it.
 
@@ -519,6 +530,10 @@ class TestTheRule:
 
     def test_the_market_return_s_first_row_is_zero(self) -> None:
         np.testing.assert_allclose(market_returns([100.0, 101.0, 99.99]), [0.0, 0.01, -0.01])
+
+    def test_an_infinite_market_return_is_zero(self) -> None:
+        """A zero close makes the next return infinite, and the script's line sets it to 0."""
+        assert market_returns([0.0, 1.0, 2.0]).tolist() == [0.0, 0.0, 1.0]
 
     def test_figures_on_a_known_series(self) -> None:
         daily = np.array([0.0, 0.01, -0.02, 0.01])
