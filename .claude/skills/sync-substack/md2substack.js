@@ -29,6 +29,10 @@
 // 2. canon and walkLines were added from the in-page check scripts, where each
 //    session retyped them, to match canonical and walk_lines in the Python.
 // 3. M2S now returns them beside convert.
+//
+// After the check-in, fenceEnd replaced the two fence loops, which looped
+// forever on a fence with no closing line. It throws instead, as the Python
+// does.
 var M2S = (function () {
   var LINK = { target: "_blank", rel: "noopener noreferrer nofollow", "class": null };
   var WIDGET = {
@@ -62,6 +66,14 @@ var M2S = (function () {
   }
   function para(s) { return { type: "paragraph", attrs: { textAlign: null }, content: inline(s) }; }
   var LISTSTART = /^(\d+\. |- )/;
+  // The index of the line closing the fence opened on line i, the same as
+  // _fence_end in the Python. A fence left open would otherwise loop forever.
+  function fenceEnd(lines, i) {
+    var j = i + 1;
+    while (j < lines.length && lines[j] !== "```") j++;
+    if (j === lines.length) throw new Error("unterminated fence opened on line " + (i + 1) + ": " + lines[i]);
+    return j;
+  }
   function convert(md, images) {
     var lines = md.split("\n");
     var title = lines[0].replace(/^# /, "").trim();
@@ -77,13 +89,13 @@ var M2S = (function () {
         if (nHeading === 2) body.push(clone(WIDGET));
         body.push({ type: "heading", attrs: { textAlign: null, level: 1 }, content: inline(line.slice(3).trim()) }); i++;
       } else if (line.indexOf("```math") === 0) {
-        var j = i + 1; while (lines[j] !== "```") j++;
+        var j = fenceEnd(lines, i);
         eq++;
         body.push({ type: "latex_block", attrs: { persistentExpression: lines.slice(i + 1, j).join("\n"), id: "EQSTAT" + (eq < 10 ? "0" : "") + eq } });
         i = j + 1;
       } else if (line.indexOf("```") === 0) {
         // Any other fence, such as ```latex showing an equation's source, is a plain code block.
-        var jj = i + 1; while (lines[jj] !== "```") jj++;
+        var jj = fenceEnd(lines, i);
         var code = lines.slice(i + 1, jj).join("\n");
         var cb = { type: "highlighted_code_block", attrs: { language: "plaintext", nodeId: null } };
         if (code) cb.content = [{ type: "text", text: code }];

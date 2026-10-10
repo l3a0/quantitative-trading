@@ -200,6 +200,7 @@ MUST_BE_SWEPT = frozenset(
         "research/book-notes/quantitative-trading.md",
         "research/filings/README.md",
         "research/papers/README.md",
+        "tests/fixtures/substack/edge-cases.md",
         "tests/fixtures/substack/every-construct.md",
     }
 )

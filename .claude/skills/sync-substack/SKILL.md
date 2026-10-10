@@ -21,7 +21,7 @@ this file.
    Markdown from GitHub at a pinned commit, converts it, and refuses to write
    unless the result hashes to the local conversion.
 
-`tests/test_substack_converter.py` pins the converter's output on a fixture,
+`tests/test_substack_converter.py` pins the converter's output on two fixtures,
 converts every committed post, and checks that the two files agree. The Python
 file's docstring lists what each Markdown shape becomes.
 
@@ -81,6 +81,15 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    `\texttt{VX\_ES.m}`. Fix the Markdown first, then the draft.
 4. **The post names no issue or pull request.** The owner's rule for blog
    posts is to say what an issue held rather than cite it.
+5. **The post uses only shapes the converter handles.** It does not handle a
+   pipe table, a heading of four to six hashes, or a linked image such as
+   `[![alt](x.png)](x.png)`. Each comes out as a paragraph of literal
+   Markdown. `blog/gld-gdx-cointegration-lessons.md` and
+   `blog/price-spread-mean-reversion.md` use them. Their drafts were made by
+   another route before the converter existed, so neither can be synced
+   through it. A new post must avoid these shapes, or the converter must learn
+   them first, in both languages and with the fixtures extended. The test
+   suite names the two posts and fails on a third.
 
 To check an equation the way Substack draws it, open any published post page,
 where `window.MathJax` exists, and run `MathJax.tex2mml(expr, {display: true})`.
@@ -95,7 +104,7 @@ autosaves, and an editor tab open on an older version has saved it back over
 five later writes made through the API. If the owner has an editor tab open on
 the post, ask them to leave it before writing and to reload it afterwards.
 
-Four limits of the browser decide how the scripts are built.
+Three limits of the browser decide how the scripts are built.
 
 1. **The output filter.** The Claude in Chrome extension blocks raw draft text
    in its output and hides strings that look like hashes. So compare inside
@@ -107,9 +116,9 @@ Four limits of the browser decide how the scripts are built.
    script went wrong. Converting in the page with `md2substack.js` is the
    route that worked. Sending the tree gzipped and base64-encoded, unpacked in
    the page with `DecompressionStream` and checked by hash, also worked.
-4. **A page the extension cannot script.** When that happened, an AppleScript
-   JXA runner that called `tab.execute({javascript})` with a script read from
-   a file did the same job.
+
+When the extension cannot script the page, stop and tell the owner. Do not
+route around the extension to reach the signed-in page another way.
 
 ## Create a draft
 
@@ -120,16 +129,21 @@ Four limits of the browser decide how the scripts are built.
    each file name to the `url` the upload returned and the PNG's `width`,
    `height` and `bytes`.
 2. **Convert locally.** Run the converter with `--summary` and keep the hashes
-   it prints.
+   it prints. `md_sha256` hashes the file's bytes, which is what the page
+   hashes after fetching it, so it goes into the driver's `EXPECT.md`.
 
    ```bash
    python3 .claude/skills/sync-substack/md2substack.py --summary blog/<post>.md images.json
    ```
 
 3. **Dry-run in the page.** Send `md2substack.js` followed by a driver like the
-   one below. It refuses to write unless the Markdown and its conversion both
-   hash to what the local run printed, and unless a flag set by a separate call
-   says to go. The first call only reports, so a mistake costs nothing.
+   one below. It checks the Markdown's hash before converting it, so a wrong
+   file is never converted. It refuses to write unless the Markdown and its
+   conversion both hash to what the local run printed, unless a flag set by a
+   separate call says to go, and unless the drafts, scheduled and published
+   lists all load and none holds the title. The first call only reports, so a
+   mistake costs nothing. The driver reads the flag and clears it on its first
+   line, so a script that throws partway cannot leave it set for the next one.
 4. **Create.** Set `window.__GO = "create"` in its own call, then send the same
    script again. Leave `draft_bylines` empty. The owner sets the byline in the
    editor.
@@ -145,87 +159,130 @@ owner sets at publish.
 
 ```javascript
 // md2substack.js goes above this line, unchanged.
+const GO = window.__GO;
+window.__GO = null;
 const COMMIT = "<full commit sha>";
 const POST = "blog/<post>.md";
-const EXPECT = { md: "<sha256 of the Markdown file>", conversion: "<conversion_sha256>" };
+const EXPECT = { md: "<md_sha256>", conversion: "<conversion_sha256>" };
 const IMAGES = { /* the contents of images.json */ };
+const LISTS = [
+  "/api/v1/post_management/drafts?offset=0&limit=50&order_by=draft_updated_at&order_direction=desc",
+  "/api/v1/post_management/scheduled",
+  "/api/v1/post_management/published?offset=0&limit=50&order_by=post_date&order_direction=desc",
+];
 const sha = async (s) => Array.from(new Uint8Array(await crypto.subtle.digest(
   "SHA-256", new TextEncoder().encode(s)))).map((b) => b.toString(16).padStart(2, "0")).join("");
+// The posts in one list, or null unless the request succeeded and returned an array.
+const posts = async (path) => {
+  const r = await fetch(path);
+  const list = r.ok ? await r.json() : null;
+  return list && Array.isArray(list.posts) ? list.posts : null;
+};
 const md = await (await fetch(
   `https://raw.githubusercontent.com/l3a0/quantitative-trading/${COMMIT}/${POST}`)).text();
-const draft = M2S.convert(md, IMAGES);
-const out = {
-  mdOk: (await sha(md)) === EXPECT.md,
-  convOk: (await sha(M2S.canon(draft))) === EXPECT.conversion,
-  subtitleLength: draft.subtitle.length,
-  blocks: draft.body.content.length,
-};
-if (out.mdOk && out.convOk && window.__GO === "create") {
-  const list = await (await fetch("/api/v1/post_management/drafts?offset=0&limit=50"
-    + "&order_by=draft_updated_at&order_direction=desc")).json();
-  if ((list.posts || []).some((p) => p.draft_title === draft.title)) {
-    out.refused = "a draft with this title exists";
-  } else {
-    const r = await fetch("/api/v1/drafts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        draft_title: draft.title,
-        draft_subtitle: "<the subtitle as checked above, or an empty string>",
-        draft_body: JSON.stringify(draft.body),
-        draft_bylines: [],
-        type: "newsletter",
-      }),
-    });
-    out.created = { status: r.status, ok: r.ok };
+const out = { mdOk: (await sha(md)) === EXPECT.md };
+if (out.mdOk) {
+  const draft = M2S.convert(md, IMAGES);
+  out.convOk = (await sha(M2S.canon(draft))) === EXPECT.conversion;
+  out.subtitleLength = draft.subtitle.length;
+  out.blocks = draft.body.content.length;
+  if (out.convOk && GO === "create") {
+    const lists = await Promise.all(LISTS.map(posts));
+    if (lists.some((list) => list === null)) {
+      out.refused = "a post list did not load as an array";
+    } else if (lists.flat().some((p) => p.draft_title === draft.title || p.title === draft.title)) {
+      out.refused = "a post with this title exists";
+    } else {
+      const r = await fetch("/api/v1/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draft_title: draft.title,
+          draft_subtitle: "<the subtitle as checked above, or an empty string>",
+          draft_body: JSON.stringify(draft.body),
+          draft_bylines: [],
+          type: "newsletter",
+        }),
+      });
+      out.created = { status: r.status, ok: r.ok };
+    }
   }
 }
-window.__GO = null;
 out;
 ```
 
-The output filter has let a created draft's id through, since it is a number rather than a hash.
+The owner's notes do not record the fields these lists return. The drafts check
+this file carried first read an array under `posts`, each entry with a
+`draft_title`. So the driver reads `posts` from all three lists and matches the
+title against both `draft_title` and `title`. When it refuses because a list
+did not load as an array, read that list's response and correct the driver
+here rather than dropping the check.
 
 ## Sync an existing draft
 
+A sync converts the post with the figures the draft already holds, so nothing
+is uploaded again. Build `images.json` from the live draft's `image2` nodes.
+Key each entry by the figure's file name, the last part of the path in the
+Markdown's image line. Take `url` from the node's `src`, and `width`, `height`
+and `bytes` from the attributes of the same names. The local conversion then
+reproduces the draft's image nodes.
+
 1. **Read the live draft and compare it with its baseline.** Walk its body
-   with `M2S.walkLines` and hash the lines in the page. When the hash equals
-   the baseline in the owner's notes, the draft carries no edits since the
-   last sync, and the sync can go ahead.
-2. **When it differs, find out why before writing anything.** The version
+   with `M2S.walkLines` and hash the lines in the page. A walk hash equal to
+   the baseline in the owner's notes means the draft carries no text edits
+   since the last sync. It says nothing about formatting, because the walk
+   leaves out three things.
+   1. A heading's level.
+   2. A mark's attributes, such as a `textStyle` colour or a highlight colour.
+   3. A block's `textAlign`.
+
+   So also hash `M2S.canon` of the live body and compare it with the body
+   hash the notes recorded at the last sync. Where the notes record none,
+   compare the live body with the conversion of the last synced commit node by
+   node, attributes included. The sync goes ahead only when both comparisons
+   match. A body that differs while the walk matches carries a formatting
+   change, or an attribute the editor added on a save, and step 3 finds out
+   which.
+2. **Compare the title and subtitle too.** Check `draft_title` and
+   `draft_subtitle` against the conversion's `title` and `subtitle`. Respect
+   any choice the notes record for the post, such as a subtitle left blank
+   or worded differently on purpose. A change the owner made to either in
+   the editor goes into the Markdown like any other owner edit, under step 4.
+3. **When it differs, find out why before writing anything.** The version
    history is readable. `GET /api/v1/drafts/<id>/versions` lists the saves, and
    `POST /api/v1/drafts/<id>/load_version` with body
    `{"version_key": "<key>"}` returns one without restoring it. Compare the
    draft with the conversions of several earlier commits too. An editor tab
    left open on an old version saves that version back, and the difference
    then is a revert rather than an edit.
-3. **Sort each difference into one of three kinds.**
+4. **Sort each difference into one of three kinds.**
    1. Text the owner changed goes into the Markdown first, through the usual
       pull request, and the draft is then written from that Markdown.
-   2. A change the editor made on its own is restored, and the owner is told.
+   2. A change the editor made on its own is restored in the approved write,
+      and the owner is told why.
       One editor save turned `4\%` into `4%` inside a LaTeX block, which breaks
       the block, and added a trailing space to a paragraph. Neither changes
       the visible text, so neither is an owner edit.
    3. A node the owner added that Markdown cannot express is kept by copying
       it into the new conversion at the same place. Subscribe widgets the
       owner inserted, highlight marks and coloured text are the cases so far.
-4. **Patch the changed blocks in place.** Replace only the top-level blocks
+5. **Patch the changed blocks in place.** Replace only the top-level blocks
    that differ, and never rebuild the whole body from Markdown, because a
    rebuild silently drops everything in the third kind above. A comparison
    that covered only top-level paragraphs and headings once let a rebuild
    overwrite the owner's edits inside list items. So compare every node that
    carries text, including list items, captions, LaTeX blocks, image alt text
    and marks.
-5. **Guard the write.** Build the patched body in the page and check that it
+6. **Guard the write.** Build the patched body in the page and check that it
    hashes to the local conversion with the owner's nodes spliced in, before
    sending it. Splicing by index has put a new list item on the wrong block,
    and only this whole-document hash caught it. Then send
    `PUT /api/v1/drafts/<id>` only if `draft_updated_at` and each replaced
    block still read as they did, so an edit made in between is refused rather
    than overwritten.
-6. **Verify both directions.** Every text unit in the draft is in the
+7. **Verify both directions.** Every text unit in the draft is in the
    Markdown, and every one in the Markdown is in the draft. Record the new
-   walk hash in the owner's notes as the next baseline.
+   walk hash and body hash in the owner's notes as the next baseline.
 
 A run-level patch can split one text run into two neighbours with the same
 marks. They read identically but walk as two lines. When a draft's walk differs

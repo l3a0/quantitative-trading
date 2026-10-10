@@ -19,8 +19,8 @@ live draft. ``images.json`` maps each figure's file name to the ``url``,
 ``width``, ``height`` and ``bytes`` Substack returned when the figure was
 uploaded. A post with no figure needs no map.
 
-The conversion reads only the Markdown shapes the posts here use, listed in
-the order ``convert`` tries them.
+The conversion handles the Markdown shapes below, listed in the order
+``convert`` tries them.
 
 1. The first line is ``# Title`` and the third is the italic subtitle line.
    The subtitle keeps its Markdown escapes as typed, so a ``\\$`` there reaches
@@ -44,6 +44,21 @@ Inside text, ``**strong**``, ``*em*``, ```code``` and ``[links](url)`` become
 marks, and ``\\~`` and ``\\$`` lose their backslash. LaTeX blocks keep theirs,
 since a backslash there is TeX.
 
+Three shapes are not handled, and two committed posts use them.
+
+1. A pipe table, a run of lines opening ``|``, becomes one paragraph of
+   literal pipes.
+2. A ``####``, ``#####`` or ``######`` heading becomes a paragraph that starts
+   with its hashes.
+3. A linked image, ``[![alt](x.png)](x.png)``, becomes a paragraph holding a
+   link whose text starts ``![alt``, with no image.
+
+``blog/gld-gdx-cointegration-lessons.md`` and
+``blog/price-spread-mean-reversion.md`` use them. Their drafts were made by
+another route before this converter existed, and ``SKILL.md`` says what that
+means for syncing them. A fence with no closing line raises ``ValueError``
+rather than running off the end of the post.
+
 Two subscribe widgets are added. One sits before the second ``## `` heading,
 which is after the opening section, and one closes the post. That is where the
 owner placed them on the first posts. Its caption is the publication's public
@@ -65,6 +80,10 @@ first ``\\$`` in prose. The other, sha1 ``3cee9fed``, differed only in leaving
    in-page copies each time, so the local and in-page checks could drift
    apart. The third gathers what those scripts printed.
 3. The command line gained ``--summary``.
+
+After the check-in, ``_fence_end`` replaced the two fence loops, which raised
+``IndexError`` on a fence with no closing line, and ``summary`` gained
+``md_sha256``.
 """
 
 from __future__ import annotations
@@ -131,6 +150,21 @@ def para(s):
     return {"type": "paragraph", "attrs": {"textAlign": None}, "content": inline(s)}
 
 
+def _fence_end(lines, i):
+    """The index of the line closing the fence opened on line ``i``.
+
+    A fence left open would otherwise run off the end of the post. The
+    message names the line in the Markdown file, counting from 1, and
+    ``fenceEnd`` in ``md2substack.js`` raises the same one.
+    """
+    j = i + 1
+    while j < len(lines) and lines[j] != "```":
+        j += 1
+    if j == len(lines):
+        raise ValueError(f"unterminated fence opened on line {i + 1}: {lines[i]}")
+    return j
+
+
 def convert(md, images):
     """The draft's title, subtitle and body for one post's Markdown."""
     lines = md.split("\n")
@@ -164,9 +198,7 @@ def convert(md, images):
             )
             i += 1
         elif line.startswith("```math"):
-            j = i + 1
-            while lines[j] != "```":
-                j += 1
+            j = _fence_end(lines, i)
             eq += 1
             body.append(
                 {
@@ -179,9 +211,7 @@ def convert(md, images):
             )
             i = j + 1
         elif line.startswith("```"):
-            j = i + 1
-            while lines[j] != "```":
-                j += 1
+            j = _fence_end(lines, i)
             code = "\n".join(lines[i + 1 : j])
             node = {
                 "type": "highlighted_code_block",
@@ -328,11 +358,17 @@ def _sha256(text):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def summary(draft):
-    """The hashes and counts a session compares against the live draft."""
+def summary(draft, md_bytes):
+    """The hashes and counts a session compares against the live draft.
+
+    ``md_sha256`` hashes the Markdown file's raw bytes, which is what the page
+    hashes after fetching the file from GitHub. Hashing text read back in
+    Python could differ, since reading text can translate line endings.
+    """
     blocks = draft["body"]["content"]
     lines = walk_lines(draft["body"])
     return {
+        "md_sha256": hashlib.sha256(md_bytes).hexdigest(),
         "conversion_sha256": _sha256(canonical(draft)),
         "body_sha256": _sha256(canonical(draft["body"])),
         "walk_sha256": _sha256("\n".join(lines)),
@@ -350,9 +386,11 @@ if __name__ == "__main__":
         args = args[1:]
     with open(args[0], encoding="utf-8") as f:
         md = f.read()
+    with open(args[0], "rb") as f:
+        md_bytes = f.read()
     images = {}
     if len(args) > 1:
         with open(args[1], encoding="utf-8") as f:
             images = json.load(f)
     draft = convert(md, images)
-    print(json.dumps(summary(draft) if want_summary else draft, ensure_ascii=False))
+    print(json.dumps(summary(draft, md_bytes) if want_summary else draft, ensure_ascii=False))

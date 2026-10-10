@@ -9,8 +9,11 @@ crashes on a committed post stops that post's write the same way.
 
 Three layers check it.
 
-1. A fixture post using every Markdown shape the converter reads converts to a
-   committed tree, so any change in behaviour fails here with a diff.
+1. Two fixture posts convert to committed trees, so any change in behaviour
+   fails here with a diff. One uses every Markdown shape the converter reads.
+   The other puts each block shape straight under a paragraph line, with no
+   blank line between, and holds an ordered list long enough to need
+   two-digit numbers.
 2. Every committed post converts, and the result keeps the facts that hold
    whatever the post says: its title, its subtitle, where the widgets go, and
    one block per equation, code fence and figure.
@@ -26,12 +29,14 @@ way.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import re
 import shutil
 import struct
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -42,6 +47,8 @@ CONVERTER_JS = SKILL_DIR / "md2substack.js"
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "substack"
 FIXTURE = FIXTURE_DIR / "every-construct.md"
 EXPECTED = FIXTURE_DIR / "every-construct.json"
+EDGE = FIXTURE_DIR / "edge-cases.md"
+EDGE_EXPECTED = FIXTURE_DIR / "edge-cases.json"
 POSTS = sorted((REPO_ROOT / "blog").glob("*.md"))
 
 # The fixture's figures were never uploaded, so their Substack fields are made up.
@@ -104,7 +111,10 @@ def images_for(post: Path) -> dict:
 
 def _cases() -> list[tuple[str, str, dict]]:
     """The fixture and every committed post, each with its image map."""
-    cases = [(FIXTURE.name, FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES)]
+    cases = [
+        (FIXTURE.name, FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES),
+        (EDGE.name, EDGE.read_text(encoding="utf-8"), FIXTURE_IMAGES),
+    ]
     for post in POSTS:
         cases.append((post.name, post.read_text(encoding="utf-8"), images_for(post)))
     return cases
@@ -155,6 +165,52 @@ def test_the_fixture_converts_to_the_committed_tree() -> None:
     assert draft == expected
 
 
+def test_the_edge_cases_convert_to_the_committed_tree() -> None:
+    """A paragraph line stops where a block shape starts, blank line or not.
+
+    Each paragraph in the edge-case fixture is one line with an image, a
+    numbered item, a bullet, a heading of each level or a fence straight under
+    it. A paragraph that read on would swallow the block as text. The sequence
+    of blocks is spelled out here as well as pinned whole, since regenerating
+    the committed tree from a broken converter would pin the swallowed
+    version. ``edge-cases.json`` is regenerated the same way as
+    ``every-construct.json``.
+    """
+    draft = m2s.convert(EDGE.read_text(encoding="utf-8"), FIXTURE_IMAGES)
+    assert draft == json.loads(EDGE_EXPECTED.read_text(encoding="utf-8"))
+    blocks = draft["body"]["content"]
+    assert [n["type"] for n in blocks] == [
+        "paragraph",
+        "captionedImage",
+        "paragraph",
+        "paragraph",
+        "ordered_list",
+        "paragraph",
+        "bullet_list",
+        "paragraph",
+        "heading",
+        "paragraph",
+        "heading",
+        "paragraph",
+        "highlighted_code_block",
+        "ordered_list",
+        "paragraph",
+        "subscribeWidget",
+    ]
+    # A line that opens in italics is a caption only when all of it is italic.
+    assert len(blocks[1]["content"]) == 1
+    assert blocks[2]["content"][0] == {
+        "type": "text",
+        "text": "Italic opening",
+        "marks": [{"type": "em"}],
+    }
+    # Items 10 and 11 stay in the list, so the item pattern takes any number.
+    assert len(blocks[13]["content"]) == 11
+    # The last paragraph is the comment that turns off markdownlint's
+    # blank-line rules for this file, which the fixture breaks on purpose.
+    assert blocks[14]["content"][0]["text"].startswith("<!-- markdownlint-disable-file")
+
+
 def test_the_fixture_still_reaches_every_shape() -> None:
     """The pin above covers only the shapes the fixture uses.
 
@@ -201,6 +257,22 @@ def test_the_subtitle_keeps_its_escapes_as_typed() -> None:
     """
     draft = m2s.convert(FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES)
     assert "\\$5" in draft["subtitle"]
+
+
+def _unterminated(info: str) -> str:
+    """A post whose last fence, on line 7, never closes."""
+    return f"# Title\n\n*Subtitle*\n\nText.\n\n```{info}\nx = 1\n"
+
+
+@pytest.mark.parametrize("info", ["math", "python"])
+def test_an_unterminated_fence_raises(info: str) -> None:
+    """A fence with no closing line stops the conversion with a clear error.
+
+    Before this was checked, the Python raised an ``IndexError`` naming no line
+    and the in-page copy looped forever, freezing the tab it ran in.
+    """
+    with pytest.raises(ValueError, match=f"unterminated fence opened on line 7: ```{info}"):
+        m2s.convert(_unterminated(info), {})
 
 
 # --- Every committed post -------------------------------------------------------
@@ -254,6 +326,44 @@ def test_a_committed_post_converts_and_keeps_its_structure(post: Path) -> None:
             assert "\\~" not in node["text"] and "\\$" not in node["text"], node["text"]
 
 
+# Posts whose Markdown uses a shape the converter does not handle: a pipe
+# table, a heading of four to six hashes, or a linked image. Both had drafts
+# made by another route before the converter existed, and SKILL.md says they
+# cannot be synced through it. A third post using one of these shapes fails
+# below, because its draft would show the Markdown as literal text.
+UNSUPPORTED_SHAPES = frozenset(
+    {
+        "gld-gdx-cointegration-lessons.md",
+        "price-spread-mean-reversion.md",
+    }
+)
+
+
+def _paragraph_texts(node: dict):
+    """The plain text of every paragraph, in order."""
+    if node.get("type") == "paragraph":
+        yield "".join(t["text"] for t, _ in _text_nodes(node))
+    for child in node.get("content") or []:
+        yield from _paragraph_texts(child)
+
+
+def test_only_the_named_posts_use_shapes_the_converter_does_not_handle() -> None:
+    """No converted paragraph opens with what an unhandled shape leaves behind.
+
+    A table row opens ``|`` and a deep heading opens ``#``. A linked image
+    ``[![alt](x.png)](x.png)`` becomes a link whose text opens ``![``, which no
+    handled paragraph can, since a line opening ``![`` is read as an image.
+    The set must match exactly, so a post that stops using these shapes
+    leaves the list too.
+    """
+    found = set()
+    for post in POSTS:
+        draft = m2s.convert(post.read_text(encoding="utf-8"), images_for(post))
+        if any(t.startswith(("|", "#", "![")) for t in _paragraph_texts(draft["body"])):
+            found.add(post.name)
+    assert found == UNSUPPORTED_SHAPES
+
+
 # --- Python and JavaScript agree ------------------------------------------------
 
 # Appended after md2substack.js. It converts every case and prints one line per
@@ -273,7 +383,7 @@ DRIVER = """
       var draft = M2S.convert(c[1], c[2]);
       out.canon = M2S.canon(draft);
       out.walk = M2S.walkLines(draft.body);
-    } catch (e) { out.error = String(e && e.stack || e); }
+    } catch (e) { out.error = String(e) + (e && e.stack ? "\\n" + e.stack : ""); }
     emit("SUBSTACK_RESULT " + JSON.stringify(out).replace(/%/g, "\\\\u0025"));
   });
 })();
@@ -292,21 +402,26 @@ def _engine() -> list[str]:
     pytest.skip("no JavaScript engine: neither node nor osascript is installed")
 
 
-@pytest.fixture(scope="module")
-def javascript_results(tmp_path_factory: pytest.TempPathFactory) -> dict[str, dict]:
-    """The JavaScript copy's output for every case, from one engine run."""
+def _run_javascript(cases: list[tuple[str, str, dict]], directory: Path) -> dict[str, dict]:
+    """Each case's result from the JavaScript copy, keyed by name.
+
+    The engine runs under a timeout, so a copy that loops forever fails the
+    test that called it rather than hanging the suite.
+    """
     engine = _engine()
-    cases = _cases()
     script = (
         CONVERTER_JS.read_text(encoding="utf-8")
         + f"\nvar __CASES = {json.dumps(cases, ensure_ascii=False)};\n"
         + DRIVER
     )
-    runner = tmp_path_factory.mktemp("substack") / "run.js"
+    runner = directory / "run.js"
     runner.write_text(script, encoding="utf-8")
-    done = subprocess.run(
-        [*engine, str(runner)], capture_output=True, text=True, timeout=120, check=False
-    )
+    try:
+        done = subprocess.run(
+            [*engine, str(runner)], capture_output=True, text=True, timeout=120, check=False
+        )
+    except subprocess.TimeoutExpired:
+        pytest.fail("md2substack.js did not finish within 120 seconds")
     output = done.stdout + done.stderr
     assert done.returncode == 0, output[-2000:]
     results = {}
@@ -314,7 +429,15 @@ def javascript_results(tmp_path_factory: pytest.TempPathFactory) -> dict[str, di
         if line.startswith("SUBSTACK_RESULT "):
             result = json.loads(line[len("SUBSTACK_RESULT ") :])
             results[result["name"]] = result
-    assert set(results) == {name for name, _, _ in cases}, output[-2000:]
+    return results
+
+
+@pytest.fixture(scope="module")
+def javascript_results(tmp_path_factory: pytest.TempPathFactory) -> dict[str, dict]:
+    """The JavaScript copy's output for every case, from one engine run."""
+    cases = _cases()
+    results = _run_javascript(cases, tmp_path_factory.mktemp("substack"))
+    assert set(results) == {name for name, _, _ in cases}
     return results
 
 
@@ -344,9 +467,69 @@ def test_the_canonical_form_ignores_key_order() -> None:
 
 def test_the_summary_names_where_the_widgets_sit() -> None:
     draft = m2s.convert(FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES)
-    summary = m2s.summary(draft)
+    summary = m2s.summary(draft, FIXTURE.read_bytes())
     blocks = draft["body"]["content"]
     assert summary["blocks"] == len(blocks)
     assert summary["widgets_at"] == [13, len(blocks) - 1]
     assert summary["walk_lines"] == len(m2s.walk_lines(draft["body"]))
     assert summary["subtitle_length"] == len(draft["subtitle"])
+
+
+def _sha256(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def test_summary_hashes_are_what_the_page_recomputes() -> None:
+    """Each hash is recomputed here the way the page computes it.
+
+    The page hashes the Markdown file as fetched, so ``md_sha256`` is pinned
+    against the file's bytes rather than text Python read back.
+    """
+    md_bytes = FIXTURE.read_bytes()
+    draft = m2s.convert(md_bytes.decode("utf-8"), FIXTURE_IMAGES)
+    summary = m2s.summary(draft, md_bytes)
+    assert summary["md_sha256"] == hashlib.sha256(md_bytes).hexdigest()
+    assert summary["conversion_sha256"] == _sha256(m2s.canonical(draft))
+    assert summary["body_sha256"] == _sha256(m2s.canonical(draft["body"]))
+    assert summary["walk_sha256"] == _sha256("\n".join(m2s.walk_lines(draft["body"])))
+
+
+def test_summary_hashes_the_file_bytes_not_the_text_read_back() -> None:
+    """A file with Windows line endings reads back as different text.
+
+    The page fetches the bytes and hashes them, so ``md_sha256`` must too, or
+    the driver's Markdown check would refuse a file it should accept.
+    """
+    md_bytes = b"# Title\r\n\r\n*Subtitle*\r\n\r\nText.\r\n"
+    draft = m2s.convert("# Title\n\n*Subtitle*\n\nText.\n", {})
+    assert m2s.summary(draft, md_bytes)["md_sha256"] == hashlib.sha256(md_bytes).hexdigest()
+
+
+def test_the_command_line(tmp_path: Path) -> None:
+    """The command prints the draft, or with ``--summary`` its summary.
+
+    Both runs pass the image map as a file, so a command that dropped it would
+    fail on the fixture's figures.
+    """
+    images = tmp_path / "images.json"
+    images.write_text(json.dumps(FIXTURE_IMAGES), encoding="utf-8")
+    draft = m2s.convert(FIXTURE.read_text(encoding="utf-8"), FIXTURE_IMAGES)
+    run = [sys.executable, str(SKILL_DIR / "md2substack.py"), str(FIXTURE), str(images)]
+    full = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
+    assert json.loads(full.stdout) == draft
+    run.insert(2, "--summary")
+    brief = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
+    assert json.loads(brief.stdout) == m2s.summary(draft, FIXTURE.read_bytes())
+
+
+def test_the_javascript_raises_on_an_unterminated_fence(tmp_path: Path) -> None:
+    """The in-page copy raises the Python's error rather than looping forever.
+
+    Before this was checked it looped forever. ``_run_javascript`` runs the
+    engine under a timeout, so a copy that loops again fails here.
+    """
+    cases = [(info, _unterminated(info), {}) for info in ("math", "python")]
+    results = _run_javascript(cases, tmp_path)
+    for info in ("math", "python"):
+        error = results[info]["error"] or ""
+        assert f"unterminated fence opened on line 7: ```{info}" in error
