@@ -5917,7 +5917,10 @@ The two experiments that trade on γ, Example 5.4 and the TU momentum test,
 carry their own issues.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/roll-returns-lessons.md](../blog/roll-returns-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.roll_returns_figures` redraws.
 
 ## Entry 28: VX futures against E-mini futures, Chan's *Algorithmic Trading*
 

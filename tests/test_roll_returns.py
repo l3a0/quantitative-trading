@@ -1,8 +1,11 @@
 """The pins for spot and roll returns of five futures, *Algorithmic Trading*'s Example 5.3.
 
 This file is the single authority for every number any prose surface quotes
-about Example 5.3. ``docs/replication-log.md`` carries the verdicts and points
-here row by row. The rows are the ones
+about Example 5.3, with one exception, in ``blog/roll-returns-lessons.md``.
+That post also quotes its figure's labels, which
+``tests/test_roll_returns_figures.py`` holds, and README lists what the post
+says that nothing asserts. ``docs/replication-log.md`` carries the verdicts
+and points here row by row. The rows are the ones
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared
 before the build, under "The pins".
 
@@ -35,7 +38,9 @@ repo's number under Chan's name.
 
 ``TestTheReadingsTriedAfterTheMiss`` holds the three readings tried after HG's
 and TU's α missed. ``TestTheRowsBeside`` holds the month-spaced γ, which has no
-published figure and carries no verdict.
+published figure and carries no verdict. ``TestBesideThePost`` holds what the post
+reads off the script's γ day by day, its signs and its extremes, with no
+verdict either.
 
 Exploratory. Reproducing Table 5.1 spends Chan's 1986 to 2012 strips on a
 model he chose. It first ran here on 2026-10-05.
@@ -407,7 +412,7 @@ class TestBesideThePost:
             766,
         ), SPEC
 
-    def test_cls_lowest_and_highest_gamma_fall_four_months_apart(self, results) -> None:
+    def test_cls_lowest_and_highest_gamma_fall_within_four_months(self, results) -> None:
         gamma = results["CL"].gamma
         assert (f"{gamma.min():.6f}", str(gamma.idxmin().date())) == (
             "-1.121372",
