@@ -199,6 +199,18 @@ and a Kelly f of 64.919535, sit in the script and nowhere in the book. Table
 6.2 is named at 2668 and none of its rows is here. The replication log's
 Entry 33 traces each figure to one or the other.
 
+*Algorithmic Trading*'s Example 5.4 splits the same way as its Example 6.1.
+The book's figures are here: the half-life of 36 days and the claim that CL's
+12-month log calendar spread is "stationary with 99 percent probability" at
+location 2461, and the APR of 8.3 percent and Sharpe ratio of 1.3 from January
+2, 2008, to August 13, 2012, at 2461 and again at 2471. Location 2471 holds a
+pair for "3 months (61 trading days)", while `calendarSpdsMeanReversion.m`
+sets `holddays=3*21`, which is 63. The figures the script's comments print,
+a half-life of 36.394034, an APR of 0.083406, a Sharpe ratio of 1.288661, a
+maximum drawdown of −0.053222 and a longest drawdown of 206 days, sit in the
+script and nowhere in the book. The replication log's Entry 34
+traces each figure to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
