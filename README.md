@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-six replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-one from his *Algorithmic Trading*. The first two were ported from the
+Thirty-seven replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-two from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-four were built here.
+where they were first built. The other thirty-five were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -500,6 +500,18 @@ where they were first built. The other thirty-four were built here.
     of 0.998359. The rule was declared after about 90 scratch readings, a
     count from the issue's disclosure that no test pins, and the module says
     so. Every figure is exploratory.
+37. Three hypothesis tests on item 33's TU momentum, Example 1.1 of
+    *Algorithmic Trading*, on the same 2012-05-11 save. The Gaussian
+    statistic of 2.933253 is the script's 2.93. Rerunning the strategy on
+    10,000 simulated return series with TU's first four moments, drawn from
+    Pearson type IV, gives 1,221 at or above the observed mean, inside two
+    standard errors of the book's 1,166 and far from the script's printed
+    0.027500. Shuffling the entry days gives 0 of 100,000, as the book says,
+    though the script as written cannot give anything else, because it adds
+    the shuffled positions to the observed ones. Three rows added after a
+    scratch run saw results point at TU's drift rather than its kurtosis: a
+    normal draw gives 1,165 of 10,000, and the type IV draws with the mean
+    set to zero give 19. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -840,7 +852,17 @@ that save's own close, and the month-unit and fifth-contract readings. It
 also holds the declared rule and the roll's off-by-one on synthetic strips,
 the March 2012 roll, and the scale-break guard on every member's own rows.
 
-All thirty-six replications reach a verdict in
+[tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) does it
+for Example 1.1's three hypothesis tests on TU. It pins every count exactly at
+its declared seed and every proportion at six decimals, the landing bands, the
+Gaussian statistic, and the three rows added after the scratch run. It holds
+the Pearson type IV sampler's parameters against their closed-form moments and
+its tails against quadrature, and holds the two-dimensional form equal to
+`chan.tu_momentum`'s functions draw by draw and unchanged by the batch size. It
+also holds that the third test as written leaves every simulated return at
+zero.
+
+All thirty-seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -857,8 +879,8 @@ examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
-spread's, Entry 35 the VX calendar spread's, and Entry 36 the roll-return
-rule's on TU.
+spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
+rule's on TU, and Entry 37 Example 1.1's hypothesis tests.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1644,6 +1666,18 @@ uv run python -m chan.roll_momentum
 It prints the strip's vintage, the three figures beside the book's with a
 verdict, the three claims against Example 6.1's rule with their margins, and
 the rows beside them, the 2012-05-11 save's among them.
+
+Example 1.1's hypothesis tests on TU take no option either, because the issue
+declared both seeds and every draw method before the run:
+
+```bash
+uv run python -m chan.tu_hypothesis_tests
+```
+
+It prints the vintage and the seeds, then the five rows beside the book's or
+the script's figure. Rows 2 to 4 carry a landing band, and every row but row 5
+carries a verdict. The three rows added after the scratch run come last, and
+none of them carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
