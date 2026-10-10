@@ -5,8 +5,8 @@ description: Update the Quantitative Trading Build Board whenever work on this r
 
 # Update the build board
 
-The board is a private artifact at `https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW`.
-It cannot read the disk or poll GitHub, so every number on it was measured by
+The board is a private claude.ai artifact, and its page source is checked in
+beside this skill as `board.html`. It cannot read the disk or poll GitHub, so every number on it was measured by
 hand. That is why this skill exists. A page that cannot refresh itself goes
 wrong silently, and the only thing between it and a confident lie is the
 procedure below.
@@ -20,9 +20,56 @@ two thousand lines and a merge decided part by part. Now an update writes only
 the section it changes, pinned to the version it read, and a write that lost a
 race is refused rather than overwriting the winner.
 
-Two sibling pages are not covered here. The experiments page is
-`9eXVcuzxSpqi6S3kBQbwgc` and the gap ledger is `YZHWFfB7AiqrwcaK7F7SCS`. Report
-them as stale rather than updating them unasked.
+The board used to link to companion pages saying what the issues are for. They
+lived on the same claude.ai account as the first board and became unreachable
+with it on 2026-10-09, and none had its source in the repo.
+[Issue 438](https://github.com/l3a0/quantitative-trading/issues/438) holds
+whether to rebuild or retire them, so this skill names none.
+
+## Find the board
+
+The board's URL lives in a file on this machine rather than in the repository,
+so switching boards needs no commit. A board belongs to one claude.ai account,
+and a machine signed in to another account can neither read nor write it. That
+is how the first board was lost to this repo on 2026-10-09: its URL was written
+here, and this machine's Claude Code could no longer reach the account that
+owned it. Read the URL before anything else.
+
+```bash
+if [ -n "${QT_BOARD_URL:-}" ]; then printf '%s\n' "$QT_BOARD_URL"
+else tr -d '\r' < "$HOME/.config/quantitative-trading/board_url"; fi \
+  | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d'
+```
+
+`QT_BOARD_URL` names a board for one run, the way `QT_ARCHIVE_DIR` names the
+archive. Otherwise `~/.config/quantitative-trading/board_url` holds it on one
+line, and `docs/design.md`'s Configuration section lists that file with the
+others. The `sed` drops carriage returns, spaces around the URL and blank
+lines, so a file saved by any editor reads the same.
+
+The URL is usable when the command prints exactly one line, and every
+`<board url>` below stands for that line. When it prints nothing or more than
+one line, skip the board. Do not guess a URL, do not pick one of several, and
+do not reuse one from an earlier report, an old version of this file or the git
+history. Tell the owner the board was not updated, and that the fix is that
+file holding the board's URL on one line. A session only reads the file.
+Writing it is the owner's call, like everything under `~/.config/`, per
+`CLAUDE.md`.
+
+The price is that a machine with no file updates no board, and only the report
+says so. A URL in the repo failed worse. It pointed every machine at a board one
+account could reach, and every session on another machine failed against it
+rather than skipping.
+
+### Start a new board
+
+Publishing changes the owner's account, so a session starts a board only with
+the owner's approval. Publish `main`'s `board.html` with the Artifact tool and
+`capabilities: {"db": {}}`. Every later publish leaves `capabilities` out, which
+keeps what the artifact already has. A page published without `db` can only
+show its banner saying it cannot reach the live board. Then the owner writes the
+new URL into the file above. The new board's database holds no document, so the
+next update builds them, per "A board with no document yet" below.
 
 ## When to run it
 
@@ -174,7 +221,7 @@ a scratch directory, never the repo root, because nothing read here belongs in a
 commit.
 
 ```text
-ArtifactData action="list" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW"
+ArtifactData action="list" url="<board url>"
              collection="board" out_dir="<scratch>/readback"
 ```
 
@@ -188,7 +235,7 @@ alone.
 all.
 
 ```text
-ArtifactData action="batch" url="https://claude.ai/artifact/XzAe2ETdBs4NRCob7kqdJW"
+ArtifactData action="batch" url="<board url>"
   writes=[{op:"set", collection:"board", doc_id:"prs",
            file_path:"<scratch>/readback/board/prs.json", if_version:<read version>}, ...]
 ```
@@ -230,11 +277,60 @@ every viewer until someone writes a good one. So run the harness on the edited
 readback before writing, which is what catches a bad write before anyone sees
 it.
 
-**Change the page's code only when the rendering has to change.** That is the
-one case that still needs the Artifact tool. Read the live page in full, edit a
-scratch copy called `qt-board.html`, refresh its built-in copy with
-`with-db.py` below, and publish to the same `url` with a short `label`. Omit
-`capabilities` so the stored `db` declaration carries forward.
+### A board with no document yet
+
+A new board's database starts empty, so the first update against it reads none
+of the six documents. There is nothing to edit, so the update builds every
+section from the tracker and creates it.
+
+1. `state` takes `schema: 1`, the open issue count from GitHub as
+   `issues.open`, and the time of the write as `updatedAt`.
+2. `tracker` and `prs` come from GitHub exactly as a usual update's do, per
+   "Measure everything, recall nothing" below, with `--limit 1000` on every
+   list.
+3. `next` ranks the open issues per `CLAUDE.md`'s ranking directive and each
+   issue's own statement of what it waits on. Say in the report that the order
+   was rebuilt rather than carried over, since the old board's order is gone
+   with it.
+4. `planned` is rebuilt from the verdicts decompose loops wrote on their
+   issues, or starts as `[]` when the update does not read them.
+5. `working` starts as `[]`. Its entries came from other sessions, and the
+   tracker cannot rebuild them. Say so in the report, so a session still
+   building or planning adds its own entry back.
+
+Write them as one batch of `set` entries with no `if_version`, because the pin
+applies only to a document that already exists.
+
+```text
+ArtifactData action="batch" url="<board url>"
+  writes=[{op:"set", collection:"board", doc_id:"state",
+           file_path:"<scratch>/readback/board/state.json"}, ...]
+```
+
+This cannot overwrite another session's board. The tool refuses a write without
+`if_version` to a document that already exists, so if another session created
+one first, that entry is refused. A batch with no pinned entry applies one write
+at a time in order rather than all at once, so the entries before the refused
+one have landed. Re-read all six with the usual `list` and carry on as a usual
+update. Where `list` returns some sections and not others, as after an
+interrupted creation, create only the missing ones the same way and leave the
+rest to pinned writes.
+
+Run the harness on the built files before writing, as on any update.
+
+### Change the page's code
+
+Change it only when the rendering has to change. The source is `board.html`
+beside this skill, so the change is a pull request like any other. Edit that
+file, run `tests/test_build_board.py` and the harness below, and merge. Then
+publish `main`'s `board.html` to `<board url>` with the Artifact tool and a
+short `label`, and omit `capabilities` so the stored `db` declaration carries
+forward.
+
+Publish the file as checked in, with no data spliced into it. The page reads
+every figure from the database, and a copy built into it is a snapshot nothing
+refreshes. A page published from a scratch copy is a page nobody can diff, and
+that is how the first board's source came to be lost with its account.
 
 ## Measure everything, recall nothing
 
@@ -428,9 +524,9 @@ parses. The page has no suite, so running it is the only check there is.
 
 The harness runs the page's script with no database, so on its own it checks
 the copy built into the page rather than the live data. So splice the documents
-just read into a copy of the page first. Fetch the page's code once with the
-Artifact tool's `read` if the scratch directory has none, then run this from
-the scratch directory, with `$REPO` set to this checkout.
+just read into a copy of the page first. Copy `board.html` from this checkout
+into the scratch directory as `qt-board.html`, then run this from the scratch
+directory, with `$REPO` set to this checkout.
 
 ```bash
 python3 "$REPO"/.claude/skills/update-build-board/with-db.py qt-board.html readback/board > live.html
@@ -781,8 +877,7 @@ Two further conventions are specific to this page.
 
 Several things are reasoned about twice, once in a comment beside the line it
 governs and once here. The duplication is deliberate and its price is named
-rather than hidden, because nothing checks the two against each other and the
-page lives outside git where no sweep reaches it.
+rather than hidden, because nothing checks the two against each other.
 
 The split is by question. A comment in the script answers why that line is the
 way it is, and it is authoritative about the code it sits on, because it travels
@@ -802,17 +897,18 @@ writing** above, then write and report in the same reply.
 
 1. Each section written and the version it now holds.
 2. Any sentence the execution caught, and what replaced it.
-3. What is still stale, including the two sibling pages.
+3. What is still stale.
 
 If a write is refused with `version_mismatch`, do not drop the pin. Re-read that
 section, redo the edit on what it holds now, and write again. A section another
 session already brought to the same figures needs no write at all.
 
-A renderer republish can still be refused because the page moved. Do not force
-it. The refusal hands over the live source. Read all of it, merge the code
-changes part by part, and publish again. Resending a file unchanged reverts
-whatever the other session did. Data never travels in a republish now, so the
-only conflict left there is between two sessions both changing the code.
+A publish of the page's code can be refused because the page moved. Do not
+force it. The refusal hands over the live source, so compare it with `main`'s
+`board.html`. If they match, publish again. If they differ, someone published
+code that is not on `main`. Get that code into a pull request before publishing
+over it, because publishing `main`'s file reverts their change and nothing
+would hold it afterwards.
 
 ### Offering a task per idle card was tried and withdrawn
 
