@@ -702,7 +702,8 @@ and every figure the two findings quote: the slope's median, mean, share above
 1 and crossings, and the intercept's yearly means, its falls at each finer
 grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
-planted break in either is refused.
+planted break in either is refused. The blog post about it is the exception,
+and what it says that nothing here asserts is listed below.
 
 All thirty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -2891,6 +2892,90 @@ uv run python -m chan.etf_cointegration_figures
 ```
 
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a nineteenth
+post, about Kindle locations 1633 to 1726 of Chan's *Algorithmic Trading*,
+where a Kalman filter re-estimates the slope and intercept of EWC on EWA every
+day and trades the filter's forecast error against a band its own forecast
+variance sets. Chan reports an APR of 26.2 percent and a Sharpe ratio of 2.4.
+The post draws four lessons from Entry 32 of the replication log.
+
+1. Both figures land on every digit of the script's closing comment, and the
+   book rounds them correctly.
+2. The script shorts EWC alone on the file's first day, before the filter has
+   any estimate, and with no signal on the first two days the figures round
+   to 26.1 percent and 2.3.
+3. Location 1726's two claims carry no verdict, because their only criteria
+   were written after a first run, and the grain chosen decides whether the
+   intercept rises "monotonically".
+4. An exact reproduction checks the arithmetic and not the edge, since the
+   two constants are Chan's and the script charges no cost.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   Example 3.2's band, entered at one standard deviation and exited at the
+   mean, is at 1559. "An abrupt and artificial impact on the hedge ratio" is
+   at 1633, "the expected value of a hidden variable" at 1644, the slope and
+   intercept as the hidden state at 1658, and the intercept "in place of the
+   moving average of the spread" at 1678. The two claims, the forecast error
+   as "the deviation of the spread EWC-EWA from its predicted mean value", the
+   rest of the code being `bollinger.m`'s, and "a reasonable APR of 26.2
+   percent and a Sharpe ratio of 2.4" are at 1726. The market-making use is at
+   1760. The book's figures are pinned, and its words are not.
+2. Facts about the script rather than the data: its comment on `delta`, its
+   zero start, and its chart of the forecast error plotting `e(3:end)` and
+   `sqrt(Q(3:end))`, which
+   [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records.
+3. Readings no test asserts: that the gain is large when the filter is unsure
+   and small when it is confident, that waiting a few days or starting from a
+   regression on earlier data would avoid the first trade, that a `delta` this
+   small lets the intercept move only slowly, and that a filter started from
+   the whole-file intercept might show no rise.
+4. The figure's alt text, whose readings of the lines, such as "about 1.4"
+   and "about 2.9 by September 2008", are approximate by design.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_kalman_hedge.py](tests/test_kalman_hedge.py), to
+[tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py) for
+the figure's own numbers, or to
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) and
+[tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
+for the slope of 0.9624 and the intercept of 6.4113 of one regression over the
+whole file. Four had no pin before it.
+
+1. Row 1's forecast error is EWC's whole close of 22.95, exactly.
+2. The short on EWC alone earns 0.0074074 on 2006-04-27, and the run with no
+   signal on rows 1 and 2 holds the script's units from row 3 on, so their
+   returns differ only on 2006-04-27 and 2006-04-28.
+3. The script holds a long on 358 days, a short on 350 and nothing on 792, and
+   its units change from one day to the next 875 times.
+4. The cumulative return ends at 2.999998 for the script and 2.970231 with no
+   signal on rows 1 and 2.
+
+Its one figure is drawn from the committed file by
+[src/chan/kalman_hedge_figures.py](src/chan/kalman_hedge_figures.py), which
+reads it through the same `read_sources` and `kalman_hedge` as
+`python -m chan.kalman_hedge`, scale-break guard included. It draws four
+panels on one date axis, after the book's Figures 3.5 to 3.8.
+
+1. The slope over all 1,500 rows, with its zero start marked and a line at 1.
+2. The intercept, with each year's mean drawn flat over its year and its
+   highest value marked.
+3. The forecast error and the band from row 3, with a note naming rows 1 and
+   2.
+4. The cumulative return of the script and, dashed, of the run with no signal
+   on rows 1 and 2.
+
+```bash
+uv run python -m chan.kalman_hedge_figures
+```
+
+[tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 

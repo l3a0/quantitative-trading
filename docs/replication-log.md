@@ -6453,10 +6453,11 @@ Seven rows, all derivable from
 each cover two printed figures from one computation. Rows 3 and 4 test claims
 and carry findings with no verdict, and rows 5 to 7 carry no published figure.
 
-Example 3.2 hedges EWC with EWA through a slope refitted over a rolling window.
-A Kalman filter replaces the window. Each day it moves yesterday's estimate of
-the slope and intercept toward whatever explains today's pair of closes, by an
-amount set by how uncertain the estimate was. It also forecasts EWC's close
+Example 3.2 hedges one ETF with another through a slope refitted over a
+rolling window. A Kalman filter replaces the window. Each day it moves
+yesterday's estimate of the slope and intercept toward whatever explains
+today's pair of closes, by an amount set by how uncertain the estimate was.
+It also forecasts EWC's close
 before seeing it, with a variance for that forecast. The strategy buys the
 spread when the forecast error falls below minus the forecast's standard
 deviation and sells it when the error rises above plus that deviation, so the
@@ -6585,4 +6586,8 @@ prints no figure and names no script.
 it, and the script charges nothing for a trade.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/kalman-hedge-lessons.md](../blog/kalman-hedge-lessons.md), this entry's
+write-up, moves with it, since that post quotes most of these figures. The
+post's one figure moves too, and `uv run python -m chan.kalman_hedge_figures`
+redraws it.

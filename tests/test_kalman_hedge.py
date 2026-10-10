@@ -3,9 +3,11 @@
 The script is ``KF_beta_EWA_EWC.m``, at Kindle locations 1633 to 1726.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the findings beside it.
-``docs/replication-log.md`` Entry 32 carries the verdicts and points here row
-by row.
+about this replication and the findings beside it, with one exception, in
+``blog/kalman-hedge-lessons.md``. The post's figure has its own pins in
+``tests/test_kalman_hedge_figures.py``. README lists what the post says that
+nothing pins. ``docs/replication-log.md`` Entry 32 carries the verdicts and
+points here row by row.
 
 Every pin reads one vintage and one specification, so both are stated once
 here and carried in every figure's failure message as :data:`SPEC`.
@@ -188,6 +190,32 @@ class TestTheFirstRows:
         assert first == 1
         assert str(result.filter.days[first].date()) == "2006-04-27", SPEC
 
+    def test_row_1s_forecast_error_is_ewcs_whole_close(self, closes, result) -> None:
+        """The forecast is 0 on row 1, so the error is EWC's close of 22.95, exactly."""
+        assert result.filter.error[0] == closes[Y].iloc[0], SPEC
+        assert closes[Y].iloc[0] == 22.95, SPEC
+
+    def test_the_short_on_ewc_alone_earns_0_0074074_on_2006_04_27(self, closes, result) -> None:
+        """With the slope at 0 the EWA leg holds no dollars, so the return is EWC's fall
+        from 22.95 to 22.78 as a share of 22.95, which is 0.74 percent in a day."""
+        ewc = closes[Y].to_numpy()
+        assert (ewc[0], ewc[1]) == (22.95, 22.78), SPEC
+        assert result.trade.daily[1] == pytest.approx(-(ewc[1] - ewc[0]) / ewc[0], rel=1e-12)
+        assert result.trade.daily[1] == pytest.approx(0.0074074, abs=5e-8), SPEC
+
+    def test_the_two_runs_hold_the_same_units_from_row_3_on(self, result) -> None:
+        """So the whole difference between them is the returns of 2006-04-27 and
+        2006-04-28, which rows 1 and 2's units earn."""
+        script, quiet = result.trade, result.quiet_start
+        assert list(script.units[:2]) == [-1.0, -1.0], SPEC
+        assert list(quiet.units[:2]) == [0.0, 0.0], SPEC
+        np.testing.assert_array_equal(script.units[2:], quiet.units[2:])
+        differ = np.flatnonzero(script.daily != quiet.daily)
+        assert [str(result.filter.days[t].date()) for t in differ] == [
+            "2006-04-27",
+            "2006-04-28",
+        ], SPEC
+
 
 class TestTheFigures:
     """The APR and the Sharpe ratio, beside the script's comment and location 1726."""
@@ -224,6 +252,24 @@ class TestTheFigures:
         dropped = result.quiet_start.daily[2:]
         assert compounded_apr(dropped) == pytest.approx(0.26105886, abs=5e-9)
         assert plain_sharpe(dropped) == pytest.approx(2.35106158, abs=5e-9)
+
+
+class TestTheHoldings:
+    """How often the script holds a position and how often it changes one, which is
+    what a cost would be charged on. The script charges none."""
+
+    def test_it_is_long_on_358_short_on_350_and_flat_on_792_days(self, result) -> None:
+        units = result.trade.units
+        assert set(np.unique(units)) == {-1.0, 0.0, 1.0}
+        counts = ((units > 0).sum(), (units < 0).sum(), (units == 0).sum())
+        assert counts == (358, 350, 792), SPEC
+
+    def test_its_units_change_from_one_day_to_the_next_875_times(self, result) -> None:
+        """Counted over the 1,499 steps between rows, so the short entered on row 1
+        from no position before the file is not among them."""
+        units = result.trade.units
+        assert int((np.diff(units) != 0).sum()) == 875, SPEC
+        assert units[0] != 0
 
 
 class TestTheSlopeFinding:
