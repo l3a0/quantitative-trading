@@ -22,9 +22,12 @@ Exploratory, like everything ``KF_beta_EWA_EWC.m`` computes here.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.dates import DateFormatter, YearLocator, date2num
 
 from chan import kalman_hedge as experiment
@@ -81,6 +84,14 @@ def axes(figure):
     return {"slope": slope, "intercept": intercept, "error": error, "returns": returns}
 
 
+@pytest.fixture(scope="module")
+def renderer(figure):
+    """The figure drawn on the Agg canvas, so tick labels and text extents are laid out."""
+    canvas = FigureCanvasAgg(figure)
+    canvas.draw()
+    return canvas.get_renderer()
+
+
 def _by_gid(artists) -> dict:
     return {a.get_gid(): a for a in artists if a.get_gid()}
 
@@ -119,6 +130,20 @@ class TestThePanels:
         assert isinstance(axis.get_major_formatter(), DateFormatter)
         assert axis.get_major_formatter().fmt == "%Y"
 
+    def test_every_panel_shows_the_years_under_it(self, axes, renderer) -> None:
+        """A shared axis hides all but the bottom panel's tick labels unless told not to."""
+        for name, ax in axes.items():
+            shown = {t.get_text() for t in ax.get_xticklabels() if t.get_visible()}
+            assert {str(year) for year in range(2007, 2013)} <= shown, name
+
+    def test_each_panel_names_its_units(self, axes) -> None:
+        assert {name: ax.get_ylabel() for name, ax in axes.items()} == {
+            "slope": "shares of EWA per EWC",
+            "intercept": "dollars",
+            "error": "dollars",
+            "returns": "cumulative return, compounded",
+        }
+
     def test_the_title_carries_the_exploratory_label(self, figure) -> None:
         assert figure._suptitle.get_text() == (
             "Exploratory: the Kalman filter hedge on Chan's own EWA and EWC closes"
@@ -131,6 +156,16 @@ class TestThePanels:
             "saved 2012-04-10. delta 0.0001 and Ve 0.001 are Chan's, and every figure is "
             "in-sample."
         ], SPEC
+
+    def test_the_note_names_every_save_date_once_in_order(self, tmp_path, sources) -> None:
+        """Both members were saved on 2012-04-10, so only a second date shows the rule."""
+        members, closes = sources
+        later = dataclasses.replace(members[1], saved_date="2013-01-02")
+        drawn = make_kalman_figure(
+            out=tmp_path / KALMAN_FIGURE, sources=([later, *members], closes)
+        )
+        [note] = [t.get_text() for t in drawn.texts if t is not drawn._suptitle]
+        assert "saved 2012-04-10, 2013-01-02. delta" in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
         for ax in figure.axes:
@@ -157,6 +192,7 @@ class TestTheSlope:
         start = _by_gid(axes["slope"].lines)["start"]
         assert list(start.get_xdata()) == [result.filter.days[0]]
         assert list(start.get_ydata()) == [0.0], SPEC
+        assert start.get_clip_on() is False, "the marker sits on the left edge"
         label = _by_gid(axes["slope"].texts)["start-label"]
         assert label.get_text() == "0 on 2006-04-26, where the filter starts", SPEC
         assert date2num(label.xy[0]) == date2num(result.filter.days[0])
@@ -204,6 +240,7 @@ class TestTheIntercept:
         label = _by_gid(axes["intercept"].texts)["peak-label"]
         assert label.get_text() == "highest, 6.803488 on 2011-09-08", SPEC
         assert date2num(label.xy[0]) == date2num(pd.Timestamp("2011-09-08"))
+        assert label.xy[1] == pytest.approx(6.803488, abs=5e-7), SPEC
 
     def test_the_steps_are_brass_apart_from_the_ink_line_and_the_peak_is_red(self, axes):
         """No legend tells the steps from the line, so the colour is the claim."""
@@ -212,9 +249,13 @@ class TestTheIntercept:
         assert {lines[f"year-{year}"].get_color() for year in YEARLY} == {ACCENT}
         assert lines["peak"].get_color() == LOST
 
-    def test_the_axis_holds_the_line_and_the_label(self, axes, result) -> None:
+    def test_the_axis_holds_the_line_and_the_label(self, axes, result, renderer) -> None:
         low, high = axes["intercept"].get_ylim()
         assert low < result.filter.intercept.min() and high > result.filter.intercept.max()
+        panel = axes["intercept"].get_window_extent(renderer)
+        label = _by_gid(axes["intercept"].texts)["peak-label"].get_window_extent(renderer)
+        assert panel.x0 <= label.x0 and label.x1 <= panel.x1
+        assert panel.y0 <= label.y0 and label.y1 <= panel.y1
 
     def test_the_heading_counts_the_falls_at_two_grains(self, axes) -> None:
         assert _title(axes["intercept"]) == (
@@ -240,6 +281,7 @@ class TestTheForecastError:
         for gid, sign in (("upper", 1), ("lower", -1)):
             assert list(lines[gid].get_xdata()) == list(result.filter.days[2:]), gid
             np.testing.assert_array_equal(lines[gid].get_ydata(), sign * band)
+        assert list(lines["zero"].get_ydata()) == [0, 0]
 
     def test_the_note_names_rows_1_and_2_off_the_axis(self, axes, sources, result) -> None:
         note = _by_gid(axes["error"].texts)["off-axis"]
