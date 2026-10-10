@@ -62,6 +62,18 @@ to, all downloaded 2026-10-05. Its own docstring names that vintage. It is
 registered, and its rules, its bound and the flags it reads from the committed
 files run in CI.
 
+A sixth read is the S&P 500 as IVV held it each month. ``TestTheMonthlyPins``
+runs Example 7.7 under :data:`chan.equity_seasonals.REVISED_MATLAB` over the
+213 months from January 2009 to September 2026, on the members
+``research/filings/ivv/members.csv`` lists at each quarter-end, carried
+forward, at the sha256 :data:`MONTHLY_MEMBERS_SHA256` holds. It reads the 817
+``sp500`` lines those tickers map to, all downloaded 2026-10-05, for their
+adjusted closes and volumes. Its own docstring names that vintage. It is
+registered, and the ``members`` keyword, the stop rule, the stopped-price
+fill, the month keying, the refusal of an unrankable member, the month
+selection, the test and its X, the bracketing masks, the misdated counts and
+the verdict's wording run in CI on synthetic frames.
+
 The 2002 split is exploratory and carries no verdict. First run on 2026-10-02.
 P. 180's five-year claim carries one, under a criterion written on issue 254
 before any five-year figure was computed, and ``TestTheMostRecentFiveYears``
@@ -2067,3 +2079,1060 @@ class TestThePointInTimePins:
         assert "verdict: the free sources cannot decide it" in out
         assert "    2009 January: 0.3213 and -0.3041" in out
         assert "    the mean: 0.1155 and -0.0771" in out
+
+
+# --------------------------------------------------------------------------
+# Example 7.7 on the S&P 500 as IVV held it each month
+# --------------------------------------------------------------------------
+
+
+def monthly_closes(returns: np.ndarray, start: str = "2010-01") -> pd.DataFrame:
+    """One row per month on its last business day, and one row in the month after the last.
+
+    Row ``t`` of ``returns`` is each stock's return over month ``t``, so row 0
+    is never read. The row after the last month is what makes the last month's
+    row a month-end under :func:`chan.series.row_month_ends`.
+    """
+    months, stocks = returns.shape
+    days = pd.date_range(start, periods=months, freq="BME")
+    after = days[-1] + pd.offsets.BDay(1)
+    level = 100.0 * np.cumprod(1.0 + returns, axis=0)
+    rows = np.vstack([level, level[-1]])
+    columns = [f"S{number:02d}" for number in range(stocks)]
+    return pd.DataFrame(rows, index=days.append(pd.DatetimeIndex([after])), columns=columns)
+
+
+def every_month(closes: pd.DataFrame, value: bool = True) -> pd.DataFrame:
+    """A members frame holding every calendar month the closes reach, all ``value``."""
+    months = pd.period_range(closes.index[0], closes.index[-1], freq="M")
+    return pd.DataFrame(value, index=months, columns=closes.columns)
+
+
+def ranked_panel() -> pd.DataFrame:
+    """Twenty stocks over 24 months, whose sorted order is not their column order.
+
+    S00 has the best return in May 2010, the month April 2011's position ranks
+    on, so it is the stock the April 2011 long would hold. April 2011's last
+    business day is the 29th, so the two rules label that month-end apart.
+    """
+    rng = np.random.default_rng(336)
+    returns = rng.normal(0.0, 0.05, (24, 20))
+    returns[4, 0] = 0.5
+    return monthly_closes(returns)
+
+
+#: April 2011, the month :func:`ranked_panel` holds S00 out of.
+APRIL_2011 = pd.Period("2011-04", "M")
+
+
+def _row(frame: pd.DataFrame, month: pd.Period) -> pd.Series:
+    (at,) = np.flatnonzero(frame.index.to_period("M") == month)
+    return frame.iloc[at]
+
+
+class TestTheMembersKeyword:
+    """The ``members`` keyword on synthetic closes, so it holds in CI."""
+
+    @pytest.mark.parametrize("rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "py"])
+    def test_a_stock_held_out_of_a_month_takes_no_position_there(self, rules) -> None:
+        closes = ranked_panel()
+        members = every_month(closes)
+        members.loc[APRIL_2011, "S00"] = False
+        held, _ = seasonals.positions(closes, rules, members=members)
+        free, _ = seasonals.positions(closes, rules)
+        assert _row(free, APRIL_2011)["S00"] == 1
+        assert _row(held, APRIL_2011)["S00"] == 0
+
+    @pytest.mark.parametrize("rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "py"])
+    def test_the_mask_is_read_in_sorted_order(self, rules) -> None:
+        """Read in column order, S00's False would drop the worst stock instead of S00.
+
+        The sorted position S00's column number names is the worst stock, so
+        that reading keeps S00 long and drops the worst from the short side.
+        """
+        closes = ranked_panel()
+        members = every_month(closes)
+        members.loc[APRIL_2011, "S00"] = False
+        held, _ = seasonals.positions(closes, rules, members=members)
+        row = _row(held, APRIL_2011)
+        may_2010 = _row(closes.pct_change(fill_method=None), pd.Period("2010-05", "M"))
+        order = may_2010.drop("S00").sort_values()
+        assert row[row != 0].to_dict() == {order.index[0]: -1.0, order.index[-1]: 1.0}
+
+    @pytest.mark.parametrize("rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "py"])
+    def test_every_month_true_is_the_default(self, rules) -> None:
+        closes = ranked_panel()
+        masked = monthly_returns(closes, rules, members=every_month(closes))
+        pd.testing.assert_series_equal(masked, monthly_returns(closes, rules))
+
+    def test_every_month_false_holds_nothing(self) -> None:
+        closes = ranked_panel()
+        held, _ = seasonals.positions(closes, REVISED_MATLAB, members=every_month(closes, False))
+        assert not held.to_numpy().any()
+        assert (
+            monthly_returns(closes, REVISED_MATLAB, members=every_month(closes, False)).isna().all()
+        )
+
+    @pytest.mark.parametrize("rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "py"])
+    def test_a_month_the_frame_does_not_hold_ranks_nobody(self, rules) -> None:
+        closes = ranked_panel()
+        members = every_month(closes).drop(APRIL_2011)
+        held, _ = seasonals.positions(closes, rules, members=members)
+        assert not _row(held, APRIL_2011).any()
+        assert _row(held, pd.Period("2011-03", "M")).abs().sum() == 4
+
+    @pytest.mark.parametrize("rules", [REVISED_MATLAB, PYTHON_HESTON_SADKA], ids=["matlab", "py"])
+    def test_heston_sadka_ranks_on_the_frame_it_is_given(self, rules) -> None:
+        """Holding S00 out of April 2011 moves the returns, and the summary reads the moved ones."""
+        closes = ranked_panel()
+        members = every_month(closes)
+        members.loc[APRIL_2011, "S00"] = False
+        masked = monthly_returns(closes, rules, members=members)
+        assert not masked.equals(monthly_returns(closes, rules))
+        result = heston_sadka(closes, rules, members=members)
+        pd.testing.assert_series_equal(result.returns, masked)
+        assert (result.annual_return, result.sharpe) == summarize(masked, rules)
+
+    def test_columns_that_differ_from_the_panels_are_refused_naming_both(self) -> None:
+        closes = ranked_panel()
+        members = every_month(closes).rename(columns={"S00": "S99"})
+        with pytest.raises(
+            ValueError, match=r"1 not in the panel \['S99'\], 1 not in the frame \['S00'\]"
+        ):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_a_column_beyond_the_panels_is_refused_though_every_panel_column_is_there(self) -> None:
+        """Reindexing would drop the extra column without a word, so it is refused by name."""
+        closes = ranked_panel()
+        members = every_month(closes).assign(S99=True)
+        with pytest.raises(
+            ValueError, match=r"1 not in the panel \['S99'\], 0 not in the frame \[\]"
+        ):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_a_repeated_column_is_refused(self) -> None:
+        closes = ranked_panel()
+        members = every_month(closes)
+        members = pd.concat([members, members[["S00"]]], axis=1)
+        with pytest.raises(ValueError, match=r"1 repeated \['S00'\]"):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_columns_in_another_order_are_read_by_name(self) -> None:
+        closes = ranked_panel()
+        members = every_month(closes)
+        members.loc[APRIL_2011, "S00"] = False
+        shuffled = members[list(reversed(members.columns))]
+        pd.testing.assert_series_equal(
+            monthly_returns(closes, REVISED_MATLAB, members=shuffled),
+            monthly_returns(closes, REVISED_MATLAB, members=members),
+        )
+
+    def test_a_frame_indexed_by_day_is_refused(self) -> None:
+        closes = ranked_panel()
+        members = every_month(closes)
+        members.index = members.index.to_timestamp("M")
+        with pytest.raises(ValueError, match="indexed by calendar month"):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_a_frame_indexed_by_quarter_is_refused(self) -> None:
+        """A quarterly period is a period too, and only a monthly one names a ranking month."""
+        closes = ranked_panel()
+        quarters = pd.period_range(closes.index[0], closes.index[-1], freq="Q")
+        members = pd.DataFrame(True, index=quarters, columns=closes.columns)
+        with pytest.raises(ValueError, match="indexed by calendar month"):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_a_frame_holding_anything_but_true_and_false_is_refused(self) -> None:
+        closes = ranked_panel()
+        members = every_month(closes).astype(float)
+        with pytest.raises(ValueError, match="only True and False"):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_one_column_holding_anything_but_true_and_false_is_refused(self) -> None:
+        closes = ranked_panel()
+        members = every_month(closes).astype({"S05": float})
+        with pytest.raises(ValueError, match="only True and False"):
+            monthly_returns(closes, REVISED_MATLAB, members=members)
+
+    def test_every_month_true_leaves_the_revised_matlab_pins(self, spx) -> None:
+        """``TestHestonSadkaRevisedMatlab``'s pins read the default, and this reads the frame."""
+        result = heston_sadka(spx, REVISED_MATLAB, members=every_month(spx))
+        assert_reproduces(result.annual_return, -0.012922703586771995, "-0.0129", ".4f")
+        assert_reproduces(result.sharpe, -0.12434081928195095, "-0.1243", ".4f")
+
+
+def traded_frames(series: dict[str, tuple[list[float], list[float]]]):
+    """Adjusted closes and volumes, one column per series, each on its own business days."""
+    adjusted, volume = {}, {}
+    for symbol, (closes, volumes) in series.items():
+        days = pd.bdate_range("2020-01-01", periods=len(closes))
+        adjusted[symbol] = pd.Series(closes, index=days, dtype=float)
+        volume[symbol] = pd.Series(volumes, index=days, dtype=float)
+    return pd.DataFrame(adjusted), pd.DataFrame(volume)
+
+
+class TestTheStopRule:
+    """Issue 336's rule for a series' last row that traded and moved."""
+
+    def test_a_zero_volume_tail_is_dropped(self) -> None:
+        adjusted, volume = traded_frames({"A": ([10, 11, 12, 13, 14], [5, 5, 5, 5, 0])})
+        assert seasonals.last_traded(adjusted, volume)["A"] == adjusted.index[3]
+
+    def test_a_flat_tail_on_token_volume_is_dropped(self) -> None:
+        adjusted, volume = traded_frames({"A": ([10, 11, 12, 12, 12], [500, 500, 500, 3, 1])})
+        assert seasonals.last_traded(adjusted, volume)["A"] == adjusted.index[2]
+
+    def test_a_tail_mixing_both_is_dropped_to_the_last_row_that_traded_and_moved(self) -> None:
+        adjusted, volume = traded_frames({"A": ([10, 11, 12, 12, 12.5], [9, 9, 9, 9, 0])})
+        assert seasonals.last_traded(adjusted, volume)["A"] == adjusted.index[2]
+
+    def test_a_live_series_is_untouched(self) -> None:
+        adjusted, volume = traded_frames({"A": ([10, 10, 0, 11, 12], [9, 0, 9, 9, 9])})
+        assert seasonals.last_traded(adjusted, volume)["A"] == adjusted.index[-1]
+
+    def test_a_one_row_series_stops_on_it_when_it_traded(self) -> None:
+        adjusted, volume = traded_frames({"A": ([10], [9])})
+        assert seasonals.last_traded(adjusted, volume)["A"] == adjusted.index[0]
+
+    def test_a_two_row_series_whose_second_close_repeats_stops_on_its_first(self) -> None:
+        """The second row did not move, and the first has no row before it to repeat."""
+        adjusted, volume = traded_frames({"A": ([10, 10], [9, 9])})
+        assert seasonals.last_traded(adjusted, volume)["A"] == adjusted.index[0]
+
+    def test_a_series_with_no_row_that_traded_stops_at_nat(self) -> None:
+        adjusted, volume = traded_frames({"A": ([10, 10], [0, 0]), "B": ([10, 11], [1, 1])})
+        stops = seasonals.last_traded(adjusted, volume)
+        assert pd.isna(stops["A"])
+        assert stops["B"] == adjusted.index[1]
+
+    def test_each_series_reads_only_its_own_rows(self) -> None:
+        """B's rows after A's last are NaN for A, and are not A's rows."""
+        adjusted, volume = traded_frames(
+            {"A": ([10, 11, 11], [9, 9, 9]), "B": ([10, 11, 12, 13, 14], [9, 9, 9, 9, 9])}
+        )
+        stops = seasonals.last_traded(adjusted, volume)
+        assert stops.to_dict() == {"A": adjusted.index[1], "B": adjusted.index[4]}
+
+    def test_the_spans_take_each_stop_as_the_last_date(self) -> None:
+        stops = pd.Series({"A": pd.Timestamp("2020-01-03")}, dtype="datetime64[ns]")
+        spans = {"A": ("2019-01-02", "2020-01-08"), "IVV": ("2000-05-19", "2026-10-02")}
+        assert seasonals.traded_spans(spans, stops) == {
+            "A": ("2019-01-02", "2020-01-03"),
+            "IVV": ("2000-05-19", "2026-10-02"),
+        }
+
+    def test_a_series_with_no_stop_is_refused_by_name(self) -> None:
+        stops = pd.Series({"A": pd.NaT}, dtype="datetime64[ns]")
+        with pytest.raises(seasonals.MonthlyRunRefused, match="the first A"):
+            seasonals.traded_spans({"A": ("2019-01-02", "2020-01-08")}, stops)
+
+
+#: The calendar the fill tests read: every weekday from January to June 2020.
+FILL_CALENDAR = pd.bdate_range("2020-01-01", "2020-06-30")
+
+
+def fill_closes() -> pd.DataFrame:
+    days = FILL_CALENDAR
+    return pd.DataFrame(
+        {
+            symbol: np.linspace(10.0, 20.0, len(days)) + number
+            for number, symbol in enumerate("ABC")
+        },
+        index=days,
+    )
+
+
+class TestTheStoppedPriceFill:
+    def test_a_close_stopping_inside_a_month_is_carried_to_the_next_month_end_only(self) -> None:
+        closes = fill_closes()
+        stop = pd.Timestamp("2020-02-12")
+        cut = seasonals.stopped_closes(closes, pd.Series({"A": stop}), FILL_CALENDAR)
+        assert cut.loc[:stop, "A"].equals(closes.loc[:stop, "A"])
+        after = cut.loc[cut.index > stop, "A"]
+        assert after.dropna().to_dict() == {pd.Timestamp("2020-02-28"): closes.at[stop, "A"]}
+
+    def test_a_stop_on_a_month_end_carries_nothing(self) -> None:
+        closes = fill_closes()
+        stop = pd.Timestamp("2020-03-31")
+        cut = seasonals.stopped_closes(closes, pd.Series({"A": stop}), FILL_CALENDAR)
+        assert cut.loc[cut.index > stop, "A"].isna().all()
+        assert cut.at[stop, "A"] == closes.at[stop, "A"]
+
+    def test_a_series_with_no_stop_or_one_on_the_last_row_is_untouched(self) -> None:
+        closes = fill_closes()
+        stops = pd.Series({"B": FILL_CALENDAR[-1]})
+        pd.testing.assert_frame_equal(
+            seasonals.stopped_closes(closes, stops, FILL_CALENDAR), closes
+        )
+
+    def test_a_stop_on_a_day_the_frame_lacks_is_refused(self) -> None:
+        closes = fill_closes().drop(pd.Timestamp("2020-02-12"))
+        with pytest.raises(seasonals.MonthlyRunRefused, match="A stops on 2020-02-12"):
+            seasonals.stopped_closes(
+                closes, pd.Series({"A": pd.Timestamp("2020-02-12")}), FILL_CALENDAR
+            )
+
+    def test_a_stop_before_the_frames_first_row_empties_the_column(self) -> None:
+        """Only a stop inside the frame's span is refused. One before it leaves nothing to keep."""
+        closes = fill_closes()
+        stops = pd.Series({"A": pd.Timestamp("2019-12-31")})
+        cut = seasonals.stopped_closes(closes, stops, FILL_CALENDAR)
+        assert cut["A"].isna().all()
+        pd.testing.assert_frame_equal(cut[["B", "C"]], closes[["B", "C"]])
+
+    def test_a_stopped_stock_earns_its_return_to_its_last_close_and_nothing_after(self) -> None:
+        closes = fill_closes()
+        stop = pd.Timestamp("2020-02-12")
+        cut = seasonals.stopped_closes(closes, pd.Series({"A": stop}), FILL_CALENDAR)
+        ends = cut.iloc[row_month_ends(cut.index)]
+        returns = ends.pct_change(fill_method=None)
+        january_end = pd.Timestamp("2020-01-31")
+        assert returns.at[pd.Timestamp("2020-02-28"), "A"] == pytest.approx(
+            closes.at[stop, "A"] / closes.at[january_end, "A"] - 1, abs=1e-15
+        )
+        assert returns.loc[pd.Timestamp("2020-03-31") :, "A"].isna().all()
+
+
+class TestTheMonthlyPanel:
+    #: Every weekday around the span, a stand-in for the SPY calendar.
+    CALENDAR = pd.bdate_range("2007-11-01", "2026-10-30")
+
+    def test_it_runs_from_2007_12_03_to_2026_10_01_on_the_calendar(self) -> None:
+        closes = pd.DataFrame({"A": 1.0}, index=self.CALENDAR)
+        panel, dropped = seasonals.monthly_panel(
+            closes, pd.Series(dtype="datetime64[ns]"), self.CALENDAR
+        )
+        assert (panel.index[0], panel.index[-1]) == (
+            pd.Timestamp("2007-12-03"),
+            pd.Timestamp("2026-10-01"),
+        )
+        assert panel.index.equals(
+            self.CALENDAR[(self.CALENDAR >= "2007-12-03") & (self.CALENDAR <= "2026-10-01")]
+        )
+        assert dropped == 0
+
+    def test_a_row_on_no_calendar_day_inside_the_span_is_dropped_and_counted(self) -> None:
+        """Both series hold a row on a Saturday, so two go. The row before the span is not read."""
+        saturday, before = pd.Timestamp("2015-12-26"), pd.Timestamp("2007-11-17")
+        days = self.CALENDAR.append(pd.DatetimeIndex([saturday, before])).sort_values()
+        closes = pd.DataFrame({"A": 1.0, "B": np.nan}, index=days)
+        closes.loc[saturday, "B"] = 2.0
+        panel, dropped = seasonals.monthly_panel(
+            closes, pd.Series(dtype="datetime64[ns]"), self.CALENDAR
+        )
+        assert dropped == 2
+        assert saturday not in panel.index
+
+    def test_a_calendar_short_of_the_last_day_is_refused(self) -> None:
+        calendar = self.CALENDAR[self.CALENDAR <= "2026-09-30"]
+        closes = pd.DataFrame({"A": 1.0}, index=calendar)
+        with pytest.raises(seasonals.MonthlyRunRefused, match="2026-10-01"):
+            seasonals.monthly_panel(closes, pd.Series(dtype="datetime64[ns]"), calendar)
+
+    def test_a_calendar_short_of_the_first_day_is_refused(self) -> None:
+        """Without 2007-12-03 the panel would start on 2007-12-04, which the run never named."""
+        calendar = self.CALENDAR[self.CALENDAR != pd.Timestamp("2007-12-03")]
+        closes = pd.DataFrame({"A": 1.0}, index=calendar)
+        with pytest.raises(seasonals.MonthlyRunRefused, match="2007-12-03"):
+            seasonals.monthly_panel(closes, pd.Series(dtype="datetime64[ns]"), calendar)
+
+    def test_the_panel_is_cut_at_each_stop(self) -> None:
+        closes = pd.DataFrame({"A": 1.0}, index=self.CALENDAR)
+        stops = pd.Series({"A": pd.Timestamp("2026-08-04")})
+        panel, _ = seasonals.monthly_panel(closes, stops, self.CALENDAR)
+        assert panel["A"].last_valid_index() == pd.Timestamp("2026-08-31")
+        assert panel["A"].loc["2026-08-05":].dropna().index.tolist() == [pd.Timestamp("2026-08-31")]
+
+
+def _coverage(month: str, schedule: str, rows, covered: set[str]):
+    from chan.sp500_panel import MonthCoverage
+
+    missing = tuple(
+        row.key for row in rows if row.report_date == schedule and row.ticker not in covered
+    )
+    mine = [row for row in rows if row.report_date == schedule]
+    return MonthCoverage(
+        month,
+        schedule,
+        len(mine),
+        len(mine) - len(missing),
+        {},
+        0,
+        missing,
+        ("price",) * len(missing),
+    )
+
+
+class TestTheMembersMask:
+    def test_a_schedule_applies_at_its_months_last_row_by_month_not_by_day(self) -> None:
+        """2013-03-31's schedule sets March 2013, whose last row is the 28th, before Good Friday."""
+        from chan.fund_panel import MemberRow
+
+        returns = np.random.default_rng(373).normal(0.0, 0.05, (16, 20))
+        closes = monthly_closes(returns, start="2012-01")
+        march = closes.index[14]
+        closes = closes.rename(index={march: pd.Timestamp("2013-03-28")})
+        tickers = list(closes.columns)
+        rows = [
+            MemberRow(date, number + 1, ticker, "filing", check="pass", exit="close")
+            for date in ("2012-12-31", "2013-03-31")
+            for number, ticker in enumerate(tickers)
+        ]
+        months = [
+            _coverage("2013-02", "2012-12-31", rows, set(tickers[10:])),
+            _coverage("2013-03", "2013-03-31", rows, set(tickers[:10])),
+        ]
+        mask = seasonals.members_mask(rows, months, tickers)
+        assert list(mask.index) == [pd.Period("2013-02", "M"), pd.Period("2013-03", "M")]
+        held, _ = seasonals.positions(closes, REVISED_MATLAB, members=mask)
+        assert set(held.columns[held.loc[pd.Timestamp("2013-03-28")] != 0]) <= set(tickers[:10])
+        assert set(held.columns[held.iloc[13] != 0]) <= set(tickers[10:])
+        assert held.loc[pd.Timestamp("2013-03-28")].abs().sum() == 2
+        assert held.drop(index=[held.index[13], pd.Timestamp("2013-03-28")]).abs().sum().sum() == 0
+
+    def test_a_covered_member_with_no_column_is_refused(self) -> None:
+        from chan.fund_panel import MemberRow
+
+        rows = [MemberRow("2012-12-31", 1, "ZZZ", "filing", check="pass", exit="close")]
+        months = [_coverage("2013-01", "2012-12-31", rows, {"ZZZ"})]
+        with pytest.raises(seasonals.MonthlyRunRefused, match="ZZZ has no column"):
+            seasonals.members_mask(rows, months, ["AAA"])
+
+
+def labelled_months(freq: str) -> pd.Series:
+    """A return for every month from November 2008 to October 2026, December 2008 NaN."""
+    days = pd.date_range("2008-11-01", "2026-10-31", freq=freq)
+    returns = pd.Series(0.01, index=days)
+    returns[days.to_period("M") == pd.Period("2008-12", "M")] = np.nan
+    return returns
+
+
+class TestTheHeldMonths:
+    @pytest.mark.parametrize(
+        ("freq", "first"), [("BME", "2009-01-30"), ("ME", "2009-01-31")], ids=["matlab", "py"]
+    )
+    def test_213_months_from_january_2009_selected_by_month(self, freq, first) -> None:
+        chosen = seasonals.held_months(labelled_months(freq))
+        assert len(chosen) == 213
+        assert chosen.index[0] == pd.Timestamp(first)
+        assert chosen.index[-1].to_period("M") == pd.Period("2026-09", "M")
+
+    def test_an_empty_month_inside_the_span_is_refused_by_name(self) -> None:
+        returns = labelled_months("BME")
+        returns[returns.index.to_period("M") == pd.Period("2015-06", "M")] = np.nan
+        with pytest.raises(seasonals.MonthlyRunRefused, match="2015-06 holds no position"):
+            seasonals.held_months(returns)
+
+    def test_a_missing_month_is_refused_rather_than_shrinking_the_count(self) -> None:
+        returns = labelled_months("BME")
+        returns = returns[returns.index.to_period("M") != pd.Period("2015-06", "M")]
+        with pytest.raises(seasonals.MonthlyRunRefused, match="212 months fall"):
+            seasonals.held_months(returns)
+
+
+class TestTheMonthlyVerdict:
+    def test_failing_to_reject_gives_the_owners_wording_with_x_a_year(self) -> None:
+        test = seasonals.OneSided(n=213, mean=0.001, std=0.02, t=0.73, p=0.23)
+        assert seasonals.monthly_verdict(test, 0.0422) == (
+            "no return detectable above about 4.2% a year"
+        )
+
+    def test_rejecting_names_the_return_with_its_mean_t_p_and_months(self) -> None:
+        test = seasonals.OneSided(n=213, mean=0.00412, std=0.02, t=3.004, p=0.0012)
+        assert seasonals.monthly_verdict(test, 0.0422) == (
+            "a return above zero: a mean of 0.0041 a month, t 3.00, p 0.001, over 213 months"
+        )
+
+    def test_x_is_3_29_percent_a_year_at_1_605_percent_and_213_months(self) -> None:
+        """The power issue 336 stated before the run, beside issue 333's 3.70% for 18 Januaries."""
+        x = 12 * seasonals.detectable_mean(0.01605, 213)
+        assert x == pytest.approx(0.032918557214534266, abs=1e-12)
+        assert format(x, ".2%") == "3.29%"
+
+
+class TestTheStoppedPositions:
+    def test_only_a_held_position_whose_stop_falls_strictly_inside_the_month_counts(self) -> None:
+        days = pd.DatetimeIndex(["2008-12-31", "2009-01-30", "2009-02-27"])
+        held = pd.DataFrame(
+            {"A": [1.0, 0.0, 0.0], "B": [-1.0, 0.0, 0.0], "C": [1.0, 0.0, 0.0], "D": [0.0, 0, 0]},
+            index=days,
+        )
+        returns = pd.DataFrame(
+            {"A": [np.nan, 0.05, np.nan], "B": [np.nan, 0.02, 0.0], "C": [np.nan, 0.03, 0.01],
+             "D": [np.nan, 0.5, 0.0]},
+            index=days,
+        )  # fmt: skip
+        stops = pd.Series(
+            {"A": "2009-01-14", "B": "2009-01-30", "C": None, "D": "2009-01-14"},
+            dtype="datetime64[ns]",
+        )
+        assert seasonals.stopped_positions(held, returns, stops) == (1, pytest.approx(0.05))
+
+    def test_a_short_position_carries_its_return_with_the_sign_of_its_side(self) -> None:
+        days = pd.DatetimeIndex(["2008-12-31", "2009-01-30"])
+        held = pd.DataFrame({"A": [-1.0, 0.0]}, index=days)
+        returns = pd.DataFrame({"A": [np.nan, 0.2]}, index=days)
+        stops = pd.Series({"A": "2009-01-14"}, dtype="datetime64[ns]")
+        assert seasonals.stopped_positions(held, returns, stops) == (1, pytest.approx(-0.2))
+
+    def test_a_month_before_january_2009_is_not_read(self) -> None:
+        days = pd.DatetimeIndex(["2008-11-28", "2008-12-31"])
+        held = pd.DataFrame({"A": [1.0, 0.0]}, index=days)
+        returns = pd.DataFrame({"A": [np.nan, 0.2]}, index=days)
+        stops = pd.Series({"A": "2008-12-15"}, dtype="datetime64[ns]")
+        assert seasonals.stopped_positions(held, returns, stops) == (0, 0.0)
+
+    def test_a_stop_on_the_month_end_that_set_the_position_does_not_count(self) -> None:
+        """The stop falls on the month's first boundary, not strictly inside the month held."""
+        days = pd.DatetimeIndex(["2008-12-31", "2009-01-30"])
+        held = pd.DataFrame({"A": [1.0, 0.0]}, index=days)
+        returns = pd.DataFrame({"A": [np.nan, 0.2]}, index=days)
+        stops = pd.Series({"A": "2008-12-31"}, dtype="datetime64[ns]")
+        assert seasonals.stopped_positions(held, returns, stops) == (0, 0.0)
+
+
+class TestTheDepartures:
+    def test_each_rows_shares_sum_to_one(self) -> None:
+        table = seasonals.Departures(table=((1, 2, 7), (10, 10, 80)), p=0.5)
+        assert table.shares(True) == pytest.approx((0.1, 0.2, 0.7))
+        assert table.shares(False) == pytest.approx((0.1, 0.1, 0.8))
+
+
+#: The month :class:`TestTheUnrankedRefusal` covers, with the month-ends a year back it reads.
+JUNE_2011 = pd.Period("2011-06", "M")
+
+
+def unranked_frames() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Closes from January 2010, and a mask covering S00 to S04 in June 2011 only."""
+    returns = np.random.default_rng(441).normal(0.0, 0.05, (20, 10))
+    closes = monthly_closes(returns)
+    mask = pd.DataFrame(False, index=pd.PeriodIndex([JUNE_2011]), columns=closes.columns)
+    mask.loc[JUNE_2011, ["S00", "S01", "S02", "S03", "S04"]] = True
+    return closes, mask
+
+
+class TestTheUnrankedRefusal:
+    """A covered member needs a close at its month-end and at both ends of the month a year back."""
+
+    def test_a_close_missing_for_an_uncovered_member_is_not_refused(self) -> None:
+        closes, mask = unranked_frames()
+        for month in (JUNE_2011, JUNE_2011 - 11, JUNE_2011 - 12):
+            closes.loc[_row(closes, month).name, "S09"] = np.nan
+        seasonals.refuse_unranked(closes, mask)
+
+    @pytest.mark.parametrize("back", [0, 11, 12], ids=["month-end", "year-back-end", "year-back"])
+    def test_a_covered_member_with_no_close_is_refused_naming_member_and_month(self, back) -> None:
+        closes, mask = unranked_frames()
+        closes.loc[_row(closes, JUNE_2011 - back).name, "S02"] = np.nan
+        with pytest.raises(
+            seasonals.MonthlyRunRefused,
+            match=rf"^2011-06: covered member S02 has no close at the month-end of "
+            rf"{JUNE_2011 - back}$",
+        ):
+            seasonals.refuse_unranked(closes, mask)
+
+
+def held_panel() -> pd.DataFrame:
+    """Twenty stocks with a month-end from December 2007 to October 2026, so 213 months are held."""
+    returns = np.random.default_rng(4411).normal(0.002, 0.05, (227, 20))
+    return monthly_closes(returns, start="2007-12")
+
+
+class TestTheMonthlyTest:
+    """The test of the held months, on synthetic closes so it holds in CI."""
+
+    def test_x_is_twelve_times_the_mean_detected_with_80_percent_over_213_months(self) -> None:
+        closes = held_panel()
+        result = seasonals.monthly_test(closes, REVISED_MATLAB, every_month(closes))
+        assert result.test.n == 213
+        assert result.x == pytest.approx(
+            12 * seasonals.detectable_mean(result.test.std, 213, power=0.8), rel=1e-12
+        )
+
+    def test_the_newey_west_standard_error_is_the_mean_over_its_t(self) -> None:
+        closes = held_panel()
+        result = seasonals.monthly_test(closes, REVISED_MATLAB, every_month(closes))
+        summary = result.newey_west
+        assert summary.mean == pytest.approx(result.test.mean, rel=1e-12)
+        assert result.newey_west_se == pytest.approx(summary.mean / summary.t_newey_west)
+
+
+#: Two schedules a quarter apart. BBB leaves between them and CCC joins.
+EARLIER, LATER = "2012-12-31", "2013-03-31"
+MISDATED = (pd.Period("2013-01", "M"), pd.Period("2013-02", "M"))
+
+
+def schedule_rows():
+    from chan.fund_panel import MemberRow
+
+    return [
+        MemberRow(EARLIER, 1, "AAA", "filing", check="pass", exit="close"),
+        MemberRow(EARLIER, 2, "BBB", "filing", check="pass", exit="close"),
+        MemberRow(LATER, 1, "AAA", "filing", check="pass", exit="close"),
+        MemberRow(LATER, 2, "CCC", "filing", check="pass", exit="close"),
+    ]
+
+
+def schedule_change() -> seasonals.ScheduleChange:
+    return seasonals.ScheduleChange(
+        earlier=EARLIER,
+        later=LATER,
+        removed=((EARLIER, 2),),
+        added=((LATER, 2),),
+        months=MISDATED,
+    )
+
+
+def carried_mask() -> pd.DataFrame:
+    """The carry-forward mask: the earlier schedule through February, the later from March."""
+    months = pd.period_range("2013-01", "2013-03", freq="M")
+    mask = pd.DataFrame(False, index=months, columns=["AAA", "BBB", "CCC"])
+    mask.loc[MISDATED, ["AAA", "BBB"]] = True
+    mask.loc[pd.Period("2013-03", "M"), ["AAA", "CCC"]] = True
+    return mask
+
+
+class TestTheBracketingMasks:
+    """The intersection and union around one schedule change, on hand-built members."""
+
+    @staticmethod
+    def covers(row, month: pd.Period) -> str | None:
+        """CCC is covered in February 2013 and missing a price in January."""
+        return None if month == MISDATED[1] else "price"
+
+    def test_the_intersection_drops_the_removed_name_in_each_misdated_month(self) -> None:
+        mask = carried_mask()
+        intersection, _, _ = seasonals.bracketing_masks(
+            mask, schedule_rows(), [schedule_change()], self.covers
+        )
+        expected = mask.copy()
+        expected.loc[MISDATED, "BBB"] = False
+        pd.testing.assert_frame_equal(intersection, expected)
+        assert mask.equals(carried_mask())
+
+    def test_the_union_adds_the_added_name_only_where_the_rule_covers_it(self) -> None:
+        mask = carried_mask()
+        _, union, added = seasonals.bracketing_masks(
+            mask, schedule_rows(), [schedule_change()], self.covers
+        )
+        expected = mask.copy()
+        expected.loc[MISDATED[1], "CCC"] = True
+        pd.testing.assert_frame_equal(union, expected)
+        assert added == {(MISDATED[1], "CCC")}
+        assert mask.equals(carried_mask())
+
+    def test_each_name_counts_only_where_its_own_run_held_it(self) -> None:
+        """BBB counts where the carry-forward run held it, CCC where the union run did.
+
+        BBB is held in January only, and its March position falls outside the
+        misdated months. CCC is held by the union run in both months, but the
+        union added it only in February, and the carry-forward run never holds
+        it there.
+        """
+        ends = pd.DatetimeIndex(["2013-01-31", "2013-02-28", "2013-03-29"])
+        carried = pd.DataFrame(
+            {"AAA": [1.0, 1.0, 1.0], "BBB": [1.0, 0.0, -1.0], "CCC": [0.0, 0.0, 1.0]}, index=ends
+        )
+        unioned = pd.DataFrame(
+            {"AAA": [1.0, 1.0, 1.0], "BBB": [1.0, 0.0, 0.0], "CCC": [1.0, -1.0, 1.0]}, index=ends
+        )
+        (counted,) = seasonals.count_misdated(
+            [schedule_change()], schedule_rows(), carried, unioned, {(MISDATED[1], "CCC")}
+        )
+        assert counted == replace(schedule_change(), removed_positions=1, added_positions=1)
+        assert counted.misdated == 2
+
+
+class TestTheMonthlyCommand:
+    def test_point_in_time_runs_example_7_6_then_example_7_7(self, monkeypatch, capsys) -> None:
+        calls = []
+        monkeypatch.setattr(seasonals, "run_point_in_time", lambda: calls.append("7.6") or "pit")
+        monkeypatch.setattr(seasonals, "run_survivors", lambda: "survivors")
+        monkeypatch.setattr(seasonals, "report_point_in_time", lambda *a: print("7.6 report"))
+        monkeypatch.setattr(
+            seasonals, "run_monthly_point_in_time", lambda: calls.append("7.7") or "monthly"
+        )
+        monkeypatch.setattr(seasonals, "report_monthly", lambda run: print(f"7.7 report {run}"))
+        seasonals.main(["--point-in-time"])
+        assert calls == ["7.6", "7.7"]
+        assert capsys.readouterr().out == "7.6 report\n\n7.7 report monthly\n"
+
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            seasonals.MonthlyRunRefused("2015-06 holds no position, and 1 months in all"),
+            seasonals.PanelRefused("the calendar does not run past 2026-09"),
+            ArchiveRefused("sp500/daily_AAPL.csv hashes to 00, not ff"),
+        ],
+        ids=lambda refusal: type(refusal).__name__,
+    )
+    def test_each_refusal_is_one_line(self, refusal, monkeypatch) -> None:
+        def refuse(**_kwargs):
+            raise refusal
+
+        monkeypatch.setattr(seasonals, "run_point_in_time", lambda: None)
+        monkeypatch.setattr(seasonals, "run_survivors", lambda: None)
+        monkeypatch.setattr(seasonals, "report_point_in_time", lambda *a: None)
+        monkeypatch.setattr(seasonals, "run_monthly_point_in_time", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main(["--point-in-time"])
+        assert stopped.value.code == str(refusal)
+
+
+#: The members file the monthly pins were measured on, by sha256, the same file
+#: ``tests/test_sp500_panel.py`` pins.
+MONTHLY_MEMBERS_SHA256 = "0b8e0f8ca7eaf388eda4784ebe30bd787b5bd4a857ffaf49c38a25676435445b"
+
+#: The holes file beside it, by sha256, which the coverage reads.
+MONTHLY_HOLES_SHA256 = "85c6c9498610e82f2852eafb9fcffcedabbfe8870ccc4f334f311f62de770158"
+
+#: Each pair of consecutive schedules: names removed and added, ranking months
+#: between them, and the positions the carry-forward run gave a removed name
+#: and the union run an added name in those months.
+MONTHLY_CHANGES = (
+    ("2008-12-31", "2009-03-31", 12, 12, 2, 6, 4),
+    ("2009-03-31", "2009-06-30", 4, 6, 2, 0, 5),
+    ("2009-06-30", "2009-09-30", 6, 4, 2, 1, 2),
+    ("2009-09-30", "2009-12-31", 9, 9, 2, 3, 0),
+    ("2009-12-31", "2010-03-31", 8, 8, 2, 0, 4),
+    ("2010-03-31", "2010-06-30", 4, 4, 2, 3, 2),
+    ("2010-06-30", "2010-09-30", 5, 5, 2, 1, 0),
+    ("2010-09-30", "2010-12-31", 5, 5, 2, 1, 2),
+    ("2010-12-31", "2011-03-31", 5, 6, 2, 0, 0),
+    ("2011-03-31", "2011-06-30", 6, 4, 2, 0, 2),
+    ("2011-06-30", "2011-09-30", 4, 5, 2, 2, 2),
+    ("2011-09-30", "2011-12-31", 12, 12, 2, 5, 4),
+    ("2011-12-31", "2012-03-31", 3, 3, 2, 0, 0),
+    ("2012-03-31", "2012-06-30", 9, 10, 2, 4, 4),
+    ("2012-06-30", "2012-09-30", 3, 3, 2, 0, 1),
+    ("2012-09-30", "2012-12-31", 10, 9, 2, 4, 0),
+    ("2012-12-31", "2013-03-31", 4, 4, 2, 3, 0),
+    ("2013-03-31", "2013-06-30", 7, 7, 2, 3, 2),
+    ("2013-06-30", "2013-12-31", 18, 18, 5, 12, 14),
+    ("2013-12-31", "2014-03-31", 2, 2, 2, 2, 1),
+    ("2014-03-31", "2014-06-30", 9, 11, 2, 2, 3),
+    ("2014-06-30", "2014-09-30", 7, 7, 2, 6, 1),
+    ("2014-09-30", "2014-12-31", 6, 6, 2, 3, 2),
+    ("2014-12-31", "2015-03-31", 15, 15, 2, 10, 3),
+    ("2015-03-31", "2015-06-30", 8, 8, 2, 5, 1),
+    ("2015-06-30", "2015-09-30", 14, 17, 2, 4, 3),
+    ("2015-09-30", "2015-12-31", 8, 7, 2, 3, 0),
+    ("2015-12-31", "2016-03-31", 12, 12, 2, 4, 4),
+    ("2016-03-31", "2016-06-30", 12, 15, 2, 4, 3),
+    ("2016-06-30", "2016-09-30", 10, 8, 2, 0, 2),
+    ("2016-09-30", "2016-12-31", 5, 5, 2, 3, 0),
+    ("2016-12-31", "2017-03-31", 11, 11, 2, 7, 4),
+    ("2017-03-31", "2017-06-30", 9, 9, 2, 5, 3),
+    ("2017-06-30", "2017-09-30", 12, 12, 2, 7, 1),
+    ("2017-09-30", "2017-12-31", 6, 5, 2, 1, 0),
+    ("2017-12-31", "2018-03-31", 7, 8, 2, 6, 4),
+    ("2018-03-31", "2018-06-30", 12, 12, 2, 7, 4),
+    ("2018-06-30", "2018-09-30", 2, 3, 2, 0, 1),
+    ("2018-09-30", "2018-12-31", 11, 11, 2, 3, 2),
+    ("2018-12-31", "2019-03-31", 7, 6, 2, 3, 0),
+    ("2019-03-31", "2019-06-30", 7, 7, 2, 3, 1),
+    ("2019-06-30", "2019-09-30", 18, 18, 2, 5, 3),
+    ("2019-09-30", "2019-12-31", 11, 11, 2, 3, 0),
+    ("2019-12-31", "2020-03-31", 3, 3, 2, 1, 1),
+    ("2020-03-31", "2020-06-30", 11, 11, 2, 3, 4),
+    ("2020-06-30", "2020-09-30", 4, 4, 2, 2, 2),
+    ("2020-09-30", "2020-12-31", 4, 4, 2, 1, 1),
+    ("2020-12-31", "2021-03-31", 10, 10, 2, 6, 7),
+    ("2021-03-31", "2021-06-30", 4, 4, 2, 3, 1),
+    ("2021-06-30", "2021-09-30", 7, 7, 2, 4, 3),
+    ("2021-09-30", "2021-12-31", 4, 4, 2, 1, 3),
+    ("2021-12-31", "2022-03-31", 4, 4, 2, 2, 0),
+    ("2022-03-31", "2022-06-30", 7, 6, 2, 2, 0),
+    ("2022-06-30", "2022-09-30", 4, 3, 2, 2, 0),
+    ("2022-09-30", "2022-12-31", 6, 6, 2, 1, 2),
+    ("2022-12-31", "2023-03-31", 4, 4, 2, 4, 0),
+    ("2023-03-31", "2023-06-30", 2, 2, 2, 2, 2),
+    ("2023-06-30", "2023-09-30", 4, 4, 2, 2, 0),
+    ("2023-09-30", "2023-12-31", 7, 7, 2, 2, 2),
+    ("2023-12-31", "2024-03-31", 4, 4, 2, 3, 2),
+    ("2024-03-31", "2024-06-30", 7, 7, 2, 5, 2),
+    ("2024-06-30", "2024-09-30", 5, 6, 2, 4, 6),
+    ("2024-09-30", "2024-12-31", 9, 8, 2, 4, 4),
+    ("2024-12-31", "2025-03-31", 4, 5, 2, 4, 3),
+    ("2025-03-31", "2025-06-30", 2, 2, 2, 0, 0),
+    ("2025-06-30", "2025-09-30", 9, 8, 2, 4, 5),
+    ("2025-09-30", "2025-12-31", 6, 6, 2, 1, 4),
+    ("2025-12-31", "2026-03-31", 5, 5, 2, 3, 8),
+    ("2026-03-31", "2026-06-30", 9, 9, 2, 6, 6),
+)
+
+
+class TestTheScheduleChanges:
+    """The names that changed between schedules, from committed files alone, so these run in CI."""
+
+    def test_the_files_are_the_ones_measured(self) -> None:
+        import hashlib
+
+        from chan import sp500_panel
+
+        for path, digest in (
+            (sp500_panel.MEMBERS_PATH, MONTHLY_MEMBERS_SHA256),
+            (sp500_panel.HOLES_PATH, MONTHLY_HOLES_SHA256),
+        ):
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, path.name
+
+    def test_each_pair_of_schedules(self) -> None:
+        from chan import sp500_panel
+        from chan.fund_panel import previous_rows
+
+        changes = seasonals.schedule_changes(sp500_panel.load(), previous_rows(sp500_panel.FUND))
+        assert [
+            (c.earlier, c.later, len(c.removed), len(c.added), len(c.months)) for c in changes
+        ] == [pin[:5] for pin in MONTHLY_CHANGES]
+
+    def test_500_names_removed_and_503_added_over_69_pairs(self) -> None:
+        assert len(MONTHLY_CHANGES) == 69
+        assert sum(pin[2] for pin in MONTHLY_CHANGES) == 500
+        assert sum(pin[3] for pin in MONTHLY_CHANGES) == 503
+
+    def test_the_summary_only_schedule_widens_one_gap_to_five_months_between(self) -> None:
+        (wide,) = [pin for pin in MONTHLY_CHANGES if pin[4] != 2]
+        assert wide[:2] == ("2013-06-30", "2013-12-31")
+        assert wide[4] == 5
+
+
+#: The months whose coverage the stop rule moves from ``tests/test_sp500_panel.py``'s
+#: pins: members, covered members and stops under the rule.
+MONTHLY_COVERAGE_MOVED = {
+    "2010-02": (500, 405, 0),
+    "2010-03": (500, 395, 1),
+    "2010-04": (500, 394, 0),
+    "2010-05": (500, 390, 1),
+    "2011-01": (500, 416, 1),
+    "2011-02": (500, 396, 0),
+    "2012-03": (500, 400, 0),
+    "2012-04": (500, 400, 0),
+    "2012-05": (500, 419, 0),
+    "2013-04": (500, 386, 1),
+    "2013-05": (500, 396, 1),
+    "2014-06": (502, 424, 0),
+    "2014-12": (502, 446, 2),
+    "2015-01": (502, 444, 0),
+    "2016-04": (504, 471, 2),
+    "2016-06": (507, 477, 0),
+    "2017-05": (505, 490, 2),
+    "2017-06": (505, 489, 2),
+    "2017-07": (505, 488, 1),
+    "2017-10": (505, 489, 0),
+    "2017-11": (505, 489, 1),
+    "2018-09": (506, 495, 2),
+    "2018-10": (506, 493, 2),
+    "2018-11": (506, 491, 1),
+    "2021-07": (505, 497, 1),
+    "2021-08": (505, 497, 0),
+    "2022-03": (505, 500, 2),
+    "2022-05": (505, 498, 1),
+    "2022-08": (504, 499, 1),
+    "2022-09": (503, 497, 2),
+    "2022-11": (503, 495, 1),
+    "2025-06": (504, 500, 3),
+}
+
+
+@pytest.fixture(scope="module")
+def monthly() -> seasonals.MonthlyRun:
+    """One run on the owner's archive, or a skip naming what is missing."""
+    try:
+        return seasonals.run_monthly_point_in_time()
+    except ArchiveUnavailable as absent:
+        pytest.skip(str(absent))
+
+
+class TestTheMonthlyPins:
+    """Example 7.7 on the S&P 500 as IVV held it each month, registered.
+
+    The vintage is four things.
+
+    1. The members, ``research/filings/ivv/members.csv``, whose sha256
+       :data:`MONTHLY_MEMBERS_SHA256` holds, read from IVV's 70 quarter-end
+       schedules from 2008-12-31 to 2026-06-30, each carried forward to the
+       next.
+    2. The holes file beside it, ``research/filings/ivv/holes.csv``, whose
+       sha256 :data:`MONTHLY_HOLES_SHA256` holds.
+    3. Their closes, Alpha Vantage's ``adjusted_close`` and ``volume`` from
+       ``TIME_SERIES_DAILY_ADJUSTED``, the 817 ``sp500`` lines in
+       ``data/archive_vintages.jsonl`` the members file maps to, all
+       downloaded 2026-10-05, with the bytes in the owner's archive.
+    4. The calendar, ``yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv``.
+
+    The specification is :data:`chan.equity_seasonals.REVISED_MATLAB`
+    unchanged, before costs, on the panel from 2007-12-03 to 2026-10-01.
+    Each series stops at its last row that traded and moved, a held stock
+    that stops inside a month earns its return to its last close, and each
+    month-end ranks only the members :func:`chan.sp500_panel.monthly_coverage`
+    covers with those stops, so the tenth is a tenth of the covered members.
+    The 213 months from January 2009 to September 2026 take a one-sided t-test
+    of their mean against zero at 5%, and X is the annual return that test
+    detects with 80% probability. :data:`chan.equity_seasonals.PYTHON_HESTON_SADKA`
+    runs on the same panel and members with no verdict. Labelled registered:
+    the criterion was written on issue 336 before any return was seen. First
+    run on 2026-10-06.
+
+    The run took 75 seconds alone on the owner's machine and 104 seconds as
+    this fixture's setup under the parallel run of this file and
+    ``tests/test_sp500_panel.py``. Most of it is reading 817 files twice, once
+    for the adjusted close and once for the volume, and linking the 70
+    schedules. Those are wall-clock times from one machine, and no test holds
+    them. That is under the minutes issue 336 named for a ``QT_ARCHIVE_RUN``
+    gate, so these skip only with the reader's own message where no archive
+    is.
+    """
+
+    def test_it_reads_one_download_of_every_member_series(self, monthly) -> None:
+        assert len(monthly.entries) == 817
+        assert {entry.download_date for entry in monthly.entries} == {"2026-10-05"}
+        assert monthly.calendar.path == "yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv"
+
+    def test_no_row_falls_on_a_day_the_calendar_lacks(self, monthly) -> None:
+        assert monthly.off_calendar == 0
+
+    def test_121_series_stop_before_their_files_last_row(self, monthly) -> None:
+        """The examples issue 336's plan audit names, measured on prices before any return.
+
+        MHS stops on 2012-03-30, where the audit printed 2012-03-29. Its file
+        trades 14,763,294 shares on 2012-03-30 at 70.30, up from 70.19, and
+        every row after holds 70.30 on zero volume, so the rule keeps the 30th.
+        """
+        assert monthly.moved == 121
+        assert len(monthly.stops) == 817
+        for symbol, day in (
+            ("BJS", "2010-04-28"),
+            ("MHS", "2012-03-30"),
+            ("EVHC", "2018-10-10"),
+            ("CTXS", "2022-09-29"),
+            ("CERN", "2022-06-07"),
+            ("DISCK", "2022-04-08"),
+            ("T", "2026-10-01"),
+            ("WMT", "2026-10-01"),
+        ):
+            assert monthly.stops[symbol] == pd.Timestamp(day), symbol
+
+    def test_98321_of_107115_member_months_are_covered_with_83_stops(self, monthly) -> None:
+        assert (monthly.covered, monthly.members, monthly.stops_inside) == (98321, 107115, 83)
+        assert len(monthly.coverage) == 213
+        assert (monthly.coverage[0].month, monthly.coverage[-1].month) == ("2008-12", "2026-08")
+
+    def test_each_months_coverage_under_the_stop_rule(self, monthly) -> None:
+        """Every month's members, covered members and stops, as the run computes them.
+
+        ``tests/test_sp500_panel.py`` pins issue 373's coverage on each series'
+        manifest span. The stop rule cuts 121 of those spans short, which moves
+        32 of the 213 months, 21 of them in covered members. Every other month
+        is that file's row unchanged.
+        """
+        from tests.test_sp500_panel import MONTHS
+
+        expected = {row[0]: (row[1], row[2], row[4]) for row in MONTHS}
+        expected.update(MONTHLY_COVERAGE_MOVED)
+        assert [m.month for m in monthly.coverage] == list(expected)
+        assert {m.month: (m.members, m.covered, m.stops) for m in monthly.coverage} == expected
+
+    def test_the_lowest_and_highest_months_coverage(self, monthly) -> None:
+        shares = {m.month: (m.covered, m.members) for m in monthly.coverage}
+        low = min(shares.items(), key=lambda item: item[1][0] / item[1][1])
+        high = max(shares.items(), key=lambda item: item[1][0] / item[1][1])
+        assert low == ("2012-09", (364, 501))
+        assert high == ("2025-09", (501, 503))
+
+    def test_the_213_months_run_from_january_2009_to_september_2026(self, monthly) -> None:
+        for result, first in ((monthly.matlab, "2009-01-30"), (monthly.python, "2009-01-31")):
+            assert len(result.returns) == 213
+            assert result.returns.index[0] == pd.Timestamp(first)
+            assert result.returns.index[-1].to_period("M") == pd.Period("2026-09", "M")
+
+    def test_the_revised_matlab_mean_is_not_detectably_above_zero(self, monthly) -> None:
+        result = monthly.matlab
+        test = result.test
+        assert test.n == 213
+        assert_reproduces(test.mean, -0.0001391960725288475, "-0.0001", ".4f")
+        assert_reproduces(test.std, 0.0205768768232231, "0.0206", ".4f")
+        assert_reproduces(test.t, -0.0987273148878982, "-0.10", ".2f")
+        assert_reproduces(test.p, 0.5392759664767235, "0.539", ".3f")
+        assert not test.rejects
+
+    def test_the_newey_west_t_beside_it(self, monthly) -> None:
+        result = monthly.matlab
+        assert result.newey_west.lag == 4
+        assert_reproduces(result.newey_west.t_newey_west, -0.10849398566213593, "-0.11", ".2f")
+        assert_reproduces(result.newey_west_se, 0.0012829842288430786, "0.0013", ".4f")
+
+    def test_x_is_4_22_percent_a_year(self, monthly) -> None:
+        assert_reproduces(monthly.matlab.x, 0.0422031836138127, "4.22%", ".2%")
+
+    def test_the_verdict(self, monthly) -> None:
+        assert monthly.verdict == "no return detectable above about 4.2% a year"
+
+    def test_the_revised_python_with_no_verdict(self, monthly) -> None:
+        result = monthly.python
+        assert result.test.n == 213
+        assert_reproduces(result.test.mean, -0.0001391960725288475, "-0.0001", ".4f")
+        assert_reproduces(result.test.std, 0.0205768768232231, "0.0206", ".4f")
+        assert_reproduces(result.test.t, -0.0987273148878982, "-0.10", ".2f")
+        assert_reproduces(result.test.p, 0.5392759664767235, "0.539", ".3f")
+        assert_reproduces(result.newey_west.t_newey_west, -0.10849398566213593, "-0.11", ".2f")
+        assert_reproduces(result.x, 0.0422031836138127, "4.22%", ".2%")
+
+    def test_the_two_rules_agree_on_every_month(self, monthly) -> None:
+        """On this panel and these members the printouts' differences never bind.
+
+        Every member a month-end ranks has a close there and at both ends of
+        its year-earlier month, and every held stock has one at the next
+        month-end or stops inside the month, where the fill gives it one. So
+        each stock's last close in a month is the shared month-end row's,
+        own-close and own-return keep the same stocks, and no month is empty.
+        """
+        assert np.array_equal(monthly.matlab.returns.to_numpy(), monthly.python.returns.to_numpy())
+
+    def test_the_intersection_and_union_means_with_no_verdict(self, monthly) -> None:
+        assert_reproduces(monthly.intersection_mean, -0.0003611706499271768, "-0.0004", ".4f")
+        assert_reproduces(monthly.union_mean, -3.3240995217640734e-05, "-0.0000", ".4f")
+
+    def test_the_positions_on_names_that_changed_per_pair_and_in_total(self, monthly) -> None:
+        assert [
+            (c.earlier, c.later, len(c.removed), len(c.added), len(c.months),
+             c.removed_positions, c.added_positions)
+            for c in monthly.changes
+        ] == list(MONTHLY_CHANGES)  # fmt: skip
+        assert sum(c.removed_positions for c in monthly.changes) == 216
+        assert sum(c.added_positions for c in monthly.changes) == 162
+        assert sum(c.misdated for c in monthly.changes) == 378
+
+    def test_23_positions_stopped_inside_the_month_held(self, monthly) -> None:
+        assert monthly.stopped == 23
+        assert_reproduces(monthly.stopped_return, -0.701349916225064, "-0.7013", ".4f")
+
+    def test_departing_names_fall_in_a_tenth_more_often(self, monthly) -> None:
+        """Described rather than tested: member-months repeat the same names."""
+        table = monthly.departures
+        assert table.table == ((505, 698, 3019), (8624, 8431, 71055))
+        assert table.p == pytest.approx(6.395950528010611e-57, rel=1e-6)
+        assert [format(s, ".1%") for s in table.shares(True)] == ["12.0%", "16.5%", "71.5%"]
+        assert [format(s, ".1%") for s in table.shares(False)] == ["9.8%", "9.6%", "80.6%"]
+
+    def test_the_report(self, monthly, capsys) -> None:
+        seasonals.report_monthly(monthly)
+        out = capsys.readouterr().out
+        assert out.startswith("Example 7.7 on the S&P 500 as IVV held it each month, registered\n")
+        assert "members: research/filings/ivv/members.csv" in out
+        assert "closes: 817 series from the sp500 cross-section" in out
+        assert "0 series rows on no calendar day dropped; 121 of 817 series stop" in out
+        assert "coverage: 98321 of 107115 member-months covered" in out
+        assert "from 364 of 501 in 2012-09 to 501 of 503 in 2025-09" in out
+        assert "83 covered members stop inside the month held" in out
+        assert (
+            "    mean -0.0001 a month, standard deviation 0.0206, t -0.10, one-sided p 0.539, "
+            "over 213 months; Newey-West t -0.11 at lag 4, standard error 0.0013; detectable "
+            "with 80% probability at 5%: 4.22% a year"
+        ) in out
+        assert "    verdict: no return detectable above about 4.2% a year" in out
+        assert "intersection mean -0.0004, union mean -0.0000 a month" in out
+        assert "500 removed and 503 added" in out
+        assert "an added name: 378" in out
+        assert "stopped inside the month held: 23, their returns summed by side -0.7013" in out
+        assert "    departing: long 505 (12.0%), short 698 (16.5%), neither 3019 (71.5%)" in out
+        assert "    chi-square p 0.000, descriptive only" in out

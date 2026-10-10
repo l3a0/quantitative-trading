@@ -70,8 +70,9 @@ without committing a price.
 
 The calendar is the committed raw SPY vintage, as the S&P 600 panel's is, so a
 month-end is a day the exchange traded rather than a day some series happens to
-carry. Issue 336 takes IVV's own trading days, and
-``tests/test_sp500_panel.py`` holds that the two agree at every month-end.
+carry. Issue 336's plan named IVV's own trading days, and its run takes this
+calendar instead. ``tests/test_sp500_panel.py`` holds that the two agree at
+every month-end.
 """
 
 from __future__ import annotations
@@ -81,7 +82,7 @@ import io
 import os
 import sys
 from collections import Counter
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -359,10 +360,15 @@ def monthly_coverage(
     spans: Mapping[str, tuple[str, str]],
     holes: frozenset[tuple[str, str]],
     calendar: pd.DatetimeIndex,
+    *,
+    previous: Mapping[Key, Key] | None = None,
 ) -> list[MonthCoverage]:
-    """Each month-end from :data:`FIRST_MONTH` to :data:`LAST_MONTH`, with its coverage."""
+    """Each month-end from :data:`FIRST_MONTH` to :data:`LAST_MONTH`, with its coverage.
+
+    ``previous`` is :func:`coverage_rule`'s.
+    """
     by_key = {row.key: row for row in rows}
-    previous = previous_rows(FUND)
+    previous = previous_rows(FUND) if previous is None else previous
     closes = _Closes(spans, holes, calendar)
     by_schedule: dict[str, list[MemberRow]] = {}
     for row in rows:
@@ -399,6 +405,29 @@ def monthly_coverage(
             )
         )
     return report
+
+
+def coverage_rule(
+    rows: Sequence[MemberRow],
+    spans: Mapping[str, tuple[str, str]],
+    holes: frozenset[tuple[str, str]],
+    calendar: pd.DatetimeIndex,
+    *,
+    previous: Mapping[Key, Key] | None = None,
+) -> Callable[[MemberRow, pd.Period], str | None]:
+    """Why one row misses at one month-end, or ``None`` when it is covered.
+
+    It applies the rule :func:`monthly_coverage` applies, to any row at any
+    month-end, including one its own schedule does not set. Issue 336's union
+    mask asks it of a name a later schedule adds, at the months before that
+    schedule. ``previous`` is :func:`chan.fund_panel.previous_rows` for IVV,
+    passed by a caller that already holds it, since computing it reads every
+    holdings file.
+    """
+    by_key = {row.key: row for row in rows}
+    links = previous_rows(FUND) if previous is None else previous
+    closes = _Closes(spans, holes, calendar)
+    return lambda row, month: _reason(row, month, closes, by_key, links)
 
 
 def coverage_from_committed(rows: Sequence[MemberRow]) -> list[MonthCoverage]:
@@ -442,8 +471,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             key = os.environ.get(fetch_alphavantage.KEY_ENV, "").strip()
             if not key:
                 raise SystemExit(f"{fetch_alphavantage.KEY_ENV} is not set, so no request was made")
-            # IVV's own series is fetched too, because issue 336 takes its
-            # trading days as the run's calendar.
+            # IVV's own series is fetched too, so a test can hold that its
+            # month-ends are the SPY calendar's, which issue 336's run takes.
             symbols = [FUND.symbol, *tickers(load())]
             tally = fetch_alphavantage.fetch(CROSS_SECTION, symbols, key=key)
             # The tally names each failed symbol, so it passes through the

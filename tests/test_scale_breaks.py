@@ -1040,10 +1040,12 @@ class TestAWindowThatCrossesABreakStops:
     def test_a_break_in_the_second_leg_refuses_too(self, committed_copy: Path) -> None:
         """The union across the legs, which every other case here reaches through leg A.
 
-        The ``halved`` fixture breaks GLD, which is ``a`` in both
-        ``aligned_closes`` calls this repo makes, so a guard reading only the
-        first leg passed every other case in this file. Measured: truncating
-        the loop to ``list(legs)[:1]`` left the whole suite green.
+        The ``halved`` fixture breaks GLD. Every other case here that uses the
+        fixture passes GLD as ``a``, the first leg, which is where
+        :mod:`chan.regime_figure` puts it too. So a guard reading only the
+        first leg passed them all.
+        Measured: truncating the loop to ``list(legs)[:1]`` left the whole
+        suite green.
         """
         halve_one_close(committed_copy, named="gdx_20yr_prices_unadjusted.csv", on="2007-01-03")
 

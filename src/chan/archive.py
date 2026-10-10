@@ -103,7 +103,7 @@ DAILY_HEADER = (
 )
 
 #: The columns :func:`read_cross_section` returns, named as the vendor names them.
-DAILY_COLUMNS = ("close", "adjusted_close")
+DAILY_COLUMNS = ("close", "adjusted_close", "volume")
 
 #: The request every cross-section line records, one per symbol.
 DAILY_VENDOR_CALL = "TIME_SERIES_DAILY_ADJUSTED, outputsize=full, datatype=csv"
@@ -447,7 +447,8 @@ def read_cross_section(
     of both, so a caller compares the entries with its own list to find what is
     missing. The frame's columns follow the entries, and its index is the union
     of the files' dates in ascending order, so a symbol with no row on a day is
-    NaN there. ``column`` is ``close``, the raw close, or ``adjusted_close``.
+    NaN there. ``column`` is ``close``, the raw close, ``adjusted_close``, or
+    ``volume``, which issue 336 reads to find a series' last row that traded.
 
     Every file is hashed through :func:`read_archive_vintage` before it is
     parsed. A recorded file missing from the archive raises
