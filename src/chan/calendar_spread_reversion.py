@@ -108,6 +108,8 @@ calendar spread, builds against.
    That module names the vintage and runs the scale-break guard on each
    member's own rows.
 2. The plots are not carried. Figure 5.7 belongs to the write-up.
+   :mod:`chan.calendar_spread_reversion_figures` draws it, since the run
+   prints its figures and draws nothing.
 3. The signal, the spread month, the holding period and the lookback are
    arguments, so issue 349 runs the same steps on another strip.
 4. Rows the script does not print are computed beside it: the window from
@@ -235,6 +237,25 @@ def calendar_schedule(
             positions[start_idx : end_idx + 1, c] = -1
             positions[start_idx : end_idx + 1, c + spread_month] = 1
     return pd.DataFrame(positions, index=contracts.index, columns=contracts.columns)
+
+
+def held_log_spread(contracts: pd.DataFrame, schedule: pd.DataFrame) -> pd.Series:
+    """The held pair's log spread, log(far) − log(near), on each row the schedule holds one pair.
+
+    ``schedule`` is the unflipped one from :func:`calendar_schedule`, so the
+    far contract is the +1 and the near one the −1 whatever line 107 then does
+    to the sign. A row holding no pair, or more than one contract on either
+    side, is NaN, and so is a row where either leg is unpriced. The script
+    computes no such series. Under Example 5.3's model it is γ(T1 − T2), with
+    T2 the later expiry, so it falls when γ rises.
+    """
+    held = schedule.to_numpy(dtype=float)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        logs = np.log(contracts.to_numpy(dtype=float))
+    near, far = held == -1, held == 1
+    one_pair = (near.sum(axis=1) == 1) & (far.sum(axis=1) == 1)
+    spread = np.where(far, logs, 0.0).sum(axis=1) - np.where(near, logs, 0.0).sum(axis=1)
+    return pd.Series(np.where(one_pair, spread, np.nan), index=contracts.index)
 
 
 def flip_on_zscore(schedule: pd.DataFrame, z: pd.Series) -> pd.DataFrame:

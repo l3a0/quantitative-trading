@@ -72,6 +72,7 @@ from chan.calendar_spread_reversion import (
     CalendarSpreadRun,
     calendar_schedule,
     flip_on_zscore,
+    held_log_spread,
     main,
     report,
     run,
@@ -252,6 +253,27 @@ class TestTheFigures:
         assert matches(found.sharpe, BOOK_SHARPE), spec
         assert matches(found.half_life, BOOK_HALFLIFE), spec
 
+    def test_s_measured_to_its_last_nonzero_return(self, runs) -> None:
+        """The pair held on 2012-05-08 earns its last return on 2012-05-09, so the window
+        cut there drops only the 66 rows that hold nothing."""
+        returns = runs["S"].returns
+        last = returns.index[(returns != 0).to_numpy()][-1]
+        spec = f"{S_SPEC}, cut at S's last nonzero return"
+        assert str(last.date()) == "2012-05-09", spec
+        cut = returns.loc[:last].to_numpy()
+        assert len(cut) == 1098, spec
+        assert (f"{compounded_apr(cut):.6f}", f"{plain_sharpe(cut):.6f}") == (
+            "0.087853",
+            "1.316295",
+        ), spec
+
+    def test_s_compounds_to_0_443248_by_its_last_day(self, runs) -> None:
+        """Figure 5.7's curve, ``cumprod(1 + ret) − 1``, at 2012-08-13."""
+        returns = runs["S"].returns
+        cumulative = np.cumprod(1 + returns.to_numpy()) - 1
+        assert str(returns.index[-1].date()) == "2012-08-13", S_SPEC
+        assert f"{cumulative[-1]:.6f}" == "0.443248", S_SPEC
+
 
 class TestTheTest:
     """Test 2: the book's "stationary with 99 percent probability"."""
@@ -272,6 +294,92 @@ class TestTheTest:
         filled = filled_series.to_numpy()
         assert runs["S"].adf == jplv7_adf(filled, 0, 1) == runs["R1"].adf == runs["R2"].adf, S_SPEC
         assert runs["S"].half_life == ou_half_life(filled), S_SPEC
+
+    def test_1164_of_gammas_1941_rows_lie_in_ss_window(self, runs, gamma) -> None:
+        """So 60 percent of what the half-life, and so the lookback, read is the traded window."""
+        filled = gamma.ffill().dropna()
+        inside = filled.loc[runs["S"].returns.index[0] :]
+        assert (len(inside), len(filled)) == (1164, 1941), S_SPEC
+        assert inside.index.equals(runs["S"].returns.index), S_SPEC
+        assert round(100 * len(inside) / len(filled)) == 60, S_SPEC
+
+
+@pytest.fixture(scope="module")
+def held_window(strip, gamma) -> pd.DataFrame:
+    """S's held rows from 2008-01-02: the log spread, filled γ and its z-score on each.
+
+    A held row is one where the unflipped schedule holds a pair and filled γ is
+    finite, as it is on every such row of CL.
+    """
+    schedule = calendar_schedule(strip.contracts)
+    filled = gamma.ffill()
+    frame = pd.DataFrame(
+        {
+            "spread": held_log_spread(strip.contracts, schedule),
+            "gamma": filled,
+            "z": zscore(filled.to_numpy(), 36),
+        }
+    )
+    held = frame["spread"].notna() & frame["gamma"].notna()
+    return frame.loc[held.to_numpy() & (frame.index >= START)]
+
+
+class TestTheTradesDirection:
+    """The spread moves against γ, and line 107 sells it where z(γ) is above 0.
+
+    So the script shorts the spread when the spread sits below its average,
+    which bets that it moves further away, the opposite of the reversion
+    location 2461 describes. The spread is :func:`held_log_spread` on the
+    unflipped schedule, and z is ``zscore`` of filled γ over S's 36 rows.
+    """
+
+    def test_the_held_spread_moves_against_gamma_on_ss_window(self, held_window) -> None:
+        spec = f"{S_SPEC}, held rows from 2008-01-02"
+        assert len(held_window) == 1097, spec
+        assert (str(held_window.index[0].date()), str(held_window.index[-1].date())) == (
+            "2008-01-02",
+            "2012-05-08",
+        ), spec
+        found = np.corrcoef(held_window["spread"], held_window["gamma"])[0, 1]
+        assert f"{found:.6f}" == "-0.883910", spec
+
+    def test_the_held_spread_moves_against_gamma_on_every_held_row(self, strip, gamma) -> None:
+        spread = held_log_spread(strip.contracts, calendar_schedule(strip.contracts))
+        filled = gamma.ffill()
+        held = spread.notna() & filled.notna()
+        spec = f"{S_SPEC}, every held row of the file"
+        assert int(held.sum()) == 1429, spec
+        found = np.corrcoef(spread[held], filled[held])[0, 1]
+        assert f"{found:.6f}" == "-0.893686", spec
+
+    def test_the_far_leg_is_short_wherever_z_is_above_0(self, runs, strip, held_window) -> None:
+        """554 rows with z above 0 hold the far leg short and 543 below hold it long.
+
+        No held row of the window has z at 0 or NaN, so the two sets are all 1,097.
+        """
+        schedule = calendar_schedule(strip.contracts).loc[held_window.index]
+        flipped = runs["S"].positions.loc[held_window.index]
+        far = (flipped.to_numpy() * (schedule.to_numpy() == 1)).sum(axis=1)
+        z = held_window["z"].to_numpy()
+        spec = f"{S_SPEC}, held rows from 2008-01-02"
+        assert (int((z > 0).sum()), int((z < 0).sum())) == (554, 543), spec
+        assert set(far[z > 0]) == {-1.0}, spec
+        assert set(far[z < 0]) == {1.0}, spec
+
+    def test_reversing_every_position_negates_ss_returns(self, runs, strip) -> None:
+        """The return is linear in the positions, so the book's direction earns minus S's."""
+        s = runs["S"]
+        reversed_ = spread_returns(-s.positions, strip.contracts).loc[s.returns.index]
+        np.testing.assert_allclose(reversed_, -s.returns, rtol=0, atol=1e-15, err_msg=S_SPEC)
+
+    def test_the_reversed_rule_loses_what_s_earns(self, runs) -> None:
+        daily = -runs["S"].returns.to_numpy()
+        spec = f"{S_SPEC}, every position reversed"
+        assert len(daily) == 1164, spec
+        assert (f"{compounded_apr(daily):.6f}", f"{plain_sharpe(daily):.6f}") == (
+            "-0.080125",
+            "-1.278216",
+        ), spec
 
 
 class TestTheArgumentsOnCl:
@@ -403,6 +511,37 @@ class TestTheSchedule:
         contracts = _contracts([50, 80, 110], gaps={0: slice(31, 36)})
         schedule = calendar_schedule(contracts, spread_month=1, holddays=5)
         assert _held(schedule, 0, -1) == list(range(35, 41))
+
+
+class TestTheHeldSpread:
+    def test_it_is_log_far_minus_log_near(self) -> None:
+        contracts = pd.DataFrame({"near": [100.0], "far": [80.0]}, index=DAYS[:1])
+        schedule = pd.DataFrame({"near": [-1.0], "far": [1.0]}, index=DAYS[:1])
+        found = held_log_spread(contracts, schedule)
+        assert found.index.equals(DAYS[:1])
+        assert found.tolist() == [pytest.approx(np.log(80.0) - np.log(100.0))]
+        assert found.iloc[0] < 0
+
+    def test_it_reads_the_sign_of_the_schedule_and_not_the_column_order(self) -> None:
+        contracts = pd.DataFrame({"a": [100.0, 100.0], "b": [80.0, 80.0]}, index=DAYS[:2])
+        schedule = pd.DataFrame({"a": [-1.0, 1.0], "b": [1.0, -1.0]}, index=DAYS[:2])
+        found = held_log_spread(contracts, schedule)
+        assert found.tolist() == [
+            pytest.approx(np.log(0.8)),
+            pytest.approx(-np.log(0.8)),
+        ]
+
+    def test_a_row_without_exactly_one_pair_or_with_an_unpriced_leg_is_nan(self) -> None:
+        """Row 0 holds nothing, row 1 two near contracts, and row 2 an unpriced far leg."""
+        contracts = pd.DataFrame(
+            {"x": [100.0, 100.0, 100.0], "y": [90.0, 90.0, 90.0], "z": [80.0, 80.0, np.nan]},
+            index=DAYS[:3],
+        )
+        schedule = pd.DataFrame(
+            {"x": [0.0, -1.0, -1.0], "y": [0.0, -1.0, 0.0], "z": [0.0, 1.0, 1.0]},
+            index=DAYS[:3],
+        )
+        assert held_log_spread(contracts, schedule).isna().tolist() == [True, True, True]
 
 
 class TestTheFlip:
