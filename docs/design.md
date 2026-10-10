@@ -772,7 +772,12 @@ the S&P 600 as it stood at each year-end, January 2009 to January 2026.
 claim, its test and the wording of its verdict before any return was computed,
 and the owner labelled it registered on 2026-10-04. Entry 7 of
 [the replication log](replication-log.md) carries its rows, and its verdict is
-that the free sources cannot decide it.
+that the free sources cannot decide it. The second is Example 7.7 on the S&P
+500 as IVV held it each month, January 2009 to September 2026.
+[Issue 336](https://github.com/l3a0/quantitative-trading/issues/336) fixed its
+criterion before any return was computed, and the owner labelled it registered
+on 2026-10-04. Entry 7 carries its rows too, and its verdict is no return
+detectable above about 4.2% a year.
 
 Nothing else is planned past the experiments, on purpose. The ranking rule says
 evidence from real use decides the order, and this repo has run few enough

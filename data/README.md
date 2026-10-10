@@ -1434,9 +1434,10 @@ to Alpha Vantage's daily closes for the S&P 500's members, on the same terms, wh
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) records.
 Those lines carry `"cross_section": "sp500"`, and each file sits at
 `sp500/daily_<SYMBOL>.csv`. `chan.archive.CROSS_SECTIONS` names both. [Issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
-recorded 822 lines on 2026-10-05: one for IVV, whose trading days
-[issue 336](https://github.com/l3a0/quantitative-trading/issues/336) takes as
-its calendar, 817 for the tickers `research/filings/ivv/members.csv` maps a
+recorded 822 lines on 2026-10-05: one for IVV, whose month-ends a test holds
+equal to the SPY calendar that
+[issue 336](https://github.com/l3a0/quantitative-trading/issues/336)'s run
+takes, 817 for the tickers `research/filings/ivv/members.csv` maps a
 company to that Alpha Vantage holds a series for, and four for tickers tried
 and then replaced.
 

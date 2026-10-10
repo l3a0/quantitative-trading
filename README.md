@@ -130,7 +130,14 @@ where they were first built. The other thirty-one were built here.
    series 0.0879 with a p of 0.001. The two disagree, so the free sources
    cannot decide whether the January effect survived the book, and
    [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
-   whether to buy prices for the members that threaten a tenth.
+   whether to buy prices for the members that threaten a tenth. Example 7.7
+   then ran under the revised MATLAB's rules on the members IVV held each
+   month from January 2009 to September 2026, carried forward from its
+   quarterly schedules. That run is registered too. Its 213 months average
+   −0.0001 a month before costs, with a one-sided p of 0.539, so no return is
+   detectable above about 4.2% a year. The verdict reads only the 98,321 of
+   107,115 member-months with a checked price, and it leaves out costs and
+   the return a failing stock takes when it leaves.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -499,7 +506,9 @@ builder who corrects his code fails a test rather than moving a pin. Its
 survivor-run and point-in-time pins read the owner's archive and skip where
 none is configured. The survivor run's mechanics and its 603 manifest lines
 are held everywhere, and so are the point-in-time run's flags, bound, verdict
-and refusals. The
+and refusals. So are the monthly run's `members` keyword, stop rule,
+stopped-price fill and verdict wording, and the names that changed between
+IVV's schedules. The
 blog post about them is the exception, and what it says that nothing here
 asserts is listed below.
 
@@ -1140,8 +1149,9 @@ way only, which the output says beside it. A machine with no archive gets one
 line naming both ways to set it, and so does every other refusal.
 
 `--point-in-time` runs Example 7.6 over the same Januaries on the members IJR
-held at each year-end, as `research/filings/ijr/members.csv` records them. It
-reads the same archive:
+held at each year-end, as `research/filings/ijr/members.csv` records them, and
+then Example 7.7 on the members IVV held each month, as
+`research/filings/ivv/members.csv` records them. It reads the same archive:
 
 ```bash
 QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --point-in-time
@@ -1151,8 +1161,20 @@ Each year-end ranks only its covered members, with the tenth taken of the
 whole index, and prints its January with the members missing and how many of
 them threaten each tenth. A January with any threat prints as a low and a high
 bound. Then come each series' test, its detectable mean and its mean after
-costs, the verdict, and the survivor run's January less this one's. The two
-options cannot be given together.
+costs, the verdict, and the survivor run's January less this one's.
+
+Example 7.7's report follows, from January 2009 to September 2026 on the 817
+`sp500` series in the same archive. It names the members file, the closes and
+the calendar it read, how many series stop before their file's last row, and
+each month's coverage by year. Under the revised MATLAB's rules it prints the
+mean, the standard deviation, the one-sided t and p, the Newey-West t, the
+annual return the test detects with 80% probability, and the verdict. The
+revised Python's figures follow with no verdict. Then come the means on the
+two masks that bracket each name that changed between schedules, the names
+removed and added between each pair of schedules with the positions held on
+them, the positions whose stock stopped inside the month held, and where
+departing names fell, which it marks as descriptive only. The two options
+cannot be given together.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -3267,10 +3289,10 @@ needs it. It is there so the committed figures can be redrawn and checked.
 network. Every run after that reads the cache, and no replication reaches a
 network at any point. Example 7.1 reads its bars from the owner's data archive,
 and `chan.equity_seasonals --survivors` and `--point-in-time` read 603 and
-1,487 daily files from it, which is
-a folder on the owner's machine. If that folder is synced from a cloud
-service, the first read of a file the service has not kept on disk downloads
-it, which this repo does not measure.
+1,487 daily files from it. `--point-in-time` then reads 817 more, from the
+`sp500` cross-section. The archive is a folder on the owner's machine. If that
+folder is synced from a cloud service, the first read of a file the service has
+not kept on disk downloads it, which this repo does not measure.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
 prose checks it has no rule for run in the test suite instead, from

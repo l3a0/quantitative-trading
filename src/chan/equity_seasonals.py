@@ -66,9 +66,12 @@ Two limits, each stated where it applies.
 1. Both files hold only the companies in their index on the day Chan saved
    them, carried backwards. Whatever these files show about a disappearance,
    they show it about survivors.
-   [Issue 196](https://github.com/l3a0/quantitative-trading/issues/196) is
-   where Example 7.7 is tested on the rest, and the point-in-time run below
-   is where Example 7.6 is.
+   [Issue 336](https://github.com/l3a0/quantitative-trading/issues/336) tests
+   Example 7.7 after the book on the S&P 500 as it stood each month, which
+   is the monthly run below, and
+   [issue 196](https://github.com/l3a0/quantitative-trading/issues/196) keeps
+   the years before 2002. The point-in-time run below is where Example 7.6 is
+   tested on the rest.
 2. The 2002 split of the revised Python is exploratory. It was computed before
    any criterion for "disappeared" was written down, so it carries no verdict.
 
@@ -135,6 +138,30 @@ by :func:`bounded_january`. Each series takes the one-sided test, and
 and the wording were written on the issue before any return was computed, so
 the result is labelled registered.
 
+**Example 7.7 on the S&P 500 as IVV held it each month.**
+[Issue 336](https://github.com/l3a0/quantitative-trading/issues/336) runs
+:data:`REVISED_MATLAB` unchanged and before costs over the 213 months from
+January 2009 to September 2026, on the members IVV's quarter-end schedules
+list, each carried forward to the next. It reads three sources.
+
+1. The members file, ``research/filings/ivv/members.csv``, which
+   :mod:`chan.sp500_panel` reads, with the holes file beside it.
+   [Issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
+   built both.
+2. The adjusted closes and volumes of the ``sp500`` lines those tickers name,
+   with the bytes in the owner's archive.
+3. The committed raw SPY vintage, as the calendar.
+
+Each series stops at its last row that traded and moved, by
+:func:`last_traded`. The members a month-end may rank are the ones
+:func:`chan.sp500_panel.monthly_coverage` covers with those stops, passed to
+:func:`monthly_returns` as ``members``, so the tenth is a tenth of the covered
+members. The run tests whether the mean monthly return is above zero, and
+:func:`monthly_verdict` words the outcome. :data:`PYTHON_HESTON_SADKA` runs
+beside it with no verdict. The claim, the test and the wording were written
+on the issue before any return was computed, so the result is labelled
+registered.
+
 ``tests/test_equity_seasonals.py`` is the single authority for every number
 any prose surface quotes about either example.
 
@@ -142,6 +169,9 @@ Usage:
     python -m chan.equity_seasonals
     python -m chan.equity_seasonals --survivors
     python -m chan.equity_seasonals --point-in-time
+
+``--point-in-time`` runs Example 7.6 on the S&P 600 at each year-end, then
+Example 7.7 on the S&P 500 each month.
 """
 
 from __future__ import annotations
@@ -150,25 +180,28 @@ import argparse
 import math
 import sys
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from ithildincore.stats import NeweyWestSummary, newey_west_summary
 from numpy.typing import NDArray
 from scipy import optimize, stats
 
-from chan import sp600_panel
+from chan import sp500_panel, sp600_panel
 from chan.archive import ArchiveEntry, ArchiveRefused, ArchiveUnavailable, read_cross_section
 from chan.fund_holdings import IJR, Filing, members
 from chan.fund_panel import (
     SIDES,
     Coverage,
+    Key,
     MemberRow,
     PanelRefused,
     coverage,
     exit_date,
+    previous_rows,
     price_date,
     threat_sides,
     year_end_returns,
@@ -183,6 +216,7 @@ from chan.matlab_helpers import (
     smartsum,
 )
 from chan.series import load_panel, load_vintage, panel_line, row_month_ends, vintage_line
+from chan.sp500_panel import MonthCoverage
 from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The S&P 600 small-cap file Example 7.6 reads, the one Chan's script loads.
@@ -448,10 +482,46 @@ class HestonSadka:
     sharpe: float
 
 
-def monthly_returns(closes: pd.DataFrame, rules: HestonSadkaRules) -> pd.Series:
-    """Each month's return, indexed by the month-end it is earned to.
+def _allowed(
+    members: pd.DataFrame | None, ends: pd.DatetimeIndex, columns: pd.Index
+) -> NDArray[np.bool_] | None:
+    """Which stocks each month-end may rank, one row per month-end, in the panel's column order.
 
-    No month is dropped here. :func:`summarize` drops them.
+    ``None`` stays ``None``, which ranks every column. A month the frame does
+    not hold ranks nobody. A month-end is matched to the frame by its calendar
+    month, so a row labelled 2009-01-30 and one labelled 2009-01-31 both read
+    January 2009.
+    """
+    if members is None:
+        return None
+    if members.columns.has_duplicates or set(members.columns) != set(columns):
+        extra = sorted(set(members.columns) - set(columns))
+        absent = sorted(set(columns) - set(members.columns))
+        repeated = sorted(set(members.columns[members.columns.duplicated()]))
+        raise ValueError(
+            f"the members frame's columns differ from the panel's: {len(extra)} not in the "
+            f"panel {extra[:5]}, {len(absent)} not in the frame {absent[:5]}, {len(repeated)} "
+            f"repeated {repeated[:5]}"
+        )
+    if not isinstance(members.index, pd.PeriodIndex) or members.index.freqstr != "M":
+        raise ValueError("the members frame must be indexed by calendar month, as monthly periods")
+    if not all(pd.api.types.is_bool_dtype(dtype) for dtype in members.dtypes):
+        raise ValueError("the members frame must hold only True and False")
+    aligned = members.reindex(index=ends.to_period("M"), columns=columns, fill_value=False)
+    return aligned.to_numpy(dtype=bool)
+
+
+def positions(
+    closes: pd.DataFrame, rules: HestonSadkaRules, *, members: pd.DataFrame | None = None
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The position each month-end sets, and each stock's return over the month ending there.
+
+    Both frames are indexed by month-end with the panel's columns. A position
+    is 1 for the best tenth, held long, -1 for the worst, held short, and 0
+    otherwise. It is set at its row's month-end and earns over the month
+    after, which is the next row of the returns.
+
+    ``members`` is :func:`monthly_returns`'s.
     """
     if rules.per_stock_period_ends:
         # The final month is dropped, because the file ends before it does.
@@ -461,8 +531,9 @@ def monthly_returns(closes: pd.DataFrame, rules: HestonSadkaRules) -> pd.Series:
     level = ends.to_numpy()
     previous = lag1(level)
     ret = (level - previous) / previous
+    allowed = _allowed(members, pd.DatetimeIndex(ends.index), closes.columns)
 
-    positions = np.zeros_like(ret)
+    held_at = np.zeros_like(ret)
     for held in range(11, len(ret) - 1):
         # The position is set at month-end ``held`` and earns over the month
         # after it, so it ranks on the month a year before that one.
@@ -475,13 +546,40 @@ def monthly_returns(closes: pd.DataFrame, rules: HestonSadkaRules) -> pd.Series:
             kept &= np.isfinite(level[held][order])
         else:
             kept &= np.isfinite(ret[held][order])
+        if allowed is not None:
+            # ``kept`` is in sorted order, so the membership row is read in it
+            # too. Read in column order, it would keep or drop a stock on
+            # another stock's membership, the first edition's
+            # sorted-against-columns defect in a new place.
+            kept &= allowed[held][order]
         chosen = order[kept]
         top = int(rules.decile_size(len(chosen) / 10))
         if top:
-            positions[held, chosen[:top]] = -1
-            positions[held, chosen[len(chosen) - top :]] = 1
+            held_at[held, chosen[:top]] = -1
+            held_at[held, chosen[len(chosen) - top :]] = 1
+    return (
+        pd.DataFrame(held_at, index=ends.index, columns=closes.columns),
+        pd.DataFrame(ret, index=ends.index, columns=closes.columns),
+    )
 
-    held_then = lag1(positions)
+
+def monthly_returns(
+    closes: pd.DataFrame, rules: HestonSadkaRules, *, members: pd.DataFrame | None = None
+) -> pd.Series:
+    """Each month's return, indexed by the month-end it is earned to.
+
+    No month is dropped here. :func:`summarize` drops them.
+
+    ``members`` says which stocks each month-end may rank: a boolean frame
+    indexed by calendar month, as monthly periods, with the panel's columns.
+    ``None``, the default, ranks every column with a return a year earlier,
+    which is what every printout does. A month the frame does not hold ranks
+    nobody, and a frame whose columns are not the panel's is a ``ValueError``
+    naming the difference.
+    """
+    held_at, stock_returns = positions(closes, rules, members=members)
+    ret = stock_returns.to_numpy()
+    held_then = lag1(held_at.to_numpy())
     total = smartsum(held_then * ret, axis=1)
     if rules.per_position:
         count = np.where(np.isfinite(held_then), np.abs(held_then), 0.0).sum(axis=1)
@@ -490,7 +588,7 @@ def monthly_returns(closes: pd.DataFrame, rules: HestonSadkaRules) -> pd.Series:
                 total = total / count
         else:
             total = total / np.where(count == 0, 1.0, count)
-    return pd.Series(total, index=ends.index, name=rules.source)
+    return pd.Series(total, index=held_at.index, name=rules.source)
 
 
 def summarize(returns: pd.Series, rules: HestonSadkaRules) -> tuple[float, float]:
@@ -507,9 +605,14 @@ def summarize(returns: pd.Series, rules: HestonSadkaRules) -> tuple[float, float
     return float(12 * mean), float(math.sqrt(12) * mean / std)
 
 
-def heston_sadka(closes: pd.DataFrame, rules: HestonSadkaRules) -> HestonSadka:
-    """Example 7.7 under one printout's rules, on the frame :func:`load_panel` returns."""
-    returns = monthly_returns(closes, rules)
+def heston_sadka(
+    closes: pd.DataFrame, rules: HestonSadkaRules, *, members: pd.DataFrame | None = None
+) -> HestonSadka:
+    """Example 7.7 under one printout's rules, on the frame :func:`load_panel` returns.
+
+    ``members`` is :func:`monthly_returns`'s.
+    """
+    returns = monthly_returns(closes, rules, members=members)
     annual, sharpe = summarize(returns, rules)
     return HestonSadka(returns=returns, annual_return=annual, sharpe=sharpe)
 
@@ -761,8 +864,9 @@ class OneSided:
 def one_sided_t(returns: Sequence[float]) -> OneSided:
     """Test whether the mean of ``returns`` is above zero, one-sided.
 
-    Each January is one trade, so the returns do not overlap and need no
-    correction for it.
+    Each return is one holding, a January for Example 7.6 and a month for
+    Example 7.7, so the returns do not overlap and need no correction for it.
+    The count is the sequence's length.
     """
     values = np.asarray(returns, dtype=float)
     n = len(values)
@@ -782,6 +886,9 @@ def detectable_mean(
     which that distribution exceeds the test's critical value with probability
     ``power``. The normal approximation gives a smaller X, because it ignores
     the uncertainty in ``std``.
+
+    X is a mean per holding, as ``std`` is a deviation per holding, so a caller
+    whose holding is a month multiplies by twelve for a year.
     """
     df = n - 1
     critical = stats.t.isf(significance, df)
@@ -1381,6 +1488,563 @@ def survivorship_gap(
 
 
 # --------------------------------------------------------------------------
+# Example 7.7 on the S&P 500 as IVV held it each month, registered
+# --------------------------------------------------------------------------
+
+#: The first and last days the S&P 500 run reads. December 2008's ranking
+#: reads January 2008's return, which needs December 2007's month-end close,
+#: and :func:`chan.series.row_month_ends` finds September 2026's month-end by
+#: the October row after it.
+MONTHLY_START = pd.Timestamp("2007-12-03")
+MONTHLY_END = pd.Timestamp("2026-10-01")
+
+#: The first and last months a position is held over, one month after the
+#: first and last ranking months :mod:`chan.sp500_panel` covers.
+FIRST_HELD = sp500_panel.FIRST_MONTH + 1
+LAST_HELD = sp500_panel.LAST_MONTH + 1
+
+#: January 2009 to September 2026, the count issue 336's ruling fixed.
+HELD_MONTHS = 213
+
+#: The last ranking month the departing-name comparison reads, the last whose
+#: twelfth month a schedule sets.
+DEPARTING_LAST = pd.Period("2025-08", "M")
+
+#: Each month-end's three places in a tenth, as :func:`positions` sets them.
+PLACES = ("long", "short", "neither")
+
+
+class MonthlyRunRefused(Exception):
+    """The S&P 500 run stopped rather than compute a month it cannot trust."""
+
+
+def last_traded(adjusted: pd.DataFrame, volume: pd.DataFrame) -> pd.Series:
+    """Each series' last row that traded and moved, by the rule issue 336 fixed before the run.
+
+    Some acquired companies' files carry rows after the last trade, at an
+    unchanged price with zero or token volume. Those rows would keep a company
+    that is gone ranked at a zero return, and hide when it stopped. So, walking
+    back from a series' last row, a row is dropped while its volume is zero or
+    its adjusted close equals the row before it, and the series stops at the
+    row that remains. The rule needs no threshold.
+
+    A series' rows are the ones holding an adjusted close. A series with no
+    row left stops at ``NaT``.
+    """
+    stops = {}
+    for symbol in adjusted.columns:
+        closes = adjusted[symbol].dropna()
+        level = closes.to_numpy()
+        traded = volume[symbol].reindex(closes.index).to_numpy()
+        kept = len(level)
+        while kept and (traded[kept - 1] == 0 or (kept > 1 and level[kept - 1] == level[kept - 2])):
+            kept -= 1
+        stops[symbol] = closes.index[kept - 1] if kept else pd.NaT
+    return pd.Series(stops, index=adjusted.columns, dtype="datetime64[ns]")
+
+
+def traded_spans(
+    spans: Mapping[str, tuple[str, str]], stops: pd.Series
+) -> dict[str, tuple[str, str]]:
+    """The manifest's spans, with each stopped series' last date replaced by its stop.
+
+    A series with no row that traded and moved is refused, because the
+    coverage rule needs a last date for every series it reads.
+    """
+    empty = [symbol for symbol, stop in stops.items() if pd.isna(stop)]
+    if empty:
+        raise MonthlyRunRefused(
+            f"{len(empty)} series hold no row that traded and moved, the first {empty[0]}"
+        )
+    traded = dict(spans)
+    for symbol, stop in stops.items():
+        traded[symbol] = (spans[symbol][0], str(stop.date()))
+    return traded
+
+
+def stopped_closes(
+    closes: pd.DataFrame, stops: pd.Series, calendar: pd.DatetimeIndex
+) -> pd.DataFrame:
+    """Each series cut at its stop, with its last close carried to the next month-end row only.
+
+    A held stock whose prices stop strictly between two month-ends earns its
+    return to its last close and nothing after it, as issue 336's ruling sets
+    out. The carried close gives the month-end row that return. Nothing is
+    carried further, and :func:`members_mask` drops the stock at that
+    month-end, because the carried close would otherwise make it rankable for
+    the month after. A stop on a month-end needs nothing carried. A stop
+    inside the frame's span on a day the frame holds no row for is refused,
+    because its last close has no row to come from.
+    """
+    ends = calendar[row_month_ends(calendar)]
+    cut = closes.copy()
+    for symbol in cut.columns:
+        stop = stops.get(symbol, pd.NaT)
+        if pd.isna(stop) or stop >= cut.index[-1]:
+            continue
+        if stop >= cut.index[0] and stop not in cut.index:
+            raise MonthlyRunRefused(f"{symbol} stops on {stop.date()}, a day the panel has no row")
+        last = cut.at[stop, symbol] if stop in cut.index else np.nan
+        cut.loc[cut.index > stop, symbol] = np.nan
+        after = ends[ends > stop]
+        if stop not in ends and len(after) and after[0] in cut.index:
+            cut.at[after[0], symbol] = last
+    return cut
+
+
+def monthly_panel(
+    adjusted: pd.DataFrame, stops: pd.Series, calendar: pd.DatetimeIndex
+) -> tuple[pd.DataFrame, int]:
+    """The closes the run ranks, and how many series rows fell on no calendar day.
+
+    The frame runs from :data:`MONTHLY_START` to :data:`MONTHLY_END` on the
+    calendar's days. A series row on a day the calendar lacks is dropped and
+    counted, so one stray row cannot become a month-end, which
+    :func:`refuse_off_calendar` refuses for Example 7.6 instead.
+    """
+    days = calendar[(calendar >= MONTHLY_START) & (calendar <= MONTHLY_END)]
+    if len(days) == 0 or days[0] != MONTHLY_START or days[-1] != MONTHLY_END:
+        raise MonthlyRunRefused(
+            f"the calendar does not trade on both {MONTHLY_START.date()} and {MONTHLY_END.date()}"
+        )
+    sliced = adjusted.loc[(adjusted.index >= MONTHLY_START) & (adjusted.index <= MONTHLY_END)]
+    off = sliced.loc[~sliced.index.isin(days)]
+    dropped = int(off.notna().to_numpy().sum())
+    return stopped_closes(sliced.reindex(days), stops, calendar), dropped
+
+
+def members_mask(
+    rows: Sequence[MemberRow], months: Sequence[MonthCoverage], columns: Sequence[str]
+) -> pd.DataFrame:
+    """Which stocks each ranking month may rank: the members its coverage counts as covered.
+
+    The frame is indexed by calendar month, so a schedule for 2013-03-31
+    applies at that month's last row, 2013-03-28, rather than after it.
+    """
+    by_schedule: dict[str, list[MemberRow]] = {}
+    for row in rows:
+        by_schedule.setdefault(row.report_date, []).append(row)
+    index = pd.PeriodIndex([month.month for month in months], freq="M")
+    mask = pd.DataFrame(False, index=index, columns=list(columns))
+    for month, period in zip(months, index, strict=True):
+        missing = set(month.missing)
+        covered = [r.ticker for r in by_schedule[month.schedule] if r.key not in missing]
+        absent = [ticker for ticker in covered if ticker not in mask.columns]
+        if absent:
+            raise MonthlyRunRefused(f"{month.month}: covered member {absent[0]} has no column")
+        mask.loc[period, covered] = True
+    return mask
+
+
+def refuse_unranked(closes: pd.DataFrame, mask: pd.DataFrame) -> None:
+    """Refuse a covered member that :data:`REVISED_MATLAB` could not rank.
+
+    The coverage is computed from the committed holes file and the manifest's
+    spans, and the panel from the bytes. A covered member needs a close at its
+    month-end and at the two month-ends a year back, so a disagreement between
+    the two would rank fewer stocks than the coverage reports.
+    """
+    days = pd.DatetimeIndex(closes.index[row_month_ends(closes.index)])
+    level = closes.loc[days].set_axis(days.to_period("M"))
+    for month in mask.index:
+        covered = mask.columns[mask.loc[month].to_numpy()]
+        for back in (0, sp500_panel.LOOKBACK - 1, sp500_panel.LOOKBACK):
+            row = level.loc[month - back, covered]
+            if row.isna().any():
+                raise MonthlyRunRefused(
+                    f"{month}: covered member {row.index[row.isna()][0]} has no close at the "
+                    f"month-end of {month - back}"
+                )
+
+
+def held_months(returns: pd.Series) -> pd.Series:
+    """The months from :data:`FIRST_HELD` to :data:`LAST_HELD`, selected by calendar month.
+
+    Selecting by day would lose one, because :data:`REVISED_MATLAB` labels
+    January 2009 by its last row, 2009-01-30, and :data:`PYTHON_HESTON_SADKA`
+    by 2009-01-31. A NaN month is refused by name rather than dropped, since
+    dropping it would shrink the count the ruling fixed.
+    """
+    months = returns.index.to_period("M")
+    chosen = returns[(months >= FIRST_HELD) & (months <= LAST_HELD)]
+    if len(chosen) != HELD_MONTHS:
+        raise MonthlyRunRefused(
+            f"{len(chosen)} months fall from {FIRST_HELD} to {LAST_HELD}, not {HELD_MONTHS}"
+        )
+    empty = chosen.index[chosen.isna().to_numpy()]
+    if len(empty):
+        raise MonthlyRunRefused(
+            f"{empty[0].to_period('M')} holds no position, and {len(empty)} months in all"
+        )
+    return chosen
+
+
+def monthly_verdict(test: OneSided, x: float) -> str:
+    """The verdict issue 336 worded before any return was computed.
+
+    ``x`` is the annual return the test detects with :data:`POWER`. The
+    verdict never says the strategy is dead.
+    """
+    if test.rejects:
+        return (
+            f"a return above zero: a mean of {test.mean:.4f} a month, t {test.t:.2f}, "
+            f"p {test.p:.3f}, over {test.n} months"
+        )
+    return f"no return detectable above about {x:.1%} a year"
+
+
+@dataclass(frozen=True)
+class MonthlyTest:
+    """One rule's held months on the panel and mask, and the test of their mean."""
+
+    rules: HestonSadkaRules
+    returns: pd.Series
+    test: OneSided
+    newey_west: NeweyWestSummary
+    #: X, the annual return the test detects with :data:`POWER`, twelve times the monthly mean.
+    x: float
+
+    @property
+    def newey_west_se(self) -> float:
+        """The Newey-West standard error of the mean, the mean over its t."""
+        return self.test.mean / self.newey_west.t_newey_west
+
+
+def monthly_test(
+    closes: pd.DataFrame, rules: HestonSadkaRules, members: pd.DataFrame
+) -> MonthlyTest:
+    """One rule's held months, before costs, with the one-sided test and Newey-West beside it."""
+    returns = held_months(monthly_returns(closes, rules, members=members))
+    test = one_sided_t(returns.to_numpy())
+    return MonthlyTest(
+        rules=rules,
+        returns=returns,
+        test=test,
+        newey_west=newey_west_summary(returns.to_numpy()),
+        x=12 * detectable_mean(test.std, test.n),
+    )
+
+
+@dataclass(frozen=True)
+class ScheduleChange:
+    """The names that changed between two consecutive schedules, and the positions they took.
+
+    The change fell somewhere between the two, so the ranking months after the
+    earlier schedule's month and before the later's may be misdated for those
+    names.
+    """
+
+    earlier: str
+    later: str
+    removed: tuple[Key, ...]
+    added: tuple[Key, ...]
+    months: tuple[pd.Period, ...]
+    #: Positions the carry-forward run gave a removed name in those months.
+    removed_positions: int = 0
+    #: Positions the union run gave an added name in those months.
+    added_positions: int = 0
+
+    @property
+    def misdated(self) -> int:
+        return self.removed_positions + self.added_positions
+
+
+def schedule_changes(
+    rows: Sequence[MemberRow], previous: Mapping[Key, Key]
+) -> tuple[ScheduleChange, ...]:
+    """Each pair of consecutive schedules, with the names removed and added between them.
+
+    Names are matched by issuer through :func:`chan.fund_panel.previous_rows`,
+    so a ticker change is neither. A removed name is a row at the earlier
+    schedule that no row at the later one links back to, and an added name is
+    a row at the later schedule with no link back.
+    """
+    by_schedule: dict[str, list[Key]] = {}
+    for row in rows:
+        by_schedule.setdefault(row.report_date, []).append(row.key)
+    schedules = sp500_panel.schedule_months()
+    changes = []
+    for (earlier, first), (later, second) in zip(schedules, schedules[1:], strict=False):
+        linked = {previous[key] for key in by_schedule[later] if key in previous}
+        months = tuple(
+            month
+            for month in pd.period_range(first + 1, second - 1, freq="M")
+            if sp500_panel.FIRST_MONTH <= month <= sp500_panel.LAST_MONTH
+        )
+        changes.append(
+            ScheduleChange(
+                earlier=earlier,
+                later=later,
+                removed=tuple(key for key in by_schedule[earlier] if key not in linked),
+                added=tuple(key for key in by_schedule[later] if key not in previous),
+                months=months,
+            )
+        )
+    return tuple(changes)
+
+
+def bracketing_masks(
+    mask: pd.DataFrame,
+    rows: Sequence[MemberRow],
+    changes: Sequence[ScheduleChange],
+    covers: Callable[[MemberRow, pd.Period], str | None],
+) -> tuple[pd.DataFrame, pd.DataFrame, set[tuple[pd.Period, str]]]:
+    """The intersection and union masks, and the month and ticker pairs the union adds.
+
+    At a misdated month the intersection keeps a covered member only if the
+    later schedule links back to it. The union adds each added name that the
+    coverage rule, ``covers``, covers when its later row is evaluated at that
+    month. True membership lies between the two whenever a name changes at
+    most once between schedules.
+    """
+    by_key = {row.key: row for row in rows}
+    intersection, union = mask.copy(), mask.copy()
+    added: set[tuple[pd.Period, str]] = set()
+    for change in changes:
+        for month in change.months:
+            for key in change.removed:
+                ticker = by_key[key].ticker
+                if ticker:
+                    intersection.loc[month, ticker] = False
+            for key in change.added:
+                row = by_key[key]
+                if row.ticker and covers(row, month) is None and not mask.loc[month, row.ticker]:
+                    union.loc[month, row.ticker] = True
+                    added.add((month, row.ticker))
+    return intersection, union, added
+
+
+def count_misdated(
+    changes: Sequence[ScheduleChange],
+    rows: Sequence[MemberRow],
+    carried: pd.DataFrame,
+    unioned: pd.DataFrame,
+    added: set[tuple[pd.Period, str]],
+) -> tuple[ScheduleChange, ...]:
+    """Each change with the positions its names took in its misdated months.
+
+    ``carried`` and ``unioned`` are :func:`positions`' frames for the
+    carry-forward and union runs. A removed name counts where the carry-forward
+    run held it, and an added name where the union run, which alone ranks it
+    there, held it.
+    """
+    by_key = {row.key: row for row in rows}
+    carried = carried.set_axis(carried.index.to_period("M"))
+    unioned = unioned.set_axis(unioned.index.to_period("M"))
+    counted = []
+    for change in changes:
+        removed = sum(
+            1
+            for month in change.months
+            for key in change.removed
+            if by_key[key].ticker and carried.loc[month, by_key[key].ticker] != 0
+        )
+        new = sum(
+            1
+            for month in change.months
+            for key in change.added
+            if (month, by_key[key].ticker) in added and unioned.loc[month, by_key[key].ticker] != 0
+        )
+        counted.append(replace(change, removed_positions=removed, added_positions=new))
+    return tuple(counted)
+
+
+def stopped_positions(
+    held_at: pd.DataFrame, stock_returns: pd.DataFrame, stops: pd.Series
+) -> tuple[int, float]:
+    """The held positions whose stock stopped inside the month held, and their returns summed.
+
+    A position is stopped when its stock's stop falls strictly between the
+    month-end it was set at and the next. Each return is signed by its side,
+    so it is what the position earned. Only the months from
+    :data:`FIRST_HELD` to :data:`LAST_HELD` are read.
+    """
+    days = pd.DatetimeIndex(held_at.index)
+    stop = stops.reindex(held_at.columns).to_numpy(dtype="datetime64[ns]")
+    count, total = 0, 0.0
+    for at in range(1, len(days)):
+        if not FIRST_HELD <= days[at].to_period("M") <= LAST_HELD:
+            continue
+        side = held_at.iloc[at - 1].to_numpy()
+        with np.errstate(invalid="ignore"):
+            inside = (stop > days[at - 1].to_datetime64()) & (stop < days[at].to_datetime64())
+        hit = (side != 0) & inside
+        count += int(hit.sum())
+        total += float(np.nansum(side[hit] * stock_returns.iloc[at].to_numpy()[hit]))
+    return count, total
+
+
+@dataclass(frozen=True)
+class Departures:
+    """Covered member-months by whether the name leaves the index within a year, and by place.
+
+    ``table`` holds the departing row, then the staying row, each counting
+    the member-months :data:`REVISED_MATLAB` placed long, short and neither.
+    ``p`` is the chi-square test's on that table. It is descriptive, since
+    member-months repeat the same names, and decides nothing.
+    """
+
+    table: tuple[tuple[int, int, int], tuple[int, int, int]]
+    p: float
+
+    def shares(self, departing: bool) -> tuple[float, float, float]:
+        """One row's member-months as shares of its total, long, short and neither."""
+        long, short, neither = self.table[0 if departing else 1]
+        total = long + short + neither
+        return long / total, short / total, neither / total
+
+
+def departures(
+    rows: Sequence[MemberRow],
+    months: Sequence[MonthCoverage],
+    previous: Mapping[Key, Key],
+    held_at: pd.DataFrame,
+) -> Departures:
+    """The departing-name comparison over ranking months 2008-12 to :data:`DEPARTING_LAST`.
+
+    A departing name at a ranking month is a covered member with no chain of
+    links to the schedule that sets the month twelve months later. Members
+    with no checked price are dropped from the ranking, and the argument for
+    that is that whether a name leaves the index has little to do with one
+    month's return a year earlier. This table is that argument's test.
+    """
+    by_schedule: dict[str, list[MemberRow]] = {}
+    for row in rows:
+        by_schedule.setdefault(row.report_date, []).append(row)
+    forward = {earlier: later for later, earlier in previous.items()}
+    # Read as an array, because a label lookup per member-month takes most of a minute.
+    placed = held_at.to_numpy()
+    row_of = {month: at for at, month in enumerate(held_at.index.to_period("M"))}
+    column_of = {ticker: at for at, ticker in enumerate(held_at.columns)}
+    leaving, staying = [0, 0, 0], [0, 0, 0]
+    for month in months:
+        period = pd.Period(month.month, "M")
+        if period > DEPARTING_LAST:
+            continue
+        target = sp500_panel.setter(period + sp500_panel.LOOKBACK)
+        missing = set(month.missing)
+        for row in by_schedule[month.schedule]:
+            if row.key in missing:
+                continue
+            step: Key | None = row.key
+            while step is not None and step[0] < target:
+                step = forward.get(step)
+            side = placed[row_of[period], column_of[row.ticker]]
+            counts = leaving if step is None or step[0] != target else staying
+            counts[0 if side > 0 else 1 if side < 0 else 2] += 1
+    result = stats.chi2_contingency(np.array([leaving, staying]))
+    return Departures(
+        table=((leaving[0], leaving[1], leaving[2]), (staying[0], staying[1], staying[2])),
+        p=float(result.pvalue),
+    )
+
+
+@dataclass(frozen=True)
+class MonthlyRun:
+    """Everything the S&P 500 run computes, and what it read to compute it."""
+
+    #: The cross-section lines read, one per mapped ticker with a series.
+    entries: tuple[ArchiveEntry, ...]
+    calendar: VintageEntry
+    #: Each series' last row that traded and moved.
+    stops: pd.Series
+    #: Series whose stop comes before their file's last row.
+    moved: int
+    #: Series rows inside the span on a day the calendar lacks, dropped.
+    off_calendar: int
+    coverage: tuple[MonthCoverage, ...]
+    matlab: MonthlyTest
+    python: MonthlyTest
+    #: :data:`REVISED_MATLAB`'s mean over the held months on each bracketing mask.
+    intersection_mean: float
+    union_mean: float
+    changes: tuple[ScheduleChange, ...]
+    #: Positions whose stock stopped inside the month held, and their returns summed.
+    stopped: int
+    stopped_return: float
+    departures: Departures
+
+    @property
+    def verdict(self) -> str:
+        return monthly_verdict(self.matlab.test, self.matlab.x)
+
+    @property
+    def covered(self) -> int:
+        return sum(month.covered for month in self.coverage)
+
+    @property
+    def members(self) -> int:
+        return sum(month.members for month in self.coverage)
+
+    @property
+    def stops_inside(self) -> int:
+        """Covered member-months whose series ends inside the month held."""
+        return sum(month.stops for month in self.coverage)
+
+
+def run_monthly_point_in_time(
+    *, data_dir: Path | None = None, directory: Path | None = None
+) -> MonthlyRun:
+    """Read the members file, the closes, their volumes and the calendar, and run every month."""
+    rows = sp500_panel.load()
+    symbols = sp500_panel.tickers(rows)
+    entries, adjusted = read_cross_section(
+        sp500_panel.CROSS_SECTION,
+        column="adjusted_close",
+        symbols=symbols,
+        data_dir=data_dir,
+        directory=directory,
+    )
+    _, volume = read_cross_section(
+        sp500_panel.CROSS_SECTION,
+        column="volume",
+        symbols=symbols,
+        data_dir=data_dir,
+        directory=directory,
+    )
+    calendar, spy = load_vintage("SPY", unadjusted=True, data_dir=data_dir)
+    days = pd.DatetimeIndex(spy.index)
+    stops = last_traded(adjusted, volume)
+    manifest = sp500_panel.spans(data_dir)
+    moved = sum(1 for symbol, stop in stops.items() if str(stop.date()) != manifest[symbol][1])
+    spans = traded_spans(manifest, stops)
+    holes = sp500_panel.read_holes()
+    previous = previous_rows(sp500_panel.FUND)
+    coverage = tuple(sp500_panel.monthly_coverage(rows, spans, holes, days, previous=previous))
+    traded, off_calendar = monthly_panel(adjusted, stops, days)
+    closes = traded.reindex(columns=symbols)
+    refuse_nonpositive(closes)
+    mask = members_mask(rows, coverage, symbols)
+    refuse_unranked(closes, mask)
+
+    matlab = monthly_test(closes, REVISED_MATLAB, mask)
+    python = monthly_test(closes, PYTHON_HESTON_SADKA, mask)
+    held_at, stock_returns = positions(closes, REVISED_MATLAB, members=mask)
+
+    covers = sp500_panel.coverage_rule(rows, spans, holes, days, previous=previous)
+    changes = schedule_changes(rows, previous)
+    intersection, union, added = bracketing_masks(mask, rows, changes, covers)
+    union_held, _ = positions(closes, REVISED_MATLAB, members=union)
+    stopped, stopped_return = stopped_positions(held_at, stock_returns, stops)
+    return MonthlyRun(
+        entries=tuple(entries),
+        calendar=calendar,
+        stops=stops,
+        moved=moved,
+        off_calendar=off_calendar,
+        coverage=coverage,
+        matlab=matlab,
+        python=python,
+        intersection_mean=monthly_test(closes, REVISED_MATLAB, intersection).test.mean,
+        union_mean=monthly_test(closes, REVISED_MATLAB, union).test.mean,
+        changes=count_misdated(changes, rows, held_at, union_held, added),
+        stopped=stopped,
+        stopped_return=stopped_return,
+        departures=departures(rows, coverage, previous, held_at),
+    )
+
+
+# --------------------------------------------------------------------------
 # The report
 # --------------------------------------------------------------------------
 
@@ -1553,6 +2217,97 @@ def report_point_in_time(result: PointInTimeRun, survivors: SurvivorRun | None =
         print(f"    the mean: {means[0]:.4f} and {means[1]:.4f}")
 
 
+def _monthly_figures(result: MonthlyTest) -> str:
+    test, nw = result.test, result.newey_west
+    return (
+        f"mean {test.mean:.4f} a month, standard deviation {test.std:.4f}, t {test.t:.2f}, "
+        f"one-sided p {test.p:.3f}, over {test.n} months; Newey-West t "
+        f"{nw.t_newey_west:.2f} at lag {nw.lag}, standard error {result.newey_west_se:.4f}; "
+        f"detectable with {POWER:.0%} probability at {SIGNIFICANCE:.0%}: {result.x:.2%} a year"
+    )
+
+
+def report_monthly(result: MonthlyRun) -> None:
+    downloads = sorted({entry.download_date for entry in result.entries})
+    first, last = result.coverage[0].schedule, result.coverage[-1].schedule
+    print("Example 7.7 on the S&P 500 as IVV held it each month, registered")
+    print(
+        f"  members: {sp500_panel.MEMBERS_PATH.relative_to(sp500_panel.FILINGS_DIR.parent.parent)}"
+        f", IVV's quarter-end schedules, {first} to {last}, each carried forward to the next"
+    )
+    print(
+        f"  closes: {len(result.entries)} series from the {sp500_panel.CROSS_SECTION} "
+        f"cross-section, Alpha Vantage adjusted, downloaded {', '.join(downloads)}"
+    )
+    print(f"  calendar: {vintage_line(result.calendar)}")
+    print(
+        f"  the panel: {MONTHLY_START.date()} to {MONTHLY_END.date()}, {result.off_calendar} "
+        f"series rows on no calendar day dropped; {result.moved} of {len(result.stops)} series "
+        f"stop before their file's last row, at their last row that traded and moved"
+    )
+    shares = [month.covered / month.members for month in result.coverage]
+    low = result.coverage[int(np.argmin(shares))]
+    high = result.coverage[int(np.argmax(shares))]
+    print(
+        f"  coverage: {result.covered} of {result.members} member-months covered, ranking "
+        f"{result.coverage[0].month} to {result.coverage[-1].month}, from {low.covered} of "
+        f"{low.members} in {low.month} to {high.covered} of {high.members} in {high.month}; "
+        f"{result.stops_inside} covered members stop inside the month held"
+    )
+    by_year: dict[str, list[str]] = {}
+    for month in result.coverage:
+        by_year.setdefault(month.month[:4], []).append(f"{month.covered}/{month.members}")
+    for year, counts in by_year.items():
+        print(f"    {year}: {' '.join(counts)}")
+    print(
+        f"  {REVISED_MATLAB.source}, the tenth taken of the covered members, before costs, "
+        f"{FIRST_HELD} to {LAST_HELD}"
+    )
+    print(f"    {_monthly_figures(result.matlab)}")
+    print(f"    verdict: {result.verdict}")
+    print(f"  {PYTHON_HESTON_SADKA.source}, the same panel and members, no verdict")
+    print(f"    {_monthly_figures(result.python)}")
+    print(
+        f"  {REVISED_MATLAB.source} on the two masks bracketing each name that changed, no "
+        f"verdict: intersection mean {result.intersection_mean:.4f}, union mean "
+        f"{result.union_mean:.4f} a month"
+    )
+    removed = sum(len(change.removed) for change in result.changes)
+    added = sum(len(change.added) for change in result.changes)
+    print(
+        f"  names that changed between schedules: {removed} removed and {added} added; "
+        f"positions in the months between that the carry-forward run gave a removed name "
+        f"and the union run an added name: {sum(c.misdated for c in result.changes)}"
+    )
+    for change in result.changes:
+        print(
+            f"    {change.earlier} to {change.later}: {len(change.removed)} removed, "
+            f"{len(change.added)} added, {len(change.months)} months between; positions "
+            f"{change.removed_positions} on removed names and {change.added_positions} on "
+            f"added names"
+        )
+    print(
+        f"  positions whose stock stopped inside the month held: {result.stopped}, their "
+        f"returns summed by side {result.stopped_return:.4f}"
+    )
+    table = result.departures
+    print(
+        f"  covered member-months by whether the name leaves the index within twelve months, "
+        f"ranking {sp500_panel.FIRST_MONTH} to {DEPARTING_LAST}, described rather than tested"
+    )
+    for label, departing in (("departing", True), ("staying", False)):
+        counts = table.table[0 if departing else 1]
+        shares_of = table.shares(departing)
+        print(
+            f"    {label}: "
+            + ", ".join(
+                f"{place} {count} ({share:.1%})"
+                for place, count, share in zip(PLACES, counts, shares_of, strict=True)
+            )
+        )
+    print(f"    chi-square p {table.p:.3f}, descriptive only")
+
+
 def run(*, data_dir: Path | None = None) -> None:
     """Read both files and print every figure beside the panel it came from."""
     small = load_panel(SMALL_CAPS, data_dir=data_dir)
@@ -1567,8 +2322,9 @@ def main(argv: Sequence[str] | None = None) -> None:
         prog="python -m chan.equity_seasonals",
         description=(
             "Examples 7.6 and 7.7 on Chan's files. With --survivors, Example 7.6 on IJR's "
-            "members at 2025-12-31 instead, and with --point-in-time, on IJR's members at "
-            "each year-end. Both need the owner's data archive."
+            "members at 2025-12-31 instead, and with --point-in-time, Example 7.6 on IJR's "
+            "members at each year-end and Example 7.7 on IVV's each month. Both need the "
+            "owner's data archive."
         ),
     )
     which = parser.add_mutually_exclusive_group()
@@ -1580,7 +2336,10 @@ def main(argv: Sequence[str] | None = None) -> None:
     which.add_argument(
         "--point-in-time",
         action="store_true",
-        help="run Example 7.6 from January 2009 on IJR's members at each year-end",
+        help=(
+            "run Example 7.6 from January 2009 on IJR's members at each year-end, then "
+            "Example 7.7 from January 2009 on IVV's members each month"
+        ),
     )
     args = parser.parse_args([] if argv is None else argv)
     try:
@@ -1588,6 +2347,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             report_survivors(run_survivors())
         elif args.point_in_time:
             report_point_in_time(run_point_in_time(), run_survivors())
+            print()
+            report_monthly(run_monthly_point_in_time())
         else:
             run()
     except (
@@ -1596,6 +2357,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         ArchiveRefused,
         SurvivorRunRefused,
         PointInTimeRefused,
+        MonthlyRunRefused,
         PanelRefused,
     ) as refusal:
         # A refusal naming which member is missing is worth nothing at the
