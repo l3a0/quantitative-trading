@@ -4560,9 +4560,11 @@ Three things.
    panel earns 1.2219 before costs, near book two's 1.2595 on the same days
    (row 10). Taking the rule first gives the same answer: on the first book's
    year it moves 0.2510 to 0.5484 (row 9), less than the rest of the way to
-   1.2595. Of that 0.2974, the two days the cut zeroes carry 0.1314, nearly
+   1.2595. Of that 0.2974, the two days the cut zeroes carry 0.1313, nearly
    half (row 11), because a window of 251 days lets two days move a Sharpe
-   ratio by a third. The data include a longer survivor horizon, since this
+   ratio by a third. Both differences are taken on the unrounded figures,
+   which `TestBesideTheFirstBook::test_the_differences_the_post_quotes_round_from_the_unrounded_figures`
+   holds. The data include a longer survivor horizon, since this
    panel carries 2012-04-24's membership back to 2007, five years, where
    Entry 8's file carries 2007-11-23's back to 2006, under two, and nothing
    here prices what that adds.
@@ -4601,7 +4603,10 @@ that brings at location 2135, and nothing here measures it.
 **Whether the rule pays today.** The window ends in 2011.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/khandani-lo-reversal-lessons.md](../blog/khandani-lo-reversal-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.khandani_lo_book_two_figures` redraws.
 
 ## Entry 20: constant leverage and capped Kelly allocation, Chan's *Algorithmic Trading*
 
