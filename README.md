@@ -459,8 +459,9 @@ where they were first built. The other thirty-two were built here.
     critical value of −3.4583, so the book's "stationary with 99 percent
     probability" holds. Trading the spread on a z-score over that lookback,
     on the script's window from 2008-01-02, gives an APR of 0.082671 and a
-    Sharpe ratio of 1.278216, the book's 8.3 percent and 1.3, and the
-    drawdown of −0.053222 over 206 days that the script's comment prints. The
+    Sharpe ratio of 1.278216, which round to the book's 8.3 percent and 1.3,
+    and the drawdown of −0.053222 over 206 days that the script's comment
+    prints. The
     comment's APR of 0.083406 and Sharpe ratio of 1.288661 do not reproduce
     on that window, and starting a day later lands both to every digit. The
     book's 61 holding days in place of the script's 63 give 0.067315 and
