@@ -705,7 +705,8 @@ Example 4.2. It pins the screen's count with the 17 stocks it skips by name,
 every figure `indexArb.m` prints at the precision that is real and as the
 script printed it, and the screen's rules on frames built by hand. It also runs
 the scale-break guard on the stocks and holds that it would refuse the run,
-which is why only SPY is guarded.
+which is why only SPY is guarded. The blog post about it is the exception, and
+what it says that nothing here asserts is listed below.
 [tests/test_johansen.py](tests/test_johansen.py) holds what the wrapper adds:
 a known cointegrating vector recovered from a built system, real figures
 without a warning, and a refusal naming the column and row of any price that
@@ -3447,8 +3448,97 @@ uv run python -m chan.kalman_hedge_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+[blog/index-arbitrage-lessons.md](blog/index-arbitrage-lessons.md) is a
+twenty-third post, about Example 4.2 of Chan's *Algorithmic Trading*, which
+tests each stock in his 2012 S&P 500 file against SPY over 2007 with the
+Johansen test, holds the ones that pass as one basket, and trades the basket
+against SPY from 2008. Chan reports 98 stocks, a basket that cointegrates with
+SPY "with better than 95 percent probability", an APR of 4.5 percent and a
+Sharpe ratio of 1.3. The post draws four lessons from Entry 24 of the
+replication log.
+
+1. Every figure `indexArb.m` prints reproduces to its last digit, with Chan's
+   signs on the eigenvectors, while the claim of better than 95 percent holds
+   for the trace test and fails for the eigen test.
+2. The screen's 98 is a count of tests passed, and random walks unrelated to
+   SPY pass the same screen more often than the stocks do.
+3. The basket's two relations with SPY make the same full-rank claim as the
+   Entry 23 post's pair, and the ADF test rejects a unit root for neither
+   series alone.
+4. The 4.5 percent is in-sample on its lookback and survivor-only.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   "Such a well-known strategy that the difference in market values has become
+   extremely small" and picking "all the stocks that cointegrate individually
+   with the ETF" are at 2006. "With at least 90 percent probability" and "an
+   arbitrary assignment of equal capital weight" are at 2027. The 98 stocks
+   "each separately", "better than 95 percent probability", "two cointegrating
+   relations", "the one with the largest eigenvalue", the equal weight on each
+   stock, "the benefit of hindsight", the 4.5 percent and 1.3, "the
+   performance decreases as time goes on", the universe shared with Example
+   4.1 and Figure 4.3 are at 2035. "A maximum of 12 symbols" and eigenvectors
+   with "both long and short stock positions" are at 2066. "Has survivorship
+   bias" is at 1974. The book's figures are pinned, and its words are not.
+2. Facts outside the committed data. That a second public copy of Chan's code
+   holds `indexArb.m` byte for byte, which `src/chan/index_arbitrage.py`'s
+   docstring records, that both files were converted to one file per symbol,
+   which [data/README.md](data/README.md) records, that the stock file holds
+   the index as Chan held it on 2012-04-24, the date in its name, and that the
+   committed index holdings under `research/filings/ivv/` start at the end of
+   2008.
+3. Arithmetic and readings no test asserts: the nominal 48 as 10 percent of
+   480, that a 90 percent bar bounds how often the test rejects with no
+   relation rather than giving a probability about one stock, and that four
+   years of returns are unlikely to separate a decline from noise.
+4. The book's Figure 4.3, which the post's figure redraws from the script's
+   `plot` call and which nothing compares with the book's own. The alt text's
+   description of the curve's shape, such as its steep climb from late 2008
+   and its high in late 2010, is read off the drawing rather than asserted.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) or to
+[tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
+for the figure's own numbers. Three had no pin before it.
+
+1. The 98 stock weights together, 107.198, against SPY's −105.560, a
+   difference of 1.638, so one unit is close to as long in stocks as it is
+   short in SPY.
+2. The cumulative return ends at 0.206422 and sits at zero until 2008-01-09.
+3. The stocks pass the screen at 20.4 percent and the random walks at 28.1
+   percent.
+
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) pins the first,
+and [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
+pins the other two with the figure's lines and labels.
+
+Its one figure is drawn from the committed files by
+[src/chan/index_arbitrage_figures.py](src/chan/index_arbitrage_figures.py),
+which reads them through the same `read_sources` and `index_arbitrage` as
+`python -m chan.index_arbitrage`, scale-break guard included. It draws two
+panels.
+
+1. The book's Figure 4.3, the cumulative return over the 1,076 test days,
+   against the date rather than the row number.
+2. The share of series the screen passes over 2007, 98 of 480 stocks beside
+   561 of 2,000 random walks unrelated to SPY, with the 90 percent bar's
+   nominal 10 percent as a line. The walks come from
+   `chan.index_arbitrage.walks_unrelated_to`, the same function the pin of
+   561 reads.
+
+```bash
+uv run python -m chan.index_arbitrage_figures
+```
+
+[tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
 [blog/usdcad-stationarity-lessons.md](blog/usdcad-stationarity-lessons.md) is a
-twenty-third post, about Examples 2.1 to 2.5 of Chan's *Algorithmic Trading*,
+twenty-fourth post, about Examples 2.1 to 2.5 of Chan's *Algorithmic Trading*,
 which test USD.CAD for mean reversion four ways and then trade it with the
 linear rule over a lookback of the half-life. Chan reports an ADF statistic of
 about −1.84, an H of 0.49 and a half-life of 115 days, and says the trade's P&L
