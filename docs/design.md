@@ -813,7 +813,8 @@ paths. Machine-local config lives under `~/.config/quantitative-trading/`.
 One setting carries no machine path and lives in the tracked
 `.claude/settings.json`, which every Claude Code session here reads.
 
-The table below names every setting a run or a test reads from the machine.
+The table below names every setting a run, a test or a skill reads from the
+machine.
 One is a secret. The owner decided on 2026-10-04 that the fetch of Alpha
 Vantage's daily closes lives here. `chan.fetch_alphavantage` reads the owner's
 key from the environment of one fetch run, and the key never enters a tracked
@@ -827,6 +828,7 @@ only committed vintages runs with no configuration at all.
 | `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage`, and `chan.sp600_panel fetch` and `chan.sp500_panel fetch`, which hand it on |
 | `QT_ARCHIVE_RUN=1` | no | `.claude/settings.json`, for every Claude Code session here, or the environment of one test run | `tests/conftest.py`, whose run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share within each test worker, and which runs only when it is set and an archive is configured. `-n 0` runs the suite in one process, so the run is built once. The owner set it for every Claude Code session on 2026-10-05, so the pins run in every Claude Code session where the archive is, and `QT_ARCHIVE_RUN=0` skips them for one run. The price, measured that day at `530997f` in parallel at a load average of 6 to 10: the three archive test files took 398 seconds, as each pin file built the run in about 360, against 30 seconds with the pins skipped. A clone with no archive skips the pins with a reason, and so does CI, which has no archive. |
 | SEC's User-Agent contact | no | `~/.config/quantitative-trading/sec_user_agent`, one line, or `QT_SEC_USER_AGENT` for one run | `chan.fund_holdings`, whose fetch SEC asks to name a contact. A contact identifies a person, which is why it is read from the machine rather than from this repo |
+| The build board's URL | no | `~/.config/quantitative-trading/board_url`, one line, or `QT_BOARD_URL` for one run | the `update-build-board` skill, which skips the board and tells the owner when neither names exactly one URL. Nothing in `src/chan` reads it. A URL is an address rather than a credential, and the first board's URL sat in this public repository in plain text until 2026-10-09. It lives on the machine because a board belongs to one claude.ai account, so a machine signed in to another account needs a board of its own, and switching boards then edits one file rather than making a commit |
 
 ## Considered and rejected
 
