@@ -124,7 +124,7 @@ Example 7.6 meets the same limit from another side. All three of its Januaries r
 
 ## Lesson 4: a file of survivors is the first thing the result cannot get past
 
-Both files hold the companies in their index on the day Chan saved them, with each one’s history carried backwards. A company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007. So every figure in this post is about companies that survived to the end of the file.
+Both files hold the companies in their index on the day Chan saved them, with each one’s history carried backwards. A company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007. So every figure in the four lessons is about companies that survived to the end of the file.
 
 Both strategies rank stocks on past returns and trade the tenth at each end, so which companies the file holds decides which companies they trade. A company the index dropped before the save is a company neither strategy could pick, whatever its returns were.
 
@@ -132,10 +132,11 @@ Both strategies rank stocks on past returns and trade the tenth at each end, so 
 
 ## What this replication cannot say
 
-Two questions are beyond it.
+Three questions are beyond it.
 
 1. **Whether Heston and Sadka’s effect existed before 2002.** The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
 2. **Whether the January effect survived the book.** A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. Its claim, its test and the wording of its verdict were written down before any return was computed, which makes it **registered** rather than exploratory. Free daily prices cover most of the index’s members but not all of them, and at every year-end some member with no checked price could have fallen in a traded tenth. So each January was computed twice. The low version gives each such member a return near the worst of that January if the strategy would hold it long and near the best if it would short it, and the high version does the reverse. The low series averages −0.1047 a January before costs, nowhere near above zero. The high series averages 0.0879, well above it. Free data cannot decide between them, and prices for the members that could have fallen in a traded tenth are what could.
+3. **Whether Heston and Sadka’s effect survived the book.** A third run tested Example 7.7 under the revised MATLAB’s rules on the S&P 500 as IVV held it each month, from January 2009 to September 2026. IVV is an iShares fund that holds the index and lists its holdings each quarter, so each list stands for the months until the next, and a company that joins or leaves between lists is dated late. The run is registered for the same reason as the second. Free daily prices covered 98,321 of its 107,115 member-months, each one company in one month, and the run dropped the rest, so each tenth is a tenth of the companies with prices. Its 213 months average −0.0001 a month before costs, with a one-sided p of 0.539, meaning a strategy that earns nothing would print a mean at least that high more than half the time. The revised Python’s rules give the same 213 months. The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”, where 4.2% is the annual return the test would catch with 80% probability. A true return below that could pass unseen, so the verdict does not say the effect died. It also leaves out costs, and the last return a failing company takes as it leaves the index, which free data does not carry. Among the companies kept, those that left the index within a year landed in a traded tenth more often than those that stayed. That comparison is described rather than tested, and it counts against the argument that dropping the companies with no price changes nothing.
 
 ## What this means for a trader
 
@@ -145,7 +146,7 @@ Three habits follow from the lessons above.
 2. **Check a figure’s units before comparing two printouts.** The first edition’s −0.9167 and the revised edition’s −0.0129 come from one strategy, and only one of them is a return on capital.
 3. **Do not read a survivor file as evidence that an effect died or lived.** A file saved after the fact holds the stocks that made it, and a split through 83 months of them swings with a single year.
 
-On Chan’s own files, every printed figure his data reaches reproduces exactly. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a criterion written in advance and a panel that keeps the companies that left the index reach a bound, and the bound is too wide to read. It does not show that the effect died, and it does not show that it lived.
+On Chan’s own files, every printed figure his data reaches reproduces exactly. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a criterion written in advance and a panel that keeps the companies that left the index reach a bound, and the bound is too wide to read. It does not show that the effect died, and it does not show that it lived. For Heston and Sadka’s rotation, the same kind of test on the S&P 500 as IVV held it each month detects no return above about 4.2% a year before costs. That finds no large effect after the book, and a smaller one could still be there.
 
 ## References
 
