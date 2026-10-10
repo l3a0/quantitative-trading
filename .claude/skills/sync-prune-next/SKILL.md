@@ -29,10 +29,33 @@ git worktree list
 The log shows what merged since the last round, which is what moves the board
 and what can make a Substack draft stale.
 
-`--prune` drops a remote-tracking ref only when its branch was deleted on
-GitHub, and this repo does not delete a branch when its pull request merges. So
-remote branches pile up. Deleting them is the owner's call, and this skill
-leaves them alone.
+`--prune` drops a remote-tracking ref once its branch is gone from GitHub.
+Since 2026-10-10 GitHub deletes a pull request's branch when the pull request
+merges, because the owner turned on the repository's `delete_branch_on_merge`
+setting. So a merged pull request's `origin/<branch>` disappears on the next
+round, and step 2 cannot lean on it.
+
+The setting does not reach back. The branches of pull requests that merged
+before it stay on GitHub. On 2026-10-10, `git ls-remote --heads origin` listed
+111 branches, and 102 of them belonged to merged pull requests. The other nine
+were `main`, seven branches with open pull requests, and one with no pull
+request. Deleting the old ones is the owner's call, and this skill leaves them
+alone.
+
+Deletion also moves a stacked pull request, meaning one whose base is another
+pull request's branch rather than `main`. When GitHub deletes the merged
+branch, it changes the base of every open pull request built on that branch to
+the merged one's base. Before the setting, that took a hand edit.
+[PR #466](https://github.com/l3a0/quantitative-trading/pull/466) sat on the
+branch of [PR #464](https://github.com/l3a0/quantitative-trading/pull/464)
+after it merged, with two of its six checks running. It showed no closing link
+either, because a closing keyword links its issue only on a pull request into
+`main`. A base change does not start CI on its own, since the workflow's
+`pull_request` trigger runs on a push and not on an edit.
+[PR #466](https://github.com/l3a0/quantitative-trading/pull/466)'s base moved
+at 18:25:54 UTC, and its next run started at 18:28:30 UTC from a push. So until
+a retargeted pull request's next push, its checks are the ones computed against
+the old base.
 
 Fast-forward the main checkout only when it is clean and on `main`, since a
 session may be using it. `git -C` keeps the shell where it is, which matters
@@ -60,16 +83,27 @@ A worktree is removable only when all five of these hold.
 3. **Its `HEAD` commit is safe.** Test the worktree's `HEAD` itself, not only
    its branch, because a worktree with no branch checked out holds commits that
    no branch names. The commit is safe when `origin/main` contains it, when a
-   remote branch contains it (`git branch -r --contains`), or when it equals
-   the `headRefOid` of a merged pull request. Squash merges make the last case
-   common, because the branch's commit never reaches `main`. Test that last case
-   by exact comparison against the list of merged heads. A
-   `gh pr list --search <sha>` matches any commit inside a pull request, not
-   only its head, so it does not test what this check states. `61f8892`
-   matched [PR #414](https://github.com/l3a0/quantitative-trading/pull/414),
-   whose head is `ab9be84`. The search also matches a pull request that only
-   mentions the sha in its text. `b27222b`, a commit in the sibling repository
-   that this one does not hold, matched four merged pull requests here.
+   remote branch contains it (`git branch -r --contains`), or when it is one of
+   a merged pull request's commits. Squash merges make the last case common,
+   because the branch's commits never reach `main`, and deleting the branch on
+   merge leaves no remote branch to contain them either. GitHub keeps every
+   commit of a merged pull request, so any of them is safe, not only the head.
+   That matters for a review lens's worktree detached at an earlier commit of
+   the pull request, or a sub-agent's branch left there. On 2026-10-10 four
+   sub-agent worktrees here sat at earlier commits of
+   [PR #409](https://github.com/l3a0/quantitative-trading/pull/409),
+   [PR #441](https://github.com/l3a0/quantitative-trading/pull/441) and
+   [PR #444](https://github.com/l3a0/quantitative-trading/pull/444). Their old
+   branches still contained them, and with those gone a test of the head alone
+   would have kept all four.
+
+   Test the last case by exact comparison against the commits GitHub lists for
+   each merged pull request. A commit made here on top of one of them is in no
+   list, so it stays unsafe, and so does an amended or rebased copy, whose sha
+   differs. Do not use `gh pr list --search <sha>` instead. It also matches a
+   pull request that only mentions the sha in its text. `b27222b`, a commit in
+   the sibling repository that this one does not hold, matched five merged pull
+   requests here on 2026-10-10.
 4. **It holds no uncommitted changes.** `git status --porcelain` is empty.
    That listing omits ignored files, which `git worktree remove` deletes
    silently. `--ignored` shows them. Caches such as `.venv/` and
@@ -95,31 +129,40 @@ session as stuck, re-run `gh pr list --state open --limit 1000` and read its
 latest events with `list_events`, because a pull request may have opened since
 the worktree was classified.
 
-Check 3's last case needs the heads of the merged pull requests. Fetch them
+Check 3's last case needs the commits of the merged pull requests. Fetch them
 once into a file, so both loops below read the same list. A shell variable
 would not reach the second loop, because each Bash tool call starts a new
 shell. Replace `<scratch>` with the scratch directory in this block and the two
 after it.
 
 ```bash
-MERGED="<scratch>/merged-heads.txt"
-gh pr list --repo l3a0/quantitative-trading --state merged --limit 1000 --json headRefOid --jq '.[].headRefOid' > "$MERGED"
+MERGED="<scratch>/merged-commits.txt"
+gh api graphql --paginate -f query='query($endCursor: String) { repository(owner: "l3a0", name: "quantitative-trading") { pullRequests(states: MERGED, first: 100, after: $endCursor) { pageInfo { hasNextPage endCursor } nodes { headRefOid commits(first: 250) { nodes { commit { oid } } } } } } }' --jq '.data.repository.pullRequests.nodes[] | .headRefOid, .commits.nodes[].commit.oid' | sort -u > "$MERGED"
 wc -l < "$MERGED"
 ```
 
-A count of exactly 1000 means `gh` cut the list, so raise the limit and fetch
-again.
+`gh pr list --json commits` cannot fetch this list. It asks for each commit's
+authors too, and GitHub refuses the query for exceeding 500,000 possible nodes,
+even at a limit of 200. The query above pages through 100 pull requests at a
+time, so no limit can cut it short. It reads the first 250 commits of each pull
+request, and prints each head on its own line as well, so a longer pull request
+loses only its later commits from the list and never its head. The longest merged
+pull request had 70 commits on 2026-10-10.
+
+Every way this fetch can fail leaves the list shorter, and a shorter list only
+keeps more worktrees. An empty file means the query failed, so every worktree
+not on `main` or a remote branch reads unsafe.
 
 This prints what checks 3 to 5 need for every worktree.
 
 ```bash
-MERGED="<scratch>/merged-heads.txt"
+MERGED="<scratch>/merged-commits.txt"
 git worktree list --porcelain | sed -n 's/^worktree //p' | while read -r w; do
   if ! h=$(git -C "$w" rev-parse HEAD 2>/dev/null) || [ "$(git -C "$w" rev-parse --show-toplevel 2>/dev/null)" != "$w" ]; then
     echo "$w unreadable, skipped"; continue
   fi
   safe=$( { git merge-base --is-ancestor "$h" origin/main && echo main; } || git branch -r --contains "$h" | head -1 | tr -d ' ')
-  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr-head"
+  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr"
   echo "$w head=${h:0:7} branch=$(git -C "$w" branch --show-current) safe=[${safe}] dirty=$(git -C "$w" status --porcelain | wc -l | tr -d ' ') ignored=$(git -C "$w" status --porcelain --ignored | grep -c '^!!')"
 done
 git worktree list --porcelain | grep -B3 '^locked'
@@ -150,11 +193,11 @@ finds a pull request only when the local branch name equals the one it was
 pushed under.
 
 ```bash
-MERGED="<scratch>/merged-heads.txt"
+MERGED="<scratch>/merged-commits.txt"
 git branch --format='%(refname:short)' | grep -v -e '^main$' -e '^(HEAD' -e '^(no branch' | while read -r b; do
   h=$(git rev-parse "$b")
   safe=$( { git merge-base --is-ancestor "$h" origin/main && echo main; } || git branch -r --contains "$h" | head -1 | tr -d ' ')
-  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr-head"
+  grep -qxF "$h" "$MERGED" && safe="$safe merged-pr"
   echo "$b ${h:0:7} ahead=$(git rev-list --count origin/main.."$h") safe=[${safe}]"
 done
 ```
