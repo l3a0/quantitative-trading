@@ -283,8 +283,7 @@ from four places, and give the evidence for each one.
    pull request that touches `blog/` can leave its draft stale, and syncing it
    needs the owner's approval. A pull request's own session may already have
    synced it, so compare before asking. The draft ids live outside this repo,
-   in Claude's local memory for it. The `sync-substack` skill carries the
-   procedure for a sync.
+   in Claude's local memory for it.
 4. **The replication backlog**, in `NEXT`'s order, for when nothing above is
    waiting.
 
