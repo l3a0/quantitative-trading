@@ -138,6 +138,8 @@ At every finer grain, some steps fall.
 \end{array}
 ```
 
+The rolling mean shows the grain deciding the answer inside one family of windows. Lengthen the window from 250 days to 300 and the falls drop from 57 of 1,250 steps to 25 of 1,200. At 350 days, none of the 1,150 steps falls. So the window’s length alone decides whether this measure finds any fall, and the claim names no length.
+
 The intercept also peaks at 6.803488 on 2011-09-08, above its last value of 6.767360 on the file’s final day. So it ends lower than it has been.
 
 A reader who picks the yearly grain says the claim holds. A reader who picks the daily grain says it fails, on 513 of 1,499 steps. Both picks are defensible, and both can be made after looking at the chart, which is the problem. The figure’s second panel shows the two grains at once. Its brass steps never go down. The line beneath them goes down often.

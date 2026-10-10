@@ -68,6 +68,7 @@ from chan.kalman_hedge import (
     kalman_hedge,
     main,
     read_sources,
+    rolling_falls,
     run,
     slope_findings,
     trade,
@@ -332,6 +333,15 @@ class TestTheInterceptFinding:
 
     def test_a_250_day_rolling_mean_falls_57_times_in_1250_steps(self, found) -> None:
         assert (found.rolling.falls, found.rolling.steps) == (57, 1250), SPEC
+
+    def test_a_300_day_rolling_mean_falls_25_times_in_1200_steps(self, result) -> None:
+        falls = rolling_falls(result.filter.intercept, 300)
+        assert (falls.falls, falls.steps) == (25, 1200), SPEC
+
+    def test_a_350_day_rolling_mean_never_falls_in_1150_steps(self, result) -> None:
+        """Fifty days longer than the window above, and no step falls."""
+        falls = rolling_falls(result.filter.intercept, 350)
+        assert (falls.falls, falls.steps) == (0, 1150), SPEC
 
     def test_it_peaks_on_2011_09_08_above_its_last_value(self, found) -> None:
         assert str(found.peak_day.date()) == "2011-09-08", SPEC
