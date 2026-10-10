@@ -6,11 +6,15 @@ Example 5.3, the log value of a spread long the far contract and short the
 near one is γ(T1 − T2), where T1 is the near expiry and T2 the later far one.
 That is minus γ times the gap between their expiries, so its signal depends on
 the roll return γ alone and not on the spot price. At Kindle location 2461
-Chan runs the ADF test on CL's 12-month log calendar spread and finds it
-"stationary with 99 percent probability, and a half-life of 36 days". He then
-trades it with linear mean reversion and reports "an APR of 8.3 percent and a
-Sharpe ratio of 1.3 from January 2, 2008, to August 13, 2012". Location 2471
-is Example 5.4, which describes the backtest.
+Chan says CL's 12-month log calendar spread is "stationary with 99 percent
+probability, and a half-life of 36 days", and the script behind that sentence
+runs the ADF test and the half-life on γ rather than on the spread. He then
+trades the spread with linear mean reversion and reports "an APR of 8.3
+percent and a Sharpe ratio of 1.3 from January 2, 2008, to August 13, 2012".
+Location 2471 is Example 5.4, which describes the backtest. Line 107 reverses
+the long-far position where γ's z-score is above 0, and the spread falls as γ
+rises, so the trade sells the spread when it is mostly low. That is Entry 34's
+fourth conclusion in ``docs/replication-log.md``.
 
 **The transcription.** Every step is Chan's ``calendarSpdsMeanReversion.m``,
 read under ``public/img/book2/`` in the mirror
@@ -258,11 +262,43 @@ def held_log_spread(contracts: pd.DataFrame, schedule: pd.DataFrame) -> pd.Serie
     return pd.Series(np.where(one_pair, spread, np.nan), index=contracts.index)
 
 
+def held_spread_zscore(contracts: pd.DataFrame, schedule: pd.DataFrame, lookback: int) -> pd.Series:
+    """The held pair's own log spread as a z-score over its trailing ``lookback`` rows.
+
+    On each row where ``schedule`` holds exactly one pair, the spread
+    log(far) − log(near) of that same pair is taken on that row and the
+    ``lookback − 1`` rows before it, whether or not the schedule held the pair
+    on them. The z-score is the row's spread less their mean, over their
+    standard deviation with n − 1, as ``movingStd`` takes it. Every other row
+    is NaN, and so is a row whose window starts before the file or holds an
+    unpriced leg. The script computes no such series. It is the signal a rule
+    reverting on the spread itself would read, where line 107 reads γ's.
+    """
+    held = schedule.to_numpy(dtype=float)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        logs = np.log(contracts.to_numpy(dtype=float))
+    near, far = held == -1, held == 1
+    one_pair = (near.sum(axis=1) == 1) & (far.sum(axis=1) == 1)
+    z = np.full(len(held), np.nan)
+    for row in np.flatnonzero(one_pair):
+        first = row - lookback + 1
+        if first < 0:
+            continue
+        n, f = int(np.flatnonzero(near[row])[0]), int(np.flatnonzero(far[row])[0])
+        window = logs[first : row + 1, f] - logs[first : row + 1, n]
+        if np.isfinite(window).all():
+            with np.errstate(invalid="ignore", divide="ignore"):
+                z[row] = (window[-1] - window.mean()) / window.std(ddof=1)
+    return pd.Series(z, index=contracts.index)
+
+
 def flip_on_zscore(schedule: pd.DataFrame, z: pd.Series) -> pd.DataFrame:
     """Lines 106 and 107: flat where z is NaN, and the spread reversed where z is above 0.
 
     Where z is exactly 0 the schedule's sign stands, because line 107's
-    comparison is strict.
+    comparison is strict. On γ's z-score this sells the spread when it is
+    mostly low, because the spread falls as γ rises, which is Entry 34's fourth
+    conclusion.
     """
     positions = schedule.to_numpy(dtype=float).copy()
     score = z.to_numpy(dtype=float)

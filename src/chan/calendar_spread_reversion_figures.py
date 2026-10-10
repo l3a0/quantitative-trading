@@ -12,15 +12,17 @@ the post, and its plan set the two panels.
    the schedule running out rather than a trade standing still. The last held
    day is marked. Beside it, dashed in a muted colour, is the same schedule
    with every position reversed, whose daily return is minus S's. That is the
-   direction the book's description of mean reversion implies.
+   direction location 2471 describes for γ.
 2. **The sign the trade rests on.** The held pair's log spread, far minus
    near, against forward-filled γ on each of S's held rows from 2008-01-02.
    Under Example 5.3's model the spread is γ(T1 − T2), so it falls as γ rises.
-   Line 107 of the script sells the spread wherever z(γ) is above 0, which is
-   where the spread sits below its average, so the downward slope here is why
-   the trade bets on the spread moving further from its average.
+   Line 107 of the script reverses the long-far position wherever γ's z-score
+   is above 0, so the downward slope here means its short sits where γ is
+   high. On 841 of the 1,097 held days that is also where the spread sits
+   below its own 36-day average, so the trade mostly sells the spread when it
+   is low.
 
-The upper panel still is the book's one-panel plot, and the lower one is
+The upper panel is still the book's one-panel plot, and the lower one is
 what the post adds. Every value comes from :func:`chan.roll_returns.load_strip`
 and :func:`chan.calendar_spread_reversion.run_spread`, the run's own path, so
 the scale-break guard runs here too::
@@ -114,7 +116,7 @@ def _returns_panel(ax, s: CalendarSpreadRun) -> None:
         lw=1.8,
         zorder=3,
         gid="cumulative",
-        label=f"S, the script's rule, ending at {signed(100 * cumret.iloc[-1])} percent",
+        label=f"the script's rule, ending at {signed(100 * cumret.iloc[-1])} percent",
     )
     ax.plot(
         reversed_.index,
@@ -143,10 +145,10 @@ def _returns_panel(ax, s: CalendarSpreadRun) -> None:
     ax.legend(loc="upper left", frameon=False, fontsize=9.5, labelcolor=INK)
     _heading(
         ax,
-        f"Figure 5.7: S's cumulative return, {cumret.index[0].date()} to "
+        f"Figure 5.7: the script's cumulative return, {cumret.index[0].date()} to "
         f"{cumret.index[-1].date()}. APR {s.apr:.6f} and Sharpe ratio {s.sharpe:.6f},\n"
         f"where the book prints {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}. Shaded: the last "
-        f"{len(flat)} rows, {flat[0].date()} to {flat[-1].date()}, which hold nothing.",
+        f"{len(flat)} days, {flat[0].date()} to {flat[-1].date()}, which earn nothing.",
     )
 
 
@@ -163,14 +165,14 @@ def _scatter_panel(ax, held: HeldRows) -> None:
     ax.axhline(0, color=RULE, lw=0.9, gid="zero")
     ax.axvline(0, color=RULE, lw=0.9, gid="gamma-zero")
     ax.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
-    ax.set_xlabel("γ, the roll return a year, forward-filled", color=INK, fontsize=10)
+    ax.set_xlabel("γ, the roll return a year", color=INK, fontsize=10)
     ax.set_ylabel("log(far) − log(near)", color=INK, fontsize=10)
     _heading(
         ax,
-        f"The held pair's log spread against γ on the {len(held.spread):,} held rows from "
-        f"{held.spread.index[0].date()}, correlation {signed(held.correlation, 6)}.\n"
-        "The spread falls as γ rises, so the script's short where z(γ) is above 0 sells the "
-        "spread when it is low.",
+        f"The held pair's log spread against γ on the {len(held.spread):,} days a pair is held "
+        f"from {held.spread.index[0].date()}, correlation {signed(held.correlation, 6)}.\n"
+        "The spread falls as γ rises, so reversing where γ's z-score is above 0 mostly sells "
+        "the spread when it is low.",
     )
 
 

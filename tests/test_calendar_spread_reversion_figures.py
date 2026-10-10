@@ -14,6 +14,9 @@ The figure reads the vintage and specification S that
 2012-08-14, and ``calendarSpdsMeanReversion.m`` at EpchanPreview ``e4bc46f``
 measured from 2008-01-02 to 2012-08-13.
 
+``blog/crude-oil-calendar-spread-lessons.md`` draws this figure, and
+``README.md`` lists what the post says that nothing asserts.
+
 Exploratory, like everything Example 5.4 computes here.
 """
 
@@ -172,15 +175,15 @@ class TestTheCumulativeReturn:
     def test_the_legend_names_both_curves_and_their_ends(self, axes) -> None:
         legend = [t.get_text() for t in axes["returns"].get_legend().get_texts()]
         assert legend == [
-            "S, the script's rule, ending at 44.32 percent",
+            "the script's rule, ending at 44.32 percent",
             "every position reversed, ending at −32.01 percent",
         ], SPEC
 
     def test_the_heading_sets_the_figures_beside_the_book_s(self, axes) -> None:
         assert _title(axes["returns"]) == (
-            "Figure 5.7: S's cumulative return, 2008-01-02 to 2012-08-13. APR 0.082671 and "
-            "Sharpe ratio 1.278216,\nwhere the book prints 8.3 percent and 1.3. Shaded: the last "
-            "66 rows, 2012-05-10 to 2012-08-13, which hold nothing."
+            "Figure 5.7: the script's cumulative return, 2008-01-02 to 2012-08-13. APR 0.082671 "
+            "and Sharpe ratio 1.278216,\nwhere the book prints 8.3 percent and 1.3. Shaded: the "
+            "last 66 days, 2012-05-10 to 2012-08-13, which earn nothing."
         ), SPEC
 
 
@@ -206,10 +209,14 @@ class TestTheScatter:
 
     def test_the_heading_names_the_rows_and_the_correlation(self, axes) -> None:
         assert _title(axes["scatter"]) == (
-            "The held pair's log spread against γ on the 1,097 held rows from 2008-01-02, "
-            "correlation −0.883910.\nThe spread falls as γ rises, so the script's short where "
-            "z(γ) is above 0 sells the spread when it is low."
+            "The held pair's log spread against γ on the 1,097 days a pair is held from "
+            "2008-01-02, correlation −0.883910.\nThe spread falls as γ rises, so reversing where "
+            "γ's z-score is above 0 mostly sells the spread when it is low."
         ), SPEC
+
+    def test_the_axes_name_gamma_and_the_spread(self, axes) -> None:
+        assert axes["scatter"].get_xlabel() == "γ, the roll return a year"
+        assert axes["scatter"].get_ylabel() == "log(far) − log(near)"
 
     def test_held_rows_read_filled_gamma_from_the_start(self, monkeypatch) -> None:
         """γ on CL has no NaN after its first finite row, so only a synthetic signal holds
