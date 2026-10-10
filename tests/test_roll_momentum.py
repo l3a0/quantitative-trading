@@ -198,6 +198,22 @@ class TestTheRoll:
         contracts = frame({"TU-2020H": [np.nan, 101.0, 102.0], "TU-2020M": [200.0, 201.0, 202.0]})
         assert held_contracts(contracts).iloc[1:].tolist() == ["TU-2020M", "TU-2020H"]
 
+    def test_a_row_no_contract_qualifies_for_holds_nothing(self) -> None:
+        """One contract priced on rows 0 to 10, so L = 10, qualifies only through row 3."""
+        contracts = frame({"TU-2020H": [100.0 + t for t in range(11)] + [np.nan] * 5})
+        held = held_contracts(contracts)
+        assert held.iloc[1:4].tolist() == ["TU-2020H"] * 3
+        assert all(name is None for name in held.iloc[4:])
+        assert held_returns(contracts).iloc[4:].isna().all()
+
+    def test_a_contract_ending_one_row_before_the_file_still_rolls(self) -> None:
+        """Only a contract priced on the file's very last row is read as never expiring."""
+        near = [100.0 + t for t in range(15)] + [np.nan]
+        far = [200.0 + 2 * t for t in range(16)]
+        held = held_contracts(frame({"TU-2020H": near, "TU-2020M": far}))
+        assert held.iloc[1:8].tolist() == ["TU-2020H"] * 7
+        assert held.iloc[8:].tolist() == ["TU-2020M"] * 8
+
     def test_the_level_adds_the_held_contract_s_own_changes(self) -> None:
         """No roll jump enters: the level moves by each row's change within one contract."""
         near = [100.0 + t for t in range(11)] + [np.nan] * 5
@@ -227,6 +243,15 @@ class TestTheRoll:
             61 / 60 - 1
         )
         assert np.isnan(fifth_contract_returns(contracts).iloc[0])
+
+    def test_a_contract_first_priced_today_is_not_counted_on_both_days(self) -> None:
+        """A nearest contract that lists at t is priced at t but not at t − 1, so it is skipped."""
+        columns = {"TU-2019Z": [np.nan, 5.0]}
+        columns.update({f"TU-202{k}H": [100.0, 100.0 + k] for k in range(1, 7)})
+        contracts = frame(columns)
+        assert fifth_contract_returns(contracts, on_both_days=True).iloc[1] == pytest.approx(
+            0.05, rel=1e-12
+        )
 
     def test_fewer_than_five_priced_leaves_the_fifth_return_nan(self) -> None:
         contracts = frame({f"TU-202{k}H": [1.0, 2.0] for k in range(4)})
@@ -301,6 +326,38 @@ class TestTheRebuildAgainstTheSave:
         assert beyond.min() == pytest.approx(0.0078, abs=1e-9), SPEC
         assert len(beyond) == 30
 
+    def test_a_planted_change_past_rounding_is_counted_off_the_roll_row(
+        self, strip, result, save
+    ) -> None:
+        """A close moved mid-contract adds two changes beyond rounding and none on row L − 7.
+
+        Moving it by 1.6e-4 is just past the threshold and by 1e-3 is far past it,
+        so the count holds the comparison to 1.5e-4 rather than to anything the
+        jumps alone would allow.
+        """
+        closes = save[1]
+        span = np.asarray(result.days.isin(closes.index))
+        difference = np.abs(np.diff(closes.to_numpy(dtype=float)) - np.diff(result.level[span]))
+        rows = np.flatnonzero(span)
+        held = held_contracts(strip.contracts).to_numpy()
+        last = {
+            name: strip.contracts.index.get_loc(strip.contracts[name].last_valid_index())
+            for name in strip.contracts.columns
+        }
+        k = next(
+            k
+            for k in range(1000, len(closes) - 1)
+            if difference[k - 1] < 1e-9
+            and difference[k] < 1e-9
+            and all(last[held[rows[j]]] - rows[j] > 20 for j in (k, k + 1))
+        )
+        for planted in (1.6e-4, 1e-3):
+            moved = closes.copy()
+            moved.iloc[k] += planted
+            found = check_against_save(strip, result, moved)
+            assert found.beyond_rounding == 32
+            assert found.beyond_rounding_on_jump_row == 30
+
     def test_the_save_s_span_holds_32_rolls(self, strip, save) -> None:
         """The held contract changes 32 times, so 30 of the 32 jump rows differ beyond rounding.
 
@@ -364,6 +421,11 @@ class TestTheComparisonMargins:
         assert found.apr == pytest.approx(0.013377, abs=5e-7), SPEC
         assert found.sharpe == pytest.approx(1.196742, abs=5e-7), SPEC
         assert found.max_drawdown == pytest.approx(-0.009167, abs=5e-7), SPEC
+
+    def test_a_claim_with_no_margin_does_not_hold(self) -> None:
+        """ "Higher" and "reduced" need the revised figure strictly better."""
+        assert module._claim(1e-12) == "reproduced"
+        assert module._claim(0.0) == "did not reproduce"
 
     def test_example_6_1_s_rule_is_tu_momentum_s_own(self, result) -> None:
         """One copy of the rule: the three functions of ``chan.tu_momentum`` on the rebuild."""
