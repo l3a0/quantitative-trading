@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30 and 31 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31 and 32 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five and twelve, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve and seven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entry 5 is the one entry that is not a replication. Chan states the claim it
@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 and 31 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 and 32 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -243,6 +243,12 @@ says.
   - [The verdicts](#the-verdicts-29)
   - [What the entry concludes](#what-the-entry-concludes-30)
   - [What this entry cannot say](#what-this-entry-cannot-say-28)
+- [Entry 32: a Kalman filter hedge ratio on EWA and EWC, Chan's *Algorithmic Trading*](#entry-32-a-kalman-filter-hedge-ratio-on-ewa-and-ewc-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-29)
+  - [What this repo computed](#what-this-repo-computed-31)
+  - [The verdicts](#the-verdicts-30)
+  - [What the entry concludes](#what-the-entry-concludes-31)
+  - [What this entry cannot say](#what-this-entry-cannot-say-29)
 
 ## How to read an entry
 
@@ -298,9 +304,11 @@ both.
    [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py) holds
    Entry 29,
    [tests/test_aud_cad_rollover.py](../tests/test_aud_cad_rollover.py) holds
-   Entry 30, and
+   Entry 30,
    [tests/test_cl_reversal_momentum.py](../tests/test_cl_reversal_momentum.py)
-   holds Entry 31.
+   holds Entry 31, and
+   [tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) holds
+   Entry 32.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -415,8 +423,8 @@ Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
-Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, and Entry 31's rows 3 to
-14.
+Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
+and Entry 32's rows 5 to 7.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -570,6 +578,18 @@ claim's count of relations at 99 percent on the trace and eigen statistics
 separately, were written on
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344) before
 any statistic was computed.
+
+Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
+claims and carry no verdict. Location 1726 says the filter's slope
+"oscillates around 1" and its intercept "increases monotonically with time",
+each a definite claim about the series the script computes. The only criteria
+for them were written on
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342) after a
+scratch run had measured what they read, and unlike Entry 13's row 10 or
+Entry 27's rows 13 and 14, each verdict would rest on where its line sat. The
+owner ruled on 2026-10-06 that both rows report their figures as findings with
+no verdict, and that neither counts toward the entry's tally. Each verdict cell
+says so, with the value "none, a finding" that Entry 5 carries as a whole.
 
 They are in their entries because leaving them out misleads. Row 2 is the slope
 from the test's own regression, and a reader who compares it against 1.6766 is
@@ -6414,6 +6434,155 @@ what a cost per change would take from 12 percent.
 series back-adjusted above the price that traded, and no unadjusted CL series
 for those years is committed. So the earlier segment's figures are what the
 rule gives on Chan's series, not what a trader would have earned.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 32: a Kalman filter hedge ratio on EWA and EWC, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle locations 1633 to 1726, and the script
+`KF_beta_EWA_EWC.m` the example names. Shipped under
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342). The
+highlights never give the example's number, so the entry names it by its script
+and its location. The location numbers are that book's, in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seven rows, all derivable from
+[tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py). Rows 1 and 2
+each cover two printed figures from one computation. Rows 3 and 4 test claims
+and carry findings with no verdict, and rows 5 to 7 carry no published figure.
+
+Example 3.2 hedges EWC with EWA through a slope refitted over a rolling window.
+A Kalman filter replaces the window. Each day it moves yesterday's estimate of
+the slope and intercept toward whatever explains today's pair of closes, by an
+amount set by how uncertain the estimate was. It also forecasts EWC's close
+before seeing it, with a variance for that forecast. The strategy buys the
+spread when the forecast error falls below minus the forecast's standard
+deviation and sells it when the error rises above plus that deviation, so the
+filter supplies the hedge, the mean and the band at once.
+
+**Both printed figures reproduce to the script's last digit, and the book's
+two claims about the filter carry no verdict.** The book's 26.2 percent and
+2.4 are the script's closing comment rounded. Location 1726 also says the
+slope "oscillates around 1" and the intercept "increases monotonically with
+time". No criterion for either was written before a run, so the owner ruled
+on 2026-10-06 that both are carried as findings, and rows 3 and 4 report what
+can be read against them.
+
+Every row reads the same vintage and specification, so both are stated once
+here.
+
+1. **The vintage.** `inputdata_etf/ewa.csv` and `inputdata_etf/ewc.csv`, two
+   of the 67 ETFs lifted from Chan's `inputData_ETF.mat`, git blob `261718b`,
+   chan-mat, adjusted, saved 2012-04-10, 1,500 days from 2006-04-26 to
+   2012-04-09, read through `chan.series.load_panel`. This is the only save of
+   either ETF the repo holds, and both legs are priced on every row.
+2. **The specification.** `KF_beta_EWA_EWC.m` at `e4bc46f` in
+   [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
+   git blob `e2f8a62`, as `chan.kalman_hedge` transcribes it. Box 3.1, which
+   carries the equations, is not among the highlights, and the script labels
+   its lines with equations 3.7 to 3.12, so the script is the specification.
+   EWC's close is regressed on EWA's close and a column of ones, with `delta`
+   0.0001 and `Ve` 0.001, and the state and its covariance start at 0. One
+   unit goes long while the forecast error `e` is below `−sqrt(Q)` and short
+   while it is above `sqrt(Q)`, and each side exits on its own entry band. The
+   positions are `[−slope, 1]` of EWA and EWC. The return is profit over gross
+   dollars with a NaN day set to 0, over all 1,500 rows. The APR is
+   compounded over 252 days a year and the Sharpe ratio is `√252 · mean / std`
+   with MATLAB's n − 1 `std`, with no risk-free rate and no cost.
+
+**Rows 3 and 4 carry no verdict because their only criteria were written after
+the run.** Location 1726 prints no number for either claim. The plan on
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342) proposed
+a criterion for each, a median slope that rounds to 1.0 with more than one
+crossing of 1, and yearly mean intercepts that never fall. A scratch run had
+already measured the figures both criteria read. This file accepts such a
+criterion only when the verdict does not rest on where its line sits, and
+neither meets that. The median sits 0.002633 below 1.05, where it would round
+to 1.1, and the intercept rises at the yearly grain and falls at every finer
+one. So the owner ruled that both rows report their figures and carry no
+verdict. Neither counts toward this entry's two rows reproduced and none not
+reproduced.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends the
+2006 to 2012 sample on a rule and two constants he chose, so the entry says
+whether his numbers reproduce on his file and nothing about whether the filter
+hedges EWA and EWC today.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | APR | 0.262252, and 26.2 percent | script's closing comment, location 1726 |
+| 2 | Sharpe ratio | 2.361162, and 2.4 | the same |
+| 3 | The slope "oscillates around 1" | a claim, drawn as Figure 3.5 | location 1726 |
+| 4 | The intercept "increases monotonically with time" | a claim, drawn as Figure 3.6 | location 1726 |
+| 5 | The first position and the first return | none | n/a |
+| 6 | Rows 1 and 2 with no signal on the file's first two days | none | n/a |
+| 7 | The filter's first two rows | none | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | The script over all 1,500 rows | 0.26225194 | `TestTheFigures::test_the_apr_is_chans_0_262252` |
+| 2 | The same | 2.36116164 | `TestTheFigures::test_the_sharpe_ratio_is_chans_2_361162` |
+| 3 | The slope after each day's update, over all 1,500 rows | median 1.047367, mean 1.089693, above 1 on 894 rows, which is 59.6 percent, and 54 crossings of 1, the first of them on row 2 as the slope leaves its zero start | `TestTheSlopeFinding` |
+| 4 | The intercept after each day's update, over all 1,500 rows | yearly means 0.1440, 0.6336, 2.5795, 5.6350, 6.0380, 6.5851 and 6.7748 from 2006 to 2012. Falls in 3 of 24 quarterly steps, 9 of 72 monthly steps, 57 of 1,250 steps of a 250-day rolling mean and 513 of 1,499 daily steps. Peak 6.803488 on 2011-09-08, last 6.767360 | `TestTheInterceptFinding` |
+| 5 | Row 1's run | a short on 2006-04-26 with the slope at 0, and the first nonzero return on 2006-04-27 | `TestTheFirstRows::test_the_first_unit_is_a_short_held_while_the_slope_is_0`, `::test_the_first_nonzero_return_falls_on_2006_04_27` |
+| 6 | The four signal arrays false on rows 1 and 2, all 1,500 returns annualised | APR 0.26066891, Sharpe ratio 2.34946035 | `TestTheFigures::test_no_signal_on_rows_1_and_2_over_all_1500_rows` |
+| 7 | Rows 1 and 2 of the filter | row 1: state 0, `Q` equal to `Ve`, `e` 22.95 against a `sqrt(Q)` of 0.031623. Row 2: slope 1.366666, equal to its closed form, `e` 22.78 against a `sqrt(Q)` of 0.163213 | `TestTheFirstRows::test_row_1_has_a_zero_gain_and_q_equal_to_ve`, `::test_row_2_equals_its_closed_form` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | −0.000000, and +0.0 at the book's tenth of a percent | reproduced | Exact at the six decimals the script's comment prints, on Chan's own file through his own script. |
+| 2 | −0.000000, and −0.0 at the book's tenth | reproduced | The same. |
+| 3 | none, a claim | none, a finding | The median rounds to 1.0 and the mean to 1.1, and the slope crosses 1 54 times, one of them the step up from the zero start on row 2. The only criterion was written after the run, and the median sits 0.002633 inside the line it would have drawn, so the owner ruled the row carries no verdict. |
+| 4 | none, a claim | none, a finding | Every yearly mean is above the year before, and the intercept falls at every finer grain, including 513 of its 1,499 daily steps. It peaks on 2011-09-08 above its last value. The only criterion was written after the run and chose the yearly grain, at which the claim holds, after the finer grains had been seen to fall, so the owner ruled the row carries no verdict. |
+| 5 | none | none, not a replication | On row 1 the state is still 0, so the forecast is 0 and `e` is EWC's whole close. The script shorts EWC alone, with no EWA leg, on the file's first day. |
+| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
+| 7 | none | none, not a replication | Row 2's state matches `c·y·[x 1]' / (c·(x² + 1) + Ve)` with `c = delta / (1 − delta)` to 1e-12, which is what the zero start predicts. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Chan's file through Chan's script gives the figures his comment prints.**
+   Both land every digit at six decimals. Entry 28 had to find which of three
+   saves its figures came from. This file has one candidate, because
+   `data/README.md` records the `.mat` as one git blob in all three published
+   copies.
+2. **The book's figures rest on a trade the filter has no basis for.** On the
+   file's first day the filter has seen nothing, so its forecast of EWC is 0
+   and the error is EWC's whole price. The script reads that as a spread far
+   above its band and shorts EWC alone. Rows 5 and 6 measure it: withholding
+   the signal on the first two days moves the APR from 0.262252 to 0.260669
+   and the Sharpe ratio from 2.361162 to 2.349460, which round to 26.1 percent
+   and 2.3 rather than the book's 26.2 and 2.4.
+3. **The intercept rises as a trend, and not day by day.** The yearly means
+   rise every year, from 0.1440 in 2006 to 6.7748 in 2012. At a quarter, a
+   month, a 250-day window and a day, it falls, and 513 of its 1,499 daily
+   steps go down. Whether that is "monotonically" depends on the grain, which
+   is why row 4 reports the grains rather than choosing one. The slope sits
+   above 1 on 59.6 percent of days, with a median of 1.047367 and a mean of
+   1.089693.
+
+### What this entry cannot say
+
+Three things.
+
+**What other values of `delta` or `Ve` give.** The script's comment invites
+tuning `delta`. Varying it is a search over a hypothesis space, which needs
+the honesty rail `CLAUDE.md` describes, so no other value is run or pinned.
+
+**What the filter's market-making use at location 1760 gives.** That passage
+prints no figure and names no script.
+
+**Anything about costs.** The band changes position whenever the error crosses
+it, and the script charges nothing for a trade.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
