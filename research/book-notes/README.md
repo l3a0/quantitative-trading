@@ -267,6 +267,12 @@ the print edition and cites that page, so its heading does not open with
 the highlights, so whoever re-extracts carries that section over by hand, and
 `tests/test_book_notes.py` fails if it goes missing.
 
+A `## Figure captions` section follows it, for captions that nobody
+highlighted. The first is Example 2.5's Figure 2.3, which the USD.CAD post's
+figure caption cites. The Cloud Reader shows no location for this book, so
+each entry names the highlights it sits between instead. It is carried over by
+hand the same way, and the same test file fails if it goes missing.
+
 ## These files are quoted, not authored
 
 Editing a highlight's text is out of bounds. A note is a record of what the

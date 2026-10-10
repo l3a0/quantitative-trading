@@ -1443,3 +1443,12 @@ Entries below come from the book's bibliography, which nobody highlighted. Each 
 
 <!-- read 2026-10-10 from page 192 of the print edition, ISBN 9781118460146, in Google Books' preview -->
 > Dueker, Michael J., and Christopher J. Neely. “Can Markov Switching Models Predict Excess Foreign Exchange Returns?” Federal Reserve Bank of St. Louis Working Paper 2001-021F, 2001. Available at http://research.stlouisfed.org/wp/2001/2001-021.pdf.
+
+## Figure captions
+
+Entries below are figure captions that nobody highlighted. The Kindle Cloud Reader offers no location display for this book, so each entry names the two highlights it sits between and the page the reader showed, and the header's highlight count leaves it out.
+
+### Example 2.5 · figure caption
+
+<!-- read 2026-10-10 in the Kindle Cloud Reader, ASIN B00CY5HC0U, on the screen the reader labels page 84 of 302, after the highlight at Location 1225 and before the one at Location 1237. The caption sits under Example 2.5's code, whose text says the cumulative P&L "is plotted in Figure 2.3". -->
+> FIGURE 2.3 Equity Curve of Linear Trading Strategy on AUDCAD.

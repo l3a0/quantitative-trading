@@ -127,7 +127,7 @@ class TestThePanels:
         ], SPEC
 
     def test_no_label_names_a_figure_number_from_the_book(self, figure) -> None:
-        """The book's number for these plots is unread, so the image cites none."""
+        """The post's caption cites the book's Figure 2.3, so the image itself cites none."""
         words = [t.get_text() for t in figure.texts]
         for ax in figure.axes:
             words += [ax.get_title(loc="left"), ax.get_title(), *ax.get_legend_handles_labels()[1]]

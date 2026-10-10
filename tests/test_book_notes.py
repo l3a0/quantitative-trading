@@ -118,3 +118,18 @@ def test_the_bibliography_section_survives_a_re_extraction() -> None:
         " Working Paper 2001-021F, 2001." in section
     )
     assert not re.search(r"^### Location ", section, re.MULTILINE)
+
+
+def test_the_figure_captions_section_survives_a_re_extraction() -> None:
+    """The Algorithmic Trading note's figure captions are added by hand too.
+
+    The USD.CAD post's figure caption cites Example 2.5's chart as the book's
+    Figure 2.3, and this entry is where that number was recorded, so a
+    re-extraction that drops it fails here.
+    """
+    text = (NOTES_DIR / "algorithmic-trading.md").read_text(encoding="utf-8")
+    _, found, section = text.partition("\n## Figure captions\n")
+    assert found, "algorithmic-trading.md has lost its ## Figure captions section"
+    assert "### Example 2.5 · figure caption" in section
+    assert "> FIGURE 2.3 Equity Curve of Linear Trading Strategy on AUDCAD." in section
+    assert not re.search(r"^### Location ", section, re.MULTILINE)
