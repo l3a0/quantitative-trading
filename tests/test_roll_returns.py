@@ -367,6 +367,65 @@ class TestTheRowsBeside:
         assert int(after.notna().sum(axis=1).max()) == 4, SPEC
 
 
+def _sign_runs(gamma: pd.Series) -> list[tuple[float, pd.Timestamp, pd.Timestamp, int]]:
+    """Each unbroken run of one sign in γ's defined days: sign, first day, last day, length."""
+    defined = gamma.dropna()
+    signs = np.sign(defined.to_numpy())
+    runs, start = [], 0
+    for end in range(1, len(signs) + 1):
+        if end == len(signs) or signs[end] != signs[start]:
+            runs.append((signs[start], defined.index[start], defined.index[end - 1], end - start))
+            start = end
+    return runs
+
+
+class TestBesideThePost:
+    """What the post on Example 5.3 reads off the script's γ beyond Table 5.1.
+
+    Location 2399 says the fitted γ varies slowly, and location 2683 says "the
+    sign of roll returns does not vary very often". No criterion for either was
+    written down before these were measured, so they carry no verdict. CL's
+    series is Figure 5.5's, which the post's figure redraws.
+    """
+
+    def test_cl_is_in_contango_on_1389_of_its_1941_days(self, results) -> None:
+        gamma = results["CL"].gamma.dropna()
+        assert (int((gamma < 0).sum()), int((gamma > 0).sum()), len(gamma)) == (
+            1389,
+            552,
+            1941,
+        ), SPEC
+
+    def test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango(self, results) -> None:
+        runs = _sign_runs(results["CL"].gamma)
+        assert len(runs) - 1 == 29, SPEC
+        sign, first, last, length = max(runs, key=lambda run: run[3])
+        assert (sign, str(first.date()), str(last.date()), length) == (
+            -1.0,
+            "2008-10-09",
+            "2011-10-21",
+            766,
+        ), SPEC
+
+    def test_cls_lowest_and_highest_gamma_fall_four_months_apart(self, results) -> None:
+        gamma = results["CL"].gamma
+        assert (f"{gamma.min():.6f}", str(gamma.idxmin().date())) == (
+            "-1.121372",
+            "2009-01-15",
+        ), SPEC
+        assert (f"{gamma.max():.6f}", str(gamma.idxmax().date())) == (
+            "0.258871",
+            "2008-09-22",
+        ), SPEC
+
+    def test_br_rarely_leaves_backwardation_and_hgs_sign_flips_198_times(self, results) -> None:
+        br = results["BR"].gamma.dropna()
+        assert (int((br < 0).sum()), len(br)) == (3, 4210), SPEC
+        hg = results["HG"].gamma.dropna()
+        assert (int((hg > 0).sum()), len(hg)) == (3139, 6028), SPEC
+        assert len(_sign_runs(results["HG"].gamma)) - 1 == 198, SPEC
+
+
 def _renumbered(spot: pd.Series) -> float:
     """α with the rows renumbered 1 to n after the spot's gaps are dropped."""
     priced = spot.dropna()
