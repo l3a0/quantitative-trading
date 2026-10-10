@@ -5926,7 +5926,10 @@ Chan's names. Neither is confirmed by anything he printed, so the match is
 evidence that this window is close to his, and no more.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/vx-es-lessons.md](../blog/vx-es-lessons.md), this entry's write-up,
+moves with it, since that post quotes most of these figures. The post's one
+figure moves too, and `uv run python -m chan.vx_es_figures` redraws it.
 
 ## Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
 
