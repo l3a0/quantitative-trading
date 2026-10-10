@@ -72,7 +72,9 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
 
 1. **The subtitle fits in 255 characters.** Substack refuses a longer
    `draft_subtitle` with "Subtitle is too long", and 255 passed where 256
-   failed. `--summary` prints `subtitle_length`. A longer subtitle is the
+   failed. `--summary` prints `subtitle_length`, counted in UTF-16 units as
+   the page's `subtitle.length` counts it, so an emoji counts as two. A
+   longer subtitle is the
    owner's call. The choices so far have been to shorten the Markdown, or to
    create the draft with a blank subtitle and keep the Markdown as approved.
    Never cut it on Substack alone, since that makes the two copies differ.
@@ -96,8 +98,13 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
 5. **The post uses only shapes the converter handles.** The Python file's
    docstring lists them. A pipe table becomes a LaTeX `array` in a math
    block, by the owner's ruling of 2026-10-10, and its cells lose their links
-   and inline formatting. Read the converted table before sending it, since a
-   cell that relied on a link loses it. A shape the docstring does not list,
+   and inline formatting. A cell reads only the inline Markdown the body
+   reads, which is code spans, `**`, `*`, links, images and backslash
+   escapes. Everything else in a cell shows as typed, such as `_em_`,
+   `__strong__`, `~~strike~~`, `<br>`, an HTML entity, an autolink or
+   `$math$`, and that is part of the price the owner accepted. Read the
+   converted table before sending it, since a cell that relied on a link
+   loses it. A shape the docstring does not list,
    such as a block quote or a horizontal rule, comes out as a paragraph of
    literal Markdown. A new shape needs the converter to learn it first, in
    both languages and with the fixtures extended. The test suite fails when a
@@ -141,8 +148,10 @@ route around the extension to reach the signed-in page another way.
    each file name to the `url` the upload returned and the PNG's `width`,
    `height` and `bytes`.
 2. **Convert locally.** Run the converter with `--summary` and keep the hashes
-   it prints. `md_sha256` hashes the file's bytes, which is what the page
-   hashes after fetching it, so it goes into the driver's `EXPECT.md`.
+   it prints. `md_sha256` hashes the file's bytes with one leading byte
+   order mark removed. That is what the page hashes after fetching the file,
+   since fetch's `text()` drops the mark, so it goes into the driver's
+   `EXPECT.md`.
 
    ```bash
    python3 .claude/skills/sync-substack/md2substack.py --summary blog/<post>.md images.json
@@ -304,10 +313,13 @@ sides before comparing, and say in the notes that this draft needs it.
 ## When the converter's output changes
 
 A change to the converter that changes what it produces for a post changes
-that post's `conversion_sha256`, `body_sha256` and `walk_sha256`. The hashes in
-a draft's record were read back from the live draft, so the first comparison
-in a sync still holds against them. What stops holding is the fallback, which
-compares the live body with a fresh conversion of the last synced commit.
+that post's `conversion_sha256`. A change to the body also moves
+`body_sha256`, and a change to its text moves `walk_sha256`. A change to the
+title or subtitle alone moves only `conversion_sha256`, since the other two
+hash the body. The hashes in a draft's record were read back from the live
+draft, so the first comparison in a sync still holds against them. What stops
+holding is the fallback, which compares the live body with a fresh conversion
+of the last synced commit.
 
 1. **Compare with the recorded hashes first.** They come from the live draft
    and do not depend on the converter.
@@ -315,19 +327,25 @@ compares the live body with a fresh conversion of the last synced commit.
    body hash, convert the last synced commit with the converter as it stood
    at that sync. `git log` on `md2substack.py` names the commits, and
    `git show <commit>:.claude/skills/sync-substack/md2substack.py` gives the
-   file.
+   file. A draft synced before the converter was checked into this
+   repository has no such commit. For one of those, compare the live body
+   with the new conversion node by node, and treat every difference as one
+   to look at under step 4 of the sync rather than as the converter's.
 3. **Expect the new conversion to differ in the touched blocks only.** Those
    differences come from the converter rather than the owner, so the sync
-   writes them from the new conversion, and the report names each one.
+   writes them from the new conversion, and the report names each one. A
+   published or scheduled post still waits for the owner's approval in chat
+   before any write, as `## Update a published post` says.
 4. **Record a fresh baseline.** Once the write is verified, its hashes go into
    the owner's notes as the next baseline.
 
 The converter learned pipe tables, headings of four to six hashes and linked
 images on 2026-10-10, and the subtitle lost its escapes the same day. A draft
-made from a post with a table, a deep heading, a linked image, or a `\$` or
-`\~` in its subtitle gets a new conversion hash from that change. Every other
-committed post converts to the hashes it had before, which the pull request
-measured.
+made from a post with a table, a deep heading or a linked image gets new body,
+walk and conversion hashes from that change. A draft made from a post with a
+`\$` or `\~` in its subtitle gets a new conversion hash only. Every other
+committed post converts to the hashes it had before, as
+[PR #486](https://github.com/l3a0/quantitative-trading/pull/486) measured.
 
 ## Update a published post
 

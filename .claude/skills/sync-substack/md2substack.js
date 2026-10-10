@@ -41,7 +41,10 @@
 // forever on a fence with no closing line. It throws instead, as the Python
 // does. The change for issue 472 then taught both copies pipe tables, headings
 // of four to six hashes and linked images, unescaped the subtitle, and made the
-// two copies agree on whitespace and digits outside ASCII.
+// two copies agree on whitespace and digits outside ASCII. The review of that
+// change matched GitHub on where a table ends and on a delimiter row of bare
+// hyphens, gave the caret a width, collapsed whitespace in cells, and stopped
+// two kinds of image line from throwing.
 var M2S = (function () {
   var LINK = { target: "_blank", rel: "noopener noreferrer nofollow", "class": null };
   var WIDGET = {
@@ -54,12 +57,14 @@ var M2S = (function () {
   var LINKED_IMAGE = /^\[!\[([^\n]*)\]\(([^)]+)\)\]\(([^)]+)\)$/;
   var LIST_ITEM = /^([0-9]+\. |- )/;
   var NESTED_ITEM = /^   ([0-9]+\. |- )/;
-  var BLOCK_START = /^(#{2,6} |```|!\[|[0-9]+\. |- )/;
+  // An image or a linked image opens a block only as the whole line, so opensBlock tests those.
+  var BLOCK_START = /^(#{2,6} |```|[0-9]+\. |- )/;
   var DELIMITER_CELL = /^:?-+:?$/;
+  var SPACE_RUN = /[ \t]+/g;
   var ASCII_PUNCTUATION = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
   var LATEX_SPECIAL = {
     "$": "\\$", "%": "\\%", "&": "\\&", "#": "\\#", "_": "\\_", "{": "\\{", "}": "\\}",
-    "\\": "\\backslash", "~": "{\\sim}", "^": "{\\hat{}}"
+    "\\": "\\backslash", "~": "{\\sim}", "^": "{\\hat{\\ }}"
   };
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   // ASCII whitespace only, the set WHITESPACE names in the Python.
@@ -110,10 +115,14 @@ var M2S = (function () {
     out.push(cell);
     return out;
   }
-  // Each column's alignment when a table starts on line i, else null.
+  // Each column's alignment when a table starts on line i, else null. A
+  // delimiter row with no | and no : is bare hyphens, which GitHub reads as a
+  // heading underline, so it starts no table.
   function tableColumns(lines, i) {
     if (lines[i].indexOf("|") !== 0 || i + 1 >= lines.length) return null;
-    var marks = cells(lines[i + 1]).map(trim);
+    var below = lines[i + 1];
+    if (below.indexOf("|") < 0 && below.indexOf(":") < 0) return null;
+    var marks = cells(below).map(trim);
     if (!marks.every(function (c) { return DELIMITER_CELL.test(c); })) return null;
     if (cells(lines[i]).length !== marks.length) return null;
     return marks.map(function (c) {
@@ -158,7 +167,8 @@ var M2S = (function () {
         }
       } else { out.push(ch); i++; }
     }
-    return stripMarkup(out.join("")).replace(/\\`([0-9]+)`/g, function (m, n) { return held[Number(n)]; });
+    var t = stripMarkup(out.join("")).replace(/\\`([0-9]+)`/g, function (m, n) { return held[Number(n)]; });
+    return t.replace(SPACE_RUN, " ");
   }
   function cellLatex(t) {
     var out = [], run = "";
@@ -181,8 +191,11 @@ var M2S = (function () {
     out.push("\\end{array}");
     return out.join("\n");
   }
+  function opensBlock(line) {
+    return BLOCK_START.test(line) || IMAGE.test(line) || LINKED_IMAGE.test(line);
+  }
   function startsBlock(lines, i) {
-    return BLOCK_START.test(lines[i]) || LINKED_IMAGE.test(lines[i]) || tableColumns(lines, i) !== null;
+    return opensBlock(lines[i]) || tableColumns(lines, i) !== null;
   }
   // A captioned image, and the index of the line after it and its caption.
   function figure(lines, i, images, alt, path, href) {
@@ -191,8 +204,9 @@ var M2S = (function () {
       src: img.url, srcNoWatermark: null, fullscreen: null, imageSize: null, height: img.height, width: img.width,
       resizeWidth: null, bytes: img.bytes, alt: alt, title: null, type: "image/png", href: href, belowTheFold: false,
       topImage: false, internalRedirect: null, isProcessing: false, align: null, offset: false } }] };
-    var k = i + 1; while (!trim(lines[k])) k++;
-    var cap = lines[k];
+    var k = i + 1; while (k < lines.length && !trim(lines[k])) k++;
+    // A figure on the post's last non-blank line has no caption to look for.
+    var cap = k < lines.length ? lines[k] : "";
     if (cap[0] === "*" && cap[cap.length - 1] === "*" && cap.indexOf("**") !== 0) {
       node.content.push({ type: "caption", content: inline(cap.slice(1, -1)) });
       return [node, k + 1];
@@ -207,7 +221,8 @@ var M2S = (function () {
     while (i < lines.length) {
       var line = lines[i];
       if (!trim(line)) { i++; continue; }
-      var heading = line.match(HEADING), linked = line.match(LINKED_IMAGE), columns = tableColumns(lines, i);
+      var heading = line.match(HEADING), image = line.match(IMAGE), linked = line.match(LINKED_IMAGE);
+      var columns = tableColumns(lines, i);
       if (heading) {
         var level = heading[1].length - 1;
         if (level === 1) {
@@ -228,9 +243,8 @@ var M2S = (function () {
         if (code) cb.content = [{ type: "text", text: code }];
         body.push(cb);
         i = jj + 1;
-      } else if (line.indexOf("![") === 0) {
-        var mm = line.match(IMAGE);
-        made = figure(lines, i, images, mm[1], mm[2], null);
+      } else if (image) {
+        made = figure(lines, i, images, image[1], image[2], null);
         body.push(made[0]); i = made[1];
       } else if (linked) {
         var target = linked[3];
@@ -238,8 +252,9 @@ var M2S = (function () {
         made = figure(lines, i, images, linked[1], linked[2], href);
         body.push(made[0]); i = made[1];
       } else if (columns) {
+        // As on GitHub, every line up to a blank one or one that opens another block is a row.
         var end = i + 2;
-        while (end < lines.length && lines[end].indexOf("|") === 0) end++;
+        while (end < lines.length && trim(lines[end]) && !opensBlock(lines[end])) end++;
         eq++;
         body.push({ type: "latex_block", attrs: {
           persistentExpression: tableLatex(cells(line), lines.slice(i + 2, end).map(cells), columns),

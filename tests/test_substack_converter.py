@@ -13,9 +13,10 @@ Three layers check it.
    fails here with a diff. One uses every Markdown shape the converter reads.
    The other puts each block shape straight under a paragraph line, with no
    blank line between, and holds an ordered list long enough to need
-   two-digit numbers. Four more fixtures cover pipe tables, deep headings,
-   linked images and subtitle escapes, and their tests spell out the expected
-   output rather than pinning a regenerated tree.
+   two-digit numbers. Five more fixtures cover pipe tables, deep headings,
+   linked images, subtitle escapes and inputs at the edges of those shapes,
+   and their tests spell out the expected output rather than pinning a
+   regenerated tree.
 2. Every committed post converts, and the result keeps the facts that hold
    whatever the post says: its title, its subtitle, where the widgets go, and
    one block per equation, table, code fence, heading and figure.
@@ -57,7 +58,8 @@ TABLES = FIXTURE_DIR / "tables.md"
 DEEP_HEADINGS = FIXTURE_DIR / "deep-headings.md"
 LINKED_IMAGES = FIXTURE_DIR / "linked-images.md"
 SUBTITLE_ESCAPES = FIXTURE_DIR / "subtitle-escapes.md"
-SHAPE_FIXTURES = [TABLES, DEEP_HEADINGS, LINKED_IMAGES, SUBTITLE_ESCAPES]
+SHAPE_EDGES = FIXTURE_DIR / "shape-edges.md"
+SHAPE_FIXTURES = [TABLES, DEEP_HEADINGS, LINKED_IMAGES, SUBTITLE_ESCAPES, SHAPE_EDGES]
 POSTS = sorted((REPO_ROOT / "blog").glob("*.md"))
 
 # The fixture's figures were never uploaded, so their Substack fields are made up.
@@ -96,6 +98,7 @@ def _load_converter():
 
 
 m2s = _load_converter()
+WIDGET_CONTENT = m2s.WIDGET["content"]
 
 
 def _png_size(path: Path) -> tuple[int, int]:
@@ -298,7 +301,7 @@ FIRST_TABLE = "\n".join(
         r"\text{Left} & \text{Plain} & \text{Right} & \text{Centre} \\ \hline",
         r"\text{a|b *c*} & \text{a link} & \text{bold and em} & \text{alt text} \\",
         r"\$\text{ }\%\text{ }\&\text{ }\#\text{ }\_\text{ }\{\text{ }\}\text{ }\backslash"
-        r"\text{ }{\sim}\text{ }{\hat{}} & \$\text{ }{\sim}\text{ * }\backslash"
+        r"\text{ }{\sim}\text{ }{\hat{\ }} & \$\text{ }{\sim}\text{ * }\backslash"
         r" & \text{a`b} & \text{x} \\",
         r"\text{short row} &  &  &  \\",
         r"\text{one} & \text{two} & \text{three} & \text{four} \\",
@@ -310,8 +313,9 @@ HEADER_ONLY_TABLE = "\\begin{array}{l}\n\\text{Header only} \\\\ \\hline\n\\end{
 LAST_TABLE = "\n".join(
     [
         r"\begin{array}{l}",
-        r"\text{Ends at a line} \\ \hline",
-        r"\text{that opens a pipe}",
+        r"\text{Runs to a blank line} \\ \hline",
+        r"\text{a row that opens a pipe} \\",
+        r"\text{a line with no pipe is a row too}",
         r"\end{array}",
     ]
 )
@@ -321,8 +325,9 @@ def test_a_pipe_table_becomes_a_latex_array() -> None:
     """Each table is one LaTeX block, numbered in sequence with the math fences.
 
     A ``|`` line with no delimiter row under it, or with one whose cell count
-    differs, stays paragraph text. A table interrupts a paragraph, and a line
-    not opening ``|`` ends the table.
+    differs, stays paragraph text. A table interrupts a paragraph. As on
+    GitHub, it runs until a blank line or a line opening another block, and
+    a line not opening ``|`` is a row like any other.
     """
     blocks = _convert_fixture(TABLES)["body"]["content"]
     assert [n["type"] for n in blocks] == [
@@ -334,7 +339,7 @@ def test_a_pipe_table_becomes_a_latex_array() -> None:
         "paragraph",
         "paragraph",
         "latex_block",
-        "paragraph",
+        "bullet_list",
         "paragraph",
         "subscribeWidget",
     ]
@@ -345,27 +350,56 @@ def test_a_pipe_table_becomes_a_latex_array() -> None:
         {"persistentExpression": LAST_TABLE, "id": "EQSTAT04"},
     ]
     texts = [n["content"][0]["text"] for n in blocks if n["type"] == "paragraph"]
-    assert texts[1:5] == [
+    assert texts[1:4] == [
         "A paragraph line",
         "| Not a table, since no delimiter row follows | | a paragraph line that opens a pipe |",
         "| One | Two | | --- | | The delimiter row above has one cell for two headers, "
         "so this is a paragraph |",
-        "and this line, which does not, starts a paragraph.",
     ]
+    assert blocks[8]["content"][0]["content"][0]["content"][0]["text"] == (
+        "and a bullet ends the table"
+    )
 
 
-@pytest.mark.parametrize(
-    ("cell", "latex"),
-    [
-        (">90% conf.", r"\text{>90}\%\text{ conf.}"),
-        (r"\~10 days → \~10 days", r"{\sim}\text{10 days → }{\sim}\text{10 days}"),
-        ("", ""),
-        ("`a\\b` and \\\\", r"\text{a}\backslash\text{b and }\backslash"),
-        ("**[a *b*](u)** ![c](d)", r"\text{a b c}"),
-    ],
-)
+# Each cell and the LaTeX it becomes. The examples follow the rule in
+# ``md2substack.py``'s docstring, and each also runs as one row of a table
+# through both converters, in ``SHAPE_EDGE_STRINGS`` below.
+CELL_RULE = [
+    (">90% conf.", r"\text{>90}\%\text{ conf.}"),
+    (r"\~10 days → \~10 days", r"{\sim}\text{10 days → }{\sim}\text{10 days}"),
+    ("", ""),
+    ("`a\\b` and \\\\", r"\text{a}\backslash\text{b and }\backslash"),
+    ("**[a *b*](u)** ![c](d)", r"\text{a b c}"),
+    ("x^2 ^^", r"\text{x}{\hat{\ }}\text{2 }{\hat{\ }}{\hat{\ }}"),
+    ("a   b\t\tc `d  \t e`", r"\text{a b c d e}"),
+    (r"x \\", r"\text{x }\backslash"),
+    (r"\`x`", r"\text{`x`}"),
+    (r"a \| b", r"\text{a | b}"),
+    (r"\[x](y)", r"\text{[x](y)}"),
+    ("`x`` y`", r"\text{x`` y}"),
+    ("`  `", r"\text{ }"),
+    ("`  x  `", r"\text{ x }"),
+    ("` x`", r"\text{ x}"),
+    ("*a* b*", r"\text{a b*}"),
+    (
+        "_em_ __strong__ ~~s~~ <br> &amp; $m$",
+        r"\_\text{em}\_\text{ }\_\_\text{strong}\_\_"
+        r"\text{ }{\sim}{\sim}\text{s}{\sim}{\sim}\text{ <br> }\&\text{amp; }\$\text{m}\$",
+    ),
+    (f"*a{chr(0x2028)}b* **c{chr(0x2028)}d**", f"\\text{{a{chr(0x2028)}b c{chr(0x2028)}d}}"),
+]
+
+
+@pytest.mark.parametrize(("cell", "latex"), CELL_RULE)
 def test_a_cell_follows_the_stated_rule(cell: str, latex: str) -> None:
-    """The examples from the rule in ``md2substack.py``'s docstring."""
+    """The examples from the rule in ``md2substack.py``'s docstring.
+
+    A caret is drawn over a space, since ``{\\hat{}}`` has no width. Spaces
+    and tabs collapse to one space, code spans included. Markdown the body
+    does not read, such as underscores, strikethrough, HTML and dollar math,
+    shows as typed. Emphasis may span a line separator, which JavaScript's
+    ``.`` would not match.
+    """
     assert m2s.cell_latex(m2s.cell_text(cell)) == latex
 
 
@@ -439,6 +473,91 @@ def test_a_linked_image_becomes_a_figure() -> None:
     assert [len(blocks[k]["content"]) for k in (1, 3)] == [1, 1]
     assert blocks[2]["content"] == [{"type": "text", "text": "A paragraph line"}]
     assert blocks[4]["content"][-1]["text"].endswith("with text after it stays a paragraph.")
+
+
+def test_lines_at_the_edges_of_a_shape_read_as_github_reads_them() -> None:
+    """Each input in the shape-edges fixture sits just inside or outside a shape.
+
+    A table needs a header opening ``|``, a real delimiter row and a matching
+    cell count. A delimiter row of bare hyphens underlines a heading on
+    GitHub, so it starts no table, while one holding a colon does. Seven
+    hashes, hashes with no space, an image or linked image with text after
+    it, and non-ASCII digits all stay inside the paragraph above them. A
+    linked image takes its picture from the image path and links out only to
+    a target starting ``http://`` or ``https://``. A linked image on the
+    last line has nothing after it to read as a caption.
+    """
+    blocks = _convert_fixture(SHAPE_EDGES)["body"]["content"]
+    kinds = [n["type"] for n in blocks]
+    assert kinds == [
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "latex_block",
+        "paragraph",
+        "latex_block",
+        "latex_block",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "captionedImage",
+        "captionedImage",
+        "captionedImage",
+        "latex_block",
+        "captionedImage",
+        "subscribeWidget",
+    ]
+    texts = {k: "".join(t["text"] for t in blocks[k]["content"]) for k in (1, 2, 4, 7, 8, 10)}
+    assert texts == {
+        1: "Total | --- |",
+        2: "| a | | a-b |",
+        4: "| a | --- | x |",
+        7: "para ####### x",
+        8: "para ####x",
+        10: "para ١٢. x",
+    }
+    assert blocks[9]["content"][0]["text"] == "para "
+    assert blocks[9]["content"][-1]["text"] == "](https://e) more"
+    assert blocks[11]["content"][-1]["text"] == " and more"
+    # A delimiter row that opens like a bullet, "- | -", is still a delimiter row.
+    assert blocks[6]["attrs"]["persistentExpression"] == "\n".join(
+        [
+            r"\begin{array}{l|l}",
+            r"\text{a} & \text{b} \\ \hline",
+            r"\text{1} & \text{2}",
+            r"\end{array}",
+        ]
+    )
+    latex = [blocks[k]["attrs"]["persistentExpression"] for k in (3, 5, 15)]
+    assert latex == [
+        "\n".join(
+            [
+                r"\begin{array}{l|l}",
+                r"\text{x} & \text{y} \\ \hline",
+                r"\text{x} & \text{y|} \\",
+                r" & \text{y }\backslash",
+                r"\end{array}",
+            ]
+        ),
+        "\\begin{array}{l}\n\\text{1.5 =} \\\\ \\hline\n\\end{array}",
+        "\n".join(
+            [
+                r"\begin{array}{l|l|l|l}",
+                r"\text{Code} & \text{Emphasis} & \text{Strong} & \text{Spaces} \\ \hline",
+                r"\text{a|b|c} & \text{x y} & \text{x y} & \text{a b}",
+                r"\end{array}",
+            ]
+        ),
+    ]
+    figures = [blocks[k]["content"] for k in (12, 13, 14, 16)]
+    assert [(f[0]["attrs"]["src"], f[0]["attrs"]["href"], len(f)) for f in figures] == [
+        ("https://example.invalid/first_figure.png", None, 1),
+        ("https://example.invalid/first_figure.png", None, 1),
+        ("https://example.invalid/second_figure.png", "https://e/first_figure.png", 1),
+        ("https://example.invalid/first_figure.png", "https://e", 1),
+    ]
 
 
 def _unterminated(info: str) -> str:
@@ -528,10 +647,10 @@ def test_no_committed_post_leaves_markdown_as_literal_text() -> None:
     """No converted paragraph opens with what an unread shape would leave behind.
 
     A table row opens ``|`` and a deep heading opens ``#``. A linked image the
-    converter missed becomes a link whose text opens ``![``, which no other
-    paragraph can, since a line opening ``![`` is read as an image. Two posts
-    did this before the converter learned these shapes, and their drafts were
-    made by another route.
+    converter missed becomes a link whose text opens ``![``. A paragraph can
+    open ``![`` only when its first line holds an image and more text, which
+    no committed post has. Two posts did this before the converter learned
+    these shapes, and their drafts were made by another route.
     """
     found = set()
     for post in POSTS:
@@ -662,22 +781,72 @@ DIVERGENCES = {
 }
 
 
+# Inputs at the edge of a shape that a fixture file cannot hold cleanly, since
+# they need invisible characters, a trailing space or no closing newline. The
+# characters are built with chr() so no editor can turn an escape into the
+# character itself.
+LINE_SEPARATOR, TAB, FORM_FEED, VERTICAL_TAB = chr(0x2028), chr(9), chr(12), chr(11)
+SHAPE_EDGE_STRINGS = {
+    "trimmed headings": f"# T\n\n*S*\n\n## H{TAB}\n\n{FORM_FEED}\n\n## K{VERTICAL_TAB}\n",
+    "linked image alt with a line separator": "# T\n\n*S*\n\n"
+    f"[![a{LINE_SEPARATOR}b](images/first_figure.png)](https://e)\n\nEnd.\n",
+    "figure on the last line": "# T\n\n*S*\n\n![a](images/first_figure.png)\n",
+    "linked figure on the last line": "# T\n\n*S*\n\n[![a](images/first_figure.png)](https://e)",
+    "image with a trailing space": "# T\n\n*S*\n\n![a](images/first_figure.png) \n",
+    "strong subtitle": "# T\n\n**S**\n\nBody.\n",
+    "cell rule": "# T\n\n*S*\n\n| Cell |\n| --- |\n" + "".join(f"| {c} |\n" for c, _ in CELL_RULE),
+}
+STRING_CASES = {**DIVERGENCES, **SHAPE_EDGE_STRINGS}
+
+
 @pytest.fixture(scope="module")
 def divergence_results(tmp_path_factory: pytest.TempPathFactory) -> dict[str, dict]:
-    cases = [(name, md, FIXTURE_IMAGES) for name, md in DIVERGENCES.items()]
+    cases = [(name, md, FIXTURE_IMAGES) for name, md in STRING_CASES.items()]
     return _run_javascript(cases, tmp_path_factory.mktemp("divergences"))
 
 
-@pytest.mark.parametrize("name", sorted(DIVERGENCES))
+@pytest.mark.parametrize("name", sorted(STRING_CASES))
 def test_python_and_javascript_agree_where_their_languages_differ(
     name: str, divergence_results: dict[str, dict]
 ) -> None:
     """Both converters read these strings the same way, one character set for both."""
     result = divergence_results[name]
     assert result["error"] is None, result["error"]
-    draft = m2s.convert(DIVERGENCES[name], FIXTURE_IMAGES)
+    draft = m2s.convert(STRING_CASES[name], FIXTURE_IMAGES)
     assert result["canon"] == m2s.canonical(draft)
     assert result["walk"] == m2s.walk_lines(draft["body"])
+
+
+def test_the_shape_edge_strings_read_as_intended() -> None:
+    """Headings lose a trailing tab or vertical tab, and a form-feed line is blank.
+
+    A figure on the last line has no caption and does not raise. An image line
+    with anything after the image, even one space, is paragraph text. A
+    subtitle loses every asterisk at its ends, so ``**S**`` gives ``S``.
+    """
+
+    def convert(name: str) -> dict:
+        return m2s.convert(SHAPE_EDGE_STRINGS[name], FIXTURE_IMAGES)
+
+    headings = convert("trimmed headings")["body"]["content"]
+    assert [(n["type"], n.get("content")) for n in headings] == [
+        ("heading", [{"type": "text", "text": "H"}]),
+        ("subscribeWidget", WIDGET_CONTENT),
+        ("heading", [{"type": "text", "text": "K"}]),
+        ("subscribeWidget", WIDGET_CONTENT),
+    ]
+    [figure, _, _] = convert("linked image alt with a line separator")["body"]["content"]
+    assert figure["content"][0]["attrs"]["alt"] == f"a{LINE_SEPARATOR}b"
+    for name in ("figure on the last line", "linked figure on the last line"):
+        blocks = convert(name)["body"]["content"]
+        assert [n["type"] for n in blocks] == ["captionedImage", "subscribeWidget"]
+        assert len(blocks[0]["content"]) == 1
+    trailing = convert("image with a trailing space")["body"]["content"]
+    assert [n["type"] for n in trailing] == ["paragraph", "subscribeWidget"]
+    assert convert("strong subtitle")["subtitle"] == "S"
+    [table, _] = convert("cell rule")["body"]["content"]
+    rows = table["attrs"]["persistentExpression"].split("\n")[2:-1]
+    assert [row.removesuffix(" \\\\") for row in rows] == [latex for _, latex in CELL_RULE]
 
 
 def test_the_divergent_strings_read_as_intended() -> None:
@@ -756,12 +925,29 @@ def test_summary_hashes_are_what_the_page_recomputes() -> None:
 def test_summary_hashes_the_file_bytes_not_the_text_read_back() -> None:
     """A file with Windows line endings reads back as different text.
 
-    The page fetches the bytes and hashes them, so ``md_sha256`` must too, or
-    the driver's Markdown check would refuse a file it should accept.
+    The page hashes the text fetch returned, encoded back to UTF-8. That keeps
+    every byte of the file except a leading byte order mark, which fetch's
+    ``text()`` drops. So ``md_sha256`` hashes the bytes with that one mark
+    removed, or the driver's Markdown check would refuse a file it should
+    accept.
     """
     md_bytes = b"# Title\r\n\r\n*Subtitle*\r\n\r\nText.\r\n"
     draft = m2s.convert("# Title\n\n*Subtitle*\n\nText.\n", {})
     assert m2s.summary(draft, md_bytes)["md_sha256"] == hashlib.sha256(md_bytes).hexdigest()
+    marked = m2s.summary(draft, b"\xef\xbb\xbf" + md_bytes)["md_sha256"]
+    assert marked == hashlib.sha256(md_bytes).hexdigest()
+    twice = m2s.summary(draft, b"\xef\xbb\xbf\xef\xbb\xbf" + md_bytes)["md_sha256"]
+    assert twice == hashlib.sha256(b"\xef\xbb\xbf" + md_bytes).hexdigest()
+
+
+def test_the_subtitle_length_counts_what_substack_counts() -> None:
+    """The page's ``subtitle.length`` counts UTF-16 units, and so does the summary.
+
+    An emoji is one code point and two UTF-16 units, so a subtitle of ``a``,
+    an emoji and ``b`` measures 4 against Substack's 255 limit, not 3.
+    """
+    draft = m2s.convert(f"# T\n\n*a{chr(0x1F600)}b*\n\nBody.\n", {})
+    assert m2s.summary(draft, b"")["subtitle_length"] == 4
 
 
 def test_the_command_line(tmp_path: Path) -> None:
@@ -786,15 +972,23 @@ def test_the_command_line_reads_the_file_as_the_page_does(tmp_path: Path) -> Non
 
     The page reads the Markdown through fetch, and fetch's ``text()`` does
     both. Reading the file as Python text would turn CRLF into LF and give
-    the in-page conversion a different tree to match.
+    the in-page conversion a different tree to match. Only one mark goes, so
+    a file opening with two keeps the second, and ``md_sha256`` hashes what
+    is left. A non-ASCII character decodes as UTF-8.
     """
-    raw = DIVERGENCES["carriage returns"].encode("utf-8")
-    post = tmp_path / "post.md"
-    post.write_bytes(b"\xef\xbb\xbf" + raw)
-    run = [sys.executable, str(SKILL_DIR / "md2substack.py"), str(post)]
-    done = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
-    assert json.loads(done.stdout) == m2s.convert(raw.decode("utf-8"), {})
-    assert json.loads(done.stdout) != m2s.convert(post.read_text(encoding="utf-8-sig"), {})
+    bom = b"\xef\xbb\xbf"
+    raw = (DIVERGENCES["carriage returns"] + "An arrow → stays.\r\n").encode("utf-8")
+    for prefix, kept in ((bom, b""), (bom + bom, bom)):
+        post = tmp_path / "post.md"
+        post.write_bytes(prefix + raw)
+        run = [sys.executable, str(SKILL_DIR / "md2substack.py"), str(post)]
+        done = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
+        expected = m2s.convert((kept + raw).decode("utf-8"), {})
+        assert json.loads(done.stdout) == expected
+        assert json.loads(done.stdout) != m2s.convert(post.read_text(encoding="utf-8-sig"), {})
+        run.insert(2, "--summary")
+        brief = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
+        assert json.loads(brief.stdout)["md_sha256"] == hashlib.sha256(kept + raw).hexdigest()
 
 
 def test_the_javascript_raises_on_an_unterminated_fence(tmp_path: Path) -> None:

@@ -27,9 +27,10 @@ A paragraph line
 | --- |
 | The delimiter row above has one cell for two headers, so this is a paragraph |
 
-| Ends at a line |
+| Runs to a blank line |
 | --- |
-| that opens a pipe |
-and this line, which does not, starts a paragraph.
+| a row that opens a pipe |
+a line with no pipe is a row too
+- and a bullet ends the table
 
-<!-- markdownlint-disable-file MD038 MD055 MD056 MD058 MD060 -->
+<!-- markdownlint-disable-file MD032 MD038 MD055 MD056 MD058 MD060 -->

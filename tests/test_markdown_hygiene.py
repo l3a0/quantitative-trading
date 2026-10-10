@@ -206,6 +206,7 @@ MUST_BE_SWEPT = frozenset(
         "tests/fixtures/substack/edge-cases.md",
         "tests/fixtures/substack/every-construct.md",
         "tests/fixtures/substack/linked-images.md",
+        "tests/fixtures/substack/shape-edges.md",
         "tests/fixtures/substack/subtitle-escapes.md",
         "tests/fixtures/substack/tables.md",
     }
