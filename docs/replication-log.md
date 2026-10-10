@@ -4970,7 +4970,7 @@ verdict, which `test_row_3_the_pair_cointegrates_at_95_percent` also asserts.
 | 6 | Nulls rejected in order, up to the first that is not | 2 by each test at 95 percent, the trace's first also at 99 | `TestTheClaims::test_row_6_both_tests_find_two_relations_for_the_pair_at_95` and the two tests beside it |
 | 7 | `johansen([EWC, EWA, IGE], 0, 1)` | 34.428620, 17.531719 and 4.471021 | `TestExample27TheJohansenTest::test_row_7_the_triplet_trace_statistics` |
 | 8 | The same | 16.896901, 13.060698 and 4.471021 | `TestExample27TheJohansenTest::test_row_8_the_triplet_eigen_statistics` |
-| 9 | As row 6 | 3 by the trace test and 0 by the eigen test, at 90, 95 and 99 percent | `TestTheClaims::test_row_9_the_trace_test_finds_three_relations_at_95` and `::test_row_9_the_eigen_test_finds_none_even_at_90` |
+| 9 | As row 6 | 3 by the trace test at 90 and 95 percent and 0 at 99, and 0 by the eigen test at all three | `TestTheClaims::test_row_9_the_trace_test_finds_three_relations_at_95`, `::test_row_9_the_trace_test_finds_none_at_99` and `::test_row_9_the_eigen_test_finds_none_even_at_90` |
 | 10 | The same test as row 7 | 0.01121626, 0.00868086 and 0.00298021 | `TestExample27TheJohansenTest::test_row_10_the_triplet_eigenvalues` |
 | 11 | The same | Chan's matrix with every sign flipped, first column 1.0460, −0.7600, −0.2233 | `TestExample27TheJohansenTest::test_row_11_the_eigenvectors_are_chans_with_every_sign_flipped` |
 | 12 | `ou_half_life` on the first eigenvector's portfolio | 22.6625778505 | `TestExample27TheJohansenTest::test_row_12_the_half_life` |
@@ -5059,7 +5059,10 @@ none is in the script.
 that lag alone, and row 6's rests on a margin of 0.141.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.etf_cointegration_figures` redraws.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 
