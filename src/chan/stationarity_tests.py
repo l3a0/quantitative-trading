@@ -15,10 +15,18 @@ copy.
 3. :func:`vratiotest` is the Lo and MacKinlay variance ratio test as MATLAB's
    Econometrics Toolbox computes it.
 
-What vouches for each transcription is that it lands the digits Chan printed
-from it on his own closes. ``tests/test_usdcad_mean_reversion.py`` holds that,
-and ``tests/test_stationarity_tests.py`` holds each function's rules on
-synthetic series.
+What vouches for :func:`jplv7_adf` and :func:`vratiotest` is that each lands
+the digits Chan printed from it on his own closes, which
+``tests/test_usdcad_mean_reversion.py`` holds. :func:`genhurst` has no such
+check. Neither script that calls it prints an H in its closing comment, and
+the book's two figures both miss: 0.4732 against 0.49 on USD.CAD, and 0.4334
+against 0.44 on TU, which ``tests/test_tu_momentum.py`` holds. Those two pins
+catch a change to :func:`genhurst` without showing it is right. What checks
+its rules is ``TestGenhurst`` in ``tests/test_stationarity_tests.py``,
+which checks on synthetic series that H sits near a half on a random walk and
+well below it on a reverting series, that it ignores the series' level and
+scale, and that ``q`` and ``max_t`` each move it. That file also holds every
+function's other rules on synthetic series.
 
 **Why jplv7's ADF is not** :func:`ithildincore.timeseries.adf_tstat`. That is
 ``statsmodels``' ``adfuller`` at a fixed lag, and jplv7's ``adf`` starts its

@@ -177,6 +177,28 @@ and the comment under its `fprintf` records `APR=0.117600 Sharpe=1.100368`,
 which rounds to both. The replication log's Entry 31 traces both to the
 script's run.
 
+*Algorithmic Trading*'s Kalman filter on EWA and EWC, in its Chapter 3, splits
+the same way as its Example 3.2, and the book's figures are its script's
+rounded. Location 1726 prints "a reasonable APR of 26.2 percent and a Sharpe
+ratio of 2.4", and makes the two claims about the filter's slope and intercept.
+The six-decimal figures, 0.262252 and 2.361162, sit in the closing comment of
+`KF_beta_EWA_EWC.m` and nowhere in the book. The filter's equations are absent
+the second way described below, as Examples 8.1 and 8.2's are. Locations 1658
+and 1760 are here, and each equation survives in them only as its number, such
+as "(3.5)". Box 3.1, which carries the equations the script labels 3.7 to
+3.12, is not among the highlights. The replication log's Entry 32 traces each
+figure to one or the other.
+
+*Algorithmic Trading*'s Example 6.1 splits the way Examples 2.1 to 2.5 do. The
+book's figures are here: the 250/25 correlation of 0.27 with a p-value of 0.02
+at location 2659, H of 0.44 and the variance ratio test's failure to reject at
+2646, and the Sharpe ratio of 1, the APR of 1.7 percent and the maximum
+drawdown of 2.5 percent from June 1, 2004, to May 11, 2012, at 2668. The
+figures `TU_mom.m`'s comment prints, 0.0167 twice, 1.04, −0.024847, 343 days
+and a Kelly f of 64.919535, sit in the script and nowhere in the book. Table
+6.2 is named at 2668 and none of its rows is here. The replication log's
+Entry 33 traces each figure to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an

@@ -172,6 +172,7 @@ MUST_BE_SWEPT = frozenset(
         "docs/design.md",
         "docs/replication-log.md",
         "data/README.md",
+        "blog/aud-cad-rollover-lessons.md",
         "blog/buy-on-gap-lessons.md",
         "blog/calendar-spreads-lessons.md",
         "blog/coin-toss-expected-value-vs-growth.md",
@@ -190,6 +191,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/risk-parity-against-60-40.md",
         "blog/stationary-candidates-lessons.md",
         "blog/survivorship-and-transaction-costs.md",
+        "blog/vx-es-lessons.md",
         "research/book-notes/README.md",
         "research/book-notes/algorithmic-trading.md",
         "research/book-notes/quantitative-trading.md",
@@ -1150,6 +1152,8 @@ class TestTheFigureHasThreeCopies:
             "price-spread-ratio-lessons.md",
             "gold-miners-oil-lessons.md",
             "johansen-etf-lessons.md",
+            "vx-es-lessons.md",
+            "aud-cad-rollover-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()

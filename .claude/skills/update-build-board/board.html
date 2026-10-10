@@ -1,0 +1,2161 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Quantitative Trading Build Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  /* The book speaks in serif, the repo answers in mono. That mapping is the page's
+     one structural conceit and it is information rather than decoration: every
+     published figure is set in the book's face, every computed figure in the
+     repo's, so a reader can tell whose number they are looking at without a label. */
+  :root {
+    --ground: #F2F5F7;
+    --panel: #FFFFFF;
+    --panel-2: #E9EEF2;
+    --ink: #17202A;
+    --muted: #55636F;
+    --faint: #83919E;
+    --line: #DCE3E9;
+    --rule: #C2CCD6;
+    --accent: #2F5D8C;
+    --accent-soft: #DEE9F4;
+    --exact: #1C6B4B;
+    --exact-soft: #D9EDE3;
+    --gap: #8E6310;
+    --gap-soft: #F6E9CD;
+    --wait: #7A4E86;
+    --wait-soft: #EDE1F2;
+    --far: #8C3A34;
+    --far-soft: #F5DEDC;
+    --idle: #6E7A85;
+    --idle-soft: #E5EAEE;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E141A; --panel: #161D25; --panel-2: #1C242D;
+      --ink: #E3EAF1; --muted: #93A1AF; --faint: #74828F; --line: #252E38; --rule: #36414D;
+      --accent: #78ADDC; --accent-soft: #14283C;
+      --exact: #5DBE93; --exact-soft: #0F2820;
+      --gap: #D6A448; --gap-soft: #2F2513;
+      --wait: #BD98CC; --wait-soft: #261A2B;
+      --far: #DD8880; --far-soft: #2D1715;
+      --idle: #8494A2; --idle-soft: #1F272F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E141A; --panel: #161D25; --panel-2: #1C242D;
+    --ink: #E3EAF1; --muted: #93A1AF; --faint: #74828F; --line: #252E38; --rule: #36414D;
+    --accent: #78ADDC; --accent-soft: #14283C;
+    --exact: #5DBE93; --exact-soft: #0F2820;
+    --gap: #D6A448; --gap-soft: #2F2513;
+    --wait: #BD98CC; --wait-soft: #261A2B;
+    --far: #DD8880; --far-soft: #2D1715;
+    --idle: #8494A2; --idle-soft: #1F272F;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; }
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: currentColor; }
+  a:focus-visible, [tabindex]:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  .mast { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+  .mast h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.015em; }
+  .mast .sub { color: var(--muted); font-size: 0.875rem; }
+  .strip { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
+  .chip { font-family: var(--mono); font-size: 0.75rem; padding: 5px 10px; border: 1px solid var(--line);
+          background: var(--panel); border-radius: 4px; color: var(--muted); }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .chip.live { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .sec { margin-top: 38px; }
+  .sec > header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px;
+                  border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 16px; }
+  .sec h2 { font-size: 0.8125rem; font-family: var(--mono); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.09em; color: var(--accent); }
+  .sec .note { font-size: 0.8125rem; color: var(--faint); }
+  .sec .note b { color: var(--muted); font-weight: 600; }
+
+  /* ---- the tally ---- */
+  .tally { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tally .t { display: inline-flex; align-items: center; gap: 8px; font-size: 0.75rem;
+              font-family: var(--mono); color: var(--muted); border: 1px solid var(--line);
+              background: var(--panel); border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+  .tally .t b { color: var(--ink); font-weight: 600; font-size: 0.8125rem; }
+  .tally .t[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .tally .t i { width: 9px; height: 9px; border-radius: 50%; flex: none; display: block; }
+  .tally .t i.s-exact { background: var(--exact); }
+  .tally .t i.s-gap { background: var(--gap); }
+  .tally .t i.s-build { background: var(--panel); border: 2px solid var(--accent); }
+  .tally .t i.s-vintage { background: var(--panel); border: 2px dashed var(--wait); }
+  .tally .t i.s-source { background: var(--panel); border: 2px dotted var(--far); }
+
+  .gsum { margin-top: 12px; font-size: 0.8125rem; color: var(--muted);
+          display: flex; flex-wrap: wrap; gap: 4px 9px; align-items: baseline; }
+  .gsum b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .gsum .sep { color: var(--rule); }
+
+  /* ---- the experiment list ---- */
+  .grp { margin-top: 22px; }
+  .grp > .gh { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+               border-top: 2px solid var(--rule); padding-top: 7px; margin-bottom: 10px; }
+  .grp > .gh .gt { font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+                   text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink); }
+  .grp > .gh .gc { font-family: var(--mono); font-size: 0.6875rem; color: var(--faint); }
+  .xs { display: flex; flex-direction: column; gap: 8px; }
+
+  .x { border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
+       padding: 12px 14px 13px; display: grid; grid-template-columns: minmax(0,1fr) auto;
+       gap: 3px 12px; align-items: baseline; }
+  .x.s-exact { border-left: 3px solid var(--exact); }
+  .x.s-gap { border-left: 3px solid var(--gap); }
+  .x.s-build { border-left: 3px solid var(--accent); }
+  .x.s-vintage { border-left: 3px solid var(--wait); }
+  .x.s-source { border-left: 3px solid var(--far); background: none; }
+  .x .ref { font-family: var(--mono); font-size: 0.6875rem; color: var(--faint);
+            grid-column: 1 / -1; }
+  .x .ref .sep { color: var(--rule); }
+  .x .ti { font-size: 0.9375rem; font-weight: 600; min-width: 0; }
+  .x .claim { grid-column: 1 / -1; font-family: var(--serif); font-size: 0.9375rem;
+              color: var(--muted); max-width: 70ch; margin-top: 2px; }
+  .x .claim q { quotes: none; }
+  .st { font-family: var(--mono); font-size: 0.625rem; text-transform: uppercase;
+        letter-spacing: 0.08em; font-weight: 600; padding: 3px 8px; border-radius: 3px;
+        border: 1px solid currentColor; white-space: nowrap; justify-self: end; }
+  .st.s-exact { color: var(--exact); background: var(--exact-soft); }
+  .st.s-gap { color: var(--gap); background: var(--gap-soft); }
+  .st.s-build { color: var(--accent); background: var(--accent-soft); }
+  .st.s-vintage { color: var(--wait); background: var(--wait-soft); }
+  .st.s-source { color: var(--far); background: var(--far-soft); }
+
+  .figs { grid-column: 1 / -1; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .fig { font-size: 0.75rem; color: var(--muted); display: flex; align-items: baseline; gap: 6px; }
+  .fig .fl { color: var(--faint); }
+  .fig .bk { font-family: var(--serif); font-size: 0.875rem; color: var(--ink); font-weight: 600; }
+  .fig .ar { color: var(--rule); }
+  .fig .rp { font-family: var(--mono); font-size: 0.8125rem; font-variant-numeric: tabular-nums;
+             color: var(--ink); font-weight: 500; }
+  .fig .rp.none { color: var(--faint); font-weight: 400; }
+
+  .gate { grid-column: 1 / -1; margin-top: 9px; max-width: 72ch; font-size: 0.8125rem;
+          color: var(--ink); border-left: 2px solid var(--rule); padding: 2px 0 2px 11px; }
+  .gate .gl { font-family: var(--mono); font-size: 0.625rem; text-transform: uppercase;
+              letter-spacing: 0.08em; font-weight: 600; display: block; margin-bottom: 2px; }
+  .gate .gi { font-family: var(--mono); font-size: 0.75rem; }
+  .gate.g-work { border-left-color: var(--accent); }
+  .gate.g-work .gl { color: var(--accent); }
+  .gate.g-vintage { border-left-color: var(--wait); }
+  .gate.g-vintage .gl { color: var(--wait); }
+  .gate.g-source { border-left-color: var(--far); }
+  .gate.g-source .gl { color: var(--far); }
+
+  /* ---- the gap ledger ---- */
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+  table.led { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 0.8125rem; }
+  .led th { text-align: left; font-family: var(--mono); font-size: 0.6875rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.07em; color: var(--faint);
+            padding: 10px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  .led td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .led tr:last-child td { border-bottom: none; }
+  .led .what { color: var(--ink); font-weight: 500; }
+  .led .src { font-family: var(--serif); font-size: 0.9375rem; font-weight: 600; white-space: nowrap; }
+  .led .got { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .led .vint { font-family: var(--mono); font-size: 0.6875rem; color: var(--muted); }
+  .led .d { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .led .d.zero { color: var(--exact); font-weight: 600; }
+  .led .d.off { color: var(--gap); }
+  .led .vd { font-size: 0.75rem; color: var(--muted); max-width: 30ch; }
+
+
+  /* ---- build order: dependency stages ---- */
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+  .col > .ch { border-top: 2px solid var(--rule); padding-top: 7px; display: flex;
+               align-items: baseline; gap: 7px; flex-wrap: wrap; }
+  .col > .ch .t { font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+                  text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink); }
+  .col > .ch .c { font-family: var(--mono); font-size: 0.6875rem; color: var(--faint); }
+  .col > .ch .d { flex-basis: 100%; font-size: 0.6875rem; color: var(--faint); }
+  .col.k0 > .ch { border-top-color: var(--exact); }
+  .col.k1 > .ch { border-top-color: var(--accent); }
+  .col.k2 > .ch { border-top-color: var(--wait); }
+  .col.k3 > .ch { border-top-color: var(--far); }
+  /* The flow columns are stages rather than depths, so they take their own
+     colours: green where the ball is nobody's yet, blue while a session holds
+     it, amber while a review is owed, and the accent again when it is the
+     owner's move. */
+  .col.f-owner > .ch { border-top-color: var(--exact); }
+  .col.f-mine > .ch { border-top-color: var(--gap); }
+  .col.f-building > .ch { border-top-color: var(--accent); }
+  .col.f-planned > .ch { border-top-color: var(--wait); }
+  .col .empty { font-size: 0.75rem; color: var(--faint); font-style: italic;
+                border: 1px dashed var(--line); border-radius: 6px; padding: 10px; }
+
+  .tk { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px 9px;
+        background: var(--panel); display: flex; flex-direction: column; gap: 4px;
+        cursor: pointer; transition: opacity .12s, border-color .12s; }
+  .tk:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tk .r1 { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .tk .id { font-family: var(--mono); font-size: 0.75rem; font-weight: 600; }
+  .tk .sl { font-family: var(--mono); font-size: 0.625rem; color: var(--faint);
+            border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+  /* The tracker's own labels, carried across rather than re-invented, because a
+     second vocabulary for the same thing is a second thing to keep in step.
+     Each takes its colour from the hue GitHub stores for that label, so a
+     reader moving between the two surfaces is looking at the same chip. */
+  .tk .lbs { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tk .lbs b { font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
+               text-transform: uppercase; letter-spacing: 0.06em; border-radius: 3px;
+               padding: 1px 5px; border: 1px solid currentColor; }
+  .tk .lb { font-size: 0.8125rem; line-height: 1.35; }
+  .tk .wo { font-size: 0.6875rem; color: var(--faint); font-family: var(--mono); }
+  .tk.k-ready { border-left: 3px solid var(--exact); }
+  .tk.k-deferred { border-style: dashed; background: none; }
+  .tk.k-deferred .lb, .tk.k-decision .lb, .tk.k-parent .lb { color: var(--muted); }
+  .tk.k-decision { border-left: 3px solid var(--gap); }
+  .tk.k-data { border-style: dashed; background: none; border-left: 3px solid var(--far); }
+  /* A parent that builds nothing takes the idle grey, the same ink the loops'
+     column uses for work nothing is owed on. It keeps a solid border, because a
+     dashed one already means deferred and a second dashed kind would collapse
+     two different reasons into one look. */
+  .tk.k-parent { border-left: 3px solid var(--idle); background: none; }
+  /* An open pull request is a state of its own, so it colours the three borders
+     the kind stripe does not use rather than overwriting the kind stripe. */
+  .tk.has-pr { border-top-color: var(--accent); border-right-color: var(--accent);
+                border-bottom-color: var(--accent); }
+  .tk .pr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 6px;
+            font-family: var(--mono); font-size: 0.6875rem; color: var(--muted); }
+  /* A card somebody is already on is not a card to pick up. It gets the wait
+     colour, which the board already uses for work that is not free to start.
+     The stripe is its own mark rather than the pull request's border, because
+     a session can be on a card with or without a branch. Since defect 17 a
+     build session keeps its entry until it hands its pull request over, so a
+     card under "Waiting on my review" can carry both. */
+  .tk.busy { box-shadow: inset 3px 0 0 0 var(--wait); }
+  /* A card whose plan has been executed against the code is a different thing
+     from a card whose body is still a hypothesis, and the difference is what
+     decides whether it can be handed to a builder. It is drawn as a filled
+     corner rather than another border, because the borders are spoken for. */
+  .tk.plan-build { box-shadow: inset 0 3px 0 0 var(--exact); }
+  .tk.plan-decide { box-shadow: inset 0 3px 0 0 var(--gap); }
+  .tk .pl { font-family: var(--mono); font-size: 0.6875rem; }
+  .tk .pl.build { color: var(--exact); }
+  .tk .pl.decide { color: var(--gap); }
+  /* Where a card sits in the priority order, as a mark rather than a paragraph.
+     Restating the argument here was one surface too many and made a ranked card
+     three times the height of its neighbours. A card with no mark is not ranked
+     at all, and a deferred one drops its mark rather than showing a number its
+     position contradicts. */
+  .tk .rk { font-family: var(--mono); font-size: 0.625rem; font-weight: 600;
+            color: var(--accent); background: var(--accent-soft);
+            border-radius: 3px; padding: 0 5px; }
+  .tk .pr .sep { color: var(--rule); }
+  .tk .pr .ck.ok { color: var(--exact); }
+  .tk .pr .ck.bad { color: var(--far); }
+  .tk .pr .ck.run { color: var(--gap); }
+  .tk .pr .ck.none { color: var(--faint); }
+  .tk .pr .nolink { flex-basis: 100%; color: var(--faint); }
+  .board.picking .tk { opacity: .26; }
+  .board.picking .tk.on { opacity: 1; border-color: var(--accent); }
+  .board.picking .tk.root { opacity: 1; border-color: var(--accent);
+                            box-shadow: 0 0 0 2px var(--accent-soft); }
+
+  .chainbar { margin-top: 12px; font-size: 0.75rem; color: var(--muted); display: flex;
+              align-items: center; gap: 10px; flex-wrap: wrap; min-height: 1.6em; }
+  .chainbar button { font: inherit; font-family: var(--mono); font-size: 0.6875rem;
+                     color: var(--accent); background: none; border: 1px solid var(--accent);
+                     border-radius: 3px; padding: 2px 8px; cursor: pointer; }
+  .chainbar .hint { color: var(--faint); }
+  /* The line that says how many cards the default view hides, and the button
+     that shows them. It borrows the chain bar's button, so it reads as the
+     same kind of control. Taken from the Marketlake Build Board. */
+  .more { margin-bottom: 14px; font-size: 0.75rem; color: var(--muted); display: flex;
+          align-items: center; gap: 10px; flex-wrap: wrap; }
+  .more button { font: inherit; font-family: var(--mono); font-size: 0.6875rem;
+                 color: var(--accent); background: none; border: 1px solid var(--accent);
+                 border-radius: 3px; padding: 2px 8px; cursor: pointer; }
+  .key { display: flex; flex-wrap: wrap; gap: 9px 16px; margin-top: 12px;
+         font-size: 0.75rem; color: var(--muted); align-items: center; }
+  .key span { display: inline-flex; align-items: center; gap: 6px; }
+  .key i { width: 22px; height: 12px; border-radius: 3px; border: 1px solid var(--line);
+           background: var(--panel); flex: none; }
+  .key i.ready { border-left: 3px solid var(--exact); }
+  .key i.decision { border-left: 3px solid var(--gap); }
+  .key i.deferred { border-style: dashed; background: none; }
+  .key i.data { border-style: dashed; background: none; border-left: 3px solid var(--far); }
+  .key i.parent { border-left: 3px solid var(--idle); background: none; }
+  .key i.has-pr { border-top-color: var(--accent); border-right-color: var(--accent);
+                   border-bottom-color: var(--accent); }
+  .key i.busy { box-shadow: inset 3px 0 0 0 var(--wait); }
+  .key i.plan-build { box-shadow: inset 0 3px 0 0 var(--exact); }
+  .key i.plan-decide { box-shadow: inset 0 3px 0 0 var(--gap); }
+  /* The one swatch that carries a glyph rather than a colour, because the mark
+     it stands for is a number and an empty block would not be recognisable as
+     the thing on the card. The glyph is a letter rather than a digit on
+     purpose. A digit here reads as a position and points at whichever card is
+     currently sitting on it. */
+  .key i.rk { width: auto; min-width: 22px; height: auto; border: none;
+              background: var(--accent-soft); color: var(--accent);
+              font-family: var(--mono); font-size: 0.625rem; font-weight: 600;
+              font-style: normal; padding: 0 5px; text-align: center; line-height: 1.55; }
+  .key i.rk::before { content: "n"; }
+
+  .board.flow { grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 1100px) { .board.flow { grid-template-columns: repeat(3, 1fr); } }
+  /* The loops' column takes the idle grey, because a card under one is the least
+     finished thing the section draws and nothing about it is owed to anybody. */
+  .col.f-planning > .ch { border-top-color: var(--idle); }
+  @media (max-width: 900px) { .board { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .board { grid-template-columns: 1fr; } }
+
+  .caveat { margin-top: 18px; border-left: 3px solid var(--accent); background: var(--panel);
+            border-radius: 0 5px 5px 0; padding: 12px 15px; font-size: 0.8125rem; color: var(--muted); }
+  .caveat b { color: var(--ink); font-weight: 600; }
+  .caveat + .caveat { margin-top: 10px; }
+  .caveat.warn { border-left-color: var(--gap); }
+
+  footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--line);
+           font-size: 0.75rem; color: var(--faint); }
+  footer p { margin: 0 0 8px; max-width: 76ch; }
+  footer p:last-child { margin-bottom: 0; }
+  footer b { color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  @media (max-width: 560px) {
+    .x { grid-template-columns: minmax(0,1fr); }
+    .st { justify-self: start; margin-top: 4px; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <h1>Quantitative Trading Build Board</h1>
+    <span class="sub">the order of work on Chan's replications</span>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="caveat warn" id="source" hidden></div>
+  <p class="note" style="margin:0 0 4px;font-size:0.8125rem;color:var(--faint)">The first replication is written up two ways in the repo: <a href="https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md" target="_blank" rel="noopener">the replication log</a>, which carries the verdicts, and <a href="https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gdx-cointegration-lessons.md" target="_blank" rel="noopener">the essay</a>, which explains them.</p>
+
+  <section class="sec" id="flightsec">
+    <header>
+      <h2>In flight</h2>
+      <span class="note">the five states between a plan being written and a merge, <b>most finished
+        on the left</b>. A card here is somebody's already, and the column says whose move it is.</span>
+    </header>
+    <div class="board flow" id="flow"></div>
+    <div class="chainbar" id="flowchain"></div>
+    <div class="key" id="flowkey"></div>
+    <div class="caveat" id="flownote"></div>
+  </section>
+
+  <section class="sec" id="ordersec">
+    <header>
+      <h2>Build order</h2>
+      <span class="note" id="ordernote"></span>
+    </header>
+    <div class="more" id="more"></div>
+    <div class="board" id="board"></div>
+    <div class="chainbar" id="chainbar"></div>
+    <div class="key" id="key"></div>
+    <div class="caveat" id="boardnote"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const ISS = "https://github.com/l3a0/quantitative-trading/issues/";
+const PRU = "https://github.com/l3a0/quantitative-trading/pull/";
+
+/* The board's data lives in the artifact's database, one document per section
+   in the `board` collection: board/state, board/prs, board/working,
+   board/planned, board/next and board/tracker. A session updates a section with
+   a write pinned to the version it read, so two sessions writing at once cannot
+   overwrite each other. The later write is refused, re-reads and redoes its
+   edit. Splitting by section is what keeps that rare: a session marking a
+   decompose loop touches board/working and nothing else, so it never collides
+   with one recording a pull request. The update-build-board skill carries the
+   procedure, and publishing this page is now only for changes to the code and
+   for starting a new board.
+
+   Each document is { schema: 1, items: [...] }, except board/state, which is
+   { schema: 1, updatedAt, issues: { open } }. The page subscribes to all six and
+   redraws on every write.
+
+   FALLBACK carries no board data. A copy of the six documents used to sit
+   here, and a copy goes stale silently, because nothing refreshes it once the
+   page is checked in. So until the live documents arrive, or when the database
+   cannot be reached, the page draws only the banner under the strip, which
+   says why there is nothing to show. That is the arrangement the Marketlake
+   Build Board uses, split into sections here.
+
+   The skill's harness has no database, so `with-db.py` splices the documents it
+   just read into this line of a scratch copy. A spliced FALLBACK has no `none`,
+   and the page draws it as before, with the banner saying it shows the copy
+   built into the page and how old that copy is. */
+const DB_COLLECTION = "board";
+const SECTIONS = ["state", "prs", "working", "planned", "next", "tracker"];
+const FALLBACK = { none: true };
+/* True while there is no board to draw. Every section states facts about the
+   tracker, so the page draws nothing but the banner until it has data. */
+let NONE = true;
+
+let STATE, PRS, WORKING, PLANNED, NEXT, TRACKER, NEXT_SORTED;
+let SOURCE = { live: false, why: "loading" };
+
+/* What each section must hold before the page adopts it. A document that fails
+   leaves the last good copy of that section on screen rather than drawing a
+   board from half a write.
+
+   The check reaches inside the items and the state's figures, not only the
+   outer shape. Its first version looked at the shape alone, and a review of
+   the migration showed what that cost: a tracker item with no `needs` passed,
+   crashed the redraw, and left a new strip above the old board with no banner.
+   Every field the renderer dereferences without a guard is checked here. A
+   field it already treats as optional, such as a pull request's `rollup` or a
+   card's `after`, is left alone, because refusing it would refuse a document
+   the page draws correctly. `render` is also wrapped where it is called, so a
+   shape this misses still lands on the banner rather than on a half-drawn
+   board. */
+const isNum = v => typeof v === "number" && isFinite(v);
+const isStr = v => typeof v === "string";
+const ITEM_OK = {
+  prs: p => p && isNum(p.pr) && isNum(p.issue) && isStr(p.state),
+  working: w => w && isNum(w.n),
+  planned: p => p && isNum(p.n) && isNum(p.passes) && isStr(p.ready),
+  next: x => x && isNum(x.issue) && isNum(x.band) && isStr(x.ready),
+  tracker: c => c && isNum(c.n) && isStr(c.ms) && isStr(c.label) && isStr(c.kind) &&
+    Array.isArray(c.needs) && Array.isArray(c.labels)
+};
+function usableSection(name, d) {
+  if (!d || d.schema !== 1) return false;
+  if (name === "state") {
+    return isStr(d.updatedAt) && !!d.issues && isNum(d.issues.open);
+  }
+  if (!Array.isArray(d.items) || !d.items.every(ITEM_OK[name])) return false;
+  return name === "tracker" ? d.items.length > 0 : true;
+}
+
+/* A delivered snapshot is frozen, so the page works on a clone. */
+function adopt(src) {
+  NONE = !!src.none; /* only an unspliced FALLBACK carries it */
+  if (NONE) return;
+  const d = JSON.parse(JSON.stringify(src));
+  STATE = d.state; PRS = d.prs; WORKING = d.working; PLANNED = d.planned;
+  NEXT = d.next; TRACKER = d.tracker;
+  NEXT_SORTED = NEXT.slice().sort((a, b) =>
+    a.band - b.band ||
+    (a.order || 50) - (b.order || 50) ||
+    READY_RANK[a.ready] - READY_RANK[b.ready] ||
+    a.issue - b.issue);
+}
+
+/* The banner is empty while the page shows live data, and says what it is
+   showing otherwise. It never guesses at why a view cannot reach the database,
+   because the platform deliberately does not say. */
+function source() {
+  const el = document.getElementById("source");
+  if (!el) return;
+  if (SOURCE.live) { el.hidden = true; el.innerHTML = ""; return; }
+  /* A function, because STATE is unset while the page has no data. */
+  const age = () => `measured ${esc(ago(STATE.updatedAt))}`;
+  const copy = NONE ? `no board data` : `the copy built into the page, ${age()}`;
+  /* With no data there is no copy to fall back on, so the lines say so rather
+     than what a copy would be missing. */
+  const own = NONE ? `, and the page carries no copy of its own` : ``;
+  const lines = {
+    loading: `<b>Showing ${copy}.</b> The live board has not arrived yet${own}.`,
+    none: `<b>Showing ${copy}.</b> This view cannot reach the live board` +
+      (NONE ? `${own}.` : `, so anything a session wrote since then is missing here.`),
+    empty: `<b>Showing ${copy}.</b> ` + (SOURCE.missing
+      ? `The live board is missing ${esc(SOURCE.missing)}.`
+      : `The live board holds no document yet.`),
+    shape: `<b>Showing ${copy}.</b> The live board's ${esc(SOURCE.missing || "")} section is missing fields this page needs, so it was not used.`,
+    stopped: `<b>Live updates stopped${SOURCE.code ? ` (${esc(SOURCE.code)})` : ""}.</b> ` +
+      (SOURCE.had ? `What is shown is the last live data, ${age()}. Reload to reconnect.`
+                  : `Showing ${copy}.`)
+  };
+  el.innerHTML = lines[SOURCE.why] || lines.none;
+  /* The loading line waits a few seconds before it shows, so a normal load that
+     connects at once never flashes a warning. That wait suits a page with a
+     copy to show meanwhile. With no data it would leave a blank page with no
+     word of why, so then the line shows at once. */
+  if (SOURCE.why === "loading" && !NONE) {
+    el.hidden = true;
+    if (typeof setTimeout === "function") {
+      setTimeout(() => { if (!SOURCE.live && SOURCE.why === "loading") el.hidden = false; }, 4000);
+    }
+  } else {
+    el.hidden = false;
+  }
+}
+
+/* The strip carries two things: the open issue count and the stamp. It used to
+   carry five more, the commit `main` stood at, the vintage files and their rows,
+   the committed highlights, the suite's test count and the experiments tracked.
+   The owner removed all five on 2026-10-05. Each was measured on a clean
+   checkout of `main`, and the test count cost a full suite run of about nine
+   minutes per update. A merge during that run made the count describe a commit
+   that was no longer `main`, so the run started over, which happened on the day
+   they were removed. None of the five said what to take next, which is the
+   question this page answers. */
+
+/* One entry per open branch, and a merged one only while the board still has
+   something to say about it. The array is the whole account of what is open, so
+   this comment carries the rules for reading it rather than a sentence naming
+   today's branches, which is the first defect on the skill's list in the one
+   place a reader cannot see it render.
+
+   A rollup is read against a branch's current head rather than the commit it
+   opened on, because it is a claim about one merge ref at one moment and a
+   review's fixes move the head. A check that has not concluded is carried as
+   running rather than folded into either verdict. GitHub reports it with a null
+   conclusion, and a filter asking whether the conclusion is success calls that
+   a failure, which has twice nearly put a red word on a branch nothing was
+   wrong with.
+
+   `reviewed` is the only flag here that no query answers on its own. GitHub's
+   own review decision stays at "review required" whatever a session posts,
+   because a session comments rather than approving, so a review that has
+   landed and a review nobody has written look identical to the API. Counting
+   the comments that open with a review heading is what separates them, and a
+   card cannot leave the column saying the next move is mine without it.
+
+   A branch that closes no issue gets no card at all, because the board is
+   built from the tracker. That happened once, and the fix was to file the
+   issue rather than to give the page a second source of truth.
+
+   `linked` is GitHub's own closingIssuesReferences, and it is kept because the
+   failure it records is cheap to repeat. It was empty on both PR 34 and PR 35,
+   because both bodies wrote the closing keyword inside a code span, where
+   GitHub does not read it. Reading a body back cannot tell the two spellings
+   apart. `gh pr view <n> --json closingIssuesReferences` can, and it also
+   catches the opposite slip: a sentence written to say a pull request closes
+   nothing registered a link anyway, because the keyword parses wherever it
+   sits.
+
+   One branch closing two issues takes one entry per issue, because the map
+   that feeds the cards is keyed by issue and a single entry would leave the
+   other card showing no branch at all. PR 94 was the first, against issues 95
+   and 100, and both entries left with it when it merged as d8bb4e7. */
+/* History once kept inside `PRS`. The data itself now lives in the
+   board database, so these notes are a record rather than a description. */
+/* PR 158 merged as cb31f1d, closing issue 15 and landing the sixth
+     replication. It moved four strip figures at once, which nothing had done
+     before: a vintage to eleven, the rows to 59,285, the suite from 476 to 570,
+     and the open issues up rather than down, because the branch filed more
+     cards than it closed.
+
+     Its verdict is the first of its kind here. Both figures Chan prints
+     reproduce closely, 21.78 to 78.22 against 23-77 and 1.9812 against 1.8, and
+     the claim behind them does not: 60/40 takes the higher Sharpe ratio at
+     matched risk by 0.2169, resolved at a robust t of -2.17. Entries 1 and 3
+     both found every number moving and every claim holding. This is the
+     reverse.
+
+     Five review lenses found two defects rather than prose. The module caught
+     two refusals where every sibling reading the same join catches three. And
+     its no-look-ahead argument covered the Sharpe difference, which is
+     invariant to the leverage, while the quantity it pins is the robust t,
+     which is not. A mutation pass then broke the report twenty-nine ways with
+     the suite staying green, because the report cases asserted fixed prose and
+     never a number. That is worth carrying on this page, which is a report
+     layer too. */
+/* PR 163 merged as 0b994ed and closed issue 162, so its entry and the card
+     both left. It committed Qian's own paper, which Chan cites at location 4684
+     and calls "not publicly distributed", and split the gap Entry 4 could not
+     close into an instrument and a sample. Issues 160 and 161 are those two
+     halves. It moved the suite from 570 to 571 and nothing else on the strip.
+
+     PR 167 merged as c0011a1 and never had an entry, because it closed no
+     issue: it pinned the ADF lag sweep and corrected a false sentence. It moved
+     the suite from 571 to 572. PRs 165 and 166 are dependency bumps and close
+     nothing, so they have no entry either. */
+/* PR 169 merged as 1488758 and closed issue 171, so its entry and the card
+     both left. It committed a second figure, the residual autocorrelation of
+     each fixed-lag ADF fit on the Chapter 3 spread, and moved the suite from 572
+     to 609. Issue 171 was filed after the work so the branch had a card, which
+     is the fix the comment above this array names. Its review ran three lenses
+     and a mutation pass, and one finding was refuted by the test written to pin
+     it. */
+/* PR 172 merged as 0f085c9 with its first commit only, and closed nothing,
+     so it never had an entry. It moved the suite from 609 to 621. Its review
+     refuted the conclusion that commit carried, and the fix reached the branch
+     two minutes after the merge, so it never reached main. PR 173 carries it,
+     and issue 174 was filed after the work so that branch has a card, the same
+     fix issue 171 was for PR 169. A merge landing while a review is still
+     running is the case this page has no column for.
+
+     PR 173 then merged as d4e569a and closed issue 174, so its entry and the
+     card both left. It moved the suite from 621 to 648. */
+/* PR 176 merged as 23661c8 and closed issue 175, so its entry and the card
+     both left. It pinned two slopes a Substack post quotes, and moved the suite
+     from 648 to 649. Its review found the stated reason for the gap between
+     them was wrong: the constant accounts for 0.3% of it and the lagged
+     difference for 91%. */
+/* PR 177 merged as e36dd23 and closed no issue, so it never had an entry. It
+     added a blog post on price-spread mean reversion, and the four cases it
+     moved the suite by, from 649 to 653, are the Markdown sweeps running over
+     one more prose surface rather than anything the replications assert. */
+/* PRs 178 to 184 merged between e36dd23 and bd9f0a7 and closed no issue, so
+     none of them had an entry. Four are blog work: the coin-toss post and its
+     five figures, and the Kelly post with its figure. 181 corrected a box label
+     and 182 released the repo under the MIT licence. Together they moved the
+     suite from 653 to 721, most of it the figure tests and the Markdown sweeps
+     running over two more prose surfaces.
+
+     PR 185 wrote up Entry 4 as a post and pinned the rate thresholds it
+     quotes. Its review filed issue 186 for three problems that predate it. */
+/* PRs 188 and 189 merged as c0d05af and f690f92 and close nothing, because
+     both write Part of issue 187 rather than a closing keyword. 188 stored the
+     St. Louis Fed's three-month bill series, TB3MS, as a twelfth vintage under
+     a new `rate` basis, with `chan.bill_rates` to read it. 189 applied that
+     branch's review, which landed after the merge. Together they moved the
+     vintages from eleven to twelve, the rows from 59,285 to 60,397, and the
+     suite from 721 to 759.
+
+     PR 185 then merged as 2c612e4 and closed issue 187, carrying its last
+     done-when item, so its entry and the card both left. PRs 190 and 191
+     merged as 99d107a and a4d9e20 and close nothing: a ruff bump and a pass
+     over the risk parity post. The three moved the suite from 759 to 918 and
+     the open issues from 80 to 79. */
+/* PR 193 merged as 8b69d63 and closes nothing. It made every issue and pull
+     request number in a tracked Markdown file a link, and added the hygiene
+     test that holds it, which moved the suite from 918 to 928.
+
+     PRs 194 and 195 opened while issue 135's loop was running, and were
+     first measured at their heads 50670e2 and e34924e. Neither carried a
+     review comment yet. 194's `test` check failed there and its other five
+     passed. 194 then moved to dbc3283, where all six passed, read during the
+     update that filed issue 196.
+
+     195 then moved to 9ed42a3, read during the update that filed issue 198.
+     Five of its six checks had passed there and `test` was still running,
+     and `test` passed on the same head when issue 135's rulings were
+     recorded. Its body also writes Part of issue 159, because it
+     corrects Entry 3's instance of that issue and leaves the rest, so 159
+     takes a second entry with `partOf` rather than a closing link.
+
+     PR 197 opened the same hour and closes no issue, so it has no entry.
+
+     194's review landed at its head 245a1c3 as a comment opening with the
+     review heading, after five lenses and two commits of fixes, and all six
+     checks passed on that head. That moves it to the owner's column.
+
+     195's review landed the same way, after four lenses and a second
+     mutation pass. Its fixes moved the head to ee521ab, where all six checks
+     passed, so both its entries are reviewed and the card is the owner's. A
+     trial merge with 8b69d63 ran 973 green.
+
+     PR 194 then merged as 6ffbdfa and closed issue 136, so its entry and the
+     card both left. It recorded TLT and IEF as two raw vintages and moved the
+     suite from 928 to 964. Its Entry 5 sentence conflicted with 195's row list
+     in the replication log, so 195 merged main in as 8338737, keeping both,
+     and all six checks passed again on that head. */
+/* PR 131's history is kept here because it is the measurement behind what it
+     changed. That entry was read against four heads across two board updates,
+     and PR 112's against three in one afternoon, and not one of those seven
+     readings followed a commit either branch wrote. The repository required a
+     branch to be current with main before it merged, so every merge to main sent
+     every open branch back for a move and a full second round of checks. That
+     requirement is off as of 2026-09-18, so a later entry here cannot cite the
+     rule as the reason a head moved. What catches a rollup computed against a
+     base that has since moved is a session re-reading it. */
+
+/* Cards a session is already working, which the key's five states do not cover.
+   An empty array reads as no information rather than as nobody working. Only a
+   running session can add an entry, and only whoever added one can take it out,
+   so the entries are the one part of this page the update moments maintain only
+   in part. The skill's eighth moment, the hand-over, is the one that takes a build
+   session's entry out. An entry shapes three columns: the two session columns,
+   and "Waiting on my review", where it holds a branch its session has not handed
+   over.
+
+   This is the most perishable thing on the page. A pull request survives until
+   it merges and can be re-read at any time, while a running session ends
+   without telling anyone, so this list is right at the stamp above and decays
+   from there rather than going stale all at once. It is worth carrying anyway,
+   because the cost it avoids is two sessions doing one card, which is paid in
+   full and discovered late.
+
+   `kind` is "build" where the session will end in a branch, and a decompose
+   loop either says so or leaves it out. It is read rather than decorative: a
+   build session suppresses the plan marker on its card and a decompose loop
+   does not, because one is carrying the plan out and the other is still
+   writing it.
+
+   An entry stays after its pull request opens, until the session hands the
+   branch over, and it comes out in the same write that records the hand-over.
+   It used to come out when the pull request opened, which let a reviewed and
+   green branch read as the owner's while its session was still pushing to it.
+   `handedOver` carries that measurement. */
+/* History once kept inside `WORKING`. The data itself now lives in the
+   board database, so these notes are a record rather than a description. */
+/* The build session on issue 15 ended in PR 158, so the branch is what says
+     where that card is and the session entry came out with it. That is the
+     handover this array exists to cover: it is right at the stamp above and
+     decays from there, and only whoever added an entry can take it out.
+
+     Issue 136's loop ran at a4d9e20 and its session took the entry out at the
+     loop's exit, five passes later. Issue 135's loop did the same at its own
+     exit, nine passes later. Issue 135's build session was added on
+     2026-10-02 by the session running it, stacked on PR 194's branch because
+     that branch creates the module this card joins. It owed its removal when
+     its pull request opened, which was the rule until 2026-10-05. An entry now
+     stays until its session hands the branch over. */
+
+/* Cards whose plan has been run against the code rather than only written.
+
+   A decompose loop audits an issue against the repository, corrects the body so
+   the next reader gets the correction instead of the next message, and exits
+   when a pass stops reducing the body. That rule is new, and issue 142 is why:
+   the older one asked for two consecutive passes finding nothing and could not
+   terminate, because the loop edits the body and those edits produce findings.
+   What it leaves is a plan somebody has executed, which is the difference
+   between a card a builder can take and a card that is still a guess. Every one
+   of these also recorded why it should not be split, so the unit is the issue.
+
+   `ready` is what the card can actually be handed to:
+
+   - "build" means nothing is in the way.
+   - "decide" means the plan is finished and one question is the owner's.
+
+   A card absent from this list is not a bad card. It is a card whose body has
+   never been executed against the code, and the loops' own record is the reason
+   to treat that as unknown rather than fine: across nineteen runs, not one
+   exited on its first two passes, they have run from six passes to a hundred
+   and nine, and the pass that was called the last one at the time kept finding
+   things.
+
+   The hundred-and-nine-pass run is the record's one counter-example and is kept
+   because it bounds what a pass count means. It never got two empty passes at
+   all. It ended on an owner ruling, and its own verdict records why: from about
+   pass 15 on, most of what it found was drift it had introduced into a body it
+   kept growing past the band, so its own editing kept resetting the condition.
+   Read a pass count as a cost rather than as a depth. The
+   fourteen-pass run found six defects in its own issue body on pass eight, every
+   one of them left behind by the seven passes that had been correcting it. The
+   seventeen-pass run found on pass 13 that its own pass 7 had written a stronger
+   sentence than it had measured. The twenty-one-pass run turned the lens on the
+   three issues it had itself filed and found one of them sending a builder to
+   write a workflow and a token the repository does not need, which is the same
+   failure a pass earlier than that would not have caught either. The twenty-pass
+   run filed a duplicate of an issue open since before it started, because its
+   first pass searched the tracked files for prior art and never searched the
+   tracker. The twenty-five-pass run reached pass 22 before anyone read a linked
+   issue rather than its title, and found there a second deliverable recording
+   the same vintage and a reader that breaks the moment the second one lands. */
+/* History once kept inside `PLANNED`. The data itself now lives in the
+   board database, so these notes are a record rather than a description. */
+/* Issue 15's entry left with PR 158, which merged as cb31f1d. Its loop ran
+     eighteen passes, the longest any card here carried, and what it bought is
+     worth one line now that the card is gone: it corrected the book's leverage
+     figure and its Sharpe claim against the committed highlight, proved that
+     on two legs equal risk contribution and inverse-volatility weighting are
+     the same allocation at every correlation, and caught a sub-window ranking
+     that would have refitted its weights inside the window they are judged on.
+     The first two reached the shipped module and the third reached its
+     tests. */
+
+/* Ranked on four axes, and the page sorts them rather than carrying a hand
+   ordering that nobody can check.
+
+   1. `band` is priority under the ranking directive, read against the owner's
+      definition of the product below. 1 is a replication, or what stands
+      directly in front of the next one. 2 is the vintage record where it
+      already says something the committed bytes do not support. 3 is a sentence
+      that is wrong where a reader acts on it. 5 is deferred on purpose.
+   2. `ready` is how finished the plan is. "build" means a decompose loop ran it
+      against the code and exited. "decide" means the same, with one question
+      left for the owner. "plan" means the body has never been executed against
+      anything.
+   3. `order` breaks a tie inside a band, and it exists only where something was
+      measured.
+   4. The issue number breaks whatever is left, because it is stable.
+
+   `why` is unrendered. It is the record of why a card sits where it does, kept
+   beside the order it explains and read by the next session that opens this
+   file. The card shows the position and links to the issue, which carries the
+   deliverable's own reasoning. Those are three different questions.
+
+   ---- Re-ranked 2026-09-18, on the owner's definition of the product ----
+
+   The directive asks what is missing from the shortest path to a product
+   someone can use, and the owner has defined that product: the replication of
+   Chan's experiments. That is what changed this list. The previous ranking read
+   the same directive without the definition, found the repo already usable, and
+   fell through to its next sentence about evidence from real use, which put the
+   vintage record on top and the replications at the bottom. Under the
+   definition the question is not whether the repo works. It is how many of
+   Chan's experiments it has reproduced, which is five as of a4d9e20. Entry 1
+   holds two, GLD/GDX and KO/PEP, Entry 2 the coin flip, Entry 3 Kelly leverage
+   on SPY, and Entry 4 risk parity against 60/40, which PR 158 landed as
+   cb31f1d.
+
+   ---- Re-ranked 2026-09-28, on the owner's instruction to put replicating
+   the book's experiments first ----
+
+   The instruction sharpens how band 1 is read rather than replacing it. A card
+   that adds one of Chan's experiments, or re-runs one on the data he actually
+   used, outranks a card refining an experiment already reproduced, and both
+   outrank machinery. Band 1 now runs in three groups.
+
+   1. Two replications a session can carry alone. #138 re-runs Entry 3's claim
+      on Chan's own example6_2.xls. #136 is a new experiment whose legs the
+      owner confirmed on 2026-09-18. Both have executed plans: #138's ran eleven
+      passes and #136's ran five at a4d9e20.
+   2. Two owner calls that between them unlock three more experiments. #135
+      needs its proxy named, and #88 decides the vintage shape #17 and #18 both
+      wait on. The owner settled both on 2026-10-02: #135's proxy is CADAUD=X,
+      and #88's shape is one vintage per stock with the index in a local
+      database. #135's nine-pass loop then left two smaller owner answers, and
+      the owner gave both the same day: its recording proposals stand, and it
+      takes the claim route to a verdict. The survivorship research on #88 found on 2026-10-02 that no free
+      source covers delisted stocks, and that Chan's own runs read his mirror
+      files instead, so #17 and #18 stay buildable on free data. #18's 2002
+      comparison split out to #196, which waits on a purchase.
+   3. Refinements of experiments already reproduced, #168 on Entry 1 and #160
+      on Entry 4, with #125 directly ahead of #160 because #160 records an
+      adjusted vintage and #125 asks what that word records. #69 closes the
+      band, because what it frees, #83 and then #4, is this repo's own premise
+      test rather than one of Chan's.
+
+   Everything blocked on data stays out of band 1, which is #19 to #23, #137,
+   #161, #196 and #198, because a purchase is not work a session can do.
+
+   The premise still bounds this rather than being overruled by it. `CLAUDE.md`
+   names the vintage as the thing that must not fail, and a replication recorded
+   against a record that cannot say what it holds is a replication nobody can
+   check, which is the same as not having done it. That constraint is expressed
+   twice here. #125 sits inside band 1, ahead of #160, because #160 records an
+   adjusted vintage and #125 is the question about what a recorded basis means. And band
+   2 keeps the rest of the record repairs above every prose correction, even
+   though no replication waits on them.
+
+   Most of the tracker carries no position, which is the design rather than an
+   omission: the ranking covers the top and everything it omits falls through to
+   readiness and then the issue number. A position invented to fill the page
+   would be a number nobody measured. */
+
+const READY_RANK = { build: 0, decide: 1, plan: 2 };
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const plu = (n, w) => n + " " + w + (n === 1 ? "" : /(s|x|ch|sh)$/.test(w) ? "es" : "s");
+/* One join, two conjunctions. A set of things that all hold takes "and", and a
+   set of alternatives takes "or". The reasons a card is not free are
+   alternatives, and reading them joined by "and" said one card needed a
+   decision and was deferred at the same time. */
+const joinwith = (w, xs) => xs.length < 2 ? (xs[0] || "")
+  : xs.slice(0, -1).join(", ") + " " + w + " " + xs[xs.length - 1];
+const andlist = xs => joinwith("and", xs);
+const orlist = xs => joinwith("or", xs);
+
+/* A rollup is folded to the worst thing in it, because a board reader deciding
+   whether a branch is ready needs the blocker rather than the tally. An entry
+   still running and an empty rollup each read as themselves rather than as a
+   pass, so nothing unfinished is drawn as green. */
+function checkword(rollup) {
+  const c = k => (rollup || []).filter(([, s]) => s === k).length;
+  if (!rollup || !rollup.length) return ["none", "no checks reported"];
+  const bad = c("failure"), run = c("running"), neu = c("neutral");
+  if (bad) return ["bad", plu(bad, "check") + " failing" +
+    (run ? ", " + plu(run, "check") + " still running" : "")];
+  if (run) return ["run", plu(run, "check") + " still running"];
+  if (neu) return ["none", plu(neu, "check") + " reported neither way"];
+  return ["ok", "checks green"];
+}
+
+/* A stamp ahead of the reader's clock is reported rather than rounded away.
+   Every branch below rounds a negative age up into "just now", so a page stamped
+   into the future says it was measured just now and goes on saying it however
+   stale it gets. That is the one sentence this page exists to get right, since
+   it is the only warning a reader has that nothing here refreshes itself, and it
+   failed silently in the direction that reads as healthy.
+
+   It is not hypothetical and not one session's slip. Two consecutive published
+   versions carried it, stamped 20:22Z and 21:52Z against a clock reading 19:26Z,
+   and both read "measured just now" while live. Two minutes of slack absorbs
+   ordinary skew between the machine that measured and the machine reading. */
+function ago(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!isFinite(ms)) return "";
+  const m = Math.round(ms / 60000);
+  if (m < -2) return "at a stamp ahead of this clock, so its age cannot be read";
+  if (m < 1) return "just now";
+  if (m < 60) return m + " min ago";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + "h ago";
+  return Math.floor(h / 24) + "d ago";
+}
+
+function strip() {
+  const s = STATE;
+  document.getElementById("strip").innerHTML = [
+    `<span class="chip"><b>${s.issues.open}</b> open issues</span>`,
+    `<span class="chip live" id="stamp">measured ${esc(ago(s.updatedAt))}</span>`
+  ].join("");
+}
+
+/* All that is left of a twenty-paragraph footer. The narrative was a second
+   telling of what the cards already say, and it went. This sentence did not,
+   because the page has no way to refresh itself and a page that does not say so
+   reads as live. */
+function stamped() {
+  /* The decay warning names the states that can actually decay, rather than
+     listing every one of them whenever any is present. A review posted since
+     the stamp can only be misread as owed while some open branch is still
+     unreviewed, so that clause is dropped once none is. Otherwise the page
+     warns about a staleness no card on it can have, which is defect 1 in a
+     smaller form.
+
+     A running session decays faster than either of the other two, and it was
+     the one this list did not name. The list was built from `PRS` alone, so
+     four sessions under the Building column and no branch open drew no warning
+     at all. `WORKING` has carried the reason in its own comment since it was
+     written, that a session ends without telling anyone, and a comment renders
+     nowhere. This is the surface that says what the page cannot know, so the
+     sentence belongs here. */
+  const open = PRS.filter(p => p.state === "open");
+  const decay = [];
+  if (WORKING.length) decay.push("a session that has ended since then still reads as running");
+  if (open.length) decay.push("a check that has gone green or red since then still reads here as it read then");
+  if (open.some(p => !p.reviewed)) decay.push("a review posted since then still reads as owed");
+  document.getElementById("foot").innerHTML =
+    `<p>Measured by hand. The page cannot read the disk or poll GitHub, ` +
+    `so every figure on it is current as of the stamp above rather than live.` +
+    (decay.length ? ` The In flight section decays fastest: ${andlist(decay)}.` : ``) +
+    `</p>`;
+}
+
+/* ---- the tracker, as a dependency graph ----
+
+   Horizontal position is dependency depth and nothing else. It says what must
+   clear before a card can start, never when anything will happen, and every
+   card is the same width so no length reads as a duration.
+
+   `kind` is orthogonal to depth. A card can be startable today and still be
+   something nobody should start: deferred under the ranking rule, or a decision
+   that needs the owner rather than a session. Collapsing the two would put
+   "read the book" and "write the recorder" in the same bucket. */
+/* History once kept inside `TRACKER`. The data itself now lives in the
+   board database, so these notes are a record rather than a description. */
+/* One blocker now. Its remaining half records a second download of GLD or
+     GDX, which at 270bf42 gave 10 failed and 1 error for GDX and 11 failed and
+     1 error for GLD. Three of those were issue 51, which merged as 0162df1, and
+     the rest are issue 83. */
+/* A parent rather than a deliverable, as of 2026-09-18. The owner split its
+     three claims into issues 135, 136 and 137, overruling its own loop's exit
+     verdict that it should stay one unit. What it still carries is what governs
+     more than one child and is decided once rather than three times: the honesty
+     rail's proxy rules, the finding that none of them may use the word verdict,
+     where the new module goes, which of two report helpers may be reused, the
+     replication-log decision, and the ruling that no new figure is added.
+
+     Both fields are doing work here and neither would do on its own. `needs`
+     puts it right of all three, because it builds nothing and so has no
+     finishing pull request: it closes by hand once all three close, which is a
+     hard blocker rather than an ordering. `kind` says it is not work, because
+     depth alone would have called it free the moment the last child landed, and
+     a card in the first column reads as something a session can take. */
+/* Two of the five kept a blocker the other three shed when issue 51 merged.
+     Both need a daily cross-section rather than one symbol, which issue 88 says
+     the recorder and the reader have not had to answer for yet, and issue 88's
+     own notes name these two as what it blocks. The group looked uniform because
+     its sentences were byte for byte identical, which is what the issue-52 loop
+     split.
+
+     Both read Chan's own mirror files rather than a survivorship-free panel,
+     which the research on issue 88 found no free source provides. Issue 18 split
+     on 2026-10-02: it keeps Chan's runs of Examples 7.6 and 7.7, and the test of
+     Heston and Sadka's 13 percent before 2002 went to issue 196. Issue 17's
+     survivorship-free rerun, which prices what the 2007 survivors did to
+     Chan's 0.25, went to issue 198 the same day. */
+/* Split from issue 18 on 2026-10-02. Its body also names issue 88, because a
+     purchased panel is still a cross-section to record, and it carries no
+     `needs` for the same reason the other data cards carry none: the purchase
+     is what holds it, and an edge to 88 would draw it as work behind a card. */
+/* Issue 17's follow-up, filed on 2026-10-02. Its body names issues 88 and 17
+     as well as the purchase, and carries no `needs` for the reason issue 196
+     gives above. */
+/* Its shape was decided on 2026-10-02, one vintage per stock with the index
+     in a local database, so it stopped being an owner call and became design
+     work. The `question` label stays because the tracker still carries it. */
+/* Deferred on a count of zero, and the issue is where that deferral is
+     written down. It reproduces on 2938775 as well as on PR 90's branch, so it
+     is a neighbour of the date guard rather than something that guard caused. */
+/* Its blocker cleared. Its own notes say the state it describes cannot exist
+     until PR 92 lands, and that merged as 0162df1, so the card is free. Filed
+     while reviewing that branch under an over-reach lens. */
+/* Its blocker cleared. It was held until issue 38 put the two hand-made labels
+     into .github/labels.json, because the comparison failed correctly until then
+     and a check built first would have had to merge red. Issue 38 closed with
+     PR 110, merged as b1f6e26, so the card is free. */
+/* The same drift as issue 38, on the other thing setup-repo.sh asserts about
+     GitHub-side state. It names two CodeQL languages against five live, read on
+     2026-09-18. Unlike the labels case a re-run is not a no-op there, because the
+     language list is sent as a PATCH that sets it. */
+/* Filed because issue 38's body ruled this out of itself and into an issue of
+     its own, and the pull request closing that body would have taken the ruling
+     with it. It waits on nothing: the eight carry zero attachments, so nothing
+     is at risk either way and the only question is the owner's. */
+/* Filed while reviewing PR 111 under an over-reach lens. That branch first
+     wrote the past-tense requirement into CLAUDE.md's port rule, which issue 29
+     scopes to the four notes it back-fills and says is deliberately not a rule
+     about future ports, so the branch narrowed and the question came here. It is
+     a decision rather than a session because CLAUDE.md is owner-gated either
+     way. */
+/* Filed while running this skill, against the skill itself. It says the chip
+     queue holds twenty, and a session measured it evicting the top of the
+     priority order at six, then losing chips no dismissal explains. */
+/* Issue 69 is a hard blocker, because the pair path cannot name a date per leg
+     until it lands and this card has to make that path green. It used to carry an
+     ordering against issue 51 as well, measured rather than styled: three of the
+     failures a second download causes belonged there and the rest belong here.
+     Issue 51 merged as 0162df1, so the ordering is spent and the edge is gone. */
+/* Its blocker cleared. Its own body says it reuses issue 39's heading index,
+     attribution resolver and alias table, and named that issue as the only
+     thing it depends on. PR 146 closed issue 39 and merged as 3f0118c, so the
+     edge is spent and the card is free. */
+/* Filed by issue 39's build session out of its own review. Three shapes of the
+     reference that check reads return nothing rather than reporting, which is
+     worse than not checking at all once a later session relies on the guard
+     existing. None of them is in the tracked set, so it is deferred on a count of
+     zero and the issue is where that deferral is written down. It waited on
+     issue 39, because all three extend the scan that issue builds, and PR 146
+     merged that as 3f0118c, so the edge is spent. What holds it now is the
+     deferral rather than a blocker. */
+/* Filed after issue 140 closed as not planned, so the owner's decision to keep
+     the suite-runtime comparisons in two docstrings lives nowhere a search
+     reaches. A decompose pass on issue 122 had already re-measured the second of
+     those sentences and got as far as drafting a duplicate issue before reading
+     why 140 closed. */
+/* Deferred on a count of zero and the issue is where that deferral is written
+     down. `chan.series`'s docstring decides in writing that the reader must not
+     import a chapter, and nothing executes the sentence. No module under
+     `src/chan/` imports one, measured at 036876a, and none of the ranking rule's
+     three exceptions reaches a layering check. */
+/* Against the register row PR 143 landed. That row prices a hand-written
+     ninth vintage at one disagreement, measured through `record_vintage`, and
+     issue 124 takes the hand-written route the claim is false for. */
+/* Filed while finishing PR 147, out of a figure that would not reproduce.
+     The suite reported 471 during that branch's merge and 469 on the commit
+     that resolved it, and the two extra cases are one conflicted Markdown file
+     swept once per merge stage. The number had already reached a commit message
+     and a pull request body, which is what a suite total costs when a state
+     nobody runs in inflates it quietly. */
+/* Filed out of PR 154's review, by the mutation lens, and filed rather than
+     absorbed because the function body that branch moves is byte-identical to
+     the one on main, so every gap it names predates the move. It is not issue
+     10: that one enumerates nine survivors in the estimators and names none of
+     these. */
+/* The two cards Qian's own paper produced. Chan cites the paper at location
+     4684 and calls it "not publicly distributed", and it is on PanAgora's own
+     site. Reading it named the span, the instruments and the figures issue 15
+     had to treat as unanswerable, so the one gap Entry 4 could not close is
+     really two: an instrument this repo can swap on free data, and a sample it
+     cannot reach without buying index history. #160 is the first and #161 the
+     second. Issue 162 committed the paper and closed with PR 163 as 0b994ed. */
+/* Filed out of PR 158's review rather than absorbed into it, because it
+     predates that branch. `docs/replication-log.md`'s shared section names
+     Entry 3's not-a-replication rows as three and that entry's own verdict
+     table carries five, so the file disagrees with itself in the one place a
+     reader meets before reaching any entry. It is also the sentence a new entry
+     copies its shape from, which is how PR 158 met it. */
+/* Filed during an earlier board update, out of PR 163's own review under the
+     over-reach lens. `research/papers/README.md` deferred a checksum guard
+     inside the file it affects, and `CLAUDE.md` puts a deferral on its issue so
+     the next reader finds it rather than only the next message. It is deferred
+     on a count of zero: one paper, one day old, never replaced. */
+/* Filed during an earlier update, which is why it arrives with no comment
+     about where it came from beyond that. */
+/* Filed off pass 70 of the loop on issue 3, which found issue 67 had been
+     named as this row's owner for sixty-nine passes and does not cover it. */
+/* Split out of issue 3 at that loop's exit, on the separability test rather
+     than on size. It cannot run against anything committed, because a vintage
+     comparison is only meaningful within one price basis and there are no two
+     raw vintages of one symbol, so shipping it with the guard would leave code
+     nothing can exercise. Its findings also gate re-pinning rather than
+     running, which is why wiring it into issue 3's refusal would stop correct
+     replications. No `needs`, because what it waits on is a download rather
+     than another card. */
+/* Filed by issue 3's build session rather than edited into place, because
+     `CLAUDE.md` is owner-gated. It is a decision rather than ordinary work for
+     that reason alone, the same call issue 116 records, and not because either
+     sentence is in doubt. Both corrections are already merged in
+     `docs/design.md`, so what waits is permission rather than a measurement.
+     Its own body offers the owner the second answer, that neither sentence
+     needs saying in `CLAUDE.md`, which is what makes it a question. */
+/* Against this page. Its first two items are done here, in the card template
+     above, so what the issue keeps is its third: saying in the skill that the
+     harness strips attributes and cannot check them. That is a tracked file and
+     needs its own branch. The `accessibility` label has no hue entry and falls
+     back to the faint ink, which is what the map's own comment says a new label
+     should do. */
+/* Three of Chan's other stationary candidates, split out of issue 16 rather
+     than run inside it. The first is univariate, which is why it is its own card:
+     a rate is one series with nothing estimated from it, so it belongs against
+     ADF_CRIT_CONST rather than the pair test's EG_CRIT_N2. */
+/* Its proxy was confirmed as CADAUD=X on 2026-10-02, so it stopped being a
+     decision and became work. Its loop then proposed the span and the row
+     filter, and the owner confirmed both the same day and ruled that it takes
+     the claim route to a verdict, recorded on issue 16. */
+/* Its confirmation came on 2026-09-18, so it stops being a decision and
+     becomes work. Both these cards asked the owner to confirm a proxy before a
+     vintage is recorded, because recording freezes the proxy, the span and the
+     filtering rule. Issue 135's rate was confirmed as CADAUD=X on 2026-10-02. This one's legs
+     are TLT and IEF, one issuer at two maturities, and what changed with the
+     ruling is the argument rather than the instruments: the commitment now sits
+     in its own body rather than borrowed from issue 15, which moved to AGG.
+     A wrong recording costs little before the merge, because a git restore
+     undoes it, which this card's loop measured at a4d9e20. After the merge a
+     second download leaves `aligned_closes` refusing the pair until issue 69
+     lands, and `load_vintage`'s `dated` argument still reaches each leg. */
+/* It carried one of each field and now carries neither. Issue 124 was a hard
+     blocker, because this card's own body says nothing here can be committed
+     until the suite accepts a workbook vintage added by hand, and PR 157 merged
+     that as ad3db18 with the SPY column committed. The ordering against issue
+     14 went the same way: both were to add rows to one manifest entry, one
+     README table and one test file, and PR 147 merged that half as 8657c02. So
+     the rows this card adds land on top of both rather than racing either. */
+/* Filed out of PR 167's completeness review, which pinned the lag sweep this
+     card reads. Section 5 of the essay says Chan's −2.4 and −3.2 are reproduced,
+     while the suite pins −2.2979 at six lags and −3.0875 at one, and three lags
+     and zero lags land nearer his two figures. The `question` label does not
+     make it an owner decision here. Its body asks a session to read the book's
+     printed runs and names no owner call, so its kind is ordinary work. Read at
+     0b994ed, the committed highlights state −2.4 for the Python run and −3.2
+     for the R run without a lag count for either, and give one lag only for
+     the MATLAB run. So if the answer needs the book's printed code, a highlight
+     only the owner can add is what would make it a decision. */
+/* Out of PR 169's work. The essay states the Chapter 3 verdict without the
+     residual check that PR added. It waited on issue 171 for the pins it would
+     quote, and PR 169 merged that as 1488758, so the edge is spent. */
+/* Issue 174 closed with PR 173, merged as d4e569a, and issue 175 with PR 176,
+     merged as 23661c8, so both cards left. */
+/* Filed out of PR 185's review rather than absorbed into it, because all
+     three problems predate that branch. Entry 4's row 15 labels a leverage
+     measured on carried weights as the in-window one, row 9 says its
+     correlation band is most of the range a stock-bond correlation occupies,
+     and README's Status item 4 says every level lands high where Entry 3 row 2
+     reproduces. Fixing row 15 needs a new pin, which is why it is a card. */
+/* Issue 187 closed with PR 185, merged as 2c612e4, so its card left. */
+/* Filed out of the plan audit of issue 138 at a4d9e20, on the owner's
+     instruction. Two figures the replication log said 138 would pin, Chan's
+     1.9341 and his 1.68 points, need the workbook's as-traded Close column,
+     which no committed vintage holds and `close_identity` says never will. So
+     they became their own card. `needs` rather than `after`, because 138's pull
+     request rewrites the same prose to mark them unpinned and point here, and
+     this card flips that prose to pinned. */
+
+const COLS = [
+  ["Ready now", "nothing open blocks these"],
+  ["Behind one", "one thing has to land first"],
+  ["Behind two or more", "deepest last"],
+  ["Waiting on data", "not a backlog, a purchase"]
+];
+/* One colour per tracker label, so the page and GitHub show the same chip.
+   Two diverge on purpose, and the rule is readability rather than fidelity: a
+   label colour on GitHub is a chip background, while here it is text. GitHub's
+   `enhancement` is `a2eeef` and its `deferred` is `ededed`, both too pale to
+   read as text on white, so each is darkened here. `question` is the third and
+   newest of them: GitHub stores `d876e3`, which reaches 2.3 to 1 against white
+   and is darkened here to 5.6 to 1. A label with no entry falls back to the
+   faint ink rather than being dropped, because a new label is information and a
+   missing colour is not a reason to hide it. */
+const LABEL_HUE = {
+  bug: "#d73a4a", documentation: "#0075ca", enhancement: "#2F7F86",
+  test: "#5319e7", deferred: "#6E7A85", replication: "#0E8A16",
+  "blocked-on-data": "#B60205", question: "#9B3BA8"
+};
+
+/* A fifth kind. Issue 16 was split into three and its body now says it builds
+   nothing itself, keeping only the rules its children obey. That is neither
+   work, nor deferred, nor a decision, nor blocked on data, and calling it any of
+   those puts a card in the first column reading as something a session can take.
+   The word is on the card because the depth graph cannot say it: nothing blocks
+   a parent, so depth alone would call it free. */
+const KINDWORD = { ready: "", decision: "needs a decision, not a session",
+                   deferred: "deferred on purpose", data: "",
+                   parent: "a parent, which builds nothing itself" };
+/* The same two facts as a sentence, for the card's label. They are not the same
+   string because the visible line is a fragment under a card and the label is
+   read aloud in sequence, so it needs a subject and a verb. Prefixing "It " to
+   `KINDWORD` gave "It deferred on purpose", which is what happens when one
+   phrase is reused in two grammars. This sits beside `KINDWORD` rather than in
+   the template so the pair moves together when a kind is added. */
+const KINDSAYS = { ready: "", decision: "It needs a decision, not a session.",
+                   deferred: "It is deferred on purpose.", data: "",
+                   parent: "It is a parent, and builds nothing itself." };
+
+let CHAIN_ESC = null;
+
+/* The build order shows only the cards in the priority order unless the reader
+   asks for the rest. With every open issue drawn, the first column ran past
+   fifty cards and the ten that `NEXT` ranks were scattered through it. The
+   Marketlake Build Board made the same cut on 2026-09-27, at a hundred and
+   fifty cards in one column. The choice is remembered per browser and nowhere
+   else, and the default is the short view. */
+let SHOW_ALL = false;
+try { SHOW_ALL = localStorage.getItem("qt-board-all") === "1"; } catch (e) { SHOW_ALL = false; }
+let SHOWN = 0, HIDDEN = 0;
+
+/* The button sits above the board, so it shows before the reader scrolls past
+   every card. */
+function more() {
+  const el = document.getElementById("more");
+  if (!el) return;
+  if (!HIDDEN && !SHOW_ALL) { el.innerHTML = ""; return; }
+  el.innerHTML = SHOW_ALL
+    ? `<span>Showing all ${SHOWN} open issues not in flight.</span>` +
+      `<button type="button" data-toggle>Show only the ranked cards</button>`
+    : `<span>Showing the ${SHOWN} ranked ${SHOWN === 1 ? "card" : "cards"}. ` +
+      `${HIDDEN} other open ${HIDDEN === 1 ? "issue is" : "issues are"} not in the ` +
+      `priority order.</span>` +
+      `<button type="button" data-toggle>Show all ${SHOWN + HIDDEN}</button>`;
+  el.onclick = e => {
+    if (!e.target.matches("[data-toggle]")) return;
+    SHOW_ALL = !SHOW_ALL;
+    try { localStorage.setItem("qt-board-all", SHOW_ALL ? "1" : "0"); } catch (err) { /* per-browser only */ }
+    render();
+  };
+}
+
+function buildOrder() {
+  const by = new Map(TRACKER.map(c => [c.n, c]));
+  /* The ranking used to be its own section listing the same cards a second
+     time. It was one list too many and it went. What a card kept is the
+     position, as a chip, and the link to its issue.
+
+     This comment used to say the argument for each position was written on the
+     card itself. It is not, and it never was after that section went: the card
+     renders the number and nothing else. The argument lives in `NEXT`'s `why`,
+     which the page does not render, and that is said there rather than claimed
+     here. */
+  const rankWhy = new Map(NEXT_SORTED.map(it => [it.issue, it]));
+  const rankPos = new Map(NEXT_SORTED.map((it, i) => [it.issue, i]));
+  const planOf = new Map(PLANNED.map(x => [x.n, x]));
+  const workOn = new Map(WORKING.map(w => [w.n, w]));
+  /* Grouped rather than keyed one-to-one, because two pull requests can be open
+     against one issue and a Map would keep only the last. That case is the one
+     a board reader most needs, since merge order decides which lands and
+     neither body can know it. */
+  const prOf = new Map();
+  PRS.forEach(p => {
+    if (!prOf.has(p.issue)) prOf.set(p.issue, []);
+    prOf.get(p.issue).push(p);
+  });
+
+  /* One expression decides whether a card shows a plan marker, and both the card
+     and the legend call it. They used to be two expressions encoding one rule,
+     which agreed until defect 11 changed the card's and not the legend's. That
+     is defect 5 in a second place rather than anything about render against
+     data: the data is the source of truth, and the marker is a function of the
+     data plus one suppression rule, so the only safe arrangement is that the
+     rule exists once.
+
+     What the rule says is that the marker answers one question, whether the
+     card can be handed to a builder, and it goes the moment that answer stops
+     being the reader's to act on. A branch is that. So is a build session,
+     which is the same handover an hour earlier and was leaving the card saying
+     it was ready to build directly above a line saying somebody was building
+     it. A decompose loop is not, because it revises the plan rather than
+     carrying it out, so a card under one is still waiting for a builder. An
+     entry with no kind is a decompose loop, which is the default this array has
+     always carried. */
+  const carriedOut = c => prOf.has(c.n) || (workOn.get(c.n) || {}).kind === "build";
+  const planMarker = c => carriedOut(c) ? null : (planOf.get(c.n) || null);
+  /* The same arrangement as `planMarker`, for the same reason. The card and the
+     legend have to agree about whether a position is drawn, and the way they
+     stay agreed is that the rule exists once. It is short enough to look safe
+     to inline twice, which is exactly how `planMarker` drifted.
+
+     What it suppresses is the position on a deferred card. The sort forces such
+     a card last whatever the ranking says, so a chip reading 6 above a card
+     reading last is two answers to one question. A deferred card is in the
+     ranking only to record that it is deliberately not being done, which the
+     dashed border and the kind word already say. */
+  const rankMark = c => c.kind === "deferred" ? null : (rankWhy.get(c.n) || null);
+  /* A third thing the marker can mean, and it arrived the first time a loop ran
+     on a card that had already exited one. Issue 122's card read "ready to
+     build" under a heading saying the plan was still being written, which is
+     check 6: a card contradicting where it sits.
+
+     Suppressing the marker would have been worse. The plan really was run
+     against the code, and a second loop re-measures that rather than doubting
+     it: 122's verdict was taken at 036876a and four merges landed after it. So
+     the marker keeps its swatch and says what is true of it now, which is
+     neither of the two things it used to be able to say. */
+  const remeasuring = c => {
+    const w = workOn.get(c.n);
+    return !!(w && w.kind !== "build" && planOf.has(c.n));
+  };
+
+  /* A card in flight is drawn once, in the section that says whose move it is,
+     and left out of the depth columns. Showing it twice is what made the note
+     below say a card was free to pick up two sentences after saying nobody
+     should start it. */
+  const flight = flightOf({ by, planOf, workOn, prOf });
+  /* Only the ranked cards unless the reader asked for all. `rankMark` already
+     leaves out a deferred card, so a deferral written on an issue keeps it off
+     the default view too. The column counts and the free-card sentence count
+     what was drawn. The depth and freeing sentences count every open issue, and
+     each says so when that includes cards this view hides. */
+  const open = TRACKER.filter(c => !flight.has(c.n));
+  const rest = open.filter(c => SHOW_ALL || rankMark(c));
+  SHOWN = rest.length; HIDDEN = open.length - rest.length;
+  /* Relaxed to a fixed point rather than resolved in one walk, so a card ends up
+     right of everything it waits on however the list happens to be ordered. */
+  const depth = new Map(TRACKER.map(c => [c.n, 0]));
+  for (let pass = 0; pass < 12; pass++) {
+    let moved = false;
+    TRACKER.forEach(c => {
+      const d = c.needs.filter(b => by.has(b)).reduce((m, b) => Math.max(m, depth.get(b) + 1), 0);
+      if (d !== depth.get(c.n)) { depth.set(c.n, d); moved = true; }
+    });
+    if (!moved) break;
+  }
+
+  const feeds = new Map();
+  TRACKER.forEach(c => c.needs.forEach(b => {
+    if (!feeds.has(b)) feeds.set(b, []);
+    feeds.get(b).push(c.n);
+  }));
+
+  const bucket = [[], [], [], []];
+  rest.forEach(c => {
+    if (c.kind === "data") { bucket[3].push(c); return; }
+    bucket[Math.min(depth.get(c.n), 2)].push(c);
+  });
+  /* Within a column, a card with an executed plan sorts above one without,
+     because depth says what may be started and this says what can be handed
+     over. Ties fall back to the issue number, which is stable. */
+  bucket.forEach(col => col.sort(cardOrder(by, planOf)));
+
+  const host = document.getElementById("board");
+  host.innerHTML = bucket.map((col, k) => {
+    const cards = col.map(card).join("");
+    return `<div class="col k${k}">
+      <div class="ch"><span class="t">${COLS[k][0]}</span><span class="c">${col.length}</span>
+        <span class="d">${COLS[k][1]}</span></div>${cards}</div>`;
+  }).join("");
+
+  function card(c) {
+      const ps = prOf.get(c.n) || [];
+      const p = ps[0];
+      const waits = c.needs.filter(b => by.has(b));
+      const soft = (c.after || []).filter(b => by.has(b));
+      const note = waits.length
+        ? `waits on ${waits.map(b => `<a href="${ISS}${b}" target="_blank" rel="noopener">#${b}</a>`).join(" ")}`
+        : "";
+      /* The kind word gets its own line rather than sharing the blocker's. The
+         two used to be one slot holding whichever applied, so a blocker silently
+         hid the kind. That was invisible while every blocked card was ordinary
+         work, whose kind word is empty. Issue 16 is the case that exposed it: a
+         parent blocked by its three children read as "waits on #135 #136 #137"
+         and nothing else, so a reader would take it for work that frees up when
+         they land, which is the opposite of what it is.
+
+         A pull request still suppresses it, and that is the one suppression
+         there was ever a reason for: a card saying it needs a decision, under a
+         branch that already made one, is two answers to one question. A blocker
+         is not an answer to what kind of thing the card is. */
+      const kindword = p ? "" : (KINDWORD[c.kind] || "");
+      /* "nothing blocks it" is only true when nothing does. The clause was
+         written when `after` and `needs` had never appeared on one card, so it
+         asserted the absence of a blocker as part of announcing an ordering.
+         Issue 138 carries both, and the card read "waits on #124" directly above
+         "nothing blocks it", which is two sentences contradicting each other on
+         one card. The ordering is the part that is always true, so that is what
+         is always said, and the absence of a blocker is said only when the line
+         above has not just named one. */
+      const softnote = soft.length
+        ? `<div class="wo">${waits.length ? "it should also land after" :
+            "nothing blocks it, and it should land after"} ${
+            soft.map(b => `<a href="${ISS}${b}" target="_blank" rel="noopener">#${b}</a>`).join(" ")}</div>`
+        : "";
+      let prline = "";
+      ps.forEach(p => {
+        const ck = checkword(p.rollup);
+        /* A merged pull request reports the review state it carried when it
+           merged, which says nothing useful once it is in, so the state word
+           takes that slot instead. */
+        const right = p.state === "merged"
+          ? `<span class="rv">merged</span>`
+          : `<span class="rv">${esc(p.review)}</span>`;
+        /* `Part of` registers no closing link on purpose, because the issue
+           keeps what the branch does not do. That is the rule working rather
+           than the code-span defect this warning was written for, so it is
+           said plainly instead of being warned about. */
+        const loose = p.partOf
+          ? `<span class="nolink">part of #${c.n}, which stays open for what this does not do</span>`
+          : p.linked ? "" : `<span class="nolink">${p.state === "merged"
+          ? `merged with no closing link, so #${c.n} is still open and has to be closed by hand`
+          : `no closing link registered, so merging will leave #${c.n} open`}</span>`;
+        prline += `<div class="pr">
+          <a href="${PRU}${p.pr}" target="_blank" rel="noopener">PR #${p.pr}</a>
+          <span class="sep">&middot;</span><span class="ck ${ck[0]}">${esc(ck[1])}</span>
+          <span class="sep">&middot;</span>${right}
+          ${loose}
+        </div>`;
+      });
+      const wk = workOn.get(c.n);
+      /* No card draws the session's `what` phrase. A card with a session and no
+         open branch sits under "Building" or "Being planned", whose heading names
+         the session. On 2026-10-05 all seven `what` phrases opened with that
+         heading's verb, and five of them then restated the card's title. Under
+         "Waiting on my review" the phrase was kept for a while, and the owner cut
+         it the same day: a card reading "building Example 3.2's transcription"
+         above "review in progress" describes work the branch has already
+         replaced. The `busy` stripe and its legend entry say a session still
+         holds the card, and the flow note says what the branch still owes.
+
+         The screen-reader label keeps the phrase only while no branch is open,
+         where it can add a detail the title lacks, such as the MATLAB file a
+         build is transcribing. Once a branch is open the label says which kind of
+         session still holds the card, because the stripe looks the same for
+         both: a build session is still on the branch, and a decompose loop,
+         which never touches the branch, is still revising the plan. An entry
+         with no `kind` counts as a loop, as it does everywhere else. The same open-branch test
+         `flightCols` uses decides it, so the label and the column cannot
+         disagree. */
+      const onBranch = wk && ps.some(x => x.state === "open");
+      /* A finished plan stops being news once somebody is carrying it out,
+         which `planMarker` above decides and explains. The sort still reads
+         `planOf` rather than the marker, so a planned card keeps its position
+         whether or not the marker is drawn. */
+      const pn = planMarker(c);
+      const rank = rankMark(c);
+      /* The label carries every visible line that says whether the card can be
+         started. It used to carry none of them, so a card reading "waits on #122"
+         read to a screen reader as a card waiting on nothing, and a deferred card
+         read as ordinary work. Three lines were missing rather than one, which is
+         why all three are here: the blocker, the measured ordering, and the kind
+         word. The skill's harness strips attributes before printing, so it cannot
+         see this surface at all and a rule added here is checked by reading the
+         template. Issue 134 records that. */
+      const says = [];
+      if (waits.length) says.push(`It waits on ${andlist(waits.map(b => "issue " + b))}.`);
+      if (soft.length) says.push((waits.length ? `It should also land after ` :
+        `Nothing blocks it, and it should land after `) +
+        `${andlist(soft.map(b => "issue " + b))}.`);
+      if (!p && KINDSAYS[c.kind]) says.push(KINDSAYS[c.kind]);
+      return `<div class="tk k-${c.kind}${p ? " has-pr" : ""}${wk ? " busy" : ""}${
+        pn ? " plan-" + pn.ready : ""}" data-n="${c.n}" tabindex="0" role="button"
+        aria-label="Issue ${c.n}. ${esc(c.label)}.${says.length ? " " + esc(says.join(" ")) : ""}${p ? ` Pull request ${p.pr} is ${p.state} against it.` : ""}${onBranch ? (wk.kind === "build" ? ` Its build session is still on the branch.`
+          : ` A decompose loop is still revising its plan.`) : wk ? ` A session is working it: ${esc(wk.what)}.` : ""}${
+          pn ? ` Its plan is complete after ${plu(pn.passes, "pass")}.` +
+            /* The label says what the visible line says. It used to read "ready
+               to decide", which is not a state, while the line under the card
+               read "waits on an owner call". An owner call is owed whatever else
+               blocks the card, and only the handover to a builder is not, so the
+               two branches differ. The harness strips attributes, so this
+               surface is checked by reading the template, which issue 134
+               records. */
+            (remeasuring(c) ? ` A second loop is re-measuring that plan.`
+              : pn.ready === "decide" ? ` It waits on a question only the owner can answer.`
+              : waits.length ? "" : ` It is ready to build.`) : ""
+        }${rank ? ` It is number ${rankPos.get(c.n) + 1} in the priority order.` : ""} Show what this connects to.">
+        <div class="r1">
+          <a class="id" href="${ISS}${c.n}" target="_blank" rel="noopener">#${c.n}</a>
+          <span class="sl">${esc(c.ms)}</span>
+          ${rank ? `<span class="rk" title="priority order">${rankPos.get(c.n) + 1}</span>` : ""}
+        </div>
+        <div class="lb">${esc(c.label)}</div>
+        ${(c.labels || []).length ? `<div class="lbs">${c.labels
+          .map(l => `<b style="color:${LABEL_HUE[l] || "var(--faint)"}">${esc(l)}</b>`)
+          .join("")}</div>` : ""}
+        ${note ? `<div class="wo">${note}</div>` : ""}
+        ${softnote}
+        ${kindword ? `<div class="wo">${kindword}</div>` : ""}
+        ${pn ? `<div class="pl ${pn.ready}">plan complete, ${plu(pn.passes, "pass")}${
+          remeasuring(c) ? ", being re-measured"
+            : pn.ready === "decide" ? ", waits on an owner call"
+            : waits.length ? "" : ", ready to build"}</div>` : ""}
+
+        ${prline}
+      </div>`;
+  }
+
+  /* Crossing arrows across four columns are harder to read than one chain on
+     demand, so the links are traced by picking a card.
+
+     One chain spans both sections. A card in flight is drawn only under In
+     flight, so a tracer confined to the depth board could neither be started
+     from a card whose branch is open nor light that card up as the blocker of
+     one still waiting below. Both grids take the same highlight, and each
+     section carries its own copy of the chain line so the answer shows beside
+     whichever card was picked. */
+  const bar = document.getElementById("chainbar");
+  const hosts = [host, document.getElementById("flow")].filter(Boolean);
+  const bars = [bar, document.getElementById("flowchain")].filter(Boolean);
+  const say = html => bars.forEach(b => { b.innerHTML = html; });
+  const unpick = () => hosts.forEach(h => {
+    h.classList.remove("picking");
+    h.querySelectorAll(".tk").forEach(e => e.classList.remove("on", "root"));
+  });
+  const reach = (start, map) => {
+    const seen = new Set(), stack = [start];
+    while (stack.length) {
+      const id = stack.pop();
+      (map.get(id) || []).forEach(nx => { if (!seen.has(nx)) { seen.add(nx); stack.push(nx); } });
+    }
+    return seen;
+  };
+  const needsMap = new Map(TRACKER.map(c => [c.n, c.needs.filter(b => by.has(b))]));
+  const drawn = new Set([...rest.map(c => c.n), ...flight]);
+  const clear = () => {
+    unpick();
+    say(`<span class="hint">Pick a card to trace what it waits on and what waits on it.</span>`);
+  };
+  const pick = n => {
+    const up = reach(n, needsMap), down = reach(n, feeds);
+    if (!up.size && !down.size) {
+      say(`<span><b>#${n}</b> is linked to nothing else here, so it can be taken on its own.</span>` +
+        `<button type="button" data-clear>Clear</button>`);
+      unpick();
+      return;
+    }
+    hosts.forEach(h => {
+      h.classList.add("picking");
+      h.querySelectorAll(".tk").forEach(e => {
+        const v = +e.dataset.n;
+        e.classList.toggle("root", v === n);
+        e.classList.toggle("on", up.has(v) || down.has(v));
+      });
+    });
+    const bits = [];
+    if (up.size) bits.push(`waits on ${up.size}`);
+    if (down.size) bits.push(`${down.size} waiting on it`);
+    /* The short view leaves cards out, and a chain through them lights nothing,
+       so the line says how many it could not show rather than leaving the reader
+       to wonder where they went. */
+    const unseen = [...up, ...down].filter(v => !drawn.has(v)).length;
+    if (unseen) bits.push(`${unseen} of them hidden, so press Show all to see ${unseen === 1 ? "it" : "them"}`);
+    say(`<span><b>#${n}</b> &middot; ${bits.join(" &middot; ")}</span>` +
+      `<button type="button" data-clear>Clear</button>`);
+  };
+  let cur = null;
+  hosts.forEach(h => {
+    h.onclick = e => {
+      if (e.target.closest("a")) return;
+      const card = e.target.closest(".tk");
+      if (!card) return;
+      const n = +card.dataset.n;
+      if (cur === n) { cur = null; clear(); } else { cur = n; pick(n); }
+    };
+    h.onkeydown = e => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const card = e.target.closest(".tk"); if (!card) return;
+      e.preventDefault(); card.click();
+    };
+  });
+  bars.forEach(b => { b.onclick = e => { if (e.target.matches("[data-clear]")) { cur = null; clear(); } }; });
+  /* One Escape listener, replaced on each draw. This page draws once, so a new
+     listener per draw costs nothing here, but a page sharing this renderer that
+     redraws on live data would stack one per draw, each holding the grids of the
+     draw that made it. */
+  if (CHAIN_ESC) document.removeEventListener("keydown", CHAIN_ESC);
+  CHAIN_ESC = e => { if (e.key === "Escape" && cur !== null) { cur = null; clear(); } };
+  document.addEventListener("keydown", CHAIN_ESC);
+  clear();
+
+  inFlight({ by, planOf, workOn, prOf, card });
+
+  /* Each key lists what its own section actually drew. A fixed list would
+     describe cards that are not under it, which is what happened the moment
+     the pull requests moved to In flight. */
+  const legend = (id, pairs) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = pairs.map(([c, w]) =>
+      `<span><i class="${c}"></i>${esc(w)}</span>`).join("");
+  };
+  const drew = (set, f) => set.some(f);
+  /* Declared here rather than beside the flow legend, because both legends call
+     it and the rule has to exist once. That is the same arrangement `planMarker`
+     and `rankMark` already carry, and for the same reason.
+
+     This legend drew no plan marker at all while the depth board was drawing
+     them, which is defect 6 read the other way round: a legend accounting for
+     fewer marks than its own cards. It bites on a `PLANNED` card an open
+     blocker keeps out of the In flight section, and issues 15 and 138 are the
+     first two to reach that state, because until one existed every planned card
+     was either free or already carried. The CSS for both swatches was written
+     when the marker was, so only the two entries were missing. */
+  const marked = r => c => !remeasuring(c) && (planMarker(c) || {}).ready === r;
+  /* The build marker's gloss is read off the cards that drew it rather than
+     fixed, for the same reason `remeasured` below reads its swatch off one.
+     This legend sits under the depth board, and a planned card is down there
+     only when something blocks it: one with nothing in its way is drawn in the
+     In flight section instead. So "ready to hand to a builder" was wrong under
+     this board every time it appeared, while the swatch itself was right. The
+     harness caught it on #138, planned at eleven passes and waiting on #124,
+     under a legend offering it to a builder. The card had never said that,
+     because the visible line drops the phrase when a blocker is named above
+     it, so the legend was the only surface making the claim. */
+  const buildWord = set => {
+    const cs = set.filter(marked("build"));
+    if (!cs.length) return null;
+    return ["plan-build", cs.some(c => !c.needs.some(b => by.has(b)))
+      ? "plan run against the code, ready to hand to a builder"
+      : "plan run against the code, with a blocker still in front of it"];
+  };
+  /* The swatch is read off the card that drew it rather than fixed here, so a
+     re-measured `decide` card would not be advertised with the `build` colour.
+     Only the wording is new: the mark itself is the one the plan already had. */
+  const remeasured = set => {
+    const c = set.find(remeasuring);
+    return c ? ["plan-" + planOf.get(c.n).ready,
+      "plan run against the code, and a second loop re-measuring it"] : null;
+  };
+  legend("key", [
+    /* First, because it is the only mark on a card that was shipped with no
+       gloss anywhere a reader could see. It carried `title="priority order"`,
+       which is a hover tooltip, so it did not exist on a touch screen and
+       nobody discovered it on a desktop either. The `aria-label` spelled it out
+       in full, which left a screen reader better informed than a sighted
+       reader. Two readings of the page in one afternoon asked what the number
+       was, and the second asked why a card showing 3 sat to the right of one
+       showing 4. Both are this entry. */
+    ...(drew(rest, c => rankMark(c))
+      ? [["rk", "where it sits in the order work should land, so a blocker ranks ahead of what it frees"]] : []),
+    ...(drew(rest, c => c.kind === "ready") ? [["ready", "work a session can take"]] : []),
+    ...(drew(rest, c => c.kind === "decision") ? [["decision", "needs the owner, not a session"]] : []),
+    ...(drew(rest, c => c.kind === "deferred")
+      ? [["deferred", "deferred on purpose, under the ranking rule"]] : []),
+    ...(drew(rest, c => c.kind === "data") ? [["data", "waiting on data, so not a backlog"]] : []),
+    ...(drew(rest, c => c.kind === "parent")
+      ? [["parent", "a parent whose children carry the work"]] : []),
+    ...(buildWord(rest) ? [buildWord(rest)] : []),
+    ...(drew(rest, marked("decide"))
+      ? [["plan-decide", "plan finished, one question left for the owner"]] : []),
+    ...(remeasured(rest) ? [remeasured(rest)] : []),
+    ...(drew(rest, c => prOf.has(c.n)) ? [["has-pr", "a pull request carries it"]] : []),
+    ...(drew(rest, c => workOn.has(c.n))
+      ? [["busy", "a session is on it now, so nobody should start it again"]] : [])
+  ]);
+  const flown = TRACKER.filter(c => flight.has(c.n));
+  /* Both legends call the same `planMarker` the cards do, so neither can
+     advertise a marker none of them drew. This one once did, offering "ready to
+     hand to a builder" for a card whose pull request had retired that line,
+     because the suppression rule was written out a second time here. */
+  legend("flowkey", [
+    /* The chip is drawn here too, so the gloss is too. A legend that explains a
+       mark under one section and not under the other is the fixed-list defect
+       with an extra step. */
+    ...(drew(flown, c => rankMark(c))
+      ? [["rk", "where it sits in the order work should land, so a blocker ranks ahead of what it frees"]] : []),
+    ...(buildWord(flown) ? [buildWord(flown)] : []),
+    ...(drew(flown, marked("decide"))
+      ? [["plan-decide", "plan finished, one question left for the owner"]] : []),
+    ...(remeasured(flown) ? [remeasured(flown)] : []),
+    ...(drew(flown, c => prOf.has(c.n)) ? [["has-pr", "a pull request carries it"]] : []),
+    /* Drawn here as well as on the board below, because a card can carry it in
+       three of the five columns. Under "Waiting on my review" it is the mark of
+       a branch whose session has not handed it over yet, which is what keeps a
+       reviewed and green card out of the owner's column. */
+    ...(drew(flown, c => workOn.has(c.n))
+      ? [["busy", "a session is on it now, so nobody should start it again"]] : [])
+  ]);
+
+  /* The section's own heading note, computed rather than typed, because it names
+     the keys the sort actually uses and any of them can empty. It read "priority,
+     then how finished the plan is" while `NEXT` held nothing but a deferred card,
+     which draws no position at all, so the page advertised a ranking no card on
+     it showed. It also had the two keys the wrong way round: `cardOrder` compares
+     `planRank` before `rankOf`. That is defect 1 and defect 5 at once, in the
+     page's furniture rather than in a card, which is why neither the harness nor
+     a reader caught it.
+
+     `planRank` is one comparison covering two facts. Only the readiness half is a
+     key here. The deferred half gets its own sentence, because it is an override
+     rather than a tiebreak and because a key carrying its own comma breaks the
+     join around it: "deferred on purpose, which sorts last" and "the issue
+     number" came back as one clause reading "which sorts last and the issue
+     number". Keep every key a phrase with no comma in it. */
+  const ranked = rest.filter(c => rankMark(c));
+  const inRest = f => rest.some(f);
+  /* The columns are depth, and a reader who takes them for priority meets a
+     card numbered 3 sitting to the right of one numbered 4 and reads it as a
+     contradiction. It is not one. The number is the order work should land in,
+     and a blocker is ranked immediately ahead of what it frees, so a chain can
+     run across the columns rather than down one. #124 at 1 and #138 at 2 were
+     the last such pair, until #124 merged as ad3db18 and left nothing ranked
+     behind anything.
+
+     The sentence below names the cards actually in that position rather than
+     describing the situation in general, so it leaves when they do, which is
+     what it has just done, and it
+     names them in the order it is explaining rather than in the order `rest`
+     happens to hold. The preceding sentence used to rule out only dates, which
+     is the misreading nobody made. A reader asked about priority within a
+     minute of meeting the chips.
+
+     One name for one thing. The key in the list above is called priority, so
+     the sentence says the number is that priority rather than introducing a
+     second word for it. */
+  const rankedBehind = ranked.filter(c => c.needs.some(b => by.has(b)))
+    .sort((a, b) => rankPos.get(a.n) - rankPos.get(b.n));
+  const keys = [];
+  if (inRest(c => planOf.has(c.n))) keys.push("how finished the plan is");
+  if (ranked.length) keys.push("priority");
+  if (inRest(c => (c.after || []).some(b => by.has(b))))
+    keys.push("an ordering somebody measured");
+  keys.push("the issue number");
+  document.getElementById("ordernote").innerHTML =
+    `what can be started today, and what is behind what. Horizontal position is ` +
+    `<b>dependency, never a date and never priority</b>. Within a column the order is ` +
+    `<b>${andlist(keys)}</b>. ` +
+    (rankedBehind.length
+      ? `The number on a card is that priority. It orders what should land rather than ` +
+        `what a session can start, so a card can sit further right than one carrying a ` +
+        `higher number. A blocker ranks ahead of what it frees. ` +
+        `${andlist(rankedBehind.map(c => `<b>#${c.n}</b>`))} ` +
+        `${rankedBehind.length === 1 ? "is" : "are"} in that position today. `
+      : ``) +
+    (inRest(c => c.kind === "deferred")
+      ? `Anything deferred on purpose sorts last whatever the rest of that says. ` : ``) +
+    (ranked.length ? `` : `Priority is not a key today, because nothing left in the ranking ` +
+      `is a card anybody can take. `) +
+    `Pick a card to trace its chain.`;
+
+  /* Counted rather than written down, because both numbers move whenever a card
+     lands and a sentence that has to be remembered is a sentence that goes stale. */
+  const ready = bucket[0].filter(c => c.kind === "ready");
+  /* The graph's depth is read off the buckets rather than asserted, because a
+     sentence naming a column is a sentence that goes false the moment the
+     column empties. Closing issue 1 emptied the third one in a single merge. */
+  /* The short view draws only ranked cards, so its third column can be empty
+     while a hidden card sits two deep. A sentence calling the graph one level
+     deep would then be false about the issues it hid. So the depth is counted
+     over every open issue not in flight, and the sentence says so whenever that
+     differs from what the columns show. */
+  const deep = open.filter(c => c.kind !== "data" && depth.get(c.n) >= 2).length;
+  const deepHidden = deep !== bucket[2].length;
+  /* Subtracted rather than listed alongside, because a card somebody is already
+     on is not work this reader can take, and a count that includes it is the
+     sentence disagreeing with the one under it. */
+  /* Anything already carried is subtracted, not only a session. An open pull
+     request says the work is written, which is a stronger reason not to start
+     it than a session that may still end in nothing. */
+  const free = ready.filter(c => !workOn.has(c.n) && !prOf.has(c.n));
+  /* The reasons a first-column card is not free are listed from the cards that
+     are actually there, because a fixed list of three keeps offering reasons
+     after the cards carrying them have gone. */
+  const held = bucket[0].filter(c => !free.includes(c));
+  const why = [];
+  if (held.some(c => c.kind === "decision")) why.push("need a decision rather than a session");
+  if (held.some(c => c.kind === "deferred")) why.push("be deferred on purpose");
+  if (held.some(c => c.kind === "parent")) why.push("be a parent whose children carry the work");
+  if (held.some(c => workOn.has(c.n))) why.push("already have somebody on it");
+  if (held.some(c => prOf.has(c.n))) why.push("already be written and waiting on a review");
+  /* Every card tied at the top rather than whichever one sorted first. Taking
+     [0] off a descending sort names one card and calls it "the single card",
+     which is true only while nothing ties it. Closing issue 51 left #69 and #88
+     freeing two apiece, and the sentence went on claiming one of them was
+     alone. A count of zero drops the clause instead of reading "at 0 others",
+     which is what it would say the moment the graph flattens. */
+  const reachable = TRACKER.map(c => ({ n: c.n, k: reach(c.n, feeds).size }));
+  const most = Math.max(0, ...reachable.map(x => x.k));
+  const unblocks = reachable.filter(x => x.k === most);
+  /* The card that frees the most can be one the In flight section drew rather
+     than one of the columns this sentence sits under, because the depth graph
+     counts every blocker while the board draws only what nothing is carrying.
+     Naming it with no explanation sends a reader hunting for it in a column it
+     is not in. Issue 152 is the first to reach that state, on the day an owner
+     ruling made it issue 124's blocker while its own loop was still running. */
+  const flownTop = unblocks.filter(x => flight.has(x.n));
+  /* The short view raises the same problem a second way. The freeing count
+     reads every open issue, so the cards it counts, or the card that frees the
+     most, can be ones this view left out. The sentence says when it is counting
+     cards the reader cannot see, as the depth sentence does, and points at a
+     hidden top card the way `flownTop` points at one in flight. */
+  const hiddenTop = unblocks.filter(x => !drawn.has(x.n));
+  const freesHidden = unblocks.some(x => [...reach(x.n, feeds)].some(v => !drawn.has(v)));
+  /* The plan markers and the pull requests moved to the In flight section, which
+     is the single authority for both. This note keeps only what the depth graph
+     itself knows, so the two cannot say different things about one card. */
+  /* The lead count agrees with its verb the way the sentences below already do.
+     It was the one count here still typed as a plural, and it read "1 cards
+     are free" the first time a single card was left free in the short view. An
+     empty list drops its colon rather than ending on "first column: ." */
+  document.getElementById("boardnote").innerHTML =
+    `<b>${plu(free.length, "card")} ${free.length === 1 ? "is" : "are"} free for a session to take ` +
+    `today</b>, out of ${bucket[0].length} in the first column` +
+    `${free.length ? ": " + free.map(c => "#" + c.n).join(", ") : ""}. ` +
+    (held.length
+      ? `${plu(held.length, "card")} there ${held.length === 1 ? "is" : "are"} not free, ` +
+        `because a card can ${orlist(why)}, and depth alone does not say what to pick. `
+      : "") +
+    (deep
+      /* The verb agrees with the count rather than assuming it. `plu` handles the
+         noun and left the verb fixed, which read "1 card sit" the first time a
+         single card reached the third column. That is defect 8 in a second
+         place, so the agreement is written wherever a count leads a verb. */
+      ? `${deepHidden ? "Counting the hidden issues, " : ""}` +
+        `${plu(deep, "card")} ${deep === 1 ? "sits" : "sit"} behind two or more, ` +
+        `which is the deepest the graph goes. `
+      : `Nothing sits behind more than one thing any more, so the graph is one level deep. `) +
+    (most
+      ? (freesHidden ? (deep && deepHidden ? "Counting them too, " : "Counting the hidden issues, ") : "") +
+        (unblocks.length === 1
+          ? `<b>#${unblocks[0].n} is the single card whose landing frees the most</b>, at ${plu(most, "other")}. `
+          : `<b>${andlist(unblocks.map(x => "#" + x.n))} each free ${plu(most, "other")}</b>, and nothing frees more. `)
+      : `No card here is waiting on another, so nothing is freed by landing anything. `) +
+    (flownTop.length
+      ? `${andlist(flownTop.map(x => "#" + x.n))} ${flownTop.length === 1 ? "is" : "are"} in the ` +
+        `In flight section above rather than in a column here. `
+      : ``) +
+    (hiddenTop.length
+      ? `${andlist(hiddenTop.map(x => "#" + x.n))} ${hiddenTop.length === 1 ? "is" : "are"} ` +
+        `hidden in this view, so press Show all to see ${hiddenTop.length === 1 ? "it" : "them"}. `
+      : ``) +
+    (bucket[3].length
+      ? `The fourth column is not a backlog, because nothing in it is waiting on anyone's time.`
+      : ``);
+}
+
+/* The five states a card passes through between a plan being written and a
+   merge. Each is decided by something observable rather than by a label somebody
+   has to remember to move: whether a pull request exists, whether a review of it
+   has been posted, whether its checks settled, and what kind of session is on
+   it. A card lands in exactly one, and the tests run in order, so a pull request
+   always outranks the session that produced it. Once a branch exists, the branch
+   decides that the card sits in one of the two "Waiting on" columns, and the
+   session still decides which.
+
+   They read left to right from most finished to least, which is the opposite of
+   the order the work happens in and the right way round for the question the
+   section answers: what is nearly done, and what is barely started.
+
+   The first two columns are the point of it. "Waiting on your review" is the
+   only one where the next move is not mine. "Waiting on my review" is work this
+   project's own rules count as unfinished, because a pull request is not handed
+   over until it is reviewed, its session has finished with it and its checks have
+   settled green. */
+/* A branch is handed over when three things are done, not one or two. `CLAUDE.md`
+   says a pull request is not handed over until its checks have run and settled,
+   so a review on its own does not move a card into the owner's column. It did
+   once, and the card read "2 checks still running" under a heading saying the
+   next move was theirs, which invites a merge of a branch that can still go red.
+
+   `checkword` returns "ok" only when every entry succeeded, so three states all
+   stay on this side: a check still running, a check that failed, and no checks
+   reported at all. The last is not an oversight. A conflicting pull request gets
+   no run created, which `CLAUDE.md` records as its own failure mode, and a
+   branch nothing built is not one to hand over either.
+
+   The third thing is that the branch's own session has finished with it. On
+   2026-10-05 issue 340 sat under "Waiting on your review" with PR 383 reviewed
+   at 05:02Z and six green checks at 81b4e28, while its session was still
+   running: at 05:15Z it pushed a merge of main, moving the head to 125b5a6, and
+   it was then rewriting the post, the README and Entry 21. A session also
+   recommended merging it from this column. Nothing here asked whether the
+   session was done, and the skill had it take its `WORKING` entry out when the
+   pull request opened, which dropped the only signal the page had. So the entry
+   now stays until the session hands the branch over, and a card carrying one
+   stays on this side. A session that ends without taking its entry out leaves
+   its card under "Waiting on my review", which delays a merge rather than
+   inviting one too early.
+
+   `owed` is the rule, and it returns the first thing still owed or null once
+   nothing is. The column test and the flow note both call it, so the reason a
+   card gives for sitting on this side is the same rule that put it there. A
+   rule written once for the test and again for the note is defect 5. */
+const owed = (p, busy) =>
+  !p.reviewed ? "review" : busy ? "session" : checkword(p.rollup)[0] !== "ok" ? "checks" : null;
+const handedOver = (p, busy) => owed(p, busy) === null;
+
+/* Five stages rather than four, because a session is not one state. A decompose
+   loop and a build session are both somebody working, and they end in different
+   things: a loop ends in a sharper plan and a builder ends in a branch. Drawing
+   both under a heading reading "Building" said the wrong thing about five cards
+   at once, so the loops get their own column at the far right, where the work is
+   least finished. `kind` on a `WORKING` entry is what separates them, and an
+   entry without one counts as a loop. */
+const FLOW = [
+  { t: "Waiting on your review", tone: "owner", d: "reviewed, checks settled green and no session listed on it, so the next move is not mine",
+    has: (c, s) => s.pr && handedOver(s.pr, s.busy) },
+  { t: "Waiting on my review", tone: "mine", d: "a branch exists and still owes a review, a green check or the rest of its session's work",
+    has: (c, s) => s.pr && !handedOver(s.pr, s.busy) },
+  { t: "Building", tone: "building", d: "a build session is on it and no branch has appeared",
+    has: (c, s) => !s.pr && s.busy && s.busy.kind === "build" },
+  { t: "Planned, no builder", tone: "planned", d: "a plan run against the code, nothing blocking it, and nobody on it",
+    has: (c, s) => s.plan && !s.pr && !s.busy && !s.blocked },
+  { t: "Being planned", tone: "planning", d: "a decompose loop is running, so the plan is still being written",
+    has: (c, s) => !s.pr && s.busy && s.busy.kind !== "build" }
+];
+
+/* One ordering rule, shared by both sections. Sorting a column is the same
+   question wherever the column is drawn: readiness first, then whatever the
+   ranking decided, then an ordering somebody measured, then the issue number.
+   Two sorts written separately are two sorts that can disagree about one pair,
+   which is what put issue 2 ahead of issue 41 in the grid while the ranking
+   put issue 41 first. */
+function cardOrder(by, planOf) {
+  const nextRank = new Map(NEXT_SORTED.map((it, i) => [it.issue, i]));
+  const rankOf = n => nextRank.has(n) ? nextRank.get(n) : 999;
+  /* A card deferred on purpose sorts last whatever the ranking says about it,
+     because the ranking only covers the top of the list and everything it omits
+     falls back to one number. Without this, issue 10 sat fourth in a column of
+     twenty-five for the sole reason that the ranking mentions it at all. */
+  const planRank = n => {
+    const c = by.get(n);
+    if (c && c.kind === "deferred") return 3;
+    const x = planOf.get(n);
+    return x ? (x.ready === "build" ? 0 : 1) : 2;
+  };
+  const softDepth = n => {
+    const c = by.get(n);
+    return c && (c.after || []).some(b => by.has(b)) ? 1 : 0;
+  };
+  return (a, b) =>
+    planRank(a.n) - planRank(b.n) ||
+    rankOf(a.n) - rankOf(b.n) ||
+    softDepth(a.n) - softDepth(b.n) ||
+    a.n - b.n;
+}
+
+function flightCols({ by, planOf, workOn, prOf }) {
+  const stateOf = c => ({
+    plan: planOf.get(c.n),
+    busy: workOn.get(c.n),
+    /* A finished plan behind an open blocker is not a card with no builder, it
+       is a card nobody can start. The column's test asked only whether a plan
+       existed, which the skill's own text predicted would put such a card under
+       a heading offering it to a builder, and noted that no card had reached the
+       case because every `PLANNED` entry so far carried an empty `needs`. Issue
+       138 is the first that does not. Left alone it would have read "waits on
+       #124" and "ready to build" on one card, which is check 6: a marker and a
+       position answering one question two ways. */
+    blocked: c.needs.some(b => by.has(b)),
+    pr: (prOf.get(c.n) || []).find(x => x.state === "open")
+  });
+  const cols = FLOW.map(() => []);
+  TRACKER.forEach(c => {
+    const s = stateOf(c);
+    const i = FLOW.findIndex(f => f.has(c, s));
+    if (i >= 0) cols[i].push(c);
+  });
+  cols.forEach(col => col.sort(cardOrder(by, planOf)));
+  return cols;
+}
+
+/* The same split the section draws, as a set, so the depth board leaves out
+   exactly what this section shows and neither can drift from the other. */
+function flightOf(ctx) {
+  return new Set(flightCols(ctx).flat().map(c => c.n));
+}
+
+function inFlight(ctx) {
+  const { card } = ctx;
+  const cols = flightCols(ctx);
+
+  document.getElementById("flow").innerHTML = cols.map((col, k) => `
+    <div class="col f-${FLOW[k].tone}">
+      <div class="ch"><span class="t">${esc(FLOW[k].t)}</span><span class="c">${col.length}</span>
+        <span class="d">${esc(FLOW[k].d)}</span></div>
+      ${col.length ? col.map(card).join("") : `<div class="empty">nothing here</div>`}
+    </div>`).join("");
+
+  /* Written by walking the columns in the order they are drawn, so reordering
+     the stages reorders the sentence with them. An index written here by hand
+     is an index that outlives the arrangement it was counted from. */
+  const ns2 = cs => andlist(cs.map(c => "#" + c.n));
+  const say = {
+    /* One sentence again. This split into settled and still-running for a while,
+       which was the note coping with a column that should not have held an
+       unsettled branch in the first place. `handedOver` fixed that above, so
+       every card here has green checks by construction and the second half could
+       only ever be empty. A note working around a wrong test is a second place
+       for the rule to live, which is defect 5. */
+    owner: col => `<b>${ns2(col)} ${col.length === 1 ? "is" : "are"} yours</b>, reviewed, ` +
+      `checks green, no session listed on ${col.length === 1 ? "it" : "them"}, ` +
+      `and waiting on nothing else`,
+    /* Three different things keep a card here, and calling them all "unreviewed"
+       is the note contradicting the card above it, which reports the checks and
+       the session. So the reason is read per card from `owed`, the same rule
+       that put the card in this column, rather than assumed. */
+    mine: col => {
+      const openPr = c => (ctx.prOf.get(c.n) || []).find(x => x.state === "open");
+      const why = c => owed(openPr(c), ctx.workOn.get(c.n));
+      const unreviewed = col.filter(c => why(c) === "review");
+      const working = col.filter(c => why(c) === "session");
+      const unsettled = col.filter(c => why(c) === "checks");
+      const parts = [];
+      if (unreviewed.length) parts.push(`${ns2(unreviewed)} ` +
+        `${unreviewed.length === 1 ? "is" : "are"} written and unreviewed`);
+      if (working.length) parts.push(`${ns2(working)} ` +
+        `${working.length === 1 ? "is reviewed while a session is" : "are reviewed while sessions are"} ` +
+        `still working on ${working.length === 1 ? "it" : "them"}`);
+      if (unsettled.length) parts.push(`${ns2(unsettled)} ` +
+        `${unsettled.length === 1 ? "is reviewed and its checks have" : "are reviewed and their checks have"} ` +
+        `not settled green`);
+      /* Each reason carries its own "and", so the join between them keeps a
+         comma before its last "and". `andlist` drops that comma, which ran two
+         reasons together as "written and unreviewed and #N is reviewed". */
+      return parts.slice(0, -1).join(", ") + (parts.length > 1 ? ", and " : "") +
+        parts[parts.length - 1] + `, which this project's rules count as ` +
+        `unfinished rather than as handed over`;
+    },
+    building: col => `${ns2(col)} ${col.length === 1 ? "has a build session" : "have build sessions"} on ` +
+      `${col.length === 1 ? "it" : "them"} and no branch yet`,
+    planning: col => `${ns2(col)} ${col.length === 1 ? "is" : "are"} under a decompose loop, so what ` +
+      `comes back is a sharper plan and possibly new cards rather than a branch`,
+    planned: col => {
+      const owed = col.filter(c => (ctx.planOf.get(c.n) || {}).ready === "decide");
+      const free = col.filter(c => !owed.includes(c));
+      const parts = [];
+      if (free.length) parts.push(`${ns2(free)} ${free.length === 1 ? "is" : "are"} planned and ` +
+        `free for anyone to pick up`);
+      /* "too" only reads if the free sentence went first, and that one drops out
+         whenever every planned card is waiting on the owner. */
+      if (owed.length) parts.push(`${ns2(owed)} ${owed.length === 1 ? "is" : "are"} planned` +
+        `${free.length ? " too" : ""}, and ${owed.length === 1 ? "waits" : "wait"} on a question ` +
+        `only the owner can answer`);
+      return parts.join(". ");
+    }
+  };
+  const bits = cols
+    .map((col, k) => col.length ? say[FLOW[k].tone](col) : "")
+    .filter(Boolean);
+
+  /* A missing closing link is a fact about a branch, so it is reported where the
+     branches are rather than under a board that no longer draws them. */
+  const withPr = cols.filter((_, k) => FLOW[k].tone === "owner" || FLOW[k].tone === "mine").flat();
+  const openPrs = c => (ctx.prOf.get(c.n) || []).filter(x => x.state === "open");
+  const loose = withPr.filter(c => openPrs(c).some(x => !x.linked && !x.partOf));
+  if (loose.length) bits.push(`<b>GitHub registered no closing link for ` +
+    `${andlist(loose.map(c => "PR #" + openPrs(c)[0].pr))}</b>, so merging would leave ` +
+    `${ns2(loose)} open`);
+  const contested = withPr.filter(c => openPrs(c).length > 1);
+  if (contested.length) bits.push(`<b>${ns2(contested)} carries more than one open branch</b>, ` +
+    `and merge order decides which lands while neither body can know it`);
+
+  /* An ordering between two cards only becomes a decision once both are branches,
+     because until then nothing can be merged in the wrong order. So it is said
+     here, in the pull requests' own words, rather than only on the card. */
+  const pairs = [];
+  withPr.forEach(c => (c.after || []).forEach(b => {
+    const first = withPr.find(x => x.n === b);
+    if (first) pairs.push([openPrs(first)[0], openPrs(c)[0], first, c]);
+  }));
+  pairs.forEach(([a, z, ca, cz]) => bits.push(
+    `<b>PR #${a.pr} merges before PR #${z.pr}</b>, because #${cz.n} should land after #${ca.n}. ` +
+    `Nothing enforces that, so it is the order they are merged in and not something a check ` +
+    `will catch`));
+
+  /* The board below can be showing only the ranked cards, so "every other card"
+     needs the count it is not drawing. */
+  const hiddenNote = HIDDEN
+    ? ` ${HIDDEN} of them ${HIDDEN === 1 ? "shows" : "show"} only with Show all.`
+    : ``;
+  document.getElementById("flownote").innerHTML = bits.length
+    ? bits.join(". ") + `. Every other card belongs to the board below, where the question is what is ` +
+      `behind what rather than whose move it is.` + hiddenNote
+    : `Nothing is in flight. Every card belongs to the board below.` + hiddenNote;
+}
+
+/* With no board data only the banner is drawn, and both card sections and the
+   footer are hidden, since each states facts about the tracker. The platform's
+   page wrapper makes `hidden` win over a section's own display rule. The strip
+   sits outside those sections, so it is emptied: a first live draw that throws
+   after strip() has run rolls back to no data, and the strip would otherwise
+   keep that draw's count beside a banner saying no board data is shown. */
+function render() {
+  ["flightsec", "ordersec", "foot"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = NONE;
+  });
+  if (NONE) { document.getElementById("strip").innerHTML = ""; source(); return; }
+  strip(); source(); buildOrder(); more(); stamped();
+}
+adopt(FALLBACK);
+render();
+
+/* Subscribe once per section. The page goes live when all six sections have
+   arrived and passed `usableSection`, and from then on each write replaces its
+   own section and redraws. Nothing draws until the sixth arrives, so the six
+   snapshots of a fresh load draw once without any batching. `connect` is
+   separate from the lookup below so the skill's harness can hand it a fake
+   database and watch what a bad write does. */
+function connect(db) {
+  const live = {};
+  const absent = {};
+  let had = false;
+  const redraw = () => {
+    if (!SECTIONS.every(s => s in live)) {
+      /* A section arriving while others are still absent would otherwise leave
+         the banner naming it, so the banner is rebuilt from what is absent now. */
+      const gone = SECTIONS.filter(s => absent[s]);
+      if (!had && gone.length) {
+        SOURCE = { live: false, why: "empty", missing: andlist(gone) };
+        source();
+      }
+      return;
+    }
+    /* With no data on screen, a failed first draw goes back to drawing none. */
+    const last = NONE ? FALLBACK
+      : { state: STATE, prs: PRS, working: WORKING, planned: PLANNED,
+          next: NEXT, tracker: TRACKER };
+    try {
+      adopt(live); SOURCE = { live: true }; render(); had = true;
+    } catch (e) {
+      adopt(last);
+      SOURCE = { live: false, why: "stopped", had, code: "a live section could not be drawn" };
+      try { render(); } catch (e2) { source(); }
+    }
+  };
+  SECTIONS.forEach(name => {
+    try {
+      db.doc(`${DB_COLLECTION}/${name}`).onSnapshot(snap => {
+        if (!snap || !snap.exists) {
+          /* A new board's database starts with no documents, and once every
+             section has reported none, the line says so rather than naming one. */
+          absent[name] = true;
+          const gone = SECTIONS.filter(s => absent[s]);
+          SOURCE = had ? { live: false, why: "stopped", had, code: `${name} removed` }
+                       : { live: false, why: "empty",
+                           missing: gone.length === SECTIONS.length ? "" : andlist(gone) };
+          source(); return;
+        }
+        delete absent[name];
+        const d = snap.data();
+        if (!usableSection(name, d)) {
+          SOURCE = had ? { live: false, why: "stopped", had, code: `unreadable ${name}` }
+                       : { live: false, why: "shape", missing: name };
+          source(); return;
+        }
+        live[name] = name === "state" ? d : d.items;
+        redraw();
+      }, err => {
+        SOURCE = { live: false, why: "stopped", had, code: err && err.code };
+        source();
+      });
+    } catch (e) {
+      SOURCE = { live: false, why: "stopped", had, code: e && e.code };
+      source();
+    }
+  });
+}
+
+(async () => {
+  let db = null;
+  try {
+    const host = typeof globalThis !== "undefined" ? globalThis : {};
+    db = host.claude && host.claude.use ? await host.claude.use("db") : null;
+  } catch (e) { db = null; }
+  if (!db) { SOURCE = { live: false, why: "none" }; source(); return; }
+  connect(db);
+})();
+
+setInterval(() => {
+  const el = document.getElementById("stamp");
+  if (el && !NONE) el.textContent = "measured " + ago(STATE.updatedAt);
+}, 60000);
+</script>
+
+</body></html>

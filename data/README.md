@@ -1058,6 +1058,8 @@ The Johansen tests of location 1922 read GLD, GDX and USO from it through
 `chan.gold_miners_oil`, for
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344), with no
 script of Chan's behind them.
+The Kalman filter of Chapter 3 reads EWA and EWC through `chan.kalman_hedge`,
+for [issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
@@ -1161,8 +1163,9 @@ and symbol.
    days for one row beside it, and reads the 2012-05-07 save's CL before
    2008-05-19 to run the rule on the four years before the book's window, per
    [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
-3. `VX_ES.m` reads VX and ES, and `gapFutures_FSTX.m`, Example 7.1's gap on
-   Euro Stoxx 50 futures, reads FSTX, all from the 2012-05-17 save.
+3. `VX_ES.m` reads VX and ES, `gapFutures_FSTX.m`, Example 7.1's gap on
+   Euro Stoxx 50 futures, reads FSTX, and `correlationTest.m`, Example 6.1's
+   correlation table run alone, reads TU, all from the 2012-05-17 save.
 4. `VX_ES_rollreturn.m` reads ES from the 2012-05-07 save and the close of
    `VIX.csv`.
 5. The two VIX-filtered variants at Kindle location 3509, of Examples 4.1 and 7.1,
@@ -1173,6 +1176,12 @@ come from the 2012-05-07 save, which
 [issue 350](https://github.com/l3a0/quantitative-trading/issues/350) measured.
 So `chan.vx_es` reads VX and ES from the 2012-05-07 save for the replication,
 and from the 2012-05-17 save for the script as it ships.
+
+`chan.tu_momentum` reads TU from the 2012-05-11 save, which `TU_mom.m` loads
+and whose figures the book prints, as
+[issue 351](https://github.com/l3a0/quantitative-trading/issues/351) measured.
+It reads the 2012-05-17 save for one row beside the replication, because that
+is the save `correlationTest.m` loads.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

@@ -1,10 +1,13 @@
 // A DOM small enough to run the build board's script, plus a no-op setInterval
 // so the page's stamp refresher does not keep the process alive.
 //
-// The board has no test suite, and a parse check does not catch the defects it
-// actually ships. A comma dropped inside a nested array still parses, and a
-// sentence that renders perfectly can still say something false. So the check
-// is to execute the script and read what it produced.
+// A parse check does not catch the defects the board actually ships. A comma
+// dropped inside a nested array still parses, and a sentence that renders
+// perfectly can still say something false. So the check is to execute the
+// script and read what it produced. Two things run it on this stub: the
+// skill's harness, against the data about to be written, and
+// tests/test_build_board.py, which holds what the page draws with no data, an
+// empty database, a partial one and a fixture board.
 //
 // This is plain ES5 and assumes nothing about its host, so any JavaScript engine
 // runs it. Where none is installed, `osascript -l JavaScript` is JavaScriptCore
