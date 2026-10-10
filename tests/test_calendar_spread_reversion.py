@@ -80,6 +80,7 @@ from chan.calendar_spread_reversion import (
 )
 from chan.khandani_lo import plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, gap, matches
+from chan.price_spread import zscore
 from chan.roll_returns import SOURCE_FILES, Strip, load_strip, roll_returns
 from chan.series import WindowCrossesScaleBreak
 from chan.stationarity_tests import jplv7_adf
@@ -344,6 +345,31 @@ class TestTheSchedule:
         assert _held(schedule, 1, -1) == list(range(31, 61))
         assert _held(schedule, 2, 1) == list(range(31, 61))
 
+    def test_a_first_expiry_inside_holddays_plus_10_rows_starts_on_the_files_first_row(
+        self,
+    ) -> None:
+        """Line 85's ``max(1, ...)``, worked by hand in the script's one-based rows.
+
+        Contract 0 is priced on rows 1 to 16, so ``expireIdx`` is 16 and
+        ``numDaysStart`` is 20. ``startIdx`` is ``max(1, -4)``, row 1, and
+        ``endIdx`` is 6, so rows 1 to 6 are held, which are rows 0 to 5 here.
+        """
+        schedule = calendar_schedule(_contracts([15, 70, 100]), spread_month=1, holddays=10)
+        assert _held(schedule, 0, -1) == list(range(0, 6))
+        assert _held(schedule, 1, 1) == list(range(0, 6))
+
+    def test_a_window_of_exactly_holddays_is_held(self) -> None:
+        """Line 90's ``>=``: pair 1 runs from row 31 to row 36, and 36 minus 31 is 5."""
+        schedule = calendar_schedule(_contracts([40, 46, 70, 100]), spread_month=1, holddays=5)
+        assert _held(schedule, 1, -1) == list(range(31, 37))
+        assert _held(schedule, 2, -1) == list(range(37, 61))
+
+    def test_a_window_one_short_of_holddays_is_skipped(self) -> None:
+        """Pair 1 would run from row 31 to row 35, and 35 minus 31 is 4, below 5."""
+        schedule = calendar_schedule(_contracts([40, 45, 70, 100]), spread_month=1, holddays=5)
+        assert _held(schedule, 1, -1) == []
+        assert _held(schedule, 2, -1) == list(range(31, 61))
+
     def test_a_short_window_is_skipped_and_keeps_the_previous_end(self) -> None:
         """Pair 1 would run rows 31 to 33, fewer than 5, so pair 2 starts on row 31."""
         schedule = calendar_schedule(_contracts([40, 43, 70, 100]), spread_month=1, holddays=5)
@@ -412,6 +438,13 @@ class TestTheReturn:
         positions = pd.DataFrame({"near": [-1.0, 0.0], "far": [1.0, 0.0]}, index=DAYS[:2])
         assert spread_returns(positions, contracts).tolist() == [0.0, pytest.approx(0.05)]
 
+    def test_a_leg_whose_return_is_infinite_is_skipped(self) -> None:
+        """A price of 0 the day before makes the near leg's return infinite, and
+        ``smartsum`` sums only the finite legs, so the far leg's 0.1 is halved alone."""
+        contracts = pd.DataFrame({"near": [0.0, 1.0], "far": [50.0, 55.0]}, index=DAYS[:2])
+        positions = pd.DataFrame({"near": [-1.0, 0.0], "far": [1.0, 0.0]}, index=DAYS[:2])
+        assert spread_returns(positions, contracts).tolist() == [0.0, pytest.approx(0.05)]
+
     def test_a_row_with_no_leg_is_zero(self) -> None:
         contracts = pd.DataFrame({"near": [100.0, np.nan], "far": [np.nan, 55.0]}, index=DAYS[:2])
         positions = pd.DataFrame({"near": [-1.0, 0.0], "far": [1.0, 0.0]}, index=DAYS[:2])
@@ -452,10 +485,33 @@ class TestTheRun:
         assert found.adf == jplv7_adf(filled, 0, 1)
         assert ou_half_life(dropped) != pytest.approx(found.half_life, rel=1e-3)
 
-    def test_a_half_life_with_a_fraction_of_a_half_or_more_rounds_up(self) -> None:
+    def test_the_z_score_reads_the_forward_filled_signal(self) -> None:
+        """Line 42 fills γ before lines 67 to 69 read it, so a gap in the signal
+        inside a held pair does not leave the pair flat."""
+        values = _ar1(2)
+        values[30:36] = np.nan
+        signal = pd.Series(values, index=DAYS)
+        contracts = _wiggling_contracts(2)
+        found = run_spread(
+            contracts, signal, start=DAYS[0], spread_month=1, holddays=5, lookback=10
+        )
+        z = pd.Series(zscore(signal.ffill().to_numpy(), 10), index=DAYS)
+        expected = flip_on_zscore(calendar_schedule(contracts, spread_month=1, holddays=5), z)
+        assert found.positions.equals(expected)
+
+    def test_a_half_life_of_exactly_a_half_rounds_away_from_zero(self, monkeypatch) -> None:
+        """MATLAB's ``round`` takes 36.5 to 37, where Python's ``round`` gives 36."""
+        monkeypatch.setattr(module, "ou_half_life", lambda _x: 36.5)
+        signal = pd.Series(_ar1(0), index=DAYS)
+        found = run_spread(
+            _wiggling_contracts(0), signal, start=DAYS[0], spread_month=1, holddays=5
+        )
+        assert (found.half_life, found.lookback) == (36.5, 37)
+
+    def test_a_half_life_with_a_fraction_above_a_half_rounds_up(self) -> None:
         signal = pd.Series(_ar1(0, phi=0.9), index=DAYS)
         half_life = ou_half_life(signal.to_numpy())
-        assert half_life % 1 >= 0.5, "the seed no longer gives a half-life that rounds up"
+        assert half_life % 1 > 0.5, "the seed no longer gives a half-life that rounds up"
         found = run_spread(
             _wiggling_contracts(0), signal, start=DAYS[0], spread_month=1, holddays=5
         )
@@ -583,6 +639,27 @@ class TestMain:
         with pytest.raises(ValueError, match="a bug, not a refusal"):
             main()
 
+    def test_run_calls_run_spread_with_each_rows_start_and_holding_period(
+        self, strip, monkeypatch
+    ) -> None:
+        """S from the script's start, R1 from the comment's, and R2 on the book's 61 days."""
+        calls = []
+
+        def record(contracts, signal, **kwargs):
+            calls.append((contracts is strip.contracts, kwargs))
+            return len(calls)
+
+        monkeypatch.setattr(module, "load_strip", lambda *_a, **_k: strip)
+        monkeypatch.setattr(module, "run_spread", record)
+        monkeypatch.setattr(module, "report", lambda *_a: None)
+        _, runs_ = run()
+        assert calls == [
+            (True, {"start": START}),
+            (True, {"start": COMMENT_START}),
+            (True, {"start": START, "holddays": BOOK_HOLDDAYS}),
+        ]
+        assert runs_ == {"S": 1, "R1": 2, "R2": 3}
+
     def test_run_reads_cl_and_returns_the_strip_and_three_runs(
         self, strip, monkeypatch, capsys
     ) -> None:
@@ -632,6 +709,19 @@ class TestTheReport:
         row = _row(printed, label)
         assert all(figure in row.split() for figure in figures), f"{S_SPEC}: {row}"
         assert row.rstrip().endswith(verdict), f"{S_SPEC}: {row}"
+
+    def test_a_miss_prints_its_gap_with_its_sign(self) -> None:
+        assert module._verdict(1.1, "1.0") == "did not reproduce, gap +0.1"
+        assert module._verdict(0.9, "1.0") == "did not reproduce, gap -0.1"
+
+    def test_the_longest_drawdown_row_reports_a_miss(self, strip, runs, monkeypatch) -> None:
+        """The row is printed apart from the others, so its verdict is held on its own."""
+        monkeypatch.setattr(module, "SCRIPT_MAX_DD_DAYS", "999")
+        out = io.StringIO()
+        with redirect_stdout(out):
+            report(strip, runs)
+        row = _row(out.getvalue(), "Longest drawdown, script")
+        assert row.rstrip().endswith("did not reproduce, gap -793"), f"{S_SPEC}: {row}"
 
     def test_the_adf_row_carries_its_verdict_and_criterion(self, printed) -> None:
         row = _row(printed, "ADF statistic, book")

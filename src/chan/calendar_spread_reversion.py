@@ -254,8 +254,8 @@ def flip_on_zscore(schedule: pd.DataFrame, z: pd.Series) -> pd.DataFrame:
 def spread_returns(positions: pd.DataFrame, contracts: pd.DataFrame) -> pd.Series:
     """Lines 110 and 111: yesterday's positions times each leg's return, summed and halved.
 
-    ``smartsum`` skips a leg whose return is not a number, and a row with no
-    such leg at all is set to 0.
+    ``smartsum`` skips a leg whose return is not finite, and a row with no
+    finite leg at all is set to 0.
     """
     held = backshift(1, positions.to_numpy(dtype=float))
     cl = contracts.to_numpy(dtype=float)

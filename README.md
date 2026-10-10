@@ -459,8 +459,9 @@ where they were first built. The other thirty-three were built here.
     critical value of −3.4583, so the book's "stationary with 99 percent
     probability" holds. Trading the spread on a z-score over that lookback,
     on the script's window from 2008-01-02, gives an APR of 0.082671 and a
-    Sharpe ratio of 1.278216, the book's 8.3 percent and 1.3, and the
-    drawdown of −0.053222 over 206 days that the script's comment prints. The
+    Sharpe ratio of 1.278216, which round to the book's 8.3 percent and 1.3,
+    and the drawdown of −0.053222 over 206 days that the script's comment
+    prints. The
     comment's APR of 0.083406 and Sharpe ratio of 1.288661 do not reproduce
     on that window, and starting a day later lands both to every digit. The
     book's 61 holding days in place of the script's 63 give 0.067315 and
@@ -777,7 +778,7 @@ window's end that return exactly 0. It also runs the script's window on CL
 with a lookback and an end passed in, which no row above passes, and pins the
 CL strip as the vintage `run` reads from the directory it is given. On
 synthetic frames it holds the script's schedule, sign flip and return, and the
-refusal of a signal on an index other than the contracts'. Four of those
+refusal of a signal on an index other than the contracts'. Seven of those
 synthetic cases hold choices the CL strip cannot show.
 
 1. Line 98's strict comparison, which never holds a one-row window.
@@ -787,6 +788,11 @@ synthetic cases hold choices the CL strip cannot show.
    z-score is exactly 0.
 4. The lookback's rounding, which takes a half-life with a fractional part of
    at least 0.5 up.
+5. Line 42's forward fill, which the half-life, the ADF test and the z-score
+   all read, since γ on CL has no gap after its first value.
+6. Line 85's `max(1, ...)`, which starts a first pair on the file's first row
+   when its expiry comes sooner than `holddays + 10` rows in.
+7. Line 110's `smartsum`, which skips a leg whose return is infinite.
 
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) does it
 for the VX calendar spread. It pins the specification and the four rows
