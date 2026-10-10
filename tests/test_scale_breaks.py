@@ -304,6 +304,13 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: in none of the four saves, so nothing is refused, and
 #: ``TestTheGuardAndTheReads`` in ``tests/test_cl_reversal_momentum.py`` runs it
 #: on each.
+#:
+#: [Issue 351](https://github.com/l3a0/quantitative-trading/issues/351) decided
+#: that ``chan.tu_momentum`` calls the guard for *Algorithmic Trading*'s
+#: Example 6.1, on TU's own rows over its whole span in the 2012-05-11 save and
+#: again in the 2012-05-17 save. TU flags nothing in either, so nothing is
+#: refused, and ``TestTheGuardAndTheReads`` in ``tests/test_tu_momentum.py``
+#: holds TU clean and a planted break refused.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

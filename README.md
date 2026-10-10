@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-two replications run here, fifteen from Chan's *Quantitative Trading*
-and seventeen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-three replications run here, fifteen from Chan's *Quantitative Trading*
+and eighteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty were built here.
+where they were first built. The other thirty-one were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -430,6 +430,20 @@ where they were first built. The other thirty were built here.
     median is 1.047367 and its mean 1.089693. The intercept's yearly mean
     rises every year from 0.1440 in 2006 to 6.7748 in 2012, and 513 of its
     1,499 daily steps fall. Every figure is exploratory.
+33. Time-series momentum on TU, the two-year Treasury note future, Example
+    6.1 of *Algorithmic Trading*, on Chan's own 2012-05-11 continuous futures
+    save. Past returns over 250 days correlate with returns over the next 25
+    at 0.2719 with a p-value of 0.0238, the book's 0.27 and 0.02, and the
+    variance ratio test does not reject a random walk, as the book says. The
+    trade goes long when the 250-day return is positive and short when it is
+    negative, holding each day's call for 25 days with a twenty-fifth of the
+    capital. All six figures `TU_mom.m`'s comment prints reproduce on the full
+    2004 to 2012 window: an average annual return of 0.016699, a Sharpe ratio
+    of 1.041462, an APR of 0.016708, a maximum drawdown of −0.024847 lasting
+    343 days, and a Kelly f of 64.919535. The script's own active line starts
+    in 2009 and lands none of them. The Hurst exponent does not reproduce:
+    0.433357 against the book's 0.44, through the same `genhurst` that misses
+    USD.CAD's 0.49 in item 22. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -705,7 +719,16 @@ grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
 planted break in either is refused.
 
-All thirty-two replications reach a verdict in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
+momentum. It pins the six figures of `TU_mom.m`'s comment, the 250/25
+correlation, H and the variance ratio test at six decimals and at the
+precision Chan printed, all 49 cells of the correlation table, the script's
+2009 window, and the 2012-05-17 save that `correlationTest.m` loads. It also
+holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
+start from, the rule on synthetic arrays, the refusal of a position larger
+than the tranche count, and the scale-break guard on TU.
+
+All thirty-three replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -720,8 +743,8 @@ the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
-5.2's, Entry 31 the crude oil rule's, and Entry 32 the Kalman filter's on
-EWA and EWC.
+5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
+EWA and EWC, and Entry 33 TU momentum's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1475,6 +1498,17 @@ uv run python -m chan.kalman_hedge
 It prints the vintage, the rows, the filter's constants, both figures beside
 the script's comment and the book with a verdict, the first position and the
 run with no signal on the first two days, and the two findings with no verdict.
+
+TU's momentum, Example 6.1 of *Algorithmic Trading*, takes no option either, because
+`TU_mom.m` fixes the table, the lookback and the hold:
+
+```bash
+uv run python -m chan.tu_momentum
+```
+
+It prints the vintage, the 49-cell correlation table, each figure beside the
+script's or the book's with a verdict, and then the six pairs the book calls
+the best compromises, the script's 2009 window and the 2012-05-17 save.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
