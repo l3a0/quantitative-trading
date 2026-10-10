@@ -269,8 +269,8 @@ class TestTheDowngrade:
     """Location 2559: "particularly profitable starting around the time of the Standard and
     Poor's downgrade of the U.S. credit rating", announced after the close of 2011-08-05.
 
-    ``blog/vx-es-lessons.md`` quotes each figure here. The specification's own
-    test-set returns, compounded.
+    ``blog/vx-es-lessons.md`` quotes each figure here. Each compounds the
+    specification's own test-set returns.
     """
 
     DOWNGRADE = pd.Timestamp("2011-08-05")

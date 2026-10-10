@@ -299,6 +299,7 @@ class TestTheFile:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert "inputDataOHLCDaily_20120507.mat" in str(stopped.value)
+        assert "\n" not in str(stopped.value)
 
     @pytest.mark.parametrize(
         "refusal",

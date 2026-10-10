@@ -2865,7 +2865,8 @@ lessons from Entry 28 of the replication log.
 2. The 2012-05-11 and 2012-05-17 saves miss all four, and `VX_ES.m` loads the
    later one, fits on days that include the test set, and runs no trade.
 3. The exit the book leaves out decides the trade, since closing at the mean
-   gives 6.8 percent and only holding until the opposite band lands both.
+   gives 6.8 percent, and of the three rules tried only holding until the
+   opposite band lands both.
 4. The APR rests on four positions, all of them winners, and the whole of the
    test set's gain came after the close of 2011-08-05.
 
@@ -2874,7 +2875,8 @@ Seven groups of what it says are not pinned here.
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    "When the market goes down, volatility shoots up" is at 2546. The two
-   regimes and the warning against a regression across both are at 2552. The
+   regimes, the second's lower volatility for a given index level, and the
+   warning against a regression across both are at 2552. The
    dollars per point, the four figures, the long 0.3906 VX contracts and one
    ES contract, the band of one training deviation, and "particularly
    profitable" around the downgrade are at 2559. "0.3906 front contracts of
@@ -2887,14 +2889,17 @@ Seven groups of what it says are not pinned here.
 3. Facts outside the committed data. What ES and VX are and what the VIX
    index measures. That Standard and Poor's announced its downgrade of the
    U.S. credit rating after the close of Friday 2011-08-05. That a continuous
-   future shifts its history at each roll, which
-   [data/README.md](data/README.md) records.
+   future shifts its history at each roll, and that VX's and ES's closes do
+   not move by one constant between saves, so how Chan's source rebuilt them
+   was not measured, both of which [data/README.md](data/README.md) records.
 4. What Chan's scripts at `e4bc46f` in `ericnberwick/EpchanPreview` do. That
    `VX_ES.m` loads the 2012-05-17 save, keeps the days both legs traded,
    draws the scatter and stops after the regression. That
    `VX_ES_rollreturn.m` anchors at 2008-08-04, tests from the 501st row on,
-   computes every day's return before keeping those rows, and reads ES from
-   the 2012-05-07 save. That `bollinger.m` exits at a z-score of 0.
+   computes every day's return before keeping those rows, reads ES from the
+   2012-05-07 save, and trades one VX contract against one ES contract with
+   every line holding 0.3906 commented out. That `bollinger.m` exits at a
+   z-score of 0.
    [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
    [data/README.md](data/README.md) record the first two.
 5. Arithmetic on pinned numbers that no test asserts as written: the
