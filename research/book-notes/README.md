@@ -260,11 +260,12 @@ a re-extraction that returns fewer highlights fails the suite instead of
 passing quietly.
 
 The *Algorithmic Trading* note also ends with a `## Bibliography` section,
-which holds book entries that nobody highlighted, such as the full entry
-behind location 2287's "(Dueker, 2006)". Each one was read from a page of the
-print edition and is cited by page, so its heading does not open with
+which holds bibliography entries that nobody highlighted, such as the full
+entry behind location 2287's "(Dueker, 2006)". Each one comes from a page of
+the print edition and cites that page, so its heading does not open with
 `Location` and the counts above leave it out. A re-extraction rebuilds only
-the highlights, so it has to carry that section over by hand.
+the highlights, so whoever re-extracts carries that section over by hand, and
+`tests/test_book_notes.py` fails if it goes missing.
 
 ## These files are quoted, not authored
 

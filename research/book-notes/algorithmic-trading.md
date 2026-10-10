@@ -1437,9 +1437,9 @@
 
 ## Bibliography
 
-The highlights above stop before the book's bibliography, which nobody highlighted. An entry recorded here was read from the print edition's page rather than exported from the Kindle, so it carries a page number and no Kindle location. These entries are not highlights, and the count in the header leaves them out.
+Entries below come from the book's bibliography, which nobody highlighted. Each comes from a page of the print edition, so it carries a page number rather than a Kindle location, and the header's highlight count leaves it out.
 
 ### Page 192 · bibliography
 
-<!-- read 2026-10-10 from the page image in Google Books' preview of the print edition, ISBN 9781118460146; the Kindle Cloud Reader could not be driven that day -->
+<!-- read 2026-10-10 from page 192 of the print edition, ISBN 9781118460146, in Google Books' preview -->
 > Dueker, Michael J., and Christopher J. Neely. “Can Markov Switching Models Predict Excess Foreign Exchange Returns?” Federal Reserve Bank of St. Louis Working Paper 2001-021F, 2001. Available at http://research.stlouisfed.org/wp/2001/2001-021.pdf.
