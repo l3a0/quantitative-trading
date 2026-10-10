@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-five replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty from his *Algorithmic Trading*. The first two were ported from the
+Thirty-six replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-one from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-three were built here.
+where they were first built. The other thirty-four were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -484,6 +484,20 @@ where they were first built. The other thirty-three were built here.
     date, but so does the row that holds pairs the same way on the
     specification's signal, so the date does not single it out. B3 was picked
     out after the run, so its match is a search. Every figure is exploratory.
+36. TU momentum traded on the lagged roll return, location 2690 of
+    *Algorithmic Trading*, on Chan's 2012-08-13 TU strip. The rule goes long
+    when item 27's roll return is above 3 percent and short when it is below
+    −3 percent, and holds the front contract, rebuilt from the strip because
+    no committed continuous save covers the whole of the book's 2009 to 2012
+    window. It misses all three printed figures, with an APR of 0.013725, a
+    Sharpe ratio of 1.803348 and a maximum drawdown of −0.007299 against the
+    book's 2.5 percent, 2.1 and 1.1 percent. It beats Example 6.1's rule on all
+    three when both run on the same series, which is the claim the book's
+    "higher" and "reduced" make, though its APR leads by only 0.000348.
+    The rebuild agrees with Chan's 2012-05-11 save at a return correlation
+    of 0.998359. The rule was declared after about 90 scratch readings, a
+    count from the issue's disclosure that no test pins, and the module says
+    so. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -809,7 +823,15 @@ ends on the book's end date. On synthetic frames it holds the two signals'
 rules: a row whose nearest two contracts skip one, the held pair across a
 roll, and the fill across days nothing is held.
 
-All thirty-five replications reach a verdict in
+[tests/test_roll_momentum.py](tests/test_roll_momentum.py) does it for TU's
+momentum on the roll return. It pins the three figures at six decimals and
+at the book's precision, Example 6.1's rule on the same rebuilt series and
+each claim's margin, the rebuild against the 2012-05-11 save, both rules on
+that save's own close, and the month-unit and fifth-contract readings. It
+also holds the declared rule and the roll's off-by-one on synthetic strips,
+the March 2012 roll, and the scale-break guard on every member's own rows.
+
+All thirty-six replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -826,7 +848,8 @@ examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
-spread's, and Entry 35 the VX calendar spread's.
+spread's, Entry 35 the VX calendar spread's, and Entry 36 the roll-return
+rule's on TU.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1601,6 +1624,17 @@ and Sharpe ratio beside the book's claims with a verdict, then the four rows
 declared beside it, B1 to B4. B3, the row that trades the held pair's ratio
 with each pair held in turn, is then measured on the book's window, and each
 row before October 2008. None of these carries a verdict.
+
+TU momentum on the roll return takes no option either, because the issue
+declared its threshold, its lag and its roll row:
+
+```bash
+uv run python -m chan.roll_momentum
+```
+
+It prints the strip's vintage, the three figures beside the book's with a
+verdict, the three claims against Example 6.1's rule with their margins, and
+the rows beside them, the 2012-05-11 save's among them.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
