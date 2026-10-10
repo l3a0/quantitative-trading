@@ -1058,6 +1058,8 @@ The Johansen tests of location 1922 read GLD, GDX and USO from it through
 `chan.gold_miners_oil`, for
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344), with no
 script of Chan's behind them.
+The Kalman filter of Chapter 3 reads EWA and EWC through `chan.kalman_hedge`,
+for [issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 

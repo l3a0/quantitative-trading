@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-two replications run here, fifteen from Chan's *Quantitative Trading*
-and seventeen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-three replications run here, fifteen from Chan's *Quantitative Trading*
+and eighteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty were built here.
+where they were first built. The other thirty-one were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -414,7 +414,23 @@ where they were first built. The other thirty were built here.
     [issue 313](https://github.com/l3a0/quantitative-trading/issues/313)
     found back-adjusted above the traded price. Swapping the two lookbacks
     negates every position. Every figure is exploratory.
-32. Time-series momentum on TU, the two-year Treasury note future, Example
+32. A Kalman filter hedge ratio on EWA and EWC, from *Algorithmic Trading*'s
+    Chapter 3, on Chan's own ETF file. The filter re-estimates the slope and
+    intercept of EWC on EWA every day, and the band trades its forecast error
+    against the square root of its forecast variance. Both figures
+    `KF_beta_EWA_EWC.m` prints reproduce to their last digit, an APR of
+    0.262252 and a Sharpe ratio of 2.361162, which the book rounds to 26.2
+    percent and 2.4. The script shorts EWC alone on the file's first day,
+    while the filter's slope is still 0, and withholding the signal on the
+    first two days gives 0.260669 and 2.349460, which round to 26.1 percent
+    and 2.3 rather than the book's figures. The book's two claims about
+    the filter, a slope that "oscillates around 1" and an intercept that
+    "increases monotonically", are carried as findings with no verdict,
+    because the only criteria for them were written after a run. The slope's
+    median is 1.047367 and its mean 1.089693. The intercept's yearly mean
+    rises every year from 0.1440 in 2006 to 6.7748 in 2012, and 513 of its
+    1,499 daily steps fall. Every figure is exploratory.
+33. Time-series momentum on TU, the two-year Treasury note future, Example
     6.1 of *Algorithmic Trading*, on Chan's own 2012-05-11 continuous futures
     save. Past returns over 250 days correlate with returns over the next 25
     at 0.2719 with a p-value of 0.0238, the book's 0.27 and 0.02, and the
@@ -691,6 +707,17 @@ three rules beside them, the 2012-05-11 save, and the three rules on the
 the ten rows where ComboOR differs, five changes to the specification that
 each move a figure, and the scale-break guard on each span of each save.
 
+[tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) does it for the
+Kalman filter on EWA and EWC. It pins the script's two printed figures at its
+six decimals and at eight, the book's rounding of them, and the run with no
+signal on the first two days. It holds the filter's zero start on the first
+row, the second row against its closed form, the first position and return,
+and every figure the two findings quote: the slope's median, mean, share above
+1 and crossings, and the intercept's yearly means, its falls at each finer
+grain and its peak. It also
+holds that the read calls the scale-break guard on both legs and that a
+planted break in either is refused.
+
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
 momentum. It pins the six figures of `TU_mom.m`'s comment, the 250/25
 correlation, H and the variance ratio test at six decimals and at the
@@ -700,7 +727,7 @@ holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
 start from, the rule on synthetic arrays, the refusal of a position larger
 than the tranche count, and the scale-break guard on TU.
 
-All thirty-two replications reach a verdict in
+All thirty-three replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -715,7 +742,8 @@ the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
-5.2's, Entry 31 the crude oil rule's, and Entry 32 TU momentum's.
+5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
+EWA and EWC, and Entry 33 TU momentum's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -763,7 +791,9 @@ Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
 stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
-span, and neither carries a flagged day, so nothing is refused. VX against ES
+span, and neither carries a flagged day, so nothing is refused. The Kalman
+filter calls it on EWA and EWC over the same span, and refuses nothing either.
+VX against ES
 calls it on VX and ES over each leg's own span in each continuous futures save
 it reads, and nothing is refused there either. The crude oil rule calls it on
 CL over each span it reads in each of three saves, and refuses nothing.
@@ -845,7 +875,9 @@ closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/
 and Example 4.2 reads its SPY, for
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
 Example 3.2 reads GLD and USO again, for
-[issue 341](https://github.com/l3a0/quantitative-trading/issues/341).
+[issue 341](https://github.com/l3a0/quantitative-trading/issues/341), and the
+Kalman filter reads EWA and EWC, for
+[issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
 The Johansen tests of location 1922 read its GLD, GDX and USO, for
 [issue 344](https://github.com/l3a0/quantitative-trading/issues/344).
 
@@ -1454,6 +1486,17 @@ It prints the vintage and the window, the two figures beside the script's and
 the book's with a verdict, the positions, the script's other three rules and
 the later save in a table, and the three rules on the four years before the
 window.
+
+The Kalman filter on EWA and EWC takes no option either, because
+`KF_beta_EWA_EWC.m` fixes the file and both of the filter's constants:
+
+```bash
+uv run python -m chan.kalman_hedge
+```
+
+It prints the vintage, the rows, the filter's constants, both figures beside
+the script's comment and the book with a verdict, the first position and the
+run with no signal on the first two days, and the two findings with no verdict.
 
 TU's momentum, Example 6.1 of *Algorithmic Trading*, takes no option either, because
 `TU_mom.m` fixes the table, the lookback and the hold:
