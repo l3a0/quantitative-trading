@@ -1,10 +1,10 @@
 """The pins for AUD.USD against CAD.USD, *Algorithmic Trading*'s Example 5.1.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it, with one exception, in
-``blog/aud-cad-johansen-lessons.md``. That post also quotes its figure's labels,
-which ``tests/test_aud_cad_johansen_figures.py`` holds, and README lists what it
-says that nothing asserts. ``docs/replication-log.md`` Entry 25 carries the
+about this example and the rows beside it. The one exception is
+``blog/aud-cad-johansen-lessons.md``: ``tests/test_aud_cad_johansen_figures.py``
+holds the numbers its figure draws, and README lists what it says that nothing
+asserts. ``docs/replication-log.md`` Entry 25 carries the
 verdicts and points here row by row.
 
 Every pin on the committed files reads one vintage and one specification, so
@@ -311,7 +311,7 @@ class TestBesideTheReplication:
 
     def test_the_trace_tests_26_windows_fall_in_three_stretches(self, result) -> None:
         """Every two-relation window sits in the first or the third, and the eigen test's 11
-        all sit in the second."""
+        run from the second's first day to a day past its last."""
         days = result.test_days
         stretches = [
             ("2010-02-09", "2010-04-08", [1, 14]),
@@ -387,8 +387,10 @@ class TestBesideTheReplication:
         assert curve["2010-05-31"] == pytest.approx(0.0213815186, abs=1e-10)
         assert curve["2010-10-05"] == pytest.approx(0.1170443008, abs=1e-10)
 
-    def test_the_90_days_swung_twice_as_wide_and_a_welch_t_of_1_09_says_chance(self, result):
-        """The standard deviations are 0.0073 and 0.0035, and the means' gap has p of 0.28."""
+    def test_the_90_days_swung_twice_as_wide_and_a_welch_t_of_1_09_cannot_rule_out_chance(
+        self, result
+    ):
+        """The standard deviations are 0.0073 and 0.0035, and the means differ with p of 0.28."""
         same = result.dollar_split > 0
         test = result.test
         assert test[same].std(ddof=1) == pytest.approx(0.0072797972, abs=1e-10)

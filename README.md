@@ -3777,20 +3777,23 @@ twenty-sixth post, about Example 5.1 of Chan's *Algorithmic Trading*, which
 trades AUD.USD against CAD.USD in weights a rolling Johansen test supplies each
 day. Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 from
 2009-12-18 to 2012-04-26. The post links the earlier posts on the Johansen
-test, the linear rule, rollover interest and the Kelly leverage rather than
-repeating them, and draws six lessons from Entry 25 of the replication log.
+test, the linear rule, rollover interest, the Kelly leverage, Chan's stationary
+candidates and the gold miners rather than repeating them, and draws six
+lessons from Entry 25 of the replication log.
 
-1. Every figure the script prints lands, because every one of the 612 returns
-   lands on the one Chan's script saved, within a criterion written before
-   any return was computed.
-2. The match ties the committed daily files to the ones Chan's MATLAB read up
-   to a constant scale on each leg, and no more.
-3. The Johansen test rarely backed the hedge it supplied. The trace test finds
-   a relation in 26 of the 612 windows, in three stretches, and two relations
-   in 19 of them.
+1. Every figure the script prints matches, because every one of the 612
+   returns matches the one Chan's script saved, within a criterion written
+   before any return was computed.
+2. The match ties the traded closes to the ones Chan's MATLAB read up to a
+   constant scale on each leg, and no more. The closes before the test period
+   are checked only as far as they move a hedge.
+3. The Johansen test rarely found a relation behind the hedge it supplied. The
+   trace test finds a relation in 26 of the 612 windows, in three stretches,
+   and two relations in 19 of them.
 4. The hedge is a capital weight that wandered. It held both currencies the
    same way on 90 days, 85 of them from 2010-06-01 to 2010-10-05, and those
-   days carried about two fifths of the growth with twice the volatility.
+   days carried about two fifths of the growth in log terms with twice the
+   volatility, though a Welch t of 1.09 cannot rule out chance.
 5. The Python port's version of the example is a different strategy, so its
    printout is no check on the data.
 6. An exact reproduction checks the arithmetic, not the edge.
@@ -3805,24 +3808,28 @@ Five groups of what it says are not pinned here.
    interest "usually not large for short-term strategies" is at 2205. "A
    classic linear mean-reverting strategy", the gross market value, "better
    results in hindsight", the 11 percent and 1.6 and the caption of Figure
-   5.1 are at 2237. The Kelly leverage of 18.4 is at 3342. The book's figures
-   are pinned, and its words are not.
+   5.1 are at 2237. The Kelly leverage of 18.4 is at 3342. The book's 11
+   percent and 1.6 are pinned, and its words, its 9.58 and its 18.4 are
+   not.
 2. Facts about the script and the port rather than the data: the comments on
    lines 60 and 66 of `AUDCAD_unequal.m`, which ericnberwick/EpchanPreview
    holds at `e4bc46f`, that the script loads two minute files neither public
    copy carries, that line 57 plots against the row number, and that the
    port ends both windows a day earlier and prints a Sharpe ratio of
-   1.362926.
+   1.362926. So is that the files quote six decimals.
 3. Readings no test asserts: that the two rates are close to random walks,
    that the test has little power against them, that a position held both
    ways is a bet on the US dollar's direction, and that wider swings are what
    such a bet gives. That neighbouring windows share 249 of their 250 days
-   is arithmetic on the window length.
-4. Ratios and roundings the post takes from pinned figures in words: about
-   three quarters, about twice as wide, 15 percent of the days, 0.0012 and
-   0.0003 a day, and that a move of 0.01 is worth one cent. The figure's alt
-   text reads its curves approximately too, such as "near −0.63" and "about
-   0.32".
+   is arithmetic on the window length. That CAD/AUD tested stationary over
+   nineteen years is the stationary-candidates post's, listed under its
+   entry above.
+4. Ratios and differences the post takes from pinned figures in words: about
+   three quarters, about twice as wide, 15 percent of the days, the 586 days
+   left when 26 of 612 are taken away, and that a move of 0.01 is worth one
+   cent. The figure's alt text reads its curves approximately too, such as
+   "near −0.64" and "about 0.32", and it names the dates of two one-day moves,
+   2010-05-20 and 2010-07-06, read from the drawn line.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

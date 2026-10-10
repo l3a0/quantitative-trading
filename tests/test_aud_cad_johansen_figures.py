@@ -242,7 +242,7 @@ class TestTheCumulativeReturn:
 
     def test_the_heading_sets_the_total_and_the_apr(self, axes) -> None:
         assert _title(axes["return"]) == (
-            "The cumulative return over the 612 test days, ending at 0.295, an APR of 0.112.\n"
+            "The cumulative return over the 612 test days, ending at 0.2953, an APR of 0.1124.\n"
             "Unlevered, before costs and without rollover interest."
         ), SPEC
         assert axes["return"].get_ylabel() == "cumulative return, compounded"
