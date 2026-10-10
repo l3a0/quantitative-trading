@@ -135,7 +135,7 @@ A test aimed at each ETF alone disagrees. An augmented Dickey-Fuller test on eac
 
 That is a tension rather than a refutation. A Dickey-Fuller test on prices has little power, which means it often fails to reject a unit root that is not there. Failing to reject is weak evidence of a unit root rather than proof of one. The run does not settle which reading holds.
 
-The full rank is also thin. The second relation, the one that turns one relation into a full rank, rests on 3.983 against a bar of 3.841. It clears its bar by only 0.141. At 99 percent the bar is 6.635, and the trace test counts one relation rather than two.
+The full rank is also thin. The second relation, the one that turns one relation into a full rank, rests on 3.983 against a bar of 3.841. It clears its bar by only 0.141. At 99 percent the bar is 6.635, and the trace test counts one relation rather than two. [The post on Chan’s SPY index arbitrage](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md) meets the same claim between a basket of S&P 500 stocks and SPY, where the trace test counts two relations and the eigen test finds none.
 
 ## Lesson 5: what the portfolio holds
 
