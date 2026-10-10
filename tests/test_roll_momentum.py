@@ -2,7 +2,7 @@
 
 This file is the single authority for every number a prose surface quotes
 about this experiment and the rows beside it. ``docs/replication-log.md``
-Entry 34 carries the verdicts and points here row by row. The rows are the ones
+Entry 35 carries the verdicts and points here row by row. The rows are the ones
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353) declared
 under "The pins".
 
@@ -633,7 +633,7 @@ class TestTheReport:
         assert "inputdatadaily_tu_20120813/" in printed
         assert "inputdataohlcdaily_20120511/tu.csv" in printed
         assert "Exploratory." in printed
-        assert "Entry 34" in printed
+        assert "Entry 35" in printed
 
     def test_it_prints_the_rows_beside(self, printed) -> None:
         assert "return correlation 0.998359, 30 changes" in printed
