@@ -434,7 +434,7 @@ On 2026-10-10, eleven open write-up issues were blocked on nothing in the code. 
 
 **A filed write-up issue is approved to plan and write (owner directive, 2026-10-10).** The ruling was "Write-up issues are approved to plan and write once filed." An issue titled "Write up the lessons of Entry N ..." is work a session starts like any other deliverable. A write-up issue filed from now on says so, rather than saying its outline waits on the owner.
 
-The approval removes the wait for the owner to ask for the post, and nothing more. A question the issue reserves for the owner, such as whether a figure gains a second panel, is still the owner's to answer. The session that plans the post asks it rather than deciding it, as with any question only the owner can answer.
+**The approval reaches the questions a write-up issue reserves for the owner (owner directive, 2026-10-10).** Asked whether a planning session may decide them, the owner answered "yes". So the session that plans the post decides a question such as whether a figure gains a second panel. It writes the decision and its reason on the issue, and the owner can reverse it on the pull request.
 
 **Creating or syncing an unpublished Substack draft needs no ask in chat (owner directive, 2026-10-10).** The owner extended the first ruling with "Yes, and substack too." Two guards still hold before any write to a draft.
 
