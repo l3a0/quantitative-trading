@@ -321,10 +321,12 @@ issue beside it, linked, with how the two relate, as in
 "[PR #479](https://github.com/l3a0/quantitative-trading/pull/479), which closes
 [#352](https://github.com/l3a0/quantitative-trading/issues/352)" or
 "[PR #477](https://github.com/l3a0/quantitative-trading/pull/477), part of
-[#457](https://github.com/l3a0/quantitative-trading/issues/457)". One that
-tracks no issue says "closes no issue". A table of pull requests gets an issue column. Read the
-relation from GitHub at report time, from `closingIssuesReferences` and any
-`Part of #NN` line in the body, rather than from memory. This holds in step 2's
-kept list too, wherever it names a pull request. `CLAUDE.md`'s
-`## Writing style` carries the rule. Say which candidates only the owner can
-act on, and which a new session can start without them.
+[#457](https://github.com/l3a0/quantitative-trading/issues/457)". A pull request
+that tracks no issue says "closes no issue". A table of pull requests gets an
+issue column. Read the relation from GitHub at report time, from
+`closingIssuesReferences` and any `Part of #NN` line in the body, rather than
+from memory. This holds in step 2's kept list too, wherever it names a pull
+request. `CLAUDE.md`'s `## Writing style` carries the rule.
+
+Say which candidates only the owner can act on, and which a new session can
+start without them.
