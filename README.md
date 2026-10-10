@@ -652,7 +652,9 @@ again at the precision Chan printed, and both bridge rows beside the first
 book. It also holds the first days at zero, the same series under either
 reading of the `lag` the script calls, and the profit of Example 3.8's
 notebook without its fill, which computes the same rule by another route, so a
-transcription that takes returns before the cut fails a test.
+transcription that takes returns before the cut fails a test. The blog post
+about it is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_price_spread.py](tests/test_price_spread.py) does it for Example
 3.1. It pins each figure the three scripts print at their six decimals and
@@ -3638,6 +3640,100 @@ uv run python -m chan.usdcad_mean_reversion_figures
 ```
 
 [tests/test_usdcad_mean_reversion_figures.py](tests/test_usdcad_mean_reversion_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/khandani-lo-reversal-lessons.md](blog/khandani-lo-reversal-lessons.md)
+is a twenty-fifth post, about Examples 4.3 and 4.4 of Chan's *Algorithmic
+Trading*, which run the first book's Khandani-Lo reversal again on his 2012
+panel of 497 stocks over 2007 to 2011. Chan reports an APR of 13.7 percent and
+a Sharpe ratio of 1.3 for the close-to-close rule, with 30 percent in 2008 and
+11 percent in 2011, and 73 percent and 4.7 for the intraday rule. The post
+links the earlier post on the first book's rule rather than repeating it, and
+draws four lessons from Entry 19 of the replication log.
+
+1. Every figure the book prints lands on Chan's own file, and so do the two
+   the script printed at six decimals, though two of the book's roundings have
+   little room.
+2. The match needs CAH's prices of 2009-08-31 to 2009-09-02, which read as a
+   data error or a corporate action, so a cleaner file would miss both of
+   Example 4.3's figures.
+3. Most of the rise from the first book's 0.25 to this book's 1.3 comes from
+   the data and the window rather than the rule, and two days the cut zeroes
+   carry 0.1313 of the rule's 0.2974.
+4. Costs still take most of the first book's rule's edge on the panel, but
+   they cost 0.6924 of a day's profit there against 13.7453 times it on 2006,
+   because the profit is about twenty times larger and the trading barely
+   changes.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   Cross-sectional mean reversion, "and vice versa", and "the same total gross
+   capital of $1" are at 2087. "Almost perfectly dollar neutral", "the year of
+   Lehman Brothers' bankruptcy" and "a true out-of-sample test, as the
+   strategy was published in 2007" are at 2110. The intraday version is at
+   2124, and the doubled costs and the noise of the open at 2135. The 4.7 set
+   against momentum is at 2890. The book's figures are pinned, and its words
+   are not.
+2. Facts about the script rather than the data: that both of its `plot` lines
+   compound, that its cost lines are commented out, and that its comment for
+   Example 4.3 reads 13.7 percent and 1.3, which `andrewlo_2007_2012.m` holds
+   at `e4bc46f` of ericnberwick/EpchanPreview. That a second copy holds the
+   script byte for byte is recorded in
+   [src/chan/khandani_lo_book_two.py](src/chan/khandani_lo_book_two.py)'s
+   docstring.
+3. Readings no test asserts: that most of the scale-break guard's flags on
+   this window fall in the 2008 crisis, that CAH's prices read as a data error
+   or a corporate action, and that a longer stretch of survivors leaves out
+   more of the companies that left the index. The survivor horizons of five
+   years and under two are arithmetic on the two files' membership dates.
+4. Ratios the post takes between pinned figures in words: about five times,
+   nearly four times, four times the average return, about the same standard
+   deviation, more than twice, by about a third, and less than a third. So is
+   what a figure would print as at the book's precision, such as 1.2, 10, 13.3
+   and 0.731552.
+   The figure's alt text reads its curves approximately too, such as "about 70
+   percent" and "about 1,460 percent".
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py), to
+[tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
+for the figure's own numbers, or to
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py) for the first book's
+0.2510, −3.1884 and −3.2337 and its average day on 2006. Four had no pin
+before it.
+
+1. Each calendar year's APR for both examples, 2007 to 2011, and Example
+   4.4's falling in every year after 2008.
+2. Each example's annual mean and standard deviation, 0.1338 and 0.1063 for
+   Example 4.3 and 0.5565 and 0.1181 for Example 4.4.
+3. The bridge differences, 0.2974 for the rule, 0.1313 of it for the two days
+   the cut zeroes, which is 0.44 of the rule's share, and 0.7111 still to go.
+   Entry 19 had printed the second as 0.1314, taken on rounded figures.
+4. The first book's rule's average day on the panel: a profit of 10.5234 and a
+   cost of 7.2868 basis points of its position, 0.6924 of the profit, a
+   turnover of 1.4574, and a profit 19.94 times 2006's.
+
+Its one figure is drawn from the committed panel by
+[src/chan/khandani_lo_book_two_figures.py](src/chan/khandani_lo_book_two_figures.py),
+which reads it through the same `close_to_close` and `open_to_close` as
+`python -m chan.khandani_lo_book_two`. That module computes across the scale
+breaks the guard would refuse, as its docstring decides, so the figure does
+too. It draws two panels on one date axis, each with every calendar year's APR
+above its span.
+
+1. Example 4.3's compounded cumulative return, the book's Figure 4.4, with
+   2008 and 2011 shaded.
+2. Example 4.4's on its own axis, for which the book draws no figure.
+
+```bash
+uv run python -m chan.khandani_lo_book_two_figures
+```
+
+[tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 

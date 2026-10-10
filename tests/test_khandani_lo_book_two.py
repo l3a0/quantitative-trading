@@ -3,7 +3,10 @@
 This file is the single authority for every number a prose surface quotes
 about these two examples and about the two bridge rows that set them beside
 the first book's Examples 3.7 and 3.8. ``docs/replication-log.md`` Entry 19
-carries the verdicts and points here row by row.
+carries the verdicts and points here row by row, and
+``blog/khandani-lo-reversal-lessons.md`` quotes the same figures and the
+yearly APRs, the annual mean and deviation, the bridge differences and the
+average day that this file pins for it.
 
 Every pin on the committed panel reads one vintage and one specification, so
 both are stated once here.
@@ -44,7 +47,7 @@ import pandas as pd
 import pytest
 
 from chan import khandani_lo, paths
-from chan.khandani_lo import notebook_reversal, reversal
+from chan.khandani_lo import daily_book, notebook_reversal, reversal
 from chan.khandani_lo_book_two import (
     BOOK_43_APR_PERCENT,
     BOOK_43_SHARPE,
@@ -80,6 +83,25 @@ from chan.series import (
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 from tests.test_scale_breaks import FLAGGED_IN_CHANS_MAT_FILES
+
+#: Each calendar year's APR in percent, at six decimals, for both examples.
+YEARLY_APR_PERCENT = {
+    "4.3": {
+        2007: -3.046588,
+        2008: 30.164676,
+        2009: 33.449527,
+        2010: 1.818140,
+        2011: 10.577823,
+    },
+    "4.4": {
+        2007: 97.169153,
+        2008: 161.091599,
+        2009: 91.868495,
+        2010: 36.844862,
+        2011: 15.035091,
+    },
+}
+
 
 # --- the committed files -------------------------------------------------------
 
@@ -203,6 +225,50 @@ class TestTheFigures:
         assert alone.apr != pytest.approx(result.close_to_close.year_apr(2008), abs=1e-6)
 
 
+class TestEachYear:
+    """Each calendar year's APR for both examples, the labels the figure draws.
+
+    Location 2110 names 2008 and 2011 for Example 4.3, and ``TestTheFigures``
+    holds those two against the book. The post quotes the other three years
+    and every year of Example 4.4, which the book does not print, so they are
+    pinned here, in ``YEARLY_APR_PERCENT``, at six decimals of a percent.
+    """
+
+    @pytest.mark.parametrize("example", ["4.3", "4.4"])
+    def test_each_years_apr(self, result: BookTwo, example) -> None:
+        run = result.close_to_close if example == "4.3" else result.open_to_close
+        assert sorted(set(run.days.year)) == sorted(YEARLY_APR_PERCENT[example])
+        for year, percent in YEARLY_APR_PERCENT[example].items():
+            assert 100 * run.year_apr(year) == pytest.approx(percent, abs=5e-7), (example, year)
+
+    def test_example_4_4_earns_less_every_year_after_2008(self, result: BookTwo) -> None:
+        run = result.open_to_close
+        later = [run.year_apr(year) for year in range(2008, 2012)]
+        assert all(a > b for a, b in zip(later, later[1:], strict=False))
+
+
+class TestTheMeanAndTheDeviation:
+    """Why 4.7 is so far above 1.3: the deviations are close and the means are not.
+
+    The annual mean is ``252 · mean`` and the annual deviation ``√252 · std``
+    with n − 1, so their ratio is each example's pinned Sharpe ratio.
+    """
+
+    @pytest.mark.parametrize(
+        ("example", "mean", "deviation"),
+        [("4.3", 0.1338, 0.1063), ("4.4", 0.5565, 0.1181)],
+    )
+    def test_each_examples_annual_mean_and_deviation(
+        self, result: BookTwo, example, mean, deviation
+    ) -> None:
+        run = result.close_to_close if example == "4.3" else result.open_to_close
+        annual_mean = 252 * run.daily.mean()
+        annual_deviation = np.sqrt(252) * run.daily.std(ddof=1)
+        assert annual_mean == pytest.approx(mean, abs=5e-5)
+        assert annual_deviation == pytest.approx(deviation, abs=5e-5)
+        assert annual_mean / annual_deviation == pytest.approx(run.sharpe, abs=1e-12)
+
+
 class TestTheFirstDays:
     """The cut comes before the returns, so the first days earn nothing."""
 
@@ -282,6 +348,22 @@ class TestBesideTheFirstBook:
         assert notebook.pnl[:2] == pytest.approx([-0.0048, -0.0014], abs=5e-5)
         assert khandani_lo.plain_sharpe(notebook.pnl) == pytest.approx(0.4170, abs=5e-5)
 
+    def test_the_differences_the_post_quotes_round_from_the_unrounded_figures(
+        self, first_file, result: BookTwo
+    ) -> None:
+        """0.2974 for the rule, 0.1313 of it for the two days, and 0.7111 still to go.
+
+        Entry 19 once printed the second as 0.1314, which is 0.5484 − 0.4170 on
+        the rounded figures. The unrounded difference is 0.131331.
+        """
+        first_book = reversal(first_file).before_costs
+        rule = result.rule_on_first_file.sharpe
+        returns_first = khandani_lo.plain_sharpe(notebook_reversal(first_file, fill=False).pnl)
+        assert round(rule - first_book, 4) == 0.2974
+        assert round(rule - returns_first, 4) == 0.1313
+        assert round((rule - returns_first) / (rule - first_book), 2) == 0.44
+        assert round(result.close_to_close.sharpe - rule, 4) == 0.7111
+
     def test_the_first_books_rule_on_this_panel_and_window(self, result: BookTwo) -> None:
         bridge = result.first_rule_on_panel
         assert len(bridge.days) == 1260
@@ -302,6 +384,29 @@ class TestBesideTheFirstBook:
         """
         with pytest.raises(ValueError, match="every day finite"):
             reversal(closes_panel[1])
+
+
+class TestWhatAnAverageDayCostsOnThePanel:
+    """The first book's rule on this panel, as ``TestWhatAnAverageDayCosts`` reads 2006.
+
+    That class, in ``tests/test_khandani_lo.py``, pins 2006's average day: a
+    profit of 0.5276 basis points of the rule's average gross position, a
+    cost of 7.2525, 13.7453 times
+    the profit, and a turnover of 1.4505. On the panel the turnover and the
+    cost barely move and the profit is about twenty times larger.
+    """
+
+    def test_the_day_earns_ten_basis_points_and_pays_seven(self, result: BookTwo) -> None:
+        day = daily_book(result.first_rule_on_panel)
+        assert day.profit * 1e4 == pytest.approx(10.5234, abs=5e-5)
+        assert day.cost * 1e4 == pytest.approx(7.2868, abs=5e-5)
+        assert day.cost_per_profit == pytest.approx(0.6924, abs=5e-5)
+        assert day.turnover == pytest.approx(1.4574, abs=5e-5)
+
+    def test_the_profit_is_about_twenty_times_2006s(self, first_file, result: BookTwo) -> None:
+        panel = daily_book(result.first_rule_on_panel)
+        year = daily_book(reversal(first_file))
+        assert panel.profit / year.profit == pytest.approx(19.94, abs=5e-3)
 
 
 class TestTheScaleBreakDecision:

@@ -9,7 +9,8 @@ holds. It also quotes WYN's 0.26, 31.85 and 952 trading days, which
 lists what the post says that nothing pins. ``docs/replication-log.md`` Entry 8 carries
 Example 3.7's verdicts and Entry 10 carries Example 3.8's, and each points here
 row by row. Example 3.8's pins are under ``the open-price variation`` below,
-and that section states its own rules.
+and that section states its own rules. ``blog/khandani-lo-reversal-lessons.md``
+quotes Example 3.7's figures and its average day too, beside the 2012 panel's.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here rather than in every docstring.
@@ -215,7 +216,8 @@ class TestWhatAnAverageDayCosts:
     position, a constant, so each reads in basis points of the position held
     and neither Sharpe ratio moves. Dividing each day by its own position
     would be a different rule, and gives 1.4666 for the turnover rather than
-    1.4505. ``blog/survivorship-and-transaction-costs.md`` quotes these.
+    1.4505. ``blog/survivorship-and-transaction-costs.md`` quotes these, and
+    ``blog/khandani-lo-reversal-lessons.md`` sets them beside the 2012 panel's.
     """
 
     def test_the_day_earns_half_a_basis_point_and_pays_seven(self, day: DailyBook) -> None:
