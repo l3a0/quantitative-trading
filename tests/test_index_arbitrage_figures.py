@@ -25,7 +25,7 @@ from matplotlib.colors import to_rgba
 from matplotlib.dates import date2num
 
 from chan import index_arbitrage_figures
-from chan.index_arbitrage import index_arbitrage, read_sources
+from chan.index_arbitrage import index_arbitrage, read_sources, walks_unrelated_to
 from chan.index_arbitrage_figures import (
     FIGURE,
     WALK_SEED,
@@ -205,6 +205,40 @@ class TestTheFigure:
         assert index.equals(sources[3])
         assert len(test_days) == 1076
 
+    def test_rates_passed_in_are_drawn_without_screening_again(
+        self, monkeypatch, tmp_path, sources
+    ) -> None:
+        monkeypatch.setattr(
+            index_arbitrage_figures, "screen_rates", lambda *_a: pytest.fail("screened again")
+        )
+        drawn = make_index_arbitrage_figure(
+            out=tmp_path / FIGURE, sources=sources, rates=ScreenRates(480, 98, 2000, 500)
+        )
+        labels = [t.get_text() for t in drawn.axes[1].texts if t.get_gid() == "label"]
+        assert labels[1] == "500 of 2,000 random walks unrelated to SPY"
+
+    def test_sources_passed_in_are_drawn_without_reading_again(
+        self, monkeypatch, tmp_path, sources, rates
+    ) -> None:
+        monkeypatch.setattr(
+            index_arbitrage_figures, "read_sources", lambda *_a: pytest.fail("read again")
+        )
+        make_index_arbitrage_figure(out=tmp_path / FIGURE, sources=sources, rates=rates)
+
+
+class TestTheWalks:
+    def test_they_start_near_100_and_step_by_one(self, sources, result) -> None:
+        """What ``walks_unrelated_to``'s docstring says, which the 561 alone cannot see.
+
+        The screen's statistics do not move when a walk is shifted or scaled,
+        so a walk from 101 or with steps of 2 still passes 561 times.
+        """
+        walks = walks_unrelated_to(sources[3].loc[result.train_days], WALKS, WALK_SEED)
+        assert walks.shape == (251, 2000)
+        assert np.diff(walks.to_numpy(), axis=0).std() == pytest.approx(1, abs=0.01)
+        # Each first value is 100 plus one unit draw, so their mean is 100 to about 0.02.
+        assert (walks.iloc[0] - 100).mean() == pytest.approx(0, abs=0.1)
+
 
 class TestTheFile:
     def test_drawing_writes_the_file_it_is_given(self, figure, out) -> None:
@@ -212,6 +246,11 @@ class TestTheFile:
 
     def test_the_committed_figure_exists(self) -> None:
         assert (FIGURES_DIR / FIGURE).is_file()
+
+    def test_main_names_the_file_it_wrote(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr(index_arbitrage_figures, "make_index_arbitrage_figure", lambda: None)
+        main()
+        assert capsys.readouterr().out == f"wrote {FIGURES_DIR / FIGURE}\n"
 
     def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
         def fail(*_a, **_k):
