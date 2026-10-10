@@ -59,7 +59,7 @@ and none moves a figure. The transcription landed here with
 1. The closes are read from the committed minute file through the vintage
    manifest rather than loaded from the ``.mat``.
 2. ``plot(y)`` and ``plot(cumsum(pnl))`` are not carried. The run prints and
-   draws nothing.
+   draws nothing, and :mod:`chan.usdcad_mean_reversion_figures` draws both.
 3. ``prt(results)`` becomes the report's ADF rows.
 4. Rows the script does not compute are reported beside it: the ADF statistic
    ``adfuller`` gives at the same lag, the H that Chan's 2018 Python port of
