@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-three replications run here, fifteen from Chan's *Quantitative Trading*
-and eighteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-four replications run here, fifteen from Chan's *Quantitative Trading*
+and nineteen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-one were built here.
+where they were first built. The other thirty-two were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -444,6 +444,19 @@ where they were first built. The other thirty-one were built here.
     in 2009 and lands none of them. The Hurst exponent does not reproduce:
     0.433357 against the book's 0.44, through the same `genhurst` that misses
     USD.CAD's 0.49 in item 22. Every figure is exploratory.
+34. Mean reversion on crude oil's 12-month calendar spread, Example 5.4 of
+    *Algorithmic Trading*, on Chan's own CL strip. The roll return's
+    half-life of 36.394034 days is the script's printed figure and rounds to
+    the book's 36, and its ADF statistic of −4.727778 clears the 1 percent
+    critical value of −3.4583, so the book's "stationary with 99 percent
+    probability" holds. Trading the spread on a z-score over that lookback,
+    on the script's window from 2008-01-02, gives an APR of 0.082671 and a
+    Sharpe ratio of 1.278216, the book's 8.3 percent and 1.3, and the
+    drawdown of −0.053222 over 206 days that the script's comment prints. The
+    comment's APR of 0.083406 and Sharpe ratio of 1.288661 do not reproduce
+    on that window, and starting a day later lands both to every digit. The
+    book's 61 holding days in place of the script's 63 give 0.067315 and
+    1.044327. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -729,7 +742,16 @@ holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
 start from, the rule on synthetic arrays, the refusal of a position larger
 than the tranche count, and the scale-break guard on TU.
 
-All thirty-three replications reach a verdict in
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py) does it
+for the crude oil calendar spread. It pins the script's window and the window
+a day later at six decimals and at the precision Chan printed, the ADF
+statistic against its 1 percent critical value, the run holding each pair 61
+days, the first and last days a pair is held, and the 66 rows at the window's
+end that return exactly 0. On synthetic frames it holds the script's
+schedule, sign flip and return, four choices the CL strip cannot show, and
+the refusal of a signal on an index other than the contracts'.
+
+All thirty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -745,7 +767,8 @@ examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
-EWA and EWC, and Entry 33 TU momentum's.
+EWA and EWC, Entry 33 TU momentum's, and Entry 34 the crude oil calendar
+spread's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -895,7 +918,10 @@ them too.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) is where
 that shape was decided. The spot and roll returns of Example 5.3 read five of
 them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
-[issue 347](https://github.com/l3a0/quantitative-trading/issues/347). No
+[issue 347](https://github.com/l3a0/quantitative-trading/issues/347).
+Example 5.4's calendar spread reads the CL strip through the same
+`load_strip`, in `chan.calendar_spread_reversion`, for
+[issue 348](https://github.com/l3a0/quantitative-trading/issues/348). No
 replication reads the other three strips or the gold series yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
@@ -1511,6 +1537,18 @@ It prints the vintage, the 49-cell correlation table, each figure beside the
 script's or the book's with a verdict, and then the six pairs the book calls
 the best compromises, the script's 2009 window and the 2012-05-17 save.
 
+The crude oil calendar spread, Example 5.4 of *Algorithmic Trading*, takes no
+option, because the script fixes the strip, the window and the holding period:
+
+```bash
+uv run python -m chan.calendar_spread_reversion
+```
+
+It prints the vintage and the window, each figure the script's comment and the
+book print beside the computed one with a verdict, the ADF statistic against
+its criterion, and then the window a day later, the 61-day holding period and
+the last day a pair is held.
+
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
@@ -1910,8 +1948,10 @@ Four groups of its figures are not pinned here.
    "fixed-income instruments can be found to be cointegrating" are quoted from
    location 3951, and nothing computes them. Lesson 6's 36-day half-life for a
    crude oil calendar spread is quoted from *Algorithmic Trading* Example 5.4,
-   and the suite reads it as an input rather than computing it. So is the
-   description of Chan's rule as measuring the distance from a moving average.
+   and so is the description of Chan's rule as measuring the distance from a
+   moving average. [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
+   now computes and pins the half-life on Chan's own CL strip, while the model
+   behind Lesson 6 still reads 36 as an input rather than computing it.
 2. Facts about the instruments. TLT holding Treasuries maturing in twenty years
    or more and IEF seven to ten are the funds' descriptions, not derivable from
    committed closes. That a cross rate is, in logs, a spread between two dollar
@@ -2443,8 +2483,10 @@ Five groups of its figures are not pinned here.
    12-month crude oil spread taken in logs, stationary
    at 99% with a 36-day half-life, from
    locations 2461 and 2471, both through
-   [its committed notes](research/book-notes/algorithmic-trading.md). The
-   suite reads the 36 days as an input rather than computing it.
+   [its committed notes](research/book-notes/algorithmic-trading.md).
+   [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
+   now computes and pins the 36 days and the 99 percent claim on Chan's own CL
+   strip, while the power simulation still reads 36 as an input.
 2. New York Harbor gasoline's two counts, a median of 42 days for a pair of
    its neighbouring contracts and 141 of its 150 pairs keeping fewer than 50,
    which [issue 137](https://github.com/l3a0/quantitative-trading/issues/137)

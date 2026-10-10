@@ -267,6 +267,9 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``tests/test_roll_returns.py`` holds a planted break refused and a panel
 #: column refused, and ``TestTheGuardFlagsNothing`` in
 #: ``tests/test_futures_strips.py`` holds the strips clean.
+#: ``chan.calendar_spread_reversion`` reads the CL strip through the same
+#: ``load_strip`` for Example 5.4, under
+#: [issue 348](https://github.com/l3a0/quantitative-trading/issues/348).
 #:
 #: [Issue 350](https://github.com/l3a0/quantitative-trading/issues/350) decided
 #: that ``chan.vx_es`` calls the guard on VX and ES, each over its own span, in

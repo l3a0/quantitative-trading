@@ -1,0 +1,555 @@
+"""The pins for mean reversion on CL's calendar spread, *Algorithmic Trading*'s Example 5.4.
+
+This file is the single authority for every number a prose surface quotes
+about this example and the rows beside it. ``docs/replication-log.md`` Entry 34
+carries the verdicts and points here row by row. The rows are the ones
+[issue 348](https://github.com/l3a0/quantitative-trading/issues/348) declared
+before the build.
+
+Every pin on the committed file reads one strip and one of three
+specifications, so they are stated once here and carried in every figure's
+failure message.
+
+- **Vintage.** ``data/inputdatadaily_cl_20120813/``, vendor chan-mat, basis
+  raw, saved 2012-08-14, lifted from ``inputDataDaily_CL_20120813.mat``. It is
+  one vintage per contract, 89 of them from CL-2007F to CL-2014K, and one for
+  ``CL-SPOT``, read through ``chan.roll_returns.load_strip``. The strip's
+  identity is its row of ``LIFTED_SOURCES`` in
+  ``tests/support/committed_vintages.py``, which ``tests/test_roll_returns.py``
+  holds the members to.
+- **S, the specification.** ``calendarSpdsMeanReversion.m`` at EpchanPreview
+  ``e4bc46f``, git blob ``277d84d``, as :mod:`chan.calendar_spread_reversion`
+  transcribes it. γ is ``chan.roll_returns.roll_returns`` on the contracts,
+  forward-filled. The half-life and the ADF read every finite row of it, and
+  the z-score's lookback is the half-life rounded half away from zero, 36.
+  Contract c is held short against contract c + 12 long for 63 days, the first
+  pair from 73 rows before its expiry, each pair let go 10 rows before its
+  near contract's last priced row, and the spread is reversed where z is above
+  0 and flat where z is NaN. The return is yesterday's positions times each
+  leg's return, summed over the priced legs and halved, measured on the 1,164
+  rows from 2008-01-02 to 2012-08-13 and annualised over 252 days with no
+  risk-free rate and no cost.
+- **R1.** S measured from 2008-01-03, 1,163 rows.
+- **R2.** S with ``holddays=61``, the book's "61 trading days", from
+  2008-01-02.
+
+Each computed figure is held at six decimals, so a change cannot move it
+inside the published rounding unnoticed, and each published figure at the
+precision Chan printed, through ``matches``.
+
+Exploratory. Reproducing Chan's figures spends the 2008 to 2012 sample on a
+rule he chose, and R1 was found by a scan after S missed two of the comment's
+figures. The example first ran here on 2026-10-10.
+"""
+
+from __future__ import annotations
+
+import io
+from contextlib import redirect_stdout
+
+import numpy as np
+import pandas as pd
+import pytest
+from ithildincore.timeseries import ou_half_life
+
+from chan import calendar_spread_reversion as module
+from chan.calendar_spread_reversion import (
+    BOOK_APR_PERCENT,
+    BOOK_HALFLIFE,
+    BOOK_HOLDDAYS,
+    BOOK_SHARPE,
+    COMMENT_START,
+    HOLDDAYS,
+    NUM_DAYS_END,
+    SCRIPT_APR,
+    SCRIPT_HALFLIFE,
+    SCRIPT_MAX_DD,
+    SCRIPT_MAX_DD_DAYS,
+    SCRIPT_SHARPE,
+    SPREAD_MONTH,
+    START,
+    CalendarSpreadRun,
+    calendar_schedule,
+    flip_on_zscore,
+    main,
+    report,
+    run,
+    run_spread,
+    spread_returns,
+)
+from chan.khandani_lo import plain_sharpe
+from chan.khandani_lo_book_two import compounded_apr, gap, matches
+from chan.roll_returns import Strip, load_strip, roll_returns
+from chan.series import WindowCrossesScaleBreak
+from chan.stationarity_tests import jplv7_adf
+from chan.vintage import VintageUnavailable
+
+VINTAGE = (
+    "inputdatadaily_cl_20120813/ chan-mat raw saved 2012-08-14, one vintage per contract "
+    "CL-2007F to CL-2014K and one for CL-SPOT"
+)
+S_SPEC = (
+    f"{VINTAGE}; S: calendarSpdsMeanReversion.m, forward-filled gamma, lookback round(half-life), "
+    "c against c + 12 held 63 days, from 2008-01-02 to 2012-08-13"
+)
+R1_SPEC = f"{VINTAGE}; R1: S from 2008-01-03"
+R2_SPEC = f"{VINTAGE}; R2: S with holddays=61 from 2008-01-02"
+
+# --- the committed strip -------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def strip() -> Strip:
+    return load_strip("CL")
+
+
+@pytest.fixture(scope="module")
+def gamma(strip) -> pd.Series:
+    return roll_returns(strip.contracts)
+
+
+@pytest.fixture(scope="module")
+def runs(strip, gamma) -> dict[str, CalendarSpreadRun]:
+    return {
+        "S": run_spread(strip.contracts, gamma, start=START),
+        "R1": run_spread(strip.contracts, gamma, start=COMMENT_START),
+        "R2": run_spread(strip.contracts, gamma, start=START, holddays=BOOK_HOLDDAYS),
+    }
+
+
+class TestTheSpecification:
+    def test_the_scripts_constants(self) -> None:
+        """Lines 77 to 80 and 113, and the book's 61 days."""
+        assert (SPREAD_MONTH, HOLDDAYS, NUM_DAYS_END, BOOK_HOLDDAYS) == (12, 63, 10, 61)
+        assert (START, COMMENT_START) == (pd.Timestamp("2008-01-02"), pd.Timestamp("2008-01-03"))
+
+    def test_the_printed_figures_are_ascii_strings_float_can_read(self) -> None:
+        printed = (
+            SCRIPT_HALFLIFE,
+            SCRIPT_APR,
+            SCRIPT_SHARPE,
+            SCRIPT_MAX_DD,
+            SCRIPT_MAX_DD_DAYS,
+            BOOK_APR_PERCENT,
+            BOOK_SHARPE,
+            BOOK_HALFLIFE,
+        )
+        assert printed == (
+            "36.394034",
+            "0.083406",
+            "1.288661",
+            "-0.053222",
+            "206",
+            "8.3",
+            "1.3",
+            "36",
+        )
+        assert all(text.isascii() for text in printed)
+        assert [float(text) for text in printed]
+
+    def test_the_strip_holds_89_contracts_a_month_apart(self, strip) -> None:
+        """So all 77 pairs of c and c + 12 are a year apart, the book's third rule."""
+        columns = list(strip.contracts.columns)
+        assert (len(columns), columns[0], columns[-1]) == (89, "CL-2007F", "CL-2014K"), VINTAGE
+        assert len(columns) - SPREAD_MONTH == 77
+
+
+class TestTheFigures:
+    """Test 1 of the plan on issue 348: S, R1 and R2 at six decimals."""
+
+    @pytest.mark.parametrize(
+        ("key", "rows", "apr", "sharpe", "max_dd", "days", "spec"),
+        [
+            ("S", 1164, "0.082671", "1.278216", "-0.053222", 206, S_SPEC),
+            ("R1", 1163, "0.083406", "1.288661", "-0.053222", 206, R1_SPEC),
+            ("R2", 1164, "0.067315", "1.044327", "-0.098047", 208, R2_SPEC),
+        ],
+    )
+    def test_each_runs_figures(self, runs, key, rows, apr, sharpe, max_dd, days, spec) -> None:
+        found = runs[key]
+        assert len(found.returns) == rows, spec
+        assert f"{found.half_life:.6f}" == "36.394034", spec
+        assert (f"{found.apr:.6f}", f"{found.sharpe:.6f}") == (apr, sharpe), spec
+        assert (f"{found.max_dd:.6f}", found.max_dd_days) == (max_dd, days), spec
+
+    def test_each_window_runs_to_the_files_last_day(self, runs) -> None:
+        for key, first in (("S", "2008-01-02"), ("R1", "2008-01-03"), ("R2", "2008-01-02")):
+            index = runs[key].returns.index
+            assert (str(index[0].date()), str(index[-1].date())) == (first, "2012-08-13"), key
+
+    def test_ss_lookback_is_36(self, runs) -> None:
+        assert runs["S"].lookback == 36, S_SPEC
+
+    def test_the_last_held_day_of_s_and_of_r2(self, runs) -> None:
+        """Contracts still trading on 2012-08-13 expire on the file's last row, so S's last
+        pairs are skipped. R2's 61 days let a later pair through."""
+        assert str(runs["S"].last_held.date()) == "2012-05-08", S_SPEC
+        assert str(runs["R2"].last_held.date()) == "2012-07-06", R2_SPEC
+
+    def test_the_first_row_holding_anything_is_2006_09_05(self, runs) -> None:
+        positions = runs["S"].positions
+        holding = positions.index[(positions != 0).any(axis=1).to_numpy()]
+        assert str(holding[0].date()) == "2006-09-05", S_SPEC
+
+    def test_ss_window_returns_exactly_zero_on_its_last_66_rows_and_no_other(self, runs) -> None:
+        returns = runs["S"].returns.to_numpy()
+        zero = np.flatnonzero(returns == 0)
+        assert zero.tolist() == list(range(len(returns) - 66, len(returns))), S_SPEC
+
+    def test_dropping_the_first_day_is_what_r1_does(self, runs) -> None:
+        """S's 2008-01-02 return set to zero misses the comment, so the printed run left the
+        row out rather than holding it flat."""
+        returns = runs["S"].returns.to_numpy().copy()
+        assert f"{returns[0]:.7f}" == "-0.0028127", S_SPEC
+        returns[0] = 0.0
+        assert (f"{compounded_apr(returns):.6f}", f"{plain_sharpe(returns):.6f}") == (
+            "0.083331",
+            "1.288104",
+        ), S_SPEC
+
+    def test_r1_matches_every_figure_the_scripts_comment_prints(self, runs) -> None:
+        r1 = runs["R1"]
+        assert matches(r1.half_life, SCRIPT_HALFLIFE), R1_SPEC
+        assert matches(r1.apr, SCRIPT_APR), R1_SPEC
+        assert matches(r1.sharpe, SCRIPT_SHARPE), R1_SPEC
+        assert matches(r1.max_dd, SCRIPT_MAX_DD), R1_SPEC
+        assert matches(r1.max_dd_days, SCRIPT_MAX_DD_DAYS), R1_SPEC
+
+    def test_s_misses_the_comments_apr_and_sharpe_ratio(self, runs) -> None:
+        s = runs["S"]
+        assert not matches(s.apr, SCRIPT_APR) and not matches(s.sharpe, SCRIPT_SHARPE), S_SPEC
+        assert (gap(s.apr, SCRIPT_APR), gap(s.sharpe, SCRIPT_SHARPE)) == (-0.000735, -0.010445)
+
+    def test_s_reproduces_the_comments_half_life_and_drawdown(self, runs) -> None:
+        s = runs["S"]
+        assert matches(s.half_life, SCRIPT_HALFLIFE), S_SPEC
+        assert matches(s.max_dd, SCRIPT_MAX_DD), S_SPEC
+        assert matches(s.max_dd_days, SCRIPT_MAX_DD_DAYS), S_SPEC
+
+    @pytest.mark.parametrize(("key", "spec"), [("S", S_SPEC), ("R1", R1_SPEC)])
+    def test_s_and_r1_both_match_the_books_figures(self, runs, key, spec) -> None:
+        found = runs[key]
+        assert matches(100 * found.apr, BOOK_APR_PERCENT), spec
+        assert matches(found.sharpe, BOOK_SHARPE), spec
+        assert matches(found.half_life, BOOK_HALFLIFE), spec
+
+
+class TestTheTest:
+    """Test 2: the book's "stationary with 99 percent probability"."""
+
+    def test_the_adf_statistic_clears_the_1_percent_critical_value(self, runs) -> None:
+        adf = runs["S"].adf
+        assert f"{adf.statistic:.6f}" == "-4.727778", S_SPEC
+        assert adf.critical[0] == -3.4583, S_SPEC
+        assert f"{adf.critical[0] - adf.statistic:.6f}" == "1.269478", S_SPEC
+
+    def test_the_half_life_and_adf_read_the_whole_filled_gamma(self, runs, gamma) -> None:
+        """Lines 51 to 60 read every finite row, not the window, so the three runs agree."""
+        filled = gamma.ffill().dropna().to_numpy()
+        assert runs["S"].adf == jplv7_adf(filled, 0, 1) == runs["R1"].adf == runs["R2"].adf
+        assert runs["S"].half_life == ou_half_life(filled)
+
+
+# --- the rules on synthetic frames ---------------------------------------------
+
+ROWS = 120
+DAYS = pd.bdate_range("2020-01-01", periods=ROWS)
+
+
+def _contracts(expiries: list[int], gaps: dict[int, slice] | None = None) -> pd.DataFrame:
+    """A strip whose contract c is priced from row 0 to row ``expiries[c]``, both included.
+
+    ``gaps`` blanks rows of a contract before its expiry. Prices drift up so
+    every leg's return is defined and not zero.
+    """
+    prices = np.full((ROWS, len(expiries)), np.nan)
+    for c, last in enumerate(expiries):
+        prices[: last + 1, c] = 50.0 + c + 0.1 * np.arange(last + 1)
+    for c, rows in (gaps or {}).items():
+        prices[rows, c] = np.nan
+    return pd.DataFrame(prices, index=DAYS, columns=[f"X{c}" for c in range(len(expiries))])
+
+
+def _held(schedule: pd.DataFrame, column: int, sign: int) -> list[int]:
+    return np.flatnonzero(schedule.iloc[:, column].to_numpy() == sign).tolist()
+
+
+class TestTheSchedule:
+    def test_the_first_pair_starts_holddays_plus_10_rows_before_its_expiry(self) -> None:
+        schedule = calendar_schedule(_contracts([40, 70, 100]), spread_month=1, holddays=5)
+        assert _held(schedule, 0, -1) == list(range(25, 31))
+        assert _held(schedule, 1, 1) == list(range(25, 31))
+
+    def test_a_later_pair_starts_the_row_after_the_last_ends(self) -> None:
+        schedule = calendar_schedule(_contracts([40, 70, 100]), spread_month=1, holddays=5)
+        assert _held(schedule, 1, -1) == list(range(31, 61))
+        assert _held(schedule, 2, 1) == list(range(31, 61))
+
+    def test_a_short_window_is_skipped_and_keeps_the_previous_end(self) -> None:
+        """Pair 1 would run rows 31 to 33, fewer than 5, so pair 2 starts on row 31."""
+        schedule = calendar_schedule(_contracts([40, 43, 70, 100]), spread_month=1, holddays=5)
+        assert _held(schedule, 1, -1) == []
+        assert _held(schedule, 2, -1) == list(range(31, 61))
+
+    def test_a_contract_priced_on_the_last_row_expires_there(self) -> None:
+        schedule = calendar_schedule(
+            _contracts([40, ROWS - 1, ROWS - 1]), spread_month=1, holddays=5
+        )
+        assert _held(schedule, 1, -1) == list(range(31, ROWS - 1 - NUM_DAYS_END + 1))
+
+    def test_the_schedule_is_on_the_contracts_index_and_columns(self) -> None:
+        contracts = _contracts([40, 70, 100])
+        schedule = calendar_schedule(contracts, spread_month=1, holddays=5)
+        assert schedule.index.equals(contracts.index)
+        assert schedule.columns.equals(contracts.columns)
+
+    def test_holddays_0_never_holds_the_first_pairs_one_row_window(self) -> None:
+        """Line 98's comparison is strict, so a window whose start is its end holds nothing."""
+        schedule = calendar_schedule(_contracts([40, 70]), spread_month=1, holddays=0)
+        assert not schedule.to_numpy().any()
+
+    def test_holddays_0_holds_the_next_pair_from_the_row_after(self) -> None:
+        schedule = calendar_schedule(_contracts([40, 70, 100]), spread_month=1, holddays=0)
+        assert _held(schedule, 0, -1) == []
+        assert _held(schedule, 1, -1) == list(range(31, 61))
+
+    def test_a_near_contract_with_a_gap_expires_on_its_last_priced_row(self) -> None:
+        """Line 75 marks row 30 and row 50, and line 83 takes the last."""
+        contracts = _contracts([50, 80, 110], gaps={0: slice(31, 36)})
+        schedule = calendar_schedule(contracts, spread_month=1, holddays=5)
+        assert _held(schedule, 0, -1) == list(range(35, 41))
+
+
+class TestTheFlip:
+    def test_nan_is_flat_positive_reverses_and_zero_and_negative_keep_the_sign(self) -> None:
+        schedule = pd.DataFrame({"near": [-1.0] * 4, "far": [1.0] * 4}, index=DAYS[:4])
+        z = pd.Series([np.nan, 1.0, 0.0, -1.0], index=DAYS[:4])
+        flipped = flip_on_zscore(schedule, z)
+        assert flipped["near"].tolist() == [0.0, 1.0, -1.0, -1.0]
+        assert flipped["far"].tolist() == [0.0, -1.0, 1.0, 1.0]
+
+    def test_z_exactly_0_keeps_the_schedules_sign(self) -> None:
+        """Line 107's comparison is strict."""
+        schedule = pd.DataFrame({"near": [-1.0], "far": [1.0]}, index=DAYS[:1])
+        flipped = flip_on_zscore(schedule, pd.Series([0.0], index=DAYS[:1]))
+        assert flipped.to_numpy().tolist() == [[-1.0, 1.0]]
+
+    def test_the_schedule_is_not_changed(self) -> None:
+        schedule = pd.DataFrame({"near": [-1.0, -1.0]}, index=DAYS[:2])
+        flip_on_zscore(schedule, pd.Series([1.0, np.nan], index=DAYS[:2]))
+        assert schedule["near"].tolist() == [-1.0, -1.0]
+
+
+class TestTheReturn:
+    def test_it_halves_yesterdays_positions_times_each_legs_return(self) -> None:
+        contracts = pd.DataFrame({"near": [100.0, 110.0], "far": [50.0, 45.0]}, index=DAYS[:2])
+        positions = pd.DataFrame({"near": [-1.0, 0.0], "far": [1.0, 0.0]}, index=DAYS[:2])
+        returns = spread_returns(positions, contracts)
+        assert returns.index.equals(DAYS[:2])
+        assert returns.tolist() == [0.0, pytest.approx((-0.1 - 0.1) / 2)]
+
+    def test_a_leg_with_no_return_is_skipped(self) -> None:
+        contracts = pd.DataFrame({"near": [100.0, np.nan], "far": [50.0, 55.0]}, index=DAYS[:2])
+        positions = pd.DataFrame({"near": [-1.0, 0.0], "far": [1.0, 0.0]}, index=DAYS[:2])
+        assert spread_returns(positions, contracts).tolist() == [0.0, pytest.approx(0.05)]
+
+    def test_a_row_with_no_leg_is_zero(self) -> None:
+        contracts = pd.DataFrame({"near": [100.0, np.nan], "far": [np.nan, 55.0]}, index=DAYS[:2])
+        positions = pd.DataFrame({"near": [-1.0, 0.0], "far": [1.0, 0.0]}, index=DAYS[:2])
+        assert spread_returns(positions, contracts).tolist() == [0.0, 0.0]
+
+
+def _ar1(seed: int, rows: int = ROWS, phi: float = 0.9) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    shocks = rng.standard_normal(rows)
+    x = np.zeros(rows)
+    for t in range(1, rows):
+        x[t] = phi * x[t - 1] + shocks[t]
+    return x
+
+
+def _wiggling_contracts(seed: int) -> pd.DataFrame:
+    """Three contracts a pair apart, with prices that move both ways so a Sharpe ratio exists."""
+    rng = np.random.default_rng(seed)
+    contracts = _contracts([40, 70, 110])
+    return contracts * np.exp(0.01 * rng.standard_normal(contracts.shape).cumsum(axis=0))
+
+
+class TestTheRun:
+    def test_the_half_life_and_adf_read_the_forward_filled_signal(self) -> None:
+        """Line 42 runs before line 51. γ on CL has no NaN after its first finite row, so
+        only a synthetic signal holds the order."""
+        values = _ar1(1)
+        values[:3] = np.nan
+        values[40:45] = np.nan
+        values[80:90] = np.nan
+        signal = pd.Series(values, index=DAYS)
+        found = run_spread(
+            _wiggling_contracts(1), signal, start=DAYS[0], spread_month=1, holddays=5
+        )
+        filled = signal.ffill().dropna().to_numpy()
+        dropped = signal.dropna().to_numpy()
+        assert found.half_life == ou_half_life(filled)
+        assert found.adf == jplv7_adf(filled, 0, 1)
+        assert ou_half_life(dropped) != pytest.approx(found.half_life, rel=1e-3)
+
+    def test_a_half_life_with_a_fraction_of_a_half_or_more_rounds_up(self) -> None:
+        signal = pd.Series(_ar1(0, phi=0.9), index=DAYS)
+        half_life = ou_half_life(signal.to_numpy())
+        assert half_life % 1 >= 0.5, "the seed no longer gives a half-life that rounds up"
+        found = run_spread(
+            _wiggling_contracts(0), signal, start=DAYS[0], spread_month=1, holddays=5
+        )
+        assert found.lookback == int(np.ceil(half_life))
+
+    def test_a_lookback_passed_in_is_used(self) -> None:
+        signal = pd.Series(_ar1(0), index=DAYS)
+        found = run_spread(
+            _wiggling_contracts(0), signal, start=DAYS[0], spread_month=1, holddays=5, lookback=15
+        )
+        assert found.lookback == 15
+
+    def test_the_window_runs_from_start_to_end_both_included(self) -> None:
+        signal = pd.Series(_ar1(0), index=DAYS)
+        found = run_spread(
+            _wiggling_contracts(0), signal, start=DAYS[10], end=DAYS[50], spread_month=1, holddays=5
+        )
+        assert found.returns.index.equals(DAYS[10:51])
+        assert found.last_held == DAYS[50]
+
+    # Every return in this window is 0, so the Sharpe ratio divides 0 by 0.
+    @pytest.mark.filterwarnings("ignore:invalid value encountered:RuntimeWarning")
+    def test_last_held_reads_the_unflipped_schedule(self) -> None:
+        """A signal that starts late leaves z NaN, so the positions are flat where the
+        schedule holds a pair, and the last held day is still the schedule's."""
+        values = _ar1(0)
+        values[:36] = np.nan
+        signal = pd.Series(values, index=DAYS)
+        found = run_spread(
+            _wiggling_contracts(0), signal, start=DAYS[0], end=DAYS[33], spread_month=1, holddays=5
+        )
+        assert not found.positions.loc[: DAYS[33]].to_numpy().any()
+        assert found.last_held == DAYS[33]
+
+
+class TestTheRefusal:
+    """Test 4: a signal on another index is refused, and an equal copy runs."""
+
+    def test_a_signal_on_a_shifted_index_is_refused(self) -> None:
+        signal = pd.Series(_ar1(0), index=DAYS.shift(1, freq="B"))
+        with pytest.raises(ValueError, match="the contracts' own index"):
+            run_spread(_wiggling_contracts(0), signal, start=DAYS[0], spread_month=1, holddays=5)
+
+    def test_a_signal_on_an_equal_index_built_separately_runs(self) -> None:
+        contracts = _wiggling_contracts(0)
+        signal = pd.Series(_ar1(0), index=contracts.index.copy())
+        found = run_spread(contracts, signal, start=DAYS[0], spread_month=1, holddays=5)
+        assert len(found.returns) == ROWS
+
+
+# --- main and the report ----------------------------------------------------------
+
+
+@pytest.fixture
+def no_arguments(monkeypatch) -> None:
+    monkeypatch.setattr("sys.argv", ["calendar_spread_reversion"])
+
+
+class TestMain:
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            VintageUnavailable("no committed vintage is lifted from inputDataDaily_CL_20120813"),
+            WindowCrossesScaleBreak("inputdatadaily_cl_20120813/cl-spot.csv changes scale"),
+        ],
+    )
+    def test_main_prints_a_refusal_as_one_line(self, monkeypatch, no_arguments, refusal) -> None:
+        def refuse(*_a, **_k):
+            raise refusal
+
+        monkeypatch.setattr(module, "load_strip", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert str(stopped.value) == str(refusal)
+
+    def test_main_lets_any_other_error_through_as_itself(self, monkeypatch, no_arguments) -> None:
+        def fail(*_a, **_k):
+            raise ValueError("a bug, not a refusal")
+
+        monkeypatch.setattr(module, "load_strip", fail)
+        with pytest.raises(ValueError, match="a bug, not a refusal"):
+            main()
+
+    def test_run_reads_cl_and_returns_the_strip_and_three_runs(
+        self, strip, monkeypatch, capsys
+    ) -> None:
+        asked = []
+
+        def fake_load_strip(root, data_dir=None):
+            asked.append((root, data_dir))
+            return strip
+
+        monkeypatch.setattr(module, "load_strip", fake_load_strip)
+        found, runs_ = run()
+        assert asked == [("CL", None)]
+        assert found is strip
+        assert list(runs_) == ["S", "R1", "R2"]
+        assert "Exploratory." in capsys.readouterr().out
+
+
+@pytest.fixture(scope="module")
+def printed(strip, runs) -> str:
+    out = io.StringIO()
+    with redirect_stdout(out):
+        report(strip, runs)
+    return out.getvalue()
+
+
+def _row(printed: str, label: str) -> str:
+    return next(r for r in printed.splitlines() if r.strip().startswith(label))
+
+
+class TestTheReport:
+    @pytest.mark.parametrize(
+        ("label", "figures", "verdict"),
+        [
+            ("Half-life, script", ["36.394034", "36.394034"], "reproduced"),
+            ("Half-life, book", ["36.394034", "36"], "reproduced"),
+            ("APR, script", ["0.082671", "0.083406"], "did not reproduce, gap -0.000735"),
+            ("APR percent, book", ["8.267103", "8.3"], "reproduced"),
+            ("Sharpe ratio, script", ["1.278216", "1.288661"], "did not reproduce, gap -0.010445"),
+            ("Sharpe ratio, book", ["1.278216", "1.3"], "reproduced"),
+            ("Maximum drawdown, script", ["-0.053222", "-0.053222"], "reproduced"),
+            ("Longest drawdown, script", ["206", "206"], "reproduced"),
+        ],
+    )
+    def test_each_of_ss_eight_rows_carries_a_verdict(
+        self, printed, label, figures, verdict
+    ) -> None:
+        row = _row(printed, label)
+        assert all(figure in row.split() for figure in figures), row
+        assert row.rstrip().endswith(verdict), row
+
+    def test_the_adf_row_carries_its_verdict_and_criterion(self, printed) -> None:
+        row = _row(printed, "ADF statistic, book")
+        assert "-4.727778" in row.split() and "99 percent" in row
+        assert "reproduced, criterion below the 1 percent critical value -3.4583" in row
+
+    def test_the_rows_beside_carry_no_verdict(self, printed) -> None:
+        beside = printed.split("Beside the replication.")[1]
+        assert "1163 days, APR 0.083406, Sharpe 1.288661" in _row(beside, "R1, from 2008-01-03")
+        r2 = _row(beside, "R2, holddays=61 from 2008-01-02")
+        assert "APR 0.067315, Sharpe 1.044327" in r2 and "last held 2012-07-06" in r2
+        assert _row(beside, "S, last day a pair is held").split()[-1] == "2012-05-08"
+        assert "reproduce" not in beside
+
+    def test_it_prints_the_vintage_the_window_and_the_label(self, printed) -> None:
+        assert "inputdatadaily_cl_20120813/" in _row(printed, "vintage")
+        assert _row(printed, "window").split()[1:] == [
+            "2008-01-02",
+            "to",
+            "2012-08-13,",
+            "1164",
+            "days",
+        ]
+        assert "Exploratory. docs/replication-log.md carries the verdicts." in printed
