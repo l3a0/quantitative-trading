@@ -613,7 +613,8 @@ It pins both figures `bollinger.m` prints at six decimals and again at eight,
 the book's rounding beside them, and the claim that the band improves on the
 linear rule. It also pins the run with the deviation divided by n, which moves
 both figures here, and holds the band's edges on synthetic arrays, since no
-real day sits exactly on one.
+real day sits exactly on one. The blog post about it is the exception, and
+what it says that nothing here asserts is listed below.
 
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
@@ -2927,6 +2928,102 @@ uv run python -m chan.etf_cointegration_figures
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+[blog/bollinger-band-lessons.md](blog/bollinger-band-lessons.md) is a
+nineteenth post, about Example 3.2 of Chan's *Algorithmic Trading*, which
+trades Example 3.1's GLD and USO price spread with a Bollinger band instead of
+the linear rule. It holds one unit at most, entering when the 20-day z-score
+passes ±1 and leaving when it crosses 0. Chan reports an APR of 17.8 percent
+and a Sharpe ratio of 0.96, "quite an improvement" on the linear rule, and the
+script's closing comment prints six decimals. The post answers the Example 3.1
+post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
+
+1. Both figures `bollinger.m` prints reproduce to six digits, and the book's
+   17.8 percent and 0.96 are those figures rounded.
+2. The band beats the linear rule on both measures the book names, on one
+   spread with one lookback, and on its deepest drawdown and longest spell
+   below a high too.
+3. A fixed threshold makes the moving deviation's divisor matter, so dividing
+   by n rather than n − 1 moves both figures.
+4. The band holds one unit at most and changes its units on 162 days against
+   the linear rule's 1,460, though a held unit's GLD leg is still resized
+   every day.
+5. An exact reproduction checks the arithmetic and not the edge.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The band as the rule for practical trading, "either zero or one unit (long
+   or short) invested", "very easy to allocate capital to this strategy or to
+   manage its risk", "a free parameter to be optimized in a training set" with
+   the lookback a free parameter too, and "more round trip trades and generally
+   higher profits" are at 1548. The 17.8 percent and 0.96, "quite an
+   improvement from the linear mean reversal strategy", the thresholds of 1 and
+   0, `fillMissingData` and Figure 3.3 are at 1559. "Near-optimal", "the
+   benefit of hindsight" and "about 10.9 percent" are at 1505. The book's
+   figures are pinned, and its words are not.
+2. Facts outside the committed data. That a second public copy of Chan's code
+   holds `bollinger.m` byte for byte, which `src/chan/bollinger.py`'s docstring
+   records, and that the file was converted to one file per ETF, which
+   [data/README.md](data/README.md) records.
+3. Arithmetic no test asserts: that a positive factor on the z-score never
+   changes its sign, so every exit at 0 falls on the same day under either
+   divisor, that a z-score such as 0.99 lands beyond 1 once multiplied by
+   1.0260, and that the factor cancels from the linear rule's return, which
+   the Example 3.1 post shows. The equation for the factor is pinned at four
+   decimals and on every day.
+4. The book's Figure 3.3, which the post's figure redraws from the script's
+   `plot` call and which nothing compares with the book's own. The alt text's
+   description of shapes, such as the band ending well above the linear rule
+   and the dashed line running close to the band, is read off the drawing
+   rather than asserted.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_bollinger.py](tests/test_bollinger.py), to
+[tests/test_price_spread.py](tests/test_price_spread.py) for Example 3.1's
+book figure of 10.9 percent against its script's 10.8, the file's 1,500 days
+and the hedge ratio's 334 days below zero, to
+[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, or to
+[tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) for the
+figure's own numbers. Six had no pin before it, and
+[tests/test_bollinger.py](tests/test_bollinger.py) now pins them.
+
+1. Each rule's deepest drawdown and longest spell below a high. The band's is
+   −21.83 percent on 2009-05-21 and 252 days from 2008-12-08 to 2009-12-07.
+   The linear rule's is −34.24 percent on 2009-01-06 and 640 days from
+   2008-12-08 to 2011-06-22. Both spells follow a high on 2008-12-05, and the
+   band's is under half as long.
+2. The band's 162 changes of units, split into 77 entries from flat, 76 exits
+   to flat and 9 turns from one side to the other in a single day, with the
+   run ending on a unit held.
+3. The 62 days on which the band is flat and the hedge ratio is below zero,
+   two different counts that are both 334.
+4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260,
+   puts 777 of the 1,461 days with a z-score beyond ±1 against 756, and moves
+   the units on 15 days.
+5. That the spread has no missing values on the kept days, which is why
+   swapping the moving average as well moves nothing further.
+6. The figure's own lines and labels.
+
+Its one figure is drawn from the committed file by
+[src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), which reads it
+through the same `read_sources` and `example_three_two` as
+`python -m chan.bollinger`, scale-break guard included. It draws three panels
+on one date axis, for Lessons 1, 3 and 4.
+
+1. The 20-day z-score, with the band's lines at −1, 0 and 1.
+2. The units held, −1, 0 or 1.
+3. The band's cumulative return, the book's Figure 3.3, beside the linear
+   rule's, with the band divided by n dashed as a diagnostic.
+
+```bash
+uv run python -m chan.bollinger_figures
+```
+
+[tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) holds what
+it draws rather than its bytes, for the reason given above for the regime map.
 
 ## Where the book's numbers come from
 

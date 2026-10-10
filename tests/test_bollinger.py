@@ -1,8 +1,11 @@
 """The pins for Bollinger bands on GLD and USO, *Algorithmic Trading*'s Example 3.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.2. ``docs/replication-log.md`` carries the verdicts and points
-here row by row.
+about Example 3.2, with one exception, in ``blog/bollinger-band-lessons.md``.
+That post also quotes Example 3.1's figures, which ``tests/test_price_spread.py``
+holds, and its figure's labels, which ``tests/test_bollinger_figures.py`` holds.
+README lists what the post says that nothing asserts. ``docs/replication-log.md``
+carries the verdicts and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -51,7 +54,12 @@ from chan.bollinger import (
     main,
     run,
 )
-from chan.matlab_helpers import smart_moving_avg, smart_moving_std
+from chan.matlab_helpers import (
+    calculate_max_dd,
+    drawdown_path,
+    smart_moving_avg,
+    smart_moving_std,
+)
 from chan.price_spread import LOOKBACK, SCRIPT_PRICE_SPREAD, read_sources, zscore
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
@@ -125,6 +133,36 @@ class TestTheSpecification:
         assert int(np.count_nonzero(np.diff(result.bollinger.units))) == 162, SPEC
         assert int(np.count_nonzero(np.diff(result.linear.units[LOOKBACK - 1 :]))) == 1460, SPEC
 
+    def test_the_162_changes_are_77_entries_76_exits_and_9_turns(
+        self, result: ExampleThreeTwo
+    ) -> None:
+        """An entry goes from flat to a unit, an exit from a unit to flat, and a turn from
+        one side to the other in a single day, which
+        ``TestBandUnits::test_a_long_becomes_a_short_in_one_day`` shows these thresholds
+        allow. The run starts flat and ends holding a unit, so entries outnumber exits by
+        one."""
+        units = result.bollinger.units
+        before, after = units[:-1], units[1:]
+        entries = int(((before == 0) & (after != 0)).sum())
+        exits = int(((before != 0) & (after == 0)).sum())
+        turns = int((before * after == -1).sum())
+        assert (entries, exits, turns) == (77, 76, 9), SPEC
+        assert entries + exits + turns == int(np.count_nonzero(np.diff(units))) == 162, SPEC
+        assert (units[0], units[-1] != 0) == (0.0, True), SPEC
+
+    def test_62_of_the_334_flat_days_have_a_hedge_ratio_below_zero(
+        self, result: ExampleThreeTwo
+    ) -> None:
+        """Two counts of 334 over the same 1,480 days that are not one count.
+
+        The band is flat on 334 days, and the 20-day hedge ratio is below zero on 334,
+        which ``tests/test_price_spread.py`` pins for Example 3.1. Only 62 days are both.
+        """
+        flat = result.bollinger.units == 0
+        negative = result.bollinger.signal.hedge < 0
+        assert (int(flat.sum()), int(negative.sum())) == (334, 334), SPEC
+        assert int((flat & negative).sum()) == 62, SPEC
+
 
 class TestTheFigures:
     """The APR and the Sharpe ratio, beside the script's comment and the book."""
@@ -181,6 +219,66 @@ class TestTheClaim:
         assert (f"{apr_gap:+f}", f"{sharpe_gap:+f}") == ("+0.069915", "+0.375022"), SPEC
 
 
+class TestTheDrawdowns:
+    """``calculateMaxDD`` on each rule's ``cumprod(1 + ret) − 1``, with where each one falls.
+
+    The book prints neither rule's. ``blog/bollinger-band-lessons.md`` sets them beside the
+    two figures location 1559 compares, as a second view of the same claim. Both rules'
+    longest spells start the day after one high, 2008-12-05, and each trough falls
+    inside its own spell.
+    """
+
+    @pytest.mark.parametrize(
+        ("rule", "deepest", "percent", "trough", "longest", "spell"),
+        [
+            (
+                "bollinger",
+                -0.21831770065726175,
+                "-21.83",
+                "2009-05-21",
+                252,
+                ("2008-12-05", "2008-12-08", "2009-12-07"),
+            ),
+            (
+                "linear",
+                -0.34239469001295364,
+                "-34.24",
+                "2009-01-06",
+                640,
+                ("2008-12-05", "2008-12-08", "2011-06-22"),
+            ),
+        ],
+    )
+    def test_the_deepest_drawdown_and_the_longest_spell_below_a_high(
+        self, result: ExampleThreeTwo, rule, deepest, percent, trough, longest, spell
+    ) -> None:
+        run_ = getattr(result, rule)
+        days = run_.signal.days
+        cumret = np.cumprod(1 + run_.daily) - 1
+        found, rows = calculate_max_dd(cumret)
+        assert found == pytest.approx(deepest, abs=1e-10), SPEC
+        assert f"{100 * found:.2f}" == percent, SPEC
+        assert rows == longest, SPEC
+        _, drawdown, duration = drawdown_path(cumret)
+        bottom = int(np.argmin(drawdown))
+        assert drawdown[bottom] == found
+        assert str(days[bottom].date()) == trough, SPEC
+        last = int(np.argmax(duration))
+        first = last - rows + 1
+        assert drawdown[first - 1] == 0 and drawdown[first] < 0
+        assert tuple(str(days[row].date()) for row in (first - 1, first, last)) == spell, SPEC
+        assert first <= bottom <= last
+
+    def test_the_band_falls_less_far_and_regains_its_high_in_under_half_the_time(
+        self, result: ExampleThreeTwo
+    ) -> None:
+        band, linear = (
+            calculate_max_dd(np.cumprod(1 + run_.daily) - 1)
+            for run_ in (result.bollinger, result.linear)
+        )
+        assert band[0] > linear[0] and 2 * band[1] < linear[1], SPEC
+
+
 class TestTheDivisor:
     """``smartMovingStd`` divides by n where ``movingStd`` divides by n − 1.
 
@@ -207,6 +305,32 @@ class TestTheDivisor:
         sharpe_gap = by_n.bollinger.sharpe - result.bollinger.sharpe
         assert (f"{apr_gap:+f}", f"{sharpe_gap:+f}") == ("+0.005057", "+0.020199"), SPEC
 
+    def test_dividing_by_n_scales_every_z_score_by_the_root_of_20_over_19(
+        self, result: ExampleThreeTwo, by_n: ExampleThreeTwo
+    ) -> None:
+        """A 20-row deviation over n is the one over n − 1 times √(19/20), so every z-score
+        grows by √(20/19), about 1.0260, and none changes sign."""
+        finite = np.isfinite(result.zscore)
+        np.testing.assert_array_equal(np.isfinite(by_n.zscore), finite)
+        np.testing.assert_allclose(
+            by_n.zscore[finite], result.zscore[finite] * np.sqrt(20 / 19), rtol=1e-12, atol=0
+        )
+        assert f"{np.sqrt(20 / 19):.4f}" == "1.0260"
+
+    def test_dividing_by_n_puts_21_more_days_beyond_the_band_and_moves_15_days_units(
+        self, result: ExampleThreeTwo, by_n: ExampleThreeTwo
+    ) -> None:
+        """Of the 1,461 days with a z-score, 756 sit beyond ±1 under n − 1 and 777 under n.
+        The units differ on 15 of the 1,480 days, which is all it takes to move both
+        figures."""
+
+        def beyond(z: np.ndarray) -> int:
+            return int((np.abs(z[np.isfinite(z)]) > ENTRY_ZSCORE).sum())
+
+        assert int(np.isfinite(result.zscore).sum()) == 1461, SPEC
+        assert (beyond(result.zscore), beyond(by_n.zscore)) == (756, 777), SPEC
+        assert int((result.bollinger.units != by_n.bollinger.units).sum()) == 15, SPEC
+
     def test_swapping_the_average_too_moves_nothing_further(
         self, sources, by_n: ExampleThreeTwo
     ) -> None:
@@ -216,6 +340,9 @@ class TestTheDivisor:
             patch.setattr(price_spread, "moving_avg", smart_moving_avg)
             both = example_three_two(closes)
         np.testing.assert_array_equal(both.bollinger.daily, by_n.bollinger.daily)
+        # smartMovingAvg differs from movingAvg only by skipping what is not finite, and
+        # the spread on the kept rows has nothing for it to skip.
+        assert np.isfinite(by_n.bollinger.signal.value).all(), SPEC
 
 
 class TestWhatMovesNothing:

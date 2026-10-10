@@ -5578,7 +5578,10 @@ lookback is the one Entry 21 records Chan tuned on this sample. Every figure
 above is in-sample.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/bollinger-band-lessons.md](../blog/bollinger-band-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.bollinger_figures` redraws.
 
 ## Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*
 
