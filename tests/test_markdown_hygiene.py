@@ -173,6 +173,7 @@ MUST_BE_SWEPT = frozenset(
         "docs/replication-log.md",
         "data/README.md",
         "blog/aud-cad-rollover-lessons.md",
+        "blog/bollinger-band-lessons.md",
         "blog/buy-on-gap-lessons.md",
         "blog/calendar-spreads-lessons.md",
         "blog/coin-toss-expected-value-vs-growth.md",
@@ -1156,6 +1157,7 @@ class TestTheFigureHasThreeCopies:
             "kalman-hedge-lessons.md",
             "vx-es-lessons.md",
             "aud-cad-rollover-lessons.md",
+            "bollinger-band-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()

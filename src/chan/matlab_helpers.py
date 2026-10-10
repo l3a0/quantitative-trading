@@ -19,10 +19,9 @@ Chan's two books ship two different ``smartstd`` files under one name, and
 each is what its own printouts imply, so both live here under names that say
 which book each belongs to. :func:`smartstd_first_edition` is the first
 edition of *Quantitative Trading*'s. :func:`smartstd_book_two` is *Algorithmic
-Trading*'s, and choosing it over the first edition's moves a figure Example 7.2
-prints, which ``tests/test_pead.py`` pins, both figures Example 4.1 prints,
-which ``tests/test_buy_on_gap.py`` pins, and the revised Example 7.7 Sharpe
-ratio above. The revised edition's Example 7.4
+Trading*'s. Choosing it over the first edition's moves figures in several
+examples. One is Example 7.2's, which ``tests/test_pead.py`` pins, and another
+is the revised Example 7.7 Sharpe ratio above. The revised edition's Example 7.4
 prints a Sharpe ratio that :func:`smartstd_book_two` lands and the first
 edition's misses, and the repost of its code named below carries book two's
 file, so :mod:`chan.pca_factor` calls :func:`smartstd_book_two`.
@@ -151,12 +150,10 @@ too, and so does Example 2.5's ``stationarityTests.m``. They are git blobs
 ``5b9f933`` and ``2f5f858`` under ``public/img/book2/`` in EpchanPreview at
 ``e4bc46f`` and under ``archived/matlab/`` in ivanliu1989/algorithmic_trading
 at ``4567024``. They landed here for
-[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
-Examples 2.6 to 2.8's ``cointegrationTests.m`` calls them too, for
-[issue 339](https://github.com/l3a0/quantitative-trading/issues/339), and so
-does Example 4.2's ``indexArb.m``, for
-[issue 343](https://github.com/l3a0/quantitative-trading/issues/343). Three
-things changed on the way over.
+[issue 340](https://github.com/l3a0/quantitative-trading/issues/340). Other
+scripts of Chan's call them as well, such as Example 4.2's ``indexArb.m``,
+which [issue 343](https://github.com/l3a0/quantitative-trading/issues/343)
+transcribes. Three things changed on the way over.
 
 1. ``movingStd``'s optional third argument, which samples every ``period``
    rows, is not carried, because no script transcribed here passes it.

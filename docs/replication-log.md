@@ -35,7 +35,7 @@ Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18,
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
-and nothing about whether the trade works today. Entry 7's rows 35 to 40 are
+and nothing about whether the trade works today. Entry 7's rows 35 to 49 are
 the one exception, and they are **registered**: their claim, test and verdict
 wording were written before any return was computed. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
@@ -422,7 +422,7 @@ Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
 Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 40,
+than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -2070,10 +2070,11 @@ to 21 under [issue 225](https://github.com/l3a0/quantitative-trading/issues/225)
 Rows 22 to 29 shipped under
 [issue 254](https://github.com/l3a0/quantitative-trading/issues/254), rows
 30 to 34 under [issue 333](https://github.com/l3a0/quantitative-trading/issues/333),
-and rows 35 to 40 under
-[issue 329](https://github.com/l3a0/quantitative-trading/issues/329).
+rows 35 to 40 under
+[issue 329](https://github.com/l3a0/quantitative-trading/issues/329), and rows
+41 to 49 under [issue 336](https://github.com/l3a0/quantitative-trading/issues/336).
 
-Forty rows, all derivable from
+Forty-nine rows, all derivable from
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
 
 **Every figure the committed files reach reproduces, in every printout.** Chan
@@ -2122,6 +2123,15 @@ series' raw close agrees with the filing.
 Their closes are the adjusted closes of the 1,487 `sp600` lines it maps to,
 all downloaded 2026-10-05, and the calendar is the same SPY vintage.
 
+Rows 41 to 49 read neither of Chan's files. They run Example 7.7 on the
+members IVV's 70 quarter-end schedules list from 2008-12-31 to 2026-06-30, each
+carried forward to the next, as `research/filings/ivv/members.csv` records
+them, at sha256 `0b8e0f8c`, with the holes file beside it at `85c6c949`.
+[Issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built
+both. Their closes are the adjusted closes and volumes of the 817 `sp500` lines
+the members file maps to, all downloaded 2026-10-05, read from 2007-12-03 to
+2026-10-01, and the calendar is the same SPY vintage.
+
 Rows 1 to 6 first ran on an earlier save, `data/ijr_20080114/`, saved
 2008-01-15 and ending on 2008-01-14, which stops short of January 2008's
 month-end. The two saves give rows 1 to 6 to every digit.
@@ -2134,8 +2144,9 @@ The specification is the script. Rows 1 to 6 are Example 7.6, rows 7 to 14 are
 Example 7.7, rows 15 to 18 split one of them at 2002, rows 19 to 21 are
 Example 7.6's third January, rows 22 to 29 are p. 180's most recent five
 years, rows 30 to 34 are Example 7.6 from January 2009 to January 2026 on
-IJR's members at 2025-12-31, and rows 35 to 40 are the same Januaries on IJR's
-members at each year-end. Each row names the
+IJR's members at 2025-12-31, rows 35 to 40 are the same Januaries on IJR's
+members at each year-end, and rows 41 to 49 are Example 7.7 from January 2009
+to September 2026 on IVV's members each month. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
@@ -2198,6 +2209,21 @@ into the tenth it threatens at the 1st or the 99th percentile of that
 January's covered returns. Every year-end has such a member, 741 member-years
 in all, so every January is bounded.
 
+Rows 41 to 49 are **registered** too.
+[Issue 336](https://github.com/l3a0/quantitative-trading/issues/336) wrote the
+claim, the test, the bar and the wording of the verdict before any return was
+computed, and the owner ruled on them and on the label on 2026-10-04. The claim
+is that Example 7.7 earns no return detectably above zero in the months after
+the book, under `REVISED_MATLAB` unchanged and before costs. A member is
+covered at a month-end when `chan.sp500_panel.monthly_coverage` counts its
+series as checked there. Each series stops at its last row that traded and
+moved, which moves the stop of 121 of the 817. A missing member is dropped,
+as the owner ruled, so the tenth is a tenth of the covered members and no
+month is bounded. Coverage is 98,321 of 107,115 member-months, lowest at 364
+of 501 in 2012-09 and highest at 501 of 503 in 2025-09. Row 49 tests the
+argument that dropping a missing member is neutral, and the verdict cell for
+rows 42 to 49 says what it found.
+
 ### What the book printed
 
 | # | Row | Published | Where |
@@ -2229,6 +2255,8 @@ in all, so every January is bounded.
 | 31 to 34 | row 30's standard deviation, its one-sided t-test, the mean the test detects with 80% probability, and the mean after costs | nothing | n/a |
 | 35 | 7.6, mean January return before costs, January 2009 to January 2026, IJR's members at each year-end, the low and the high series | nothing, the book prints no figure for these Januaries | n/a |
 | 36 to 40 | row 35's standard deviations, each series' one-sided t-test, the mean each detects with 80% probability, the means after costs, and row 30's mean less row 35's | nothing | n/a |
+| 41 | 7.7, mean monthly return before costs, January 2009 to September 2026, IVV's members each month | nothing, the book prints no figure for these months | n/a |
+| 42 to 49 | row 41's standard deviation, its one-sided t-test, the annual return the test detects with 80% probability, the same figures under the revised Python's rules, the means on the two bracketing masks, and three counts: positions on names that changed between schedules, positions whose stock stopped inside the month, and where departing names fall | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
 beside code rather than in a sentence somebody marked. Row 22's sentence is not
@@ -2286,6 +2314,15 @@ code behind rows 9, 10, 13 and 14 traces to
 | 38 | the smallest mean each test detects with 80% probability at its own deviation | 0.0547 and 0.0615 | none | `TestThePointInTimePins::test_x_for_each_series` |
 | 39 | row 35 after the two one-way costs of 5 basis points | −0.1057 and 0.0869 | none | `TestThePointInTimePins::test_the_means_after_costs` |
 | 40 | row 30's mean less row 35's, described rather than tested. The per-January differences print from `--point-in-time`, and the same test pins them | 0.1155 and −0.0771 | none | `TestThePointInTimePins::test_the_survivor_run_less_this_one` |
+| 41 | `REVISED_MATLAB` unchanged, on the closes from 2007-12-03 to 2026-10-01, each series stopped at its last row that traded and moved, each month-end ranking only its covered members: 98,321 of 107,115 member-months, from 364 of 501 in 2012-09 to 501 of 503 in 2025-09. The 213 months from January 2009 to September 2026 | −0.0001 a month | none, registered | `TestTheMonthlyPins::test_the_revised_matlab_mean_is_not_detectably_above_zero`, `test_98321_of_107115_member_months_are_covered_with_83_stops` and `test_the_lowest_and_highest_months_coverage` |
+| 42 | the standard deviation of row 41's 213 months, with one degree of freedom removed | 0.0206 a month | none | `TestTheMonthlyPins::test_the_revised_matlab_mean_is_not_detectably_above_zero` |
+| 43 | a one-sided t-test of row 41 against zero at 5%, at 212 degrees of freedom, and beside it the Newey-West t at lag 4, whose standard error is 0.0013 | t −0.10, p 0.539, Newey-West t −0.11 | none | as row 42, and `test_the_newey_west_t_beside_it` |
+| 44 | the smallest monthly mean the test detects with 80% probability at row 42's deviation, from the noncentral t, times 12 | 4.22% a year | none | `TestTheMonthlyPins::test_x_is_4_22_percent_a_year` |
+| 45 | `PYTHON_HESTON_SADKA` on the same panel and members. Its months are labelled by the month's last calendar day, so January 2009 is 2009-01-31 rather than 2009-01-30 | rows 41 to 44 to every digit, and every month equal | none | `TestTheMonthlyPins::test_the_revised_python_with_no_verdict` and `test_the_two_rules_agree_on_every_month` |
+| 46 | row 41 rerun on the two masks that bracket each name changing between schedules. The intersection keeps a name only where both schedules list it, and the union where either does | −0.0004 and −0.0000 a month | none | `TestTheMonthlyPins::test_the_intersection_and_union_means_with_no_verdict` |
+| 47 | positions in the months between two schedules held on a name that changed: those the carry-forward run gave a removed name, then those the union run gave an added name. The 69 pairs of schedules removed 500 names and added 503 | 216 and 162, 378 in all | none | `TestTheMonthlyPins::test_the_positions_on_names_that_changed_per_pair_and_in_total` and `TestTheScheduleChanges::test_500_names_removed_and_503_added_over_69_pairs` |
+| 48 | positions whose stock stopped strictly between the month-end that set them and the next, and their returns summed, each signed by its side | 23, summing to −0.7013 | none | `TestTheMonthlyPins::test_23_positions_stopped_inside_the_month_held` |
+| 49 | covered member-months from ranking months 2008-12 to 2025-08, split by whether the name leaves the index within twelve months, and placed long, short or neither by row 41's rules. Described rather than tested | departing 12.0%, 16.5% and 71.5%, staying 9.8%, 9.6% and 80.6% | none | `TestTheMonthlyPins::test_departing_names_fall_in_a_tenth_more_often` |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
@@ -2324,10 +2361,12 @@ no published figure to take a gap from.
 | 31 to 34 | none, survivor-only and exploratory | Reported beside row 30. Row 33 is 2.4% where the issue's power estimate before the run was 3.7%, because the measured deviation of 0.0398 is smaller than the 6.05% of Chan's three printed Januaries. |
 | 35 | none, registered | The free sources cannot decide it, which is the verdict's own wording rather than one of the three a replication takes. The low series is nowhere near above zero, with a p of 1.000, and the high series is, with a p of 0.001. The criterion takes a verdict only where both series give the same answer, so neither "no January effect detectable" nor "a January effect above zero" can be written. The width is the threatening members. At 2008-12-31, 89 of the 161 missing members threaten a tenth of 59, so most of both tenths hold an assumed return. The bound shrinks as coverage grows, to −0.0023 and 0.0027 at 2025-12-31, where one member threatens. The next step the owner's ruling names is buying prices for the threatening members alone, which [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) carries. |
 | 36 to 40 | none, registered | Reported beside row 35. Row 40 compares two runs on one cross-section, so it measures membership rather than two download dates. Its two figures differ in sign because the bound is wider than the gap it would measure, so it says nothing yet about what survivorship cost Example 7.6. |
+| 41 | none, registered | The registered verdict is "no return detectable above about 4.2% a year", the criterion's own wording rather than one of the three a replication takes. The mean is −0.0001 a month with a one-sided p of 0.539, so the test does not reject. The 4.2% is row 44's X at one decimal of a percent, as the issue fixed. A true return below that size could pass undetected, so the verdict never says the strategy is dead. It is before costs and on covered members only. Its membership is carried forward between quarterly schedules, and it lacks the return a failing stock takes when it leaves, which the free source does not carry. `TestTheMonthlyPins::test_the_verdict` holds the wording. |
+| 42 to 49 | none, registered | Reported beside row 41. Row 45 equals row 41 because the printouts' differences never bind on this panel. Every ranked member has the closes its month needs, so keeping a stock on its own close and keeping it on its own return keep the same stocks. Rows 46 and 47 measure what carrying a schedule forward misdates, and both bracketing means are negative, like row 41's. Row 48's positions earn their return to the last close and nothing after it. Row 49 tests the argument the dropped members rest on. Among covered members, names that leave the index within a year land in a tenth more often than names that stay, most of all in the short tenth. The issue said before the run that a clear difference would count as evidence against the argument that dropping a missing member is neutral, and this is such a difference. Which way it moves row 41's mean is not measured. The chi-square p prints as 0.000 and decides nothing, because member-months repeat the same names. |
 
 ### What the entry concludes
 
-Six things.
+Seven things.
 
 1. **Every reachable figure reproduces, and not under the strategy as
    described.** The seventeen rows land at the precision each printout gives.
@@ -2369,10 +2408,16 @@ Six things.
    low series averages −0.1047 a January with a one-sided p of 1.000, and the
    high series 0.0879 with a p of 0.001. A purchase of the threatening
    members' prices is what could decide it.
+7. **On the S&P 500 as IVV held it each month, Example 7.7 earns no return
+   detectable above about 4.2% a year after the book.** This is registered.
+   Row 41 averages −0.0001 a month before costs over the 213 months from
+   January 2009 to September 2026, with a one-sided p of 0.539. The revised
+   Python's rules give the same months, and the means on both bracketing
+   masks are negative too, with no verdict.
 
 ### What this entry cannot say
 
-Three things.
+Four things.
 
 **Whether Example 7.6's January effect survived the book.** Rows 35 to 40
 were built to say, and the bound is too wide for either answer. Members with
@@ -2389,6 +2434,26 @@ that left.
 **How the revised R rounds Example 7.6.** It is assumed from its Example 7.7
 code. The revised MATLAB's `smartstd`, which the page leaves open, is settled
 by the revised code's repost.
+
+**Whether Example 7.7 earns a small return after the book.** Rows 41 to 44
+detect nothing above about 4.2% a year, and a true return below that could
+pass undetected. The verdict also leaves out four things.
+
+1. **Costs.** The run charges none. Costs only lower the return, so they
+   cannot turn this result into a finding, and no after-cost figure is
+   pinned.
+2. **Members with no checked price.** They are dropped, as the owner ruled,
+   so coverage falls as low as 364 of 501 in 2012-09. Row 49 is evidence
+   against the argument that dropping them is neutral, so the bias from
+   dropping them is reported rather than removed.
+3. **Membership between schedules.** IVV's schedules are quarterly, so each is
+   carried forward, and 378 positions sit on names that changed between two
+   schedules. Row 46 brackets the mean on either side of that misdating,
+   and row 47 counts the positions it touches.
+4. **A failing stock's last return.** A stock that stops inside a month earns
+   its return to its last close and nothing after, as row 48's 23 positions
+   do. The return a delisted stock takes when it leaves needs a licensed
+   database.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -5578,7 +5643,10 @@ lookback is the one Entry 21 records Chan tuned on this sample. Every figure
 above is in-sample.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/bollinger-band-lessons.md](../blog/bollinger-band-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.bollinger_figures` redraws.
 
 ## Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*
 

@@ -130,7 +130,14 @@ where they were first built. The other thirty-one were built here.
    series 0.0879 with a p of 0.001. The two disagree, so the free sources
    cannot decide whether the January effect survived the book, and
    [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
-   whether to buy prices for the members that threaten a tenth.
+   whether to buy prices for the members that threaten a tenth. Example 7.7
+   then ran under the revised MATLAB's rules on the members IVV held each
+   month from January 2009 to September 2026, carried forward from its
+   quarterly schedules. That run is registered too. Its 213 months average
+   −0.0001 a month before costs, with a one-sided p of 0.539, so no return is
+   detectable above about 4.2% a year. The verdict reads only the 98,321 of
+   107,115 member-months with a checked price, and it leaves out costs and
+   the return a failing stock takes when it leaves.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -360,8 +367,9 @@ where they were first built. The other thirty-one were built here.
     Under months, HG's falls below its spot return, so the comparison
     Chapter 6 rests its explanation of HG's momentum on holds only under the
     script's arithmetic, and corn's is no longer twice its spot return.
-    `chan.roll_returns` exports the strip reader and both fits for Example
-    5.4 and the TU momentum experiment. Every figure is exploratory.
+    `chan.roll_returns` exports the strip reader and both fits for later
+    experiments to build on, Example 5.4 among them. Every figure is
+    exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
     from August 2008 gives the hedge, and a band one training deviation wide
@@ -499,7 +507,9 @@ builder who corrects his code fails a test rather than moving a pin. Its
 survivor-run and point-in-time pins read the owner's archive and skip where
 none is configured. The survivor run's mechanics and its 603 manifest lines
 are held everywhere, and so are the point-in-time run's flags, bound, verdict
-and refusals. The
+and refusals. So are the monthly run's `members` keyword, stop rule,
+stopped-price fill and verdict wording, and the names that changed between
+IVV's schedules. The
 blog post about them is the exception, and what it says that nothing here
 asserts is listed below.
 
@@ -613,7 +623,8 @@ It pins both figures `bollinger.m` prints at six decimals and again at eight,
 the book's rounding beside them, and the claim that the band improves on the
 linear rule. It also pins the run with the deviation divided by n, which moves
 both figures here, and holds the band's edges on synthetic arrays, since no
-real day sits exactly on one.
+real day sits exactly on one. The blog post about it is the exception, and
+what it says that nothing here asserts is listed below.
 
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) does it for
 the leverage examples. It pins Example 8.1's figures to the dollar and each
@@ -770,7 +781,9 @@ The columns lifted from Chan's stock, ETF and strip files, below, report 171 mor
 his stock files most are real moves in single stocks, and the 58 in his ETF
 file fall in eight leveraged and inverse funds in 2008 and 2009. His
 continuous futures saves report 126 more, all in the ZB and ZF bond columns no
-script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27. The
+script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27.
+Each replication that reads one of these files decides whether to call the
+guard, and one that does not says why in its own docstring. The
 Khandani-Lo reversal's 2006 window spans one of the stock days, WYN's restart
 on 2006-08-01, and prints a number anyway, because
 it reads a panel rather than one series and its rule never weights a return
@@ -778,8 +791,7 @@ that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
-without it. Post-earnings drift calls the guard on each stock from its first
-price, over its 2011 and 2012 window, and nothing there needs refusing. The
+without it. The
 reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
 30 of that file's flagged days, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
@@ -793,13 +805,9 @@ Example 7.6's revised Python forward-fills the same gap at year-end, so its
 Cross-sectional momentum does not call the guard either. It flags ETFC's
 2007-11-12 inside the 2007 window and 29 stock-days inside 2008 and 2009, so it would
 refuse both windows the book prints, and Chan's script ran across them as they
-stand. Examples 3.1 and 3.2 call it on GLD and USO over the ETF file's whole
-span, and neither carries a flagged day, so nothing is refused. The Kalman
-filter calls it on EWA and EWC over the same span, and refuses nothing either.
-VX against ES
-calls it on VX and ES over each leg's own span in each continuous futures save
-it reads, and nothing is refused there either. The crude oil rule calls it on
-CL over each span it reads in each of three saves, and refuses nothing.
+stand. Examples 3.1 and 3.2 are one case of a run that calls the guard. They
+read GLD and USO over the ETF file's whole span, where neither leg carries a
+flagged day, so nothing is refused.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -849,40 +857,14 @@ flag for every day of the file's calendar.
 and checks every member's bytes on the way.
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) is where that
 shape was decided, and
-[data/README.md](data/README.md) says what was measured on each file. The
-equity seasonals read the 2007 S&P 500 file and the later S&P 600 save, and
-the Khandani-Lo reversal reads the
-2007 S&P 500 file's closes for Example 3.7 and its opens for Example 3.8.
-Post-earnings drift reads the 2012 S&P 500 file's opens and closes and its
-flags, for
-[issue 20](https://github.com/l3a0/quantitative-trading/issues/20). Buy on gap
-reads the same file's opens, highs, lows and closes, for
-[issue 295](https://github.com/l3a0/quantitative-trading/issues/295), and the
-reversal reads its opens and closes for *Algorithmic Trading*'s Examples 4.3
-and 4.4, for
-[issue 296](https://github.com/l3a0/quantitative-trading/issues/296). The PCA
-factor model reads the earlier S&P 600 save's closes, for
-[issue 21](https://github.com/l3a0/quantitative-trading/issues/21).
-Cross-sectional momentum reads the 2012 S&P 500 file's closes, for
-[issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and so
-does Example 4.2, for
-[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
-Example 3.1 reads GLD's and USO's closes from the ETF file, for
-[issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and is
-the first run to read it. The lift for
+[data/README.md](data/README.md) says what was measured on each file. The Khandani-Lo reversal,
+for one, reads the 2007 S&P 500 file's closes for Example 3.7 and its opens
+for Example 3.8. Example 3.1 reads GLD's and USO's closes from the ETF file,
+for [issue 340](https://github.com/l3a0/quantitative-trading/issues/340), and
+is the first run to read it. The lift for
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) commits
 it for *Algorithmic Trading*'s cointegration, mean-reversion and Kalman filter
 examples on EWA, EWC, IGE, GLD and USO, and for the SPY leg of Example 4.2.
-The cointegration tests of Examples 2.6 to 2.8 read its EWA, EWC and IGE
-closes too, for [issue 339](https://github.com/l3a0/quantitative-trading/issues/339),
-and Example 4.2 reads its SPY, for
-[issue 343](https://github.com/l3a0/quantitative-trading/issues/343).
-Example 3.2 reads GLD and USO again, for
-[issue 341](https://github.com/l3a0/quantitative-trading/issues/341), and the
-Kalman filter reads EWA and EWC, for
-[issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
-The Johansen tests of location 1922 read its GLD, GDX and USO, for
-[issue 344](https://github.com/l3a0/quantitative-trading/issues/344).
 
 Nine more of Chan's MATLAB files hold futures from *Algorithmic Trading*.
 Eight are per-contract strips, each holding one column per futures contract
@@ -919,11 +901,10 @@ its own calendar, and each is one vintage with all five fields, as a stock
 is. His `VIX.csv` is committed beside them as one vintage under the vendor
 `chan-csv`. Those five files hold 209 vintages, and
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
-their shape. VX against ES reads VX and ES from the 2012-05-07 and
-2012-05-17 saves, and its tests read the 2012-05-11 save too, for
-[issue 350](https://github.com/l3a0/quantitative-trading/issues/350). The
-crude oil rule reads CL from the 2012-05-04, 2012-05-07 and 2012-05-11 saves,
-for [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
+their shape. VX against ES, for one, reads VX and ES from the 2012-05-07 and
+2012-05-17 saves for
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350), and its
+tests read the 2012-05-11 save too.
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -946,8 +927,8 @@ December 2008 to August 2026, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built and
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
 between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
-September 2012. One module
-reads them so far: `chan.equity_seasonals` runs Example 7.6 on the members of
+September 2012.
+`chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
 experiment.
@@ -1140,8 +1121,9 @@ way only, which the output says beside it. A machine with no archive gets one
 line naming both ways to set it, and so does every other refusal.
 
 `--point-in-time` runs Example 7.6 over the same Januaries on the members IJR
-held at each year-end, as `research/filings/ijr/members.csv` records them. It
-reads the same archive:
+held at each year-end, as `research/filings/ijr/members.csv` records them, and
+then Example 7.7 on the members IVV held each month, as
+`research/filings/ivv/members.csv` records them. It reads the same archive:
 
 ```bash
 QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --point-in-time
@@ -1151,8 +1133,20 @@ Each year-end ranks only its covered members, with the tenth taken of the
 whole index, and prints its January with the members missing and how many of
 them threaten each tenth. A January with any threat prints as a low and a high
 bound. Then come each series' test, its detectable mean and its mean after
-costs, the verdict, and the survivor run's January less this one's. The two
-options cannot be given together.
+costs, the verdict, and the survivor run's January less this one's.
+
+Example 7.7's report follows, from January 2009 to September 2026 on the 817
+`sp500` series in the same archive. It names the members file, the closes and
+the calendar it read, how many series stop before their file's last row, and
+each month's coverage by year. Under the revised MATLAB's rules it prints the
+mean, the standard deviation, the one-sided t and p, the Newey-West t, the
+annual return the test detects with 80% probability, and the verdict. The
+revised Python's figures follow with no verdict. Then come the means on the
+two masks that bracket each name that changed between schedules, the names
+removed and added between each pair of schedules with the positions held on
+them, the positions whose stock stopped inside the month held, and where
+departing names fell, which it marks as descriptive only. The two options
+cannot be given together.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
@@ -3120,6 +3114,107 @@ uv run python -m chan.aud_cad_rollover_figures
 [tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+[blog/bollinger-band-lessons.md](blog/bollinger-band-lessons.md) is a
+twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
+trades Example 3.1's GLD and USO price spread with a Bollinger band instead of
+the linear rule. It holds one unit at most, entering when the 20-day z-score
+passes ±1 and leaving when it crosses 0. Chan reports an APR of 17.8 percent
+and a Sharpe ratio of 0.96, "quite an improvement" on the linear rule, and the
+script's closing comment prints six decimals. The post answers the Example 3.1
+post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
+
+1. Both figures `bollinger.m` prints reproduce to six digits, and the book's
+   17.8 percent and 0.96 are those figures rounded.
+2. The band beats the linear rule on both measures the book names, on one
+   spread with one lookback, and on its deepest drawdown and longest spell
+   below a high too.
+3. A fixed threshold makes the moving deviation's divisor matter, so dividing
+   by n rather than n − 1 moves both figures.
+4. The band holds one unit at most and changes its units on 162 days against
+   the linear rule's 1,460, though a held unit's GLD leg is still resized
+   every day.
+5. An exact reproduction checks the arithmetic and not the edge.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The band as the rule for practical trading, "either zero or one unit (long
+   or short) invested", "very easy to allocate capital to this strategy or to
+   manage its risk", "a free parameter to be optimized in a training set" for
+   the entry threshold, a lookback that "can be a free parameter to be
+   optimized, or it can be set equal to the half-life of mean reversion", and
+   "more round trip trades and generally higher profits" are at 1548. The 17.8 percent and 0.96, "quite an
+   improvement from the linear mean reversal strategy", the thresholds of 1 and
+   0, `fillMissingData` and Figure 3.3 are at 1559. "Near-optimal", "the
+   benefit of hindsight" and "about 10.9 percent" are at 1505. The book's
+   figures are pinned, and its words are not.
+2. Facts outside the committed data. That a second public copy of Chan's code
+   holds `bollinger.m` byte for byte, which `src/chan/bollinger.py`'s docstring
+   records, and that the file was converted to one file per ETF, which
+   [data/README.md](data/README.md) records.
+3. Arithmetic no test asserts: that a z-score such as 0.99 moves beyond 1
+   once multiplied by 1.0260, and that the factor cancels from the linear
+   rule's return, which the Example 3.1 post shows. The equation for the factor is pinned at four
+   decimals and on every day.
+4. The book's Figure 3.3, which the post's figure redraws from the script's
+   `plot` call and which nothing compares with the book's own. The alt text's
+   description of shapes, such as the band ending well above the linear rule
+   and the dashed line running close to the band, is read off the drawing
+   rather than asserted.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_bollinger.py](tests/test_bollinger.py), to
+[tests/test_price_spread.py](tests/test_price_spread.py) for Example 3.1's
+book figure of 10.9 percent against its script's 10.8, the file's 1,500 days
+and the hedge ratio's 334 days below zero, to
+[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, or to
+[tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) for the
+figure's own numbers. Seven had no pin before it.
+[tests/test_bollinger.py](tests/test_bollinger.py) now pins the first six, and
+[tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) pins the
+seventh.
+
+1. Each rule's deepest drawdown and longest spell below a high. The band's is
+   −21.83 percent on 2009-05-21 and 252 days from 2008-12-08 to 2009-12-07.
+   The linear rule's is −34.24 percent on 2009-01-06 and 640 days from
+   2008-12-08 to 2011-06-22. Both spells follow a high on 2008-12-05, and the
+   band's is under half as long.
+2. The band's 162 changes of units, split into 77 entries from flat, 76 exits
+   to flat and 9 turns from one side to the other in a single day, with the
+   run ending on a unit held.
+3. The 62 days on which the band is flat and the hedge ratio is below zero,
+   two different counts that are both 334.
+4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260.
+   It puts the z-score beyond ±1 on 777 of the 1,461 days where it exists,
+   against 756 under n − 1, and moves the units on 15 days. The exit test at 0
+   passes on the same days under either divisor. All 76 exits under n − 1 fall
+   on the same days under n, and a 77th under n, on 2007-06-07, closes a short
+   entered on 2007-05-29 that the n − 1 run never opened.
+5. That the spread has no missing values on the kept days, which is why
+   swapping the moving average as well moves nothing further.
+6. That the hedge ratio changes on all 1,479 steps between the 1,480 days, so a
+   held unit's GLD leg is resized every day.
+7. The figure's own lines and labels.
+
+Its one figure is drawn from the committed file by
+[src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), which reads it
+through the same `read_sources` and `example_three_two` as
+`python -m chan.bollinger`, scale-break guard included. It draws three panels
+on one date axis, for Lessons 1, 3 and 4.
+
+1. The 20-day z-score, with the band's lines at −1, 0 and 1.
+2. The units held, −1, 0 or 1.
+3. The band's cumulative return, the book's Figure 3.3, beside the linear
+   rule's, with the band divided by n dashed as a diagnostic.
+
+```bash
+uv run python -m chan.bollinger_figures
+```
+
+[tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) holds what
+it draws rather than its bytes, for the reason given above for the regime map.
 
 [blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a
 twenty-first post, about Kindle locations 1633 to 1726 of Chan's
@@ -3254,10 +3349,10 @@ needs it. It is there so the committed figures can be redrawn and checked.
 network. Every run after that reads the cache, and no replication reaches a
 network at any point. Example 7.1 reads its bars from the owner's data archive,
 and `chan.equity_seasonals --survivors` and `--point-in-time` read 603 and
-1,487 daily files from it, which is
-a folder on the owner's machine. If that folder is synced from a cloud
-service, the first read of a file the service has not kept on disk downloads
-it, which this repo does not measure.
+1,487 daily files from it. `--point-in-time` then reads 817 more, from the
+`sp500` cross-section. The archive is a folder on the owner's machine. If that
+folder is synced from a cloud service, the first read of a file the service has
+not kept on disk downloads it, which this repo does not measure.
 
 markdownlint has no Python package, so it runs in CI rather than locally. The
 prose checks it has no rule for run in the test suite instead, from
