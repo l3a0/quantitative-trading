@@ -4,7 +4,7 @@ The script is ``KF_beta_EWA_EWC.m``, at Kindle locations 1633 to 1726.
 
 This file is the single authority for every number a prose surface quotes
 about this replication and the findings beside it.
-``docs/replication-log.md`` Entry 31 carries the verdicts and points here row
+``docs/replication-log.md`` Entry 32 carries the verdicts and points here row
 by row.
 
 Every pin reads one vintage and one specification, so both are stated once

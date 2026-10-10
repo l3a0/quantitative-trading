@@ -170,6 +170,13 @@ it, and the annualised rollover of "almost 5 percent". The two figures
 nowhere in the book. The replication log's Entry 30 traces each to one or the
 other.
 
+*Algorithmic Trading*'s crude oil rule, in its Chapter 6, is the opposite
+case: both figures are in the book and in the script. The APR of 12 percent
+and the Sharpe ratio of 1.1 sit at location 2701. `CL_rev.m` computes them,
+and the comment under its `fprintf` records `APR=0.117600 Sharpe=1.100368`,
+which rounds to both. The replication log's Entry 31 traces both to the
+script's run.
+
 *Algorithmic Trading*'s Kalman filter on EWA and EWC, in its Chapter 3, splits
 the same way as its Example 3.2, and the book's figures are its script's
 rounded. Location 1726 prints "a reasonable APR of 26.2 percent and a Sharpe
@@ -179,7 +186,7 @@ The six-decimal figures, 0.262252 and 2.361162, sit in the closing comment of
 the second way described below, as Examples 8.1 and 8.2's are. Locations 1658
 and 1760 are here, and each equation survives in them only as its number, such
 as "(3.5)". Box 3.1, which carries the equations the script labels 3.7 to
-3.12, is not among the highlights. The replication log's Entry 31 traces each
+3.12, is not among the highlights. The replication log's Entry 32 traces each
 figure to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way

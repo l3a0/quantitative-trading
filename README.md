@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-one replications run here, fifteen from Chan's *Quantitative Trading*
-and sixteen from his *Algorithmic Trading*. The first two were ported from the
+Thirty-two replications run here, fifteen from Chan's *Quantitative Trading*
+and seventeen from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other twenty-nine were built here.
+where they were first built. The other thirty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -400,7 +400,21 @@ where they were first built. The other twenty-nine were built here.
     the differential annualised over 365 days at 0.047279. Every figure is
     exploratory, and the script triples CAD's rollover on Thursdays where the
     book's own settlement rule says Wednesday.
-31. A Kalman filter hedge ratio on EWA and EWC, from *Algorithmic Trading*'s
+31. Crude oil reversal joined to momentum, from *Algorithmic Trading*'s
+    Chapter 6, on Chan's own continuous futures. The rule buys CL at the
+    close when it is below its price 30 trading days ago and above its price
+    40 trading days ago, shorts on the mirror, and is flat otherwise. On the
+    2012-05-04 save `CL_rev.m` loads, the APR of 0.117600 and the Sharpe
+    ratio of 1.100368 match the script's comment to every digit and the
+    book's 12 percent and 1.1. Momentum alone gives 0.090228 and 0.439049
+    and reversal alone 0.068326 and 0.370289, so on the book's window the
+    join beats each rule alone. On the four years before it, read from the
+    2012-05-07 save, the join gives 0.021324 and 0.369864 and momentum alone
+    beats it, on a series that
+    [issue 313](https://github.com/l3a0/quantitative-trading/issues/313)
+    found back-adjusted above the traded price. Swapping the two lookbacks
+    negates every position. Every figure is exploratory.
+32. A Kalman filter hedge ratio on EWA and EWC, from *Algorithmic Trading*'s
     Chapter 3, on Chan's own ETF file. The filter re-estimates the slope and
     intercept of EWC on EWA every day, and the band trades its forecast error
     against the square root of its forecast variance. Both figures
@@ -670,6 +684,14 @@ Thursdays and a holiday multiplies nothing, that each day's return carries the
 previous day's position and rates, and that zero rates give the script's
 commented-out formula without rollover bit for bit.
 
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py) does
+it for the crude oil rule. It pins the two figures on the 2012-05-04 save at
+the script's six decimals and at the book's precision, the script's other
+three rules beside them, the 2012-05-11 save, and the three rules on the
+2012-05-07 save's four years before the window. It also holds the positions,
+the ten rows where ComboOR differs, five changes to the specification that
+each move a figure, and the scale-break guard on each span of each save.
+
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) does it for the
 Kalman filter on EWA and EWC. It pins the script's two printed figures at its
 six decimals and at eight, the book's rounding of them, and the run with no
@@ -681,7 +703,7 @@ grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
 planted break in either is refused.
 
-All thirty-one replications reach a verdict in
+All thirty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -696,7 +718,8 @@ the stationarity tests' on USD.CAD, Entry 23 the ETF cointegration
 examples', Entry 24 Example 4.2's, Entry 25 Example 5.1's, Entry 26 Example
 3.2's, Entry 27 the spot and roll returns', Entry 28 VX against ES's,
 Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
-5.2's, and Entry 31 the Kalman filter's on EWA and EWC.
+5.2's, Entry 31 the crude oil rule's, and Entry 32 the Kalman filter's on
+EWA and EWC.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -748,7 +771,8 @@ span, and neither carries a flagged day, so nothing is refused. The Kalman
 filter calls it on EWA and EWC over the same span, and refuses nothing either.
 VX against ES
 calls it on VX and ES over each leg's own span in each continuous futures save
-it reads, and nothing is refused there either.
+it reads, and nothing is refused there either. The crude oil rule calls it on
+CL over each span it reads in each of three saves, and refuses nothing.
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py) is the authority for
 the bound and for what the committed vintages carry.
 
@@ -870,7 +894,9 @@ is. His `VIX.csv` is committed beside them as one vintage under the vendor
 [issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 their shape. VX against ES reads VX and ES from the 2012-05-07 and
 2012-05-17 saves, and its tests read the 2012-05-11 save too, for
-[issue 350](https://github.com/l3a0/quantitative-trading/issues/350).
+[issue 350](https://github.com/l3a0/quantitative-trading/issues/350). The
+crude oil rule reads CL from the 2012-05-04, 2012-05-07 and 2012-05-11 saves,
+for [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
 
 IJR's holdings at every year-end from 2007 to 2025, and IVV's at every
 quarter-end from 2008-12-31 to 2026-06-30 but one, are committed under
@@ -1424,6 +1450,18 @@ It prints the three vintages, the window and the days with no rate, each
 figure the script and the book print beside the computed one and a verdict,
 the annualised rollover against its criterion, and the rows beside the
 replication.
+
+The crude oil rule takes no option either, because `CL_rev.m` fixes the save,
+the window and the two lookbacks:
+
+```bash
+uv run python -m chan.cl_reversal_momentum
+```
+
+It prints the vintage and the window, the two figures beside the script's and
+the book's with a verdict, the positions, the script's other three rules and
+the later save in a table, and the three rules on the four years before the
+window.
 
 The Kalman filter on EWA and EWC takes no option either, because
 `KF_beta_EWA_EWC.m` fixes the file and both of the filter's constants:
