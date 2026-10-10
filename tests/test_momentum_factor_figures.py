@@ -155,6 +155,14 @@ class TestTheBand:
         band = _by_gid(figure)["band"]
         assert (band.get_y(), band.get_height()) == (0, 1)
 
+    def test_it_wears_neither_factors_colour(self, figure) -> None:
+        """A point in a factor's colour reads as that factor's, so a band in MKT's
+        colour would read as MKT's band rather than one every series shares."""
+        drawn = _by_gid(figure)
+        band = to_rgba(drawn["band"].get_facecolor())[:3]
+        for tag in ("mkt", "wml"):
+            assert not same_color(band, drawn[tag].get_color()), tag
+
     def test_the_band_is_0_2151(self, figure) -> None:
         assert round(_band_edges(figure)[1], 4) == 0.2151
         assert round(_band_edges(figure)[0], 4) == -0.2151

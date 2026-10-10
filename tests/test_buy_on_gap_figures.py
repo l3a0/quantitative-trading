@@ -268,6 +268,11 @@ class TestTheIdleStart:
         )
         assert "unfilled-label" not in bottom
 
+    def test_its_label_is_not_the_spell_s_colour(self, figure) -> None:
+        """Red text in the grey band would read as part of the spell."""
+        label = {t.get_gid(): t for t in figure.axes[0].texts}["unfilled-label"]
+        assert not same_color(label.get_color(), LOST)
+
     def test_its_label_starts_where_the_band_ends(self, figure, sides) -> None:
         label = {t.get_gid(): t for t in figure.axes[0].texts}["unfilled-label"]
         start = date2num(label.get_position()[0])

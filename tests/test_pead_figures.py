@@ -186,6 +186,11 @@ class TestTheIdleStart:
         assert same_color(bands["unfilled"].get_facecolor()[:3], RULE)
         assert not same_color(bands["unfilled"].get_facecolor()[:3], LOST)
 
+    def test_its_label_is_not_the_spells_colour(self, figure) -> None:
+        """Red text in the grey band would read as part of the spell."""
+        label = _by_gid(figure.axes[0].texts)["unfilled-label"]
+        assert not same_color(label.get_color(), LOST)
+
     def test_its_label_names_the_89_days(self, figure) -> None:
         text = {t.get_gid(): t.get_text() for t in figure.axes[0].texts}["unfilled-label"]
         assert text == "no position in the first 89 days,\nbefore the 90-day deviation fills"

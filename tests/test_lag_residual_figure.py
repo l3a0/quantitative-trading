@@ -112,6 +112,15 @@ class TestTheFigureDrawsTheCheck:
             assert band.get_y() == pytest.approx(-check.band)
             assert band.get_height() == pytest.approx(2 * check.band)
 
+    def test_the_band_is_not_the_flag_colour(self, drawn) -> None:
+        """Red marks a bar outside the band, so a red band would put the bars
+        the check passes on the colour of the ones it flags."""
+        fig, _ = drawn
+        for ax in fig.axes:
+            bars = set(ax.containers[0])
+            (band,) = [patch for patch in ax.patches if patch not in bars]
+            assert not same_color(band.get_facecolor()[:3], LOST)
+
     def test_each_title_carries_its_lag_count_statistic_and_p_value(self, drawn) -> None:
         fig, _ = drawn
         titles = [ax.get_title(loc="left") for ax in fig.axes]
