@@ -153,7 +153,7 @@ class TestTheSpecification:
     def test_62_of_the_334_flat_days_have_a_hedge_ratio_below_zero(
         self, result: ExampleThreeTwo
     ) -> None:
-        """Two counts of 334 over the same 1,480 days that are not one count.
+        """Two counts over the same 1,480 days that are both 334 but count different days.
 
         The band is flat on 334 days, and the 20-day hedge ratio is below zero on 334,
         which ``tests/test_price_spread.py`` pins for Example 3.1. Only 62 days are both.
@@ -162,6 +162,23 @@ class TestTheSpecification:
         negative = result.bollinger.signal.hedge < 0
         assert (int(flat.sum()), int(negative.sum())) == (334, 334), SPEC
         assert int((flat & negative).sum()) == 62, SPEC
+
+    def test_the_hedge_ratio_changes_on_every_one_of_the_1479_steps(
+        self, result: ExampleThreeTwo
+    ) -> None:
+        """So a held unit's GLD leg is resized every day, even on a day its units stand still.
+
+        The 20-row hedge ratio is refitted on every one of the 1,480 kept rows of
+        ``inputdata_etf/`` GLD and USO, and no two neighbouring fits are equal. That covers
+        the 1,060 days the band holds a unit unchanged from the day before.
+        """
+        hedge = result.bollinger.signal.hedge
+        assert len(hedge) == 1480, SPEC
+        assert int(np.count_nonzero(np.diff(hedge))) == 1479, SPEC
+        units = result.bollinger.units
+        held = (units[1:] == units[:-1]) & (units[1:] != 0)
+        assert int(held.sum()) == 1060, SPEC
+        assert (np.diff(hedge)[held] != 0).all(), SPEC
 
 
 class TestTheFigures:
@@ -330,6 +347,35 @@ class TestTheDivisor:
         assert int(np.isfinite(result.zscore).sum()) == 1461, SPEC
         assert (beyond(result.zscore), beyond(by_n.zscore)) == (756, 777), SPEC
         assert int((result.bollinger.units != by_n.bollinger.units).sum()) == 15, SPEC
+
+    def test_the_exit_test_passes_on_the_same_days_but_one_more_exit_happens(
+        self, result: ExampleThreeTwo, by_n: ExampleThreeTwo
+    ) -> None:
+        """A positive factor keeps every z-score's sign, so ``z > 0`` and ``z < 0`` hold on
+        the same rows under either divisor. A position has to be open to close, though.
+        All 76 exits under n − 1 fall on the same rows under n, and the run divided by n
+        has a 77th on 2007-06-07. It closes a short entered on 2007-05-29 that the n − 1
+        run never opened."""
+        with np.errstate(invalid="ignore"):
+            for test in (np.greater, np.less):
+                np.testing.assert_array_equal(
+                    test(by_n.zscore, EXIT_ZSCORE), test(result.zscore, EXIT_ZSCORE)
+                )
+
+        def exits(units: np.ndarray) -> set[int]:
+            return set((np.flatnonzero((units[:-1] != 0) & (units[1:] == 0)) + 1).tolist())
+
+        under_n_less_1, under_n = exits(result.bollinger.units), exits(by_n.bollinger.units)
+        assert (len(under_n_less_1), len(under_n)) == (76, 77), SPEC
+        assert under_n_less_1 < under_n, SPEC
+        (extra,) = under_n - under_n_less_1
+        days = result.bollinger.signal.days
+        assert str(days[extra].date()) == "2007-06-07", SPEC
+        held = by_n.bollinger.units[:extra]
+        entered = int(np.flatnonzero(held != -1)[-1]) + 1
+        assert str(days[entered].date()) == "2007-05-29", SPEC
+        assert held[entered - 1] == 0, SPEC
+        assert not result.bollinger.units[entered:extra].any(), SPEC
 
     def test_swapping_the_average_too_moves_nothing_further(
         self, sources, by_n: ExampleThreeTwo

@@ -14,11 +14,14 @@ share the date axis over the 1,480 rows ``bollinger.m`` trades.
    rather than n − 1 is drawn dashed, because it is a diagnostic rather than
    Chan's run.
 
-Every value comes from :func:`chan.price_spread.read_sources` and
+The band, the linear rule and the spread come from
+:func:`chan.price_spread.read_sources` and
 :func:`chan.bollinger.example_three_two`, the run's own path, so the
-scale-break guard runs here too. The dashed line reuses that run's spread and
-swaps only ``movingStd`` for ``smartMovingStd``, as ``tests/test_bollinger.py``
-does::
+scale-break guard runs here too. The dashed line comes from
+:func:`divided_by_n` instead. It reuses that run's spread and recomputes the
+z-score with ``smartMovingStd`` in place of ``movingStd``, and
+``tests/test_bollinger_figures.py`` holds it equal to the patched run that
+``tests/test_bollinger.py`` builds. Redraw it with::
 
     uv run python -m chan.bollinger_figures
 """

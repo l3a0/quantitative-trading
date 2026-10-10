@@ -2956,9 +2956,10 @@ Five groups of what it says are not pinned here.
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    The band as the rule for practical trading, "either zero or one unit (long
    or short) invested", "very easy to allocate capital to this strategy or to
-   manage its risk", "a free parameter to be optimized in a training set" with
-   the lookback a free parameter too, and "more round trip trades and generally
-   higher profits" are at 1548. The 17.8 percent and 0.96, "quite an
+   manage its risk", "a free parameter to be optimized in a training set" for
+   the entry threshold, a lookback that "can be a free parameter to be
+   optimized, or it can be set equal to the half-life of mean reversion", and
+   "more round trip trades and generally higher profits" are at 1548. The 17.8 percent and 0.96, "quite an
    improvement from the linear mean reversal strategy", the thresholds of 1 and
    0, `fillMissingData` and Figure 3.3 are at 1559. "Near-optimal", "the
    benefit of hindsight" and "about 10.9 percent" are at 1505. The book's
@@ -2967,11 +2968,9 @@ Five groups of what it says are not pinned here.
    holds `bollinger.m` byte for byte, which `src/chan/bollinger.py`'s docstring
    records, and that the file was converted to one file per ETF, which
    [data/README.md](data/README.md) records.
-3. Arithmetic no test asserts: that a positive factor on the z-score never
-   changes its sign, so every exit at 0 falls on the same day under either
-   divisor, that a z-score such as 0.99 lands beyond 1 once multiplied by
-   1.0260, and that the factor cancels from the linear rule's return, which
-   the Example 3.1 post shows. The equation for the factor is pinned at four
+3. Arithmetic no test asserts: that a z-score such as 0.99 moves beyond 1
+   once multiplied by 1.0260, and that the factor cancels from the linear
+   rule's return, which the Example 3.1 post shows. The equation for the factor is pinned at four
    decimals and on every day.
 4. The book's Figure 3.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
@@ -2987,8 +2986,10 @@ book figure of 10.9 percent against its script's 10.8, the file's 1,500 days
 and the hedge ratio's 334 days below zero, to
 [tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, or to
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) for the
-figure's own numbers. Six had no pin before it, and
-[tests/test_bollinger.py](tests/test_bollinger.py) now pins them.
+figure's own numbers. Seven had no pin before it.
+[tests/test_bollinger.py](tests/test_bollinger.py) now pins the first six, and
+[tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) pins the
+seventh.
 
 1. Each rule's deepest drawdown and longest spell below a high. The band's is
    −21.83 percent on 2009-05-21 and 252 days from 2008-12-08 to 2009-12-07.
@@ -3000,12 +3001,17 @@ figure's own numbers. Six had no pin before it, and
    run ending on a unit held.
 3. The 62 days on which the band is flat and the hedge ratio is below zero,
    two different counts that are both 334.
-4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260,
-   puts 777 of the 1,461 days with a z-score beyond ±1 against 756, and moves
-   the units on 15 days.
+4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260.
+   It puts the z-score beyond ±1 on 777 of the 1,461 days where it exists,
+   against 756 under n − 1, and moves the units on 15 days. The exit test at 0
+   passes on the same days under either divisor. All 76 exits under n − 1 fall
+   on the same days under n, and a 77th under n, on 2007-06-07, closes a short
+   entered on 2007-05-29 that the n − 1 run never opened.
 5. That the spread has no missing values on the kept days, which is why
    swapping the moving average as well moves nothing further.
-6. The figure's own lines and labels.
+6. That the hedge ratio changes on all 1,479 steps between the 1,480 days, so a
+   held unit's GLD leg is resized every day.
+7. The figure's own lines and labels.
 
 Its one figure is drawn from the committed file by
 [src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), which reads it
