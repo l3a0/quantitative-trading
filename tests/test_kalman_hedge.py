@@ -68,6 +68,7 @@ from chan.kalman_hedge import (
     kalman_hedge,
     main,
     read_sources,
+    rolling_falls,
     run,
     slope_findings,
     trade,
@@ -333,6 +334,15 @@ class TestTheInterceptFinding:
     def test_a_250_day_rolling_mean_falls_57_times_in_1250_steps(self, found) -> None:
         assert (found.rolling.falls, found.rolling.steps) == (57, 1250), SPEC
 
+    def test_a_300_day_rolling_mean_falls_25_times_in_1200_steps(self, result) -> None:
+        falls = rolling_falls(result.filter.intercept, 300)
+        assert (falls.falls, falls.steps) == (25, 1200), SPEC
+
+    def test_a_350_day_rolling_mean_never_falls_in_1150_steps(self, result) -> None:
+        """Fifty days longer than the window above, and no step falls."""
+        falls = rolling_falls(result.filter.intercept, 350)
+        assert (falls.falls, falls.steps) == (0, 1150), SPEC
+
     def test_it_peaks_on_2011_09_08_above_its_last_value(self, found) -> None:
         assert str(found.peak_day.date()) == "2011-09-08", SPEC
         assert found.peak == pytest.approx(6.803488, abs=5e-7), SPEC
@@ -347,6 +357,10 @@ class TestTheInterceptFinding:
         days = pd.date_range("2006-01-02", periods=3, freq="D")
         found = intercept_findings(days, np.array([1.0, 1.0, 0.5]))
         assert (found.by_day.falls, found.by_day.steps) == (1, 2)
+
+    def test_any_drop_however_small_is_a_fall(self) -> None:
+        falls = rolling_falls(np.array([1.0, 1.0, 1.0 - 1e-14]), 1)
+        assert (falls.falls, falls.steps) == (1, 2)
 
 
 class TestTheGuardAndTheReads:

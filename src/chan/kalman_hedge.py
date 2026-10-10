@@ -282,6 +282,11 @@ def _falls(series: pd.Series) -> Falls:
     return Falls(falls=int((steps < 0).sum()), steps=len(steps))
 
 
+def rolling_falls(intercept: NDArray, window: int) -> Falls:
+    """The steps of a ``window``-day rolling mean of the intercept, and how many go down."""
+    return _falls(pd.Series(intercept).rolling(window).mean().dropna())
+
+
 def intercept_findings(days: pd.DatetimeIndex, intercept: NDArray) -> InterceptFindings:
     """The intercept's means by year, quarter and month, its daily and rolling steps, its peak."""
     series = pd.Series(intercept, index=days)
@@ -292,7 +297,7 @@ def intercept_findings(days: pd.DatetimeIndex, intercept: NDArray) -> InterceptF
         by_quarter=_falls(series.groupby(series.index.to_period("Q")).mean()),
         by_month=_falls(series.groupby(series.index.to_period("M")).mean()),
         by_day=_falls(series),
-        rolling=_falls(series.rolling(ROLLING_DAYS).mean().dropna()),
+        rolling=rolling_falls(intercept, ROLLING_DAYS),
         peak_day=series.idxmax(),
         peak=float(series.max()),
         last=float(series.iloc[-1]),

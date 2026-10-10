@@ -223,6 +223,15 @@ commented-out load of the VX strip, and its comments print CL's figures, not
 VX's. The replication log's Entry 35 traces each figure to the rows run
 against it.
 
+The revision of Example 6.1 that trades the lagged roll return has the
+same shape as the VX calendar spread, with every figure in the book and none
+in a script. Location
+2690 prints the threshold of 3 percent, the window from January 2, 2009, to
+August 13, 2012, an APR of 2.5 percent, a Sharpe ratio of 2.1 and a maximum
+drawdown of 1.1 percent, and no script ships for it. So the notes are the only
+source of those figures, and the replication log's Entry 36 cites location
+2690 for each of them.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
@@ -249,6 +258,14 @@ from the Cloud Reader and carry a `↻` tag. The header gives the total and how
 many were recovered. Both totals are asserted in `tests/test_book_notes.py`, so
 a re-extraction that returns fewer highlights fails the suite instead of
 passing quietly.
+
+The *Algorithmic Trading* note also ends with a `## Bibliography` section,
+which holds bibliography entries that nobody highlighted, such as the full
+entry behind location 2287's "(Dueker, 2006)". Each one comes from a page of
+the print edition and cites that page, so its heading does not open with
+`Location` and the counts above leave it out. A re-extraction rebuilds only
+the highlights, so whoever re-extracts carries that section over by hand, and
+`tests/test_book_notes.py` fails if it goes missing.
 
 ## These files are quoted, not authored
 
