@@ -21,6 +21,7 @@ moment a layer is added and nothing asserts it.
 
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -35,6 +36,7 @@ from tests.support.markdown_sweep import (
     blank_code,
     blank_fences,
     document_headings,
+    entry_sections,
     fragment_links,
     heading_index,
     heading_references,
@@ -1404,3 +1406,152 @@ class TestIssueReferencesAreLinked:
             for n in _unlinked_references(path.read_text("utf-8"))
         ]
         assert not offenders, "unlinked issue or pull request numbers: " + ", ".join(offenders)
+
+
+_COUNT_WORDS = "one two three four five six seven eight nine ten eleven twelve".split()
+_COUNT_LEAD = re.compile(rf"^({'|'.join(w.capitalize() for w in _COUNT_WORDS)}) things?\b")
+_NUMBERED_ITEM = re.compile(r"^\d+\.[ \t]")
+
+
+def _counted_items(body: str) -> tuple[int, int] | None:
+    """The count a section's lead sentence states, and the items it lists.
+
+    The replication log opens "What the entry concludes" and "What this entry
+    cannot say" with a sentence such as "Four things." and then lists them. A
+    section whose first paragraph opens on no such count is not read, and
+    returns None.
+
+    The first item marker after the lead decides how items are written. A
+    numbered item at the margin starts a numbered list, and only margin-level
+    numbers count, so a list nested under one item is not counted. The list
+    runs until a paragraph returns to the margin without a number, which is
+    where the closing "Nothing checks this entry" note sits. Otherwise each
+    paragraph that opens in bold at the margin is one item, and a numbered
+    list between them is part of the item above it. The closing note opens in
+    plain text, so it is never counted.
+    """
+    paragraphs = [p for p in re.split(r"\n[ \t]*\n", body) if p.strip()]
+    if not paragraphs:
+        return None
+    lead = _COUNT_LEAD.match(paragraphs[0].strip())
+    if lead is None:
+        return None
+    stated = _COUNT_WORDS.index(lead.group(1).lower()) + 1
+    rest = paragraphs[1:]
+    starts = [p.strip("\n").split("\n")[0] for p in rest]
+    first = next((s for s in starts if s.startswith("**") or _NUMBERED_ITEM.match(s)), "")
+    if not _NUMBERED_ITEM.match(first):
+        return stated, sum(s.startswith("**") for s in starts)
+    listed = 0
+    lines = "\n".join(rest).split("\n")
+    for line in lines[next(i for i, x in enumerate(lines) if _NUMBERED_ITEM.match(x)) :]:
+        if _NUMBERED_ITEM.match(line):
+            listed += 1
+        elif line.strip() and not line[0].isspace():
+            break
+    return stated, listed
+
+
+def _count_disagreements(document: str) -> list[str]:
+    """Every replication log section whose stated count misses its list."""
+    found = []
+    for section in entry_sections(document):
+        counted = _counted_items(section.body)
+        if counted is not None and counted[0] != counted[1]:
+            stated, listed = counted
+            found.append(
+                f"line {section.first_line}, Entry {section.entry}, "
+                f"{section.heading.text}: says {_COUNT_WORDS[stated - 1]}, lists {listed}"
+            )
+    return found
+
+
+def _entry(body: str, heading: str = "What this entry cannot say") -> str:
+    return f"## Entry 7: a title\n\n### {heading}\n\n{body}"
+
+
+NOTE = "Nothing checks this entry against the suite, for the reason Entry 1 states.\n"
+
+
+class TestEntrySections:
+    def test_a_section_runs_to_the_next_subheading(self) -> None:
+        sections = entry_sections("## Entry 3: x\n\n### A\n\nbody a\n\n### B\n\nbody b\n")
+        assert [(s.entry, s.heading.text, s.first_line) for s in sections] == [
+            (3, "A", 3),
+            (3, "B", 7),
+        ]
+        assert "body b" not in sections[0].body
+
+    def test_a_section_outside_an_entry_belongs_to_none(self) -> None:
+        sections = entry_sections("## How to read an entry\n\n### A\n\n## Entry 2: y\n\n### B\n")
+        assert [(s.entry, s.heading.text) for s in sections] == [(2, "B")]
+
+    def test_a_hash_line_inside_a_fence_does_not_end_a_section(self) -> None:
+        sections = entry_sections("## Entry 1: x\n\n### A\n\n```\n### not a heading\n```\n\ntail\n")
+        assert len(sections) == 1 and "tail" in sections[0].body
+
+    def test_a_deeper_heading_stays_inside_its_section(self) -> None:
+        sections = entry_sections("## Entry 1: x\n\n### A\n\n#### Deeper\n\ntail\n")
+        assert len(sections) == 1 and "tail" in sections[0].body
+
+    def test_a_repeated_subheading_carries_githubs_suffix(self) -> None:
+        sections = entry_sections("## Entry 1: x\n\n### A\n\n## Entry 2: y\n\n### A\n")
+        assert [s.heading.slug for s in sections] == ["a", "a-1"]
+
+
+class TestCountedListsMatchTheirCounts:
+    def test_a_bold_list_matching_its_count_passes(self) -> None:
+        assert _count_disagreements(_entry("Two things.\n\n**One.** a\n\n**Two.** b\n")) == []
+
+    def test_a_bold_list_one_short_is_flagged(self) -> None:
+        document = _entry("Four things.\n\n**One.** a\n\n**Two.** b\n\n**Three.** c\n\n" + NOTE)
+        assert _count_disagreements(document) == [
+            "line 3, Entry 7, What this entry cannot say: says four, lists 3"
+        ]
+
+    def test_the_closing_note_is_not_an_item(self) -> None:
+        document = _entry("Two things.\n\n**One.** a\n\n**Two.** b\n\n" + NOTE)
+        assert _count_disagreements(document) == []
+
+    def test_a_count_over_items_written_as_prose_is_flagged(self) -> None:
+        document = _entry("Two things.\n\nThe first is a. The same applies to b.\n\n" + NOTE)
+        assert _count_disagreements(document) == [
+            "line 3, Entry 7, What this entry cannot say: says two, lists 0"
+        ]
+
+    def test_a_numbered_list_is_counted(self) -> None:
+        document = _entry("Three things.\n\n1. **A.** a\n2. **B.** b\n", "What the entry concludes")
+        assert _counted_items(entry_sections(document)[0].body) == (3, 2)
+
+    def test_a_list_nested_under_an_item_is_not_counted(self) -> None:
+        body = "Two things.\n\n1. **A.** a\n   1. sub\n   2. sub\n\n   more of A\n2. **B.** b\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_loose_list_is_counted_across_its_blank_lines(self) -> None:
+        body = "Two things.\n\n1. **A.** a\n\n   more of A\n\n2. **B.** b\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_numbered_list_ends_at_a_paragraph_back_at_the_margin(self) -> None:
+        body = "Two things.\n\n1. **A.** a\n2. **B.** b\n\nA later note.\n\n1. not an item\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_numbered_list_inside_a_bold_item_is_part_of_that_item(self) -> None:
+        body = "Two things.\n\n**A.** a, in three parts.\n\n1. **x**\n2. **y**\n3. **z**\n\n"
+        body += "**B.** b\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_section_with_no_count_is_not_read(self) -> None:
+        document = _entry("The run says this.\n\n**One.** a\n\n**Two.** b\n")
+        assert _counted_items(entry_sections(document)[0].body) is None
+
+    def test_the_log_has_counted_sections_to_read(self) -> None:
+        document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
+        counted = [s for s in entry_sections(document) if _counted_items(s.body)]
+        assert {s.heading.text for s in counted} == {
+            "What the entry concludes",
+            "What this entry cannot say",
+        }
+
+    def test_every_count_in_the_replication_log_matches_its_list(self) -> None:
+        document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
+        assert _count_disagreements(document) == []

@@ -1707,12 +1707,14 @@ Five things, and the first is what makes the other four worth reading.
 Two things, and both are the absence of a second series rather than an
 oversight.
 
-The 20.47 percent of row 12 is checked against nothing. Checking it needs an
+**What checks row 12's 20.47 percent.** Nothing does. Checking it needs an
 S&P 500 index vintage, which is a different symbol and a different deliverable,
 so it is cut and pinned in the design doc's register rather than left as
-something a later reader might think was forgotten. The same applies to the 4
-percent risk-free rate: a Treasury-bill series would move two inputs at once
-and leave every gap above unattributable to either.
+something a later reader might think was forgotten.
+
+**What checks the 4 percent risk-free rate.** The same applies to it. A
+Treasury-bill series would move two inputs at once and leave every gap above
+unattributable to either.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -2173,7 +2175,7 @@ Three things, and the first is the finding.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether individual bonds behave the way the funds do.** Each fund is a
 rolling basket held near a constant maturity, while a bond's own maturity
@@ -2339,7 +2341,7 @@ Three things, and the first is the verdict.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the rate behaved the same before August 2007.** The vendor's history
 starts in July 2005, and the 454 rows before its gap are kept in the vintage
@@ -3034,7 +3036,7 @@ different number, cited from the note and not reproduced.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the picks are right.** The universe of 1,000 stocks is not printed,
 so the selection step cannot be re-run. Re-running it would need the 1,000
@@ -3657,7 +3659,7 @@ Two things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **What the strategy earned on the index as it stood each day.** Every stock
 here was in the S&P 600 on 2008-01-14.
@@ -5275,7 +5277,7 @@ Four things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **What computed the book's 0.49.** No surviving copy of `genhurst` gives it,
 and the script that printed it records no value. Searching for the variant
@@ -5470,7 +5472,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the portfolio works out of sample.** No row refits the eigenvector
 on one window and trades it on the next. That is the experiment that would
@@ -5832,7 +5834,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Anything about costs or rollover interest.** The rule trades every day, and
 no cost is charged, as none is in the script. Location 2205 sets rollover
@@ -5960,7 +5962,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the reversion is real.** Entry 21's "What this entry cannot say"
 holds unchanged, because this run trades the same spread. GLD and USO do not
@@ -6148,7 +6150,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether returns are constant.** The model is the book's simplification, and
 location 2399 already says the fitted γ drifts from day to day. A mean of a
@@ -6314,7 +6316,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the portfolio is stationary.** The book argues it from a plot,
 Figure 5.11, and prints no statistic, and this run takes no test. The z-score
@@ -6848,7 +6850,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the lookbacks were chosen on this window.** The book names 30 and
 40 days and nothing about how they were picked. A search over other lookbacks
@@ -7005,7 +7007,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **What other values of `delta` or `Ve` give.** The script's comment invites
 tuning `delta`. Varying it is a search over a hypothesis space, which needs
@@ -7161,7 +7163,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether 250/25 would be chosen without hindsight.** The pair was picked from
 a table of 49 computed on the 2004 to 2012 closes it then trades, so its
@@ -7766,7 +7768,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the signal works out of sample.** The rule was declared after about
 90 readings on the same strip, so its margins are not a test. A registered
@@ -7945,7 +7947,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Which Pearson type `pearsrnd` drew from.** The type IV choice is inferred
 from the standard criterion rather than read from MathWorks' code. If
