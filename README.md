@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-seven replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-two from his *Algorithmic Trading*. The first two were ported from the
+Thirty-eight replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-three from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-five were built here.
+where they were first built. The other thirty-six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -512,6 +512,21 @@ where they were first built. The other thirty-five were built here.
     scratch run saw results point at TU's drift rather than its kurtosis: a
     normal draw gives 1,165 of 10,000, and the type IV draws with the mean
     set to zero give 19. Every figure is exploratory.
+38. Long GLD and short gold futures, locations 2718 and 2730 of
+    *Algorithmic Trading*, on Chan's GC series and his book-two ETF file.
+    `GLD_GC.m` holds the pair every day over the 752 days both calendars
+    share, and every figure lands on the printed digits: an average annual
+    return of 0.019014, a Sharpe ratio of −0.066564, an APR of 0.019084, a
+    maximum drawdown of −0.0082465 lasting 91 days, and the text's 1.9 and
+    0.8 percent. The book says GLD's financing cost eats the return. The
+    three-month bill rate over the window averages 0.010141, which leaves
+    +0.008874 above it, and the bill rate is a floor on that cost, so the
+    claim is neither confirmed nor refuted. The GC file is read within
+    minutes of GLD's 4 p.m. close rather than at the 1:30 p.m. settlement
+    the book describes. It holds 9 US exchange holidays, so it is not a
+    settlement series, and its ratio to GLD barely moves from one day to the
+    next, which a gap of two and a half hours between the closes would not
+    allow. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -748,7 +763,8 @@ pins the month-spaced roll return, the month gaps each day's fit reads, and
 the three readings of the spot return tried after HG's and TU's missed. On
 synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
-and a gap in the spot still counted as elapsed days.
+and a gap in the spot still counted as elapsed days. The blog post about it is
+the exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
 the four figures on the 2012-05-07 save at the precision that is real and at
@@ -865,7 +881,15 @@ its tails against quadrature, and holds the two-dimensional form equal to
 also holds that the third test as written leaves every simulated return at
 zero.
 
-All thirty-seven replications reach a verdict in
+[tests/test_gld_gc.py](tests/test_gld_gc.py) does it for long GLD and short
+gold futures. It pins the five figures of `GLD_GC.m`'s closing comment and the
+text's two at six decimals and at the precision Chan printed, the financing
+row beside them, and the measurements that say the GC file is read at GLD's
+close. It also holds every step of the script on synthetic legs whose
+figures are worked out by hand, and the scale-break guard on each series it
+reads.
+
+All thirty-eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -883,7 +907,8 @@ Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
-rule's on TU, and Entry 37 Example 1.1's hypothesis tests.
+rule's on TU, Entry 37 Example 1.1's hypothesis tests, and Entry 38 the
+trade of GLD against gold futures.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1681,6 +1706,18 @@ It prints the vintage and the seeds, then the five rows beside the book's or
 the script's figure. Rows 2 to 4 carry a landing band, and every row but row 5
 carries a verdict. The three rows added after the scratch run come last, and
 none of them carries a verdict.
+
+Long GLD and short gold futures takes no option, because `GLD_GC.m` has no
+parameter to set:
+
+```bash
+uv run python -m chan.gld_gc
+```
+
+It prints both legs' vintages and the days they share, the script's five
+figures and the text's two beside the book's with a verdict, then the bill
+rate over the window and the measurements of the GC series, none of which
+carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -3873,14 +3910,100 @@ uv run python -m chan.aud_cad_johansen_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+[blog/roll-returns-lessons.md](blog/roll-returns-lessons.md) is a
+twenty-seventh post, about Example 5.3 of Chan's *Algorithmic Trading*, which
+splits five futures' returns into a spot return and a roll return under a
+model that holds both constant, and prints the averages as Table 5.1. The post
+links the earlier posts on calendar spreads and on VX against ES for what a
+futures contract and a roll are, and draws four lessons from Entry 27 of the
+replication log.
+
+1. Eight of Table 5.1's ten cells land on Chan's own files, and HG's and TU's
+   spot returns miss there, so no vendor's revision explains either.
+2. The script regresses on contract columns where the text says months, so it
+   overstates C's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
+3. With maturity in months, HG's roll return falls below its spot return and
+   C's falls short of twice its spot return, so each of the book's two claims
+   fails for one future.
+4. CL's roll return, the series behind the table's mean, sits in contango on
+   most days, changes sign 29 times and reaches −1.121372, and HG's changes
+   sign 198 times, with no criterion for location 2683's "does not vary very
+   often" written down before the counts.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The roll return as "an intrinsic part of its total return", backwardation
+   and contango are at 2326. The model and "total return = spot return + roll
+   return" are at 2364. The loss of more than \$100,000 in 2006 and the ETF of
+   commodity producers are at 2385. "Measured in months", the forward curve's
+   gloss, "much larger than that of the spot returns" and "a slowly varying
+   estimated γ" are at 2399. "Bigger in magnitude than their spot returns" and
+   "the sign of roll returns does not vary very often" are at 2683. The book's
+   figures are pinned, and its words are not.
+2. Facts about the script rather than the data: that it numbers the days with
+   `T=[1:length(spot)]'`, prints with `%f`, and annualizes by 252 and by −12,
+   which `estimateFuturesReturns.m` holds at `e4bc46f` of
+   ericnberwick/EpchanPreview, and that its Python port dates from 2018. The
+   figure number the caption cites, 5.5, is the one the notes record at
+   location 2399, which
+   [tests/test_book_notes.py](tests/test_book_notes.py) holds, and the book's
+   chart is compared with the redraw only by its first and last days.
+3. Readings no test asserts: the algebra of the model, that a held contract
+   earns α + γ and that one day's log prices fall on a line of slope −γ, and
+   the reading of location 2385 that the roll return separates a producer
+   ETF from the commodity's future.
+4. Figures the post rounds from pinned ones or takes between them in words:
+   0.0039 percent, "a little over half", and "less than four months later".
+   The figure's heading test holds 5.06 and 3.86 percent. The figure's alt text reads its bars and its line
+   approximately too, such as "about 5.3" and "about −1.1".
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_roll_returns.py](tests/test_roll_returns.py), or to
+[tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) for
+the figure's own numbers. Four had no pin before it, and
+`TestBesideThePost` there now pins them all.
+
+1. CL's γ is negative on 1,388 of its 1,941 days and positive on 552. On
+   2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
+   apart from rounding, and the sign counts skip that day.
+2. It changes sign 29 times, and its longest run of one sign is contango from
+   2008-10-09 to 2011-10-21, 766 days.
+3. Its highest value is 0.258871 on 2008-09-22 and its lowest −1.121372 on
+   2009-01-15.
+4. BR's γ is negative on 3 of its 4,210 days, and HG's is positive on 3,139 of
+   its 6,028 days and changes sign 198 times.
+
+Its one figure is drawn from the committed strips by
+[src/chan/roll_returns_figures.py](src/chan/roll_returns_figures.py), which
+reads them through the same `load_strip` and `strip_returns` as
+`python -m chan.roll_returns`, scale-break guard included. It draws two panels,
+for Lessons 3 and 4.
+
+1. Each strip's spot return, the script's roll return and the month-spaced
+   roll return as bars, with a tick at twice the spot return over BR, C and TU.
+2. CL's roll return day by day, the book's Figure 5.5, shaded for
+   backwardation and contango, with its mean.
+
+```bash
+uv run python -m chan.roll_returns_figures
+```
+
+[tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the regime
+map.
+
 [blog/vx-calendar-spread-lessons.md](blog/vx-calendar-spread-lessons.md) is a
-twenty-seventh post, about the VIX futures calendar spread at location 2502 of
+twenty-eighth post, about the VIX futures calendar spread at location 2502 of
 Chan's *Algorithmic Trading*, which runs Example 5.4's script on the ratio of
 the back contract to the front. Chan reports that the ratio is "stationary
 with a 99 percent probability", and an APR of 17.7 percent with a Sharpe ratio
 of 1.5 from 2008-10-27 to 2012-04-23. The post links the VX against E-mini
-post, the USD.CAD post and the price-spread-ratio post rather than repeating
-them, and draws four lessons from Entry 35 of the replication log.
+post, the spot and roll returns post, the USD.CAD post and the
+price-spread-ratio post rather than repeating them, and draws four lessons
+from Entry 35 of the replication log.
 
 1. The ratio passes the stationarity test, and the specification read from the
    book's text loses, with an APR of −0.040454 and a Sharpe ratio of −0.563912.
