@@ -949,6 +949,31 @@ def test_the_card_freeing_the_most_is_pointed_at_in_flight(tmp_path: Path, show_
     assert "#90501 is in the In flight section above rather than in a column here." in note
 
 
+@pytest.mark.parametrize("show_all", [False, True], ids=["short view", "full view"])
+def test_a_card_freeing_the_most_in_a_column_is_not_pointed_at_in_flight(
+    tmp_path: Path, show_all: bool
+) -> None:
+    """Protects the in-flight pointer from naming a card the columns drew.
+
+    With pull request 90601 taken out of the fixture, issue 90501 has no open
+    branch, so a column draws it while it still frees 90502, 90503 and 90505.
+    It is also ranked, because the short view draws only ranked cards and would
+    otherwise hide it. The note names it as freeing the most and says nothing
+    about the In flight section, in either view.
+    """
+    docs = fixture_docs()
+    docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["issue"] != 90501]
+    docs["next"]["items"].append(
+        {"issue": 90501, "band": 1, "ready": "build", "why": "Nothing it waits on is open."}
+    )
+    page = _show_all_page(tmp_path) if show_all else PAGE
+    ids = draw(tmp_path, docs, page=page)
+    note = text(ids, "boardnote")
+    _card_tag(ids, "board", 90501)
+    assert "#90501 is the single card whose landing frees the most" in note
+    assert "rather than in a column here" not in note
+
+
 def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> None:
     """Protects the shallow branch's qualifier, which the deep branch already had.
 
