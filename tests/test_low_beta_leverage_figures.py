@@ -18,16 +18,21 @@ exploratory, and the ruin line and the Kelly line were added after the run.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.dates import date2num
+from matplotlib.text import Text
 
 from chan import low_beta_leverage_figures as module
 from chan.low_beta_leverage import (
     build_portfolios,
     kelly,
     read_sources,
+    ruin_line,
 )
 from chan.low_beta_leverage_figures import (
     LOW_BETA_LEVERAGE_FIGURE,
@@ -62,6 +67,14 @@ def out(tmp_path_factory: pytest.TempPathFactory):
 @pytest.fixture(scope="module")
 def figure(out, sources, portfolios):
     return make_low_beta_leverage_figure(out=out, portfolios=portfolios, sources=sources)
+
+
+@pytest.fixture(scope="module")
+def renderer(figure):
+    """The figure drawn once more on a canvas that can measure text and lay out tick labels."""
+    FigureCanvasAgg(figure)
+    figure.canvas.draw()
+    return figure.canvas.get_renderer()
 
 
 @pytest.fixture(scope="module")
@@ -109,6 +122,35 @@ class TestTheFigure:
     def test_every_panel_spans_the_83_holding_months(self, axes) -> None:
         for ax in axes.values():
             assert _span(ax) == HOLDING_MONTHS, SPEC
+
+    def test_every_series_but_the_ruin_line_lies_inside_its_panel(self, axes) -> None:
+        """A y-limit too tight hides a point the post quotes, such as k's peak of 69.0762.
+
+        The ruin line is meant to leave its panel, so it is the one series
+        left out. ``get_yticks`` lists every fixed tick whatever the limits,
+        so only the data can show a limit that cuts it off.
+        """
+        drawn = {}
+        for panel, ax in axes.items():
+            low, high = ax.get_ylim()
+            for line in ax.lines:
+                if line.get_gid() == "ruin-line":
+                    continue
+                y = np.asarray(line.get_ydata(), dtype=float)
+                assert ((low <= y) & (y <= high)).all(), (panel, line.get_gid(), y.min(), y.max())
+                drawn.setdefault(panel, set()).add(line.get_gid())
+        assert drawn == {
+            "beta": {"high", "low", "lowest"},
+            "leverage": {"kelly", "k", "ruined"},
+            "ruin": {"zero", "low", "below"},
+        }
+
+    def test_each_panel_names_its_y_axis(self, axes) -> None:
+        assert [ax.get_ylabel() for ax in axes.values()] == [
+            "mean beta at formation",
+            "leverage, log scale",
+            "monthly return",
+        ]
 
     def test_drawing_with_nothing_handed_in_reads_and_builds(
         self, monkeypatch, tmp_path, sources, portfolios
@@ -162,6 +204,10 @@ class TestTheBetas:
         label = _by_gid(axes["beta"].texts)["lowest-label"]
         assert label.get_text() == "0.0280, formed 2001-04-30", SPEC
 
+    def test_the_legend_names_both_fifths(self, axes) -> None:
+        legend = [t.get_text() for t in axes["beta"].get_legend().get_texts()]
+        assert legend == ["highest fifth", "lowest fifth"]
+
     def test_the_heading_names_both_ranges(self, axes) -> None:
         assert _title(axes["beta"]) == (
             "Each fifth's mean beta at formation, at the month it was held. The low fifth's fell "
@@ -179,6 +225,11 @@ class TestTheLeverage:
         assert line.get_color() == INK
         assert axes["leverage"].get_yscale() == "log"
         assert list(axes["leverage"].get_yticks()) == [2, 5, 10, 20, 50, 100]
+
+    def test_the_log_axis_labels_its_ticks_as_plain_numbers(self, axes, renderer) -> None:
+        """A log axis labels a tick of 10 as a power of ten unless a plain formatter is set."""
+        labels = [t.get_text() for t in axes["leverage"].get_yticklabels()]
+        assert labels == ["2", "5", "10", "20", "50", "100"]
 
     def test_the_highest_k_is_labelled_at_may_2001(self, axes) -> None:
         label = _by_gid(axes["leverage"].texts)["highest-label"]
@@ -246,11 +297,44 @@ class TestTheRuinLine:
             pd.Timestamp("2001-09-28"),
         ], SPEC
         assert [f"{r:.4f}" for r in marker.get_ydata()] == ["-0.0403", "-0.0337"], SPEC
+        assert marker.get_color() == LOST
         texts = _by_gid(axes["ruin"].texts)
         assert [texts[f"below-label-{n}"].get_text() for n in (0, 1)] == [
             "2001-06-29: −0.0403\nagainst a line at −0.0144",
             "2001-09-28: −0.0337\nagainst a line at −0.0296",
         ], SPEC
+
+    def test_a_month_exactly_on_the_line_is_marked(self, sources, portfolios, tmp_path) -> None:
+        """At or below, as the heading says, so a return equal to its line is marked.
+
+        No month on the committed vintages sits exactly on the line, so June
+        2001's return is moved onto it here.
+        """
+        june = pd.Timestamp("2001-06-29")
+        line = ruin_line(portfolios.rf, portfolios.leverage)
+        low = portfolios.low.copy()
+        low.loc[june] = line.loc[june]
+        drawn = make_low_beta_leverage_figure(
+            out=tmp_path / LOW_BETA_LEVERAGE_FIGURE,
+            portfolios=dataclasses.replace(portfolios, low=low),
+            sources=sources,
+        )
+        marker = _by_gid(drawn.axes[2].lines)["below"]
+        assert list(marker.get_xdata()) == [june, pd.Timestamp("2001-09-28")]
+
+    def test_zero_is_marked_by_a_muted_line(self, axes) -> None:
+        zero = _by_gid(axes["ruin"].lines)["zero"]
+        assert list(zero.get_ydata()) == [0, 0]
+        assert zero.get_color() == MUTED
+
+    def test_the_axis_is_ticked_every_0_04(self, axes) -> None:
+        low, high = axes["ruin"].get_ylim()
+        shown = [t for t in axes["ruin"].get_yticks() if low <= t <= high]
+        assert shown == pytest.approx([-0.08, -0.04, 0.0, 0.04, 0.08, 0.12])
+
+    def test_the_legend_names_the_line_and_the_return(self, axes) -> None:
+        legend = [t.get_text() for t in axes["ruin"].get_legend().get_texts()]
+        assert legend == ["ruin line, rf − (1 + rf) / k", "low fifth's monthly return"]
 
     def test_the_heading_names_where_the_line_leaves_the_panel(self, axes) -> None:
         assert _title(axes["ruin"]) == (
@@ -258,6 +342,84 @@ class TestTheRuinLine:
             "month. The line\nleaves the panel from 2002-02-28 on, and 2 months fall at or "
             "below it."
         ), SPEC
+
+
+def _text_boxes(ax, renderer) -> dict:
+    """Each label's text alone, in display pixels, without the rule joining it to its point."""
+    return {t.get_gid(): Text.get_window_extent(t, renderer) for t in ax.texts}
+
+
+def _points(line) -> np.ndarray:
+    """A line's points in display pixels, with 50 more along each segment between them."""
+    path = line.get_transform().transform(line.get_xydata())
+    steps = np.linspace(0, 1, 50)[:, None]
+    segments = [a + steps * (b - a) for a, b in zip(path[:-1], path[1:], strict=True)]
+    return np.concatenate([path, *segments])
+
+
+class TestTheLabels:
+    """Where each label's rule points, and where its text sits.
+
+    The panels' own classes pin each label's text. These pin the geometry,
+    so a label that names the right number while its rule points at the
+    formation month, or two labels stacked on one spot, fails.
+    """
+
+    #: Each label's point, as its holding month, its value as printed, and
+    #: the series that holds that value.
+    POINTS = {
+        ("beta", "lowest-label"): ("2001-05-31", "0.0280", "low_beta"),
+        ("leverage", "highest-label"): ("2001-05-31", "69.0762", "leverage"),
+        ("leverage", "ruined-label-0"): ("2001-06-29", "58.0262", "leverage"),
+        ("leverage", "ruined-label-1"): ("2001-09-28", "31.5098", "leverage"),
+        ("ruin", "below-label-0"): ("2001-06-29", "-0.0403", "low"),
+        ("ruin", "below-label-1"): ("2001-09-28", "-0.0337", "low"),
+    }
+
+    def test_every_label_is_listed(self, axes) -> None:
+        drawn = {(panel, t.get_gid()) for panel, ax in axes.items() for t in ax.texts}
+        assert drawn == set(self.POINTS)
+
+    @pytest.mark.parametrize(("panel", "gid"), list(POINTS))
+    def test_each_rule_points_at_its_marked_point(self, axes, portfolios, panel, gid) -> None:
+        month, value, series = self.POINTS[(panel, gid)]
+        label = _by_gid(axes[panel].texts)[gid]
+        assert label.xy[0] == pd.Timestamp(month), SPEC
+        assert f"{label.xy[1]:.4f}" == value, SPEC
+        assert label.xy[1] == getattr(portfolios, series).loc[month]
+
+    def test_every_label_sits_inside_its_panel(self, axes, renderer) -> None:
+        for panel, ax in axes.items():
+            (x0, x1), (y0, y1) = ax.get_xlim(), ax.get_ylim()
+            frame = ax.get_window_extent(renderer)
+            for gid, box in _text_boxes(ax, renderer).items():
+                x, y = _by_gid(ax.texts)[gid].xyann
+                assert x0 <= date2num(x) <= x1 and y0 <= y <= y1, (panel, gid)
+                assert frame.x0 <= box.x0 and box.x1 <= frame.x1, (panel, gid)
+                assert frame.y0 <= box.y0 and box.y1 <= frame.y1, (panel, gid)
+
+    def test_no_two_labels_in_a_panel_overlap(self, axes, renderer) -> None:
+        for panel, ax in axes.items():
+            anchors = [t.xyann for t in ax.texts]
+            assert len(set(anchors)) == len(anchors), panel
+            boxes = list(_text_boxes(ax, renderer).items())
+            for n, (gid, box) in enumerate(boxes):
+                for other, second in boxes[n + 1 :]:
+                    assert not box.overlaps(second), (panel, gid, other)
+
+    def test_no_label_crosses_a_line(self, axes, renderer) -> None:
+        """``LABEL_AT`` was placed by eye so that no label's text crosses a drawn line."""
+        for panel, ax in axes.items():
+            for gid, box in _text_boxes(ax, renderer).items():
+                for line in ax.lines:
+                    xy = _points(line)
+                    inside = (
+                        (box.x0 <= xy[:, 0])
+                        & (xy[:, 0] <= box.x1)
+                        & (box.y0 <= xy[:, 1])
+                        & (xy[:, 1] <= box.y1)
+                    )
+                    assert not inside.any(), (panel, gid, line.get_gid())
 
 
 class TestTheHelpers:

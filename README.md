@@ -5602,7 +5602,9 @@ uv run python -m chan.low_beta_leverage_figures
 
 [tests/test_low_beta_leverage_figures.py](tests/test_low_beta_leverage_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
-regime map.
+regime map. It also holds where each label's rule points, and that each
+label's text sits inside its panel, clear of the other labels and of every
+line.
 
 ## Where the book's numbers come from
 
