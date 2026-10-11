@@ -1198,10 +1198,11 @@ and symbol.
    days for one row beside it, and reads the 2012-05-07 save's CL before
    2008-05-19 to run the rule on the four years before the book's window, per
    [issue 354](https://github.com/l3a0/quantitative-trading/issues/354).
-3. `VX_ES.m` reads VX and ES, `gapFutures_FSTX.m`, Example 7.1's opening
-   gap strategy on Euro Stoxx 50 futures, reads FSTX, and
-   `correlationTest.m`, Example 6.1's correlation table run alone, reads TU,
-   all from the 2012-05-17 save.
+3. `VX_ES.m` reads VX and ES, and `correlationTest.m`, Example 6.1's
+   correlation table run alone, reads TU, both from the 2012-05-17 save.
+   `gapFutures_FSTX.m` is Example 7.1's opening gap strategy on STOXX Europe
+   50 futures. It reads FSTX, the STOXX Europe 50 index future on Eurex,
+   which the book calls the Dow Jones STOXX 50, from the same save.
 4. `VX_ES_rollreturn.m` reads ES from the 2012-05-07 save and the close of
    `VIX.csv`.
 5. The two VIX-filtered variants at Kindle location 3509, of Examples 4.1 and 7.1,

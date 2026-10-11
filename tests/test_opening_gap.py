@@ -187,7 +187,7 @@ class TestTheSpecification:
         assert matches(f.sharpe, BOOK_SHARPE)
 
     def test_252_times_the_mean_also_rounds_to_13_percent(self, result) -> None:
-        """Location 3509 calls the 13 percent an annualized average return."""
+        """Location 3509 calls its figure of around 13 percent an annualized average return."""
         f = result.literal_figures
         assert f.average_annual_return == pytest.approx(0.128622, abs=SIX)
         assert matches(100 * f.average_annual_return, BOOK_APR_PERCENT)
@@ -206,9 +206,10 @@ class TestTheSpecification:
             gap(f.sharpe, SCRIPT_SHARPE),
             gap(100 * f.apr, BOOK_APR_PERCENT),
             gap(f.sharpe, BOOK_SHARPE),
+            gap(100 * f.average_annual_return, BOOK_APR_PERCENT),
         ]
-        assert gaps == [0.0] * 4
-        assert [math.copysign(1, g) for g in gaps] == [1, 1, 1, 1]
+        assert gaps == [0.0] * 5
+        assert [math.copysign(1, g) for g in gaps] == [1, 1, 1, 1, -1]
 
     def test_it_measures_every_day(self, result) -> None:
         assert len(result.literal) == len(result.momentum) == 2000
@@ -444,8 +445,9 @@ class TestTheGuardAndTheReads:
             ([("inputdataohlcdaily_20120517/fstx.csv", "Close")], BOOK_FIRST_DAY, BOOK_LAST_DAY)
         ]
 
+    @pytest.mark.parametrize("source_file", [SOURCE_FILE, *EARLIER_SAVES])
     @pytest.mark.parametrize("row", [1, 1000, 1999])
-    def test_fstx_changing_scale_anywhere_is_refused(self, row, monkeypatch) -> None:
+    def test_fstx_changing_scale_anywhere_is_refused(self, row, source_file, monkeypatch) -> None:
         real = module.load_panel
 
         def broken(source_file, *, field="Close", data_dir=None):
@@ -457,7 +459,7 @@ class TestTheGuardAndTheReads:
 
         monkeypatch.setattr(module, "load_panel", broken)
         with pytest.raises(WindowCrossesScaleBreak, match="fstx.csv"):
-            read_sources()
+            read_sources(source_file=source_file)
 
     def test_run_reads_the_directory_it_is_given(self, tmp_path) -> None:
         with pytest.raises(VintageUnavailable, match="inputDataOHLCDaily_20120517.mat"):
@@ -508,7 +510,7 @@ class TestTheReport:
 
     def test_it_prints_the_vintages_and_the_rows_beside(self, printed) -> None:
         assert printed.startswith(
-            "The opening gap strategy on Euro Stoxx 50 futures, Algorithmic Trading's Example 7.1"
+            "The opening gap strategy on STOXX Europe 50 futures, Algorithmic Trading's Example 7.1"
         )
         assert "inputdataohlcdaily_20120517/fstx.csv" in printed
         assert "window    2004-07-16 to 2012-05-17, 2000 trading days" in printed

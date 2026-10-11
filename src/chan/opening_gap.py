@@ -1,15 +1,16 @@
-"""The opening gap strategy on Euro Stoxx 50 futures, *Algorithmic Trading*'s Example 7.1.
+"""The opening gap strategy on STOXX Europe 50 futures, *Algorithmic Trading*'s Example 7.1.
 
 A stop order rests until the price reaches it, so a market that opens far
 from the previous day's range can trigger a crowd of them at once and carry
 the move through the day. Chapter 7 of *Algorithmic Trading* calls that one
-cause of short-term momentum, and Example 7.1 trades it on FSTX, the Euro
-Stoxx 50 index future on Eurex. Each day the rule compares the open with the
-previous day's high and low. An open above the previous high by more than a
-tenth of the 90-day standard deviation of daily returns is one kind of jump,
-an open below the previous low by the same margin is the other, and the
-position is held from the open to the same day's close. Every location below
-is in ``research/book-notes/algorithmic-trading.md``.
+cause of short-term momentum, and Example 7.1 trades it on FSTX, the STOXX
+Europe 50 index future on Eurex, which the book calls the Dow Jones STOXX 50.
+Each day the rule compares the open with the previous day's high and low. An
+open above the previous high by at least a tenth of the 90-day standard
+deviation of daily returns is one kind of jump, an open below the previous
+low by the same margin is the other, and the position is held from the open
+to the same day's close. Every location below is in
+``research/book-notes/algorithmic-trading.md``.
 
 1. **Location 2965** calls the rule "the opposite momentum strategy" to
    Example 4.1's buy-on-gap reversal, "buying when the instrument gaps up,
@@ -20,9 +21,9 @@ is in ``research/book-notes/algorithmic-trading.md``.
    ``op``, ``hi``, ``lo`` and ``cl`` and calls ``smartMovingStd`` and
    ``backshift``. It also reports the rule on GBPUSD, for which no data is
    committed here.
-3. **Location 3509** calls the same 13 percent and 1.4 the strategy's
-   "annualized average return" and Sharpe ratio, before filtering it on the
-   VIX, which Example 7.1 does not do.
+3. **Location 3509** calls the same figures, around 13 percent and 1.4, the
+   strategy's "annualized average return" and Sharpe ratio, before filtering
+   it on the VIX, which Example 7.1 does not do.
 
 **What ``gapFutures_FSTX.m`` holds.** The script is git blob ``02db940``
 under ``public/img/book2/`` in the mirror
@@ -62,7 +63,7 @@ The line numbers are the blob's.
    Neither takes a risk-free rate or a cost. Line 33 runs ``calculateMaxDD``
    on ``cumprod(1 + ret) − 1``, and line 34 prints the drawdown it gives.
    ``252 · mean(ret)`` is computed beside them, because location 3509 calls
-   the 13 percent an annualized average return.
+   its figure of around 13 percent an annualized average return.
 
 **Two readings of line 23, and the script's figure belongs to the one the
 text does not describe.** Line 23 earns ``op − cl`` on a long, so a long
@@ -91,8 +92,8 @@ It is chan-mat, adjusted, saved 2012-05-18, and each of the open, high, low
 and close holds 2,000 days from 2004-07-16 to 2012-05-17, exactly the book's
 window. :func:`run` also reads FSTX from the 2012-05-11 and 2012-05-07 saves
 for two rows beside the replication. Each save holds a different 2,000-day
-window, the 2012-05-17 save also restates FSTX's prices, and only the
-2012-05-17 save lands the comment. ``data/README.md`` records how the saves
+window. The 2012-05-17 save also restates FSTX's prices, and it is the only
+save that lands the comment. ``data/README.md`` records how the saves
 differ.
 
 **The scale-break guard runs and refuses nothing.** :func:`read_sources`
@@ -126,9 +127,10 @@ import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
 
+from chan.buy_on_gap import SPREAD_LOOKBACK, entry_spread
 from chan.khandani_lo import TRADING_DAYS, plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, gap, matches
-from chan.matlab_helpers import backshift, calculate_max_dd, calculate_returns, smart_moving_std
+from chan.matlab_helpers import backshift, calculate_max_dd
 from chan.series import (
     WindowCrossesScaleBreak,
     load_panel,
@@ -146,8 +148,6 @@ SYMBOL = "FSTX"
 FIELDS = ("Open", "High", "Low", "Close")
 #: ``entryZscore``, the fraction of the spread the open must clear.
 ENTRY_ZSCORE = 0.1
-#: The rows in the moving standard deviation of close-to-close returns.
-SPREAD_LOOKBACK = 90
 #: The two signs line 23 can take. The first is the script's.
 READINGS = ("literal", "momentum")
 
@@ -165,11 +165,13 @@ BOOK_LAST_DAY = pd.Timestamp("2012-05-17")
 def spread(closes: ArrayLike) -> NDArray[np.float64]:
     """Line 13: the 90-row moving deviation of close-to-close returns, one row later.
 
-    Day t reads the returns ending at t − 1 through book two's ``smartstd``,
-    which divides by n, so the first :data:`SPREAD_LOOKBACK` rows are NaN.
+    This is :func:`chan.buy_on_gap.entry_spread`, because both scripts write
+    ``stdretC2C90d`` the same way, and :data:`SPREAD_LOOKBACK` is that
+    module's. Day t reads the returns ending at t − 1 through book two's
+    ``smartstd``, which divides by n, so the first :data:`SPREAD_LOOKBACK`
+    rows are NaN.
     """
-    cl = np.asarray(closes, dtype=float)
-    return backshift(1, smart_moving_std(calculate_returns(cl, 1), SPREAD_LOOKBACK))
+    return entry_spread(np.asarray(closes, dtype=float))
 
 
 def qualifiers(
@@ -200,7 +202,10 @@ def positions(
     The short is assigned after the long, as line 21 assigns it, so a day
     qualifying both is short.
     """
-    longs, shorts = qualifiers(opens, highs, lows, spread)
+    return _held(*qualifiers(opens, highs, lows, spread))
+
+
+def _held(longs: NDArray[np.bool_], shorts: NDArray[np.bool_]) -> NDArray[np.float64]:
     held = np.zeros(len(longs))
     held[longs] = 1.0
     held[shorts] = -1.0
@@ -231,9 +236,10 @@ def daily_returns(
 class Figures:
     """What the script prints on one series of daily returns, and one figure beside it.
 
-    ``apr`` and ``sharpe`` are line 27's, ``max_drawdown`` and
-    ``max_drawdown_days`` line 34's. ``average_annual_return`` is
-    ``252 · mean(ret)``, which the script does not print.
+    ``apr`` and ``sharpe`` are line 26's, which line 27's comment records.
+    ``max_drawdown`` and ``max_drawdown_days`` are line 34's.
+    ``average_annual_return`` is ``252 · mean(ret)``, which the script does
+    not print.
     """
 
     apr: float
@@ -244,7 +250,9 @@ class Figures:
 
 
 def figures(daily: ArrayLike) -> Figures:
-    """Line 27's APR and Sharpe ratio, line 34's drawdown, and ``252 · mean(ret)``."""
+    """Line 26's APR and Sharpe ratio, which line 27's comment records, line 34's drawdown,
+    and ``252 · mean(ret)``.
+    """
     ret = np.asarray(daily, dtype=float)
     max_drawdown, max_drawdown_days = calculate_max_dd(np.cumprod(1 + ret) - 1)
     return Figures(
@@ -286,7 +294,7 @@ def opening_gap(prices: pd.DataFrame) -> OpeningGap:
     op, hi, lo, cl = (prices[field].to_numpy(dtype=float) for field in FIELDS)
     sd = spread(cl)
     longs, shorts = qualifiers(op, hi, lo, sd)
-    held = positions(op, hi, lo, sd)
+    held = _held(longs, shorts)
     return OpeningGap(
         days=prices.index,
         spread=sd,
@@ -334,7 +342,7 @@ def report(
     """Print the vintage, both readings beside the script's and the book's, and the rest."""
     literal = result.literal_figures
     momentum = result.momentum_figures
-    print("The opening gap strategy on Euro Stoxx 50 futures, Algorithmic Trading's Example 7.1")
+    print("The opening gap strategy on STOXX Europe 50 futures, Algorithmic Trading's Example 7.1")
     print(f"  vintage   {vintage_line(entry)}")
     print(
         f"  window    {result.days[0].date()} to {result.days[-1].date()}, "
@@ -403,7 +411,7 @@ def run(data_dir: Path | None = None) -> OpeningGap:
 
 def main() -> None:
     argparse.ArgumentParser(
-        description="The opening gap strategy on Euro Stoxx 50 futures, Example 7.1 of "
+        description="The opening gap strategy on STOXX Europe 50 futures, Example 7.1 of "
         "Algorithmic Trading"
     ).parse_args()
     try:

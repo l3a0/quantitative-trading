@@ -541,8 +541,9 @@ where they were first built. The other thirty-eight were built here.
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. Every figure is exploratory.
-40. The opening gap strategy on FSTX, the Euro Stoxx 50 index future,
-    Example 7.1 of *Algorithmic Trading*, on Chan's 2012-05-17 save. A day is
+40. The opening gap strategy on FSTX, the STOXX Europe 50 index future on
+    Eurex, which the book calls the Dow Jones STOXX 50. It is Example 7.1 of
+    *Algorithmic Trading*, run on Chan's 2012-05-17 save. A day is
     long when the open clears the previous high by a tenth of the 90-day
     standard deviation of daily returns and short when it clears the previous
     low, held from the open to the close. `gapFutures_FSTX.m`'s return line
@@ -940,12 +941,13 @@ the half-capital divisor. It also holds both reads guarded.
 
 [tests/test_opening_gap.py](tests/test_opening_gap.py) does it for the
 opening gap strategy on FSTX. It pins both readings of the script's return
-line at six decimals, the literal one against the script's comment and the
-book's two figures and the momentum one against the book's, along with the
-drawdowns, the days each side holds and the literal rule on the two earlier
-saves. On synthetic days it holds both entry tests non-strict, a missing
-spread qualifying nothing, a short overriding a long, and the sign of each
-reading's open-to-close return. It also holds the read guarded.
+line at six decimals. The literal reading is pinned against the script's
+comment and the book's two figures, and the momentum reading against the
+book's two figures alone. It also pins the drawdowns, the days each side
+holds and the literal rule on the two earlier saves. On synthetic days it
+holds both entry tests non-strict, a missing spread qualifying nothing, a
+short overriding a long, and the sign of each reading's open-to-close
+return. It also holds the read guarded.
 
 All forty replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
