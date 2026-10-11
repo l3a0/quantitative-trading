@@ -591,8 +591,9 @@ where they were first built. The other forty-two were built here.
     two price histories join into one day's return. Without it, PC2 falls to
     −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
     symbol. Measured after the run, a series rebuilt from each day's own
-    weights would read PC2 at −0.1643, because the weights flip sign from day
-    to day and tomorrow's are fitted on a window that holds today's return.
+    weights would read PC2 at −0.1105, and −0.0161 with sign and rank matched
+    to today's. Fitting tomorrow's weights on a window that leaves today's
+    return out brings it to 0.0776.
     Every figure is exploratory and about survivors.
 43. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
     chosen three ways on Example 5.1's 612 saved returns: by the optimum of
@@ -5259,10 +5260,10 @@ models post for what Example 7.4 does rather than repeating it, and draws five
 lessons from Entry 42 of the replication log.
 
 1. A factor re-estimated every day has no fixed sign, and tomorrow's weights
-   have already seen today's return. Signs flip on 391, 376, 414, 387 and 355
-   of 752 days and ranks swap on 15. On tomorrow's own weights PC2 reads
-   −0.1643, matched −0.0161, and on weights fitted without today 0.0776,
-   beside the test's 0.0778.
+   have already seen today's return. With each sign fixed by a rule, signs
+   still flip on 1, 14, 6, 22 and 24 of 752 days and ranks swap on 15. On
+   tomorrow's own weights PC2 reads −0.1105, matched −0.0161, and on weights
+   fitted without today 0.0776, beside the test's 0.0778.
 2. Leaving the mean in is a choice with a reason, because "remain constant"
    describes a steady value. The price is that two days carry 97.04 percent
    of PC2's squared products.
@@ -5287,8 +5288,11 @@ Four groups of what it says are not pinned here.
 2. Facts outside the committed data: that 2007-08-09 and 2007-08-10 fall in
    the week Khandani and Lo studied, and that the revised MATLAB prints
    Chan's 2 percent.
-3. Readings and arithmetic no test asserts: that a principal component's
-   sign and rank are arbitrary from day to day in general, the closed form of
+3. Readings and arithmetic no test asserts: that the library's own signs
+   flipped on about half the days on the two machines that ran the checks
+   and disagreed about which, which no test pins because it depends on the
+   library, that a principal component's rank can change from day to day in
+   general, the closed form of
    the slope and intercept written out in Lesson 3, that the positions chosen
    on day t earn day t + 1's return, 5/√70 written as positive, 1.8654 written
    as 186.54 percent, a fifth of 5 percent written as 0.01, the same-sign
@@ -5304,10 +5308,11 @@ PMC's 1.8654 and its 851 days, or to
 for the figure's own labels. `TestWhatThePostMeasured` holds the ones that had
 no pin before it, all measured after the run.
 
-1. Each factor's sign flips, 391, 376, 414, 387 and 355 of 752 days, and the
-   15 days two or more factors swap rank, over 753 decompositions.
-2. The statistic on tomorrow's own weights, 0.0624, −0.1643, −0.0369, −0.0577
-   and 0.0593, matched, 0.0246, −0.0161, −0.0318, −0.0285 and 0.0768, and on
+1. Each factor's sign flips once every vector's largest weight is made
+   positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
+   factors swap rank, over 753 decompositions.
+2. The statistic on tomorrow's own weights under the same rule, 0.0326,
+   −0.1105, −0.0283, −0.0315 and 0.0025, matched, 0.0246, −0.0161, −0.0318, −0.0285 and 0.0768, and on
    weights fitted on the 251 days that leave today out, 0.0315, 0.0776,
    −0.0228, 0.0338 and 0.0713. The largest gap to the test's own figure is
    PC2's 0.0938 matched and PC3's 0.0039 left out.
@@ -5329,7 +5334,8 @@ which reads it through the same `load_panel`, `compute_both` and
 1. The 579 stocks' statistics as their cumulative curve, with the ±0.0715
    band, zero and the median stock, each factor's statistic as a filled dot
    at its percentile, and a hollow dot for the same factor without PMC.
-2. For each factor, the statistic on tomorrow's own weights, matched, on
+2. For each factor, the statistic on tomorrow's own weights with the sign
+   rule, matched, on
    weights fitted without today, and as the test reads it, over the same
    band.
 

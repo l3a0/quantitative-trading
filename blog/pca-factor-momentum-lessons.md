@@ -40,27 +40,27 @@ The first day with a full window is 2005-01-18. Every day from then to the secon
 
 The obvious way to test whether PC3, the third component, has momentum is to compute its return every day on that day’s weights and correlate the series with itself one day apart. That series measures three things besides persistence.
 
-1. **The sign.** A principal component is a direction, and a direction and its opposite explain a window equally well. The decomposition returns uₖ or −uₖ with no preference, so a factor return computed on fresh weights can change sign because the weights did.
+1. **The sign.** A principal component is a direction, and a direction and its opposite explain a window equally well. The decomposition returns uₖ or −uₖ with no preference, and which one comes back depends on the numerical library, so a factor return computed on fresh weights can change sign because the weights did.
 2. **The rank.** Component k is the k-th largest that day. When two components carry nearly equal variation, they can trade places from one day to the next, and a series called PC3 then switches to another factor.
 3. **The window.** Tomorrow’s weights are fitted on the 252 days ending today, so the window that chooses them already holds today’s return.
 
 This repository measured all three on Chan’s file after the verdicts were in. **These measurements are exploratory and decide nothing.**
 
-Signs flip all the time. Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 391 of the 752 days, PC2’s on 376, PC3’s on 414, PC4’s on 387 and PC5’s on 355. Rank swaps are rare. On 15 of the 752 days, two or more factors trade places.
+The library’s signs are not even reproducible. On the two machines that ran this repository’s checks, they flipped between consecutive days on about half the days, and the two machines disagreed about which days. So before measuring anything, each day’s vectors are turned by a rule that reads only the vector, so that its largest weight is positive. Even then signs still flip. Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 1 of the 752 days, PC2’s on 14, PC3’s on 6, PC4’s on 22 and PC5’s on 24. Rank swaps are rare too. On 15 of the 752 days, two or more factors trade places.
 
 The table sets four ways of reading tomorrow’s factor return side by side. Each row keeps today’s return on today’s weights and changes only what tomorrow’s return is read on.
 
 ```math
 \begin{array}{l|r|r|r|r|r}
 \text{Tomorrow's return read on} & \text{PC1} & \text{PC2} & \text{PC3} & \text{PC4} & \text{PC5} \\ \hline
-\text{tomorrow's own weights} & 0.0624 & -0.1643 & -0.0369 & -0.0577 & 0.0593 \\
+\text{tomorrow's own weights, largest weight positive} & 0.0326 & -0.1105 & -0.0283 & -0.0315 & 0.0025 \\
 \text{the same, sign and rank matched to today's} & 0.0246 & -0.0161 & -0.0318 & -0.0285 & 0.0768 \\
 \text{weights fitted on the 251 days before today, matched} & 0.0315 & 0.0776 & -0.0228 & 0.0338 & 0.0713 \\
 \text{today's weights, the pair the test reads} & 0.0316 & 0.0778 & -0.0189 & 0.0305 & 0.0710
 \end{array}
 ```
 
-On tomorrow’s own weights, PC2 reads −0.1643 and would fail outright. Matching each of tomorrow’s factors to today’s, by sign and by rank, removes the flips and the swaps, and PC2 still reads −0.0161. The largest gap left between a matched figure and the test’s own is PC2’s, 0.0938.
+On tomorrow’s own weights, PC2 reads −0.1105 and would fail outright, and PC5 reads 0.0025. Matching each of tomorrow’s factors to today’s, by sign and by rank, removes the remaining flips and the swaps, and PC2 still reads −0.0161. The largest gap left between a matched figure and the test’s own is PC2’s, 0.0938.
 
 The window closes that gap. When tomorrow’s weights are fitted on the 251 days before today, a window that leaves today’s return out, and then matched, the five figures land close to the test’s. The largest gap left is PC3’s, 0.0039. Why the window pushes PC2 so far is not measured here. What the table shows is that fixing sign and rank is not enough, and that the window is what the rest of the gap comes from.
 
@@ -76,7 +76,6 @@ The statistic is the ordinary correlation with one step left out. It does not su
 \rho = \frac{\sum_t f_t \, f_{t+1}}{\sqrt{\sum_t f_t^{2} \; \sum_t f_{t+1}^{2}}}
 ```
 
-
 Two series, 1, 2, 3 and 2, 0, 1, show the difference. Their products sum to 5, and their squares to 14 and 5, so the statistic is 5/√70, which is positive. Their ordinary correlation is −0.5.
 
 The reason is in Chan’s sentence. A factor return that keeps a steady value from one day to the next, positive day after day, is what “remain constant from the current time period to the next” describes. Subtracting the mean removes that steady part and keeps only the wiggles around it. The series 1, 1.2, 0.9, 1.1, 1.0 read one day apart shows it. Its uncentred statistic is 0.9798, close to perfect persistence, while its ordinary correlation is −0.8, because each wiggle reverses. The uncentred form also survives a sign flip, which Lesson 1 needs, because flipping both members of every pair leaves every product and every square where it was.
@@ -91,13 +90,11 @@ The revised MATLAB fits day t’s returns across the stocks, rᵢ, on an interce
 r_i = a + \sum_{k=1}^{5} b_k \, s_k \, u_{k,i} + e_i
 ```
 
-
 The weight vectors have length one and are at right angles to each other. Each also sums to zero across the stocks, because the window’s days were centred across the stocks before the decomposition. So the least-squares fit has a closed form. The intercept is the day’s average return, and each slope is
 
 ```math
 b_k = \frac{u_k \cdot r_t}{s_k}
 ```
-
 
 The fitted value for stock i is then a plus the sum over k of uₖᵢ (uₖ · rₜ). The singular value cancels. So the number the forecast actually carries forward for factor k is uₖ · rₜ, which is the slope times sₖ, and that is the factor return this test pairs. A check on three of the file’s days confirms that each factor return equals the program’s fitted slope times its singular value.
 
@@ -131,7 +128,7 @@ Three measurements say how little the four passes rest on.
 2. **The band and the t disagree about PC2.** The band assumes every day’s product is drawn alike. The Newey-West t does not, and PC2’s statistic rests on two days, as Lesson 2 measured. Those two days, 2007-08-09 and 2007-08-10, fall in the week quantitative equity funds suffered the losses Khandani and Lo (2007) studied. So PC2 clears the band and its t is only 0.8254.
 3. **A test across all five.** Testing five factors at once raises the chance that one looks significant by luck. The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995) holds the expected share of false findings among the factors declared significant to 5 percent. Run across the five p-values, it declares none. The smallest p-value is PC5’s 0.1021, so none would pass at 5 percent even tested alone.
 
-![Two charts. The top chart is a step curve of the 579 stocks’ statistics, from about −0.23 to about 0.14, rising from 0 to 1, with the height at each point giving the share of stocks at or below it. A shaded band covers −0.0715 to 0.0715, a dotted line marks the median stock at −0.0283, and a solid line marks zero. Five filled dots sit on the curve at the factors’ statistics, each joined by a thin line to a hollow dot for the same factor without PMC. A column of labels on the right reads PC2 0.0778 → −0.0152, PC5 0.0710 → 0.0536, PC1 0.0316 → 0.0740, PC4 0.0305 → 0.0975 and PC3 −0.0189 → 0.0139. The bottom chart shows four markers for each factor, PC1 to PC5, over the same shaded band: a hollow circle for tomorrow’s own weights, a grey square for sign and rank matched, a brass diamond for weights fitted without today, and a black dot for the pair the test reads. The diamonds sit next to the black dots for every factor. PC2’s hollow circle sits far below the band, near −0.16. The title calls the test exploratory, and the note says the file holds only survivors and that the bottom panel was measured after the verdicts.](../docs/figures/pca_factor_momentum.png)
+![Two charts. The top chart is a step curve of the 579 stocks’ statistics, from about −0.23 to about 0.14, rising from 0 to 1, with the height at each point giving the share of stocks at or below it. A shaded band covers −0.0715 to 0.0715, a dotted line marks the median stock at −0.0283, and a solid line marks zero. Five filled dots sit on the curve at the factors’ statistics, each joined by a thin line to a hollow dot for the same factor without PMC. A column of labels on the right reads PC2 0.0778 → −0.0152, PC5 0.0710 → 0.0536, PC1 0.0316 → 0.0740, PC4 0.0305 → 0.0975 and PC3 −0.0189 → 0.0139. The bottom chart shows four markers for each factor, PC1 to PC5, over the same shaded band: a hollow circle for tomorrow’s own weights with the sign rule, a grey square for sign and rank matched, a brass diamond for weights fitted without today, and a black dot for the pair the test reads. The diamonds sit next to the black dots for every factor. PC2’s hollow circle sits below the band, near −0.11. The title calls the test exploratory, and the note says the file holds only survivors and that the bottom panel was measured after the verdicts.](../docs/figures/pca_factor_momentum.png)
 
 *The top panel draws the verdicts. Each factor’s dot meets the stocks’ curve at its percentile, and only PC2’s filled dot sits outside the band. No stock’s statistic ties a factor’s, so the height where a dot meets the curve is the percentile the table gives. The bottom panel draws Lesson 1’s table, measured after the run. **Both are exploratory, and every figure in them is about survivors.***
 
@@ -171,7 +168,7 @@ Five things.
 
 One habit for each lesson.
 
-1. **Before correlating a re-estimated factor with itself, check its sign, its rank and what its weights were fitted on.** On this file all three moved the answer, and the window moved it most.
+1. **Before correlating a re-estimated factor with itself, check its sign, its rank and what its weights were fitted on.** On this file the library’s signs were not even the same on two machines, and the window moved the answer most.
 2. **Pick the statistic from the sentence being tested.** “Remain constant” is about a steady value, and the uncentred correlation keeps it. Then check how many days carry the result.
 3. **Test the number the strategy actually carries forward.** Here that is the slope times the singular value, not the slope.
 4. **Read a pass beside the band and a test across all the factors.** Four passes out of five, with none surviving a correction for testing five, is no evidence of momentum.
