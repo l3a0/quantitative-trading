@@ -179,6 +179,14 @@ class TestTheRunningTotals:
         # The S&P 500's closes are the published post's figure, which
         # tests/test_survivorship_and_costs_figures.py pins at the same values.
 
+    def test_where_the_s_and_p_600_closes_after_costs_bottom_out(self, axes) -> None:
+        """The low of the closes' dashed S&P 600 line, which the post's alt text quotes."""
+        line = _by_gid(axes["closes"].lines)["small-after"]
+        totals, days = line.get_ydata(), pd.DatetimeIndex(line.get_xdata())
+        low = int(np.argmin(totals))
+        assert str(days[low].date()) == "2006-06-30", SPEC
+        assert percent(totals[low]) == "−6.3%", SPEC
+
     @pytest.mark.parametrize(
         ("price", "legend"),
         [

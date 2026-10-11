@@ -920,7 +920,7 @@ class TestWhatThePostMeasured:
     ) -> None:
         """Memmel's formula at a correlation of 0, against the measured 0.5258."""
         a, b = result.small_closes.pnl, result.large_closes.pnl
-        variance = memmel_variance(self._daily(a), self._daily(b), 0, 251)
+        variance = memmel_variance(self._daily(a), self._daily(b), 0, result.closes_gap.days)
         unrelated = math.sqrt(TRADING_DAYS * variance)
         assert f"{unrelated:.4f}" == "1.4252"
         assert f"{result.closes_gap.gap / unrelated:.4f}" == "2.2155"
@@ -932,8 +932,8 @@ class TestWhatThePostMeasured:
         for price, gap in (("closes", result.closes_gap), ("opens", result.opens_gap)):
             small = getattr(result, f"small_{price}").pnl
             large = getattr(result, f"large_{price}").pnl
-            bracket = 251 * memmel_variance(
-                self._daily(small), self._daily(large), gap.correlation, 251
+            bracket = gap.days * memmel_variance(
+                self._daily(small), self._daily(large), gap.correlation, gap.days
             )
             shares[price] = f"{2 * (1 - gap.correlation) / bracket:.2f}"
         assert shares == {"closes": "0.98", "opens": "0.94"}

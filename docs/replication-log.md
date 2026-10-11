@@ -9373,8 +9373,8 @@ line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
 
 ### What the entry concludes
 
-Five things, and the first is the finding. The last two were measured by the
-write-up after the run, and `TestWhatThePostMeasured` in
+Five things, and the first is the finding. The write-up measured the last two
+after the run, and `TestWhatThePostMeasured` in
 [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
 pins them.
 
@@ -9397,7 +9397,7 @@ pins them.
    against 13.7453 for the S&P 500's closes. The S&P 600's opens earn 11.8569
    and the S&P 500's 8.9815. The cost a side at which each book breaks even
    is 4.57 basis points for the S&P 600's closes, 8.05 for its opens, 0.36
-   for the S&P 500's closes and 6.14 for its opens. Measured after the run.
+   for the S&P 500's closes and 6.14 for its opens.
 5. **The correlation narrows the closes' standard error, and the open lifts
    the S&P 500 far more.** With the correlation set to 0, Memmel's standard
    error on the closes would be 1.4252 rather than 0.9872, and the gap would
@@ -9405,7 +9405,6 @@ pins them.
    bracket on the closes and 0.94 on the opens, because a daily Sharpe ratio
    is small. The open lifts the S&P 500's figure before costs by 4.1693 and
    the S&P 600's by 1.8966, which is why the gap shrinks at the open.
-   Measured after the run.
 
 ### What this entry cannot say
 

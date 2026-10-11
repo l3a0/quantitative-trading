@@ -655,11 +655,11 @@ the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
 opens cannot tell the two universes apart. The standard error assumes
 independent, normal days, which a reversal's are not, so it is an
 approximation. After 5 basis points a side the S&P 600's closes lose only a
-little, because every book trades about the same and the S&P 600's average
-day on the closes pays 1.0945 times its profit in cost, against the S&P
-500's 13.7453. It is exploratory, both files hold
-only survivors, and it says nothing about microcaps, which the S&P 600 does
-not hold.
+little. The rule trades about the same amount a day on both files at both
+prices, so the profit decides, and the S&P 600's average day on the closes
+pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
+exploratory, both files hold only survivors, and it says nothing about
+microcaps, which the S&P 600 does not hold.
 
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
@@ -753,10 +753,11 @@ two companies under one symbol with no 2006 price, carries no weight, and that
 the scale-break guard refuses the window on exactly those two days. It holds
 what the write-up measured after the run too: the average day of the three
 books `tests/test_khandani_lo.py` does not already pin, the cost a side at
-which each of the four breaks even, the open's lift in each universe, and the
-closes' standard error with the correlation set to 0, with the helper behind
-it worked by hand. The blog post about it is the exception, and what it says
-that nothing here asserts is listed below.
+which each of the four breaks even, the open's lift in each universe, the
+closes' standard error with the correlation set to 0, and the share of
+Memmel's bracket the correlation term carries on each price, with the helper
+behind them worked by hand. The blog post about it is the exception, and what
+it says that nothing here asserts is listed below.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
@@ -5292,22 +5293,28 @@ Five groups of what it says are not pinned here.
    flatters the S&P 600, that the S&P 600 holds no microcaps, that the
    reversal bought the two flagged stocks on days Chan's reasoning gives no
    cause to expect a bounce, that the daily profits are neither independent
-   nor normal, and that the 2012 panel's rule is a close cousin of this one.
+   nor normal, that the 2012 panel's rule is a close cousin of this one, that
+   the distance between two running totals says nothing about how much the
+   daily profits swing, that a reversal buys exactly the stocks that fell, and
+   that ignoring the correlation understates the noise in a gap when two
+   books' daily profits move against each other.
 4. Facts from outside the data and figures stated in words: the two news
    reports on BCSI and SCUR, their dates and what they say, that no source
    states SCUR's close, the bound written as 0.625 for 1/1.6, and words such
    as far more, barely past the line and about the same. The prose writes
    pinned fractions in percent, such as 98 percent for 0.98. The figure's alt
    text reads its curves approximately too, such as the S&P 500's dashed line
-   on the opens dipping below zero in the middle of the year.
+   on the opens dipping below zero in the middle of the year and the S&P
+   600's on the closes falling below zero in the spring.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_khandani_lo_small_caps.py](tests/test_khandani_lo_small_caps.py),
 or to
 [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
-for the figure's own numbers. The S&P 500's average day on the closes traces
-to `TestWhatAnAverageDayCosts` in
+for the figure's own numbers, which include the low of the S&P 600's dashed
+line on the closes, −6.3% on 2006-06-30. The S&P 500's average day on the
+closes traces to `TestWhatAnAverageDayCosts` in
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
 to [tests/test_scale_breaks.py](tests/test_scale_breaks.py).
 `TestWhatThePostMeasured` holds the ones that had no pin before it, all
