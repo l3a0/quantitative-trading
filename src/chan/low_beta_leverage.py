@@ -121,6 +121,11 @@ because the ruin had been seen.
 any prose surface quotes about this experiment. It first ran here on
 2026-10-11.
 
+:func:`ruin_line`, :func:`ruinous_leverage` and :func:`levered_wealth` were
+added by the write-up, ``blog/levered-low-beta-lessons.md``, after the run.
+They measure how far each month stood from ruin and decide nothing.
+:mod:`chan.low_beta_leverage_figures` draws that post's figure.
+
 Usage:
     python -m chan.low_beta_leverage
 """
@@ -529,6 +534,45 @@ def ruined_months(portfolios: Portfolios) -> tuple[Ruin, ...]:
         )
         if r <= RUIN
     )
+
+
+def ruin_line(rf: pd.Series, leverage: pd.Series) -> pd.Series:
+    """The low fifth's monthly return at or below which the levered month is ruined.
+
+    rf + k × (r − rf) is −1 or below exactly when r is rf − (1 + rf) / k or
+    below, for a positive k. ``blog/levered-low-beta-lessons.md`` added it
+    after the run, so it decides nothing.
+    """
+    return rf - (1 + rf) / leverage
+
+
+def ruinous_leverage(low: pd.Series, rf: pd.Series) -> pd.Series:
+    """The smallest leverage that would have ruined each month, (1 + rf) / (rf − r).
+
+    A month whose low return is at or above the bill rate loses nothing more
+    as the leverage grows, so no leverage ruins it and its value is infinite.
+    Added after the run by the write-up, like :func:`ruin_line`.
+    """
+    shortfall = rf - low
+    with np.errstate(divide="ignore"):
+        ratio = (1 + rf) / shortfall
+    return ratio.where(shortfall > 0, math.inf)
+
+
+def levered_wealth(levered: pd.Series) -> pd.Series:
+    """What 1 in the levered portfolio grew to at each month's end, through its first ruin.
+
+    Wealth compounds as the product of 1 + r. The month that ruins it ends at
+    or below zero, and every month after it is NaN, because a portfolio that
+    has lost its capital holds nothing to lever. Added after the run by the
+    write-up, like :func:`ruin_line`.
+    """
+    wealth = (1 + levered).cumprod()
+    ruined = (levered <= RUIN).to_numpy()
+    if ruined.any():
+        first = int(np.argmax(ruined))
+        wealth.iloc[first + 1 :] = np.nan
+    return wealth
 
 
 def differences(portfolios: Portfolios) -> pd.Series:
