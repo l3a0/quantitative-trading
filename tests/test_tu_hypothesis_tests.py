@@ -1,10 +1,10 @@
 """The pins for the three hypothesis tests on TU momentum, *Algorithmic Trading*'s Example 1.1.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it, with one exception, in
-``blog/tu-hypothesis-tests-lessons.md``. That post also quotes numbers held
-elsewhere: the 49 pairs the rule was picked from in ``tests/test_tu_momentum.py``,
-and its figure's labels in ``tests/test_tu_hypothesis_tests_figures.py``.
+about this example and the rows beside it. One surface also quotes numbers
+held elsewhere: ``blog/tu-hypothesis-tests-lessons.md`` takes the 49 pairs
+behind the rule from ``tests/test_tu_momentum.py``, and its figure's labels
+from ``tests/test_tu_hypothesis_tests_figures.py``.
 README lists what the post says that nothing asserts. ``docs/replication-log.md``
 Entry 37 carries the verdicts and points here row by row. The run itself comes
 from ``tu_hypothesis_run`` in ``tests/conftest.py``, which the figure's pins
@@ -99,6 +99,9 @@ from tests.support.committed_vintages import LIFTED_SOURCES
 
 #: The draws the vectorized form is held to the one-dimensional functions on.
 EQUALITY_DRAWS = 200
+
+#: The shuffles the net-position pin reads, the first of the third test's draws.
+NET_POSITION_DRAWS = 500
 
 
 @pytest.fixture(scope="module")
@@ -546,13 +549,46 @@ class TestRow4TheCorrectedTrades:
     def test_the_shuffled_means_spread_far_less_than_the_simulated_ones(self, result) -> None:
         """The n − 1 ``std`` of seed 20261011's 100,000 means, against seed 20261010's 10,000.
 
-        Shuffling entry days keeps every day's return, so the shuffled means
-        vary far less than means on new returns do, which is why the figure's
-        third panel is narrow.
+        Shuffling scatters the long and short entry days across the sample,
+        so the slices held on any day mostly cancel into a net long position
+        of about the same size on every shuffle. A position nearly the same on
+        every shuffle earns nearly the same mean on the same returns, so the
+        shuffled means vary far less than means on new returns do, which is why
+        the figure's third panel is narrow. The test below pins the
+        cancellation.
         """
         shuffled = float(result.trades.std(ddof=1))
         assert shuffled == pytest.approx(3.788199e-06, rel=5e-7)
         assert shuffled < float(result.returns.declared.std(ddof=1)) / 7
+
+    def test_shuffled_entry_days_cancel_into_a_steady_net_long_position(self, strategy) -> None:
+        """The net position of the first 500 shuffles on seed 20261011, against the real rule's.
+
+        Draw d here is the d-th ``default_rng(20261011).permutation(2_000)``
+        call, the same permutation the corrected third test applies as its
+        draw d, read on this file's vintage. Over those 500 draws the
+        shuffled net position averages 9.975403 units in absolute size and is
+        long on 0.983958 of days. The real rule averages 20.58 and is long on
+        0.638 of its 2,000 days, both exact since positions are whole units.
+        Each shuffle's average position sits within one percent of the
+        average across shuffles, which is what "about the same size on every
+        shuffle" means. 500 draws keep the test to about two seconds.
+        """
+        longs, shorts, held = strategy["longs"], strategy["shorts"], strategy["held"]
+        assert float(np.abs(held).mean()) == pytest.approx(20.58, rel=5e-7)
+        assert float((held > 0).mean()) == pytest.approx(0.638, rel=5e-7)
+
+        rng = np.random.default_rng(TRADES_SEED)
+        shuffled = np.stack(
+            [
+                positions(longs[order], shorts[order], HOLD_DAYS)
+                for order in (rng.permutation(len(longs)) for _ in range(NET_POSITION_DRAWS))
+            ]
+        )
+        assert float(np.abs(shuffled).mean()) == pytest.approx(9.975403, rel=5e-7)
+        assert float((shuffled > 0).mean()) == pytest.approx(0.983958, rel=5e-7)
+        per_shuffle = shuffled.mean(axis=1)
+        assert float(per_shuffle.std(ddof=1)) < 0.01 * float(per_shuffle.mean())
 
 
 class TestRow5TheAsWrittenTrades:

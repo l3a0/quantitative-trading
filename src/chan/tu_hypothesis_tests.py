@@ -105,8 +105,9 @@ holds them equal to the one-dimensional functions draw by draw. Widening
 :func:`chan.tu_momentum.positions` was the alternative, and it would change a
 contract Example 6.1 shipped.
 
-The run prints and draws nothing, and :mod:`chan.tu_hypothesis_tests_figures`
-draws its simulated means for the blog post about it.
+The run prints its report and draws no figure.
+:mod:`chan.tu_hypothesis_tests_figures` draws its simulated means for the blog
+post about it.
 
 No sibling code was ported. The sibling repository holds no moment-matched
 simulation, and its count-preserving label shuffles share the third test's

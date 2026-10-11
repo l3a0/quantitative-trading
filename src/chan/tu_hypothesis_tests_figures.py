@@ -5,16 +5,18 @@ replication log found, and
 [issue 480](https://github.com/l3a0/quantitative-trading/issues/480) chose one
 figure for it. :func:`make_tu_hypothesis_tests_figure` draws three panels on
 one horizontal axis of mean daily strategy return, with the observed mean
-drawn as the same vertical line in each. Each panel holds one of the book's
-tests beside the check, added after a trial run, that varies one input of it.
+drawn as the same vertical line in each. The first two panels each set a
+null beside a check, added after a trial run, that varies one input of the
+second test. The third holds the corrected third test alone.
 
 1. The Gaussian test's null, the density of the mean of 2,000 normal days
    with a mean of zero and the strategy's own spread, drawn as a dashed
-   curve. Beside it, the means of the 10,000 type IV draws with their target
-   mean removed.
-2. The second test's 10,000 means on type IV draws, beside the means on
-   normal draws with TU's mean and ``std`` taken from the same uniforms.
-3. The corrected third test's 100,000 means on shuffled entry days.
+   curve. Beside it, the check that removes the drift: the means of the
+   10,000 type IV draws with their target mean removed.
+2. The second test's 10,000 means on type IV draws. Beside them, the check
+   that removes the skewness and excess kurtosis: the means on normal draws
+   with TU's mean and ``std`` taken from the same uniforms.
+3. The corrected third test's 100,000 means on shuffled entry days, alone.
 
 Set side by side, panels 1 and 2 show what the drift does to the type IV
 means: it moves their centre right and widens them. Panel 1 shows that the

@@ -19,10 +19,11 @@ runs the suite in one process and builds it once. The design doc's
 considered-and-rejected register says why one worker for both files was cut.
 
 One run of Example 1.1's three hypothesis tests takes about half a minute, a
-time no test holds, and two files pin it the same way:
+time no test holds, and two files pin what it computes:
 ``tests/test_tu_hypothesis_tests.py`` its figures, and
 ``tests/test_tu_hypothesis_tests_figures.py`` what its figure draws. So
-``tu_hypothesis_run`` shares that run the same way, under the same rules.
+``tu_hypothesis_run`` shares that run as ``cpo_result`` does, under the same
+rules, and ``--dist loadfile`` computes it at most twice.
 
 The hook below caps each worker's numerical thread pools at one thread. A
 pool sizes itself to every core, so four workers on four cores ran up to four
