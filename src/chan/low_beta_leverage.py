@@ -238,6 +238,18 @@ class Portfolios:
     high_members: tuple[tuple[str, ...], ...]
     #: Each eligible stock's beta at each formation, NaN where it has none.
     betas: pd.DataFrame
+    #: Formations left out under ``skip_non_positive``, none of them in any field above.
+    skipped: tuple[Skipped, ...] = ()
+
+
+@dataclass(frozen=True)
+class Skipped:
+    """A formation whose low group's mean beta is zero or below, so no leverage matches it."""
+
+    formed: pd.Timestamp
+    held_to: pd.Timestamp
+    low_beta: float
+    high_beta: float
 
 
 @dataclass(frozen=True)
@@ -429,6 +441,7 @@ def build_portfolios(
     bills: dict[str, float],
     *,
     members: pd.DataFrame | None = None,
+    skip_non_positive: bool = False,
 ) -> Portfolios:
     """The low, high and levered portfolios over the window, from the panel, SPY and the bills.
 
@@ -446,6 +459,11 @@ def build_portfolios(
     carries that close to the next month-end first, as
     :func:`chan.equity_seasonals.stopped_closes` does. Left out, every stock is
     a candidate at every month-end, as on Chan's file.
+
+    ``skip_non_positive`` is issue 526's amendment of 2026-10-11. A formation
+    whose low group's mean beta is not positive then leaves its holding month
+    out of every series and is listed in ``skipped``, rather than refusing the
+    run as :class:`NonPositiveBeta`.
     """
     cut = closes.loc[closes.index.isin(spy.index)]
     market = spy.loc[cut.index]
@@ -477,6 +495,7 @@ def build_portfolios(
     low, high, levered, rf, spy_month = [], [], [], [], []
     low_beta, high_beta, leverage, eligible = [], [], [], []
     low_members, high_members, beta_rows = [], [], []
+    skipped = []
     for t in range(len(ends) - 1):
         row, next_row = rows[t], rows[t + 1]
         if row < BETA_DAYS:
@@ -501,6 +520,9 @@ def build_portfolios(
         lows, highs = order[:size], order[-size:]
         mean_low = float(beta[lows].mean())
         mean_high = float(beta[highs].mean())
+        if not mean_low > 0 and skip_non_positive:
+            skipped.append(Skipped(ends[t], ends[t + 1], mean_low, mean_high))
+            continue
         if not mean_low > 0:
             raise NonPositiveBeta(
                 f"the low group formed {ends[t].date()} has a mean beta of {mean_low:.4f}, so "
@@ -545,6 +567,7 @@ def build_portfolios(
         low_members=tuple(low_members),
         high_members=tuple(high_members),
         betas=pd.DataFrame(np.vstack(beta_rows), index=pd.DatetimeIndex(formed), columns=symbols),
+        skipped=tuple(skipped),
     )
 
 

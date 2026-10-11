@@ -416,6 +416,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: second company starts, because the panel frame holds no close the day
 #: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
 #: holds the 43 flagged days in 34 stocks, both counts and both restarts.
+#:
+#: [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) decided
+#: the same for ``chan.low_beta_holdout``, which runs that rule on the archive's
+#: S&P 500 panel, the ``sp500`` Alpha Vantage lines, rather than on Chan's file.
+#: Its registration counts and does not refuse, for issue 275's reason. On the
+#: closes the run reads, each series cut at its last row that traded, the guard
+#: flags 820 days in 98 stocks, and 34 of the low portfolio's and 321 of the
+#: high portfolio's stock-months carry a flagged day, against 19,377 each.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_holdout.py`` holds
+#: the counts, which run only where the archive is and ``QT_ARCHIVE_RUN`` is 1.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

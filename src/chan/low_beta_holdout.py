@@ -42,6 +42,16 @@ what changes and why. In short:
 its ``members`` keyword, whose index also names the month-ends, since the
 frame's last row closes the last holding month.
 
+**The second amendment.** Issue 275's plan refuses a formation whose low
+group's mean beta is zero or below, and says nothing of the verdict. The one
+run of this specification refused at 2026-04-30, before anything the criterion
+reads had been computed. The owner ruled on 2026-10-11, in issue 526's
+"Amendment, 2026-10-11, after a non-positive low-group beta was seen", that
+such a formation is skipped: its holding month leaves every series, the
+criterion, the ruin rule and every side figure read the months that remain,
+and N counts them. ``build_portfolios`` does it under ``skip_non_positive``,
+and the report lists every skipped formation with both groups' mean betas.
+
 The scale-break guard is not called, as on Chan's file. The run counts the
 stock-months in either portfolio with a flagged day inside the beta window or
 the holding month, and the comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in
@@ -54,9 +64,12 @@ ticker still in the last schedule. Membership is each quarter-end schedule
 carried forward, so a change between schedules is dated up to two months late,
 or five around the missing 2013-09-30 schedule.
 
-The result is **registered**: issue 275's plan, its amendment, and issue 526's
-panel changes were all written before any number on this panel was computed.
-Every holding month comes after the book, so it is a holdout for the claim.
+The result is **registered**, under issue 275's ruin amendment and issue 526's
+skip amendment, both of 2026-10-11. Issue 275's plan and issue 526's panel
+changes were written before any number on this panel was computed. The skip
+rule was chosen after one non-positive formation was visible, and N is smaller
+by however many it skips. Every holding month comes after the book, so it is a
+holdout for the claim.
 
 ``tests/test_low_beta_holdout.py`` is the single authority for every number
 any prose surface quotes about this run. It first ran here on 2026-10-11.
@@ -246,6 +259,18 @@ def survivor_gap(rows: tuple[MemberRow, ...], coverage: tuple[MonthCoverage, ...
     )
 
 
+def skipped_line(portfolios: Portfolios) -> str:
+    """How many formations the skip amendment left out, and the first, as every surface says it."""
+    skipped = portfolios.skipped
+    if not skipped:
+        return "  No formation had a low group's mean beta of zero or below, so none is skipped."
+    return (
+        f"  {len(skipped)} formation{'s' if len(skipped) > 1 else ''} skipped under issue 526's "
+        f"amendment of 2026-10-11, the first formed {skipped[0].formed.date()}: a low group's "
+        "mean beta of zero or below has no beta-matched leverage."
+    )
+
+
 def read_holdout(*, data_dir: Path | None = None, directory: Path | None = None) -> Holdout:
     """Read the members, the closes, SPY, the calendar and the bills, and build the portfolios."""
     rows = sp500_panel.load()
@@ -302,7 +327,7 @@ def read_holdout(*, data_dir: Path | None = None, directory: Path | None = None)
     mask = month_end_mask(rows, coverage, symbols, calendar)
     refuse_uncovered(closes, mask)
 
-    portfolios = build_portfolios(closes, spy, bills, members=mask)
+    portfolios = build_portfolios(closes, spy, bills, members=mask, skip_non_positive=True)
     formed = pd.DatetimeIndex(portfolios.formed)
     by_day = dict(zip(mask.index, coverage, strict=True))
     flags = flagged_days(closes)
@@ -376,6 +401,12 @@ def report(holdout: Holdout) -> None:
         f'stocks": {result.outcome.upper()}.'
     )
     print(f"  {result.line()}")
+    print(skipped_line(p))
+    for skip in p.skipped:
+        print(
+            f"    formed {skip.formed.date()}, held to {skip.held_to.date()}, low group's mean "
+            f"beta {skip.low_beta:.4f}, high group's {skip.high_beta:.4f}"
+        )
     if result.by_ruin:
         print(f"  {'Ruined month':<14} {'Formed':<12} {'k':>8} {'Levered':>9}")
         for ruin in result.ruined:
@@ -460,8 +491,8 @@ def report(holdout: Holdout) -> None:
         "schedules is dated up to two months late, or five around the missing 2013-09-30."
     )
     print(
-        "  Registered on issue 526 before any number on this panel, with issue 275's plan and "
-        "its ruin amendment of 2026-10-11."
+        "  Registered on issue 526 before any number on this panel, with issue 275's plan, its "
+        "ruin amendment and issue 526's skip amendment, both of 2026-10-11."
     )
     print(
         "  Every holding month comes after the book, so this is a holdout. "

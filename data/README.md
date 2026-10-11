@@ -256,7 +256,11 @@ it, and the risk parity post's bill-rate averages trace to
 [src/chan/low_beta_leverage.py](../src/chan/low_beta_leverage.py) reads it
 through that module as the rate the levered low-beta portfolio borrows at and
 every excess return subtracts, for
-[issue 275](https://github.com/l3a0/quantitative-trading/issues/275).
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275), and
+[src/chan/low_beta_holdout.py](../src/chan/low_beta_holdout.py) reads it the
+same way for
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526). Its last
+month, 2026-08, is why that run's last holding month is August 2026.
 [Issue 187](https://github.com/l3a0/quantitative-trading/issues/187) is where
 storing it was decided.
 
@@ -1529,6 +1533,25 @@ at every schedule. The 822 lines hold 318,413 bytes, which
 count, their download date and their sha256. They take `data/` from 203.07 MB
 to 203.39 MB of file content, which leaves 1.61 MB under the 205 MB budget.
 Those two sizes were measured on this branch and no test holds them.
+
+The cross-section holds one more line, which no member reads.
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) recorded
+SPY into it on 2026-10-11, through the same fetch, as the market series its
+run of the levered low-beta rule fits each beta on, so the market comes from
+the same vendor and price basis as the stocks. Its bytes sit in the archive
+like the members', and only its manifest line is committed. Each member's
+line still carries the 2026-10-05 download date, so a figure from that run
+names both dates.
+
+| Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sp500`, [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s line | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | SPY | 1999-11-01 to 2026-10-09 | 2026-10-11 | adjusted, with the raw close beside it | 6,776 |
+
+The line holds 387 bytes, and its file in the archive 567,881.
+[tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py) pins the
+line's span, row count, download date and sha256, and
+[tests/test_sp500_panel.py](../tests/test_sp500_panel.py) leaves it out of the
+822 above. The two sizes were measured on this branch and no test holds them.
 
 ## Header shape
 
