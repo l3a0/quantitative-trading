@@ -735,7 +735,8 @@ returns against Chan's saved ones row by row. It also holds that negating or
 scaling one day's hedge moves no return, that two series on different dates
 are refused, that scaling either leg leaves the match and one digit on a close
 in the test window breaks it, and that ending both windows a day earlier, as
-the Python port does, breaks it too.
+the Python port does, breaks it too. The blog post about it is the exception,
+and what it says that nothing here asserts is listed below.
 
 [tests/test_roll_returns.py](tests/test_roll_returns.py) does it for the spot
 and roll returns. It pins each strip's two figures at the six decimals the
@@ -3780,8 +3781,103 @@ uv run python -m chan.khandani_lo_book_two_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+[blog/aud-cad-johansen-lessons.md](blog/aud-cad-johansen-lessons.md) is a
+twenty-sixth post, about Example 5.1 of Chan's *Algorithmic Trading*, which
+trades AUD.USD against CAD.USD in weights a rolling Johansen test supplies each
+day. Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 from
+2009-12-18 to 2012-04-26. The post links the earlier posts on the Johansen
+test, the linear rule, rollover interest, the Kelly leverage, Chan's stationary
+candidates and the gold miners rather than repeating them, and draws six
+lessons from Entry 25 of the replication log.
+
+1. Every figure the script prints matches, because every one of the 612
+   returns matches the one Chan's script saved, within a criterion written
+   before any return was computed.
+2. The match ties the traded closes to the ones Chan's MATLAB read up to a
+   constant scale on each leg, and no more. The closes before the test period
+   are checked only as far as they move a hedge.
+3. The Johansen test rarely found a relation behind the hedge it supplied. The
+   trace test finds a relation in 26 of the 612 windows, in three stretches,
+   and two relations in 19 of them.
+4. The hedge is a capital weight that wandered. It held both currencies the
+   same way on 90 days, 85 of them from 2010-06-01 to 2010-10-05, and those
+   days carried about two fifths of the growth in log terms with twice the
+   volatility, though a Welch t of 1.09 cannot rule out chance.
+5. The Python port's version of the example is a different strategy, so its
+   printout is no check on the data.
+6. An exact reproduction checks the arithmetic, not the edge.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The point move of equal dollar value is at 2169, and the commodity
+   currencies at 2173. The base and quote currencies, the AUD.ZAR quote of
+   9.58, the capital weights and the sale of USD.CAD are at 2186. Rollover
+   interest "usually not large for short-term strategies" is at 2205. "A
+   classic linear mean-reverting strategy", the gross market value, "better
+   results in hindsight", the 11 percent and 1.6 and the caption of Figure
+   5.1 are at 2237. The Kelly leverage of 18.4 is at 3342. The book's 11
+   percent and 1.6 are pinned, and its words, its 9.58 and its 18.4 are
+   not.
+2. Facts about the script and the port rather than the data: the comments on
+   lines 60 and 66 of `AUDCAD_unequal.m`, which ericnberwick/EpchanPreview
+   holds at `e4bc46f`, that the script loads two minute files neither public
+   copy carries, that line 57 plots against the row number, and that the
+   port ends both windows a day earlier and prints a Sharpe ratio of
+   1.362926. So is that the files quote six decimals.
+3. Readings no test asserts: that the two rates are close to random walks,
+   that the test has little power against them, that a position held both
+   ways is a bet on the US dollar's direction, and that wider swings are what
+   such a bet gives. That neighbouring windows share 249 of their 250 days
+   is arithmetic on the window length. That CAD/AUD tested stationary over
+   nineteen years is the stationary-candidates post's, listed under its
+   entry above.
+4. Ratios and differences the post takes from pinned figures in words: about
+   three quarters, about twice as wide, 15 percent of the days, the 586 days
+   left when 26 of 612 are taken away, and that a move of 0.01 is worth one
+   cent. The figure's alt text reads its curves approximately too, such as
+   "near −0.64" and "about 0.32", and it names the dates of two one-day moves,
+   2010-05-20 and 2010-07-06, read from the drawn line.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py), or to
+[tests/test_aud_cad_johansen_figures.py](tests/test_aud_cad_johansen_figures.py)
+for the figure's own numbers. Six had no pin before it.
+
+1. The three stretches the trace test's 26 windows fall in, which hold the 19
+   two-relation windows, and the stretch the eigen test's 11 fall in.
+2. The 90 days the hedge held both currencies the same way, the 85 of them
+   from 2010-06-01 to 2010-10-05, the longest run of 65 days, and that none
+   falls in a window the trace test backed.
+3. The last day's hedge as CAD.USD's share of the gross, −0.4325.
+4. The 90 days compounded alone to 0.1074 and the other 522 to 0.1696, so the
+   90 carried 0.394 of the growth in log terms.
+5. The compounded return of 0.0214 on 2010-05-31 and 0.1170 on 2010-10-05.
+6. The two groups' standard deviations of 0.0073 and 0.0035, their means, and
+   a Welch t of 1.09 with a p-value of 0.28.
+
+Its one figure is drawn from the committed files by
+[src/chan/aud_cad_johansen_figures.py](src/chan/aud_cad_johansen_figures.py),
+which reads them through the same `read_sources` and `aud_cad` as
+`python -m chan.aud_cad_johansen`, so the scale-break guard runs. It draws two
+panels on one date axis over the 612 test days.
+
+1. Each day's hedge as CAD.USD's signed share of the gross, with the 90
+   same-way days shaded and the trace test's 26 windows marked.
+2. The compounded cumulative return, the book's Figure 5.1, against the date.
+
+```bash
+uv run python -m chan.aud_cad_johansen_figures
+```
+
+[tests/test_aud_cad_johansen_figures.py](tests/test_aud_cad_johansen_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
 [blog/crude-oil-calendar-spread-lessons.md](blog/crude-oil-calendar-spread-lessons.md)
-is a twenty-sixth post, about Example 5.4 of Chan's *Algorithmic Trading*,
+is a twenty-seventh post, about Example 5.4 of Chan's *Algorithmic Trading*,
 which trades crude oil's 12-month calendar spread on the z-score of its roll
 return. Chan reports a half-life of 36 days, stationarity "with 99 percent
 probability", and an APR of 8.3 percent with a Sharpe ratio of 1.3 from
