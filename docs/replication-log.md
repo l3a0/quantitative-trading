@@ -333,6 +333,8 @@ says.
   - [What this repo computed](#what-this-repo-computed-44)
   - [The attribution](#the-attribution)
   - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
+  - [What the entry concludes](#what-the-entry-concludes-44)
+  - [What this entry cannot say](#what-this-entry-cannot-say-42)
 
 ## How to read an entry
 
