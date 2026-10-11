@@ -96,6 +96,7 @@ from chan.tu_momentum import (
     strategy_returns,
 )
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.pearson_iv import closed_form_moments
 
 #: The draws the vectorized form is held to the one-dimensional functions on.
 EQUALITY_DRAWS = 200
@@ -155,17 +156,6 @@ def printed(ran) -> str:
 def no_arguments(monkeypatch):
     """``main`` parses ``sys.argv``, which under pytest holds pytest's own arguments."""
     monkeypatch.setattr("sys.argv", ["chan.tu_hypothesis_tests"])
-
-
-def _closed_form_moments(m: float, nu: float, a: float, lam: float) -> tuple[float, ...]:
-    """Heinrich (2004)'s moments of type IV, written here rather than read from the module."""
-    r = 2 * (m - 1)
-    q = r * r + nu * nu
-    mean = lam - a * nu / r
-    std = math.sqrt(a * a * q / (r * r * (r - 1)))
-    skewness = -4 * nu / (r - 2) * math.sqrt((r - 1) / q)
-    kurt = 3 * (r - 1) * ((r + 6) * q - 8 * r * r) / ((r - 2) * (r - 3) * q)
-    return mean, std, skewness, kurt
 
 
 class TestTheDeclaration:
@@ -270,7 +260,7 @@ class TestThePearsonIV:
         assert params.lam == pytest.approx(1.821709e-04, rel=5e-7)
 
     def test_the_closed_form_moments_are_the_targets(self, moments, params) -> None:
-        found = _closed_form_moments(params.m, params.nu, params.a, params.lam)
+        found = closed_form_moments(params.m, params.nu, params.a, params.lam)
         targets = (moments.mean, moments.std, moments.skewness, moments.kurtosis)
         np.testing.assert_allclose(found, targets, rtol=1e-12, atol=0)
 
@@ -279,7 +269,7 @@ class TestThePearsonIV:
         found = pearson_iv_parameters(0.0, 1.0, 1.0, 5.0)
         assert (found.m, found.nu, found.a, found.lam) == pytest.approx((10, -72, 1, -4))
         np.testing.assert_allclose(
-            _closed_form_moments(found.m, found.nu, found.a, found.lam), (0, 1, 1, 5), atol=1e-12
+            closed_form_moments(found.m, found.nu, found.a, found.lam), (0, 1, 1, 5), atol=1e-12
         )
 
     @pytest.mark.parametrize(

@@ -84,8 +84,8 @@ endings are stripped, measured on
   over a trailing window of rows, NaN until the window first fills.
 - :func:`calculate_max_dd` is ``calculateMaxDD``, the deepest drawdown of a
   compounded cumulative return and the longest run of days spent below a high.
-  :func:`drawdown_path` is its loop, returning each day's high, drawdown and
-  duration, so a caller that needs to know where the longest run or the
+  :func:`drawdown_path` is the calculation inside it, returning each day's
+  high, drawdown and duration, so a caller that needs to know where the longest run or the
   deepest drawdown falls reads the same calculation rather than a second copy
   of it.
 - :func:`calculate_returns` is ``calculateReturns``, each row's simple return
@@ -395,15 +395,33 @@ def drawdown_path(
 
     :func:`calculate_max_dd` takes the minimum drawdown and the maximum
     duration of these, and its docstring states the rules and the two quirks.
+
+    Chan's ``calculateMaxDD.m`` is a loop over the rows, and this computes the
+    same three arrays without one, because a Monte Carlo ensemble in
+    :mod:`chan.monte_carlo_leverage` calls it on about 2,000 paths of 100,000
+    rows. ``tests/test_matlab_helpers.py`` keeps the loop as the reference and
+    holds the two equal bit for bit, NaN rows included.
+
+    1. The high is a running maximum over a leading 0 and rows 2 onward, taken
+       with ``np.fmax`` so that a NaN row leaves the high standing, as the
+       loop's ``max`` does.
+    2. Each drawdown is the loop's own expression on the same two operands, so
+       it is the same double.
+    3. A day's duration is its distance from the last row whose drawdown is
+       exactly 0. The first row's drawdown is 0, so that row always exists,
+       and a NaN drawdown is not 0, so it counts as a day below the high.
     """
     values = np.asarray(cumret, dtype=float)
     high = np.zeros_like(values)
     drawdown = np.zeros_like(values)
     duration = np.zeros(len(values), dtype=int)
-    for t in range(1, len(values)):
-        high[t] = max(high[t - 1], values[t])
-        drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
-        duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
+    if len(values) < 2:
+        return high, drawdown, duration
+    high[1:] = np.fmax.accumulate(np.concatenate([[0.0], values[1:]]))[1:]
+    drawdown[1:] = (1 + values[1:]) / (1 + high[1:]) - 1
+    rows = np.arange(len(values))
+    last_zero = np.maximum.accumulate(np.where(drawdown == 0, rows, 0))
+    duration[:] = rows - last_zero
     return high, drawdown, duration
 
 

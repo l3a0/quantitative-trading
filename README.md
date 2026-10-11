@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-three replications run here, seventeen from Chan's *Quantitative Trading*
-and twenty-six from his *Algorithmic Trading*. The first two were ported from the
+Forty-four replications run here, seventeen from Chan's *Quantitative Trading*
+and twenty-seven from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other forty-one were built here.
+where they were first built. The other forty-two were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -591,7 +591,27 @@ where they were first built. The other forty-one were built here.
     two price histories join into one day's return. Without it, PC2 falls to
     −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
     symbol. Every figure is exploratory and about survivors.
-43. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
+43. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
+    chosen three ways on Example 5.1's 612 saved returns: by the optimum of
+    100,000 returns drawn from a Pearson type IV fitted to their four
+    moments, by the optimum of the historical growth rate, and with
+    constant proportion portfolio insurance (CPPI). The simulated figures
+    run on a declared seed and are judged against 200 more. The book's Kelly
+    and historical optimum of 18.4 do not reproduce, since Chan's own returns
+    give 23.845328 and 23.721773. A series matching Example 5.1's printed
+    Sharpe ratio and APR has a Kelly of at least 21.56 when the APR compounds
+    the log growth, and at least 20.89 under the simplest compounding, so
+    none reaches 18.4. The minimum draw and the drawdown at the optimum land.
+    The simulated optimum, the drawdowns at half and a seventh of the
+    optimum, and both growth rates of location 3438 fall outside their bands.
+    The simulated optimum landed under the band the issue declared, and the
+    band chosen after the ensemble was seen excludes it, for a reason the log
+    entry gives. Moving the draws' mean so the Kelly is 18.4 lands all of
+    those but the drawdown at half the optimum.
+    Box 8.6's CPPI loop breaks the 0.5 drawdown floor on every one of the
+    200 seeds, and the CPPI location 3426 describes keeps it on every one.
+    Every figure is exploratory.
+44. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
     leveraged portfolio of low-beta stocks should generate higher long-term
     compounded growth than holding an unleveraged portfolio of high-beta
     stocks", on Chan's S&P 500 file. Each month-end the lowest and highest
@@ -1093,6 +1113,19 @@ equal to the program's fitted slope times its singular value. On synthetic
 returns it holds that a flipped vector moves no statistic, that a steady sign
 counts as persistence, and the Benjamini-Hochberg step-up.
 
+[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py) does
+it for Chapter 8's leverage boxes. It pins the deterministic rows exactly, each
+simulated row on the declared seed and its band across the 200 others, and
+each claim row's criterion. It holds the Pearson type IV sampler's parameters
+against their closed-form moments, its tail against quadrature at the book's
+minimum, and the declared draws' mean and standard deviation. It holds both
+CPPI forms equal to their loops, the search to the root of the growth rate's
+derivative, and both CPPI forms on a path worked by hand. It also holds the
+evidence on the book's 18.4: the Kelly band Example 5.1's printed figures
+allow under three compoundings, and the ensemble rerun with the Kelly set to
+18.4. It holds which band row 3 reads, and both CPPI forms refusing a NaN
+return.
+
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
 the levered low-beta claim. It pins the calendar, the leverage path, both
 ruined months and the verdict's wording, and beside them the Sharpe ratios,
@@ -1102,7 +1135,7 @@ of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
 
-All forty-three replications reach a verdict in
+All forty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1122,11 +1155,11 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the VX
-against ES trade on VX's roll return, Entry 42 Example 7.4's own factors',
-Entry 44 the finding on the reversal on the S&P 600, which has no published
-number to reach a verdict against either, and Entry 45 the levered low-beta
-claim's.
+trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the
+roll-return rule's on VX against ES, Entry 42 Example 7.4's own factors',
+Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
+the S&P 600, which has no published number to reach a verdict against either,
+and Entry 45 the levered low-beta claim's.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict.
 
@@ -2032,6 +2065,19 @@ its percentile, same-sign share, Newey-West t, p-value and Benjamini-Hochberg
 result, the stocks' quartiles, the intercept and the band, a verdict per
 factor, and every figure again without PMC. It runs 752 decompositions with
 PMC and 752 without.
+
+Chapter 8's leverage boxes take no option either, because the seeds, the cap
+and D are part of the declaration:
+
+```bash
+uv run python -m chan.monte_carlo_leverage
+```
+
+It prints the vintage and the seeds, every row beside the book's figure with
+its band and a verdict, then the rows beside them, which carry none: the
+fitted parameters, the CPPI location 3426 describes, and the script's lines on
+the historical returns. It ends with the evidence on the book's 18.4. The run
+takes under a minute, about half of it in the two searches for an optimum on each of 401 seeds.
 
 The levered low-beta claim takes no option either, because the issue
 registered the universe, the window and every rule:

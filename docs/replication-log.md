@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42 and 45 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43 and 45 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5 and 44 are the two entries that are not replications. Chan states
@@ -32,7 +32,7 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44 and 45 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 and 45 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -313,24 +313,32 @@ says.
   - [The verdicts](#the-verdicts-40)
   - [What the entry concludes](#what-the-entry-concludes-41)
   - [What this entry cannot say](#what-this-entry-cannot-say-39)
+- [Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*](#entry-43-monte-carlo-leverage-historical-optimization-and-cppi-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-39)
+  - [What this repo computed](#what-this-repo-computed-42)
+  - [The verdicts](#the-verdicts-41)
+  - [Why the simulated rows are judged against an ensemble](#why-the-simulated-rows-are-judged-against-an-ensemble)
+  - [What the book's 18.4 most likely came from](#what-the-books-184-most-likely-came-from)
+  - [What the entry concludes](#what-the-entry-concludes-42)
+  - [What this entry cannot say](#what-this-entry-cannot-say-40)
 - [Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*](#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading)
   - [What the book stated](#what-the-book-stated-3)
-  - [What this repo computed](#what-this-repo-computed-42)
+  - [What this repo computed](#what-this-repo-computed-43)
   - [What each row says](#what-each-row-says-1)
   - [The two flagged days](#the-two-flagged-days)
   - [The stocks with a missing price](#the-stocks-with-a-missing-price)
   - [What the size reading says](#what-the-size-reading-says)
-  - [What the entry concludes](#what-the-entry-concludes-42)
-  - [What this entry cannot say](#what-this-entry-cannot-say-40)
-- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
-  - [What the book stated](#what-the-book-stated-4)
-  - [What this repo computed](#what-this-repo-computed-43)
-  - [The verdicts](#the-verdicts-41)
   - [What the entry concludes](#what-the-entry-concludes-43)
   - [What this entry cannot say](#what-this-entry-cannot-say-41)
+- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-4)
+  - [What this repo computed](#what-this-repo-computed-44)
+  - [The verdicts](#the-verdicts-42)
+  - [What the entry concludes](#what-the-entry-concludes-44)
+  - [What this entry cannot say](#what-this-entry-cannot-say-42)
 - [Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*](#entry-46-post-earnings-drift-on-edgars-calendar-and-the-archives-prices-chans-algorithmic-trading)
   - [The registration](#the-registration)
-  - [What this repo computed](#what-this-repo-computed-44)
+  - [What this repo computed](#what-this-repo-computed-45)
   - [The attribution](#the-attribution)
   - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
 
@@ -410,6 +418,8 @@ both.
    holds Entry 41,
    [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
    holds Entry 42,
+   [tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
+   holds Entry 43,
    [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
    holds Entry 44,
    [tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py)
@@ -533,7 +543,8 @@ Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
-Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11, Entry 42's rows 6 to 16, and
+Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11,
+Entry 42's rows 6 to 16, Entry 43's rows 13 to 17, and
 Entry 45's rows 2 to 9.
 Every row of Entry 46 is in that position too, so that entry drops the
 verdict column as Entry 5 does.
@@ -767,6 +778,19 @@ fits is a definite case of it. Their criterion, each factor's statistic above
 [issue 286](https://github.com/l3a0/quantitative-trading/issues/286) on
 2026-10-10. The owner ruled the same day that each factor carries its own
 verdict, and both came before any factor return was computed.
+
+Entry 43's rows 4, 7, 11 and 12 take it too, each a definite claim Chapter 8
+makes about the strategy and the scheme it names. The simulated optimum is
+"strikingly close" to the Kelly, the historical optimum is "again the same"
+as it, CPPI's growth is "very similar" to the full account's at f·D, and
+CPPI's drawdown stays under 0.5 "by design". Their criteria were written on
+[issue 360](https://github.com/l3a0/quantitative-trading/issues/360) before
+any draw on its declared seeds, though after scratch runs on other seeds had
+seen results, the order Entry 13's row 10 allows when it is stated. Row 7's
+two figures are deterministic, and the issue had measured both before writing
+its 1 percent line, so that criterion was written with the margin in view. They
+differ by 0.52 percent, half the line, so the verdict does not rest on where
+the line sits.
 
 Entry 45's row 1 takes it too. Location 4709 names a class, "a highly
 leveraged portfolio of low-beta stocks" against "an unleveraged portfolio of
@@ -5657,9 +5681,11 @@ training length "gives better results in hindsight".
 
 Location 3342 gives a Kelly leverage of 18.4 for this strategy. Row 4 is the
 script's own 23.845328 instead, because neither the population variance nor
-the mean of squared returns takes the saved series to 18.4.
-[Issue 360](https://github.com/l3a0/quantitative-trading/issues/360) owns that
-figure.
+the mean of squared returns takes the saved series to 18.4. Entry 43 carries
+that figure, and its section
+[What the book's 18.4 most likely came from](#what-the-books-184-most-likely-came-from) gives the
+evidence that Chapter 8 ran on an older series, one that no series matching
+this example's printed Sharpe ratio and APR can be.
 
 ### What this repo computed
 
@@ -8817,6 +8843,316 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
 it, since that post's Lesson 3 quotes these figures.
+
+## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Boxes 8.1 to 8.6 and Kindle locations 3319 to 3438,
+in Chapter 8. Shipped under
+[issue 360](https://github.com/l3a0/quantitative-trading/issues/360). The
+script is `monteCarloOptimLeverage.m`, in ericnberwick/EpchanPreview at
+`e4bc46f` under `public/img/book2/`, git blob `fc32599`, and the line numbers
+below are that blob's. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seventeen rows, all derivable from
+[tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py).
+Twelve do not match one printed figure to one computation, and each says so
+in its own cells. Rows 3 and 5 judge two printed figures each, and row 10 a
+drawdown with the leverage printed beside it. Rows 11 and 12 set printed
+figures beside a claim, rows 4 and 7 are a claim alone, and rows 13 to 17
+carry no published figure. Rows 1, 2, 6 and 7 are deterministic. The
+simulated rows are judged against an ensemble of seeds or against the exact
+distribution of the figure.
+
+A leverage that maximizes growth can still bring a drawdown near total loss.
+Chapter 8 makes that case on Example 5.1's AUD.CAD strategy, whose 612 daily
+returns Entry 25 reproduces. It fits a Pearson distribution to their mean,
+standard deviation, skewness and kurtosis, draws 100,000 returns from it, and
+finds the leverage f that maximizes the growth rate `g(f) = mean(log(1 +
+f·R))` of the draws. It finds the same optimum on the historical returns. It
+then shows how deep the drawdown runs at that leverage and at fractions of it.
+Last, it runs constant proportion portfolio insurance (CPPI), which trades
+only a slice D of the account and refills the slice to D of the account at
+each new high, so the account cannot fall more than D below its high.
+
+**The book's 18.4 does not reproduce on Chan's own returns, the simulated
+figures split, and Box 8.6's CPPI loop breaks the drawdown floor that
+location 3438 says it keeps by design.** The Kelly leverage and the historical
+optimum come out near 23.8 rather than 18.4. No series that matches Example
+5.1's printed figures gives 18.4 under any of three ways of compounding its
+APR. The most negative draw and the drawdown at the optimum land inside their
+bands. The simulated optimum, the drawdowns at half and a seventh of the
+optimum, and both growth rates do not. The simulated optimum landed under the
+band the issue declared and misses under the band this entry chose after
+seeing the ensemble, and
+[Why the simulated rows are judged against an ensemble](#why-the-simulated-rows-are-judged-against-an-ensemble)
+gives the reason and keeps both verdicts. Moving the draws' mean so that the
+Kelly is 18.4 lands all of those but the drawdown at half the optimum, and
+lands the simulated optimum under either band. The CPPI the prose describes
+keeps the floor on every seed, and the loop the book prints breaks it on every
+seed.
+
+Every row reads one vintage and one specification unless it names another,
+so both are stated once here.
+
+1. **The vintage.** `pythoncodesanddata/AUDCAD_unequal_ret.csv`, vendor
+   `chan-py`, symbol `AUDCAD-UNEQUAL`, basis `return`, saved 2018-12-26, the
+   612 test-set returns Example 5.1's `AUDCAD_unequal.m` saved, read through
+   `chan.series.load_returns`. Line 3 of the script loads the same returns
+   with no slicing.
+2. **The specification.** `monteCarloOptimLeverage.m` as
+   `chan.monte_carlo_leverage` transcribes it, under the declaration
+   [issue 360](https://github.com/l3a0/quantitative-trading/issues/360) wrote
+   before any draw on its seeds, in five parts.
+   1. The moments are the mean, MATLAB's n − 1 `std`, and the biased
+      skewness and kurtosis, with kurtosis not in excess form. The draws come
+      from the Pearson type IV with those moments, through
+      `chan.tu_hypothesis_tests`' sampler on a θ grid of 20,001 points. Seed
+      s's draws are `pearson_iv_draws(params, default_rng(s).random(100_000))`.
+   2. The optimum is Brent's bounded search, which is what `fminbnd` runs,
+      with `xatol` of 1e-10. The capped optimum searches `(0, min(20, ruin))`,
+      as line 22's `fminbnd(minusGsim, 0, 20)` does. The ruin leverage is one
+      over the size of the most negative return. At or above it no real growth
+      rate exists, so the search stops there rather than take MATLAB's real
+      part of a complex logarithm. The uncapped optimum searches `(0, ruin)`.
+   3. Every drawdown is `calculateMaxDD` on `cumprod(1 + a) − 1`, through
+      `chan.matlab_helpers.calculate_max_dd`. D is 0.5, and every leverage on
+      the draws is a multiple of the capped optimum f on the same draws, as
+      the script uses it.
+   4. The declared seed is 20261012 and the ensemble is the 200 seeds 20261013
+      to 20261212. A simulated figure lands when the book's value lies within
+      the ensemble's 5th to 95th percentile of the same quantity. A claim row
+      is judged by its own criterion, on the declared seed where the criterion
+      names none. Row 3's band changed after the ensemble was seen, and the
+      section on ensembles below says how.
+   5. A simulated figure outside its band did not reproduce. One inside its
+      band whose seeded value differs is reproduced with a gap, and the seed is
+      the cause, because location 3399 says the simulated figures "are not
+      exactly reproducible".
+
+**Type IV is an inference about `pearsrnd`.** Location 3342 says the type is
+4, and Pearson's κ on these moments is inside type IV's 0 < κ < 1. As Entry 37
+says of the same sampler, these draws follow the script's in distribution and
+not draw for draw.
+
+**Two CPPI forms run.** Location 3426 describes CPPI as a subaccount of D
+traded at f and refilled to D of the account at each new high. Box 8.6's loop,
+script lines 46 to 59, instead scales `D·f` by one plus the drawdown of the
+unlevered returns, which is not the account's drawdown. Only the first form
+guarantees what location 3438 claims, so row 12 judges the claim on both.
+The script's second CPPI loop, on the historical returns, reads `r(t)` at
+line 73, which nothing defines, so MATLAB stops there. Row 17 reads `ret` for
+`r`, as the same loop's next line does.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends his
+612 returns on a method he chose. The entry says whether his numbers reproduce
+on his file, and nothing about whether any leverage is safe to trade.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The Kelly leverage of the test-set returns | 18.4 | location 3342 |
+| 2 | The Pearson type `pearsrnd` returns | 4 | location 3342 |
+| 3 | The simulated optimum | 19 from `fminbnd`, and an unconstrained 19.2 | locations 3342 and 3399 |
+| 4 | The simulated optimum is close to the Kelly | "strikingly close", a claim | location 3342 |
+| 5 | The most negative simulated return, and the ruin leverage | −0.0331, and 30.2 | location 3342 |
+| 6 | The optimum of the historical growth rate | 18.4 | location 3379 |
+| 7 | The historical optimum is the Kelly | "again the same", a claim | location 3379 |
+| 8 | The simulated maximum drawdown at the optimum | −0.999 | location 3399 |
+| 9 | The same at half the optimum | −0.963 | location 3399 |
+| 10 | The same at a seventh of the optimum | about −0.5, at about 2.7 | location 3399 |
+| 11 | The growth rate of CPPI, against the full account at f·D, with D = 0.5 | 0.002484 against 0.002525, "very similar", a claim | location 3438 |
+| 12 | CPPI's drawdown is less than 0.5 by design, and the full account's at f·D | a claim, and "a painful 0.9" | location 3438 |
+| 13 | The evidence on the book's 18.4 | none | n/a |
+| 14 | The fitted type IV's parameters | none | n/a |
+| 15 | The uncapped simulated optimum, and the seeds the ruin leverage cut | none | n/a |
+| 16 | The CPPI location 3426 describes | none | n/a |
+| 17 | The script's lines on the historical returns | none | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `mean / std²` with the n − 1 variance | 23.845328, the script's own figure from Entry 25 | `TestRows1And2::test_row_1_the_kelly_is_the_script_s` |
+| 2 | Pearson's κ of the four moments | 0.038081, inside 0 < κ < 1 | `TestRows1And2::test_row_2_kappa_puts_the_moments_in_type_iv` |
+| 3 | The uncapped optimum on the declared seed, and its band across the seeds whose ruin leverage is above the book's 30.2 | 22.295382, where the capped optimum the script searches is the cap of 20, within 1e-6. The band across the 40 such seeds is 22.969856 to 25.374220. The declared band, across all 200 seeds, is 16.622019 to 24.865122, and its 5th percentile is the capped band's. 158 of the 200 seeds sit on the cap | `TestRows3And4TheSimulatedOptimum::test_the_declared_seed_s_uncapped_optimum`, `::test_the_band_row_3_reads`, `::test_the_uncapped_band`, `::test_the_declared_band_shares_the_capped_band_s_lower_tail`, `::test_the_declared_seed_sits_on_the_cap` and `::test_158_of_200_seeds_sit_on_the_cap` |
+| 4 | Row 1's Kelly against row 3's band | 23.845328, inside 22.969856 to 25.374220, and inside the declared band too | `TestRows3And4TheSimulatedOptimum::test_row_4_the_kelly_lies_inside_row_3_s_band` |
+| 5 | The declared seed's minimum, and the chance the least of 100,000 draws is at or below the book's | −0.043071 and a ruin leverage of 23.217362. The chance is 0.807083 at −0.0331, and 0.806406 at the ruin leverage of 30.2 | `TestRow5TheMinimumAndTheRuinLeverage::test_the_declared_seed_s_minimum_and_ruin_leverage` and `::test_the_book_s_minimum_in_its_exact_distribution` |
+| 6 | The uncapped optimum of the historical growth rate | 23.721773, and the cap of 20 when capped | `TestRows6And7TheHistoricalOptimum::test_row_6_the_historical_optimum` and `::test_capped_at_20_it_returns_the_cap` |
+| 7 | Row 6 over row 1, less 1, against 1 percent | −0.005182 | `TestRows6And7TheHistoricalOptimum::test_row_7_the_historical_optimum_is_within_1_percent_of_the_kelly` |
+| 8 | `calculateMaxDD` at f on the declared seed, and its band | −0.991276, band −0.999256 to −0.979930 | `TestRows8To10TheDrawdowns::test_seeded_and_banded` |
+| 9 | The same at f / 2 | −0.871216, band −0.922292 to −0.763269 | the same |
+| 10 | The same at f / 7 | −0.416419, band −0.468433 to −0.302281, at a leverage of 2.857143 | the same, and `::test_row_10_falls_outside_its_band` |
+| 11 | Box 8.6's growth and the full account's at f·D, their bands, and how far the first falls short | 0.003224, band 0.002913 to 0.003577, against 0.003271, band 0.002955 to 0.003623. CPPI falls short of the full account by 0.014469 of it, and by less than 0.02 on every seed. The book's own two differ by 0.016238 | `TestRow11TheGrowthRates::test_seeded_and_banded`, `::test_the_claim_holds_on_the_declared_seed_and_every_seed` and `::test_the_book_s_own_two_figures_differ_by_1_6_percent` |
+| 12 | The full account's drawdown at f·D, and each CPPI form's account drawdown | −0.871216, the same figure as row 9, since f·D is f / 2. Box 8.6's loop gives −0.848088, band −0.902235 to −0.742510, and stays above −0.5 on 0 of 200 seeds. Location 3426's CPPI gives −0.495638, band −0.499628 to −0.489965, and stays above −0.5 on 200 of 200 | `TestRow12TheDrawdownCppiCaps` |
+| 13 | The Kelly of any daily series with a Sharpe ratio of 1.55 to 1.65 and an APR of 10.5 to 11.5 percent, under three compoundings, and the ensemble with the draws' mean moved so the Kelly is 18.4 | Kelly 21.558894 to 26.757652 when the APR compounds the log growth m − σ²/2, 22.065999 to 27.261771 when it compounds 1 + m exactly, and 20.891304 to 25.928571 when it is the simple 252·m. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 0.139130, 0.144937 or 0.149230 under the three. With the mean moved, λ is −1.222510e-03, the median uncapped optimum is 18.470198, 8 of 200 seeds sit on the cap, and rows 3, 8, 10 and 11 land. Row 3's band runs 17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2, and 16.339353 to 19.905622 on all 200. Row 9's band runs −0.953551 to −0.823942 | `TestRowGroup13TheEighteenPointFourGap` |
+| 14 | The type IV's parameters | m 3.254731, ν −0.897242, a 7.819013e-03 and λ −1.123894e-03, so moments exist only below order 5.509462 | `TestTheSampler::test_the_parameters` and `::test_moments_exist_only_below_order_5_51` |
+| 15 | The uncapped optimum, and the seeds whose ruin leverage is below 20 | 22.295382 on the declared seed, band 16.622019 to 24.865122 across all 200. 42 of 200 seeds, against an exact chance of 0.149180, within four binomial standard errors | `TestRows3And4TheSimulatedOptimum::test_the_declared_seed_s_uncapped_optimum` and `TestRow5TheMinimumAndTheRuinLeverage::test_the_share_of_seeds_ruined_below_the_cap` |
+| 16 | Location 3426's CPPI at f with D = 0.5 | growth 0.002436, band 0.002321 to 0.002814, which is 0.255285 below the full account's at f·D. Account drawdown −0.495638, band −0.499628 to −0.489965, as in row 12 | `TestBesideTheReplication::test_cppi_as_described_costs_about_a_quarter_of_the_growth` |
+| 17 | Script lines 37 and 65 to 80 on the saved returns, at the declared seed's f | growth at f·D 0.003421, drawdown −0.526211 at f / 1.4 and −0.396779 at f·D. Box 8.6's loop gives growth 0.003368 and drawdown −0.391438, and location 3426's CPPI growth 0.002673 and drawdown −0.332652 | `TestBesideTheReplication::test_the_script_s_historical_lines` |
+
+The growth rates are pinned at six significant figures and quoted here at the
+six decimals the book prints.
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | +5.4 | did not reproduce | Chan's own saved returns give 23.845328, the figure his `AUDCAD_unequal.m` prints. The vintage explanation is spent, and the section below says where the evidence points. |
+| 2 | none, a type | reproduced | κ puts the moments in type IV, the type the book names. |
+| 3 | +3, and +3.1 | did not reproduce | Neither of the book's figures lies inside the band of the 40 seeds whose ruin leverage is above Chan's 30.2, which runs from 22.969856 to 25.374220. That band replaced the declared one after the ensemble was seen, as the section below says. Under the declared band, 16.622019 to 24.865122 across all 200 seeds, both figures land and the verdict was reproduced with a gap, the seed. The gap is to the declared seed's uncapped optimum of 22.295382, the quantity the band reads. Its capped optimum is the cap of 20, as 158 of 200 seeds' are, and its ruin leverage of 23.217362 leaves it outside the 40. |
+| 4 | none, a claim | reproduced | The Kelly of 23.845328 lies inside row 3's band, and inside the declared band too, so the simulated optimum is close to the Kelly on this file whichever band reads it. |
+| 5 | −0.0100, and −7.0 | reproduced with a gap | A least draw at or below −0.0331 has a chance of 0.807083 among 100,000 draws, inside the 5 to 95 percent the declaration allows. The declared seed's least draw is deeper. The seed is the cause. |
+| 6 | +5.3 | did not reproduce | The historical optimum on Chan's own returns is 23.721773. As in row 1, nothing is left to blame. |
+| 7 | none, a claim | reproduced | The historical optimum is within 0.52 percent of the Kelly, inside the 1 percent criterion. |
+| 8 | +0.008 | reproduced with a gap | −0.999 lies inside the band. The seed is the cause. |
+| 9 | +0.092, outside its band | did not reproduce | −0.963 is deeper than the band's bottom of −0.922292. |
+| 10 | +0.1, outside its band | did not reproduce | −0.5 is deeper than the band's bottom of −0.468433. The declared seed's leverage of 2.857143 is the cap over 7, where the book's 2.7 is 19.2 over 7. |
+| 11 | +0.000740 and +0.000746, outside both bands | did not reproduce, and the claim holds | Both of the book's growth rates sit below their bands. The claim that the two are "very similar" holds, since CPPI falls short of the full account by 1.4 percent on the declared seed and by less than 2 percent on all 200. |
+| 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 lands only because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
+| 13 | none | none, not a replication | No series matching Example 5.1's printed figures has a Kelly of 18.4, under any of the three compoundings. Moving the draws' mean to a Kelly of 18.4 lands rows 3, 8, 10 and 11, and lands row 3 under the declared band and the one row 3 now reads. |
+| 14 | none | none, not a replication | Moments exist only below order 5.51, so a draw's sample skewness has infinite variance. That is why the tests check the tail and the draws' mean and std rather than a draw's third and fourth moments. |
+| 15 | none | none, not a replication | The ruin leverage cut the capped search on 42 seeds. The exact chance gives 29.8, and the count is within four binomial standard errors of it. |
+| 16 | none | none, not a replication | Keeping the floor costs about a quarter of the growth, far more than the scripted loop's 1.4 percent. |
+| 17 | none | none, not a replication | On the 612 historical returns at the declared seed's f of 20, neither CPPI form nor the full account at f·D comes near the floor. The deepest of the script's historical lines is the drawdown at f / 1.4. |
+
+Row 3's gap is against each of the book's two figures, at its own precision,
+and so are rows 5's and 11's. `TestRows3And4TheSimulatedOptimum::test_row_3_reads_the_declared_seed_s_uncapped_optimum`
+and `TestTheReport::test_each_seeded_row_s_gap` hold every gap in the table
+that a seed computes.
+
+### Why the simulated rows are judged against an ensemble
+
+Entry 2's
+[Why no simulated number is pinned against the book](#why-no-simulated-number-is-pinned-against-the-book)
+pins the closed form and lets the simulation only demonstrate, because the
+coin flip has a closed form to pin. Most of Chapter 8's simulated figures have
+none. Chan's figures come from one set of draws nobody holds, so no seed here
+can be expected to equal them, and location 3399 says so. What can be asked is
+whether his figure is one this method gives on his file, and the band answers
+that. Each seeded figure is still pinned, so a change to the draw method
+cannot move one inside the book's rounding unnoticed.
+
+Row 5 is the one simulated row with a closed form. The least of 100,000
+independent draws exceeds x with probability `(1 − F(x))^100000`, where F is
+the fitted density integrated by `scipy.integrate.quad`, so row 5 lands
+against that exact distribution rather than an ensemble. The same formula
+checks the ensemble's count in row 15.
+
+**Row 3's band changed after the ensemble was seen.** The issue declared the
+uncapped optimum's band across all 200 seeds. Chan's 19.2 sits below his cap,
+so his uncapped optimum was 19.2 as well. The declaration set the capped band
+aside because, with most capped optima on the cap, its lower tail is made of
+seeds whose low ruin leverage holds the optimum down, and the book's figure
+could land there for that reason alone.
+
+The uncapped band has the same lower tail. The growth rate falls to minus
+infinity at the ruin leverage, so a seed with one deep draw has a low
+uncapped optimum too, and the two bands' 5th percentiles are the same value,
+16.622019. So the declared rule applied the objection to the capped band and
+not to the uncapped band that shares its clamped seeds. Both of the book's
+figures landed under it, and that verdict, reproduced with a gap, is kept in
+row 3's Why cell.
+
+Row 3 is now judged on the 40 seeds whose ruin leverage is above Chan's own
+30.2, which are the seeds whose most negative draw is no deeper than his
+−0.0331. The count is within four binomial standard errors of what the exact
+distribution of the minimum gives. Their band runs from 22.969856 to
+25.374220, and neither 19 nor 19.2 lands, so row 3 did not reproduce. Under
+the ensemble with the Kelly moved to 18.4, the same rule keeps 39 seeds, whose
+band of 17.514982 to 20.017014 holds both figures. The rule was chosen after
+the bands were seen, so like every result here it is exploratory.
+`TestRows3And4TheSimulatedOptimum::test_the_declared_band_shares_the_capped_band_s_lower_tail`,
+`::test_the_band_row_3_reads` and `::test_row_3_follows_only_the_conditioned_band`
+hold the shared tail, the band and the rule row 3 reads.
+
+### What the book's 18.4 most likely came from
+
+Rows 1 and 6 did not reproduce on the file the script names, so the entry owes
+a reason. The evidence favors Chapter 8 having run on an older version of
+`ret` whose Kelly was near 18.4, which neither mirror holds. That is an
+inference rather than a held vintage, and row 13 is what it rests on.
+
+1. **No series matching Example 5.1's printed figures reaches 18.4, however
+   its APR compounds.** The Kelly is the Sharpe ratio per day over the daily
+   standard deviation, and an APR fixes that deviation once the Sharpe ratio
+   is given. Across the rounding of the printed 1.6 and 11 percent, the Kelly
+   runs from 21.558894 to 26.757652 when the APR compounds the log growth
+   m − σ²/2, which is what `implied_kelly` assumes. Compounding 1 + m exactly
+   moves the lower edge to 22.065999, and taking the APR as a simple 252·m
+   moves it to 20.891304. So the edge depends on a convention the book does
+   not state, and none of the three reaches 18.4. At a Sharpe ratio of 1.6, a
+   Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across the three. So the
+   older `ret` disagreed with Example 5.1's own printed figures as well as
+   with the saved file.
+2. **A Kelly near 18.4 lands most of the chapter's simulated figures.** Moving
+   the draws' mean so that the Kelly is 18.4 moves only λ. On the same 200
+   seeds it puts the median uncapped optimum at 18.470198 and lands rows 3,
+   8, 10 and 11, where rows 3, 10 and 11 missed under the file's own mean.
+   Row 3 lands under the rule it is now judged by, with 19 and 19.2 inside
+   17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2,
+   and under the declared band too. Row 9's −0.963 still sits just past its
+   band, which runs to −0.953551.
+
+[Issue 360](https://github.com/l3a0/quantitative-trading/issues/360) also
+records variants of the saved series tried in scratch runs, such as dropping
+the zero days or using log returns, and none reached 18.4. No test here holds
+them.
+
+### What the entry concludes
+
+Three things.
+
+1. **The book's Kelly and historical optimum of 18.4 belong to a series
+   nobody holds.** Chan's own saved returns give 23.845328 and 23.721773.
+   Any series matching Example 5.1's printed Sharpe ratio and APR gives at
+   least 21.558894 when the APR compounds the log growth, and at least
+   20.891304 under the simplest of the three compoundings row 13 tries. The
+   claims the figures were printed to support still hold: the historical
+   optimum is within 0.52 percent of the Kelly, and the Kelly lies inside the
+   simulated optimum's band under either rule.
+2. **The growth-optimal leverage brings a drawdown near total loss on this
+   file too.** At the optimum the declared seed's drawdown is −0.991276, and
+   the book's −0.999 lands in the band. At half the optimum the drawdown is
+   still −0.871216, and at a seventh it is −0.416419. Those two and both
+   growth rates miss their bands, and so does the simulated optimum under the
+   rule chosen after the ensemble was seen. Row 13 ties all of them but row 9
+   to the book's draws having a lower mean than this file's.
+3. **Box 8.6's loop is not the CPPI location 3426 describes, and only the
+   description keeps the floor.** The loop shrinks the order as the
+   unlevered returns fall rather than as the account falls, so the account
+   can fall further than D. It did on all 200 seeds, to −0.848088 on the
+   declared one. The described scheme stays above −0.5 on every seed, at a
+   cost of about a quarter of the growth, 0.255285 on the declared seed. So
+   the book's pairing of a growth cost near 1.6 percent with a drawdown "by
+   design" under 0.5 holds for neither form here. The loop gives the first and
+   not the second, and the scheme gives the second and not the first.
+
+### What this entry cannot say
+
+Four things.
+
+**Which Pearson type `pearsrnd` drew from.** The type IV choice is inferred
+from the standard criterion and the book's "type is 4", as in Entry 37.
+
+**What Chan's `ret` was.** Row 13 says a series with a Kelly near 18.4 lands
+most of the simulated figures and that no series matching Example 5.1 has
+one. It cannot recover that series, and the issue scopes a search for it out.
+
+**Whether either leverage is safe to trade.** Every figure is computed on
+returns drawn to match 612 days of one strategy, or on those days themselves.
+Location 3417 notes that simulated returns miss serial correlation, and
+nothing here measures it.
+
+**Which band row 3 belongs against.** The declared band lands both of the
+book's optima and the band chosen after the ensemble was seen lands neither.
+The second rests on Chan's printed ruin leverage of 30.2, and nothing here
+can say more about his draws than that one figure.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
 
 ## Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*
 
