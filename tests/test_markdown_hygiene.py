@@ -1408,9 +1408,27 @@ class TestIssueReferencesAreLinked:
         assert not offenders, "unlinked issue or pull request numbers: " + ", ".join(offenders)
 
 
-_COUNT_WORDS = "one two three four five six seven eight nine ten eleven twelve".split()
-_COUNT_LEAD = re.compile(rf"^({'|'.join(w.capitalize() for w in _COUNT_WORDS)}) things?\b")
+_UNITS = (
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen"
+    " fourteen fifteen sixteen seventeen eighteen nineteen"
+).split()
+_TENS = "twenty thirty forty fifty sixty seventy eighty ninety".split()
+_WORD = r"[A-Za-z][a-z]+(?:-[a-z]+)?"
+_COUNT_LEAD = re.compile(rf"^({_WORD}) things?\b")
 _NUMBERED_ITEM = re.compile(r"^\d+\.[ \t]")
+_CLOSING_NOTE = "Nothing checks this entry"
+_COUNTED_HEADINGS = frozenset({"What the entry concludes", "What this entry cannot say"})
+
+
+def _number(word: str) -> int | None:
+    """The value of a number word up to ninety-nine, or None for any other word."""
+    word = word.lower()
+    if word in _UNITS:
+        return _UNITS.index(word)
+    tens, _, unit = word.partition("-")
+    if tens not in _TENS or (unit and unit not in _UNITS[1:10]):
+        return None
+    return 20 + 10 * _TENS.index(tens) + (_UNITS.index(unit) if unit else 0)
 
 
 def _counted_items(body: str) -> tuple[int, int] | None:
@@ -1421,33 +1439,44 @@ def _counted_items(body: str) -> tuple[int, int] | None:
     section whose first paragraph opens on no such count is not read, and
     returns None.
 
-    The first item marker after the lead decides how items are written. A
-    numbered item at the margin starts a numbered list, and only margin-level
-    numbers count, so a list nested under one item is not counted. The list
-    runs until a paragraph returns to the margin without a number, which is
-    where the closing "Nothing checks this entry" note sits. Otherwise each
-    paragraph that opens in bold at the margin is one item, and a numbered
-    list between them is part of the item above it. The closing note opens in
-    plain text, so it is never counted.
+    The first paragraph after the lead that opens on an item marker decides
+    how items are written. A numbered item at the margin starts a numbered
+    list, and only margin-level numbers count, so a list nested under one item
+    is not counted. The list runs until a paragraph opens at the margin
+    without a number, which is where the closing "Nothing checks this entry"
+    note sits. A line that wraps back to the margin inside an item does not
+    end it, since no blank line comes before it.
+
+    Otherwise each paragraph that opens in bold at the margin is one item, and
+    a numbered list between them is part of the item above it. The count stops
+    at the closing note, so nothing written after it reads as an item.
     """
-    paragraphs = [p for p in re.split(r"\n[ \t]*\n", body) if p.strip()]
-    if not paragraphs:
+    parts = re.split(r"\n[ \t]*\n", body.strip("\n"), maxsplit=1)
+    lead = _COUNT_LEAD.match(parts[0].strip())
+    stated = _number(lead.group(1)) if lead else None
+    if not stated:
         return None
-    lead = _COUNT_LEAD.match(paragraphs[0].strip())
-    if lead is None:
-        return None
-    stated = _COUNT_WORDS.index(lead.group(1).lower()) + 1
-    rest = paragraphs[1:]
-    starts = [p.strip("\n").split("\n")[0] for p in rest]
-    first = next((s for s in starts if s.startswith("**") or _NUMBERED_ITEM.match(s)), "")
-    if not _NUMBERED_ITEM.match(first):
-        return stated, sum(s.startswith("**") for s in starts)
+    lines = parts[1].split("\n") if len(parts) > 1 else []
+    starts = [
+        i for i, line in enumerate(lines) if line.strip() and (i == 0 or not lines[i - 1].strip())
+    ]
+    first = next(
+        (i for i in starts if lines[i].startswith("**") or _NUMBERED_ITEM.match(lines[i])), None
+    )
+    if first is None:
+        return stated, 0
     listed = 0
-    lines = "\n".join(rest).split("\n")
-    for line in lines[next(i for i, x in enumerate(lines) if _NUMBERED_ITEM.match(x)) :]:
-        if _NUMBERED_ITEM.match(line):
+    if lines[first].startswith("**"):
+        for i in starts:
+            if lines[i].startswith(_CLOSING_NOTE):
+                break
+            listed += lines[i].startswith("**")
+        return stated, listed
+    opens = set(starts)
+    for i in range(first, len(lines)):
+        if _NUMBERED_ITEM.match(lines[i]):
             listed += 1
-        elif line.strip() and not line[0].isspace():
+        elif i in opens and not lines[i][0].isspace():
             break
     return stated, listed
 
@@ -1458,10 +1487,45 @@ def _count_disagreements(document: str) -> list[str]:
     for section in entry_sections(document):
         counted = _counted_items(section.body)
         if counted is not None and counted[0] != counted[1]:
-            stated, listed = counted
+            word = _COUNT_LEAD.match(section.body.strip()).group(1).lower()
             found.append(
                 f"line {section.first_line}, Entry {section.entry}, "
-                f"{section.heading.text}: says {_COUNT_WORDS[stated - 1]}, lists {listed}"
+                f"{section.heading.text}: says {word}, lists {counted[1]}"
+            )
+    return found
+
+
+_ROW_LEAD = re.compile(rf"^({_WORD})(?: computed)? rows?\b", re.MULTILINE)
+_ROW_SPLIT = re.compile(
+    rf"\b({_WORD})\s+rows?\s+(?:is|are)\s+(?:a\s+)?(?:replications?|claims?)"
+    rf"\s+and\s+({_WORD})\s+(?:is|are)\s+not\b"
+)
+_ENTRY_INTRO = re.compile(r"(?ms)^## Entry (\d+)\b.*?(?=^##|\Z)")
+
+
+def _row_split_disagreements(document: str) -> list[str]:
+    """Every entry whose split of its rows does not add up to its row count.
+
+    An entry's opening, the text between its `## Entry N` heading and its
+    first subheading, states how many rows it has, as in "Nine rows, all
+    derivable from". Several entries then split those rows in a sentence such
+    as "One row is a replication and eight are not". Adding a row means
+    editing both, and Entry 6 once gained a ninth row while its split still
+    said seven.
+    """
+    found = []
+    text = blank_fences(document)
+    for intro in _ENTRY_INTRO.finditer(text):
+        counts = (_number(m.group(1)) for m in _ROW_LEAD.finditer(intro.group(0)))
+        rows = next((n for n in counts if n), None)
+        for split in _ROW_SPLIT.finditer(intro.group(0)):
+            parts = _number(split.group(1)), _number(split.group(2))
+            if None in parts or sum(parts) == rows:
+                continue
+            line = text.count("\n", 0, intro.start() + split.start()) + 1
+            found.append(
+                f"line {line}, Entry {intro.group(1)}: {parts[0]} and {parts[1]} rows "
+                f"make {sum(parts)}, and the entry opens on {rows}"
             )
     return found
 
@@ -1544,14 +1608,86 @@ class TestCountedListsMatchTheirCounts:
         document = _entry("The run says this.\n\n**One.** a\n\n**Two.** b\n")
         assert _counted_items(entry_sections(document)[0].body) is None
 
-    def test_the_log_has_counted_sections_to_read(self) -> None:
+    def test_a_wrapped_line_back_at_the_margin_stays_in_its_item(self) -> None:
+        body = "Two things.\n\n1. **A.** a long item that\nwraps at the margin.\n2. **B.** b\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_numbered_line_inside_a_paragraph_does_not_start_the_list(self) -> None:
+        body = "Two things.\n\nA note that wraps onto\n2008. a year.\n\n1. **A.** a\n2. **B.** b\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_bold_paragraph_after_the_closing_note_is_not_an_item(self) -> None:
+        body = "Two things.\n\n**A.** a\n\n**B.** b\n\n" + NOTE + "\n**An aside.** c\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_count_past_twelve_is_read(self) -> None:
+        body = "Thirteen things.\n\n**A.** a\n\n**B.** b\n"
+        assert _count_disagreements(_entry(body)) == [
+            "line 3, Entry 7, What this entry cannot say: says thirteen, lists 2"
+        ]
+
+    def test_a_word_that_is_not_a_number_is_not_a_count(self) -> None:
+        body = "Several things.\n\n**A.** a\n"
+        assert _counted_items(entry_sections(_entry(body))[0].body) is None
+
+    def test_every_counted_section_in_the_log_opens_on_a_count(self) -> None:
         document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
-        counted = [s for s in entry_sections(document) if _counted_items(s.body)]
-        assert {s.heading.text for s in counted} == {
-            "What the entry concludes",
-            "What this entry cannot say",
-        }
+        unread = [
+            f"line {s.first_line}, Entry {s.entry}, {s.heading.text}"
+            for s in entry_sections(document)
+            if s.heading.text in _COUNTED_HEADINGS and _counted_items(s.body) is None
+        ]
+        assert len(entry_sections(document)) > 0
+        assert unread == []
 
     def test_every_count_in_the_replication_log_matches_its_list(self) -> None:
         document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
         assert _count_disagreements(document) == []
+
+
+def _intro(rows: str, split: str) -> str:
+    return f"## Entry 2: x\n\n{rows}\n\n{split}\n"
+
+
+class TestRowSplitsAddUpToTheRowCount:
+    def test_a_split_that_adds_up_passes(self) -> None:
+        document = _intro(
+            "Nine rows, all derivable.", "One row is a replication and eight are not."
+        )
+        assert _row_split_disagreements(document) == []
+
+    def test_a_split_one_short_is_flagged(self) -> None:
+        document = _intro(
+            "Nine rows, all derivable.", "One row is a replication and\nseven are not."
+        )
+        assert _row_split_disagreements(document) == [
+            "line 5, Entry 2: 1 and 7 rows make 8, and the entry opens on 9"
+        ]
+
+    def test_a_split_of_claims_reads_the_same(self) -> None:
+        document = _intro(
+            "Twelve rows, and all.", "Two rows are claims and ten are not replications."
+        )
+        assert _row_split_disagreements(document) == []
+
+    def test_a_computed_row_count_and_a_hyphenated_number_are_read(self) -> None:
+        document = (
+            "## Entry 2: x\n\nTwenty-one computed rows.\n\n"
+            "Three rows are replications and eighteen are not.\n"
+        )
+        assert _row_split_disagreements(document) == []
+
+    def test_a_split_below_the_first_subheading_is_not_read(self) -> None:
+        document = (
+            "## Entry 2: x\n\nNine rows.\n\n### Detail\n\n"
+            "Two rows are replications and two are not.\n"
+        )
+        assert _row_split_disagreements(document) == []
+
+    def test_the_log_has_row_splits_to_read(self) -> None:
+        document = blank_fences((REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8"))
+        assert len(_ROW_SPLIT.findall(document)) >= 9
+
+    def test_every_row_split_in_the_replication_log_adds_up(self) -> None:
+        document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
+        assert _row_split_disagreements(document) == []

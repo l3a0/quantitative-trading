@@ -469,7 +469,7 @@ _ENTRY_HEADING = re.compile(r"Entry (\d+)\b")
 def entry_sections(text: str) -> list[EntrySection]:
     """Every subsection of every replication log entry, in order.
 
-    A section runs from its heading to the next heading of level two or three.
+    A section runs from its heading to the next heading of level one to three.
     Its body is read after fenced blocks are blanked, so a `#` line inside a
     fence neither opens a section nor ends one. `first_line` is the 1-based
     line the heading sits on, so a finding points at a line a reader opens.

@@ -2230,7 +2230,7 @@ had to clear it under the criterion
 before any statistic was computed, and both do. The half-life is 141.6 trading
 days, a little over half a year.
 
-One row is a replication and seven are not. Row 1 is the claim, and it takes
+One row is a replication and eight are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
 are the two statistics the criterion reads, rows 4 to 6 say what the verdict
 rests on, row 7 measures what row 6 can see, and row 8 measures what dropping the
