@@ -1,9 +1,12 @@
 """The pins for Example 7.2 rerun on EDGAR's calendar and the archive's prices, issue 251.
 
-This file is the single authority for every number any prose surface quotes
-about the rerun, Entry 40 of ``docs/replication-log.md`` among them.
-``tests/test_earnings_filings.py`` holds the counts about the ticker table and
-the index that the universes are cut from.
+This file is the authority for the rerun's figures that any prose surface
+quotes, Entry 40 of ``docs/replication-log.md`` among them: each run's
+figures, the attribution, each calendar's agreement with Chan's flags, and the
+checks run beside them on late filings and on the archive's opens.
+``tests/test_earnings_filings.py`` is the authority for the counts about the
+ticker table and the index that the universes are cut from, Entry 40's rows
+15 and 16 and the 48 renamed companies among them.
 
 Every pin names its vintage and its specification, stated once here and
 carried in each failure message as :data:`SPEC`.
@@ -33,12 +36,15 @@ before the registration, and it first ran here on 2026-10-10.
 from __future__ import annotations
 
 import itertools
+from dataclasses import replace
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from chan import pead_rerun
 from chan.earnings_filings import Release
+from chan.pead import DENOMINATOR, TRADING_DAYS, Drift, pead
 from chan.pead_rerun import (
     Agreement,
     agreement,
@@ -216,6 +222,36 @@ class TestTheAttribution:
         runs = {name: self.drift(0.01, 0.1) for name in ("A", "A_U", "A_CAL", "B1", "A_PX")}
         assert [e.label for e in pead_rerun.attribution(runs)] == ["universe", "calendar"]
 
+    def test_every_comparison_prints_with_the_interaction_after_its_total(self) -> None:
+        runs = {spec.name: self.drift(0.01, 0.1) for spec in pead_rerun.SPECS}
+        assert [e.label for e in pead_rerun.attribution(runs)] == [
+            "universe", "calendar", "calendar, R5", "vendor", "basis",
+            "all of it, E1 against A_U", "interaction, what E1 − A_U leaves",
+            "E1 against A", "E5 against A_U", "E5 against A",
+        ]  # fmt: skip
+
+    def test_each_further_comparison_reads_its_own_two_runs(self) -> None:
+        values = {spec.name: 0.01 * (i + 1) for i, spec in enumerate(pead_rerun.SPECS)}
+        runs = {name: self.drift(value, value * 10) for name, value in values.items()}
+        effects = {e.label: e for e in pead_rerun.attribution(runs)}
+        for label, run, reference in (
+            ("calendar, R5", "B5", "A_CAL"),
+            ("E1 against A", "E1", "A"),
+            ("E5 against A_U", "E5", "A_U"),
+            ("E5 against A", "E5", "A"),
+        ):
+            assert effects[label].arithmetic == pytest.approx(values[run] - values[reference])
+            assert effects[label].sharpe == pytest.approx(10 * (values[run] - values[reference]))
+
+
+class TestTheReturnPerTrade:
+    def test_it_is_the_days_summed_returns_times_the_denominator_over_the_trades(self) -> None:
+        """Two trades on one day, +3% and −1%, give 2% over 30 that day and 1% a trade."""
+        positions = np.array([[1.0, -1.0, 0.0], [0.0, 0.0, 0.0]])
+        daily = np.array([0.02 / DENOMINATOR, 0.0])
+        drift = Drift(pd.DatetimeIndex(DAYS[:2]), positions, daily, 0.0, 0.0, 0.0, 0.0, 0)
+        assert pead_rerun.per_trade(drift) == pytest.approx(0.01)
+
 
 SPEC = (
     "chan.pead.pead on the flag file's 330 days, 90-day lookback, entry at 0.5 moving std, "
@@ -239,17 +275,40 @@ FIGURES = {
     "E5": (0.057426, 1.4118, 0.058229, -0.029106, 80, 1339, 48),
 }
 
+#: Each run's mean signed return from the open to the close of one trade.
+PER_TRADE = {
+    "A": 0.002446,
+    "A_CAL": 0.002035,
+    "A_PX": 0.002164,
+    "A_U": 0.001808,
+    "B1": 0.002162,
+    "B5": 0.001679,
+    "C": 0.002168,
+    "D": 0.002194,
+    "E1": 0.001927,
+    "E5": 0.001685,
+}
+
 #: The attribution, arithmetic annual return and Sharpe ratio, from the runs above.
 EFFECTS = {
     "universe": (-0.023065, -0.2094),
     "calendar": (0.016568, 0.3792),
+    "calendar, R5": (0.008661, -0.0265),
     "vendor": (0.000107, -0.0123),
     "basis": (0.000078, 0.0350),
     "all of it, E1 against A_U": (0.013811, 0.3770),
     "interaction, what E1 − A_U leaves": (-0.002942, -0.0249),
+    "E1 against A": (-0.009254, 0.1677),
+    "E5 against A_U": (0.013748, 0.1303),
+    "E5 against A": (-0.009317, -0.0790),
 }
 
 COMMITTED = ("A", "A_CAL", "A_PX", "A_U", "B1", "B5")
+
+#: A filing accepted at least this many days after its ``reportDate`` is the
+#: kind R5's late rule carries back to a quarter's first trading day. Chosen
+#: after reading the lags, so the checks reading it decide nothing.
+LONG_LATE_DAYS = 7
 
 
 @pytest.fixture(scope="module")
@@ -290,6 +349,74 @@ def effects_of(runs) -> dict[str, tuple[float, float]]:
     }
 
 
+def days_late(release: Release) -> int:
+    """How many calendar days the acceptance date trails the ``reportDate``."""
+    return (pd.Timestamp(release.accepted[:10]) - pd.Timestamp(release.report_date)).days
+
+
+def long_late(sources) -> tuple[list[Release], list[Release]]:
+    """The 8-Ks accepted at least :data:`LONG_LATE_DAYS` after their date, and the rest."""
+    late, rest = [], []
+    for release in sources.releases:
+        is_late = release.report_date and days_late(release) >= LONG_LATE_DAYS
+        (late if is_late else rest).append(release)
+    return late, rest
+
+
+def b5_reading_long_late_filings(sources, reading: str) -> Drift:
+    """B5 with the long-late filings read another way, which the registration did not fix.
+
+    ``"R1's day"`` puts each on the day R1 gives it. ``"no late rule"``
+    applies R5 without its late rule, which is R5 on an empty ``reportDate``.
+    ``"dropped"`` leaves them out.
+    """
+    stocks = sources.universe("CAL")
+    late, rest = long_late(sources)
+    flags = derived_flags(rest, stocks, sources.window, sources.days, "R5")
+    if reading == "R1's day":
+        moved = derived_flags(late, stocks, sources.window, sources.days, "R1")
+    elif reading == "no late rule":
+        undated = [replace(release, report_date="") for release in late]
+        moved = derived_flags(undated, stocks, sources.window, sources.days, "R5")
+    else:
+        moved = flags * 0
+    return pead(sources.opens[stocks], sources.closes[stocks], np.maximum(flags, moved))
+
+
+#: How far an open may sit from Chan's, once the archive's close is scaled to his.
+OPEN_TOLERANCE = 0.02
+
+
+def opens_off_chans(sources, prices) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Each PX stock-day's adjusted open against Chan's, and the scale that compares them.
+
+    The scale is Chan's close over the archive's adjusted close that day, so a
+    series that agrees with his on the close and the open gives 0.
+    """
+    stocks = sources.universe("PX")
+    scale = sources.closes.loc[sources.window, stocks] / prices.adjusted_close[stocks]
+    off = prices.adjusted_open[stocks] * scale / sources.opens.loc[sources.window, stocks] - 1
+    return off.abs(), scale
+
+
+def runs_on_chans_opens(sources, prices) -> dict[str, Drift]:
+    """C, E1 and E5 with every open off by more than the tolerance replaced by Chan's."""
+    off, scale = opens_off_chans(sources, prices)
+    stocks = sources.universe("PX")
+    chans = sources.opens.loc[sources.window, stocks] / scale
+    opens = prices.adjusted_open.copy()
+    opens[stocks] = prices.adjusted_open[stocks].where(off <= OPEN_TOLERANCE, chans)
+    runs = {}
+    for name, universe, flags in (
+        ("C", "PX", sources.flags),
+        ("E1", "U", sources.calendar_flags("R1")),
+        ("E5", "U", sources.calendar_flags("R5")),
+    ):
+        chosen = sources.universe(universe)
+        runs[name] = pead(opens[chosen], prices.adjusted_close[chosen], flags[chosen])
+    return runs
+
+
 class TestTheCommittedRuns:
     """A, A_CAL, A_PX, A_U, B1 and B5, which read only committed files and run everywhere."""
 
@@ -309,8 +436,44 @@ class TestTheCommittedRuns:
         assert spy.equals(sources.closes.index[sources.closes.index >= "2010-11-01"])
 
     def test_the_attribution_without_the_archive(self, runs) -> None:
-        expected = {label: EFFECTS[label] for label in ("universe", "calendar")}
+        expected = {label: EFFECTS[label] for label in ("universe", "calendar", "calendar, R5")}
         assert effects_of(runs) == expected, SPEC
+
+    @pytest.mark.parametrize("name", COMMITTED)
+    def test_the_return_per_trade(self, runs, name) -> None:
+        assert round(pead_rerun.per_trade(runs[name]), 6) == PER_TRADE[name], f"{name}: {SPEC}"
+
+    @pytest.mark.parametrize("name", COMMITTED)
+    def test_the_return_is_the_trades_times_their_mean(self, runs, name) -> None:
+        """Over a fixed 30, so more trades at the same mean raise the return in proportion."""
+        drift = runs[name]
+        rebuilt = drift.trades * pead_rerun.per_trade(drift) * TRADING_DAYS
+        rebuilt /= DENOMINATOR * len(drift.days)
+        assert rebuilt == pytest.approx(drift.arithmetic_annual, rel=1e-12)
+
+    def test_r1_earns_more_a_trade_and_r5_less_than_chans_flags_on_cal(self, runs) -> None:
+        """So most of B1's rise and all of B5's come from the extra trades."""
+        a_cal, b1, b5 = (runs[name] for name in ("A_CAL", "B1", "B5"))
+        assert (b1.trades, a_cal.trades, b5.trades) == (1291, 1052, 1477)
+        assert pead_rerun.per_trade(b5) < pead_rerun.per_trade(a_cal) < pead_rerun.per_trade(b1)
+        assert round(pead_rerun.per_trade(b1) / pead_rerun.per_trade(a_cal) - 1, 2) == 0.06
+        # The rise had B1 taken A_CAL's mean on its own trades, over the whole rise.
+        from_trades = (b1.trades - a_cal.trades) * pead_rerun.per_trade(a_cal)
+        whole = b1.trades * pead_rerun.per_trade(b1) - a_cal.trades * pead_rerun.per_trade(a_cal)
+        assert round(from_trades / whole, 2) == 0.75, SPEC
+
+    def test_b5_with_its_long_late_filings_read_three_other_ways(self, sources) -> None:
+        """None of these readings was registered. They show what the late rule's reach costs."""
+        figures_of = {
+            reading: (round(drift.arithmetic_annual, 6), round(drift.sharpe, 4))
+            for reading in ("R1's day", "no late rule", "dropped")
+            for drift in [b5_reading_long_late_filings(sources, reading)]
+        }
+        assert figures_of == {
+            "R1's day": (0.062600, 1.2802),
+            "no late rule": (0.064813, 1.2880),
+            "dropped": (0.059903, 1.2407),
+        }, SPEC
 
 
 class TestTheCalendarsAgainstChans:
@@ -335,6 +498,26 @@ class TestTheCalendarsAgainstChans:
             "2011-01-19", "2011-10-19",
         ]  # fmt: skip
 
+    def test_r5_carries_73_long_late_filings_back_to_a_quarters_first_day(self, sources) -> None:
+        """Mostly a quarter's period end, so the flag lands weeks before the release.
+
+        76 filings were accepted 7 or more days after their ``reportDate``.
+        R5 puts 73 of them inside the window, 64 of those dated at a quarter's
+        end, and Chan's file flags the stock on that day for 2 of them.
+        """
+        late, _ = long_late(sources)
+        landed = [
+            (release, r5_day(pd.Timestamp(release.accepted), release.report_date, sources.days))
+            for release in late
+        ]
+        inside = [(release, day) for release, day in landed if day in sources.window]
+        quarter_end = [r for r, _ in inside if pd.Timestamp(r.report_date).is_quarter_end]
+        chans = [r for r, day in inside if sources.flags.at[day, r.ticker] != 0]
+        assert (len(late), len(inside), len(quarter_end), len(chans)) == (76, 73, 64, 2)
+        assert all(
+            day == next_trading_day(pd.Timestamp(r.report_date), sources.days) for r, day in inside
+        )
+
 
 class TestTheArchiveRuns:
     """C, D, E1 and E5, which read the archive's prices. They skip without it."""
@@ -347,6 +530,23 @@ class TestTheArchiveRuns:
     def test_the_attribution(self, archive_runs) -> None:
         runs, _ = archive_runs
         assert effects_of(runs) == EFFECTS, ARCHIVE_SPEC
+
+    @pytest.mark.parametrize("name", ("C", "D", "E1", "E5"))
+    def test_the_return_per_trade(self, archive_runs, name) -> None:
+        runs, _ = archive_runs
+        assert round(pead_rerun.per_trade(runs[name]), 6) == PER_TRADE[name], ARCHIVE_SPEC
+
+    def test_the_interaction_without_the_basis_effect(self, archive_runs) -> None:
+        """Not registered. E1 and A_U both read adjusted prices, so no basis separates them."""
+        runs, _ = archive_runs
+        by = {e.label: e for e in pead_rerun.attribution(runs)}
+        left = [
+            by["all of it, E1 against A_U"].arithmetic
+            - by["calendar"].arithmetic
+            - by["vendor"].arithmetic,
+            by["all of it, E1 against A_U"].sharpe - by["calendar"].sharpe - by["vendor"].sharpe,
+        ]
+        assert (round(left[0], 6), round(left[1], 4)) == (-0.002865, 0.0102), ARCHIVE_SPEC
 
     def test_the_raw_prices_cross_a_split_in_sixteen_stocks(self, sources, archive_runs) -> None:
         """Why D runs without the guard: these are the days D exists to measure."""
@@ -361,3 +561,52 @@ class TestTheArchiveRuns:
         ratio = prices.adjusted_open / prices.raw_open
         expected = prices.adjusted_close / prices.raw_close
         assert (ratio - expected).abs().max().max() < 1e-12
+
+
+class TestTheArchiveOpens:
+    """The series check reads closes only, so these read the opens. They skip without it."""
+
+    def test_64_stock_days_over_56_stocks_open_more_than_2_percent_off_chans(
+        self, sources, archive_runs
+    ) -> None:
+        _, prices = archive_runs
+        off, _ = opens_off_chans(sources, prices)
+        over = off > OPEN_TOLERANCE
+        assert (int(over.to_numpy().sum()), int(over.any().sum())) == (64, 56), ARCHIVE_SPEC
+
+    def test_gci_repeats_a_stale_open_after_each_holiday(self, sources, archive_runs) -> None:
+        """Its raw open reads about 15.378 on five days, each the first after a market holiday."""
+        _, prices = archive_runs
+        stale = prices.raw_open["GCI"].round(3) == 15.378
+        assert list(prices.raw_open.index[stale].strftime("%Y-%m-%d")) == [
+            "2011-12-27", "2012-01-03", "2012-01-17", "2012-02-21", "2012-04-09",
+        ]  # fmt: skip
+        off, _ = opens_off_chans(sources, prices)
+        assert (off["GCI"][stale] > OPEN_TOLERANCE).all()
+
+    def test_chans_opens_in_their_place_move_e5_more_than_the_vendor_and_basis(
+        self, sources, archive_runs
+    ) -> None:
+        """Not registered. One E5 trade, PNC on 2011-09-12, turns from long to short."""
+        runs, prices = archive_runs
+        fixed = runs_on_chans_opens(sources, prices)
+        moves = {
+            name: (
+                round(fixed[name].arithmetic_annual - runs[name].arithmetic_annual, 6),
+                round(fixed[name].sharpe - runs[name].sharpe, 4),
+            )
+            for name in fixed
+        }
+        assert moves == {
+            "C": (0.000015, 0.0195),
+            "E1": (-0.000539, -0.0098),
+            "E5": (-0.004566, -0.1039),
+        }, ARCHIVE_SPEC
+        before = pd.DataFrame(runs["E5"].positions, index=runs["E5"].days)
+        after = pd.DataFrame(fixed["E5"].positions, index=fixed["E5"].days)
+        before.columns = after.columns = sources.universe("U")
+        changed = (before != after).stack()
+        assert list(changed[changed].index) == [(pd.Timestamp("2011-09-12"), "PNC")]
+        assert (before.at["2011-09-12", "PNC"], after.at["2011-09-12", "PNC"]) == (1.0, -1.0)
+        vendor_and_basis = EFFECTS["vendor"][0] + EFFECTS["basis"][0]
+        assert abs(moves["E5"][0]) > abs(vendor_and_basis)

@@ -68,6 +68,19 @@ the adjusted runs are the like-for-like ones.
 ratio. The universe effect is A_U − A, and the calendar, vendor and basis
 effects are B1 − A_CAL, C − A_PX and D − C. Whatever E1 − A_U leaves after
 the three is printed as their interaction rather than shared out among them.
+The registration's table also reads B5 against A_CAL, and E1 and E5 each
+against A_U and against A, so the report prints those four comparisons too.
+The interaction subtracts the basis effect as the registration words it,
+although E1 and A_U both read adjusted prices and so differ in no price basis.
+
+**The return per trade.** ``pead.m`` divides each day's summed returns by a
+fixed 30 whatever the day holds. So the arithmetic annual return is the
+trades taken times their mean signed return from the open to the close, times
+252, over 30 and over the 330 days. A calendar can raise the figure by taking
+more trades or by earning more on each, and the report prints each run's mean
+return per trade, :func:`per_trade`, so a reader can tell which. The Sharpe
+ratio does not depend on the 30, because dividing every day by one number
+scales the mean and the deviation alike.
 
 **The archive's prices never run in CI.** They sit in the owner's archive
 under the design doc's exception for licensed bars, so C, D, E1 and E5 run
@@ -85,27 +98,38 @@ figures. :func:`raw_breaks` counts the stocks it would refuse, and the report
 prints the count.
 
 **Deviations and choices.** No deviation from what the registration fixes.
-Four choices it left open, each of which moves a figure.
+Five choices it left open, each of which moves a figure or a count.
 
 1. **The route to an archive series.** The audit counted 399 same-company
-   series by looking only under Chan's own ticker. Here the check is run on
-   every series in the ``sp500`` cross-section, so a renamed company, such as
-   Chan's UTX under the archive's RTX, joins PX when its returns match. PX
-   holds 446 stocks rather than 399, and the table names which route found
-   each series.
+   series under Chan's own tickers. The check here passes 398 of them, and
+   running it on every series in the ``sp500`` cross-section adds 48 renamed
+   companies, such as Chan's UTX under the archive's RTX, so PX holds 446.
+   The table names which route found each series.
 2. **What a checked CIK is.** The registration says only "a checked CIK".
    :func:`chan.earnings_filings.check_cik` reads IVV's schedule at
-   2012-03-31, so five stocks Chan's file holds and IVV did not then, AK
-   Steel, Compuware, Monster Worldwide, Tellabs and MEMC, leave CAL with
-   their CIKs right. Its fourth link drops Leucadia, whose CIK filed no Item
-   2.02 8-K in the window. Three more leave on the name: Cablevision, which
-   the schedule prints as "Cablevision NY Group", DuPont, which EDGAR's
-   company list spells "DUPONT E I DE NEMOURS", and NYSE Euronext, which
-   EDGAR files with no legal form.
+   2012-03-31, and nine stocks leave CAL.
+
+   1. Five are not in that schedule although Chan's file holds them: AK
+      Steel, Compuware, Monster Worldwide, Tellabs and MEMC. Two of them
+      also carry another company's proposed CIK: Compuware carries
+      TetriDyn's, 827099, and Monster Worldwide carries Verisk's, 1442145.
+   2. Cablevision's proposed CIK is BJ's Wholesale's, 1037461.
+   3. DuPont's proposed CIK is the DuPont formed after 2015, 1666700, which
+      had filed nothing by the price day and so fails on dates.
+   4. NYSE Euronext fails on the name, because EDGAR files it with no legal
+      form.
+   5. Leucadia's CIK filed no Item 2.02 8-K in the window, so the fourth
+      link drops it.
 3. **The trading days.** The calendars move a filing to a trading day of the
    committed raw SPY vintage, which agrees with Chan's price file on every
    day from 2010-11-01 to 2012-04-24.
 4. **D runs without the scale-break guard**, for the reason above.
+5. **The calendars cover CAL rather than all 497.** The correction on issue
+   251 asked for flags in the shape of Chan's file, 330 days by 497 stocks.
+   The index holds no filing for the nine stocks outside CAL, so the derived
+   calendars run over CAL's 488 alone. No run reads a stock outside CAL on a
+   derived calendar, so only the counts of agreement with Chan's flags
+   depend on this choice.
 
 The denominator stays 30 in every run, as the rule fixes it, although the
 derived calendars put more than 30 stocks on their busiest days. A day
@@ -121,11 +145,12 @@ from dataclasses import dataclass
 from datetime import time
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from chan.archive import ArchiveEntry, ArchiveUnavailable, read_cross_section
 from chan.earnings_filings import FORM, Release, TickerRow, read_index, read_table
-from chan.pead import Drift, pead, read_sources, refuse_scale_breaks
+from chan.pead import DENOMINATOR, Drift, pead, read_sources, refuse_scale_breaks
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break
 from chan.sp500_panel import calendar as spy_calendar
 from chan.vintage import VintageEntry, VintageUnavailable
@@ -140,7 +165,7 @@ UNIVERSES = ("ALL", "CAL", "PX", "U")
 
 @dataclass(frozen=True)
 class Spec:
-    """One registered run: its stocks, its prices and its flags."""
+    """One run issue 251 fixed before it ran: its stocks, its prices and its flags."""
 
     name: str
     universe: str
@@ -148,7 +173,7 @@ class Spec:
     flags: str
 
 
-#: Every registered run, in the registration's order.
+#: Every run issue 251 fixed, in the registration's order.
 SPECS = (
     Spec("A", "ALL", "Chan", "Chan"),
     Spec("A_CAL", "CAL", "Chan", "Chan"),
@@ -166,13 +191,23 @@ SPECS = (
 ARCHIVE_RUNS = tuple(spec.name for spec in SPECS if spec.prices != "Chan")
 
 #: The attribution's effects: a label, the run, and the run it is read against.
+#: Beside the five the attribution names, the registration's table reads B5
+#: against A_CAL, E1 against A, and E5 against A_U and against A.
 EFFECTS = (
     ("universe", "A_U", "A"),
     ("calendar", "B1", "A_CAL"),
+    ("calendar, R5", "B5", "A_CAL"),
     ("vendor", "C", "A_PX"),
     ("basis", "D", "C"),
     ("all of it, E1 against A_U", "E1", "A_U"),
+    ("E1 against A", "E1", "A"),
+    ("E5 against A_U", "E5", "A_U"),
+    ("E5 against A", "E5", "A"),
 )
+
+#: The comparison the interaction is read from, and the interaction's own label.
+TOTAL = "all of it, E1 against A_U"
+INTERACTION = "interaction, what E1 − A_U leaves"
 
 
 # --- The calendars -------------------------------------------------------------
@@ -445,10 +480,11 @@ class Effect:
 
 
 def attribution(runs: Mapping[str, Drift]) -> list[Effect]:
-    """The registered effects, and the interaction E1 − A_U leaves after three of them.
+    """The comparisons issue 251 fixed, with the interaction right after E1 − A_U.
 
-    An effect whose runs are not in ``runs`` is left out, and so is the
-    interaction unless all four of its effects are there.
+    The interaction is what E1 − A_U leaves after the calendar, vendor and
+    basis effects. An effect whose runs are not in ``runs`` is left out, and
+    so is the interaction unless all four of its effects are there.
     """
     effects = []
     for label, run, reference in EFFECTS:
@@ -462,16 +498,24 @@ def attribution(runs: Mapping[str, Drift]) -> list[Effect]:
             )
     by = {effect.label: effect for effect in effects}
     parts = ("calendar", "vendor", "basis")
-    total = "all of it, E1 against A_U"
-    if total in by and all(part in by for part in parts):
-        effects.append(
-            Effect(
-                "interaction, what E1 − A_U leaves",
-                by[total].arithmetic - sum(by[part].arithmetic for part in parts),
-                by[total].sharpe - sum(by[part].sharpe for part in parts),
-            )
+    if TOTAL in by and all(part in by for part in parts):
+        interaction = Effect(
+            INTERACTION,
+            by[TOTAL].arithmetic - sum(by[part].arithmetic for part in parts),
+            by[TOTAL].sharpe - sum(by[part].sharpe for part in parts),
         )
+        effects.insert(effects.index(by[TOTAL]) + 1, interaction)
     return effects
+
+
+def per_trade(drift: Drift) -> float:
+    """The mean signed return from the open to the close of one trade.
+
+    ``pead.m`` sums each day's signed returns and divides by 30, so 30 times
+    the days' summed returns is the trades' summed returns. A trade whose
+    return is missing counts as 0 there, as ``smartsum`` reads it.
+    """
+    return float(DENOMINATOR * np.sum(drift.daily) / drift.trades)
 
 
 # --- The report ----------------------------------------------------------------
@@ -495,7 +539,8 @@ def report(
     print()
     header = (
         f"  {'Run':<6} {'Stocks':<6} {'Prices':<9} {'Flags':<6} {'Arith':>9} {'Sharpe':>7} "
-        f"{'APR':>9} {'MaxDD':>10} {'DDdays':>6} {'Trades':>6} {'Busiest':>7}"
+        f"{'APR':>9} {'MaxDD':>10} {'DDdays':>6} {'Trades':>6} {'Busiest':>7} "
+        f"{'PerTrade':>9}"
     )
     print(header)
     for spec in SPECS:
@@ -507,7 +552,7 @@ def report(
             f"  {spec.name:<6} {spec.universe:<6} {spec.prices:<9} {spec.flags:<6} "
             f"{drift.arithmetic_annual:9.6f} {drift.sharpe:7.4f} {drift.compounded_apr:9.6f} "
             f"{drift.max_drawdown:10.6f} {drift.max_drawdown_days:6d} {drift.trades:6d} "
-            f"{drift.most_held:7d}"
+            f"{drift.most_held:7d} {per_trade(drift):9.6f}"
         )
     print()
     print(f"  {'Effect':<36} {'Arith':>10} {'Sharpe':>8}")

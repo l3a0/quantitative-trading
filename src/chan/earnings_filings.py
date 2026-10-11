@@ -8,7 +8,7 @@ drift survives a calendar nobody hand-collected is a separate question.
 [Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) asks it,
 and :mod:`chan.pead_rerun` runs the comparison. A company announcing earnings
 files a Form 8-K carrying Item 2.02, "Results of Operations and Financial
-Condition", and EDGAR records the minute each filing was accepted. This module
+Condition", and EDGAR records the second each filing was accepted. This module
 reads those filings into a record under ``research/filings/earnings/``.
 
 The record lives beside the fund holdings under ``research/filings`` rather
@@ -126,7 +126,11 @@ INDEX_NAME = "index.jsonl"
 #: The first and last Eastern dates of acceptance the index keeps. The first is
 #: a month before the flag file's first day, 2011-01-03, so a release accepted
 #: in the evening of the last trading day of 2010 reaches it. The last is the
-#: flag file's last day.
+#: flag file's last day. R1 reads only the acceptance time, so nothing accepted
+#: later could flag a day inside the window under it. R5's late rule reaches
+#: back from acceptance to the day after ``reportDate``, so the cutoff drops the
+#: last quarter's period-end filings accepted after it, which in earlier
+#: quarters numbered 6 to 10 and land weeks before the release anyway.
 FIRST_ACCEPTED = "2010-12-01"
 LAST_ACCEPTED = "2012-04-24"
 
@@ -178,7 +182,7 @@ CIK_SOURCES = {
 
 #: What a CIK check can conclude.
 CIK_CHECKS = {
-    "pass": "the three links hold",
+    "pass": "all four links hold",
     "dates": "the CIK filed nothing before the price day, or nothing after it",
     "name": "no single IVV holding carries the CIK's name on the price day",
     "price": "the holding with that name is priced away from Chan's close",

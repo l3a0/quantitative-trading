@@ -523,11 +523,15 @@ class TestTheCommittedTable:
         assert abs(gaps[widest]) < PRICE_TOLERANCE < 0.0592
 
     def test_the_days_allowed_sit_between_the_same_and_another_company(self, table) -> None:
-        """A same-company series differs on at most two days, 2011-10-27 and 2011-10-28.
+        """A same-company series differs on at most two days, and another company on 72.
 
-        Chan's file carries closes on 2011-10-27 that the next day undoes
-        across many stocks, so a series agreeing everywhere else still
-        differs on those two returns. The closest other company differs on 72.
+        Most of the differences fall on 2011-10-27 and 2011-10-28. Chan's
+        file carries closes on 2011-10-27 that the next day undoes across many
+        stocks, so a series agreeing everywhere else still differs on those
+        two returns. Ten passing series differ on other days instead, one or
+        two each, such as VMC on 2011-12-12 and 2011-12-13.
+        ``TestTheArchive::test_which_days_the_passing_series_differ_on`` pins
+        those days where the archive is.
         """
         passing = [int(row.days_over) for row in table if row.priced]
         failing = [int(row.days_over) for row in table if row.archive_check == "returns"]
@@ -577,12 +581,45 @@ class TestTheCommittedIndex:
         path = earnings_filings.RECORD_DIR / earnings_filings.INDEX_NAME
         assert path.read_bytes() == earnings_filings.serialize_index(index)
 
+    def test_the_directory_holds_only_the_table_and_the_index(self) -> None:
+        """``tests/test_fund_holdings.py`` leaves this directory out of its sweep for this."""
+        directory = earnings_filings.RECORD_DIR
+        assert sorted(path.name for path in directory.rglob("*")) == [
+            earnings_filings.INDEX_NAME,
+            earnings_filings.TABLE_NAME,
+        ]
+
     def test_the_record_takes_869661_bytes(self) -> None:
         """Outside data/ and its cap, as the fund record is."""
         directory = earnings_filings.RECORD_DIR
-        sizes = {path.name: path.stat().st_size for path in directory.iterdir()}
+        sizes = {
+            name: (directory / name).stat().st_size
+            for name in (earnings_filings.INDEX_NAME, earnings_filings.TABLE_NAME)
+        }
         assert sizes == {"index.jsonl": 838079, "tickers.csv": 31582}
         assert sum(sizes.values()) == 869661
+
+    def test_how_many_quarter_end_filings_trail_the_next_months_24th(self, index) -> None:
+        """Why the window's last day costs R5 the last quarter's long-late filings.
+
+        R5 carries a filing accepted after its ``reportDate`` back to the
+        trading day after that date, so a filing dated at a quarter's end and
+        accepted weeks later flags the quarter's first day. The index stops
+        at acceptance on 2012-04-24, so a filing dated 2012-03-31 and accepted
+        later is not in it, and the index holds 3 dated that day. In the five
+        earlier quarters, 6 to 10 filings dated at the quarter's end were
+        accepted after the 24th of the next month. R1 reads only the
+        acceptance time, so the cutoff costs it nothing inside the window.
+        """
+        counts = {}
+        for quarter in ("2010-12-31", "2011-03-31", "2011-06-30", "2011-09-30", "2011-12-31"):
+            cutoff = (pd.Timestamp(quarter) + pd.offsets.MonthBegin(1)).replace(day=24)
+            dated = [r for r in index if r.report_date == quarter]
+            counts[quarter] = sum(pd.Timestamp(r.accepted[:10]) > cutoff for r in dated)
+        assert counts == {
+            "2010-12-31": 10, "2011-03-31": 9, "2011-06-30": 7, "2011-09-30": 6, "2011-12-31": 7,
+        }  # fmt: skip
+        assert sum(r.report_date == "2012-03-31" for r in index) == 3
 
 
 class TestTheArchive:
@@ -593,3 +630,33 @@ class TestTheArchive:
         if reason is not None:
             pytest.skip(reason)
         assert earnings_filings.check() == []
+
+    def test_which_days_the_passing_series_differ_on(self, table, closes) -> None:
+        """88 series differ on 2011-10-27 and 86 on 2011-10-28. Ten differ on other days."""
+        reason = archive_skip_reason()
+        if reason is not None:
+            pytest.skip(reason)
+        from chan.archive import read_cross_section
+
+        passing = [row for row in table if row.priced]
+        _, archive = read_cross_section(
+            "sp500", symbols=sorted({row.archive_ticker for row in passing})
+        )
+        window = read_sources()[4].index
+        days: Counter[str] = Counter()
+        elsewhere = {}
+        for row in passing:
+            chan = closes[row.ticker].loc[window]
+            theirs = archive[row.archive_ticker].reindex(window)
+            difference = (chan.pct_change() - theirs.pct_change()).abs()
+            over = list(difference.index[difference > RETURN_TOLERANCE].strftime("%Y-%m-%d"))
+            days.update(over)
+            if set(over) - {"2011-10-27", "2011-10-28"}:
+                elsewhere[row.ticker] = over
+        assert (days["2011-10-27"], days["2011-10-28"]) == (88, 86)
+        assert elsewhere == {
+            "EL": ["2011-11-23"], "FE": ["2011-02-28", "2011-03-02"],
+            "LTD": ["2011-06-15", "2011-12-08"], "MAR": ["2011-11-22"], "MHS": ["2012-04-03"],
+            "MRO": ["2011-07-01"], "MSI": ["2011-01-04"], "PCAR": ["2011-12-15"],
+            "VMC": ["2011-12-12", "2011-12-13"], "WYNN": ["2011-11-21"],
+        }  # fmt: skip
