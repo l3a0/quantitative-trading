@@ -8845,6 +8845,16 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
 it, since that post's Lesson 3 quotes these figures.
+[blog/pca-factor-momentum-lessons.md](../blog/pca-factor-momentum-lessons.md)
+moves with it too, since that post quotes most of them. It also quotes what
+the write-up measured after the run, which `TestWhatThePostMeasured` in
+[tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
+pins and which decides nothing: how often each factor's weights flip sign
+and swap rank from day to day, the statistic on three other ways of reading
+tomorrow's factor return, PMC's weight on the 113 pair days whose window
+holds its one large return, and the two days that carry PC2's statistic. Its
+one figure, which `uv run python -m chan.pca_factor_momentum_figures`
+redraws, moves with them.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
