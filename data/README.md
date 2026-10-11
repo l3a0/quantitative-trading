@@ -943,6 +943,11 @@ first replication to read the CL strip named for 2012-05-02, through
 [issue 356](https://github.com/l3a0/quantitative-trading/issues/356). It
 takes that strip's contracts through the same reader, which declares the
 file a strip read without a spot.
+`VX_ES_rollreturn.m`'s trade of VX against ES on VX's roll return runs here
+through `chan.vx_es_roll_return`, for
+[issue 357](https://github.com/l3a0/quantitative-trading/issues/357). It is
+the second replication to read the VX strip, after the VX calendar spread,
+and it reads the strip through the same reader.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 
@@ -1229,6 +1234,16 @@ save, which `gapFutures_FSTX.m` loads and whose figures the book prints, as
 [issue 358](https://github.com/l3a0/quantitative-trading/issues/358)
 measured. It reads the 2012-05-11 and 2012-05-07 saves for one row each
 beside the replication, and neither lands the script's printed APR.
+
+`chan.vx_es_roll_return` reads ES from the 2012-05-07 save and VIX from
+`VIX.csv`, as `VX_ES_rollreturn.m` does, for
+[issue 357](https://github.com/l3a0/quantitative-trading/issues/357). It is
+the first replication to read `VIX.csv`. It guards VIX from 2008-08-04, the
+day the script counts its training and test rows from. The file's one flagged
+day, 2007-02-27, falls before it, and no figure reads that day. The row
+beside the replication that trades the fitted hedge also reads VX's
+continuous close from the same save, through `chan.vx_es.read_legs`, which
+guards it and ES over their whole spans.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

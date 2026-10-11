@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-five from his *Algorithmic Trading*. The first two were ported from the
+Forty-one replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-six from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-eight were built here.
+where they were first built. The other thirty-nine were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -553,6 +553,21 @@ where they were first built. The other thirty-eight were built here.
     The momentum sign the text describes gives −0.124236 and −1.441620, so the
     claim the figures were printed for does not reproduce. Every figure is
     exploratory.
+41. VX futures against E-mini S&P 500 futures on VX's roll return, after
+    Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
+    Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
+    trade is short the front VX contract and ES when the front sits above VIX
+    by more than 0.1 point per trading day to settlement, and long both when
+    it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
+    all eight figures its comments print reproduce at six decimals. With
+    0.3906 VX contracts per ES contract, the commented rule, the APR is
+    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
+    lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
+    of 1. With one VX contract per ES contract, the rule the script ships,
+    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
+    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
+    the script traded the printed 0.3906. An entry from flat pays no cost,
+    as in the script. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -949,7 +964,18 @@ holds both entry tests non-strict, a missing spread qualifying nothing, a
 short overriding a long, and the sign of each reading's open-to-close
 return. It also holds the read guarded.
 
-All forty replications reach a verdict in
+[tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
+for VX against ES on VX's roll return. It pins the eight figures of both
+rules at full precision against the script's comments and the book's two,
+the fitted hedge's miss beside them, and the counts of the test's days held,
+short, long and entered from flat. It holds the two quirks the run keeps,
+the free entry from flat and the file's last day read as an expiry. On
+synthetic strips it holds the days to settlement counting one past expiry,
+the strict threshold, both legs signed alike with VX scaled by the hedge, the
+one-day lag, the gross divisor and the cost of an exit. It also holds each
+read guarded and the flagged day in VIX read by no figure.
+
+All forty-one replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -969,7 +995,8 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, and Entry 40 the opening gap strategy's on FSTX.
+trade's, Entry 40 the opening gap strategy's on FSTX, and Entry 41 the
+VX against ES trade on VX's roll return.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1803,6 +1830,20 @@ It prints the vintage, both readings of the return line beside the script's
 comment and the book's figures with a verdict, the drawdowns and the days
 each side holds, and the literal reading on the 2012-05-11 and 2012-05-07
 saves.
+
+VX against ES on VX's roll return takes no option either, because the script
+fixes its three files, its threshold, its cost and its test:
+
+```bash
+uv run python -m chan.vx_es_roll_return
+```
+
+It prints the strip, the VIX and ES vintages, and the vintage of VX's
+continuous close that only the fitted hedge reads. Then it prints the four
+figures of each rule beside the script's comment with a verdict, the APR and
+the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
+with no verdict, and how many of the test's days are held, short, long and
+entered from flat.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -4180,9 +4221,9 @@ which trades crude oil's 12-month calendar spread on the z-score of its roll
 return. Chan reports a half-life of 36 days, stationarity "with 99 percent
 probability", and an APR of 8.3 percent with a Sharpe ratio of 1.3 from
 2008-01-02 to 2012-08-13. The post links the earlier calendar-spreads post,
-the spot and roll returns post, the USD.CAD post, the price-spread-ratio post
-and the VX against E-mini post rather than repeating them, and draws five lessons from Entry 34 of the
-replication log.
+the spot and roll returns post, the USD.CAD post, the price-spread-ratio post,
+the VX against E-mini post and the VIX calendar spread post rather than
+repeating them, and draws five lessons from Entry 34 of the replication log.
 
 1. The book's figures reproduce on Chan's own file, and the figures in the
    script's comment land only on a window starting a day later, found by a
@@ -4210,9 +4251,11 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the correlation is strong but not the
    one-for-one the model gives, that the ADF test's long-run reversion and the
    trade's short-run continuation can both hold of one series, that the half-life
-   measures a reversion the trade bets against, that the log of VIX's ratio of
-   back to front is its spread, and that any backtest inferring expiry from
-   the last price goes flat at the end of a file saved while contracts trade.
+   measures a reversion the trade bets against, that the log of a VIX pair's
+   ratio of far to near is that pair's log spread, that the book's ratio of
+   back to front most plainly reads the two nearest contracts, and that any
+   backtest inferring expiry from the last price goes flat at the end of a
+   file saved while contracts trade.
 4. Figures the post states in words or as percentages of pinned ones, such as
    8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
    about three days in four. The figure's alt text reads its curves and the
@@ -4223,10 +4266,12 @@ Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
 to
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
-for the figure's own numbers, or to
-[tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's 6,467
-days from 1986-11-03 and γ as −12 times the slope. Twelve things had no pin
-before it.
+for the figure's own numbers, to
+[tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) for the
+126 of 847 held days on which the VIX trade's near leg is the front contract,
+or to [tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's
+6,467 days from 1986-11-03 and γ as −12 times the slope. Twelve things had no
+pin before it.
 
 1. The held pair's log spread correlates with γ at −0.883910 on the window's
    1,097 held days, and at −0.893686 on all 1,429 held days of the file.

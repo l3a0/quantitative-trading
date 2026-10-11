@@ -913,7 +913,7 @@ class TestTheCommandPicksItsReaderByTheFile:
 
         assert capsys.readouterr().err.splitlines() == [
             "inputDataDaily_CL_20120813.mat: not recorded. the file is a futures strip, whose "
-            "settlements are recorded under the raw basis rather than adjusted"
+            "prices are recorded under the raw basis rather than adjusted"
         ]
         assert read_manifest(data_dir) == []
 

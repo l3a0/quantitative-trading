@@ -274,6 +274,20 @@ records, an APR of 0.1327 and a Sharpe ratio of 1.44, sit in the script and
 nowhere in the book. The replication
 log's Entry 40 traces each figure to one or the other.
 
+*Algorithmic Trading*'s VX against ES trade on VX's roll return, after Simon
+and Campasano, splits the same way. The book's figures are here: the rule,
+with its hedge of 0.3906 VX contracts per ES contract, and the APR of 6.9
+percent and Sharpe ratio of 1 from July 29, 2010, to May 7, 2012, all at
+location 2754, which also names Figure 6.4. Location 2747 says why ES can
+stand in for VIX, which no ETF holds. `VX_ES_rollreturn.m`'s comments print
+two blocks of figures, which sit in the script and nowhere in the book. Lines
+81 to 82 print an APR of 0.069065, a Sharpe ratio of 1.002020, a maximum
+drawdown of −0.075683 and a longest drawdown of 259 days for the 0.3906
+hedge, the rule the text describes. Lines 86 to 88 print 0.293906, 3.263952,
+−0.035798 and 59 days for one VX contract per ES contract, the rule the
+script ships. The replication log's Entry 41 traces each figure to one or the
+other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
