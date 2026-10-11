@@ -1268,6 +1268,21 @@ among them. The row beside the replication that trades the fitted hedge is the
 only one that uses VX's continuous close as data, through
 `chan.vx_es.read_legs`, which guards it and ES over their whole spans.
 
+`chan.vix_filter` reads the close of `VIX.csv` for the two VIX-filtered
+variants at location 3509, for
+[issue 359](https://github.com/l3a0/quantitative-trading/issues/359). It runs
+buy on gap on the 497-stock file of 2012-04-24 and the opening gap rule on
+FSTX from the 2012-05-17 save, each through its own module and read path, and
+joins each calendar to VIX's. VIX ends on 2012-05-08, so the join drops the 7
+FSTX days after it. VIX's one flagged day, 2007-02-27, falls inside both
+windows, so it guards VIX over two spans in each, from the window's first
+joined day to 2007-02-26 and from 2007-02-27 to its last joined day. Together
+they guard every day-over-day move the run reads except that one real move,
+which `tests/test_scale_breaks.py` pins. The guard flags only a move of 1.6
+times or more, so a smaller rescale passes it on any span. VIX's largest
+close before the flagged day is 23.81, which a rescale of 1.47 times would
+carry past the threshold of 35.
+
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.
 

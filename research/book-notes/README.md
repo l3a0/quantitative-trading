@@ -299,6 +299,12 @@ Location 3438 holds the growth rates of 0.002484 and 0.002525 and the
 drawdown of 0.9. Location 3426 describes the CPPI scheme and prints no
 figure. The replication log's Entry 43 traces each figure to its location.
 
+*Algorithmic Trading*'s VIX filter takes every figure from the book too,
+because no script ships for it. Location 3509 holds the threshold of 35, buy
+on gap's 17.2 percent and Sharpe ratio of 1.4 on the days after the VIX closed
+above it, and FSTX's 2.6 percent and 0.16 on the same days. The replication
+log's Entry 47 traces each figure to its location.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
