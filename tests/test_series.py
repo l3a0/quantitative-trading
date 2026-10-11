@@ -1565,6 +1565,11 @@ class TestTheETFFileSubtractsEachDividend:
     gives the dividend. Every read names its download date, so a second
     download of one symbol does not make it ambiguous, which is the failure
     [issue 83](https://github.com/l3a0/quantitative-trading/issues/83) tracks.
+
+    ``blog/xle-uso-roll-return-lessons.md`` quotes SPY's 14.98 and its 24
+    dividends, which
+    ``test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day``
+    pins, so a change to that pin moves that post too.
     """
 
     SOURCE = "inputData_ETF.mat"

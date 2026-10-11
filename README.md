@@ -542,7 +542,10 @@ where they were first built. The other thirty-nine were built here.
     and the Sharpe ratio round to the book's 16 percent and "about 1". The
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
-    returns are not what a holder of XLE earned. Every figure is exploratory.
+    returns are not what a holder of XLE earned. The 244 days earning on
+    backwardation hold 0.308117 of the trade's summed daily return of
+    0.946538, and on them USO rose 0.5323 in log terms while the ratio
+    implies a roll return of 0.072380. Every figure is exploratory.
 40. VX futures against E-mini S&P 500 futures on VX's roll return, after
     Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
     Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
@@ -965,7 +968,14 @@ and in backwardation. It holds the two quirks of the script's loop on this
 strip and the ratio the calendar spread's schedule would give in its place.
 On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
-the half-capital divisor. It also holds both reads guarded.
+the half-capital divisor. It also holds both reads guarded. It holds what the
+write-up measured too: the 40-row start binding only for CL-2007F, the same
+ratio on the save of 2012-08-14, the script's front as the nearest contract on
+734 days and the second on 641, the ratio against Example 5.3's γ, the
+figures from 2006-10-20, and each view's days, returns and implied roll
+return beside the fixed view's. On synthetic frames it holds the split by
+view and the fixed view. The blog post about it is the exception, and what it
+says that nothing here asserts is listed below.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
@@ -4894,6 +4904,114 @@ uv run python -m chan.gld_gc_figures
 
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) holds what it
 draws rather than its bytes, for the reason given above for the regime map.
+
+[blog/xle-uso-roll-return-lessons.md](blog/xle-uso-roll-return-lessons.md) is
+a thirty-sixth post, about the XLE against USO trade at location 2734 of
+Chan's *Algorithmic Trading*. The trade is short USO and long XLE when crude
+oil's back contract is priced above its front, and the reverse when below.
+Chan reports an APR of 16 percent and a Sharpe ratio of about 1 from
+2006-04-26 to 2012-04-09. The post links the long GLD and short gold futures
+post, the crude oil calendar spread post, the spot and roll returns post, the
+crude oil reversal and momentum post and the gold miners post rather than
+repeating them, and draws five lessons from Entry 39 of the replication log.
+
+1. The pair stands in for crude's spot against its futures only by the book's
+   argument, and the script's front is the nearest contract on 734 of the
+   1,375 days with a ratio and the second-nearest on 641.
+2. All five figures the script's comment prints and the book's two land, and
+   the one-pair ratio and Example 5.3's γ call the same view on 1,354 of the
+   1,373 days the ratio is not exactly 1.
+3. The trade holds contango on 1,129 days and backwardation on 244, and
+   nothing on its first 123. From 2006-10-20 its APR is 0.174513.
+4. The ETF file subtracts dividends in dollars, so XLE's returns are not what
+   a holder earned, and nothing committed measures by how much.
+5. The 244 days earning on backwardation hold 0.308117 of the summed daily
+   return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
+   implies a roll return of 0.072380, and holding contango's position
+   throughout gives an APR of 0.044949.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   USO not owning oil at 1939, XLE and the spot price at 2385, the arbitrage
+   of the underlying against the future at 2718, and the trade, its figures
+   and Figure 6.3's caption at 2734.
+2. Facts about the script rather than the data: its comment calling the
+   front window days before expiration, and its commented-out last lines
+   that overlay the contango flag on its plot, both in `XLE_CL_rollReturn.m`
+   at `e4bc46f` of ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the ratio approximates the roll return
+   under the book's model, that the old front is still priced for the 10
+   rows after the script moves on, that rescaling gives a holder's return
+   and subtraction reads larger in the earliest years, that a yfinance
+   adjusted close rescales, that a fund drops by about its dividend on the
+   day it goes out, that XLE pays dividends, that Chan's single contracts
+   were not rewritten between his saves the way a continuous future is, that
+   the contango days are the book's trade and the backwardation days a bet on
+   the funds' moves, and that a split by date was measured and left out.
+4. Figures the post states in words or rounds from pinned ones, such as a
+   third, under a fifth of the earning days, about 7 percent, close to USO's
+   fall, far exceeds, a small part, one fewer than 1,129, 127 and 84 percent,
+   and the contango of early 2009. The figure's alt text reads its curves
+   approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py), or to
+[tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
+for the figure's own numbers. CL's γ changing sign 29 times, which the post
+cites from the spot and roll returns post, traces to
+[tests/test_roll_returns.py](tests/test_roll_returns.py), and SPY's 14.98 and
+its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
+[tests/test_series.py](tests/test_series.py). Nine had no pin before it.
+
+1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
+   gives the same ratio on all 1,375 days.
+2. USO's close falls from 69.54 to 38.97, or 43.9603 percent, and XLE's rises
+   from 51.97 to 69.61, or 33.9427 percent.
+3. The script's front is the nearest priced contract on 734 days and the
+   second-nearest on 641.
+4. The ratio and Example 5.3's γ on the save of 2012-08-14 agree on 1,354 of
+   the 1,373 days the ratio is not exactly 1, with 13 and 6 the other way, and γ
+   positive on both days the ratio is 1.
+5. From 2006-10-20 the APR is 0.174513 and the Sharpe ratio 1.092618, with
+   both drawdown figures unchanged, and after its first entry the position
+   changes on 19 days.
+6. The trade earns on contango on 1,128 days and on backwardation on 244,
+   compounding to 0.790269 and 0.343539 and summing to 0.638420 and 0.308117
+   of 0.946538.
+7. USO moves −0.567754 and 0.702850 and XLE 0.549091 and −0.097061 over those
+   days, USO's log moves are −0.8388 and 0.5323, and the ratio implies roll
+   returns of −0.766081 and 0.072380.
+8. Holding contango's position on every held day gives an APR of 0.044949 and
+   a Sharpe ratio of 0.364524.
+9. The figure's own: the two curves' ends of 1.405296 and 0.298702, which
+   its legend prints as 140.53 and 29.87 percent, the
+   drawdown's high of 1.272665 on 2009-02-18 and trough of 0.835584 on
+   2009-06-29, the longest run below a high from 2009-02-19 to 2011-01-24,
+   the nine backwardation spans, and the ratio's low of 0.982067 on 2007-09-26
+   and high of 1.111489 on 2009-02-05.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/xle_uso_roll_return_figures.py](src/chan/xle_uso_roll_return_figures.py),
+which reads them through the same `read_sources`, `front_ratio` and
+`arbitrage` as `python -m chan.xle_uso_roll_return`, so the scale-break guard
+runs for it too. It draws two panels on one date axis, both shading the days
+held in backwardation and hatching the first 123 days.
+
+1. The trade's cumulative compounded return, the book's Figure 6.3, with
+   contango's position held on every held day beside it and the drawdown's
+   high, trough and longest run marked.
+2. The ratio of the back contract to the front, with a line at 1.
+
+```bash
+uv run python -m chan.xle_uso_roll_return_figures
+```
+
+[tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
 
 ## Where the book's numbers come from
 
