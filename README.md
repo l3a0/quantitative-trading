@@ -3783,7 +3783,7 @@ lessons from Entry 36 of the replication log.
 
 1. The declared rule misses all three printed figures, and Chan's 2012-05-11
    save lands near the rebuilt series, so the vintage does not explain the
-   miss.
+   miss on the 849 window days that save covers.
 2. It beats Example 6.1 on all three on one series, by stepping aside. Example
    6.1 is fully long on every window row, so it is holding TU, and the 341
    rows the declared rule sits out compound to about nothing while its
@@ -3809,12 +3809,15 @@ Five groups of what it says are not pinned here.
    nearest contracts gave the fifth-contract reading. No test repeats either.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
-   short in a window where TU fell, and that a position on TU's notional value
-   would be leveraged.
+   short in a window where TU fell, that a position on TU's notional value
+   would be leveraged, and that Example 6.1's line moves up in some of the
+   figure's shaded stretches and down in others.
 4. Arithmetic the post takes between pinned figures in words: the 1.80 and
-   1.20 that average return over volatility gives, the 64 rows no save
-   covers, a third of γ as three times the month reading, and 341 of 913 as
-   the rows outside the 572.
+   1.20 that average return over volatility gives, the 64 window rows the
+   2012-05-11 save does not cover, a third of γ as three times the month
+   reading, 341 of 913 as the rows outside the 572, and the APR margins of
+   0.000304 and 0.000225 over the save's 849 rows, each the difference of two
+   pinned APRs.
    The figure's alt text reads its curves approximately too.
 5. Its references, cited rather than computed.
 

@@ -30,6 +30,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import PercentFormatter
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
+from chan.matlab_helpers import backshift
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, MUTED, SURFACE
 from chan.roll_momentum import (
@@ -88,7 +89,8 @@ def make_roll_momentum_figure(out: Path | None = None, strip: Strip | None = Non
     gamma = result.gamma[result.window]
     peak = int(np.nanargmax(gamma))
     found, against = result.figures, result.example_figures
-    tranches = result.example_positions[result.window]
+    # The tranches each window row earns on are the ones set the row before.
+    tranches = backshift(1, result.example_positions)[result.window]
 
     fig = Figure(figsize=(10, 9.4), dpi=130)
     fig.patch.set_facecolor(SURFACE)
@@ -122,7 +124,7 @@ def make_roll_momentum_figure(out: Path | None = None, strip: Strip | None = Non
         curve_ax,
         f"The compounded cumulative return over the {len(days)} window rows, shaded where the "
         f"declared rule is flat.\nThe declared rule: APR {found.apr:.6f} and Sharpe ratio "
-        f"{found.sharpe:.6f}, which the book prints as {BOOK_APR_PERCENT} percent and "
+        f"{found.sharpe:.6f}, against the book's {BOOK_APR_PERCENT} percent and "
         f"{BOOK_SHARPE}.\nExample 6.1's rule: APR {against.apr:.6f} and Sharpe ratio "
         f"{against.sharpe:.6f}. It holds all {tranches.min():.0f} tranches long on every\n"
         f"window row, so its line is holding TU. They end at {declared[-1]:.6f} and "

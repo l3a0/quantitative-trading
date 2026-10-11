@@ -485,7 +485,7 @@ class TestWhatTheMarginsAreMadeOf:
         whole = np.prod(1 + result.daily[result.window]) - 1
         assert whole == pytest.approx(np.prod(1 + market[long]) - 1, rel=1e-12)
 
-    def test_the_sharpe_margin_comes_from_the_lower_volatility(self, result) -> None:
+    def test_the_two_rules_volatilities_and_average_returns(self, result) -> None:
         """Average annual returns of 0.013661 and 0.013351 over 0.007575 and 0.011156."""
         revised, example = result.figures, result.example_figures
         assert revised.annual_volatility == pytest.approx(0.007575, abs=5e-7), SPEC

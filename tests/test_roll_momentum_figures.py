@@ -34,6 +34,7 @@ import pytest
 from matplotlib.dates import date2num
 
 from chan import roll_momentum_figures
+from chan.matlab_helpers import backshift
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD
 from chan.roll_momentum import roll_momentum
@@ -128,7 +129,7 @@ class TestTheCurves:
         self, axes, result
     ) -> None:
         """What the heading says, held here so the heading cannot outlive it."""
-        assert (result.example_positions[result.window] == 25).all()
+        assert (backshift(1, result.example_positions)[result.window] == 25).all()
         y = _by_gid(axes["curve"].lines)["example"].get_ydata()
         market = np.nan_to_num(result.market[result.window])
         np.testing.assert_allclose(y, np.cumprod(1 + market) - 1, atol=1e-12)
@@ -147,7 +148,7 @@ class TestTheCurves:
         assert _title(axes["curve"]) == (
             "The compounded cumulative return over the 913 window rows, shaded where the "
             "declared rule is flat.\nThe declared rule: APR 0.013725 and Sharpe ratio 1.803348, "
-            "which the book prints as 2.5 percent and 2.1.\nExample 6.1's rule: APR 0.013377 and "
+            "against the book's 2.5 percent and 2.1.\nExample 6.1's rule: APR 0.013377 and "
             "Sharpe ratio 1.196742. It holds all 25 tranches long on every\nwindow row, so its "
             "line is holding TU. They end at 0.050629 and 0.049322, before costs."
         )
