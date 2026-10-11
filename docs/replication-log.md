@@ -558,7 +558,7 @@ Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
-Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11,
+Entry 38's rows 8 to 11, Entry 40's rows 6 to 9 and 12 to 16, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17,
 Entry 45's rows 2 to 9, and Entry 48's rows 1 to 7.
 
@@ -8287,19 +8287,22 @@ under `public/img/book2/`, git blob `02db940`, and the line numbers below are
 that blob's. Every location in this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
-Nine rows, all derivable from
+Sixteen rows, all derivable from
 [tests/test_opening_gap.py](../tests/test_opening_gap.py) except two figures
 that [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
 derives. Row 8's 45 agreeing days of 1,996 come from
 `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences`,
 and row 9's equal closes from
 `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`.
-Six rows do not match one printed figure to one computation, and each says so
-in its own cells. Row 3 checks one printed figure against two computations,
-because location 3509 calls its figure of around 13 percent an "annualized
-average return" and the script prints a compounded one. Row 5 checks the
-book's two figures against a second reading of the script, and rows 6 to 9
-carry no published figure.
+Rows 1, 2 and 4 each match one printed figure to one computation, and rows 10
+and 11 each match two figures Chan's Python port prints to the port's rule.
+The other eleven say what they do in their own cells. Row 3 checks one
+printed figure against two computations, because location 3509 calls its
+figure of around 13 percent an "annualized average return" and the script
+prints a compounded one. Row 5 checks the book's two figures against a second
+reading of the script. Rows 6 to 9 and 12 to 15 carry no published figure,
+and row 16 carries a record of the port's comment rather than a figure of its
+own.
 
 A stop order rests until the price reaches it, so a market that opens far
 outside the previous day's range can set off many at once and carry the move
@@ -8353,9 +8356,32 @@ so both are stated once here.
    `mean(ret) · √252 / std(ret)` with MATLAB's n − 1 `std`, with no risk-free
    rate and no cost.
 
+**Rows 10 to 16 read a second specification, Chan's Python port.**
+`gapFutures_FSTX.py` is a member of `PythonCodesAndData.zip` at the same
+commit, the zip [data/README.md](../data/README.md) records with its sha256.
+The member is 996 bytes, with sha256
+`8b005cee1114fd019ca761c1df7331d5f66ba9a3be8d6dcb2e614b6615a095fc`, dated
+2018-12-23 in the zip's central directory. It reads
+`inputDataDaily_FSTX_20120517.csv`, whose open, high, low and close equal
+the committed file's, as [data/README.md](../data/README.md) records. The zip
+is not committed, and `chan.opening_gap.python_port` carries the port's
+arithmetic. Against the script, line by line:
+
+| Script line | `gapFutures_FSTX.m` | `gapFutures_FSTX.py` | What differs |
+| --- | --- | --- | --- |
+| 3 | `entryZscore=0.1;` | `entryZscore=0.1;`, the port's line 7 | The same threshold, a tenth of the spread. |
+| 13 | `stdretC2C90d=backshift(1, smartMovingStd(calculateReturns(cl, 1), 90));` | `stdretC2C90d=df['Close'].pct_change().rolling(90).std().shift()` | The port divides by n − 1 rather than n. Pandas also wants all 90 returns in the window, so the port's first spread falls on 2004-11-22, one row after the script's 2004-11-19. |
+| 15 | `longs= op >= backshift(1, hi).*(1+entryZscore*stdretC2C90d);` | `longs= df['Open'] >= df['High'].shift()*(1+entryZscore*stdretC2C90d)` | The same test. |
+| 16 | `shorts=op <= backshift(1, lo).*(1-entryZscore*stdretC2C90d);` | `shorts=df['Open'] >= df['Low'].shift()*(1-entryZscore*stdretC2C90d)` | The port flips `<=` to `>=`, so a short qualifies on every day the open does not jump below the previous low by the margin. |
+| 18 to 21 | `positions(longs)=1;` then `positions(shorts)=-1;` | `positions[longs]=1` then `positions[shorts]=-1` | The same order, the short after the long. An open that clears the previous high also clears the previous low, so every long day passes the port's short test too, and the port's line 22 makes it short. The port never holds a long position. |
+| 23 | `ret=positions.*(op-cl)./op;` | `ret=positions*(df['Close']-df['Open'])/df['Open']` | The port takes the momentum sign, the one location 2965 describes. |
+| 24 | `ret(isnan(ret))=0;` | none | No return is NaN on this file, so the missing line moves nothing. |
+| 26 | `prod(1+ret).^(252/length(ret))-1` and `mean(ret)*sqrt(252)/std(ret)` | `np.prod(1+ret)**(252/len(ret))-1` and `np.sqrt(252)*np.mean(ret)/np.std(ret)` | The APR is the same. `np.std` on a series divides by n, where MATLAB's `std` divides by n − 1. |
+| 33 | `calculateMaxDD(cumret)` | `calculateMaxDD(cumret.fillna(0))` | The port's `calculateMaxDD` is the script's loop. Under pandas 3 the port stops here, because the loop indexes the date-indexed `cumret` by position, so it no longer runs as shipped. |
+
 Every result here is **exploratory**. Reproducing Chan's figure spends his
-2004 to 2012 sample on his rule, and neither reading is evidence that an
-opening jump pays today.
+2004 to 2012 sample on his rule, and no rule here, neither reading of the
+script nor the port's, is evidence that an opening jump pays today.
 
 ### What the book printed
 
@@ -8367,6 +8393,10 @@ opening jump pays today.
 | 4 | The Sharpe ratio, book | 1.4 | locations 2965 and 3509 |
 | 5 | The rule that buys an upward jump and shorts a downward one earns rows 3 and 4 | a claim | location 2965 |
 | 6 to 9 | The drawdowns, the days each side holds, and the rule on two earlier saves | none, as each row says | n/a |
+| 10 | The APR and the Sharpe ratio, Python port | 0.074864 and 0.494857 | the port's comment `#APR=0.074864 Sharpe=0.494857`, not the book |
+| 11 | The maximum drawdown and its days, Python port | −0.233629 and 789 | the port's comment `#Max DD=-0.233629 Max DDD in days=789` |
+| 12 to 15 | The days the port holds each side, and three variants that each change one difference between the two programs | none, as each row says | n/a |
+| 16 | The port's APR and Sharpe ratio as the Algorithmic Trading Experiments page records them | none of its own, the page records 7.5 percent and 0.49 | the Experiments page, a claude.ai artifact the body of [issue 358](https://github.com/l3a0/quantitative-trading/issues/358) cites |
 
 ### What this repo computed
 
@@ -8381,6 +8411,13 @@ opening jump pays today.
 | 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
 | 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 agreeing days of 1,996, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` |
 | 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, and for the equal closes, `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair` |
+| 10 | The port's rule, its `prod(1 + ret)^(252 / 2000) − 1`, and its `mean(ret) · √252 / std(ret)` with `np.std` dividing by n | APR 0.0748641057, Sharpe ratio 0.4948573171, and 0.4947335873 dividing by n − 1 | `TestChansPythonPort::test_row_10_the_apr_and_the_sharpe_ratio_over_n_reproduce_the_comment` and `::test_row_10_over_n_minus_1_the_sharpe_ratio_misses_the_comment` |
+| 11 | `calculateMaxDD(cumprod(1 + ret) − 1)` on the port's returns | −0.2336291171 over 789 days | `TestChansPythonPort::test_row_11_the_drawdown_and_its_days_reproduce_the_comment` |
+| 12 | The days the port holds each side, and the first day its spread is set | long on 0, short on 1,718, flat on 282, both tests passed on 278, first spread 2004-11-22 | `TestChansPythonPort::test_row_12_the_port_is_never_long` and `::test_the_port_s_spread_starts_on_2004_11_22_a_row_after_the_script_s` |
+| 13 | The port's short test and sign on the script's spread, Sharpe ratio dividing by n − 1 | APR 0.076926, Sharpe ratio 0.505364 | `TestChansPythonPort::test_each_variant_changes_one_difference` and `::test_the_two_spreads_qualify_the_same_days_but_one` |
+| 14 | The script's short test and sign on the port's spread, Sharpe ratio dividing by n − 1 | APR 0.132733, Sharpe ratio 1.441620, row 1's and row 2's returns day for day | `TestChansPythonPort::test_each_variant_changes_one_difference` and `::test_row_14_is_the_script_s_literal_reading_day_for_day` |
+| 15 | The port's spread and short test with the script's sign, Sharpe ratio dividing by n − 1 | APR −0.098670, Sharpe ratio −0.494734, the port's returns negated | `TestChansPythonPort::test_each_variant_changes_one_difference` and `::test_row_15_is_the_port_s_returns_negated` |
+| 16 | Row 10's APR in percent and its Sharpe ratio dividing by n, at the page's precision | 7.48641057 percent and 0.4948573171, which round to 7.5 percent and 0.49 | `TestChansPythonPort::test_row_16_the_experiments_page_rounds_the_comment` |
 
 ### The verdicts
 
@@ -8395,10 +8432,17 @@ opening jump pays today.
 | 7 | none | none, not a replication | No day qualifies both tests, so line 21's order decides nothing here. No open sits exactly on either threshold, so the tests being non-strict decides nothing either. `TestTheRules` holds both on synthetic days. |
 | 8 | none | none, not a replication | FSTX's close in this save agrees with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
 | 9 | none | none, not a replication | FSTX's close in this save equals the 2012-05-11 save's on every day they share, over a window that starts three trading days earlier still. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
+| 10 | +0.000000 on the APR, +0.000000 on the Sharpe ratio | reproduced | Both land on the comment at its six decimals, on the file the port reads, with the Sharpe ratio dividing by n as `np.std` does. Dividing by n − 1 gives 0.4947335873, which misses by −0.000123, so the divisor is part of the port's specification. That n − 1 figure is the 0.494734 that [issue 505](https://github.com/l3a0/quantitative-trading/issues/505) recorded from a scratch run guessing at the port's rule before the port was read. |
+| 11 | −0.000000 on the drawdown, 0 on its days | reproduced | The port's comment comes from the rule its text states, on Chan's own file. |
+| 12 | none | none, not a replication | Every one of the 278 days passing the long test also passes the port's short test, and the port assigns the short after the long, so it never holds a long position. It sells the open and buys the close on the 1,718 days the open does not jump below the previous low by the margin. |
+| 13 | none | none, not a replication | The two spreads qualify the same days except 2004-11-19, the one row where the script's spread is set and the port's is not. Under the port's short test that day is short, and it alone moves the APR from row 10's to 0.076926. The divisor decides no day of this file. |
+| 14 | none | none, not a replication | Under the script's tests 2004-11-19 qualifies nothing on either spread, so the port's spread leaves the script's figures where rows 1 and 2 put them. |
+| 15 | none | none, not a replication | Changing the sign alone negates every one of the port's returns, so the Sharpe ratio dividing by n − 1 is row 10's negated. The APR is not, because it compounds. |
+| 16 | none | none, not a replication | The page recorded what the port prints rather than publishing a figure of its own. Row 10's figures round to its 7.5 percent and 0.49. |
 
 ### What the entry concludes
 
-Two things.
+Three things.
 
 1. **The script reproduces on Chan's own file, and the figure is the fade's.**
    Its two printed figures land at the decimals printed, and the book's two
@@ -8408,18 +8452,17 @@ Two things.
    location 2965 describes, the same positions give an APR of −0.124236 and a
    Sharpe ratio of −1.441620. The 13 percent and 1.4 do not support the claim
    they were printed beside.
+3. **Chan's Python port prints what its own rule computes, and that rule is
+   neither reading of the script.** Its four printed figures land on the
+   committed file. It takes the momentum sign the text describes, and it
+   flips the script's short test, so it never holds a long position and sells
+   the open on 1,718 of 2,000 days. Its APR and Sharpe ratio, which the
+   Experiments page records as 7.5 percent and 0.49, therefore say nothing
+   about the rule location 2965 describes.
 
 ### What this entry cannot say
 
-Four things.
-
-**What Chan's Python port prints.** `gapFutures_FSTX.py` in
-`PythonCodesAndData.zip` is a second transcription of the rule.
-[Issue 505](https://github.com/l3a0/quantitative-trading/issues/505) records
-that it is said to print 7.5 percent and 0.49, far from both readings here.
-This entry does not read the port, because the zip was not fetched for it.
-[Issue 505](https://github.com/l3a0/quantitative-trading/issues/505) carries
-reading it and pinning what it prints beside this entry.
+Three things.
 
 **Whether the rule works on GBPUSD.** Location 2971 reports an APR of 7.2
 percent and a Sharpe ratio of 1.3 on GBPUSD, with the open at 5:00 a.m. ET
@@ -8437,9 +8480,11 @@ the literal sign.
 [Issue 359](https://github.com/l3a0/quantitative-trading/issues/359) carries
 running it.
 
-**Whether either reading works out of sample.** The rule, the save and the
-window are Chan's, and the sample is the one he reported on. A registered
-test would fix one sign first and run it on data after 2012.
+**Whether any of the three rules works out of sample.** Neither reading of
+the script and not the port's rule has been run past Chan's window. The
+rules, the save and the window are Chan's, and the sample is the one he
+reported on. A registered test would fix one rule first and run it on data
+after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
@@ -8495,12 +8540,14 @@ string at the decimals the string carries, which is
 `chan.khandani_lo_book_two.matches`. Nothing in it was chosen to fit the
 run.
 
-Rows 1 to 10 read three vintages and one of two specifications, so they are
-stated once here. Row 11 also reads the fourth vintage below, and its
+Rows 1 to 10 use three vintages as data and one of two specifications, so
+they are stated once here. Row 11 also uses the fourth vintage below, and its
 specification is the fitted hedge rather than 0.3906 or [1, 1].
 
-1. **The vintages.** Four of Chan's book-two files, the fourth read for row
-   11 alone.
+1. **The vintages.** Four of Chan's book-two files, the fourth used as data
+   for row 11 alone. Every row still checks all four against their checksums,
+   because loading ES reads every member of its 53-series save, the fourth
+   among them, so a changed or missing fourth refuses rows 1 to 10 too.
    1. `data/inputdatadaily_vx_20120507/`, lifted from
       `inputDataDaily_VX_20120507.mat`, vendor `chan-mat`, basis `raw`, saved
       2012-05-08. It is one vintage per contract, 72 of them from VX-2007F to
@@ -8512,8 +8559,9 @@ specification is the fitted hedge rather than 0.3906 or [1, 1].
       script reads its last column, `Adj Close`, which equals `Close` on every
       row. This is the first replication to read the file. The scale-break
       guard reads it from 2008-08-04 to 2012-05-07 and refuses nothing. The
-      file flags 2007-02-27, a real move from 11.15 to 18.31, which no figure
-      reads, as
+      file flags 2007-02-27, a real move from 11.15 to 18.31. It counts
+      among the front rows below VIX in conclusion 5, and no figure of the
+      trade's reads it, as
       `TestTheGuardAndTheReads::test_no_figure_reads_vix_before_the_test_s_first_held_close`
       holds.
    3. `data/inputdataohlcdaily_20120507/es.csv`, lifted from
@@ -8522,10 +8570,11 @@ specification is the fitted hedge rather than 0.3906 or [1, 1].
       rewritten between saves, so this save is part of the specification.
    4. `data/inputdataohlcdaily_20120507/vx.csv`, VX's continuous close from
       the same save as ES, vendor `chan-mat`, basis `adjusted`, saved
-      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. It serves only
-      row 11. `chan.vx_es.read_legs` reads it with ES to fit the hedge, and
-      guards each over its whole span and refuses nothing. The run fits that
-      hedge before it prints, so a flagged day in either would stop the run.
+      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. Only row 11 uses
+      its prices. `chan.vx_es.read_legs` reads it with ES to fit the
+      hedge, and guards each over its whole span and refuses nothing.
+      The run fits that hedge before it prints, so a flagged day in
+      either would stop the run.
 2. **The specifications.** `VX_ES_rollreturn.m` as
    `chan.vx_es_roll_return` transcribes it, with one of two hedges: H, the
    0.3906 of lines 47 and 55, and U, the [1, 1] of the live lines. The three
@@ -8550,7 +8599,8 @@ that fits the 0.3906 hedge. Over the test, H and U hold a position on 224 of
 the 448 days, short on 196 and long on 28, with 32 entries from flat.
 
 Every result here is **exploratory**. Reproducing Chan's figures spends his
-2008 to 2012 sample on a rule and a hedge he chose.
+2008 to 2012 sample on a rule Simon and Campasano proposed and a hedge he
+chose.
 
 ### What the book printed
 
@@ -8602,10 +8652,15 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What the entry concludes
 
-Three things.
+Six things. The last three were measured by the write-up after the run, and
+`TestWhatThePostMeasured` in
+[tests/test_vx_es_roll_return.py](../tests/test_vx_es_roll_return.py) pins
+them.
 
 1. **Both of the script's rules reproduce on Chan's own files.** All eight
-   figures its comments print land at the six decimals printed.
+   figures its comments print land at the precision printed, the APRs,
+   Sharpe ratios and maximum drawdowns to six decimals and the two day counts
+   exactly.
 2. **The book's figures come from the commented rule.** The script as it
    ships prints the [1, 1] block. The book's 6.9 percent and Sharpe ratio of
    1 round from the 0.3906 block, which is the rule the text describes, and
@@ -8613,6 +8668,30 @@ Three things.
 3. **The script traded the printed constant.** The hedge fitted on the same
    500 rows rounds to 0.3906, but trading it misses the script's sixth
    decimal on both the APR and the Sharpe ratio.
+4. **Every held stretch opens free.** The test's held days fall into 32
+   stretches, 25 short and 7 long, and no position changes sign without a
+   flat day between, so each of the 32 is an entry from flat. Under 0.3906,
+   setting each entry day's return to one basis point lost gives an APR of
+   0.067142 and a Sharpe ratio of 0.975830, and charging no cost at all gives
+   0.071248 and 1.030894. Measured after the run.
+5. **The window is out of sample for the hedge alone.** The hedge's 500 days,
+   2008-08-04 to 2010-07-28, are the trade's own first 500 from the anchor.
+   The 40-row start of the front window decides only VX-2007F's window, and
+   on the test's 438 front rows the script's front is the nearest priced
+   contract on 228 and the second-nearest on 210. The 0.1 threshold and the
+   window carry no statement that the test did not set them. Over the whole
+   calendar the front sits above VIX on 1,016 of the 1,369 front rows.
+   Measured after the run.
+6. **The hedge leaves the trade mostly in ES.** On the 224 held test days
+   the VX leg is a median 0.119966 of the gross under 0.3906 and 0.258710
+   under [1, 1]. Summed over the test, the VX leg earns 0.285954, the ES leg
+   −0.159336 and the cost 0.003634 under 0.3906, for 0.122984, and 0.605959,
+   −0.138046 and 0.003961 under [1, 1], for 0.463952. On 2011-08-08, the
+   0.3906 rule's worst day and its deepest drawdown's trough, both rules held
+   long, ES fell 7.3259 percent and VX-2011U rose 15.2672 percent, and the
+   rules lost 3.9889 and 0.3823 percent. On the 224 earning test days the
+   front's daily return correlates with ES's at −0.813746. Measured after
+   the run, so it describes one sample and tests no cause.
 
 ### What this entry cannot say
 
@@ -8623,8 +8702,8 @@ yesterday's gross is 0, so the day's return divides by 0, is set to 0, and
 the script never charges the entry's cost. The test holds 32 such entries.
 The script charges a held day on its mark-to-market move as well as on any
 trade. The figures copy the free entry and the charge on mark-to-market
-moves, as the criterion asks, and this entry measures no other cost model in
-their place.
+moves, as the criterion asks. Conclusion 4 sets two other cost models
+beside them, measured after the run, and neither is what a broker charged.
 
 **What the trade did in its last ten days.** Eight contracts are priced on
 2012-05-07, the file's last day, so each reads as expiring there. VX-2012K's
@@ -8633,12 +8712,16 @@ than to its real expiry, and the test's last 10 rows hold nothing. The
 first of them, 2012-04-24, earns the position held at the 2012-04-23 close
 less its exit cost, and the script counts the other nine as earning 0.
 
-**Whether the trade works out of sample.** The rule, the hedge and the window
-are Chan's, and the sample is the one he reported on. A registered test would
-fix the rule first and run it on data after 2012.
+**Whether the trade works out of sample.** The rule is Simon and
+Campasano's, the hedge and the window are Chan's, and the sample is the one
+he reported on. A registered test would fix the rule first and run it on data
+after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/vx-es-roll-return-lessons.md](../blog/vx-es-roll-return-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.vx_es_roll_return_figures` redraws.
 
 ## Entry 42: whether Example 7.4's own factor returns have momentum, Chan's *Quantitative Trading*
 

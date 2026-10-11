@@ -556,7 +556,9 @@ where they were first built. The other forty-two were built here.
     gives an APR of 0.132733 and a Sharpe ratio of 1.441620, which print as
     the script's 0.1327 and 1.44 and round to the book's 13 percent and 1.4.
     The momentum sign the text describes gives −0.124236 and −1.441620, so the
-    claim the figures were printed for does not reproduce. Every figure is
+    claim the figures were printed for does not reproduce. Chan's Python port
+    flips the short test and so is never long, and its rule lands the port's
+    printed APR of 0.074864 and Sharpe ratio of 0.494857. Every figure is
     exploratory.
 41. VX futures against E-mini S&P 500 futures on VX's roll return, after
     Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
@@ -564,15 +566,18 @@ where they were first built. The other forty-two were built here.
     trade is short the front VX contract and ES when the front sits above VIX
     by more than 0.1 point per trading day to settlement, and long both when
     it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
-    all eight figures its comments print reproduce at six decimals. With
-    0.3906 VX contracts per ES contract, the commented rule, the APR is
-    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
+    all eight figures its comments print reproduce at the precision printed,
+    the APRs, Sharpe ratios and maximum drawdowns to six decimals and the two
+    day counts exactly. With 0.3906 VX contracts per ES contract, the
+    commented rule, the APR is 0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
     lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
     of 1. With one VX contract per ES contract, the rule the script ships,
     they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
     0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
     the script traded the printed 0.3906. An entry from flat pays no cost,
-    as in the script. Every figure is exploratory.
+    as in the script. Measured after the run, the 0.3906 hedge leaves the VX
+    leg a median 0.119966 of the gross, and the ES leg gives back 0.159336 of
+    the 0.285954 the VX leg earns. Every figure is exploratory.
 42. Example 7.4's own five factors, tested on Chan's S&P 600 file against the
     claim at Kindle location 4014 of the revised edition that factor returns
     "often" have stronger serial autocorrelation than single stocks', which
@@ -1110,7 +1115,15 @@ book's two figures alone. It also pins the drawdowns, the days each side
 holds and the literal rule on the two earlier saves. On synthetic days it
 holds both entry tests non-strict, a missing spread qualifying nothing, a
 short overriding a long, and the sign of each reading's open-to-close
-return. It also holds the read guarded.
+return. It also holds the read guarded. For Chan's Python port it pins the
+four figures the port's comments print, the days it holds each side, and
+three variants that each swap one difference between the two programs. On
+synthetic days it holds the port's spread dividing by n − 1 and starting a
+row later, its short test flipped and non-strict, an open above the
+previous high being short, a missing spread qualifying nothing, and its
+Sharpe ratio dividing by n with either sign of mean. It also holds the
+Experiments page's figures as the port's comment rounded, and the run's
+port block reporting a figure off the comment as a gap.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
@@ -1121,7 +1134,13 @@ the free entry from flat and the file's last day read as an expiry. On
 synthetic strips it holds the days to settlement counting one past expiry,
 the strict threshold, both legs signed alike with VX scaled by the hedge, the
 one-day lag, the gross divisor and the cost of an exit. It also holds each
-read guarded and the flagged day in VIX read by no figure.
+read guarded and the flagged day in VIX read by no trade figure. It holds what the
+write-up measured after the run too: the stretches held, the APR with each
+entry charged and with no cost, where the front sits among the priced
+contracts, the hedge's 500 days, each leg's share and sum, 2011-08-08, and
+the correlation of the front with ES, with the two helpers behind them on
+synthetic strips. The blog post about it is the exception, and what it says
+that nothing here asserts is listed below.
 
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py) does it
 for Example 7.4's own factors. It pins the 752 pairs and the 579 stocks, each
@@ -2072,7 +2091,8 @@ uv run python -m chan.opening_gap
 It prints the vintage, both readings of the return line beside the script's
 comment and the book's figures with a verdict, the drawdowns and the days
 each side holds, and the literal reading on the 2012-05-11 and 2012-05-07
-saves.
+saves. It then prints the Python port's four figures beside the port's
+comments with a verdict, and the days the port holds each side.
 
 VX against ES on VX's roll return takes no option either, because the script
 fixes its three files, its threshold, its cost and its test:
@@ -2082,11 +2102,12 @@ uv run python -m chan.vx_es_roll_return
 ```
 
 It prints the strip, the VIX and ES vintages, and the vintage of VX's
-continuous close that only the fitted hedge reads. Then it prints the four
-figures of each rule beside the script's comment with a verdict, the APR and
-the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
-with no verdict, and how many of the test's days are held, short, long and
-entered from flat.
+continuous close. Loading ES checks that file against its checksum, since it
+belongs to the same save, and only the fitted hedge uses it as data. Then it
+prints the four figures of each rule beside the script's comment with a
+verdict, the APR and the Sharpe ratio beside the book's with a verdict, the
+fitted hedge's figures with no verdict, and how many of the test's days are
+held, short, long and entered from flat.
 
 Example 7.4's own factors take no option, because the issue fixed the
 printout, the lookback, the factor count and the statistic before any factor
@@ -5285,6 +5306,125 @@ uv run python -m chan.xle_uso_roll_return_figures
 ```
 
 [tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/vx-es-roll-return-lessons.md](blog/vx-es-roll-return-lessons.md) is a
+thirty-seventh post, about VX futures against E-mini S&P 500 futures on VX's
+roll return at Kindle locations 2747 and 2754 of Chan's *Algorithmic
+Trading*, after Simon and Campasano. The trade is short the front VX contract
+and ES when the front sits above VIX by more than 0.1 point per trading day to
+settlement, and long both when it sits below by that much. Chan reports an
+APR of 6.9 percent and a Sharpe ratio of 1 from 2010-07-29 to 2012-05-07. The
+post links the VX against E-mini post, the spot and roll returns post, the
+long GLD and short gold futures post, the XLE against USO post, the VIX
+calendar spread post and the crude oil reversal and momentum post rather than
+repeating them, and draws five lessons from Entry 41 of the replication log.
+
+1. Both of the script's rules land, all eight figures at the precision its
+   comments print, and the book's two come from the 0.3906 lines it comments
+   out. The live lines trade one VX contract per ES contract.
+2. The printed 0.3906 is the specification. The fitted 0.390594 from the same
+   500 days, which are the trade's own first 500 from 2008-08-04, misses the
+   sixth decimal on both the APR and the Sharpe ratio.
+3. Every one of the 32 held stretches opens free. Charging each entry one
+   basis point gives an APR of 0.067142, and the last 10 test rows hold
+   nothing.
+4. The window is out of sample for the hedge alone. The 40-row start decides
+   only VX-2007F's window, and the script's front is the nearest contract on
+   228 of the test's 438 front rows and the second-nearest on 210.
+5. Under 0.3906 the VX leg is a median 0.119966 of the gross, and the ES leg
+   gives back 0.159336 of the 0.285954 the VX leg earns. Measured after the
+   run.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   VX in contango about three fourths of the time at 2385, no fund holding
+   VIX and ES's roll return of about 1 percent at 2747, and the rule, the
+   0.3906, the price regression against the paper's returns, the −75 percent,
+   the window, the figures and Figure 6.4's caption at 2754.
+2. Facts about the script rather than the data: which of its lines are live
+   and which commented out, its line 75 plotting line 74's cumulative return
+   for the live rule, its loop stopping one short of the last contract, and
+   its commented-out entry filter at lines 52 to 53 and 60 to 61 with its
+   levels of 21 and 34, all in `VX_ES_rollreturn.m` at `e4bc46f` of
+   ericnberwick/EpchanPreview.
+3. Readings no test asserts: that a VX contract converges on VIX by
+   settlement, that dividing the gap by the days to settlement gives a pace,
+   that a short VX leg and a short ES leg hedge each other, that the old
+   front is still priced for the 10 rows after the script moves on, that a
+   hedge fitted on returns would size the legs differently, and that
+   [1, 1]'s larger return on this sample comes from holding more VX.
+4. Figures the post states in words or rounds from pinned ones, such as close
+   to three in four, more than half, about two and a half times, and years
+   before the test or more than three years after VIX's jump. The figure's
+   alt text reads its curves approximately too.
+5. Its references, cited rather than computed. The paper by Simon and
+   Campasano is not in the repository.
+
+Every other number in the post traces to an assertion in
+[tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py), or to
+[tests/test_vx_es_roll_return_figures.py](tests/test_vx_es_roll_return_figures.py)
+for the figure's own numbers. The fitted 0.390594 traces to
+[tests/test_vx_es.py](tests/test_vx_es.py) as well, and the 53 series of the
+2012-05-07 save to
+[tests/test_continuous_futures.py](tests/test_continuous_futures.py). `TestWhatThePostMeasured`
+holds the ones that had no pin before it, all measured after the run.
+
+1. The front above VIX on 1,016 of the 1,369 front rows from 2006-11-14 to
+   2012-04-23.
+2. The 32 held stretches in the test, 25 short and 7 long, with no position
+   changing sign without a flat day between.
+3. The APR of 0.067142 and Sharpe ratio of 0.975830 with each entry charged
+   one basis point, and 0.071248 and 1.030894 with no cost at all.
+4. The fit's 500 days from 2008-08-04 to 2010-07-28 as the trade's first 500
+   from the anchor, the 40-row start binding only for VX-2007F, and the front
+   the nearest contract on 228 of the test's 438 front rows and the second on
+   210.
+5. The VX leg's median share of the gross, 0.119966 under 0.3906 and 0.258710
+   under [1, 1], and the legs summed over the test, 0.285954, −0.159336 and
+   0.003634 of cost for 0.122984 under 0.3906, and 0.605959, −0.138046 and
+   0.003961 for 0.463952 under [1, 1].
+6. 2011-08-08, when both rules held long, ES fell 7.3259 percent and
+   VX-2011U rose 15.2672 percent, and the 0.3906 rule lost 3.9889 percent, its
+   worst day and its deepest drawdown's trough, while [1, 1] lost 0.3823
+   percent.
+7. The front's daily return correlating with ES's at −0.813746 on the 224
+   test days that earn a position.
+8. [1, 1]'s deepest drawdown running from 2012-02-06 to 2012-02-15, and its
+   longest from a high on 2011-09-23 to 2011-12-16.
+9. The figure's own: the curves' ends of 0.126063 and 0.581024 on 2012-04-24
+   and flat for the 9 rows after, 0.3906's high of 0.129142 on 2011-12-19, its
+   deepest drawdown from a high of 0.049547 on 2010-08-31 to a trough of
+   −0.029886 on 2011-08-08, its longest run below a high from 2010-09-01 to
+   2011-09-09 with a new high on 2011-09-12, the 25 short and 7 long spans
+   with the longest from 2010-07-29 to 2010-09-20 and from 2011-07-27 to
+   2011-08-22, and the signal's 438 rows, 214 between the lines, low of
+   −0.574194 on 2011-08-08 and high of 0.311739 on 2012-03-16.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/vx_es_roll_return_figures.py](src/chan/vx_es_roll_return_figures.py),
+which reads them through the same `read_sources`, `roll_return_trade` and
+`front_roll` as `python -m chan.vx_es_roll_return`, so the scale-break guard
+runs for it too. Loading ES checks VX's continuous close against its
+checksum, as a member of the same save, but the figure never computes the
+fitted hedge, the only computation that uses it as data. It draws two panels
+on one date axis over the 448 test days, both shading the days held short in
+one tint and the days held long in another.
+
+1. The book's Figure 6.4, the cumulative compounded return, under 0.3906 in
+   ink and [1, 1] muted, with 0.3906's deepest drawdown's high, trough and
+   longest run marked.
+2. The front contract less VIX over the trading days to settlement, with
+   dashed lines at plus and minus 0.1.
+
+```bash
+uv run python -m chan.vx_es_roll_return_figures
+```
+
+[tests/test_vx_es_roll_return_figures.py](tests/test_vx_es_roll_return_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 

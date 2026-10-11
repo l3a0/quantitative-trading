@@ -28,13 +28,21 @@ unless it names another, so they are stated once here.
   ``prod(1 + ret)^(252 / 2000) − 1`` and the Sharpe ratio
   ``mean · √252 / std`` with the std dividing by n − 1, with no risk-free
   rate and no cost.
+- **The Python port.** ``TestChansPythonPort`` runs the arithmetic of
+  ``gapFutures_FSTX.py``, as ``chan.opening_gap.python_port`` carries it, on
+  the vintage above. The port itself, member sha256
+  ``8b005cee1114fd019ca761c1df7331d5f66ba9a3be8d6dcb2e614b6615a095fc`` in
+  Chan's ``PythonCodesAndData.zip``, is not committed, and no test reads it.
+  The class docstring names where the port's rule differs from the script's.
 
-Each computed figure is held at six decimals, so a change cannot move it
-inside the published rounding unnoticed, and each published figure at the
-precision Chan printed it, through ``matches``.
+Each computed figure is held at six decimals or more, ten for Entry 40's
+rows 10 and 11, so a change cannot move it inside the published rounding
+unnoticed, and each published figure at the precision Chan printed it,
+through ``matches``.
 
 Exploratory. Reproducing Chan's figure spends his 2004 to 2012 sample on his
-rule. The run first ran here on 2026-10-10.
+rule. The run first ran here on 2026-10-10, and the port's rows on
+2026-10-11.
 """
 
 from __future__ import annotations
@@ -59,6 +67,10 @@ from chan.opening_gap import (
     EARLIER_SAVES,
     ENTRY_ZSCORE,
     FIELDS,
+    PORT_APR,
+    PORT_MAX_DRAWDOWN,
+    PORT_MAX_DRAWDOWN_DAYS,
+    PORT_SHARPE,
     READINGS,
     SCRIPT_APR,
     SCRIPT_SHARPE,
@@ -66,11 +78,16 @@ from chan.opening_gap import (
     SPREAD_LOOKBACK,
     SYMBOL,
     OpeningGap,
+    PythonPort,
     daily_returns,
     figures,
     main,
     opening_gap,
     positions,
+    python_port,
+    python_port_qualifiers,
+    python_port_sharpe,
+    python_port_spread,
     qualifiers,
     read_sources,
     run,
@@ -658,3 +675,252 @@ class TestTheReport:
         with pytest.raises(SystemExit) as refused:
             main()
         assert refused.value.code == 2
+
+
+#: The Algorithmic Trading Experiments page's record of the port, as issue 358's body cites it.
+EXPERIMENTS_PAGE_APR_PERCENT = "7.5"
+EXPERIMENTS_PAGE_SHARPE = "0.49"
+
+#: The two spreads and the two short tests a variant can take, the script's or the port's.
+SPREADS = {"script": spread, "port": python_port_spread}
+SHORT_TESTS = {"script": qualifiers, "port": python_port_qualifiers}
+
+
+@pytest.fixture(scope="module")
+def port(prices) -> PythonPort:
+    return python_port(prices)
+
+
+def _variant(prices, spread_of: str, short_test: str, reading: str) -> np.ndarray:
+    """The daily returns with each of the three rule differences set to one program's."""
+    op, hi, lo, cl = (prices[field].to_numpy(dtype=float) for field in FIELDS)
+    held = module._held(*SHORT_TESTS[short_test](op, hi, lo, SPREADS[spread_of](cl)))
+    return daily_returns(held, op, cl, reading=reading)
+
+
+class TestChansPythonPort:
+    """Rows 10 to 16: ``gapFutures_FSTX.py``, Chan's 2018 Python port, on the committed file.
+
+    The vintage is the one above. The specification is the port's, which
+    differs from the script's in four places.
+
+    1. The spread is ``Close.pct_change().rolling(90).std().shift()``, dividing
+       by n − 1 and first set on 2004-11-22, one row after the script's.
+    2. The short test is ``Open >= Low.shift() · (1 − 0.1 · spread)``, the
+       script's ``<=`` flipped, assigned after the long.
+    3. The return is the momentum sign, ``positions · (cl − op) / op``.
+    4. The printed Sharpe ratio divides by ``np.std``, which divides by n.
+
+    The APR and the drawdown are the script's arithmetic. Each variant names
+    which of the first three it takes from which program, and its Sharpe ratio
+    divides by n − 1, as the script's does.
+    """
+
+    def test_the_comments_are_what_the_port_prints(self) -> None:
+        assert (PORT_APR, PORT_SHARPE, PORT_MAX_DRAWDOWN, PORT_MAX_DRAWDOWN_DAYS) == (
+            "0.074864",
+            "0.494857",
+            "-0.233629",
+            "789",
+        )
+
+    def test_row_10_the_apr_and_the_sharpe_ratio_over_n_reproduce_the_comment(self, port) -> None:
+        assert port.figures.apr == pytest.approx(0.0748641057, abs=1e-10)
+        assert port.sharpe == pytest.approx(0.4948573171, abs=1e-10)
+        assert matches(port.figures.apr, PORT_APR)
+        assert matches(port.sharpe, PORT_SHARPE)
+        assert math.copysign(1, gap(port.figures.apr, PORT_APR)) == 1
+        assert math.copysign(1, gap(port.sharpe, PORT_SHARPE)) == 1
+
+    def test_row_10_over_n_minus_1_the_sharpe_ratio_misses_the_comment(self, port) -> None:
+        """So the divisor is part of the specification at the six decimals the port prints."""
+        assert port.figures.sharpe == pytest.approx(0.4947335873, abs=1e-10)
+        assert not matches(port.figures.sharpe, PORT_SHARPE)
+        assert gap(port.figures.sharpe, PORT_SHARPE) == pytest.approx(-0.000123)
+
+    def test_row_11_the_drawdown_and_its_days_reproduce_the_comment(self, port) -> None:
+        f = port.figures
+        assert f.max_drawdown == pytest.approx(-0.2336291171, abs=1e-10)
+        assert f.max_drawdown_days == 789
+        assert matches(f.max_drawdown, PORT_MAX_DRAWDOWN)
+        assert math.copysign(1, gap(f.max_drawdown, PORT_MAX_DRAWDOWN)) == -1
+        assert str(f.max_drawdown_days) == PORT_MAX_DRAWDOWN_DAYS
+
+    def test_row_12_the_port_is_never_long(self, port) -> None:
+        """Every one of the 278 days passing the long test passes the flipped short test too."""
+        held = port.positions
+        assert int((held == 1).sum()) == 0
+        assert int((held == -1).sum()) == 1718
+        assert int((held == 0).sum()) == 282
+        assert int(port.longs.sum()) == 278
+        assert int((port.longs & port.shorts).sum()) == 278
+        assert not (port.longs & ~port.shorts).any()
+
+    def test_the_port_s_long_test_is_the_script_s(self, prices, port) -> None:
+        op, hi, lo = (prices[field].to_numpy(dtype=float) for field in ("Open", "High", "Low"))
+        assert (port.longs == qualifiers(op, hi, lo, port.spread)[0]).all()
+
+    def test_the_port_s_spread_starts_on_2004_11_22_a_row_after_the_script_s(
+        self, result, port
+    ) -> None:
+        assert np.flatnonzero(~np.isnan(port.spread))[0] == SPREAD_LOOKBACK + 1
+        assert port.days[SPREAD_LOOKBACK + 1] == day("2004-11-22")
+        assert np.flatnonzero(~np.isnan(result.spread))[0] == SPREAD_LOOKBACK
+        assert port.days[SPREAD_LOOKBACK] == day("2004-11-19")
+
+    def test_the_two_spreads_qualify_the_same_days_but_one(self, prices) -> None:
+        """Only 2004-11-19 differs, the one row where the script's spread is set and the port's
+        is not.
+
+        The divisor decides no day of this file. Under the script's short test
+        2004-11-19 qualifies nothing on either spread, so there they agree on
+        every day.
+        """
+        op, hi, lo, cl = (prices[field].to_numpy(dtype=float) for field in FIELDS)
+        script_sd, port_sd = spread(cl), python_port_spread(cl)
+        for short_test, differing in ((qualifiers, []), (python_port_qualifiers, ["2004-11-19"])):
+            longs_a, shorts_a = short_test(op, hi, lo, script_sd)
+            longs_b, shorts_b = short_test(op, hi, lo, port_sd)
+            assert (longs_a == longs_b).all()
+            assert [str(d.date()) for d in prices.index[shorts_a != shorts_b]] == differing
+
+    def test_the_variants_compose_the_port_itself(self, prices, port) -> None:
+        assert (_variant(prices, "port", "port", "momentum") == port.returns).all()
+
+    @pytest.mark.parametrize(
+        ("row", "spread_of", "short_test", "reading", "apr", "sharpe"),
+        [
+            (13, "script", "port", "momentum", 0.076926, 0.505364),
+            (14, "port", "script", "literal", 0.132733, 1.441620),
+            (15, "port", "port", "literal", -0.098670, -0.494734),
+        ],
+    )
+    def test_each_variant_changes_one_difference(
+        self, prices, row, spread_of, short_test, reading, apr, sharpe
+    ) -> None:
+        """Row 13 is the port on the script's spread, row 14 the script on the port's spread,
+        and row 15 the port with the script's sign. Each Sharpe ratio divides by n − 1."""
+        f = figures(_variant(prices, spread_of, short_test, reading))
+        assert f.apr == pytest.approx(apr, abs=SIX)
+        assert f.sharpe == pytest.approx(sharpe, abs=SIX)
+
+    def test_row_14_is_the_script_s_literal_reading_day_for_day(self, prices, result) -> None:
+        assert (_variant(prices, "port", "script", "literal") == result.literal).all()
+
+    def test_row_15_is_the_port_s_returns_negated(self, prices, port) -> None:
+        assert (_variant(prices, "port", "port", "literal") == -port.returns).all()
+
+    def test_row_16_the_experiments_page_rounds_the_comment(self, port) -> None:
+        assert (EXPERIMENTS_PAGE_APR_PERCENT, EXPERIMENTS_PAGE_SHARPE) == ("7.5", "0.49")
+        assert matches(100 * float(PORT_APR), EXPERIMENTS_PAGE_APR_PERCENT)
+        assert matches(float(PORT_SHARPE), EXPERIMENTS_PAGE_SHARPE)
+        assert matches(100 * port.figures.apr, EXPERIMENTS_PAGE_APR_PERCENT)
+        assert matches(port.sharpe, EXPERIMENTS_PAGE_SHARPE)
+
+    def test_the_spread_is_the_90_row_deviation_over_n_minus_1_one_row_later(self) -> None:
+        closes = 100 * np.cumprod(1 + np.tile([0.01, -0.01, 0.02], 40))
+        found = python_port_spread(closes)
+        assert np.isnan(found[: SPREAD_LOOKBACK + 1]).all()
+        # returns[k] is the return ending on row k + 1, so row 91 reads rows 1 to 90.
+        returns = closes[1:] / closes[:-1] - 1
+        assert found[91] == pytest.approx(np.std(returns[:90], ddof=1))
+        assert found[92] == pytest.approx(np.std(returns[1:91], ddof=1))
+        assert found[91] != pytest.approx(np.std(returns[:90], ddof=0))
+
+    def test_an_open_clearing_the_previous_high_is_short(self) -> None:
+        longs, shorts = python_port_qualifiers(*TestTheRules._day(101.0))
+        assert longs.tolist() == shorts.tolist() == [False, True]
+        assert module._held(longs, shorts).tolist() == [0, -1]
+
+    def test_the_short_test_is_non_strict_and_flipped(self) -> None:
+        threshold = 90.0 * (1 - ENTRY_ZSCORE * 0.1)
+        for op, held in ((threshold, -1), (np.nextafter(threshold, 0), 0), (95.0, -1)):
+            found = module._held(*python_port_qualifiers(*TestTheRules._day(op)))
+            assert found.tolist() == [0, held]
+
+    def test_a_nan_spread_qualifies_nothing(self) -> None:
+        for op in (200.0, 95.0, 1.0):
+            longs, shorts = python_port_qualifiers(*TestTheRules._day(op, sd=np.nan))
+            assert not longs.any()
+            assert not shorts.any()
+
+    def test_the_sharpe_ratio_divides_by_n(self) -> None:
+        daily = np.array([0.0, 0.02, -0.01, 0.0])
+        assert python_port_sharpe(daily) == pytest.approx(
+            math.sqrt(252) * daily.mean() / daily.std(ddof=0)
+        )
+        assert python_port_sharpe(daily) != pytest.approx(figures(daily).sharpe)
+
+    def test_the_sharpe_ratio_keeps_a_negative_mean_s_sign(self) -> None:
+        """Every series pinned above has a positive mean, so this one does not."""
+        daily = np.array([0.0, -0.02, 0.01, 0.0])
+        expected = math.sqrt(252) * daily.mean() / daily.std(ddof=0)
+        assert expected < 0
+        assert python_port_sharpe(daily) == pytest.approx(expected)
+        # The mean is −0.0025 and the variance over n is 1.1875e-4.
+        assert python_port_sharpe(daily) == pytest.approx(
+            -math.sqrt(252) * 0.0025 / math.sqrt(1.1875e-4)
+        )
+        assert python_port_sharpe(daily) == pytest.approx(-3.641862, abs=SIX)
+
+    def test_the_run_prints_the_port_beside_its_comments(self, printed) -> None:
+        tail = printed[printed.index("Chan's Python port, gapFutures_FSTX.py, on the same save") :]
+        assert TestTheReport._row(tail, "APR")[-3:] == ["0.074864", "0.074864", "reproduced"]
+        assert TestTheReport._row(tail, "Sharpe ratio, over n")[-3:] == [
+            "0.494857",
+            "0.494857",
+            "reproduced",
+        ]
+        assert TestTheReport._row(tail, "maximum drawdown ")[-3:] == [
+            "-0.233629",
+            "-0.233629",
+            "reproduced",
+        ]
+        assert TestTheReport._row(tail, "maximum drawdown days")[-3:] == [
+            "789",
+            "789",
+            "reproduced",
+        ]
+        assert "long on 0 days, short on 1718, flat on 282, both tests passed on 278" in tail
+        assert tail.rstrip().endswith("Exploratory. docs/replication-log.md carries the verdicts.")
+
+    @staticmethod
+    def _report(port: PythonPort) -> str:
+        out = io.StringIO()
+        with redirect_stdout(out):
+            module.report_python_port(port)
+        return out.getvalue()
+
+    def test_a_figure_off_the_comment_reads_as_a_gap(self, port) -> None:
+        """The port's returns scaled by 1.01 move the APR off the comment's six decimals."""
+        moved = PythonPort(
+            days=port.days,
+            spread=port.spread,
+            longs=port.longs,
+            shorts=port.shorts,
+            positions=port.positions,
+            returns=port.returns * 1.01,
+        )
+        row = TestTheReport._row(self._report(moved), "APR")
+        assert row[2] == PORT_APR
+        assert row[3] == "gap"
+        assert "reproduced" not in row
+
+    def test_the_header_and_both_count_read_their_own_inputs(self) -> None:
+        """Three days whose longs are not a subset of its shorts, so both differs from long."""
+        synthetic = PythonPort(
+            days=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]),
+            spread=np.array([np.nan, 0.1, 0.1]),
+            longs=np.array([False, True, True]),
+            shorts=np.array([False, False, True]),
+            positions=np.array([0.0, 1.0, -1.0]),
+            returns=np.array([0.0, 0.01, -0.005]),
+        )
+        lines = self._report(synthetic).splitlines()
+        assert lines[0] == ""
+        assert lines[1] == "Chan's Python port, gapFutures_FSTX.py, on the same save"
+        assert lines[2].split() == ["Figure", "Computed", "Port", "Verdict"]
+        assert lines[-2].strip() == (
+            "long on 1 days, short on 1, flat on 1, both tests passed on 1"
+        )
+        assert lines[-1] == "  Exploratory. docs/replication-log.md carries the verdicts."
