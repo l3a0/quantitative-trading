@@ -282,6 +282,21 @@ class TestTheRun:
             "see that."
         ) in out
         assert "Entry 48" in out
+        # The report lines that print figures, each read whole.
+        assert (
+            "  window   formed 2000-11-30 to 2007-09-28, held to 2000-12-29 to 2007-10-31, "
+            "83 months\n"
+        ) in out
+        assert "k the beta match of location 4684, C each ceiling of location 814: 2, 5\n" in out
+        assert "  Claim, location 4709, " in out
+        assert "  Location 4700: " in out
+        assert "  Ceilings from locations 814 and 2836. " in out
+        assert "return over all 83 months, each freshly funded." in out
+        assert "Benjamini-Hochberg at q = 0.05 across the 2 ceilings, run" in out
+        for y in ("0.2168", "0.3407"):
+            assert (
+                f"  Y = (1.645 + 0.8416) x the Newey-West standard error x 12 = {y}, per ceiling"
+            ) in out
 
 
 # --- the rules, on portfolios built by hand ------------------------------------
@@ -464,6 +479,15 @@ class TestTheControl:
         assert [o.claim_rejected for o in outcomes] == [False, False]
         assert [o.outcome for o in outcomes] == ["Contradicted", "Not decided"]
 
+    def test_the_contrary_family_runs_at_the_same_q(self) -> None:
+        a = with_statistic(2.0, -0.001, -t_for(0.04))
+        b = with_statistic(5.0, -0.001, -t_for(0.0499))
+        assert [o.contrary_rejected for o in decide([a, b])] == [True, True]
+
+    def test_assess_uses_the_ceilings_it_is_given(self) -> None:
+        p = made([0.01, 0.02, -0.01, 0.03], [0.0, 0.01, 0.0, 0.005], [4.0, 1.0, 6.0, 2.0])
+        assert [o.capped.ceiling for o in assess(p, (3.0,))] == [3.0]
+
     def test_a_rejection_against_the_means_sign_is_not_decided(self) -> None:
         """A positive mean with a rejecting contrary family decides nothing, and the reverse."""
         up = Outcome(
@@ -484,6 +508,14 @@ class TestTheWordings:
             "capital in the month ending 2001-03-31, at a leverage of 5.0000, so its compounded "
             "growth is unbounded below and the unlevered high-beta portfolio out-compounded it."
         )
+
+    def test_the_ruin_line_names_the_first_ruin_at_its_capped_leverage(self) -> None:
+        # Months 2 and 3 ruin, at L = 4 and L = 5, so the first ruin sits below the cap.
+        p = cap(made([0.01, -0.4, -0.3], [0.0] * 3, [10.0, 4.0, 10.0]), 5.0)
+        c = Capped(ceiling=5.0, portfolios=p, k=p.leverage, ruined=ruined_months(p), summary=None)
+        o = Outcome(capped=c, claim_rejected=False, contrary_rejected=False)
+        assert [r.leverage for r in c.ruined] == [4.0, 5.0]
+        assert "in the month ending 2001-03-31, at a leverage of 4.0000, so" in o.line()
 
     def test_holds(self) -> None:
         o = Outcome(
@@ -662,3 +694,32 @@ class TestTheRuinedReport:
         assert "neither t nor Y is computed, and the ceiling enters both families at p = 1." in out
         assert re.search(r"\n  50 +ruin ", out)
         assert "none   2001-03-31" in out
+
+    def test_every_ruin_row_prints_its_capped_leverage(self, sources, capsys, monkeypatch) -> None:
+        members, _, spy_entry, _, bill_entry, _ = sources
+        low = [0.01, -0.3, 0.02, 0.015, -0.4, 0.01, 0.02, -0.01, 0.005, 0.03, -0.02, 0.01]
+        high = [0.0, -0.02, 0.03, 0.0, 0.01, -0.01, 0.02, 0.0, -0.005, 0.01, 0.0, 0.02]
+        k = [3.0] * 12
+        k[1], k[4] = 10.0, 4.0
+        monkeypatch.setattr(low_beta_capped, "CEILINGS", (2.0, 5.0))
+        outcomes = report(members, spy_entry, bill_entry, made(low, high, k, rf=0.001))
+        out = capsys.readouterr().out
+        ruined = outcomes[1].capped.ruined
+        assert [(str(r.held_to.date()), r.leverage) for r in ruined] == [
+            ("2001-03-31", 5.0),
+            ("2001-06-30", 4.0),
+        ]
+        for r in ruined:
+            assert (
+                f"  {str(r.held_to.date()):<14} {str(r.formed.date()):<12} "
+                f"{r.leverage:>8.4f} {r.levered:>9.4f}"
+            ) in out
+
+    def test_the_report_prints_each_familys_decision(self, sources, capsys, monkeypatch) -> None:
+        members, _, spy_entry, _, bill_entry, _ = sources
+        low = [0.02, 0.03, 0.025, 0.01, 0.04, 0.02, 0.03, 0.015, 0.02, 0.035, 0.01, 0.025]
+        p = made(low, [0.0] * 12, [3.0] * 12, rf=0.001)
+        outcomes = report(members, spy_entry, bill_entry, p)
+        out = capsys.readouterr().out
+        assert [o.outcome for o in outcomes] == ["Holds", "Holds"]
+        assert len(re.findall(r"rejected yes\. Contrary \d\.\d{4}, rejected no\.", out)) == 2
