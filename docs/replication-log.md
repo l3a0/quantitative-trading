@@ -8355,7 +8355,7 @@ opening jump pays today.
 | 6 | `calculateMaxDD(cumprod(1 + ret) − 1)` under each reading | literal −0.190023 over 287 days, momentum −0.651056 over 1,909 days | `TestBesideTheReplication::test_the_literal_reading_s_drawdown` and `::test_the_momentum_reading_s_drawdown` |
 | 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
 | 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 agreeing days of 1,996, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` |
-| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, and for the equal closes, `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair` |
+| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
 
 ### The verdicts
 
@@ -8369,11 +8369,11 @@ opening jump pays today.
 | 6 | none | none, not a replication | Line 34 prints a drawdown, and no comment records a value for it. |
 | 7 | none | none, not a replication | No day qualifies both tests, so line 21's order decides nothing here. No open sits exactly on either threshold, so the tests being non-strict decides nothing either. `TestTheRules` holds both on synthetic days. |
 | 8 | none | none, not a replication | FSTX's close in this save agrees with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
-| 9 | none | none, not a replication | FSTX's close in this save equals the 2012-05-11 save's on every day they share, over a window that starts three trading days earlier still. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
+| 9 | none | none, not a replication | FSTX's open, high, low and close in this save each equal the 2012-05-11 save's on all 1,997 days they share, over a window that starts three trading days earlier still, so the two APRs differ by the window alone. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
 
 ### What the entry concludes
 
-Two things.
+Three things.
 
 1. **The script reproduces on Chan's own file, and the figure is the fade's.**
    Its two printed figures land at the decimals printed, and the book's two
@@ -8383,6 +8383,19 @@ Two things.
    location 2965 describes, the same positions give an APR of −0.124236 and a
    Sharpe ratio of −1.441620. The 13 percent and 1.4 do not support the claim
    they were printed beside.
+3. **The long days earn about three quarters of the return.** Split by the side
+   held, the literal reading's daily returns sum to 0.749529 on the 278 long
+   days and 0.271280 on the 191 short days, of 1.020809, and compound to
+   1.084422 and 0.290022. Each side alone, earning nothing on the other's
+   days, gives an APR of 0.096964 and a Sharpe ratio of 1.534735 for the long
+   days, and 0.032607 and 0.527473 for the short days. From the open to the
+   close, FSTX moved −0.002696 on average on the long days, closing below the
+   open on 163, and +0.001420 on the short days, closing above it on 108. On
+   the 1,441 days that carry a spread and hold nothing it moved +0.000025.
+   `TestWhatThePostMeasures` pins all of it, and the write-up found it. The
+   split comes from the rule's own two branches rather than a date picked
+   after the curve was seen, and it describes this sample without testing
+   anything.
 
 ### What this entry cannot say
 
@@ -8417,7 +8430,10 @@ window are Chan's, and the sample is the one he reported on. A registered
 test would fix one sign first and run it on data after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/opening-gap-lessons.md](../blog/opening-gap-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.opening_gap_figures` redraws.
 
 ## Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*
 
