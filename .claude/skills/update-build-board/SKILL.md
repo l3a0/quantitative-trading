@@ -643,9 +643,9 @@ the script beside it. Each row after them says how it was found.
     merged with no `Part of` was meant to close its issue, so the owner ruled
     on 2026-10-10 that its card is held back as needing only closing by hand,
     and `closesByHand` decides that for the free list, the plan marker, the
-    kind word and the "Planned, no builder" column. The same reading found a
-    closed entry's line repeating its old review text and, with no closing
-    link, saying what merging would do. It now says closed.
+    kind word, the "Planned, no builder" column and the chain bar. The same
+    reading found a closed entry's line repeating its old review text and,
+    with no closing link, saying what merging would do. It now says closed.
 19. **One sentence carrying two facts.** Caught by the owner reading the
     published page. On 2026-10-11
     [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
@@ -668,6 +668,29 @@ the script beside it. Each row after them says how it was found.
     card whose own line named one issue, because it counted the whole chain.
     So when a phrase can be read as either of two quantities, check it against
     data where the two differ.
+20. **A free claim that read only the links.** Caught by the completeness lens
+    of the review of
+    [pull request 518](https://github.com/l3a0/quantitative-trading/pull/518),
+    and filed as
+    [issue 521](https://github.com/l3a0/quantitative-trading/issues/521).
+    Picking a card with no open `needs` either way gave fixed text saying it
+    could be taken on its own. That read only `needs`. So the bar called a
+    card free whose kind word said not to start it, whose session or open
+    branch said somebody was carrying it, or whose `after` line tied it to
+    another issue. The board note's free list held those cards back, so the
+    bar and the note answered one question in two places. That is defect 5
+    again.
+
+    One table, `HOLDS`, now lists the reasons a card is not free, and
+    `takeable` passes ordinary work that no row of it holds. The free list and
+    the bar both read them. The bar names the reasons a card is held, says
+    only what the links show for a card blocked on data, and names an `after`
+    tie in either direction. The review of that fix found two more places the
+    bar disagreed with the card. A kind reason ignored the open branch that
+    hides the card's kind word, so `kindShown` now decides both. A plan whose
+    one open question is the owner's was called free while the In flight note
+    said it waited on the owner. A row for it now reads `planMarker`, so it
+    fires only where the card draws that marker.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old

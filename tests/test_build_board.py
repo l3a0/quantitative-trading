@@ -987,9 +987,23 @@ def _picked(tmp_path: Path, docs: dict, card: int) -> str:
     return said
 
 
-def _session_on(docs: dict, n: int) -> dict:
-    docs["working"]["items"].append({"n": n, "kind": "build"})
+def _session_on(docs: dict, n: int, kind: str = "build") -> dict:
+    docs["working"]["items"].append({"n": n, "kind": kind})
     return docs
+
+
+def _planned(docs: dict, n: int, ready: str) -> dict:
+    docs["planned"]["items"].append({"n": n, "passes": 2, "ready": ready})
+    return docs
+
+
+def _on_branch(kind: str) -> dict:
+    """Fixture issue 90501 with 90502's blocker removed and the given kind.
+
+    90501 carries the fixture's open pull request, so with nothing waiting on
+    it the chain bar takes the unlinked branch for a card with a branch open.
+    """
+    return _with_fields(_with_needs(fixture_docs(), {90502: []}), 90501, kind=kind)
 
 
 def _merged_whole(docs: dict, n: int) -> dict:
@@ -1017,6 +1031,11 @@ def _merged_whole(docs: dict, n: int) -> dict:
             "it already has somebody on it",
         ),
         (
+            _session_on(_with_fields(fixture_docs(), 90504, kind="ready"), 90504, "decompose"),
+            90504,
+            "it already has somebody on it",
+        ),
+        (
             _merged_whole(_with_fields(fixture_docs(), 90504, kind="ready"), 90504),
             90504,
             "it has merged and needs only closing by hand",
@@ -1031,15 +1050,40 @@ def _merged_whole(docs: dict, n: int) -> dict:
             90504,
             "it is deferred on purpose and already has somebody on it",
         ),
+        (_on_branch("decision"), 90501, "it is already written and waiting on a review"),
+        (_on_branch("deferred"), 90501, "it is already written and waiting on a review"),
+        (_on_branch("parent"), 90501, "it is already written and waiting on a review"),
+        (
+            _merged_whole(
+                _planned(_with_fields(fixture_docs(), 90504, kind="ready"), 90504, "decide"), 90504
+            ),
+            90504,
+            "it has merged and needs only closing by hand",
+        ),
+        (
+            _session_on(
+                _planned(_with_fields(fixture_docs(), 90504, kind="ready"), 90504, "decide"),
+                90504,
+                "decompose",
+            ),
+            90504,
+            "it already has somebody on it",
+        ),
     ],
     ids=[
         "decision",
         "deferred",
         "parent",
         "session",
+        "loop",
         "close-by-hand",
         "open-branch",
         "deferred-with-session",
+        "decision-on-branch",
+        "deferred-on-branch",
+        "parent-on-branch",
+        "owner-plan-merged",
+        "owner-plan-under-a-loop",
     ],
 )
 def test_an_unlinked_card_the_board_holds_back_is_not_called_free(
@@ -1050,11 +1094,19 @@ def test_an_unlinked_card_the_board_holds_back_is_not_called_free(
     The bar used to say any card with no open ``needs`` either way "can be
     taken on its own", reading nothing but ``needs``. Fixture issue 90504 is
     such a card, and the cases give it a kind word saying not to start it, a
-    build session, or a pull request merged with no ``Part of``. With 90502's
-    blocker removed, 90501 is one too and carries its open pull request. Each
-    reason is the one the board note's free list holds that card back for, in
-    the form a sentence about one card takes, and two reasons on one card are
-    joined with "and" because both apply to it.
+    build session, a decompose loop, or a pull request merged with no ``Part
+    of``. With 90502's blocker removed, 90501 is one too and carries its open
+    pull request. Each reason is the one the board note's free list holds that
+    card back for, in the form a sentence about one card takes, and two reasons
+    on one card are joined with "and" because both apply to it.
+
+    A card with an open branch draws no kind word, because the branch already
+    answered what kind of work it was. So the three cases with a branch give
+    only the branch as the reason, whatever the kind, and the bar gives no
+    reason the card itself withholds. A plan whose one question is the owner's
+    is a reason only where the card draws that marker, so the last two cases,
+    one merged with no ``Part of`` and one under a decompose loop, give only
+    the reason each already has.
     """
     said = _picked(tmp_path, docs, card)
     assert FREE_CLAIM not in said
@@ -1090,7 +1142,42 @@ def test_an_unlinked_card_of_no_listed_kind_says_only_what_its_links_show(
     """
     docs = _with_fields(fixture_docs(), 90504, kind="data")
     said = _picked(tmp_path, docs, 90504)
-    assert said.startswith("#90504 is linked to nothing else here. Clear")
+    assert "#90504 is linked to nothing else here." in said
+    assert FREE_CLAIM not in said
+    assert "because" not in said
+
+
+@pytest.mark.parametrize(
+    ("ready", "line"),
+    [
+        ("build", "#90504 is linked to nothing else here, so it can be taken on its own."),
+        (
+            "decide",
+            "#90504 is linked to nothing else here, but it is not free to take, "
+            "because it waits on a question only the owner can answer.",
+        ),
+    ],
+    ids=["ready-to-build", "waits-on-the-owner"],
+)
+def test_a_planned_card_waiting_on_the_owner_is_not_called_free(
+    tmp_path: Path, ready: str, line: str
+) -> None:
+    """Protects the chain bar from contradicting the In flight note on a plan.
+
+    Fixture issue 90504 as ordinary work gets a finished plan and nothing on
+    it, so it sits under "Planned, no builder". With one question left for the
+    owner, the In flight note says it waits on a question only the owner can
+    answer, and the bar used to call it free to take on its own anyway. A plan
+    ready to build is the control, where both say the card is free.
+    """
+    docs = _planned(_with_fields(fixture_docs(), 90504, kind="ready"), 90504, ready)
+    said = _picked(tmp_path, docs, 90504)
+    assert line in said
+    flownote = text(draw(tmp_path, docs), "flownote")
+    if ready == "decide":
+        assert "#90504 is planned, and waits on a question only the owner can answer" in flownote
+    else:
+        assert "#90504 is planned and free for anyone to pick up" in flownote
 
 
 @pytest.mark.parametrize(
