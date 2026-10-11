@@ -667,6 +667,66 @@ def test_no_committed_post_leaves_markdown_as_literal_text() -> None:
     assert found == set()
 
 
+TEXT_COMMAND = re.compile(r"\\text(?:tt|bf|it)?\{")
+
+
+def _math_blocks(md: str):
+    """The TeX of every ```` ```math ```` fence and ``$$`` block, in order."""
+    lines = md.split("\n")
+    i = 0
+    while i < len(lines):
+        opening = lines[i].strip()
+        if opening.startswith("$$") and opening.endswith("$$") and len(opening) > 4:
+            yield opening[2:-2]
+        elif opening.startswith(("```math", "$$")):
+            closing = "$$" if opening.startswith("$$") else "```"
+            body = []
+            i += 1
+            while i < len(lines) and lines[i].strip() != closing:
+                body.append(lines[i])
+                i += 1
+            yield "\n".join(body)
+        i += 1
+
+
+def _text_arguments(tex: str):
+    """The argument of every ``\\text``, ``\\texttt``, ``\\textbf`` and ``\\textit``.
+
+    The argument ends at the brace that closes it, counting nested braces and
+    skipping escaped ones, so ``\\text{a{b}\\_c}`` yields ``a{b}\\_c``.
+    """
+    for opened in TEXT_COMMAND.finditer(tex):
+        depth, k = 1, opened.end()
+        while k < len(tex) and depth:
+            if tex[k] == "\\":
+                k += 2
+                continue
+            depth += {"{": 1, "}": -1}.get(tex[k], 0)
+            k += 1
+        yield tex[opened.end() : k - 1]
+
+
+def test_no_committed_post_escapes_an_underscore_inside_text() -> None:
+    """No ``\\_`` sits inside a text command's argument in a post's math.
+
+    Substack draws LaTeX with MathJax 3, which lacks the ``textmacros``
+    package, so inside ``\\text{}`` every character prints as typed and
+    ``\\text{A\\_CAL}`` shows its backslash. The fix puts the underscore in
+    math mode, as ``\\text{A}\\_\\text{CAL}``, which draws the same on GitHub.
+    The converter already writes a pipe table's cells that way, so this
+    checks what a post writes by hand. The Entry 46 post merged with four
+    such cells.
+    """
+    found = [
+        (post.name, argument)
+        for post in POSTS
+        for tex in _math_blocks(post.read_text(encoding="utf-8"))
+        for argument in _text_arguments(tex)
+        if "\\_" in argument
+    ]
+    assert found == []
+
+
 # --- Python and JavaScript agree ------------------------------------------------
 
 # Appended after md2substack.js. It converts every case and prints one line per

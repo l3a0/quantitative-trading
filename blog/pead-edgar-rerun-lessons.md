@@ -47,9 +47,9 @@ Ten runs cover the four differences, each Chan’s rule on one universe, one sou
 \begin{array}{l|l|l|l|r|r|r}
 \text{Run} & \text{Stocks} & \text{Prices} & \text{Flags} & \text{Arithmetic annual return} & \text{Sharpe ratio} & \text{Trades} \\ \hline
 \text{A} & \text{ALL} & \text{Chan's} & \text{Chan's} & 0.066743 & 1.4909 & 1{,}072 \\
-\text{A\_CAL} & \text{CAL} & \text{Chan's} & \text{Chan's} & 0.054481 & 1.3253 & 1{,}052 \\
-\text{A\_PX} & \text{PX} & \text{Chan's} & \text{Chan's} & 0.053099 & 1.5028 & 964 \\
-\text{A\_U} & \text{U} & \text{Chan's} & \text{Chan's} & 0.043678 & 1.2815 & 949 \\
+\text{A}\_\text{CAL} & \text{CAL} & \text{Chan's} & \text{Chan's} & 0.054481 & 1.3253 & 1{,}052 \\
+\text{A}\_\text{PX} & \text{PX} & \text{Chan's} & \text{Chan's} & 0.053099 & 1.5028 & 964 \\
+\text{A}\_\text{U} & \text{U} & \text{Chan's} & \text{Chan's} & 0.043678 & 1.2815 & 949 \\
 \text{B1} & \text{CAL} & \text{Chan's} & \text{R1} & 0.071050 & 1.7045 & 1{,}291 \\
 \text{B5} & \text{CAL} & \text{Chan's} & \text{R5} & 0.063142 & 1.2988 & 1{,}477 \\
 \text{C} & \text{PX} & \text{adjusted, archive} & \text{Chan's} & 0.053206 & 1.4905 & 964 \\
@@ -145,7 +145,7 @@ The [drift post’s second lesson](https://github.com/l3a0/quantitative-trading/
 ```math
 \begin{array}{l|r|r|r|r}
 \text{Run} & \text{Trades} & \text{Mean return per trade} & \text{Arithmetic annual return} & \text{Sharpe ratio} \\ \hline
-\text{A\_CAL, Chan's flags} & 1{,}052 & 0.002035 & 0.054481 & 1.3253 \\
+\text{A}\_\text{CAL, Chan's flags} & 1{,}052 & 0.002035 & 0.054481 & 1.3253 \\
 \text{B1, R1} & 1{,}291 & 0.002162 & 0.071050 & 1.7045 \\
 \text{B5, R5} & 1{,}477 & 0.001679 & 0.063142 & 1.2988
 \end{array}
