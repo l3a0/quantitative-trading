@@ -1,5 +1,7 @@
 """The figure for the post on time-series momentum on TU, *Algorithmic Trading*'s Example 6.1.
 
+The post is ``blog/tu-momentum-lessons.md``.
+
 The post teaches what Entry 33 of the replication log found, and
 [issue 453](https://github.com/l3a0/quantitative-trading/issues/453) chose one
 figure for it. :func:`make_tu_figure` draws two panels that share the date axis

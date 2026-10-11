@@ -3794,7 +3794,8 @@ Five groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
-   Momentum as a correlation of past and future returns is at 2600, the
+   The four causes of momentum and the persistence of roll returns are at
+   2591, momentum as a correlation of past and future returns at 2600, the
    optimal pair at 2612, the two tests as momentum tests at 2620, the warning
    about overlapping data and Figure 6.1's bars at 2623, the best compromises
    and the time frames that reconcile the tests at 2646, the paper the rule
@@ -3812,9 +3813,12 @@ Five groups of what it says are not pinned here.
    that consecutive future returns overlap on 24 of 25 days and each kept past
    return shares 225 of its 250 days with the next, that a four-day shift
    moving the correlation's second decimal shows how few days stand behind
-   it, that 2008 was the year of the financial crisis, that a rule mostly long
-   on a rising price earns part of the rise, and that leverage would multiply
-   the drawdowns along with the return.
+   it, that 2008 was the year of the financial crisis, that the back-adjusted
+   series carries roll return as well as moves in yields, that the comment's
+   missing volatility suggests it was pasted from an earlier version of the
+   printing line, that a rule mostly long on a rising price earns part of the
+   rise, and that leverage would multiply the drawdowns along with the
+   return.
 4. Ratios and roundings the post takes between pinned figures in words: more
    than half of the gain in by 2009-01-02, 2008 earning about four-fifths as
    much as the other years combined, four trading days between the two saves'

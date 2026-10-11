@@ -218,7 +218,7 @@ class TestTheCumulativeReturn:
 
     def test_it_is_zero_until_2005_06_02(self, curve) -> None:
         """The first 250 rows have no signal and the next 25 hold no tranche yet, so the
-        first return that is not zero lands on 2005-06-02."""
+        first return that is not zero falls on 2005-06-02."""
         nonzero = curve.to_numpy() != 0
         assert curve.index[int(np.argmax(nonzero))] == FIRST_RETURN, SPEC
         assert (curve[curve.index < FIRST_RETURN] == 0).all(), SPEC
