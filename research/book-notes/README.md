@@ -243,9 +243,10 @@ in the comments of `TU_mom_hypothesisTest.m` and nowhere in the book. The
 replication log's Entry 37 traces each figure to one or the other.
 
 The trade of GLD against gold futures splits the way Example 6.1 does. The
-book's figures are here: the annualized return of 1.9 percent and the maximum
-drawdown of 0.8 percent from August 3, 2007, to August 2, 2010, and the
-financing cost "not very different from 1.9 percent", all at location 2718,
+book's figures are here: gold futures' roll return of −4.9 percent annualized
+from December 1982 to May 2004, the annualized return of 1.9 percent and the
+maximum drawdown of 0.8 percent from August 3, 2007, to August 2, 2010, and
+the financing cost "not very different from 1.9 percent", all at location 2718,
 and the caveat about GC's 1:30 p.m. settlement at location 2730. The figures
 the closing comment of `GLD_GC.m` prints, 0.0190, −.07, 0.0191, −0.008247 and
 91 days, sit in the script and nowhere in the book. The replication log's

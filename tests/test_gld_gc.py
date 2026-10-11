@@ -8,7 +8,8 @@ under "The specification, declared before any figure".
 
 Every pin on the committed files reads the same two vintages and one
 specification unless it names another vintage, so they are stated once here
-and carried in each figure's failure message as :data:`SPEC`.
+and carried in each figure's failure message as :data:`SPEC`. B1's pins
+carry :data:`B1_SPEC` the same way.
 
 - **GC.** ``inputdata_gc_1600_20100802/gc.csv``, chan-mat, raw, saved
   2012-05-07, 761 rows from 2007-08-03 to 2010-08-02, read as
@@ -44,8 +45,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from chan import bill_rates, paths
 from chan import gld_gc as module
-from chan import paths
 from chan.gld_gc import (
     BOOK_APR,
     BOOK_AVERAGE_ANNUAL_RETURN,
@@ -86,6 +87,10 @@ SPEC = (
     "inputdata_gc_1600_20100802/gc.csv chan-mat raw saved 2012-05-07 against "
     "inputdata_etf/gld.csv chan-mat adjusted saved 2012-04-10, GLD_GC.m as shipped: "
     "intersected calendars, GLD's return minus GC's with NaN set to 0, rf = 0.02/252"
+)
+B1_SPEC = (
+    "FRED TB3MS basis rate downloaded 2026-09-30, the monthly three-month bill rate "
+    "averaged over 2007-08 to 2010-08, both months included"
 )
 
 
@@ -148,14 +153,21 @@ class TestTheArithmetic:
         ret = daily_returns([100.0, np.nan, 101.0, 102.0], [10.0, 10.0, 10.0, 10.0])
         assert ret.tolist() == [0.0, 0.0, 0.0, pytest.approx(102 / 101 - 1, abs=1e-15)]
 
-    def test_a_lag_padded_with_zeros_gives_the_same_first_row(self) -> None:
+    def test_a_lag_padded_with_zeros_gives_the_same_returns(self, monkeypatch) -> None:
         """LeSage's ``lag`` pads with 0, so row 1 is infinity minus infinity, NaN, then 0."""
-        with np.errstate(divide="ignore", invalid="ignore"):
-            gld = np.array(self.GLD)
-            gc = np.array(self.GC)
-            first = (gld[0] - 0) / 0 - (gc[0] - 0) / 0
-        assert np.isnan(first)
-        assert daily_returns(self.GLD, self.GC)[0] == 0.0
+        padded_with_nan = daily_returns(self.GLD, self.GC)
+        seen = []
+
+        def padded_with_zeros(x):
+            values = np.asarray(x, dtype=float)
+            seen.append(values)
+            return np.concatenate(([0.0], values[:-1]))
+
+        monkeypatch.setattr(module, "lag1", padded_with_zeros)
+        found = daily_returns(self.GLD, self.GC)
+        assert len(seen) == 2
+        assert found.tolist() == padded_with_nan.tolist()
+        assert found[0] == 0.0
 
     def test_mismatched_legs_are_refused(self) -> None:
         with pytest.raises(ValueError, match="one shape"):
@@ -337,18 +349,23 @@ class TestTheBooksFigures:
 class TestTheFinancingCost:
     """B1, declared beside S and carrying no verdict."""
 
+    def test_the_bills_are_the_september_download(self) -> None:
+        entry = bill_rates.bill_vintage()
+        assert (entry.vendor, entry.symbol, entry.price_basis) == ("fred", "TB3MS", "rate")
+        assert entry.obtained == "2026-09-30"
+
     def test_the_bill_rate_over_the_window(self, b1) -> None:
         assert FINANCING_MONTHS == ("2007-08", "2010-08")
-        assert b1.months == 37
-        assert b1.bill_rate == pytest.approx(0.010141, abs=5e-7)
+        assert b1.months == 37, B1_SPEC
+        assert b1.bill_rate == pytest.approx(0.010141, abs=5e-7), B1_SPEC
 
     def test_what_is_left_above_it(self, b1, result) -> None:
         assert b1.average_annual_return == result.figures.average_annual_return
-        assert b1.excess == pytest.approx(0.008874, abs=5e-7), SPEC
+        assert b1.excess == pytest.approx(0.008874, abs=5e-7), f"{SPEC}, less {B1_SPEC}"
 
 
 class TestTheSeriesIdentity:
-    """What says the GC file is sampled at 16:00 rather than at the 1:30 p.m. settlement."""
+    """What says the GC file is read at GLD's close rather than at the 1:30 p.m. settlement."""
 
     def test_gc_holds_9_us_exchange_holidays_gld_lacks(self, found) -> None:
         assert [str(day.date()) for day in found.gc_only] == list(GC_ONLY_HOLIDAYS)
@@ -391,6 +408,10 @@ class TestTheSeriesIdentity:
     def test_their_daily_returns_correlate_at_0_82(self, found) -> None:
         assert found.return_correlation == pytest.approx(0.824035, abs=5e-7)
 
+    def test_their_difference_reverses_the_next_day(self, found) -> None:
+        """A gap in timing makes the daily change reverse, and a step at a roll does not."""
+        assert found.difference_reversal == pytest.approx(-0.559953, abs=5e-7)
+
     def test_the_ratio_s_first_and_last_values(self, found) -> None:
         """The issue's disclosure printed these before the criterion was written."""
         assert found.first_ratio == pytest.approx(10.822, abs=5e-4)
@@ -409,6 +430,16 @@ class TestTheSeriesIdentity:
         assert steps.spread == pytest.approx(0.009243, abs=5e-7)
         assert steps.largest == pytest.approx(0.097332, abs=5e-7)
         assert steps.steps == 20
+
+    def test_a_gap_between_the_closes_carries_at_most_0_18_percent_of_gld_s_variance(
+        self, found
+    ) -> None:
+        """Half the squared ratio of the log ratio's spread to GLD's own daily spread."""
+        assert found.gld_spread == pytest.approx(0.015660, abs=5e-7)
+        assert found.gap_share == pytest.approx(0.001775, abs=5e-7)
+        assert found.gap_share == pytest.approx(
+            (found.sampled_at_1600.spread / found.gld_spread) ** 2 / 2, rel=1e-12
+        )
 
 
 class TestTheGuardAndTheReads:
@@ -520,3 +551,6 @@ class TestTheReport:
         assert "10.822 and 10.235" in printed
         assert "standard deviation 0.000933" in printed
         assert "standard deviation 0.009243" in printed
+        assert "lag-1 autocorrelation -0.559953" in printed
+        assert "standard deviation 0.015660" in printed
+        assert "at most 0.001775 of its daily variance" in printed

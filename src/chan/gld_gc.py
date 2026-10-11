@@ -37,7 +37,7 @@ sibling search on the issue found no code for this trade.
 holds the ``lag.m`` the script calls. A lag padded with NaN leaves the first
 row's return NaN, and one padded with zeros, as LeSage's toolbox pads, gives
 infinity minus infinity on that row, which is NaN too. Either way step 4
-zeroes it, and ``tests/test_gld_gc.py`` holds both.
+zeroes it, and ``tests/test_gld_gc.py`` runs :func:`daily_returns` on both.
 
 **The specification S, declared before any figure.** S is ``GLD_GC.m`` as
 shipped, on the two vintages below. Issue 355 declared it on 2026-10-10 at
@@ -56,20 +56,26 @@ set against S's average annual return. The book gives no bound for "not very
 different", so B1 carries no verdict. The bill rate is a floor on what
 financing GLD costs, because a trader borrows above it.
 
-**The series is GC sampled at 16:00, not the 1:30 p.m. settlement.**
-:func:`identity` measures what says so.
+**The series is GC read within minutes of GLD's 4 p.m. close, not the 1:30
+p.m. settlement.** :func:`identity` measures what says so.
 
 1. GC holds 9 rows GLD lacks, and every one is a US exchange holiday, which
    :data:`GC_ONLY_HOLIDAYS` names. A settlement series has no row on a day the
-   exchange is shut.
-2. The GC close of ``inputDataOHLCDaily_20120507``, a continuous series
-   shifted at each roll, never equals this one on the 752 days they share,
-   and their daily returns correlate well below 1.
-3. The daily change in log(GC / GLD) moves far less on this series than on
-   that one.
+   exchange is shut, so this is not one.
+2. The daily change in log(GC / GLD) barely moves. If GC were read two and a
+   half hours before GLD, that change would hold two gold returns over the
+   gap, one from each day. :attr:`Identity.gap_share` solves for the most of
+   GLD's daily variance such a gap could carry. It comes out far below the
+   tenth of a day those hours take on the clock, in a market that trades
+   nearly around it.
 
-So the file is a continuous series read at GLD's own close, and location
-2730's caveat does not reach the series the script reads.
+The GC close of ``inputDataOHLCDaily_20120507`` sits beside it for contrast.
+That save is a continuous series shifted at each roll, so it would equal no
+unshifted series at any hour, and its never equalling this one says only that
+the two differ. Its large moves against this one reverse the next day, which a
+gap in timing predicts and a shift at a roll does not.
+
+So location 2730's caveat does not reach the series the script reads.
 
 **The vintages.** ``inputdata_gc_1600_20100802/gc.csv``, chan-mat, raw, saved
 2012-05-07, 761 rows from 2007-08-03 to 2010-08-02, and
@@ -295,7 +301,7 @@ def ratio_steps(gc: pd.Series, gld: pd.Series, days: pd.DatetimeIndex) -> RatioS
 
 @dataclass(frozen=True)
 class Identity:
-    """What says the GC file is sampled at 16:00, beside the OHLC save's GC."""
+    """What says the GC file is read at GLD's close, beside the OHLC save's GC."""
 
     gc_only: list[pd.Timestamp]
     gld_only: list[pd.Timestamp]
@@ -308,6 +314,23 @@ class Identity:
     sampled_at_1600: RatioSteps
     ohlc: RatioSteps
     ohlc_entry: VintageEntry
+    #: The standard deviation over n of GLD's daily log return on the kept days.
+    gld_spread: float
+    #: The lag-1 autocorrelation of the daily change in 16:00 GC less the OHLC save's GC.
+    difference_reversal: float
+
+    @property
+    def gap_share(self) -> float:
+        """The most of GLD's daily variance a gap between the two closes can carry.
+
+        If GC were read hours before GLD, the daily change in log(GC / GLD)
+        would hold the difference of two gold returns over that gap, one from
+        each day, so its variance would be at least twice the gap's share of
+        the daily variance. Anything else that moves the ratio only adds to
+        it, so solving for the share from the measured spread bounds it from
+        above.
+        """
+        return (self.sampled_at_1600.spread / self.gld_spread) ** 2 / 2
 
 
 def identity(sources: Sources, result: GldGc, data_dir: Path | None = None) -> Identity:
@@ -318,6 +341,7 @@ def identity(sources: Sources, result: GldGc, data_dir: Path | None = None) -> I
     ours = sources.gc.loc[shared].to_numpy(dtype=float)
     theirs = ohlc.loc[shared].to_numpy(dtype=float)
     ratio = result.gc / result.gld
+    difference_change = np.diff(ours - theirs)
     return Identity(
         gc_only=list(sources.gc.index.difference(sources.gld.index)),
         gld_only=list(gld_window.index.difference(sources.gc.index)),
@@ -332,6 +356,8 @@ def identity(sources: Sources, result: GldGc, data_dir: Path | None = None) -> I
         sampled_at_1600=ratio_steps(sources.gc, sources.gld, result.days),
         ohlc=ratio_steps(ohlc, sources.gld, shared),
         ohlc_entry=ohlc_entry,
+        gld_spread=float(np.std(np.diff(np.log(result.gld)))),
+        difference_reversal=float(np.corrcoef(difference_change[:-1], difference_change[1:])[0, 1]),
     )
 
 
@@ -399,6 +425,10 @@ def report(sources: Sources, result: GldGc, b1: Financing, found: Identity) -> N
         f"apart, daily return correlation {found.return_correlation:.6f}"
     )
     print(
+        f"    the daily change in the 16:00 close less it, lag-1 autocorrelation "
+        f"{found.difference_reversal:.6f}"
+    )
+    print(
         f"  GC / GLD on the first and last day {found.first_ratio:.3f} and {found.last_ratio:.3f}"
     )
     for label, steps in (("16:00 GC", found.sampled_at_1600), ("OHLC save GC", found.ohlc)):
@@ -407,6 +437,10 @@ def report(sources: Sources, result: GldGc, b1: Financing, found: Identity) -> N
             f"deviation {steps.spread:.6f}, largest {steps.largest:.6f}, "
             f"{steps.steps} moves past {STEP:g}"
         )
+    print(
+        f"  GLD's daily log return, standard deviation {found.gld_spread:.6f}, so a gap between "
+        f"the two closes carries at most {found.gap_share:.6f} of its daily variance"
+    )
     print()
     print("  Annualised over 252 days, with no cost and no financing beyond B1.")
     print("  Exploratory. docs/replication-log.md Entry 38 carries the verdicts.")

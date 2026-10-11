@@ -519,10 +519,12 @@ where they were first built. The other thirty-six were built here.
     0.8 percent. The book says GLD's financing cost eats the return. The
     three-month bill rate over the window averages 0.010141, which leaves
     +0.008874 above it, and the bill rate is a floor on that cost, so the
-    claim is neither confirmed nor refuted. The GC file is sampled at 16:00
-    rather than at the 1:30 p.m. settlement the book describes, because it
-    holds 9 US exchange holidays and never equals the GC close of
-    Chan's 2012-05-07 OHLC save. Every figure is exploratory.
+    claim is neither confirmed nor refuted. The GC file is read within
+    minutes of GLD's 4 p.m. close rather than at the 1:30 p.m. settlement
+    the book describes. It holds 9 US exchange holidays, so it is not a
+    settlement series, and its ratio to GLD barely moves from one day to the
+    next, which a gap of two and a half hours between the closes would not
+    allow. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -874,8 +876,8 @@ zero.
 [tests/test_gld_gc.py](tests/test_gld_gc.py) does it for long GLD and short
 gold futures. It pins the five figures of `GLD_GC.m`'s closing comment and the
 text's two at six decimals and at the precision Chan printed, the financing
-row beside them, and the three measurements that say the GC file is sampled
-at 16:00. It also holds every step of the script on synthetic legs whose
+row beside them, and the measurements that say the GC file is read at GLD's
+close. It also holds every step of the script on synthetic legs whose
 figures are worked out by hand, and the scale-break guard on each series it
 reads.
 
@@ -1706,8 +1708,8 @@ uv run python -m chan.gld_gc
 
 It prints both legs' vintages and the days they share, the script's five
 figures and the text's two beside the book's with a verdict, then the bill
-rate over the window and the three measurements of the GC series, none of
-which carries a verdict.
+rate over the window and the measurements of the GC series, none of which
+carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
