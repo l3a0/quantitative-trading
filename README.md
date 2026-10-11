@@ -702,9 +702,9 @@ calendar a trader could have built before each open give 0.057489 and 1.6585.
 Most of that rise in return comes from the calendar taking more trades,
 because the rule divides each day by a fixed 30. Each trade earns only about 6
 percent more on average than on Chan's flags. Narrowing the 497 stocks to
-those 441 moves the figure most, by −0.023065, and the vendor and the price
-basis move it by about a ten-thousandth each, judged on the closes. Every
-figure is exploratory, and Entry 46 in
+those 441 moves the arithmetic return most, by −0.023065, and the vendor and
+the price basis move it by about a ten-thousandth each, judged on the closes.
+Every figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
 
@@ -810,6 +810,7 @@ first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
 miss. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
+
 [tests/test_pead_rerun.py](tests/test_pead_rerun.py) does it for the rerun on
 EDGAR's calendar. It pins the figures, trades, busiest day and mean return
 per trade of each run
@@ -817,7 +818,15 @@ per trade of each run
 before it ran, the attribution, and each calendar's cell-by-cell agreement
 with Chan's flags. The pins that read the
 archive's prices skip unless the archive is configured and
-`QT_ARCHIVE_RUN=1`.
+`QT_ARCHIVE_RUN=1`. Its `TestWhatThePostMeasured` holds what the post on the
+rerun measured after the runs: run A split among U and the groups of
+stocks outside it, why each stock outside U failed its check, the day the
+stocks outside U add most, their mean trade against U's, R1's extra trades
+priced at its own mean, and the days B1 and B5 hold more than 30 positions.
+Every one of those reads committed files and decides nothing. The trades
+behind each move of E1 and E5 on Chan's opens are pinned beside the opens, and
+skip with them. The blog post about it is the exception, and what it says that
+nothing here asserts is listed below.
 
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
@@ -5536,6 +5545,133 @@ uv run python -m chan.khandani_lo_small_caps_figures
 
 [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/pead-edgar-rerun-lessons.md](blog/pead-edgar-rerun-lessons.md) is a
+thirty-ninth post, about Example 7.2 of Chan's *Algorithmic Trading* rerun
+off his own files, on an announcement calendar read from EDGAR's Item 2.02
+filings and on Alpha Vantage prices from the owner's archive. Chan reports an
+APR of 6.7 percent and a Sharpe ratio of 1.5, which the post on post-earnings
+drift reproduces on his files. This post links that one for the rule, the
+fixed 30 and the flag counts rather than repeating them, and draws four
+lessons from Entry 46 of the replication log. Every result in it is
+exploratory, and the runs on the archive's prices cannot be rerun by a reader.
+
+1. A filer check against EDGAR and a price-series check against Alpha
+   Vantage drop 56 stocks, and they carry 0.023065 of A's 0.066743, 0.35 of
+   it, exactly A against A_U. The 13 whose ticker cannot be tied to the right
+   company, the 9 that fail the filer check and 4 reused tickers, carry
+   0.014787 of that, 0.64 of it. The other 43 fail because the archive does
+   not hold their prices for the whole window under the ticker. Close to half
+   of the 0.023065 comes on 2011-08-04.
+2. EDGAR's submissions file reads some filers' acceptance times 4 or 5 hours
+   late, which would move every before-open release of a filer whose time
+   reads late into the session.
+3. R1 lifts A_CAL's 0.054481 to 0.071050, and the extra trades are 0.75 of the
+   gain at A_CAL's mean per trade and 0.79 at R1's own.
+4. The vendor and the price basis move the return by about a ten-thousandth
+   each, and three trades on disputed opens move E5 by −0.004566.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   the earnings.com calendar and its window from the previous close to the
+   open at 3002, the 4:00 p.m. and 9:30 a.m. times at 3010, and the book's
+   6.7 percent and 1.5 at 3024. The figures at 3024 are pinned by
+   [tests/test_pead.py](tests/test_pead.py), and the words are not.
+2. The sample of the submissions file's acceptance times taken while
+   planning the rerun, 175 of 248 filings from 38 filers true UTC and 73 a
+   further 4 or 5 hours late, with Apple among them. It is not committed, and
+   `chan.earnings_filings`'s docstring records it. That the extra shift is 4
+   hours under daylight saving time and 5 under standard time, and that a
+   filer read late was read late on every filing, are readings of it.
+3. Facts about EDGAR, the archive and the code read when the record was
+   built rather than computed from committed files: that today's ticker table
+   sends CB to Chubb Limited, which was ACE in 2012 and filed its own
+   releases in the window, that the archive's CB series holds ACE's history,
+   that the archive files UTX under RTX and adjusts only the close, that
+   DuPont's proposed filer was formed after 2015, that R5 matched Chan's
+   flags best on a sample of 32 stocks, and the check's 3 percent tolerance
+   on price, a constant in `chan.earnings_filings`.
+4. Readings and figures the post states in words or rounds from pinned ones,
+   such as a third, about two thirds, close to half, three quarters and
+   nearer four fifths, Apple's times read after a double conversion as about
+   8:30 p.m. for the four filed under daylight saving time and 9:30 p.m. for
+   the two in January, about a ten-thousandth, the 54 disagreements on the
+   two days, that a filing from 11:00 a.m. in winter or noon in summer
+   onward moves past the close when read late, that two vendors defining the
+   open differently explains the two days, and that a release can precede
+   the filing that reports it. The figure's alt text reads its curves
+   approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py), to
+[tests/test_earnings_filings.py](tests/test_earnings_filings.py) for the
+universes' tickers and filers, the 398 series that pass under Chan's own
+tickers and the 48 companies under a later ticker, the 2 and 72 to 194 days a
+series differs on, ACE's 5.92 percent, and the index's 2,930 filings, 1,460
+before the open and 405 in the session, Apple's times and the earliest and
+latest times of day, to [tests/test_pead_figures.py](tests/test_pead_figures.py)
+for 2011-08-04 as the high A's longest drawdown starts from, or to
+[tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) for the
+figure's own numbers. Eight had no pin before it, and all were measured after
+the runs.
+
+1. That A less A_U is exactly the trades of the 56 stocks outside U, and A
+   less A_CAL exactly those of the 9 outside CAL, 0.012261 rounded from the
+   true value.
+2. The three groups, 441 stocks with 949 trades adding 0.043678, 47 with
+   103 adding 0.010803 and 9 with 20 adding 0.012261, and the 56 carrying
+   0.35 of A.
+3. On 2011-08-04 the stocks outside U add 0.010702 through 8 trades, 0.46 of
+   the universe effect, the largest WFR short at 0.1108. The five largest
+   trades outside U are shorts of stocks outside CAL carrying 0.54 of the
+   outside sum.
+4. The mean trade outside U, 0.007367 over 123, against 0.001808 over 949
+   inside, and a Welch t of 1.46.
+5. R1's extra trades as 0.79 of its gain at its own mean, and B1 and B5
+   holding more than 30 positions on 4 and 10 days.
+6. That no filing was accepted before 06:00:43 or after 21:49:59 Eastern on
+   any day, so a time read 4 or 5 hours late puts every filing accepted
+   before the open inside the session.
+7. When the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set,
+   the trades behind each move on Chan's opens: PNC on 2011-09-12 at
+   −0.002261, MCO on 2012-02-08 at −0.001751 and TMK on 2011-10-27 at
+   −0.000554 for E5, and the same MCO and TMK with CAM on 2011-10-27 at
+   +0.001766 for E1.
+8. Why each of the 47 stocks of CAL outside U has no checked series, and
+   what each cause adds to A. 36 series lack closes and 7 were never
+   proposed, and 4 reused tickers hold another company's returns: AGN, CB,
+   JCI and LSI. 35 of the 36 lack all 330 closes, and the committed manifest
+   of the archive dates each of those series' first row after 2012-04-24,
+   ALTR's on 2017-11-01, DELL's on 2018-12-21 and DOW's on 2019-03-20. EP's
+   starts on 2011-02-23 and lacks 35, and the 7 have no line in the
+   archive's `sp500` cross-section. The 4 take 8 trades adding 0.002526, the
+   43 take 95 adding 0.008278, and the 13 that cannot be tied to the right
+   company, the 4 and the 9 outside CAL, take 28 adding 0.014787, 0.64 of
+   the universe effect.
+
+Its one figure is drawn from committed files only by
+[src/chan/pead_rerun_figures.py](src/chan/pead_rerun_figures.py), which reads
+them through the same `read_committed` and `committed_runs` as
+`python -m chan.pead_rerun`, so the scale-break guard runs for it too. It
+draws two panels and leaves out the four runs on the archive's prices.
+
+1. Run A's arithmetic annual return built up over its 330 days from the
+   stocks of U, those with a checked filer and no checked series, and those
+   with no checked filer, with 2011-08-04 marked.
+2. Each committed run's trades against its mean return per trade, with
+   dashed curves of equal return through A and A_CAL and arrows from A to
+   A_U and from A_CAL to B1 and B5.
+
+```bash
+uv run python -m chan.pead_rerun_figures
+```
+
+[tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 ## Where the book's numbers come from
