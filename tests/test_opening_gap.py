@@ -1,8 +1,11 @@
 """The pins for the opening gap strategy on FSTX, *Algorithmic Trading*'s Example 7.1.
 
 This file is the single authority for every number a prose surface quotes
-about this replication. ``docs/replication-log.md`` Entry 40 carries the
-verdicts and points here row by row.
+about this replication, with one exception, in ``blog/opening-gap-lessons.md``.
+``TestWhatThePostMeasures`` holds that post's own numbers, and the post's
+figure labels are held by ``tests/test_opening_gap_figures.py``.
+``docs/replication-log.md`` Entry 40 carries the verdicts and points here row
+by row.
 
 Every pin on the committed files reads one vintage and one specification
 unless it names another, so they are stated once here.
@@ -15,8 +18,9 @@ unless it names another, so they are stated once here.
   ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``.
 - **The two earlier saves.** ``inputdataohlcdaily_20120511/fstx.csv``, saved
   2012-05-12, and ``inputdataohlcdaily_20120507/fstx.csv``, saved
-  2012-05-09, both chan-mat and adjusted. ``TestTheEarlierSaves`` alone reads
-  them.
+  2012-05-09, both chan-mat and adjusted. ``TestTheEarlierSaves``,
+  ``TestWhatThePostMeasures``, ``TestTheGuardAndTheReads`` and
+  ``TestTheReport`` read them.
 - **Specification.** ``gapFutures_FSTX.m``, git blob ``02db940`` at
   EpchanPreview ``e4bc46f``, as ``chan.opening_gap`` transcribes it. The
   spread is ``backshift(1, smartMovingStd(calculateReturns(cl, 1), 90))``. A
@@ -47,6 +51,7 @@ rule. The run first ran here on 2026-10-10, and the port's rows on
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import math
 from contextlib import redirect_stdout
@@ -55,10 +60,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from chan import matlab_helpers, paths
 from chan import opening_gap as module
-from chan import paths
 from chan.khandani_lo_book_two import gap, matches
-from chan.matlab_helpers import backshift
+from chan.matlab_helpers import backshift, smartstd_first_edition
 from chan.opening_gap import (
     BOOK_APR_PERCENT,
     BOOK_FIRST_DAY,
@@ -74,14 +79,18 @@ from chan.opening_gap import (
     READINGS,
     SCRIPT_APR,
     SCRIPT_SHARPE,
+    SIDES,
     SOURCE_FILE,
     SPREAD_LOOKBACK,
     SYMBOL,
     OpeningGap,
     PythonPort,
+    by_side,
     daily_returns,
     figures,
     main,
+    on_shared_days,
+    open_to_close,
     opening_gap,
     positions,
     python_port,
@@ -358,6 +367,176 @@ class TestTheEarlierSaves:
         )
 
 
+@pytest.fixture(scope="module")
+def earlier() -> dict[str, pd.DataFrame]:
+    """FSTX's four fields from the two earlier saves, keyed by the save's date."""
+    return {
+        "20120511": read_sources(source_file=EARLIER_SAVES[0])[1],
+        "20120507": read_sources(source_file=EARLIER_SAVES[1])[1],
+    }
+
+
+class TestWhatThePostMeasures:
+    """Pins added with ``blog/opening-gap-lessons.md``, measured after the run.
+
+    Same vintage and specification as the module docstring states, over the
+    2,000 days unless a test names a shorter span or another save. Each
+    describes this sample and tests nothing.
+    """
+
+    def test_the_first_edition_s_smartstd_changes_no_position(self, prices, result) -> None:
+        """Book one's ``smartstd`` zero-fills and divides by n − 1 inside the moving spread.
+
+        It moves the spread itself, and still no open crosses a threshold
+        because of it, so both printed figures hold at six decimals.
+        """
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(matlab_helpers, "smartstd_book_two", smartstd_first_edition)
+            first_edition = opening_gap(prices)
+        assert not np.allclose(
+            first_edition.spread[SPREAD_LOOKBACK:],
+            result.spread[SPREAD_LOOKBACK:],
+            equal_nan=True,
+        )
+        assert (first_edition.positions == result.positions).all()
+        f = first_edition.literal_figures
+        assert f.apr == pytest.approx(0.132733, abs=SIX)
+        assert f.sharpe == pytest.approx(1.441620, abs=SIX)
+
+    def test_each_curve_stays_on_its_own_side_of_its_start_from_the_first_position(
+        self, result
+    ) -> None:
+        """From 2004-11-22, the first day holding a position, to 2012-05-17."""
+        first = int(np.argmax(result.positions != 0))
+        assert (result.days[first], len(result.days) - first) == (day("2004-11-22"), 1909)
+        literal = (np.cumprod(1 + result.literal) - 1)[first:]
+        momentum = (np.cumprod(1 + result.momentum) - 1)[first:]
+        assert literal.min() == pytest.approx(0.002878, abs=SIX)
+        assert momentum.max() == pytest.approx(-0.002878, abs=SIX)
+        assert (int(np.argmin(literal)), int(np.argmax(momentum))) == (0, 0)
+        assert (literal > 0).all() and (momentum < 0).all()
+
+    def test_the_two_earlier_saves_price_all_four_fields_alike(self, earlier) -> None:
+        older, newer = earlier["20120507"], earlier["20120511"]
+        shared = older.index.intersection(newer.index)
+        assert len(shared) == 1997
+        assert (older.loc[shared, list(FIELDS)] == newer.loc[shared, list(FIELDS)]).all().all()
+
+    @pytest.mark.parametrize("field", FIELDS)
+    def test_the_2012_05_17_save_restates_every_field(self, prices, earlier, field) -> None:
+        """Against the 2012-05-11 save, on the 1,996 days the two share.
+
+        Distinct differences are rounded to the micro-unit, zero included, as
+        ``tests/test_continuous_futures.py`` counts them for the close.
+        """
+        older = earlier["20120511"]
+        shared = older.index.intersection(prices.index)
+        moved = (prices.loc[shared, field] - older.loc[shared, field]).to_numpy()
+        assert len(shared) == 1996
+        assert int((moved == 0).sum()) == 45
+        distinct = set(np.round(moved, 6))
+        assert len(distinct) == 25
+        assert len(distinct - {0.0}) == 24
+
+    def test_at_a_fixed_window_the_restated_prices_move_the_apr(self, prices, earlier) -> None:
+        """The 2012-05-11 save is cut to start on 2004-07-16, the 2012-05-17 save's first day.
+
+        Both spreads then warm up on the same rows, so the two runs differ by
+        the restated prices alone. Each move is held to half a unit in its
+        sixth decimal, so a wrong last digit fails.
+        """
+        shared = on_shared_days(prices, earlier["20120511"])
+        assert shared.days[0] == day("2004-07-16") == prices.index[0]
+        assert (len(shared.days), shared.differ) == (1996, 6)
+        assert shared.one.apr == pytest.approx(0.133016, abs=SIX)
+        assert shared.one.sharpe == pytest.approx(1.443075, abs=SIX)
+        assert shared.other.apr == pytest.approx(0.130360, abs=SIX)
+        assert shared.other.sharpe == pytest.approx(1.435907, abs=SIX)
+        assert shared.one.apr - shared.other.apr == pytest.approx(0.002655, abs=5e-7)
+
+    def test_at_fixed_prices_the_window_moves_the_apr(self, earlier) -> None:
+        """The 2012-05-07 and 2012-05-11 saves price alike, so only their windows differ."""
+        apr = {save: opening_gap(earlier[save]).literal_figures.apr for save in earlier}
+        assert apr["20120507"] - apr["20120511"] == pytest.approx(0.002017, abs=5e-7)
+
+    def test_each_move_is_over_ten_times_the_comment_s_last_digit(self, prices, earlier) -> None:
+        """The comment prints four decimals, so its last digit is 0.0001."""
+        last_digit = 10.0 ** -len(SCRIPT_APR.split(".")[1])
+        assert last_digit == pytest.approx(0.0001)
+        shared = on_shared_days(prices, earlier["20120511"])
+        apr = {save: opening_gap(earlier[save]).literal_figures.apr for save in earlier}
+        assert shared.one.apr - shared.other.apr > 10 * last_digit
+        assert apr["20120507"] - apr["20120511"] > 10 * last_digit
+
+    def test_the_mean_return_on_a_held_day(self, result) -> None:
+        held = result.positions != 0
+        assert int(held.sum()) == 469
+        assert result.literal[held].mean() == pytest.approx(0.002177, abs=SIX)
+
+    def test_each_side_s_days_summed_and_compounded(self, result) -> None:
+        sides = by_side(result)
+        assert list(sides) == list(SIDES) == ["long", "short"]
+        assert (sides["long"].days, sides["short"].days) == (278, 191)
+        assert sides["long"].summed == pytest.approx(0.749529, abs=SIX)
+        assert sides["short"].summed == pytest.approx(0.271280, abs=SIX)
+        assert sides["long"].compounded == pytest.approx(1.084422, abs=SIX)
+        assert sides["short"].compounded == pytest.approx(0.290022, abs=SIX)
+        assert result.literal.sum() == pytest.approx(1.020809, abs=SIX)
+        assert sides["long"].summed + sides["short"].summed == pytest.approx(
+            result.literal.sum(), abs=1e-12
+        )
+
+    def test_the_two_sides_compound_to_the_whole_curve(self, result) -> None:
+        sides = by_side(result)
+        whole = np.prod(1 + result.literal) - 1
+        assert whole == pytest.approx(1.688951, abs=SIX)
+        assert (1 + sides["long"].compounded) * (1 + sides["short"].compounded) == pytest.approx(
+            1 + whole, abs=1e-12
+        )
+
+    def test_each_side_alone_s_apr_and_sharpe_ratio(self, result) -> None:
+        sides = by_side(result)
+        assert sides["long"].figures.apr == pytest.approx(0.096964, abs=SIX)
+        assert sides["long"].figures.sharpe == pytest.approx(1.534735, abs=SIX)
+        assert sides["short"].figures.apr == pytest.approx(0.032607, abs=SIX)
+        assert sides["short"].figures.sharpe == pytest.approx(0.527473, abs=SIX)
+
+    def test_fstx_s_move_from_the_open_on_each_kind_of_day(self, prices, result) -> None:
+        moves = open_to_close(prices, result)
+        assert list(moves) == ["long", "short", "flat"]
+        assert (moves["long"].days, moves["short"].days, moves["flat"].days) == (278, 191, 1441)
+        assert moves["long"].mean == pytest.approx(-0.002696, abs=SIX)
+        assert moves["short"].mean == pytest.approx(0.001420, abs=SIX)
+        assert moves["flat"].mean == pytest.approx(0.000025, abs=SIX)
+
+    def test_the_closes_below_and_above_the_open(self, prices, result) -> None:
+        moves = open_to_close(prices, result)
+        assert (moves["long"].below, moves["short"].above) == (163, 108)
+
+    def test_the_port_earns_the_script_s_long_returns_on_every_upward_jump(
+        self, result, port
+    ) -> None:
+        """The port takes the momentum sign, and still sells every upward jump.
+
+        Its flipped short test makes it short on each of the 278 days the
+        script is long, and short times the momentum sign is the script's long
+        times the literal sign. Its other 1,440 short days are the script's
+        flat days with a spread, less 2004-11-19, where the port's spread is
+        not yet set.
+        """
+        up = result.positions == SIDES["long"]
+        assert int(up.sum()) == 278
+        assert (port.positions[up] == SIDES["short"]).all()
+        assert (port.returns[up] == result.literal[up]).all()
+        assert port.returns[up].sum() == pytest.approx(0.749529, abs=SIX)
+        rest = (port.positions == SIDES["short"]) & ~up
+        flat = (result.positions == 0) & np.isfinite(result.spread)
+        assert int(rest.sum()) == 1440
+        assert list(result.days[flat & ~rest]) == [day("2004-11-19")]
+        assert not (rest & ~flat).any()
+        assert port.returns[rest].sum() == pytest.approx(-0.050957, abs=SIX)
+
+
 class TestTheRules:
     """Each step on arrays built so the answer is known."""
 
@@ -490,6 +669,129 @@ class TestTheRules:
         assert f.average_annual_return == pytest.approx(252 * daily.mean())
         assert f.max_drawdown == pytest.approx(0.99 - 1)
         assert f.max_drawdown_days == 2
+
+    @staticmethod
+    def _held_days(held, op, cl, spread=None) -> tuple[pd.DataFrame, OpeningGap]:
+        """A run built from its positions, so each side's days are known in advance."""
+        days = pd.date_range("2020-01-01", periods=len(held))
+        held = np.array(held, dtype=float)
+        prices = pd.DataFrame({"Open": op, "Close": cl}, index=days, dtype=float)
+        sd = np.zeros(len(held)) if spread is None else np.array(spread, dtype=float)
+        return prices, OpeningGap(
+            days=days,
+            spread=sd,
+            longs=held > 0,
+            shorts=held < 0,
+            positions=held,
+            literal=daily_returns(held, op, cl, reading="literal"),
+            momentum=daily_returns(held, op, cl, reading="momentum"),
+        )
+
+    def test_by_side_keeps_each_side_s_returns_and_zero_elsewhere(self) -> None:
+        # Long earns 0.1 then 0.2, short earns 0.5, the flat day nothing.
+        _, run_on = self._held_days([1, -1, 0, 1], [100, 100, 100, 100], [90, 150, 50, 80])
+        sides = by_side(run_on)
+        assert sides["long"].daily.tolist() == pytest.approx([0.1, 0, 0, 0.2])
+        assert sides["short"].daily.tolist() == pytest.approx([0, 0.5, 0, 0])
+        assert (sides["long"].days, sides["short"].days) == (2, 1)
+        assert sides["long"].summed == pytest.approx(0.3)
+        assert sides["long"].compounded == pytest.approx(1.1 * 1.2 - 1)
+        assert sides["short"].compounded == pytest.approx(0.5)
+        assert sides["long"].figures == figures(sides["long"].daily)
+
+    def test_by_side_reads_the_reading_it_is_given(self) -> None:
+        _, run_on = self._held_days([1, -1], [100, 100], [90, 150])
+        sides = by_side(run_on, "momentum")
+        assert sides["long"].summed == pytest.approx(-0.1)
+        assert sides["short"].summed == pytest.approx(-0.5)
+        with pytest.raises(ValueError, match="reading is one of"):
+            by_side(run_on, "fade")
+
+    def test_open_to_close_is_the_instrument_s_move_whatever_the_side(self) -> None:
+        prices, run_on = self._held_days(
+            [1, 1, -1, 0, 0, 0],
+            [100, 100, 100, 100, 100, 100],
+            [90, 110, 120, 104, 96, 50],
+            spread=[0, 0, 0, 0, 0, np.nan],
+        )
+        moves = open_to_close(prices, run_on)
+        assert (moves["long"].days, moves["long"].mean) == (2, pytest.approx(0.0))
+        assert (moves["long"].below, moves["long"].above) == (1, 1)
+        assert (moves["short"].days, moves["short"].mean) == (1, pytest.approx(0.2))
+        assert (moves["short"].below, moves["short"].above) == (0, 1)
+        # The last row has no spread, so its fall of a half is no flat day's.
+        assert (moves["flat"].days, moves["flat"].mean) == (2, pytest.approx(0.0))
+        assert (moves["flat"].below, moves["flat"].above) == (1, 1)
+
+    def test_a_day_qualifying_both_counts_as_short_alone(self) -> None:
+        """Line 21 makes such a day short, so neither split may count it long."""
+        prices, run_on = self._held_days([-1], [100], [90])
+        both = dataclasses.replace(run_on, longs=np.array([True]), shorts=np.array([True]))
+        sides = by_side(both)
+        assert (sides["long"].days, sides["short"].days) == (0, 1)
+        assert sides["short"].summed == pytest.approx(-0.1)
+        moves = open_to_close(prices, both)
+        assert (moves["long"].days, moves["short"].days, moves["flat"].days) == (0, 1, 0)
+
+    def test_open_to_close_counts_a_close_on_the_open_as_neither(self) -> None:
+        prices, run_on = self._held_days([1], [100], [100])
+        move = open_to_close(prices, run_on)["long"]
+        assert (move.days, move.below, move.above, move.mean) == (1, 0, 0, 0.0)
+        # No short day and no flat day, so neither has a mean.
+        assert np.isnan(open_to_close(prices, run_on)["short"].mean)
+        assert open_to_close(prices, run_on)["flat"].days == 0
+
+    @staticmethod
+    def _two_histories(extra: int = 5) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """One series, and the same series with its first ``extra`` rows cut off.
+
+        The longer history's spread is set ``extra`` rows sooner, and an open
+        jumps far above the previous high on a row where only the longer
+        history has a spread, so a run on the uncut history is long there.
+        """
+        rng = np.random.default_rng(7)
+        rows = SPREAD_LOOKBACK + 20
+        closes = 100 * np.cumprod(1 + rng.normal(0, 0.01, rows))
+        opens = np.roll(closes, 1)
+        opens[0] = closes[0]
+        jump = SPREAD_LOOKBACK + 2
+        # A second jump, where both histories have a spread, so neither run is all flat.
+        for row in (jump, jump + 10):
+            opens[row] = 1.2 * closes[row - 1]
+        frame = pd.DataFrame(
+            {
+                "Open": opens,
+                "High": np.maximum(opens, closes) * 1.001,
+                "Low": np.minimum(opens, closes) * 0.999,
+                "Close": closes,
+            },
+            index=pd.date_range("2020-01-01", periods=rows),
+        )
+        assert opening_gap(frame).positions[jump] == 1
+        assert opening_gap(frame.iloc[extra:]).positions[jump - extra] == 0
+        return frame, frame.iloc[extra:]
+
+    def test_on_shared_days_starts_both_runs_on_the_same_row(self) -> None:
+        """With the prices equal, the only thing left to differ is the window, and it is cut."""
+        longer, shorter = self._two_histories()
+        for one, other in ((longer, shorter), (shorter, longer)):
+            shared = on_shared_days(one, other)
+            assert shared.days.equals(shorter.index)
+            assert shared.differ == 0
+            assert shared.one == shared.other
+
+    def test_on_shared_days_keeps_each_run_s_own_rows(self) -> None:
+        longer, shorter = self._two_histories()
+        restated = shorter.assign(Close=shorter["Close"] * 1.01)
+        shared = on_shared_days(longer, restated)
+        cut = opening_gap(longer.loc[restated.index[0] :])
+        assert shared.days.equals(restated.index)
+        assert shared.one == figures(cut.literal)
+        assert shared.other == figures(opening_gap(restated).literal)
+        momentum = on_shared_days(longer, restated, "momentum")
+        assert momentum.one == figures(cut.momentum)
+        assert momentum.other == figures(opening_gap(restated).momentum)
+        assert momentum.other != shared.other
 
 
 class TestTheGuardAndTheReads:

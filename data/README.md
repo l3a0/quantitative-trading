@@ -161,7 +161,10 @@ market factor of
 [issue 22](https://github.com/l3a0/quantitative-trading/issues/22),
 [src/chan/low_beta_leverage.py](../src/chan/low_beta_leverage.py) reads it as
 the market each stock's beta is fitted on for
-[issue 275](https://github.com/l3a0/quantitative-trading/issues/275), and
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275),
+[src/chan/low_beta_capped.py](../src/chan/low_beta_capped.py) reads it through
+that module for
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516), and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.
 
@@ -256,7 +259,10 @@ it, and the risk parity post's bill-rate averages trace to
 [src/chan/low_beta_leverage.py](../src/chan/low_beta_leverage.py) reads it
 through that module as the rate the levered low-beta portfolio borrows at and
 every excess return subtracts, for
-[issue 275](https://github.com/l3a0/quantitative-trading/issues/275), and
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275),
+[src/chan/low_beta_capped.py](../src/chan/low_beta_capped.py) reads it the
+same way for
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516), and
 [src/chan/low_beta_holdout.py](../src/chan/low_beta_holdout.py) reads it the
 same way for
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526). Its last
@@ -522,7 +528,10 @@ closes to build the momentum factor and the stocks it is compared against, for
 [issue 22](https://github.com/l3a0/quantitative-trading/issues/22).
 [`chan.low_beta_leverage`](../src/chan/low_beta_leverage.py) reads the same
 closes to sort the stocks by beta and hold the lowest and highest fifths, for
-[issue 275](https://github.com/l3a0/quantitative-trading/issues/275).
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275), and
+[`chan.low_beta_capped`](../src/chan/low_beta_capped.py) reads them through
+that module to lever the low fifth at a ceiling, for
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516).
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
 measurements below and the decision behind the shape.
 

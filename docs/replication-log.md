@@ -5,7 +5,7 @@ a reproduced experiment, which is a number sitting next to another number with
 nobody saying what the pair means.
 
 This file is where the verdicts live. One entry per replication, apart from
-the two exceptions the paragraphs below name, and one row per published result, carrying the five parts
+the four exceptions the paragraphs below name, and one row per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
 vintage, what this repo computed, the gap, and the verdict. A row usually
 matches one published figure to one computation. Four of Entry 1's rows do not,
@@ -19,22 +19,25 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45 and 49 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 48 and 49 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine and eleven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, seven and eleven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
-Entries 5, 44 and 46 are the three entries that are not replications. Chan
+Entries 5, 44, 46 and 48 are the four entries that are not replications. Chan
 states the claim Entries 5 and 44 test without printing a number, so each
 carries a finding rather than a verdict, and its tables drop the columns that
 would hold a published figure, a gap and a verdict. Entry 46 reruns Example
 7.2, which Entry 12 reproduces, on a calendar and prices Chan never used, so
-no figure he printed applies to it and its tables drop the same columns. Entries 6 and 15 come from the same
+no figure he printed applies to it and its tables drop the same columns.
+Entry 48 tests location 4709's rule at two ceilings Chan prints no figure
+for, so its tables drop the published-figure and gap columns, and each of its
+verdict cells says it is not a replication. Entries 6 and 15 come from the same
 sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46 and 49 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48 and 49 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -348,13 +351,19 @@ says.
   - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
   - [What the entry concludes](#what-the-entry-concludes-45)
   - [What this entry cannot say](#what-this-entry-cannot-say-43)
-- [Entry 49: the levered low-beta rule after the book, on IVV's S&P 500](#entry-49-the-levered-low-beta-rule-after-the-book-on-ivvs-sp-500)
+- [Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*](#entry-48-the-low-beta-rule-at-leverage-a-broker-would-lend-chans-quantitative-trading)
   - [What the book stated](#what-the-book-stated-5)
   - [What this repo computed](#what-this-repo-computed-46)
   - [The verdicts](#the-verdicts-43)
-  - [The skipped formations](#the-skipped-formations)
   - [What the entry concludes](#what-the-entry-concludes-46)
   - [What this entry cannot say](#what-this-entry-cannot-say-44)
+- [Entry 49: the levered low-beta rule after the book, on IVV's S&P 500](#entry-49-the-levered-low-beta-rule-after-the-book-on-ivvs-sp-500)
+  - [What the book stated](#what-the-book-stated-6)
+  - [What this repo computed](#what-this-repo-computed-47)
+  - [The verdicts](#the-verdicts-44)
+  - [The skipped formations](#the-skipped-formations)
+  - [What the entry concludes](#what-the-entry-concludes-47)
+  - [What this entry cannot say](#what-this-entry-cannot-say-45)
 
 ## How to read an entry
 
@@ -438,9 +447,11 @@ both.
    holds Entry 44,
    [tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py)
    holds Entry 45, [tests/test_pead_rerun.py](../tests/test_pead_rerun.py)
-   holds Entry 46, and
+   holds Entry 46,
+   [tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) holds
+   Entry 48, and
    [tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py) holds
-   Entry 49. The archive pins of those last two run only where the owner's
+   Entry 49. The archive pins of Entries 46 and 49 run only where the owner's
    data archive is and `QT_ARCHIVE_RUN=1` asks for them.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
@@ -561,7 +572,7 @@ Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9 and 12 to 16, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17,
-Entry 45's rows 2 to 9, and Entry 49's rows 2 to 11.
+Entry 45's rows 2 to 9, Entry 48's rows 1 to 7, and Entry 49's rows 2 to 11.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -860,6 +871,20 @@ finding", the value Entry 32's rows 3 and 4 carry, and row 4's corrected test
 carries the verdict.
 [Issue 352](https://github.com/l3a0/quantitative-trading/issues/352) declared
 both before any draw on the seed they share.
+
+Entry 48's seven rows carry no verdict for a fourth reason. Rows 1 and 2 test
+the claim of location 4709 that Entry 45's row 1 tests, with the leverage
+capped at 2 and at 5. Their outcomes, the control across them and the wording
+of each were written on
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) before
+any capped number was computed. The ceilings were chosen after Entry 45's
+calendar, its leverage path, the ruin, eight months of both groups' returns
+and its side figures had been seen. Those side figures are both Sharpe
+ratios, the growths, the realised betas and the full-sample Kelly leverage of
+9.9884. So a result here confirms nothing whichever way it lands. No row
+carries a published figure either, so every cell reads "none, not a
+replication, exploratory", and the reason column of rows 1 and 2 names the
+outcome the plan's rules reach.
 
 Entry 1's rows 2 and 10, the first rows this section names, are in that entry
 because leaving them out misleads. Row 2 is the slope
@@ -8284,9 +8309,10 @@ that blob's. Every location in this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
 Sixteen rows, all derivable from
-[tests/test_opening_gap.py](../tests/test_opening_gap.py) except two figures
-that [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
-derives. Row 8's 45 agreeing days of 1,996 come from
+[tests/test_opening_gap.py](../tests/test_opening_gap.py).
+[tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
+derives two of their figures as well, for the close alone. Row 8's 45
+agreeing days of 1,996 come from
 `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences`,
 and row 9's equal closes from
 `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`.
@@ -8316,7 +8342,7 @@ margin, and holds the position from the open to the close.
 **The script's figures reproduce, and they come from fading the jump rather
 than following it.** Line 23 earns `positions .* (op - cl) ./ op`, so a long
 profits when the price falls from the open. As written it gives the comment's
-0.1327 and 1.44, and the book's 13 percent and 1.4. With the sign location
+0.1327 and 1.44, and the book's 13 percent and 1.4. With the sign that location
 2965 describes, the same positions earn the same returns negated, an APR of
 −0.124236 and a Sharpe ratio of −1.441620.
 
@@ -8370,7 +8396,7 @@ arithmetic. Against the script, line by line:
 | 15 | `longs= op >= backshift(1, hi).*(1+entryZscore*stdretC2C90d);` | `longs= df['Open'] >= df['High'].shift()*(1+entryZscore*stdretC2C90d)` | The same test. |
 | 16 | `shorts=op <= backshift(1, lo).*(1-entryZscore*stdretC2C90d);` | `shorts=df['Open'] >= df['Low'].shift()*(1-entryZscore*stdretC2C90d)` | The port flips `<=` to `>=`, so a short qualifies on every day the open does not jump below the previous low by the margin. |
 | 18 to 21 | `positions(longs)=1;` then `positions(shorts)=-1;` | `positions[longs]=1` then `positions[shorts]=-1` | The same order, the short after the long. An open that clears the previous high also clears the previous low, so every long day passes the port's short test too, and the port's line 22 makes it short. The port never holds a long position. |
-| 23 | `ret=positions.*(op-cl)./op;` | `ret=positions*(df['Close']-df['Open'])/df['Open']` | The port takes the momentum sign, the one location 2965 describes. |
+| 23 | `ret=positions.*(op-cl)./op;` | `ret=positions*(df['Close']-df['Open'])/df['Open']` | The port takes the momentum sign, the one that location 2965 describes. |
 | 24 | `ret(isnan(ret))=0;` | none | No return is NaN on this file, so the missing line moves nothing. |
 | 26 | `prod(1+ret).^(252/length(ret))-1` and `mean(ret)*sqrt(252)/std(ret)` | `np.prod(1+ret)**(252/len(ret))-1` and `np.sqrt(252)*np.mean(ret)/np.std(ret)` | The APR is the same. `np.std` on a series divides by n, where MATLAB's `std` divides by n − 1. |
 | 33 | `calculateMaxDD(cumret)` | `calculateMaxDD(cumret.fillna(0))` | The port's `calculateMaxDD` is the script's loop. Under pandas 3 the port stops here, because the loop indexes the date-indexed `cumret` by position, so it no longer runs as shipped. |
@@ -8405,8 +8431,8 @@ script nor the port's, is evidence that an opening jump pays today.
 | 5 | The APR and the Sharpe ratio under the momentum reading | −0.124236 and −1.441620 | `TestTheClaim::test_the_momentum_reading_s_figures` and `::test_neither_lands_the_book` |
 | 6 | `calculateMaxDD(cumprod(1 + ret) − 1)` under each reading | literal −0.190023 over 287 days, momentum −0.651056 over 1,909 days | `TestBesideTheReplication::test_the_literal_reading_s_drawdown` and `::test_the_momentum_reading_s_drawdown` |
 | 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
-| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 agreeing days of 1,996, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` |
-| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, and for the equal closes, `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair` |
+| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 days of 1,996 on which each of the four fields agrees, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` for the close and `TestWhatThePostMeasures::test_the_2012_05_17_save_restates_every_field` for all four |
+| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
 | 10 | The port's rule, its `prod(1 + ret)^(252 / 2000) − 1`, and its `mean(ret) · √252 / std(ret)` with `np.std` dividing by n | APR 0.0748641057, Sharpe ratio 0.4948573171, and 0.4947335873 dividing by n − 1 | `TestChansPythonPort::test_row_10_the_apr_and_the_sharpe_ratio_over_n_reproduce_the_comment` and `::test_row_10_over_n_minus_1_the_sharpe_ratio_misses_the_comment` |
 | 11 | `calculateMaxDD(cumprod(1 + ret) − 1)` on the port's returns | −0.2336291171 over 789 days | `TestChansPythonPort::test_row_11_the_drawdown_and_its_days_reproduce_the_comment` |
 | 12 | The days the port holds each side, and the first day its spread is set | long on 0, short on 1,718, flat on 282, both tests passed on 278, first spread 2004-11-22 | `TestChansPythonPort::test_row_12_the_port_is_never_long` and `::test_the_port_s_spread_starts_on_2004_11_22_a_row_after_the_script_s` |
@@ -8423,11 +8449,11 @@ script nor the port's, is evidence that an opening jump pays today.
 | 2 | +0.00 | reproduced | 1.441620 rounds to the script's 1.44. |
 | 3 | +0 percent on the compounded APR, −0 percent on the arithmetic one | reproduced | The compounded APR and the arithmetic one both round to 13 percent, so the text's figure does not have to be assigned to one of them. |
 | 4 | +0.0 | reproduced | 1.441620 rounds to the book's 1.4. Rows 1 to 4 say the number lands on the script as shipped, and row 5 asks whether the claim behind it survives. |
-| 5 | −25 percent on the APR, −2.8 on the Sharpe ratio | did not reproduce | The rule location 2965 describes loses on Chan's own file under his own script, so the vintage explanation is spent. Its daily returns are the literal reading's negated, so the figures the text prints belong to the literal sign alone. |
+| 5 | −25 percent on the APR, −2.8 on the Sharpe ratio | did not reproduce | The rule that location 2965 describes loses on Chan's own file under his own script, so the vintage explanation is spent. Its daily returns are the literal reading's negated, so the figures the text prints belong to the literal sign alone. |
 | 6 | none | none, not a replication | Line 34 prints a drawdown, and no comment records a value for it. |
 | 7 | none | none, not a replication | No day qualifies both tests, so line 21's order decides nothing here. No open sits exactly on either threshold, so the tests being non-strict decides nothing either. `TestTheRules` holds both on synthetic days. |
-| 8 | none | none, not a replication | FSTX's close in this save agrees with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
-| 9 | none | none, not a replication | FSTX's close in this save equals the 2012-05-11 save's on every day they share, over a window that starts three trading days earlier still. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
+| 8 | none | none, not a replication | FSTX's open, high, low and close in this save each agree with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records for the close, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
+| 9 | none | none, not a replication | FSTX's open, high, low and close in this save each equal the 2012-05-11 save's on all 1,997 days they share, over a window that starts three trading days earlier still, so the two APRs differ by the window alone. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
 | 10 | +0.000000 on the APR, +0.000000 on the Sharpe ratio | reproduced | Both land on the comment at its six decimals, on the file the port reads, with the Sharpe ratio dividing by n as `np.std` does. Dividing by n − 1 gives 0.4947335873, which misses by −0.000123, so the divisor is part of the port's specification. That n − 1 figure is the 0.494734 that [issue 505](https://github.com/l3a0/quantitative-trading/issues/505) recorded from a scratch run guessing at the port's rule before the port was read. |
 | 11 | −0.000000 on the drawdown, 0 on its days | reproduced | The port's comment comes from the rule its text states, on Chan's own file. |
 | 12 | none | none, not a replication | Every one of the 278 days passing the long test also passes the port's short test, and the port assigns the short after the long, so it never holds a long position. It sells the open and buys the close on the 1,718 days the open does not jump below the previous low by the margin. |
@@ -8438,14 +8464,14 @@ script nor the port's, is evidence that an opening jump pays today.
 
 ### What the entry concludes
 
-Three things.
+Four things.
 
 1. **The script reproduces on Chan's own file, and the figure is the fade's.**
    Its two printed figures land at the decimals printed, and the book's two
    land at the precision Chan printed them. The return line that earns them
    sells an upward jump during the day and buys a downward one.
 2. **The text's momentum rule loses what the fade earns.** Under the sign
-   location 2965 describes, the same positions give an APR of −0.124236 and a
+   that location 2965 describes, the same positions give an APR of −0.124236 and a
    Sharpe ratio of −1.441620. The 13 percent and 1.4 do not support the claim
    they were printed beside.
 3. **Chan's Python port prints what its own rule computes, and that rule is
@@ -8454,7 +8480,26 @@ Three things.
    flips the script's short test, so it never holds a long position and sells
    the open on 1,718 of 2,000 days. Its APR and Sharpe ratio, which the
    Experiments page records as 7.5 percent and 0.49, therefore say nothing
-   about the rule location 2965 describes.
+   about the rule that location 2965 describes. Yet it is short on all 278
+   upward jumps, where short under its sign earns what the script's long
+   earns under the literal sign, so its returns there are the script's day
+   for day and sum to 0.749529. Its other 1,440 short days sum to −0.050957,
+   so its gain also comes from selling the upward jump.
+   `TestWhatThePostMeasures::test_the_port_earns_the_script_s_long_returns_on_every_upward_jump`
+   pins it, and the write-up found it.
+4. **The long days earn about three quarters of the return.** Split by the side
+   held, the literal reading's daily returns sum to 0.749529 on the 278 long
+   days and 0.271280 on the 191 short days, of 1.020809, and compound to
+   1.084422 and 0.290022. Each side alone, earning nothing on the other's
+   days, gives an APR of 0.096964 and a Sharpe ratio of 1.534735 for the long
+   days, and 0.032607 and 0.527473 for the short days. From the open to the
+   close, FSTX moved −0.002696 on average on the long days, closing below the
+   open on 163, and +0.001420 on the short days, closing above it on 108. On
+   the 1,441 flat days after the first 90 it moved +0.000025.
+   `TestWhatThePostMeasures` pins all of it, and the write-up found it. The
+   split comes from the rule's own two branches rather than a date picked
+   after the curve was seen, and it describes this sample without testing
+   anything.
 
 ### What this entry cannot say
 
@@ -8483,7 +8528,10 @@ reported on. A registered test would fix one rule first and run it on data
 after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/opening-gap-lessons.md](../blog/opening-gap-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.opening_gap_figures` redraws.
 
 ## Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*
 
@@ -9704,7 +9752,8 @@ leverage rule that avoided the ruin, such as a cap, is a different
 specification. On this file a cap is exploratory, because the ruin had been
 seen, and only on the holdout could one be registered.
 [Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
-rule here at leverage a broker would lend, as an exploratory run.
+rule here at leverage a broker would lend, as an exploratory run, and Entry 48
+carries it.
 
 **Whether fat tails are the cause.** Location 4700 carries the caveat: "one
 should be quite wary of using too much leverage on normally low-beta stocks",
@@ -10087,6 +10136,179 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one
 figure, drawn from committed files only, which
 `uv run python -m chan.pead_rerun_figures` redraws.
+
+## Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle locations 814, 2836,
+4684, 4700 and 4709. Shipped under
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516). Every
+location is the revised edition's and is in
+[research/book-notes/quantitative-trading.md](../research/book-notes/quantitative-trading.md).
+
+This entry is not a replication. Location 4709 states the rule and prints no
+figure for it at any leverage, and locations 814 and 2836 give the two
+ceilings without working an example at either. So no row has a published
+number to reproduce, and the tables drop the published-figure and gap columns.
+`### Rows that are not replications` above says why the route that lets a
+stated claim carry a verdict does not reach it. Rows 1 and 2 test the claim
+under rules written before any capped number, but the ceilings were chosen
+after Entry 45's figures had been seen, so the claim was not tested blind.
+
+Seven rows, all derivable from
+[tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py). The three
+Entry 45 figures that rows 3 and 6 quote beside them are pinned in
+[tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py).
+
+**Not decided at either ceiling, and exploratory.** "At a ceiling of 2, no gap
+in compounded growth detectable above about 0.2168 a year over 83 months,
+where the point estimate is 0.0934." "At a ceiling of 5, no gap in compounded
+growth detectable above about 0.3407 a year over 83 months, where the point
+estimate is 0.1659." Both sentences are the plan's fixed wording. Entry 45
+found location 4709's rule ruined at location 4684's beta match, which asked
+for a leverage of up to 69.0762. Location 4709 says only "highly leveraged",
+so this entry caps the match at what location 814 says a broker lends on
+stocks held overnight and asks the same question again. Neither capped
+portfolio lost its capital in any month. Both out-compounded the unlevered
+high fifth in point estimate, by 0.0934 a year at a ceiling of 2 and 0.1659 at
+5. Neither gap is distinguishable from noise. The Newey-West t is 1.0715 and
+1.2111, and Benjamini-Hochberg rejects neither ceiling in either direction.
+
+**Every row is exploratory, and no result here confirms anything.** The plan
+was written on
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) on
+2026-10-11 before any capped number was computed. It came after Entry 45 had
+shown its calendar, its leverage path, the ruin, both groups' returns for the
+first eight formations and its side figures. The side figures are both Sharpe
+ratios, the growths, the realised betas and the full-sample Kelly leverage of
+9.9884. Those figures nearly fixed the sign in advance. The unlevered
+low fifth already out-compounded the high fifth, and growth rises with
+leverage up to the Kelly leverage under a Gaussian approximation, so both
+ceilings were expected to show a positive point estimate. Every verdict cell
+therefore reads "none, not a replication, exploratory", which carries this
+reason and the one above.
+
+Five of the rules carry the result, so they are stated here.
+
+1. **The portfolios.** Entry 45's, unchanged.
+   `chan.low_beta_leverage.read_sources` and `build_portfolios` run as that
+   entry ran them, on the same three vintages. They are `spx_20071123/`,
+   chan-mat adjusted, saved 2007-11-24, then `spy_chan.csv`, chan-xls
+   adjusted, saved 2008-01-29, and FRED's TB3MS, downloaded 2026-09-30. The
+   universe, the betas, the fifths, the weights and the 83 holding months from
+   December 2000 to October 2007 are that entry's. So is k, the leverage that
+   matches the low fifth's beta to the high fifth's.
+2. **The ceilings.** At each formation the low fifth is levered by
+   L = min(k, C), and the capped month returns rf + L × (r_low − rf), borrowing
+   at the bill rate with no trading cost. C = 2 is Regulation T's overnight
+   leverage, which location 814 gives and location 2836 repeats for a retail
+   account. Because k never falls below 2.1826, it is a constant leverage of 2
+   here. C = 5 is location 814's portfolio margin of "20 percent or less", the
+   most the book says any broker lends on stocks held overnight.
+3. **The statistic.** d = ln(1 + r_capped) − ln(1 + r_high) over the 83
+   months, with its Newey-West t at the default lag. Twelve times the mean of d
+   is the gap in realised compounded growth a year.
+4. **The control.** Benjamini-Hochberg at q = 0.05 across the two ceilings,
+   run once on the one-sided p-values in the claim's direction and once in the
+   contrary direction. With two ceilings, a family rejects both when both
+   p-values are at most 0.05, and otherwise only one at most 0.025. A ruined
+   ceiling enters both families with a p-value of 1.
+5. **The outcomes.** Contradicted by ruin when any capped month returns −1 or
+   less. Holds when the mean of d is above 0 and the claim's family rejects.
+   Contradicted when the mean is below 0 and the contrary family rejects. Not
+   decided otherwise, with Y, Entry 45's (1.645 + 0.8416) times the Newey-West
+   standard error of the mean of d, times 12. Y ignores the correction, so it
+   compares with Entry 45's.
+
+**Every figure is about survivors.** The panel is the S&P 500 as it stood on
+2007-11-23, carried backwards, as in Entry 45.
+
+### What the book stated
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | a low-beta portfolio levered at most 2 out-compounds an unleveraged high-beta one | the rule, with no figure, and overnight positions "allow only a leverage of 2" | locations 4709, 814 and 2836 |
+| 2 | a low-beta portfolio levered at most 5 out-compounds an unleveraged high-beta one | the rule, with no figure, and portfolio margin "may require only 20 percent or less of overnight margin" | locations 4709 and 814 |
+| 3 to 7 | the realised growth, the leverage, the worst month, the realised beta and the break-even spread | nothing, the book works no example | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | ceiling 2: any capped month at −1 or below, else the Newey-West t of d under Benjamini-Hochberg at 0.05 in each direction | no ruined month. Gap 0.0934 a year, t 1.0715 at lag 3, one-sided p 0.1420 for the claim and 0.8580 against it, rejected in neither family, Y 0.2168 | `TestTheCommittedFiles::test_no_month_is_ruined_at_either_ceiling`, `::test_both_ceilings_are_not_decided`, `::test_the_gap_t_both_p_values_and_y` and `::test_each_outcome_line` |
+| 2 | ceiling 5, the same | no ruined month. Gap 0.1659 a year, t 1.2111 at lag 3, one-sided p 0.1129 for the claim and 0.8871 against it, rejected in neither family, Y 0.3407 | the same four |
+| 3 | realised compounded growth, 12 times the mean monthly log return | 0.2118 at ceiling 2 and 0.2843 at 5, beside Entry 45's unlevered low fifth at 0.1254 and high fifth at 0.1183 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, and Entry 45's `TestTheFigures::test_each_series_realised_growth` |
+| 4 | the mean leverage, and the months in which k is above the ceiling | mean 2.0000 with 83 months bound at ceiling 2, and 3.5134 with 20 months bound at 5, so the beta match set the leverage in the other 63 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, `::test_ceiling_2_is_a_constant_leverage_of_2` and `::test_the_beta_match_sets_the_leverage_in_63_months_at_ceiling_5` |
+| 5 | the month with the lowest capped return | at both ceilings the month ending 2002-07-31, formed 2002-06-28. It returned −0.1479 at a leverage of 2 and −0.3719 at 5 | `TestTheCommittedFiles::test_the_worst_month` |
+| 6 | realised beta, the slope of the monthly return over the bill on SPY's, all 83 months each as if freshly funded | 0.8584 at ceiling 2 and 1.5831 at 5, beside the high fifth's 2.0671 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, and Entry 45's `TestTheFigures::test_the_realised_betas` |
+| 7 | the yearly borrowing spread over the bill, charged (L − 1) × s / 12 a month, at which the gap's point estimate reaches 0, by bisection | 0.0946 at ceiling 2 and 0.0661 at 5 | `TestTheCommittedFiles::test_the_break_even_spread` |
+
+Each gap is rounded from its own unrounded value. So ceiling 2's growth less
+the high fifth's, 0.2118 less 0.1183, reads 0.0935 while the gap reads 0.0934,
+and ceiling 5's, 0.2843 less 0.1183, reads 0.1660 while its gap reads 0.1659.
+These are the case `### What precision a number is quoted at` describes.
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | none, not a replication, exploratory | Not decided. The claim's one-sided p-value of 0.1420 is above 0.05, and so is ceiling 5's, so Benjamini-Hochberg rejects neither ceiling in the claim's family. The contrary family's 0.8580 is further still. The gap of 0.0934 a year is under half the detectable gap of 0.2168. The ceilings were chosen after Entry 45's calendar, leverage path, ruin, eight months of returns and side figures had been seen, so even a rejection would have confirmed nothing. |
+| 2 | none, not a replication, exploratory | Not decided. The claim's one-sided p-value of 0.1129 is above 0.05, so as row 1 says, Benjamini-Hochberg rejects neither ceiling. The contrary family's 0.8871 is further still. The gap of 0.1659 a year is under half the detectable gap of 0.3407. The same label applies. |
+| 3 | none, not a replication, exploratory | Both capped portfolios grew faster than either unlevered fifth in point estimate, as the plan expected before any capped number. Nothing tests the size. |
+| 4 | none, not a replication, exploratory | k was above 5 in 20 of the 83 months, so the ceiling of 5 set the leverage in about a quarter of them and the beta match set it in the rest. |
+| 5 | none, not a replication, exploratory | The worst month at a ceiling of 5 lost 37 percent of the capital. June 2001, the beta match's first ruin, is not the worst month at either ceiling. |
+| 6 | none, not a replication, exploratory | At either ceiling the levered low fifth's realised beta, 0.8584 and 1.5831, stayed below the high fifth's 2.0671, so over the whole sample neither capped portfolio carried the high fifth's market exposure. At a ceiling of 5 the beta match still set the leverage in 63 of the 83 months. |
+| 7 | none, not a replication, exploratory | Borrowing at the bill rate flatters the levered side. The point estimate stays above 0 up to a spread of 0.0946 a year at a ceiling of 2 and 0.0661 at 5, and no outcome reads it. |
+
+### What the entry concludes
+
+Two things, and neither confirms anything.
+
+1. **Capped at what a broker would lend, the rule is not decided on this
+   file.** Neither ceiling ruined the portfolio, and both point estimates
+   favour the levered low fifth. Neither gap is distinguishable from noise
+   over 83 months. The claim's one-sided p-values of 0.1420 and 0.1129 are
+   both above 0.05, so Benjamini-Hochberg rejects neither. The detectable gaps
+   of 0.2168 and 0.3407 a year are each more than twice its own point
+   estimate.
+2. **Entry 45's ruin came with the beta match's leverage.** On the same
+   portfolios and the same months, a ceiling of 5 lost no month's capital,
+   though its worst month lost 37 percent of it. Location 4700's caveat stands
+   beside the result: "one should be quite wary of using too much leverage on
+   normally low-beta stocks".
+
+### What this entry cannot say
+
+Five things, the plan's five limits.
+
+1. **Anything confirmed.** The ceilings were chosen after Entry 45's
+   calendar, its leverage path, the ruin, eight months of both groups' returns
+   and its side figures had been seen. The side figures are both Sharpe
+   ratios, the growths, the realised betas and the full-sample Kelly leverage
+   of 9.9884. Only
+   a run registered before any number on a holdout could confirm a ceiling.
+   The plan sends both ceilings to
+   [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
+   panel only if one of them holds here, and neither did.
+2. **What survivorship does to either side.** The panel lacks the stocks that
+   left the index before 2007-11-23, as in Entry 45.
+3. **Whether the rule holds outside the literature's sample.** The low-beta
+   literature's own samples cover 1999 to 2007, so this span is not a
+   holdout.
+4. **What borrowing really cost.** The run borrows at the bill rate, which
+   flatters the levered side. Row 7's break-even spread says how far the cost
+   could rise before the point estimate reaches 0, and nothing about what a
+   broker charged.
+5. **Whether a margin call came inside a month.** Under Regulation T's 25
+   percent maintenance margin, a position levered 2 gets a call after a fall of
+   a third within the month, and month-end closes cannot see that.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
 
 ## Entry 49: the levered low-beta rule after the book, on IVV's S&P 500
 
