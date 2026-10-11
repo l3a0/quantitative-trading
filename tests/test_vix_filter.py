@@ -44,10 +44,12 @@ from __future__ import annotations
 import io
 import math
 from contextlib import redirect_stdout
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
+from scipy import stats
 
 from chan import buy_on_gap, opening_gap, paths
 from chan import vix_filter as module
@@ -111,6 +113,13 @@ def result(sources) -> VixFilter:
 @pytest.fixture(scope="module")
 def fstx_rule(sources) -> opening_gap.OpeningGap:
     return opening_gap.opening_gap(sources.fstx)
+
+
+@pytest.fixture(scope="module")
+def long_rule(sources):
+    """Buy on gap run once on the panel, for the tests that read its positions."""
+    stocks = sources.stocks
+    return buy_on_gap.buy_on_gap(stocks["Open"], stocks["Low"], stocks["Close"])
 
 
 @pytest.fixture(scope="module")
@@ -216,6 +225,16 @@ class TestTheJoin:
         assert (result.literal.daily == fstx_rule.literal[rows]).all()
         assert (result.momentum.daily == fstx_rule.momentum[rows]).all()
         assert (result.literal.held == (fstx_rule.positions[rows] != 0)).all()
+
+    def test_buy_on_gap_s_held_days_are_the_days_it_had_a_position(self, result, long_rule) -> None:
+        """2010-03-19 held ten positions and returned exactly 0, and no reading keeps it."""
+        long = result.buy_on_gap
+        rows = long_rule.days.get_indexer(long.days)
+        held = np.count_nonzero(long_rule.positions[rows], axis=1) > 0
+        assert (long.held == held).all()
+        flat = long.days[long.held & (long.daily == 0)]
+        assert list(flat) == [day("2010-03-19")]
+        assert not long.qualifies[long.days.get_loc(flat[0])]
 
 
 class TestTheSpecification:
@@ -503,10 +522,9 @@ class TestTheReadingsThatMiss:
         assert reading(fstx_rule.literal, filled) == result.same_day_filled
 
     def test_buy_on_gap_gives_the_same_figures_under_every_previous_day_alignment(
-        self, sources
+        self, sources, long_rule
     ) -> None:
-        stocks = sources.stocks
-        long = buy_on_gap.buy_on_gap(stocks["Open"], stocks["Low"], stocks["Close"])
+        long = long_rule
         joined = vix_filter("Buy on gap", long.days, long.daily, long.daily != 0, sources.vix)
         for other in (
             as_of_reading(long.days, long.daily, sources.vix),
@@ -601,21 +619,30 @@ class TestBesideTheReplication:
         assert min(long_p, fade_p) > 0.4
 
     def test_welch_s_t_compares_the_kept_days_with_the_rest_unpooled(self) -> None:
-        daily = np.array([0.0, 0.01, 0.03, -0.01, 0.05, 0.02])
-        keep = np.array([False, True, True, False, True, False])
+        """Four kept days against three others, so a pooled variance would move t.
+
+        With equal groups the pooled t equals Welch's, and only the degrees of
+        freedom tell them apart. ``held`` marks neither group, so a test that
+        split on it would move t too.
+        """
+        daily = np.array([0.0, 0.01, 0.03, -0.01, 0.05, 0.02, 0.04])
+        keep = np.array([False, True, True, False, True, False, True])
         filtered = Filtered(
             name="rule",
-            days=pd.bdate_range("2020-01-06", periods=6),
+            days=pd.bdate_range("2020-01-06", periods=7),
             daily=daily,
-            held=keep,
+            held=np.array([True, True, False, False, False, False, False]),
             qualifies=keep,
-            calendar_days=6,
+            calendar_days=7,
         )
         a, b = daily[keep], daily[~keep]
-        se = math.sqrt(a.var(ddof=1) / len(a) + b.var(ddof=1) / len(b))
+        va, vb = a.var(ddof=1) / len(a), b.var(ddof=1) / len(b)
+        expected_t = (a.mean() - b.mean()) / math.sqrt(va + vb)
+        dof = (va + vb) ** 2 / (va**2 / (len(a) - 1) + vb**2 / (len(b) - 1))
         t, p = filtered.welch
-        assert t == pytest.approx((a.mean() - b.mean()) / se, abs=1e-12)
-        assert 0 < p < 1
+        assert t == pytest.approx(expected_t, abs=1e-12)
+        assert t > 0
+        assert p == pytest.approx(2 * stats.t.sf(abs(expected_t), dof), abs=1e-12)
 
 
 class TestTheGuard:
@@ -849,14 +876,37 @@ class TestTheRules:
         assert as_of.kept == 3
         assert as_of.average_annual_return == pytest.approx(252 * (0.03 + 0.04 + 0.06) / 3)
 
-    def test_the_forward_fill_reads_the_rule_s_previous_day_not_a_later_vix_close(self) -> None:
-        """A close on a day only VIX traded is what the latest close reads, and not the fill."""
+    @staticmethod
+    def _vix_only_day():
+        """Four rule days, with 2020-01-08 at 40 a day only VIX traded."""
         days = pd.DatetimeIndex(["2020-01-06", "2020-01-07", "2020-01-09", "2020-01-10"])
         vix = pd.Series(
             [40.0, 20.0, 40.0, 40.0],
             index=pd.DatetimeIndex(["2020-01-06", "2020-01-07", "2020-01-08", "2020-01-09"]),
         )
         daily = np.array([0.01, 0.02, 0.03, 0.04])
+        return days, vix, daily
+
+    def test_the_filter_drops_a_day_only_vix_traded_before_reading_the_previous_close(
+        self,
+    ) -> None:
+        """Thursday reads Tuesday's 20 on the joined calendar, not Wednesday's 40.
+
+        The latest close before Thursday is Wednesday's, so a filter that read
+        it would keep Thursday too.
+        """
+        days, vix, daily = self._vix_only_day()
+        filtered = vix_filter("rule", days, daily, daily > 0, vix)
+        assert list(filtered.days) == [day("2020-01-06"), day("2020-01-07"), day("2020-01-09")]
+        assert filtered.qualifies.tolist() == [False, True, False]
+        assert filtered.filtered.tolist() == [0.02]
+        with np.errstate(invalid="ignore"):
+            latest = latest_close_before(filtered.days, vix) > THRESHOLD
+        assert latest.tolist() == [False, True, True]
+
+    def test_the_forward_fill_reads_the_rule_s_previous_day_not_a_later_vix_close(self) -> None:
+        """A close on a day only VIX traded is what the latest close reads, and not the fill."""
+        days, vix, daily = self._vix_only_day()
         # Thursday reads Wednesday's 40 as the latest close and Tuesday's 20 through the fill.
         filled = forward_filled_reading(days, daily, vix)
         assert filled.kept == 2
@@ -875,6 +925,68 @@ class TestTheRules:
         filled = same_day_reading(days, daily, vix, forward_fill=True)
         assert filled.kept == 3
         assert filled.average_annual_return == pytest.approx(252 * (0.02 + 0.03 + 0.05) / 3)
+
+    def test_the_forward_fill_gives_a_missing_close_the_one_before_it(self) -> None:
+        """Row 3 reads row 2's 40 carried forward, where a backward fill reads row 4's 20."""
+        days, vix, daily = self._week()
+        filled = forward_filled_reading(days, daily, vix)
+        # Rows 2, 3 and 5 read 40: row 1's close, row 2's carried over the gap, and row 4's.
+        assert filled.kept == 3
+        assert filled.average_annual_return == pytest.approx(252 * (0.03 + 0.04 + 0.06) / 3)
+
+    def test_every_reading_keeps_nothing_on_a_close_of_exactly_35(self) -> None:
+        """The first close is exactly 35, so a test of 35 or more would keep one more day."""
+        days = pd.bdate_range("2020-01-06", periods=5)
+        vix = pd.Series([35.0, 36.0, 36.0, 0.0, 0.0], index=days)
+        daily = np.array([0.01, 0.02, 0.03, 0.04, 0.05])
+        # The previous-day readings keep rows 2 and 3, which read 36. Row 1 reads the 35.
+        for previous in (
+            as_of_reading(days, daily, vix),
+            forward_filled_reading(days, daily, vix),
+            own_calendar_reading(days, daily, vix),
+        ):
+            assert previous.kept == 2
+            assert previous.average_annual_return == pytest.approx(252 * (0.03 + 0.04) / 2)
+        # The same-day readings keep rows 1 and 2, which close at 36. Row 0 closes at 35.
+        for forward_fill in (False, True):
+            same = same_day_reading(days, daily, vix, forward_fill=forward_fill)
+            assert same.kept == 2
+            assert same.average_annual_return == pytest.approx(252 * (0.02 + 0.03) / 2)
+
+    def test_buy_on_gap_held_a_day_it_had_a_position_whatever_the_day_returned(
+        self, monkeypatch
+    ) -> None:
+        """A day with positions on and a zero return still counts as held.
+
+        ``vix_filters`` reads ``held`` off the positions, so the middle day
+        below, with no position and a nonzero return, is not held either.
+        """
+        days = pd.bdate_range("2020-01-06", periods=3)
+        long = SimpleNamespace(
+            days=days,
+            daily=np.array([0.0, 0.01, 0.0]),
+            positions=np.array([[1, 0], [0, 0], [0, 0]]),
+        )
+        rule = SimpleNamespace(
+            days=days,
+            literal=np.array([0.0, 0.01, 0.0]),
+            momentum=np.array([0.0, -0.01, 0.0]),
+            positions=np.array([1, 0, -1]),
+            literal_figures=None,
+        )
+        monkeypatch.setattr(module.buy_on_gap, "buy_on_gap", lambda *_: long)
+        monkeypatch.setattr(module.opening_gap, "opening_gap", lambda *_: rule)
+        sources = module.Sources(
+            vix_member=None,
+            vix=pd.Series([40.0, 40.0, 40.0], index=days),
+            stock_members=[],
+            stocks={"Open": None, "Low": None, "Close": None},
+            fstx_member=None,
+            fstx=None,
+        )
+        found = vix_filters(sources)
+        assert found.buy_on_gap.held.tolist() == [True, False, False]
+        assert found.literal.held.tolist() == [True, False, True]
 
     def test_a_day_before_vix_s_first_close_reads_nan(self) -> None:
         vix = pd.Series([40.0], index=pd.DatetimeIndex(["2020-01-07"]))
