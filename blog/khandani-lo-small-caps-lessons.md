@@ -1,6 +1,6 @@
 # Chan’s reversal earns more on his S&P 600 file than on his S&P 500 file, and one year tells them apart only at the close
 
-*Chan explains why the reversal he reproduces earns 0.25 where Khandani and Lo report 4.47: most of their returns came from small and microcap stocks. He leaves the small-cap run as an exercise. On his own S&P 600 file over 2006, the rule earns 3.4086 at the close against the S&P 500’s 0.2510, a gap more than three times its standard error. At the open the gap is 0.8850, inside one year’s noise. The result is exploratory, the file holds only survivors, and it holds no microcaps.*
+*Chan explains why the reversal he reproduces earns 0.25 where Khandani and Lo report 4.47: most of their returns came from small and microcap stocks. He leaves the small-cap run as an exercise. On his own S&P 600 file over 2006, the rule earns 3.4086 at the close against the S&P 500’s 0.2510, a gap more than three times its standard error. At the open the gap is +0.8850, inside one year’s noise. The result is exploratory, the file holds only survivors, and it holds no microcaps.*
 
 ## Why run the reversal on small caps
 
@@ -21,7 +21,7 @@ Nothing in that explanation had been tested here. Chan’s own code reads a file
 
 ## The rule and the files
 
-The rule is the book’s rule, the code behind Chan’s 0.25. Each day every stock gets a weight equal to minus its return against the day’s average, divided by the number of stocks priced, and the weights are held for one day. Its Sharpe ratio is √252 times the mean daily profit over the standard deviation of daily profit, with no interest rate subtracted. Each change in weight costs 5 basis points on each side, where a basis point is a hundredth of a percent. The [earlier post’s “How the examples work”](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#how-the-examples-work) builds each of these up.
+The rule is the book’s rule, the code behind Chan’s 0.25. Each day every stock gets a weight equal to minus its return against the day’s average, divided by the number of stocks priced, and the weights are held for one day. Its Sharpe ratio is √252 times the mean daily profit over the standard deviation of daily profit, with no interest rate subtracted. Each change in weight costs 5 basis points of the amount traded, Chan’s cost on each side of a trade, where a basis point is a hundredth of a percent. The [earlier post’s “How the examples work”](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#how-the-examples-work) builds each of these up.
 
 The rule runs twice on each file, once on the closing prices and once on the opening prices. The second is Example 3.8, which updates the positions at the open, and the [earlier post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#lesson-6-on-the-books-rule-trading-at-the-open-misses-chans-claim-after-costs) covers it. That lesson also describes a second version of the rule, the one Chan’s Python notebook runs. It is left out here, because it fills each gap in a stock’s prices with the last price seen and so reads a gap of any length as one day’s move.
 
@@ -76,7 +76,7 @@ Trading at the open lifts both universes. The S&P 500 rises by 4.1693, from 0.25
 
 ![Two charts of running profit over 2006, each day’s profit summed and divided by its own book’s mean gross position. Brass lines are the S&P 600 and black lines the S&P 500. Solid lines are before costs, and dashed lines are after 5 basis points a side with the first day charged. The top chart, on the closes, has the solid brass line climbing through the year to end at +16.9%, the dashed brass line drifting a little below zero to end at −1.6%, the solid black line wandering around zero to end at +1.3%, and the dashed black line falling steadily to end at −16.9%. Its heading gives Sharpe ratios of 3.4086 and 0.2510, a gap of +3.1576, a standard error of 0.9872 and a z of +3.1987, beyond the line of 2 standard errors. The bottom chart, on the opens, has the solid brass line ending at +29.8%, the solid black line at +22.5%, the dashed brass line at +11.3%, and the dashed black line, which dips below zero in the middle of the year, at +4.2%. Its heading gives Sharpe ratios of 5.3052 and 4.4202, a gap of +0.8850, a standard error of 1.1640 and a z of +0.7603, within the line. The title calls the result exploratory.](../docs/figures/khandani_lo_small_caps.png)
 
-*Each line sums each day’s profit through 2006, as a share of that book’s average position. The dashed lines charge the first day’s trades, which Chan’s code leaves uncharged, because a running total cannot carry the missing value his code leaves on that day. So they show Lesson 4’s charged figures, −0.3255 and 2.0257 for the S&P 600, rather than Chan’s uncharged −0.3702 and 2.0147. The running totals were measured after the run. The test behind each heading was declared before any figure was computed. On the opens the solid lines end further apart than a z of +0.7603 suggests, because the distance between two running totals says nothing about how much the daily profits swing.*
+*Each line sums each day’s profit through 2006, as a share of that book’s average position. Chan’s code leaves the first day’s trades uncharged and that day’s profit after costs missing, and a running total cannot carry a missing value. So the dashed lines charge the first day, and they show Lesson 4’s charged figures, −0.3255 and 2.0257 for the S&P 600, rather than Chan’s uncharged −0.3702 and 2.0147. The running totals were measured after the run. The test behind each heading was declared before any figure was computed. On the opens the solid lines end further apart than a z of +0.7603 suggests, because the distance between two running totals says nothing about how much the daily profits swing.*
 
 ## Lesson 3: testing a gap between two Sharpe ratios
 
@@ -124,7 +124,7 @@ The average day says why. The [earlier post’s Lesson 1](https://github.com/l3a
 
 Every book trades between 1.4505 and 1.4729 times its position a day, so every book pays between 7.2525 and 7.3644 basis points a day. The rule resets its weights each day from the day before’s returns in every universe and at either price, so it replaces about the same share of its book. What changes from book to book is the profit. On the S&P 500’s closes the cost is 13.7453 times the profit. On the S&P 600’s closes it is 1.0945 times, which is why that book loses only a little after costs.
 
-Charging both universes the same 5 basis points flatters the S&P 600 against the S&P 500. Chan’s 5 basis points is his estimate for S&P 500 stocks (location 998). He also notes that low-priced stocks carry wider spreads between the price to buy and the price to sell (location 2639), and that small caps are often hard to borrow, so a short sale in a backtest may not have been possible (location 2730). The S&P 600’s closes break even at 4.57 basis points a side, below Chan’s estimate for the large caps. Its opens keep a profit up to 8.05.
+Charging both universes the same 5 basis points flatters the S&P 600 against the S&P 500. Chan’s 5 basis points is his estimate for S&P 500 stocks (location 998). He also notes that low-priced stocks carry wider spreads between the price to buy and the price to sell (location 2639), and that small caps are often hard to borrow, so a short sale in a backtest may not have been possible (location 2730). The S&P 600’s closes break even at 4.57 basis points a side, below Chan’s estimate for the large caps. Its opens keep a profit up to 8.05 basis points a side.
 
 ## Lesson 5: a check for split prices flags two real moves
 
@@ -166,7 +166,7 @@ Five questions are beyond it.
 
 One habit for each lesson.
 
-1. **Put a standard error on a gap before reading it.** A gap of 3.1576 and a gap of 0.8850 look like the same story until each is set against what one year can resolve.
+1. **Put a standard error on a gap before reading it.** The gaps of +3.1576 and +0.8850 both point the same way, and only a standard error says that one year resolves the first and not the second.
 2. **Run a comparison at every price the strategy could trade.** The close and the open told different stories about the same two universes.
 3. **Use the correlation when two books trade the same days.** Ignoring it overstates the noise in the gap.
 4. **Find the cost a side at which a book breaks even, and compare it with what the stocks cost to trade.** When turnover is the same in every book, the profit decides, and the break-even cost says how much room the profit leaves.
