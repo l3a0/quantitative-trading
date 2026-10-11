@@ -823,7 +823,8 @@ precision Chan printed, all 49 cells of the correlation table, the script's
 2009 window, and the 2012-05-17 save that `correlationTest.m` loads. It also
 holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
 start from, the rule on synthetic arrays, the refusal of a position larger
-than the tranche count, and the scale-break guard on TU.
+than the tranche count, and the scale-break guard on TU. The blog post about it
+is the exception, and what it says that nothing here asserts is listed below.
 
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py) does it
 for the crude oil calendar spread. It pins the script's window and the window
@@ -4197,8 +4198,99 @@ uv run python -m chan.calendar_spread_reversion_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+[blog/tu-momentum-lessons.md](blog/tu-momentum-lessons.md) is a thirtieth post,
+about Example 6.1 of Chan's *Algorithmic Trading*, which correlates TU's past
+and future returns for 49 pairs of lookback and hold and then trades the
+250-day lookback with a 25-day hold. Chan reports a correlation of 0.27 with a
+p-value of 0.02, an H of 0.44, a Sharpe ratio of 1, an APR of 1.7 percent and a
+maximum drawdown of 2.5 percent. The post explains the strategy for the other
+TU posts to link, and draws three lessons from Entry 33 of the replication log.
+
+1. The book's figures come from the full window, whose line the script
+   leaves commented out, while the line it runs from 2009 lands none of them.
+2. H misses 0.44 on Chan's own file, and the `maxT` that lands it on TU moves
+   USD.CAD further from its 0.49, so no figure of Chan's vouches for the
+   Python copy of `genhurst`.
+3. The momentum is thin: the traded cell rests on 69 days, is one of 49 that
+   share the same closes, and the variance ratio test cannot tell TU from a
+   random walk.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The four causes of momentum and the persistence of roll returns are at
+   2591, momentum as a correlation of past and future returns at 2600, the
+   optimal pair at 2612, the two tests as momentum tests at 2620, the warning
+   about overlapping data and Figure 6.1's bars at 2623, the best compromises
+   and the time frames that reconcile the tests at 2646, the paper the rule
+   comes from and the twenty-fifth of the capital at 2659, the full window's
+   sentence, the notional value of about \$200,000, the margin of about \$400,
+   the case for leverage and Figure 6.2's caption at 2668, and the sign of
+   roll returns at 2683. The book's figures are pinned, and its words are not.
+2. Facts about the code rather than the data: the active line
+   `idx = find(tday == 20090102)` and the commented-out `% idx=1;` under it,
+   the comment printing no annual volatility, `genhurst`'s default `maxT` of
+   19, and `correlationTest.m` loading the 2012-05-17 save.
+   [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records each in its
+   docstring.
+3. Readings no test asserts: that TU's price rises when two-year yields fall,
+   that consecutive future returns overlap on 24 of 25 days and each kept past
+   return shares 225 of its 250 days with the next, that a four-day shift
+   moving the correlation's second decimal shows how few days stand behind
+   it, that 2008 was the year of the financial crisis, that the back-adjusted
+   series carries roll return as well as moves in yields, that the comment's
+   missing volatility suggests it was pasted from an earlier version of the
+   printing line, that a rule mostly long on a rising price earns part of the
+   rise, and that leverage would multiply the drawdowns along with the
+   return.
+4. Ratios and roundings the post takes between pinned figures in words: more
+   than half of the gain in by 2009-01-02, 2008 earning about four-fifths as
+   much as the other years combined, four trading days between the two saves'
+   first days, 2.484746 percent rounding to 2.5, and what a figure prints as
+   at the book's precision, such as 0.43, 0.45 and 0.29. The figure's alt text
+   reads both curves approximately too, such as TU's closes drifting down
+   until mid-2007 and the cumulative return dipping below zero in 2005 and
+   flattening through 2009.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py), which also holds
+USD.CAD's H at a `maxT` of 19 and 24, or to
+[tests/test_tu_momentum_figures.py](tests/test_tu_momentum_figures.py) for the
+figure's own numbers. Four had no pin before it, and `TestBesideThePost` now
+pins them all.
+
+1. Fourteen of the 49 cells have a p-value below 0.05, ten positive and four
+   negative, against the 2.45 that 49 independent tests would give, and the
+   negative four are exactly 1/1, 1/5, 5/1 and 5/5.
+2. The position is +25 on 1,176 of the 2,000 days, −25 on 397 and 0 on 251,
+   of which 250 precede the first signal.
+3. TU's close is 97.9219 on the first day and 110.2734 on the last.
+4. Calendar 2008 compounds to 0.060565, and every other year together to
+   0.075414.
+
+Its one figure is drawn from the committed file by
+[src/chan/tu_momentum_figures.py](src/chan/tu_momentum_figures.py), which
+reads it through the same `read_sources` and `tu_momentum` as
+`python -m chan.tu_momentum`, scale-break guard included. It draws two panels
+on one date axis, for Lesson 1.
+
+1. TU's 2,000 closes.
+2. The cumulative return, the script's plot and the book's Figure 6.2, with
+   the maximum drawdown from 2008-03-17 to 2008-06-13 shaded and the start of
+   the script's active line, 2009-01-02, marked.
+
+```bash
+uv run python -m chan.tu_momentum_figures
+```
+
+[tests/test_tu_momentum_figures.py](tests/test_tu_momentum_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the
+regime map.
+
 [blog/vx-calendar-spread-lessons.md](blog/vx-calendar-spread-lessons.md) is a
-thirtieth post, about the VIX futures calendar spread at location 2502 of
+thirty-first post, about the VIX futures calendar spread at location 2502 of
 Chan's *Algorithmic Trading*, which runs Example 5.4's script on the ratio of
 the back contract to the front. Chan reports that the ratio is "stationary
 with a 99 percent probability", and an APR of 17.7 percent with a Sharpe ratio

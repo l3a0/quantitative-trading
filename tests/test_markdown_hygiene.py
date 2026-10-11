@@ -200,6 +200,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/stationary-candidates-lessons.md",
         "blog/survivorship-and-transaction-costs.md",
         "blog/tu-hypothesis-tests-lessons.md",
+        "blog/tu-momentum-lessons.md",
         "blog/usdcad-stationarity-lessons.md",
         "blog/vx-calendar-spread-lessons.md",
         "blog/vx-es-lessons.md",
@@ -1181,6 +1182,7 @@ class TestTheFigureHasThreeCopies:
             "roll-returns-lessons.md",
             "tu-hypothesis-tests-lessons.md",
             "crude-oil-calendar-spread-lessons.md",
+            "tu-momentum-lessons.md",
             "vx-calendar-spread-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:

@@ -109,7 +109,7 @@ its whole span and a bad print would stop the run.
 1. TU is read as a committed vintage through :func:`chan.series.load_panel`
    rather than loaded from the ``.mat``.
 2. The ``plot`` of the cumulative return is not carried. The run draws
-   nothing.
+   nothing, and :mod:`chan.tu_momentum_figures` draws it.
 3. The positions and the return are split into the four functions Example 1.1
    imports, and the return multiplies yesterday's position by a market return
    computed once, as ``TU_mom_hypothesisTest.m`` writes it.
