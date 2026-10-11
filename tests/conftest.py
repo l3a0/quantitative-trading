@@ -67,9 +67,9 @@ def pytest_configure(config: pytest.Config) -> None:
             os.environ.setdefault(name, "1")
 
 
-#: Set to 1 to run the archive pins. The full run takes minutes, so they do not
-#: run by default. ``.claude/settings.json`` sets it for every Claude Code
-#: session here, and the design doc's Configuration table says why.
+#: Set to 1 to run the archive pins. Example 7.1's full run takes minutes, so
+#: they do not run by default. ``.claude/settings.json`` sets it for every
+#: Claude Code session here, and the design doc's Configuration table says why.
 RUN_ENV = "QT_ARCHIVE_RUN"
 
 
@@ -89,7 +89,7 @@ def archive_skip_reason(
     except ArchiveUnavailable as absent:
         return str(absent)
     if environ.get(RUN_ENV) != "1":
-        return f"the archive pins take minutes, so they run only with {RUN_ENV}=1"
+        return f"the archive pins run only with {RUN_ENV}=1"
     return None
 
 

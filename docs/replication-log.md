@@ -336,6 +336,11 @@ says.
   - [The verdicts](#the-verdicts-42)
   - [What the entry concludes](#what-the-entry-concludes-44)
   - [What this entry cannot say](#what-this-entry-cannot-say-42)
+- [Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*](#entry-46-post-earnings-drift-on-edgars-calendar-and-the-archives-prices-chans-algorithmic-trading)
+  - [The registration](#the-registration)
+  - [What this repo computed](#what-this-repo-computed-45)
+  - [The attribution](#the-attribution)
+  - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
 
 ## How to read an entry
 
@@ -416,9 +421,11 @@ both.
    [tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
    holds Entry 43,
    [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
-   holds Entry 44, and
+   holds Entry 44,
    [tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py)
-   holds Entry 45.
+   holds Entry 45, and [tests/test_pead_rerun.py](../tests/test_pead_rerun.py)
+   holds Entry 46, whose archive pins run only where the owner's data archive
+   is and `QT_ARCHIVE_RUN=1` asks for them.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -539,6 +546,8 @@ Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17, and
 Entry 45's rows 2 to 9.
+Every row of Entry 46 is in that position too, so that entry drops the
+verdict column as Entry 5 does.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -3420,8 +3429,9 @@ rule on a point-in-time universe, which waits on a purchase.
 **Whether Chan's flags are the announcement calendar.** They catch three of
 Apple's five releases inside the window, a measurement recorded on
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
-[Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) reruns the
-rule on EDGAR's filings and modern prices.
+Entry 46 reruns the rule on a calendar read from EDGAR's filings and on the
+archive's Alpha Vantage prices, under
+[issue 251](https://github.com/l3a0/quantitative-trading/issues/251).
 
 **What costs would take.** `pead.m` charges none, and every position is a
 round trip inside one day.
@@ -9591,6 +9601,316 @@ owner's archive, so no pin from it can run in CI.
 **What the model's half of the argument says.** Location 4684's equal average
 returns need market capitalisation and book value at each date, which
 [issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 7.2, the example Entry 12 reproduces.
+Shipped under [issue 251](https://github.com/l3a0/quantitative-trading/issues/251).
+Entry 12 says Chan's figures reproduce from his own files. This entry asks
+what the same rule gives when the calendar comes from public filings and the
+prices from another vendor, and which of four differences moves the figure.
+
+Thirty-eight rows. Rows 15, 16 and 38 count the filings and are derivable
+from [tests/test_earnings_filings.py](../tests/test_earnings_filings.py), and
+every other row from [tests/test_pead_rerun.py](../tests/test_pead_rerun.py).
+No row reproduces a published number, so the entry carries no verdict column.
+Rows 28 to 38 were measured after the runs' figures were seen, in the review
+of the pull request that shipped them. They decide nothing, and the section
+holding them says so.
+
+Every result here is **exploratory**. The plan audit on the issue measured,
+on Chan's flags, how much of the return each vendor could serve before the
+comparison was registered, so part of the sample was already spent. R5, the
+calendar nearest Chan's, reads what a trader did not have before the open, so
+no figure on it is a tradable one.
+
+Every row reads the same vintages and specification, so both are stated once
+here.
+
+1. **The vintages and the record.**
+   1. Chan's `inputdataohlcdaily_stocks_20120424/` and `earnannfile/`, read as
+      Entry 12 reads them.
+   2. `research/filings/earnings/`, written on 2026-10-10. `tickers.csv` maps
+      each of the 497 tickers to a CIK and to an archive series, with the
+      route and the check behind each. `index.jsonl` holds the 2,930 original
+      Item 2.02 8-Ks that EDGAR accepted from 2010-12-01 to 2012-04-24 for
+      the stocks whose CIK passed, each with its Eastern acceptance time read
+      from the filing's `.hdr.sgml`. A filing is pinned by its accession, so
+      the record is not a vintage, as
+      [docs/design.md](design.md)'s section "A record that reads a company's
+      earnings filings" explains.
+   3. For runs C, D, E1 and E5, the owner archive's `sp500` Alpha Vantage
+      files, downloaded 2026-10-05 and pinned by their sha256s in
+      `data/archive_vintages.jsonl`, read for the raw open, the raw close and
+      the adjusted close. They sit under the premise's exception for licensed
+      bars, so these four runs never run in CI. Locally their pins run only
+      where the archive is configured and `QT_ARCHIVE_RUN=1` asks for them.
+2. **The specification.** `chan.pead.pead` unchanged: the flag file's 330
+   days from 2011-01-03 to 2012-04-24, prices cut to them before any gap is
+   taken, a lookback of 90, an entry of 0.5 moving standard deviations, a
+   denominator of 30, 252-day annualisation, book two's `smartstd` and no
+   cost. The adjusted open is the raw open times that day's adjusted close
+   over its raw close.
+
+### The registration
+
+The comparison was registered on the issue before any number on these
+sources was seen, in
+[the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515).
+It fixes four universes.
+
+1. `ALL`, Chan's 497 stocks.
+2. `CAL`, the stocks with a checked CIK.
+3. `PX`, the stocks with a checked archive series.
+4. `U`, the stocks in both.
+
+It fixes two calendars, both read from the Eastern acceptance time, both
+skipping an 8-K/A, and both making one flag of several filings on one day.
+
+1. **R1, the primary calendar.** A filing accepted before 09:30 on a trading
+   day flags that day. One accepted at 16:00 or later, or on a day the market
+   was shut, flags the next trading day. One accepted during the session
+   flags nothing.
+2. **R5, the secondary calendar.** R1, except that a filing accepted on a
+   later date than its `reportDate` flags the trading day after `reportDate`,
+   and one accepted during the session flags that same day. It was chosen
+   because it matched Chan's flags best on a 32-stock sample.
+
+And it fixes ten runs, each the rule above on one universe, one price
+source and one calendar.
+
+| Run | Stocks | Prices | Flags | What changes against its reference |
+| --- | --- | --- | --- | --- |
+| A | ALL | Chan's | Chan's | Entry 12, unchanged |
+| A_CAL, A_PX, A_U | CAL, PX, U | Chan's | Chan's | the universe, against A |
+| B1, B5 | CAL | Chan's | R1, R5 | the calendar, against A_CAL |
+| C | PX | Alpha Vantage, adjusted | Chan's | the vendor, against A_PX |
+| D | PX | Alpha Vantage, raw | Chan's | the price basis, against C |
+| E1, E5 | U | Alpha Vantage, adjusted | R1, R5 | everything, against A_U and against A |
+
+Nothing the registration fixes was changed. It left five things open, and
+`chan.pead_rerun`'s docstring names each, because each moves a figure or a
+count.
+
+1. **The route to an archive series.** The audit counted 399 same-company
+   series under Chan's own tickers, a count no test here holds. The check
+   here passes 398 of them, and running it on every series in the
+   cross-section adds 48 renamed companies, such as Chan's UTX under the
+   archive's RTX, so PX holds 446. `TestTheCommittedTable` in
+   `tests/test_earnings_filings.py` holds the 398 and the 48.
+2. **What a checked CIK is.** A CIK passes when it was filing on 2012-03-30,
+   its EDGAR name that day matches one holding in IVV's 2012-03-31 schedule,
+   that holding is priced within 3 percent of Chan's close, and it filed at
+   least one Item 2.02 8-K in the window. Nine stocks fail.
+   1. Five are not in IVV's 2012-03-31 schedule although Chan's file holds
+      them: AK Steel, Compuware, Monster Worldwide, Tellabs and MEMC. Two of
+      them also carry another company's proposed CIK. Compuware's is
+      TetriDyn's, 827099, and Monster Worldwide's is Verisk's, 1442145.
+   2. Cablevision's proposed CIK is BJ's Wholesale's, 1037461.
+   3. DuPont's proposed CIK is the DuPont formed after 2015, 1666700, which
+      fails on dates because it had filed nothing by 2012-03-30.
+   4. NYSE Euronext fails on the name, because EDGAR files it with no legal
+      form.
+   5. Leucadia's CIK filed no Item 2.02 8-K in the window.
+3. **The trading days**, which are the committed raw SPY vintage's and agree
+   with Chan's price file on every day the filings reach.
+4. **D runs without the scale-break guard.** A split inside the window is
+   what a raw series carries and what D measures. The guard would refuse 16
+   of PX's stocks, which `TestTheArchiveRuns` names.
+5. **The calendars cover CAL's 488 stocks rather than all 497.** The
+   correction on the issue asked for flags in the shape of Chan's file, 330
+   days by 497 stocks. The index holds no filing for the nine stocks outside
+   CAL, so the derived calendars leave them out. No run reads a derived flag
+   outside CAL, so only rows 12 and 13, the agreement over 161,040 cells,
+   depend on this choice.
+
+### What this repo computed
+
+| # | Run or count | Arithmetic annual return | Sharpe ratio | Compounded APR, maximum drawdown, its days | Trades, busiest day | Mean return per trade | Assertion |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | A, ALL 497, Chan's prices and flags | 0.066743 | 1.4909 | 0.067952, −0.026052, 109 | 1,072, 30 | 0.002446 | `TestTheCommittedRuns::test_the_figures[A]`, `::test_run_a_is_entry_12_unchanged` and `::test_the_return_per_trade[A]` |
+| 2 | A_CAL, 488 stocks | 0.054481 | 1.3253 | 0.055101, −0.029402, 115 | 1,052, 28 | 0.002035 | `TestTheCommittedRuns::test_the_figures[A_CAL]` and `::test_the_return_per_trade[A_CAL]` |
+| 3 | A_PX, 446 stocks | 0.053099 | 1.5028 | 0.053874, −0.023386, 112 | 964, 27 | 0.002164 | `TestTheCommittedRuns::test_the_figures[A_PX]` and `::test_the_return_per_trade[A_PX]` |
+| 4 | A_U, 441 stocks | 0.043678 | 1.2815 | 0.044038, −0.023176, 114 | 949, 25 | 0.001808 | `TestTheCommittedRuns::test_the_figures[A_U]` and `::test_the_return_per_trade[A_U]` |
+| 5 | B1, CAL on R1 | 0.071050 | 1.7045 | 0.072696, −0.027258, 63 | 1,291, 49 | 0.002162 | `TestTheCommittedRuns::test_the_figures[B1]` and `::test_the_return_per_trade[B1]` |
+| 6 | B5, CAL on R5 | 0.063142 | 1.2988 | 0.063923, −0.031029, 80 | 1,477, 55 | 0.001679 | `TestTheCommittedRuns::test_the_figures[B5]` and `::test_the_return_per_trade[B5]` |
+| 7 | C, PX on adjusted Alpha Vantage prices | 0.053206 | 1.4905 | 0.053973, −0.025224, 113 | 964, 27 | 0.002168 | `TestTheArchiveRuns::test_the_figures[C]` and `::test_the_return_per_trade[C]` |
+| 8 | D, PX on raw Alpha Vantage prices | 0.053283 | 1.5255 | 0.054083, −0.023066, 112 | 954, 27 | 0.002194 | `TestTheArchiveRuns::test_the_figures[D]` and `::test_the_return_per_trade[D]` |
+| 9 | E1, U on adjusted prices and R1 | 0.057489 | 1.6585 | 0.058532, −0.023984, 63 | 1,172, 44 | 0.001927 | `TestTheArchiveRuns::test_the_figures[E1]` and `::test_the_return_per_trade[E1]` |
+| 10 | E5, U on adjusted prices and R5 | 0.057426 | 1.4118 | 0.058229, −0.029106, 80 | 1,339, 48 | 0.001685 | `TestTheArchiveRuns::test_the_figures[E5]` and `::test_the_return_per_trade[E5]` |
+
+| # | Count | Value | Assertion |
+| --- | --- | --- | --- |
+| 11 | The universes ALL, CAL, PX and U | 497, 488, 446, 441 | `TestTheCommittedRuns::test_the_universes` |
+| 12 | R1 against Chan's flags over the 161,040 cells of CAL, flagged by both, by Chan's only, by R1's only | 1,540, 311, 914 | `TestTheCalendarsAgainstChans::test_r1` |
+| 13 | R5 against Chan's flags, the same three counts | 1,694, 157, 1,124 | `TestTheCalendarsAgainstChans::test_r5` |
+| 14 | Apple's in-window R1 flags Chan's file lacks | 2011-01-19 and 2011-10-19 | `TestTheCalendarsAgainstChans::test_r1_catches_the_two_apple_releases_chans_flags_miss` |
+| 15 | Filings in the index, accepted before 09:30, during the session, from 16:00 | 2,930: 1,460, 405, 1,065 | `TestTheCommittedIndex::test_it_holds_2930_filings_for_every_stock_of_the_calendar` and `::test_when_the_filings_were_accepted` in `tests/test_earnings_filings.py` |
+| 16 | Filings accepted on a later date than they report | 343 | `TestTheCommittedIndex::test_343_were_accepted_after_the_date_they_report` in `tests/test_earnings_filings.py` |
+| 17 | Stocks whose raw series the scale-break guard would refuse | 16 | `TestTheArchiveRuns::test_the_raw_prices_cross_a_split_in_sixteen_stocks` |
+
+Row 1 is Entry 12's run, and its pins move only if Entry 12's do. The
+busiest days of rows 5, 6, 9 and 10 hold more than 30 positions, so on those
+days the book is levered past one, since the rule divides by 30 whatever the
+count. The cells of CAL that neither calendar flags, 158,275 under R1 and
+158,065 under R5, complete rows 12 and 13.
+
+The mean return per trade is each trade's signed return from the open to the
+close, averaged over the run's trades. The rule sums each day's trades and
+divides by 30, so the arithmetic annual return is the trades times that mean
+times 252, over 30 and over the 330 days, which
+`TestTheCommittedRuns::test_the_return_is_the_trades_times_their_mean` holds.
+
+### The attribution
+
+Read from the arithmetic annual return and the Sharpe ratio, as registered.
+`TestTheArchiveRuns::test_the_attribution` holds rows 18 to 27, and
+`TestTheCommittedRuns::test_the_attribution_without_the_archive` holds rows
+18, 19 and 24 where no archive is.
+
+| # | Effect | Runs | Arithmetic annual return | Sharpe ratio |
+| --- | --- | --- | --- | --- |
+| 18 | The universe | A_U − A | −0.023065 | −0.2094 |
+| 19 | The calendar | B1 − A_CAL | +0.016568 | +0.3792 |
+| 20 | The vendor | C − A_PX | +0.000107 | −0.0123 |
+| 21 | The price basis | D − C | +0.000078 | +0.0350 |
+| 22 | Everything | E1 − A_U | +0.013811 | +0.3770 |
+| 23 | The interaction, what E1 − A_U leaves after rows 19 to 21 | | −0.002942 | −0.0249 |
+
+The registration's table of runs names four more comparisons than the
+attribution uses. B5 is read against A_CAL, and E1 and E5 are each read
+against A_U and against A.
+
+| # | Comparison | Runs | Arithmetic annual return | Sharpe ratio |
+| --- | --- | --- | --- | --- |
+| 24 | The calendar, on R5 | B5 − A_CAL | +0.008661 | −0.0265 |
+| 25 | E1 against all 497 on Chan's files | E1 − A | −0.009254 | +0.1677 |
+| 26 | E5 against its own stocks on Chan's files | E5 − A_U | +0.013748 | +0.1303 |
+| 27 | E5 against all 497 on Chan's files | E5 − A | −0.009317 | −0.0790 |
+
+Row 23 subtracts the basis effect of row 21 from row 22, because the
+registration words the interaction that way. E1 and A_U both read adjusted
+prices, though, so no price basis separates them. Without row 21 the residual
+is row 28. That reading was not registered, and
+`TestTheArchiveRuns::test_the_interaction_without_the_basis_effect` holds it.
+
+| # | Residual | Runs | Arithmetic annual return | Sharpe ratio |
+| --- | --- | --- | --- | --- |
+| 28 | What E1 − A_U leaves after rows 19 and 20 only, not registered | | −0.002865 | +0.0102 |
+
+### Checks run after the figures were seen
+
+The review of the pull request that shipped this entry ran these on the same
+vintages. None was registered, and the thresholds in rows 29 and 33, 7 days
+and 2 percent, were chosen after reading the data. They decide nothing. They
+say where the figures above are fragile.
+
+| # | Check | Value | Assertion |
+| --- | --- | --- | --- |
+| 29 | Filings accepted 7 or more days after their `reportDate`, those R5 flags inside the window, those dated at a quarter's end, and those whose R5 flag Chan's file also holds | 76, 73, 64, 2 | `TestTheCalendarsAgainstChans::test_r5_carries_73_long_late_filings_back_to_a_quarters_first_day` |
+| 30 | B5 with row 29's filings on the day R1 gives them, arithmetic return and Sharpe ratio | 0.062600, 1.2802 | `TestTheCommittedRuns::test_b5_with_its_long_late_filings_read_three_other_ways` |
+| 31 | B5 with them read by R5 without its late rule | 0.064813, 1.2880 | the same |
+| 32 | B5 with them dropped | 0.059903, 1.2407 | the same |
+| 33 | PX stock-days whose adjusted open, scaled by Chan's close over the archive's, lies more than 2 percent from Chan's open, the stocks they fall in, and how many fall on 2011-10-27 and on 2011-09-12 | 64, 56, 30, 24 | `TestTheArchiveOpens::test_64_stock_days_over_56_stocks_open_more_than_2_percent_off_chans` |
+| 34 | The days GCI's raw open reads about 15.378 | 2011-12-27, 2012-01-03, 2012-01-17, 2012-02-21, 2012-04-09 | `TestTheArchiveOpens::test_gci_repeats_a_stale_open_after_each_holiday` |
+| 35 | How far C moves with Chan's open in place of each of row 33's, arithmetic return and Sharpe ratio | +0.000015, +0.0195 | `TestTheArchiveOpens::test_chans_opens_in_their_place_move_e5_more_than_the_vendor_and_basis` |
+| 36 | How far E1 moves | −0.000539, −0.0098 | the same |
+| 37 | How far E5 moves | −0.004566, −0.1039 | the same |
+| 38 | Filings dated at the quarter's end of 2010-12-31, 2011-03-31, 2011-06-30, 2011-09-30 and 2011-12-31 that were accepted after the 24th of the next month | 10, 9, 7, 6, 7 | `TestTheCommittedIndex::test_how_many_quarter_end_filings_trail_the_next_months_24th` in `tests/test_earnings_filings.py` |
+
+### What the entry concludes
+
+Three things.
+
+1. **On the same stocks, R1 earns more than Chan's flags in this one
+   exploratory sample.** On CAL, R1 lifts A_CAL's 0.054481 to 0.071050 and
+   its Sharpe ratio from 1.3253 to 1.7045. It does so in two ways.
+   1. R1 takes 1,291 trades against 1,052.
+   2. Each trade earns 6 percent more on average, 0.002162 against
+      0.002035.
+
+   The rule divides each day by a fixed 30, so more trades at the same mean
+   raise the return in proportion. About three quarters of the +0.016568 is
+   the extra trades, which
+   `TestTheCommittedRuns::test_r1_earns_more_a_trade_and_r5_less_than_chans_flags_on_cal`
+   holds with the 6 percent. The Sharpe ratio's gain does not depend on the
+   30, because dividing every day by one number scales the mean and the
+   deviation alike. On U, the archive's prices on R1 give 0.057489 and
+   1.6585 against A_U's 0.043678 and 1.2815. Neither reaches Chan's 0.066743
+   on all 497. E1 against A is −0.009254 in return and +0.1677 in Sharpe
+   ratio, because the universe moves the return more than anything else.
+2. **The universe moves the figure most, and the vendor and the basis
+   barely move it, as the audit expected.** Dropping the stocks outside U
+   takes 0.023065 off the arithmetic return. The vendor and the basis move it
+   by about a ten-thousandth each. A same-day return from the open to the
+   close does not depend on the basis, which moves only the overnight gap and
+   its 90-day deviation, so D takes 954 trades where C takes 964 and earns
+   almost the same. The vendor's small effect holds for the closes the series
+   check compares. The opens are another matter, which the section below
+   takes up.
+3. **R5 matches Chan's flags more closely and earns less on each trade.** R5
+   misses 157 of Chan's flags against R1's 311. On CAL it gives 0.063142 and
+   a Sharpe ratio of 1.2988, against R1's 0.071050 and 1.7045. Its return
+   rises over Chan's flags by +0.008661 only because it takes 1,477 trades
+   against 1,052. Each of its trades earns 0.001679 on average, less than
+   the 0.002035 on Chan's flags, and its Sharpe ratio is 0.0265 lower than
+   A_CAL's. E5 falls below A on both figures, in row 27. Its extra flags
+   come from two kinds of filing.
+   1. One was accepted during the session, so the gap at that day's open
+      came before the release.
+   2. The other was accepted after the date it reports. R5 flags the trading
+      day after that date, which reaches a long way back for a filing that
+      reports a quarter's end. 73 filings accepted 7 or more days late put
+      R5 flags inside the window, 64 of them dated at a quarter's end, so
+      they land on the quarter's first trading day, weeks before the
+      release. Chan's file flags 2 of those days.
+
+   Read another way, row 29's filings put B5 anywhere from 0.059903 to
+   0.064813 against its 0.063142, in rows 30 to 32. The index
+   stops at acceptance on 2012-04-24, so R5 also loses the last quarter's
+   period-end filings accepted after that day. In the five earlier quarters
+   6 to 10 such filings were accepted after the 24th of the next month, in
+   row 38, and each of them would have flagged a day weeks early. R1 reads
+   only the acceptance time, so the cutoff costs it nothing inside the
+   window.
+
+### What this entry cannot say
+
+Five things.
+
+**Whether the drift pays today.** The window, the rule and the 30 are
+Chan's, and the audit had already looked at the sample. A registered test
+would fix the rule and run it on data after 2012.
+
+**What the stocks outside U would have earned.** Their CIK or their
+series did not pass its check, so nothing here prices them on a second
+source. Most of the universe effect is theirs.
+
+**Whether a filing is an earnings release.** Item 2.02 is the item a release
+is filed under, and nothing here reads the filing's text, so an 8-K that
+carries the item for another reason flags a day too.
+
+**Whether the archive's opens are right.** The series check in
+`chan.earnings_filings` compares closes only, and the rule trades from the
+open. Row 33 finds
+64 stock-days over 56 stocks whose open lies more than 2 percent from Chan's
+once the closes are put on one scale. GCI's raw open repeats a stale value
+of about 15.378 on five days, each the first after a market holiday, in row
+34. Putting Chan's open in place of each of the 64 moves C and E1 little, in
+rows 35 and 36. It moves E5 by −0.004566 and −0.1039, in row 37, because one
+trade, PNC on 2011-09-12, turns from long to short. That one trade moves E5
+more than the vendor and basis effects of rows 20 and 21 together. Not every
+one of the 64 is an error, though. 30 fall on 2011-10-27 and 24 on
+2011-09-12, days on which many stocks disagree at once, which reads more
+like two vendors defining the open differently.
+
+**What the leverage past one costs.** Rows 5, 6, 9 and 10 hold up to 55
+positions on one day against a denominator of 30, and nothing here sizes the
+book by each day's count.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
