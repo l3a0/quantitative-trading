@@ -24,15 +24,17 @@ six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
 three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
-Entries 5 and 44 are the two entries that are not replications. Chan states
-the claim each tests without printing a number, so each carries a finding
-rather than a verdict, and its tables drop the columns that would hold a
-published figure, a gap and a verdict. Entries 6 and 15 come from the same
+Entries 5, 44 and 46 are the three entries that are not replications. Chan
+states the claim Entries 5 and 44 test without printing a number, so each
+carries a finding rather than a verdict, and its tables drop the columns that
+would hold a published figure, a gap and a verdict. Entry 46 reruns Example
+7.2, which Entry 12 reproduces, on a calendar and prices Chan never used, so
+no figure he printed applies to it and its tables drop the same columns. Entries 6 and 15 come from the same
 sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 and 45 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45 and 46 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -341,6 +343,8 @@ says.
   - [What this repo computed](#what-this-repo-computed-45)
   - [The attribution](#the-attribution)
   - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
+  - [What the entry concludes](#what-the-entry-concludes-45)
+  - [What this entry cannot say](#what-this-entry-cannot-say-43)
 
 ## How to read an entry
 
@@ -531,8 +535,8 @@ replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
-Entries 5 and 44 is in that position too, so those entries drop the verdict
-column rather than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
+Entries 5, 44 and 46 is in that position too, so those entries drop the
+verdict column rather than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -546,8 +550,6 @@ Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17, and
 Entry 45's rows 2 to 9.
-Every row of Entry 46 is in that position too, so that entry drops the
-verdict column as Entry 5 does.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
