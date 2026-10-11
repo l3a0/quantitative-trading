@@ -1,8 +1,14 @@
 """The pins for the three hypothesis tests on TU momentum, *Algorithmic Trading*'s Example 1.1.
 
 This file is the single authority for every number a prose surface quotes
-about this example and the rows beside it. ``docs/replication-log.md`` Entry 37
-carries the verdicts and points here row by row.
+about this example and the rows beside it. One surface also quotes numbers
+held elsewhere: ``blog/tu-hypothesis-tests-lessons.md`` takes the 49 pairs
+behind the rule from ``tests/test_tu_momentum.py``, and its figure's labels
+from ``tests/test_tu_hypothesis_tests_figures.py``.
+README lists what the post says that nothing asserts. ``docs/replication-log.md``
+Entry 37 carries the verdicts and points here row by row. The run itself comes
+from ``tu_hypothesis_run`` in ``tests/conftest.py``, which the figure's pins
+share.
 
 Every pin reads one vintage and one specification, so both are stated once
 here.
@@ -75,7 +81,6 @@ from chan.tu_hypothesis_tests import (
     randomized_returns,
     randomized_trades,
     report,
-    run,
     script_moments,
     simulated_strategy_returns,
 )
@@ -94,6 +99,9 @@ from tests.support.committed_vintages import LIFTED_SOURCES
 
 #: The draws the vectorized form is held to the one-dimensional functions on.
 EQUALITY_DRAWS = 200
+
+#: The shuffles the net-position pin reads, the first of the third test's draws.
+NET_POSITION_DRAWS = 500
 
 
 @pytest.fixture(scope="module")
@@ -128,12 +136,9 @@ def params(moments):
 
 
 @pytest.fixture(scope="module")
-def ran() -> tuple[HypothesisTests, str]:
-    """``run`` on the declared seeds, computed once, with what it prints."""
-    out = io.StringIO()
-    with redirect_stdout(out):
-        result = run()
-    return result, out.getvalue()
+def ran(tu_hypothesis_run) -> tuple[HypothesisTests, str]:
+    """``run`` on the declared seeds, with what it prints, shared with the figure's pins."""
+    return tu_hypothesis_run
 
 
 @pytest.fixture(scope="module")
@@ -481,6 +486,19 @@ class TestRow1TheGaussianStatistic:
         """The p-value location 606's Gaussian null gives, which the mean-zero row lands near."""
         assert float(ndtr(-result.statistic)) == pytest.approx(0.001677, abs=5e-7)
 
+    def test_the_null_s_spread_of_the_mean(self, result) -> None:
+        """The strategy's daily ``std`` over √2,000, in closed form, with no seed.
+
+        The figure draws the Gaussian null with this spread, and the post sets
+        the mean-zero row's spread beside it. The statistic is the observed
+        mean over this spread, so each pin checks the other.
+        """
+        std = float(result.daily.std(ddof=1))
+        assert std == pytest.approx(1.010320e-03, rel=5e-7)
+        spread = std / math.sqrt(len(result.daily))
+        assert spread == pytest.approx(2.259145e-05, rel=5e-7)
+        assert result.observed_mean / spread == pytest.approx(result.statistic, rel=1e-12)
+
 
 class TestRows2And3TheRandomizedReturns:
     """One computed count, judged against the book's 1,166 and the script's 0.027500."""
@@ -507,6 +525,10 @@ class TestRows2And3TheRandomizedReturns:
         assert float(result.returns.declared.mean()) == pytest.approx(3.220302e-05, rel=5e-7)
         assert float(result.returns.declared.max()) == pytest.approx(1.423978e-04, rel=5e-7)
 
+    def test_the_spread_of_the_simulated_means(self, result) -> None:
+        """The n − 1 ``std`` of the 10,000 means on seed 20261010's type IV draws."""
+        assert float(result.returns.declared.std(ddof=1)) == pytest.approx(2.819219e-05, rel=5e-7)
+
 
 class TestRow4TheCorrectedTrades:
     def test_no_draw_reaches_the_observed_mean(self, result) -> None:
@@ -523,6 +545,50 @@ class TestRow4TheCorrectedTrades:
         z = (result.observed_mean - trades.mean()) / trades.std(ddof=1)
         assert z == pytest.approx(11.131886, abs=5e-7)
         assert 3 / TRADES_DRAWS == 3e-05
+
+    def test_the_shuffled_means_spread_far_less_than_the_simulated_ones(self, result) -> None:
+        """The n − 1 ``std`` of seed 20261011's 100,000 means, against seed 20261010's 10,000.
+
+        Shuffling scatters the long and short entry days across the sample,
+        so the slices held on any day mostly cancel into a net long position
+        of about the same size on every shuffle. A position nearly the same on
+        every shuffle earns nearly the same mean on the same returns, so the
+        shuffled means vary far less than means on new returns do, which is why
+        the figure's third panel is narrow. The test below pins the
+        cancellation.
+        """
+        shuffled = float(result.trades.std(ddof=1))
+        assert shuffled == pytest.approx(3.788199e-06, rel=5e-7)
+        assert shuffled < float(result.returns.declared.std(ddof=1)) / 7
+
+    def test_shuffled_entry_days_cancel_into_a_steady_net_long_position(self, strategy) -> None:
+        """The net position of the first 500 shuffles on seed 20261011, against the real rule's.
+
+        Draw d here is the d-th ``default_rng(20261011).permutation(2_000)``
+        call, the same permutation the corrected third test applies as its
+        draw d, read on this file's vintage. Over those 500 draws the
+        shuffled net position averages 9.975403 units in absolute size and is
+        long on 0.983958 of days. The real rule averages 20.58 and is long on
+        0.638 of its 2,000 days, both exact since positions are whole units.
+        Each shuffle's average position sits within one percent of the
+        average across shuffles, which is what "about the same size on every
+        shuffle" means. 500 draws keep the test to about two seconds.
+        """
+        longs, shorts, held = strategy["longs"], strategy["shorts"], strategy["held"]
+        assert float(np.abs(held).mean()) == pytest.approx(20.58, rel=5e-7)
+        assert float((held > 0).mean()) == pytest.approx(0.638, rel=5e-7)
+
+        rng = np.random.default_rng(TRADES_SEED)
+        shuffled = np.stack(
+            [
+                positions(longs[order], shorts[order], HOLD_DAYS)
+                for order in (rng.permutation(len(longs)) for _ in range(NET_POSITION_DRAWS))
+            ]
+        )
+        assert float(np.abs(shuffled).mean()) == pytest.approx(9.975403, rel=5e-7)
+        assert float((shuffled > 0).mean()) == pytest.approx(0.983958, rel=5e-7)
+        per_shuffle = shuffled.mean(axis=1)
+        assert float(per_shuffle.std(ddof=1)) < 0.01 * float(per_shuffle.mean())
 
 
 class TestRow5TheAsWrittenTrades:
@@ -574,6 +640,16 @@ class TestTheRowsBesideAddedAfterTheScratchRun:
         assert float(found.declared.mean()) == pytest.approx(3.220302e-05, rel=5e-7)
         assert float(found.mean_zero.mean()) == pytest.approx(3.604899e-07, rel=5e-7)
         assert float(found.observed_positions.mean()) == pytest.approx(2.394932e-05, rel=5e-7)
+
+    def test_the_spreads_of_the_normal_and_mean_zero_means(self, result) -> None:
+        """The n − 1 ``std`` of each row's 10,000 means on seed 20261010's uniforms.
+
+        The normal row's spread sits near row 2's 2.819219e-05, and the
+        mean-zero row's near the Gaussian null's 2.259145e-05.
+        """
+        found = result.returns
+        assert float(found.normal.std(ddof=1)) == pytest.approx(2.806502e-05, rel=5e-7)
+        assert float(found.mean_zero.std(ddof=1)) == pytest.approx(2.127120e-05, rel=5e-7)
 
     def test_a_drifting_series_is_long_on_most_signal_days(self, params, moments) -> None:
         """Why the drift pays: the rule goes long on most signal days of a drifting series."""
