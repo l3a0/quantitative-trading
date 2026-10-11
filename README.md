@@ -582,15 +582,31 @@ where they were first built. The other thirty-nine were built here.
     low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
     untested point estimate, exploratory, and decides nothing.
 
-One more result runs here, and it is not a replication. The same passage names
-bonds of one issuer as a place a stationary spread should live without naming
-an instrument, so there is no number of his to reproduce and no series of his
-to test. That fixed-income candidate, bonds of one issuer at two maturities, is tested on TLT
-against IEF, and the result is a finding rather than a verdict. Over
+Two more results run here, and neither is a replication. The first comes from
+the same passage, which names bonds of one issuer as a place a stationary
+spread should live without naming an instrument, so there is no number of his
+to reproduce and no series of his to test. That fixed-income candidate, bonds
+of one issuer at two maturities, is tested on TLT against IEF, and the result
+is a finding rather than a verdict. Over
 2002-07-30 to 2026-10-01 neither orientation rejects the no-cointegration
 null, at −2.3887 and −2.3168 against a 10% bar of −3.04, and the residual check
 moves both further from rejecting rather than closer. It is exploratory, and it
 says nothing about bonds beyond these two funds.
+
+The second is the Khandani-Lo reversal on Chan's S&P 600 file, which tests his
+explanation that most of Khandani and Lo's returns came from small and
+microcap stocks. Example 3.8 leaves that run as an exercise and prints no
+figure for it, so the result is a finding rather than a verdict. Before costs
+the rule earns a Sharpe ratio of 3.4086 on the closes and 5.3052 on the opens,
+against the S&P 500 file's 0.2510 and 4.4202, so it points the way Chan says
+at both prices under the reading declared before the run. The gap on the
+closes, +3.1576, is more than three times its standard error of 0.9872, and
+the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
+opens cannot tell the two universes apart. The standard error assumes
+independent, normal days, which a reversal's are not, so it is an
+approximation. It is exploratory, both files hold
+only survivors, and it says nothing about microcaps, which the S&P 600 does
+not hold.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -653,6 +669,16 @@ on the opens, the claim's verdict, and the notebook's Example 3.7 figures on
 the closes, which fail if a transcription leans on pandas' current
 `pct_change`, because that no longer fills gaps. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
+
+[tests/test_khandani_lo_small_caps.py](tests/test_khandani_lo_small_caps.py)
+does it for the reversal on the S&P 600. It pins the six figures, their six
+gaps to the S&P 500's, and both before-cost gaps' standard errors,
+correlations and z values, each naming its vintage, and it pins the declared
+reading. It works Memmel's standard error by hand on a four-day series. It
+also holds that the two files' 2006 calendars are the same 251 days, that
+BCSI's and SCUR's two days past the scale-break bound are weighted, that PMC,
+two companies under one symbol with no 2006 price, carries no weight, and that
+the scale-break guard refuses the window on exactly those two days.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
@@ -1020,7 +1046,8 @@ spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
 trade's, Entry 41 the VX against ES trade on VX's roll return, and
-Entry 45 the levered low-beta claim's.
+Entry 45 the levered low-beta claim's. Entry 44 carries the reversal on the
+S&P 600, which has no published number to reach a verdict against either.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1054,8 +1081,12 @@ that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
-without it. The
-reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
+without it. The reversal on the S&P 600 file does not call the guard either.
+Over each stock's own closes the guard refuses its 2006 window on BCSI's
+2006-02-06 and SCUR's 2006-07-12. Before the run both were classified as
+earnings warnings recorded at the prices that traded, so the run keeps them
+and Entry 44 says what each was. The reversal on the 2012 panel does not call
+it. Its 2007 to 2011 window spans all
 30 of that file's flagged days, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
 2009-09-02 does not. The
@@ -1433,6 +1464,18 @@ uv run python -m chan.khandani_lo --open
 It prints both rules, Chan's notebook figures beside the rule that printed
 them, "very positive" beside the rule the claim is read on, both verdicts, the
 one-year bar, and the exploratory label.
+
+The same rule on Chan's S&P 600 file takes no option, because the comparison
+declared before it ran fixes both files, the window and the rule:
+
+```bash
+uv run python -m chan.khandani_lo_small_caps
+```
+
+It prints both files, the six pairs of figures with the S&P 600's beside the
+S&P 500's and the gap, each before-cost gap's standard error and whether it is
+beyond one year's noise, the declared reading, Khandani and Lo's 4.47 judged
+against nothing, and the exploratory label.
 
 Chan's survivorship toy reads the two tables the book prints and takes no
 option:
