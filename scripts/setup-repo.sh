@@ -113,10 +113,15 @@ PY
 # CodeQL to actually run. Without default setup enabled, the rule waits on a
 # tool that never reports. `actions` is in the language list because the
 # workflows are part of the attack surface, not only the Python.
+# `javascript-typescript` is there because the build board's page,
+# .claude/skills/update-build-board/board.html, is JavaScript, and a list
+# without it would stop CodeQL scanning that page. GitHub reports the live
+# setup with `javascript` and `typescript` as well, which are its aliases for
+# the same language.
 #
 # The body goes in as JSON rather than as --raw-field pairs, because the
 # language list is an array and the flag form encodes it as strings.
-codeql_body='{"state":"configured","query_suite":"default","threat_model":"remote","languages":["actions","python"]}'
+codeql_body='{"state":"configured","query_suite":"default","threat_model":"remote","languages":["actions","javascript-typescript","python"]}'
 echo "code scanning: CodeQL default setup"
 if [[ -n "$dry_run" ]]; then
   echo "[dry-run] gh api --method PATCH repos/$repo/code-scanning/default-setup --input - <<< $codeql_body"
