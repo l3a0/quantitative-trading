@@ -7326,7 +7326,7 @@ which `TestTheRows::test_each_rows_figures` pins with the rest of its row.
 
 ### What the entry concludes
 
-Two things.
+Three things.
 
 1. **The specification fits the book's first claim and not its trade.** The
    ratio's ADF statistic of −5.568107 clears the 1 percent value by 2.109807.
@@ -7349,6 +7349,17 @@ Two things.
    B3 was picked out after the run among five rows, and the window the first
    point reads was chosen after seeing the table, so this is a search. A
    registered test of B3 on VX data after 2012-05-07 is what would confirm it.
+3. **The specification's signal mostly reads a pair it does not hold.** Each
+   pair is held for at least 63 rows and let go 10 rows before its near
+   contract's expiry, and VX expires monthly, so S's near leg is the front
+   contract on 126 of its 847 held rows from 2008-10-27, and the second to the
+   fifth on the rest. Under `holddays=0` it is the front on 459 of 879 and the
+   second on the other 420. B1 and B3, which read the held pair's own ratio,
+   are the two of the four rows running to the file's last day that earn. Four
+   rows show a pattern rather than a cause, and B2 cuts against reading it as
+   one: its signal reads the pair it holds on 459 of 879 days against S's 126
+   of 847, and it loses more than S. `TestWhichPairTheSignalReads` pins all
+   three, and the write-up found this.
 
 ### What this entry cannot say
 
@@ -7385,7 +7396,10 @@ VX-2012K's, and enters 42 of them on or after that date.
 pins both counts. Each roll trades four legs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/vx-calendar-spread-lessons.md](../blog/vx-calendar-spread-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.vx_calendar_spread_figures` redraws.
 
 ## Entry 36: TU momentum traded on the lagged roll return, Chan's *Algorithmic Trading*
 

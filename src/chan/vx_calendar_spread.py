@@ -69,6 +69,12 @@ the book's own window to 2012-04-23, and each row before October 2008, from
 the first row its flipped positions hold anything to 2008-10-24.
 ``tests/test_vx_calendar_spread.py`` pins every figure.
 
+The post on these lessons found a third thing, which :func:`near_leg_rank`
+measures. S holds each pair from 73 rows before its near contract's expiry, so
+on most of its held rows the pair it trades is not the front pair its signal
+reads. :mod:`chan.vx_calendar_spread_figures` draws the post's figure, since
+the run prints its figures and draws nothing.
+
 Every result here is exploratory. Reproducing Chan's figures spends his 2006 to
 2012 strip on a rule he chose, S is this repo's reading of the book's text
 rather than a script, and B3 was picked out after the run among five rows.
@@ -182,6 +188,30 @@ def held_pair_ratio(contracts: pd.DataFrame, schedule: pd.DataFrame) -> pd.Serie
     far = (held[rows] == 1).argmax(axis=1)
     ratio[rows] = prices[rows, far] / prices[rows, near]
     return pd.Series(ratio, index=contracts.index, name="held_pair_ratio").ffill()
+
+
+def near_leg_rank(contracts: pd.DataFrame, schedule: pd.DataFrame) -> pd.Series:
+    """The held pair's near leg's place among each row's priced contracts, 1 for the front.
+
+    ``schedule`` is the unflipped frame
+    :func:`chan.calendar_spread_reversion.calendar_schedule` returns. On a row
+    it holds a pair, the result counts the priced contracts in column order up
+    to and including the near leg, so 1 means the near leg is the front
+    contract. A row holding nothing is NaN. The check refuses a schedule built
+    on other days or columns, for the reason :func:`held_pair_ratio` gives.
+    """
+    if not (schedule.index.equals(contracts.index) and schedule.columns.equals(contracts.columns)):
+        raise ValueError(
+            "near_leg_rank takes the schedule built on these contracts, on their own "
+            "days and columns"
+        )
+    held = schedule.to_numpy(dtype=float)
+    priced = np.isfinite(contracts.to_numpy(dtype=float))
+    rows = np.flatnonzero((held == -1).any(axis=1))
+    near = (held[rows] == -1).argmax(axis=1)
+    rank = np.full(len(held), np.nan)
+    rank[rows] = [priced[row, : col + 1].sum() for row, col in zip(rows, near, strict=True)]
+    return pd.Series(rank, index=contracts.index, name="near_leg_rank")
 
 
 def first_held(positions: pd.DataFrame) -> pd.Timestamp:
