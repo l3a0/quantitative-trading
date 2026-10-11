@@ -901,8 +901,10 @@ def test_a_count_that_disagrees_with_the_pages_read_stops_the_run() -> None:
                 data["repository"]["issues"]["totalCount"] += 1
             return data
 
-    with pytest.raises(bb.BoardError, match="read 1 issues against a total of 2"):
-        build(Shifting([issue(1)], []))
+    gh = Shifting([issue(1)], [])
+    with pytest.raises(bb.BoardError, match="read 1 issues against a total of 2 on 3 reads"):
+        build(gh)
+    assert sum("issues(states:OPEN" in q for q in gh.calls) == 3
 
 
 def test_an_issue_read_twice_stops_the_run() -> None:
@@ -915,8 +917,63 @@ def test_an_issue_read_twice_stops_the_run() -> None:
                 data["repository"]["issues"]["nodes"] = [issue(1), issue(1)]
             return data
 
-    with pytest.raises(bb.BoardError, match="read 2 issues against a total of 2"):
-        build(Repeating([issue(1), issue(2)], []))
+    gh = Repeating([issue(1), issue(2)], [])
+    with pytest.raises(bb.BoardError, match="read 2 issues against a total of 2 on 3 reads"):
+        build(gh)
+    assert sum("issues(states:OPEN" in q for q in gh.calls) == 3
+
+
+class Growing(FakeGitHub):
+    """Opens one more issue or pull request partway through the first read.
+
+    The entry lands between the first and second page of the list's first
+    read, the way an issue filed while the run reads does. ``reads`` counts
+    each time the list is asked for from its first page.
+    """
+
+    def __init__(self, issues: list[dict], prs: list[dict], field: str, extra: dict):
+        super().__init__(issues, prs)
+        self.field = field
+        self.extra: dict | None = extra
+        self.reads = 0
+
+    def __call__(self, query: str, variables: dict) -> dict:
+        if f"{self.field}(states:OPEN" in query:
+            if variables.get("after") is None:
+                self.reads += 1
+            elif self.extra is not None:
+                if self.field == "issues":
+                    self.issues.append(self.extra)
+                else:
+                    self.prs[self.extra["number"]] = self.extra
+                self.extra = None
+        return super().__call__(query, variables)
+
+
+def test_an_issue_filed_while_the_list_is_read_is_read_again(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Protects the board from an issue filed between two pages of one read.
+
+    Run 38167738593 failed on 2026-10-11 reading 119 issues against a total of
+    118. The first read here disagrees with its own count, so the whole list is
+    read again from its first page, and the second read holds every issue,
+    the new one included.
+    """
+    gh = Growing([issue(n) for n in range(101)], [], "issues", issue(101))
+    board, _ = build(gh)
+    assert [c["n"] for c in board["tracker"]["items"]] == list(range(102))
+    assert gh.reads == 2
+    assert "issues changed while read, reading them again (read 2 of 3)" in capsys.readouterr().err
+
+
+def test_a_pull_request_opened_while_the_list_is_read_is_read_again() -> None:
+    """Protects the open pull request list, which pages the same way."""
+    prs = [pull(2000 + n, closes=(1,)) for n in range(51)]
+    gh = Growing([issue(1)], prs, "pullRequests", pull(2051, closes=(1,)))
+    board, _ = build(gh)
+    assert [p["pr"] for p in prs_of(board)] == list(range(2000, 2052))
+    assert gh.reads == 2
 
 
 def test_a_variable_with_no_value_is_left_out_of_the_call(
