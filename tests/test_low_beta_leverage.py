@@ -44,6 +44,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import re
+from statistics import NormalDist
 
 import numpy as np
 import pandas as pd
@@ -78,11 +79,14 @@ from chan.low_beta_leverage import (
     formation_table,
     growth,
     kelly,
+    levered_wealth,
     main,
     read_sources,
     realised_beta,
     report,
+    ruin_line,
     ruined_months,
+    ruinous_leverage,
     sharpe,
     verdict,
 )
@@ -97,6 +101,8 @@ SPEC = (
     "December 2000 to October 2007, registered 2026-10-11 with that day's ruin amendment, "
     "survivors only, not a holdout"
 )
+
+AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it decides nothing"
 
 # --- the committed files -------------------------------------------------------
 
@@ -390,6 +396,169 @@ class TestTheVerdicts:
             _ = result.detectable
         with pytest.raises(ValueError, match="d is undefined"):
             differences(portfolios)
+
+
+def by_formation(portfolios: Portfolios, series: pd.Series) -> pd.Series:
+    """A series indexed by holding month, re-keyed by the formation that set it."""
+    return pd.Series(series.to_numpy(), index=pd.DatetimeIndex(portfolios.formed))
+
+
+def dates(index: pd.Index) -> list[str]:
+    return [str(day.date()) for day in index]
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/levered-low-beta-lessons.md`` quotes that no row of Entry 45 declared.
+
+    The write-up measured every one of them after the run, on the vintages and
+    the specification in :data:`SPEC`, so each is exploratory and none carries
+    a verdict. The ruin line, the ruinous leverage and the levered wealth were
+    defined after the ruined months had been seen. A beta or a leverage is named
+    by its formation date, and a return or a ruin line by its holding month.
+    """
+
+    def test_the_low_fifths_beta_near_zero_in_spring_2001(self, portfolios: Portfolios) -> None:
+        """Both 2000 formations sit near 0.15, and only four of 2001's fall below 0.05."""
+        low = by_formation(portfolios, portfolios.low_beta)
+        assert round(float(low.loc["2000-12-29"]), 4) == 0.1443, f"{SPEC}; {AFTER_THE_RUN}"
+        below_5 = low[low < 0.05]
+        assert {
+            d: round(float(v), 4) for d, v in zip(dates(below_5.index), below_5, strict=True)
+        } == {
+            "2001-03-30": 0.0375,
+            "2001-04-30": 0.0280,
+            "2001-05-31": 0.0337,
+            "2001-06-29": 0.0448,
+        }, f"{SPEC}; {AFTER_THE_RUN}"
+        below_10 = dates(low[low < 0.10].index)
+        assert (len(below_10), below_10[0], below_10[-1]) == (9, "2001-01-31", "2001-09-28"), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert below_10 == dates(low.loc["2001-01-31":"2001-09-28"].index)
+
+    def test_k_above_20_and_above_the_look_ahead_kelly(self, portfolios: Portfolios) -> None:
+        k = by_formation(portfolios, portfolios.leverage)
+        above_20 = dates(k[k > 20].index)
+        assert (len(above_20), above_20[0], above_20[-1]) == (8, "2001-02-28", "2001-09-28"), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        reading = kelly(portfolios)
+        assert round(reading.leverage, 4) == 9.9884, SPEC
+        above_kelly = dates(k[k > reading.leverage].index)
+        assert (len(above_kelly), above_kelly[0], above_kelly[-1]) == (
+            13,
+            "2000-12-29",
+            "2001-12-31",
+        ), f"{SPEC}; {AFTER_THE_RUN}"
+        assert above_kelly == dates(k.loc["2000-12-29":"2001-12-31"].index)
+
+    def test_the_levered_wealth_through_may_2001(self, portfolios: Portfolios) -> None:
+        """1 grew to 4.8089 by the end of May 2001, the month before the first ruin."""
+        wealth = levered_wealth(portfolios.levered)
+        assert round(float(wealth.loc["2001-05-31"]), 4) == 4.8089, f"{SPEC}; {AFTER_THE_RUN}"
+        assert portfolios.held_to[0] == pd.Timestamp("2000-12-29")
+        assert wealth.loc["2001-07-31":].isna().all()
+
+    def test_may_2001s_levered_month_at_the_highest_k(self, portfolios: Portfolios) -> None:
+        """Formed 2001-04-30 at k 69.0762, held to 2001-05-31, and not ruined."""
+        may = pd.Timestamp("2001-05-31")
+        assert round(float(portfolios.leverage.loc[may]), 4) == 69.0762, SPEC
+        assert round(float(portfolios.levered.loc[may]), 4) == 1.7253, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(float(portfolios.low.loc[may]), 4) == 0.0279, f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_ruin_line(self, portfolios: Portfolios) -> None:
+        line = ruin_line(portfolios.rf, portfolios.leverage)
+        assert round(float(portfolios.rf.loc["2001-06-29"]), 4) == 0.0029, SPEC
+        assert round(float(line.loc["2001-06-29"]), 4) == -0.0144, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(float(line.loc["2001-09-28"]), 4) == -0.0296, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(float(line.max()), 4) == -0.0115, f"{SPEC}; {AFTER_THE_RUN}"
+        assert str(line.idxmax().date()) == "2001-05-31", f"{SPEC}; {AFTER_THE_RUN}"
+        below = line < -0.10
+        assert str(line.index[below.to_numpy()][0].date()) == "2002-02-28", AFTER_THE_RUN
+        assert below.loc["2002-02-28":].all() and not below.loc[:"2002-01-31"].any()
+
+    def test_the_line_finds_the_same_two_ruined_months(self, portfolios: Portfolios) -> None:
+        line = ruin_line(portfolios.rf, portfolios.leverage)
+        found = portfolios.low.index[(portfolios.low <= line).to_numpy()]
+        assert list(found) == [r.held_to for r in ruined_months(portfolios)]
+
+    def test_september_2001s_low_fifth_was_the_eighth_worst(self, portfolios: Portfolios) -> None:
+        sep = pd.Timestamp("2001-09-28")
+        assert round(float(portfolios.low.loc[sep]), 4) == -0.0337, f"{SPEC}; {AFTER_THE_RUN}"
+        worst = list(portfolios.low.sort_values().index)
+        assert worst.index(sep) + 1 == 8, f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_13_of_83_months_reach_junes_line(self, portfolios: Portfolios) -> None:
+        """Holding June's k of 58.0262 in every month ruins the same 13."""
+        june = pd.Timestamp("2001-06-29")
+        line = ruin_line(portfolios.rf, portfolios.leverage).loc[june]
+        reached = portfolios.low <= line
+        assert (int(reached.sum()), len(reached)) == (13, 83), f"{SPEC}; {AFTER_THE_RUN}"
+        k = portfolios.leverage.loc[june]
+        constant = portfolios.rf + k * (portfolios.low - portfolios.rf)
+        assert (constant <= RUIN).equals(reached), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_leverage_that_ruins_june_and_september(self, portfolios: Portfolios) -> None:
+        needed = ruinous_leverage(portfolios.low, portfolios.rf)
+        assert round(float(needed.loc["2001-06-29"]), 4) == 23.2017, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(float(needed.loc["2001-09-28"]), 4) == 27.9461, f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_a_normal_month_as_bad_as_junes_line(self, portfolios: Portfolios) -> None:
+        """The low fifth's own mean and standard deviation, ddof 1, give 0.1931."""
+        mean, sd = float(portfolios.low.mean()), float(portfolios.low.std(ddof=1))
+        assert (round(mean, 4), round(sd, 4)) == (0.0109, 0.0292), f"{SPEC}; {AFTER_THE_RUN}"
+        line = ruin_line(portfolios.rf, portfolios.leverage).loc["2001-06-29"]
+        chance = NormalDist(mean, sd).cdf(float(line))
+        assert round(chance, 4) == 0.1931, f"{SPEC}; {AFTER_THE_RUN}"
+
+
+class TestThePostsHelpers:
+    """The three helpers the write-up added, on months whose answers are worked here."""
+
+    MONTHS = pd.DatetimeIndex(["2001-01-31", "2001-02-28", "2001-03-30", "2001-04-30"])
+
+    def series(self, *values: float) -> pd.Series:
+        return pd.Series(values, index=self.MONTHS[: len(values)])
+
+    def test_the_ruin_line_is_rf_less_one_plus_rf_over_k(self) -> None:
+        line = ruin_line(self.series(0.01, 0.0), self.series(10.0, 4.0))
+        assert line.tolist() == pytest.approx([0.01 - 1.01 / 10, -0.25], abs=1e-15)
+        assert line.index.equals(self.MONTHS[:2])
+
+    def test_a_low_return_on_the_line_levers_to_exactly_minus_1(self) -> None:
+        rf, k = self.series(0.003, 0.02), self.series(58.0, 2.5)
+        r = ruin_line(rf, k)
+        assert (rf + k * (r - rf)).tolist() == pytest.approx([RUIN, RUIN], abs=1e-12)
+
+    def test_the_ruinous_leverage_is_one_plus_rf_over_the_shortfall(self) -> None:
+        needed = ruinous_leverage(self.series(-0.04, 0.0), self.series(0.01, 0.0))
+        assert needed.iloc[0] == pytest.approx(1.01 / 0.05, abs=1e-12)
+        assert needed.iloc[1] == math.inf
+
+    def test_levering_at_the_ruinous_leverage_lands_on_minus_1(self) -> None:
+        low, rf = self.series(-0.0403, -0.002), self.series(0.0029, 0.001)
+        k = ruinous_leverage(low, rf)
+        assert (rf + k * (low - rf)).tolist() == pytest.approx([RUIN, RUIN], abs=1e-12)
+
+    def test_a_month_at_or_above_the_bill_cannot_be_ruined(self) -> None:
+        needed = ruinous_leverage(self.series(0.01, 0.05), self.series(0.01, 0.01))
+        assert needed.tolist() == [math.inf, math.inf]
+
+    def test_wealth_compounds_with_no_ruin(self) -> None:
+        wealth = levered_wealth(self.series(0.1, -0.5, 0.2))
+        assert wealth.tolist() == pytest.approx([1.1, 0.55, 0.66], abs=1e-15)
+        assert wealth.index.equals(self.MONTHS[:3])
+
+    def test_wealth_stops_after_the_first_ruin(self) -> None:
+        """The ruined month ends below zero, and nothing is left to lever after it."""
+        wealth = levered_wealth(self.series(0.1, -0.5, -1.2, 0.3))
+        assert wealth.iloc[:3].tolist() == pytest.approx([1.1, 0.55, 0.55 * -0.2], abs=1e-15)
+        assert math.isnan(wealth.iloc[3])
+
+    def test_a_month_at_exactly_minus_1_is_the_first_ruin(self) -> None:
+        wealth = levered_wealth(self.series(0.5, -1.0, 0.4, -2.0))
+        assert wealth.iloc[:2].tolist() == [1.5, 0.0]
+        assert wealth.iloc[2:].isna().all()
 
 
 class TestTheScaleBreakDecision:
