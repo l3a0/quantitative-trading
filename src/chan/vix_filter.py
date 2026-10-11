@@ -146,6 +146,11 @@ to 2012 and 2004 to 2012 samples on two rules and a threshold he chose, and
 the FSTX alignment was chosen after its figures were seen. So the run says
 whether his numbers reproduce on his files and nothing about whether VIX
 above 35 guards either rule today.
+
+:func:`runs` and :attr:`Filtered.summed` were added by the write-up,
+``blog/vix-filter-lessons.md``, after the run. They describe how the kept days
+bunch and what each rule earned on them, and decide nothing.
+:mod:`chan.vix_filter_figures` draws that post's figure.
 """
 
 from __future__ import annotations
@@ -205,6 +210,19 @@ def qualifies(vix_closes: ArrayLike) -> NDArray[np.bool_]:
     closes = np.asarray(vix_closes, dtype=float)
     with np.errstate(invalid="ignore"):
         return backshift(1, closes) > THRESHOLD
+
+
+def runs(flags: ArrayLike) -> list[tuple[int, int]]:
+    """The first and last row of each run of consecutive true rows, in order.
+
+    ``blog/vix-filter-lessons.md`` added it after the run, to count how the
+    kept days bunch, so it decides nothing.
+    """
+    marked = np.asarray(flags, dtype=bool).astype(int)
+    steps = np.diff(np.concatenate(([0], marked, [0])))
+    starts = np.flatnonzero(steps == 1)
+    ends = np.flatnonzero(steps == -1) - 1
+    return [(int(a), int(b)) for a, b in zip(starts, ends, strict=True)]
 
 
 def latest_close_before(days: pd.DatetimeIndex, vix: pd.Series) -> NDArray[np.float64]:
@@ -337,6 +355,17 @@ class Filtered:
         """The other days set to 0 and every joined day averaged, a reading that misses."""
         zeroed = np.where(self.qualifies, self.daily, 0.0)
         return reading(zeroed, np.ones(len(zeroed), dtype=bool))
+
+    @property
+    def summed(self) -> NDArray[np.float64]:
+        """The daily returns summed over the kept days so far, one value per joined day.
+
+        Every other day adds nothing. The last value is the kept days' sum,
+        which is :attr:`average_annual_return` times ``kept / 252``, because
+        that figure is an arithmetic mean. Added after the run by the
+        write-up, like :func:`runs`.
+        """
+        return np.cumsum(np.where(self.qualifies, self.daily, 0.0))
 
     @property
     def welch(self) -> tuple[float, float]:

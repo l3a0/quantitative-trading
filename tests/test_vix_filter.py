@@ -37,6 +37,10 @@ the precision Chan printed it, through ``matches``.
 
 Exploratory. Reproducing Chan's figures spends his samples on his rules and
 his threshold. The run first ran here on 2026-10-11.
+
+``TestWhatThePostMeasured`` holds what ``blog/vix-filter-lessons.md``
+measured after the run, on the same vintages and specification, and
+``TestThePostsHelpers`` holds the two helpers it added on synthetic series.
 """
 
 from __future__ import annotations
@@ -84,6 +88,7 @@ from chan.vix_filter import (
     read_sources,
     reading,
     run,
+    runs,
     same_day_reading,
     vix_filter,
     vix_filters,
@@ -98,6 +103,13 @@ day = pd.Timestamp
 #: VIX's last close, and the last day the buy-on-gap panel holds.
 VIX_LAST = day("2012-05-08")
 STOCKS_LAST = day("2012-04-24")
+
+SPEC = (
+    "vix/vix.csv chan-csv raw saved 2012-05-09, the stock panel chan-mat adjusted saved "
+    "2012-04-25, fstx.csv chan-mat adjusted saved 2012-05-18; backshift(1, vix) > 35 on "
+    "each joined calendar"
+)
+AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it decides nothing"
 
 
 @pytest.fixture(scope="module")
@@ -643,6 +655,155 @@ class TestBesideTheReplication:
         assert t == pytest.approx(expected_t, abs=1e-12)
         assert t > 0
         assert p == pytest.approx(2 * stats.t.sf(abs(expected_t), dof), abs=1e-12)
+
+
+class TestWhatThePostMeasured:
+    """Pins added with ``blog/vix-filter-lessons.md``, measured after the run.
+
+    Same vintages and specification as the module docstring states. Each
+    describes how the kept days fall in time and what each rule earned on
+    them, and none tests anything.
+    """
+
+    @pytest.mark.parametrize(
+        ("rule", "by_year"),
+        [
+            ("buy_on_gap", {2008: 68, 2009: 83, 2010: 9, 2011: 30}),
+            ("literal", {2008: 65, 2009: 81, 2010: 9, 2011: 30}),
+        ],
+    )
+    def test_the_kept_days_by_calendar_year(self, result, rule, by_year) -> None:
+        kept = getattr(result, rule).kept_days
+        counts = kept.year.value_counts().sort_index()
+        assert counts.to_dict() == by_year, f"{SPEC}; {AFTER_THE_RUN}"
+        assert sum(by_year.values()) == getattr(result, rule).kept
+
+    def test_most_kept_days_fall_in_2008_and_2009(self, result) -> None:
+        """151 of buy on gap's 190 and 146 of FSTX's 185."""
+        for rule, crisis in (("buy_on_gap", 151), ("literal", 146)):
+            kept = getattr(result, rule).kept_days
+            assert int((kept.year <= 2009).sum()) == crisis, f"{SPEC}; {AFTER_THE_RUN}"
+
+    @pytest.mark.parametrize(("rule", "longest"), [("buy_on_gap", 138), ("literal", 134)])
+    def test_each_rule_s_kept_days_form_15_runs(self, result, rule, longest) -> None:
+        """A run is kept days with no other joined day between them.
+
+        The longest runs from 2008-09-30 to 2009-04-17 for both rules. FSTX's
+        is four days shorter because Eurex traded on days the CBOE did not.
+        """
+        filtered = getattr(result, rule)
+        found = runs(filtered.qualifies)
+        assert len(found) == 15, f"{SPEC}; {AFTER_THE_RUN}"
+        lengths = [b - a + 1 for a, b in found]
+        assert sum(lengths) == filtered.kept
+        first, last = found[int(np.argmax(lengths))]
+        assert max(lengths) == longest, f"{SPEC}; {AFTER_THE_RUN}"
+        assert (filtered.days[first], filtered.days[last]) == (
+            day("2008-09-30"),
+            day("2009-04-17"),
+        ), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_kept_runs_match_buy_on_gap_s_and_fstx_s_alike(self, result) -> None:
+        """Both rules' 15 runs start and end on the same dates."""
+        long, literal = result.buy_on_gap, result.literal
+        spans = [[(f.days[a], f.days[b]) for a, b in runs(f.qualifies)] for f in (long, literal)]
+        assert spans[0] == spans[1], f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_vix_closed_above_35_on_190_days_in_15_runs_inside_fstx_s_window(self, sources) -> None:
+        """On VIX's own calendar from 2004-07-16 to 2012-05-08, the last day FSTX joins."""
+        vix = sources.vix.loc[day("2004-07-16") : VIX_LAST]
+        above = (vix > THRESHOLD).to_numpy()
+        assert int(above.sum()) == 190, f"{SPEC}; {AFTER_THE_RUN}"
+        assert len(runs(above)) == 15, f"{SPEC}; {AFTER_THE_RUN}"
+        inside = sources.vix.loc[day("2006-05-11") : STOCKS_LAST]
+        assert int((inside > THRESHOLD).sum()) == 190
+
+    def test_vix_s_highest_close_inside_the_window_is_80_86_on_2008_11_20(self, sources) -> None:
+        vix = sources.vix.loc[day("2004-07-16") : VIX_LAST]
+        assert (vix.max(), vix.idxmax()) == (80.86, day("2008-11-20")), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_vix_s_last_close_above_35_inside_the_window_is_36_16(self, sources) -> None:
+        vix = sources.vix.loc[day("2004-07-16") : VIX_LAST]
+        above = vix[vix > THRESHOLD]
+        assert (above.index[-1], above.iloc[-1]) == (day("2011-11-09"), 36.16), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+
+    def test_vix_closes_above_35_before_either_window_too(self, sources) -> None:
+        """So 2008-09-17 is the first close above 35 inside the windows, not in the file.
+
+        The file's first is 1990-08-06, and 100 closes before 2004-07-15 sit
+        above 35.
+        """
+        vix = sources.vix
+        before = vix.loc[: day("2004-07-14")]
+        assert int((before > THRESHOLD).sum()) == 100, f"{SPEC}; {AFTER_THE_RUN}"
+        assert vix[vix > THRESHOLD].index[0] == day("1990-08-06"), f"{SPEC}; {AFTER_THE_RUN}"
+
+    @pytest.mark.parametrize(
+        ("rule", "total"),
+        [("buy_on_gap", 0.129625), ("literal", 0.018889), ("momentum", -0.018889)],
+    )
+    def test_the_daily_returns_summed_over_the_kept_days(self, result, rule, total) -> None:
+        """Each is the rule's 252 · mean times kept / 252, where the figure's curves end."""
+        filtered = getattr(result, rule)
+        assert filtered.filtered.sum() == pytest.approx(total, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert filtered.summed[-1] == pytest.approx(filtered.filtered.sum(), abs=1e-15)
+        assert filtered.summed[-1] == pytest.approx(
+            filtered.average_annual_return * filtered.kept / 252, abs=1e-15
+        )
+
+    def test_one_kept_day_earns_most_of_buy_on_gap_s_sum(self, result) -> None:
+        """2009-04-21 returned 0.093601, 0.722090 of the 0.129625 summed.
+
+        Of the 20 held days, 8 gained and 12 lost. Without that one day, the
+        other 189 kept days give 0.048032 and a Sharpe ratio of 0.855003,
+        which print as 4.8 percent and 0.86.
+        """
+        long = result.buy_on_gap
+        kept, days = long.filtered, long.kept_days
+        best = int(np.argmax(kept))
+        assert days[best] == day("2009-04-21"), f"{SPEC}; {AFTER_THE_RUN}"
+        assert kept[best] == pytest.approx(0.093601, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert kept[best] / kept.sum() == pytest.approx(0.722090, abs=SIX)
+        held = kept[long.held[long.qualifies]]
+        assert (int((held > 0).sum()), int((held < 0).sum())) == (8, 12), f"{SPEC}; {AFTER_THE_RUN}"
+        rest = reading(np.delete(kept, best), np.ones(len(kept) - 1, dtype=bool))
+        assert rest.kept == 189
+        assert rest.average_annual_return == pytest.approx(0.048032, abs=SIX), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert rest.sharpe == pytest.approx(0.855003, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert matches(100 * rest.average_annual_return, "4.8")
+        assert matches(rest.sharpe, "0.86")
+
+
+class TestThePostsHelpers:
+    """The two helpers the write-up added, on series built so the answer is known."""
+
+    def test_runs_finds_each_stretch_of_true_rows(self) -> None:
+        flags = [True, True, False, True, False, False, True, True, True]
+        assert runs(flags) == [(0, 1), (3, 3), (6, 8)]
+
+    def test_runs_of_nothing_and_of_everything(self) -> None:
+        assert runs([False, False]) == []
+        assert runs([]) == []
+        assert runs([True, True, True]) == [(0, 2)]
+
+    def test_summed_adds_only_the_kept_days(self) -> None:
+        daily = np.array([0.5, 0.02, -0.01, 0.7, 0.03])
+        filtered = Filtered(
+            name="rule",
+            days=pd.bdate_range("2020-01-06", periods=5),
+            daily=daily,
+            held=np.ones(5, dtype=bool),
+            qualifies=np.array([False, True, True, False, True]),
+            calendar_days=5,
+        )
+        np.testing.assert_allclose(filtered.summed, [0.0, 0.02, 0.01, 0.01, 0.04], atol=1e-15)
+        assert filtered.summed[-1] == pytest.approx(
+            filtered.average_annual_return * filtered.kept / 252, abs=1e-15
+        )
 
 
 class TestTheGuard:
