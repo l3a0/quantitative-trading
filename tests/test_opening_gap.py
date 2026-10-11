@@ -159,6 +159,24 @@ class TestTheVintage:
         with pytest.raises(ValueError, match="fstx.csv prices its Open, High, Low, Close on"):
             read_sources()
 
+    @pytest.mark.parametrize("moved", FIELDS)
+    def test_a_field_on_as_many_other_days_is_refused(self, moved, monkeypatch) -> None:
+        """One field's last day moved a day later, so every field still holds 2,000 days."""
+        real = module.load_panel
+
+        def shifted(source_file, *, field="Close", data_dir=None):
+            members, frame = real(source_file, field=field, data_dir=data_dir)
+            fstx = frame[SYMBOL].dropna()
+            if field == moved:
+                last = fstx.index[-1]
+                fstx = fstx.rename(index={last: last + pd.Timedelta(days=1)})
+            assert len(fstx) == 2000
+            return members, fstx.to_frame(SYMBOL)
+
+        monkeypatch.setattr(module, "load_panel", shifted)
+        with pytest.raises(ValueError, match="on different days"):
+            read_sources()
+
 
 class TestTheSpecification:
     """The literal reading of line 23, which is the script as shipped."""
@@ -381,6 +399,37 @@ class TestTheRules:
         assert longs.tolist() == shorts.tolist() == [False, True]
         assert positions(op, hi, lo, sd).tolist() == [0, -1]
 
+    def test_a_day_qualifying_both_is_short_in_the_run_and_counted_as_both(self, sources) -> None:
+        """Every price at 100 leaves a spread of 0, so every row from 90 on qualifies both.
+
+        The run's own longs and shorts are the qualifiers rather than the
+        positions, so the report counts those five rows as both.
+        """
+        flat = pd.DataFrame(100.0, index=pd.date_range("2020-01-01", periods=95), columns=FIELDS)
+        found = opening_gap(flat)
+        assert (found.longs & found.shorts)[SPREAD_LOOKBACK:].all()
+        assert (found.positions[SPREAD_LOOKBACK:] == -1).all()
+        out = io.StringIO()
+        # Every return is 0, so the Sharpe ratio divides 0 by 0 and prints nan.
+        with np.errstate(invalid="ignore"), redirect_stdout(out):
+            module.report(sources[0], found, [])
+        assert "long on 5 days, short on 5, both on 5, first position 2020-03-31" in out.getvalue()
+
+    @pytest.mark.parametrize(("held", "first"), [([0, 1, -1, 0], 1), ([0, 0, -1, 1], 2)])
+    def test_the_first_position_is_the_first_held_day_of_either_sign(self, held, first) -> None:
+        days = pd.date_range("2020-01-01", periods=4)
+        none = np.zeros(4)
+        run_on = OpeningGap(
+            days=days,
+            spread=none,
+            longs=none > 0,
+            shorts=none > 0,
+            positions=np.array(held, dtype=float),
+            literal=none,
+            momentum=none,
+        )
+        assert run_on.first_position == days[first]
+
     def test_the_literal_return_fades_the_jump(self) -> None:
         held = np.array([1.0, -1.0, 0.0])
         op = np.array([100.0, 100.0, 100.0])
@@ -435,15 +484,19 @@ class TestTheGuardAndTheReads:
 
     def test_read_sources_guards_the_closes_over_the_whole_span(self, prices, monkeypatch) -> None:
         seen = []
+        guarded = []
 
         def record(legs, *, start, end):
             seen.append(([(entry.path, series.name) for entry, series in legs], start, end))
+            guarded.extend(series for _, series in legs)
 
         monkeypatch.setattr(module, "refuse_window_crossing_a_break", record)
         read_sources()
         assert seen == [
             ([("inputdataohlcdaily_20120517/fstx.csv", "Close")], BOOK_FIRST_DAY, BOOK_LAST_DAY)
         ]
+        # The name alone would pass the opens renamed, so the values are compared too.
+        assert guarded[0].equals(prices["Close"])
 
     @pytest.mark.parametrize("source_file", [SOURCE_FILE, *EARLIER_SAVES])
     @pytest.mark.parametrize("row", [1, 1000, 1999])
@@ -464,6 +517,23 @@ class TestTheGuardAndTheReads:
     def test_run_reads_the_directory_it_is_given(self, tmp_path) -> None:
         with pytest.raises(VintageUnavailable, match="inputDataOHLCDaily_20120517.mat"):
             run(tmp_path)
+
+    def test_run_hands_its_directory_to_every_read(self, monkeypatch) -> None:
+        """The earlier saves too, which a missing directory alone cannot show.
+
+        ``run(tmp_path)`` stops at the first read, so it never reaches them.
+        """
+        real = module.read_sources
+        seen = []
+
+        def record(data_dir=None, *, source_file=SOURCE_FILE):
+            seen.append((data_dir, source_file))
+            return real(data_dir, source_file=source_file)
+
+        monkeypatch.setattr(module, "read_sources", record)
+        with redirect_stdout(io.StringIO()):
+            run(paths.DATA_DIR)
+        assert seen == [(paths.DATA_DIR, saved) for saved in (SOURCE_FILE, *EARLIER_SAVES)]
 
     def test_run_returns_the_specification(self) -> None:
         with redirect_stdout(io.StringIO()):
@@ -523,6 +593,36 @@ class TestTheReport:
         assert "inputdataohlcdaily_20120507/fstx.csv" in printed
         assert "2004-07-07 to 2012-05-08, literal APR 0.133561, Sharpe ratio 1.466345" in printed
         assert "Exploratory." in printed
+
+    def test_it_prints_the_rule_and_the_basis(self, printed) -> None:
+        assert (
+            "rule      long when the open clears the previous high by 0.1 of the 90-day std,"
+            in printed
+        )
+        assert "short when it clears the previous low, held from the open to the close" in printed
+        assert (
+            "Beside the replication. No source prints these, so none carries a verdict." in printed
+        )
+        assert "Annualised over 252 days with no risk-free rate and no cost" in printed
+
+    def test_the_script_column_judges_against_the_script(self) -> None:
+        """On the 2012-05-11 save, whose APR misses the script's and still lands the book's.
+
+        The 2012-05-17 save reproduces both, so it cannot tell the script's
+        verdict from the book's.
+        """
+        entry, earlier = read_sources(source_file=EARLIER_SAVES[0])
+        out = io.StringIO()
+        with redirect_stdout(out):
+            module.report(entry, opening_gap(earlier), [])
+        assert self._row(out.getvalue(), "APR, literal")[-6:] == [
+            "0.131543",
+            "0.1327",
+            "gap",
+            "-0.0012",
+            "13",
+            "reproduced",
+        ]
 
     def test_a_miss_is_reported_as_one(self) -> None:
         assert module._verdict(0.132733, SCRIPT_APR) == "reproduced"
