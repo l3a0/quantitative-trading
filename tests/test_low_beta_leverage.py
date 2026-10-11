@@ -29,6 +29,11 @@ after the build stopped on the first ruined month. So the ruin case was
 settled after its first instance was visible, and the amendment names what
 had been seen by then.
 
+Registration does not make the span a holdout. Chan wrote the claim in 2008
+from "empirical studies", and the low-beta literature's own samples cover 1999
+to 2007. Every figure beside the verdict is a point estimate nothing tests, so
+it is exploratory and decides nothing.
+
 The figures are pinned at four decimals, which is what the log quotes. The
 verdict and the ruin threshold compare unrounded values, so their tests read
 the unrounded ones. It first ran here on 2026-10-11.
@@ -43,7 +48,7 @@ import re
 import numpy as np
 import pandas as pd
 import pytest
-from ithildincore.stats import NeweyWestSummary
+from ithildincore.stats import NeweyWestSummary, newey_west_summary
 
 from chan import low_beta_leverage
 from chan.low_beta_leverage import (
@@ -62,6 +67,7 @@ from chan.low_beta_leverage import (
     EmptyPortfolio,
     NonPositiveBeta,
     Portfolios,
+    UnreadableStandardError,
     Verdict,
     build_portfolios,
     daily_excess,
@@ -69,6 +75,7 @@ from chan.low_beta_leverage import (
     fit_beta,
     flagged_days,
     flagged_stock_months,
+    formation_table,
     growth,
     kelly,
     main,
@@ -87,7 +94,8 @@ SPEC = (
     "spx_20071123/ against spy_chan.csv and TB3MS dl 2026-09-30, cut to SPY's days, "
     "252-day excess-return betas with an intercept and 200 finite, lowest and highest fifth "
     "ties by symbol, equal-weighted, low levered to the high fifth's mean beta at the bill, "
-    "December 2000 to October 2007, registered 2026-10-11 with that day's ruin amendment"
+    "December 2000 to October 2007, registered 2026-10-11 with that day's ruin amendment, "
+    "survivors only, not a holdout"
 )
 
 # --- the committed files -------------------------------------------------------
@@ -189,6 +197,112 @@ class TestTheFigures:
         assert sizes == [n // 5 for n in portfolios.eligible]
         assert (min(sizes), max(sizes), sum(sizes)) == (88, 99, 7908), SPEC
 
+    def test_every_formations_eligible_count(self, portfolios: Portfolios) -> None:
+        table = formation_table(portfolios)
+        assert tuple(table["eligible"]) == (
+            453,
+            453,
+            444,
+            444,
+            456,
+            456,
+            456,
+            457,
+            461,
+            462,
+            463,
+            464,
+            463,
+            464,
+            465,
+            465,
+            468,
+            473,
+            474,
+            474,
+            474,
+            475,
+            474,
+            475,
+            476,
+            476,
+            476,
+            476,
+            476,
+            477,
+            477,
+            477,
+            477,
+            477,
+            478,
+            479,
+            479,
+            479,
+            479,
+            480,
+            480,
+            480,
+            480,
+            481,
+            481,
+            481,
+            480,
+            481,
+            483,
+            484,
+            484,
+            485,
+            487,
+            487,
+            487,
+            488,
+            488,
+            488,
+            488,
+            486,
+            487,
+            487,
+            487,
+            487,
+            487,
+            487,
+            488,
+            488,
+            489,
+            489,
+            490,
+            491,
+            491,
+            492,
+            492,
+            492,
+            493,
+            493,
+            494,
+            494,
+            495,
+            495,
+            495,
+        ), SPEC
+        assert list(table["per group"]) == [n // 5 for n in table["eligible"]]
+
+    @pytest.mark.parametrize(
+        ("formed", "row"),
+        [
+            ("2000-11-30", (453, 90, 0.1582, 1.5537, 9.8220)),
+            ("2001-04-30", (456, 91, 0.0280, 1.9349, 69.0762)),
+            ("2001-05-31", (456, 91, 0.0337, 1.9532, 58.0262)),
+            ("2001-08-31", (462, 92, 0.0616, 1.9422, 31.5098)),
+            ("2007-09-28", (495, 99, 0.6462, 1.4847, 2.2977)),
+        ],
+    )
+    def test_formation_table_rows(self, portfolios: Portfolios, formed: str, row: tuple) -> None:
+        got = formation_table(portfolios).loc[formed]
+        assert (int(got["eligible"]), int(got["per group"])) == row[:2], SPEC
+        assert tuple(round(float(got[c]), 4) for c in ("low beta", "high beta", "k")) == row[2:], (
+            SPEC
+        )
+
     def test_the_leverage_path(self, portfolios: Portfolios) -> None:
         k = portfolios.leverage
         assert round(float(k.mean()), 4) == 7.8414, SPEC
@@ -215,6 +329,18 @@ class TestTheFigures:
         assert round(realised_beta(portfolios.low, portfolios), 4) == 0.4292, SPEC
         assert round(realised_beta(portfolios.high, portfolios), 4) == 2.0671, SPEC
         assert realised_beta(portfolios.spy, portfolios) == pytest.approx(1.0)
+
+    def test_the_levered_lows_beta_and_sharpe_over_all_83_months(
+        self, portfolios: Portfolios
+    ) -> None:
+        """Each levered month read as if freshly funded, which is how the series is defined.
+
+        The beta shows the match overshot after the fact, against the high
+        fifth's 2.0671.
+        """
+        assert len(portfolios.levered) == 83
+        assert round(realised_beta(portfolios.levered, portfolios), 4) == 3.4596, SPEC
+        assert round(sharpe(portfolios.levered, portfolios.rf), 4) == 0.2836, SPEC
 
     def test_the_kelly_reading(self, portfolios: Portfolios) -> None:
         reading = kelly(portfolios)
@@ -244,8 +370,10 @@ class TestTheVerdicts:
         ], SPEC
 
     def test_june_2001s_low_fifth_returned_minus_0_0403(self, portfolios: Portfolios) -> None:
-        """An ordinary month for the unlevered low fifth, levered 58.0262 times."""
+        """The sixth-worst of the unlevered low fifth's 83 months, levered 58.0262 times."""
         assert round(float(portfolios.low.loc["2001-06-29"]), 4) == -0.0403, SPEC
+        worst = list(portfolios.low.sort_values().index)
+        assert worst.index(pd.Timestamp("2001-06-29")) + 1 == 6, SPEC
 
     def test_the_wording_names_the_first_ruined_month(self, result: Verdict) -> None:
         assert result.line() == (
@@ -301,11 +429,15 @@ class TestTheRun:
         assert "2001-06-29     2001-05-31    58.0262   -2.5053" in out
         assert "2001-09-28     2001-08-31    31.5098   -1.1278" in out
         assert "Newey-West t and Y are not computed" in out
-        assert "levered low        ruin" in out
+        assert "levered low        ruin   0.2836   3.4596" in out
+        assert "each month as if freshly funded" in out
         assert "low              0.1254   1.0132   0.4292" in out
         assert "high             0.1183   0.4457   2.0671" in out
         assert "SPY              0.0379" in out
-        assert "9.9884" in out and "0.0283 + 0.5132 = 0.5415" in out
+        assert "9.9884, Gaussian growth there r + S^2/2 = 0.0283 + 0.5132 = 0.5415" in out
+        assert "2000-11-30        453    90    0.1582     1.5537   9.8220" in out
+        assert "2001-04-30        456    91    0.0280     1.9349  69.0762" in out
+        assert "2007-09-28        495    99    0.6462     1.4847   2.2977" in out
         assert "36 low and 186 high stock-months of 15816" in out
         assert "quite wary of using too much leverage" in out
         assert "about survivors" in out
@@ -584,9 +716,25 @@ class TestTheCriterion:
             "where the point estimate is 0.0120."
         )
 
-    def test_a_t_of_zero_has_no_standard_error(self) -> None:
-        with pytest.raises(ValueError, match="t is 0"):
+    def test_a_mean_of_zero_has_no_standard_error(self) -> None:
+        with pytest.raises(UnreadableStandardError, match="t of d is 0 over 83 months"):
             _ = Verdict(months=83, summary=summary(0.0, 0.0)).detectable
+
+    def test_a_gap_that_never_varies_refuses_rather_than_crashing(self) -> None:
+        result = Verdict(months=83, summary=newey_west_summary(np.full(83, 0.01)))
+        assert result.t == 0
+        with pytest.raises(UnreadableStandardError, match="a gap that never varies"):
+            result.line()
+
+    def test_the_run_refuses_a_gap_of_exactly_zero(self, small: Portfolios) -> None:
+        """Equal returns every month make d exactly 0, so the summary's t is 0."""
+        flat = dataclasses.replace(
+            small,
+            levered=pd.Series(0.01, index=small.levered.index),
+            high=pd.Series(0.01, index=small.levered.index),
+        )
+        with pytest.raises(UnreadableStandardError, match="mean of exactly 0"):
+            verdict(flat)
 
 
 class TestTheSideFigures:
@@ -629,6 +777,7 @@ class TestTheRefusals:
         [
             NonPositiveBeta("the low group formed 2001-05-31 has a mean beta of -0.1000"),
             EmptyPortfolio("only 4 stocks are eligible at 2000-11-30"),
+            UnreadableStandardError("the Newey-West t of d is 0 over 83 months"),
             VintageUnavailable("no committed vintage is lifted from SPX_20071123.mat"),
         ],
     )

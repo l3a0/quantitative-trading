@@ -31,16 +31,16 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 and 39 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 and 40 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
 and nothing about whether the trade works today. Entry 7's rows 35 to 49 and
-Entry 40's row 1 are the exceptions, and they are **registered**: their claim,
-test and verdict wording were written before any return was computed. Entry
-40's verdict also rests on an amendment the owner ruled after the first ruined
-month was visible, which that entry states, and its rows 2 to 9 decide
-nothing. Entries 2 and 9 spend no
+Entry 40's row 1 are the exceptions, and they are **registered**. Entry 7's
+claim, test and verdict wording were written before any return was computed.
+Entry 40's plan and criterion were written before any number was computed, and
+the wording of its ruin outcome after the leverage path and the two ruined
+months had been seen, which that entry states. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
 states rather than picking one. Entry 20 works arithmetic on inputs the book
 states and is outside both for the same reason, which its first conclusion
@@ -701,7 +701,8 @@ criterion, the Newey-West t of the monthly log-growth gap against 1.645, was
 written on
 [issue 275](https://github.com/l3a0/quantitative-trading/issues/275) before
 any beta or return was computed, and the row carries a verdict by that plan's
-default, which the owner can reverse on the pull request. The criterion left
+default, which the owner can reverse on
+[PR #527](https://github.com/l3a0/quantitative-trading/pull/527). The criterion left
 undefined a levered month losing more than the capital. The owner's amendment
 of 2026-10-11 reads that case as the claim contradicted, and it was written
 after the first such month was visible, which Entry 40 states beside its
@@ -8122,11 +8123,12 @@ high-beta portfolio's beta, a low-beta portfolio earns the same average return
 under the Fama-French model, and "a portfolio that consists of low-beta stocks
 generally has lower risk and thus a higher Sharpe ratio". At the Kelly
 leverage, growth goes with the Sharpe ratio squared, so the lower-risk side
-should compound faster. On Chan's own S&P 500 file the premise holds and the
-rule does not. The low fifth's Sharpe ratio is 1.0132 against the high fifth's
-0.4457. But the low fifth's mean beta at formation fell as low as 0.0280, so
-matching the high fifth's beta took a leverage of up to 69.0762, and two
-holding months lost more than the capital.
+should compound faster. On Chan's own S&P 500 file the rule, read at location
+4684's beta match, does not hold. The low fifth's mean beta at formation fell
+as low as 0.0280, so matching the high fifth's beta took a leverage of up to
+69.0762, and two holding months lost more than the capital. The low fifth's
+Sharpe ratio is 1.0132 against the high fifth's 0.4457, a point estimate that
+nothing here tests and that decides nothing.
 
 One row is a claim and eight are not replications. Row 1 takes the claim route
 `### Rows that are not replications` describes. Rows 2 to 9 are the figures
@@ -8173,18 +8175,20 @@ in neither portfolio. Which side that flatters is not measured here.
 High-beta stocks that fell out of the index would flatter the high side and
 work against the claim, and that is a hypothesis rather than a finding.
 
-The result is **registered**, under the issue's amendment of 2026-10-11. The
-plan, the criterion and the wording of three outcomes were written on the
-issue before any number was computed. The plan left one case undefined,
-because ln(1 + r) needs r above −1. The build stopped on the first such month,
-June 2001, before computing anything the criterion reads. The owner then ruled
-that ruin reads as the claim contradicted, and the amendment lists what had
-been seen by then: the calendar, the leverage path, the two ruined months, and
-both groups' unlevered returns for the first eight formations. So the ruin case
-was settled after its first instance was visible. Registration rules out a
+Row 1 is **registered**, under the issue's amendment of 2026-10-11. The plan
+and its criterion were written on the issue before any number was computed.
+The plan left one case undefined, because ln(1 + r) needs r above −1. The
+build stopped on the first such month, June 2001, before computing anything
+the criterion reads. The owner then ruled that ruin reads as the claim
+contradicted, and the amendment lists what had been seen by then: the
+calendar, the leverage path, the two ruined months, and both groups' unlevered
+returns for the first eight formations. So the ruin case and its wording were
+settled after its first instance was visible. Registration rules out a
 specification tuned on this panel by this repo. It does not make the span a
 holdout, because Chan wrote the claim in 2008 from "empirical studies" and the
-low-beta literature's own samples cover 1999 to 2007.
+low-beta literature's own samples cover 1999 to 2007. Rows 2 to 9 are
+**exploratory**. The plan declared them, and each is a point estimate that
+nothing tests.
 
 ### What the book stated
 
@@ -8202,13 +8206,13 @@ columns have nothing to hold in any row and are dropped, under
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
-| 1 | the claim: any levered month at −1 or below, else the Newey-West t of d against 1.645 | two ruined months. Formed 2001-05-31, June 2001 returns −2.5053 at k 58.0262, on a low-fifth month of −0.0403. Formed 2001-08-31, September 2001 returns −1.1278 at k 31.5098. No t and no detectable gap | `TestTheVerdicts::test_the_claim_is_contradicted_by_ruin`, `::test_two_months_are_ruined`, `::test_june_2001s_low_fifth_returned_minus_0_0403`, `::test_the_wording_names_the_first_ruined_month` and `::test_neither_t_nor_y_is_computed` |
-| 2 | each portfolio's Sharpe ratio on its monthly return over the bill, times √12 | low 1.0132, high 0.4457 | `TestTheFigures::test_the_low_and_high_sharpe_ratios` |
+| 1 | the claim: any levered month at −1 or below, else the Newey-West t of d against 1.645 | two ruined months. Formed 2001-05-31, June 2001 returns −2.5053 at k 58.0262, on a low-fifth month of −0.0403, the sixth-worst of its 83. Formed 2001-08-31, September 2001 returns −1.1278 at k 31.5098. No t and no detectable gap | `TestTheVerdicts::test_the_claim_is_contradicted_by_ruin`, `::test_two_months_are_ruined`, `::test_june_2001s_low_fifth_returned_minus_0_0403`, `::test_the_wording_names_the_first_ruined_month` and `::test_neither_t_nor_y_is_computed` |
+| 2 | each portfolio's Sharpe ratio on its monthly return over the bill, times √12. The levered low's reads all 83 months, each as if freshly funded | levered low 0.2836, low 1.0132, high 0.4457 | `TestTheFigures::test_the_low_and_high_sharpe_ratios` and `::test_the_levered_lows_beta_and_sharpe_over_all_83_months` |
 | 3 | realised compounded growth, 12 times the mean monthly log return | levered low ruin, low 0.1254, high 0.1183, SPY 0.0379 | `TestTheFigures::test_each_series_realised_growth` |
 | 4 | k over the 83 formations, and each group's mean beta | k mean 7.8414, from 2.1826 to 69.0762, the highest formed 2001-04-30. Low group 0.0280 to 0.6745, high group 1.4625 to 1.9532 | `TestTheFigures::test_the_leverage_path` and `::test_the_groups_mean_betas` |
-| 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's | low 0.4292, high 2.0671, SPY 1. The levered low's is not reported | `TestTheFigures::test_the_realised_betas` |
-| 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and r + S²/2 there | leverage 9.9884, growth 0.0283 + 0.5132 = 0.5415, against the high portfolio's 0.1183 | `TestTheFigures::test_the_kelly_reading` |
-| 7 | eligible stocks and each portfolio's size, fewest and most over the 83 formations | 444 to 495 eligible, each portfolio 88 to 99, 7,908 stock-months each | `TestTheFigures::test_444_to_495_stocks_are_eligible` and `::test_each_portfolio_holds_88_to_99` |
+| 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's. The levered low's reads all 83 months, each as if freshly funded | levered low 3.4596, low 0.4292, high 2.0671, SPY 1 | `TestTheFigures::test_the_realised_betas` and `::test_the_levered_lows_beta_and_sharpe_over_all_83_months` |
+| 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 9.9884, Gaussian growth 0.0283 + 0.5132 = 0.5415, against the high portfolio's realised 0.1183 | `TestTheFigures::test_the_kelly_reading` |
+| 7 | eligible stocks and each portfolio's size, fewest and most over the 83 formations. The run prints every formation's row | 444 to 495 eligible, each portfolio 88 to 99, 7,908 stock-months each | `TestTheFigures::test_444_to_495_stocks_are_eligible`, `::test_each_portfolio_holds_88_to_99`, `::test_every_formations_eligible_count` and `::test_formation_table_rows` |
 | 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 36 low and 186 high. The file flags 43 days in 34 stocks | `TestTheScaleBreakDecision::test_36_low_and_186_high_stock_months_carry_a_flag` and `::test_43_flagged_days_in_34_stocks` |
 | 9 | the calendar | 2,011 of 2,024 rows shared with SPY, 96 month-ends from 1999-11-30 to 2007-10-31, formations 2000-11-30 to 2007-09-28, 83 holding months | `TestTheCalendar::test_the_cut_drops_13_of_2024_rows`, `::test_96_month_ends_on_the_cut_calendar` and `::test_83_formations_from_2000_11_30` |
 
@@ -8217,13 +8221,13 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | did not reproduce | Contradicted by ruin, the outcome the amendment of 2026-10-11 adds and maps to this value. The levered low-beta portfolio lost 2.5053 times its capital in June 2001, so it held nothing afterwards and its compounded growth is unbounded below. The registered rules left a month below −1 undefined, and the owner ruled this case after its first instance was visible. The statistic was never computed, so nothing here says what it would have read without the ruin. The panel holds only survivors. |
-| 2 | none, not a replication | The premise of location 4684 holds on this file. The low fifth's Sharpe ratio is more than twice the high fifth's. It decides nothing, because the claim is about growth. |
-| 3 | none, not a replication | Unlevered, the low fifth compounded at 0.1254 a year and the high fifth at 0.1183, both above SPY's 0.0379. The panel holds only survivors, so that gap over the index is not a finding about either fifth. |
+| 2 | none, not a replication | The low fifth's Sharpe ratio is 1.0132 and the high fifth's 0.4457. Nothing tests the difference, so it neither confirms nor refutes location 4684's premise, and it decides nothing because the claim is about growth. The levered low's 0.2836 reads each month's levered return as if freshly funded, which is how the plan defines the series and not what an investor ruined in June 2001 held. |
+| 3 | none, not a replication | Unlevered, the low fifth compounded at 0.1254 a year and the high fifth at 0.1183, both above SPY's 0.0379. Nothing tests either gap, and the panel holds only survivors, so neither is a finding about either fifth. |
 | 4 | none, not a replication | k is large because the low group's mean beta falls to 0.0280 while the high group's never falls below 1.4625. |
-| 5 | none, not a replication | The low fifth's realised beta of 0.4292 sits inside the range its formations gave, 0.0280 to 0.6745. The levered low's is not reported, because the plan does not say whether its span stops at the ruin, and a slope over all 83 months would read months after the portfolio held nothing. SPY's is 1 by construction. |
-| 6 | none, not a replication | Look-ahead. The Kelly leverage can only be known from the whole sample, and at the in-sample Kelly leverage any portfolio grows at least as fast as it does unlevered. The reading is reported because location 4709 means it, and it decides nothing. |
+| 5 | none, not a replication | The levered low's realised beta of 3.4596 is above the high fifth's 2.0671, so after the fact the match overshot the beta it aimed at. It reads all 83 months as if each were freshly funded. The low fifth's 0.4292 sits inside the range its formations gave, 0.0280 to 0.6745. SPY's is 1 by construction. |
+| 6 | none, not a replication | Look-ahead. The Kelly leverage can only be known from the whole sample, and at the in-sample Kelly leverage any portfolio grows at least as fast as it does unlevered. The 0.5415 is the Gaussian growth r + S²/2, a formula on the sample's moments, and no portfolio realised it. The reading is reported because location 4709 means it, and it decides nothing. |
 | 7 | none, not a replication | Every formation fills both fifths, so the refusal for an empty portfolio never fires. |
-| 8 | none, not a replication | No window is refused, as `tests/test_scale_breaks.py` records. The high fifth holds about five times as many flagged stock-months as the low fifth. |
+| 8 | none, not a replication | No window is refused, as `tests/test_scale_breaks.py` records. The high fifth holds 186 flagged stock-months and the low fifth 36. |
 | 9 | none, not a replication | The first formation is the date the plan expected, so the 83 months are the plan's. |
 
 ### What the entry concludes
@@ -8234,27 +8238,31 @@ Two things, and the first is the verdict.
    Levered to the high fifth's beta, the low fifth lost more than its capital
    in June 2001 and again in September 2001. That is the amendment's
    Contradicted by ruin, and it maps to `did not reproduce`.
-2. **The premise holds while the rule fails.** The low fifth's Sharpe ratio
-   of 1.0132 is above the high fifth's 0.4457, and unlevered it compounded
-   faster too. What breaks is the leverage the beta match asks for when the
-   low fifth's beta is near zero.
+2. **The rule, read at location 4684's beta match, does not hold, and the
+   leverage is what breaks it.** The match asks for a leverage of up to
+   69.0762 when the low fifth's beta at formation is near zero. The low
+   fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457, and its
+   unlevered growth of 0.1254 against 0.1183, are untested point estimates
+   that decide nothing.
 
 ### What this entry cannot say
 
 Five things.
 
 **What the test statistic would have read.** The ruin ends the comparison in
-June 2001, so the Newey-West t and the detectable gap were never computed.
-Any leverage rule that avoided the ruin, such as a cap, is a different
-specification chosen after this one failed. It would need its own issue and
-its own registration.
+June 2001, so the Newey-West t and the detectable gap were never computed. A
+leverage rule that avoided the ruin, such as a cap, is a different
+specification. On this file a cap is exploratory, because the ruin had been
+seen, and only on the holdout could one be registered.
+[Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
+rule here at leverage a broker would lend, as an exploratory run.
 
 **Whether fat tails are the cause.** Location 4700 carries the caveat: "one
 should be quite wary of using too much leverage on normally low-beta stocks",
-because returns have fat tails. The low fifth returned −0.0403 in June 2001, which
-is an ordinary month, and a leverage of 58.0262 turned it into ruin. Whether
-the near-zero betas or the fat tails did more of the damage is not measured
-here.
+because returns have fat tails. The low fifth returned −0.0403 in June 2001,
+the sixth-worst of its 83 months, and a leverage of 58.0262 turned it into
+ruin. Whether the near-zero betas or the fat tails did more of the damage is
+not measured here.
 
 **What survivorship does to either side.** The panel lacks the stocks that
 left the index before 2007-11-23. High-beta stocks that fell out of it would
@@ -8264,9 +8272,10 @@ hypothesis rather than a finding.
 **Whether the claim holds after the book.** The point-in-time S&P 500 that
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built,
 IVV's members at each month-end from 2008-12 to 2026-08, is a holdout with no
-survivor gap. The plan chose it before any number here was computed, and a
-follow-up issue runs this exact specification and the amendment on it. Its
-closes sit only in the owner's archive, so no pin from it can run in CI.
+survivor gap. The plan chose it before any number here was computed, and
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs this
+exact specification and the amendment on it. Its closes sit only in the
+owner's archive, so no pin from it can run in CI.
 
 **What the model's half of the argument says.** Location 4684's equal average
 returns need market capitalisation and book value at each date, which

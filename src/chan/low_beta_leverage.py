@@ -68,17 +68,28 @@ anything the criterion reads had been computed. So the ruin case was settled
 after its first instance was visible, and the amendment names everything that
 had been seen.
 
-Beside the verdict, deciding nothing, the report prints the low and high
-portfolios' Sharpe ratios, the realised compounded growth of the low, the high
-and SPY, with the levered low's reported as ruin rather than as a number, k's
-mean, minimum and maximum, the realised betas, the counts per formation, and
-location 4709's Kelly reading. The realised beta is reported for the low, the
-high and SPY and not for the levered low. A slope over all 83 months would
-read months after the levered portfolio held nothing, and the plan does not
-say to stop at the ruin, so neither span is chosen here. The Kelly reading is
-look-ahead, because the Kelly leverage can only be known from the whole
-sample, and at the in-sample Kelly leverage any portfolio's growth is at least
-its own unlevered growth by construction.
+Beside the verdict the report prints the side figures the plan declared. Each
+is a point estimate that nothing tests, so each is exploratory and decides
+nothing.
+
+1. The Sharpe ratio of the levered low, the low and the high.
+2. The realised compounded growth of the low, the high and SPY. The levered
+   low's is reported as ruin rather than as a number.
+3. k's mean, minimum and maximum.
+4. The realised beta of the levered low, the low, the high and SPY.
+5. A table of every formation: its eligible count, the size of each group,
+   each group's mean beta, and k.
+6. Location 4709's Kelly reading.
+
+The levered low's Sharpe ratio and realised beta read all 83 months of
+``Portfolios.levered``, which holds rf + k × (r_low − rf) for each month as if
+the portfolio were freshly funded at its start. That is how the plan defines
+the series, and it is not what an investor ruined in June 2001 would have
+held. The Kelly reading is look-ahead, because the Kelly leverage can only be
+known from the whole sample, and at the in-sample Kelly leverage any
+portfolio's growth is at least its own unlevered growth by construction. Its
+growth is the Gaussian growth r + S² / 2, a formula on the sample's moments
+rather than a growth any portfolio realised.
 
 **Every figure is about survivors.** ``spx_20071123/`` is the S&P 500 as it
 stood on 2007-11-23, carried backwards, so a stock that left the index before
@@ -99,6 +110,12 @@ only the case those rules left undefined. Registration rules out a
 specification tuned on this panel by this repo. It does not make 2000 to 2007
 a holdout: Chan wrote the claim in 2008 from "empirical studies", and the
 low-beta literature's own samples cover the span.
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs the
+same specification and amendment on IVV's S&P 500 from 2008 to 2026, which is
+a holdout, and
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
+rule on this file at leverage a broker would lend, as an exploratory run,
+because the ruin had been seen.
 
 ``tests/test_low_beta_leverage.py`` is the single authority for every number
 any prose surface quotes about this experiment. It first ran here on
@@ -178,6 +195,17 @@ class NonPositiveBeta(Exception):
 
 class EmptyPortfolio(Exception):
     """A formation has fewer than five eligible stocks, so a fifth of them holds none."""
+
+
+class UnreadableStandardError(Exception):
+    """The Newey-West t of d is 0, so the standard error behind Y cannot be recovered.
+
+    :func:`ithildincore.stats.newey_west_summary` returns a t of 0 in two cases.
+    One is a mean of exactly 0. The other is a standard error of 0, which d
+    has when every month's gap is the same. The summary carries the mean and t
+    but not the standard error, so neither case lets Y be computed, and
+    recomputing the variance here would be a second copy of the estimator.
+    """
 
 
 @dataclass(frozen=True)
@@ -265,12 +293,15 @@ class Verdict:
 
         Read back from the summary's mean and t rather than recomputed, so the
         variance exists once, in :mod:`ithildincore.stats`, whose arithmetic is
-        pinned there. The ratio is undefined when t is 0, which the summary
-        returns only for a mean or a standard error of exactly 0.
+        pinned there. The summary returns a t of 0 for a mean of exactly 0 and
+        for a standard error of 0, and either refuses as
+        :class:`UnreadableStandardError`.
         """
         if self.t == 0:
-            raise ValueError(
-                "the Newey-West t is 0, so its standard error cannot be read back from the mean"
+            raise UnreadableStandardError(
+                f"the Newey-West t of d is 0 over {self.months} months, which the summary "
+                "returns for a mean of exactly 0 or a gap that never varies, so the standard "
+                "error behind Y cannot be recovered"
             )
         return abs(self._tested().mean / self.t)
 
@@ -352,7 +383,11 @@ class Kelly:
 
     @property
     def growth(self) -> float:
-        """r + S² / 2, the low portfolio's growth at its own full-sample Kelly leverage."""
+        """The Gaussian growth r + S² / 2 at the low portfolio's full-sample Kelly leverage.
+
+        A formula on the sample's mean and variance, not a growth any portfolio
+        realised at that leverage.
+        """
         return self.bill + self.moments.levered_growth
 
 
@@ -513,7 +548,10 @@ def verdict(portfolios: Portfolios) -> Verdict:
     ruined = ruined_months(portfolios)
     if ruined:
         return Verdict(months=months, ruined=ruined)
-    return Verdict(months=months, summary=newey_west_summary(differences(portfolios).to_numpy()))
+    result = Verdict(months=months, summary=newey_west_summary(differences(portfolios).to_numpy()))
+    # Read Y once here, so a degenerate d refuses before anything is printed.
+    _ = result.standard_error
+    return result
 
 
 def growth(returns: pd.Series) -> float:
@@ -545,10 +583,24 @@ def realised_beta(returns: pd.Series, portfolios: Portfolios) -> float:
 
 
 def kelly(portfolios: Portfolios) -> Kelly:
-    """The low portfolio's full-sample Kelly leverage and its growth there. Look-ahead."""
+    """The low portfolio's full-sample Kelly leverage and the Gaussian growth there. Look-ahead."""
     return Kelly(
         moments=excess_moments(portfolios.low, portfolios.rf),
         bill=float(portfolios.rf.mean() * MONTHS),
+    )
+
+
+def formation_table(portfolios: Portfolios) -> pd.DataFrame:
+    """One row per formation: the eligible count, each group's size, both mean betas and k."""
+    return pd.DataFrame(
+        {
+            "eligible": portfolios.eligible,
+            "per group": [len(held) for held in portfolios.low_members],
+            "low beta": portfolios.low_beta.to_numpy(),
+            "high beta": portfolios.high_beta.to_numpy(),
+            "k": portfolios.leverage.to_numpy(),
+        },
+        index=pd.DatetimeIndex(portfolios.formed, name="formed"),
     )
 
 
@@ -660,11 +712,13 @@ def report(
     print("  Beside the verdict, deciding nothing")
     print(f"  {'Series':<14} {'Growth':>8} {'Sharpe':>8} {'Beta':>8}")
     levered_growth = "ruin" if result.by_ruin else f"{growth(p.levered):.4f}"
-    print(f"  {'levered low':<14} {levered_growth:>8}")
-    for name, series in (("low", p.low), ("high", p.high)):
+    for name, series, grew in (
+        ("levered low", p.levered, levered_growth),
+        ("low", p.low, f"{growth(p.low):.4f}"),
+        ("high", p.high, f"{growth(p.high):.4f}"),
+    ):
         print(
-            f"  {name:<14} {growth(series):>8.4f} {sharpe(series, p.rf):>8.4f} "
-            f"{realised_beta(series, p):>8.4f}"
+            f"  {name:<14} {grew:>8} {sharpe(series, p.rf):>8.4f} {realised_beta(series, p):>8.4f}"
         )
     print(f"  {MARKET:<14} {growth(p.spy):>8.4f} {'':>8} {realised_beta(p.spy, p):>8.4f}")
     print(
@@ -672,21 +726,32 @@ def report(
         "x sqrt(12). Beta is on SPY's monthly excess return."
     )
     print(
-        "  The levered low's beta is not reported: the plan does not say whether its span "
-        "stops at the ruin."
+        "  The levered low's Sharpe and beta read all 83 months of rf + k x (r_low - rf), each "
+        "month as if freshly funded,"
     )
+    print("  which is how the plan defines the series. They decide nothing.")
     reading = kelly(p)
     print(
         f"  Kelly, location {RULE_LOCATION}, look-ahead: the low portfolio's full-sample m / s^2 "
-        f"{reading.leverage:.4f}, growth there r + S^2/2 = {reading.bill:.4f} + "
+        f"{reading.leverage:.4f}, Gaussian growth there r + S^2/2 = {reading.bill:.4f} + "
         f"{reading.moments.levered_growth:.4f} = {reading.growth:.4f}, against the high "
-        f"portfolio's {growth(p.high):.4f}."
+        f"portfolio's realised {growth(p.high):.4f}."
     )
     low_flags, high_flags = flagged
     print(
         f"  Scale-break flags inside the beta window or the holding month: {low_flags} low and "
         f"{high_flags} high stock-months of {2 * sum(sizes)}. None is refused."
     )
+    print()
+    print("  Every formation, deciding nothing")
+    print(
+        f"  {'Formed':<12} {'Eligible':>8} {'Each':>5} {'Low beta':>9} {'High beta':>10} {'k':>8}"
+    )
+    for formed, row in formation_table(p).iterrows():
+        print(
+            f"  {str(formed.date()):<12} {row['eligible']:>8.0f} {row['per group']:>5.0f} "
+            f"{row['low beta']:>9.4f} {row['high beta']:>10.4f} {row['k']:>8.4f}"
+        )
     print()
     print(
         f'  Location {CAVEAT_LOCATION}: "one should be quite wary of using too much leverage on '
@@ -722,7 +787,12 @@ def main() -> None:
     ).parse_args()
     try:
         run()
-    except (VintageUnavailable, NonPositiveBeta, EmptyPortfolio) as refused:
+    except (
+        VintageUnavailable,
+        NonPositiveBeta,
+        EmptyPortfolio,
+        UnreadableStandardError,
+    ) as refused:
         # A refusal that names the source or the month is worth nothing at the
         # bottom of a traceback, so it reaches the reader as one line, the way
         # chan.momentum_factor.main does it.

@@ -550,15 +550,17 @@ where they were first built. The other thirty-eight were built here.
     contradicted by ruin. The low fifth's beta at formation fell as low as
     0.0280, so the match asked for a leverage of up to 69.0762, and the levered
     portfolio lost more than its capital in the month ending 2001-06-29, at a
-    leverage of 58.0262, and again in September 2001. The premise behind the
-    rule holds: the low fifth's Sharpe ratio is 1.0132 against the high fifth's
-    0.4457. The result is registered, because the plan and its criterion were
-    written on
+    leverage of 58.0262, and again in September 2001. Location 4700 warns of
+    this: "one should be quite wary of using too much leverage on normally
+    low-beta stocks". The verdict is registered, because the plan and its
+    criterion were written on
     [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)
-    before any number was computed. The ruin case is that issue's amendment of
-    2026-10-11, which the owner ruled after the first ruined month
-    was visible. The span is not a holdout, and every figure is about the
-    stocks still in the index on 2007-11-23.
+    before any number was computed. The ruin case and its wording are that
+    issue's amendment of 2026-10-11, which the owner ruled after the first
+    ruined month was visible. The span is not a holdout, and every figure is
+    about the stocks still in the index on 2007-11-23. Beside the verdict, the
+    low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
+    untested point estimate, exploratory, and decides nothing.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -948,8 +950,8 @@ the half-capital divisor. It also holds both reads guarded.
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
 the levered low-beta claim. It pins the calendar, the leverage path, both
 ruined months and the verdict's wording, and beside them the Sharpe ratios,
-the growth, the realised betas, the Kelly reading and the flagged
-stock-months. On synthetic panels it holds the beta's intercept and its floor
+the growth, the realised betas, the Kelly reading's Gaussian growth, the
+formation table and the flagged stock-months. On synthetic panels it holds the beta's intercept and its floor
 of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
@@ -1805,8 +1807,9 @@ uv run python -m chan.low_beta_leverage
 ```
 
 It prints the three vintages, the verdict with every ruined month, and beside
-it the growth, the Sharpe ratios, the realised betas, the Kelly reading and
-the flagged stock-months, none of which decides anything.
+it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
+Gaussian growth, the flagged stock-months and a row for every formation, none
+of which decides anything.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
