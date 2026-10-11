@@ -222,7 +222,9 @@ The sections are these.
    first.
 3. **One paragraph**, saying the page was measured by hand and cannot poll
    anything. It is all that remains of a twenty-paragraph footer that was a
-   second telling of what the cards say. Do not grow it back.
+   second telling of what the cards say. Do not grow it back. On the board
+   GitHub Pages serves, described below, it says how that board is built
+   instead.
 
 Between the strip and the first section sits a banner that is empty while the
 page shows live data. It speaks when the page has no board data to show, when
@@ -240,6 +242,29 @@ no data. The default view also prints the count line, as
 priority order. Show all N+M`, and the Show all view prints it as
 `OTHER[more] Showing all N+M open issues not in flight. Show only the ranked
 cards`.
+
+### The second board, on GitHub Pages
+
+The same `board.html` also runs as a second board on GitHub Pages, which no
+session writes. `.github/workflows/board.yml` runs `scripts/build_board.py` on
+every issue, comment, pull request and CI change and on a schedule. The script
+reads GitHub and writes the six sections as one `board.json` beside the page.
+A page that finds no database fetches that file every two minutes instead,
+which is the fetch path
+[issue 532](https://github.com/l3a0/quantitative-trading/issues/532) added
+beside `connect`. It is the only path this skill's harness cannot reach,
+because the harness runs under `osascript`, which has no fetch.
+`tests/test_build_board.py` drives it with a fake one.
+
+That board carries only what GitHub already holds: the open count, each card's
+milestone and labels, and each pull request's state, checks, linked issue and
+`## Review` comment from the owner. `working`, `planned` and `next` are empty,
+and every card's `kind` is `ready` with no `needs`. So its banner speaks over
+live data too, naming the fields it does not carry, and warning when its stamp
+is older than twice the schedule's longest gap. The artifact board stays the
+one this skill writes and the owner reads until
+[issue 533](https://github.com/l3a0/quantitative-trading/issues/533) moves the
+rest onto GitHub.
 
 ## Read the live data before editing anything
 
