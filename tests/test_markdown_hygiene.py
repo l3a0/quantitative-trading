@@ -187,6 +187,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/crude-oil-reversal-momentum-lessons.md",
         "blog/equity-seasonals-lessons.md",
         "blog/factor-models-lessons.md",
+        "blog/gld-gc-lessons.md",
         "blog/gld-gdx-cointegration-lessons.md",
         "blog/gold-miners-oil-lessons.md",
         "blog/index-arbitrage-lessons.md",
@@ -1191,6 +1192,7 @@ class TestTheFigureHasThreeCopies:
             "roll-momentum-lessons.md",
             "vx-calendar-spread-lessons.md",
             "capped-kelly-allocation-lessons.md",
+            "gld-gc-lessons.md",
             "xle-uso-roll-return-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
