@@ -1,6 +1,6 @@
 # Chan’s crude oil rule reproduces, and on his window joining reversal to momentum wins by sitting out the days they disagree
 
-*Chan joins a 30-day reversal rule to a 40-day momentum rule on crude oil and reports 12 percent a year. Both figures land on his file. The join is half of each rule, so it wins on his window by swinging less, and falls behind where one rule loses too much.*
+*Chan joins 30-day reversal to 40-day momentum on crude oil and reports a 12 percent APR and a Sharpe ratio of 1.1. Both land. The join is half of each rule, so it wins on his window by swinging less, and trails momentum when reversal loses too much.*
 
 ## Why join two rules that disagree
 
