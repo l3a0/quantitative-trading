@@ -4743,8 +4743,10 @@ Four things.
    On Chan's inputs a grid over every allocation the gross cap allows, short
    positions included, finds the same corner. With a strong positive
    correlation it does not. `TestTheLongOnlyLimit` holds a case where a short
-   hedge inside the cap grows at 0.656501 against 0.48 for the best long-only
-   allocation, which is why the module's capped search says it is long-only.
+   hedge inside the cap grows at 0.656501. The best long-only allocation there
+   holds strategy 2 alone at its own Kelly leverage of 3.333333, inside the
+   cap, and grows at 0.5. That is why the module's capped search says it is
+   long-only.
 
 ### What this entry cannot say
 
