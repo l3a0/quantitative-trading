@@ -54,7 +54,7 @@ Three figures that agree this closely could still come from different returns. T
 Two details sit inside that match.
 
 1. **The variance divides by n − 1**, where n is the number of returns. The Kelly leverage matches only with this sample variance, the one MATLAB’s `std` computes. Dividing by n instead gives 23.884354.
-2. **The book quotes another figure for the same returns.** Location 3342 says “the Kelly leverage is 18.4” for this strategy. Neither variance takes the saved returns to 18.4, so this post quotes the script’s 23.845328 and leaves 18.4 unexplained.
+2. **The book quotes another figure for the same returns.** Location 3342 says “the Kelly leverage is 18.4” for this strategy. Neither variance takes the saved returns to 18.4, so this post quotes the script’s 23.845328. The [post on Chapter 8’s leverage](https://github.com/l3a0/quantitative-trading/blob/main/blog/monte-carlo-leverage-lessons.md#lesson-2-example-51s-own-figures-rule-184-out) finds that no daily series with this example’s printed Sharpe ratio and APR has a Kelly of 18.4, under any of the three ways of compounding the APR it tries, and infers that Chapter 8 ran on an older version of these returns that nobody holds.
 
 ## Lesson 2: the match ties the traded closes to Chan’s up to a scale on each leg, and no more
 

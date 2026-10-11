@@ -9105,7 +9105,10 @@ them.
 
 ### What the entry concludes
 
-Three things.
+Four things. The last was measured by the write-up after the run, and
+`TestWhatThePostMeasured` in
+[tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
+pins it.
 
 1. **The book's Kelly and historical optimum of 18.4 belong to a series
    nobody holds.** Chan's own saved returns give 23.845328 and 23.721773.
@@ -9131,6 +9134,16 @@ Three things.
    the book's pairing of a growth cost near 1.6 percent with a drawdown "by
    design" under 0.5 holds for neither form here. The loop gives the first and
    not the second, and the scheme gives the second and not the first.
+4. **The draws reach deeper than the history, and that decides where the
+   Kelly stands.** The least of the 612 saved returns is −0.022031, a ruin
+   leverage of 45.390502, and the declared seed's least draw of −0.043071 is
+   1.9550 times as deep. Its ruin leverage of 23.217362 is below the Kelly of
+   23.845328, so at the Kelly one draw loses everything, and the same holds
+   on 78 of the 200 seeds. The 30 seeds whose uncapped optimum is at or below
+   19.2 all have a ruin leverage below 20, and a seed sits on the cap exactly
+   when its ruin leverage is 20 or more. On the saved returns the drawdown is
+   −0.737560 at the historical optimum and −0.739733 at the Kelly, against
+   −0.991276 on the draws at the optimum. Measured after the run.
 
 ### What this entry cannot say
 
@@ -9154,7 +9167,10 @@ The second rests on Chan's printed ruin leverage of 30.2, and nothing here
 can say more about his draws than that one figure.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/monte-carlo-leverage-lessons.md](../blog/monte-carlo-leverage-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.monte_carlo_leverage_figures` redraws.
 
 ## Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*
 

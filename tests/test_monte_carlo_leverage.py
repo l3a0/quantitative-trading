@@ -86,6 +86,7 @@ from chan.monte_carlo_leverage import (
     D,
     Ensemble,
     MonteCarloLeverage,
+    account_drawdowns,
     cppi_as_described,
     cppi_as_described_loop,
     cppi_as_scripted,
@@ -100,6 +101,7 @@ from chan.monte_carlo_leverage import (
     minimum_below,
     optimal_leverage,
     optimum_band,
+    pearson_fit,
     read_returns,
     rounding_band,
     rows,
@@ -695,6 +697,90 @@ class TestRowGroup13TheEighteenPointFourGap:
         np.testing.assert_allclose(
             moved - original, result.shifted_params.lam - result.params.lam, rtol=0, atol=1e-17
         )
+
+
+class TestWhatThePostMeasured:
+    """What ``blog/monte-carlo-leverage-lessons.md`` quotes that the rows above do not pin.
+
+    The write-up measured each of these after the run had been seen, so they
+    are exploratory like everything here and carry no verdict. Each reads the
+    vintage and the specification the module docstring states:
+    ``pythoncodesanddata/AUDCAD_unequal_ret.csv``, chan-py, ``AUDCAD-UNEQUAL``,
+    basis ``return``, saved 2018-12-26, 612 returns, on the declared seed
+    20261012 and the 200 seeds 20261013 to 20261212. A drawdown or a leverage
+    is pinned at six decimals.
+    """
+
+    def test_the_saved_returns_least_day_and_ruin_leverage(self, returns, result) -> None:
+        """Lesson 4: the declared seed's least draw is nearly twice as deep as Chan's worst day."""
+        assert returns.min() == pytest.approx(-0.022031, abs=5e-7)
+        assert ruin_leverage(returns) == pytest.approx(45.390502, abs=5e-7)
+        assert result.declared.minimum / returns.min() == pytest.approx(1.9550, abs=5e-5)
+
+    def test_the_seeds_at_or_below_the_book_s_optima_are_all_held_down_by_ruin(
+        self, result
+    ) -> None:
+        """Lesson 3: every seed whose uncapped optimum reaches 19 or 19.2 ruins below 20."""
+        uncapped, ruin = result.ensemble.values("uncapped"), result.ensemble.values("ruin")
+        low = uncapped <= float(BOOK_OPTIMUM)
+        assert (int(low.sum()), int(np.count_nonzero(uncapped <= float(BOOK_OPTIMUM_FMINBND)))) == (
+            30,
+            28,
+        )
+        assert np.all(ruin[low] < CAP)
+        assert ruin[low].max() == pytest.approx(19.147175, abs=5e-7)
+
+    def test_a_seed_is_on_the_cap_exactly_when_its_ruin_leverage_is_20_or_more(
+        self, result
+    ) -> None:
+        runs = result.ensemble.runs
+        assert [run.on_the_cap for run in runs] == [run.ruin >= CAP for run in runs]
+        free = result.ensemble.values("uncapped")[result.ensemble.values("ruin") >= CAP]
+        assert len(free) == 158
+        assert free.min() == pytest.approx(20.075698, abs=1e-6)
+
+    def test_the_kelly_is_at_or_past_ruin_on_78_seeds_and_the_declared_one(self, result) -> None:
+        """Lesson 4: at the Kelly some draw loses everything on these seeds."""
+        assert result.kelly == pytest.approx(23.845328, abs=5e-7)
+        assert int(np.count_nonzero(result.ensemble.values("ruin") <= result.kelly)) == 78
+        assert result.declared.ruin <= result.kelly
+
+    def test_the_saved_returns_drawdowns_at_the_optimum_and_the_kelly(
+        self, result, returns
+    ) -> None:
+        """Lesson 6: ``calculateMaxDD`` on the 612 days, far from the draws' −0.99."""
+        assert max_drawdown(result.historical * returns) == pytest.approx(-0.737560, abs=5e-7)
+        assert max_drawdown(result.kelly * returns) == pytest.approx(-0.739733, abs=5e-7)
+
+
+class TestThePostsHelpers:
+    """The two functions the figure and the run share, so neither drifts from the other."""
+
+    def test_pearson_fit_is_the_run_s_moments_and_parameters(self, result, returns) -> None:
+        moments, params = pearson_fit(returns)
+        assert moments == result.moments
+        assert params == result.params
+
+    @pytest.mark.parametrize("form", ["scripted", "described", "full"])
+    def test_account_drawdowns_reach_max_drawdown(self, result, declared_draws, form) -> None:
+        f = result.declared.optimum
+        account = {
+            "scripted": cppi_as_scripted(declared_draws, f),
+            "described": cppi_as_described(declared_draws, f),
+            "full": f * D * declared_draws,
+        }[form]
+        found = account_drawdowns(account)
+        assert found.shape == account.shape
+        assert found.min() == max_drawdown(account)
+
+    def test_account_drawdowns_on_a_path_worked_by_hand(self) -> None:
+        """Down 50 percent, up 120, down 20 and up 25: the account goes 0.5, 1.1, 0.88, 1.1.
+
+        Chan's loop starts its high at 0 and on the second row, so the first
+        day's loss counts for nothing and the drawdowns are 0, 0, −0.2 and 0.
+        """
+        found = account_drawdowns(np.array([-0.5, 1.2, -0.2, 0.25]))
+        np.testing.assert_allclose(found, [0.0, 0.0, -0.2, 0.0], atol=1e-15)
 
 
 class TestTheLoopTwins:

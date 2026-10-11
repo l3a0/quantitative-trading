@@ -138,6 +138,11 @@ drawdown come from this repo's own modules.
 Every result here is exploratory. Reproducing Chan's figures spends his 612
 returns on a method he chose. The run says whether his numbers reproduce on his
 file, and nothing about whether any leverage is safe to trade.
+
+:mod:`chan.monte_carlo_leverage_figures` draws the figure for the post on this
+entry. It reads the fit through :func:`pearson_fit` and each day's drawdown
+through :func:`account_drawdowns`, the same functions the run uses, so the
+figure and the run cannot drift apart.
 """
 
 from __future__ import annotations
@@ -155,7 +160,7 @@ from scipy.optimize import minimize_scalar
 from chan.aud_cad_johansen import BOOK_APR_PERCENT, BOOK_SHARPE, SAVED_RETURNS
 from chan.khandani_lo import TRADING_DAYS
 from chan.khandani_lo_book_two import gap, matches
-from chan.matlab_helpers import calculate_max_dd
+from chan.matlab_helpers import calculate_max_dd, drawdown_path
 from chan.series import load_returns, vintage_line
 from chan.tu_hypothesis_tests import (
     Moments,
@@ -266,6 +271,16 @@ def optimal_leverage(returns: ArrayLike, cap: float = math.inf) -> float:
 def max_drawdown(account: ArrayLike) -> float:
     """The deepest drawdown ``calculateMaxDD(cumprod(1 + a) − 1)`` gives for daily returns ``a``."""
     return calculate_max_dd(np.cumprod(1 + np.asarray(account, dtype=float)) - 1)[0]
+
+
+def account_drawdowns(account: ArrayLike) -> NDArray[np.float64]:
+    """Each day's drawdown of ``cumprod(1 + a) − 1``, through ``calculateMaxDD``'s loop.
+
+    :func:`max_drawdown` is the least of these. The first day's drawdown is 0
+    whatever it returned, a quirk of Chan's loop that
+    :func:`chan.matlab_helpers.drawdown_path` keeps.
+    """
+    return drawdown_path(np.cumprod(1 + np.asarray(account, dtype=float)) - 1)[1]
 
 
 def _cppi_returns(returns: ArrayLike, scale: float, empties: str) -> NDArray[np.float64]:
@@ -469,6 +484,18 @@ class Simulated:
         return (self.full_growth - self.cppi_growth) / self.full_growth
 
 
+def pearson_fit(returns: ArrayLike) -> tuple[Moments, PearsonIV]:
+    """Script lines 5 and 6: the returns' four moments, and the type IV that has them.
+
+    The moments are MATLAB's defaults, through
+    :func:`chan.tu_hypothesis_tests.script_moments`, and the parameters come
+    from :func:`chan.tu_hypothesis_tests.pearson_iv_parameters`.
+    """
+    moments = script_moments(np.asarray(returns, dtype=float))
+    params = pearson_iv_parameters(moments.mean, moments.std, moments.skewness, moments.kurtosis)
+    return moments, params
+
+
 def draws(params: PearsonIV, seed: int, count: int = DRAWS) -> NDArray[np.float64]:
     """Seed ``s``'s draws: ``pearson_iv_draws(params, default_rng(s).random(count))``."""
     return pearson_iv_draws(params, np.random.default_rng(seed).random(count))
@@ -618,8 +645,7 @@ class MonteCarloLeverage:
 
 def monte_carlo_leverage(entry: VintageEntry, returns: NDArray[np.float64]) -> MonteCarloLeverage:
     """Run the specification on the saved returns, the declared seed and both ensembles."""
-    moments = script_moments(returns)
-    params = pearson_iv_parameters(moments.mean, moments.std, moments.skewness, moments.kurtosis)
+    moments, params = pearson_fit(returns)
     declared = simulate(params, SEED)
     shifted = shifted_parameters(moments)
     return MonteCarloLeverage(
