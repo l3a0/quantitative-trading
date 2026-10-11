@@ -1154,8 +1154,11 @@ function stamped() {
 
 const COLS = [
   ["Ready now", "nothing open blocks these"],
-  ["Behind one", "one thing has to land first"],
-  ["Behind two or more", "deepest last"],
+  /* Steps along a chain rather than things to land. "Behind one" over "one
+     thing has to land first" read as a count of blockers, which went false on
+     2026-10-11 when issue 303 sat in this column waiting on 249 and 510. */
+  ["One step behind", "what these wait on waits on no open issue"],
+  ["Two steps behind or more", "something these wait on waits on another"],
   ["Waiting on data", "not a backlog, a purchase"]
 ];
 /* One colour per tracker label, so the page and GitHub show the same chip.
@@ -1551,9 +1554,16 @@ function buildOrder() {
         e.classList.toggle("on", up.has(v) || down.has(v));
       });
     });
+    /* `reach` walks the whole chain, while the card's own line names only what
+       it waits on directly. A bare "waits on 2" on a card whose line names one
+       issue counted a chain as blockers, which is defect 19 in this bar. So the
+       chain's total is given beside the direct count whenever the two differ. */
     const bits = [];
-    if (up.size) bits.push(`waits on ${up.size}`);
-    if (down.size) bits.push(`${down.size} waiting on it`);
+    const nearUp = needsMap.get(n).length, nearDown = (feeds.get(n) || []).length;
+    if (up.size) bits.push(nearUp === up.size ? `waits on ${up.size}`
+      : `waits on ${nearUp} directly and ${up.size} along the whole chain`);
+    if (down.size) bits.push(nearDown === down.size ? `${down.size} waiting on it`
+      : `${nearDown} waiting on it directly and ${down.size} along the whole chain`);
     /* The short view leaves cards out, and a chain through them lights nothing,
        so the line says how many it could not show rather than leaving the reader
        to wonder where they went. */
@@ -1760,8 +1770,24 @@ function buildOrder() {
      deep would then be false about the issues it hid. So the depth is counted
      over every open issue not in flight, and the sentence says so whenever that
      differs from what the columns show. */
-  const deep = open.filter(c => c.kind !== "data" && depth.get(c.n) >= 2).length;
+  const graphed = open.filter(c => c.kind !== "data");
+  const deep = graphed.filter(c => depth.get(c.n) >= 2).length;
   const deepHidden = deep !== bucket[2].length;
+  /* How deep the graph goes and how many issues one card waits on are two
+     facts, and one fixed sentence used to carry both. "Nothing sits behind more
+     than one thing" meant that no chain ran two steps, and it reads as no card
+     waiting on two issues. On 2026-10-11 issue 303 gained needs of 249 and 510,
+     both open, so the sentence went false on the reading a person gives it.
+     The depth is now the longest chain over the cards `deep` counts, so a
+     third step is named rather than called the deepest the graph goes, and a
+     card waiting on several open issues at once gets its own clause. */
+  const longest = Math.max(0, ...graphed.map(c => depth.get(c.n)));
+  const several = graphed.map(c => ({ n: c.n, on: c.needs.filter(b => by.has(b)) }))
+    .filter(x => x.on.length > 1).sort((a, b) => a.n - b.n);
+  /* The shallow branch needs the same qualifier as the deep one. With no card
+     two steps behind, the short view can still hide every card one step
+     behind, and the sentence then describes a column the reader sees empty. */
+  const depthHidden = deep ? deepHidden : longest === 1 && !bucket[1].length;
   /* Subtracted rather than listed alongside, because a card somebody is already
      on is not work this reader can take, and a count that includes it is the
      sentence disagreeing with the one under it. */
@@ -1819,8 +1845,11 @@ function buildOrder() {
      reads every open issue, so the cards it counts, or the card that frees the
      most, can be ones this view left out. The sentence says when it is counting
      cards the reader cannot see, as the depth sentence does, and points at a
-     hidden top card the way `flownTop` points at one in flight. */
-  const hiddenTop = unblocks.filter(x => !drawn.has(x.n));
+     hidden top card the way `flownTop` points at one in flight. A card the
+     clause on several blockers names can be hidden the same way, so it joins
+     the same pointer rather than getting a second sentence saying so. */
+  const hiddenNamed = [...new Set([...unblocks, ...several].map(x => x.n))]
+    .filter(n => !drawn.has(n)).sort((a, b) => a - b).map(n => ({ n }));
   const freesHidden = unblocks.some(x => [...reach(x.n, feeds)].some(v => !drawn.has(v)));
   /* The plan markers and the pull requests moved to the In flight section, which
      is the single authority for both. This note keeps only what the depth graph
@@ -1842,12 +1871,28 @@ function buildOrder() {
          noun and left the verb fixed, which read "1 card sit" the first time a
          single card reached the third column. That is defect 8 in a second
          place, so the agreement is written wherever a count leads a verb. */
-      ? `${deepHidden ? "Counting the hidden issues, " : ""}` +
-        `${plu(deep, "card")} ${deep === 1 ? "sits" : "sit"} behind two or more, ` +
-        `which is the deepest the graph goes. `
-      : `Nothing sits behind more than one thing any more, so the graph is one level deep. `) +
+      ? `${depthHidden ? "Counting the hidden issues, " : ""}` +
+        `${plu(deep, "card")} ${deep === 1 ? "waits" : "wait"} on an issue that waits on ` +
+        `another, and the deepest is ${plu(longest, "step")} behind. `
+      /* No chain at all says nothing here, because the second and third columns
+         are then empty in both views and the freeing clause below already says
+         when nothing waits on anything. */
+      : longest
+        /* Steps, the unit the column headings count in, rather than levels,
+           which a reader counting columns would put one higher. */
+        ? `${depthHidden ? "Counting the hidden issues, no card" : "No card"} waits on an issue ` +
+          `that waits on another, so none is more than ${plu(longest, "step")} behind. `
+        : ``) +
+    /* Every card named here waits on all of its issues, so "and" and "each" are
+       the right words, unlike the reasons above, which are alternatives. */
+    (several.length === 1
+      ? `#${several[0].n} waits on ${plu(several[0].on.length, "open issue")} at once, ` +
+        `${andlist(several[0].on.map(b => "#" + b))}. `
+      : several.length
+        ? `${andlist(several.map(x => "#" + x.n))} each wait on more than one open issue. `
+        : ``) +
     (most
-      ? (freesHidden ? (deep && deepHidden ? "Counting them too, " : "Counting the hidden issues, ") : "") +
+      ? (freesHidden ? (depthHidden ? "Counting the hidden issues too, " : "Counting the hidden issues, ") : "") +
         (unblocks.length === 1
           ? `<b>#${unblocks[0].n} is the single card whose landing frees the most</b>, at ${plu(most, "other")}. `
           : `<b>${andlist(unblocks.map(x => "#" + x.n))} each free ${plu(most, "other")}</b>, and nothing frees more. `)
@@ -1856,9 +1901,9 @@ function buildOrder() {
       ? `${andlist(flownTop.map(x => "#" + x.n))} ${flownTop.length === 1 ? "is" : "are"} in the ` +
         `In flight section above rather than in a column here. `
       : ``) +
-    (hiddenTop.length
-      ? `${andlist(hiddenTop.map(x => "#" + x.n))} ${hiddenTop.length === 1 ? "is" : "are"} ` +
-        `hidden in this view, so press Show all to see ${hiddenTop.length === 1 ? "it" : "them"}. `
+    (hiddenNamed.length
+      ? `${andlist(hiddenNamed.map(x => "#" + x.n))} ${hiddenNamed.length === 1 ? "is" : "are"} ` +
+        `hidden in this view, so press Show all to see ${hiddenNamed.length === 1 ? "it" : "them"}. `
       : ``) +
     (bucket[3].length
       ? `The fourth column is not a backlog, because nothing in it is waiting on anyone's time.`

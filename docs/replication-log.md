@@ -7894,7 +7894,9 @@ trade on later data.
 
 ### What the entry concludes
 
-Three things.
+Five things. The last two were measured by the write-up after the run, and
+`TestWhatThePostMeasured` in [tests/test_gld_gc.py](../tests/test_gld_gc.py)
+pins them.
 
 1. **Chan's saves reproduce his script exactly.** All five figures of the
    closing comment and both of the text's land on the printed digits.
@@ -7909,9 +7911,25 @@ Three things.
    the backtest.
 3. **The bill rate leaves about half the return standing.** Over the window
    it averages 1.0141 percent against a return of 1.9014 percent. The book's
-   "close to zero" needs GLD's financing to sit about 0.89 percent a year
-   above the bill rate. Whether its holders paid that is not something this
-   repo holds data on.
+   "close to zero" needs GLD's financing to sit about 0.89 percentage points
+   a year above the bill rate. Whether its holders paid that is not
+   something this repo holds data on.
+4. **The 0.8 percent and the 91 days are two drawdowns.** The deepest runs
+   from a high on 2007-10-12 to a trough on 2007-11-12 and is recovered on
+   2007-11-14. Most of it is 2007-11-12 alone, when the trade lost 0.6771
+   percent as GLD fell 4.7213 percent and GC 4.0442 percent. That day is also
+   the 16:00 series' largest move in log(GC / GLD), the 0.007082 of row 11.
+   The 91 days run from 2009-08-28 to 2010-01-08 and reach only −0.40907
+   percent. Measured after the run.
+5. **The return fell with the bill rate, year by year.** S's average annual
+   return against the bill rate over the same months, leaving out the zeroed
+   first row, is 0.052235 against 0.036520 over August to December 2007,
+   0.027315 against 0.013650 in 2008, 0.005822 against 0.001500 in 2009, and
+   0.004458 against 0.001350 over January to August 2010. The margin shrinks
+   from 1.57 percentage points to 0.31, and the bill rate sat below 0.5
+   percent in 22 of the 37 months, from 2008-11. The split by year was chosen
+   after the run, so it is exploratory and carries no verdict. The cost of
+   carry is the usual explanation, and nothing here tests it.
 
 ### What this entry cannot say
 
@@ -7936,7 +7954,10 @@ the earliest gold futures series here starts in May 2004, the month that span
 ends.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/gld-gc-lessons.md](../blog/gld-gc-lessons.md) moves with it, since that
+post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.gld_gc_figures` redraws.
 
 ## Entry 39: XLE against USO signed by crude oil's contango, Chan's *Algorithmic Trading*
 

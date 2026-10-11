@@ -31,6 +31,12 @@ book printed, through ``matches`` and ``gap``. ``TestTheArithmetic`` holds
 every step of S on synthetic legs whose figures are computed here by hand, so a
 flipped sign, an n − 1 deviation, a dropped first row or a 251 each fails.
 
+``blog/gld-gc-lessons.md`` quotes most of these figures, so a change to any of
+them moves that post too. ``TestWhatThePostMeasured`` holds the numbers the
+post added, all measured after the run, and ``TestThePostsHelpers`` holds the
+three helpers they come through on synthetic legs.
+``tests/test_gld_gc_figures.py`` holds what the post's figure draws.
+
 Exploratory. The window is the book's own. It first ran here on 2026-10-10.
 """
 
@@ -69,19 +75,25 @@ from chan.gld_gc import (
     GldGc,
     Identity,
     Sources,
+    bill_accrual,
+    by_year,
     common_days,
     daily_returns,
     figures,
     financing,
     gld_gc,
     identity,
+    log_ratio_changes,
     main,
     ratio_steps,
+    read_ohlc_gc,
     read_sources,
     run,
 )
 from chan.khandani_lo_book_two import gap, matches
+from chan.matlab_helpers import drawdown_path
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
+from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
 SPEC = (
@@ -93,6 +105,12 @@ B1_SPEC = (
     "FRED TB3MS basis rate downloaded 2026-09-30, the monthly three-month bill rate "
     "averaged over 2007-08 to 2010-08, both months included"
 )
+#: The vintage the bill curve and the split by year read, each month's rate over 252 a day.
+BILLS_SPEC = (
+    "FRED TB3MS basis rate downloaded 2026-09-30, each kept day earning its month's rate "
+    "over 252, the first row 0"
+)
+AFTER_THE_RUN = "measured by the write-up after the run, so exploratory like the rest"
 
 
 @pytest.fixture(scope="module")
@@ -479,6 +497,290 @@ class TestTheSeriesIdentity:
         assert found.gap_share == pytest.approx(
             (found.sampled_at_1600.spread / found.gld_spread) ** 2 / 2, rel=1e-12
         )
+
+
+@pytest.fixture(scope="module")
+def cumret(result) -> np.ndarray:
+    """S's ``cumprod(1 + ret) − 1``, the series ``calculateMaxDD`` reads."""
+    return np.cumprod(1 + result.daily) - 1
+
+
+@pytest.fixture(scope="module")
+def ohlc_gc() -> pd.Series:
+    return read_ohlc_gc()[1]
+
+
+def _on(days: pd.DatetimeIndex, row: int) -> str:
+    return str(days[row].date())
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/gld-gc-lessons.md`` quotes that no row of Entry 38 declared.
+
+    The write-up measured every one of them after the run, on the same
+    vintages and specification as the rows above, so each is exploratory and
+    none carries a verdict. The split by calendar year in particular was
+    chosen after seeing the run.
+    """
+
+    def test_the_sharpe_ratio_at_no_rate_and_at_the_window_s_bill_rate(self, result, b1) -> None:
+        """The script's 2 percent is a constant, so the sign of its Sharpe ratio is arithmetic."""
+        assert f"{figures(result.daily, risk_free=0.0).sharpe:.6f}" == "1.284060", (
+            f"{SPEC}, rf = 0; {AFTER_THE_RUN}"
+        )
+        at_bills = figures(result.daily, risk_free=b1.bill_rate / 252).sharpe
+        assert f"{at_bills:.6f}" == "0.599257", f"{SPEC}, rf = B1 / 252; {AFTER_THE_RUN}"
+
+    def test_any_rate_above_the_return_turns_the_sharpe_ratio_negative(self, result) -> None:
+        """The break-even rate is the mean return itself, 1.9014 percent a year."""
+        mean = result.figures.average_annual_return
+        assert f"{100 * mean:.4f}" == "1.9014", SPEC
+        assert figures(result.daily, risk_free=mean / 252).sharpe == pytest.approx(0, abs=1e-12)
+        assert figures(result.daily, risk_free=(mean + 1e-4) / 252).sharpe < 0
+        assert figures(result.daily, risk_free=(mean - 1e-4) / 252).sharpe > 0
+
+    def test_the_script_s_2_percent_is_105_18_percent_of_the_return(self, result) -> None:
+        share = 100 * RISK_FREE_RATE * 252 / result.figures.average_annual_return
+        assert f"{share:.2f}" == "105.18", f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_bill_rate_takes_0_533311_of_the_return(self, b1) -> None:
+        share = b1.bill_rate / b1.average_annual_return
+        assert f"{share:.6f}" == "0.533311", f"{SPEC}, against {B1_SPEC}; {AFTER_THE_RUN}"
+        assert f"{100 * share:.2f}" == "53.33", f"{SPEC}, against {B1_SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_bound_on_an_offset_is_about_2_6_minutes_of_a_24_hour_day(self, found) -> None:
+        """The bound of 0.001775 of a day's variance, read as a share of 1,440 minutes.
+
+        Reading variance as clock time assumes gold's variance accrues evenly
+        around the clock, which no test here measures.
+        """
+        assert f"{found.gap_share * 24 * 60:.1f}" == "2.6", f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_no_gold_futures_series_here_starts_before_2004_05_24(self) -> None:
+        """Location 2718's −4.9 percent runs to May 2004, so no file here can reproduce it.
+
+        The four OHLC saves are every GC series the repo holds besides the 16:00 one.
+        """
+        firsts = {
+            name: str(load_panel(name)[1]["GC"].dropna().index[0].date())
+            for name in (
+                "inputDataOHLCDaily_20120504.mat",
+                OHLC_SOURCE_FILE,
+                "inputDataOHLCDaily_20120511.mat",
+                "inputDataOHLCDaily_20120517.mat",
+            )
+        }
+        assert firsts[OHLC_SOURCE_FILE] == "2004-05-24", AFTER_THE_RUN
+        assert min(firsts.values()) == "2004-05-24", (firsts, AFTER_THE_RUN)
+
+    def test_the_return_fell_with_the_bill_rate_year_by_year(self, result) -> None:
+        """Each year's rows, less the zeroed first row, against the months they span."""
+        table = [
+            (y.year, y.rows, f"{y.average_annual_return:.6f}", f"{y.bill_rate:.6f}")
+            for y in by_year(result)
+        ]
+        assert table == [
+            (2007, 101, "0.052235", "0.036520"),
+            (2008, 253, "0.027315", "0.013650"),
+            (2009, 251, "0.005822", "0.001500"),
+            (2010, 146, "0.004458", "0.001350"),
+        ], f"{SPEC}, against {B1_SPEC} by calendar year; {AFTER_THE_RUN}"
+        assert sum(row for _, row, _, _ in table) == len(result.days) - 1
+
+    def test_the_excess_shrinks_from_1_57_points_to_0_31(self, result) -> None:
+        excess = [f"{100 * y.excess:.2f}" for y in by_year(result)]
+        assert (excess[0], excess[-1]) == ("1.57", "0.31"), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_bill_rate_sat_below_half_a_percent_in_22_of_37_months(self) -> None:
+        first, last = FINANCING_MONTHS
+        assert bill_rates.months_below(0.005, first, last) == 22, B1_SPEC
+        below = [
+            month
+            for month, rate in bill_rates.monthly_rates()
+            if first <= month <= last and rate < 0.005
+        ]
+        assert (below[0], below[-1], len(below)) == ("2008-11", "2010-08", 22), B1_SPEC
+
+    def test_the_deepest_drawdown_is_mostly_one_day(self, result, cumret) -> None:
+        """A high on 2007-10-12, the trough on 2007-11-12 and a new high on 2007-11-14."""
+        _, drawdown, _ = drawdown_path(cumret)
+        trough = int(np.argmin(drawdown))
+        high = int(np.argmax(cumret[: trough + 1]))
+        recovered = trough + int(np.argmax(drawdown[trough:] == 0))
+        assert (_on(result.days, high), _on(result.days, trough), _on(result.days, recovered)) == (
+            "2007-10-12",
+            "2007-11-12",
+            "2007-11-14",
+        ), f"{SPEC}; {AFTER_THE_RUN}"
+        assert drawdown[trough] == result.figures.max_drawdown
+
+    def test_on_the_trough_day_gld_fell_further_than_gc(self, result) -> None:
+        row = result.days.get_loc(pd.Timestamp("2007-11-12"))
+        gld = result.gld[row] / result.gld[row - 1] - 1
+        gc = result.gc[row] / result.gc[row - 1] - 1
+        assert (f"{100 * result.daily[row]:.4f}", f"{100 * gld:.4f}", f"{100 * gc:.4f}") == (
+            "-0.6771",
+            "-4.7213",
+            "-4.0442",
+        ), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_91_days_are_another_drawdown_and_a_shallower_one(self, result, cumret) -> None:
+        """The longest stretch below a high runs 2009-08-28 to 2010-01-08 and reaches −0.40907%."""
+        _, drawdown, duration = drawdown_path(cumret)
+        last = int(np.argmax(duration))
+        first = last - int(duration[last]) + 1
+        assert (_on(result.days, first), _on(result.days, last), int(duration[last])) == (
+            "2009-08-28",
+            "2010-01-08",
+            91,
+        ), f"{SPEC}; {AFTER_THE_RUN}"
+        assert f"{100 * drawdown[first : last + 1].min():.5f}" == "-0.40907", (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+
+    def test_the_16_00_series_moves_most_on_the_trough_day(self, sources, result) -> None:
+        change = log_ratio_changes(sources.gc, sources.gld, result.days)
+        assert str(change.abs().idxmax().date()) == "2007-11-12", f"{SPEC}; {AFTER_THE_RUN}"
+        assert f"{change.max():.6f}" == "0.007082", SPEC
+        assert f"{change.min():.6f}" == "-0.006626", f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_16_00_series_daily_change_still_reverses(self, sources, result) -> None:
+        change = log_ratio_changes(sources.gc, sources.gld, result.days).to_numpy()
+        reversal = np.corrcoef(change[:-1], change[1:])[0, 1]
+        assert f"{reversal:.6f}" == "-0.437059", f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_ohlc_save_s_moves_past_2_percent(self, sources, result, ohlc_gc) -> None:
+        """Its largest rise is on 2008-09-18 and its largest fall the day after.
+
+        Of its 20 moves past 0.02, 8 rise and 12 fall.
+        """
+        change = log_ratio_changes(ohlc_gc, sources.gld, result.days)
+        assert len(change) == 751
+        assert str(change.abs().idxmax().date()) == "2008-09-18", f"{SPEC}; {AFTER_THE_RUN}"
+        assert f"{change.min():.6f}" == "-0.075146", f"{SPEC}; {AFTER_THE_RUN}"
+        assert str(change.idxmin().date()) == "2008-09-19", f"{SPEC}; {AFTER_THE_RUN}"
+        assert (int((change > STEP).sum()), int((change < -STEP).sum())) == (8, 12), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+
+    def test_the_three_curves_end_where_the_post_says(self, result, cumret) -> None:
+        """S, bills accrued day by day, and the script's 2 percent, each 0 on 2007-08-03."""
+        bills = np.cumprod(1 + bill_accrual(result.days).to_numpy()) - 1
+        two_percent = (1 + RISK_FREE_RATE) ** np.arange(len(result.days)) - 1
+        assert (cumret[0], bills[0], two_percent[0]) == (0.0, 0.0, 0.0)
+        assert (f"{cumret[-1]:.6f}", f"{bills[-1]:.6f}", f"{two_percent[-1]:.6f}") == (
+            "0.058033",
+            "0.031057",
+            "0.061413",
+        ), f"{SPEC}; {BILLS_SPEC}; {AFTER_THE_RUN}"
+        on = result.days.get_loc(pd.Timestamp("2008-12-31"))
+        assert (f"{cumret[on]:.6f}", f"{bills[on]:.6f}") == ("0.049260", "0.028733"), (
+            f"{SPEC}; {BILLS_SPEC}; {AFTER_THE_RUN}"
+        )
+
+    def test_s_peaks_on_2010_07_27_and_last_tops_2_percent_on_2010_05_21(
+        self, result, cumret
+    ) -> None:
+        peak = int(np.argmax(cumret))
+        assert (_on(result.days, peak), f"{cumret[peak]:.6f}") == ("2010-07-27", "0.058415"), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        two_percent = (1 + RISK_FREE_RATE) ** np.arange(len(result.days)) - 1
+        above = np.flatnonzero(cumret > two_percent)
+        assert _on(result.days, int(above[-1])) == "2010-05-21", f"{SPEC}; {AFTER_THE_RUN}"
+
+
+class TestThePostsHelpers:
+    """The three helpers the post added, on synthetic legs whose answers are worked here."""
+
+    DAYS = pd.DatetimeIndex(["2008-12-30", "2008-12-31", "2009-01-02", "2009-01-05"])
+
+    def test_the_log_ratio_change_is_dated_on_the_later_day(self) -> None:
+        gc = closes([10.0, 10.3, 10.3, 9.5], list(self.DAYS.strftime("%Y-%m-%d")))
+        gld = closes([1.0, 1.0, 1.1, 1.0], list(self.DAYS.strftime("%Y-%m-%d")))
+        change = log_ratio_changes(gc, gld, self.DAYS)
+        assert change.index.equals(self.DAYS[1:])
+        np.testing.assert_allclose(
+            change.to_numpy(),
+            [math.log(1.03), math.log(1 / 1.1), math.log((9.5 / 1.0) / (10.3 / 1.1))],
+            rtol=0,
+            atol=1e-15,
+        )
+
+    def test_it_reads_only_the_days_it_is_handed(self) -> None:
+        """A day one leg holds and ``days`` leaves out moves nothing."""
+        gc = closes([10.0, 99.0, 10.3], ["2020-01-02", "2020-01-03", "2020-01-06"])
+        gld = closes([1.0, 1.0, 1.0], ["2020-01-02", "2020-01-03", "2020-01-06"])
+        days = pd.DatetimeIndex(["2020-01-02", "2020-01-06"])
+        assert log_ratio_changes(gc, gld, days).tolist() == [pytest.approx(math.log(1.03))]
+
+    def test_ratio_steps_summarises_the_same_changes(self, monkeypatch) -> None:
+        seen = []
+        unpatched = module.log_ratio_changes
+
+        def record(gc, gld, days):
+            seen.append(len(days))
+            return unpatched(gc, gld, days)
+
+        monkeypatch.setattr(module, "log_ratio_changes", record)
+        days = ["2020-01-02", "2020-01-03", "2020-01-06"]
+        gc, gld = closes([10.0, 10.3, 9.5], days), closes([1.0] * 3, days)
+        ratio_steps(gc, gld, pd.DatetimeIndex(days))
+        assert seen == [3]
+
+    def test_the_bills_earn_each_month_s_rate_over_252_from_the_second_row(self) -> None:
+        rates = dict(bill_rates.monthly_rates())
+        accrual = bill_accrual(self.DAYS)
+        assert accrual.index.equals(self.DAYS)
+        assert accrual.tolist() == [
+            0.0,
+            rates["2008-12"] / 252,
+            rates["2009-01"] / 252,
+            rates["2009-01"] / 252,
+        ]
+
+    def test_a_month_the_series_lacks_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="holds none for 2199-01"):
+            bill_accrual(pd.DatetimeIndex(["2008-12-31", "2199-01-02"]))
+
+    def test_by_year_leaves_out_the_first_row_and_reads_each_year_s_months(self) -> None:
+        daily = np.array([0.0, 0.01, -0.002, 0.004])
+        result = GldGc(days=self.DAYS, gc=np.ones(4), gld=np.ones(4), daily=daily)
+        first, second = by_year(result)
+        assert (first.year, first.rows, second.year, second.rows) == (2008, 1, 2009, 2)
+        assert first.average_annual_return == pytest.approx(252 * 0.01, rel=1e-12)
+        assert second.average_annual_return == pytest.approx(252 * 0.001, rel=1e-12)
+        assert first.bill_rate == bill_rates.average("2008-12", "2008-12")
+        assert second.bill_rate == bill_rates.average("2009-01", "2009-01")
+        assert first.excess == first.average_annual_return - first.bill_rate
+
+    def test_a_year_s_bill_rate_averages_every_month_its_days_span(self) -> None:
+        """The first row's month counts even though its return does not.
+
+        The window opens on a month's last day here, so leaving the first row
+        out of the months would average February to March instead.
+        """
+        days = pd.DatetimeIndex(["2008-01-31", "2008-02-01", "2008-03-31"])
+        result = GldGc(days=days, gc=np.ones(3), gld=np.ones(3), daily=np.array([0.0, 0.1, 0.2]))
+        (year,) = by_year(result)
+        january_on = bill_rates.average("2008-01", "2008-03")
+        assert january_on != bill_rates.average("2008-02", "2008-03")
+        assert year.bill_rate == january_on
+        assert year.rows == 2
+
+    def test_each_helper_reads_the_data_directory_it_is_handed(
+        self, tmp_path, sources, result
+    ) -> None:
+        """An empty directory holds no vintage, so a helper ignoring it would read the repo's."""
+        synthetic = GldGc(days=self.DAYS, gc=np.ones(4), gld=np.ones(4), daily=np.zeros(4))
+        for call in (
+            lambda: bill_accrual(self.DAYS, data_dir=tmp_path),
+            lambda: by_year(synthetic, data_dir=tmp_path),
+            lambda: read_ohlc_gc(tmp_path),
+            lambda: identity(sources, result, data_dir=tmp_path),
+        ):
+            with pytest.raises(VintageUnavailable):
+                call()
 
 
 class TestTheGuardAndTheReads:
