@@ -651,11 +651,18 @@ def test_no_committed_post_leaves_markdown_as_literal_text() -> None:
     open ``![`` only when its first line holds an image and more text, which
     no committed post has. Two posts did this before the converter learned
     these shapes, and their drafts were made by another route.
+
+    Anything indented under a list item beyond its one nested list is not read
+    as part of the item. A fence or a further paragraph there becomes a
+    paragraph opening with spaces, and the list splits around it. The Entry 34
+    post carried two such equations and the two paragraphs after them when it
+    merged, and this check found them before its draft was written.
     """
     found = set()
     for post in POSTS:
         draft = m2s.convert(post.read_text(encoding="utf-8"), images_for(post))
-        if any(t.startswith(("|", "#", "![")) for t in _paragraph_texts(draft["body"])):
+        texts = list(_paragraph_texts(draft["body"]))
+        if any(t.startswith(("|", "#", "![")) or t[:1].isspace() for t in texts):
             found.add(post.name)
     assert found == set()
 
