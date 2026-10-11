@@ -351,6 +351,18 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``TestTheGuardAndTheReads`` in ``tests/test_xle_uso_roll_return.py`` records
 #: the call, holds both legs clean, and holds a planted break in a leg or a
 #: contract refused.
+#:
+#: [Issue 275](https://github.com/l3a0/quantitative-trading/issues/275) decided
+#: that ``chan.low_beta_leverage`` refuses no window, as ``chan.momentum_factor``
+#: does on the same file. A beta sort is meant to see a real move, and refusing
+#: a window across AAPL's 2000-09-29 would drop a stock from the very sort
+#: being tested. The run instead counts the stock-months in either portfolio
+#: with a flagged day between the first return of the beta window and the end
+#: of the holding month: 36 of the low portfolio's and 186 of the high
+#: portfolio's, against 7,908 each. WYN and DFS give no return on the day the
+#: second company starts, because the panel frame holds no close the day
+#: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
+#: holds the 43 flagged days in 34 stocks, both counts and both restarts.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
