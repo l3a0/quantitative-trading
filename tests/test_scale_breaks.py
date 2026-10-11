@@ -352,30 +352,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: the call, holds both legs clean, and holds a planted break in a leg or a
 #: contract refused.
 #:
-#: [Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) decided
-#: that ``chan.khandani_lo_small_caps`` refuses no window for Khandani and Lo's
-#: reversal on the S&P 600 file, for a reason of its own. Over each member's own
-#: closes the guard refuses 2006-01-03 to 2006-12-29 on BCSI's 2006-02-06 and
-#: SCUR's 2006-07-12, both pinned below, and over each member's own opens it
-#: passes. Both days were classified on the issue before the run, from each
-#: stock's own prices and from outside reports, as earnings warnings recorded at
-#: the prices that traded, so the run keeps them. Rule B weights a return that
-#: is not finite at 0, so PMC's gap, which spans all of 2006, and the gaps of
-#: the other seven stocks missing a 2006 price reach no weight.
-#: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo_small_caps.py``
-#: runs both refusals and holds that the two days are the pinned flags.
-#:
-#: [Issue 275](https://github.com/l3a0/quantitative-trading/issues/275) decided
-#: that ``chan.low_beta_leverage`` refuses no window, as ``chan.momentum_factor``
-#: does on the same file. A beta sort is meant to see a real move, and refusing
-#: a window across AAPL's 2000-09-29 would drop a stock from the very sort
-#: being tested. The run instead counts the stock-months in either portfolio
-#: with a flagged day between the first return of the beta window and the end
-#: of the holding month: 36 of the low portfolio's and 186 of the high
-#: portfolio's, against 7,908 each. WYN and DFS give no return on the day the
-#: second company starts, because the panel frame holds no close the day
-#: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
-#: holds the 43 flagged days in 34 stocks, both counts and both restarts.
+#: [Issue 358](https://github.com/l3a0/quantitative-trading/issues/358) decided
+#: that ``chan.opening_gap`` calls the guard for *Algorithmic Trading*'s
+#: Example 7.1 on FSTX's closes over the whole span of each save it reads, as
+#: ``chan.tu_momentum`` does for TU. Those are the 2012-05-17 save the script
+#: loads and the 2012-05-11 and 2012-05-07 saves read beside it. FSTX flags
+#: nothing on any of its four fields in any of the three, so nothing is
+#: refused. ``TestTheGuardAndTheReads`` in ``tests/test_opening_gap.py``
+#: records the call, holds every field clean, and holds a planted break
+#: refused.
 #:
 #: [Issue 357](https://github.com/l3a0/quantitative-trading/issues/357) decided
 #: how ``chan.vx_es_roll_return`` guards the three reads its trade takes for
@@ -406,6 +391,31 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: comparison set through the fill's one-day return of 1.8654, so
 #: ``TestWithoutPMC`` in ``tests/test_pca_factor_momentum.py`` pins every
 #: figure again without PMC, including which factor the criterion would miss.
+#:
+#: [Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) decided
+#: that ``chan.khandani_lo_small_caps`` refuses no window for Khandani and Lo's
+#: reversal on the S&P 600 file, for a reason of its own. Over each member's own
+#: closes the guard refuses 2006-01-03 to 2006-12-29 on BCSI's 2006-02-06 and
+#: SCUR's 2006-07-12, both pinned below, and over each member's own opens it
+#: passes. Both days were classified on the issue before the run, from each
+#: stock's own prices and from outside reports, as earnings warnings recorded at
+#: the prices that traded, so the run keeps them. Rule B weights a return that
+#: is not finite at 0, so PMC's gap, which spans all of 2006, and the gaps of
+#: the other seven stocks missing a 2006 price reach no weight.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo_small_caps.py``
+#: runs both refusals and holds that the two days are the pinned flags.
+#:
+#: [Issue 275](https://github.com/l3a0/quantitative-trading/issues/275) decided
+#: that ``chan.low_beta_leverage`` refuses no window, as ``chan.momentum_factor``
+#: does on the same file. A beta sort is meant to see a real move, and refusing
+#: a window across AAPL's 2000-09-29 would drop a stock from the very sort
+#: being tested. The run instead counts the stock-months in either portfolio
+#: with a flagged day between the first return of the beta window and the end
+#: of the holding month: 36 of the low portfolio's and 186 of the high
+#: portfolio's, against 7,908 each. WYN and DFS give no return on the day the
+#: second company starts, because the panel frame holds no close the day
+#: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
+#: holds the 43 flagged days in 34 stocks, both counts and both restarts.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
