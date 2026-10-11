@@ -27,9 +27,10 @@ choosing one. All six alignments and both averages are pinned in
 ``tests/test_vix_filter.py``, so a reader can see what each gives, and only
 the join below lands 2.6 percent. Buy on gap's figures do not depend on which
 previous close is read, because every one of its 1,500 days is a VIX day and
-VIX has no day between its first and last that the panel lacks, so every
-alignment that reads the previous day reads the same close. Every result here
-is exploratory.
+VIX has no day between its first and last that the panel lacks. So an
+alignment that reads the previous day can change only the close read on the
+first day, 2006-05-11, which no reading keeps. Every result here is
+exploratory.
 
 **The specification.** Three steps, each mapped to the function that runs it.
 
@@ -47,8 +48,9 @@ is exploratory.
    days. The "annualized average return" is 252 times the mean over the
    qualifying days alone, and the Sharpe ratio is
    :func:`chan.khandani_lo.plain_sharpe` on those same days, with MATLAB's
-   n − 1 deviation. For FSTX, the qualifying days' returns are the same
-   whether the rule runs before or after the join, which the tests hold.
+   n − 1 deviation, no risk-free rate and no cost. For FSTX, the qualifying
+   days' returns are the same whether the rule runs before or after the join,
+   which the tests hold.
 
 **The phrase "annualized average return" names two formulas in one
 sentence.** Entry 18 of ``docs/replication-log.md`` found that the unfiltered
@@ -98,30 +100,46 @@ entry before parsing it.
 1. **VIX** from ``VIX.csv``, ``vix/vix.csv``, vendor chan-csv, basis ``raw``,
    saved 2012-05-09, 5,635 rows from 1990-01-02 to 2012-05-08.
 2. **The stocks** from ``inputdataohlcdaily_stocks_20120424/``, the 497
-   stocks of Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, read by
+   stocks of Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, chan-mat,
+   adjusted, saved 2012-04-25, read by
    :func:`chan.buy_on_gap.read_sources` over 1,500 days from 2006-05-11 to
    2012-04-24. Every figure on it is about survivors.
 3. **FSTX** from ``inputdataohlcdaily_20120517/fstx.csv``, chan-mat,
    adjusted, saved 2012-05-18, read by :func:`chan.opening_gap.read_sources`
    over 2,000 days from 2004-07-16 to 2012-05-17.
 
-**The scale-break guard.** VIX flags one day, 2007-02-27, a real move from
-11.15 to 18.31 that ``tests/test_scale_breaks.py`` pins, and it falls inside
-both windows. So a guard over either whole window would refuse.
-:mod:`chan.vx_es_roll_return` met the same day and guarded VIX only over the
-span its figures read, and this module follows it. :func:`read_sources`
-guards VIX from :data:`GUARD_START`, the day after the flag, to each window's
-last joined day. The spans before it are still read. VIX never closes above
-23.81 from 2004-07-15, the last close before FSTX's first day, to 2007-02-27,
-which is more than 11 points short of the threshold, and the tests pin it. So
-a break there could move a day into the filter only by raising a close by more
-than half again. VIX's first close above
-35 inside either window is on 2008-09-17. FSTX is guarded over its whole span
+**The scale-break guard.** :func:`chan.series.scale_breaks` flags a day whose
+close is more than 1.6 times the close before it, or less than that close
+divided by 1.6. VIX flags one day, 2007-02-27, a real move from 11.15 to 18.31
+that ``tests/test_scale_breaks.py`` pins, and it falls inside both windows. So
+a guard over either whole window would refuse. :func:`read_sources` guards VIX
+over two spans in each window instead, from the window's first joined day to
+:data:`BEFORE_FLAG` and from :data:`FLAGGED_DAY` to its last joined day.
+Together they leave out only the ratio from 2007-02-26 to 2007-02-27, so every
+day-over-day move the run reads is guarded except the one real move.
+:mod:`chan.vx_es_roll_return` met the same day and guarded VIX only from an
+anchor after it. That is a different case, because no figure there reads VIX
+before the anchor, while here every close before the flag feeds the filter.
+
+A rescale smaller than 1.6 times is invisible to the guard on any span. VIX's
+largest close from FSTX's first joined day to 2007-02-26 is 23.81, on
+2006-06-13, and a rescale of 1.47 times would carry it past 35, inside that
+blind band. So the guard rules out a large rescale on every span the run
+reads, and nothing here rules out a small one. VIX's first close above 35
+inside either window is on 2008-09-17. FSTX is guarded over its whole span
 inside :func:`chan.opening_gap.read_sources`, which flags nothing. The stocks
 are not guarded, for the reason :mod:`chan.buy_on_gap` gives: the guard flags
 30 days in 17 of them, all inside the window, and
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) decided
 that reproducing Chan's script on the prices as they stand comes first.
+
+**Whether the kept days differ from the rest.** No source prints a test, so
+:attr:`Filtered.welch` runs one beside the replication. Welch's t on mean
+daily return, the kept days against the other joined days, is 0.705402 for
+buy on gap, with p of 0.481405, and −0.684181 for FSTX under the script's
+sign, with p of 0.494679. The momentum sign gives the same t negated. The test
+treats each day as independent, and neither difference is distinguishable from
+noise, so neither rule's figures say which way the filter points.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 to 2012 and 2004 to 2012 samples on two rules and a threshold he chose, and
@@ -139,6 +157,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
+from scipy import stats
 
 from chan import buy_on_gap, opening_gap
 from chan.khandani_lo import TRADING_DAYS, plain_sharpe
@@ -159,10 +178,10 @@ VIX = "VIX"
 
 #: "if the preceding day's VIX is over 35".
 THRESHOLD = 35.0
-#: VIX's one flagged day, the real move from 11.15 to 18.31.
+#: VIX's one flagged day, the real move from 11.15 to 18.31, where the second guarded span starts.
 FLAGGED_DAY = pd.Timestamp("2007-02-27")
-#: The first day the guard reads, the day after :data:`FLAGGED_DAY`.
-GUARD_START = pd.Timestamp("2007-02-28")
+#: VIX's close before :data:`FLAGGED_DAY`, where the first guarded span ends.
+BEFORE_FLAG = pd.Timestamp("2007-02-26")
 
 #: Location 3509's filtered figures for buy on gap, "17.2 percent with a Sharpe ratio of 1.4".
 BOOK_BUY_ON_GAP_PERCENT = "17.2"
@@ -173,7 +192,7 @@ BOOK_FSTX_SHARPE = "0.16"
 
 
 def common_days(days: pd.DatetimeIndex, vix: pd.Series) -> pd.DatetimeIndex:
-    """MATLAB's ``intersect`` on two date vectors: the days both trade, in order."""
+    """The days both trade, sorted ascending, which is what MATLAB's ``intersect`` returns."""
     return days.intersection(vix.index).sort_values()
 
 
@@ -319,6 +338,17 @@ class Filtered:
         zeroed = np.where(self.qualifies, self.daily, 0.0)
         return reading(zeroed, np.ones(len(zeroed), dtype=bool))
 
+    @property
+    def welch(self) -> tuple[float, float]:
+        """Welch's t and its two-sided p for the kept days' mean daily return against the rest.
+
+        The rest are the other joined days. The test treats each day as
+        independent of the others, which daily returns need not be, so it is
+        a rough check on whether the kept days differ rather than a verdict.
+        """
+        test = stats.ttest_ind(self.filtered, self.daily[~self.qualifies], equal_var=False)
+        return float(test.statistic), float(test.pvalue)
+
 
 def vix_filter(
     name: str,
@@ -356,8 +386,21 @@ class Sources:
     fstx: pd.DataFrame
 
 
+def guarded_spans(
+    days: pd.DatetimeIndex, vix: pd.Series
+) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
+    """The two spans of a window VIX is guarded over, either side of :data:`FLAGGED_DAY`.
+
+    The first runs from the window's first joined day to :data:`BEFORE_FLAG`
+    and the second from :data:`FLAGGED_DAY` to its last joined day, so the
+    only day-over-day ratio neither reads is the flagged one.
+    """
+    joined = common_days(days, vix)
+    return [(joined[0], BEFORE_FLAG), (FLAGGED_DAY, joined[-1])]
+
+
 def read_sources(data_dir: Path | None = None) -> Sources:
-    """VIX, the stocks and FSTX, with VIX guarded from :data:`GUARD_START` to each window's end.
+    """VIX, the stocks and FSTX, with VIX guarded over :func:`guarded_spans` of each window.
 
     FSTX is guarded inside :func:`chan.opening_gap.read_sources`. The stocks
     are not guarded, as :mod:`chan.buy_on_gap` decides.
@@ -368,9 +411,8 @@ def read_sources(data_dir: Path | None = None) -> Sources:
     stock_members, stocks = buy_on_gap.read_sources(data_dir)
     fstx_member, fstx = opening_gap.read_sources(data_dir)
     for days in (stocks["Close"].index, fstx.index):
-        refuse_window_crossing_a_break(
-            [(vix_member, vix)], start=GUARD_START, end=common_days(days, vix)[-1]
-        )
+        for start, end in guarded_spans(days, vix):
+            refuse_window_crossing_a_break([(vix_member, vix)], start=start, end=end)
     return Sources(
         vix_member=vix_member,
         vix=vix,
@@ -455,8 +497,8 @@ def report(sources: Sources, result: VixFilter) -> None:
         f"  rule      a day is kept when VIX closed above {THRESHOLD:g} on the previous joined day"
     )
     print(
-        f"  guard     VIX from {GUARD_START.date()} to {long.days[-1].date()} and to "
-        f"{literal.days[-1].date()}, past its flagged day {FLAGGED_DAY.date()}"
+        f"  guard     VIX over each window but its flagged move, {BEFORE_FLAG.date()} to "
+        f"{FLAGGED_DAY.date()}"
     )
     print()
     print(
@@ -556,6 +598,12 @@ def report(sources: Sources, result: VixFilter) -> None:
         f"252 x mean {result.fstx_full.average_annual_return:.6f}, "
         f"Sharpe ratio {result.fstx_full.sharpe:.6f}"
     )
+    for filtered in (long, literal):
+        t, p = filtered.welch
+        print(
+            f"  Welch's t      {filtered.name}, kept days against the other joined days: "
+            f"t {t:.6f}, p {p:.6f}, treating days as independent"
+        )
     print()
     print(
         f"  Annualised over {TRADING_DAYS} days with no risk-free rate and no cost. "

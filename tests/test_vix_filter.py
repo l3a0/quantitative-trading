@@ -53,15 +53,20 @@ from chan import buy_on_gap, opening_gap, paths
 from chan import vix_filter as module
 from chan.khandani_lo_book_two import gap, matches
 from chan.matlab_helpers import backshift
-from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
+from chan.series import (
+    SCALE_BREAK_BOUND,
+    WindowCrossesScaleBreak,
+    refuse_window_crossing_a_break,
+    scale_breaks,
+)
 from chan.vintage import VintageUnavailable
 from chan.vix_filter import (
+    BEFORE_FLAG,
     BOOK_BUY_ON_GAP_PERCENT,
     BOOK_BUY_ON_GAP_SHARPE,
     BOOK_FSTX_PERCENT,
     BOOK_FSTX_SHARPE,
     FLAGGED_DAY,
-    GUARD_START,
     THRESHOLD,
     VIX_FILE,
     Filtered,
@@ -69,6 +74,7 @@ from chan.vix_filter import (
     as_of_reading,
     common_days,
     forward_filled_reading,
+    guarded_spans,
     latest_close_before,
     main,
     own_calendar_reading,
@@ -168,9 +174,19 @@ class TestTheJoin:
         assert (len(long.days), long.calendar_days) == (1500, 1500)
 
     def test_buy_on_gap_s_calendar_is_vix_s_over_its_span(self, sources) -> None:
-        """So every alignment that reads the previous day reads the same close."""
-        days = sources.stocks["Close"].index
-        assert sources.vix.loc[days[0] : days[-1]].index.equals(days)
+        """So an alignment that reads the previous day changes only the first day's close.
+
+        The join reads NaN on 2006-05-11 and the latest close before it reads
+        11.78, and neither keeps the day.
+        """
+        days, vix = sources.stocks["Close"].index, sources.vix
+        assert vix.loc[days[0] : days[-1]].index.equals(days)
+        joined = backshift(1, vix.reindex(days).to_numpy(dtype=float))
+        latest = latest_close_before(days, vix)
+        assert (joined[1:] == latest[1:]).all()
+        assert days[0] == day("2006-05-11")
+        assert np.isnan(joined[0])
+        assert latest[0] == 11.78 < THRESHOLD
 
     def test_fstx_keeps_1945_of_its_2000_days(self, result) -> None:
         literal = result.literal
@@ -269,15 +285,39 @@ class TestTheSpecification:
             assert (closes[rows - 1] > 35).all()
             assert (closes[np.flatnonzero(~filtered.qualifies[1:])] <= 35).all()
 
-    def test_the_rule_run_after_the_join_keeps_the_same_fstx_returns(self, sources, result) -> None:
-        """The spread differs on other days, and the 185 kept days do not move."""
-        after = opening_gap.opening_gap(sources.fstx.loc[result.literal.days])
+    def test_the_rule_run_after_the_join_keeps_the_same_fstx_returns(
+        self, sources, result, fstx_rule
+    ) -> None:
+        """Eleven joined days move and none of the 185 kept days does.
+
+        Ten of the eleven are the first joined day after one of the 48 days
+        the CBOE did not trade, where the open is set against the high or low
+        of two sessions back. Holding the full calendar's spread, that alone
+        moves those ten. The eleventh, 2005-09-20, moves through the 90-day
+        spread alone. The 7 days after 2012-05-08 follow every joined day, so
+        dropping them moves nothing.
+        """
         literal = result.literal
+        joined = literal.days
+        frame = sources.fstx.loc[joined]
+        after = opening_gap.opening_gap(frame)
         assert (after.literal[literal.qualifies] == literal.filtered).all()
         assert (after.momentum[literal.qualifies] == result.momentum.filtered).all()
         moved = after.literal != literal.daily
         assert int(moved.sum()) == 11
         assert not moved[literal.qualifies].any()
+        lost = sources.fstx.index.difference(sources.vix.index)
+        full = fstx_rule.days
+        after_a_lost_day = np.array([full[full.get_loc(d) - 1] in lost for d in joined])
+        assert int((moved & after_a_lost_day).sum()) == 10
+        assert list(joined[moved & ~after_a_lost_day]) == [day("2005-09-20")]
+        rows = full.get_indexer(joined)
+        op, hi, lo = (frame[f].to_numpy(dtype=float) for f in ("Open", "High", "Low"))
+        bar_only = opening_gap.positions(op, hi, lo, fstx_rule.spread[rows])
+        assert list(joined[bar_only != fstx_rule.positions[rows]]) == list(
+            joined[moved & after_a_lost_day]
+        )
+        assert int((lost > joined[-1]).sum()) == 7
 
 
 class TestTheClaim:
@@ -298,6 +338,12 @@ class TestTheClaim:
     def test_the_momentum_returns_are_the_literal_ones_negated(self, result) -> None:
         assert (result.momentum.daily == -result.literal.daily).all()
 
+    def test_the_momentum_sign_loses_on_the_joined_calendar(self, result) -> None:
+        """252 times the mean over all 1,945 joined days, beside the kept days' −0.025730."""
+        joined = result.momentum.unfiltered
+        assert joined.kept == 1945
+        assert joined.average_annual_return == pytest.approx(-0.139950, abs=SIX)
+
 
 class TestTheReadingsThatMiss:
     """Rows 6 to 12: each reading set aside, and why."""
@@ -311,6 +357,7 @@ class TestTheReadingsThatMiss:
         long = result.buy_on_gap
         assert long.apr == pytest.approx(0.179297, abs=SIX)
         assert not matches(100 * long.apr, BOOK_BUY_ON_GAP_PERCENT)
+        assert matches(100 * long.apr, "17.9")
         assert gap(100 * long.apr, BOOK_BUY_ON_GAP_PERCENT) == 0.7
         assert result.literal.apr == pytest.approx(0.013762, abs=SIX)
 
@@ -320,6 +367,7 @@ class TestTheReadingsThatMiss:
         assert long.kept == 1500
         assert long.average_annual_return == pytest.approx(0.021777, abs=SIX)
         assert long.sharpe == pytest.approx(0.503869, abs=SIX)
+        assert matches(100 * long.average_annual_return, "2.2")
         assert gap(100 * long.average_annual_return, BOOK_BUY_ON_GAP_PERCENT) == -15.0
         assert gap(long.sharpe, BOOK_BUY_ON_GAP_SHARPE) == -0.9
         assert literal.kept == 1945
@@ -327,6 +375,8 @@ class TestTheReadingsThatMiss:
         assert literal.sharpe == pytest.approx(0.050969, abs=SIX)
         assert not matches(100 * literal.average_annual_return, BOOK_FSTX_PERCENT)
         assert not matches(literal.sharpe, BOOK_FSTX_SHARPE)
+        assert gap(100 * literal.average_annual_return, BOOK_FSTX_PERCENT) == -2.4
+        assert gap(literal.sharpe, BOOK_FSTX_SHARPE) == -0.11
 
     def test_the_latest_close_before_each_day_prints_2_5(self, result) -> None:
         """Row 8. The Sharpe ratio lands and the return misses, so the join is the reading."""
@@ -335,8 +385,12 @@ class TestTheReadingsThatMiss:
         assert as_of.average_annual_return == pytest.approx(0.025319, abs=SIX)
         assert as_of.sharpe == pytest.approx(0.163555, abs=SIX)
         assert not matches(100 * as_of.average_annual_return, BOOK_FSTX_PERCENT)
+        assert matches(100 * as_of.average_annual_return, "2.5")
         assert gap(100 * as_of.average_annual_return, BOOK_FSTX_PERCENT) == -0.1
         assert matches(as_of.sharpe, BOOK_FSTX_SHARPE)
+        sharpe_gap = gap(as_of.sharpe, BOOK_FSTX_SHARPE)
+        assert sharpe_gap == 0.0
+        assert math.copysign(1, sharpe_gap) == 1
 
     def test_the_latest_close_reading_adds_three_us_holidays(
         self, sources, result, fstx_rule
@@ -474,7 +528,7 @@ class TestTheReadingsThatMiss:
 
 
 class TestBesideTheReplication:
-    """Rows 14 and 15, which no source prints."""
+    """Rows 14, 15 and 18, which no source prints."""
 
     def test_both_rules_keep_the_days_from_2008_09_18_to_2011_11_10(self, result) -> None:
         for filtered in (result.buy_on_gap, result.literal):
@@ -497,6 +551,7 @@ class TestBesideTheReplication:
     def test_buy_on_gap_held_a_position_on_20_of_its_190_kept_days(self, result) -> None:
         long = result.buy_on_gap
         assert long.held_days == 20
+        assert long.kept - long.held_days == 170
         assert (long.filtered[~long.held[long.qualifies]] == 0).all()
 
     def test_fstx_held_a_position_on_43_of_its_185_kept_days(self, result, fstx_rule) -> None:
@@ -522,31 +577,75 @@ class TestBesideTheReplication:
         assert joined.sharpe == pytest.approx(1.589197, abs=SIX)
         assert not matches(100 * joined.average_annual_return, "13")
         assert not matches(joined.sharpe, "1.4")
+        assert matches(100 * joined.average_annual_return, "14")
+        assert matches(joined.sharpe, "1.6")
         full = result.fstx_full
         assert full.average_annual_return == pytest.approx(0.128622, abs=SIX)
         assert full.sharpe == pytest.approx(1.441620, abs=SIX)
 
+    def test_neither_rule_s_kept_days_differ_from_its_other_days_beyond_noise(self, result) -> None:
+        """Row 18. Welch's t on mean daily return, kept days against the other joined days.
+
+        The test treats each day as independent of the others. Neither p is
+        below 0.4, so neither sign's figures say which way the filter points.
+        """
+        long_t, long_p = result.buy_on_gap.welch
+        assert long_t == pytest.approx(0.705402, abs=SIX)
+        assert long_p == pytest.approx(0.481405, abs=SIX)
+        fade_t, fade_p = result.literal.welch
+        assert fade_t == pytest.approx(-0.684181, abs=SIX)
+        assert fade_p == pytest.approx(0.494679, abs=SIX)
+        momentum_t, momentum_p = result.momentum.welch
+        assert momentum_t == pytest.approx(-fade_t, abs=1e-12)
+        assert momentum_p == pytest.approx(fade_p, abs=1e-12)
+        assert min(long_p, fade_p) > 0.4
+
+    def test_welch_s_t_compares_the_kept_days_with_the_rest_unpooled(self) -> None:
+        daily = np.array([0.0, 0.01, 0.03, -0.01, 0.05, 0.02])
+        keep = np.array([False, True, True, False, True, False])
+        filtered = Filtered(
+            name="rule",
+            days=pd.bdate_range("2020-01-06", periods=6),
+            daily=daily,
+            held=keep,
+            qualifies=keep,
+            calendar_days=6,
+        )
+        a, b = daily[keep], daily[~keep]
+        se = math.sqrt(a.var(ddof=1) / len(a) + b.var(ddof=1) / len(b))
+        t, p = filtered.welch
+        assert t == pytest.approx((a.mean() - b.mean()) / se, abs=1e-12)
+        assert 0 < p < 1
+
 
 class TestTheGuard:
-    """Row 16: VIX's flagged day, and why a break before the guarded span moves no figure."""
+    """Row 16: VIX's flagged day, the spans guarded either side of it, and what the guard misses.
+
+    The guard flags a day-over-day move of 1.6 times or more, so a rescale
+    smaller than that passes it on any span. VIX's largest close before the
+    flag sits where such a rescale could carry it past 35.
+    """
 
     def test_vix_flags_2007_02_27_alone(self, sources) -> None:
-        assert scale_breaks(sources.vix) == [FLAGGED_DAY]
-        assert (sources.vix.loc[day("2007-02-26")], sources.vix.loc[FLAGGED_DAY]) == (
-            11.15,
-            18.31,
-        )
-        assert GUARD_START == FLAGGED_DAY + pd.Timedelta(days=1)
+        vix = sources.vix
+        assert scale_breaks(vix) == [FLAGGED_DAY]
+        assert vix.index[vix.index.get_loc(FLAGGED_DAY) - 1] == BEFORE_FLAG
+        assert (vix.loc[BEFORE_FLAG], vix.loc[FLAGGED_DAY]) == (11.15, 18.31)
+        # A wrong print could move a figure only if the true close were above 35.
+        assert THRESHOLD / vix.loc[BEFORE_FLAG] > 3
 
-    def test_vix_never_closes_above_23_81_before_the_guarded_span(self, sources) -> None:
-        """From the last close before FSTX's first day, 11 points short of the threshold."""
-        before = sources.vix.loc[day("2004-07-15") : FLAGGED_DAY]
-        assert before.index[0] == day("2004-07-15")
+    def test_vix_s_largest_close_before_the_flag_sits_inside_the_guard_s_blind_band(
+        self, sources
+    ) -> None:
+        """23.81 on 2006-06-13, which a rescale of 1.47 times, too small to flag, lifts past 35."""
+        before = sources.vix.loc[day("2004-07-16") : BEFORE_FLAG]
         assert before.max() == 23.81
         assert before.idxmax() == day("2006-06-13")
-        assert THRESHOLD - before.max() > 11
+        assert math.exp(SCALE_BREAK_BOUND) == pytest.approx(1.6, abs=1e-15)
+        assert 23.81 * 1.47 > THRESHOLD
+        assert 1.47 < math.exp(SCALE_BREAK_BOUND)
 
-    def test_vix_is_guarded_from_2007_02_28_to_each_window_s_last_joined_day(
+    def test_vix_is_guarded_on_both_sides_of_its_flagged_day_in_each_window(
         self, monkeypatch
     ) -> None:
         seen = []
@@ -557,12 +656,26 @@ class TestTheGuard:
         monkeypatch.setattr(module, "refuse_window_crossing_a_break", record)
         read_sources()
         assert seen == [
-            (["vix/vix.csv"], GUARD_START, STOCKS_LAST),
-            (["vix/vix.csv"], GUARD_START, VIX_LAST),
+            (["vix/vix.csv"], day("2006-05-11"), BEFORE_FLAG),
+            (["vix/vix.csv"], FLAGGED_DAY, STOCKS_LAST),
+            (["vix/vix.csv"], day("2004-07-16"), BEFORE_FLAG),
+            (["vix/vix.csv"], FLAGGED_DAY, VIX_LAST),
         ]
 
-    def test_neither_guarded_span_carries_a_flagged_day(self, sources) -> None:
-        assert scale_breaks(sources.vix.loc[GUARD_START:VIX_LAST]) == []
+    @pytest.mark.parametrize("rule", ["buy_on_gap", "literal"])
+    def test_the_two_spans_leave_out_only_the_flagged_move(self, sources, result, rule) -> None:
+        """Every day-over-day pair of VIX closes the window reads is guarded, but one."""
+        vix, days = sources.vix, getattr(result, rule).days
+
+        def pairs(start, end):
+            inside = vix.loc[start:end].index
+            return set(zip(inside[:-1], inside[1:], strict=True))
+
+        spans = guarded_spans(days, vix)
+        guarded = set().union(*(pairs(start, end) for start, end in spans))
+        assert pairs(days[0], days[-1]) - guarded == {(BEFORE_FLAG, FLAGGED_DAY)}
+        for start, end in spans:
+            assert scale_breaks(vix.loc[start:end]) == []
 
     @pytest.mark.parametrize("start", ["2004-07-16", "2006-05-11"])
     def test_a_guard_from_either_window_s_start_refuses_on_2007_02_27(self, sources, start) -> None:
@@ -573,8 +686,37 @@ class TestTheGuard:
                 [(sources.vix_member, sources.vix)], start=day(start), end=STOCKS_LAST
             )
 
+    @pytest.mark.parametrize("when", ["2004-08-02", "2006-06-13", "2007-02-26"])
+    def test_a_doubling_of_vix_before_its_flagged_day_is_refused(self, when, monkeypatch) -> None:
+        """2004-08-02 lies inside FSTX's window alone, and 2007-02-26 ends the first span."""
+        real = module.load_panel
+
+        def broken(name, **kwargs):
+            members, frame = real(name, **kwargs)
+            if name == VIX_FILE:
+                frame = frame.copy()
+                frame.loc[day(when) :, "VIX"] *= 2
+            return members, frame
+
+        monkeypatch.setattr(module, "load_panel", broken)
+        with pytest.raises(WindowCrossesScaleBreak, match=f"vix.csv changes scale on {when}"):
+            read_sources()
+
+    def test_a_rescale_under_1_6_times_passes_the_guard_and_moves_a_figure(
+        self, sources, result
+    ) -> None:
+        """Closes to 2006-11-30 raised 1.48 times pass both spans, and buy on gap keeps 191 days."""
+        vix = sources.vix.copy()
+        vix.loc[: day("2006-11-30")] *= 1.48
+        for days in (sources.stocks["Close"].index, sources.fstx.index):
+            for start, end in guarded_spans(days, vix):
+                refuse_window_crossing_a_break([(sources.vix_member, vix)], start=start, end=end)
+        long = result.buy_on_gap
+        moved = vix_filter("Buy on gap", long.days, long.daily, long.held, vix)
+        assert moved.kept == 191
+
     @pytest.mark.parametrize("when", ["2008-01-02", "2010-06-01", "2012-04-24"])
-    def test_a_scale_change_in_vix_inside_the_guarded_span_is_refused(
+    def test_a_scale_change_in_vix_after_its_flagged_day_is_refused(
         self, when, monkeypatch
     ) -> None:
         real = module.load_panel
@@ -862,6 +1004,17 @@ class TestTheReport:
             "-0.46",
         ]
         assert "The same-day rows look ahead." in printed
+        assert self._row(printed, "FSTX, literal, other days zeroed")[-9:] == [
+            "1945",
+            "0.002447",
+            "2.6",
+            "gap",
+            "-2.4",
+            "0.050969",
+            "0.16",
+            "gap",
+            "-0.11",
+        ]
         assert self._row(printed, "Buy on gap, other days zeroed")[-9:] == [
             "1500",
             "0.021777",
@@ -887,7 +1040,9 @@ class TestTheReport:
         )
         assert "join      FSTX keeps 1945 of its 2000 days, 2004-07-16 to 2012-05-08" in printed
         assert "a day is kept when VIX closed above 35 on the previous joined day" in printed
-        assert "guard     VIX from 2007-02-28 to 2012-04-24 and to 2012-05-08" in printed
+        assert "guard     VIX over each window but its flagged move, 2007-02-26 to 2007-02-27" in (
+            printed
+        )
         assert (
             "kept days      2008-09-18 to 2011-11-10 for buy on gap, "
             "2008-09-18 to 2011-11-10 for FSTX" in printed
@@ -899,6 +1054,8 @@ class TestTheReport:
             "Buy on gap, all 1500 joined days: 252 x mean 0.085279, Sharpe ratio 1.537063",
             "FSTX, literal, all 1945 joined days: 252 x mean 0.139950, Sharpe ratio 1.589197",
             "all 2000 days of Example 7.1: 252 x mean 0.128622, Sharpe ratio 1.441620",
+            "Buy on gap, kept days against the other joined days: t 0.705402, p 0.481405",
+            "FSTX, literal, kept days against the other joined days: t -0.684181, p 0.494679",
         ):
             assert line in printed
         assert (

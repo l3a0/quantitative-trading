@@ -1264,10 +1264,14 @@ variants at location 3509, for
 buy on gap on the 497-stock file of 2012-04-24 and the opening gap rule on
 FSTX from the 2012-05-17 save, each through its own module and read path, and
 joins each calendar to VIX's. VIX ends on 2012-05-08, so the join drops the 7
-FSTX days after it. It guards VIX from 2007-02-28, the day after the file's
-one flagged day, to each window's last joined day. VIX closes no higher than
-23.81 from 2004-07-15 to the flagged day, far below the threshold of 35, so
-no break there could move a day into the filter.
+FSTX days after it. VIX's one flagged day, 2007-02-27, falls inside both
+windows, so it guards VIX over two spans in each, from the window's first
+joined day to 2007-02-26 and from 2007-02-27 to its last joined day. Together
+they guard every day-over-day move the run reads except that one real move,
+which `tests/test_scale_breaks.py` pins. The guard flags only a move of 1.6
+times or more, so a smaller rescale passes it on any span. VIX's largest
+close before the flagged day is 23.81, which a rescale of 1.47 times would
+carry past the threshold of 35.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

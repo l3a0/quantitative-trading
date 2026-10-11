@@ -640,10 +640,14 @@ where they were first built. The other forty-three were built here.
     0.171924 and 1.417425, which round to the book's 17.2 percent and 1.4.
     FSTX keeps 185 and gives 0.025730 and 0.164869 under the script's fading
     sign, which round to the book's 2.6 percent and 0.16. The momentum sign
-    gives the same numbers negated, so the claim that VIX above 35 warns the
-    gap trader off holds for the fade alone. No script ships for the
-    filter. The FSTX alignment was chosen after six were tried, and all six
-    are recorded. Only the join lands 2.6 percent. The latest VIX close
+    gives the same numbers negated. Beside the verdict, Welch's t on mean
+    daily return, the kept days against the other joined days, is 0.705402
+    for buy on gap and −0.684181 for FSTX's fade, with p of 0.481405 and
+    0.494679, treating each day as independent. So the claim that VIX above
+    35 warns the gap trader off rests on point estimates this test cannot
+    tell from noise, for either sign. It is exploratory and decides nothing.
+    No script ships for the filter. The FSTX alignment was chosen after six
+    were tried, and all six are recorded. Only the join lands 2.6 percent. The latest VIX close
     before each day lands the Sharpe ratio but prints 2.5 percent, and the
     two that read VIX on the trade's own date look ahead. Buy on gap's
     figures are the same under any alignment that reads the previous day.
@@ -1160,11 +1164,13 @@ zeroed days, and the five FSTX alignments besides the join. Those are the
 latest VIX close before each day, VIX forward-filled and moved one row, a
 shift on FSTX's own calendar, and the same day's close with and without a
 fill, which look ahead. It also pins the days each calendar keeps, the days each rule held
-a position, the unfiltered figures on the joined calendar, and FSTX's rule
-run after the join keeping the same returns on the days kept. On synthetic
+a position, the unfiltered figures on the joined calendar, FSTX's rule
+run after the join keeping the same returns on the days kept, and Welch's t
+for the days kept against the rest. On synthetic
 series it holds the strict threshold, the previous joined day's close and a
-missing close qualifying nothing. It also holds VIX guarded from the day after
-its flagged day, and its largest close before that day.
+missing close qualifying nothing. It also holds VIX guarded on both sides of
+its flagged day, a planted doubling before that day refused, and a planted
+rescale under 1.6 times passing the guard and moving a figure.
 
 All forty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -2133,8 +2139,8 @@ uv run python -m chan.vix_filter
 It prints the three vintages, the days each calendar keeps once joined to
 VIX's, and both rules' figures on the days kept beside the book's with a
 verdict, FSTX under both signs. Then it prints the readings that miss beside
-the book's figures, and the days kept, the days held and the unfiltered
-figures, none of which carries a verdict.
+the book's figures, and the days kept, the days held, the unfiltered figures
+and Welch's t, none of which carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
