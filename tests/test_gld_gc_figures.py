@@ -27,10 +27,18 @@ import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.dates import date2num, num2date
+from matplotlib.figure import Figure
 
 from chan import gld_gc as gld_gc_module
 from chan import gld_gc_figures as module
-from chan.gld_gc import RISK_FREE_RATE, bill_accrual, gld_gc, read_ohlc_gc, read_sources
+from chan.gld_gc import (
+    RISK_FREE_RATE,
+    GldGc,
+    bill_accrual,
+    gld_gc,
+    read_ohlc_gc,
+    read_sources,
+)
 from chan.gld_gc_figures import (
     CURVES,
     GLD_GC_FIGURE,
@@ -183,6 +191,8 @@ class TestTheReturnBesideItsFinancing:
             "2010-01-08",
         ), SPEC
         label = _by_gid(axes["financing"].texts)["longest-stretch-label"]
+        assert label.xy == (pd.Timestamp("2010-01-08"), 0.012)
+        assert label.get_ha() == "right"
         assert label.get_text() == (
             "91 days below a high,\n2009-08-28 to 2010-01-08,\nat worst −0.41 percent"
         ), SPEC
@@ -300,6 +310,40 @@ class TestTheHelpers:
         assert trough == cumret.index[2]
         assert depth == pytest.approx(1.045 / 1.1 - 1, abs=1e-15)
 
+    def test_the_longest_stretch_goes_to_the_first_of_two_equal_ones(self) -> None:
+        """MATLAB's ``max`` returns the first maximum, which ``calculateMaxDD`` relies on.
+
+        Rows 2 and 3 sit below the high of row 1, and rows 6 and 7 below the
+        high of row 5, so both stretches last two days.
+        """
+        cumret = pd.Series(
+            [0.0, 0.1, 0.09, 0.095, 0.1, 0.2, 0.19, 0.18, 0.3],
+            index=pd.bdate_range("2020-01-01", periods=9),
+        )
+        assert longest_stretch(cumret) == (cumret.index[2], cumret.index[3])
+
+    def test_the_stretch_label_counts_its_last_day_in_the_low(self) -> None:
+        """Three falling days after a high, so the stretch is deepest on its last day."""
+        days = pd.bdate_range("2009-03-02", periods=6)
+        daily = np.array([0.0, 0.1, -0.01, -0.01, -0.01, 0.2])
+        synthetic = GldGc(days=days, gc=np.ones(6), gld=np.ones(6), daily=daily)
+        curves = financing_curves(synthetic)
+        ax = Figure().subplots()
+        module._financing_panel(ax, synthetic, curves)
+        label = _by_gid(ax.texts)["longest-stretch-label"]
+        low = 0.99**3 - 1
+        assert label.get_text() == (
+            f"3 days below a high,\n{days[2].date()} to {days[4].date()},\n"
+            f"at worst {signed(100 * low)} percent"
+        )
+        assert signed(100 * low) == "−2.97"
+
+    def test_the_financing_curves_read_the_data_directory_they_are_handed(self, tmp_path) -> None:
+        days = pd.bdate_range("2009-02-02", periods=4)
+        synthetic = GldGc(days=days, gc=np.ones(4), gld=np.ones(4), daily=np.zeros(4))
+        with pytest.raises(VintageUnavailable):
+            financing_curves(synthetic, data_dir=tmp_path)
+
     def test_the_financing_curves_start_together_at_0(self, result) -> None:
         curves = financing_curves(result)
         assert list(curves) == list(CURVES)
@@ -357,6 +401,15 @@ class TestTheFile:
         monkeypatch.setattr(gld_gc_module, "refuse_window_crossing_a_break", refuse)
         with pytest.raises(WindowCrossesScaleBreak, match="changes scale"):
             make_gld_gc_figure(out=tmp_path / GLD_GC_FIGURE)
+
+    def test_sources_handed_in_are_drawn_without_a_second_read(
+        self, monkeypatch, tmp_path, sources
+    ) -> None:
+        def refuse(*_a, **_k):
+            raise AssertionError("read_sources ran although sources were handed in")
+
+        monkeypatch.setattr(module, "read_sources", refuse)
+        make_gld_gc_figure(out=tmp_path / GLD_GC_FIGURE, sources=sources)
 
     def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
         def fail(*_a, **_k):

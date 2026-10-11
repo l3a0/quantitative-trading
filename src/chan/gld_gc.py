@@ -316,7 +316,9 @@ class Year:
     rows: int
     #: 252 times the mean of those rows' returns.
     average_annual_return: float
-    #: TB3MS averaged over the months from the year's first kept day to its last.
+    #: TB3MS averaged over every month from the year's first kept day to its last.
+    #: The window's first row counts here, though its return is left out of
+    #: ``rows``, so a year opening on its month's last day still reads that month.
     bill_rate: float
 
     @property

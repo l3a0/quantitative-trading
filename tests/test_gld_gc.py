@@ -93,6 +93,7 @@ from chan.gld_gc import (
 from chan.khandani_lo_book_two import gap, matches
 from chan.matlab_helpers import drawdown_path
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
+from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
 SPEC = (
@@ -754,11 +755,32 @@ class TestThePostsHelpers:
         assert first.excess == first.average_annual_return - first.bill_rate
 
     def test_a_year_s_bill_rate_averages_every_month_its_days_span(self) -> None:
-        days = pd.DatetimeIndex(["2008-01-02", "2008-01-03", "2008-03-31"])
+        """The first row's month counts even though its return does not.
+
+        The window opens on a month's last day here, so leaving the first row
+        out of the months would average February to March instead.
+        """
+        days = pd.DatetimeIndex(["2008-01-31", "2008-02-01", "2008-03-31"])
         result = GldGc(days=days, gc=np.ones(3), gld=np.ones(3), daily=np.array([0.0, 0.1, 0.2]))
         (year,) = by_year(result)
-        assert year.bill_rate == bill_rates.average("2008-01", "2008-03")
+        january_on = bill_rates.average("2008-01", "2008-03")
+        assert january_on != bill_rates.average("2008-02", "2008-03")
+        assert year.bill_rate == january_on
         assert year.rows == 2
+
+    def test_each_helper_reads_the_data_directory_it_is_handed(
+        self, tmp_path, sources, result
+    ) -> None:
+        """An empty directory holds no vintage, so a helper ignoring it would read the repo's."""
+        synthetic = GldGc(days=self.DAYS, gc=np.ones(4), gld=np.ones(4), daily=np.zeros(4))
+        for call in (
+            lambda: bill_accrual(self.DAYS, data_dir=tmp_path),
+            lambda: by_year(synthetic, data_dir=tmp_path),
+            lambda: read_ohlc_gc(tmp_path),
+            lambda: identity(sources, result, data_dir=tmp_path),
+        ):
+            with pytest.raises(VintageUnavailable):
+                call()
 
 
 class TestTheGuardAndTheReads:
