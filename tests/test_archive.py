@@ -273,11 +273,11 @@ def daily(*rows: str) -> bytes:
 
 
 #: Two symbols' files, each newest first, with ABC missing the first day.
-ABC = daily("2009-01-05,1,1,1,12.0,6.0,100,0,1", "2009-01-02,1,1,1,10.0,5.0,100,0,1")
+ABC = daily("2009-01-05,11.5,1,1,12.0,6.0,100,0,1", "2009-01-02,9.5,1,1,10.0,5.0,100,0,1")
 XYZ = daily(
-    "2009-01-05,1,1,1,22.0,22.0,100,0,1",
-    "2009-01-02,1,1,1,21.0,21.0,100,0,1",
-    "2008-12-31,1,1,1,20.0,20.0,100,0,1",
+    "2009-01-05,22.5,1,1,22.0,22.0,100,0,1",
+    "2009-01-02,21.5,1,1,21.0,21.0,100,0,1",
+    "2008-12-31,20.5,1,1,20.0,20.0,100,0,1",
 )
 
 
@@ -646,10 +646,17 @@ class TestReadingACrossSection:
         _, panel = read_cross_section("sp600", column="volume", data_dir=data_dir, directory=store)
         assert panel["XYZ"].tolist() == [100, 100, 100]
 
+    def test_the_raw_open_is_the_fourth_column(self, tmp_path):
+        """Issue 251's rerun of Example 7.2 reads it, since the trade opens at the open."""
+        data_dir, store = recorded_store(tmp_path)
+        _, panel = read_cross_section("sp600", column="open", data_dir=data_dir, directory=store)
+        assert panel["XYZ"].tolist() == [20.5, 21.5, 22.5]
+        assert panel["ABC"].dropna().tolist() == [9.5, 11.5]
+
     def test_any_other_column_is_refused(self, tmp_path):
         data_dir, store = recorded_store(tmp_path)
         with pytest.raises(ValueError, match="column must be one of"):
-            read_cross_section("sp600", column="open", data_dir=data_dir, directory=store)
+            read_cross_section("sp600", column="high", data_dir=data_dir, directory=store)
 
     def test_symbols_narrow_the_read_and_an_unrecorded_one_is_left_out(self, tmp_path):
         data_dir, store = recorded_store(tmp_path)
