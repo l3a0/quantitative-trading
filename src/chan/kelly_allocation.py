@@ -78,6 +78,12 @@ a bag of trade outcomes, as issue 14 ruled.
 quoted about these examples, and ``docs/replication-log.md`` Entry 20 carries
 the verdicts.
 
+:mod:`chan.kelly_allocation_figures` draws the curve the run prints along
+``F1 = 2 - F2``, the book's Figure 8.1, for
+``blog/capped-kelly-allocation-lessons.md``. It continues the line past the
+cap, dashed, to the unbounded peak, and calls these functions rather than
+holding its own copy of the growth rate.
+
 Usage::
 
     python -m chan.kelly_allocation
