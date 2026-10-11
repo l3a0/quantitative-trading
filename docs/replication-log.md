@@ -297,7 +297,7 @@ says.
   - [The verdicts](#the-verdicts-38)
   - [What the entry concludes](#what-the-entry-concludes-39)
   - [What this entry cannot say](#what-this-entry-cannot-say-37)
-- [Entry 40: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*](#entry-40-post-earnings-drift-on-edgars-calendar-and-the-archives-prices-chans-algorithmic-trading)
+- [Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*](#entry-46-post-earnings-drift-on-edgars-calendar-and-the-archives-prices-chans-algorithmic-trading)
   - [The registration](#the-registration)
   - [What this repo computed](#what-this-repo-computed-40)
   - [The attribution](#the-attribution)
@@ -378,7 +378,7 @@ both.
    holds Entry 39,
    [tests/test_vx_es_roll_return.py](../tests/test_vx_es_roll_return.py)
    holds Entry 41, and [tests/test_pead_rerun.py](../tests/test_pead_rerun.py)
-   holds Entry 40, whose archive pins run only where the owner's data archive
+   holds Entry 46, whose archive pins run only where the owner's data archive
    is and `QT_ARCHIVE_RUN=1` asks for them.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
@@ -497,7 +497,7 @@ Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
-Entry 38's rows 8 to 11, and Entry 41's row 11. Every row of Entry 40 is in
+Entry 38's rows 8 to 11, and Entry 41's row 11. Every row of Entry 46 is in
 that position too, so that entry drops the verdict column as Entry 5 does.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
@@ -3316,7 +3316,7 @@ rule on a point-in-time universe, which waits on a purchase.
 **Whether Chan's flags are the announcement calendar.** They catch three of
 Apple's five releases inside the window, a measurement recorded on
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
-Entry 40 reruns the rule on a calendar read from EDGAR's filings and on the
+Entry 46 reruns the rule on a calendar read from EDGAR's filings and on the
 archive's Alpha Vantage prices, under
 [issue 251](https://github.com/l3a0/quantitative-trading/issues/251).
 
@@ -8309,7 +8309,7 @@ fix the rule first and run it on data after 2012.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 
-## Entry 40: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*
+## Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
 Rationale*, Wiley, 2013, Example 7.2, the example Entry 12 reproduces.

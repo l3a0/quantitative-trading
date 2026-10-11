@@ -558,7 +558,7 @@ class TestTheCommittedTable:
         }  # fmt: skip
 
     def test_the_cik_and_name_each_stock_left_out_carries(self, table) -> None:
-        """Why each leaves, which ``chan.pead_rerun``'s docstring and Entry 40 say in words.
+        """Why each leaves, which ``chan.pead_rerun``'s docstring and Entry 46 say in words.
 
         AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule, and
         CPWR and MWW carry another company's CIK besides: TetriDyn's and

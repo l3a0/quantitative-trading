@@ -256,4 +256,4 @@ in `chan.pead_rerun`.
    to 2025 through `ijr/members.csv`, placing missing members by the holdings
    files, which Entry 7's rows 35 to 40 record.
 3. An exploratory rerun of Example 7.2 reads `earnings/` for its universes and
-   its calendars, which Entry 40 records.
+   its calendars, which Entry 46 records.

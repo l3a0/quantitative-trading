@@ -1,11 +1,11 @@
 """The pins for Example 7.2 rerun on EDGAR's calendar and the archive's prices, issue 251.
 
 This file is the authority for the rerun's figures that any prose surface
-quotes, Entry 40 of ``docs/replication-log.md`` among them: each run's
+quotes, Entry 46 of ``docs/replication-log.md`` among them: each run's
 figures, the attribution, each calendar's agreement with Chan's flags, and the
 checks run beside them on late filings and on the archive's opens.
 ``tests/test_earnings_filings.py`` is the authority for the counts about the
-ticker table and the index that the universes are cut from, Entry 40's rows
+ticker table and the index that the universes are cut from, Entry 46's rows
 15 and 16 and the 48 renamed companies among them.
 
 Every pin names its vintage and its specification, stated once here and

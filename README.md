@@ -584,7 +584,7 @@ because the rule divides each day by a fixed 30. Each trade earns only about 6
 percent more on average than on Chan's flags. Narrowing the 497 stocks to
 those 441 moves the figure most, by −0.023065, and the vendor and the price
 basis move it by about a ten-thousandth each, judged on the closes. Every
-figure is exploratory, and Entry 40 in
+figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
 
@@ -1008,7 +1008,7 @@ spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
 trade's, and Entry 41 the VX against ES trade on VX's roll return.
-Entry 40 carries the rerun of Example 7.2 described above, which
+Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
