@@ -351,6 +351,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``TestTheGuardAndTheReads`` in ``tests/test_xle_uso_roll_return.py`` records
 #: the call, holds both legs clean, and holds a planted break in a leg or a
 #: contract refused.
+#:
+#: [Issue 286](https://github.com/l3a0/quantitative-trading/issues/286) decided
+#: that ``chan.pca_factor_momentum`` refuses no window either, for the reason
+#: issue 21 gives ``chan.pca_factor``. It tests whether the revised MATLAB's
+#: factor returns persist, so it reads the closes forward-filled as that
+#: program does, and a guard would refuse the computation whose assumption is
+#: being tested. PMC's 2007-08-01, flagged below, enters its windows and its
+#: comparison set through the fill's one-day return of 1.8654, so
+#: ``TestWithoutPMC`` in ``tests/test_pca_factor_momentum.py`` pins every
+#: figure again without PMC, including which factor the criterion would miss.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

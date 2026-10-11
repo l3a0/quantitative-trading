@@ -10,7 +10,7 @@ Ernest Chan’s *Quantitative Trading* names the bridge from explanation to trad
 
 Example 7.4 is built on that assumption. It takes five statistical factors from a year of returns on the S&P 600, assumes, in Chan’s words, that the factor returns “remain constant from the current time period to the next”, and buys the stocks with the highest expected returns (p. 164). He reports 2 percent a year from the MATLAB program and 4 percent from the Python and R, before costs, and calls the difference “essentially round off errors” (p. 164).
 
-This repository ran every printout of Example 7.4 it could run on Chan’s own file, read the one it could not, and separately built the two factors in Chan’s list that need only prices, to test whether their returns persist. Six lessons follow. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+This repository ran every printout of Example 7.4 it could run on Chan’s own file and read the one it could not. It then tested whether factor returns persist, on the two factors in Chan’s list that need only prices and on the five statistical factors Example 7.4 fits for itself. Six lessons follow. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 Every result below is **exploratory**. Reproducing a printed figure, or testing a claim from the book, tests a hypothesis Chan chose rather than one written down here in advance. It says whether his numbers reproduce on his file, and nothing about whether factor models earn money today.
 
@@ -121,7 +121,29 @@ Each verdict is **exploratory** and stands on its own.
 
 The quartiles are by linear interpolation between the two nearest stocks.
 
-**What was not tested.** Entry 14 tested the claim Example 7.4 rests on. It did not test Example 7.4’s own factors. Those are five statistical factors, on daily returns, on the S&P 600 file. MKT and WML are named factors, on monthly returns, on the S&P 500 file. And by Lesson 2 the revised Python rests on each stock’s own momentum over the year, not on any factor’s momentum. So neither verdict is a verdict on Example 7.4.
+**Example 7.4’s own factors.** MKT and WML are named factors, on monthly returns, on the S&P 500 file. The five factors Example 7.4 trades on are statistical, re-estimated every day on the S&P 600 file, so this repository tested them too, again under rules fixed before any factor return was computed and with the owner’s same ruling that each factor stands alone. The revised MATLAB’s five are the ones tested. By Lesson 2 the Python never uses its factors, and the first edition fits each day’s returns on weights chosen from a window that includes that same day, which leaves no fair pair of one day and the next.
+
+Each day’s principal component analysis gives each factor a set of weights across the stocks, and the factor’s return is the weighted sum of that day’s stock returns. The analysis fixes each set of weights only up to its sign, so the next day’s may come out flipped, and a series built from each day’s fresh weights would mix those flips into its autocorrelation. So each day’s weights are applied to that day’s returns and to the next day’s, which makes a pair from one analysis, and a flip changes both members of the pair together. The statistic is an uncentred correlation, the correlation of the 752 pairs without subtracting their means first, which a flip cannot move. A factor return that keeps one sign from day to day counts as persistent, which is what “remain constant” asks. The 579 stocks with a return on every day the pairs read get the same statistic, and the claim holds for a factor when its statistic is above 0 and above the median stock’s.
+
+```math
+\begin{array}{l|r|r|l}
+\text{Factor, 752 pairs} & \text{Uncentred correlation} & \text{Percentile among the stocks} & \text{Claim} \\ \hline
+\text{PC1} & 0.0316 & 83.9378 & \text{holds} \\
+\text{PC2} & 0.0778 & 95.6822 & \text{holds} \\
+\text{PC3} & -0.0189 & 55.0950 & \text{does not hold} \\
+\text{PC4} & 0.0305 & 83.4197 & \text{holds} \\
+\text{PC5} & 0.0710 & 94.3005 & \text{holds} \\ \hline
+\text{579 stocks, median} & -0.0283 & &
+\end{array}
+```
+
+The claim that factors “often” autocorrelate more strongly holds for four of the five, and does not hold for PC3, which sits above the median stock but below 0. Each of the five verdicts is **exploratory**, and three things say how little they rest on.
+
+1. **The band.** Over 752 pairs, a series with no persistence lands inside ±0.0715 about 95 percent of the time, the band Lesson 4 explains for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
+2. **A test across all five.** A Newey-West t-statistic tests each factor’s average daily product against zero while allowing for days of very different size. Testing five factors at once raises the chance that one looks significant by luck, so the Benjamini-Hochberg procedure, which holds the expected share of false findings among those declared significant to 5 percent, runs across all five. None survives, PC2 included, and no factor’s p-value would pass at 5 percent even alone.
+3. **One symbol decides which factor misses.** Without PMC, the symbol Lesson 6 describes whose two price histories join into one day’s return of 1.8654, PC2 falls to −0.0152 and PC3 rises to 0.0139. The claim would then miss PC2 rather than PC3.
+
+Every one of these figures is about survivors, as Lesson 6 says of the whole S&P 600 file. None of them says how much of the revised MATLAB’s 2 percent the factors’ momentum earns.
 
 ## Lesson 4: a verdict can follow the declared criterion and still rest on almost nothing
 
@@ -163,23 +185,21 @@ MKT is the exception. It reads SPY, which held the index as it stood each day, s
 
 ## What this replication cannot say
 
-Seven things.
+Six things.
 
-1. **What Example 7.4 earned on the S&P 600 as it stood each day.** A rerun on a universe without survivorship waits on data.
+1. **What Example 7.4 earned on the S&P 600 as it stood each day, and whether its factors persist there.** A rerun on a universe without survivorship waits on data.
 2. **What the printed R computed.** Without its helper file and an R runtime, the R row is a reading rather than a run.
 3. **What costs would take.** Every printout charges none, and the books turn over daily.
 4. **What survivorship does to WML.** That needs a panel of the index as it stood each day, which has to be bought.
-5. **Whether the factors persist at another frequency.** Only monthly returns were computed, under the rule fixed in advance.
+5. **Whether the factors persist at another frequency or lag.** MKT and WML were computed on monthly returns, and Example 7.4’s factors on daily returns one day apart, each under rules fixed in advance.
 6. **Whether French’s published factors agree, and what his size and value factors, SMB and HML, do.** This repository holds neither French’s library nor the company size and book value those two factors need.
-7. **Whether Example 7.4’s own factor returns have momentum.** Nothing here tested them.
-
 ## What this means for a trader
 
 Three habits follow from the lessons above.
 
 1. **Run every printout of a published strategy before trusting the author’s account of why they differ.** Chan’s round-off turned out to be a factor model in one language and single-stock momentum in another.
-2. **Check what a strategy’s assumption rests on before trading it, and test it under a rule written first.** On Chan’s S&P 500 file the market factor passed the declared test and the momentum factor failed it, both inside the range of no persistence, and neither is one of Example 7.4’s own factors.
-3. **Read a verdict beside the band that says how much the sample can tell.** Both autocorrelations sit inside the range a series with no persistence produces 95 times in 100.
+2. **Check what a strategy’s assumption rests on before trading it, and test it under a rule written first.** On Chan’s S&P 500 file the market factor passed the declared test and the momentum factor failed it, both inside the range of no persistence. On his S&P 600 file four of Example 7.4’s own five factors passed and one failed, none survived a test across all five, and dropping one symbol with two price histories changed which one failed.
+3. **Read a verdict beside the band that says how much the sample can tell.** Both monthly autocorrelations sit inside the range a series with no persistence produces 95 times in 100, and the one daily factor outside its band survives no test across all five.
 
 ## References
 
@@ -189,4 +209,4 @@ Three habits follow from the lessons above.
 - Fama, E. F., & French, K. R. (1992). The cross-section of expected stock returns. *Journal of Finance*, 47(2), 427–465. Cited by Chan (2021, p. 160) for the three-factor model.
 - French, K. R. *Data Library*. Tuck School of Business, Dartmouth College. The source of the market factor’s step over the bill rate and the momentum factor’s skip of the latest month.
 
-*Not investment advice. Code: [the PCA factor model](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pca_factor.py), [the two factors](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/momentum_factor.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/momentum_factor_figures.py), with the checks behind [the model’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pca_factor.py), [the factors’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_momentum_factor.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_momentum_factor_figures.py), and the replication log’s entries for [the factor model](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-13-the-pca-factor-model-chans-quantitative-trading) and [the two factors](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading).*
+*Not investment advice. Code: [the PCA factor model](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pca_factor.py), [the two factors](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/momentum_factor.py), [the test of Example 7.4’s own factors](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/pca_factor_momentum.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/momentum_factor_figures.py), with the checks behind [the model’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pca_factor.py), [the factors’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_momentum_factor.py), [the own factors’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_pca_factor_momentum.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_momentum_factor_figures.py), and the replication log’s entries for [the factor model](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-13-the-pca-factor-model-chans-quantitative-trading), [the two factors](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading) and [Example 7.4’s own factors](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-40-whether-example-74s-own-factor-returns-have-momentum-chans-quantitative-trading).*

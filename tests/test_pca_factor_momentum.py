@@ -165,6 +165,12 @@ class TestTheFigures:
         assert band == pytest.approx(0.0715, abs=FOUR), SPEC
         assert band == CRITICAL / math.sqrt(752)
 
+    def test_only_pc2_falls_outside_the_band(self, results: Results) -> None:
+        """PC2's 0.0778 is past 0.0715, and PC5's 0.0710 is just inside it."""
+        c = results.spliced.comparison
+        outside = [name for name, v in zip(NAMES, c.factors, strict=True) if abs(v) > c.band]
+        assert outside == ["PC2"], SPEC
+
     def test_each_factors_newey_west_t_and_p(self, results: Results) -> None:
         t = (0.9029, 0.8254, -0.4034, 0.8743, 1.2697)
         p = (0.1833, 0.2046, 0.6567, 0.1910, 0.1021)
@@ -234,6 +240,26 @@ class TestWithoutPMC:
 
     def test_the_band(self, results: Results) -> None:
         assert results.unspliced.comparison.band == pytest.approx(0.0715, abs=FOUR), SPEC
+
+    def test_pc1_and_pc4_fall_outside_the_band(self, results: Results) -> None:
+        c = results.unspliced.comparison
+        outside = [name for name, v in zip(NAMES, c.factors, strict=True) if abs(v) > c.band]
+        assert outside == ["PC1", "PC4"], SPEC
+
+    def test_the_criterion_would_miss_pc2_rather_than_pc3(self, results: Results) -> None:
+        """Not a verdict, since the verdicts read the forward-filled file, but which factor misses.
+
+        PC2 falls below 0 and PC3 rises above it, so the one factor the
+        criterion misses moves when one spliced symbol is dropped.
+        """
+        holds = {v.factor: (v.above_zero, v.above_median) for v in results.unspliced.verdicts()}
+        assert holds == {
+            "PC1": (True, True),
+            "PC2": (False, True),
+            "PC3": (True, True),
+            "PC4": (True, True),
+            "PC5": (True, True),
+        }, SPEC
 
     def test_each_factors_newey_west_t_and_p(self, results: Results) -> None:
         t = (0.9754, -0.3926, 0.4221, 1.8537, 1.1759)
