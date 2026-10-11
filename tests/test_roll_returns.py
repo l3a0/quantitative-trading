@@ -711,6 +711,14 @@ class TestTheOtherSaves:
         assert named.contracts.equals(strips["CL"].contracts)
         assert named.spot.equals(strips["CL"].spot)
 
+    def test_an_undeclared_no_spot_save_is_refused_by_its_own_name(self, monkeypatch) -> None:
+        """The refusal names the save that was read, not the root's default file."""
+        monkeypatch.setattr(module, "NO_SPOT_FILES", frozenset({SOURCE_FILES["VX"]}))
+        with pytest.raises(
+            VintageUnavailable, match="^inputDataDaily_CL_20120502.mat holds no CL-SPOT column$"
+        ):
+            load_strip("CL", source_file="inputDataDaily_CL_20120502.mat")
+
     @pytest.mark.parametrize(
         ("root", "source_file"),
         [
