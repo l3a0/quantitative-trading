@@ -8,7 +8,9 @@ before the build. ``blog/crude-oil-calendar-spread-lessons.md`` quotes these
 figures too. The strip's 6,467 days from 1986-11-03, and γ as −12 times the
 slope of the nearest contracts' log prices, are held in
 ``tests/test_roll_returns.py``, and ``README.md`` lists what the post says
-that nothing asserts.
+that nothing asserts. ``blog/vx-calendar-spread-lessons.md`` cites the
+direction ``TestTheTradesDirection`` pins, so a change to that pin moves that
+post too.
 
 Every pin on the committed file reads one strip and one of three
 specifications or a named variant of S, so they are stated once here and

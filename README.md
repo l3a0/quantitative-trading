@@ -4202,10 +4202,11 @@ thirtieth post, about the VIX futures calendar spread at location 2502 of
 Chan's *Algorithmic Trading*, which runs Example 5.4's script on the ratio of
 the back contract to the front. Chan reports that the ratio is "stationary
 with a 99 percent probability", and an APR of 17.7 percent with a Sharpe ratio
-of 1.5 from 2008-10-27 to 2012-04-23. The post links the VX against E-mini
-post, the spot and roll returns post, the USD.CAD post and the
-price-spread-ratio post rather than repeating them, and draws four lessons
-from Entry 35 of the replication log.
+of 1.5 from 2008-10-27 to 2012-04-23. The post links the crude oil calendar
+spread post, which explains Example 5.4's script, the VX against E-mini post,
+the spot and roll returns post, the USD.CAD post and the price-spread-ratio
+post rather than repeating them, and draws four lessons from Entry 35 of the
+replication log.
 
 1. The ratio passes the stationarity test, and the specification read from the
    book's text loses, with an APR of −0.040454 and a Sharpe ratio of −0.563912.
@@ -4231,9 +4232,7 @@ Five groups of what it says are not pinned here.
    contracts traded at each roll, all at `e4bc46f` of
    ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the ratio moves with the spread's log value,
-   that crude oil's spread mostly falls as γ rises so its flip mostly bets on
-   the spread moving away from its average, that B2's 420 days are the 10
-   after each roll, that four readings show a pattern rather than a cause, and
+   that B2's 420 days are the 10 after each roll, that four readings show a pattern rather than a cause, and
    that a rule selling one spread on another's z-score bets on the two moving
    together.
 4. Figures the post states in words or rounded from pinned ones, such as 4.0
@@ -4246,7 +4245,10 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py), or to
 [tests/test_vx_calendar_spread_figures.py](tests/test_vx_calendar_spread_figures.py)
-for the figure's own numbers. Four had no pin before it.
+for the figure's own numbers. Crude oil's spread mostly falling as γ rises,
+which the post cites from the crude oil post, is `TestTheTradesDirection` in
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py).
+Four had no pin before it.
 
 1. The specification's near leg is the front contract on 126 of its 847 held
    rows from 2008-10-27, and the second to the fifth on 229, 221, 201 and 70,
