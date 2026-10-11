@@ -34,6 +34,11 @@ inside the code fence that documents it. Blanking keeps line numbers intact,
 so a finding points at the line a reader will open. The cross-document checks
 blank fenced blocks and keep inline spans, because the reference they read is
 normally written in backticks.
+
+`entry_sections` reads no prose for a sweep of its own. It splits the
+replication log into each entry's `###` sections, for checks that read one
+section against itself, such as a count stated in a section's lead sentence
+against the items listed under it.
 """
 
 from __future__ import annotations
@@ -445,6 +450,60 @@ def document_headings(text: str) -> list[Heading]:
         seen[base] = count + 1
         anchor = base if count == 0 else f"{base}-{count}"
         found.append(Heading(len(match.group(1)), match.group(2), anchor))
+    return found
+
+
+@dataclass(frozen=True)
+class EntrySection:
+    """One `###` section under a `## Entry N` heading of the replication log."""
+
+    entry: int
+    heading: Heading
+    first_line: int
+    body: str
+
+
+_ENTRY_HEADING = re.compile(r"Entry (\d+)\b")
+
+
+def entry_sections(text: str) -> list[EntrySection]:
+    """Every subsection of every replication log entry, in order.
+
+    A section runs from its heading to the next heading of level one to three.
+    Its body is read after fenced blocks are blanked, so a `#` line inside a
+    fence neither opens a section nor ends one. `first_line` is the 1-based
+    line the heading sits on, so a finding points at a line a reader opens.
+
+    A `###` heading outside any entry, such as one under `## How to read an
+    entry`, belongs to no entry and is left out.
+    """
+    lines = blank_fences(text).split("\n")
+    headings = iter(document_headings(text))
+    found: list[EntrySection] = []
+    entry: int | None = None
+    current: tuple[Heading, int] | None = None
+    body: list[str] = []
+
+    def flush() -> None:
+        if current is not None and entry is not None:
+            found.append(EntrySection(entry, current[0], current[1], "\n".join(body)))
+
+    for number, line in enumerate(lines, start=1):
+        # document_headings reads the same blanked lines with the same pattern,
+        # so its headings arrive one per matching line, in order.
+        heading = next(headings) if _ATX_HEADING.match(line) else None
+        if heading is None or heading.level > 3:
+            body.append(line)
+            continue
+        flush()
+        body = []
+        current = None
+        if heading.level <= 2:
+            entry_match = _ENTRY_HEADING.match(heading.text) if heading.level == 2 else None
+            entry = int(entry_match.group(1)) if entry_match else None
+        elif heading.level == 3:
+            current = (heading, number)
+    flush()
     return found
 
 
