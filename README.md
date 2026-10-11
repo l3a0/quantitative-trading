@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-seven replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-two from his *Algorithmic Trading*. The first two were ported from the
+Thirty-eight replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-three from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-five were built here.
+where they were first built. The other thirty-six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -510,6 +510,18 @@ where they were first built. The other thirty-five were built here.
     scratch run saw results point at TU's drift rather than its kurtosis: a
     normal draw gives 1,165 of 10,000, and the type IV draws with the mean
     set to zero give 19. Every figure is exploratory.
+38. XLE, the energy producers' ETF, held against USO, the crude oil futures
+    ETF, in whichever direction crude's roll return favours, location 2734 of
+    *Algorithmic Trading*, on Chan's own ETF file and his 2012-05-02 CL strip.
+    The trade is short USO and long XLE when the back contract is priced above
+    the front, which is contango, and the reverse when it is priced below.
+    All five figures `XLE_CL_rollReturn.m`'s comment prints reproduce: an
+    average annual return of 0.159231, a Sharpe ratio of 1.046596, an APR of
+    0.159102, and a maximum drawdown of −0.192321 lasting 487 days. The APR
+    and the Sharpe ratio round to the book's 16 percent and "about 1". The
+    strip's first front window opens on 2006-10-20, so the window's first 123
+    days hold nothing. The ETF file subtracts dividends in dollars, so the
+    returns are not what a holder of XLE earned. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -858,7 +870,17 @@ its tails against quadrature, and holds the two-dimensional form equal to
 also holds that the third test as written leaves every simulated return at
 zero.
 
-All thirty-seven replications reach a verdict in
+[tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py) does it
+for the XLE against USO trade. It pins the five figures at full precision
+against the script's comment and the book's two, the 1,498 days the two
+calendars share, the 123 days with no front ratio, and the days in contango
+and in backwardation. It holds the two quirks of the script's loop on this
+strip and the ratio the calendar spread's schedule would give in its place.
+On synthetic strips it holds the 40-row start, a later front waiting for the
+previous one to end, the NaN left off every front window, the one-day lag and
+the half-capital divisor. It also holds both reads guarded.
+
+All thirty-eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -876,7 +898,8 @@ Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
-rule's on TU, and Entry 37 Example 1.1's hypothesis tests.
+rule's on TU, Entry 37 Example 1.1's hypothesis tests, and Entry 38 the XLE
+against USO trade's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1674,6 +1697,18 @@ It prints the vintage and the seeds, then the five rows beside the book's or
 the script's figure. Rows 2 to 4 carry a landing band, and every row but row 5
 carries a verdict. The three rows added after the scratch run come last, and
 none of them carries a verdict.
+
+The XLE against USO trade takes no option, because the script fixes both files,
+the front window and the window:
+
+```bash
+uv run python -m chan.xle_uso_roll_return
+```
+
+It prints the two ETF vintages and the strip, the five figures beside the
+script's comment with a verdict, the APR and the Sharpe ratio beside the
+book's with a verdict, and how many days fall in contango, in backwardation
+and with no ratio.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

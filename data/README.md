@@ -930,10 +930,16 @@ the seven its script names, BR, C2, CL, HG and TU, through
 `chan.roll_returns`, for
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347). It
 leaves out VX and HO2, for which the book prints no figure there. The same
-reader takes the VX strip as well, the one strip it reads with no spot
+reader takes the VX strip as well, the first strip it read with no spot
 column. The unnumbered TU experiment, location 2690's revision of
 Example 6.1, reads the TU strip too, through `chan.roll_momentum` for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353).
+The XLE against USO trade at location 2734, `XLE_CL_rollReturn.m`, is the
+first run to read the CL strip named for 2012-05-02, through
+`chan.xle_uso_roll_return` for
+[issue 356](https://github.com/l3a0/quantitative-trading/issues/356). It
+takes that strip's contracts through the same reader, which declares the
+file a strip read without a spot.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 
@@ -1066,6 +1072,10 @@ The Johansen tests of location 1922 read GLD, GDX and USO from it through
 script of Chan's behind them.
 The Kalman filter of Chapter 3 reads EWA and EWC through `chan.kalman_hedge`,
 for [issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
+The XLE against USO trade of Chapter 6 reads USO and XLE through
+`chan.xle_uso_roll_return`, for
+[issue 356](https://github.com/l3a0/quantitative-trading/issues/356), as the
+script behind it, `XLE_CL_rollReturn.m`, does.
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 

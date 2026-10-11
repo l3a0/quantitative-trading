@@ -330,6 +330,17 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: 2012-05-11 save, and every other series it reads is simulated from that one.
 #: ``TestTheReport`` in ``tests/test_tu_hypothesis_tests.py`` holds that a guard
 #: refusal there reaches an operator as one line.
+#:
+#: [Issue 356](https://github.com/l3a0/quantitative-trading/issues/356) decided
+#: that ``chan.xle_uso_roll_return`` calls the guard on both of its reads for
+#: *Algorithmic Trading*'s XLE against USO trade. It reads CL's 2012-05-02 strip
+#: through ``chan.roll_returns.load_strip``, which guards every contract over its
+#: own rows, and calls the guard on XLE and USO over the ETF file's whole span,
+#: 2006-04-26 to 2012-04-09, as ``chan.kalman_hedge`` does for EWA and EWC.
+#: Nothing flags in either read, so nothing is refused.
+#: ``TestTheGuardAndTheReads`` in ``tests/test_xle_uso_roll_return.py`` records
+#: the call, holds both legs clean, and holds a planted break in a leg or a
+#: contract refused.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
