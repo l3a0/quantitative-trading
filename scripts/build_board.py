@@ -312,15 +312,18 @@ def _top_pages(gql: Gql, query: str, owner: str, name: str, field: str) -> list[
             if not conn["pageInfo"]["hasNextPage"]:
                 break
             after = conn["pageInfo"]["endCursor"]
-        # A list that changed between pages can skip or repeat an entry, and the
-        # count is the only sign of it. So the loop reads the whole list again
-        # from its first page, and a list that disagrees on every read stops the run.
+        # A list that changed between pages reads more or fewer entries than its
+        # count, and the count is the only sign of it. So the loop reads the whole
+        # list again from its first page, and a list that disagrees on every read
+        # stops the run. GitHub's pages continue after the last entry read, so a
+        # change cannot repeat one, and the check on distinct numbers guards
+        # against a page that repeats one anyway.
         if len(nodes) == total and len({n["number"] for n in nodes}) == total:
             return nodes
         if attempt < LIST_READS:
             print(
-                f"build_board: {field} changed while read, reading them again "
-                f"(read {attempt + 1} of {LIST_READS})",
+                f"build_board: read {len(nodes)} {field} against a total of {total}, "
+                f"reading the list again (read {attempt + 1} of {LIST_READS})",
                 file=sys.stderr,
             )
     raise BoardError(f"read {len(nodes)} {field} against a total of {total} on {LIST_READS} reads")
