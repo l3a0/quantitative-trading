@@ -32,11 +32,18 @@ failure message.
 
 Two measurements were taken after seeing the five rows, and their pins say so:
 B3 on the book's window, and each of S, B1, B2 and B3 from the first row its
-flipped positions hold anything to 2008-10-24.
+flipped positions hold anything to 2008-10-24. The write-up measured three
+more after the run, in ``TestWhichPairTheSignalReads``, and their pins say so
+too.
 
 Each computed figure is held at six decimals, so a change cannot move it
 inside the published rounding unnoticed, and each published figure at the
 precision Chan printed, through ``matches``.
+
+``blog/vx-calendar-spread-lessons.md`` quotes most of these figures, so a
+change to any of them moves that post too. ``TestWhichPairTheSignalReads`` holds
+the numbers the post added, and ``tests/test_vx_calendar_spread_figures.py``
+holds what its figure draws.
 
 Exploratory. Reproducing Chan's figures spends his 2006 to 2012 strip on a rule
 he chose, S is a reading of the book's text, and B3 was picked out after the
@@ -72,6 +79,7 @@ from chan.vx_calendar_spread import (
     VxCalendarSpread,
     held_pair_ratio,
     main,
+    near_leg_rank,
     nearest_two_ratio,
     report,
     run,
@@ -387,6 +395,52 @@ class TestTheMeasurementsAfterTheRun:
         assert list(result.before) == ["S", "B1", "B2", "B3"], AFTER_THE_RUN
 
 
+class TestWhichPairTheSignalReads:
+    """Numbers the post on Entry 35 quotes about which pair each row trades, none a
+    published figure. The write-up measured them after the run, so they are as
+    exploratory as the rest."""
+
+    def test_ss_near_leg_is_the_front_contract_on_126_of_its_847_held_rows(self, strip) -> None:
+        """S holds each pair from 73 rows before its near contract's expiry, and VX
+        expires monthly, so its near leg is usually two to five contracts out while its
+        signal reads the front two."""
+        schedule = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH)
+        rank = near_leg_rank(strip.contracts, schedule).loc[START:].dropna()
+        assert len(rank) == 847, f"{S_SPEC}; {AFTER_THE_RUN}"
+        assert rank.value_counts().sort_index().to_dict() == {
+            1.0: 126,
+            2.0: 229,
+            3.0: 221,
+            4.0: 201,
+            5.0: 70,
+        }, f"{S_SPEC}; {AFTER_THE_RUN}"
+        near = schedule.columns[(schedule.loc[START:] == -1).any(axis=0).to_numpy()]
+        assert (len(near), near[0], near[-1]) == (11, "VX-2009G", "VX-2012H"), (
+            f"{S_SPEC}; {AFTER_THE_RUN}"
+        )
+
+    def test_under_holddays_0_the_near_leg_is_the_front_or_the_second(self, strip) -> None:
+        """Each pair starts the row after the last one ended, 10 rows before the old near
+        contract's expiry, so for those rows the old near contract is still the front."""
+        schedule = calendar_schedule(
+            strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
+        )
+        rank = near_leg_rank(strip.contracts, schedule).loc[START:].dropna()
+        assert len(rank) == 879, f"{SPECS['B2']}; {AFTER_THE_RUN}"
+        assert rank.value_counts().sort_index().to_dict() == {1.0: 459, 2.0: 420}, (
+            f"{SPECS['B2']}; {AFTER_THE_RUN}"
+        )
+
+    def test_b1_and_b3_earn_and_s_and_b2_lose(self, result) -> None:
+        """B1 and B3 read the held pair's own ratio and S and B2 the front pair's. Four
+        rows chosen in advance show the pattern, which is not a cause, and B2 reads its
+        held pair more often than S and still loses more."""
+        earns = {key: result.rows[key].apr > 0 for key in ("S", "B1", "B2", "B3")}
+        assert earns == {"S": False, "B1": True, "B2": False, "B3": True}, (
+            f"{VINTAGE}; S and B1 to B3 to 2012-05-07; {AFTER_THE_RUN}"
+        )
+
+
 # --- the rules on synthetic frames ---------------------------------------------
 
 DAYS = pd.bdate_range("2020-01-01", periods=6)
@@ -473,6 +527,37 @@ class TestTheHeldPairRatio:
         for schedule in (shifted, renamed):
             with pytest.raises(ValueError, match="on their own days and columns"):
                 held_pair_ratio(contracts, schedule)
+
+
+class TestTheNearLegRank:
+    def test_it_counts_the_priced_contracts_up_to_the_near_leg(self) -> None:
+        """Row 0 holds the front pair, row 1 the pair one out, and row 2 nothing."""
+        contracts = _frame([[10.0, 12.0, 18.0]] * 3)
+        schedule = _schedule([[-1.0, 1.0, 0.0], [0.0, -1.0, 1.0], [0.0, 0.0, 0.0]])
+        rank = near_leg_rank(contracts, schedule)
+        assert rank.iloc[:2].tolist() == [1.0, 2.0] and np.isnan(rank.iloc[2])
+
+    def test_an_expired_contract_before_the_near_leg_does_not_count(self) -> None:
+        """X0 has no price, so X1 is the front contract and the near leg ranks first."""
+        contracts = _frame([[np.nan, 12.0, 18.0]])
+        assert near_leg_rank(contracts, _schedule([[0.0, -1.0, 1.0]])).tolist() == [1.0]
+
+    def test_it_reads_the_near_leg_rather_than_the_far_one(self) -> None:
+        contracts = _frame([[10.0, 12.0, 18.0]])
+        assert near_leg_rank(contracts, _schedule([[0.0, 1.0, -1.0]])).tolist() == [3.0]
+
+    def test_it_is_on_the_contracts_index(self) -> None:
+        contracts = _frame([[10.0, 12.0, 18.0]] * 2)
+        rank = near_leg_rank(contracts, _schedule([[-1.0, 1.0, 0.0]] * 2))
+        assert rank.index.equals(contracts.index) and rank.name == "near_leg_rank"
+
+    def test_a_schedule_on_other_days_or_columns_is_refused(self) -> None:
+        contracts = _frame([[10.0, 12.0, 18.0]] * 2)
+        shifted = _schedule([[-1.0, 1.0, 0.0]] * 2).set_axis(DAYS[1:3])
+        renamed = _schedule([[-1.0, 1.0, 0.0]] * 2).set_axis(["A", "B", "C"], axis=1)
+        for schedule in (shifted, renamed):
+            with pytest.raises(ValueError, match="on their own days and columns"):
+                near_leg_rank(contracts, schedule)
 
 
 def _expiring(expiries: list[int], rows: int = 120) -> pd.DataFrame:
