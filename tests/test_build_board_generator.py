@@ -65,7 +65,7 @@ def issue(
     closed_by: tuple[int, ...] = (),
     mentioned_by: tuple[int, ...] = (),
     body: str = "",
-    blocked_by: tuple[tuple[int, str], ...] = (),
+    blocked_by: tuple[tuple, ...] = (),
     sub_issues: int = 0,
     comments: tuple[tuple[str, str], ...] = (),
 ) -> dict:
@@ -76,7 +76,7 @@ def issue(
         "body": body,
         "milestone": {"title": milestone} if milestone is not None else None,
         "labels": conn([{"name": x} for x in labels]),
-        "blockedBy": conn([{"number": b, "state": st} for b, st in blocked_by]),
+        "blockedBy": conn([blocker(*b) for b in blocked_by]),
         "subIssues": {"totalCount": sub_issues},
         "issueComments": conn([{"authorAssociation": a, "body": b} for a, b in comments]),
         "closedByPullRequestsReferences": conn([{"number": p} for p in closed_by]),
@@ -84,6 +84,11 @@ def issue(
             [{"source": {"number": p, "repository": {"nameWithOwner": REPO}}} for p in mentioned_by]
         ),
     }
+
+
+def blocker(n: int, state: str, repo: str = REPO) -> dict:
+    """One "blocked by" link, to an issue in ``repo``."""
+    return {"number": n, "state": state, "repository": {"nameWithOwner": repo}}
 
 
 def check(name: str, conclusion: str | None, status: str = "COMPLETED") -> dict:
@@ -360,6 +365,116 @@ def test_needs_keeps_only_blockers_that_are_open_issues() -> None:
     assert card(board, 1)["needs"] == []
 
 
+def test_a_blocker_in_another_repository_is_not_this_repositorys_issue() -> None:
+    """Protects a card from waiting on an issue that shares only a number.
+
+    A "blocked by" link can name an issue in any repository, and issue 1 in a
+    sibling repository is not issue 1 here.
+    """
+    gh = FakeGitHub([issue(1), issue(2, blocked_by=((1, "OPEN", "l3a0/trading-strategies"),))], [])
+    board, _ = build(gh)
+    assert card(board, 2)["needs"] == []
+
+
+def test_lines_inside_a_fenced_block_are_not_read() -> None:
+    """Protects the board from a comment or body quoting the formats.
+
+    A skill or a review that shows the verdict line in a fence is explaining
+    it, not recording one.
+    """
+    fenced = "The format:\n\n```text\nBoard verdict: build after 5 passes\n```\n"
+    body = "```\nBoard order: 3\nBoard after: #1\n```\n"
+    gh = FakeGitHub(
+        [issue(1), issue(2, labels=("band:1",), body=body, comments=(("OWNER", fenced),))], []
+    )
+    board, _ = build(gh)
+    assert board["planned"]["items"] == []
+    assert board["next"]["items"] == [{"issue": 2, "band": 1, "ready": "plan"}]
+    assert "after" not in card(board, 2)
+
+
+def test_an_issue_claiming_two_kinds_is_reported() -> None:
+    """Protects a kind label that loses from going unnoticed."""
+    gh = FakeGitHub(
+        [
+            issue(1, labels=("deferred", "blocked-on-data")),
+            issue(2, labels=("decision",), sub_issues=1),
+        ],
+        [],
+    )
+    board, report = build(gh)
+    assert [c["kind"] for c in board["tracker"]["items"]] == ["data", "parent"]
+    assert report["label_conflicts"] == [
+        "#1 reads as data and deferred, read as data",
+        "#2 reads as parent and decision, read as parent",
+    ]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "Note: Board verdict: build after 5 passes",
+        "Board verdict: build after 5 passes, and then some",
+    ],
+)
+def test_a_verdict_line_must_stand_alone(body: str) -> None:
+    """Protects the plan marker from prose that mentions the format."""
+    board, _ = build(FakeGitHub([issue(1, comments=(("OWNER", body),))], []))
+    assert board["planned"]["items"] == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "See Board order: 3\nBoard after: #2\n",
+        "Board order: 3 or so\nNot Board after: #2\n",
+    ],
+)
+def test_order_and_after_lines_must_stand_alone(body: str) -> None:
+    """Protects the sort from a sentence that quotes a board line mid-way."""
+    gh = FakeGitHub([issue(1, labels=("band:1",), body=body), issue(2)], [])
+    board, _ = build(gh)
+    entry = board["next"]["items"][0]
+    assert "order" not in entry
+    if body.startswith("See"):
+        assert card(board, 1)["after"] == [2]
+    else:
+        assert "after" not in card(board, 1)
+
+
+@pytest.mark.parametrize("label", ["old-band:1", "band:1-old"])
+def test_only_a_whole_band_label_ranks_a_card(label: str) -> None:
+    """Protects the priority order from a label that only contains a band."""
+    board, _ = build(FakeGitHub([issue(1, labels=(label,))], []))
+    assert board["next"]["items"] == []
+    assert card(board, 1)["labels"] == [label]
+
+
+def test_after_names_neither_the_card_itself_nor_a_bare_number() -> None:
+    """Protects a card from sorting below itself, or below a stray digit."""
+    gh = FakeGitHub([issue(1), issue(2), issue(5, body="Board after: #5, 1, #2\n")], [])
+    board, _ = build(gh)
+    assert card(board, 5)["after"] == [2]
+
+
+def test_the_job_summary_lists_what_disagrees(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Protects the one place a conflict is reported, since it does not fail the run."""
+    fake = FakeGitHub([issue(1, labels=("band:1", "band:3"))], [])
+    fake.requests, fake.cost = 1, 1
+    monkeypatch.setattr(bb, "GhGraphql", lambda: fake)
+    summary = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+    out = tmp_path / "site"
+    assert bb.main(["build", "--repo", REPO, "--workflow", str(WORKFLOW), "--out", str(out)]) == 0
+    assert (
+        "| Labels or lines that disagree | #1 carries 2 band labels, read as band:1 |"
+        in summary.read_text()
+    )
+
+
 def test_after_comes_from_its_line_and_keeps_open_issues() -> None:
     """Protects a measured ordering from prose that only mentions a number."""
     body = "Waits on nothing.\n\nBoard after: #1, #3 and #2\nSee #4 too.\n"
@@ -433,6 +548,8 @@ def test_a_ranked_cards_readiness_comes_from_its_verdict_then_its_kind(
             (7, "decide"),
         ),
         ((("CONTRIBUTOR", "Board verdict: build after 5 passes"),), None),
+        ((("COLLABORATOR", "Board verdict: build after 5 passes"),), None),
+        ((("MEMBER", "Board verdict: build after 5 passes"),), None),
         ((("OWNER", "The line `Board verdict: build after 5 passes` goes here."),), None),
         ((("OWNER", "Board verdict: ready after 5 passes"),), None),
     ],
@@ -515,7 +632,7 @@ def test_an_issues_comments_and_blockers_are_read_to_their_end() -> None:
         ("I5", "issueComments", "c1"): conn(
             [{"authorAssociation": "OWNER", "body": "Board verdict: build after 2 passes"}]
         ),
-        ("I5", "blockedBy", "b1"): conn([{"number": 6, "state": "OPEN"}]),
+        ("I5", "blockedBy", "b1"): conn([blocker(6, "OPEN")]),
     }
     gh = FakeGitHub([first, issue(6)], [], nested)
     board, _ = build(gh)

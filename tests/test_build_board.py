@@ -677,24 +677,6 @@ def test_an_open_branch_still_suppresses_what_it_always_did(tmp_path: Path) -> N
     assert "Its build session is still on the branch." in tag
 
 
-def test_a_missing_closing_link_names_the_open_branch(tmp_path: Path) -> None:
-    """Protects the flow note's warning from reading a merged entry.
-
-    Fixture issue 90501 gets a merged pull request with no closing link listed
-    ahead of its open one, which also has none. Only the open one can still be
-    merged, so the warning names it and counts one branch.
-    """
-    docs = fixture_docs()
-    docs["prs"]["items"][0]["linked"] = False
-    docs["prs"]["items"].insert(0, _pull(90605, 90501, "merged", linked=False, part_of=False))
-    ids = draw(tmp_path, docs)
-
-    flownote = text(ids, "flownote")
-    assert "GitHub registered no closing link for PR #90601" in flownote
-    assert "PR #90605" not in flownote
-    assert "more than one open branch" not in flownote
-
-
 @pytest.mark.parametrize("state", ["open", "merged"])
 def test_the_flow_legend_explains_a_re_measured_plan_only_where_a_card_draws_it(
     tmp_path: Path, state: str

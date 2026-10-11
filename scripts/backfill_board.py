@@ -53,9 +53,22 @@ UNHOMED = {
     "next": {"why", "title"},
     "planned": {"note"},
     "working": {"what"},
-    "tracker": {"label", "labels"},
+    "tracker": {"label"},
     "prs": set(),
 }
+
+
+def comparable_labels(labels: list[str] | None) -> list[str]:
+    """A card's label chips less the ones the move changes on purpose.
+
+    The generator leaves the board's own ``band:N`` and ``working:`` labels off
+    a card's chips, and the backfill adds ``decision`` to eight cards that never
+    carried it. Every other chip must match, so a card that lost one is found.
+    """
+    return sorted(
+        x for x in labels or [] if not bb.BAND.match(x) and x not in bb.WORKING and x != "decision"
+    )
+
 
 Run = Callable[[list[str]], str]
 
@@ -88,7 +101,13 @@ def read_github(gql: bb.Gql, repo: str) -> dict[int, dict]:
         out[issue["number"]] = {
             "labels": {lb["name"] for lb in labels},
             "body": issue.get("body") or "",
-            "blocked_by": {b["number"] for b in blockers},
+            # A link to another repository's issue has a number that means
+            # nothing here, so it neither counts as present nor blocks a write.
+            "blocked_by": {
+                b["number"]
+                for b in blockers
+                if (b.get("repository") or {}).get("nameWithOwner") == repo
+            },
             "sub_issues": issue["subIssues"]["totalCount"],
             "verdict": bb.latest_verdict(comments),
         }
@@ -117,7 +136,7 @@ def plan(docs: dict[str, dict], live: dict[int, dict]) -> tuple[list[dict], list
     def add_line(n: int, line: str) -> None:
         if n not in live:
             notes.append(f"#{n} is not open, so its line {line!r} is not written")
-        elif line not in live[n]["body"].splitlines():
+        elif line not in bb.unfenced(live[n]["body"]).splitlines():
             writes.append({"op": "line", "issue": n, "line": line})
 
     planned = {p["n"]: p for p in docs["planned"]["items"]}
@@ -127,7 +146,7 @@ def plan(docs: dict[str, dict], live: dict[int, dict]) -> tuple[list[dict], list
         n = x["issue"]
         add_label(n, f"band:{x['band']}")
         if "order" in x:
-            existing = bb.ORDER.findall(live.get(n, {}).get("body", ""))
+            existing = bb.ORDER.findall(bb.unfenced(live.get(n, {}).get("body", "")))
             line = f"Board order: {order_text(x['order'])}"
             if existing and line.split(": ", 1)[1] not in existing:
                 notes.append(f"#{n} already carries an order line {existing}, so {line!r} waits")
@@ -304,6 +323,8 @@ def compare(docs: dict[str, dict], board: dict) -> list[str]:
                     a, b = old[k].get(f), new[k].get(f)
                     if f == "after" and not a and not b:
                         continue
+                    if f == "labels":
+                        a, b = comparable_labels(a), comparable_labels(b)
                     if a != b:
                         out.append(f"{name} {k} {f}: {a!r} on the artifact, {b!r} built")
     return out
@@ -338,8 +359,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(line)
             return 0
         if args.cmd == "undo":
-            for w in reversed(_log_lines(args.log)):
+            # Newest first, and the log is rewritten without each write once it
+            # is reversed, so an undo that stops partway can be run again and
+            # starts where it stopped rather than failing on a reversed write.
+            left = _log_lines(args.log)
+            while left:
+                w = left[-1]
                 undo_write(gh, args.repo, w)
+                left.pop()
+                args.log.write_text("".join(json.dumps(x) + "\n" for x in left), encoding="utf-8")
                 print(f"undone: {json.dumps(w)}")
             return 0
         docs = read_readback(args.readback)

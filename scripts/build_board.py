@@ -100,6 +100,19 @@ AFTER = re.compile(r"^[ \t]*Board after:(.*)$", re.MULTILINE)
 BAND = re.compile(r"^band:(\d+)$")
 WORKING = {"working:build": "build", "working:decompose": "decompose"}
 
+# A fenced code block, opened by three or more backticks or tildes and closed
+# by the same run, or left open to the end of the text. A comment quoting the
+# verdict format inside a fence would otherwise read as a verdict.
+FENCE = re.compile(
+    r"^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?(?:^[ \t]*\1[ \t]*$|\Z)", re.MULTILINE | re.DOTALL
+)
+
+
+def unfenced(text: str) -> str:
+    """The text with every fenced code block removed, so no line in one is read."""
+    return FENCE.sub("", text)
+
+
 # Which label sets a card's kind, in the order that wins when an issue carries
 # more than one. A parent is read from sub-issues instead, ahead of all three.
 KIND_LABELS = (("blocked-on-data", "data"), ("deferred", "deferred"), ("decision", "decision"))
@@ -150,7 +163,7 @@ query($owner:String!, $name:String!, $after:String) {{
         id number title body
         milestone{{title}}
         labels(first:100){{{PAGE_INFO} nodes{{name}}}}
-        blockedBy(first:100){{{PAGE_INFO} nodes{{number state}}}}
+        blockedBy(first:100){{{PAGE_INFO} nodes{{number state repository{{nameWithOwner}}}}}}
         subIssues{{totalCount}}
         issueComments: comments(first:100){{{PAGE_INFO} nodes{{authorAssociation body}}}}
         closedByPullRequestsReferences(first:100, includeClosedPrs:true){{
@@ -189,7 +202,7 @@ BATCH = 50
 # alias to keep the two apart.
 NESTED = {
     "labels": ("Issue", "labels", "", "name"),
-    "blockedBy": ("Issue", "blockedBy", "", "number state"),
+    "blockedBy": ("Issue", "blockedBy", "", "number state repository{nameWithOwner}"),
     "issueComments": ("Issue", "comments", "", "authorAssociation body"),
     "closedByPullRequestsReferences": (
         "Issue",
@@ -298,19 +311,20 @@ def _top_pages(gql: Gql, query: str, owner: str, name: str, field: str) -> list[
     return nodes
 
 
-def card_kind(labels: list[str], sub_issues: int) -> str:
-    """A card's kind, from its sub-issues and labels.
+def card_kinds(labels: list[str], sub_issues: int) -> list[str]:
+    """Every kind an issue's sub-issues and labels claim, the winning one first.
 
     An issue with any sub-issue is a parent, whether or not its children have
-    closed, because they carry its work. Otherwise the first of
-    ``KIND_LABELS`` it carries decides, and an issue carrying none is ready.
+    closed, because they carry its work. After that the kind labels follow in
+    ``KIND_LABELS`` order. More than one entry is a conflict the run reports.
     """
-    if sub_issues:
-        return "parent"
-    for label, kind in KIND_LABELS:
-        if label in labels:
-            return kind
-    return "ready"
+    kinds = ["parent"] if sub_issues else []
+    return kinds + [kind for label, kind in KIND_LABELS if label in labels]
+
+
+def card_kind(labels: list[str], sub_issues: int) -> str:
+    """A card's kind, the first that ``card_kinds`` finds, or ready for none."""
+    return (card_kinds(labels, sub_issues) or ["ready"])[0]
 
 
 def check_word(context: dict, unknown: set[str]) -> str:
@@ -366,8 +380,8 @@ def pr_items(
 
     ``linked`` is always the opposite of ``partOf`` here, because an issue
     named only by a ``Part of`` line is the one case with no closing link. So
-    the page's warning about a closing link GitHub did not register never
-    fires on this board. A pull request whose keyword sits in a code span names
+    the page's warning about a closing link GitHub did not register could never
+    fire, and issue 533 removed it. A pull request whose keyword sits in a code span names
     no issue GitHub can see, and gets no item at all.
 
     ``review`` is the word the card's line prints. With no review posted it
@@ -397,6 +411,9 @@ def pr_items(
             "pr": pr["number"],
             "issue": issue,
             "state": state,
+            # Never false without `partOf`, so the page no longer reads it, as
+            # the docstring says. It is still written for the backfill's
+            # `compare` and for anyone reading board.json.
             "linked": issue in closing,
             "reviewed": reviewed,
             "review": "review posted"
@@ -446,26 +463,45 @@ def _prs_by_number(gql: Gql, owner: str, name: str, numbers: list[int]) -> list[
     return found
 
 
-def tracker_card(gql: Gql, issue: dict, names: list[str], open_issues: set[int]) -> dict:
+def tracker_card(
+    gql: Gql,
+    issue: dict,
+    names: list[str],
+    open_issues: set[int],
+    repo: str,
+    conflicts: list[str],
+) -> dict:
     """One open issue as the card the page draws.
 
     A blocker that has closed no longer holds the card, and a number that is
     no open issue has no card to draw, so ``needs`` and ``after`` keep only open
-    issues. ``after`` is left out when it names none, as the page reads it as
-    optional. The board's own labels are drawn as the rank chip and the busy
-    stripe, so they are left off the card's label chips.
+    issues. A "blocked by" link can name an issue in another repository, whose
+    number means nothing here, so it is dropped too. ``after`` is left out when
+    it names none, as the page reads it as optional. The board's own labels are
+    drawn as the rank chip and the busy stripe, so they are left off the card's
+    label chips. An issue claiming two kinds takes the first and is reported.
     """
     n = issue["number"]
     blockers = _all_nodes(gql, issue["id"], "blockedBy", issue["blockedBy"])
+    kinds = card_kinds(names, issue["subIssues"]["totalCount"])
+    if len(kinds) > 1:
+        conflicts.append(f"#{n} reads as {' and '.join(kinds)}, read as {kinds[0]}")
     card = {
         "n": n,
         "ms": (issue.get("milestone") or {}).get("title") or "",
         "label": issue["title"],
-        "kind": card_kind(names, issue["subIssues"]["totalCount"]),
-        "needs": sorted({b["number"] for b in blockers if b["state"] == "OPEN"} & open_issues),
+        "kind": (kinds or ["ready"])[0],
+        "needs": sorted(
+            {
+                b["number"]
+                for b in blockers
+                if b["state"] == "OPEN" and (b.get("repository") or {}).get("nameWithOwner") == repo
+            }
+            & open_issues
+        ),
         "labels": [x for x in names if not BAND.match(x) and x not in WORKING],
     }
-    lines = AFTER.findall(issue.get("body") or "")
+    lines = AFTER.findall(unfenced(issue.get("body") or ""))
     after = {int(m) for line in lines for m in re.findall(r"#(\d+)\b", line)}
     after = sorted((after & open_issues) - {n})
     if after:
@@ -483,7 +519,7 @@ def latest_verdict(comments: list[dict]) -> tuple[str, int] | None:
     for c in comments:
         if c.get("authorAssociation") != "OWNER":
             continue
-        for ready, passes in VERDICT.findall(c.get("body") or ""):
+        for ready, passes in VERDICT.findall(unfenced(c.get("body") or "")):
             found = (ready, int(passes))
     return found
 
@@ -512,7 +548,7 @@ def rank_entry(
         "band": bands[0],
         "ready": verdict[0] if verdict else ("decide" if kind == "decision" else "plan"),
     }
-    orders = ORDER.findall(body)
+    orders = ORDER.findall(unfenced(body))
     if orders:
         if len(set(orders)) > 1:
             conflicts.append(f"#{n} carries {len(orders)} order lines, read as {orders[0]}")
@@ -563,7 +599,7 @@ def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, d
     for issue in sorted(issues, key=lambda i: i["number"]):
         n = issue["number"]
         names = [lb["name"] for lb in _all_nodes(gql, issue["id"], "labels", issue["labels"])]
-        card = tracker_card(gql, issue, names, open_issues)
+        card = tracker_card(gql, issue, names, open_issues, repo, conflicts)
         tracker.append(card)
 
         held = [WORKING[x] for x in names if x in WORKING]

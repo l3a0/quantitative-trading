@@ -129,7 +129,8 @@ Board after: #51, #83
 ```
 
 The order takes a decimal, so a card can go between two others without
-renumbering either. A line quoted inside a sentence or a code span is not read.
+renumbering either. A line quoted inside a sentence, a code span or a fenced
+code block is not read, and neither is a verdict line in a fence.
 
 A branch that closes no issue gets no card at all, because the page is built
 from the tracker. Check `closingIssuesReferences` when a pull request opens,
@@ -161,7 +162,7 @@ a number the data already carries, because that sentence outlives the number.
 | `STATE` | `updatedAt`, `issues.open`, `staleAfterMinutes` | the time GitHub was read, the open issue count, and twice the longest gap in the workflow's schedule |
 | `TRACKER` | `n`, `ms`, `label`, `labels` | each open issue's number, milestone, title and labels, less the board's own `band:N` and `working:` labels, which the page draws as the rank chip and the busy stripe |
 | `TRACKER` | `kind` | `parent` for an issue with any sub-issue, then `data` for `blocked-on-data`, `deferred` for `deferred` and `decision` for `decision`, in that order where an issue carries more than one, and `ready` otherwise |
-| `TRACKER` | `needs` | the issue's native "blocked by" links, keeping only blockers that are open issues |
+| `TRACKER` | `needs` | the issue's native "blocked by" links, keeping only blockers that are open issues in this repository |
 | `TRACKER` | `after` | the issue's `Board after:` line, keeping only open issues |
 | `PRS` | `pr`, `issue`, `state`, `linked`, `partOf`, `rollup` | each pull request naming an open issue through a closing link or a line opening with `Part of #N`, with its checks at the current head |
 | `PRS` | `reviewed`, `review` | an owner's comment opening with `## Review`. Without one, `review` reads "review in progress" while the card carries a `working:` label, and "no review posted" otherwise |
@@ -216,9 +217,10 @@ the board reads only `decision` as needing the owner rather than a session.
 
 ### When two labels disagree
 
-An issue carrying two `band:N` labels, both `working:` labels, or two
-different `Board order:` lines has no single value. The script takes the
-lowest band, the `build` kind and the first line, and lists each conflict in
+An issue carrying two `band:N` labels, both `working:` labels, two kinds, or
+two different `Board order:` lines has no single value. The script takes the
+lowest band, the `build` kind, the kind the table above puts first and the
+first line, and lists each conflict in
 the run's job summary rather than failing, because one stray label would
 otherwise freeze the whole board. Read the summary of a run after setting
 either, and fix the label the conflict names.

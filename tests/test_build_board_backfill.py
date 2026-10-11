@@ -223,3 +223,210 @@ def test_the_comparison_names_each_field_that_differs_and_no_other() -> None:
         "tracker 1 needs: [2] on the artifact, [] built",
         "next 1 ready: 'plan' on the artifact, 'build' built",
     ]
+
+
+def test_a_label_chip_lost_on_the_way_is_a_difference() -> None:
+    """Protects the comparison from waving a card's chips through.
+
+    Only the chips the move changes on purpose drop out: the board's own
+    ``band:N`` and ``working:`` labels, which the generator leaves off, and
+    ``decision``, which the backfill adds.
+    """
+    old = docs(
+        tracker=[
+            {**card(1), "labels": ["bug", "question"]},
+            {**card(2), "labels": ["bug", "band:1", "working:build"]},
+        ]
+    )
+    new = json.loads(json.dumps(old))
+    new["tracker"]["items"][0]["labels"] = []
+    new["tracker"]["items"][1]["labels"] = ["bug", "decision"]
+    assert bf.compare(old, new) == [
+        "tracker 1 labels: ['bug', 'question'] on the artifact, [] built",
+    ]
+
+
+def _readback(folder: Path, readback: dict) -> Path:
+    folder.mkdir()
+    for name, doc in readback.items():
+        (folder / f"{name}.json").write_text(json.dumps(doc), encoding="utf-8")
+    return folder
+
+
+def test_apply_then_undo_through_main_reverses_every_write_newest_first(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Protects the undo the backfill exists for, when the merge does not follow.
+
+    The log must carry what each write needs to be reversed, the comment's id
+    and the blocker's id, because undo has nothing else to go on. Undo replays
+    it newest first, and empties the log as it goes.
+    """
+    readback = docs(
+        tracker=[card(7, needs=(8,)), card(8)],
+        next=[{"issue": 7, "band": 1, "ready": "build"}],
+        planned=[{"n": 7, "passes": 5, "ready": "build"}],
+    )
+    folder = _readback(tmp_path / "readback", readback)
+    log = tmp_path / "log.jsonl"
+    gh = FakeGh()
+    monkeypatch.setattr(bf, "gh", gh)
+    monkeypatch.setattr(bf, "read_github", lambda gql, repo: {**live(7), **live(8)})
+
+    assert bf.main(["apply", "--repo", REPO, "--readback", str(folder), "--log", str(log)]) == 0
+    logged = [json.loads(x) for x in log.read_text().splitlines()]
+    assert [w["op"] for w in logged] == ["label", "verdict", "link"]
+    assert logged[1]["comment"] == 4242
+    assert logged[2]["blocker_id"] == 8008
+
+    gh.calls.clear()
+    assert bf.main(["undo", "--repo", REPO, "--log", str(log)]) == 0
+    assert gh.calls == [
+        ["api", "--method", "DELETE", f"repos/{REPO}/issues/7/dependencies/blocked_by/8008"],
+        ["api", "--method", "DELETE", f"repos/{REPO}/issues/comments/4242"],
+        ["issue", "edit", "7", "--repo", REPO, "--remove-label", "band:1"],
+    ]
+    assert log.read_text() == ""
+
+
+def test_an_undo_that_stops_partway_resumes_where_it_stopped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Protects a second undo from failing on a write already reversed.
+
+    The network drops on the second reversal. A second run must start from
+    that write rather than reverse the first one again, which GitHub answers
+    with a 404.
+    """
+    log = tmp_path / "log.jsonl"
+    writes = [{"op": "label", "issue": 7, "label": f"band:{b}"} for b in (1, 2, 3)]
+    log.write_text("".join(json.dumps(w) + "\n" for w in writes), encoding="utf-8")
+    calls: list[str] = []
+    healed = {"now": False}
+
+    def flaky(args: list[str]) -> str:
+        if len(calls) == 1 and not healed["now"]:
+            raise bf.bb.BoardError("network dropped")
+        calls.append(args[-1])
+        return ""
+
+    monkeypatch.setattr(bf, "gh", flaky)
+    assert bf.main(["undo", "--repo", REPO, "--log", str(log)]) == 1
+    assert calls == ["band:3"]
+    healed["now"] = True
+    assert bf.main(["undo", "--repo", REPO, "--log", str(log)]) == 0
+    assert calls == ["band:3", "band:2", "band:1"]
+
+
+def test_a_link_to_another_repository_does_not_count_as_present() -> None:
+    """Protects a write from being skipped for a sibling's issue of the same number."""
+    empty = {"hasNextPage": False, "endCursor": None}
+
+    def gql(query: str, variables: dict) -> dict:
+        foreign = {"number": 1, "state": "OPEN", "repository": {"nameWithOwner": "l3a0/other"}}
+        node = {
+            "id": "I2",
+            "number": 2,
+            "body": "",
+            "labels": {"nodes": [], "pageInfo": empty},
+            "blockedBy": {"nodes": [foreign], "pageInfo": empty},
+            "subIssues": {"totalCount": 0},
+            "issueComments": {"nodes": [], "pageInfo": empty},
+        }
+        return {"repository": {"issues": {"totalCount": 1, "nodes": [node], "pageInfo": empty}}}
+
+    assert bf.read_github(gql, REPO)[2]["blocked_by"] == set()
+
+
+def test_a_second_apply_adds_to_the_log_rather_than_replacing_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Protects the record of a first run that stopped partway.
+
+    Its writes are still on GitHub, so a rerun that wiped the log would leave
+    them where ``undo`` cannot reach.
+    """
+    folder = _readback(tmp_path / "readback", docs(tracker=[card(7, "decision")]))
+    log = tmp_path / "log.jsonl"
+    earlier = {"op": "label", "issue": 7, "label": "band:1"}
+    log.write_text(json.dumps(earlier) + "\n", encoding="utf-8")
+    monkeypatch.setattr(bf, "gh", FakeGh())
+    monkeypatch.setattr(bf, "read_github", lambda gql, repo: live(7))
+    assert bf.main(["apply", "--repo", REPO, "--readback", str(folder), "--log", str(log)]) == 0
+    assert [json.loads(x) for x in log.read_text().splitlines()] == [
+        earlier,
+        {"op": "label", "issue": 7, "label": "decision"},
+    ]
+
+
+def test_github_is_read_for_the_verdicts_already_posted() -> None:
+    """Protects a second ``apply`` from posting every verdict again."""
+    empty = {"hasNextPage": False, "endCursor": None}
+
+    def gql(query: str, variables: dict) -> dict:
+        verdict = {"authorAssociation": "OWNER", "body": "Board verdict: build after 5 passes"}
+        node = {
+            "id": "I2",
+            "number": 2,
+            "body": "",
+            "labels": {"nodes": [], "pageInfo": empty},
+            "blockedBy": {"nodes": [], "pageInfo": empty},
+            "subIssues": {"totalCount": 0},
+            "issueComments": {"nodes": [verdict], "pageInfo": empty},
+        }
+        return {"repository": {"issues": {"totalCount": 1, "nodes": [node], "pageInfo": empty}}}
+
+    assert bf.read_github(gql, REPO)[2]["verdict"] == ("build", 5)
+
+
+def test_a_different_verdict_on_github_is_corrected() -> None:
+    """Protects the plan marker from an older verdict the artifact superseded."""
+    readback = docs(tracker=[card(1)], planned=[{"n": 1, "passes": 5, "ready": "build"}])
+    writes, _ = bf.plan(readback, live(1, verdict=("decide", 3)))
+    assert writes == [{"op": "verdict", "issue": 1, "ready": "build", "passes": 5}]
+
+
+def test_a_cards_after_becomes_its_line() -> None:
+    """Protects a measured ordering from being dropped on the way."""
+    readback = docs(tracker=[{**card(1), "after": [2, 3]}, card(2), card(3)])
+    writes, _ = bf.plan(readback, {**live(1), **live(2), **live(3)})
+    assert writes == [{"op": "line", "issue": 1, "line": "Board after: #2, #3"}]
+
+
+def test_a_blocker_that_closed_gets_no_link_and_is_named() -> None:
+    """Protects the tracker from a link to finished work, and the reader from a silent skip."""
+    readback = docs(tracker=[card(1, needs=(9,))])
+    writes, notes = bf.plan(readback, live(1))
+    assert writes == []
+    assert notes == ["#1 needs #9, which is not open, so no link is added"]
+
+
+def test_the_comparison_reads_every_section_and_every_field() -> None:
+    """Protects the check from going quiet on a whole kind of difference.
+
+    Each line below is one the comparison exists to print: the open count, a
+    card on one side only, a session, a plan, a pull request's field and a
+    card's kind.
+    """
+    old = docs(
+        tracker=[card(1, "decision"), card(2)],
+        working=[{"n": 1, "kind": "build"}],
+        planned=[{"n": 1, "passes": 2, "ready": "build"}],
+        prs=[{"pr": 10, "issue": 1, "state": "open", "reviewed": True}],
+    )
+    new = docs(
+        tracker=[card(1), card(3)],
+        working=[{"n": 1, "kind": "decompose"}],
+        planned=[{"n": 1, "passes": 3, "ready": "build"}],
+        prs=[{"pr": 10, "issue": 1, "state": "merged", "reviewed": True}],
+    )
+    new["state"]["issues"]["open"] = 3
+    assert bf.compare(old, new) == [
+        "state: open issues 2 on the artifact, 3 built",
+        "tracker 1 kind: 'decision' on the artifact, 'ready' built",
+        "tracker 2: on the artifact only",
+        "tracker 3: built only",
+        "working 1 kind: 'build' on the artifact, 'decompose' built",
+        "planned 1 passes: 2 on the artifact, 3 built",
+        "prs (1, 10) state: 'open' on the artifact, 'merged' built",
+    ]

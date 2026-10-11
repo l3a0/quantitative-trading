@@ -484,40 +484,33 @@ function source() {
     const notes = liveNotes();
     el.hidden = !notes.length; el.innerHTML = notes.join(" "); return;
   }
-  /* A function, because STATE is unset while the page has no data. */
+  /* A function, because STATE is unset while the page has no data. Only the
+     stopped line with a board on screen reads it.
+
+     A page that is not live has no board on screen unless it drew one and then
+     stopped, because nothing else puts data on it. The page once carried a copy
+     of the board, and later a copy spliced in for the skill's harness, and the
+     lines here said which copy was showing and how old it was. The harness now
+     serves a board.json through a fake fetch instead, so every other line says
+     there is no board data and that the page carries no copy. */
   const age = () => `measured ${esc(ago(STATE.updatedAt))}`;
-  const copy = NONE ? `no board data` : `the copy built into the page, ${age()}`;
-  /* With no data there is no copy to fall back on, so the lines say so rather
-     than what a copy would be missing. */
-  const own = NONE ? `, and the page carries no copy of its own` : ``;
+  const none = `<b>Showing no board data.</b> `;
   const lines = {
-    loading: `<b>Showing ${copy}.</b> The live board has not arrived yet${own}.`,
-    none: `<b>Showing ${copy}.</b> This view cannot reach the live board` +
-      (NONE ? `${own}.` : `, so any change on GitHub since then is missing here.`),
-    empty: `<b>Showing ${copy}.</b> ` + (SOURCE.missing
+    loading: none + `The live board has not arrived yet, and the page carries no copy of its own.`,
+    none: none + `This view cannot reach the live board, and the page carries no copy of its own.`,
+    empty: none + (SOURCE.missing
       ? `The live board is missing ${esc(SOURCE.missing)}.`
       : `The live board holds no section yet.`),
-    shape: `<b>Showing ${copy}.</b> The live board's ${esc(SOURCE.missing || "")} section is missing fields this page needs, so it was not used.`,
+    shape: none + `The live board's ${esc(SOURCE.missing || "")} section is missing fields this page needs, so it was not used.`,
     /* The page retries on its own timer, so it says so rather than asking for
        a reload. */
     stopped: `<b>Live updates stopped${SOURCE.code ? ` (${esc(SOURCE.code)})` : ""}.</b> ` +
       (SOURCE.had ? `What is shown is the last live data, ${age()}. ` +
                     `The page tries again every ${FETCH_EVERY / 60000} minutes.`
-                  : `Showing ${copy}.`)
+                  : `Showing no board data.`)
   };
   el.innerHTML = lines[SOURCE.why] || lines.none;
-  /* The loading line waits a few seconds before it shows, so a normal load that
-     connects at once never flashes a warning. That wait suits a page with a
-     copy to show meanwhile. With no data it would leave a blank page with no
-     word of why, so then the line shows at once. */
-  if (SOURCE.why === "loading" && !NONE) {
-    el.hidden = true;
-    if (typeof setTimeout === "function") {
-      setTimeout(() => { if (!SOURCE.live && SOURCE.why === "loading") el.hidden = false; }, 4000);
-    }
-  } else {
-    el.hidden = false;
-  }
+  el.hidden = false;
 }
 
 /* The strip carries two things: the open issue count and the stamp. It used to
@@ -557,14 +550,14 @@ function source() {
    built from the tracker. That happened once, and the fix was to file the
    issue rather than to give the page a second source of truth.
 
-   `linked` is GitHub's own closingIssuesReferences, and it is kept because the
-   failure it records is cheap to repeat. It was empty on both PR 34 and PR 35,
-   because both bodies wrote the closing keyword inside a code span, where
-   GitHub does not read it. Reading a body back cannot tell the two spellings
-   apart. `gh pr view <n> --json closingIssuesReferences` can, and it also
-   catches the opposite slip: a sentence written to say a pull request closes
-   nothing registered a link anyway, because the keyword parses wherever it
-   sits.
+   `linked` is GitHub's own closingIssuesReferences. The page once warned when
+   an entry had no closing link and no `Part of`, because PR 34 and PR 35 both
+   wrote the closing keyword inside a code span, where GitHub does not read it.
+   That warning went with the hand-kept board under issue 533. The Action
+   writes an entry only for an issue GitHub links or a `Part of` line names, so
+   `linked` is false exactly when `partOf` is true, and the page no longer reads
+   it. A keyword in a code span now gives the branch no entry at all, and
+   `gh pr view <n> --json closingIssuesReferences` remains the check on a body.
 
    One branch closing two issues takes one entry per issue, because the map
    that feeds the cards is keyed by issue and a single entry would leave the
@@ -1451,22 +1444,14 @@ function buildOrder() {
           ? `<span class="rv">${esc(p.review)}</span>`
           : `<span class="rv">${esc(p.state)}</span>`;
         /* `Part of` registers no closing link on purpose, because the issue
-           keeps what the branch does not do. That is the rule working rather
-           than the code-span defect this warning was written for, so it is
-           said plainly instead of being warned about. A closed pull request
-           will never merge and closes nothing, so neither sentence applies to
-           it and it gets none.
-
-           The warning was written for the hand-kept artifact board, retired
-           under issue 533. The Action writes an entry only where GitHub
-           registered a closing link or a `Part of` line names the issue, so
-           `linked` is false exactly when `partOf` is true and the warning
-           cannot fire on the board it builds. */
-        const loose = p.state === "closed" ? "" : p.partOf
+           keeps what the branch does not do, so the line says so plainly. A
+           closed pull request will never merge and closes nothing, so it gets
+           no such sentence. The page once also warned about an entry with no
+           closing link and no `Part of`, which the Action never writes, so
+           that warning went under issue 533. */
+        const loose = p.state !== "closed" && p.partOf
           ? `<span class="nolink">part of #${c.n}, which stays open for what this does not do</span>`
-          : p.linked ? "" : `<span class="nolink">${p.state === "merged"
-          ? `merged with no closing link, so #${c.n} is still open and has to be closed by hand`
-          : `no closing link registered, so merging will leave #${c.n} open`}</span>`;
+          : "";
         prline += `<div class="pr">
           <a href="${PRU}${p.pr}" target="_blank" rel="noopener">PR #${p.pr}</a>
           <span class="sep">&middot;</span><span class="ck ${ck[0]}">${esc(ck[1])}</span>
@@ -2199,14 +2184,11 @@ function inFlight(ctx) {
     .map((col, k) => col.length ? say[FLOW[k].tone](col) : "")
     .filter(Boolean);
 
-  /* A missing closing link is a fact about a branch, so it is reported where the
-     branches are rather than under a board that no longer draws them. */
+  /* A second open branch on one card is a fact about branches, so it is
+     reported where the branches are rather than under a board that no longer
+     draws them. */
   const withPr = cols.filter((_, k) => FLOW[k].tone === "owner" || FLOW[k].tone === "mine").flat();
   const openPrs = c => openBranches(ctx.prOf, c.n);
-  const loose = withPr.filter(c => openPrs(c).some(x => !x.linked && !x.partOf));
-  if (loose.length) bits.push(`<b>GitHub registered no closing link for ` +
-    `${andlist(loose.map(c => "PR #" + openPrs(c)[0].pr))}</b>, so merging would leave ` +
-    `${ns2(loose)} open`);
   const contested = withPr.filter(c => openPrs(c).length > 1);
   if (contested.length) bits.push(`<b>${ns2(contested)} carries more than one open branch</b>, ` +
     `and merge order decides which lands while neither body can know it`);
