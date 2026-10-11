@@ -1,174 +1,229 @@
 ---
 name: update-build-board
-description: Update the Quantitative Trading Build Board whenever work on this repo changes what it shows. Run it when a decompose loop exits, when a pull request opens, merges, closes unmerged or gains a review, when its checks settle, when a session hands its pull request over, and when an issue is filed, closed, retitled or relabelled, as well as on any request to refresh or sync the board. The board's data lives in the artifact's database, so an update is a pinned ArtifactData write, and the Artifact tool is needed only to change the page's code or start a new board. Answering what to take next is a read and does not on its own call for a write.
+description: Keep the Quantitative Trading Build Board true by setting, on GitHub, the labels, links and lines it reads. Run it when a decompose loop starts or exits, when a build session starts on a card or hands its pull request over, when a review is posted, when an issue is filed or its priority or what it waits on changes, and when the page's code changes. A GitHub Action rebuilds the board from GitHub on every change, so nothing here writes the board itself. Answering what to take next is a read of the board's board.json.
 ---
 
 # Update the build board
 
-The board is a private claude.ai artifact, and its page source is checked in
-beside this skill as `board.html`. It cannot read the disk or poll GitHub, so every number on it was measured by
-hand. That is why this skill exists. A page that cannot refresh itself goes
-wrong silently, and the only thing between it and a confident lie is the
-procedure below.
+The build board is a page answering what is in flight and what to take next.
+It lives on GitHub Pages at <https://l3a0.github.io/quantitative-trading/>, and
+its page source is checked in beside this skill as `board.html`. A GitHub
+Action, `.github/workflows/board.yml`, runs `scripts/build_board.py` on every
+issue, comment and pull request change and on a schedule. The script reads
+GitHub and writes the six sections the page draws as one `board.json` beside
+the page, and no Claude runs at any step.
 
-The numbers live in the artifact's database rather than in the page, one
-document per section in the `board` collection. The page subscribes to all six
-and redraws on every write. Before 2026-10-02 they were baked into the page, so
-every update republished the whole page, and three concurrent sessions produced
-two publish refusals inside one update, each costing a full read of a page of
-two thousand lines and a merge decided part by part. Now an update writes only
-the section it changes, pinned to the version it read, and a write that lost a
-race is refused rather than overwriting the winner.
+So a session never writes the board. What a session does is set the judgement
+the board reads, on GitHub: a label, a native "blocked by" link, a line in an
+issue body, or a line in a comment. The facts GitHub already records, such as
+a pull request opening, its checks settling or an issue closing, reach the
+board with nothing set by anyone.
 
-The board used to link to companion pages saying what the issues are for. They
-lived on the same claude.ai account as the first board and became unreachable
-with it on 2026-10-09, and none had its source in the repo.
-[Issue 438](https://github.com/l3a0/quantitative-trading/issues/438) holds
-whether to rebuild or retire them, so this skill names none.
+Until [issue 533](https://github.com/l3a0/quantitative-trading/issues/533) the
+board was a claude.ai artifact whose figures sessions measured by hand and
+wrote into its database. That cost about $51 a day in session turns, measured
+on [issue 531](https://github.com/l3a0/quantitative-trading/issues/531), and it
+missed every change no session saw. That artifact is retired. Nothing writes
+it, and it is kept rather than deleted only because each ranked card's `why`
+and each plan's `note` exist nowhere else. Do not write to it, and do not
+publish this page to it.
 
-## Find the board
+## Where the board lives
 
-The board's URL lives in a file on this machine rather than in the repository,
-so switching boards needs no commit. A board belongs to one claude.ai account,
-and a machine signed in to another account can neither read nor write it. That
-is how the first board was lost to this repo on 2026-10-09: its URL was written
-here, and this machine's Claude Code could no longer reach the account that
-owned it. Read the URL before anything else.
+| What | Where |
+| --- | --- |
+| The page | <https://l3a0.github.io/quantitative-trading/> |
+| Its data | `board.json` beside the page |
+| What builds the data | `scripts/build_board.py`, run by `.github/workflows/board.yml` |
+| The page's source | `board.html` beside this skill |
+
+The address is public and the same for every machine, so it lives here rather
+than in a file on the machine.
+
+A change reaches the page once a run of the Action finishes. A label, a body
+edit and a comment each start a run. A "blocked by" link and a sub-issue start
+none, because GitHub Actions lists no trigger for either, so they wait for the
+next scheduled run, at minutes 7 and 37 of each hour. Pages also tells a
+browser to cache `board.json` for ten minutes, and the page asks for a fresh
+copy every two minutes to get round it.
+
+To read the board, as step 4 of `sync-prune-next` does, build it from GitHub
+rather than fetching the published copy, because the build reads GitHub as it
+stands rather than as the last run saw it. Run this from the repo root, with a
+scratch directory as the output, never the repo.
 
 ```bash
-u=$(printf '%s' "${QT_BOARD_URL:-}" | tr -d '[:space:]')
-if [ -n "$u" ]; then printf '%s\n' "$u"
-else tr -d '\r' < "$HOME/.config/quantitative-trading/board_url" 2>/dev/null; fi \
-  | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d'
+python3 scripts/build_board.py build --repo l3a0/quantitative-trading \
+  --workflow .github/workflows/board.yml --out <scratch>
 ```
 
-`QT_BOARD_URL` names a board for one run, the way `QT_ARCHIVE_DIR` names the
-archive, and a value of only spaces counts as unset. Otherwise `~/.config/quantitative-trading/board_url` holds it on one
-line, and `docs/design.md`'s Configuration section lists that file with the
-others. The `sed` drops carriage returns, spaces around the URL and blank
-lines, so a file saved by any editor reads the same.
+It prints what it read to the terminal and writes `<scratch>/board.json`. A
+run that fails says why and writes nothing, because the script stops on any
+read it cannot trust rather than writing a board that reads as correct.
 
-The URL is usable when the command prints exactly one line, and every
-`<board url>` below stands for that line. When it prints nothing or more than
-one line, skip the board. Do not guess a URL, do not pick one of several, and
-do not reuse one from an earlier report, an old version of this file or the git
-history. Tell the owner the board was not updated, and that the fix is that
-file holding the board's URL on one line.
+## What a session sets, and when
 
-A file naming one URL can still name a board this account cannot reach, which
-is exactly how the first board failed. An `ArtifactData list` refused with no
-access, or an `Artifact read` answering "artifact not found", means that. Skip
-the board the same way, and tell the owner the file names a board this
-account cannot reach. Never start a new board to get round it without the
-owner's approval, and never read that refusal as a board with no documents. A session only reads the file.
-Writing it is the owner's call, like everything under `~/.config/`, per
-`CLAUDE.md`.
+Each moment below is one where the page's answer changes and nothing GitHub
+records on its own says so. A session that reaches one and leaves has made the
+board wrong, and nothing else notices.
 
-The price is that a machine with no file updates no board, and only the report
-says so. A URL in the repo failed worse. It pointed every machine at a board one
-account could reach, and every session on another machine failed against it
-rather than skipping.
+1. **A decompose loop starts.** Add `working:decompose` to the issue.
+2. **A decompose loop exits.** Take `working:decompose` off, and post the
+   verdict as a comment carrying one line in this form, alone on its line.
 
-### Start a new board
+   ```text
+   Board verdict: build after 5 passes
+   ```
 
-A session starts a board only with the owner's approval, because only the owner
-writes the file above, and a board nobody points that file at is never updated. Publish `main`'s `board.html` with the Artifact tool and
-`capabilities: {"db": {}}`. Every later publish leaves `capabilities` out, which
-keeps what the artifact already has. A page published without `db` can only
-show its banner saying it cannot reach the live board. Then the owner writes the
-new URL into the file above. The new board's database holds no document, so the
-next update builds them, per "A board with no document yet" below.
+   Write `decide` in place of `build` when the loop ended on a question only
+   the owner can answer. The newest such comment wins, so a loop run again
+   writes a new one rather than editing the old. A loop with passes and no
+   exit writes no verdict, because the card's plan marker means the loop
+   exited.
+3. **A build session starts on a card.** Add `working:build` to the issue.
+   It stays after the pull request opens, because until the hand-over it is
+   the only thing on the page saying the branch is still moving.
+4. **A session hands its pull request over.** That means the review is
+   posted, its fixes are pushed, the checks are green at the current head,
+   and nothing more is coming. Take `working:build` off. Until then the card
+   stays under "Waiting on my review", whatever its review and checks say.
+5. **A review lands on a pull request.** Post it as a comment whose first
+   line reads `## Review`. A review headed anything else counts as none, and
+   its card sits in "Waiting on my review" until somebody notices.
+6. **An issue is filed.** Give it its kind label where one applies, as the
+   table below says. Add a `band:N` label if it joins the priority order,
+   because a card with no band is left out of the board's default view. Add a
+   native "blocked by" link for each open issue it cannot start before, and a
+   `Board after:` line for an ordering nothing enforces.
+7. **A card's priority changes.** Move its `band:N` label, and add, change or
+   remove its `Board order:` line.
+8. **What a card waits on changes.** Add or remove its "blocked by" link.
 
-## When to run it
+Nothing else needs setting. A pull request opening, merging or closing, its
+checks settling, and an issue closing, retitled or relabelled all reach the
+board from GitHub.
 
-Eight moments, and each is one where the page's own answer changed. A session
-that hits one and leaves has made the board wrong, and nothing else notices.
+Only the owner's comments count, for a verdict as for a review. Anyone can
+comment on a public repository, and a stranger's comment would otherwise move
+a card. Sessions here run `gh` as the owner, so their comments count. Labels
+and links need triage access, so they need no such filter.
 
-1. **A decompose loop exits.** Add the card to `PLANNED` with its pass count and
-   whether it is ready to build or waiting on an owner call.
-2. **A pull request opens or merges.** An open one moves the card out of the
-   build order into the in-flight section, as a `PRS` entry. A merged one
-   usually takes the card off the page, because the issue it closed is closed.
-   A merged `Part of` leaves its issue open. Keep its entry, with `state` set
-   to `merged`, so the card says what landed. Only an open entry reads as a
-   branch, so that card no longer reads as carried by a branch and goes
-   wherever it would sit with no pull request. A merged entry with no `Part of`
-   whose issue is still open, linked or not, holds the card back under the
-   reason that it has merged and needs only closing by hand. Its work has
-   landed, so the owner ruled on 2026-10-10 that it is neither free nor
-   waiting for a builder. Opening a pull request leaves the session's
-   `WORKING` entry where it is. That entry comes out at the hand-over, under
-   the eighth moment.
-3. **A review lands on a pull request.** Set `reviewed` on its `PRS` entry. That
-   flag is one of three things a card needs before it moves from waiting on a
-   reviewer to waiting on the owner, which is the column the owner reads first.
-   The other two are no `WORKING` entry on the card and green checks at the
-   current head. The page's `owed` reads all three, in that order, and the flow
-   note gives the first one a card still owes as its reason.
-4. **An issue is filed or closed.** That moves `TRACKER` and
-   `STATE.issues.open`, and it is worth an update on its own. A filed issue's
-   card stays off the board's default view until it has a `NEXT` entry, so
-   decide whether it gets one rather than leaving that to chance.
-5. **A pull request closes unmerged.** In-flight membership asks whether a
-   `PRS` entry has `state` of `open`, so until the entry changes the card sits
-   in a review column indefinitely. Keep the entry, with `state` set to
-   `closed`, while its issue stays open. The card's line then says the pull
-   request closed, and the card goes wherever it would sit with no pull
-   request.
-6. **A pull request's checks settle.** `rollup` is per check, and the footer
-   warns that it decays. `CLAUDE.md` already makes a session watch its checks
-   after pushing, so the outcome is always known and only writing it down is
-   optional.
-7. **An issue is retitled or relabelled.** `TRACKER` carries `label`, `ms` and
-   `labels` by hand, and none of them moves on its own. A decompose loop
-   correcting a body counts under the first moment only if the loop exits.
-8. **A session hands its pull request over.** That means the review is posted,
-   its fixes are pushed, the checks are green at the current head, and nothing
-   more is coming. Take the session's `WORKING` entry out in the same pinned
-   batch that writes `reviewed` and `rollup`, so the card reaches "Waiting on
-   your review" in one step. Until that write it stays under "Waiting on my
-   review", whatever its review and checks say.
+The commands, with `<n>` the card's issue and `<b>` the issue it waits on:
+
+```bash
+gh issue edit <n> --add-label working:build
+gh issue edit <n> --remove-label working:build
+gh api --method POST repos/l3a0/quantitative-trading/issues/<n>/dependencies/blocked_by \
+  -F issue_id="$(gh api repos/l3a0/quantitative-trading/issues/<b> --jq .id)"
+gh api --method DELETE \
+  "repos/l3a0/quantitative-trading/issues/<n>/dependencies/blocked_by/$(gh api repos/l3a0/quantitative-trading/issues/<b> --jq .id)"
+```
+
+A "blocked by" link takes the blocker's database id, which `--jq .id` reads,
+rather than its number. A body line is added by editing the issue's body, and
+goes on a line of its own, which is what the script reads.
+
+```text
+Board order: 14.5
+Board after: #51, #83
+```
+
+The order takes a decimal, so a card can go between two others without
+renumbering either. A line quoted inside a sentence, a code span or a fenced
+code block is not read, and neither is a verdict line in a fence.
 
 A branch that closes no issue gets no card at all, because the page is built
-from the tracker. That has happened, and the fix was to file the issue and link
-the branch to it rather than giving the page a second source of truth. Check
-`closingIssuesReferences` when a pull request opens, and if it is empty and the
-branch means to close something, fix the body before the board is touched. A
-pull request into any branch but `main` is the exception. GitHub reads closing
-keywords only on a pull request into the default branch, so a stacked one shows
-an empty list until its base moves to `main`.
+from the tracker. Check `closingIssuesReferences` when a pull request opens,
+and if it is empty and the branch means to close something, fix the body
+before going further. A pull request into any branch but `main` is the
+exception. GitHub reads closing keywords only on a pull request into the
+default branch, so a stacked one shows an empty list until its base moves to
+`main`. That query is eventually consistent. On
+[pull request 94](https://github.com/l3a0/quantitative-trading/pull/94) it
+reported nothing seconds after the body gained its closing keyword and reported
+the link on the next call, so read it a second time before concluding the
+keyword failed.
 
-One section these eight maintain only in part, said plainly rather than left
-to be discovered. `WORKING` marks a card a session is on right now, which is
-only knowable while a session is running. The session an entry describes is
-what writes it, since nothing in this skill adds one. A decompose loop takes its
-entry out when the loop exits. A build session keeps its entry after its pull
-request opens and takes it out at the hand-over, because until then the entry
-is the only thing on the page saying the branch is still moving. A stale entry
-has nothing else to clear it. Treat an entry as owed a removal by whoever added
-it, and read an empty Building column as no information rather than as nobody
-working.
+A session that ends without taking its `working:` label off leaves its card
+under "Waiting on my review" or "Building" until somebody removes it. That
+fails safe, because it delays a merge rather than inviting one too early. A
+label is owed its removal by the session that set it, so report a stale one
+rather than removing another session's.
 
-The price of keeping an entry until the hand-over is named rather than hidden.
-A session that ends without taking its entry out leaves its card under "Waiting
-on my review" until somebody removes it. That fails safe, because it delays a
-merge rather than inviting one too early. Defect 17 is the measurement that
-chose this side of the trade. If the pull request then merges or closes while
-its issue stays open, the leftover entry sends the card to "Building" with a
-line saying no branch exists yet, which is the same stale entry showing in a
-different column.
+## The data, and where each field comes from
 
-Any entry holds the card, whatever its `kind`. A decompose loop running on a
-card whose pull request is open also keeps it under "Waiting on my review",
-which is the owner's rule as given rather than a measured case, and the note's
-reason says a session is working on it rather than naming whose.
+The page loads each section of `board.json` into the variable of the same name
+in capitals, so `prs` becomes `PRS`, and the rest of this file uses those
+names. Change what GitHub holds. Never hand-write a sentence in the page stating
+a number the data already carries, because that sentence outlives the number.
 
-Whoever adds an entry sets its `kind`, because that field decides whether the
-card keeps its plan marker. A build session writes `build` and a decompose loop
-writes `decompose`, and an entry carrying no `kind` counts as a decompose loop.
-So a build session that leaves it out puts a line reading ready to build on a
-card somebody is already building, which is defect 11 arriving through the
-default rather than through a rule.
+| Section | Field | Comes from |
+| --- | --- | --- |
+| `STATE` | `updatedAt`, `issues.open`, `staleAfterMinutes` | the time GitHub was read, the open issue count, and twice the longest gap in the workflow's schedule |
+| `TRACKER` | `n`, `ms`, `label`, `labels` | each open issue's number, milestone, title and labels, less the board's own `band:N` and `working:` labels, which the page draws as the rank chip and the busy stripe |
+| `TRACKER` | `kind` | `parent` for an issue with any sub-issue, then `data` for `blocked-on-data`, `deferred` for `deferred` and `decision` for `decision`, in that order where an issue carries more than one, and `ready` otherwise |
+| `TRACKER` | `needs` | the issue's native "blocked by" links, keeping only blockers that are open issues in this repository |
+| `TRACKER` | `after` | the issue's `Board after:` line, keeping only open issues |
+| `PRS` | `pr`, `issue`, `state`, `linked`, `partOf`, `rollup` | each pull request naming an open issue through a closing link or a line opening with `Part of #N`, with its checks at the current head |
+| `PRS` | `reviewed`, `review` | an owner's comment opening with `## Review`. Without one, `review` reads "review in progress" while the card carries a `working:` label, and "no review posted" otherwise |
+| `WORKING` | `n`, `kind` | the `working:build` and `working:decompose` labels |
+| `PLANNED` | `n`, `passes`, `ready` | the newest owner comment carrying a `Board verdict:` line |
+| `NEXT` | `issue`, `band`, `order` | the `band:N` label and the `Board order:` line |
+| `NEXT` | `ready` | the card's verdict where it has one, `decide` for a card whose kind is `decision`, and `plan` otherwise |
+
+The page's constants live in its code rather than in the data.
+
+| Constant | Holds |
+| --- | --- |
+| `FLOW` | the five in-flight stages and the test that assigns a card to one |
+| `LABEL_HUE` | one colour per tracker label, read by the card chips. A new label renders in the faint ink until a code change adds its colour |
+| `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
+| `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose". A new kind prints no phrase until a code change adds one |
+| `READY_RANK` | the order `build`, `decide` and `plan` sort in, read by the ranking sort |
+
+`NEXT_SORTED` is `NEXT` put in order, by band, then order with 50 where a card
+has none, then readiness, then number. It is derived on every load.
+
+Three of the fields carry judgement rather than measurement, so they are where
+the thinking goes.
+
+1. **`needs` against `after`.** `needs` is a hard blocker and moves a card into
+   a deeper column. `after` is an ordering somebody measured that nothing
+   enforces, so it leaves the card where it is and sorts it below what it names.
+   [Issue 83](https://github.com/l3a0/quantitative-trading/issues/83) once
+   carried `after: [51]` because its own body measured the split: three of the
+   failures a second download causes belonged to
+   [issue 51](https://github.com/l3a0/quantitative-trading/issues/51) and the
+   rest did not, so it could be built first while the suite stayed red until 51
+   landed. A "blocked by" link there would have said something false. A link
+   and the issue's `## Depends on` prose then say the same thing twice. The
+   link wins, because it is what the board reads, and the prose keeps the
+   reason the wait exists.
+2. **A verdict means a decompose loop exited**, on a pass that did not reduce
+   the body. Not that a body looks thorough. Read the pass count as a cost
+   rather than a depth: one run reached 109 under the older exit rule, which
+   asked for two consecutive empty passes and could not terminate while the
+   loop edited its own artifact.
+3. **`band`** is priority under this repo's ranking directive. 1 blocks other
+   work or risks data that cannot be recaptured, 2 is the reader chain
+   everything waits behind, 3 is a sentence wrong where a reader acts on it,
+   and 5 is deferred on purpose. No band 4 is defined, so no label exists for
+   it.
+
+`question` is not `decision`. An issue can carry `question` while it waits on
+research rather than on the owner, as
+[issue 273](https://github.com/l3a0/quantitative-trading/issues/273) did, so
+the board reads only `decision` as needing the owner rather than a session.
+
+### When two labels disagree
+
+An issue carrying two `band:N` labels, both `working:` labels, two kinds, or
+two different `Board order:` lines has no single value. The script takes the
+lowest band, the `build` kind, the kind the table above puts first and the
+first line, and lists each conflict in
+the run's job summary rather than failing, because one stray label would
+otherwise freeze the whole board. Read the summary of a run after setting
+either, and fix the label the conflict names.
 
 ## What the page is made of
 
@@ -196,10 +251,10 @@ The sections are these.
 1. **In flight**, five columns running most finished on the left: waiting on
    your review, waiting on my review, building, planned with no builder, and
    being planned. A card here is drawn once and left out of the build order.
-   Two of the five hold a card only because a session is on it, and `kind` on
-   the `WORKING` entry is what separates a build session from a decompose loop.
-   A third, waiting on my review, also holds a card whose branch is open and
-   whose session has not handed it over.
+   Two of the five hold a card only because a session is on it, and the kind
+   of `working:` label is what separates a build session from a decompose
+   loop. A third, waiting on my review, also holds a card whose branch is open
+   and whose session has not handed it over.
 2. **Build order**, four columns by dependency depth. By default they hold the
    ranked cards, and with Show all they hold everything not in flight.
    Within a column, cards sort by readiness, then by the priority order, then by
@@ -213,399 +268,36 @@ The sections are these.
    open issue drawn, the first column ran past fifty cards and the ten ranked
    ones were scattered through it. The Marketlake Build Board made the same cut
    at a hundred and fifty. The choice is kept in the viewer's browser under
-   `qt-board-all` and nowhere else. A card whose `TRACKER` entry has a `kind` of
-   `deferred` stays hidden even when `NEXT` lists it, because `rankMark` drops
-   it. A band of 5 in `NEXT` does not hide a card on its own. So a card in the
-   build-order columns shows by default exactly when `NEXT` lists it and its
-   `kind` is not `deferred`. A card in flight shows either way. Adding a `NEXT` entry
-   is how a card gets onto the short view, and that view is what the owner reads
-   first.
-3. **One paragraph**, saying the page was measured by hand and cannot poll
-   anything. It is all that remains of a twenty-paragraph footer that was a
-   second telling of what the cards say. Do not grow it back. On the board
-   GitHub Pages serves, described below, it says how that board is built
-   instead.
+   `qt-board-all` and nowhere else. A card whose `kind` is `deferred` stays
+   hidden even when it carries a band, because `rankMark` drops it. A band of 5
+   does not hide a card on its own. So a card in the build-order columns shows
+   by default exactly when it carries a `band:N` label and its `kind` is not
+   `deferred`. A card in flight shows either way. A band label is how a card
+   gets onto the short view, and that view is what the owner reads first.
+3. **One paragraph**, saying how the board is built and that every figure on
+   it dates from the stamp. It is all that remains of a twenty-paragraph footer
+   that was a second telling of what the cards say. Do not grow it back.
 
-Between the strip and the first section sits a banner that is empty while the
-page shows live data. It speaks when the page has no board data to show, when
-it is drawing a copy spliced in for the harness, or when it has stopped taking
-live updates. It says which, and how old any data on screen is. With no board
-data the page hides both sections and the footer and draws only the banner, so
-a new board with no documents shows "The live board holds no document yet"
-rather than an empty board that reads as real. The harness has no database, so
-every harness run prints the banner as
-`OTHER[source] ... This view cannot reach the live board`. That line is the
-banner working, not a defect. Every run also prints empty `OTHER[flightsec]`
-and `OTHER[ordersec]` lines, which are the sections the page hides when it has
-no data. The default view also prints the count line, as
-`OTHER[more] Showing the N ranked cards. M other open issues are not in the
-priority order. Show all N+M`, and the Show all view prints it as
-`OTHER[more] Showing all N+M open issues not in flight. Show only the ranked
-cards`.
+Between the strip and the first section sits a banner. Over a current board it
+is empty. It warns when the stamp is older than `staleAfterMinutes`, because a
+failed run leaves the last board up and a board an hour stale looks like a
+fresh one. It also speaks when the page has no board to show, or has stopped
+taking fresh copies, and says which and how old any data on screen is. With no
+board data the page hides both sections and the footer and draws only the
+banner, so a missing or unreadable `board.json` never reads as an empty board.
 
-### The second board, on GitHub Pages
+## Change the page's code
 
-The same `board.html` also runs as a second board on GitHub Pages, which no
-session writes. `.github/workflows/board.yml` runs `scripts/build_board.py` on
-every issue, comment, pull request and CI change and on a schedule. The script
-reads GitHub and writes the six sections as one `board.json` beside the page.
-A page that finds no database fetches that file every two minutes instead,
-which is the fetch path
-[issue 532](https://github.com/l3a0/quantitative-trading/issues/532) added
-beside `connect`. It is the only path this skill's harness cannot reach,
-because the harness runs under `osascript`, which has no fetch.
-`tests/test_build_board.py` drives it with a fake one.
+Change it only when the rendering has to change. Edit `board.html` beside this
+skill, run `tests/test_build_board.py` and `tests/test_build_board_generator.py`
+and the harness below, and open the pull request. The run of the Action that
+the merge starts publishes `main`'s `board.html`, so there is nothing to
+publish by hand.
 
-That board carries only what GitHub already holds: the open count, each card's
-milestone and labels, and each pull request's state, checks, linked issue and
-`## Review` comment from the owner. `working`, `planned` and `next` are empty,
-and every card's `kind` is `ready` with no `needs`. So its banner speaks over
-live data too, naming the fields it does not carry, and warning when its stamp
-is older than twice the schedule's longest gap. The artifact board stays the
-one this skill writes and the owner reads until
-[issue 533](https://github.com/l3a0/quantitative-trading/issues/533) moves the
-rest onto GitHub.
-
-## Read the live data before editing anything
-
-Another session may have written since this one last looked, and a copy sitting
-in a scratchpad is a guess about what is stored. So read all six documents into
-a scratch directory, never the repo root, because nothing read here belongs in a
-commit.
-
-```text
-ArtifactData action="list" url="<board url>"
-             collection="board" out_dir="<scratch>/readback"
-```
-
-That writes `readback/board/<section>.json` for each of `state`, `prs`,
-`working`, `planned`, `next` and `tracker`, and the result names each one's
-`version`. Edit the files for the sections that change and leave the rest
-alone.
-
-**Write each changed section pinned to the version it was read at.** Use one
-`batch` when more than one section changes, so they land together or not at
-all.
-
-```text
-ArtifactData action="batch" url="<board url>"
-  writes=[{op:"set", collection:"board", doc_id:"prs",
-           file_path:"<scratch>/readback/board/prs.json", if_version:<read version>}, ...]
-```
-
-Leave the `__`-prefixed fields out of what is sent, since the database adds
-them. A write against a section that moved since the read is refused with
-`version_mismatch` and writes nothing. A refused batch names only the first
-stale entry, so re-read all six with the same `list` call rather than that one
-section, apply the same edit to what they hold now, splice and run the harness
-again, and write again. Never drop the pin to get a write
-through, because the pin is the only thing standing between two sessions and a
-lost update. That refusal fired on the very first update after the migration:
-another session wrote `board/state` between this skill's read and its write,
-the pinned write was refused, and the re-read showed the other session had
-already written the same figures.
-
-A pin guards only the section it is on. When an edit to one section rests on
-another, such as a `prs` entry written against the `tracker` card it moves,
-include the other section in the same batch, set unchanged with its own pin. A
-session that changed the tracker in between then refuses the whole batch,
-rather than leaving a pull request entry against a card that has moved.
-
-Each document is `{ schema: 1, items: [...] }`, except `board/state`, which is
-`{ schema: 1, updatedAt, issues: { open } }`. The page adopts a section only
-when it passes `usableSection`. That check asks for the schema, for `updatedAt`
-as a string and `issues.open` as a number, and for every field on an item that
-the renderer reads without a guard. The redraw is also wrapped, so a write that
-passes the check but still breaks the drawing code is rolled back to the last
-good data. Either way the banner says live updates stopped and why. Both were
-exercised on 2026-10-02 by driving the page's `connect` with a fake database:
-a tracker item missing `needs`, a state with an empty `suite` (a field the
-check stopped asking for when the strip lost it), a tracker item
-whose `labels` was a string, and a renderer forced to throw. All four kept the
-last good board and lit the banner, and the next good write went live again.
-
-That is a net under the page, not a replacement for checking. The page can only
-refuse a write after it has landed, and a refused section stays refused for
-every viewer until someone writes a good one. So run the harness on the edited
-readback before writing, which is what catches a bad write before anyone sees
-it.
-
-### A board with no document yet
-
-A new board's database starts empty, so the first update against it reads none
-of the six documents. A `list` that succeeds and returns nothing means this. A
-`list` refused with no access, or a read answering "artifact not found", means
-the file names a board this account cannot reach, per "Find the board" above,
-and builds nothing. There is nothing to edit, so the update builds every
-section and creates it.
-
-Look for a readback of the old board first. A scratch `qt-board.html` that
-`with-db.py` spliced holds every section on its `const FALLBACK` line, and the
-first restore on 2026-10-10 started from one taken four days earlier. Where one
-survives, carry its hand-kept judgements over and re-measure everything
-volatile. Where none does, build from the tracker alone. Say in the report which
-happened.
-
-Every document except `state` is `{ schema: 1, items: [...] }`, with the item
-fields the table under "The data, and what each part owns" lists. The page
-refuses a document missing any field it reads, and refuses an empty tracker.
-
-1. `state` is `{ schema: 1, updatedAt, issues: { open } }`. `updatedAt` is the
-   time of the write as an ISO 8601 UTC string such as `2026-10-10T02:44:13Z`,
-   and `issues.open` is the open issue count from GitHub.
-2. `tracker` holds one card per open issue. GitHub supplies `n`, `ms` and
-   `labels`, with `--limit 1000` on the list, and `ms` must be a string even
-   for an issue with no milestone. `label` is the sentence the card prints. It
-   is the issue's title unless an older readback carries a rewrite, and the
-   first restore found 24 deliberate rewrites. `kind` is one of `KINDWORD`'s
-   keys: `ready`, `decision`, `deferred`, `data` or `parent`. `needs` and
-   `after` come from each issue's own statement of what it waits on, and every
-   target must be an open issue. A readback's `kind`, `needs`, `after` and
-   `label` carry over for issues still open.
-3. `prs` holds one entry per open pull request, measured as a usual update
-   measures it, plus every merged or closed entry a readback carries whose
-   issue is still open. Those carry over unchanged, because the card still
-   reads each one. A merged `Part of` says what landed, a merged entry with no
-   `Part of` holds its card until it is closed by hand, and a closed entry says
-   the branch closed. A pull request whose closing references are empty but
-   whose body writes `Part of` with an issue number takes that issue,
-   `linked: false` and `partOf: true`. One with neither gets no entry, and the
-   report names it.
-4. `next` takes a readback's order, minus closed issues. Rank a new issue only
-   where `CLAUDE.md`'s ranking directive clearly places it, and list the rest
-   in the report for the owner. With no readback, rank the open issues by that
-   directive and each issue's own statement of what it waits on.
-5. `planned` holds a card whose decompose loop wrote an exit verdict on its
-   issue, with `passes` and `ready` of `build` or `decide`. A loop with passes
-   and no exit is not planned. Search issue comments for exit verdicts newer
-   than any readback.
-6. `working` starts as `{ schema: 1, items: [] }`. Its entries came from other
-   sessions, and the tracker cannot rebuild them. An empty section makes every
-   card a session holds read as free. So list a readback's entries in the
-   report, and check recent issue comments for sessions that started since, so
-   a session still building or planning adds its own entry back.
-
-Write them as one batch of `set` entries with no `if_version`, because the pin
-applies only to a document that already exists.
-
-```text
-ArtifactData action="batch" url="<board url>"
-  writes=[{op:"set", collection:"board", doc_id:"state",
-           file_path:"<scratch>/readback/board/state.json"}, ...]
-```
-
-This cannot overwrite another session's board. The tool refuses a write without
-`if_version` to a document that already exists, so if another session created
-one first, that entry is refused. The result says whether the batch applied as
-one unit or one write at a time. In the second case the entries before the
-refused one have landed. Either way, re-read all six with the usual `list` and
-carry on as a usual update. Where `list` returns some sections and not others, as after an
-interrupted creation, create only the missing ones the same way and leave the
-rest to pinned writes.
-
-Run the harness on the built files before writing, as on any update.
-
-### Change the page's code
-
-Change it only when the rendering has to change. The source is `board.html`
-beside this skill, so the change is a pull request like any other. Edit that
-file, run `tests/test_build_board.py` and the harness below, and open the pull
-request. Once it merges, publish `main`'s `board.html` to `<board url>` with the Artifact tool and a
-short `label`, and omit `capabilities` so the stored `db` declaration carries
-forward.
-
-Publish the file as checked in, with no data spliced into it. The page reads
-every figure from the database, and a copy built into it is a snapshot nothing
-refreshes. A page published from a scratch copy is a page nobody can diff, and
-that is how the first board's source came to be lost with its account.
-
-## Measure everything, recall nothing
-
-Every figure on the page has a command behind it. Run them **from the repo
-root**, not from the scratch directory the rest of this page works in, because
-`gh` reads the repository from the checkout it runs in.
-
-A count recalled from earlier in the session is the one that will be wrong, and
-it has been: an update shipped 39 open issues when a query said 40.
-
-None of them runs the suite. The page carries no figure that needs one, so a
-board update never waits on a test run. The first command feeds no figure
-either. It fetches, and the head it prints is how a session notices that a
-merge landed since its last read.
-
-```bash
-git fetch --prune origin && git log --oneline -1 origin/main
-gh issue list --state open --limit 1000 --json number --jq 'length'
-gh pr list --state open --limit 1000 --json number,title,statusCheckRollup,closingIssuesReferences
-gh issue list --state open --limit 1000 --json number,labels,milestone --jq 'sort_by(.number)[]|"\(.number)\t\(.milestone.title)\t\(.labels|map(.name)|join(","))"'
-```
-
-Every list command carries `--limit 1000` because `gh` stops at its limit
-without a warning, and the default is 30. A truncated list prints the same way a
-complete one does, so its length reads as a count rather than as a cut. On
-2026-10-05 the repo held 121 open issues and `--limit 100` returned 100, which
-under-counted the open total and dropped 21 cards' milestones and labels. Keep
-the limit well past the current count rather than at it.
-
-The second `gh issue list` command feeds every card's `ms` and `labels`. `ms`
-is the GitHub milestone title, printed on the card exactly as the tracker
-spells it, which is why it is queried rather than recalled from the five that
-exist. They are the tracker's own labels rather than a second vocabulary, so a
-label added on GitHub belongs on the card, and `LABEL_HUE` takes its colour
-from `gh label list --limit 1000 --json name,color`.
-
-Two hues are deliberately not GitHub's, and the rule is readability rather than
-fidelity. A label colour on GitHub is a chip background, while here it is text,
-so a value that reads fine there can be invisible here. `enhancement` is
-`a2eeef` and `deferred` is `ededed`, both too pale to read as text on white, so
-the page substitutes a darker colour for each. Syncing `LABEL_HUE` straight from
-the command would undo both.
-
-Three things decide where an open pull request's card goes, and none is
-guessable.
-
-```bash
-gh pr view <n> --json closingIssuesReferences
-gh pr view <n> --json comments --jq '[.comments[]|select(.body|startswith("## Review"))]|length'
-gh api repos/l3a0/quantitative-trading/commits/$(gh pr view <n> --json headRefOid --jq .headRefOid)/check-runs
-```
-
-An empty `closingIssuesReferences` on a pull request that means to close
-something is the signal to fix its body before merging, and it is the only way
-to tell a plain keyword from one inside a code span. It catches the opposite
-slip too: a sentence written to say a pull request closes nothing registered a
-link anyway, because the keyword parses wherever it sits.
-
-That query is eventually consistent. On [pull request 94](https://github.com/l3a0/quantitative-trading/pull/94) it reported nothing
-seconds after the body gained its closing keyword and reported the link on the
-next call, so a session that reads it once and acts on the empty result rewrites
-a body that was already right. Read it a second time before concluding the
-keyword failed.
-
-The middle command is why `reviewed` is counted rather than queried today, and
-the constraint is what this session posts rather than anything about the API. A
-review posted with `gh pr comment` is an issue comment, which never reaches
-`reviews` or moves `reviewDecision`, so a landed review and an unwritten one are
-indistinguishable by query. `gh pr review --comment` posts a review instead, and
-an author may leave one on their own pull request even though they may not
-approve it. If a session posts reviews that way, `reviews` becomes queryable and
-the comment count stops being needed. `reviewDecision` still will not move,
-because only an approval changes it, so it is not the field to read either way. Until then, count the comments that
-open with a review heading, because a card cannot reach the column saying the
-next move is the owner's without that flag.
-
-That heading is a convention this command depends on and nothing else states, so
-it is stated here: **a session's review comment opens with a line reading
-`## Review`.** A review headed anything else counts as zero, and its card sits
-in "Waiting on my review" until somebody notices.
-
-Read the checks against the pull request's current head, because a rollup is a
-claim about one merge ref at one moment and goes stale in both directions. A
-base change goes stale without a new head, so a pull request whose base moved
-after its last push is not green yet. The `sync-prune-next` skill's step 4 says
-how that happens to a stacked pull request and how to see it.
-
-Read `status` before `conclusion`. An in-progress run carries a null conclusion,
-so anything that tests for "not success" reads it as a failure, and only a
-completed run's conclusion means anything. The board's own `checkword` does it
-that way. This is a fourth rollup behaviour alongside the three `CLAUDE.md`
-already lists, and it belongs there rather than only here, which
-[issue 87](https://github.com/l3a0/quantitative-trading/issues/87) carries.
-
-### Measure again immediately before writing
-
-The figures taken at the start are a claim about the moment the update began,
-and an update takes minutes. Both halves of that gap have already cost something
-inside one session.
-
-1. **A rollup settled underneath the edit.** [Pull request 90](https://github.com/l3a0/quantitative-trading/pull/90) read five checks
-   still running on the first pass and six green on the last. Publishing the
-   first reading would have said a branch was not ready when it was. The set of
-   runs is not fixed either: `CodeQL` had not been created when the first read
-   ran, so a session that reads the runs once is reading a set that is still
-   growing.
-2. **Two pull requests opened during the edit.** Pull requests [91](https://github.com/l3a0/quantitative-trading/pull/91) and [92](https://github.com/l3a0/quantitative-trading/pull/92) did not
-   exist when that update started. By the time it was ready to publish they had
-   emptied the Building column and moved two cards a whole stage each.
-
-So re-run the volatile commands as the last step before writing, and write
-what those say rather than what the session opened with. Volatile means the
-first command, the open pull request list, every per-branch query, and both
-issue commands rather than only the one that counts them. An issue filed
-mid-update moves `STATE.issues.open` and owes `TRACKER` a card, so re-reading
-the count on its own leaves the page failing check 1. One was filed during the
-update this rule came from.
-
-The first command is in that set because its printed head says which merges
-landed, and a merge is what closes issues and pull requests. The `gh` commands
-measure what that moves, `PRS`, `TRACKER` and the open issue count, so the first
-command explains a change rather than measuring one. `updatedAt` is the one
-figure none of this measures, because the session writes it.
-
-The price is one more round of queries per update. What it buys is a gap of
-seconds between the last measurement and the write rather than a gap the
-length of the whole edit. The gap does not close, because editing the
-documents takes its own time and a figure that moved sends the session back to
-edit again.
-
-Nothing re-derives the page's figures after a write, so whatever is wrong at
-that moment stays wrong until the next session runs this. What does read the
-page is the owner, and four rows in the record below were found exactly that
-way.
-
-## The data, and what each part owns
-
-Everything the page says comes from the six database sections and the
-constants below. The page loads each section into the variable of the same name
-in capitals, so `board/prs` becomes `PRS`, and the rest of this file uses those
-names. The constants live in the page's code. Change the data. Never hand-write
-a sentence stating a number the data already carries, because that sentence
-outlives the number.
-
-Two of them hold rendered prose rather than values. `COLS` carries every
-build-order column heading and subtitle, and `KINDWORD` carries the phrase a
-card prints for its kind. A heading that looks hardcoded in the template is in
-one of those.
-
-One more constant is not in the table because nothing should edit it.
-`NEXT_SORTED` is `NEXT` put in order, and it is derived on every load.
-
-| Part | Holds |
-| --- | --- |
-| `STATE`, from `board/state` | `updatedAt` and `issues.open` |
-| `PRS`, from `board/prs` | per pull request: `pr`, `issue`, `state`, `linked`, `reviewed`, `review`, `rollup`, and `partOf` where the branch closes nothing on purpose. Every entry draws its line on the card. Only one whose `state` is `open` reads as a branch carrying the card, which the page's `openBranches` decides. A `merged` entry with no `partOf` holds the card back as needing only closing by hand, which `closesByHand` decides. A `closed` entry holds nothing |
-| `WORKING`, from `board/working` | cards a session is on now: `n`, `kind` of `build` or `decompose`, and `what`, a phrase no card draws. Under "Building" and "Being planned" the heading already names the session and the card's title names the same work. Under "Waiting on my review" a phrase such as "building Example 3.2's transcription" sat above "review in progress" and described work the branch had already replaced, so the owner cut it there too on 2026-10-05. The `busy` stripe says a session still holds the card, and the flow note says what the branch still owes. The screen-reader label reads the phrase only while no branch is open, where it can add a detail the title lacks, such as the name of the MATLAB file a build is transcribing. Once a branch is open the label drops the phrase and says which kind of session still holds the card, because the stripe looks the same for both: a build session is still on the branch, and a decompose loop is still revising the plan. Lead the phrase with the session's verb, such as building or planning, because the label is read on its own without the column heading. `kind` is read rather than decorative, because a build session suppresses the plan marker and a decompose loop does not. An entry carrying no `kind` counts as a decompose loop. A build session's entry stays after its pull request opens and comes out at the hand-over, so an entry on a card with an open pull request holds it under "Waiting on my review" |
-| `PLANNED`, from `board/planned` | cards whose decompose loop exited: `n`, `passes`, `ready`. A `note` is carried for the next editor and is not rendered |
-| `TRACKER`, from `board/tracker` | every open issue as a card: `n`, `ms`, `labels`, `needs`, optional `after`, `kind`, `label` |
-| `NEXT`, from `board/next` | the priority order, each keyed by `issue` rather than `n`, with `band`, `ready`, `title`, `why`, and an optional `order`. It renders no section of its own. It drives the sort inside every column, the small number chip on the cards it names, and which cards the default view draws |
-| `FLOW` | the five in-flight stages and the test that assigns a card to one |
-| `LABEL_HUE` | one colour per tracker label, read by the card chips. A new label renders in the faint ink until a code republish adds its colour |
-| `COLS` | the four build-order column headings and their subtitles, which are rendered prose |
-| `KINDWORD` | the phrase a card prints for its `kind`, such as "deferred on purpose". A new kind prints no phrase until a code republish adds one |
-| `READY_RANK` | the order `build`, `decide` and `plan` sort in, read by the ranking sort |
-
-Three of these carry judgement rather than measurement, so they are where the
-thinking goes.
-
-1. **`needs` against `after`.** `needs` is a hard blocker and moves a card into a
-   deeper column. `after` is an ordering somebody measured that nothing
-   enforces, so it leaves the card where it is and sorts it below what it names.
-   [Issue 83](https://github.com/l3a0/quantitative-trading/issues/83) carries `after: [51]` because its own body measures the split: three
-   of the failures a second download causes belong to [issue 51](https://github.com/l3a0/quantitative-trading/issues/51) and the rest do
-   not, so it can be built first while the suite stays red until 51 lands. Using
-   `needs` there would have said something false. The first card to carry one was
-   [issue 2](https://github.com/l3a0/quantitative-trading/issues/2), on a measurement about a Windows clone, and both it and the card it
-   named have since merged, which is what an `after` is for.
-2. **`PLANNED` means a decompose loop exited**, on a pass that did not reduce
-   the body. Not that a body looks thorough. Check the issue for the verdict
-   before adding an entry, and read the pass count as a cost rather than a
-   depth: one run reached 109 under the older exit rule, which asked for two
-   consecutive empty passes and could not terminate while the loop edited its
-   own artifact.
-3. **`band` in `NEXT`** is priority under this repo's ranking directive. 1 blocks
-   other work or risks data that cannot be recaptured, 2 is the reader chain
-   everything waits behind, 3 is a sentence wrong where a reader acts on it, and
-   5 is deferred on purpose.
+A change to what the page reads is a change to the script as well. Add the
+field to `scripts/build_board.py`, and to `ITEM_OK` in the page if the renderer
+reads it without a guard, because the page refuses a whole section when one
+item lacks a field it reads.
 
 ## Verify by executing, never by reading
 
@@ -613,31 +305,23 @@ A parse check is not enough, because a comma dropped inside a nested array still
 parses. `tests/test_build_board.py` runs the page against an invented fixture,
 which catches a page that throws, draws a section from the wrong document, or
 mislabels an empty board. It cannot read the live data, so running the page on
-what is about to be written is still the check on what a viewer will see.
+a board built from GitHub is still the check on what a viewer will see.
 
-The harness runs the page's script with no database, and the checked-in page
-carries no copy of the board, so on its own it would draw only the banner and
-then throw at `store.strip`. So splice the documents just read into a copy of
-the page first. Copy `board.html` from this checkout
-into the scratch directory as `qt-board.html`, then run this from the scratch
-directory, with `$REPO` set to this checkout.
-
-```bash
-python3 "$REPO"/.claude/skills/update-build-board/with-db.py qt-board.html readback/board > live.html
-mv live.html qt-board.html
-```
-
-Run that again after editing the readback files, so the harness reads what is
-about to be written rather than what was read.
+The harness runs the page's script under `osascript`, which has no fetch, so it
+hands the page a fake one serving a `board.json` built as "Where the board
+lives" says. Run this from the scratch directory that build wrote into, with
+`$REPO` set to this checkout.
 
 ```bash
 python3 -c "
-import re,sys
+import json,re,sys
 t=open(sys.argv[1]).read()
 open('board.js','w').write(re.search(r'<script>(.*?)</script>', t, re.S).group(1))
-" qt-board.html
-cat "$REPO"/.claude/skills/update-build-board/dom-stub.js board.js > run.js
-cat >> run.js <<'JS'
+open('serve.js','w').write('var fetch=function(){return Promise.resolve({ok:true,status:200,'
+  'text:function(){return Promise.resolve('+json.dumps(open('board.json').read())+');}});};\n')
+" "$REPO"/.claude/skills/update-build-board/board.html
+cat > print.js <<'JS'
+(async function(){ for (var i=0;i<50;i++) { await null; }
 function s(x){return String(x).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();}
 var o=[];
 o.push("STRIP: "+s(store.strip.innerHTML));
@@ -673,10 +357,14 @@ store.foot.innerHTML.split("<p>").slice(1).forEach(function(x,i){
 var shown = {strip:1, flow:1, board:1, flownote:1, boardnote:1, key:1, flowkey:1, foot:1};
 Object.keys(store).sort().forEach(function(id){
   if (!shown[id]) o.push("OTHER["+id+"] "+s(store[id].innerHTML));});
-o.join("\n");
+console.log(o.join("\n")); })();
 JS
+cat "$REPO"/.claude/skills/update-build-board/dom-stub.js serve.js board.js print.js > run.js
 osascript -l JavaScript run.js
 ```
+
+The page fetches on load and draws once the answer arrives, which is after the
+script's last line, so the printing waits for it rather than running at once.
 
 That run draws the default view, which hides every card `NEXT` does not rank.
 Run it a second time with the Show all view, because most of the columns and
@@ -686,15 +374,15 @@ page's own key, so a page reading a renamed key draws the short view and the
 run shows it.
 
 ```bash
-(cat "$REPO"/.claude/skills/update-build-board/dom-stub.js
+(cat "$REPO"/.claude/skills/update-build-board/dom-stub.js serve.js
  echo 'var localStorage={getItem:function(k){return k==="qt-board-all"?"1":null;},setItem:function(){}};'
- sed -n '/^function s(x)/,$p' run.js | cat board.js -) > run-all.js
+ cat board.js print.js) > run-all.js
 osascript -l JavaScript run-all.js
 ```
 
 `osascript -l JavaScript` is JavaScriptCore, and it is what runs this where no
-`node` is installed. It is macOS only. Anywhere else, run the same two files
-with whatever JavaScript engine is present, because the stub is plain ES5 and
+`node` is installed. It is macOS only. Anywhere else, run the same files with
+whatever JavaScript engine is present, because the stub is plain ES5 and
 assumes nothing about its host.
 
 Print every surface the page renders into, not the interesting ones. An earlier
@@ -717,14 +405,13 @@ Later the same day the page stopped drawing the phrase under "Waiting on my
 review" as well, so every `wk` line now reads `(none)`, and a phrase showing up
 on any of them is the line coming back.
 
-**Much of the page is dark when `PRS` and `WORKING` are empty**, which is the
-state it is in between batches and every time a session opens the first branch
-of one. The flow note collapses to a sentence, the flow legend loses two
-entries, and the footer's decay clause disappears entirely. That clause is where
-check 5's conjunction lives, so on an empty board the sentence it warns about
-cannot be read at all. Where a change touches that code, add an entry to a
-scratch copy of `readback/board/prs.json`, splice it in with `with-db.py`, run
-the harness and read the output. Never write that copy to the database.
+**Much of the page is dark when no branch is open and no session holds a
+card**, which is the state it is in between batches. The flow note collapses
+to a sentence, the flow legend loses two entries, and the footer's decay clause
+disappears entirely. That clause is where check 5's conjunction lives, so on an
+empty board the sentence it warns about cannot be read at all. Where a change
+touches that code, add a `prs` or `working` entry to a scratch copy of
+`board.json`, rebuild `serve.js` from it, run the harness and read the output.
 
 **Read the output rather than checking that it ran.** About half the defects
 this page has shipped were sentences that rendered perfectly and said something
@@ -926,9 +613,11 @@ the script beside it. Each row after them says how it was found.
     This is defect 15 on the other half of the same heading. That one read a
     review and not the checks, and this one read both and not the session. The
     fix reuses `WORKING` rather than adding a field. A build session's entry
-    now stays until it hands the pull request over, and comes out in the same
-    pinned write that records the hand-over. The page's `owed` returns the
-    first thing a branch still owes, which is a review, its session or its
+    now stays until it hands the pull request over, and comes out at the
+    hand-over. Since
+    [issue 533](https://github.com/l3a0/quantitative-trading/issues/533) the
+    entry is a `working:build` label. The page's `owed` returns the first
+    thing a branch still owes, which is a review, its session or its
     checks. The column test and the flow note both call it, so the reason a
     card gives for sitting on the reviewer's side is the rule that put it
     there, which is defect 5's lesson.
@@ -1029,23 +718,17 @@ the line it edits, and checks here for a sentence describing the same mechanism.
 
 ## Finishing
 
-Re-measure the volatile figures first, under **Measure again immediately before
-writing** above, then write and report in the same reply.
+Report in the same reply that sets anything.
 
-1. Each section written and the version it now holds.
-2. Any sentence the execution caught, and what replaced it.
-3. What is still stale.
+1. Each label, link and line set or removed, and on which issue.
+2. Any conflict the next run's job summary listed, and what fixed it.
+3. Any sentence the harness caught, and what replaced it, when the page's code
+   changed.
 
-If a write is refused with `version_mismatch`, do not drop the pin. Re-read that
-section, redo the edit on what it holds now, and write again. A section another
-session already brought to the same figures needs no write at all.
-
-A publish of the page's code can be refused because the page moved. Do not
-force it. The refusal hands over the live source, so compare it with `main`'s
-`board.html`. If they match, publish again. If they differ, someone published
-code that is not on `main`. Get that code into a pull request before publishing
-over it, because publishing `main`'s file reverts their change and nothing
-would hold it afterwards.
+A run of the Action that fails leaves the last board up, and the page's banner
+says so once the stamp passes `staleAfterMinutes`. Read the failed run's log
+rather than re-running it, because a second run of the same read fails the same
+way unless the failure was GitHub's.
 
 ### Offering a task per idle card was tried and withdrawn
 

@@ -5,9 +5,9 @@
 // dropped inside a nested array still parses, and a sentence that renders
 // perfectly can still say something false. So the check is to execute the
 // script and read what it produced. Two things run it on this stub: the
-// skill's harness, against the data about to be written, and
+// skill's harness, against a board.json built from GitHub, and
 // tests/test_build_board.py, which holds what the page draws with no data, an
-// empty database, a partial one and a fixture board.
+// empty board.json, a partial one and a fixture board.
 //
 // This is plain ES5 and assumes nothing about its host, so any JavaScript engine
 // runs it. Where none is installed, `osascript -l JavaScript` is JavaScriptCore
@@ -24,7 +24,7 @@ function mkEl(id) {
 var document = {
   getElementById: function(id){ if(!store[id]) store[id]=mkEl(id); return store[id]; },
   addEventListener: function(){},
-  // The board redraws on every database write, and each redraw after the first
+  // The board redraws on every changed board.json, and each redraw after the first
   // removes the Escape listener the previous one added. A stub without this
   // throws on the second render, which a page that drew only once never reached.
   removeEventListener: function(){} };
