@@ -4759,8 +4759,10 @@ Four things.
    On Chan's inputs a grid over every allocation the gross cap allows, short
    positions included, finds the same corner. With a strong positive
    correlation it does not. `TestTheLongOnlyLimit` holds a case where a short
-   hedge inside the cap grows at 0.656501 against 0.48 for the best long-only
-   allocation, which is why the module's capped search says it is long-only.
+   hedge inside the cap grows at 0.656501. The best long-only allocation there
+   holds strategy 2 alone at its own Kelly leverage of 3.333333, inside the
+   cap, and grows at 0.5. That is why the module's capped search says it is
+   long-only.
 
 ### What this entry cannot say
 
@@ -4775,7 +4777,10 @@ dropping depends on moments estimated from data, with the estimation error
 location 3235 warns about.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/capped-kelly-allocation-lessons.md](../blog/capped-kelly-allocation-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.kelly_allocation_figures` redraws.
 
 ## Entry 21: price spread, log price spread and ratio, Chan's *Algorithmic Trading*
 

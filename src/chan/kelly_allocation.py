@@ -55,14 +55,15 @@ Three things about that peak are easy to get wrong, and each is pinned.
    leverage. :func:`best_allocation_at_cap` clamps F2 to ``[0, Fmax]``.
 3. **The corner is not always the answer.** Everything on strategy 2 stays best
    only while the cap is below :func:`corner_threshold`, 2.448980 here. That is
-   the measured form of Chan's "when Fmax is much smaller than" the total
-   Kelly leverage.
+   where the "all" in location 3268's "most or all" ends. It is not where
+   "much smaller than" ends, because on these inputs strategy 2 keeps most of
+   the cap at every cap up to the total Kelly leverage.
 
 The constrained search is long-only and two-strategy on purpose. Long-only is
 the range Chan plots in Figure 8.1, and two strategies are what the book works.
 With a strong positive correlation, a short hedge inside the gross cap can beat
 every long-only allocation, so the restriction is a stated limit rather than a
-theorem. ``tests/test_kelly_allocation.py`` holds a case where it binds.
+theorem. ``tests/test_kelly_allocation.py`` holds a case where it costs growth.
 ``docs/design.md`` records why a general allocator for n strategies was cut.
 
 ## What Entry 3 shares with this, and what it does not
@@ -75,8 +76,17 @@ sibling repo's ``kelly_fraction`` is a different object, the discrete form over
 a bag of trade outcomes, as issue 14 ruled.
 
 ``tests/test_kelly_allocation.py`` is the single authority for every number
-quoted about these examples, and ``docs/replication-log.md`` Entry 20 carries
-the verdicts.
+quoted about these examples. The one exception is
+``blog/capped-kelly-allocation-lessons.md``:
+``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
+and README lists what it says that nothing asserts.
+``docs/replication-log.md`` Entry 20 carries the verdicts.
+
+:mod:`chan.kelly_allocation_figures` draws the curve the run prints along
+``F1 = 2 - F2``, the book's Figure 8.1, for
+``blog/capped-kelly-allocation-lessons.md``. It continues the line past the
+cap, dashed, to the unbounded peak, and calls these functions rather than
+holding its own copy of the growth rate.
 
 Usage::
 
