@@ -7499,7 +7499,7 @@ loaded.
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | −1.1 percent | did not reproduce | Under the declared rule, 1.3725 percent against 2.5. Chan's own close covers 849 of the 913 rows and lands near the rebuild under row 10, so the vintage explanation is not available. The 64 rows no committed save covers would have to carry the rest, and Entry 33's row 13 found TU's close the same on every day two saves share. A miss also cannot tell a different number from a different reading of location 2690, and the reading is part of the method. |
+| 1 | −1.1 percent | did not reproduce | Under the declared rule, 1.3725 percent against 2.5. Chan's own close covers 849 of the 913 rows and lands near the rebuild under row 10, so the vintage explanation is not available. The 64 rows that save does not cover would have to carry the rest, and Entry 33's row 13 found TU's close the same on every day two saves share. A miss also cannot tell a different number from a different reading of location 2690, and the reading is part of the method. |
 | 2 | −0.3 | did not reproduce | Under the declared rule, 1.803348 against 2.1, for the reason row 1 gives. |
 | 3 | −0.4 percent | did not reproduce | Under the declared rule, a drawdown of 0.7299 percent against 1.1, for the reason row 1 gives. This miss runs the other way from rows 1 and 2, a shallower drawdown than the book printed. |
 | 4 | none, a claim | reproduced | 0.013725 against 0.013377. The margin, +0.000348, is about the size of the rebuild's own error, since the rebuild's APR over row 10's 849 rows sits 0.000309 above the save's, which `TestTheComparisonMargins::test_row_4_s_margin_is_about_the_rebuild_s_own_error` holds. The claim holds on the save's own close as well, 1.437321 percent against Entry 33's 1.4069. |
@@ -7522,7 +7522,9 @@ Three things.
    APR.** Rows 4 to 6 hold on the rebuild and on Chan's own close. The Sharpe
    ratio's margin is the large one. Row 4's margin is about the size of the
    rebuild's own error, so the APR half of the claim is the weakest of the
-   three.
+   three. In this window Example 6.1 holds all 25 tranches long on every
+   row, so it is holding TU, and the declared rule is that position with 341
+   rows taken out, which `TestWhatTheMarginsAreMadeOf` holds.
 2. **The declared rule lands none of the book's figures, and the reading
    that comes close is suspect.** Row 14 lands two of rows 1 to 3 by holding a
    contract γ is fitted on. A scratch fit that left that contract out fell to
@@ -7551,7 +7553,10 @@ was seen would be a search.
 contract with no cost and no margin, as in Entry 33.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/roll-momentum-lessons.md](../blog/roll-momentum-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.roll_momentum_figures` redraws.
 
 ## Entry 37: three hypothesis tests on TU momentum, Chan's *Algorithmic Trading*
 
