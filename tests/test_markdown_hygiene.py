@@ -1414,7 +1414,7 @@ _UNITS = (
 ).split()
 _TENS = "twenty thirty forty fifty sixty seventy eighty ninety".split()
 _WORD = r"[A-Za-z][a-z]+(?:-[a-z]+)?"
-_COUNT_LEAD = re.compile(rf"^({_WORD}) things?\b")
+_COUNT_LEAD = re.compile(r"^([A-Z][a-z]+(?:-[a-z]+)?) things?\b")
 _NUMBERED_ITEM = re.compile(r"^\d+\.[ \t]")
 _CLOSING_NOTE = "Nothing checks this entry"
 _COUNTED_HEADINGS = frozenset({"What the entry concludes", "What this entry cannot say"})
@@ -1495,7 +1495,7 @@ def _count_disagreements(document: str) -> list[str]:
     return found
 
 
-_ROW_LEAD = re.compile(rf"^({_WORD})(?: computed)? rows?\b", re.MULTILINE)
+_ROW_LEAD = re.compile(rf"^({_WORD})(?: computed)? rows?\b(?!\s+(?:is|are)\b)", re.MULTILINE)
 _ROW_SPLIT = re.compile(
     rf"\b({_WORD})\s+rows?\s+(?:is|are)\s+(?:a\s+)?(?:replications?|claims?)"
     rf"\s+and\s+({_WORD})\s+(?:is|are)\s+not\b"
@@ -1558,6 +1558,17 @@ class TestEntrySections:
         sections = entry_sections("## Entry 1: x\n\n### A\n\n#### Deeper\n\ntail\n")
         assert len(sections) == 1 and "tail" in sections[0].body
 
+    def test_a_level_one_heading_ends_the_entry(self) -> None:
+        sections = entry_sections("## Entry 1: x\n\n### A\n\n# Appendix\n\n### B\n")
+        assert [(s.entry, s.heading.text) for s in sections] == [(1, "A")]
+
+    def test_a_level_two_heading_that_is_no_entry_ends_the_entry(self) -> None:
+        sections = entry_sections("## Entry 1: x\n\n### A\n\n## Appendix\n\n### B\n")
+        assert [(s.entry, s.heading.text) for s in sections] == [(1, "A")]
+
+    def test_a_heading_naming_an_entry_later_on_is_no_entry(self) -> None:
+        assert entry_sections("## Notes on Entry 3\n\n### A\n") == []
+
     def test_a_repeated_subheading_carries_githubs_suffix(self) -> None:
         sections = entry_sections("## Entry 1: x\n\n### A\n\n## Entry 2: y\n\n### A\n")
         assert [s.heading.slug for s in sections] == ["a", "a-1"]
@@ -1572,6 +1583,35 @@ class TestCountedListsMatchTheirCounts:
         assert _count_disagreements(document) == [
             "line 3, Entry 7, What this entry cannot say: says four, lists 3"
         ]
+
+    def test_a_bold_list_one_over_is_flagged(self) -> None:
+        document = _entry("Two things.\n\n**A.** a\n\n**B.** b\n\n**C.** c\n")
+        assert _count_disagreements(document) == [
+            "line 3, Entry 7, What this entry cannot say: says two, lists 3"
+        ]
+
+    def test_an_indented_bold_paragraph_is_not_an_item(self) -> None:
+        body = "Two things.\n\n**A.** a\n\n   **x** inside A\n\n**B.** b\n"
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_ten_item_numbered_list_is_counted(self) -> None:
+        body = "Ten things.\n\n" + "".join(f"{i}. x\n" for i in range(1, 11))
+        assert _count_disagreements(_entry(body)) == []
+
+    def test_a_singular_count_is_read(self) -> None:
+        assert _counted_items(entry_sections(_entry("One thing.\n\n**A.** a\n"))[0].body) == (1, 1)
+
+    def test_a_zero_count_is_not_read(self) -> None:
+        assert _counted_items(entry_sections(_entry("Zero things.\n\n**A.** a\n"))[0].body) is None
+
+    def test_a_count_in_lower_case_or_mid_sentence_is_not_read(self) -> None:
+        for lead in ("four things.", "The run says four things."):
+            body = entry_sections(_entry(f"{lead}\n\n**A.** a\n"))[0].body
+            assert _counted_items(body) is None
+
+    def test_number_words_read_to_ninety_nine(self) -> None:
+        words = ("twenty", "twenty-nine", "ninety-nine", "twenty-zero", "Thirty-eight")
+        assert [_number(w) for w in words] == [20, 29, 99, None, 38]
 
     def test_the_closing_note_is_not_an_item(self) -> None:
         document = _entry("Two things.\n\n**One.** a\n\n**Two.** b\n\n" + NOTE)
@@ -1630,6 +1670,18 @@ class TestCountedListsMatchTheirCounts:
         body = "Several things.\n\n**A.** a\n"
         assert _counted_items(entry_sections(_entry(body))[0].body) is None
 
+    def test_the_counted_headings_are_the_two_the_log_counts_under(self) -> None:
+        document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
+        counted = {s.heading.text for s in entry_sections(document) if _counted_items(s.body)}
+        assert (
+            counted
+            == _COUNTED_HEADINGS
+            == {
+                "What the entry concludes",
+                "What this entry cannot say",
+            }
+        )
+
     def test_every_counted_section_in_the_log_opens_on_a_count(self) -> None:
         document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
         unread = [
@@ -1682,6 +1734,39 @@ class TestRowSplitsAddUpToTheRowCount:
             "## Entry 2: x\n\nNine rows.\n\n### Detail\n\n"
             "Two rows are replications and two are not.\n"
         )
+        assert _row_split_disagreements(document) == []
+
+    def test_a_single_row_is_read(self) -> None:
+        document = _intro("One row, derivable.", "One row is a replication and zero are not.")
+        assert _row_split_disagreements(document) == []
+
+    def test_a_row_lead_that_is_not_a_number_is_skipped(self) -> None:
+        rows = "Several rows are dropped.\n\nNine rows, all derivable."
+        document = _intro(rows, "One row is a replication and eight are not.")
+        assert _row_split_disagreements(document) == []
+
+    def test_a_split_does_not_count_as_its_own_row_count(self) -> None:
+        document = "## Entry 2: x\n\nTwo rows are claims and seven are not.\n"
+        assert _row_split_disagreements(document) == [
+            "line 3, Entry 2: 2 and 7 rows make 9, and the entry opens on None"
+        ]
+
+    def test_a_split_that_is_not_numbers_is_skipped(self) -> None:
+        document = _intro("Nine rows.", "Some rows are replications and others are not.")
+        assert _row_split_disagreements(document) == []
+
+    def test_a_split_in_a_later_entry_names_its_own_line(self) -> None:
+        later = _intro("Nine rows.", "One row is a replication and seven are not.")
+        assert _row_split_disagreements("## Entry 1: a\n\nNine rows.\n\n" + later) == [
+            "line 9, Entry 2: 1 and 7 rows make 8, and the entry opens on 9"
+        ]
+
+    def test_a_split_inside_a_fence_is_not_read(self) -> None:
+        split = "```\nOne row is a replication and seven are not.\n```"
+        assert _row_split_disagreements(_intro("Nine rows.", split)) == []
+
+    def test_a_split_outside_an_entry_is_not_read(self) -> None:
+        document = "## Appendix 3\n\nNine rows.\n\nOne row is a replication and seven are not.\n"
         assert _row_split_disagreements(document) == []
 
     def test_the_log_has_row_splits_to_read(self) -> None:
