@@ -930,13 +930,19 @@ the seven its script names, BR, C2, CL, HG and TU, through
 `chan.roll_returns`, for
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347). It
 leaves out VX and HO2, for which the book prints no figure there. The same
-reader takes the VX strip as well, the one strip it reads with no spot
+reader takes the VX strip as well, the first strip it read with no spot
 column. The unnumbered TU experiment, location 2690's revision of
 Example 6.1, reads the TU strip too, through `chan.roll_momentum` for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353).
 `GLD_GC.m`'s trade of GLD against gold futures runs here through
 `chan.gld_gc`, for
 [issue 355](https://github.com/l3a0/quantitative-trading/issues/355).
+The XLE against USO trade at location 2734, `XLE_CL_rollReturn.m`, is the
+first replication to read the CL strip named for 2012-05-02, through
+`chan.xle_uso_roll_return` for
+[issue 356](https://github.com/l3a0/quantitative-trading/issues/356). It
+takes that strip's contracts through the same reader, which declares the
+file a strip read without a spot.
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 
@@ -1064,8 +1070,9 @@ as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
 mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
 price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
-on GLD, USO, EWA and EWC, the SPY leg of Example 4.2, and the GLD leg of the
-trade against gold futures at location 2718. Example 3.1 is
+on GLD, USO, EWA and EWC, the SPY leg of Example 4.2, the GLD leg of the
+trade against gold futures at location 2718, and the XLE and USO legs of
+Chapter 6's roll-return trade. Example 3.1 is
 the first run to read it, GLD and USO alone, under
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
@@ -1084,6 +1091,10 @@ The Kalman filter of Chapter 3 reads EWA and EWC through `chan.kalman_hedge`,
 for [issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
 The trade against gold futures reads GLD through `chan.gld_gc`, for
 [issue 355](https://github.com/l3a0/quantitative-trading/issues/355).
+The XLE against USO trade of Chapter 6 reads USO and XLE through
+`chan.xle_uso_roll_return`, for
+[issue 356](https://github.com/l3a0/quantitative-trading/issues/356), as the
+script behind it, `XLE_CL_rollReturn.m`, does.
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
