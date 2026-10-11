@@ -4174,8 +4174,8 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the correlation is strong but not the
    one-for-one the model gives, that the ADF test's long-run reversion and the
    trade's short-run continuation can both hold of one series, that the half-life
-   measures a reversion the trade bets against, that the log of VIX's ratio of
-   back to front is its spread, and that any backtest inferring expiry from
+   measures a reversion the trade bets against, that the log of a VIX pair's
+   ratio of back to front is that pair's spread, and that any backtest inferring expiry from
    the last price goes flat at the end of a file saved while contracts trade.
 4. Figures the post states in words or as percentages of pinned ones, such as
    8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
@@ -4187,9 +4187,11 @@ Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
 to
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
-for the figure's own numbers, or to
-[tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's 6,467
-days from 1986-11-03 and γ as −12 times the slope. Twelve things had no pin
+for the figure's own numbers, to
+[tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) for the
+126 of 847 held days on which the VIX trade's held pair is the nearest two, or
+to [tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's
+6,467 days from 1986-11-03 and γ as −12 times the slope. Twelve things had no pin
 before it.
 
 1. The held pair's log spread correlates with γ at −0.883910 on the window's
