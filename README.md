@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-nine replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-four from his *Algorithmic Trading*. The first two were ported from the
+Forty replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-five from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-seven were built here.
+where they were first built. The other thirty-eight were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -541,6 +541,22 @@ where they were first built. The other thirty-seven were built here.
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. Every figure is exploratory.
+40. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
+    chosen three ways on Example 5.1's 612 saved returns: by the optimum of
+    100,000 returns drawn from a Pearson type IV fitted to their four
+    moments, by the optimum of the historical growth rate, and with
+    constant proportion portfolio insurance (CPPI). The simulated figures
+    run on a declared seed and are judged against 200 more. The book's Kelly
+    and historical optimum of 18.4 do not reproduce, since Chan's own returns
+    give 23.845328 and 23.721773, and no series matching Example 5.1's
+    printed Sharpe ratio and APR has a Kelly below 21.56. The simulated
+    optimum, the minimum draw and the drawdown at the optimum land, while
+    the drawdowns at half and a seventh of the optimum and both growth rates
+    of location 3438 fall outside their bands. Moving the draws' mean so the
+    Kelly is 18.4 lands all of those but the drawdown at half the optimum.
+    Box 8.6's CPPI loop breaks the 0.5 drawdown floor on every one of the
+    200 seeds, and the CPPI location 3426 describes keeps it on every one.
+    Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -927,7 +943,18 @@ On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded.
 
-All thirty-nine replications reach a verdict in
+[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py) does
+it for Chapter 8's leverage boxes. It pins the deterministic rows exactly, each
+simulated row on the declared seed and its band across the 200 others, and
+each claim row's criterion. It holds the Pearson type IV sampler's parameters
+against their closed-form moments, its tail against quadrature at the book's
+minimum, and the declared draws' mean and standard deviation. It holds both
+CPPI forms equal to their loops, the search to the root of the growth rate's
+derivative, and both CPPI forms on a path worked by hand. It also holds the
+evidence on the book's 18.4: the Kelly band Example 5.1's printed figures
+allow, and the ensemble rerun with the Kelly set to 18.4.
+
+All forty replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -946,8 +973,8 @@ Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
-trade of GLD against gold futures, and Entry 39 the XLE against USO
-trade's.
+trade of GLD against gold futures, Entry 39 the XLE against USO
+trade's, and Entry 40 Chapter 8's leverage boxes'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1769,6 +1796,19 @@ It prints the two ETF vintages and the strip, the five figures beside the
 script's comment with a verdict, the APR and the Sharpe ratio beside the
 book's with a verdict, and how many days fall in contango, in backwardation
 and with no ratio.
+
+Chapter 8's leverage boxes take no option, because the seeds, the cap and D
+are part of the declaration:
+
+```bash
+uv run python -m chan.monte_carlo_leverage
+```
+
+It prints the vintage and the seeds, every row beside the book's figure with
+its band and a verdict, then the rows beside them, which carry none: the
+fitted parameters, the CPPI location 3426 describes, and the script's lines on
+the historical returns. It ends with the evidence on the book's 18.4. The run
+takes under a minute, most of it in the two searches for an optimum on each of 401 seeds.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

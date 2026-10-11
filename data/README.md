@@ -767,7 +767,8 @@ series, and the zip is the only free copy of them.
 - The monthly AUD and CAD interest rates, which Example 5.2 reads for its
   rollover interest, through `chan.series.load_rates`.
 - The AUD.CAD returns Example 5.1 saved, which Chapter 8's Monte Carlo
-  leverage, historical optimization and CPPI boxes read.
+  leverage, historical optimization and CPPI boxes read. They run here in
+  `chan.monte_carlo_leverage`, through `chan.series.load_returns`.
 
 [Issue 301](https://github.com/l3a0/quantitative-trading/issues/301) carries
 the measurements below.

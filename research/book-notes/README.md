@@ -263,6 +263,17 @@ of 0.1591, a maximum drawdown of −0.192321 and a longest drawdown of 487
 days, sit in the script and nowhere in the book. The replication log's
 Entry 39 traces each figure to one or the other.
 
+*Algorithmic Trading*'s Chapter 8 leverage boxes take every figure from the
+book, because `monteCarloOptimLeverage.m` carries no comment giving a value.
+Location 3342 holds the Kelly leverage of 18.4, the Pearson type of 4, the
+optimum of 19 from `fminbnd`, the most negative simulated return of −0.0331
+and the ruin leverage of 30.2. Location 3379 holds the historical optimum of
+18.4. Location 3399 holds the unconstrained optimum of 19.2 and the
+drawdowns of −0.999 at it, −0.963 at half of it and about −0.5 at about 2.7.
+Location 3438 holds the growth rates of 0.002484 and 0.002525 and the
+drawdown of 0.9. Location 3426 describes the CPPI scheme and prints no
+figure. The replication log's Entry 40 traces each figure to its location.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
