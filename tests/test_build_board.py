@@ -13,6 +13,12 @@ test executes the page's script under a JavaScript engine, with the skill's
 ``dom-stub.js`` standing in for the browser and a fake database standing in for
 the platform, and reads what the page rendered.
 
+The same page also serves the board an Action builds on GitHub Pages, where
+there is no database and the page fetches ``board.json`` on a timer instead.
+So the tests drive it two ways. The database driver delivers snapshots, and
+the fetch driver serves responses to a fake fetch and fires the page's timer.
+Both stay until the artifact board is retired, per issue 533.
+
 The engine is ``node`` where it is installed, which it is on GitHub's runners,
 and ``osascript -l JavaScript`` otherwise, which is JavaScriptCore and ships
 with macOS. With neither, the tests skip rather than pass.
@@ -26,6 +32,7 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -111,8 +118,12 @@ def _prelude(db: bool, steps: list[dict], click: int | None = None) -> str:
     with no database sees. Otherwise ``claude.use("db")`` resolves to a database
     whose ``doc(path).onSnapshot`` records the page's callback for the driver.
     """
+    # The page fetches board.json when it finds no database and the host has a
+    # fetch. node has one, osascript does not, so the database driver declares
+    # none, and a view with no database behaves the same under either engine.
     lines = [
         "var setTimeout = function () { return 0; };",
+        "var fetch = undefined;",
         "var __SUBS = {};",
         f"var __STEPS = {json.dumps(steps)};",
     ]
@@ -134,6 +145,107 @@ def run_page(
     script = (
         STUB.read_text(encoding="utf-8") + _prelude(db, steps, click) + _page_script(page) + DRIVER
     )
+    return _execute(tmp_path, script)["ids"]
+
+
+# The fetch driver, for the board on GitHub Pages, which has no database. The
+# prelude below hands the page a fake fetch answering with the current step's
+# response, and records the page's timers. The page fetches once on load, which
+# takes the first response. The driver then fires the page's fetch timer once
+# per further response, as two minutes passing would, and prints what the page
+# drew and every fetch it made. A comment planted in the build order after the
+# first draw survives only if no later fetch redraws it, which is how a test
+# sees whether the page drew again.
+FETCH_DRIVER = """
+var __flush = async function () { for (var i = 0; i < 50; i++) { await null; } };
+var __MARK = "<!--first draw-->";
+(async function () {
+  var out = { error: null, ids: {}, fetches: __FETCHES, redrawn: null };
+  try {
+    await __flush();
+    document.getElementById("board").innerHTML += __MARK;
+    for (var k = 1; k < __RESP.length; k++) {
+      __CUR = k;
+      __TIMERS.forEach(function (t) { if (t.ms !== 60000) { t.fn(); } });
+      await __flush();
+    }
+  } catch (e) { out.error = String(e && e.stack || e); }
+  var __board = document.getElementById("board");
+  out.redrawn = __board.innerHTML.indexOf(__MARK) < 0;
+  __board.innerHTML = __board.innerHTML.replace(__MARK, "");
+  Object.keys(store).forEach(function (id) {
+    out.ids[id] = { html: store[id].innerHTML, hidden: store[id].hidden === true };
+  });
+  var line = "BOARD_RESULT " + JSON.stringify(out);
+  if (typeof console !== "undefined" && console.log) { console.log(line); } else { print(line); }
+})();
+void 0;
+"""
+
+
+def _fetch_prelude(responses: list[dict], db: bool) -> str:
+    """A fake fetch serving ``responses`` in turn, and a timer list to fire.
+
+    Each response is ``{"status": n, "body": text}``, or ``{"throw": true}``
+    for a network failure. With ``db`` true the page also gets a database
+    holding no documents, which is how a test shows it never fetches then.
+    """
+    lines = [
+        "var setTimeout = function () { return 0; };",
+        "var __TIMERS = [];",
+        "setInterval = function (fn, ms) { __TIMERS.push({ fn: fn, ms: ms }); return 0; };",
+        f"var __RESP = {json.dumps(responses)};",
+        "var __CUR = 0;",
+        "var __FETCHES = [];",
+        "var fetch = function (url, opts) {",
+        "  __FETCHES.push({ url: url, cache: opts && opts.cache });",
+        "  var r = __RESP[__CUR];",
+        "  if (r.throw) { return Promise.reject(new Error('offline')); }",
+        "  return Promise.resolve({ ok: r.status >= 200 && r.status < 300, status: r.status,",
+        "    text: function () { return Promise.resolve(r.body); } });",
+        "};",
+    ]
+    if db:
+        lines.append(
+            "globalThis.claude = { use: function (cap) { return Promise.resolve("
+            "{ doc: function (path) { return { onSnapshot: function (cb) {"
+            " cb({ exists: false, data: function () { return null; } }); } }; } }); } };"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def run_fetch_page(
+    tmp_path: Path, responses: list[dict], *, page: Path = PAGE, db: bool = False
+) -> tuple[dict, list[dict]]:
+    """Execute the page on fetched responses, returning what it drew and fetched."""
+    script = (
+        STUB.read_text(encoding="utf-8")
+        + _fetch_prelude(responses, db)
+        + _page_script(page)
+        + FETCH_DRIVER
+    )
+    result = _execute(tmp_path, script)
+    return result["ids"], result["fetches"]
+
+
+def fetch_redraws(tmp_path: Path, responses: list[dict]) -> bool:
+    """Whether any fetch after the first drew the board again."""
+    script = (
+        STUB.read_text(encoding="utf-8")
+        + _fetch_prelude(responses, False)
+        + _page_script(PAGE)
+        + FETCH_DRIVER
+    )
+    return _execute(tmp_path, script)["redrawn"]
+
+
+def served(board: dict, status: int = 200) -> dict:
+    """A board.json response as the fake fetch serves it."""
+    return {"status": status, "body": json.dumps(board)}
+
+
+def _execute(tmp_path: Path, script: str) -> dict:
+    """Run a script under the JavaScript engine and return the driver's result."""
     runner = tmp_path / "run.js"
     runner.write_text(script, encoding="utf-8")
     done = subprocess.run(
@@ -145,7 +257,7 @@ def run_page(
     assert len(found) == 1, output
     result = json.loads(found[0][len("BOARD_RESULT ") :])
     assert result["error"] is None, result["error"]
-    return result["ids"]
+    return result
 
 
 def text(ids: dict, element: str) -> str:
@@ -1081,3 +1193,242 @@ def test_a_board_with_nothing_in_the_chain_columns_gives_no_depth(tmp_path: Path
     )
     assert "Infinity" not in note
     assert "behind." not in note
+
+
+# ---- The fetch path, for the board on GitHub Pages ----
+
+
+def fixture_board(**state: object) -> dict:
+    """The six fixture documents as one board.json, with ``state`` fields added."""
+    board = fixture_docs()
+    board["state"].update(state)
+    return board
+
+
+def _iso(minutes_ago: float) -> str:
+    stamp = datetime.now(UTC) - timedelta(minutes=minutes_ago)
+    return stamp.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def test_a_fetched_board_draws_what_the_database_board_draws(tmp_path: Path) -> None:
+    """Protects the fetch path's reading of the six sections.
+
+    The fixture holds no field only the generator writes, so the fetched board
+    must draw exactly what the same documents draw through the database, with
+    an empty banner.
+    """
+    ids, fetches = run_fetch_page(tmp_path, [served(fixture_board())])
+    live = run_page(tmp_path, db=True, steps=[fixture_docs()])
+    assert ids["source"]["hidden"]
+    assert ids["source"]["html"] == ""
+    for element in ("strip", "flow", "board", "more", "flownote", "boardnote"):
+        assert ids[element]["html"] == live[element]["html"], element
+    assert len(fetches) == 1
+
+
+def test_each_fetch_asks_for_a_url_no_cache_has_seen(tmp_path: Path) -> None:
+    """Protects the page from reading a copy Pages' cache kept.
+
+    Pages sends ``cache-control: max-age=600``, so a plain fetch can return a
+    board ten minutes old. Each fetch carries a fresh query string and asks the
+    browser to store nothing, and the timer fetches again.
+    """
+    _, fetches = run_fetch_page(tmp_path, [served(fixture_board())] * 3)
+    assert len(fetches) == 3
+    assert all(re.fullmatch(r"board\.json\?t=\d+", f["url"]) for f in fetches)
+    assert all(f["cache"] == "no-store" for f in fetches)
+
+
+def test_a_page_with_a_database_never_fetches(tmp_path: Path) -> None:
+    """Protects the artifact board, which publishes this same page.
+
+    A view with a database subscribes to it, and a fetch there would read a
+    file the artifact does not have.
+    """
+    ids, fetches = run_fetch_page(tmp_path, [served(fixture_board())], db=True)
+    assert fetches == []
+    assert text(ids, "source") == "Showing no board data. The live board holds no document yet."
+
+
+def test_a_board_from_github_names_what_it_does_not_carry(tmp_path: Path) -> None:
+    """Protects a reader from taking the Pages board for the board of record.
+
+    Until issue 533 moves the judgement fields onto GitHub, the generator
+    writes them empty and lists them in ``lacks``. The banner names them, and
+    the footer says the board is built rather than measured by hand.
+    """
+    board = fixture_board(
+        source="github",
+        updatedAt=_iso(1),
+        staleAfterMinutes=60,
+        lacks=["the priority order", "decompose verdicts"],
+    )
+    ids, _ = run_fetch_page(tmp_path, [served(board)])
+    banner = text(ids, "source")
+    assert not ids["source"]["hidden"]
+    assert banner == (
+        "Built from GitHub alone. This board does not carry the priority order and "
+        "decompose verdicts yet, so its default view draws no ranked cards. The artifact "
+        "board stays the board of record until it does."
+    )
+    foot = text(ids, "foot")
+    assert foot.startswith("Built from GitHub by an Action on each change and on a schedule")
+    assert "Measured by hand" not in foot
+
+
+@pytest.mark.parametrize(("minutes_ago", "stale"), [(59, False), (61, True)])
+def test_a_board_older_than_its_threshold_says_it_may_be_stale(
+    tmp_path: Path, minutes_ago: int, stale: bool
+) -> None:
+    """Protects the one warning a failed run leaves the reader.
+
+    A failed run leaves the last board up, and a board an hour stale looks
+    like a fresh one. The threshold comes from the board, which takes it from
+    the workflow's schedule, so the page carries no second copy of it.
+    """
+    board = fixture_board(source="github", updatedAt=_iso(minutes_ago), staleAfterMinutes=60)
+    ids, _ = run_fetch_page(tmp_path, [served(board)])
+    banner = text(ids, "source")
+    if stale:
+        assert banner.startswith("This board may be stale. It was built from GitHub 1h ago,")
+        assert "a scheduled rebuild runs at least every 30 minutes" in banner
+    else:
+        assert banner == ""
+        assert ids["source"]["hidden"]
+
+
+def test_a_first_fetch_that_fails_says_there_is_no_board(tmp_path: Path) -> None:
+    """Protects a view that can neither reach a database nor fetch the file."""
+    ids, _ = run_fetch_page(tmp_path, [{"status": 404, "body": "Not Found"}])
+    assert text(ids, "source") == (
+        "Showing no board data. This view cannot reach the live board, "
+        "and the page carries no copy of its own."
+    )
+    assert_no_board_data(ids)
+
+
+def _broken_board(kind: str) -> dict:
+    if kind == "status":
+        return {"status": 503, "body": "busy"}
+    if kind == "offline":
+        return {"throw": True}
+    if kind == "not json":
+        return {"status": 200, "body": "<html>"}
+    board = fixture_board()
+    if kind == "missing":
+        del board["prs"]
+    else:
+        del board["tracker"]["items"][0]["needs"]
+    return served(board)
+
+
+@pytest.mark.parametrize(
+    ("kind", "code"),
+    [
+        ("status", "board.json answered 503"),
+        ("offline", "board.json could not be fetched"),
+        ("not json", "board.json is not JSON"),
+        ("missing", "board.json is missing prs"),
+        ("unreadable", "unreadable tracker"),
+    ],
+)
+def test_a_failed_fetch_keeps_the_last_board_and_recovers(
+    tmp_path: Path, kind: str, code: str
+) -> None:
+    """Protects the last good board, as a lost database connection does.
+
+    The board stays drawn, the banner says why updates stopped and that the
+    page tries again, and the next good fetch takes the board live again.
+    """
+    bad = _broken_board(kind)
+    ids, _ = run_fetch_page(tmp_path, [served(fixture_board()), bad])
+    banner = text(ids, "source")
+    assert banner.startswith(f"Live updates stopped ({code}). What is shown is the last live data")
+    assert banner.endswith("The page tries again every 2 minutes.")
+    assert cards(ids, "flow") == {90501}
+    assert not ids["flightsec"]["hidden"]
+
+    ids, _ = run_fetch_page(tmp_path, [served(fixture_board()), bad, served(fixture_board())])
+    assert ids["source"]["hidden"]
+    assert text(ids, "source") == ""
+
+
+@pytest.mark.parametrize(
+    ("kind", "banner"),
+    [
+        ("missing", "Showing no board data. The live board is missing prs."),
+        ("unreadable", "section is missing fields this page needs"),
+    ],
+)
+def test_a_first_board_the_page_refuses_draws_nothing(
+    tmp_path: Path, kind: str, banner: str
+) -> None:
+    """Protects the first load from drawing half a board."""
+    ids, _ = run_fetch_page(tmp_path, [_broken_board(kind)])
+    assert banner in text(ids, "source")
+    assert_no_board_data(ids)
+
+
+@pytest.mark.parametrize(
+    ("words", "says"),
+    [
+        (["success", "success"], "checks green"),
+        (["success", "neutral"], "1 check reported neither way"),
+        (["success", "SUCCESS"], "1 check reported neither way"),
+        (["success", "skipped"], "1 check reported neither way"),
+        (["FAILURE", "success"], "1 check reported neither way"),
+        (["failure", "running"], "1 check failing, 1 check still running"),
+    ],
+)
+def test_only_success_reads_as_green(tmp_path: Path, words: list[str], says: str) -> None:
+    """Protects a failing check from reading as a pass.
+
+    The page used to count three words and call every other one green, so a
+    state passed through in GitHub's own spelling, such as ``FAILURE``, read as
+    a pass. The generator maps every state into the page's four words, and a
+    word the page does not know now reads as reported neither way.
+    """
+    docs = fixture_docs()
+    docs["prs"]["items"][0]["rollup"] = [[f"check {i}", w] for i, w in enumerate(words)]
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert says in _pr_line(ids, "flow", 90601)
+
+
+@pytest.mark.parametrize(("changed", "redrawn"), [(False, False), (True, True)])
+def test_an_unchanged_board_json_is_not_drawn_again(
+    tmp_path: Path, changed: bool, redrawn: bool
+) -> None:
+    """Protects what a reader picked on the board from the two-minute fetch.
+
+    A redraw rebuilds every card, so a card picked to read its chain would be
+    dropped each time the timer fired. A file identical to the last one is not
+    drawn again, and a changed one is.
+    """
+    second = fixture_board()
+    if changed:
+        second["state"]["updatedAt"] = "2026-10-01T12:30:00Z"
+    assert fetch_redraws(tmp_path, [served(fixture_board()), served(second)]) is redrawn
+
+
+def test_a_fetched_board_that_breaks_the_drawing_code_keeps_the_last_board(
+    tmp_path: Path,
+) -> None:
+    """Protects the last good board from a file that passes the shape check.
+
+    ``usableSection`` leaves ``after`` unchecked, so a number there passes and
+    throws while the build order draws. The fetch path rolls back as the
+    database path does, keeps trying, and the next good file goes live.
+    """
+    broken = fixture_board()
+    for item in broken["tracker"]["items"]:
+        item["after"] = 7
+    ids, _ = run_fetch_page(tmp_path, [served(fixture_board()), served(broken)])
+    banner = text(ids, "source")
+    assert banner.startswith("Live updates stopped (a live section could not be drawn).")
+    assert banner.endswith("The page tries again every 2 minutes.")
+    assert cards(ids, "flow") == {90501}
+
+    ids, _ = run_fetch_page(
+        tmp_path, [served(fixture_board()), served(broken), served(fixture_board())]
+    )
+    assert text(ids, "source") == ""

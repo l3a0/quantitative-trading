@@ -2,11 +2,19 @@
 #
 # Apply this template's GitHub-side policy to a repository.
 #
-# Two things live on GitHub rather than in tracked files, so a fresh clone of
-# the template carries neither: the branch ruleset that makes `main` require a
-# pull request, and the label set that the triage rule in CLAUDE.md expects to
-# exist. This script applies both, reading them from .github/rulesets/default.json
-# and .github/labels.json so the repo's own files stay the source of truth.
+# Four things live on GitHub rather than in tracked files, so a fresh clone of
+# the template carries none of them.
+#
+# 1. The branch ruleset that makes `main` require a pull request, read from
+#    .github/rulesets/default.json.
+# 2. The label set that the triage rule in CLAUDE.md expects to exist, read
+#    from .github/labels.json.
+# 3. CodeQL's default setup, which the ruleset's code scanning rule waits on.
+# 4. GitHub Pages, with GitHub Actions as its source, which the build board's
+#    workflow deploys to.
+#
+# Reading the first two from the repo's own files keeps those files the source
+# of truth.
 #
 # It is idempotent. Running it twice updates in place rather than duplicating.
 #
@@ -116,6 +124,29 @@ elif ! printf '%s' "$codeql_body" \
   | gh api --method PATCH "repos/$repo/code-scanning/default-setup" --input - >/dev/null 2>&1; then
   echo "  could not configure CodeQL. It needs code pushed and a language" >&2
   echo "  GitHub recognises, so re-run this script after the first push." >&2
+fi
+
+# --- Pages -------------------------------------------------------------------
+# .github/workflows/board.yml publishes the build board on GitHub Pages through
+# the github-pages environment, and its deploy job has nowhere to go until
+# Pages is on with GitHub Actions as its source rather than a branch. The site
+# is read first, so a repository already set that way is left alone and one
+# publishing from a branch is switched.
+#
+# The exit status decides whether a site exists, not the output. A repository
+# with no site answers 404, and `gh` prints that error's JSON body to stdout,
+# where `--jq` never runs, so the output alone would read as a source type.
+if ! pages_type="$(gh api "repos/$repo/pages" --jq .build_type 2>/dev/null)"; then
+  pages_type=""
+fi
+if [[ -z "$pages_type" ]]; then
+  echo "pages: enabling, source GitHub Actions"
+  run gh api --method POST "repos/$repo/pages" -f build_type=workflow >/dev/null
+elif [[ "$pages_type" != "workflow" ]]; then
+  echo "pages: switching source from $pages_type to GitHub Actions"
+  run gh api --method PUT "repos/$repo/pages" -f build_type=workflow >/dev/null
+else
+  echo "pages: already on, source GitHub Actions"
 fi
 
 # --- Reserved human steps ----------------------------------------------------
