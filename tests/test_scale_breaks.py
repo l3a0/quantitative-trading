@@ -351,6 +351,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``TestTheGuardAndTheReads`` in ``tests/test_xle_uso_roll_return.py`` records
 #: the call, holds both legs clean, and holds a planted break in a leg or a
 #: contract refused.
+#:
+#: [Issue 358](https://github.com/l3a0/quantitative-trading/issues/358) decided
+#: that ``chan.opening_gap`` calls the guard for *Algorithmic Trading*'s
+#: Example 7.1 on FSTX's closes over the whole span of each save it reads, as
+#: ``chan.tu_momentum`` does for TU. Those are the 2012-05-17 save the script
+#: loads and the 2012-05-11 and 2012-05-07 saves read beside it. FSTX flags
+#: nothing on any of its four fields in any of the three, so nothing is
+#: refused. ``TestTheGuardAndTheReads`` in ``tests/test_opening_gap.py``
+#: records the call, holds every field clean, and holds a planted break
+#: refused.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

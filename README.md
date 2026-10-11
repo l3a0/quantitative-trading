@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-nine replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-four from his *Algorithmic Trading*. The first two were ported from the
+Forty replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-five from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-seven were built here.
+where they were first built. The other thirty-eight were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -541,6 +541,17 @@ where they were first built. The other thirty-seven were built here.
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. Every figure is exploratory.
+40. The opening gap strategy on FSTX, the Euro Stoxx 50 index future,
+    Example 7.1 of *Algorithmic Trading*, on Chan's 2012-05-17 save. A day is
+    long when the open clears the previous high by a tenth of the 90-day
+    standard deviation of daily returns and short when it clears the previous
+    low, held from the open to the close. `gapFutures_FSTX.m`'s return line
+    as written earns a long's fall from the open, which fades the jump. It
+    gives an APR of 0.132733 and a Sharpe ratio of 1.441620, which print as
+    the script's 0.1327 and 1.44 and round to the book's 13 percent and 1.4.
+    The momentum sign the text describes gives −0.124236 and −1.441620, so the
+    claim the figures were printed for does not reproduce. Every figure is
+    exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -927,7 +938,16 @@ On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded.
 
-All thirty-nine replications reach a verdict in
+[tests/test_opening_gap.py](tests/test_opening_gap.py) does it for the
+opening gap strategy on FSTX. It pins both readings of the script's return
+line at six decimals, the literal one against the script's comment and the
+book's two figures and the momentum one against the book's, along with the
+drawdowns, the days each side holds and the literal rule on the two earlier
+saves. On synthetic days it holds both entry tests non-strict, a missing
+spread qualifying nothing, a short overriding a long, and the sign of each
+reading's open-to-close return. It also holds the read guarded.
+
+All forty replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -946,8 +966,8 @@ Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
-trade of GLD against gold futures, and Entry 39 the XLE against USO
-trade's.
+trade of GLD against gold futures, Entry 39 the XLE against USO
+trade's, and Entry 40 the opening gap strategy's on FSTX.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1769,6 +1789,18 @@ It prints the two ETF vintages and the strip, the five figures beside the
 script's comment with a verdict, the APR and the Sharpe ratio beside the
 book's with a verdict, and how many days fall in contango, in backwardation
 and with no ratio.
+
+The opening gap strategy on FSTX takes no option, because the script fixes
+the save, the margin and the window:
+
+```bash
+uv run python -m chan.opening_gap
+```
+
+It prints the vintage, both readings of the return line beside the script's
+comment and the book's figures with a verdict, the drawdowns and the days
+each side holds, and the literal reading on the 2012-05-11 and 2012-05-07
+saves.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

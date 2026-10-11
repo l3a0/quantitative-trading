@@ -263,6 +263,16 @@ of 0.1591, a maximum drawdown of −0.192321 and a longest drawdown of 487
 days, sit in the script and nowhere in the book. The replication log's
 Entry 39 traces each figure to one or the other.
 
+*Algorithmic Trading*'s Example 7.1 splits the same way. The book's figures
+are here: the APR of 13 percent and the Sharpe ratio of 1.4 on FSTX from
+July 16, 2004, to May 17, 2012, at location 2965, which also describes the
+rule as buying an upward jump and shorting a downward one. Location 2971 is
+the example's caption, and location 3509 quotes the same 13 percent and 1.4
+as an annualized average return before filtering the rule on the VIX. The
+figures `gapFutures_FSTX.m`'s comment records, an APR of 0.1327 and a Sharpe
+ratio of 1.44, sit in the script and nowhere in the book. The replication
+log's Entry 40 traces each figure to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
