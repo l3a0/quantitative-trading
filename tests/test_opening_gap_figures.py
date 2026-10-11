@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.colors import to_rgba
-from matplotlib.dates import date2num
+from matplotlib.dates import YearLocator, date2num
 
 from chan import opening_gap_figures as module
 from chan.opening_gap import by_side, opening_gap, read_sources
@@ -195,6 +195,8 @@ class TestTheReadings:
         labels = _by_gid(axes["readings"].texts)
         assert labels["drawdown-high-label"].get_text() == "high, 0.573901 on 2008-07-08"
         assert labels["drawdown-trough-label"].get_text() == "trough, 0.274823 on 2008-10-13"
+        assert labels["drawdown-high-label"].get_ha() == "right"
+        assert labels["drawdown-trough-label"].get_ha() == "left"
 
     @pytest.mark.parametrize("gid", ["drawdown-high", "drawdown-trough"])
     def test_each_drawdown_label_points_at_its_marker(self, axes, gid) -> None:
@@ -202,6 +204,8 @@ class TestTheReadings:
 
     def test_the_longest_run_below_a_high_is_marked_at_that_high(self, axes) -> None:
         line = _by_gid(axes["readings"].lines)["longest-drawdown"]
+        # The post's alt text says a dotted line marks it.
+        assert (line.get_linestyle(), line.get_color()) == (":", ACCENT)
         assert [pd.Timestamp(x) for x in line.get_xdata()] == [
             day("2008-07-15"),
             day("2009-08-31"),
@@ -334,6 +338,34 @@ class TestBothPanels:
     def test_each_axis_reads_a_percentage_and_draws_a_zero_line(self, axes, panel) -> None:
         assert axes[panel].yaxis.get_major_formatter()(0.25) == "25%"
         assert list(_by_gid(axes[panel].lines)["zero"].get_ydata()) == [0, 0]
+        assert _by_gid(axes[panel].lines)["zero"].get_color() == MUTED
+
+    @pytest.mark.parametrize(
+        ("panel", "limits"), [("readings", (-0.85, 1.95)), ("sides", (-0.25, 1.3))]
+    )
+    def test_each_panel_s_vertical_range_is_pinned(self, axes, panel, limits) -> None:
+        assert (module.CURVE_LIMITS, module.SIDE_LIMITS) == ((-0.85, 1.95), (-0.25, 1.3))
+        assert axes[panel].get_ylim() == pytest.approx(limits)
+
+    @pytest.mark.parametrize("panel", ["readings", "sides"])
+    def test_each_legend_sits_in_the_upper_left(self, axes, panel) -> None:
+        # Matplotlib stores "upper left" as location code 2.
+        assert axes[panel].get_legend()._loc == 2
+
+    def test_the_date_axis_marks_each_year(self, axes) -> None:
+        xaxis = axes["sides"].xaxis
+        assert isinstance(xaxis.get_major_locator(), YearLocator)
+        assert xaxis.get_major_formatter()(date2num(day("2008-06-30"))) == "2008"
+
+    def test_the_first_panel_is_taller(self, figure) -> None:
+        assert tuple(figure.axes[0].get_gridspec().get_height_ratios()) == (1.4, 1)
+
+    def test_the_whole_curve_and_the_long_side_are_drawn_heavier(self, axes) -> None:
+        readings, sides = _by_gid(axes["readings"].lines), _by_gid(axes["sides"].lines)
+        assert readings["literal"].get_linewidth() == 1.7
+        assert sides["long"].get_linewidth() == 1.7
+        assert sides["long"].get_linewidth() > sides["short"].get_linewidth()
+        assert readings["literal"].get_linewidth() > readings["momentum"].get_linewidth()
 
     def test_the_markers_are_drawn_in_the_accent(self, axes) -> None:
         for panel, gid in (
@@ -342,6 +374,8 @@ class TestBothPanels:
             ("sides", "short-low"),
         ):
             assert _by_gid(axes[panel].lines)[gid].get_color() == ACCENT
+            assert _by_gid(axes[panel].texts)[f"{gid}-label"].get_color() == ACCENT
+        assert _by_gid(axes["readings"].texts)["longest-drawdown-label"].get_color() == ACCENT
 
     def test_signed_prints_a_true_minus_sign(self) -> None:
         assert signed(-0.038153, 6) == "−0.038153"

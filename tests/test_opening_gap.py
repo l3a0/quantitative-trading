@@ -51,6 +51,7 @@ rule. The run first ran here on 2026-10-10, and the port's rows on
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import math
 from contextlib import redirect_stdout
@@ -393,7 +394,9 @@ class TestWhatThePostMeasures:
             patch.setattr(matlab_helpers, "smartstd_book_two", smartstd_first_edition)
             first_edition = opening_gap(prices)
         assert not np.allclose(
-            first_edition.spread[SPREAD_LOOKBACK:], result.spread[SPREAD_LOOKBACK:]
+            first_edition.spread[SPREAD_LOOKBACK:],
+            result.spread[SPREAD_LOOKBACK:],
+            equal_nan=True,
         )
         assert (first_edition.positions == result.positions).all()
         f = first_edition.literal_figures
@@ -720,6 +723,16 @@ class TestTheRules:
         assert (moves["flat"].days, moves["flat"].mean) == (2, pytest.approx(0.0))
         assert (moves["flat"].below, moves["flat"].above) == (1, 1)
 
+    def test_a_day_qualifying_both_counts_as_short_alone(self) -> None:
+        """Line 21 makes such a day short, so neither split may count it long."""
+        prices, run_on = self._held_days([-1], [100], [90])
+        both = dataclasses.replace(run_on, longs=np.array([True]), shorts=np.array([True]))
+        sides = by_side(both)
+        assert (sides["long"].days, sides["short"].days) == (0, 1)
+        assert sides["short"].summed == pytest.approx(-0.1)
+        moves = open_to_close(prices, both)
+        assert (moves["long"].days, moves["short"].days, moves["flat"].days) == (0, 1, 0)
+
     def test_open_to_close_counts_a_close_on_the_open_as_neither(self) -> None:
         prices, run_on = self._held_days([1], [100], [100])
         move = open_to_close(prices, run_on)["long"]
@@ -775,7 +788,10 @@ class TestTheRules:
         assert shared.days.equals(restated.index)
         assert shared.one == figures(cut.literal)
         assert shared.other == figures(opening_gap(restated).literal)
-        assert on_shared_days(longer, restated, "momentum").one == figures(cut.momentum)
+        momentum = on_shared_days(longer, restated, "momentum")
+        assert momentum.one == figures(cut.momentum)
+        assert momentum.other == figures(opening_gap(restated).momentum)
+        assert momentum.other != shared.other
 
 
 class TestTheGuardAndTheReads:
