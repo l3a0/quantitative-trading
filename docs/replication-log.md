@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43 and 45 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45 and 48 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine and seven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5, 44 and 46 are the three entries that are not replications. Chan
@@ -34,7 +34,7 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45 and 46 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46 and 48 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -345,6 +345,12 @@ says.
   - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
   - [What the entry concludes](#what-the-entry-concludes-45)
   - [What this entry cannot say](#what-this-entry-cannot-say-43)
+- [Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*](#entry-48-the-low-beta-rule-at-leverage-a-broker-would-lend-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-5)
+  - [What this repo computed](#what-this-repo-computed-46)
+  - [The verdicts](#the-verdicts-43)
+  - [What the entry concludes](#what-the-entry-concludes-46)
+  - [What this entry cannot say](#what-this-entry-cannot-say-44)
 
 ## How to read an entry
 
@@ -427,9 +433,11 @@ both.
    [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
    holds Entry 44,
    [tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py)
-   holds Entry 45, and [tests/test_pead_rerun.py](../tests/test_pead_rerun.py)
+   holds Entry 45, [tests/test_pead_rerun.py](../tests/test_pead_rerun.py)
    holds Entry 46, whose archive pins run only where the owner's data archive
-   is and `QT_ARCHIVE_RUN=1` asks for them.
+   is and `QT_ARCHIVE_RUN=1` asks for them, and
+   [tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) holds
+   Entry 48.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -839,6 +847,17 @@ finding", the value Entry 32's rows 3 and 4 carry, and row 4's corrected test
 carries the verdict.
 [Issue 352](https://github.com/l3a0/quantitative-trading/issues/352) declared
 both before any draw on the seed they share.
+
+Entry 48's seven rows carry no verdict for a fourth reason. Rows 1 and 2 test
+the claim of location 4709 that Entry 45's row 1 tests, with the leverage
+capped at 2 and at 5. Their outcomes, the control across them and the wording
+of each were written on
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) before
+any capped number was computed. The ceilings were chosen after Entry 45's
+ruin, leverage path and eight months of both groups' returns had been seen,
+so a result here confirms nothing whichever way it lands. Every cell reads
+"none, exploratory", and the reason column of rows 1 and 2 names the outcome
+the plan's rules reach.
 
 Entry 1's rows 2 and 10, the first rows this section names, are in that entry
 because leaving them out misleads. Row 2 is the slope
@@ -9578,7 +9597,8 @@ leverage rule that avoided the ruin, such as a cap, is a different
 specification. On this file a cap is exploratory, because the ruin had been
 seen, and only on the holdout could one be registered.
 [Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
-rule here at leverage a broker would lend, as an exploratory run.
+rule here at leverage a broker would lend, as an exploratory run, and Entry 48
+carries it.
 
 **Whether fat tails are the cause.** Location 4700 carries the caveat: "one
 should be quite wary of using too much leverage on normally low-beta stocks",
@@ -9913,6 +9933,160 @@ like two vendors defining the open differently.
 **What the leverage past one costs.** Rows 5, 6, 9 and 10 hold up to 55
 positions on one day against a denominator of 30, and nothing here sizes the
 book by each day's count.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle locations 814, 2836,
+4684, 4700 and 4709. Shipped under
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516). Every
+location is the revised edition's and is in
+[research/book-notes/quantitative-trading.md](../research/book-notes/quantitative-trading.md).
+
+Seven rows, all derivable from
+[tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py). The three
+Entry 45 figures that rows 3 and 6 quote beside them are pinned in
+[tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py).
+
+**Not decided at either ceiling, and exploratory.** "At a ceiling of 2, no gap
+in compounded growth detectable above about 0.2168 a year over 83 months,
+where the point estimate is 0.0934." "At a ceiling of 5, no gap in compounded
+growth detectable above about 0.3407 a year over 83 months, where the point
+estimate is 0.1659." Both sentences are the plan's fixed wording. Entry 45
+found location 4709's rule ruined at location 4684's beta match, which asked
+for a leverage of up to 69.0762. Location 4709 says only "highly leveraged",
+so this entry caps the match at what location 814 says a broker lends on
+stocks held overnight and asks the same question again. Neither capped
+portfolio lost its capital in any month. Both out-compounded the unlevered
+high fifth in point estimate, by 0.0934 a year at a ceiling of 2 and 0.1659 at
+5. Neither gap is distinguishable from noise. The Newey-West t is 1.0715 and
+1.2111, and Benjamini-Hochberg rejects neither ceiling in either direction.
+
+**Every row is exploratory, and no result here confirms anything.** The plan
+was written on
+[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) on
+2026-10-11 before any capped number was computed. It came after Entry 45 had
+shown the ruin, the leverage path and both groups' returns for the first eight
+formations, and those figures nearly fixed the sign in advance. The unlevered
+low fifth already out-compounded the high fifth, and growth rises with
+leverage up to the Kelly leverage under a Gaussian approximation, so both
+ceilings were expected to show a positive point estimate. Every verdict cell
+therefore reads "none, exploratory".
+
+Five of the rules carry the result, so they are stated here.
+
+1. **The portfolios.** Entry 45's, unchanged.
+   `chan.low_beta_leverage.read_sources` and `build_portfolios` run as that
+   entry ran them, on the same three vintages. They are `spx_20071123/`,
+   chan-mat adjusted, saved 2007-11-24, then `spy_chan.csv`, chan-xls
+   adjusted, saved 2008-01-29, and FRED's TB3MS, downloaded 2026-09-30. The
+   universe, the betas, the fifths, the weights, k and the 83 holding months
+   from December 2000 to October 2007 are that entry's.
+2. **The ceilings.** At each formation the low fifth is levered by
+   L = min(k, C), and the capped month returns rf + L × (r_low − rf), borrowing
+   at the bill rate with no trading cost. C = 2 is Regulation T's overnight
+   leverage, which location 814 gives and location 2836 repeats for a retail
+   account. Because k never falls below 2.1826, it is a constant leverage of 2
+   here. C = 5 is location 814's portfolio margin of "20 percent or less", the
+   most the book says any broker lends on stocks held overnight.
+3. **The statistic.** d = ln(1 + r_capped) − ln(1 + r_high) over the 83
+   months, with its Newey-West t at the default lag. Twelve times the mean of d
+   is the gap in realised compounded growth a year.
+4. **The control.** Benjamini-Hochberg at q = 0.05 across the two ceilings,
+   run once on the one-sided p-values in the claim's direction and once in the
+   contrary direction. With two ceilings, a family rejects both when both
+   p-values are at most 0.05, and otherwise only one at most 0.025. A ruined
+   ceiling enters both families with a p-value of 1.
+5. **The outcomes.** Contradicted by ruin when any capped month returns −1 or
+   less. Holds when the mean of d is above 0 and the claim's family rejects.
+   Contradicted when the mean is below 0 and the contrary family rejects. Not
+   decided otherwise, with Y, Entry 45's (1.645 + 0.8416) times the Newey-West
+   standard error of the mean of d, times 12. Y ignores the correction, so it
+   compares with Entry 45's.
+
+**Every figure is about survivors.** The panel is the S&P 500 as it stood on
+2007-11-23, carried backwards, as in Entry 45.
+
+### What the book stated
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | a low-beta portfolio levered at most 2 out-compounds an unleveraged high-beta one | the rule, with no figure, and overnight positions "allow only a leverage of 2" | locations 4709, 814 and 2836 |
+| 2 | a low-beta portfolio levered at most 5 out-compounds an unleveraged high-beta one | the rule, with no figure, and portfolio margin "may require only 20 percent or less of overnight margin" | locations 4709 and 814 |
+| 3 to 7 | the realised growth, the leverage, the worst month, the realised beta and the break-even spread | nothing, the book works no example | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | ceiling 2: any capped month at −1 or below, else the Newey-West t of d under Benjamini-Hochberg at 0.05 in each direction | no ruined month. Gap 0.0934 a year, t 1.0715 at lag 3, one-sided p 0.1420 for the claim and 0.8580 against it, rejected in neither family, Y 0.2168 | `TestTheCommittedFiles::test_no_month_is_ruined_at_either_ceiling`, `::test_both_ceilings_are_not_decided`, `::test_the_gap_t_both_p_values_and_y` and `::test_each_outcome_line` |
+| 2 | ceiling 5, the same | no ruined month. Gap 0.1659 a year, t 1.2111 at lag 3, one-sided p 0.1129 for the claim and 0.8871 against it, rejected in neither family, Y 0.3407 | the same four |
+| 3 | realised compounded growth, 12 times the mean monthly log return | 0.2118 at ceiling 2 and 0.2843 at 5, beside Entry 45's unlevered low fifth at 0.1254 and high fifth at 0.1183 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, and Entry 45's `TestTheFigures::test_each_series_realised_growth` |
+| 4 | the mean leverage, and the months in which k is above the ceiling | mean 2.0000 with 83 months bound at ceiling 2, and 3.5134 with 20 months bound at 5 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta` and `::test_ceiling_2_is_a_constant_leverage_of_2` |
+| 5 | the month with the lowest capped return | at both ceilings the month ending 2002-07-31, formed 2002-06-28. It returned −0.1479 at a leverage of 2 and −0.3719 at 5 | `TestTheCommittedFiles::test_the_worst_month` |
+| 6 | realised beta, the slope of the monthly return over the bill on SPY's, all 83 months each as if freshly funded | 0.8584 at ceiling 2 and 1.5831 at 5, beside the high fifth's 2.0671 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, and Entry 45's `TestTheFigures::test_the_realised_betas` |
+| 7 | the yearly borrowing spread over the bill, charged (L − 1) × s / 12 a month, at which the gap's point estimate reaches 0, by bisection | 0.0946 at ceiling 2 and 0.0661 at 5 | `TestTheCommittedFiles::test_the_break_even_spread` |
+
+Each gap is rounded from its own unrounded value. So ceiling 2's growth less
+the high fifth's, 0.2118 less 0.1183, reads 0.0935 while the gap reads 0.0934,
+the case `### What precision a number is quoted at` describes.
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | none, exploratory | Not decided. The gap of 0.0934 a year sits under the detectable 0.2168, and the claim's p-value of 0.1420 is far above the 0.025 a single rejection needs. The ceilings were chosen after Entry 45's ruin and leverage path had been seen, so even a rejection would have confirmed nothing. |
+| 2 | none, exploratory | Not decided. The gap of 0.1659 a year sits under the detectable 0.3407, and the claim's p-value is 0.1129. The same label applies. |
+| 3 | none, exploratory | Both capped portfolios grew faster than either unlevered fifth in point estimate, as the plan expected before any capped number. Nothing tests the size. |
+| 4 | none, exploratory | k was above 5 in 20 of the 83 months, so the ceiling of 5 set the leverage in about a quarter of them and the beta match set it in the rest. |
+| 5 | none, exploratory | The worst month at a ceiling of 5 lost 37 percent of the capital. June 2001, the beta match's first ruin, is not the worst month at either ceiling. |
+| 6 | none, exploratory | At either ceiling the levered low fifth's realised beta stayed below the high fifth's, so neither ceiling reaches location 4684's beta match. |
+| 7 | none, exploratory | Borrowing at the bill rate flatters the levered side. The point estimate stays above 0 up to a spread of 0.0946 a year at a ceiling of 2 and 0.0661 at 5, and no outcome reads it. |
+
+### What the entry concludes
+
+Two things, and neither confirms anything.
+
+1. **Capped at what a broker would lend, the rule is not decided on this
+   file.** Neither ceiling ruined the portfolio, and both point estimates
+   favour the levered low fifth. Neither gap is distinguishable from noise
+   over 83 months, because the detectable gaps of 0.2168 and 0.3407 a year are
+   each more than twice its point estimate.
+2. **Entry 45's ruin came with the beta match's leverage.** On the same
+   portfolios and the same months, a ceiling of 5 lost no month's capital,
+   though its worst month lost 37 percent of it. Location 4700's caveat stands
+   beside the result: "one should be quite wary of using too much leverage on
+   normally low-beta stocks".
+
+### What this entry cannot say
+
+Five things, the plan's five limits.
+
+1. **Anything confirmed.** The ceilings were chosen after Entry 45's ruin, its
+   leverage path and eight months of both groups' returns had been seen. Only
+   a run registered before any number on a holdout could confirm a ceiling.
+   The plan sends both ceilings to
+   [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
+   panel only if one of them holds here, and neither did.
+2. **What survivorship does to either side.** The panel lacks the stocks that
+   left the index before 2007-11-23, as in Entry 45.
+3. **Whether the rule holds outside the literature's sample.** The low-beta
+   literature's own samples cover 1999 to 2007, so this span is not a
+   holdout.
+4. **What borrowing really cost.** The run borrows at the bill rate, which
+   flatters the levered side. Row 7's break-even spread says how far the cost
+   could rise before the point estimate reaches 0, and nothing about what a
+   broker charged.
+5. **Whether a margin call came inside a month.** Under Regulation T's 25
+   percent maintenance margin, a position levered 2 gets a call after a fall of
+   a third within the month, and month-end closes cannot see that.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

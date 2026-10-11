@@ -677,6 +677,21 @@ figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
 
+Item 44's rule also runs at leverage a broker would lend, and that run reaches
+no verdict either.
+[Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) caps
+location 4684's beta match at 2, the overnight leverage Regulation T allows,
+and at 5, the most location 814 says portfolio margin lends on stocks held
+overnight. Neither ceiling ruins the portfolio. The capped low fifth
+out-compounded the unlevered high fifth by 0.0934 a year at a ceiling of 2
+and by 0.1659 at 5, with Newey-West t of 1.0715 and 1.2111. Benjamini-Hochberg
+across the two ceilings rejects neither in either direction, so both are not
+decided. Every figure is exploratory, because the ceilings were chosen after
+item 44's ruin had been seen. Entry 48 in
+[docs/replication-log.md](docs/replication-log.md) carries them, with the
+break-even borrowing spread, the worst month and location 4700's caveat
+beside them.
+
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
 them is derived. The two blog posts about the pairs are the exceptions, and
@@ -1135,6 +1150,15 @@ of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
 
+[tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
+the same rule at leverage a broker would lend. It pins each ceiling's
+outcome, gap, t, both p-values, both decisions of the control and Y, and
+beside them the growth, the mean leverage, the months each ceiling binds, the
+worst month, the realised beta and the break-even spread. On portfolios built
+by hand it holds the cap, the replacement of both the return and the
+leverage, a ruined ceiling at p = 1 in both families, both Benjamini-Hochberg
+families, each outcome's wording, and the bisection with its "none".
+
 All forty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
@@ -1161,7 +1185,9 @@ Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
 and Entry 45 the levered low-beta claim's.
 Entry 46 carries the rerun of Example 7.2 described above, which
-chases no published figure and so reaches no verdict.
+chases no published figure and so reaches no verdict. Entry 48 carries the
+levered low-beta rule at leverage a broker would lend, which is exploratory
+and reaches no verdict either.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -2090,6 +2116,19 @@ It prints the three vintages, the verdict with every ruined month, and beside
 it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
 Gaussian growth, the flagged stock-months and a row for every formation, none
 of which decides anything.
+
+The same rule at leverage a broker would lend takes no option either, because
+the issue's plan fixed both ceilings and every rule before any capped number:
+
+```bash
+uv run python -m chan.low_beta_capped
+```
+
+It prints the three vintages and each ceiling's outcome with its gap, t, both
+p-values and Y. Beside them it prints the growth, the mean leverage, the
+months each ceiling binds, the realised beta, the break-even spread and the
+worst month, none of which decides anything, then location 4700's caveat and
+the five limits. Every line is exploratory.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
