@@ -252,6 +252,17 @@ the closing comment of `GLD_GC.m` prints, 0.0190, −.07, 0.0191, −0.008247 an
 91 days, sit in the script and nowhere in the book. The replication log's
 Entry 38 traces each figure to one or the other.
 
+*Algorithmic Trading*'s XLE against USO trade splits the same way as its
+Example 6.1. The book's figures are here: the APR of "a very respectable 16
+percent" from April 26, 2006, to April 9, 2012, and the Sharpe ratio of
+"about 1", both at location 2734, which also names Figure 6.3. Location 2718
+defines contango, and locations 1939 and 2385 say why XLE tracks crude's
+spot price and USO its futures. The figures `XLE_CL_rollReturn.m`'s comment
+prints, an average annual return of 0.1592, a Sharpe ratio of 1.05, an APR
+of 0.1591, a maximum drawdown of −0.192321 and a longest drawdown of 487
+days, sit in the script and nowhere in the book. The replication log's
+Entry 39 traces each figure to one or the other.
+
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216
 and 3287. Equations 8.1 to 8.4 are not, because the book renders each as an
