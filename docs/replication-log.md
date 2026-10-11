@@ -5,7 +5,7 @@ a reproduced experiment, which is a number sitting next to another number with
 nobody saying what the pair means.
 
 This file is where the verdicts live. One entry per replication, apart from
-the two exceptions the paragraphs below name, and one row per published result, carrying the five parts
+the four exceptions the paragraphs below name, and one row per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
 vintage, what this repo computed, the gap, and the verdict. A row usually
 matches one published figure to one computation. Four of Entry 1's rows do not,
@@ -24,12 +24,15 @@ six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
 three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine and seven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
-Entries 5, 44 and 46 are the three entries that are not replications. Chan
+Entries 5, 44, 46 and 48 are the four entries that are not replications. Chan
 states the claim Entries 5 and 44 test without printing a number, so each
 carries a finding rather than a verdict, and its tables drop the columns that
 would hold a published figure, a gap and a verdict. Entry 46 reruns Example
 7.2, which Entry 12 reproduces, on a calendar and prices Chan never used, so
-no figure he printed applies to it and its tables drop the same columns. Entries 6 and 15 come from the same
+no figure he printed applies to it and its tables drop the same columns.
+Entry 48 tests location 4709's rule at two ceilings Chan prints no figure
+for, so its tables drop the published-figure and gap columns, and each of its
+verdict cells says it is not a replication. Entries 6 and 15 come from the same
 sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
@@ -556,8 +559,8 @@ Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11,
-Entry 42's rows 6 to 16, Entry 43's rows 13 to 17, and
-Entry 45's rows 2 to 9.
+Entry 42's rows 6 to 16, Entry 43's rows 13 to 17,
+Entry 45's rows 2 to 9, and Entry 48's rows 1 to 7.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -854,10 +857,13 @@ capped at 2 and at 5. Their outcomes, the control across them and the wording
 of each were written on
 [issue 516](https://github.com/l3a0/quantitative-trading/issues/516) before
 any capped number was computed. The ceilings were chosen after Entry 45's
-ruin, leverage path and eight months of both groups' returns had been seen,
-so a result here confirms nothing whichever way it lands. Every cell reads
-"none, exploratory", and the reason column of rows 1 and 2 names the outcome
-the plan's rules reach.
+calendar, its leverage path, the ruin, eight months of both groups' returns
+and its side figures had been seen. Those side figures are both Sharpe
+ratios, the growths, the realised betas and the full-sample Kelly leverage of
+9.9884. So a result here confirms nothing whichever way it lands. No row
+carries a published figure either, so every cell reads "none, not a
+replication, exploratory", and the reason column of rows 1 and 2 names the
+outcome the plan's rules reach.
 
 Entry 1's rows 2 and 10, the first rows this section names, are in that entry
 because leaving them out misleads. Row 2 is the slope
@@ -9946,6 +9952,15 @@ Algorithmic Trading Business*, revised edition, Kindle locations 814, 2836,
 location is the revised edition's and is in
 [research/book-notes/quantitative-trading.md](../research/book-notes/quantitative-trading.md).
 
+This entry is not a replication. Location 4709 states the rule and prints no
+figure for it at any leverage, and locations 814 and 2836 give the two
+ceilings without working an example at either. So no row has a published
+number to reproduce, and the tables drop the published-figure and gap columns.
+`### Rows that are not replications` above says why the route that lets a
+stated claim carry a verdict does not reach it. Rows 1 and 2 test the claim
+under rules written before any capped number, but the ceilings were chosen
+after Entry 45's figures had been seen, so the claim was not tested blind.
+
 Seven rows, all derivable from
 [tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py). The three
 Entry 45 figures that rows 3 and 6 quote beside them are pinned in
@@ -9969,12 +9984,15 @@ high fifth in point estimate, by 0.0934 a year at a ceiling of 2 and 0.1659 at
 was written on
 [issue 516](https://github.com/l3a0/quantitative-trading/issues/516) on
 2026-10-11 before any capped number was computed. It came after Entry 45 had
-shown the ruin, the leverage path and both groups' returns for the first eight
-formations, and those figures nearly fixed the sign in advance. The unlevered
+shown its calendar, its leverage path, the ruin, both groups' returns for the
+first eight formations and its side figures. The side figures are both Sharpe
+ratios, the growths, the realised betas and the full-sample Kelly leverage of
+9.9884. Those figures nearly fixed the sign in advance. The unlevered
 low fifth already out-compounded the high fifth, and growth rises with
 leverage up to the Kelly leverage under a Gaussian approximation, so both
 ceilings were expected to show a positive point estimate. Every verdict cell
-therefore reads "none, exploratory".
+therefore reads "none, not a replication, exploratory", which carries this
+reason and the one above.
 
 Five of the rules carry the result, so they are stated here.
 
@@ -9983,8 +10001,9 @@ Five of the rules carry the result, so they are stated here.
    entry ran them, on the same three vintages. They are `spx_20071123/`,
    chan-mat adjusted, saved 2007-11-24, then `spy_chan.csv`, chan-xls
    adjusted, saved 2008-01-29, and FRED's TB3MS, downloaded 2026-09-30. The
-   universe, the betas, the fifths, the weights, k and the 83 holding months
-   from December 2000 to October 2007 are that entry's.
+   universe, the betas, the fifths, the weights and the 83 holding months from
+   December 2000 to October 2007 are that entry's. So is k, the leverage that
+   matches the low fifth's beta to the high fifth's.
 2. **The ceilings.** At each formation the low fifth is levered by
    L = min(k, C), and the capped month returns rf + L × (r_low − rf), borrowing
    at the bill rate with no trading cost. C = 2 is Regulation T's overnight
@@ -10029,26 +10048,27 @@ columns have nothing to hold in any row and are dropped, under
 | 1 | ceiling 2: any capped month at −1 or below, else the Newey-West t of d under Benjamini-Hochberg at 0.05 in each direction | no ruined month. Gap 0.0934 a year, t 1.0715 at lag 3, one-sided p 0.1420 for the claim and 0.8580 against it, rejected in neither family, Y 0.2168 | `TestTheCommittedFiles::test_no_month_is_ruined_at_either_ceiling`, `::test_both_ceilings_are_not_decided`, `::test_the_gap_t_both_p_values_and_y` and `::test_each_outcome_line` |
 | 2 | ceiling 5, the same | no ruined month. Gap 0.1659 a year, t 1.2111 at lag 3, one-sided p 0.1129 for the claim and 0.8871 against it, rejected in neither family, Y 0.3407 | the same four |
 | 3 | realised compounded growth, 12 times the mean monthly log return | 0.2118 at ceiling 2 and 0.2843 at 5, beside Entry 45's unlevered low fifth at 0.1254 and high fifth at 0.1183 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, and Entry 45's `TestTheFigures::test_each_series_realised_growth` |
-| 4 | the mean leverage, and the months in which k is above the ceiling | mean 2.0000 with 83 months bound at ceiling 2, and 3.5134 with 20 months bound at 5 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta` and `::test_ceiling_2_is_a_constant_leverage_of_2` |
+| 4 | the mean leverage, and the months in which k is above the ceiling | mean 2.0000 with 83 months bound at ceiling 2, and 3.5134 with 20 months bound at 5, so the beta match set the leverage in the other 63 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, `::test_ceiling_2_is_a_constant_leverage_of_2` and `::test_the_beta_match_sets_the_leverage_in_63_months_at_ceiling_5` |
 | 5 | the month with the lowest capped return | at both ceilings the month ending 2002-07-31, formed 2002-06-28. It returned −0.1479 at a leverage of 2 and −0.3719 at 5 | `TestTheCommittedFiles::test_the_worst_month` |
 | 6 | realised beta, the slope of the monthly return over the bill on SPY's, all 83 months each as if freshly funded | 0.8584 at ceiling 2 and 1.5831 at 5, beside the high fifth's 2.0671 | `TestTheCommittedFiles::test_growth_mean_leverage_binding_months_and_beta`, and Entry 45's `TestTheFigures::test_the_realised_betas` |
 | 7 | the yearly borrowing spread over the bill, charged (L − 1) × s / 12 a month, at which the gap's point estimate reaches 0, by bisection | 0.0946 at ceiling 2 and 0.0661 at 5 | `TestTheCommittedFiles::test_the_break_even_spread` |
 
 Each gap is rounded from its own unrounded value. So ceiling 2's growth less
 the high fifth's, 0.2118 less 0.1183, reads 0.0935 while the gap reads 0.0934,
-the case `### What precision a number is quoted at` describes.
+and ceiling 5's, 0.2843 less 0.1183, reads 0.1660 while its gap reads 0.1659.
+These are the case `### What precision a number is quoted at` describes.
 
 ### The verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | none, exploratory | Not decided. The gap of 0.0934 a year sits under the detectable 0.2168, and the claim's p-value of 0.1420 is far above the 0.025 a single rejection needs. The ceilings were chosen after Entry 45's ruin and leverage path had been seen, so even a rejection would have confirmed nothing. |
-| 2 | none, exploratory | Not decided. The gap of 0.1659 a year sits under the detectable 0.3407, and the claim's p-value is 0.1129. The same label applies. |
-| 3 | none, exploratory | Both capped portfolios grew faster than either unlevered fifth in point estimate, as the plan expected before any capped number. Nothing tests the size. |
-| 4 | none, exploratory | k was above 5 in 20 of the 83 months, so the ceiling of 5 set the leverage in about a quarter of them and the beta match set it in the rest. |
-| 5 | none, exploratory | The worst month at a ceiling of 5 lost 37 percent of the capital. June 2001, the beta match's first ruin, is not the worst month at either ceiling. |
-| 6 | none, exploratory | At either ceiling the levered low fifth's realised beta stayed below the high fifth's, so neither ceiling reaches location 4684's beta match. |
-| 7 | none, exploratory | Borrowing at the bill rate flatters the levered side. The point estimate stays above 0 up to a spread of 0.0946 a year at a ceiling of 2 and 0.0661 at 5, and no outcome reads it. |
+| 1 | none, not a replication, exploratory | Not decided. The claim's one-sided p-value of 0.1420 is above 0.05, and so is ceiling 5's, so Benjamini-Hochberg rejects neither ceiling in the claim's family. The contrary family's 0.8580 is further still. The gap of 0.0934 a year is under half the detectable gap of 0.2168. The ceilings were chosen after Entry 45's calendar, leverage path, ruin, eight months of returns and side figures had been seen, so even a rejection would have confirmed nothing. |
+| 2 | none, not a replication, exploratory | Not decided. The claim's one-sided p-value of 0.1129 is above 0.05, so as row 1 says, Benjamini-Hochberg rejects neither ceiling. The contrary family's 0.8871 is further still. The gap of 0.1659 a year is under half the detectable gap of 0.3407. The same label applies. |
+| 3 | none, not a replication, exploratory | Both capped portfolios grew faster than either unlevered fifth in point estimate, as the plan expected before any capped number. Nothing tests the size. |
+| 4 | none, not a replication, exploratory | k was above 5 in 20 of the 83 months, so the ceiling of 5 set the leverage in about a quarter of them and the beta match set it in the rest. |
+| 5 | none, not a replication, exploratory | The worst month at a ceiling of 5 lost 37 percent of the capital. June 2001, the beta match's first ruin, is not the worst month at either ceiling. |
+| 6 | none, not a replication, exploratory | At either ceiling the levered low fifth's realised beta, 0.8584 and 1.5831, stayed below the high fifth's 2.0671, so over the whole sample neither capped portfolio carried the high fifth's market exposure. At a ceiling of 5 the beta match still set the leverage in 63 of the 83 months. |
+| 7 | none, not a replication, exploratory | Borrowing at the bill rate flatters the levered side. The point estimate stays above 0 up to a spread of 0.0946 a year at a ceiling of 2 and 0.0661 at 5, and no outcome reads it. |
 
 ### What the entry concludes
 
@@ -10057,8 +10077,10 @@ Two things, and neither confirms anything.
 1. **Capped at what a broker would lend, the rule is not decided on this
    file.** Neither ceiling ruined the portfolio, and both point estimates
    favour the levered low fifth. Neither gap is distinguishable from noise
-   over 83 months, because the detectable gaps of 0.2168 and 0.3407 a year are
-   each more than twice its point estimate.
+   over 83 months. The claim's one-sided p-values of 0.1420 and 0.1129 are
+   both above 0.05, so Benjamini-Hochberg rejects neither. The detectable gaps
+   of 0.2168 and 0.3407 a year are each more than twice its own point
+   estimate.
 2. **Entry 45's ruin came with the beta match's leverage.** On the same
    portfolios and the same months, a ceiling of 5 lost no month's capital,
    though its worst month lost 37 percent of it. Location 4700's caveat stands
@@ -10069,8 +10091,11 @@ Two things, and neither confirms anything.
 
 Five things, the plan's five limits.
 
-1. **Anything confirmed.** The ceilings were chosen after Entry 45's ruin, its
-   leverage path and eight months of both groups' returns had been seen. Only
+1. **Anything confirmed.** The ceilings were chosen after Entry 45's
+   calendar, its leverage path, the ruin, eight months of both groups' returns
+   and its side figures had been seen. The side figures are both Sharpe
+   ratios, the growths, the realised betas and the full-sample Kelly leverage
+   of 9.9884. Only
    a run registered before any number on a holdout could confirm a ceiling.
    The plan sends both ceilings to
    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s

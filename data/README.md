@@ -161,9 +161,9 @@ market factor of
 [issue 22](https://github.com/l3a0/quantitative-trading/issues/22),
 [src/chan/low_beta_leverage.py](../src/chan/low_beta_leverage.py) reads it as
 the market each stock's beta is fitted on for
-[issue 275](https://github.com/l3a0/quantitative-trading/issues/275) and,
-through that module,
-[src/chan/low_beta_capped.py](../src/chan/low_beta_capped.py) for
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275),
+[src/chan/low_beta_capped.py](../src/chan/low_beta_capped.py) reads it through
+that module for
 [issue 516](https://github.com/l3a0/quantitative-trading/issues/516), and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.

@@ -3,17 +3,18 @@
 [Issue 275](https://github.com/l3a0/quantitative-trading/issues/275) levered
 the low-beta fifth of Chan's S&P 500 file to the high-beta fifth's beta, as
 location 4684 of the revised edition matches them, and the levered portfolio
-lost more than its capital in June 2001 at a leverage near 58. That verdict is
-about the leverage the beta match asks for. Location 4709 says only "highly
-leveraged", so the question left open is whether the rule holds at a leverage
-a broker would lend.
+lost more than its capital in June 2001 at a leverage of 58.0262. That
+verdict is about the leverage the beta match asks for. Location 4709 says only
+"highly leveraged", so the question left open is whether the rule holds at a
+leverage a broker would lend.
 [Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) asks it,
 and its plan, written on 2026-10-11 before any capped number existed, fixes
 every rule below.
 
-**The result is exploratory, and nothing here confirms anything.** The ruin,
-the leverage path and eight months of both groups' returns had been seen
-before either ceiling was chosen. The plan lists five things that had been seen.
+**The result is exploratory, and nothing here confirms anything.** Entry 45's
+calendar, its leverage path, the ruin, eight months of both groups' returns
+and its side figures had been seen before either ceiling was chosen. The plan
+lists the five things.
 
 1. The calendar: 2,011 shared days, 96 month-ends, and 83 holding months from
    December 2000 to October 2007.
@@ -187,6 +188,13 @@ MAX_SPREAD = 1e6
 #: The width at which the bisection stops, far below the 4 decimals quoted.
 TOLERANCE = 1e-12
 
+#: The most halvings the bisection makes. TOLERANCE is absolute, and once the
+#: bracket passes about 8192 two neighbouring floats lie further apart than it,
+#: so the width alone would never fall below it. Forty halvings already bring
+#: a bracket of 1 down to TOLERANCE, and 200 bring any bracket up to
+#: MAX_SPREAD down to the spacing of the floats in it.
+MAX_HALVINGS = 200
+
 #: The p-value a ruined ceiling enters both families with.
 RUINED_P = 1.0
 
@@ -354,10 +362,17 @@ class Outcome:
 def cap(portfolios: Portfolios, ceiling: float) -> Portfolios:
     """Entry 45's portfolios levered by min(k, ceiling), with ``levered`` and ``leverage`` replaced.
 
+    A ceiling of 1 or below refuses as :class:`ValueError`, because the capped
+    portfolio would then borrow nothing and the run would test no leverage.
     Both fields go together, because
     :func:`chan.low_beta_leverage.ruined_months` reads the leverage it reports
     from ``leverage``, and a ruin would otherwise name the uncapped k.
     """
+    if not ceiling > 1:
+        raise ValueError(
+            f"a ceiling of {ceiling:g} is at or below 1, so nothing is borrowed and no leverage "
+            "is tested"
+        )
     p = portfolios
     leverage = p.leverage.clip(upper=ceiling).rename(f"L at {ceiling:g}")
     levered = (p.rf + leverage * (p.low - p.rf)).rename(f"capped at {ceiling:g}")
@@ -418,7 +433,10 @@ def break_even_spread(portfolios: Portfolios) -> float | None:
 
     ``None`` when the gap is already 0 or below at a spread of 0. The upper end
     of the bracket doubles from 1 until the gap is 0 or below there, and the
-    search refuses as :class:`NoBreakEven` past :data:`MAX_SPREAD`.
+    search refuses as :class:`NoBreakEven` past :data:`MAX_SPREAD`. The bisection
+    stops at a width of :data:`TOLERANCE` or after :data:`MAX_HALVINGS` halvings,
+    whichever comes first, so it ends even where the floats are too far apart
+    for the width to reach :data:`TOLERANCE`.
     """
     if not charged_gap(portfolios, 0.0) > 0:
         return None
@@ -430,7 +448,9 @@ def break_even_spread(portfolios: Portfolios) -> float | None:
                 f"the gap stays above 0 at a yearly spread of {MAX_SPREAD:g}, so no borrowing "
                 "cost brings it to 0"
             )
-    while high - low > TOLERANCE:
+    for _ in range(MAX_HALVINGS):
+        if high - low <= TOLERANCE:
+            break
         middle = (low + high) / 2
         if charged_gap(portfolios, middle) > 0:
             low = middle
@@ -549,15 +569,23 @@ def report(
     )
     print("  Five limits on every figure above:")
     print(
-        "  1. Exploratory. The ruin, the leverage path and eight months of both groups' returns "
+        "  1. Exploratory. Entry 45's calendar, its leverage path, the ruin, eight months of both "
+        "groups' returns and its side figures,"
+    )
+    print(
+        "  both Sharpe ratios, the growths, the realised betas and the full-sample Kelly leverage, "
         "were seen before either ceiling was chosen."
     )
     print("  2. Survivor-only. The panel holds only the stocks still in the index on 2007-11-23.")
     print("  3. Not a holdout. The low-beta literature's own samples cover 1999 to 2007.")
     print("  4. Borrowing at the bill rate flatters the levered side, by the spread above.")
     print(
-        "  5. No margin call inside a month is modelled. Month-end closes cannot see a fall of "
-        "a third within one."
+        "  5. No margin call inside a month is modelled. Under Regulation T's 25 percent "
+        "maintenance margin, a position levered 2"
+    )
+    print(
+        "  gets a call after a fall of a third within the month, and month-end closes cannot "
+        "see that."
     )
     print(
         f"  Ceilings from locations {MARGIN_LOCATION} and {RETAIL_LOCATION}. "

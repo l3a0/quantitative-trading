@@ -682,12 +682,17 @@ no verdict either.
 [Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) caps
 location 4684's beta match at 2, the overnight leverage Regulation T allows,
 and at 5, the most location 814 says portfolio margin lends on stocks held
-overnight. Neither ceiling ruins the portfolio. The capped low fifth
-out-compounded the unlevered high fifth by 0.0934 a year at a ceiling of 2
-and by 0.1659 at 5, with Newey-West t of 1.0715 and 1.2111. Benjamini-Hochberg
-across the two ceilings rejects neither in either direction, so both are not
-decided. Every figure is exploratory, because the ceilings were chosen after
-item 44's ruin had been seen. Entry 48 in
+overnight. Neither ceiling ruins the portfolio. In point estimate the capped
+low fifth out-compounded the unlevered high fifth, by 0.0934 a year at a
+ceiling of 2 and 0.1659 at 5, with Newey-West t of 1.0715 and 1.2111.
+Benjamini-Hochberg across the two ceilings rejects neither in either
+direction, so neither ceiling is decided. Every figure is exploratory, because
+the ceilings were chosen after item 44's calendar, leverage path and ruin had
+been seen, along with eight months of both groups' returns and its Sharpe
+ratios, growths, betas and Kelly leverage. As in item 44, the span is not a
+holdout and every figure is about the stocks still in the index on
+2007-11-23. The run borrows at the bill rate, which flatters the levered side,
+and month-end closes cannot see a margin call inside a month. Entry 48 in
 [docs/replication-log.md](docs/replication-log.md) carries them, with the
 break-even borrowing spread, the worst month and location 4700's caveat
 beside them.
@@ -1152,12 +1157,17 @@ gap's formula.
 
 [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
 the same rule at leverage a broker would lend. It pins each ceiling's
-outcome, gap, t, both p-values, both decisions of the control and Y, and
-beside them the growth, the mean leverage, the months each ceiling binds, the
-worst month, the realised beta and the break-even spread. On portfolios built
-by hand it holds the cap, the replacement of both the return and the
-leverage, a ruined ceiling at p = 1 in both families, both Benjamini-Hochberg
-families, each outcome's wording, and the bisection with its "none".
+outcome, gap, t, both p-values, both decisions of the Benjamini-Hochberg
+control and the detectable gap Y, the gap a 5 percent test finds four times
+in five. Beside them it pins the growth, the mean leverage, the months each
+ceiling binds, the worst month, the realised beta and the break-even spread.
+On portfolios built by hand it holds the cap, the replacement of both the
+return and the leverage, a ruined ceiling at p = 1 in both families, both
+Benjamini-Hochberg families, each outcome's wording, and the break-even
+spread's bisection, and its "none" when the gap is 0 or below with no spread.
+It also holds the refusal of a ceiling at or below 1, which borrows nothing,
+and the bisection's limit on halvings, which ends the search where the floats
+lie too far apart for its tolerance.
 
 All forty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -2125,7 +2135,7 @@ uv run python -m chan.low_beta_capped
 ```
 
 It prints the three vintages and each ceiling's outcome with its gap, t, both
-p-values and Y. Beside them it prints the growth, the mean leverage, the
+p-values and the detectable gap Y. Beside them it prints the growth, the mean leverage, the
 months each ceiling binds, the realised beta, the break-even spread and the
 worst month, none of which decides anything, then location 4700's caveat and
 the five limits. Every line is exploratory.

@@ -23,9 +23,11 @@ and carried, with the ceiling, in every figure's failure message through
   lag, and Benjamini-Hochberg at 0.05 across the two ceilings in each
   direction.
 
-**Every result here is exploratory.** The ruin at the beta match, the leverage
-path and eight months of both groups' returns were seen before either ceiling
-was chosen, so no figure here confirms anything. Entry 45's own figures are
+**Every result here is exploratory.** Entry 45's calendar, its leverage path,
+the ruin at the beta match, eight months of both groups' returns and its side
+figures were seen before either ceiling was chosen. The side figures are both
+Sharpe ratios, the growths, the realised betas and the full-sample Kelly
+leverage of 9.9884. So no figure here confirms anything. Entry 45's own figures are
 read from :mod:`chan.low_beta_leverage` rather than pinned again here, because
 ``tests/test_low_beta_leverage.py`` already pins them.
 
@@ -49,6 +51,7 @@ from chan.low_beta_capped import (
     CEILINGS,
     FALSE_DISCOVERY,
     MARGIN_LOCATION,
+    MAX_HALVINGS,
     MAX_SPREAD,
     RETAIL_LOCATION,
     RUINED_P,
@@ -213,6 +216,12 @@ class TestTheCommittedFiles:
         leverage = outcomes[2.0].capped.portfolios.leverage
         assert (leverage == 2.0).all(), spec(2.0)
 
+    def test_the_beta_match_sets_the_leverage_in_63_months_at_ceiling_5(self, outcomes) -> None:
+        """k is at or below 5 in 63 of the 83 months, so there L is k rather than the ceiling."""
+        c = outcomes[5.0].capped
+        assert int((c.k <= 5.0).sum()) == 63, spec(5.0)
+        assert c.portfolios.leverage[c.k <= 5.0].equals(c.k[c.k <= 5.0]), spec(5.0)
+
     def test_the_capped_series_are_entry_45s_with_two_fields_replaced(
         self, portfolios: Portfolios, outcomes
     ) -> None:
@@ -256,7 +265,22 @@ class TestTheRun:
         assert "quite wary of using too much leverage on normally low-beta stocks" in out
         for label in ("Exploratory.", "Survivor-only.", "Not a holdout.", "bill rate flatters"):
             assert label in out
-        assert "No margin call inside a month is modelled." in out
+        assert (
+            "1. Exploratory. Entry 45's calendar, its leverage path, the ruin, eight months of "
+            "both groups' returns and its side figures,"
+        ) in out
+        assert (
+            "both Sharpe ratios, the growths, the realised betas and the full-sample Kelly "
+            "leverage, were seen before either ceiling was chosen."
+        ) in out
+        assert (
+            "5. No margin call inside a month is modelled. Under Regulation T's 25 percent "
+            "maintenance margin, a position levered 2"
+        ) in out
+        assert (
+            "gets a call after a fall of a third within the month, and month-end closes cannot "
+            "see that."
+        ) in out
         assert "Entry 48" in out
 
 
@@ -353,6 +377,20 @@ class TestTheCap:
         assert q.low is p.low and q.high is p.high and q.rf is p.rf and q.spy is p.spy
         assert q.formed == p.formed and q.held_to == p.held_to
         assert not q.levered.equals(p.levered)
+
+    @pytest.mark.parametrize("ceiling", [1.0, 0.5, 0.0, -2.0, math.nan])
+    def test_a_ceiling_at_or_below_1_refuses(self, ceiling: float) -> None:
+        """At a ceiling of 1 nothing is borrowed, and below it the spread logic turns over."""
+        p = made([0.01, 0.02], [0.0, 0.0], [3.0, 4.0])
+        for build in (cap, capped):
+            with pytest.raises(ValueError, match="nothing is borrowed and no leverage is tested"):
+                build(p, ceiling)
+        with pytest.raises(ValueError, match="nothing is borrowed and no leverage is tested"):
+            assess(p, [2.0, ceiling])
+
+    def test_a_ceiling_just_above_1_is_accepted(self) -> None:
+        p = made([0.01, 0.02], [0.0, 0.0], [3.0, 4.0])
+        assert list(cap(p, 1.5).leverage) == [1.5, 1.5]
 
     def test_k_is_kept_beside_the_capped_leverage(self) -> None:
         p = made([0.01, 0.02], [0.0, 0.0], [9.0, 1.0])
@@ -539,6 +577,35 @@ class TestTheBreakEvenSpread:
     def test_a_charged_month_at_minus_1_is_a_gap_unbounded_below(self) -> None:
         p = cap(made([0.01] * 2, [0.0] * 2, [3.0] * 2), 2.0)
         assert charged_gap(p, 12 * 1.02) == -math.inf
+
+    def test_a_break_even_past_8192_ends_within_the_halving_cap(self, monkeypatch) -> None:
+        """Past about 8192 neighbouring floats lie further apart than the bisection's tolerance.
+
+        At a leverage of 1 + 1e-7 each month borrows almost nothing, so the
+        break-even spread is near 12 × 0.0005 / 1e-7, about 60,000. Counting
+        the calls to the gap turns a bisection that would never end into a
+        failure rather than a hang.
+        """
+        n = 4
+        p = made([0.001] * n, [0.0005] * n, [1 + 1e-7] * n)
+        assert p.levered.equals(p.rf + p.leverage * (p.low - p.rf))
+        doublings = math.ceil(math.log2(MAX_SPREAD)) + 1
+        limit = 1 + doublings + MAX_HALVINGS
+        calls = 0
+        gap = low_beta_capped.charged_gap
+
+        def counted(portfolios: Portfolios, spread: float) -> float:
+            nonlocal calls
+            calls += 1
+            if calls > limit:
+                raise AssertionError(f"the bisection called the gap more than {limit} times")
+            return gap(portfolios, spread)
+
+        monkeypatch.setattr(low_beta_capped, "charged_gap", counted)
+        found = break_even_spread(p)
+        assert found > 8192
+        assert found == pytest.approx(12 * (0.001 - 0.0005) / 1e-7, rel=1e-3)
+        assert gap(p, found) == pytest.approx(0.0, abs=1e-9)
 
     def test_no_bracket_refuses(self) -> None:
         """At a leverage of 1 nothing is borrowed, so no spread moves the gap."""
