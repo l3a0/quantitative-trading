@@ -31,7 +31,7 @@ verdict. Entries 6 and 15 come from the same sentence of the book and are
 replications, because the claim each tests is about a series Chan names or a
 class whose members are tested directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 and 38 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 and 39 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -285,6 +285,12 @@ says.
   - [The verdicts](#the-verdicts-36)
   - [What the entry concludes](#what-the-entry-concludes-37)
   - [What this entry cannot say](#what-this-entry-cannot-say-35)
+- [Entry 39: XLE against USO signed by crude oil's contango, Chan's *Algorithmic Trading*](#entry-39-xle-against-uso-signed-by-crude-oils-contango-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-36)
+  - [What this repo computed](#what-this-repo-computed-38)
+  - [The verdicts](#the-verdicts-37)
+  - [What the entry concludes](#what-the-entry-concludes-38)
+  - [What this entry cannot say](#what-this-entry-cannot-say-36)
 
 ## How to read an entry
 
@@ -353,8 +359,10 @@ both.
    [tests/test_roll_momentum.py](../tests/test_roll_momentum.py) holds
    Entry 36,
    [tests/test_tu_hypothesis_tests.py](../tests/test_tu_hypothesis_tests.py)
-   holds Entry 37, and [tests/test_gld_gc.py](../tests/test_gld_gc.py) holds
-   Entry 38.
+   holds Entry 37, [tests/test_gld_gc.py](../tests/test_gld_gc.py) holds
+   Entry 38, and
+   [tests/test_xle_uso_roll_return.py](../tests/test_xle_uso_roll_return.py)
+   holds Entry 39.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -7881,6 +7889,160 @@ return of −4.9 percent annualized from December 1982 to May 2004" as the
 reason to try the trade. The entry cites it and does not reproduce it, because
 the earliest gold futures series here starts in May 2004, the month that span
 ends.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 39: XLE against USO signed by crude oil's contango, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Kindle location 2734 and Figure 6.3, in Chapter 6.
+Shipped under [issue 356](https://github.com/l3a0/quantitative-trading/issues/356).
+The script is `XLE_CL_rollReturn.m`, in ericnberwick/EpchanPreview at
+`e4bc46f` under `public/img/book2/`, git blob `e9b8981`, and the line
+numbers below are that blob's. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Seven rows, all derivable from
+[tests/test_xle_uso_roll_return.py](../tests/test_xle_uso_roll_return.py).
+Each matches one printed figure to one computation. Rows 6 and 7 are the
+book's rounded forms of what rows 3 and 2 compute.
+
+No ETF holds physical crude oil, so no ETF pair can collect crude's roll
+return the way GLD against a gold future can. Location 2385 says a fund of
+oil producers such as XLE "usually cointegrates with the spot price", and
+location 1939 that USO "invests in oil futures contracts", so USO earns the
+roll return on top of the spot and XLE does not. Location 2718 defines
+contango as a negative roll return, with the far contract priced above the
+near one. Location 2734 trades the gap: short USO and long XLE whenever CL is
+in contango, and the reverse in backwardation, for an APR of "a very
+respectable 16 percent" from 2006-04-26 to 2012-04-09 "with a Sharpe ratio of
+about 1".
+
+**All five of the script's figures and both of the book's reproduce on
+Chan's own files.** The text and the script describe one run. The book's
+16 percent is the script's APR of 0.1591, and its "about 1" is the script's
+Sharpe ratio of 1.05.
+
+**A scratch run came before the criterion.** The order was not the one this
+repo asks for. A research pass on the issue ran a scratch transcription and
+saw all five figures before the issue wrote down what a landing figure is.
+The criterion it then fixed is the rule every earlier entry uses: a figure
+lands when the computed value rounds to the printed string at the decimals
+the string carries, which is `chan.khandani_lo_book_two.matches`. Nothing in
+it was chosen to fit the run, and there is one specification with no rows
+beside it.
+
+Every row reads two vintages and one specification, so they are stated once
+here.
+
+1. **The vintages.** Two of Chan's book-two files, both vendor `chan-mat`.
+   1. `data/inputdata_etf/`, lifted from `inputData_ETF.mat`, basis
+      `adjusted`, saved 2012-04-10. USO and XLE hold 1,500 closes each from
+      2006-04-26 to 2012-04-09 with none missing. The file subtracts each
+      dividend in dollars from every earlier close, which
+      [data/README.md](../data/README.md) records.
+   2. `data/inputdatadaily_cl_20120502/`, lifted from
+      `inputDataDaily_CL_20120502.mat`, basis `raw`, saved 2012-05-03. It is
+      one vintage per contract, 89 of them from CL-2007F to CL-2014K, over
+      2,867 days from 2000-11-20, with no spot column. It is read through
+      `chan.roll_returns.load_strip`, which runs the scale-break guard on
+      every contract's own rows and refuses nothing.
+2. **The specification.** `XLE_CL_rollReturn.m` as
+   `chan.xle_uso_roll_return` transcribes it. The ratio is each contract's
+   successor in the strip over the contract, on the rows the contract is the
+   front. A contract is the front from 40 to 10 rows before its last priced
+   row, and a later contract starts no earlier than the row after the
+   previous front ended. Every other row carries a NaN ratio. On the 1,498
+   days both calendars hold, a ratio above 1 is short USO and long XLE, below
+   1 long USO and short XLE, and a NaN ratio or a ratio of exactly 1 holds
+   nothing. Each day earns yesterday's positions times each leg's return,
+   summed over the legs that have one and divided by 2, with NaN set to 0.
+   The figures are `chan.tu_momentum.figures`, annualised over 252 days with
+   the standard deviation dividing by n, no risk-free rate and no cost.
+
+The two calendars share 1,498 of the ETF file's 1,500 days. The ETF file
+holds 2006-07-03 and 2006-11-24, which the strip lacks. The strip's first
+contract is CL-2007F, whose front window opens on 2006-10-20, so the window's
+first 123 days carry no ratio and hold nothing. Of the 1,375 days that carry
+one, 1,129 are in contango, 244 in backwardation, and 2 carry a ratio of
+exactly 1.
+
+Every result here is **exploratory**. Reproducing Chan's figures spends his
+2006 to 2012 sample on a rule he chose.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The average annual return, script | 0.1592 | script line 63 |
+| 2 | The Sharpe ratio, script | 1.05 | script line 63 |
+| 3 | The APR, script | 0.1591 | script line 64 |
+| 4 | The maximum drawdown | −0.192321 | script line 65 |
+| 5 | The longest drawdown | 487 days | script line 65 |
+| 6 | The APR, book | "a very respectable 16 percent" | location 2734 |
+| 7 | The Sharpe ratio, book | "about 1" | location 2734 |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `252 · smartmean(ret)` over the 1,498 days | 0.159231 | `TestTheSpecification::test_the_average_annual_return` |
+| 2 | `√252 · smartmean(ret) / smartstd(ret)` | 1.046596 | `TestTheSpecification::test_the_sharpe_ratio` |
+| 3 | `prod(1 + ret)^(252 / 1498) − 1` | 0.159102 | `TestTheSpecification::test_the_apr` |
+| 4 | `calculateMaxDD(cumprod(1 + ret) − 1)`, the deepest drawdown | −0.192321 | `TestTheSpecification::test_the_maximum_drawdown` |
+| 5 | The same, the longest run of days below a high | 487 | `TestTheSpecification::test_the_longest_drawdown` |
+| 6 | Row 3, in percent | 15.910241 | `TestTheSpecification::test_the_apr`, and `::test_both_reproduce_the_book_s_figures` for the rounding |
+| 7 | Row 2 | 1.046596 | `TestTheSpecification::test_the_sharpe_ratio`, and `::test_both_reproduce_the_book_s_figures` for the rounding |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | +0.0000 | reproduced | 0.159231 rounds to the script's 0.1592. |
+| 2 | −0.00 | reproduced | 1.046596 rounds to the script's 1.05. |
+| 3 | +0.0000 | reproduced | 0.159102 rounds to the script's 0.1591. |
+| 4 | +0.000000 | reproduced | Exact at the six decimals the script prints. |
+| 5 | 0 days | reproduced | Exact. |
+| 6 | −0 percent | reproduced | 15.91 percent rounds to the book's 16. |
+| 7 | +0 | reproduced | 1.046596 rounds to the book's 1. |
+
+### What the entry concludes
+
+Two things.
+
+1. **The script's rule reproduces on Chan's own files.** Every figure its
+   comment prints lands at the decimals printed, and the book's two land at
+   the precision Chan printed them.
+2. **The book's text and the script describe one run.** The text gives no
+   rule for deciding contango beyond location 2718's definition, so the rule
+   here is the script's, and its APR and Sharpe ratio are the text's
+   16 percent and "about 1".
+
+### What this entry cannot say
+
+Four things.
+
+**What a holder of XLE earned.** `inputData_ETF.mat` subtracts each dividend
+in dollars from every earlier close, which
+[issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found.
+That leaves the replication untouched, because Chan's script read the same
+bytes. It does change what a holder of XLE earned, and no second XLE
+series over this window is committed to measure by how much.
+
+**What the trade earned while it held a view.** The first 123 days carry no
+ratio, because the strip's first contract opens its front window on
+2006-10-20. The figures count those days as earning 0, as the script does,
+and this entry measures nothing over the shorter span.
+
+**Which standard deviation the Sharpe ratio divides by.** The run divides by
+n, as `chan.matlab_helpers.smartstd_book_two` does. Dividing by n − 1 gives
+1.046247, which also rounds to the script's 1.05, so this script's printout
+cannot tell the two apart.
+
+**Whether the trade works out of sample.** The rule and the window are
+Chan's, and the sample is the one he reported on. A registered test would fix
+the rule first and run it on data after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
