@@ -27,6 +27,15 @@ report runs to 15 to 59 MB.
 The index's sha256 says which bytes were parsed, so a fetch refuses a download
 that differs from them.
 
+Those bytes are the document as EDGAR stores it, cut from the accession's
+submission text file by :func:`submitted_document`, and not the bytes EDGAR
+serves at the document's own URL. The stored submission never changes. The
+served copy of an HTML document does, because EDGAR's front end inserts a
+script tag before its last ``</BODY>``, and the tag's path changes about
+daily, so a hash of the served copy holds for a day at most. The front end
+leaves the text file alone. [Issue 510](https://github.com/l3a0/quantitative-trading/issues/510)
+measured both and re-pinned the index's HTML documents to the stored bytes.
+
 Two formats, read by two parsers.
 
 1. **HTML**: an N-Q to 2018, a shareholder report, which is an N-CSR or
@@ -108,11 +117,12 @@ class FilingRefused(Exception):
 class Filing:
     """One filing in a fund's committed list.
 
-    ``document`` is the primary document's path inside the accession's
-    directory on EDGAR. ``report_date`` is the date the schedule is as of, as
-    the filing prints it. ``skipped`` is empty for a filing the reader
-    records, and otherwise says why the filing holds no full schedule, so the
-    date stays on the list with nothing written for it.
+    ``document`` is the primary document's name inside the accession, as its
+    ``<FILENAME>`` line in the submission text file gives it, which is also
+    its path inside the accession's directory on EDGAR. ``report_date`` is the
+    date the schedule is as of, as the filing prints it. ``skipped`` is empty
+    for a filing the reader records, and otherwise says why the filing holds no
+    full schedule, so the date stays on the list with nothing written for it.
     """
 
     report_date: str
@@ -796,9 +806,12 @@ def record(
 ) -> IndexEntry:
     """Write one filing's holdings file and its index line, or refuse.
 
-    A rerun that would write the same bytes changes nothing. One that would
-    write different bytes to an existing file, or a different line for a
-    fund's accession the index already holds, refuses and names both hashes.
+    ``document`` is the filing's document as :func:`submitted_document` cuts it
+    from the accession's submission text file, and its sha256 is what the
+    index line pins. A rerun that would write the same bytes changes nothing.
+    One that would write different bytes to an existing file, or a different
+    line for a fund's accession the index already holds, refuses and names
+    both hashes.
     The fund is part of that key because one N-Q holds every fund in the
     trust, so IJR's and IVV's December N-Q share an accession. A document is
     still one set of bytes whichever fund reads it, so one whose sha256 differs
@@ -893,9 +906,65 @@ def user_agent(environ: Mapping[str, str] | None = None, config: Path | None = N
     return named
 
 
-def document_url(filing: Filing, cik: int = TRUST_CIK) -> str:
-    """Where EDGAR serves a filing's primary document."""
-    return f"{_ARCHIVES}/{cik}/{filing.accession.replace('-', '')}/{filing.document}"
+def submission_url(filing: Filing, cik: int = TRUST_CIK) -> str:
+    """Where EDGAR serves the accession's full submission text file.
+
+    The file holds every document the filer submitted, each in its own
+    ``<DOCUMENT>`` block, and EDGAR's front end serves it unchanged.
+    """
+    accession = filing.accession
+    return f"{_ARCHIVES}/{cik}/{accession.replace('-', '')}/{accession}.txt"
+
+
+_DOCUMENT_BLOCK = re.compile(rb"^<DOCUMENT>\n.*?^</DOCUMENT>\n", re.MULTILINE | re.DOTALL)
+_FILENAME = re.compile(rb"^<FILENAME>(.*)$", re.MULTILINE)
+_XML_OPEN = b"<TEXT>\n<XML>\n"
+_XML_CLOSE = b"</XML>"
+
+
+def submitted_document(submission: bytes, filing: Filing) -> bytes:
+    """The filing's document as EDGAR stores it, cut from the submission text file.
+
+    The block is the one whose first ``<FILENAME>`` line names
+    ``filing.document``. That line sits in the block's header, ahead of any
+    text the document itself holds. What is cut depends on what the block
+    holds, not on the document's name.
+
+    1. **XML**, a block whose text opens with an ``<XML>`` line, as every
+       N-PORT's ``primary_doc.xml`` does. The document is what lies between
+       ``<XML>`` and ``</XML>``, without the newline that ends the ``<XML>``
+       line and with the one before ``</XML>``. That is what EDGAR serves at
+       the document's URL, byte for byte.
+    2. **Anything else**, which here is HTML. The document is the whole block,
+       from ``<DOCUMENT>`` through ``</DOCUMENT>`` and its newline. EDGAR
+       serves these filings with that SGML wrapper still on, so the block is
+       what the URL serves less the script tag the front end inserts.
+
+    It refuses when no block names the document, and when more than one does,
+    because then the accession does not say which bytes were read.
+    """
+    name = filing.document.encode()
+    found = []
+    for block in _DOCUMENT_BLOCK.finditer(submission):
+        named = _FILENAME.search(block.group(0))
+        if named is not None and named.group(1).strip() == name:
+            found.append(block.group(0))
+    if len(found) != 1:
+        raise FilingRefused(
+            f"{filing.accession}'s submission holds {len(found)} documents named "
+            f"{filing.document}, where one was expected"
+        )
+    block = found[0]
+    text_at = block.find(b"<TEXT>")
+    if text_at < 0 or not block.startswith(_XML_OPEN, text_at):
+        return block
+    start = text_at + len(_XML_OPEN)
+    end = block.rfind(_XML_CLOSE)
+    if end < start:
+        raise FilingRefused(
+            f"{filing.accession}'s {filing.document} opens <XML> and never closes it"
+        )
+    return block[start:end]
 
 
 def _download(url: str, contact: str) -> bytes:
@@ -919,10 +988,14 @@ def fetch(
 ) -> list[IndexEntry]:
     """Download each filing in the fund's list, record it, and delete the download.
 
-    Each document lands in a temporary directory the run removes once it is
-    parsed. Where the index already names a document, for this fund or any
-    other, a download whose sha256 differs is refused before anything is
-    parsed. A filing the list skips is not downloaded.
+    What is downloaded is the accession's submission text file, from
+    :func:`submission_url`, and :func:`submitted_document` cuts the filing's
+    document out of it. The document's own URL is not read, because EDGAR's
+    front end rewrites an HTML document there and leaves the text file alone,
+    as the module docstring says. Each document lands in a temporary directory
+    the run removes once it is parsed. Where the index already names a
+    document, for this fund or any other, one whose sha256 differs is refused
+    before anything is parsed. A filing the list skips is not downloaded.
     """
     contact = user_agent() if contact is None else contact
     held = read_index(filings_dir)
@@ -931,7 +1004,7 @@ def fetch(
         for number, filing in enumerate(f for f in fund.filings if not f.skipped):
             if number:
                 pause(REQUEST_SPACING_SECONDS)
-            content = download(document_url(filing), contact)
+            content = submitted_document(download(submission_url(filing), contact), filing)
             known = sorted({e.document_sha256 for e in held if e.accession == filing.accession})
             if known and known != [_sha256(content)]:
                 raise FilingRefused(

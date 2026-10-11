@@ -216,6 +216,7 @@ class TestTheSkippedDate:
     def test_the_fetch_never_downloads_it(self, tmp_path: Path, monkeypatch) -> None:
         asked = []
         monkeypatch.setattr(fund_holdings, "record", lambda *arguments: None)
+        monkeypatch.setattr(fund_holdings, "submitted_document", lambda *arguments: b"")
         fund = fund_holdings.Fund("IVV", IVV.series_id, (), IVV.filings[18:21], ())
         fund_holdings.fetch(
             fund,
@@ -225,7 +226,7 @@ class TestTheSkippedDate:
             pause=lambda seconds: None,
         )
         assert [f.report_date for f in fund.filings] == ["2013-06-30", SKIPPED, "2013-12-31"]
-        assert asked == [fund_holdings.document_url(f) for f in fund.filings if not f.skipped]
+        assert asked == [fund_holdings.submission_url(f) for f in fund.filings if not f.skipped]
 
     def test_a_placement_reaching_back_to_it_names_the_reason(self) -> None:
         with pytest.raises(ValueError, match="2013-09-30 has no holdings file"):
