@@ -483,7 +483,9 @@ where they were first built. The other thirty-five were built here.
     October 2008, as the book says. Its last pair ends on the book's end
     date, but so does the row that holds pairs the same way on the
     specification's signal, so the date does not single it out. B3 was picked
-    out after the run, so its match is a search. Every figure is exploratory.
+    out after the run, so its match is a search. The specification's near
+    leg is the front contract on 126 of its 847 held rows, so its signal
+    mostly reads a pair it does not hold. Every figure is exploratory.
 36. TU momentum traded on the lagged roll return, location 2690 of
     *Algorithmic Trading*, on Chan's 2012-08-13 TU strip. The rule goes long
     when item 27's roll return is above 3 percent and short when it is below
@@ -836,9 +838,12 @@ specification at the precision Chan printed, and the two measurements taken
 after the run, each marked as such. It also holds why the specification pairs
 contracts a month apart, the 64 of VX's 71 pairs and 68 of CL's 77 held under
 `holddays=0`, the 43 pairs B3 holds from 2008-10-27, and why its last pair
-ends on the book's end date. On synthetic frames it holds the two signals'
-rules: a row whose nearest two contracts skip one, the held pair across a
-roll, and the fill across days nothing is held.
+ends on the book's end date. It holds which pair each row's signal reads
+too: the specification's near leg is the front contract on 126 of its 847
+held rows from 2008-10-27, and under `holddays=0` on 459 of 879. On synthetic
+frames it holds the two signals' rules and the near leg's place: a row whose
+nearest two contracts skip one, the held pair across a roll, and the fill
+across days nothing is held.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) does it for TU's
 momentum on the roll return. It pins the three figures at six decimals and
@@ -3768,6 +3773,78 @@ uv run python -m chan.khandani_lo_book_two_figures
 ```
 
 [tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/vx-calendar-spread-lessons.md](blog/vx-calendar-spread-lessons.md) is a
+twenty-sixth post, about the VIX futures calendar spread at location 2502 of
+Chan's *Algorithmic Trading*, which runs Example 5.4's script on the ratio of
+the back contract to the front. Chan reports that the ratio is "stationary
+with a 99 percent probability", and an APR of 17.7 percent with a Sharpe ratio
+of 1.5 from 2008-10-27 to 2012-04-23. The post links the VX against E-mini
+post, the USD.CAD post and the price-spread-ratio post rather than repeating
+them, and draws four lessons from Entry 35 of the replication log.
+
+1. The ratio passes the stationarity test, and the specification read from the
+   book's text loses, with an APR of −0.040454 and a Sharpe ratio of −0.563912.
+2. The specification's signal reads the front pair while the script holds a
+   pair further out, so its near leg is the front contract on 126 of its 847
+   held rows, and the two rows whose signal reads the held pair are the two
+   that earn.
+3. B3 lands the book's figures on its window and alone does worse before
+   October 2008, but it was picked out among five rows after the run, and the
+   book's end date does not single it out.
+4. The script as shipped runs on VX without complaint while holding the near
+   leg alone on 1,183 of 1,284 held days.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   All of them, and Figure 5.8's caption, are at 2502.
+2. Facts about the script rather than the data: its commented-out load of the
+   VX file, its pairs 12 months apart, its flip where the z-score is above 0,
+   and its return summed over the legs that have one and halved, all at
+   `e4bc46f` of ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the ratio rises with the spread because its
+   log is the spread's log value, that crude oil's spread falls as γ rises,
+   that four rows show a pattern rather than a cause, and that a rule selling
+   one spread on another's z-score bets on the two moving together.
+4. Figures the post states in words or rounded from pinned ones, such as 4.0
+   percent, −0.56, six days in seven, three or four months between pairs, and
+   at least 73 days. The figure's alt text reads its curves approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py), or to
+[tests/test_vx_calendar_spread_figures.py](tests/test_vx_calendar_spread_figures.py)
+for the figure's own numbers. Four had no pin before it.
+
+1. The specification's near leg is the front contract on 126 of its 847 held
+   rows from 2008-10-27, and the second to the fifth on 229, 221, 201 and 70,
+   over 11 pairs from VX-2009G's to VX-2012H's.
+2. Under `holddays=0` the near leg is the front contract on 459 of 879 held
+   rows and the second on the other 420.
+3. Of the four rows that run to the file's last row, B1 and B3 earn and S and
+   B2 lose.
+4. Each curve's end, 0.758213 for B3, −0.135565 for S, 0.123003 for B1 and
+   −0.345330 for B2, and B3's 0.765276 on 2012-04-23.
+
+Its one figure is drawn from the committed VX strip by
+[src/chan/vx_calendar_spread_figures.py](src/chan/vx_calendar_spread_figures.py),
+which reads it through the same `load_strip` and `vx_calendar_spread` as
+`python -m chan.vx_calendar_spread`. It draws two panels.
+
+1. The cumulative compounded return of S and B1 to B3 from 2008-10-27, the
+   book's Figure 5.8, with the book's end date marked.
+2. Each of those rows' APR before October 2008 beside its APR from
+   2008-10-27, for the book's third claim, which the book draws no figure for.
+
+```bash
+uv run python -m chan.vx_calendar_spread_figures
+```
+
+[tests/test_vx_calendar_spread_figures.py](tests/test_vx_calendar_spread_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
