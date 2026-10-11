@@ -987,6 +987,19 @@ def _picked(tmp_path: Path, docs: dict, card: int) -> str:
     return said
 
 
+def _picked_sentence(tmp_path: Path, docs: dict, card: int) -> str:
+    """The chain bar's whole sentence once a card is picked, without its button.
+
+    The sentence is the bar's first ``span``, so reading that span lets a test
+    compare the whole sentence without also pinning the Clear button's label.
+    """
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path), click=card)
+    assert text(ids, "chainbar") == text(ids, "flowchain")
+    found = re.match(r"\s*<span>(.*?)</span>", ids["chainbar"]["html"], re.S)
+    assert found, ids["chainbar"]["html"]
+    return text({"s": {"html": found.group(1)}}, "s")
+
+
 def _session_on(docs: dict, n: int, kind: str = "build") -> dict:
     docs["working"]["items"].append({"n": n, "kind": kind})
     return docs
@@ -1195,8 +1208,14 @@ def test_a_planned_card_waiting_on_the_owner_is_not_called_free(
             "Nothing here blocks #90504 or waits on it, so it can be taken on its own. "
             "#90503 should land after it.",
         ),
+        (
+            {90504: [90502, 90503], 90501: [90504], 90505: [90504]},
+            90504,
+            "Nothing here blocks #90504 or waits on it, so it can be taken on its own. "
+            "It should land after #90502 and #90503. #90501 and #90505 should land after it.",
+        ),
     ],
-    ids=["holds-after", "named-by-after"],
+    ids=["holds-after", "named-by-after", "two-each-way"],
 )
 def test_a_card_tied_by_an_ordering_is_not_called_linked_to_nothing(
     tmp_path: Path, after: dict, card: int, line: str
@@ -1208,13 +1227,51 @@ def test_a_card_tied_by_an_ordering_is_not_called_linked_to_nothing(
     though, and the card itself says it should land after the issue it names.
     So the bar names the ordering in both directions rather than saying the
     card is linked to nothing.
+
+    The whole sentence is compared, because a substring passes a bar that adds
+    a card to either list. Two targets each way pin the join, which takes
+    "and" because every ordering named holds for this one card, and pin that
+    no target after the first is dropped. The cards naming 90504 carry
+    ``needs`` of their own, which leaves 90504's bar on its unlinked branch,
+    since nothing 90504 waits on or feeds is among them.
     """
     docs = _with_fields(fixture_docs(), 90504, kind="ready")
     for n, names in after.items():
         docs = _with_fields(docs, n, after=names)
-    said = _picked(tmp_path, docs, card)
-    assert "linked to nothing" not in said
-    assert line in said
+    assert _picked_sentence(tmp_path, docs, card) == line
+
+
+def test_an_ordering_on_an_issue_not_on_the_board_is_no_link(tmp_path: Path) -> None:
+    """Protects the bar from naming an ordering on an issue the board does not hold.
+
+    Fixture issue 90504 names 99999 in ``after``, an issue that is not open on
+    the tracker, as one already closed would not be. The card itself draws no
+    ordering for it, so the bar keeps the plain free sentence and says nothing
+    about landing after it.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="ready", after=[99999])
+    assert (
+        _picked_sentence(tmp_path, docs, 90504)
+        == "#90504 is linked to nothing else here, so it can be taken on its own."
+    )
+
+
+def test_the_board_note_lists_two_held_cards_reasons_in_table_order(tmp_path: Path) -> None:
+    """Protects the note's reasons when two first-column cards are held for different ones.
+
+    Fixture issue 90504 is deferred and 90505, with its blocker removed, needs
+    a decision. Both sit in the first column of the Show all view. Each reason
+    comes from a different card, so the note offers both as alternatives, in
+    the order of the table that holds them. A note that kept only the reasons
+    every held card shared would offer neither.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="deferred")
+    docs = _with_fields(docs, 90505, kind="decision", needs=[])
+    note = text(draw(tmp_path, docs, page=_show_all_page(tmp_path)), "boardnote")
+    assert (
+        "because a card can need a decision rather than a session or be deferred on purpose, "
+        "and depth alone does not say what to pick." in note
+    )
 
 
 def test_counting_too_names_the_hidden_issues_after_a_named_card(tmp_path: Path) -> None:

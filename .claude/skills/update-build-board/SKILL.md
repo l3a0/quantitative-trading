@@ -675,11 +675,11 @@ the script beside it. Each row after them says how it was found.
     [issue 521](https://github.com/l3a0/quantitative-trading/issues/521).
     Picking a card with no open `needs` either way gave fixed text saying it
     could be taken on its own. That read only `needs`. So the bar called a
-    card free whose kind word said not to start it, whose session or open
-    branch said somebody was carrying it, or whose `after` line tied it to
-    another issue. The board note's free list held those cards back, so the
-    bar and the note answered one question in two places. That is defect 5
-    again.
+    card free whose kind word said not to start it, or whose session or open
+    branch said somebody was carrying it. The board note's free list held
+    those cards back, so the bar and the note answered one question in two
+    places. That is defect 5 again. A card whose `after` line tied it to
+    another issue was also called linked to nothing.
 
     One table, `HOLDS`, now lists the reasons a card is not free, and
     `takeable` passes ordinary work that no row of it holds. The free list and

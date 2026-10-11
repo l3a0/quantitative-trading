@@ -2114,7 +2114,8 @@ function openBranches(prOf, n) {
    link, since a linked one whose card is still drawn means the tracker has not
    caught up with the close. The owner ruled on 2026-10-10 that such a card is
    neither free nor waiting for a builder, which is why the free list, the plan
-   marker, the kind word and the "Planned, no builder" column all ask this. */
+   marker, the kind word, the "Planned, no builder" column and the chain bar
+   all ask this. */
 function closesByHand(prOf, n) {
   return (prOf.get(n) || []).some(p => p.state === "merged" && !p.partOf);
 }
