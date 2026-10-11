@@ -87,7 +87,7 @@ A sentence leaves choices open, so a rule has to fill them before a run can test
 
 1. **The jump is measured from the previous day’s high**, mirroring the drop from the previous low. Two things in Chan’s code point that way.
    1. `bog.m` loads the daily highs and never reads them.
-   2. Another of the book’s scripts, `gapFutures_FSTX.m`, measures a jump up from the previous high.
+   2. Another of the book’s scripts, `gapFutures_FSTX.m`, measures a jump up from the previous high. Its own return line sells that upward jump during the day, the mirror’s direction, as the [post on the opening gap strategy](https://github.com/l3a0/quantitative-trading/blob/main/blog/opening-gap-lessons.md#lesson-1-the-script-trades-against-the-jump-the-text-says-it-follows) shows.
 2. **The open must clear the previous high by more than one standard deviation and stay below the 20-day average.**
 3. **The ten largest jumps are shorted**, and everything else is `bog.m`.
 
