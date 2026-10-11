@@ -8064,7 +8064,7 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What the entry concludes
 
-Two things.
+Three things.
 
 1. **The script's rule reproduces on Chan's own files.** Every figure its
    comment prints lands at the decimals printed, and the book's two land at
@@ -8073,6 +8073,20 @@ Two things.
    rule for deciding contango beyond location 2718's definition, so the rule
    here is the script's, and its APR and Sharpe ratio are the text's
    16 percent and "about 1".
+3. **The backwardation days earn a third of the return.** Split by the view
+   held the day before, the trade earns on contango on 1,128 days and on
+   backwardation on 244. Their daily returns sum to 0.638420 and 0.308117 of
+   0.946538, and compound to 0.790269 and 0.343539. On the contango days USO
+   fell 0.567754 and the ratio implies a roll return of −0.766081 in log
+   terms, against USO's log move of −0.8388. On the backwardation days USO
+   rose 0.702850, or 0.5323 in log terms, and XLE fell 0.097061, while the
+   ratio implies 0.072380 in log terms, reading 12 · ln(front / back) as
+   contracts a month apart. Holding
+   contango's position on every day the trade holds anything gives an APR of
+   0.044949 and a Sharpe ratio of 0.364524. `TestWhatThePostMeasures` pins
+   all of it, and the write-up found it. The split comes from the rule's own
+   two views rather than a date picked after the curve was seen, and it
+   describes this sample without testing anything.
 
 ### What this entry cannot say
 
@@ -8087,8 +8101,12 @@ series over this window is committed to measure by how much.
 
 **What the trade earned while it held a view.** The first 123 days carry no
 ratio, because the strip's first contract opens its front window on
-2006-10-20. The figures count those days as earning 0, as the script does,
-and this entry measures nothing over the shorter span.
+2006-10-20. The figures count those days as earning 0, as the script does.
+Measured from 2006-10-20 instead, the APR is 0.174513 and the Sharpe ratio
+1.092618, and both drawdown figures are unchanged, which
+`TestWhatThePostMeasures::test_from_the_first_ratio_the_apr_and_sharpe_rise_and_the_drawdown_holds`
+pins. The book prints nothing for that span, so neither figure gets a
+verdict.
 
 **Which standard deviation the Sharpe ratio divides by.** The run divides by
 n, as `chan.matlab_helpers.smartstd_book_two` does. Dividing by n − 1 gives
@@ -8100,7 +8118,10 @@ Chan's, and the sample is the one he reported on. A registered test would fix
 the rule first and run it on data after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/xle-uso-roll-return-lessons.md](../blog/xle-uso-roll-return-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.xle_uso_roll_return_figures` redraws.
 
 ## Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*
 
