@@ -3,7 +3,9 @@
 This file is the single authority for every number any prose surface quotes
 about these examples. ``docs/replication-log.md`` Entry 20 states those numbers
 and derives none of them, and ``src/chan/kelly_allocation.py`` carries the
-reasoning.
+reasoning. ``blog/capped-kelly-allocation-lessons.md`` quotes them too, and
+:class:`TestBesideTheClaim` holds the figures it quotes that the entry's
+thirteen rows do not.
 
 Every pin names its specification, because a number alone does not say which
 of several plausible formulas produced it. Unless a class says otherwise, that
@@ -469,6 +471,86 @@ class TestTheInputsAreChecked:
 
     def test_an_allocation_reports_its_gross_leverage(self) -> None:
         assert Allocation((-1.5, 0.5), 0.0).gross == 2.0
+
+
+class TestBesideTheClaim:
+    """Figures the blog post quotes that the entry's thirteen rows do not hold.
+
+    ``blog/capped-kelly-allocation-lessons.md`` splits the growth rate into
+    its two terms, the return ``F'M`` and the drag ``F'CF / 2``, to say why
+    the corner beats the proportional split. Each term is computed here from
+    the run's own leverages and covariance, and each pair is held to
+    :func:`growth_rate`, so a split that stopped adding up fails too.
+    """
+
+    @staticmethod
+    def _return(leverages) -> float:
+        return float(np.asarray(leverages, dtype=float) @ np.asarray(MEANS))
+
+    @staticmethod
+    def _drag(leverages, cov) -> float:
+        f = np.asarray(leverages, dtype=float)
+        return float(f @ cov @ f / 2.0)
+
+    def _split(self, leverages, cov) -> tuple[float, float]:
+        ret, drag = self._return(leverages), self._drag(leverages, cov)
+        assert ret - drag == pytest.approx(growth_rate(leverages, MEANS, cov), abs=1e-15)
+        return ret, drag
+
+    def test_the_sharpe_ratios(self, cov, kelly) -> None:
+        """Half the sum of their squares is the growth rate at Kelly, 2.135068."""
+        sharpes = [m / s for m, s in zip(MEANS, VOLS, strict=True)]
+        assert sharpes == pytest.approx([1.153846, 1.714286], abs=5e-7)
+        assert sum(x**2 for x in sharpes) / 2 == pytest.approx(
+            growth_rate(kelly, MEANS, cov), abs=1e-12
+        )
+
+    def test_at_kelly_the_drag_is_exactly_half_the_return(self, cov, kelly) -> None:
+        ret, drag = self._split(kelly, cov)
+        assert ret == pytest.approx(4.270136, abs=5e-7)
+        assert drag == pytest.approx(2.135068, abs=5e-7)
+        assert drag == pytest.approx(ret / 2, abs=1e-12)
+
+    def test_the_proportional_splits_return_and_drag(self, cov, kelly) -> None:
+        ret, drag = self._split(proportional_cap(kelly, MAX_LEVERAGE), cov)
+        assert ret == pytest.approx(0.914785, abs=5e-7)
+        assert drag == pytest.approx(0.097986, abs=5e-7)
+
+    def test_the_corners_return_and_drag(self, cov) -> None:
+        ret, drag = self._split(best_allocation_at_cap(MEANS, cov).leverages, cov)
+        assert ret == pytest.approx(1.2, abs=1e-12)
+        assert drag == pytest.approx(0.245, abs=1e-12)
+
+    def test_the_proportional_split_saves_less_drag_than_it_gives_up_in_return(
+        self, cov, kelly
+    ) -> None:
+        proportional = proportional_cap(kelly, MAX_LEVERAGE)
+        corner = best_allocation_at_cap(MEANS, cov).leverages
+        saved = self._drag(corner, cov) - self._drag(proportional, cov)
+        given_up = self._return(corner) - self._return(proportional)
+        assert saved == pytest.approx(0.147014, abs=5e-7)
+        assert given_up == pytest.approx(0.285215, abs=5e-7)
+
+    def test_the_corner_grows_1_169199_times_as_fast(self, cov, kelly) -> None:
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        proportional = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
+        assert corner / proportional == pytest.approx(1.169199, abs=5e-7)
+
+    def test_everything_on_strategy_one_grows_at_0_4648(self, cov) -> None:
+        """The other end of the curve Figure 8.1 plots, F2 = 0."""
+        assert growth_rate((MAX_LEVERAGE, 0.0), MEANS, cov) == pytest.approx(0.4648, abs=1e-12)
+
+    def test_the_share_of_the_uncapped_kelly_growth_each_keeps(self, cov, kelly) -> None:
+        at_kelly = growth_rate(kelly, MEANS, cov)
+        proportional = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        assert proportional / at_kelly == pytest.approx(0.382563, abs=5e-7)
+        assert corner / at_kelly == pytest.approx(0.447292, abs=5e-7)
+
+    def test_the_threshold_is_about_a_quarter_of_the_kelly_gross(self, cov, kelly) -> None:
+        """What "much smaller than" comes to on Chan's inputs."""
+        ratio = corner_threshold(MEANS, cov) / float(np.abs(kelly).sum())
+        assert ratio == pytest.approx(0.262321, abs=5e-7)
 
 
 # ============================================================
