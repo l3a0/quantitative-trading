@@ -506,10 +506,10 @@ where they were first built. The other thirty-six were built here.
     standard errors of the book's 1,166 and far from the script's printed
     0.027500. Shuffling the entry days gives 0 of 100,000, as the book says,
     though the script as written cannot give anything else, because it adds
-    the shuffled positions to the observed ones. Three rows added after a
-    scratch run saw results point at TU's drift rather than its kurtosis: a
-    normal draw gives 1,165 of 10,000, and the type IV draws with the mean
-    set to zero give 19. Every figure is exploratory.
+    the shuffled positions to the observed ones. Two of three rows added
+    after a scratch run saw results point at TU's drift rather than its
+    kurtosis: a normal draw gives 1,165 of 10,000, and the type IV draws with
+    the mean set to zero give 19. Every figure is exploratory.
 38. Long GLD and short gold futures, locations 2718 and 2730 of
     *Algorithmic Trading*, on Chan's GC series and his book-two ETF file.
     `GLD_GC.m` holds the pair every day over the 752 days both calendars
@@ -874,7 +874,8 @@ the Pearson type IV sampler's parameters against their closed-form moments and
 its tails against quadrature, and holds the two-dimensional form equal to
 `chan.tu_momentum`'s functions draw by draw and unchanged by the batch size. It
 also holds that the third test as written leaves every simulated return at
-zero.
+zero. The blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 [tests/test_gld_gc.py](tests/test_gld_gc.py) does it for long GLD and short
 gold futures. It pins the five figures of `GLD_GC.m`'s closing comment and the
@@ -3990,8 +3991,102 @@ uv run python -m chan.roll_returns_figures
 what it draws rather than its bytes, for the reason given above for the regime
 map.
 
+[blog/tu-hypothesis-tests-lessons.md](blog/tu-hypothesis-tests-lessons.md) is
+a twenty-eighth post, about Example 1.1 of Chan's *Algorithmic Trading*, which
+asks three ways how often chance alone would match his TU momentum strategy.
+The book reports that 1,166 of 10,000 simulated return series do as well and
+that not one of 100,000 shuffles of the entry days does. Comments in Chan's
+script give a Gaussian statistic of 2.93 and, for the second test, a p-value
+of 0.027500. The post restates the rule from location 642 and draws five
+lessons from Entry 37 of the replication log.
+
+1. The Gaussian test lands the script's 2.93.
+2. A simulated count lands only within sampling error, so the seed and a band
+   of two binomial standard errors come before the draw. The second test lands
+   the book's 1,166 and misses the script's 0.027500.
+3. The second test does not give the script's 0.027500. A check added after a
+   trial run, the observed positions applied to the simulated returns, matches
+   it, nothing in the script runs that check, and what computed the figure
+   stays unknown.
+4. The third test as printed cannot fail, and corrected it still finds no
+   shuffle as good as the rule.
+5. Two of the three checks added after a trial run point at TU's drift rather
+   than its kurtosis as what drives the second test, which is exploratory and
+   motivates a registered test rather than confirming one.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The four steps of a hypothesis test and the null hypothesis are at 593, the
+   Gaussian null at 606, simulated prices at 616, simulated trades and Lo,
+   Mamaysky and Wang at 623, the rule at 642, the mean and shape as luck at
+   652, the 1,166 and the aside on the mean at 665, the shuffled entry dates
+   at 669, the 0 of 100,000 at 672, the kurtosis reading at 674, the roll
+   return's definition at 2326, the roll return behind TU's momentum at 2683
+   and the 12 percent at 2923. The book's figures are pinned, and its words
+   are not.
+2. Facts about the script rather than the data: that it writes the shuffled
+   tranches into `pos` rather than `pos_sim`, that its comments print 2.93 and
+   0.027500, that its file has one commit, and that MathWorks does not state
+   the criterion `pearsrnd` uses.
+   [src/chan/tu_hypothesis_tests.py](src/chan/tu_hypothesis_tests.py) records
+   each in its docstring.
+3. Readings and arithmetic no test asserts: that if the true chance equals the
+   printed proportion, two standard errors either side cover about 95 percent
+   of counts, that a rerun lands inside less often because Chan's own count is
+   one random draw, that a normal distribution's kurtosis is 3, that 1,166 of
+   10,000 is 0.1166, that 20 million is 10,000 series of 2,000 days, that 49 is
+   seven lookbacks against seven holds, that the rule of three bounds a
+   p-value at 3/N, that a position nearly the same on every shuffle earns
+   nearly the same mean on the same returns, and that a rule net long on most
+   days collects a drift wherever its entries fall.
+4. The figure's alt text, whose readings of the histograms, such as "near
+   3e-5" and "from about 1e-5 to 4e-5", are approximate by design.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py), to
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py) for the seven periods
+behind the 49 pairs, or to
+[tests/test_tu_hypothesis_tests_figures.py](tests/test_tu_hypothesis_tests_figures.py)
+for the figure's own numbers. Four groups of them had no pin before it, and
+[tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) now pins
+them all.
+
+1. The strategy's daily standard deviation, 1.010320e-03, and the Gaussian
+   null's spread of the mean, 2.259145e-05, in closed form.
+2. The spreads of the simulated means on seed 20261010: 2.819219e-05 for type
+   IV and 2.127120e-05 with the mean set to zero.
+3. The spread of the 100,000 shuffled means on seed 20261011, 3.788199e-06.
+4. The net position of the first 500 shuffles on seed 20261011 against the
+   real rule's: an average absolute size of 9.975403 units against 20.58, and
+   long on 0.983958 of days against 0.638. That is the reading that shuffled
+   entry days cancel into a net long position of about the same size on every
+   shuffle.
+
+Its one figure is drawn from the committed file by
+[src/chan/tu_hypothesis_tests_figures.py](src/chan/tu_hypothesis_tests_figures.py),
+which reads it through the same `read_sources` and `hypothesis_tests` as
+`python -m chan.tu_hypothesis_tests`, scale-break guard included. It draws
+three panels on one axis of mean daily strategy return, each with the observed
+mean as a line, for Lessons 1, 4 and 5.
+
+1. The Gaussian null as a dashed curve, beside the type IV means with the mean
+   set to zero.
+2. The type IV means, beside the normal draw's.
+3. The corrected third test's 100,000 shuffled means.
+
+```bash
+uv run python -m chan.tu_hypothesis_tests_figures
+```
+
+[tests/test_tu_hypothesis_tests_figures.py](tests/test_tu_hypothesis_tests_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
 [blog/capped-kelly-allocation-lessons.md](blog/capped-kelly-allocation-lessons.md)
-is a twenty-eighth post, about Examples 8.1 and 8.2 of Chan's *Algorithmic
+is a twenty-ninth post, about Examples 8.1 and 8.2 of Chan's *Algorithmic
 Trading*, which hold a leverage constant through a loss and a gain and then
 spend a broker's cap of 2 on gross leverage across two strategies. Chan
 reports Kelly leverages of 4.4 and 4.9, a proportional split of 0.95 and 1.05
