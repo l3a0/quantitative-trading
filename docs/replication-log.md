@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 41, 43 and 45 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 41, 42, 43 and 45 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, one, twelve and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, one, eleven, twelve and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5 and 44 are the two entries that are not replications. Chan states
@@ -32,7 +32,7 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 43, 44 and 45 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 43, 44 and 45 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -301,29 +301,35 @@ says.
   - [The verdicts](#the-verdicts-38)
   - [What the entry concludes](#what-the-entry-concludes-39)
   - [What this entry cannot say](#what-this-entry-cannot-say-37)
-- [Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*](#entry-43-monte-carlo-leverage-historical-optimization-and-cppi-chans-algorithmic-trading)
-  - [What the book printed](#what-the-book-printed-38)
+- [Entry 42: whether Example 7.4's own factor returns have momentum, Chan's *Quantitative Trading*](#entry-42-whether-example-74s-own-factor-returns-have-momentum-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-2)
   - [What this repo computed](#what-this-repo-computed-40)
   - [The verdicts](#the-verdicts-39)
-  - [Why the simulated rows are judged against an ensemble](#why-the-simulated-rows-are-judged-against-an-ensemble)
-  - [What the book's 18.4 most likely came from](#what-the-books-184-most-likely-came-from)
   - [What the entry concludes](#what-the-entry-concludes-40)
   - [What this entry cannot say](#what-this-entry-cannot-say-38)
-- [Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*](#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading)
-  - [What the book stated](#what-the-book-stated-2)
+- [Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*](#entry-43-monte-carlo-leverage-historical-optimization-and-cppi-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-38)
   - [What this repo computed](#what-this-repo-computed-41)
+  - [The verdicts](#the-verdicts-40)
+  - [Why the simulated rows are judged against an ensemble](#why-the-simulated-rows-are-judged-against-an-ensemble)
+  - [What the book's 18.4 most likely came from](#what-the-books-184-most-likely-came-from)
+  - [What the entry concludes](#what-the-entry-concludes-41)
+  - [What this entry cannot say](#what-this-entry-cannot-say-39)
+- [Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*](#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-3)
+  - [What this repo computed](#what-this-repo-computed-42)
   - [What each row says](#what-each-row-says-1)
   - [The two flagged days](#the-two-flagged-days)
   - [The stocks with a missing price](#the-stocks-with-a-missing-price)
   - [What the size reading says](#what-the-size-reading-says)
-  - [What the entry concludes](#what-the-entry-concludes-41)
-  - [What this entry cannot say](#what-this-entry-cannot-say-39)
-- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
-  - [What the book stated](#what-the-book-stated-3)
-  - [What this repo computed](#what-this-repo-computed-42)
-  - [The verdicts](#the-verdicts-40)
   - [What the entry concludes](#what-the-entry-concludes-42)
   - [What this entry cannot say](#what-this-entry-cannot-say-40)
+- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-4)
+  - [What this repo computed](#what-this-repo-computed-43)
+  - [The verdicts](#the-verdicts-41)
+  - [What the entry concludes](#what-the-entry-concludes-43)
+  - [What this entry cannot say](#what-this-entry-cannot-say-41)
 
 ## How to read an entry
 
@@ -398,6 +404,8 @@ both.
    holds Entry 39,
    [tests/test_vx_es_roll_return.py](../tests/test_vx_es_roll_return.py)
    holds Entry 41,
+   [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
+   holds Entry 42,
    [tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
    holds Entry 43,
    [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
@@ -521,7 +529,8 @@ Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
-Entry 38's rows 8 to 11, Entry 41's row 11, Entry 43's rows 13 to 17, and
+Entry 38's rows 8 to 11, Entry 41's row 11, Entry 42's rows 6 to 16,
+Entry 43's rows 13 to 17, and
 Entry 45's rows 2 to 9.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
@@ -731,6 +740,15 @@ size of the rebuild's own error. All three claims also hold on Chan's own
 2012-05-11 close over the rows it covers, under row 10. Rows 1 to 3 of the same entry are
 replications of printed figures under a rule declared after the scratch
 runs, so their verdicts name that rule.
+
+Entry 42's rows 1 to 5 take it too, one per factor, as Entry 14's rows 1 and
+2 do. Location 4014's claim is about factor returns, and location 4051 says
+Example 7.4 rests on it, so each of the five statistical factors that example
+fits is a definite case of it. Their criterion, each factor's statistic above
+0 and above the median stock's, was written on
+[issue 286](https://github.com/l3a0/quantitative-trading/issues/286) on
+2026-10-10. The owner ruled the same day that each factor carries its own
+verdict, and both came before any factor return was computed.
 
 Entry 43's rows 4, 7, 11 and 12 take it too, each a definite claim Chapter 8
 makes about the strategy and the scheme it names. The simulated optimum is
@@ -8396,6 +8414,237 @@ fix the rule first and run it on data after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
+
+## Entry 42: whether Example 7.4's own factor returns have momentum, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle locations 4014 and
+4051. Shipped under
+[issue 286](https://github.com/l3a0/quantitative-trading/issues/286). Both
+locations are the revised edition's, and both highlights are in
+[research/book-notes/quantitative-trading.md](../research/book-notes/quantitative-trading.md).
+
+Sixteen rows, all derivable from
+[tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py).
+
+**The claim holds for four of Example 7.4's five factors and does not hold
+for the third.** Example 7.4's revised MATLAB rests on a factor return seen
+today saying something about tomorrow's. Location 4051 says the strategy is
+"based on the assumption that factor returns have momentum", and location
+4014 states the general claim, that factor returns "often" show stronger
+serial autocorrelation than single stocks do. Entry 14 tested that claim on two
+named factors, monthly, on Chan's S&P 500 file. This entry tests the five
+statistical factors Example 7.4 fits for itself, daily, on the S&P 600 file
+the example loads. Over 752 pairs of one day's factor return and the next,
+the five statistics are 0.0316, 0.0778, −0.0189, 0.0305 and 0.0710, against a
+median of −0.0283 across the 579 stocks priced on every day the pairs read.
+PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
+the median stock and below 0.
+
+The verdicts rest on little. PC2 alone sits outside the band a series with no
+persistence stays inside 95 percent of the time, and no factor survives a
+control for false discoveries across the five. Which factor misses also rests
+on one symbol. Dropping PMC, whose two price histories the program joins into
+one day's return of 1.8654, moves PC2 below 0 and PC3 above it.
+
+Five rows are claims and eleven are not replications. Rows 1 to 5 take the
+claim route `### Rows that are not replications` describes, one per factor.
+Rows 6 to 16 are the figures the issue reports beside the verdicts, which
+decide nothing.
+
+Every rule was fixed on
+[issue 286](https://github.com/l3a0/quantitative-trading/issues/286) on
+2026-10-10, before any factor return was computed. The owner ruled the same
+day, also before, that each factor carries its own verdict with Chan's
+"often" quoted beside it and that no combined verdict is formed, which carries
+over the ruling Entry 14 rests on. Eight things carry the result: the vintage
+and seven of the issue's rules, each as the issue fixed it.
+
+1. **The vintage.** `ijr_20080114/`, the 600 stocks of Chan's
+   `IJR_20080114.mat`, saved 2008-01-15, read for its closes through
+   `chan.series.load_panel`. It spans 2004-01-15 to 2008-01-14, 1,006 days.
+   Nothing was downloaded. [data/README.md](../data/README.md) says what it
+   holds.
+2. **The factor returns.** Only the revised MATLAB,
+   `chan.pca_factor.revised_matlab`, is tested, and Entry 13 reproduces its
+   figures. On day t it decomposes the 252 returns ending t − 1 by a singular
+   value decomposition. For each of the five factors that gives a unit-length
+   vector u_k of weights across the stocks and a singular value s_k, which
+   measures how much of the window's variation the factor carries. The
+   program then fits day t's returns r_t on an intercept and five scores, each
+   u_k times s_k, so each fitted slope is u_k · r_t / s_k. Each score times
+   its slope is u_k (u_k · r_t), so the fitted value the strategy ranks on
+   does not depend on s_k. The factor return tested here is therefore
+   f_t[k] = u_k · r_t, the slope times s_k. Its partner is
+   f_{t+1}[k] = u_k · r_{t+1}, on the same vectors and the same stocks, so
+   each pair comes from one decomposition.
+   `TestOnRealDays::test_each_factor_return_is_s_times_the_programs_slope`
+   holds that on three of the file's days. The price is that f is not the
+   coefficient the program's regression returns. That coefficient would
+   weight each day by 1/s_k², and nothing in the strategy weights days that
+   way.
+3. **The statistic.** For each factor, the uncentred correlation of its
+   pairs: the sum of f_t f_{t+1}, over the square root of the sum of f_t²
+   times the sum of f_{t+1}². It is the ordinary correlation without
+   subtracting either series' mean first. A singular vector's sign is
+   arbitrary, and flipping it on one day flips both members of that day's
+   pair, so no product and no sum of squares moves. Leaving out the centring
+   is deliberate. A factor return that keeps a steady sign counts as
+   persistent, which is what location 4051's "remain constant from the
+   current time period to the next" asks. The price is that a few large days
+   can carry the statistic, so row 9 reports beside it the share of pairs
+   whose two members have the same sign.
+4. **Which factor is factor k.** Factor k is the k-th largest component as
+   each day's decomposition ranks it, named PC1 to PC5. When two neighbouring
+   components swap places between days, their pairs mix into each other's
+   statistic. No pair breaks, because each pair comes from one decomposition.
+5. **The comparison set.** Every stock with a finite return on every row the
+   pairs read, after the forward fill the program does. Each stock gets the
+   same uncentred statistic on its own pairs of one day's return and the
+   next. Their median stands for "individual stock's returns", as in
+   Entry 14.
+6. **The criterion.** The claim holds for a factor when its statistic is
+   above 0 and above the median stock's, both compared unrounded. Each of the
+   five carries its own verdict, under the owner's ruling.
+7. **The printouts.** The revised MATLAB only, because its 2 percent is the
+   figure location 4051 quotes. The revised Python and the R regress with an
+   intercept that cancels their factors, Entry 13's row 11, so they have no
+   factor returns to test. The first edition is not tested, for the reasons
+   `### What this entry cannot say` gives.
+8. **The hypothesis space.** Five hypotheses, one per factor, each at lag 1
+   on the committed file with a lookback of 252 and five factors. No other
+   lag, statistic, printout, lookback or factor count was tried. Significance
+   is reported beside the verdicts and decides nothing. Each factor gets the
+   one-sided Newey-West t of its daily products f_t f_{t+1} against a mean of
+   zero, and its normal p-value. A Newey-West t is a t-statistic whose
+   standard error allows for neighbouring days being correlated and for days
+   of different size. Benjamini-Hochberg at q = 0.05 then runs across the
+   five p-values. It holds the expected share of false discoveries among the
+   factors it declares significant to 5 percent. When no factor has
+   persistence, that also holds the chance that any of the five passes by
+   luck to 5 percent.
+
+**Every figure here is about survivors.** The file holds the S&P 600 as it
+stood on 2008-01-14, carried backwards. The factors are fitted on stocks that
+stayed in the index, and the comparison set is drawn from the same stocks.
+Which way that moves any statistic is not measured here.
+
+**One symbol holds two price histories.** PMC closes, goes missing for 851
+days, and resumes as a different price history under the same ticker. The
+program's forward fill reads the gap as one day's return of 1.8654, which
+`TestTheSplice` in [tests/test_pca_factor.py](../tests/test_pca_factor.py)
+pins. The verdicts read the file as the program does, and rows 13 to 16 give
+the figures again without PMC.
+
+Every result here is **exploratory**. Testing a claim someone else chose
+spends the 2004 to 2008 sample on it, so the entry says whether the claim
+holds on this file and nothing about factor momentum today.
+
+### What the book stated
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | PC1 has stronger serial autocorrelation than single stocks, so it has momentum | the claim, "often", with no figure | location 4014, and location 4051 for Example 7.4 resting on it |
+| 2 | PC2 has stronger serial autocorrelation than single stocks, so it has momentum | the same claim | location 4014 |
+| 3 | PC3 has stronger serial autocorrelation than single stocks, so it has momentum | the same claim | location 4014 |
+| 4 | PC4 has stronger serial autocorrelation than single stocks, so it has momentum | the same claim | location 4014 |
+| 5 | PC5 has stronger serial autocorrelation than single stocks, so it has momentum | the same claim | location 4014 |
+| 6 to 16 | the pairs and the comparison set, each factor's statistic, percentile and same-sign share, the stocks' quartiles, the band, each factor's Newey-West t and p-value and Benjamini-Hochberg, the intercept, and each again without PMC | nothing, the book works no example | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | PC1's statistic against 0 and against the median stock's, unrounded | 0.0316, above 0 and above −0.0283 | `TestTheVerdicts::test_pc1_pc2_pc4_and_pc5_hold_above_zero_and_above_the_median_stock`, for PC1 |
+| 2 | PC2's statistic against the same two | 0.0778, above 0 and above −0.0283 | the same test, for PC2 |
+| 3 | PC3's statistic against the same two | −0.0189, below 0 and above −0.0283 | `TestTheVerdicts::test_pc3_misses_below_zero_though_above_the_median_stock` |
+| 4 | PC4's statistic against the same two | 0.0305, above 0 and above −0.0283 | the same test as row 1, for PC4 |
+| 5 | PC5's statistic against the same two | 0.0710, above 0 and above −0.0283 | the same test as row 1, for PC5 |
+| 6 | the pairs, and the stocks priced on every row they read | 752 pairs, day t from 2005-01-18 to 2008-01-11, every factor return finite. 579 stocks | `TestThePairs::test_752_pairs_from_the_first_fitting_day`, `::test_every_factor_return_is_finite` and `::test_579_stocks_are_priced_on_every_row_the_pairs_read` |
+| 7 | each factor's statistic, and the percent of the 579 stocks strictly below it | PC1 0.0316 at 83.9378, PC2 0.0778 at 95.6822, PC3 −0.0189 at 55.0950, PC4 0.0305 at 83.4197, PC5 0.0710 at 94.3005 | `TestTheFigures::test_each_factors_statistic` and `::test_each_factors_percentile_among_the_stocks` |
+| 8 | the 579 stocks' statistics, lower quartile, median and upper quartile, by linear interpolation | −0.0729, −0.0283 and 0.0137 | `TestTheFigures::test_the_stocks_median_and_quartiles` |
+| 9 | each factor's share of pairs whose two members have the same sign | 0.5226, 0.5146, 0.5106, 0.5173 and 0.5000 | `TestTheFigures::test_each_factors_same_sign_share` |
+| 10 | ±1.96/√752, and which factors fall outside it | 0.0715, PC2 alone | `TestTheFigures::test_the_band_is_1_96_over_root_752` and `::test_only_pc2_falls_outside_the_band` |
+| 11 | each factor's one-sided Newey-West t of f_t f_{t+1} against 0, its normal p-value, and Benjamini-Hochberg at q = 0.05 across the five | t of 0.9029, 0.8254, −0.4034, 0.8743 and 1.2697. p of 0.1833, 0.2046, 0.6567, 0.1910 and 0.1021. None survives | `TestTheFigures::test_each_factors_newey_west_t_and_p` and `::test_no_factor_survives_benjamini_hochberg` |
+| 12 | the intercept, which is each day's equal-weighted mean return: its uncentred statistic and its ordinary lag-1 correlation | −0.0395 and −0.0401 | `TestTheFigures::test_the_intercepts_two_figures`, and `TestTheRules::test_the_intercept_is_the_days_mean` for what it is |
+| 13 | rows 7 and 8 without PMC, over the 578 stocks left | PC1 0.0740 at 94.9827, PC2 −0.0152 at 57.0934, PC3 0.0139 at 75.2595, PC4 0.0975 at 98.0969, PC5 0.0536 at 89.9654. Quartiles −0.0732, −0.0283 and 0.0137 | `TestWithoutPMC::test_each_factors_statistic`, `::test_each_factors_percentile_among_the_stocks` and `::test_the_stocks_median_and_quartiles`, and `TestThePairs::test_579_stocks_are_priced_on_every_row_the_pairs_read` for the 578 |
+| 14 | rows 9 and 12 without PMC | shares of 0.5199, 0.5146, 0.5133, 0.5146 and 0.5053. The intercept's −0.0394 and −0.0401 | `TestWithoutPMC::test_each_factors_same_sign_share` and `::test_the_intercepts_two_figures` |
+| 15 | rows 10 and 11 without PMC, over the same 752 pairs | 0.0715, with PC1 and PC4 outside it. t of 0.9754, −0.3926, 0.4221, 1.8537 and 1.1759. p of 0.1647, 0.6527, 0.3365, 0.0319 and 0.1198. None survives | `TestWithoutPMC::test_the_band`, `::test_pc1_and_pc4_fall_outside_the_band`, `::test_each_factors_newey_west_t_and_p` and `::test_no_factor_survives_benjamini_hochberg`, and `TestThePairs::test_752_pairs_from_the_first_fitting_day` for the pairs |
+| 16 | the criterion's two halves for each factor without PMC | PC2 above −0.0283 and below 0, the other four above both | `TestWithoutPMC::test_the_criterion_would_miss_pc2_rather_than_pc3` |
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | The claim holds for PC1, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's, under the criterion declared on the issue before any factor return was computed. It sits at 0.0316, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
+| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band assumes every day's product is drawn alike and the t does not, which is how the two can disagree. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
+| 3 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for PC3. Its −0.0189 is above the median stock's −0.0283 and below 0. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 to 5. The value is forced, because the log's two other verdicts both need the claim to survive. It sits inside row 10's band, so this miss could be noise as much as row 1's pass could. Without PMC its statistic rises to 0.0139, above both, and PC2 misses in its place under row 16, so which factor misses rests on one symbol. Two more causes outside the method are open and neither is measured: the file holds only survivors, and 2005 to 2008 is one window. |
+| 4 | reproduced | The claim holds for PC4, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0305, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
+| 5 | reproduced | The claim holds for PC5, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0710, just inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. Its pairs share a sign exactly as often as not, under row 9, so the positive statistic comes from its larger pairs agreeing in sign. |
+| 6 | none, not a replication | The pairs run from the revised MATLAB's first fitting day to the second-to-last row, because day t's pair needs day t + 1. No stock in a day's cross-section lacks a return on day t + 1, so no pair has a gap. |
+| 7 | none, not a replication | PC2 sits above 95.6822 percent of the stocks and PC3 above 55.0950 percent, so even the factor that misses is more persistent than the median stock on this file. |
+| 8 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. PC3 shows the other half: it is above the median stock and still below 0. That is a fact about this panel, and the criterion keeps both halves as declared. |
+| 9 | none, not a replication | Every share sits between 0.5000 and 0.5226. PC5's is exactly one half, which is the price rule 3 names: a few large days can carry the statistic. |
+| 10 | none, not a replication | Under a series with no persistence, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
+| 11 | none, not a replication | The smallest p-value is PC5's 0.1021, so no factor would pass at 5 percent even tested alone, and Benjamini-Hochberg across the five rejects none. A sign flip moves no product, so it cannot move a t either. |
+| 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
+| 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
+| 14 | none, not a replication | Every share stays between 0.5053 and 0.5199. The intercept's uncentred figure moves from −0.0395 to −0.0394, and its ordinary one stays at −0.0401. |
+| 15 | none, not a replication | Without PMC, PC1 and PC4 sit outside the band and PC2 returns inside it. Benjamini-Hochberg still rejects none, because no p-value clears its own threshold. The k-th smallest is held to k fifths of 0.05, so PC4's 0.0319, the smallest, is held to 0.01. |
+| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so this row moves no verdict. |
+
+### What the entry concludes
+
+Three things, and the first is the verdict.
+
+1. **On this file the claim holds for four of Example 7.4's five factors and
+   not for PC3.** PC1, PC2, PC4 and PC5 are above 0 and above the median
+   stock. PC3 is above the median stock and below 0. Each verdict stands on
+   its own, with Chan's "often" quoted beside it, and the entry draws no
+   combined verdict.
+2. **The verdicts rest on little.** No factor survives a control for false
+   discoveries across the five, and no p-value would pass at 5 percent even
+   alone. Four of the five sit inside the band a series with no persistence
+   stays inside 95 percent of the time. PC2 sits outside it and still has a
+   one-sided p-value of 0.2046.
+3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
+   0 and PC3 rises above it, so the criterion would miss PC2 instead.
+
+### What this entry cannot say
+
+Four things.
+
+**What the factors do on the S&P 600 as it stood each day.** The file holds
+the index as it stood on 2008-01-14, carried backwards.
+[Issue 269](https://github.com/l3a0/quantitative-trading/issues/269) reruns
+Example 7.4 on the index as it stood each day of 2004 to 2008, which would
+fit the factors on a universe without survivorship.
+
+**Whether the first edition's factors persist.** It was not tested, for two
+reasons the issue gives. Its day-t exposures come from a window that ends on
+day t itself, so its day-t factor return is fitted on a cross-section that
+helped choose its own exposures, while its day t + 1 return is not, and the
+pair is not like for like. Its fit also demeans day t by each stock's window
+mean, which leaves no rule for demeaning day t + 1.
+
+**Whether the factors persist at another lag or frequency.** Only lag 1 on
+daily returns was computed, with a lookback of 252 and five factors, under
+the hypothesis space fixed on the issue. No other lag, frequency, lookback or
+factor count was tried after these figures were seen.
+
+**Whether the revised MATLAB's 2 percent comes from factor momentum.** This
+entry tests the assumption the strategy rests on, and not how much of the
+strategy's return the assumption earns. Nothing here splits the 2 percent
+into a part that factor persistence accounts for and a part it does not.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit, and
+[blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
+it, since that post's Lesson 3 quotes these figures.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
