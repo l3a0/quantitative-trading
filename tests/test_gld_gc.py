@@ -36,6 +36,7 @@ Exploratory. The window is the book's own. It first ran here on 2026-10-10.
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import math
 import statistics
@@ -395,6 +396,20 @@ class TestTheSeriesIdentity:
         assert [str(day.date()) for day in found.gc_only] == list(GC_ONLY_HOLIDAYS)
         assert len(GC_ONLY_HOLIDAYS) == 9
 
+    def test_each_holiday_carries_its_own_name(self) -> None:
+        """The weekday test below cannot tell one Monday holiday from another."""
+        assert GC_ONLY_HOLIDAYS == {
+            "2007-11-22": "Thanksgiving",
+            "2008-01-21": "Martin Luther King Jr. Day",
+            "2008-02-18": "Presidents' Day",
+            "2008-05-26": "Memorial Day",
+            "2008-07-04": "Independence Day",
+            "2008-09-01": "Labor Day",
+            "2008-11-27": "Thanksgiving",
+            "2009-01-19": "Martin Luther King Jr. Day",
+            "2009-02-16": "Presidents' Day",
+        }
+
     def test_the_holidays_are_named_for_the_day_they_fall_on(self) -> None:
         """Each one falls on the weekday its holiday's rule puts it on."""
         weekdays = {day: pd.Timestamp(day).day_name() for day in GC_ONLY_HOLIDAYS}
@@ -561,7 +576,8 @@ class TestTheReport:
         assert "inputdata_gc_1600_20100802/gc.csv" in printed
         assert "inputdata_etf/gld.csv" in printed
         assert "inputdataohlcdaily_20120507/gc.csv" in printed
-        assert "752 days both legs hold, of GC's 761" in printed
+        assert "2007-08-03 to 2010-08-02, 752 days both legs hold, of GC's 761" in printed
+        assert "GLD_GC.m as shipped, long GLD and short GC every day" in printed
         assert "Exploratory." in printed
         assert "Entry 38" in printed
 
@@ -575,6 +591,26 @@ class TestTheReport:
         assert "10.822 and 10.235" in printed
         assert "standard deviation 0.000933" in printed
         assert "standard deviation 0.009243" in printed
+        assert "largest 0.007082, 0 moves past 0.02" in printed
+        assert "largest 0.097332, 20 moves past 0.02" in printed
+        assert "the nearest 9.30 apart" in printed
+        assert "3: 2007-09-19, 2007-12-24, 2009-12-24" in printed
+        assert "over 2007-08 to 2010-08, 37 months" in printed
         assert "lag-1 autocorrelation -0.559953" in printed
         assert "standard deviation 0.015660" in printed
         assert "at most 0.001775 of its daily variance" in printed
+
+    def test_a_missed_duration_prints_its_own_value_and_gap(self, monkeypatch) -> None:
+        """A run lasting 93 days shows 93 and its gap, not the book's 91."""
+        unpatched = module.figures
+
+        def longer(daily, risk_free=RISK_FREE_RATE):
+            return dataclasses.replace(unpatched(daily, risk_free), max_drawdown_days=93)
+
+        monkeypatch.setattr(module, "figures", longer)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run()
+        row = next(r for r in out.getvalue().splitlines() if "Maximum drawdown days" in r)
+        assert row.split()[3:5] == ["93", "91"], row
+        assert row.endswith("did not reproduce, gap +2"), row
