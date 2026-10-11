@@ -562,10 +562,14 @@ archive of Alpha Vantage files. On the 441 stocks with a checked CIK and a
 checked series, Chan's prices and flags give an arithmetic annual return of
 0.043678 and a Sharpe ratio of 1.2815, and the archive's prices on the
 calendar a trader could have built before each open give 0.057489 and 1.6585.
-Narrowing the 497 stocks to those 441 moves the figure most, by −0.023065, and
-the vendor and the price basis move it by about a ten-thousandth each. Every
+Most of that rise in return comes from the calendar taking more trades,
+because the rule divides each day by a fixed 30. Each trade earns only about 6
+percent more on average than on Chan's flags. Narrowing the 497 stocks to
+those 441 moves the figure most, by −0.023065, and the vendor and the price
+basis move it by about a ten-thousandth each, judged on the closes. Every
 figure is exploratory, and Entry 40 in
-[docs/replication-log.md](docs/replication-log.md) carries them all.
+[docs/replication-log.md](docs/replication-log.md) carries them all, with the
+checks on the archive's opens that the series check does not make.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -653,9 +657,13 @@ helper this repo already held fails a test rather than reading as a near
 miss. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 [tests/test_pead_rerun.py](tests/test_pead_rerun.py) does it for the rerun on
-EDGAR's calendar. It pins each registered run's figures, its trades and its
-busiest day, the attribution, and each calendar's cell-by-cell agreement with
-Chan's flags. The four runs on the archive's prices skip where no archive is.
+EDGAR's calendar. It pins the figures, trades, busiest day and mean return
+per trade of each run
+[issue 251](https://github.com/l3a0/quantitative-trading/issues/251) fixed
+before it ran, the attribution, and each calendar's cell-by-cell agreement
+with Chan's flags. The pins that read the
+archive's prices skip unless the archive is configured and
+`QT_ARCHIVE_RUN=1`.
 
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
@@ -966,8 +974,8 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, and Entry 39 the XLE against USO
-trade's. Entry 40 carries the rerun of Example 7.2 below, which chases no
-published figure and so reaches no verdict.
+trade's. Entry 40 carries the rerun of Example 7.2 described above, which
+chases no published figure and so reaches no verdict.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1429,7 +1437,7 @@ book print. It refuses to run if the two files name different stocks, because
 the script pairs their columns by position.
 
 Its rerun on EDGAR's calendar and the archive's prices takes no option either,
-because the comparison was registered on
+because the comparison was fixed on
 [issue 251](https://github.com/l3a0/quantitative-trading/issues/251) before it
 ran:
 
@@ -1437,10 +1445,11 @@ ran:
 QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.pead_rerun
 ```
 
-It prints each of the ten registered runs, the attribution of the change to
-the universe, the calendar, the vendor and the price basis, each calendar's
-agreement with Chan's flags, and every stock left out of a universe with the
-check it failed. Without an archive it runs the six runs that read only
+It prints each of the ten runs the issue fixed, with each run's mean return
+per trade, the attribution of the change to the universe, the calendar, the
+vendor and the price basis, the other comparisons the issue names, each
+calendar's agreement with Chan's flags, and every stock left out of a universe
+with the check it failed. Without an archive it runs the six runs that read only
 committed files and says why the other four did not run.
 
 The reversal on the 2012 panel runs both of *Algorithmic Trading*'s examples
@@ -2453,7 +2462,7 @@ the replication log.
 4. Which book's `smartstd` runs decides a printed digit.
 5. An exact reproduction checks the arithmetic and not the edge.
 
-Four groups of its figures are not pinned here.
+Three groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -2468,16 +2477,16 @@ Four groups of its figures are not pinned here.
    at 3024 are pinned, and its words are not. The *Quantitative Trading* quotation the plan named, at
    location 3360 of the revised edition, was dropped, because the Kindle
    Cloud Reader could not be reached on 2026-10-03 to read its page.
-2. A fact outside the committed data. Apple released earnings five times
-   inside the window. Only the three flagged days are pinned.
-3. The book's Figure 7.2, which the post's figure redraws from `pead.m`'s
+2. The book's Figure 7.2, which the post's figure redraws from `pead.m`'s
    `plot(cumret)` and which nothing compares with the book's own.
-4. Its references, cited rather than computed.
+3. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py), to
 [tests/test_series.py](tests/test_series.py) for the 1,885 flags, Apple's
 three flagged days and the 29 stocks with none, to
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py) for Apple's five
+releases inside the window, read from the committed Item 2.02 record, to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) for the two
 Example 7.7 Sharpe ratios Lesson 4 recalls, or to
 [tests/test_pead_figures.py](tests/test_pead_figures.py) for the figure's own
@@ -4778,10 +4787,12 @@ uv run pytest
 serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
-A Claude Code session here also runs the 16 archive pins of Example 7.1,
-because `.claude/settings.json` sets `QT_ARCHIVE_RUN=1`. They run only where
-the owner's archive is configured, and each test file that reads the run builds
-it in about six minutes. `QT_ARCHIVE_RUN=0` skips them for one run.
+A Claude Code session here also runs the archive pins, the 16 of Example 7.1
+and the 17 of the Example 7.2 rerun, because `.claude/settings.json` sets
+`QT_ARCHIVE_RUN=1`. They run only where the owner's archive is configured.
+Each test file that reads Example 7.1's run builds it in about six minutes,
+and the rerun's pins take under a minute. `QT_ARCHIVE_RUN=0` skips them for
+one run.
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.

@@ -478,6 +478,27 @@ class TestTheCommittedTable:
             "MWW": "name", "NYX": "name", "TLAB": "name", "WFR": "name",
         }  # fmt: skip
 
+    def test_the_cik_and_name_each_stock_left_out_carries(self, table) -> None:
+        """Why each leaves, which ``chan.pead_rerun``'s docstring and Entry 40 say in words.
+
+        AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule, and
+        CPWR and MWW carry another company's CIK besides: TetriDyn's and
+        Verisk's. CVC carries BJ's Wholesale's. DD carries the DuPont formed
+        after 2015, which had no name on the price day. NYX carries its own
+        CIK under a name with no legal form, and LUK its own, silent.
+        """
+        assert {row.ticker: (row.cik, row.edgar_name) for row in table if not row.calendar} == {
+            "AKS": ("918160", "AK STEEL HOLDING CORP"),
+            "CPWR": ("827099", "TETRIDYN SOLUTIONS INC"),
+            "CVC": ("1037461", "BJS WHOLESALE CLUB INC"),
+            "DD": ("1666700", ""),
+            "LUK": ("96223", "LEUCADIA NATIONAL CORP"),
+            "MWW": ("1442145", "Verisk Analytics, Inc."),
+            "NYX": ("1368007", "NYSE Euronext"),
+            "TLAB": ("317771", "TELLABS INC"),
+            "WFR": ("945436", "MEMC ELECTRONIC MATERIALS INC"),
+        }
+
     def test_the_stocks_whose_reused_ticker_holds_another_company(self, table) -> None:
         over = {row.ticker: int(row.days_over) for row in table if row.archive_check == "returns"}
         assert over == {"AGN": 131, "CB": 72, "JCI": 168, "LSI": 194}

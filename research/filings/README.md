@@ -178,7 +178,7 @@ uv run python -m chan.sp500_panel report
 `earnings/` holds a second kind of record. Example 7.2 trades a stock on the
 day it announced earnings, and the only calendar Chan saved is his own flag
 file. A company releasing its results files a Form 8-K carrying Item 2.02, and
-EDGAR records the minute it accepted each one.
+EDGAR records the second it accepted each one.
 [Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) reads
 those filings for Chan's 497 stocks to rerun the example on a calendar nobody
 hand-collected, and
@@ -228,7 +228,7 @@ uv run python -m chan.pead_rerun
 and rewrites the index, refusing a header whose bytes differ from the ones the
 index records. `check` recomputes every archive check and writes nothing.
 [tests/test_earnings_filings.py](../../tests/test_earnings_filings.py) is the
-authority for every count about this directory.
+authority for every count about `earnings/`.
 
 ## What reads it
 

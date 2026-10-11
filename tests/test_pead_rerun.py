@@ -573,6 +573,10 @@ class TestTheArchiveOpens:
         off, _ = opens_off_chans(sources, prices)
         over = off > OPEN_TOLERANCE
         assert (int(over.to_numpy().sum()), int(over.any().sum())) == (64, 56), ARCHIVE_SPEC
+        # Most fall on two days when many stocks disagree at once, which reads
+        # more like two vendors' definitions of the open than like errors.
+        by_day = over.sum(axis=1)
+        assert (by_day["2011-10-27"], by_day["2011-09-12"]) == (30, 24), ARCHIVE_SPEC
 
     def test_gci_repeats_a_stale_open_after_each_holiday(self, sources, archive_runs) -> None:
         """Its raw open reads about 15.378 on five days, each the first after a market holiday."""
