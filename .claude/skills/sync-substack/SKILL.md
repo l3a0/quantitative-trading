@@ -95,6 +95,9 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    `\texttt{VX\_ES.m}`. Fix the Markdown first, then the draft. The converter
    writes a pipe table's cells by the same rule, with every special character
    outside `\text{}`, and its docstring states the rule.
+   `test_no_committed_post_escapes_a_character_inside_text` fails when a
+   committed post's math fence holds a text command, such as `\text{}` or
+   `\mbox{}`, with any backslash in it other than `\$`, `\{` or `\}`.
 4. **The post names no issue or pull request.** The owner's rule for blog
    posts is to say what an issue held rather than cite it.
 5. **The post uses only shapes the converter handles.** The Python file's
