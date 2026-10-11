@@ -82,11 +82,13 @@ The price basis is the caller's to state for a stock file, because nothing in
 the file says it, and it names the four prices. ``data/README.md`` records what
 was measured for each file and why it is recorded as ``adjusted``. A strip
 takes ``raw`` and nothing else, because a contract's settlement is the price it
-traded at and nothing adjusts it. A flag file takes ``event`` and nothing else.
-A continuous futures save takes a price basis the way a stock file does, and
-its saves are recorded as ``adjusted`` because each is back-adjusted at every
-roll. ``VIX.csv`` is recorded as ``raw``, because an index level as published
-has nothing to adjust.
+traded at and nothing adjusts it. The gold file is read as a strip of one
+column and takes ``raw`` too. Its closes are read at 16:00 rather than settled,
+and nothing adjusts them, which the design doc's raw price allows. A flag file
+takes ``event`` and nothing else. A continuous futures save takes a price basis
+the way a stock file does, and its saves are recorded as ``adjusted`` because
+each is back-adjusted at every roll. ``VIX.csv`` is recorded as ``raw``,
+because an index level as published has nothing to adjust.
 
 Run it as ``python -m chan.mat_columns <file.mat> --price-basis adjusted``,
 ``--price-basis raw`` for a strip, or ``--price-basis event`` for a flag file.
@@ -814,7 +816,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         elif basis != "raw":
             raise ValueError(
-                f"the file is a futures strip, whose settlements are recorded under the raw "
+                f"the file is a futures strip, whose prices are recorded under the raw "
                 f"basis rather than {basis}"
             )
         else:
