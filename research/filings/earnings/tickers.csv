@@ -1,0 +1,498 @@
+ticker,cik,cik_source,edgar_name,ivv_row,cik_check,archive_ticker,archive_source,archive_check,days_over
+A,1090872,tickers,AGILENT TECHNOLOGIES INC,162,pass,A,same,pass,2
+AA,4281,tickers-archive,ALCOA INC,316,pass,HWM,search,pass,2
+AAPL,320193,tickers,APPLE INC,98,pass,AAPL,same,pass,0
+ABC,1140859,tickers-archive,AMERISOURCEBERGEN CORP,366,pass,COR,search,pass,2
+ABT,1800,tickers,ABBOTT LABORATORIES,364,pass,ABT,same,pass,0
+ACE,896159,tickers-archive,ACE LTD,238,pass,CB,search,pass,0
+ACN,1467373,tickers,Accenture plc,97,pass,ACN,same,pass,2
+ADBE,796343,tickers,ADOBE SYSTEMS INC,459,pass,ADBE,same,pass,0
+ADI,6281,tickers,ANALOG DEVICES INC,443,pass,ADI,same,pass,0
+ADM,7084,tickers,ARCHER DANIELS MIDLAND CO,13,pass,ADM,same,pass,0
+ADP,8670,tickers,AUTOMATIC DATA PROCESSING INC,82,pass,ADP,same,pass,0
+ADSK,769397,tickers,AUTODESK INC,461,pass,ADSK,same,pass,0
+AEE,1002910,tickers,AMEREN CORP,134,pass,AEE,same,pass,0
+AEP,4904,tickers,AMERICAN ELECTRIC POWER CO INC,135,pass,AEP,same,pass,0
+AES,874761,tickers,AES CORP,133,pass,AES,same,pass,0
+AET,1122304,name,AETNA INC /PA/,218,pass,AET,same,pass,2
+AFL,4977,tickers,AFLAC INC,239,pass,AFL,same,pass,0
+AGN,850693,name,ALLERGAN INC,365,pass,AGN,same,returns,131
+AIG,5272,tickers,AMERICAN INTERNATIONAL GROUP INC,241,pass,AIG,same,pass,0
+AIV,922864,tickers,APARTMENT INVESTMENT & MANAGEMENT CO,389,pass,AIV,same,pass,0
+AIZ,1267238,tickers,ASSURANT INC,243,pass,AIZ,same,pass,0
+AKAM,1086222,tickers,AKAMAI TECHNOLOGIES INC,460,pass,AKAM,same,pass,0
+AKS,918160,search,AK STEEL HOLDING CORP,,name,AKS,same,pass,2
+ALL,899051,tickers,ALLSTATE CORP,240,pass,ALL,same,pass,0
+ALTR,768251,name,ALTERA CORP,442,pass,ALTR,same,missing,330
+AMAT,6951,tickers,APPLIED MATERIALS INC /DE,444,pass,AMAT,same,pass,0
+AMD,2488,tickers,ADVANCED MICRO DEVICES INC,441,pass,AMD,same,pass,2
+AMGN,318154,tickers,AMGEN INC,57,pass,AMGN,same,pass,0
+AMP,820027,tickers,AMERIPRISE FINANCIAL INC,118,pass,AMP,same,pass,2
+AMT,1053507,tickers,AMERICAN TOWER CORP /MA/,388,pass,AMT,same,pass,2
+AMZN,1018724,tickers,AMAZON COM INC,260,pass,AMZN,same,pass,0
+AN,350698,tickers,"AUTONATION, INC.",405,pass,AN,same,pass,0
+ANF,1018840,tickers,ABERCROMBIE & FITCH CO /DE/,404,pass,ANF,same,pass,2
+ANR,1301063,name,"Alpha Natural Resources, Inc.",78,pass,ANRZQ,search,pass,2
+AON,315293,tickers,AON CORP,242,pass,AON,same,pass,2
+APA,6769,name,APACHE CORP,324,pass,APA,same,pass,0
+APC,773910,name,ANADARKO PETROLEUM CORP,323,pass,APC,same,missing,330
+APD,2969,tickers,AIR PRODUCTS & CHEMICALS INC /DE/,63,pass,APD,same,pass,2
+APH,820313,tickers,AMPHENOL CORP /DE/,163,pass,APH,same,pass,2
+APOL,929887,name,APOLLO GROUP INC,81,pass,APOL,same,missing,330
+ARG,804212,name,AIRGAS INC,64,pass,ARG,same,pass,2
+ATI,1018963,tickers,ALLEGHENY TECHNOLOGIES INC,271,pass,ATI,same,pass,0
+AVB,915912,name,AVALONBAY COMMUNITIES INC,390,pass,AVB,same,pass,2
+AVP,8868,name,AVON PRODUCTS INC,110,pass,AVP,same,pass,0
+AVY,8818,tickers,Avery Dennison Corp,234,pass,AVY,same,pass,0
+AXP,4962,tickers,AMERICAN EXPRESS CO,117,pass,AXP,same,pass,0
+AZO,866787,tickers,AUTOZONE INC,406,pass,AZO,same,pass,0
+BA,12927,tickers,BOEING CO,3,pass,BA,same,pass,0
+BAC,70858,tickers,BANK OF AMERICA CORP /DE/,27,pass,BAC,same,pass,2
+BAX,10456,tickers,BAXTER INTERNATIONAL INC,204,pass,BAX,same,pass,0
+BBBY,886158,name,BED BATH & BEYOND INC,407,pass,BBBYQ,search,pass,0
+BBT,92230,tickers-archive,BB&T CORP,29,pass,TFC,search,pass,0
+BBY,764478,tickers,BEST BUY CO INC,408,pass,BBY,same,pass,2
+BCR,9892,name,BARD C R INC /NJ/,207,pass,BCR,same,pass,2
+BDX,10795,tickers,BECTON DICKINSON & CO,205,pass,BDX,same,pass,0
+BEAM,789073,name,BEAM INC,49,pass,BEAM,same,missing,330
+BEN,38777,tickers,FRANKLIN RESOURCES INC,125,pass,BEN,same,pass,0
+BF.B,14693,tickers,BROWN FORMAN CORP,50,pass,BF-B,search,pass,0
+BHI,808362,name,BAKER HUGHES INC,354,pass,BHI,same,pass,0
+BIG,768835,name,BIG LOTS INC,409,pass,BIGGQ,search,pass,0
+BIIB,875045,tickers,BIOGEN IDEC INC.,58,pass,BIIB,same,pass,0
+BK,1390777,tickers-archive,Bank of New York Mellon Corp,28,pass,BNY,search,pass,2
+BLK,1364742,name,BlackRock Inc.,119,pass,BLK,same,pass,2
+BLL,9389,tickers-archive,BALL Corp,360,pass,BALL,search,pass,0
+BMC,835729,name,BMC SOFTWARE INC,462,pass,,none,none,
+BMS,11199,name,BEMIS CO INC,361,pass,BMS,same,pass,0
+BMY,14272,tickers,BRISTOL MYERS SQUIBB CO,367,pass,BMY,same,pass,2
+BRCM,1054374,name,BROADCOM CORP,445,pass,BRCM,same,missing,330
+BRK.B,1067983,tickers,BERKSHIRE HATHAWAY INC,244,pass,BRK-B,search,pass,0
+BSX,885725,tickers,BOSTON SCIENTIFIC CORP,206,pass,BSX,same,pass,0
+BTU,1064728,tickers,PEABODY ENERGY CORP,80,pass,BTU,same,missing,330
+BXP,1037540,tickers,BOSTON PROPERTIES INC,391,pass,BXP,same,pass,2
+C,831001,tickers,CITIGROUP INC,31,pass,C,same,pass,2
+CA,356028,name,"CA, INC.",463,pass,CA,same,missing,330
+CAG,23217,tickers,CONAGRA FOODS INC /DE/,179,pass,CAG,same,pass,0
+CAH,721371,tickers,CARDINAL HEALTH INC,368,pass,CAH,same,pass,0
+CAM,941548,name,CAMERON INTERNATIONAL CORP,355,pass,CAM,same,pass,2
+CAT,18230,tickers,CATERPILLAR INC,281,pass,CAT,same,pass,0
+CB,20171,name,CHUBB CORP,245,pass,CB,same,returns,72
+CBE,1141982,name,Cooper Industries plc,290,pass,,none,none,
+CBG,1138118,tickers-archive,"CBRE GROUP, INC.",387,pass,CBRE,search,pass,0
+CBS,813828,name,CBS CORP,302,pass,VIAC,search,pass,2
+CCE,1491675,name,"COCA-COLA ENTERPRISES, INC.",52,pass,,none,none,
+CCL,815097,tickers,CARNIVAL CORP,275,pass,CCL,same,pass,0
+CELG,816284,name,CELGENE CORP /DE/,59,pass,CELG,same,pass,0
+CERN,804753,name,CERNER CORP /MO/,464,pass,CERN,same,pass,0
+CF,1324404,tickers,"CF Industries Holdings, Inc.",65,pass,CF,same,pass,2
+CFN,1457543,name,CAREFUSION Corp,208,pass,CFN,same,pass,0
+CHK,895126,name,CHESAPEAKE ENERGY CORP,326,pass,CHK,same,pass,0
+CHRW,1043277,tickers,C H ROBINSON WORLDWIDE INC,493,pass,CHRW,same,pass,0
+CI,701221,name,CIGNA CORP,219,pass,CI,same,pass,2
+CINF,20286,tickers,CINCINNATI FINANCIAL CORP,246,pass,CINF,same,pass,0
+CL,21665,tickers,COLGATE PALMOLIVE CO,111,pass,CL,same,pass,0
+CLF,764065,tickers,CLIFFS NATURAL RESOURCES INC.,272,pass,CLF,same,pass,2
+CLX,21076,tickers,CLOROX CO /DE/,235,pass,CLX,same,pass,0
+CMA,28412,name,COMERICA INC /NEW/,32,pass,CMA,same,pass,0
+CMCSA,1166691,tickers,COMCAST CORP,303,pass,CMCSA,same,pass,0
+CME,1156375,tickers,CME GROUP INC.,121,pass,CME,same,pass,0
+CMG,1058090,tickers,CHIPOTLE MEXICAN GRILL INC,411,pass,CMG,same,pass,2
+CMI,26172,tickers,CUMMINS INC,282,pass,CMI,same,pass,2
+CMS,811156,tickers,CMS ENERGY CORP,136,pass,CMS,same,pass,0
+CNP,1130310,tickers,CENTERPOINT ENERGY INC,199,pass,CNP,same,pass,0
+CNX,1070412,tickers,CONSOL ENERGY INC,79,pass,CNX,same,pass,0
+COF,927628,tickers,CAPITAL ONE FINANCIAL CORP,30,pass,COF,same,pass,2
+COG,858470,name,CABOT OIL & GAS CORP,325,pass,CTRA,search,pass,2
+COH,1116132,name,COACH INC,18,pass,COH,same,pass,1
+COL,1137411,name,ROCKWELL COLLINS INC,10,pass,COL,same,pass,0
+COP,1163165,tickers,CONOCOPHILLIPS,328,pass,COP,same,pass,2
+COST,909832,tickers,COSTCO WHOLESALE CORP /NEW,412,pass,COST,same,pass,0
+COV,1385187,name,Covidien plc,209,pass,COV,same,pass,2
+CPB,16732,tickers,CAMPBELL SOUP CO,178,pass,CPB,same,pass,0
+CPWR,827099,tickers,TETRIDYN SOLUTIONS INC,,name,CPWR,same,pass,0
+CRM,1108524,tickers,SALESFORCE COM INC,474,pass,CRM,same,pass,2
+CSC,23082,name,COMPUTER SCIENCES CORP,100,pass,CSC,same,pass,2
+CSCO,858877,tickers,"CISCO SYSTEMS, INC.",477,pass,CSCO,same,pass,0
+CSX,277948,tickers,CSX CORP,494,pass,CSX,same,pass,0
+CTAS,723254,tickers,CINTAS CORP,490,pass,CTAS,same,pass,0
+CTL,18926,tickers-archive,"CENTURYLINK, INC",476,pass,LUMN,search,pass,0
+CTSH,1058290,tickers,COGNIZANT TECHNOLOGY SOLUTIONS CORP,99,pass,CTSH,same,pass,0
+CTXS,877890,name,CITRIX SYSTEMS INC,465,pass,CTXS,same,pass,0
+CVC,1037461,search,BJS WHOLESALE CLUB INC,,name,CVC,same,missing,330
+CVH,1054833,name,COVENTRY HEALTH CARE INC,220,pass,CVH,same,pass,0
+CVS,64803,tickers,CVS CAREMARK CORP,413,pass,CVS,same,pass,0
+CVX,93410,tickers,CHEVRON CORP,327,pass,CVX,same,pass,0
+D,715957,tickers,DOMINION RESOURCES INC /VA/,138,pass,D,same,pass,0
+DD,1666700,tickers,,,dates,DD,same,pass,0
+DE,315189,tickers,DEERE & CO,283,pass,DE,same,pass,0
+DELL,826083,name,DELL INC,101,pass,DELL,same,missing,330
+DF,931336,name,DEAN FOODS CO,180,pass,DFODQ,search,pass,2
+DFS,1393612,name,Discover Financial Services,122,pass,DFS,same,pass,0
+DGX,1022079,tickers,QUEST DIAGNOSTICS INC,224,pass,DGX,same,pass,0
+DHI,882184,tickers,HORTON D R INC /DE/,229,pass,DHI,same,pass,0
+DHR,313616,tickers,DANAHER CORP /DE/,291,pass,DHR,same,pass,0
+DIS,1001039,name,WALT DISNEY CO/,313,pass,DIS,same,pass,0
+DISCA,1437107,tickers-archive,"Discovery Communications, Inc.",305,pass,WBD,search,pass,0
+DNB,1115222,name,DUN & BRADSTREET CORP/NW,466,pass,DNB,same,missing,330
+DNR,945764,name,DENBURY RESOURCES INC,329,pass,DNR,same,pass,2
+DO,949039,name,DIAMOND OFFSHORE DRILLING INC,331,pass,DO,same,missing,330
+DOV,29905,tickers,DOVER Corp,292,pass,DOV,same,pass,0
+DOW,29915,name,DOW CHEMICAL CO /DE/,66,pass,DOW,same,missing,330
+DPS,1418135,name,"Dr Pepper Snapple Group, Inc.",54,pass,DPS,same,pass,2
+DRI,940944,tickers,DARDEN RESTAURANTS INC,414,pass,DRI,same,pass,0
+DTE,936340,tickers,DTE ENERGY CO,139,pass,DTE,same,pass,0
+DTV,1465112,name,DIRECTV,304,pass,DTV,same,missing,330
+DUK,1326160,tickers,Duke Energy CORP,140,pass,DUK,same,pass,0
+DV,730464,tickers-archive,DEVRY INC,83,pass,CVSA,search,pass,0
+DVA,927066,tickers,DAVITA INC,221,pass,DVA,same,pass,2
+DVN,1090012,tickers,DEVON ENERGY CORP/DE,330,pass,DVN,same,pass,2
+EBAY,1065088,tickers,EBAY INC,261,pass,EBAY,same,pass,0
+ECL,31462,tickers,ECOLAB INC,69,pass,ECL,same,pass,0
+ED,1047862,tickers,CONSOLIDATED EDISON INC,137,pass,ED,same,pass,0
+EFX,33185,tickers,EQUIFAX INC,84,pass,EFX,same,pass,0
+EIX,827052,tickers,EDISON INTERNATIONAL,141,pass,EIX,same,pass,0
+EL,1001250,tickers,ESTEE LAUDER COMPANIES INC,112,pass,EL,same,pass,1
+EMC,790070,name,EMC CORP,102,pass,EMC,same,missing,330
+EMN,915389,tickers,EASTMAN CHEMICAL CO,68,pass,EMN,same,pass,0
+EMR,32604,tickers,EMERSON ELECTRIC CO,160,pass,EMR,same,pass,0
+EOG,821189,tickers,EOG RESOURCES INC,332,pass,EOG,same,pass,2
+EP,1066107,name,EL PASO CORP/DE,383,pass,EP,same,missing,35
+EQR,906107,name,EQUITY RESIDENTIAL,392,pass,,none,none,
+EQT,33213,tickers,EQT Corp,333,pass,EQT,same,pass,0
+ESRX,885721,name,EXPRESS SCRIPTS INC,371,pass,ESRX,same,pass,0
+ETFC,1015780,name,E TRADE FINANCIAL CORP,123,pass,ETFC,same,pass,0
+ETN,31277,name,EATON CORP,293,pass,ETN,same,pass,0
+ETR,65984,tickers,ENTERGY CORP /DE/,142,pass,ETR,same,pass,0
+EW,1099800,tickers,Edwards Lifesciences Corp,210,pass,EW,same,pass,0
+EXC,1109357,tickers,EXELON CORP,143,pass,EXC,same,pass,0
+EXPD,746515,tickers,EXPEDITORS INTERNATIONAL OF WASHINGTON INC,495,pass,EXPD,same,pass,0
+EXPE,1324424,tickers,"Expedia, Inc.",262,pass,EXPE,same,pass,0
+F,37996,tickers,FORD MOTOR CO,22,pass,F,same,pass,0
+FAST,815556,tickers,FASTENAL CO,114,pass,FAST,same,pass,0
+FCX,831259,tickers,FREEPORT MCMORAN COPPER & GOLD INC,317,pass,FCX,same,pass,0
+FDO,34408,name,FAMILY DOLLAR STORES INC,416,pass,FDO,same,pass,0
+FDX,1048911,tickers,FEDEX CORP,496,pass,FDX,same,pass,0
+FE,1031296,tickers,FIRSTENERGY CORP,144,pass,FE,same,pass,2
+FFIV,1048695,tickers,F5 NETWORKS INC,263,pass,FFIV,same,pass,0
+FHN,36966,tickers,FIRST HORIZON NATIONAL CORP,34,pass,FHN,same,pass,0
+FII,1056288,tickers-archive,FEDERATED INVESTORS INC /PA/,124,pass,FHI,search,pass,2
+FIS,1136893,tickers,"Fidelity National Information Services, Inc.",468,pass,FIS,same,pass,0
+FISV,798354,tickers,FISERV INC,469,pass,FISV,same,pass,0
+FITB,35527,tickers,FIFTH THIRD BANCORP,33,pass,FITB,same,pass,0
+FLIR,354908,name,FLIR SYSTEMS INC,164,pass,FLIR,same,pass,0
+FLR,1124198,tickers,FLUOR CORP,172,pass,FLR,same,pass,0
+FLS,30625,tickers,FLOWSERVE CORP,284,pass,FLS,same,pass,0
+FMC,37785,tickers,FMC CORP,70,pass,FMC,same,pass,0
+FRX,38074,name,FOREST LABORATORIES INC,372,pass,FRX,same,pass,0
+FSLR,1274494,tickers,"FIRST SOLAR, INC.",446,pass,FSLR,same,pass,0
+FTI,1135152,name,FMC TECHNOLOGIES INC,356,pass,FTI,same,pass,2
+FTR,20520,name,FRONTIER COMMUNICATIONS CORP,480,pass,FTR,same,missing,330
+GCI,39899,name,GANNETT CO INC /DE/,306,pass,TGNA,search,pass,0
+GD,40533,tickers,GENERAL DYNAMICS CORP,4,pass,GD,same,pass,0
+GE,40545,tickers,GENERAL ELECTRIC CO,294,pass,GE,same,pass,0
+GILD,882095,tickers,GILEAD SCIENCES INC,60,pass,GILD,same,pass,0
+GIS,40704,tickers,GENERAL MILLS INC,181,pass,GIS,same,pass,0
+GLW,24741,tickers,CORNING INC /NY,478,pass,GLW,same,pass,0
+GME,1326380,tickers,GameStop Corp.,417,pass,GME,same,pass,0
+GNW,1276520,tickers,GENWORTH FINANCIAL INC,247,pass,GNW,same,pass,2
+GOOG,1288776,name,GOOGLE INC.,264,pass,GOOGL,search,pass,0
+GPC,40987,tickers,GENUINE PARTS CO,115,pass,GPC,same,pass,0
+GPS,39911,tickers-archive,GAP INC,418,pass,GAP,search,pass,0
+GR,42542,name,GOODRICH CORP,5,pass,,none,none,
+GS,886982,tickers,GOLDMAN SACHS GROUP INC,35,pass,GS,same,pass,2
+GT,42582,tickers,GOODYEAR TIRE & RUBBER CO /OH/,25,pass,GT,same,pass,0
+GWW,277135,tickers,GRAINGER W W INC,116,pass,GWW,same,pass,0
+HAL,45012,tickers,HALLIBURTON CO,357,pass,HAL,same,pass,0
+HAR,800459,name,HARMAN INTERNATIONAL INDUSTRIES INC /DE/,232,pass,HAR,same,missing,330
+HAS,46080,tickers,HASBRO INC,491,pass,HAS,same,pass,0
+HBAN,49196,tickers,HUNTINGTON BANCSHARES INC/MD,36,pass,HBAN,same,pass,0
+HCBK,921847,name,HUDSON CITY BANCORP INC,439,pass,HCBK,same,pass,0
+HCN,766704,name,HEALTH CARE REIT INC /DE/,394,pass,HCN,same,pass,0
+HCP,765880,tickers-archive,"HCP, INC.",393,pass,DOC,search,pass,0
+HD,354950,tickers,HOME DEPOT INC,419,pass,HD,same,pass,0
+HES,4447,name,HESS CORP,336,pass,HES,same,pass,0
+HIG,874766,tickers,HARTFORD FINANCIAL SERVICES GROUP INC/DE,248,pass,HIG,same,pass,0
+HNZ,46640,name,HEINZ H J CO,182,pass,HNZ,same,pass,0
+HOG,793952,tickers,HARLEY DAVIDSON INC,276,pass,HOG,same,pass,0
+HON,773840,tickers,HONEYWELL INTERNATIONAL INC,165,pass,HON,same,pass,0
+HOT,316206,name,"STARWOOD HOTEL & RESORTS WORLDWIDE, INC",278,pass,HOT,same,missing,330
+HP,46765,tickers,HELMERICH & PAYNE INC,335,pass,HP,same,pass,2
+HPQ,47217,tickers,HEWLETT PACKARD CO,103,pass,HPQ,same,pass,0
+HRB,12659,tickers,H&R BLOCK INC,85,pass,HRB,same,pass,0
+HRL,48465,tickers,HORMEL FOODS CORP /DE/,184,pass,HRL,same,pass,0
+HRS,202058,tickers-archive,HARRIS CORP /DE/,481,pass,LHX,search,pass,0
+HSP,1274057,name,HOSPIRA INC,211,pass,HSP,same,pass,0
+HST,1070750,tickers,"HOST HOTELS & RESORTS, INC.",395,pass,HST,same,pass,0
+HSY,47111,tickers,HERSHEY CO,183,pass,HSY,same,pass,0
+HUM,49071,tickers,HUMANA INC,222,pass,HUM,same,pass,0
+IBM,51143,tickers,INTERNATIONAL BUSINESS MACHINES CORP,104,pass,IBM,same,pass,0
+ICE,1174746,name,INTERCONTINENTALEXCHANGE INC,126,pass,ICE,same,pass,0
+IFF,51253,tickers,INTERNATIONAL FLAVORS & FRAGRANCES INC,71,pass,IFF,same,pass,0
+IGT,353944,name,INTERNATIONAL GAME TECHNOLOGY,174,pass,BRSL,search,pass,0
+INTC,50863,tickers,INTEL CORP,447,pass,INTC,same,pass,0
+INTU,896878,tickers,INTUIT INC,470,pass,INTU,same,pass,0
+IP,51434,tickers,INTERNATIONAL PAPER CO /NEW/,196,pass,IP,same,pass,0
+IPG,51644,name,"INTERPUBLIC GROUP OF COMPANIES, INC.",1,pass,IPG,same,pass,0
+IR,1466258,tickers-archive,Ingersoll-Rand plc,296,pass,TT,search,pass,0
+IRM,1020569,tickers,IRON MOUNTAIN INC,86,pass,IRM,same,pass,0
+ISRG,1035267,tickers,INTUITIVE SURGICAL INC,212,pass,ISRG,same,pass,0
+ITW,49826,tickers,ILLINOIS TOOL WORKS INC,295,pass,ITW,same,pass,0
+IVZ,914208,tickers,Invesco Ltd.,127,pass,IVZ,same,pass,0
+JBL,898293,tickers,JABIL CIRCUIT INC,166,pass,JBL,same,pass,0
+JCI,53669,name,JOHNSON CONTROLS INC,26,pass,JCI,same,returns,168
+JCP,1166126,name,J C PENNEY CO INC,420,pass,,none,none,
+JDSU,912093,name,JDS UNIPHASE CORP /CA/,482,pass,JDSU,same,pass,0
+JEC,52988,tickers-archive,JACOBS ENGINEERING GROUP INC /DE/,173,pass,J,search,pass,0
+JNJ,200406,tickers,JOHNSON & JOHNSON,373,pass,JNJ,same,pass,0
+JNPR,1043604,name,JUNIPER NETWORKS INC,483,pass,JNPR,same,pass,2
+JOY,801898,name,JOY GLOBAL INC,285,pass,JOY,same,pass,0
+JPM,19617,tickers,JPMORGAN CHASE & CO,37,pass,JPM,same,pass,1
+JWN,72333,name,NORDSTROM INC,426,pass,JWN,same,pass,0
+K,55067,name,KELLOGG CO,186,pass,K,same,pass,0
+KEY,91576,tickers,KEYCORP /NEW/,38,pass,KEY,same,pass,0
+KFT,1103982,tickers-archive,KRAFT FOODS INC,187,pass,MDLZ,search,pass,0
+KIM,879101,tickers,KIMCO REALTY CORP,396,pass,KIM,same,pass,0
+KLAC,319201,tickers,KLA TENCOR CORP,448,pass,KLAC,same,pass,0
+KMB,55785,tickers,KIMBERLY CLARK CORP,236,pass,KMB,same,pass,0
+KMX,1170010,tickers,CARMAX INC,410,pass,KMX,same,pass,0
+KO,21344,tickers,COCA COLA CO,51,pass,KO,same,pass,0
+KR,56873,tickers,KROGER CO,188,pass,KR,same,pass,0
+KSS,885639,tickers,KOHLS Corp,421,pass,KSS,same,pass,0
+L,60086,tickers,LOEWS CORP,250,pass,L,same,pass,0
+LEG,58492,name,LEGGETT & PLATT INC,297,pass,LEG,same,pass,0
+LEN,920760,tickers,LENNAR CORP /NEW/,230,pass,LEN,same,pass,0
+LH,920148,tickers,LABORATORY CORP OF AMERICA HOLDINGS,223,pass,LH,same,pass,0
+LIFE,1073431,name,Life Technologies Corp,61,pass,LIFE,same,missing,330
+LLL,1056239,name,L 3 COMMUNICATIONS HOLDINGS INC,6,pass,LLL,same,pass,0
+LLTC,791907,name,LINEAR TECHNOLOGY CORP /CA/,449,pass,LLTC,same,missing,330
+LLY,59478,tickers,LILLY ELI & CO,370,pass,LLY,same,pass,0
+LM,704051,name,"LEGG MASON, INC.",128,pass,LM,same,pass,0
+LMT,936468,tickers,LOCKHEED MARTIN CORP,7,pass,LMT,same,pass,0
+LNC,59558,tickers,LINCOLN NATIONAL CORP,249,pass,LNC,same,pass,0
+LO,1424847,name,"LORILLARD, INC.",14,pass,LO,same,pass,0
+LOW,60667,tickers,LOWES COMPANIES INC,423,pass,LOW,same,pass,0
+LSI,703360,name,LSI CORP,450,pass,LSI,same,returns,194
+LTD,701985,tickers-archive,LIMITED BRANDS INC,422,pass,BBWI,search,pass,2
+LUK,96223,name,LEUCADIA NATIONAL CORP,228,silent,LUK,same,pass,0
+LUV,92380,tickers,SOUTHWEST AIRLINES CO,17,pass,LUV,same,pass,0
+LXK,1001288,name,LEXMARK INTERNATIONAL INC /KY/,105,pass,LXK,same,missing,330
+M,794367,tickers,"Macy's, Inc.",424,pass,M,same,pass,0
+MA,1141391,tickers,Mastercard Inc,87,pass,MA,same,pass,0
+MAR,1048286,tickers,MARRIOTT INTERNATIONAL INC /MD/,277,pass,MAR,same,pass,1
+MAS,62996,tickers,MASCO CORP /DE/,62,pass,MAS,same,pass,0
+MAT,63276,tickers,MATTEL INC /DE/,492,pass,MAT,same,pass,0
+MCD,63908,tickers,MCDONALDS CORP,425,pass,MCD,same,pass,0
+MCHP,827054,tickers,MICROCHIP TECHNOLOGY INC,451,pass,MCHP,same,pass,0
+MCK,927653,tickers,MCKESSON CORP,374,pass,MCK,same,pass,0
+MCO,1059556,tickers,MOODYS CORP /DE/,88,pass,MCO,same,pass,0
+MDT,64670,name,MEDTRONIC INC,213,pass,MDT,same,pass,0
+MET,1099219,tickers,METLIFE INC,252,pass,MET,same,pass,0
+MHP,64040,tickers-archive,MCGRAW-HILL COMPANIES INC,307,pass,SPGI,search,pass,0
+MHS,1170650,name,MEDCO HEALTH SOLUTIONS INC,376,pass,MHS,same,pass,1
+MJN,1452575,name,Mead Johnson Nutrition Co,375,pass,MJN,same,pass,0
+MKC,63754,tickers,MCCORMICK & CO INC,189,pass,MKC,same,pass,0
+MMC,62709,tickers-archive,"MARSH & MCLENNAN COMPANIES, INC.",251,pass,MRSH,search,pass,0
+MMI,1495569,name,"Motorola Mobility Holdings, Inc",485,pass,MMI,same,missing,330
+MMM,66740,tickers,3M CO,289,pass,MMM,same,pass,0
+MO,764180,tickers,"ALTRIA GROUP, INC.",12,pass,MO,same,pass,0
+MOLX,67472,name,MOLEX INC,161,pass,,none,none,
+MON,1110783,name,MONSANTO CO /NEW/,72,pass,MON,same,missing,330
+MOS,1285785,tickers,MOSAIC CO,73,pass,MOS,same,pass,0
+MPC,1510295,tickers,Marathon Petroleum Corp,338,pass,MPC,same,pass,0
+MRK,310158,tickers,Merck & Co. Inc.,377,pass,MRK,same,pass,0
+MRO,101778,name,MARATHON OIL CORP,337,pass,MRO,same,pass,1
+MS,895421,tickers,MORGAN STANLEY,40,pass,MS,same,pass,0
+MSFT,789019,tickers,MICROSOFT CORP,471,pass,MSFT,same,pass,0
+MSI,68505,tickers,"Motorola Solutions, Inc.",486,pass,MSI,same,pass,1
+MTB,36270,tickers,M&T BANK CORP,39,pass,MTB,same,pass,0
+MU,723125,tickers,MICRON TECHNOLOGY INC,452,pass,MU,same,pass,0
+MUR,717423,tickers,MURPHY OIL CORP /DE,339,pass,MUR,same,pass,0
+MWV,1159297,name,MEADWESTVACO Corp,197,pass,MWV,same,pass,0
+MWW,1442145,search,"Verisk Analytics, Inc.",,name,MWW,same,pass,0
+MYL,69499,name,MYLAN INC.,378,pass,MYL,same,pass,0
+NBL,72207,name,NOBLE ENERGY INC,343,pass,NBL,same,pass,0
+NBR,1163739,tickers,NABORS INDUSTRIES LTD,340,pass,NBR,same,pass,0
+NDAQ,1120193,tickers,"NASDAQ OMX GROUP, INC.",129,pass,NDAQ,same,pass,0
+NE,1458891,name,Noble Corp / Switzerland,342,pass,NE,same,missing,330
+NEE,753308,tickers,NEXTERA ENERGY INC,146,pass,NEE,same,pass,0
+NEM,1164727,tickers,NEWMONT MINING CORP /DE/,318,pass,NEM,same,pass,0
+NFLX,1065280,tickers,NETFLIX INC,265,pass,NFLX,same,pass,0
+NFX,912750,name,NEWFIELD EXPLORATION CO /DE/,341,pass,NFX,same,missing,330
+NI,1111711,tickers,NISOURCE INC/DE,200,pass,NI,same,pass,0
+NKE,320187,tickers,NIKE INC,19,pass,NKE,same,pass,0
+NOC,1133421,tickers,NORTHROP GRUMMAN CORP /DE/,8,pass,NOC,same,pass,0
+NOV,1021860,tickers,NATIONAL OILWELL VARCO INC,358,pass,NOV,same,pass,0
+NRG,1013871,tickers,"NRG ENERGY, INC.",148,pass,NRG,same,pass,0
+NSC,702165,tickers,NORFOLK SOUTHERN CORP,497,pass,NSC,same,pass,0
+NTAP,1002047,tickers,"NetApp, Inc.",106,pass,NTAP,same,pass,0
+NTRS,73124,tickers,NORTHERN TRUST CORP,41,pass,NTRS,same,pass,0
+NU,72741,tickers-archive,NORTHEAST UTILITIES,147,pass,ES,search,pass,0
+NUE,73309,tickers,NUCOR CORP,273,pass,NUE,same,pass,0
+NVDA,1045810,tickers,NVIDIA CORP,454,pass,NVDA,same,pass,0
+NVLS,836106,name,NOVELLUS SYSTEMS INC,453,pass,NVLS,same,pass,0
+NWL,814453,tickers,NEWELL RUBBERMAID INC,237,pass,NWL,same,pass,0
+NWSA,1308161,name,NEWS CORP,308,pass,NWSA,same,missing,330
+NYX,1368007,name,NYSE Euronext,,name,,none,none,
+OI,812074,tickers,OWENS ILLINOIS INC /DE/,362,pass,OI,same,pass,0
+OKE,1039684,tickers,ONEOK INC /NEW/,384,pass,OKE,same,pass,0
+OMC,29989,tickers,OMNICOM GROUP INC,2,pass,OMC,same,pass,0
+ORCL,1341439,tickers,ORACLE CORP,472,pass,ORCL,same,pass,0
+ORLY,898173,tickers,O REILLY AUTOMOTIVE INC,427,pass,ORLY,same,pass,0
+OXY,797468,tickers,OCCIDENTAL PETROLEUM CORP /DE/,344,pass,OXY,same,pass,0
+PAYX,723531,tickers,PAYCHEX INC,89,pass,PAYX,same,pass,0
+PBCT,1378946,name,"People's United Financial, Inc.",440,pass,PBCT,same,pass,0
+PBI,78814,tickers,PITNEY BOWES INC /DE/,321,pass,PBI,same,pass,0
+PCAR,75362,tickers,PACCAR INC,23,pass,PCAR,same,pass,1
+PCG,1004980,tickers,PG&E Corp,150,pass,PCG,same,pass,0
+PCL,849213,name,PLUM CREEK TIMBER CO INC,397,pass,PCL,same,pass,0
+PCLN,1075531,tickers-archive,PRICELINE COM INC,266,pass,BKNG,search,pass,0
+PCP,79958,name,PRECISION CASTPARTS CORP,315,pass,PCP,same,missing,330
+PCS,1283699,tickers-archive,METROPCS COMMUNICATIONS INC,484,pass,TMUS,search,pass,0
+PDCO,891024,name,"PATTERSON COMPANIES, INC.",379,pass,PDCO,same,pass,0
+PEG,788784,tickers,PUBLIC SERVICE ENTERPRISE GROUP INC,154,pass,PEG,same,pass,2
+PEP,77476,tickers,PEPSICO INC,56,pass,PEP,same,pass,0
+PFE,78003,tickers,PFIZER INC,381,pass,PFE,same,pass,0
+PFG,1126328,tickers,PRINCIPAL FINANCIAL GROUP INC,253,pass,PFG,same,pass,2
+PG,80424,tickers,PROCTER & GAMBLE Co,113,pass,PG,same,pass,0
+PGN,1094093,name,PROGRESS ENERGY INC,153,pass,PGN,same,missing,330
+PGR,80661,tickers,PROGRESSIVE CORP/OH/,254,pass,PGR,same,pass,0
+PH,76334,tickers,PARKER HANNIFIN CORP,299,pass,PH,same,pass,2
+PHM,822416,tickers,PULTEGROUP INC/MI/,231,pass,PHM,same,pass,0
+PKI,31791,tickers-archive,PERKINELMER INC,167,pass,RVTY,search,pass,2
+PLD,1045609,tickers,"Prologis, Inc.",398,pass,PLD,same,pass,0
+PLL,75829,name,PALL CORP,298,pass,PLL,same,missing,330
+PM,1413329,tickers,Philip Morris International Inc.,15,pass,PM,same,pass,0
+PNC,713676,tickers,"PNC FINANCIAL SERVICES GROUP, INC.",42,pass,PNC,same,pass,0
+PNW,764622,tickers,PINNACLE WEST CAPITAL CORP,151,pass,PNW,same,pass,2
+POM,1135971,name,PEPCO HOLDINGS INC,149,pass,POM,same,missing,330
+PPG,79879,tickers,PPG INDUSTRIES INC,74,pass,PPG,same,pass,2
+PPL,922224,tickers,PPL Corp,152,pass,PPL,same,pass,0
+PRU,1137774,tickers,PRUDENTIAL FINANCIAL INC,255,pass,PRU,same,pass,2
+PSA,1393311,tickers,Public Storage,399,pass,PSA,same,pass,2
+PWR,1050915,tickers,QUANTA SERVICES INC,90,pass,PWR,same,pass,2
+PX,884905,name,PRAXAIR INC,75,pass,PX,same,pass,0
+PXD,1038357,name,PIONEER NATURAL RESOURCES CO,345,pass,PXD,same,pass,0
+QCOM,804328,tickers,QUALCOMM INC/DE,455,pass,QCOM,same,pass,0
+QEP,1108827,name,"QEP RESOURCES, INC.",346,pass,QEP,same,pass,2
+R,85961,tickers,RYDER SYSTEM INC,498,pass,R,same,pass,0
+RAI,1275283,name,REYNOLDS AMERICAN INC,16,pass,RAI,same,pass,2
+RDC,85408,name,ROWAN COMPANIES INC,348,pass,RDC,same,pass,0
+RF,1281761,tickers,REGIONS FINANCIAL CORP,43,pass,RF,same,pass,2
+RHI,315213,tickers,HALF ROBERT INTERNATIONAL INC /DE/,92,pass,RHI,same,pass,0
+RHT,1087423,name,RED HAT INC,473,pass,RHT,same,pass,2
+RL,1037038,tickers,RALPH LAUREN CORP,20,pass,RL,same,pass,0
+ROK,1024478,tickers,ROCKWELL AUTOMATION INC,286,pass,ROK,same,pass,0
+ROP,882835,tickers,ROPER INDUSTRIES INC,287,pass,ROP,same,pass,0
+ROST,745732,tickers,ROSS STORES INC,428,pass,ROST,same,pass,0
+RRC,315852,tickers,RANGE RESOURCES CORP,347,pass,RRC,same,pass,0
+RRD,29669,name,RR Donnelley & Sons Co,91,pass,RRD,same,pass,0
+RSG,1060391,tickers,"REPUBLIC SERVICES, INC.",175,pass,RSG,same,pass,2
+RTN,1047122,name,RAYTHEON CO/,9,pass,RTN,same,pass,0
+S,101830,name,SPRINT NEXTEL CORP,487,pass,S,same,missing,330
+SAI,1336920,tickers-archive,"SAIC, Inc.",93,pass,LDOS,search,pass,0
+SBUX,829224,tickers,STARBUCKS CORP,431,pass,SBUX,same,pass,0
+SCG,754737,name,SCANA CORP,155,pass,SCG,same,pass,0
+SCHW,316709,tickers,SCHWAB CHARLES CORP,120,pass,SCHW,same,pass,2
+SE,1373835,name,Spectra Energy Corp.,385,pass,SE,same,missing,330
+SEE,1012100,name,SEALED AIR CORP/DE,363,pass,SEE,same,pass,2
+SHLD,1310067,name,SEARS HOLDINGS CORP,429,pass,SHLDQ,search,pass,0
+SHW,89800,tickers,SHERWIN WILLIAMS CO,76,pass,SHW,same,pass,0
+SIAL,90185,name,SIGMA ALDRICH CORP,77,pass,SIAL,same,pass,0
+SJM,91419,tickers,SMUCKER J M CO,185,pass,SJM,same,pass,0
+SLB,87347,tickers,SCHLUMBERGER LTD /NV/,359,pass,SLB,same,pass,2
+SLE,23666,name,Sara Lee Corp,191,pass,HSH,search,pass,2
+SLM,1032033,tickers,SLM Corp,131,pass,SLM,same,pass,2
+SNA,91440,tickers,Snap-on Inc,202,pass,SNA,same,pass,0
+SNDK,1000180,name,SANDISK CORP,107,pass,SNDK,same,missing,330
+SNI,1430602,name,"Scripps Networks Interactive, Inc.",309,pass,SNI,same,pass,0
+SO,92122,tickers,SOUTHERN CO,156,pass,SO,same,pass,0
+SPG,1063761,tickers,SIMON PROPERTY GROUP INC /DE/,400,pass,SPG,same,pass,2
+SPLS,791519,name,STAPLES INC,430,pass,SPLS,same,missing,330
+SRCL,861878,name,STERICYCLE INC,176,pass,SRCL,same,pass,0
+SRE,1032208,tickers,SEMPRA ENERGY,201,pass,SRE,same,pass,0
+STI,750556,name,SUNTRUST BANKS INC,45,pass,STI,same,missing,330
+STJ,203077,name,ST JUDE MEDICAL INC,214,pass,STJ,same,pass,2
+STT,93751,tickers,STATE STREET CORP,44,pass,STT,same,pass,2
+STZ,16918,tickers,"CONSTELLATION BRANDS, INC.",53,pass,STZ,same,pass,0
+SUN,95304,name,SUNOCO INC,350,pass,SUN,same,missing,330
+SVU,95521,name,SUPERVALU INC,192,pass,SVU,same,pass,0
+SWK,93556,tickers,"STANLEY BLACK & DECKER, INC.",203,pass,SWK,same,pass,0
+SWN,7332,name,SOUTHWESTERN ENERGY CO,349,pass,SWN,same,pass,2
+SWY,86144,name,SAFEWAY INC,190,pass,SWY,same,pass,2
+SYK,310764,tickers,STRYKER CORP,215,pass,SYK,same,pass,0
+SYMC,849399,tickers-archive,SYMANTEC CORP,267,pass,GEN,search,pass,0
+SYY,96021,tickers,SYSCO CORP,193,pass,SYY,same,pass,2
+T,732717,tickers,AT&T INC.,475,pass,T,same,pass,2
+TAP,24545,tickers,MOLSON COORS BREWING CO,55,pass,TAP,same,pass,0
+TDC,816761,tickers,TERADATA CORP /DE/,108,pass,TDC,same,pass,0
+TE,350563,name,TECO ENERGY INC,157,pass,TE,same,missing,330
+TEG,916863,name,"INTEGRYS ENERGY GROUP, INC.",145,pass,TEG,same,pass,0
+TEL,1385157,tickers,TE Connectivity Ltd.,168,pass,TEL,same,pass,2
+TER,97210,tickers,"TERADYNE, INC",456,pass,TER,same,pass,0
+TGT,27419,tickers,TARGET CORP,432,pass,TGT,same,pass,0
+THC,70318,tickers,TENET HEALTHCARE CORP,225,pass,THC,same,pass,2
+TIE,1011657,name,TITANIUM METALS CORP,319,pass,TIE,same,pass,0
+TIF,98246,name,TIFFANY & CO,433,pass,TIF,same,pass,2
+TJX,109198,tickers,TJX COMPANIES INC /DE/,434,pass,TJX,same,pass,2
+TLAB,317771,search,TELLABS INC,,name,,none,none,
+TMK,320335,tickers-archive,TORCHMARK CORP,256,pass,GL,search,pass,2
+TMO,97745,tickers,THERMO FISHER SCIENTIFIC INC.,169,pass,TMO,same,pass,2
+TROW,1113169,tickers,PRICE T ROWE GROUP INC,132,pass,TROW,same,pass,0
+TRV,86312,tickers,"TRAVELERS COMPANIES, INC.",257,pass,TRV,same,pass,2
+TSN,100493,tickers,TYSON FOODS INC,194,pass,TSN,same,pass,0
+TSO,50104,name,TESORO CORP /NEW/,351,pass,ANDV,search,pass,2
+TSS,721683,name,TOTAL SYSTEM SERVICES INC,94,pass,TSS,same,pass,2
+TWC,1377013,name,TIME WARNER CABLE INC.,310,pass,TWC,same,pass,0
+TWX,1105705,name,TIME WARNER INC.,311,pass,TWX,same,pass,2
+TXN,97476,tickers,TEXAS INSTRUMENTS INC,457,pass,TXN,same,pass,0
+TXT,217346,tickers,TEXTRON INC,300,pass,TXT,same,pass,2
+TYC,833444,tickers-archive,TYCO INTERNATIONAL LTD,170,pass,JCI,search,pass,0
+UNH,731766,tickers,UNITEDHEALTH GROUP INC,226,pass,UNH,same,pass,0
+UNM,5513,tickers,Unum Group,258,pass,UNM,same,pass,0
+UNP,100885,tickers,UNION PACIFIC CORP,499,pass,UNP,same,pass,0
+UPS,1090727,tickers,UNITED PARCEL SERVICE INC,500,pass,UPS,same,pass,0
+URBN,912615,tickers,URBAN OUTFITTERS INC,435,pass,URBN,same,pass,0
+USB,36104,tickers,US BANCORP \DE\,46,pass,USB,same,pass,0
+UTX,101829,tickers-archive,UNITED TECHNOLOGIES CORP /DE/,11,pass,RTX,search,pass,0
+V,1403161,tickers,VISA INC.,95,pass,V,same,pass,0
+VAR,203527,name,VARIAN MEDICAL SYSTEMS INC,216,pass,VAR,same,pass,0
+VFC,103379,tickers,V F CORP,21,pass,VFC,same,pass,0
+VIAB,1339947,name,Viacom Inc.,312,pass,VIAB,same,pass,0
+VLO,1035002,tickers,VALERO ENERGY CORP/TX,352,pass,VLO,same,pass,0
+VMC,1396009,tickers,Vulcan Materials CO,320,pass,VMC,same,pass,2
+VNO,899689,tickers,VORNADO REALTY TRUST,402,pass,VNO,same,pass,0
+VRSN,1014473,tickers,VERISIGN INC/CA,269,pass,VRSN,same,pass,0
+VTR,740260,tickers,VENTAS INC,401,pass,VTR,same,pass,0
+VZ,732712,tickers,VERIZON COMMUNICATIONS INC,488,pass,VZ,same,pass,0
+WAG,104207,name,WALGREEN CO,437,pass,WAG,same,pass,0
+WAT,1000697,tickers,WATERS CORP /DE/,171,pass,WAT,same,pass,0
+WDC,106040,tickers,WESTERN DIGITAL CORP,109,pass,WDC,same,pass,0
+WEC,783325,tickers,WISCONSIN ENERGY CORP,158,pass,WEC,same,pass,0
+WFC,72971,tickers,WELLS FARGO & CO/MN,47,pass,WFC,same,pass,0
+WFM,865436,name,WHOLE FOODS MARKET INC,195,pass,WFM,same,pass,0
+WFR,945436,search,MEMC ELECTRONIC MATERIALS INC,,name,,none,none,
+WHR,106640,tickers,WHIRLPOOL CORP /DE/,233,pass,WHR,same,pass,0
+WIN,1282266,name,WINDSTREAM CORP,489,pass,WINMQ,search,pass,0
+WLP,1156039,tickers-archive,"WELLPOINT, INC",227,pass,ELV,search,pass,0
+WM,823768,tickers,WASTE MANAGEMENT INC,177,pass,WM,same,pass,0
+WMB,107263,tickers,WILLIAMS COMPANIES INC,386,pass,WMB,same,pass,0
+WMT,104169,tickers,WAL MART STORES INC,436,pass,WMT,same,pass,0
+WPI,884629,name,WATSON PHARMACEUTICALS INC,382,pass,AGN,search,pass,0
+WPO,104889,tickers-archive,WASHINGTON POST CO,314,pass,GHC,search,pass,0
+WU,1365135,tickers,Western Union CO,96,pass,WU,same,pass,0
+WY,106535,tickers,WEYERHAEUSER CO,403,pass,WY,same,pass,0
+WYN,1361658,name,WYNDHAM WORLDWIDE CORP,279,pass,WYN,same,pass,0
+WYNN,1174922,tickers,WYNN RESORTS LTD,280,pass,WYNN,same,pass,1
+X,1163302,name,UNITED STATES STEEL CORP,274,pass,X,same,pass,0
+XEL,72903,tickers,XCEL ENERGY INC,159,pass,XEL,same,pass,0
+XL,875159,name,XL GROUP PLC,259,pass,XL,same,pass,0
+XLNX,743988,name,XILINX INC,458,pass,XLNX,same,pass,0
+XOM,34088,name,EXXON MOBIL CORP,334,pass,XOM,same,pass,0
+XRAY,818479,tickers,DENTSPLY INTERNATIONAL INC /DE/,369,pass,XRAY,same,pass,0
+XRX,108772,name,XEROX CORP,322,pass,XRX,same,pass,0
+XYL,1524472,tickers,Xylem Inc.,288,pass,XYL,same,pass,0
+YHOO,1011006,name,YAHOO INC,270,pass,YHOO,same,pass,0
+YUM,1041061,tickers,YUM BRANDS INC,438,pass,YUM,same,pass,0
+ZION,109380,tickers,ZIONS BANCORPORATION /UT/,48,pass,ZION,same,pass,0
+ZMH,1136869,tickers-archive,ZIMMER HOLDINGS INC,217,pass,ZBH,search,pass,0
