@@ -838,3 +838,95 @@ def test_a_planned_card_held_for_a_close_by_hand_keeps_its_plan_position(
     raw = ids["board"]["html"]
     assert "plan-" not in _card_tag(ids, "board", 90503)
     assert raw.index('data-n="90503"') < raw.index('data-n="90505"')
+
+
+def _with_needs(docs: dict, needs: dict[int, list[int]]) -> dict:
+    """The fixture with some cards' ``needs`` replaced."""
+    for card in docs["tracker"]["items"]:
+        if card["n"] in needs:
+            card["needs"] = needs[card["n"]]
+    return docs
+
+
+def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: Path) -> None:
+    """Protects the depth sentence from reading as a count of blockers.
+
+    On 2026-10-11 issue 303 gained needs of 249 and 510, both open and neither
+    waiting on anything. The note still said nothing sat behind more than one
+    thing, and the column it sat in said one thing had to land first. Fixture
+    issue 90505 is given the same shape here, waiting on 90501 and 90504, and
+    90503 is cleared so that no chain runs two steps.
+    """
+    docs = _with_needs(fixture_docs(), {90503: [], 90505: [90501, 90504]})
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+
+    note = text(ids, "boardnote")
+    assert "more than one thing" not in note
+    assert "Nothing waits on an issue that is itself waiting, so the graph is 1 level deep." in note
+    assert "#90505 waits on 2 open issues at once, #90501 and #90504." in note
+    board = text(ids, "board")
+    assert "one thing has to land first" not in board
+    raw = ids["board"]["html"]
+    second = raw.split('<div class="col k1')[1].split('<div class="col k2')[0]
+    assert 'data-n="90505"' in second
+
+
+@pytest.mark.parametrize(
+    ("needs", "sentence"),
+    [
+        ({}, "2 cards wait on an issue that is itself waiting, so the graph is 2 levels deep."),
+        (
+            {90504: [90503]},
+            "3 cards wait on an issue that is itself waiting, so the graph is 3 levels deep.",
+        ),
+    ],
+)
+def test_the_depth_sentence_names_the_longest_chain(
+    tmp_path: Path, needs: dict, sentence: str
+) -> None:
+    """Protects the deep branch from calling two steps the deepest there is.
+
+    The fixture chains 90503 and 90505 behind 90502, which waits on 90501, so
+    its longest chain is two steps. Putting 90504 behind 90503 makes it three,
+    which the sentence used to call "the deepest the graph goes" at two. The
+    short view draws only 90502, so it counts the hidden cards and says so.
+    """
+    docs = _with_needs(fixture_docs(), needs)
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    note = text(ids, "boardnote")
+    assert sentence in note
+    assert "Counting the hidden issues" not in note.split(sentence)[0]
+
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert "Counting the hidden issues, " + sentence in text(ids, "boardnote")
+
+
+def test_several_cards_waiting_on_several_issues_are_each_named(tmp_path: Path) -> None:
+    """Protects the plural branch and the pointer at cards the short view hides.
+
+    Fixture issues 90503 and 90505 each wait on two open issues here, and the
+    short view draws neither, so the note names both and says they are hidden.
+    """
+    docs = _with_needs(fixture_docs(), {90503: [90502, 90504], 90505: [90501, 90504]})
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    note = text(ids, "boardnote")
+    assert "#90503 and #90505 each wait on more than one open issue." in note
+    assert "hidden in this view" not in note
+
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert "#90503 and #90505 are hidden in this view" in text(ids, "boardnote")
+
+
+def test_a_board_where_nothing_waits_says_no_depth(tmp_path: Path) -> None:
+    """Protects the empty branch, where no card waits on any open issue.
+
+    The second and third columns are then empty, so the note gives no depth at
+    all, and the freeing clause is what says nothing waits on anything.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [], 90505: []})
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    note = text(ids, "boardnote")
+    assert "level deep" not in note
+    assert "levels deep" not in note
+    assert "waits on an issue that is itself waiting" not in note
+    assert "No card here is waiting on another" in note
