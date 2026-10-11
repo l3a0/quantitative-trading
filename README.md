@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-one replications run here, fifteen from Chan's *Quantitative Trading*
+Forty-two replications run here, sixteen from Chan's *Quantitative Trading*
 and twenty-six from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-nine were built here.
+where they were first built. The other forty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -573,6 +573,26 @@ where they were first built. The other thirty-nine were built here.
     0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
     the script traded the printed 0.3906. An entry from flat pays no cost,
     as in the script. Every figure is exploratory.
+42. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
+    leveraged portfolio of low-beta stocks should generate higher long-term
+    compounded growth than holding an unleveraged portfolio of high-beta
+    stocks", on Chan's S&P 500 file. Each month-end the lowest and highest
+    fifths by trailing beta are held one month, and the low fifth is levered
+    to the high fifth's mean beta, location 4684's match. The claim is
+    contradicted by ruin. The low fifth's beta at formation fell as low as
+    0.0280, so the match asked for a leverage of up to 69.0762, and the levered
+    portfolio lost more than its capital in the month ending 2001-06-29, at a
+    leverage of 58.0262, and again in September 2001. Location 4700 warns of
+    this: "one should be quite wary of using too much leverage on normally
+    low-beta stocks". The verdict is registered, because the plan and its
+    criterion were written on
+    [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)
+    before any number was computed. The ruin case and its wording are that
+    issue's amendment of 2026-10-11, which the owner ruled after the first
+    ruined month was visible. The span is not a holdout, and every figure is
+    about the stocks still in the index on 2007-11-23. Beside the verdict, the
+    low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
+    untested point estimate, exploratory, and decides nothing.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -992,7 +1012,16 @@ the strict threshold, both legs signed alike with VX scaled by the hedge, the
 one-day lag, the gross divisor and the cost of an exit. It also holds each
 read guarded and the flagged day in VIX read by no figure.
 
-All forty-one replications reach a verdict in
+[tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
+the levered low-beta claim. It pins the calendar, the leverage path, both
+ruined months and the verdict's wording, and beside them the Sharpe ratios,
+the growth, the realised betas, the Kelly reading's Gaussian growth, the
+formation table and the flagged stock-months. On synthetic panels it holds the beta's intercept and its floor
+of 200 days, the tie-break by symbol, the leverage formula, the bill of the
+holding month, the ruin threshold, the 1.645 threshold and the detectable
+gap's formula.
+
+All forty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1012,8 +1041,9 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, Entry 40 the opening gap strategy's on FSTX, and Entry 41 the
-VX against ES trade on VX's roll return.
+trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the VX
+against ES trade on VX's roll return, and Entry 45 the levered low-beta
+claim's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1861,6 +1891,18 @@ figures of each rule beside the script's comment with a verdict, the APR and
 the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
 with no verdict, and how many of the test's days are held, short, long and
 entered from flat.
+
+The levered low-beta claim takes no option either, because the issue
+registered the universe, the window and every rule:
+
+```bash
+uv run python -m chan.low_beta_leverage
+```
+
+It prints the three vintages, the verdict with every ruined month, and beside
+it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
+Gaussian growth, the flagged stock-months and a row for every formation, none
+of which decides anything.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
