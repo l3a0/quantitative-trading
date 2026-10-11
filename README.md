@@ -2707,7 +2707,9 @@ Every other number in the post traces to an assertion in
 [tests/test_series.py](tests/test_series.py) for the 1,885 flags, Apple's
 three flagged days and the 29 stocks with none, to
 [tests/test_pead_rerun.py](tests/test_pead_rerun.py) for Apple's five
-releases inside the window, read from the committed Item 2.02 record, to
+releases inside the window and the two of them the rerun's calendar flags,
+and for the 488 stocks and the 1,540, 311 and 914 flags the two calendars
+share or hold alone, all read from the committed Item 2.02 record, to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) for the two
 Example 7.7 Sharpe ratios Lesson 4 recalls, or to
 [tests/test_pead_figures.py](tests/test_pead_figures.py) for the figure's own
