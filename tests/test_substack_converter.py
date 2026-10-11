@@ -667,6 +667,174 @@ def test_no_committed_post_leaves_markdown_as_literal_text() -> None:
     assert found == set()
 
 
+# The commands whose argument MathJax 3 prints as typed when it lacks the
+# ``textmacros`` package, as Substack's does. ``\mathrm`` and ``\operatorname``
+# are left out, because their argument is math and ``\_`` there draws ``_``.
+TEXT_COMMAND = re.compile(r"\\(?:text(?:tt|bf|it|rm|sf)?|mbox)\{")
+# An inline ``$...$`` span inside a text command's argument is math again.
+INLINE_MATH = re.compile(r"(?<!\\)\$(?:\\.|[^$\\])*\$")
+# A backslash that prints, which is every one not escaping ``$``, ``{`` or ``}``.
+PRINTED_ESCAPE = re.compile(r"\\(?![${}])")
+
+
+def _math_blocks(md: str):
+    """The TeX of every math fence, found by the rule ``md2substack.convert`` uses.
+
+    A fence opens on a line starting with three backticks in its first column,
+    and the first later line that is exactly three backticks closes it. Only a
+    fence opening ```` ```math ```` becomes a ``latex_block``. Any other fence
+    is skipped whole, so TeX inside a ```` ```python ```` fence is code. A
+    ``$$`` block reaches Substack as a plain paragraph, so it is not math here
+    either.
+    """
+    lines = md.split("\n")
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith("```"):
+            j = i + 1
+            while j < len(lines) and lines[j] != "```":
+                j += 1
+            if lines[i].startswith("```math"):
+                yield "\n".join(lines[i + 1 : j])
+            i = j
+        i += 1
+
+
+def _text_arguments(tex: str):
+    """The argument of every text command in ``TEXT_COMMAND``, in order.
+
+    The argument ends at the brace that closes it, counting nested braces and
+    skipping escaped ones. The counting only finds where the argument ends,
+    since MathJax prints a nested brace inside ``\\text{}`` as typed.
+    """
+    for opened in TEXT_COMMAND.finditer(tex):
+        depth, k = 1, opened.end()
+        while k < len(tex) and depth:
+            if tex[k] == "\\":
+                k += 2
+                continue
+            depth += {"{": 1, "}": -1}.get(tex[k], 0)
+            k += 1
+        yield tex[opened.end() : k - 1]
+
+
+def _escapes_inside_text(md: str) -> list[str]:
+    """Every text command's argument in one post's math that prints a backslash.
+
+    An argument counts when it holds a backslash outside an inline ``$`` span
+    that does not escape ``$``, ``{`` or ``}``.
+    """
+    return [
+        argument
+        for tex in _math_blocks(md)
+        for argument in _text_arguments(tex)
+        if PRINTED_ESCAPE.search(INLINE_MATH.sub("", argument))
+    ]
+
+
+def _assert_no_escape_inside_text(posts: dict[str, str]) -> None:
+    """Fail naming each post and argument that would print a backslash on Substack."""
+    found = [
+        (name, argument) for name, md in posts.items() for argument in _escapes_inside_text(md)
+    ]
+    assert found == []
+
+
+def _math(tex: str) -> str:
+    return f"```math\n{tex}\n```\n"
+
+
+ESCAPE_CASES = [
+    pytest.param(_math(r"\text{A\_CAL}"), ["A\\_CAL"], id="text-underscore"),
+    pytest.param(_math(r"\texttt{A\_B}"), ["A\\_B"], id="texttt"),
+    pytest.param(_math(r"\textbf{A\_B}"), ["A\\_B"], id="textbf"),
+    pytest.param(_math(r"\textit{A\_B}"), ["A\\_B"], id="textit"),
+    pytest.param(_math(r"\textrm{A\_B}"), ["A\\_B"], id="textrm"),
+    pytest.param(_math(r"\textsf{A\_B}"), ["A\\_B"], id="textsf"),
+    pytest.param(_math(r"\mbox{A\_B}"), ["A\\_B"], id="mbox"),
+    pytest.param(_math(r"\text{8.7\%}"), ["8.7\\%"], id="percent"),
+    pytest.param(_math(r"\text{R\&D}"), ["R\\&D"], id="ampersand"),
+    pytest.param(_math(r"\text{\#3}"), ["\\#3"], id="hash"),
+    pytest.param(_math(r"\text{a\ b}"), ["a\\ b"], id="control-space"),
+    pytest.param(_math(r"\text{a{b}\_c}"), ["a{b}\\_c"], id="nested-brace"),
+    pytest.param(_math(r"\text{a\}\_c}"), ["a\\}\\_c"], id="escaped-brace"),
+    pytest.param(_math(r"\text{x\_}"), ["x\\_"], id="escape-at-end"),
+    pytest.param(_math(r"\text{$x_1$ is 8\%}"), ["$x_1$ is 8\\%"], id="escape-after-inline-math"),
+    pytest.param(_math(r"\text{A\_B} + \mbox{C\_D}"), ["A\\_B", "C\\_D"], id="two-in-one-block"),
+    pytest.param(
+        "```math\n  ```\n\\text{A\\_B}\n```\n", ["A\\_B"], id="indented-backticks-do-not-close"
+    ),
+    pytest.param(
+        "   ```\n```math\n\\text{A\\_B}\n```\n", ["A\\_B"], id="indented-backticks-do-not-open"
+    ),
+    pytest.param("```math\nx\n```\n```math\n\\text{A\\_B}\n```\n", ["A\\_B"], id="math-after-math"),
+    pytest.param(
+        "```python\nx = 1\n```\n```math\n\\text{A\\_B}\n```\n", ["A\\_B"], id="math-after-code"
+    ),
+    pytest.param(_math(r"\text{A}\_\text{CAL}"), [], id="underscore-in-math"),
+    pytest.param(_math(r"\text{\$5}"), [], id="dollar"),
+    pytest.param(_math(r"\text{a\{b\}}"), [], id="escaped-braces"),
+    pytest.param(_math(r"\text{snake_case}"), [], id="bare-underscore"),
+    pytest.param(_math(r"\text{a{b}c}\_d"), [], id="escape-after-nested-brace"),
+    pytest.param(_math(r"\text{cost $x\_1$}"), [], id="escape-in-inline-math"),
+    pytest.param(_math(r"\mathrm{A\_B}"), [], id="mathrm"),
+    pytest.param(_math(r"\operatorname{A\_B}"), [], id="operatorname"),
+    pytest.param("```python\n\\text{A\\_B}\n```\n", [], id="code-fence"),
+    pytest.param("Prose \\text{A\\_B} outside math.\n", [], id="prose"),
+    pytest.param(
+        "```math\nx\n```\nProse \\text{A\\_B} after a fence.\n", [], id="prose-after-fence"
+    ),
+    pytest.param("$$\n\\text{A\\_B}\n$$\n", [], id="dollar-block"),
+    # The converter reads an indented fence as a paragraph, not as math.
+    pytest.param("   ```math\n   \\text{A\\_B}\n   ```\n", [], id="indented-fence"),
+]
+
+
+@pytest.mark.parametrize(("md", "expected"), ESCAPE_CASES)
+def test_escapes_inside_text_reads_what_substack_prints(md: str, expected: list[str]) -> None:
+    """The check flags exactly the text-command arguments Substack would misprint."""
+    assert _escapes_inside_text(md) == expected
+
+
+def test_no_committed_post_escapes_a_character_inside_text() -> None:
+    """No text command in a post's math holds an escape Substack prints as typed.
+
+    Substack draws LaTeX with MathJax 3 and the TeX packages ``base``, ``ams``,
+    ``newcommand``, ``noundefined``, ``require``, ``autoload`` and
+    ``configmacros``. It has no ``textmacros``, so the argument of ``\\text``,
+    ``\\texttt``, ``\\textbf``, ``\\textit``, ``\\textrm``, ``\\textsf`` and
+    ``\\mbox`` prints as typed. MathJax 3.2.2 run with those packages printed
+    the backslash of ``\\_``, ``\\%``, ``\\&``, ``\\#`` and ``\\`` followed by
+    a space there. It drew ``\\$``, ``\\{``, ``\\}`` and an inline ``$x_1$``
+    correctly, so those are the only backslashes allowed. ``\\mathrm`` and
+    ``\\operatorname`` take math, where ``\\_`` draws an underscore, so the
+    check does not read them.
+
+    The fix moves the character into math mode, as ``\\text{A}\\_\\text{CAL}``,
+    which draws the same on GitHub. The converter already writes a pipe table's
+    cells that way, so this checks what a post writes by hand in a math fence.
+    The fences are found by the rule ``md2substack.convert`` uses, so a ``$$``
+    block, which the converter sends as a paragraph, is not read. The Entry 46
+    post merged with four ``\\_`` cells.
+    """
+    _assert_no_escape_inside_text({post.name: post.read_text(encoding="utf-8") for post in POSTS})
+
+
+def test_the_post_check_fails_on_the_entry_46_post_as_it_merged() -> None:
+    """The committed-post check catches the four cells it was written for.
+
+    Putting the underscores back inside ``\\text{}`` rebuilds the Entry 46
+    post's tables as they merged from the committed post, so the check runs
+    against real content rather than only against posts that pass.
+    """
+    post = REPO_ROOT / "blog" / "pead-edgar-rerun-lessons.md"
+    unfixed = post.read_text(encoding="utf-8").replace("\\text{A}\\_\\text{", "\\text{A\\_")
+    expected = ["A\\_CAL", "A\\_PX", "A\\_U", "A\\_CAL, Chan's flags"]
+    assert _escapes_inside_text(unfixed) == expected
+    with pytest.raises(AssertionError):
+        _assert_no_escape_inside_text({post.name: unfixed})
+
+
 # --- Python and JavaScript agree ------------------------------------------------
 
 # Appended after md2substack.js. It converts every case and prints one line per
