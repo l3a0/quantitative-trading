@@ -10586,7 +10586,9 @@ These are the case `### What precision a number is quoted at` describes.
 
 ### What the entry concludes
 
-Two things, and neither confirms anything.
+Three things, and none confirms anything. The third adds figures the
+write-up measured after the run, which `TestWhatThePostMeasured` in
+[tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) pins.
 
 1. **Capped at what a broker would lend, the rule is not decided on this
    file.** Neither ceiling ruined the portfolio, and both point estimates
@@ -10600,6 +10602,16 @@ Two things, and neither confirms anything.
    though its worst month lost 37 percent of it. Location 4700's caveat stands
    beside the result: "one should be quite wary of using too much leverage on
    normally low-beta stocks".
+3. **Each point estimate sits short of the line a 5 percent test draws, and
+   no leverage up to 5 could have ruined a month.** The yearly Newey-West
+   standard error of the gap is 0.0872 at a ceiling of 2 and 0.1370 at 5, so
+   the one-sided 5 percent line, 1.645 times it, sits at 0.1434 and 0.2254.
+   The gaps of 0.0934 and 0.1659 fall short of those lines, and each is under
+   half of its own Y. June 2001, which ruined the beta match, returned
+   −0.0835 at a ceiling of 2 and −0.2132 at 5. The smallest leverage that
+   would have ruined any of the 83 months is 13.4118, for July 2002, above
+   both ceilings. Measured after the run, so exploratory, and it decides
+   nothing.
 
 ### What this entry cannot say
 
@@ -10628,7 +10640,10 @@ Five things, the plan's five limits.
    a third within the month, and month-end closes cannot see that.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/capped-low-beta-lessons.md](../blog/capped-low-beta-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.low_beta_capped_figures` redraws.
 
 ## Entry 49: the levered low-beta rule after the book, on IVV's S&P 500
 

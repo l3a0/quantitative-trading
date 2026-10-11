@@ -127,6 +127,12 @@ point-in-time panel from 2008 to 2026, which is a holdout.
 prose surface quotes about this run. ``docs/replication-log.md`` Entry 48
 carries the result. It first ran here on 2026-10-11.
 
+:func:`yearly_standard_error` and :func:`five_percent_line` were added by the
+write-up, ``blog/capped-low-beta-lessons.md``, after the run. They measure how
+far each point estimate sat from the line a one-sided 5 percent test draws,
+and decide nothing. :mod:`chan.low_beta_capped_figures` draws that post's
+figure.
+
 Usage:
     python -m chan.low_beta_capped
 """
@@ -413,6 +419,28 @@ def assess(portfolios: Portfolios, ceilings: Sequence[float] | None = None) -> t
     """Each ceiling capped, tested and decided under one control, :data:`CEILINGS` by default."""
     chosen = CEILINGS if ceilings is None else ceilings
     return decide([capped(portfolios, ceiling) for ceiling in chosen])
+
+
+def yearly_standard_error(result: Capped) -> float:
+    """The Newey-West standard error of the yearly gap, 12 times that of the mean of d.
+
+    Read through Entry 45's :attr:`chan.low_beta_leverage.Verdict.standard_error`,
+    the same path :attr:`Capped.detectable` takes, so Y is exactly
+    (1.645 + 0.8416) times this. ``blog/capped-low-beta-lessons.md`` added it
+    after the run, so it decides nothing, and
+    :mod:`chan.low_beta_capped_figures` draws each sampling curve with it.
+    """
+    return Verdict(months=result.months, summary=result._tested()).standard_error * MONTHS
+
+
+def five_percent_line(result: Capped) -> float:
+    """The yearly gap at which the one-sided t reaches 1.645, 1.645 times the standard error.
+
+    A point estimate past this line is what a one-sided 5 percent test calls
+    a gap, before any correction across ceilings. Added after the run by the
+    write-up, like :func:`yearly_standard_error`.
+    """
+    return CRITICAL * yearly_standard_error(result)
 
 
 def charged_gap(portfolios: Portfolios, spread: float) -> float:

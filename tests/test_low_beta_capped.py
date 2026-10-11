@@ -64,10 +64,14 @@ from chan.low_beta_capped import (
     capped,
     charged_gap,
     decide,
+    five_percent_line,
     main,
     report,
+    yearly_standard_error,
 )
 from chan.low_beta_leverage import (
+    CRITICAL,
+    POWER,
     EmptyPortfolio,
     NonPositiveBeta,
     Portfolios,
@@ -77,6 +81,7 @@ from chan.low_beta_leverage import (
     read_sources,
     realised_beta,
     ruined_months,
+    ruinous_leverage,
 )
 from chan.pca_factor_momentum import one_sided_p
 from chan.vintage import VintageUnavailable
@@ -89,6 +94,9 @@ SPEC = (
     "each direction, planned 2026-10-11 before any capped number, exploratory, survivors only, "
     "not a holdout"
 )
+
+
+AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it decides nothing"
 
 
 def spec(ceiling: float) -> str:
@@ -297,6 +305,63 @@ class TestTheRun:
             assert (
                 f"  Y = (1.645 + 0.8416) x the Newey-West standard error x 12 = {y}, per ceiling"
             ) in out
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/capped-low-beta-lessons.md`` quotes that no row of Entry 48 declared.
+
+    The write-up measured every one of them after the run, on the vintages and
+    the specification in :data:`SPEC`, so each is exploratory and none carries
+    an outcome. :func:`chan.low_beta_capped.yearly_standard_error` and
+    :func:`chan.low_beta_capped.five_percent_line` were added for them, and
+    :mod:`chan.low_beta_capped_figures` draws them.
+    """
+
+    @pytest.mark.parametrize(
+        ("ceiling", "figures"), [(2.0, (0.0872, 0.1434)), (5.0, (0.1370, 0.2254))]
+    )
+    def test_the_yearly_standard_error_and_the_5_percent_line(
+        self, outcomes, ceiling: float, figures
+    ) -> None:
+        c = outcomes[ceiling].capped
+        se, line = yearly_standard_error(c), five_percent_line(c)
+        assert (round(se, 4), round(line, 4)) == figures, f"{spec(ceiling)}; {AFTER_THE_RUN}"
+        assert se == pytest.approx(abs(c.summary.mean / c.t) * 12, rel=1e-12)
+        assert line == pytest.approx(CRITICAL * se, rel=1e-12)
+        assert c.detectable == pytest.approx((CRITICAL + POWER) * se, rel=1e-12)
+
+    @pytest.mark.parametrize("ceiling", CEILINGS)
+    def test_each_point_estimate_falls_short_of_its_line(self, outcomes, ceiling: float) -> None:
+        """The t is under 1.645 exactly when the gap is under the line, which is what it draws."""
+        c = outcomes[ceiling].capped
+        assert 0 < c.gap < five_percent_line(c) < c.detectable, f"{spec(ceiling)}; {AFTER_THE_RUN}"
+        assert c.t < CRITICAL
+        # Each point estimate is under half of its own Y, as the post says.
+        assert 2 * c.gap < c.detectable, f"{spec(ceiling)}; {AFTER_THE_RUN}"
+
+    @pytest.mark.parametrize(("ceiling", "june"), [(2.0, -0.0835), (5.0, -0.2132)])
+    def test_june_2001_at_each_ceiling(self, outcomes, ceiling: float, june: float) -> None:
+        """The month the beta match ruined, at a leverage of 2 and 5 rather than 58.0262."""
+        c = outcomes[ceiling].capped
+        held_to = pd.Timestamp("2001-06-29")
+        assert c.portfolios.leverage.loc[held_to] == ceiling, spec(ceiling)
+        assert round(float(c.portfolios.levered.loc[held_to]), 4) == june, (
+            f"{spec(ceiling)}; {AFTER_THE_RUN}"
+        )
+
+    def test_the_smallest_leverage_that_ruins_any_month(self, portfolios: Portfolios) -> None:
+        """No leverage below 13.4118 ruins any of the 83 months, so neither ceiling can.
+
+        Each month's ruinous leverage is (1 + rf) / (rf − r_low), Entry 45's
+        :func:`chan.low_beta_leverage.ruinous_leverage`. The smallest of them
+        belongs to July 2002, the worst month at both ceilings.
+        """
+        needed = ruinous_leverage(portfolios.low, portfolios.rf)
+        assert (round(float(needed.min()), 4), str(needed.idxmin().date())) == (
+            13.4118,
+            "2002-07-31",
+        ), f"{SPEC}; {AFTER_THE_RUN}"
+        assert max(CEILINGS) < needed.min()
 
 
 # --- the rules, on portfolios built by hand ------------------------------------
@@ -577,6 +642,26 @@ class TestTheSideFigures:
         spy = [0.01, -0.02, 0.03, 0.0, -0.01, 0.02]
         p = made(spy, [0.0] * 6, [4.0] * 6, spy=spy)
         assert capped(p, 2.0).realised_beta == pytest.approx(2.0)
+
+
+class TestThePostsHelpers:
+    """The two helpers the write-up added, on a hand-set statistic whose answers are worked here."""
+
+    def test_the_yearly_standard_error_is_12_times_the_mean_over_t(self) -> None:
+        """A monthly mean of 0.001 at a t of 0.5 is a monthly standard error of 0.002."""
+        c = with_statistic(2.0, 0.001, 0.5)
+        assert yearly_standard_error(c) == pytest.approx(0.024, abs=1e-15)
+        assert yearly_standard_error(with_statistic(5.0, -0.001, -0.5)) == pytest.approx(0.024)
+
+    def test_the_line_is_1_645_standard_errors(self) -> None:
+        c = with_statistic(2.0, 0.001, 0.5)
+        assert five_percent_line(c) == pytest.approx(1.645 * 0.024, abs=1e-15)
+        assert c.detectable - five_percent_line(c) == pytest.approx(0.8416 * 0.024)
+
+    def test_a_ruined_ceiling_has_neither(self) -> None:
+        for helper in (yearly_standard_error, five_percent_line):
+            with pytest.raises(ValueError, match="Newey-West statistic is not computed"):
+                helper(ruined_at(5.0))
 
 
 class TestTheBreakEvenSpread:
