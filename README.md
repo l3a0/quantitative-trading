@@ -543,7 +543,22 @@ where they were first built. The other thirty-nine were built here.
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. Every figure is exploratory.
-40. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
+40. VX futures against E-mini S&P 500 futures on VX's roll return, after
+    Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
+    Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
+    trade is short the front VX contract and ES when the front sits above VIX
+    by more than 0.1 point per trading day to settlement, and long both when
+    it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
+    all eight figures its comments print reproduce at six decimals. With
+    0.3906 VX contracts per ES contract, the commented rule, the APR is
+    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
+    lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
+    of 1. With one VX contract per ES contract, the rule the script ships,
+    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
+    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
+    the script traded the printed 0.3906. An entry from flat pays no cost,
+    as in the script. Every figure is exploratory.
+41. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
     leveraged portfolio of low-beta stocks should generate higher long-term
     compounded growth than holding an unleveraged portfolio of high-beta
     stocks", on Chan's S&P 500 file. Each month-end the lowest and highest
@@ -563,21 +578,6 @@ where they were first built. The other thirty-nine were built here.
     about the stocks still in the index on 2007-11-23. Beside the verdict, the
     low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
     untested point estimate, exploratory, and decides nothing.
-41. VX futures against E-mini S&P 500 futures on VX's roll return, after
-    Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
-    Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
-    trade is short the front VX contract and ES when the front sits above VIX
-    by more than 0.1 point per trading day to settlement, and long both when
-    it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
-    all eight figures its comments print reproduce at six decimals. With
-    0.3906 VX contracts per ES contract, the commented rule, the APR is
-    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
-    lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
-    of 1. With one VX contract per ES contract, the rule the script ships,
-    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
-    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
-    the script traded the printed 0.3906. An entry from flat pays no cost,
-    as in the script. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -969,15 +969,6 @@ On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded.
 
-[tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
-the levered low-beta claim. It pins the calendar, the leverage path, both
-ruined months and the verdict's wording, and beside them the Sharpe ratios,
-the growth, the realised betas, the Kelly reading's Gaussian growth, the
-formation table and the flagged stock-months. On synthetic panels it holds the beta's intercept and its floor
-of 200 days, the tie-break by symbol, the leverage formula, the bill of the
-holding month, the ruin threshold, the 1.645 threshold and the detectable
-gap's formula.
-
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
 rules at full precision against the script's comments and the book's two,
@@ -988,6 +979,15 @@ synthetic strips it holds the days to settlement counting one past expiry,
 the strict threshold, both legs signed alike with VX scaled by the hedge, the
 one-day lag, the gross divisor and the cost of an exit. It also holds each
 read guarded and the flagged day in VIX read by no figure.
+
+[tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
+the levered low-beta claim. It pins the calendar, the leverage path, both
+ruined months and the verdict's wording, and beside them the Sharpe ratios,
+the growth, the realised betas, the Kelly reading's Gaussian growth, the
+formation table and the flagged stock-months. On synthetic panels it holds the beta's intercept and its floor
+of 200 days, the tie-break by symbol, the leverage formula, the bill of the
+holding month, the ruin threshold, the 1.645 threshold and the detectable
+gap's formula.
 
 All forty-one replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -1009,8 +1009,8 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, Entry 40 the levered low-beta claim's, and Entry 41 the VX against
-ES trade on VX's roll return.
+trade's, Entry 41 the VX against ES trade on VX's roll return, and
+Entry 45 the levered low-beta claim's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1833,18 +1833,6 @@ script's comment with a verdict, the APR and the Sharpe ratio beside the
 book's with a verdict, and how many days fall in contango, in backwardation
 and with no ratio.
 
-The levered low-beta claim takes no option, because the issue registered the
-universe, the window and every rule:
-
-```bash
-uv run python -m chan.low_beta_leverage
-```
-
-It prints the three vintages, the verdict with every ruined month, and beside
-it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
-Gaussian growth, the flagged stock-months and a row for every formation, none
-of which decides anything.
-
 VX against ES on VX's roll return takes no option either, because the script
 fixes its three files, its threshold, its cost and its test:
 
@@ -1858,6 +1846,18 @@ figures of each rule beside the script's comment with a verdict, the APR and
 the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
 with no verdict, and how many of the test's days are held, short, long and
 entered from flat.
+
+The levered low-beta claim takes no option either, because the issue
+registered the universe, the window and every rule:
+
+```bash
+uv run python -m chan.low_beta_leverage
+```
+
+It prints the three vintages, the verdict with every ruined month, and beside
+it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
+Gaussian growth, the flagged stock-months and a row for every formation, none
+of which decides anything.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

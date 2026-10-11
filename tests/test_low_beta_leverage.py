@@ -2,7 +2,7 @@
 
 This file is the single authority for every number any prose surface quotes
 about [issue 275](https://github.com/l3a0/quantitative-trading/issues/275).
-``docs/replication-log.md`` Entry 40 carries the verdict and points here row by
+``docs/replication-log.md`` Entry 45 carries the verdict and points here row by
 row.
 
 Every pin on the committed files reads three vintages under one specification,

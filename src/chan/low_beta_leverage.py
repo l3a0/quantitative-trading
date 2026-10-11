@@ -767,7 +767,7 @@ def report(
     )
     print(
         "  tuned here. It is not a holdout: the low-beta literature's samples cover 1999 to "
-        "2007. docs/replication-log.md Entry 40 carries the verdict."
+        "2007. docs/replication-log.md Entry 45 carries the verdict."
     )
 
 
