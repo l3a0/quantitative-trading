@@ -1,7 +1,7 @@
 """The pins for Khandani and Lo's reversal on Chan's S&P 600 file, beside his S&P 500 file.
 
 This file is the single authority for every number a prose surface quotes
-about the comparison. ``docs/replication-log.md`` Entry 40 reports it and
+about the comparison. ``docs/replication-log.md`` Entry 44 reports it and
 points here row by row. The S&P 500 figures it reads against are pinned in
 ``tests/test_khandani_lo.py``, and ``TestTheLargeCapSide`` holds that this
 module's runs land on those same pins rather than retyping them as new ones.

@@ -1006,7 +1006,7 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, and Entry 41 the VX against ES trade on VX's roll return. Entry 40
+trade's, and Entry 41 the VX against ES trade on VX's roll return. Entry 44
 carries the reversal on the S&P 600, which has no published number to reach
 a verdict against either.
 
@@ -1046,7 +1046,7 @@ without it. The reversal on the S&P 600 file does not call the guard either.
 Over each stock's own closes the guard refuses its 2006 window on BCSI's
 2006-02-06 and SCUR's 2006-07-12. Before the run both were classified as
 earnings warnings recorded at the prices that traded, so the run keeps them
-and Entry 40 says what each was. The reversal on the 2012 panel does not call
+and Entry 44 says what each was. The reversal on the 2012 panel does not call
 it. Its 2007 to 2011 window spans all
 30 of that file's flagged days, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
