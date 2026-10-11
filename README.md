@@ -1098,8 +1098,9 @@ three variants that each swap one difference between the two programs. On
 synthetic days it holds the port's spread dividing by n − 1 and starting a
 row later, its short test flipped and non-strict, an open above the
 previous high being short, a missing spread qualifying nothing, and its
-Sharpe ratio dividing by n. It also holds the Experiments page's figures as
-the port's comment rounded.
+Sharpe ratio dividing by n with either sign of mean. It also holds the
+Experiments page's figures as the port's comment rounded, and the run's
+port block reporting a figure off the comment as a gap.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both

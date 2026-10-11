@@ -883,3 +883,44 @@ class TestChansPythonPort:
         ]
         assert "long on 0 days, short on 1718, flat on 282, both tests passed on 278" in tail
         assert tail.rstrip().endswith("Exploratory. docs/replication-log.md carries the verdicts.")
+
+    @staticmethod
+    def _report(port: PythonPort) -> str:
+        out = io.StringIO()
+        with redirect_stdout(out):
+            module.report_python_port(port)
+        return out.getvalue()
+
+    def test_a_figure_off_the_comment_reads_as_a_gap(self, port) -> None:
+        """The port's returns scaled by 1.01 move the APR off the comment's six decimals."""
+        moved = PythonPort(
+            days=port.days,
+            spread=port.spread,
+            longs=port.longs,
+            shorts=port.shorts,
+            positions=port.positions,
+            returns=port.returns * 1.01,
+        )
+        row = TestTheReport._row(self._report(moved), "APR")
+        assert row[2] == PORT_APR
+        assert row[3] == "gap"
+        assert "reproduced" not in row
+
+    def test_the_header_and_both_count_read_their_own_inputs(self) -> None:
+        """Three days whose longs are not a subset of its shorts, so both differs from long."""
+        synthetic = PythonPort(
+            days=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]),
+            spread=np.array([np.nan, 0.1, 0.1]),
+            longs=np.array([False, True, True]),
+            shorts=np.array([False, False, True]),
+            positions=np.array([0.0, 1.0, -1.0]),
+            returns=np.array([0.0, 0.01, -0.005]),
+        )
+        lines = self._report(synthetic).splitlines()
+        assert lines[0] == ""
+        assert lines[1] == "Chan's Python port, gapFutures_FSTX.py, on the same save"
+        assert lines[2].split() == ["Figure", "Computed", "Port", "Verdict"]
+        assert lines[-2].strip() == (
+            "long on 1 days, short on 1, flat on 1, both tests passed on 1"
+        )
+        assert lines[-1] == "  Exploratory. docs/replication-log.md carries the verdicts."
