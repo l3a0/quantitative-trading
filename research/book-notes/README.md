@@ -286,7 +286,7 @@ and the ruin leverage of 30.2. Location 3379 holds the historical optimum of
 drawdowns of −0.999 at it, −0.963 at half of it and about −0.5 at about 2.7.
 Location 3438 holds the growth rates of 0.002484 and 0.002525 and the
 drawdown of 0.9. Location 3426 describes the CPPI scheme and prints no
-figure. The replication log's Entry 40 traces each figure to its location.
+figure. The replication log's Entry 43 traces each figure to its location.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216

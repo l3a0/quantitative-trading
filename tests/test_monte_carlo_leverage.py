@@ -2,7 +2,7 @@
 
 This file is the single authority for every number a prose surface quotes
 about *Algorithmic Trading*'s Chapter 8 leverage boxes and the rows beside
-them. ``docs/replication-log.md`` Entry 40 carries the verdicts and points here
+them. ``docs/replication-log.md`` Entry 43 carries the verdicts and points here
 row by row.
 
 Every pin reads one vintage and one specification, so both are stated once
@@ -861,5 +861,5 @@ class TestTheReport:
         ],
     )
     def test_each_seeded_row_s_gap(self, result, name, printed, expected) -> None:
-        """The gaps Entry 40's verdict table prints, at the book's precision."""
+        """The gaps Entry 43's verdict table prints, at the book's precision."""
         assert gap(getattr(result.declared, name), printed) == pytest.approx(expected, abs=1e-12)

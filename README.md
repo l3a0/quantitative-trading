@@ -528,7 +528,9 @@ where they were first built. The other thirty-nine were built here.
     the book describes. It holds 9 US exchange holidays, so it is not a
     settlement series, and its ratio to GLD barely moves from one day to the
     next, which a gap of two and a half hours between the closes would not
-    allow. Every figure is exploratory.
+    allow. The negative Sharpe ratio comes from the script's constant 2
+    percent, which is more than the return, and at the window's bill rate the
+    Sharpe ratio is 0.599257. Every figure is exploratory.
 39. XLE, the energy producers' ETF, held against USO, the crude oil futures
     ETF, in whichever direction crude's roll return favours, location 2734 of
     *Algorithmic Trading*, on Chan's own ETF file and his 2012-05-02 CL strip.
@@ -540,8 +542,26 @@ where they were first built. The other thirty-nine were built here.
     and the Sharpe ratio round to the book's 16 percent and "about 1". The
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
-    returns are not what a holder of XLE earned. Every figure is exploratory.
-40. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
+    returns are not what a holder of XLE earned. The 244 days earning on
+    backwardation hold 0.308117 of the trade's summed daily return of
+    0.946538, and on them USO rose 0.5323 in log terms while the ratio
+    implies a roll return of 0.072380. Every figure is exploratory.
+40. VX futures against E-mini S&P 500 futures on VX's roll return, after
+    Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
+    Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
+    trade is short the front VX contract and ES when the front sits above VIX
+    by more than 0.1 point per trading day to settlement, and long both when
+    it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
+    all eight figures its comments print reproduce at six decimals. With
+    0.3906 VX contracts per ES contract, the commented rule, the APR is
+    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
+    lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
+    of 1. With one VX contract per ES contract, the rule the script ships,
+    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
+    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
+    the script traded the printed 0.3906. An entry from flat pays no cost,
+    as in the script. Every figure is exploratory.
+41. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
     chosen three ways on Example 5.1's 612 saved returns: by the optimum of
     100,000 returns drawn from a Pearson type IV fitted to their four
     moments, by the optimum of the historical growth rate, and with
@@ -561,21 +581,6 @@ where they were first built. The other thirty-nine were built here.
     Box 8.6's CPPI loop breaks the 0.5 drawdown floor on every one of the
     200 seeds, and the CPPI location 3426 describes keeps it on every one.
     Every figure is exploratory.
-41. VX futures against E-mini S&P 500 futures on VX's roll return, after
-    Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
-    Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
-    trade is short the front VX contract and ES when the front sits above VIX
-    by more than 0.1 point per trading day to settlement, and long both when
-    it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
-    all eight figures its comments print reproduce at six decimals. With
-    0.3906 VX contracts per ES contract, the commented rule, the APR is
-    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
-    lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
-    of 1. With one VX contract per ES contract, the rule the script ships,
-    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
-    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
-    the script traded the printed 0.3906. An entry from flat pays no cost,
-    as in the script. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -950,7 +955,12 @@ text's two at six decimals and at the precision Chan printed, the financing
 row beside them, and the measurements that say the GC file is read at GLD's
 close. It also holds every step of the script on synthetic legs whose
 figures are worked out by hand, and the scale-break guard on each series it
-reads.
+reads. It holds what the write-up measured after the run too: the Sharpe
+ratio at no rate and at the window's bill rate, the two drawdowns, the
+return against the bill rate by calendar year, and the daily change in
+log(GC / GLD) on both GC series, with the three helpers behind them on
+synthetic legs. The blog post about it is the exception, and what it says
+that nothing here asserts is listed below.
 
 [tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py) does it
 for the XLE against USO trade. It pins the five figures at full precision
@@ -960,7 +970,25 @@ and in backwardation. It holds the two quirks of the script's loop on this
 strip and the ratio the calendar spread's schedule would give in its place.
 On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
-the half-capital divisor. It also holds both reads guarded.
+the half-capital divisor. It also holds both reads guarded. It holds what the
+write-up measured too: the 40-row start binding only for CL-2007F, the same
+ratio on the save of 2012-08-14, the script's front as the nearest contract on
+734 days and the second on 641, the ratio against Example 5.3's γ, the
+figures from 2006-10-20, and each view's days, returns and implied roll
+return beside the fixed view's. On synthetic frames it holds the split by
+view and the fixed view. The blog post about it is the exception, and what it
+says that nothing here asserts is listed below.
+
+[tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
+for VX against ES on VX's roll return. It pins the eight figures of both
+rules at full precision against the script's comments and the book's two,
+the fitted hedge's miss beside them, and the counts of the test's days held,
+short, long and entered from flat. It holds the two quirks the run keeps,
+the free entry from flat and the file's last day read as an expiry. On
+synthetic strips it holds the days to settlement counting one past expiry,
+the strict threshold, both legs signed alike with VX scaled by the hedge, the
+one-day lag, the gross divisor and the cost of an exit. It also holds each
+read guarded and the flagged day in VIX read by no figure.
 
 [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py) does
 it for Chapter 8's leverage boxes. It pins the deterministic rows exactly, each
@@ -974,17 +1002,6 @@ evidence on the book's 18.4: the Kelly band Example 5.1's printed figures
 allow under three compoundings, and the ensemble rerun with the Kelly set to
 18.4. It holds which band row 3 reads, and both CPPI forms refusing a NaN
 return.
-
-[tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
-for VX against ES on VX's roll return. It pins the eight figures of both
-rules at full precision against the script's comments and the book's two,
-the fitted hedge's miss beside them, and the counts of the test's days held,
-short, long and entered from flat. It holds the two quirks the run keeps,
-the free entry from flat and the file's last day read as an expiry. On
-synthetic strips it holds the days to settlement counting one past expiry,
-the strict threshold, both legs signed alike with VX scaled by the hedge, the
-one-day lag, the gross divisor and the cost of an exit. It also holds each
-read guarded and the flagged day in VIX read by no figure.
 
 All forty-one replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -1006,8 +1023,8 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, Entry 40 Chapter 8's leverage boxes', and Entry 41 the roll-return
-rule's on VX against ES.
+trade's, Entry 41 the roll-return rule's on VX against ES, and Entry 43
+Chapter 8's leverage boxes'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1830,19 +1847,6 @@ script's comment with a verdict, the APR and the Sharpe ratio beside the
 book's with a verdict, and how many days fall in contango, in backwardation
 and with no ratio.
 
-Chapter 8's leverage boxes take no option, because the seeds, the cap and D
-are part of the declaration:
-
-```bash
-uv run python -m chan.monte_carlo_leverage
-```
-
-It prints the vintage and the seeds, every row beside the book's figure with
-its band and a verdict, then the rows beside them, which carry none: the
-fitted parameters, the CPPI location 3426 describes, and the script's lines on
-the historical returns. It ends with the evidence on the book's 18.4. The run
-takes under a minute, about half of it in the two searches for an optimum on each of 401 seeds.
-
 VX against ES on VX's roll return takes no option either, because the script
 fixes its three files, its threshold, its cost and its test:
 
@@ -1856,6 +1860,19 @@ figures of each rule beside the script's comment with a verdict, the APR and
 the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
 with no verdict, and how many of the test's days are held, short, long and
 entered from flat.
+
+Chapter 8's leverage boxes take no option, because the seeds, the cap and D
+are part of the declaration:
+
+```bash
+uv run python -m chan.monte_carlo_leverage
+```
+
+It prints the vintage and the seeds, every row beside the book's figure with
+its band and a verdict, then the rows beside them, which carry none: the
+fitted parameters, the CPPI location 3426 describes, and the script's lines on
+the historical returns. It ends with the evidence on the book's 18.4. The run
+takes under a minute, about half of it in the two searches for an optimum on each of 401 seeds.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -4784,6 +4801,216 @@ uv run python -m chan.cl_reversal_momentum_figures
 ```
 
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
+holding GLD long and gold futures short at Kindle locations 2718 and 2730 of
+Chan's *Algorithmic Trading*, which collects gold's negative roll return.
+Chan reports an annualized return of 1.9 percent and a maximum drawdown of 0.8
+percent from 2007-08-03 to 2010-08-02, and says GLD's financing cost leaves
+an excess return close to zero. The post links the spot and roll returns post,
+the VX against E-mini post, the crude oil reversal and momentum post, the
+factor models post, the Kelly leverage on SPY post and the GLD/GDX post rather
+than repeating them, and draws four lessons from Entry 38 of the replication
+log.
+
+1. Every figure lands, and the 0.8 percent and the 91 days are two
+   drawdowns. The deepest is mostly 2007-11-12, and the longest runs from
+   2009-08-28 to 2010-01-08 and reaches only −0.40907 percent.
+2. The negative Sharpe ratio comes from the script's constant 2 percent,
+   105.18 percent of the return. With no rate subtracted it is 1.284060, and
+   at the window's bill rate 0.599257.
+3. The bill rate takes 0.533311 of the return, and the return fell with the
+   bill rate year by year, a split chosen after the run.
+4. The 16:00 series lines up with GLD's close within a bound the suite pins,
+   though the book's reason for dismissing the timing caveat does not fit a
+   script with no signal.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The trade, its figures, GLD owning physical gold, the −4.9 percent roll
+   return from 1982 to 2004, the leverage of 5 or 6, the financing claim and
+   "close to zero" are at 2718. The 1:30 p.m. and 4:00 p.m. times and the
+   reason about signals are at 2730, the settlement price as a vendor's usual
+   close at 561, and the spread between a future and an ETF at 583.
+2. Facts about the script rather than the data: its five steps, its
+   `riskFreeRate=0.02/252` line, and that it holds the pair every day with
+   no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the bill rate is a floor on financing
+   because a broker lends above it, that an offset's share of a day carries
+   roughly that share of the day's variance in a market trading nearly
+   around the clock, that whatever else moves log(GC / GLD) does not cancel
+   an offset's moves, which the bound of 0.001775 rests on, that a small
+   reading error or an offset of minutes makes a daily change reverse, that
+   GC trades on COMEX, and the cost of carry, cited from Hull as the usual
+   explanation and not tested.
+4. Figures the post states in words or rounded from pinned ones, such as
+   about half, ten times as large, the 150 minutes in two and a half hours,
+   the 91-day stretch about half as deep as the November 2007 fall, the OHLC
+   series moving most of the way back on 2008-09-19, and S rising by less
+   than a percentage point from 2008-12-31 to its high. The prose writes
+   pinned fractions in percent, such as 1.0141 percent for 0.010141. The
+   figure's alt text reads its curves approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_gld_gc.py](tests/test_gld_gc.py), or to
+[tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
+figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
+before it, all measured after the run.
+
+1. The Sharpe ratio of 1.284060 with no rate subtracted and 0.599257 at the
+   window's bill rate over 252, the break-even rate at the mean return of
+   1.9014 percent, and the script's 2 percent as 105.18 percent of the return.
+2. The bill rate's share of the return, 0.533311, written in the post as
+   53.33 percent.
+3. S's average annual return against the bill rate by calendar year, 101,
+   253, 251 and 146 rows, 0.052235 against 0.036520, 0.027315 against
+   0.013650, 0.005822 against 0.001500 and 0.004458 against 0.001350, a margin
+   shrinking from 1.57 percentage points to 0.31, and the 22 of 37 months
+   below 0.5 percent, from 2008-11 to 2010-08.
+4. The deepest drawdown's high on 2007-10-12, trough on 2007-11-12 and
+   recovery on 2007-11-14, that day's −0.6771 percent for the trade, −4.7213
+   for GLD and −4.0442 for GC, and the longest stretch from 2009-08-28 to
+   2010-01-08 at worst −0.40907 percent.
+5. The 16:00 series' largest move falling on 2007-11-12, its minimum of
+   −0.006626 and its lag-1 autocorrelation of −0.437059. The bound on an
+   offset between the two closes read as about 2.6 minutes of a 24-hour day.
+   The OHLC series' largest move falling on 2008-09-18, its minimum of
+   −0.075146 on 2008-09-19, and its 8 moves past 0.02 up and 12 down. No GC
+   series here starting before 2004-05-24, the OHLC series' first day.
+6. The three curves' ends, 0.058033 for S, 0.031057 for bills and 0.061413
+   for 2 percent a year, S at 0.049260 and bills at 0.028733 on 2008-12-31,
+   S's high of 0.058415 on 2010-07-27, and 2010-05-21 as the last day S stands
+   above the 2 percent line.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/gld_gc_figures.py](src/chan/gld_gc_figures.py), which reads them
+through the same `read_sources`, `read_ohlc_gc`, `gld_gc` and
+`ratio_steps` as `python -m chan.gld_gc`, so the scale-break guard runs for it
+too, once for each file. It draws two panels.
+
+1. S's cumulative return beside bills accrued at each month's TB3MS over 252
+   and the script's 2 percent a year, compounded, with the 91 days shaded and
+   the deepest trough marked.
+2. The daily change in log(GC / GLD) on the 16:00 series and on the OHLC
+   series, with dashed lines at plus and minus 0.02.
+
+```bash
+uv run python -m chan.gld_gc_figures
+```
+
+[tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) holds what it
+draws rather than its bytes, for the reason given above for the regime map.
+
+[blog/xle-uso-roll-return-lessons.md](blog/xle-uso-roll-return-lessons.md) is
+a thirty-sixth post, about the XLE against USO trade at location 2734 of
+Chan's *Algorithmic Trading*. The trade is short USO and long XLE when crude
+oil's back contract is priced above its front, and the reverse when below.
+Chan reports an APR of 16 percent and a Sharpe ratio of about 1 from
+2006-04-26 to 2012-04-09. The post links the long GLD and short gold futures
+post, the crude oil calendar spread post, the spot and roll returns post, the
+crude oil reversal and momentum post and the gold miners post rather than
+repeating them, and draws five lessons from Entry 39 of the replication log.
+
+1. The pair stands in for crude's spot against its futures only by the book's
+   argument, and the script's front is the nearest contract on 734 of the
+   1,375 days with a ratio and the second-nearest on 641.
+2. All five figures the script's comment prints and the book's two land, and
+   the one-pair ratio and Example 5.3's γ call the same view on 1,354 of the
+   1,373 days the ratio is not exactly 1.
+3. The trade holds contango on 1,129 days and backwardation on 244, and
+   nothing on its first 123. From 2006-10-20 its APR is 0.174513.
+4. The ETF file subtracts dividends in dollars, so XLE's returns are not what
+   a holder earned, and nothing committed measures by how much.
+5. The 244 days earning on backwardation hold 0.308117 of the summed daily
+   return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
+   implies a roll return of 0.072380, and holding contango's position
+   throughout gives an APR of 0.044949.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   USO not owning oil at 1939, XLE and the spot price at 2385, the arbitrage
+   of the underlying against the future at 2718, and the trade, its figures
+   and Figure 6.3's caption at 2734.
+2. Facts about the script rather than the data: its comment calling the
+   front window days before expiration, and its commented-out last lines
+   that overlay the contango flag on its plot, both in `XLE_CL_rollReturn.m`
+   at `e4bc46f` of ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the ratio approximates the roll return
+   under the book's model, that the old front is still priced for the 10
+   rows after the script moves on, that rescaling gives a holder's return
+   and subtraction reads larger in the earliest years, that a yfinance
+   adjusted close rescales, that a fund drops by about its dividend on the
+   day it goes out, that XLE pays dividends, that Chan's single contracts
+   were not rewritten between his saves the way a continuous future is, that
+   the contango days are the book's trade and the backwardation days a bet on
+   the funds' moves, and that a split by date was measured and left out.
+4. Figures the post states in words or rounds from pinned ones, such as a
+   third, under a fifth of the earning days, about 7 percent, close to USO's
+   fall, far exceeds, a small part, one fewer than 1,129, 127 and 84 percent,
+   and the contango of early 2009. The figure's alt text reads its curves
+   approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py), or to
+[tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
+for the figure's own numbers. CL's γ changing sign 29 times, which the post
+cites from the spot and roll returns post, traces to
+[tests/test_roll_returns.py](tests/test_roll_returns.py), and SPY's 14.98 and
+its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
+[tests/test_series.py](tests/test_series.py). Nine had no pin before it.
+
+1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
+   gives the same ratio on all 1,375 days.
+2. USO's close falls from 69.54 to 38.97, or 43.9603 percent, and XLE's rises
+   from 51.97 to 69.61, or 33.9427 percent.
+3. The script's front is the nearest priced contract on 734 days and the
+   second-nearest on 641.
+4. The ratio and Example 5.3's γ on the save of 2012-08-14 agree on 1,354 of
+   the 1,373 days the ratio is not exactly 1, with 13 and 6 the other way, and γ
+   positive on both days the ratio is 1.
+5. From 2006-10-20 the APR is 0.174513 and the Sharpe ratio 1.092618, with
+   both drawdown figures unchanged, and after its first entry the position
+   changes on 19 days.
+6. The trade earns on contango on 1,128 days and on backwardation on 244,
+   compounding to 0.790269 and 0.343539 and summing to 0.638420 and 0.308117
+   of 0.946538.
+7. USO moves −0.567754 and 0.702850 and XLE 0.549091 and −0.097061 over those
+   days, USO's log moves are −0.8388 and 0.5323, and the ratio implies roll
+   returns of −0.766081 and 0.072380.
+8. Holding contango's position on every held day gives an APR of 0.044949 and
+   a Sharpe ratio of 0.364524.
+9. The figure's own: the two curves' ends of 1.405296 and 0.298702, which
+   its legend prints as 140.53 and 29.87 percent, the
+   drawdown's high of 1.272665 on 2009-02-18 and trough of 0.835584 on
+   2009-06-29, the longest run below a high from 2009-02-19 to 2011-01-24,
+   the nine backwardation spans, and the ratio's low of 0.982067 on 2007-09-26
+   and high of 1.111489 on 2009-02-05.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/xle_uso_roll_return_figures.py](src/chan/xle_uso_roll_return_figures.py),
+which reads them through the same `read_sources`, `front_ratio` and
+`arbitrage` as `python -m chan.xle_uso_roll_return`, so the scale-break guard
+runs for it too. It draws two panels on one date axis, both shading the days
+held in backwardation and hatching the first 123 days.
+
+1. The trade's cumulative compounded return, the book's Figure 6.3, with
+   contango's position held on every held day beside it and the drawdown's
+   high, trough and longest run marked.
+2. The ratio of the back contract to the front, with a line at 1.
+
+```bash
+uv run python -m chan.xle_uso_roll_return_figures
+```
+
+[tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
