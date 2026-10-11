@@ -52,7 +52,9 @@ The conversion handles the Markdown shapes below, listed in the order
    row under it is a paragraph line. The price is that a cell loses its
    links and formatting.
 7. Lines opening ``1. `` or ``- `` become an ordered or bulleted list. An item
-   may carry one nested list, indented three spaces.
+   may carry one nested list, indented three spaces. Nothing else indented
+   under an item is read as part of it. A fence or a further paragraph there
+   becomes a paragraph opening with spaces, and the list splits around it.
 8. Every other run of non-blank lines becomes one paragraph. A paragraph ends
    at a blank line or at a line that opens any block above.
 

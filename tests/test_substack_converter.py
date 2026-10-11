@@ -652,16 +652,17 @@ def test_no_committed_post_leaves_markdown_as_literal_text() -> None:
     no committed post has. Two posts did this before the converter learned
     these shapes, and their drafts were made by another route.
 
-    A fence indented under a list item is not read as a fence, so it becomes a
-    paragraph opening with spaces and the backticks around a code span. The
-    Entry 34 post carried two such equations when it merged, and this check
-    found them before its draft was written.
+    Anything indented under a list item beyond its one nested list is not read
+    as part of the item. A fence or a further paragraph there becomes a
+    paragraph opening with spaces, and the list splits around it. The Entry 34
+    post carried two such equations and the two paragraphs after them when it
+    merged, and this check found them before its draft was written.
     """
     found = set()
     for post in POSTS:
         draft = m2s.convert(post.read_text(encoding="utf-8"), images_for(post))
         texts = list(_paragraph_texts(draft["body"]))
-        if any(t.startswith(("|", "#", "![")) or t.lstrip().startswith("``") for t in texts):
+        if any(t.startswith(("|", "#", "![")) or t[:1].isspace() for t in texts):
             found.add(post.name)
     assert found == set()
 
