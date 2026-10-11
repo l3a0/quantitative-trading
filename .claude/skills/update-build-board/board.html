@@ -399,6 +399,10 @@ const PRU = "https://github.com/l3a0/quantitative-trading/pull/";
    built into the page and how old that copy is. */
 const DB_COLLECTION = "board";
 const SECTIONS = ["state", "prs", "working", "planned", "next", "tracker"];
+/* How often the board on GitHub Pages fetches board.json again. Pages tells a
+   browser to cache the file for ten minutes, so each fetch asks for a URL no
+   cache has seen and tells the browser to store nothing. */
+const FETCH_EVERY = 120000;
 const FALLBACK = { none: true };
 /* True while there is no board to draw. Every section states facts about the
    tracker, so the page draws nothing but the banner until it has data. */
@@ -454,13 +458,47 @@ function adopt(src) {
     a.issue - b.issue);
 }
 
-/* The banner is empty while the page shows live data, and says what it is
-   showing otherwise. It never guesses at why a view cannot reach the database,
-   because the platform deliberately does not say. */
+/* What the banner says over a live board. A database board carries neither
+   field read here, so its banner stays empty while it is live. The board an
+   Action builds on GitHub Pages carries both.
+
+   The stale warning exists because a failed run leaves the last board up, and
+   a board an hour stale looks like a fresh one. The stamp already says its
+   age, and a stamp nobody reads alarms nobody. The threshold comes from the
+   board rather than from this page, because the generator reads it from the
+   workflow's schedule, and a second copy written here would drift the first
+   time the schedule changed.
+
+   `lacks` names the fields the Action does not build yet. Until issue 533
+   moves them onto GitHub, the default view draws no ranked cards, and a reader
+   who took that board for the one of record would read an empty plan. */
+function liveNotes() {
+  const s = STATE || {};
+  const out = [];
+  if (isNum(s.staleAfterMinutes)) {
+    const age = (Date.now() - new Date(s.updatedAt).getTime()) / 60000;
+    if (age > s.staleAfterMinutes) out.push(
+      `<b>This board may be stale.</b> It was built from GitHub ${esc(ago(s.updatedAt))}, ` +
+      `while a scheduled rebuild runs at least every ${s.staleAfterMinutes / 2} minutes, ` +
+      `so the Action that rebuilds it may be failing.`);
+  }
+  if (Array.isArray(s.lacks) && s.lacks.length) out.push(
+    `<b>Built from GitHub alone.</b> This board does not carry ${esc(andlist(s.lacks))} yet, ` +
+    `so its default view draws no ranked cards. The artifact board stays the board of record ` +
+    `until it does.`);
+  return out;
+}
+
+/* The banner is empty while the page shows live data, apart from the notes
+   above, and says what it is showing otherwise. It never guesses at why a view
+   cannot reach the database, because the platform deliberately does not say. */
 function source() {
   const el = document.getElementById("source");
   if (!el) return;
-  if (SOURCE.live) { el.hidden = true; el.innerHTML = ""; return; }
+  if (SOURCE.live) {
+    const notes = liveNotes();
+    el.hidden = !notes.length; el.innerHTML = notes.join(" "); return;
+  }
   /* A function, because STATE is unset while the page has no data. */
   const age = () => `measured ${esc(ago(STATE.updatedAt))}`;
   const copy = NONE ? `no board data` : `the copy built into the page, ${age()}`;
@@ -475,8 +513,12 @@ function source() {
       ? `The live board is missing ${esc(SOURCE.missing)}.`
       : `The live board holds no document yet.`),
     shape: `<b>Showing ${copy}.</b> The live board's ${esc(SOURCE.missing || "")} section is missing fields this page needs, so it was not used.`,
+    /* A fetched board retries on its own timer, so it says so rather than
+       asking for a reload a database subscription needs. */
     stopped: `<b>Live updates stopped${SOURCE.code ? ` (${esc(SOURCE.code)})` : ""}.</b> ` +
-      (SOURCE.had ? `What is shown is the last live data, ${age()}. Reload to reconnect.`
+      (SOURCE.had ? `What is shown is the last live data, ${age()}. ` +
+                    (SOURCE.retry ? `The page tries again every ${FETCH_EVERY / 60000} minutes.`
+                                  : `Reload to reconnect.`)
                   : `Showing ${copy}.`)
   };
   el.innerHTML = lines[SOURCE.why] || lines.none;
@@ -858,15 +900,23 @@ const orlist = xs => joinwith("or", xs);
 /* A rollup is folded to the worst thing in it, because a board reader deciding
    whether a branch is ready needs the blocker rather than the tally. An entry
    still running and an empty rollup each read as themselves rather than as a
-   pass, so nothing unfinished is drawn as green. */
+   pass, so nothing unfinished is drawn as green.
+
+   Only `success` is green. This used to count `failure`, `running` and
+   `neutral` and call every other word a pass, so GitHub's own uppercase
+   `FAILURE` or `TIMED_OUT`, passed through as they come, read as green. The
+   generator behind the board on GitHub Pages maps every state into the four
+   words, and a word this page does not know now reads as reported neither way,
+   so the next state GitHub adds cannot arrive here as a pass. */
 function checkword(rollup) {
   const c = k => (rollup || []).filter(([, s]) => s === k).length;
   if (!rollup || !rollup.length) return ["none", "no checks reported"];
-  const bad = c("failure"), run = c("running"), neu = c("neutral");
+  const bad = c("failure"), run = c("running");
+  const odd = rollup.length - bad - run - c("success");
   if (bad) return ["bad", plu(bad, "check") + " failing" +
     (run ? ", " + plu(run, "check") + " still running" : "")];
   if (run) return ["run", plu(run, "check") + " still running"];
-  if (neu) return ["none", plu(neu, "check") + " reported neither way"];
+  if (odd) return ["none", plu(odd, "check") + " reported neither way"];
   return ["ok", "checks green"];
 }
 
@@ -925,9 +975,15 @@ function stamped() {
   if (WORKING.length) decay.push("a session that has ended since then still reads as running");
   if (open.length) decay.push("a check that has gone green or red since then still reads here as it read then");
   if (open.some(p => !p.reviewed)) decay.push("a review posted since then still reads as owed");
+  /* The board an Action builds is not measured by hand, so it says how it is
+     built instead. Its figures still date from the stamp rather than from the
+     moment of reading, so the decay clause holds for both. */
+  const how = STATE.source === "github"
+    ? `Built from GitHub by an Action on each change and on a schedule, and fetched ` +
+      `again every ${FETCH_EVERY / 60000} minutes`
+    : `Measured by hand. The page cannot read the disk or poll GitHub`;
   document.getElementById("foot").innerHTML =
-    `<p>Measured by hand. The page cannot read the disk or poll GitHub, ` +
-    `so every figure on it is current as of the stamp above rather than live.` +
+    `<p>${how}, so every figure on it is current as of the stamp above rather than live.` +
     (decay.length ? ` The In flight section decays fastest: ${andlist(decay)}.` : ``) +
     `</p>`;
 }
@@ -1416,7 +1472,12 @@ function buildOrder() {
            than the code-span defect this warning was written for, so it is
            said plainly instead of being warned about. A closed pull request
            will never merge and closes nothing, so neither sentence applies to
-           it and it gets none. */
+           it and it gets none.
+
+           The warning reaches only the artifact board. On the board an Action
+           builds, an entry exists only where GitHub registered a closing link
+           or a `Part of` line names the issue, so `linked` is false exactly
+           when `partOf` is true and the warning never fires there. */
         const loose = p.state === "closed" ? "" : p.partOf
           ? `<span class="nolink">part of #${c.n}, which stays open for what this does not do</span>`
           : p.linked ? "" : `<span class="nolink">${p.state === "merged"
@@ -2205,6 +2266,25 @@ function render() {
 adopt(FALLBACK);
 render();
 
+/* Draws a complete set of live sections, and rolls back to the last good
+   board when the draw throws. Both paths call it, the database subscription
+   and the fetch, so a section that breaks the drawing code is handled one way
+   whichever path delivered it. With no data on screen, a failed first draw goes
+   back to drawing none. */
+function drawLive(live, had, retry) {
+  const last = NONE ? FALLBACK
+    : { state: STATE, prs: PRS, working: WORKING, planned: PLANNED,
+        next: NEXT, tracker: TRACKER };
+  try {
+    adopt(live); SOURCE = { live: true }; render(); return true;
+  } catch (e) {
+    adopt(last);
+    SOURCE = { live: false, why: "stopped", had, retry, code: "a live section could not be drawn" };
+    try { render(); } catch (e2) { source(); }
+    return false;
+  }
+}
+
 /* Subscribe once per section. The page goes live when all six sections have
    arrived and passed `usableSection`, and from then on each write replaces its
    own section and redraws. Nothing draws until the sixth arrives, so the six
@@ -2226,17 +2306,7 @@ function connect(db) {
       }
       return;
     }
-    /* With no data on screen, a failed first draw goes back to drawing none. */
-    const last = NONE ? FALLBACK
-      : { state: STATE, prs: PRS, working: WORKING, planned: PLANNED,
-          next: NEXT, tracker: TRACKER };
-    try {
-      adopt(live); SOURCE = { live: true }; render(); had = true;
-    } catch (e) {
-      adopt(last);
-      SOURCE = { live: false, why: "stopped", had, code: "a live section could not be drawn" };
-      try { render(); } catch (e2) { source(); }
-    }
+    if (drawLive(live, had, false)) had = true;
   };
   SECTIONS.forEach(name => {
     try {
@@ -2271,19 +2341,106 @@ function connect(db) {
   });
 }
 
+/* The board on GitHub Pages has no database. A GitHub Action rebuilds
+   board.json beside this page on every change and on a schedule, holding the
+   same six sections, so the page fetches it on a timer instead of subscribing.
+   Issue 532 built this path beside `connect` rather than in its place, because
+   the artifact board publishes this same file and stays the board of record
+   until every section it draws comes from GitHub.
+
+   It reads the file the way `connect` reads a write. Every section must be
+   present and pass `usableSection`, and a draw that throws keeps the last good
+   board. Unlike a subscription it tries again on its own, so a fetch that
+   fails after a board has drawn keeps that board on screen and says when it
+   tries next, and the next good fetch goes live again. A file identical to the
+   last one is not drawn again, which keeps a picked card picked between
+   fetches, while the banner is still rebuilt so the stale warning can appear.
+
+   A first fetch that fails says what a view with no database says, because to
+   the reader it is the same thing: there is no board here to show. `get` is
+   the browser's fetch, and the tests hand it a fake. */
+function connectFetch(get) {
+  let had = false;
+  let lastText = null;
+  const failed = code => {
+    SOURCE = had ? { live: false, why: "stopped", had, retry: true, code }
+                 : { live: false, why: "none" };
+    source();
+  };
+  /* Polls can overlap, since a slow answer can outlast the two minutes until
+     the next one. An answer from an earlier poll than one already handled is
+     dropped, whatever it says, so a late success cannot draw over a newer board
+     and a late failure cannot mark a live board stopped. A fetch that hangs is
+     abandoned after thirty seconds where the browser can time one out. */
+  let issued = 0, handled = 0;
+  const read = async () => {
+    try {
+      const signal = typeof AbortSignal !== "undefined" && AbortSignal.timeout
+        ? AbortSignal.timeout(30000) : undefined;
+      const r = await get(`board.json?t=${Date.now()}`, { cache: "no-store", signal });
+      if (!r || !r.ok) return { code: `board.json answered ${r ? r.status : "nothing"}` };
+      return { text: await r.text() };
+    } catch (e) { return { code: "board.json could not be fetched" }; }
+  };
+  const poll = async () => {
+    const seq = ++issued;
+    const got = await read();
+    if (seq < handled) return;
+    handled = seq;
+    if (got.code) return failed(got.code);
+    const text = got.text;
+    if (had && text === lastText) { SOURCE = { live: true }; source(); return; }
+    let d;
+    try { d = JSON.parse(text); } catch (e) { return failed("board.json is not JSON"); }
+    /* A cache between Pages and the reader can serve a copy older than the
+       one on screen. Drawing it would move the board back in time, so the
+       newer one stays. */
+    if (had && d && d.state && isStr(d.state.updatedAt) &&
+        new Date(d.state.updatedAt) < new Date(STATE.updatedAt)) {
+      SOURCE = { live: true }; source(); return;
+    }
+    const gone = SECTIONS.filter(s => !d || d[s] === undefined || d[s] === null);
+    if (gone.length) {
+      if (had) return failed(`board.json is missing ${andlist(gone)}`);
+      SOURCE = { live: false, why: "empty",
+                 missing: gone.length === SECTIONS.length ? "" : andlist(gone) };
+      return source();
+    }
+    const bad = SECTIONS.find(s => !usableSection(s, d[s]));
+    if (bad) {
+      if (had) return failed(`unreadable ${bad}`);
+      SOURCE = { live: false, why: "shape", missing: bad };
+      return source();
+    }
+    const live = {};
+    SECTIONS.forEach(s => { live[s] = s === "state" ? d[s] : d[s].items; });
+    if (drawLive(live, had, true)) { had = true; lastText = text; }
+  };
+  poll();
+  setInterval(poll, FETCH_EVERY);
+}
+
 (async () => {
   let db = null;
   try {
     const host = typeof globalThis !== "undefined" ? globalThis : {};
     db = host.claude && host.claude.use ? await host.claude.use("db") : null;
   } catch (e) { db = null; }
-  if (!db) { SOURCE = { live: false, why: "none" }; source(); return; }
-  connect(db);
+  if (db) { connect(db); return; }
+  if (typeof fetch === "function") {
+    SOURCE = { live: false, why: "loading" }; source();
+    connectFetch((url, opts) => fetch(url, opts));
+    return;
+  }
+  SOURCE = { live: false, why: "none" }; source();
 })();
 
+/* The stamp ages by the minute, and so can the stale warning over a live
+   board, so the banner is rebuilt with it. */
 setInterval(() => {
   const el = document.getElementById("stamp");
   if (el && !NONE) el.textContent = "measured " + ago(STATE.updatedAt);
+  if (SOURCE.live && !NONE) source();
 }, 60000);
 </script>
 
