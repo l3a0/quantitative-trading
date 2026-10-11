@@ -542,11 +542,12 @@ where they were first built. The other thirty-seven were built here.
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. Every figure is exploratory.
 
-Two more results run here, and neither is a replication. The first is a
-fixed-income candidate. The same passage names bonds of one issuer as a place a stationary spread should live without naming
-an instrument, so there is no number of his to reproduce and no series of his
-to test. That fixed-income candidate, bonds of one issuer at two maturities, is tested on TLT
-against IEF, and the result is a finding rather than a verdict. Over
+Two more results run here, and neither is a replication. The first comes from
+the same passage, which names bonds of one issuer as a place a stationary
+spread should live without naming an instrument, so there is no number of his
+to reproduce and no series of his to test. That fixed-income candidate, bonds
+of one issuer at two maturities, is tested on TLT against IEF, and the result
+is a finding rather than a verdict. Over
 2002-07-30 to 2026-10-01 neither orientation rejects the no-cointegration
 null, at −2.3887 and −2.3168 against a 10% bar of −3.04, and the residual check
 moves both further from rejecting rather than closer. It is exploratory, and it
@@ -561,7 +562,9 @@ against the S&P 500 file's 0.2510 and 4.4202, so it points the way Chan says
 at both prices under the reading declared before the run. The gap on the
 closes, +3.1576, is more than three times its standard error of 0.9872, and
 the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
-opens cannot tell the two universes apart. It is exploratory, both files hold
+opens cannot tell the two universes apart. The standard error assumes
+independent, normal days, which a reversal's are not, so it is an
+approximation. It is exploratory, both files hold
 only survivors, and it says nothing about microcaps, which the S&P 600 does
 not hold.
 
@@ -633,8 +636,9 @@ gaps to the S&P 500's, and both before-cost gaps' standard errors,
 correlations and z values, each naming its vintage, and it pins the declared
 reading. It works Memmel's standard error by hand on a four-day series. It
 also holds that the two files' 2006 calendars are the same 251 days, that
-BCSI's and SCUR's flagged days are weighted, that PMC carries no weight, and
-that the scale-break guard refuses the window on exactly those two days.
+BCSI's and SCUR's two days past the scale-break bound are weighted, that PMC,
+two companies under one symbol with no 2006 price, carries no weight, and that
+the scale-break guard refuses the window on exactly those two days.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
@@ -1004,12 +1008,12 @@ that is not finite. `chan.khandani_lo`'s docstring says why the guard is not
 called there. Example 3.8's rule A, Chan's Python notebook, fills the gap and
 reads it as a return of 121.5 on the closes and 127.65 on the opens, because
 that is what his notebook computed, and the entry reports what the figures are
-without it. The reversal on the S&P 600 file does not call it either. Over
-each stock's own closes the guard refuses its 2006 window on BCSI's 2006-02-06
-and SCUR's 2006-07-12, and both were classified as earnings warnings that
-traded before the run, so the run keeps them and Entry 40 says what each was.
-The
-reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
+without it. The reversal on the S&P 600 file does not call the guard either.
+Over each stock's own closes the guard refuses its 2006 window on BCSI's
+2006-02-06 and SCUR's 2006-07-12. Before the run both were classified as
+earnings warnings recorded at the prices that traded, so the run keeps them
+and Entry 40 says what each was. The reversal on the 2012 panel does not call
+it. Its 2007 to 2011 window spans all
 30 of that file's flagged days, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
 2009-09-02 does not. The

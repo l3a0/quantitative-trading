@@ -40,11 +40,12 @@ computes.
 1. **Direction.** At each price the S&P 600 figure before costs is read
    against the S&P 500's. Higher at both prices reads as pointing the way Chan
    says, higher at one only reads as mixed, and higher at neither reads as
-   pointing against it. :func:`direction` holds those words.
-   :func:`points_chans_way` reads one price as an order from the largest
-   capitalisation to the smallest, so
-   [issue 303](https://github.com/l3a0/quantitative-trading/issues/303) can
-   hand it a mid-cap figure between the two without a second rule.
+   pointing against it. :func:`direction` holds those words, and it takes
+   exactly two universes at each price. :func:`points_chans_way` reads one
+   price as an order from the largest capitalisation to the smallest.
+   [Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) calls
+   :func:`points_chans_way` with three figures and declares its own words for
+   an order that fails.
 2. **Size.** Each before-cost gap is read against its own sampling noise,
    the standard error of a difference between two Sharpe ratios measured on
    the same days, which :func:`sharpe_gap` computes. A gap more than twice its
@@ -55,17 +56,19 @@ computes.
 
 The primary reading is before costs, because Chan's explanation is about
 where the returns come from. The after-cost figures are printed and read the
-same way, and they flatter the small caps, because both universes are charged
-the same 5 basis points while a trader pays more to trade small caps.
+same way. They flatter the small caps, because the run charges both
+universes the same 5 basis points while a trader pays more to trade small
+caps. The S&P 600 also holds no microcaps, which Chan's sentence names too.
 
 **Two flagged days stay in.** :func:`chan.series.scale_breaks` flags BCSI's
-close on 2006-02-06 and SCUR's on 2006-07-12, each just below the bound. Both
-were classified from each member's own prices and from outside evidence before
-any strategy figure was computed, in
+close on 2006-02-06 and SCUR's on 2006-07-12, each just past the factor-of-1.6
+bound. Both were classified from each member's own prices and from outside
+evidence before any strategy figure was computed, in
 [the classification comment on issue 249](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104857463).
 Each is an earnings warning recorded at the prices that traded, so under the
-declared rule neither is excluded and the run has one version. Rule B trades a
-real move whatever caused it.
+declared rule neither is excluded, and the run reports one set of figures
+rather than one with the exclusion and one without. Rule B trades a real move
+whatever caused it.
 
 **PMC is this file's two companies under one symbol.** Its 851-day gap spans
 all of 2006, so it has no price in the window and carries a weight of 0 on
@@ -73,18 +76,18 @@ every day of it, the way WYN carries none before its restart on the S&P 500
 file. Five more stocks have no 2006 price at all, and CROX and TRX.B start
 trading during the year. No stock has a gap after its first 2006 price.
 
-**The scale-break guard is not called, and that was decided here.**
-:func:`chan.series.refuse_window_crossing_a_break` refuses this window over
-each member's own closes, on BCSI and SCUR, and passes over each member's own
-opens. The reason that held on the S&P 500 file, where the guard passes over
-each member's own rows, does not carry over. This file's reason is that the
-two days it refuses on are real traded moves, which the classification above
-shows from outside sources, and a refusal would withhold the run over prices
-that traded. The days the guard cannot read are a
-separate matter. Handed the panel's columns it also refuses on the eight
-stocks with a missing price in 2006, and rule B already weights a return that
-is not finite at 0, so no gap reaches a weight. ``TestTheScaleBreakDecision``
-in ``tests/test_khandani_lo_small_caps.py`` runs both refusals.
+**This module does not call the scale-break guard, and the decision is its
+own.** :func:`chan.series.refuse_window_crossing_a_break` refuses this window
+over each member's own closes, on BCSI and SCUR, and passes over each member's
+own opens. The reason that held on the S&P 500 file, where the guard passes
+over each member's own rows, does not carry over. This file's reason is that
+the two days it refuses on are real traded moves, which the classification
+above shows from outside sources, and a refusal would withhold the run over
+prices that traded. The days the guard cannot read are a separate matter.
+Handed the panel's columns it also refuses on the eight stocks with a missing
+price in 2006, and rule B already weights a return that is not finite at 0, so
+no gap reaches a weight. ``TestTheScaleBreakDecision`` in
+``tests/test_khandani_lo_small_caps.py`` runs both refusals.
 
 **EXPLORATORY.** The run varies a published rule on data Chan left as an
 exercise, so it can say which way the gap points and how it compares with one
@@ -185,8 +188,8 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
 
     The correlation is what makes the test fit two books on the same days. Two
     reversals on two universes earn on the same market moves, so their daily
-    profits move together, and a gap between correlated series is measured
-    more tightly than one between independent series. A Sharpe ratio does not
+    profits move together, and a gap between correlated series has a smaller
+    standard error than one between independent series. A Sharpe ratio does not
     change when a book is scaled, so two books of different size need no
     matching first, which is the step ``chan.risk_parity``'s test of a mean
     difference needs and this one does not.
@@ -195,11 +198,15 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
     jointly normal. A reversal's daily profits are neither, so the standard
     error is an approximation, and a reading of it says so.
 
-    Both series must hold the same number of days, each a finite number. It
-    refuses otherwise rather than pairing or skipping days, because a pairing
-    it invented would be a different test. The correlation is held to
-    [−1, 1], so rounding cannot take the variance of one series against
-    itself below 0.
+    It pairs the two series by position, so the caller pairs the dates first,
+    the way :func:`same_days` does for two :class:`chan.khandani_lo.Reversal`
+    runs. Both series must hold the same number of days, each a finite number,
+    and each must vary. It refuses otherwise rather than pairing or skipping
+    days, because a pairing it invented would be a different test. A series
+    with no spread has no Sharpe ratio, and its rounding error alone would set
+    the standard error. ``np.corrcoef`` already holds ``ρ`` to [−1, 1]. The
+    clip stays as a guard against a numpy that does not, since a ``ρ`` past 1
+    could take the variance of one series against itself below 0.
     """
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
@@ -211,6 +218,8 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
         raise ValueError(f"sharpe_gap needs at least 3 days, and was handed {len(a)}")
     if not (np.isfinite(a).all() and np.isfinite(b).all()):
         raise ValueError("sharpe_gap takes two series with every day finite")
+    if np.ptp(a) == 0 or np.ptp(b) == 0:
+        raise ValueError("sharpe_gap takes two series that vary, and one holds a single value")
     days = len(a)
     s_a = a.mean() / a.std(ddof=1)
     s_b = b.mean() / b.std(ddof=1)
@@ -234,9 +243,11 @@ def points_chans_way(before_costs_largest_to_smallest: Sequence[float]) -> bool:
     reading. Handed the S&P 500, the S&P 400 and the S&P 600, in that order,
     it is the order issue 303 reads, where every adjacent pair must rise.
     """
-    figures = list(before_costs_largest_to_smallest)
+    figures = [float(f) for f in before_costs_largest_to_smallest]
     if len(figures) < 2:
         raise ValueError(f"an order needs at least two universes, and was handed {len(figures)}")
+    if not all(math.isfinite(f) for f in figures):
+        raise ValueError(f"an order reads finite figures, and was handed {figures}")
     return all(larger < smaller for larger, smaller in zip(figures[:-1], figures[1:], strict=True))
 
 
@@ -246,8 +257,19 @@ def direction(
     """The declaration's word for both prices read together.
 
     Pointing the way Chan says at both prices, mixed at one, and pointing
-    against it at neither.
+    against it at neither. The declaration defined those words for two
+    universes, so each price must hold exactly two figures, the S&P 500's and
+    then the S&P 600's. Issue 303 reads three universes with
+    :func:`points_chans_way` and its own words.
     """
+    for price, figures in (
+        ("closes", closes_largest_to_smallest),
+        ("opens", opens_largest_to_smallest),
+    ):
+        if len(figures) != 2:
+            raise ValueError(
+                f"direction reads two universes at each price, and the {price} held {len(figures)}"
+            )
     held = points_chans_way(closes_largest_to_smallest) + points_chans_way(
         opens_largest_to_smallest
     )
@@ -280,11 +302,17 @@ class Comparison:
 
 def same_days(small: Reversal, large: Reversal) -> None:
     """Refuse two runs whose windows hold different days, since the gap pairs them by day."""
-    if not small.days.equals(large.days):
-        raise ValueError(
-            "the two files' windows hold different trading days, "
-            f"{len(small.days)} against {len(large.days)}, so their profits cannot be paired by day"
-        )
+    if small.days.equals(large.days):
+        return
+    if len(small.days) != len(large.days):
+        differ = f"{len(small.days)} against {len(large.days)}"
+    else:
+        first = int(np.flatnonzero(small.days != large.days)[0])
+        differ = f"first differing at {small.days[first].date()} against {large.days[first].date()}"
+    raise ValueError(
+        f"the two files' windows hold different trading days, {differ}, "
+        "so their profits cannot be paired by day"
+    )
 
 
 def comparison(
@@ -377,6 +405,14 @@ def report(small_members, large_members, result: Comparison) -> None:
     print(
         "  Both files hold only survivors, the S&P 600 as of 2008-01-14 and the S&P 500 "
         "as of 2007-11-23."
+    )
+    print(
+        f"  Both files pay the same {cost}, while small caps cost more to trade, "
+        "so the after-cost figures flatter the S&P 600."
+    )
+    print(
+        "  The S&P 600 holds no microcaps, which Chan's sentence names beside small caps, "
+        "so no figure here speaks for them."
     )
     print(
         "  EXPLORATORY. A rule Chan published, run on data he left as an exercise, "

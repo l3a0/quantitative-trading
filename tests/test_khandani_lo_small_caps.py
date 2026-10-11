@@ -18,9 +18,9 @@ all three are stated once here.
   ``SPX_20071123.mat``, the index as it stood on 2007-11-23.
 - **The specification.** Rule B, ``chan.khandani_lo.reversal`` unchanged,
   which is Example 3.7's ``example3_7.m`` on the closes and Example 3.8's rule
-  B on the opens. Returns, weights and profit are computed on the whole file
-  and cut to 2006-01-03 to 2006-12-29, 251 trading days in both files. The cost
-  is 5 basis points on each side of a change in weight, and the Sharpe ratio
+  B on the opens. The run computes returns, weights and profit on the whole
+  file and cuts them to 2006-01-03 to 2006-12-29, 251 trading days in both
+  files. The cost is 5 basis points on each side of a change in weight, and the Sharpe ratio
   is ``√252 · mean / std`` with no risk-free rate.
 
 Each run gives the three figures ``chan.khandani_lo.Reversal`` carries.
@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import math
 import re
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -75,11 +76,14 @@ from chan.khandani_lo_small_caps import (
     SPLICED_SYMBOL,
     Comparison,
     SharpeGap,
+    compare,
     comparison,
     direction,
     main,
     points_chans_way,
+    report,
     run,
+    same_days,
     sharpe_gap,
 )
 from chan.series import (
@@ -179,6 +183,40 @@ class TestTheCalendars:
         frames[key] = frames[key].drop(index=pd.Timestamp("2006-06-01"))
         with pytest.raises(ValueError, match="250 against 251"):
             comparison(**frames)
+
+    def test_the_same_count_of_different_days_is_refused(
+        self, small_closes, small_opens, large_closes, large_opens
+    ) -> None:
+        """Each side drops a different day, so both hold 250 days and the first to differ is named.
+
+        The S&P 600 drops 2006-06-01 and the S&P 500 drops 2006-06-02, so at
+        that position the S&P 600 holds 2006-06-02 and the S&P 500 holds
+        2006-06-01.
+        """
+        with pytest.raises(ValueError, match="first differing at 2006-06-02 against 2006-06-01"):
+            comparison(
+                small_closes[1].drop(index=pd.Timestamp("2006-06-01")),
+                small_opens[1],
+                large_closes[1].drop(index=pd.Timestamp("2006-06-02")),
+                large_opens[1],
+            )
+
+    def test_same_days_passes_two_runs_on_one_calendar(self, result: Comparison) -> None:
+        same_days(result.small_closes, result.large_closes)
+        same_days(result.small_opens, result.large_opens)
+
+
+class TestCompareReadsTheCommittedFiles:
+    def test_it_gives_the_figures_comparison_gives(self, result: Comparison) -> None:
+        again = compare()
+        for name in ("small_closes", "small_opens", "large_closes", "large_opens"):
+            for field in ("before_costs", "after_costs", "after_costs_charged"):
+                assert getattr(getattr(again, name), field) == getattr(getattr(result, name), field)
+        assert (again.closes_gap, again.opens_gap) == (result.closes_gap, result.opens_gap)
+
+    def test_it_reads_the_directory_it_is_given(self, tmp_path) -> None:
+        with pytest.raises(VintageUnavailable, match="IJR_20080114.mat cannot be"):
+            compare(tmp_path)
 
 
 class TestTheSmallCapFigures:
@@ -510,11 +548,35 @@ class TestSharpeGapByHand:
             (HAND_A, HAND_B[:3], "pairs two series day by day"),
             (HAND_A.reshape(2, 2), HAND_B.reshape(2, 2), "pairs two series day by day"),
             (HAND_A[:2], HAND_B[:2], "at least 3 days"),
+            (np.zeros(4), HAND_B, "two series that vary"),
+            (HAND_A, np.full(4, 0.01), "two series that vary"),
         ],
     )
     def test_it_refuses_what_it_cannot_pair(self, a, b, said) -> None:
         with pytest.raises(ValueError, match=said):
             sharpe_gap(a, b)
+
+    def test_a_constant_series_is_refused_rather_than_read_as_beyond_noise(self) -> None:
+        """Before the refusal, rounding gave this pair a standard error near 1.9e16.
+
+        ``np.full(10, 0.01)`` has a deviation of about 1.8e-18 from rounding
+        alone and a range of exactly 0, so the range is what the refusal reads.
+        """
+        constant = np.full(10, 0.01)
+        assert np.ptp(constant) == 0
+        with pytest.raises(ValueError, match="two series that vary"):
+            sharpe_gap(constant, np.random.default_rng(0).standard_normal(10))
+
+    def test_three_days_are_enough(self) -> None:
+        g = sharpe_gap(HAND_A[1:], HAND_B[1:])
+        assert g.days == 3
+        assert np.isfinite(g.standard_error)
+
+    def test_a_negative_correlation_keeps_its_sign(self) -> None:
+        a, b = np.array([1.0, 2.0, 3.0, 4.0]), np.array([4.0, 3.5, 2.0, 1.0])
+        g = sharpe_gap(a, b)
+        assert g.correlation < 0
+        assert g.correlation == pytest.approx(np.corrcoef(a, b)[0, 1], rel=1e-12)
 
 
 class TestTheNoiseLine:
@@ -564,18 +626,88 @@ class TestTheOrderReading:
             points_chans_way([1.0])
 
     @pytest.mark.parametrize(
+        "figures", [(math.nan, 1.0), (0.25, math.nan), (0.25, math.inf, 3.41), (-math.inf, 1.0)]
+    )
+    def test_a_figure_that_is_not_finite_is_refused(self, figures) -> None:
+        """A NaN fails every comparison, so it would read as an order that fails."""
+        with pytest.raises(ValueError, match="reads finite figures"):
+            points_chans_way(figures)
+
+    @pytest.mark.parametrize(
         ("closes", "opens", "word"),
         [
             ((0.25, 3.41), (4.42, 5.31), POINTING_CHANS_WAY),
             ((0.25, 3.41), (5.31, 4.42), MIXED),
             ((3.41, 0.25), (4.42, 5.31), MIXED),
             ((3.41, 0.25), (5.31, 4.42), POINTING_AGAINST),
-            ((0.25, 1.0, 3.41), (4.42, 5.0, 5.31), POINTING_CHANS_WAY),
-            ((0.25, 4.0, 3.41), (4.42, 5.0, 5.31), MIXED),
         ],
     )
     def test_both_prices_read_together(self, closes, opens, word) -> None:
         assert direction(closes, opens) == word
+
+    @pytest.mark.parametrize(
+        ("closes", "opens", "price"),
+        [
+            ((0.25, 4.0, 3.41), (4.42, 5.5, 5.31), "closes"),
+            ((0.25, 3.41), (4.42, 5.0, 5.31), "opens"),
+            ((0.25,), (4.42, 5.31), "closes"),
+        ],
+    )
+    def test_anything_but_two_universes_a_price_is_refused(self, closes, opens, price) -> None:
+        """The declaration defined its words for two universes, and issue 303 declares its own.
+
+        The first row is the review's case. With closes of 0.25, 4.0 and 3.41
+        and opens of 4.42, 5.5 and 5.31, the S&P 600 is above the S&P 500 at
+        both prices, and reading three universes as an order called it against.
+        """
+        with pytest.raises(ValueError, match=f"two universes at each price, and the {price}"):
+            direction(closes, opens)
+
+
+class TestTheComparisonsReading:
+    """``Comparison.reading`` reads both prices, before costs only, on stand-in runs."""
+
+    @staticmethod
+    def comparison_of(small_closes, large_closes, small_opens, large_opens) -> Comparison:
+        """Each argument is one run's figure before costs and its figure after costs."""
+
+        def stand_in(figures):
+            before, after = figures
+            return SimpleNamespace(
+                before_costs=before, after_costs=after, after_costs_charged=after
+            )
+
+        return Comparison(
+            small_closes=stand_in(small_closes),
+            small_opens=stand_in(small_opens),
+            large_closes=stand_in(large_closes),
+            large_opens=stand_in(large_opens),
+            closes_gap=None,
+            opens_gap=None,
+        )
+
+    def test_it_reads_before_costs_where_after_costs_disagree(self) -> None:
+        ahead_before_behind_after = self.comparison_of(
+            (2.0, -1.0), (1.0, 0.0), (2.0, -1.0), (1.0, 0.0)
+        )
+        assert ahead_before_behind_after.reading == POINTING_CHANS_WAY
+        behind_before_ahead_after = self.comparison_of(
+            (1.0, 2.0), (2.0, 1.0), (1.0, 2.0), (2.0, 1.0)
+        )
+        assert behind_before_ahead_after.reading == POINTING_AGAINST
+
+    @pytest.mark.parametrize(
+        ("closes_ahead", "opens_ahead", "word"),
+        [(True, False, MIXED), (False, True, MIXED), (True, True, POINTING_CHANS_WAY)],
+    )
+    def test_it_reads_each_price_from_its_own_runs(self, closes_ahead, opens_ahead, word) -> None:
+        def pair(ahead):
+            return ((2.0, 0.0), (1.0, 0.0)) if ahead else ((1.0, 0.0), (2.0, 0.0))
+
+        small_closes, large_closes = pair(closes_ahead)
+        small_opens, large_opens = pair(opens_ahead)
+        c = self.comparison_of(small_closes, large_closes, small_opens, large_opens)
+        assert c.reading == word
 
 
 # --- the report -------------------------------------------------------------------------
@@ -611,6 +743,53 @@ class TestTheReport:
         assert "judged against nothing" in out
         assert "survivors" in out
         assert "EXPLORATORY." in out
+
+    @pytest.fixture
+    def printed(self, capsys, small_closes, large_closes, result) -> list[str]:
+        report(small_closes[0], large_closes[0], result)
+        return capsys.readouterr().out.splitlines()
+
+    def test_each_vintage_line_starts_with_its_own_label(self, printed) -> None:
+        (small,) = [line for line in printed if line.startswith("  S&P 600  ")]
+        (large,) = [line for line in printed if line.startswith("  S&P 500  ")]
+        assert "ijr_20080114/" in small and small.endswith("lifted from IJR_20080114.mat")
+        assert "spx_20071123/" in large and large.endswith("lifted from SPX_20071123.mat")
+
+    def test_the_header_runs_small_caps_large_caps_gap(self, printed) -> None:
+        (header,) = [line for line in printed if "Price and specification" in line]
+        assert header.split()[-5:] == ["S&P", "600", "S&P", "500", "Gap"]
+
+    def test_the_specification_lines(self, printed) -> None:
+        assert "  rule     rule B, Example 3.7's MATLAB, on the closes and on the opens" in printed
+        assert "  Sharpe   sqrt(252) * mean / std, no risk-free rate" in printed
+
+    def test_the_lines_that_explain_the_reading(self, printed) -> None:
+        assert (
+            "    The S&P 600 higher before costs at both prices is pointing the way Chan says, "
+            "at one is mixed, at neither is pointing against it."
+        ) in printed
+        assert "    A gap beyond noise is more than 2 standard errors from 0." in printed
+
+    def test_the_caveats(self, printed) -> None:
+        assert (
+            "  Both files hold only survivors, the S&P 600 as of 2008-01-14 and the S&P 500 "
+            "as of 2007-11-23."
+        ) in printed
+        assert (
+            "  Both files pay the same 5 bp a side, while small caps cost more to trade, "
+            "so the after-cost figures flatter the S&P 600."
+        ) in printed
+        assert (
+            "  The S&P 600 holds no microcaps, which Chan's sentence names beside small caps, "
+            "so no figure here speaks for them."
+        ) in printed
+
+    def test_the_reading_line_prints_the_comparisons_reading(
+        self, capsys, monkeypatch, small_closes, large_closes, result
+    ) -> None:
+        monkeypatch.setattr(Comparison, "reading", property(lambda self: MIXED))
+        report(small_closes[0], large_closes[0], result)
+        assert "  Reading, declared before any figure: mixed." in capsys.readouterr().out
 
     def test_a_missing_vintage_reaches_the_reader_as_one_line(
         self, monkeypatch, tmp_path, no_arguments

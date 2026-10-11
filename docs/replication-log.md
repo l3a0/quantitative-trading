@@ -370,7 +370,7 @@ both.
    Entry 36,
    [tests/test_tu_hypothesis_tests.py](../tests/test_tu_hypothesis_tests.py)
    holds Entry 37, [tests/test_gld_gc.py](../tests/test_gld_gc.py) holds
-   Entry 38, and
+   Entry 38,
    [tests/test_xle_uso_roll_return.py](../tests/test_xle_uso_roll_return.py)
    holds Entry 39, and
    [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
@@ -480,7 +480,7 @@ replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
-Entries 5 and 40 are in that position too, so those entries drop the verdict
+Entries 5 and 40 is in that position too, so those entries drop the verdict
 column rather than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
@@ -2726,7 +2726,8 @@ it, and Chan leaves that as an exercise.
 [Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) ran it on
 the S&P 600 file under `ijr_20080114/`, and Entry 40 carries the finding, with
 no published figure to check, like Entry 5. Before costs the rule earns more
-on the S&P 600 than here at both prices, which is the direction Chan's
+on the S&P 600 than on the S&P 500 at both prices, the closes this entry
+reports and the opens Entry 10 reports, which is the direction Chan's
 explanation predicts. The S&P 600 holds no microcaps and is not Khandani and
 Lo's universe, so even that finding leaves this question open.
 
@@ -8153,9 +8154,9 @@ the S&P 600 at both prices.
 Every row reads the same two vintages, window and specification, so they are
 stated once here.
 
-1. **The vintages.** `ijr_20080114/`, the 600 stocks of Chan's
-   `IJR_20080114.mat`, saved 2008-01-15 and read through
-   `chan.series.load_panel` for the close and with `field="Open"`. It is the
+1. **The vintages.** The S&P 600 side is `ijr_20080114/`, the 600 stocks of
+   Chan's `IJR_20080114.mat`, saved 2008-01-15. `chan.series.load_panel` reads
+   its closes, and the same call with `field="Open"` reads its opens. It is the
    S&P 600 as it stood on 2008-01-14, carried backwards, and 592 of its stocks
    are priced on the window's first day and 594 on its last. The S&P 500 side
    is Entry 8's `spx_20071123/`, the index as it stood on 2007-11-23. The two
@@ -8164,9 +8165,9 @@ stated once here.
 2. **The window.** 2006-01-03 to 2006-12-29, 251 trading days, the same days
    in both files, which `TestTheCalendars` holds. That is what lets the size
    reading pair the two daily profit series day by day.
-3. **The specification.** Rule B, which is `chan.khandani_lo.reversal`
-   unchanged, Example 3.7's MATLAB on the closes and Example 3.8's rule B on
-   the opens. Rule A, Chan's Python notebook, is left out, because its
+3. **The specification.** Rule B, `chan.khandani_lo.reversal` run unchanged.
+   On the closes it is Example 3.7's MATLAB, and on the opens it is Example
+   3.8's rule B. The run leaves out rule A, Chan's Python notebook, because its
    forward-fill reads a gap as one day's move. The cost is 5 basis points on
    each side of a change in weight, and the Sharpe ratio is √252 times the
    mean over the standard deviation with no risk-free rate. Each run gives
@@ -8225,7 +8226,7 @@ figures to the last bit, rather than a second computation near them.
 | 2 | After Chan's costs the small caps still lose on the closes, by much less than the large caps do. |
 | 3 | Charging the first day moves the figure up here, as it does on the S&P 500's opens, and leaves it below 0. |
 | 4 | The primary reading on the opens. Trading at the open lifts both universes, and the gap between them is smaller than on the closes. |
-| 5 | Rows 5 and 6 are the S&P 600's two figures after costs above 1.0, Chan's line at p. 23 for a strategy worth trading on its own, and the S&P 500's opens clear it in neither. The same 5 basis points are charged to both universes, so both flatter the small caps. |
+| 5 | Rows 5 and 6 are the S&P 600's opens after costs, read against the S&P 500's. The run charges both universes the same 5 basis points, so these rows flatter the small caps. |
 | 6 | The same, with the first day charged. |
 | 7 | The closes' gap is more than three times its standard error, so one year can tell the two universes apart on the closes. |
 | 8 | The opens' gap is less than one standard error, so one year cannot tell them apart on the opens. |
@@ -8233,15 +8234,16 @@ figures to the last bit, rather than a second computation near them.
 
 ### The two flagged days
 
-`chan.series.scale_breaks` flags a day when a stock's close moves by more
-than a factor of 1.6 from the day before. On each member's own closes it flags
-two days in 2006, and both were classified before any strategy figure was
-computed, from each member's own prices and from outside evidence, in
+`chan.series.scale_breaks` flags a day when a stock's close moves past the
+factor-of-1.6 bound, meaning by more than a factor of 1.6 from the day before.
+On each member's own closes it flags two days in 2006, and both were
+classified before any strategy figure was computed, from each member's own
+prices and from outside evidence, in
 [the classification comment on issue 249](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104857463).
 The declaration's rule was that a real traded move stays in and an unadjusted
 split or a splice of two companies is set to NaN. Both are earnings warnings
-recorded at the prices that traded, so neither is excluded and the run has one
-version rather than two.
+recorded at the prices that traded, so neither is excluded, and the run
+reports one set of figures rather than one with the exclusion and one without.
 
 1. **BCSI on 2006-02-06** closes at 12.37 against 20.165 the day before, a
    ratio of 0.6134. Blue Coat had preannounced revenue and earnings well below
@@ -8261,15 +8263,15 @@ Rule B weights each one. Its return on the flagged day is finite and sets that
 day's weight, which earns the next day's return, and
 `TestTheFlaggedDaysAreKept` holds both.
 
-The scale-break guard, `chan.series.refuse_window_crossing_a_break`, is not
-called, and the module's docstring says why. Over each member's own closes it
-refuses the window on exactly these two days, and over each member's own opens
-it passes. Refusing would withhold the run over two moves that traded.
-`TestTheScaleBreakDecision` runs both, and the comment block above
-`FLAGGED_IN_CHANS_MAT_FILES` in `tests/test_scale_breaks.py` records the
-decision. On the S&P 500 file the guard passes over each member's own rows, so
-Entry 8's reason for not calling it does not carry over, and this entry's is
-its own.
+The module does not call the scale-break guard,
+`chan.series.refuse_window_crossing_a_break`, and its docstring says why. Over
+each member's own closes the guard refuses the window on exactly these two
+days, and over each member's own opens it passes. Refusing would withhold the
+run over two moves that traded. `TestTheScaleBreakDecision` runs both, and the
+comment block above `FLAGGED_IN_CHANS_MAT_FILES` in
+`tests/test_scale_breaks.py` records the decision. On the S&P 500 file the
+guard passes over each member's own rows, which is why Entry 8 does not call
+it. That reason does not hold here, so this entry gives its own.
 
 ### The stocks with a missing price
 
@@ -8277,16 +8279,16 @@ Eight of the 600 stocks miss a price somewhere in 2006, and
 `TestTheMissingPrices` holds each group.
 
 1. **Six have no 2006 price at all.** CENTA, FOR, GFG, PCX, PMC and ZEP.
-   PMC holds two companies under one symbol, with an 851-day gap that spans
-   the whole year, so it is this file's WYN. It carries a weight of 0 on
-   every day of 2006.
+   PMC holds two companies under one symbol, as WYN does on the S&P 500
+   file, with an 851-day gap that spans the whole year. It carries a weight of
+   0 on every day of 2006.
 2. **Two start trading during the year.** CROX on 2006-02-08 and TRX.B on
    2006-03-31. Neither has a gap after its first price.
 
 Rule B already weights a return that is not finite at 0, so none of these
 gaps reaches a weight. Handed the panel's columns rather than each member's
-own rows, the guard refuses on all eight as unreadable, which says it cannot
-read the days beside a gap rather than that a scale changed.
+own rows, the guard refuses on all eight. It refuses because it cannot read
+the days beside a gap, not because it found a change of scale.
 
 ### What the size reading says
 
@@ -8301,16 +8303,16 @@ Var(ŝ₁ − ŝ₂) = (1/T) · [2(1 − ρ) + ½(s₁² + s₂² − 2 s₁ s�
 
 The correlation matters because both reversals earn on the same market's
 moves. The two daily profit series correlate at 0.5258 on the closes and
-0.3663 on the opens, and a gap between positively correlated series is
-measured more tightly than one between independent series. A Sharpe ratio does not change
-when a book is scaled, so the two books need no matching, unlike Entry 4's
-test of a mean difference.
+0.3663 on the opens, and a gap between positively correlated series has a
+smaller standard error than one between independent series. A Sharpe ratio
+does not change when a book is scaled, so the two books need no matching,
+unlike Entry 4's test of a mean difference.
 
 The price is the formula's assumption. It treats each day's profit as
 independent of the day before and normal, and a reversal's daily profits are
 neither. So the standard errors are approximations, and nothing here measures
-how far off they are. The closes' gap clears the line by a wide margin, at
-z +3.1987 against 2. The opens' gap, at +0.7603, is far inside it.
+how far off they are. The closes' gap sits at z +3.1987, past the declared
+line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
 
 ### What the entry concludes
 
@@ -8324,8 +8326,7 @@ Three things, and the first is the finding.
    opens' gap is smaller than its standard error. So the direction on the
    opens is a reading of a gap that one year cannot resolve.
 3. **After costs the small caps keep more, on a cost that flatters them.**
-   Every after-cost gap is positive, and the S&P 600's opens stay above 1.0
-   after costs where the S&P 500's do not. Both universes are charged the same
+   Every after-cost gap is positive. The run charges both universes the same
    5 basis points, so these figures overstate what a trader in small caps
    would keep relative to one in large caps.
 
@@ -8334,8 +8335,8 @@ Three things, and the first is the finding.
 Five things.
 
 **Anything about microcaps.** Chan's sentence names "small and microcap
-stocks". The S&P 600 holds small caps above an index floor, screened for
-liquidity and earnings, and no microcaps. So the finding says the S&P 600's
+stocks". The S&P 600 holds small caps above an index floor and no
+microcaps. So the finding says the S&P 600's
 small caps carry more of the reversal's return than the S&P 500's large caps,
 and nothing about the stocks below the index.
 
