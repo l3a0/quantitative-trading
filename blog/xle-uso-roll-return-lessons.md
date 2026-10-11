@@ -1,4 +1,4 @@
-# Chan’s XLE against USO trade reproduces on his own files, and a third of its return comes from the days crude was in backwardation
+# Chan’s XLE against USO trade reproduces on his own files, and a third of its return comes from the days it bet on backwardation
 
 *Chan holds a fund of oil producers against a fund of oil futures, in whichever direction crude oil’s roll return favours, and reports an APR of 16 percent. On his own files every figure he prints reproduces. The trade sits in contango on most days, yet the few days it holds the other way earn a third of its return, and on those days the funds’ own moves dwarf the roll return the signal reads.*
 
@@ -17,11 +17,11 @@ Chan reports “a very respectable 16 percent” a year from April 26, 2006, to 
 
 The results fall into five groups.
 
-1. **The pair stands in for crude’s spot and its futures only by assumption.** The book argues it, and the saved files cannot test it.
+1. **The pair stands in for crude’s spot and its futures only by assumption.** The book argues it, and this replication does not test it.
 2. **Every printed figure lands.** All five figures in the script’s comment and the book’s two match on Chan’s own files.
 3. **The trade is mostly in contango and holds nothing at first.** It is short USO and long XLE on 1,129 days, the reverse on 244, and holds nothing for its first 123 days.
 4. **The XLE closes are not what a holder earned.** Chan’s fund file adjusts for dividends by subtraction, and nothing committed measures how much that moves XLE’s returns.
-5. **The few backwardation days earn a third of the return.** On those days USO rose 70.2850 percent, while the roll return the signal reads came to about 7 percent in log terms.
+5. **The few backwardation days earn a third of the return.** On those days USO rose 0.5323 in log terms, while the roll return the signal reads came to 0.072380.
 
 **Every result here is exploratory.** Chan chose the funds, the signal, the rule and the dates, and the reproduction runs them on his own files. It can say whether his numbers follow from those files, and nothing about whether the trade would pay after 2012. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -43,20 +43,22 @@ That reading assumes the two contracts are a month apart, which on CL they are. 
 
 **The files are two of Chan’s.** Both are recorded in the repository’s [data README](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md).
 
-1. **`inputData_ETF.mat`**, saved 2012-04-10. USO and XLE hold 1,500 closes each from 2006-04-26 to 2012-04-09, with none missing. The [post on gold, the gold miners and oil](https://github.com/l3a0/quantitative-trading/blob/main/blog/gold-miners-oil-lessons.md#the-test-and-the-file) read the same file for a gold fund against a fund of gold miners, the same shape of trade with gold in place of oil.
+1. **`inputData_ETF.mat`**, saved 2012-04-10. USO and XLE hold 1,500 closes each from 2006-04-26 to 2012-04-09, with none missing. The [post on gold, the gold miners and oil](https://github.com/l3a0/quantitative-trading/blob/main/blog/gold-miners-oil-lessons.md#the-test-and-the-file) read the same file to test whether a gold fund, a fund of gold miners and USO move together, pairing a producers’ fund with a fund of the commodity as this trade does.
 2. **`inputDataDaily_CL_20120502.mat`**, saved 2012-05-03. It holds 89 CL contracts, one for each month from CL-2007F to CL-2014K, over 2,867 days from 2000-11-20. It holds no spot price.
+
+A later save of the same strip, `inputDataDaily_CL_20120813.mat`, saved 2012-08-14, is the file Example 5.3 reads, and two comparisons below use it.
 
 The two calendars share 1,498 days. The fund file holds 2006-07-03 and 2006-11-24, which the CL file lacks. The first front window opens on 2006-10-20, so the ratio is defined on 1,375 of the shared days.
 
-Each contract in the CL file is one contract’s own prices. The [post on the crude oil reversal and momentum rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-reversal-momentum-lessons.md#lesson-1-both-figures-land-and-a-save-a-week-later-prints-the-same-to-the-books-precision) found that a later save of a continuous future shifts every earlier price, because each save stitches the contracts anew. Single contracts are not rewritten that way. Chan’s 2012-08-13 save of the same strip gives the same ratio on all 1,375 days.
+Each contract in the CL file is one contract’s own prices. The [post on the crude oil reversal and momentum rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-reversal-momentum-lessons.md#lesson-1-both-figures-land-and-a-save-a-week-later-prints-the-same-to-the-books-precision) found that a later save of a continuous future shifts every earlier price, because each save stitches the contracts anew. Chan’s single contracts were not rewritten that way. The save of 2012-08-14 gives the same ratio on all 1,375 days.
 
 The rules that decide each result are in [Entry 39 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-39-xle-against-uso-signed-by-crude-oils-contango-chans-algorithmic-trading), which records each figure beside the test that computes it.
 
-## Lesson 1: the pair stands in for crude’s spot against its futures
+## Lesson 1: the pair stands in for crude’s spot only by the book’s argument
 
 The trade rests on two claims from the book, and this replication tests neither.
 
-1. **XLE stands in for crude’s spot price.** Location 2385 says a producers’ fund usually cointegrates with the spot. The file the script loads holds no spot price, so nothing here can check that XLE tracked crude’s spot over the window.
+1. **XLE stands in for crude’s spot price.** Location 2385 says a producers’ fund usually cointegrates with the spot. The file the script loads holds no spot price. Chan’s later save of the strip holds one over the whole window, but nothing here tests XLE against it.
 2. **USO holds the front contract.** The script’s ratio reads its own front, which is not always the contract nearest expiry. On 734 of the 1,375 days with a ratio, the script’s front is the nearest contract the file prices that day. On the other 641 it is the second-nearest. The script moves to the next contract 10 rows before the current one’s last price, and for those 10 rows the old contract is still priced. So “front month” in the signal means the contract the script reads, which need not be the one USO held that day.
 
 Over the window the two funds went opposite ways. USO’s close fell from 69.54 to 38.97, or 43.9603 percent. XLE’s rose from 51.97 to 69.61, or 33.9427 percent. A trade mostly short USO and long XLE gains from both moves, whether or not either move came from the roll return. Lesson 5 splits the window by the view the trade held and measures how much of USO’s move the ratio’s roll return accounts for.
@@ -83,7 +85,7 @@ Two caveats come with the match.
 1. **The order of the run.** A first run saw all five figures before the rule for a landing figure was written down. The rule then fixed is the one every replication here uses, and nothing in it was chosen to fit. There is one reading of the script and no others beside it.
 2. **The Sharpe ratio’s divisor.** The run divides the standard deviation by n, the number of days. Dividing by n − 1 gives 1.046247, which also rounds to 1.05. The printout cannot tell the two apart.
 
-The book’s rule is “whenever CL is in contango”, and the script decides that from one pair of contracts. Chan’s Example 5.3 measures the roll return another way, as γ fitted across the five nearest contracts each day, and the [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-4-the-average-hides-a-roll-return-that-drifts-and-changes-sign) shows CL’s γ is mostly contango and changes sign 29 times. On the 2012-08-13 save, where both can be read, the two mostly agree.
+The book’s rule is “whenever CL is in contango”, and the script decides that from one pair of contracts. Chan’s Example 5.3 measures the roll return another way, as γ fitted across the five nearest contracts each day, and the [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-4-the-average-hides-a-roll-return-that-drifts-and-changes-sign) shows CL’s γ is mostly contango and changes sign 29 times. On the later save, where both can be read, the two mostly agree.
 
 1. **Same view on 1,354 days** of the 1,373 on which the ratio is not exactly 1.
 2. **Contango by the ratio and backwardation by γ** on 13.
@@ -99,9 +101,9 @@ It also holds nothing on the window’s first 123 days, from 2006-04-26 to 2006-
 
 Chan’s figures count those 123 days as earning 0, as the script does. Measured from 2006-10-20 instead, the APR is 0.174513 and the Sharpe ratio 1.092618. The drawdown figures do not change, because the deepest fall and the longest run below a high both come later.
 
-![Two charts on one shared date axis from April 2006 to April 2012. The top chart redraws Figure 6.3, the trade’s cumulative compounded return, as a solid black line. It stays at zero until late October 2006, rises to about 30 percent by late 2007, climbs steeply in late 2008 to a marked high of 1.272665 on 2009-02-18, falls to a marked trough of 0.835584 on 2009-06-29, regains its high in January 2011 after 487 days below it, and ends near 141 percent. A dashed grey line holds contango’s position on every day the trade holds anything. It falls below zero through 2008 to about −20 percent, recovers in early 2009, and ends near 30 percent. Nine shaded bands mark the days held long USO and short XLE. All but one fall between July 2007 and October 2008, the widest from July to December 2007, and the last sits in late 2011. A hatched band marks the first 123 days, when no ratio exists and nothing is held. The bottom chart plots the ratio of the back contract to the front from October 2006, with a line at 1. It sits mostly between 1.00 and 1.03, dips below 1 in the shaded stretches of 2007 and 2008 to a marked low of 0.982067 on 2007-09-26, and spikes to a marked high of 1.111489 on 2009-02-05. The title calls the figure exploratory.](../docs/figures/xle_uso_roll_return.png)
+![Two charts on one shared date axis from April 2006 to April 2012. The top chart redraws Figure 6.3, the trade’s cumulative compounded return, as a solid black line. It stays at zero until late October 2006, rises to about 30 percent by late 2007, climbs steeply in late 2008 to a marked high of 1.272665, or 127 percent, on 2009-02-18, falls to a marked trough of 0.835584, or 84 percent, on 2009-06-29, regains its high in January 2011 after 487 days below it, and ends near 141 percent. A dashed grey line holds contango’s position on every day the trade holds anything. It falls below zero through 2008 to about −20 percent, recovers in late 2008, and ends near 30 percent. Nine shaded bands mark the days held long USO and short XLE. All but one fall between July 2007 and October 2008, the widest from July to December 2007, and the last sits in late 2011. A hatched band marks the first 123 days, when no ratio exists and nothing is held. The bottom chart plots the ratio of the back contract to the front from October 2006, with a line at 1. It sits mostly between 1.00 and 1.03, dips below 1 in the shaded stretches of 2007 and 2008 to a marked low of 0.982067 on 2007-09-26, and spikes to a marked high of 1.111489 on 2009-02-05. The title calls the figure exploratory.](../docs/figures/xle_uso_roll_return.png)
 
-*The top panel redraws the book’s Figure 6.3, “Cumulative Returns of XLE-USO Arbitrage”, with the fixed view beside it. The bottom panel is the ratio that signs the trade, which the book does not draw. The script’s own last lines, commented out, would have overlaid the contango flag on Chan’s plot.*
+*The top panel redraws the book’s Figure 6.3, “Cumulative Returns of XLE-USO Arbitrage”, with a fixed view beside it that holds contango’s position on every day the trade holds anything, which Lesson 5 measures. The bottom panel is the ratio that signs the trade, which the book does not draw. The script’s own last lines, commented out, would have overlaid the contango flag on Chan’s plot.*
 
 The figure is exploratory like every number here. The bottom panel shows where the backwardation days fall. Nine stretches hold them. The longest runs from 2007-07-13 to 2007-12-13, 108 days, and the last from 2011-10-24 to 2011-11-18, 20 days. The ratio’s lowest value is 0.982067 on 2007-09-26 and its highest 1.111489 on 2009-02-05, in the contango of early 2009.
 
@@ -144,19 +146,19 @@ The last row sums the equation from the setup over each group’s days, as 12 ti
 
 The two groups tell different stories.
 
-1. **On the contango days, the roll return accounts for most of USO’s fall.** USO fell by 0.8388 in log terms, and the ratio implies a roll return of −0.766081 over the same days. That is the trade the book describes. It is short the fund that loses the roll return and long the fund that does not. XLE rising 54.9091 percent over the same days added to it.
-2. **On the backwardation days, USO’s own rise does the work.** USO rose by 0.5323 in log terms, while the ratio implies a roll return of 0.072380, about 7 percent. The trade earned these days by being long USO while USO rose and short XLE while XLE fell. That is a bet on the two funds’ moves, which the roll return explains only a small part of.
+1. **On the contango days, the implied roll return comes close to USO’s fall.** USO fell by 0.8388 in log terms, and the ratio implies a roll return of −0.766081 over the same days. That is the trade the book describes. It is short the fund that loses the roll return and long the fund that does not. XLE rising 54.9091 percent over the same days added to it.
+2. **On the backwardation days, USO’s rise far exceeds the implied roll return.** USO rose by 0.5323 in log terms, while the ratio implies a roll return of 0.072380, about 7 percent. The trade earned these days by being long USO while USO rose and short XLE while XLE fell. That is a bet on the two funds’ moves, of which the implied roll return is a small part.
 
 A fixed view shows how much the backwardation days matter. Hold contango’s position, short USO and long XLE, on every day the trade holds anything, and ignore the ratio’s sign. That earns an APR of 0.044949 and a Sharpe ratio of 0.364524, against the trade’s 0.159102 and 1.046596. The fixed view ends at 29.87 percent where the trade ends at 140.53 percent. The dashed line in the figure is that fixed view. It falls through the backwardation stretches of 2007 and 2008, where the trade’s line rises.
 
-**This is a description of one sample, and it is exploratory.** The split comes from the rule’s own two views, so it was not tuned to the curve. A split by date was also measured and is left out, because its date would have been picked after seeing the curve. Nothing here says the backwardation days will keep earning, or why USO rose on them.
+**This is a description of one sample, and it is exploratory.** The split has no parameter to tune, because it uses the rule’s own two views, but it was chosen after the run was seen, which is why it is exploratory. A split by date was also measured and is left out, because its date would have been picked after seeing the curve. Nothing here says the backwardation days will keep earning, or why USO rose on them.
 
 ## What this replication cannot say
 
 Five questions are beyond it.
 
 1. **What a holder of XLE earned.** The fund file subtracts dividends, and no second XLE series over the window is committed.
-2. **Whether XLE tracks crude’s spot price.** The save the script loads holds no spot, and nothing here tests XLE against the spot column of the 2012-08-13 save.
+2. **Whether XLE tracks crude’s spot price.** The save the script loads holds no spot, and nothing here tests XLE against the spot in the save of 2012-08-14.
 3. **Which standard deviation Chan’s Sharpe ratio divides by.** Dividing by n gives 1.046596 and by n − 1 gives 1.046247, and both print as 1.05.
 4. **What trading costs.** After its first entry on 2006-10-20, the position changes on 19 days. Each change trades both funds, and nothing is charged for any of it.
 5. **Whether the trade works after 2012.** The rule and the window are Chan’s. A test of it would fix the rule in writing first and run it on later prices.
@@ -165,11 +167,11 @@ Five questions are beyond it.
 
 One habit for each lesson.
 
-1. **Check that a stand-in tracks what it stands in for.** A trade built on one fund standing in for a price needs that price in the data to test the stand-in. When it is missing, treat the trade as a bet on the two funds.
+1. **Check that a stand-in tracks what it stands in for.** A trade built on one fund standing in for a price needs the stand-in tested against that price. Until it is, treat the trade as a bet on the two funds.
 2. **Read the script before trusting the text.** Here the text and the script describe one run, and the script is what says how contango is decided. When the book gives a rule in one sentence, the script is where its details live.
 3. **Count the days a rule holds each view, and the days it holds nothing.** A trade that is mostly one view is mostly a bet on that view. Days with no position still count in an annual figure.
 4. **Ask how a price file adjusts for dividends.** Subtraction and rescaling give different returns from the same closes. A figure computed on one is not what a holder of the other earned.
-5. **Split the return by the views the rule takes.** If the rarer view earns a large share, find what earned it. Here it was the funds’ own moves, not the roll return the signal reads.
+5. **Split the return by the views the rule takes.** If the rarer view earns a large share, find what earned it. Here the funds’ own moves were far larger than the roll return the signal reads.
 
 ## References
 

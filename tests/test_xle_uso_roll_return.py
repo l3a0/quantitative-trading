@@ -1,8 +1,18 @@
 """The pins for XLE against USO signed by crude oil's contango, *Algorithmic Trading* location 2734.
 
 This file is the single authority for every number a prose surface quotes
-about this replication. ``docs/replication-log.md`` Entry 39 carries the
-verdicts and points here row by row.
+about this replication, with one exception, in
+``blog/xle-uso-roll-return-lessons.md``. ``TestWhatThePostMeasures`` holds
+that post's own numbers. It also quotes three kinds of number held elsewhere.
+
+1. Its figure's labels, which ``tests/test_xle_uso_roll_return_figures.py``
+   holds.
+2. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
+3. SPY's close 14.98 below the price that traded and its 24 dividends, which
+   ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` holds.
+
+``docs/replication-log.md`` Entry 39 carries the verdicts and points here row
+by row.
 
 Every pin reads two vintages and one specification, so they are stated once
 here.

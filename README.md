@@ -542,8 +542,8 @@ where they were first built. The other thirty-seven were built here.
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. The 244 days earning on
     backwardation hold 0.308117 of the trade's summed daily return of
-    0.946538, and on them USO rose 0.702850 while the ratio implies a roll
-    return of 0.072380. Every figure is exploratory.
+    0.946538, and on them USO rose 0.5323 in log terms while the ratio
+    implies a roll return of 0.072380. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -930,7 +930,7 @@ On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded. It holds what the
 write-up measured too: the 40-row start binding only for CL-2007F, the same
-ratio on the 2012-08-13 save, the script's front as the nearest contract on
+ratio on the save of 2012-08-14, the script's front as the nearest contract on
 734 days and the second on 641, the ratio against Example 5.3's γ, the
 figures from 2006-10-20, and each view's days, returns and implied roll
 return beside the fixed view's. On synthetic frames it holds the split by
@@ -4731,8 +4731,8 @@ Entry 39 of the replication log.
 4. The ETF file subtracts dividends in dollars, so XLE's returns are not what
    a holder earned, and nothing committed measures by how much.
 5. The 244 days earning on backwardation hold 0.308117 of the summed daily
-   return of 0.946538. On them USO rose 0.702850 while the ratio implies a
-   roll return of 0.072380, and holding contango's position throughout gives
+   return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
+   implies a roll return of 0.072380, and holding contango's position throughout gives
    an APR of 0.044949.
 
 Five groups of what it says are not pinned here.
@@ -4750,14 +4750,15 @@ Five groups of what it says are not pinned here.
    under the book's model, that the old front is still priced for the 10
    rows after the script moves on, that rescaling gives a holder's return
    and subtraction reads larger in the earliest years, that a yfinance
-   adjusted close rescales, that XLE pays dividends, that single contracts
-   are not rewritten by a later save the way a continuous future is, that the
-   contango days are the book's trade and the backwardation days a bet on
+   adjusted close rescales, that a fund drops by about its dividend on the
+   day it goes out, that XLE pays dividends, that Chan's single contracts
+   were not rewritten between his saves the way a continuous future is, that
+   the contango days are the book's trade and the backwardation days a bet on
    the funds' moves, and that a split by date was measured and left out.
 4. Figures the post states in words or rounds from pinned ones, such as a
-   third, under a fifth of the earning days, about 7 percent, most of USO's
-   fall, a small part, one fewer than 1,129, 29.87 and 140.53 percent, and
-   the contango of early 2009. The figure's alt text reads its curves
+   third, under a fifth of the earning days, about 7 percent, close to USO's
+   fall, far exceeds, a small part, one fewer than 1,129, 127 and 84 percent,
+   and the contango of early 2009. The figure's alt text reads its curves
    approximately too.
 5. Its references, cited rather than computed.
 
@@ -4770,14 +4771,14 @@ cites from the spot and roll returns post, traces to
 its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
 [tests/test_series.py](tests/test_series.py). Nine had no pin before it.
 
-1. The 40-row start binds only for CL-2007F, and the 2012-08-13 save gives
-   the same ratio on all 1,375 days.
+1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
+   gives the same ratio on all 1,375 days.
 2. USO's close falls from 69.54 to 38.97, or 43.9603 percent, and XLE's rises
    from 51.97 to 69.61, or 33.9427 percent.
 3. The script's front is the nearest priced contract on 734 days and the
    second-nearest on 641.
-4. The ratio and Example 5.3's γ on the 2012-08-13 save agree on 1,354 of the
-   1,373 days the ratio is not exactly 1, with 13 and 6 the other way, and γ
+4. The ratio and Example 5.3's γ on the save of 2012-08-14 agree on 1,354 of
+   the 1,373 days the ratio is not exactly 1, with 13 and 6 the other way, and γ
    positive on both days the ratio is 1.
 5. From 2006-10-20 the APR is 0.174513 and the Sharpe ratio 1.092618, with
    both drawdown figures unchanged, and after its first entry the position
@@ -4790,7 +4791,8 @@ its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
    returns of −0.766081 and 0.072380.
 8. Holding contango's position on every held day gives an APR of 0.044949 and
    a Sharpe ratio of 0.364524.
-9. The figure's own: the two curves' ends of 1.405296 and 0.298702, the
+9. The figure's own: the two curves' ends of 1.405296 and 0.298702, which
+   its legend prints as 140.53 and 29.87 percent, the
    drawdown's high of 1.272665 on 2009-02-18 and trough of 0.835584 on
    2009-06-29, the longest run below a high from 2009-02-19 to 2011-01-24,
    the nine backwardation spans, and the ratio's low of 0.982067 on 2007-09-26

@@ -8050,8 +8050,9 @@ Three things.
    0.946538, and compound to 0.790269 and 0.343539. On the contango days USO
    fell 0.567754 and the ratio implies a roll return of −0.766081 in log
    terms, against USO's log move of −0.8388. On the backwardation days USO
-   rose 0.702850 and XLE fell 0.097061, while the ratio implies 0.072380,
-   reading 12 · ln(front / back) as contracts a month apart. Holding
+   rose 0.702850, or 0.5323 in log terms, and XLE fell 0.097061, while the
+   ratio implies 0.072380 in log terms, reading 12 · ln(front / back) as
+   contracts a month apart. Holding
    contango's position on every day the trade holds anything gives an APR of
    0.044949 and a Sharpe ratio of 0.364524. `TestWhatThePostMeasures` pins
    all of it, and the write-up found it. The split comes from the rule's own
