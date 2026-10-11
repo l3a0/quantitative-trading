@@ -1,7 +1,10 @@
 """The pins for TU momentum traded on the lagged roll return, *Algorithmic Trading*'s location 2690.
 
 This file is the single authority for every number a prose surface quotes
-about this experiment and the rows beside it. ``docs/replication-log.md``
+about this experiment and the rows beside it, with one exception.
+``blog/roll-momentum-lessons.md`` also quotes its figure's numbers, which
+``tests/test_roll_momentum_figures.py`` holds, and claims no test asserts,
+which README lists. ``docs/replication-log.md``
 Entry 36 carries the verdicts and points here row by row. The rows are the ones
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353) declared
 under "The pins".
@@ -50,6 +53,7 @@ import pytest
 from chan import paths, roll_returns, tu_momentum
 from chan import roll_momentum as module
 from chan.khandani_lo_book_two import gap, matches
+from chan.matlab_helpers import backshift
 from chan.roll_momentum import (
     BOOK_APR_PERCENT,
     BOOK_MAX_DRAWDOWN_PERCENT,
@@ -457,6 +461,37 @@ class TestTheComparisonMargins:
         level = result.level[result.window]
         longs, shorts = signals(level)
         assert int((longs | shorts).sum()) == 663
+
+
+class TestWhatTheMarginsAreMadeOf:
+    """Example 6.1 holds TU all through the window, and the declared rule is that, less 341 rows."""
+
+    def test_example_6_1_holds_all_25_tranches_long_on_every_window_row(self, result) -> None:
+        """Its returns are then the rebuild's own, which is buying and holding TU."""
+        held = backshift(1, result.example_positions)[result.window]
+        assert len(held) == 913
+        assert (held == 25).all(), SPEC
+        market = np.nan_to_num(result.market[result.window])
+        np.testing.assert_allclose(result.example_daily[result.window], market, rtol=1e-15)
+
+    def test_the_rows_the_declared_rule_steps_aside_compound_to_about_nothing(self, result) -> None:
+        """341 flat rows at −0.001244, and 572 long rows carrying all of its 0.050629."""
+        held = result.held_position
+        market = np.nan_to_num(result.market[result.window])
+        flat, long = held == 0, held > 0
+        assert int(flat.sum()) == 341
+        assert np.prod(1 + market[flat]) - 1 == pytest.approx(-0.001244, abs=5e-7), SPEC
+        assert np.prod(1 + market[long]) - 1 == pytest.approx(0.050629, abs=5e-7), SPEC
+        whole = np.prod(1 + result.daily[result.window]) - 1
+        assert whole == pytest.approx(np.prod(1 + market[long]) - 1, rel=1e-12)
+
+    def test_the_two_rules_volatilities_and_average_returns(self, result) -> None:
+        """Average annual returns of 0.013661 and 0.013351 over 0.007575 and 0.011156."""
+        revised, example = result.figures, result.example_figures
+        assert revised.annual_volatility == pytest.approx(0.007575, abs=5e-7), SPEC
+        assert example.annual_volatility == pytest.approx(0.011156, abs=5e-7), SPEC
+        assert revised.average_annual_return == pytest.approx(0.013661, abs=5e-7), SPEC
+        assert example.average_annual_return == pytest.approx(0.013351, abs=5e-7), SPEC
 
 
 class TestTheRowsBeside:
