@@ -70,12 +70,23 @@ panel's row number is the script's. Table 5.1's C is the C2 strip.
 :data:`SOURCE_FILES` also names a sixth strip, VX, saved 2012-05-08, which
 :func:`load_strip` reads for the VX calendar spread of
 [issue 349](https://github.com/l3a0/quantitative-trading/issues/349). VIX is
-not a traded asset and the file holds no spot column, so :data:`NO_SPOT_ROOTS`
-declares VX a strip read without one, and its :attr:`Strip.spot` is ``None``.
-A Table 5.1 strip that has lost its spot is still refused, because
+not a traded asset and the file holds no spot column, so :data:`NO_SPOT_FILES`
+declares VX's file a strip read without one, and its :attr:`Strip.spot` is
+``None``. A Table 5.1 strip that has lost its spot is still refused, because
 :func:`spot_return` needs one and would otherwise fail on ``None`` rather than
 say what is missing. :data:`ROOTS` stays at the five, since :func:`run` reads
 each of them for Table 5.1.
+
+**A second save of one root is read by name.** The XLE against USO trade of
+[issue 356](https://github.com/l3a0/quantitative-trading/issues/356) loads
+CL's 2012-05-02 save, saved 2012-05-03, rather than the 2012-08-13 save
+:data:`SOURCE_FILES` names. :data:`OTHER_SAVES` declares it, and
+:func:`load_strip` reads it when its ``source_file`` keyword names it. With
+the keyword left out, :func:`load_strip` reads the file :data:`SOURCE_FILES`
+names, so every earlier call reads what it read before. That save holds no
+spot while CL's 2012-08-13 save holds one, so the declaration that a strip is
+read without a spot names the file rather than the root. Keyed by root, it
+would let a 2012-08-13 file that had lost its spot through unrefused.
 
 **The scale-break guard runs on each member's own rows.** :func:`load_strip`
 calls :func:`chan.series.refuse_window_crossing_a_break` on every member, the
@@ -143,9 +154,14 @@ SOURCE_FILES = {
     **{root: f"inputDataDaily_{root}_20120813.mat" for root in ROOTS},
     "VX": "inputDataDaily_VX_20120507.mat",
 }
-#: The strips read without a spot. VX's file holds no ``0000$`` column,
-#: because VIX is not a traded asset.
-NO_SPOT_ROOTS = frozenset({"VX"})
+#: The other saves :func:`load_strip` reads when its ``source_file`` keyword
+#: names one, by root. CL's 2012-05-02 save is the one ``XLE_CL_rollReturn.m``
+#: loads.
+OTHER_SAVES = {"CL": ("inputDataDaily_CL_20120502.mat",)}
+#: The saves read without a spot, by file, because one root can have a save
+#: with a spot and a save without. VX's file holds no ``0000$`` column, because
+#: VIX is not a traded asset, and CL's 2012-05-02 save holds none either.
+NO_SPOT_FILES = frozenset({SOURCE_FILES["VX"], *OTHER_SAVES["CL"]})
 #: Table 5.1 at location 2399, α and γ in percent at one decimal. TU's α is
 #: printed as −0.0, a negative number that rounds to zero, so it is kept as
 #: ``-0.0`` with its sign.
@@ -176,8 +192,8 @@ class Strip:
 
     ``spot`` and ``contracts`` hold every day of the strip, with NaN where a
     column was not priced. ``contracts`` holds the contract columns in Chan's
-    order with the spot removed. ``spot`` is ``None`` for a strip in
-    :data:`NO_SPOT_ROOTS`, whose file holds no spot.
+    order with the spot removed. ``spot`` is ``None`` for a strip read from a
+    file in :data:`NO_SPOT_FILES`, which holds no spot.
     """
 
     root: str
@@ -315,21 +331,31 @@ def maturity_spacings(contracts: pd.DataFrame) -> Counter[tuple[int, ...]]:
     return found
 
 
-def load_strip(root: str, data_dir: Path | None = None) -> Strip:
+def load_strip(root: str, data_dir: Path | None = None, *, source_file: str | None = None) -> Strip:
     """One of the strips :data:`SOURCE_FILES` names, after the guard has read every member.
 
     This is the one read path. It reads the strip through
     :func:`chan.series.load_panel` and runs the scale-break guard on each
     member's own rows, from its first settlement to its last, for the reason
-    the module docstring gives. A strip with no spot column is refused unless
-    :data:`NO_SPOT_ROOTS` declares it, and then its spot is ``None``.
+    the module docstring gives. ``source_file`` left out reads the file
+    :data:`SOURCE_FILES` names for ``root``. Otherwise it must name that file
+    or one :data:`OTHER_SAVES` declares for ``root``. A strip with no spot
+    column is refused unless :data:`NO_SPOT_FILES` declares its file, and then
+    its spot is ``None``.
     """
     if root not in SOURCE_FILES:
         raise ValueError(
             f"load_strip reads the five strips of Table 5.1, {', '.join(ROOTS[:-1])} and "
             f"{ROOTS[-1]}, and the VX strip, and not {root}"
         )
-    members, closes = load_panel(SOURCE_FILES[root], data_dir=data_dir)
+    declared = (SOURCE_FILES[root], *OTHER_SAVES.get(root, ()))
+    if source_file is None:
+        source_file = SOURCE_FILES[root]
+    elif source_file not in declared:
+        raise ValueError(
+            f"load_strip reads {root} from {' or '.join(declared)}, and not {source_file}"
+        )
+    members, closes = load_panel(source_file, data_dir=data_dir)
     for entry in members:
         own = closes[entry.symbol].dropna()
         if own.empty:
@@ -343,8 +369,8 @@ def load_strip(root: str, data_dir: Path | None = None) -> Strip:
             spot=closes[spot_symbol],
             contracts=closes.drop(columns=spot_symbol),
         )
-    if root not in NO_SPOT_ROOTS:
-        raise VintageUnavailable(f"{SOURCE_FILES[root]} holds no {spot_symbol} column")
+    if source_file not in NO_SPOT_FILES:
+        raise VintageUnavailable(f"{source_file} holds no {spot_symbol} column")
     return Strip(root=root, members=members, spot=None, contracts=closes)
 
 
