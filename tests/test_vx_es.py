@@ -4,8 +4,10 @@ This file is the single authority for every number a prose surface quotes
 about this replication and the diagnostics beside it, with one exception, in
 ``blog/vx-es-lessons.md``. The post's figure has its own pins in
 ``tests/test_vx_es_figures.py``. README lists what the post says that nothing
-pins. ``docs/replication-log.md`` Entry 28 carries the verdicts and points
-here row by row.
+pins. ``blog/crude-oil-reversal-momentum-lessons.md`` cites the APR on the
+2012-05-07 save and on the 2012-05-17 save, falling by more than half, from
+the pins here. ``docs/replication-log.md`` Entry 28 carries the verdicts and
+points here row by row.
 
 Every pin names one of three vintages and one of two specifications, so they
 are stated once here.

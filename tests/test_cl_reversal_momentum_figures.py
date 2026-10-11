@@ -13,7 +13,7 @@ The figure reads the vintages and the specification
 the 2012-05-04 save over its 1,000 rows for the upper panel, and on the
 2012-05-07 save over its 998 rows from 2004-05-24 to 2008-05-16 for the lower.
 
-Exploratory, like everything location 2701 computes here.
+Every number here is exploratory, like everything computed for location 2701.
 """
 
 from __future__ import annotations

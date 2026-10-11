@@ -3871,8 +3871,8 @@ regime map.
 
 [blog/crude-oil-reversal-momentum-lessons.md](blog/crude-oil-reversal-momentum-lessons.md)
 is a twenty-seventh post, about the crude oil rule at Kindle location 2701 of
-Chan's *Algorithmic Trading*, which buys CL below its close 30 days earlier
-and above its close 40 days earlier, shorts on the mirror, and is flat
+Chan's *Algorithmic Trading*. The rule buys CL below its close 30 days earlier
+and above its close 40 days earlier, shorts the opposite case, and is flat
 otherwise. Chan says the join of a reversal rule and a momentum rule "may work
 better than each strategy by itself" and reports an APR of 12 percent and a
 Sharpe ratio of 1.1. The post draws three lessons from Entry 31 of the
@@ -3881,10 +3881,11 @@ replication log.
 1. Both figures land on the save `CL_rev.m` loads, and the 2012-05-11 save,
    0.27 higher on every day, still rounds to 12 percent and 1.1.
 2. Half a position in each rule is the join's position on every row but the
-   ten warm-up rows, so the join earns the average of the two rules' days. It
-   beats each rule alone on the book's window with a smaller average day than
-   momentum's, because its returns swing a little over a third as much.
-3. On the four years before the window, reversal alone loses money, and the
+   ten warm-up rows, so the join earns close to the average of the two rules'
+   days. It beats each rule alone on the book's window with a smaller average
+   day than momentum's, because its returns swing a little over a third as
+   much.
+3. On the four years before the window, reversal alone loses enough that the
    same averaging drags the join below momentum alone.
 
 Five groups of what it says are not pinned here.
@@ -3893,17 +3894,21 @@ Five groups of what it says are not pinned here.
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    The rule, "may work better than each strategy by itself" and the two
    figures are at 2701, and the warning that the real test is out-of-sample
-   is at 2715. The book's figures are pinned, and its words are not.
+   is at 2715. Crude's peak on July 14, 2008 is location 1922's, cited
+   through the gold miners post. The book's figures are pinned, and its words
+   are not.
 2. Facts about the script rather than the data: that `CL_rev.m` runs four
    rules and prints figures for one, that its comment records
-   `APR=0.117600 Sharpe=1.100368`, and that it plots four curves, which
-   `CL_rev.m` holds at `e4bc46f` of ericnberwick/EpchanPreview.
+   `APR=0.117600 Sharpe=1.100368`, and that it plots a fourth curve for
+   ComboOR, which `CL_rev.m` holds at `e4bc46f` of ericnberwick/EpchanPreview.
 3. The EIA's annual average WTI spot price of $41.51 for 2004, read from its
    Cushing, OK series on 2026-10-10 and measured nowhere here.
 4. Arithmetic and ratios the post takes between pinned figures in words: a
    little over a third, about 40 percent, under a quarter, most of a gain,
-   0.98 × 1.02 = 0.9996, and the Sharpe ratios of 0.37 and 0.66 rounded from
-   pinned figures. The figure's alt text reads its curves approximately too,
+   0.98 × 1.02 = 0.9996, the Sharpe ratios of 0.37 and 0.66 rounded from
+   pinned figures, the join's average day sitting slightly below the plain
+   average of the two rules' and near it before the window, and "two months
+   before" the peak. The figure's alt text reads its curves approximately too,
    such as "about −11 percent" and "about −29 percent".
 5. Its references, cited rather than computed.
 
@@ -3911,7 +3916,9 @@ Every other number in the post traces to an assertion in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), or
 to
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
-for the figure's own numbers. Five had no pin before it.
+for the figure's own numbers. The APR falling by more than half between two
+VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py). Five
+had no pin before it.
 
 1. Half a position in each rule gives the join's on all but the 10 warm-up
    rows from 2008-07-01 to 2008-07-15, so the join's daily return is the
@@ -3919,7 +3926,8 @@ for the figure's own numbers. Five had no pin before it.
    on 12 rows, the warm-up and two where the close ties its 40-day lag,
    2005-06-15 and 2007-04-17.
 2. Of the 960 rows where both lags exist, the two rules agree on 157 and take
-   opposite sides on 803. Before the window, 162 and 796 of 958.
+   opposite sides on 803. Before the window, 162 of 958 agree and 796 do not,
+   794 of them opposite and 2 the ties where momentum is flat.
 3. Each rule's average day and its standard deviation on both segments: on
    the book's window 0.000463 and 0.006687 for the join, 0.000519 and
    0.018748 for momentum alone, and 0.000440 and 0.018864 for reversal alone.

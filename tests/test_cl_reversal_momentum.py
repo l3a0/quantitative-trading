@@ -1,11 +1,14 @@
 """The pins for crude oil reversal joined to momentum, *Algorithmic Trading* location 2701.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the rows beside it. ``docs/replication-log.md``
-Entry 31 carries the verdicts and points here row by row, and
-``blog/crude-oil-reversal-momentum-lessons.md`` quotes the same figures and
-the halves, the agreement counts, and each rule's average day and its
-standard deviation that ``TestTheJoinIsHalfOfEachRule`` pins for it.
+about this replication and the rows beside it. The one exception is
+``blog/crude-oil-reversal-momentum-lessons.md``:
+``tests/test_cl_reversal_momentum_figures.py`` holds the numbers its figure
+draws, and README lists what it says that nothing asserts. The post also
+quotes what ``TestTheJoinIsHalfOfEachRule`` pins for it: that half of each
+rule gives the join's position, how often the two rules agree, and each
+rule's average day and standard deviation. ``docs/replication-log.md`` Entry
+31 carries the verdicts and points here row by row.
 
 Every pin names one of three vintages and one specification, so they are
 stated once here.
@@ -284,12 +287,14 @@ def _mean_and_deviation(traded: Trades) -> tuple[float, float]:
 
 
 class TestTheJoinIsHalfOfEachRule:
-    """Half a position in each rule is the join, outside the rows a lag is missing or tied.
+    """Half a position in each rule is the join, outside rows where a lag is missing or tied.
 
     Where the two rules agree, half of each is their shared position, and the
     join holds it. Where they disagree, half of each sums to flat, and so does
-    the join. So the join earns the average of the two rules' daily returns,
-    which is what the post's Lessons 2 and 3 rest on.
+    the join. A close that equals its lag leaves that rule flat while the
+    other holds a position, so half of each is half a position and the join
+    is flat. Off those rows the join earns the average of the two rules'
+    daily returns, which is what the post's Lessons 2 and 3 rest on.
     """
 
     def test_on_the_book_s_window_it_differs_on_the_10_warm_up_rows_only(self, book) -> None:
@@ -319,7 +324,7 @@ class TestTheJoinIsHalfOfEachRule:
         assert _mean_and_deviation(book.reversal) == (0.000440, 0.018864)
 
     def test_momentum_alone_earns_more_per_day_and_swings_far_more(self, book) -> None:
-        """The join beats momentum alone on both figures with a smaller average day."""
+        """Momentum alone earns more per day, and each rule alone swings over 2.5 times as much."""
         assert book.momentum.daily.mean() > book.combination.daily.mean()
         assert book.combination.daily.std() < book.momentum.daily.std() / 2.5
         assert book.combination.daily.std() < book.reversal.daily.std() / 2.5
@@ -334,9 +339,12 @@ class TestTheJoinIsHalfOfEachRule:
         assert not (close == backshift(REVERSAL_LOOKBACK, close)).any()
 
     def test_before_the_two_rules_agree_on_162_of_958_rows(self, before_cl, before) -> None:
+        """Of the 796 that do not agree, 794 are opposite and 2 are the ties."""
         both = _both_lags(before_cl)
         agree = both & (before.momentum.positions == before.reversal.positions)
         assert (int(both.sum()), int(agree.sum()), int((both & ~agree).sum())) == (958, 162, 796)
+        opposite = both & (before.momentum.positions == -before.reversal.positions)
+        assert int(opposite.sum()) == 794
 
     def test_before_the_average_day_and_its_spread(self, before) -> None:
         assert _mean_and_deviation(before.combination) == (0.000091, 0.003922)
