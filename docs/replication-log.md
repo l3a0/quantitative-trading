@@ -5,7 +5,7 @@ a reproduced experiment, which is a number sitting next to another number with
 nobody saying what the pair means.
 
 This file is where the verdicts live. One entry per replication, apart from
-the one exception the paragraphs below name, and one row per published result, carrying the five parts
+the two exceptions the paragraphs below name, and one row per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
 vintage, what this repo computed, the gap, and the verdict. A row usually
 matches one published figure to one computation. Four of Entry 1's rows do not,
@@ -24,14 +24,15 @@ six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
 three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, one, eleven and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
-Entry 5 is the one entry that is not a replication. Chan states the claim it
-tests without printing a number, so it carries a finding rather than a verdict,
-and its tables drop the columns that would hold a published figure, a gap and a
-verdict. Entries 6 and 15 come from the same sentence of the book and are
-replications, because the claim each tests is about a series Chan names or a
-class whose members are tested directly.
+Entries 5 and 44 are the two entries that are not replications. Chan states
+the claim each tests without printing a number, so each carries a finding
+rather than a verdict, and its tables drop the columns that would hold a
+published figure, a gap and a verdict. Entries 6 and 15 come from the same
+sentence of the book as Entry 5 and are replications, because the claim each
+tests is about a series Chan names or a class whose members are tested
+directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42 and 45 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 44 and 45 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -306,12 +307,21 @@ says.
   - [The verdicts](#the-verdicts-39)
   - [What the entry concludes](#what-the-entry-concludes-40)
   - [What this entry cannot say](#what-this-entry-cannot-say-38)
-- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
+- [Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*](#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading)
   - [What the book stated](#what-the-book-stated-3)
   - [What this repo computed](#what-this-repo-computed-41)
-  - [The verdicts](#the-verdicts-40)
+  - [What each row says](#what-each-row-says-1)
+  - [The two flagged days](#the-two-flagged-days)
+  - [The stocks with a missing price](#the-stocks-with-a-missing-price)
+  - [What the size reading says](#what-the-size-reading-says)
   - [What the entry concludes](#what-the-entry-concludes-41)
   - [What this entry cannot say](#what-this-entry-cannot-say-39)
+- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-4)
+  - [What this repo computed](#what-this-repo-computed-42)
+  - [The verdicts](#the-verdicts-40)
+  - [What the entry concludes](#what-the-entry-concludes-42)
+  - [What this entry cannot say](#what-this-entry-cannot-say-40)
 
 ## How to read an entry
 
@@ -387,7 +397,9 @@ both.
    [tests/test_vx_es_roll_return.py](../tests/test_vx_es_roll_return.py)
    holds Entry 41,
    [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
-   holds Entry 42, and
+   holds Entry 42,
+   [tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
+   holds Entry 44, and
    [tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py)
    holds Entry 45.
 2. **Every published figure names where the source prints it, or says it has no
@@ -495,8 +507,8 @@ replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
-Entry 5 is in that position too, so that entry drops the verdict column rather
-than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
+Entries 5 and 44 is in that position too, so those entries drop the verdict
+column rather than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -550,6 +562,14 @@ portfolios. Chan's fixed-income sentence names none, so what Entry 5 tests is a
 pair of stand-ins this repo chose, and its result is a finding about them
 rather than a verdict on his sentence. His claim is also that such pairs can be
 found, and one pair that fails does not refute that.
+
+Entry 44's claim does not take it either. Chan's explanation is about where
+Khandani and Lo's returns came from, on their own universe, which this repo
+does not hold, and it names microcaps, which the S&P 600 file does not hold.
+So the run can say which way the gap between two of Chan's files points, and
+not whether his sentence about their returns is true. Its reading was declared
+on [issue 249](https://github.com/l3a0/quantitative-trading/issues/249) before
+any S&P 600 figure was computed, and it adds no verdict.
 
 Entry 6's row 1 does take it. The same passage gives the CAD/AUD cross rate as
 its example and says the rate "is quite stationary", which is a definite claim
@@ -2660,8 +2680,8 @@ two.
 2. **Chan's explanation**, that most of their returns came from small and
    microcap stocks. It is a claim about a universe this run does not read.
    Location 2236, at the end of Example 3.8, leaves rerunning the strategy on
-   the S&P 400 and S&P 600 as an exercise, which would test it, and nothing
-   here runs that.
+   the S&P 400 and S&P 600 as an exercise, which would test it, and Entry 44
+   runs the S&P 600 half.
 
 Every row reads the same vintage, window and specification, so the three are
 stated once here.
@@ -2754,10 +2774,14 @@ Four things.
 this repo does not hold, so it stays a cited number.
 
 **Whether Chan's explanation holds.** The rule on small caps is the test of
-it, and Chan leaves that as an exercise. The S&P 600 file under
-`ijr_20080114/` spans 2006, and running the rule on it would be a finding with
-no published figure to check, like Entry 5, rather than a replication.
-[Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) runs it.
+it, and Chan leaves that as an exercise.
+[Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) ran it on
+the S&P 600 file under `ijr_20080114/`, and Entry 44 carries the finding, with
+no published figure to check, like Entry 5. Before costs the rule earns more
+on the S&P 600 than on the S&P 500 at both prices, the closes this entry
+reports and the opens Entry 10 reports, which is the direction Chan's
+explanation predicts. The S&P 600 holds no microcaps and is not Khandani and
+Lo's universe, so even that finding leaves this question open.
 
 **What survivorship cost.** Neither its size nor its sign is measured.
 
@@ -3070,8 +3094,10 @@ rules set a weight from the day's open and trade at that same open, as Example
 Entry 8 says.
 
 **Whether the rule pays on small caps.** Chan leaves that as an exercise, and
-[issue 249](https://github.com/l3a0/quantitative-trading/issues/249) runs it on
-the S&P 600 file.
+[issue 249](https://github.com/l3a0/quantitative-trading/issues/249) ran it on
+the S&P 600 file, which Entry 44 reports. That run charges small caps the same
+5 basis points as large caps, so its after-cost figures at the open flatter
+them, and it is one year of survivors.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -8593,6 +8619,272 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
 it, since that post's Lesson 3 quotes these figures.
+
+## Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle location 2137 for the
+explanation and location 2236, at the end of Example 3.8 on p. 78, for the
+exercise. Shipped under
+[issue 249](https://github.com/l3a0/quantitative-trading/issues/249).
+
+This entry is not a replication. Chan explains the reversal's collapse on the
+S&P 500, from Khandani and Lo's 4.47 to his 0.25, by saying "most of the
+returns are generated by small and microcap stocks". He then leaves rerunning
+the strategy on the S&P 400 and S&P 600 as an exercise and prints no figure
+for either. So the entry carries a finding rather than a verdict, and its
+tables drop the published-figure, gap and verdict columns, as Entry 5's do.
+`### Rows that are not replications` above says why the route that lets a
+stated claim carry a verdict does not reach it.
+
+Nine rows, all derivable from
+[tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py).
+The module is `chan.khandani_lo_small_caps`, and its S&P 500 side lands on the
+figures Entries 8 and 10 report, which `TestTheLargeCapSide` holds.
+
+**Before costs the reversal earns more on the S&P 600 than on the S&P 500 at
+both prices, so the reading points the way Chan says.** On the closes it earns
+3.4086 against 0.2510, a gap of +3.1576, which is more than three times its
+standard error. On the opens it earns 5.3052 against 4.4202, a gap of
++0.8850, which is smaller than its standard error. So one year of the closes
+can tell the two universes apart and one year of the opens cannot.
+
+**The comparison was declared before any S&P 600 figure was computed**, in
+[the declaration comment on issue 249](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104832067).
+It fixes three things.
+
+1. **What each figure is read against.** Every S&P 600 figure is read
+   against the S&P 500 figure with the same price, the same cost treatment and
+   the same specification, which gives six pairs.
+2. **What counts as pointing the way Chan says.** Before costs, the S&P 600
+   higher at both prices reads as pointing the way Chan says, higher at one
+   only as mixed, and higher at neither as pointing against it. The before-cost
+   figure is the primary reading because the explanation is about where the
+   returns come from.
+3. **How big a gap must be.** Each before-cost gap is read against the
+   standard error of a difference between two Sharpe ratios on the same days,
+   Memmel's (2003) correction of Jobson and Korkie (1981). A gap more than
+   twice its standard error reads as larger than one year's noise. The size
+   reading adds no verdict.
+
+[Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) is where
+the S&P 400 half runs, under the same declaration, which already says how a
+third universe extends it: before costs the S&P 500 below the S&P 400 below
+the S&P 600 at both prices.
+
+Every row reads the same two vintages, window and specification, so they are
+stated once here.
+
+1. **The vintages.** The S&P 600 side is `ijr_20080114/`, the 600 stocks of
+   Chan's `IJR_20080114.mat`, saved 2008-01-15. `chan.series.load_panel` reads
+   its closes, and the same call with `field="Open"` reads its opens. It is the
+   S&P 600 as it stood on 2008-01-14, carried backwards, and 592 of its stocks
+   are priced on the window's first day and 594 on its last. The S&P 500 side
+   is Entry 8's `spx_20071123/`, the index as it stood on 2007-11-23. The two
+   files share no symbol. **Every figure here is about survivors**, on both
+   sides.
+2. **The window.** 2006-01-03 to 2006-12-29, 251 trading days, the same days
+   in both files, which `TestTheCalendars` holds. That is what lets the size
+   reading pair the two daily profit series day by day.
+3. **The specification.** Rule B, `chan.khandani_lo.reversal` run unchanged.
+   On the closes it is Example 3.7's MATLAB, and on the opens it is Example
+   3.8's rule B. The run leaves out rule A, Chan's Python notebook, because its
+   forward-fill reads a gap as one day's move. The cost is 5 basis points on
+   each side of a change in weight, and the Sharpe ratio is √252 times the
+   mean over the standard deviation with no risk-free rate. Each run gives
+   Entry 8's three figures: before costs, after costs with Chan's two quirks
+   kept, and after costs with the first day charged.
+
+Every result here is **EXPLORATORY**. The run varies a published rule on data
+Chan left as an exercise, so it says which way the gap points on one year of
+survivors and how it compares with that year's noise. It confirms nothing
+about Chan's explanation. A reading that points his way earns a registered
+test on data the run has not seen.
+
+### What the book stated
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | The S&P 600 on the closes, before costs | nothing, the exercise asks for the run and prints no figure | location 2236, p. 78 |
+| 2 to 6 | The S&P 600's other five figures | nothing | n/a |
+| 7 and 8 | Each before-cost gap against its standard error | nothing | n/a |
+| 9 | Where the returns come from | "most of the returns are generated by small and microcap stocks", a claim rather than a figure | Kindle location 2137 |
+
+Khandani and Lo's 4.47 for 2006, at location 2099, takes no row. It was
+computed on their own universe and window, so the report prints it and the
+entry judges nothing against it.
+
+### What this repo computed
+
+The gap is the S&P 600's figure less the S&P 500's.
+
+| # | Price and specification | S&P 600 | S&P 500 | Gap | Assertion |
+| --- | --- | --- | --- | --- | --- |
+| 1 | closes, before costs | 3.4086 | 0.2510 | +3.1576 | `TestTheSmallCapFigures::test_closes` and `TestTheSixGaps::test_the_gap` |
+| 2 | closes, after costs, first day uncharged and its NaN counted as 0 | −0.3702 | −3.1884 | +2.8181 | the same |
+| 3 | closes, after costs, first day charged | −0.3255 | −3.2337 | +2.9081 | the same |
+| 4 | opens, before costs | 5.3052 | 4.4202 | +0.8850 | `TestTheSmallCapFigures::test_opens` and `TestTheSixGaps::test_the_gap` |
+| 5 | opens, after costs, first day uncharged and its NaN counted as 0 | 2.0147 | 0.7834 | +1.2313 | the same |
+| 6 | opens, after costs, first day charged | 2.0257 | 0.8293 | +1.1964 | the same |
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 7 | row 1's gap against Memmel's standard error | correlation 0.5258, standard error 0.9872, z +3.1987, beyond one year's noise | `TestTheSizeReading::test_closes` |
+| 8 | row 4's gap against Memmel's standard error | correlation 0.3663, standard error 1.1640, z +0.7603, within one year's noise | `TestTheSizeReading::test_opens` |
+| 9 | rows 1 and 4 read against the declaration | the S&P 600 higher at both prices, so pointing the way Chan says | `TestTheReading::test_it_points_the_way_chan_says` |
+
+The S&P 500 column is Entry 8's rows 1 to 3 and Entry 10's rows 6 to 8, and
+`TestTheLargeCapSide` holds that this module's runs land on them.
+`TestTheSizeReading::test_the_gaps_ratios_are_the_runs_own_figures_exactly`
+holds that the two ratios the size reading compares are rows 1 and 4's
+figures to the last bit, rather than a second computation near them.
+
+### What each row says
+
+| # | Why it is here |
+| --- | --- |
+| 1 | The primary reading on the closes, and the larger of the two gaps. |
+| 2 | After Chan's costs the small caps still lose on the closes, by much less than the large caps do. |
+| 3 | Charging the first day moves the figure up here, as it does on the S&P 500's opens, and leaves it below 0. |
+| 4 | The primary reading on the opens. Trading at the open lifts both universes, and the gap between them is smaller than on the closes. |
+| 5 | Rows 5 and 6 are the S&P 600's opens after costs, read against the S&P 500's. The run charges both universes the same 5 basis points, so these rows flatter the small caps. |
+| 6 | The same, with the first day charged. |
+| 7 | The closes' gap is more than three times its standard error, so one year can tell the two universes apart on the closes. |
+| 8 | The opens' gap is less than one standard error, so one year cannot tell them apart on the opens. |
+| 9 | The declared direction reading. It rests on rows 1 and 4 only, and row 8 says one of the two is within noise. |
+
+### The two flagged days
+
+`chan.series.scale_breaks` flags a day when a stock's close moves past the
+factor-of-1.6 bound, meaning by more than a factor of 1.6 from the day before.
+On each member's own closes it flags two days in 2006, and both were
+classified before any strategy figure was computed, from each member's own
+prices and from outside evidence, in
+[the classification comment on issue 249](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104857463).
+The declaration's rule was that a real traded move stays in and an unadjusted
+split or a splice of two companies is set to NaN. Both are earnings warnings
+recorded at the prices that traded, so neither is excluded, and the run
+reports one set of figures rather than one with the exclusion and one without.
+
+1. **BCSI on 2006-02-06** closes at 12.37 against 20.165 the day before, a
+   ratio of 0.6134. Blue Coat had preannounced revenue and earnings well below
+   expectations, which the Motley Fool's
+   ["Blue Coat Is All Wet"](https://www.fool.com/investing/small-cap/2006/02/06/blue-coat-is-all-wet.aspx)
+   reported that day. The file stands on one split-adjusted scale on both
+   sides of the day, and the price never returned to its old level.
+2. **SCUR on 2006-07-12** closes at 4.99 against 8.07, a ratio of 0.6183.
+   Secure Computing cut its quarterly revenue outlook after the close on
+   2006-07-11, and
+   [TechPartner News reported on 2006-07-12](https://www.techpartner.news/news/security-vendor-blames-world-cup-for-dramatic-sales-drop-42065)
+   a fall of nearly 40 per cent in after-hours trading. No source found states
+   the closing price, so the match is on date, size and direction.
+
+Both fall just past the bound on the closes and inside it on the opens.
+Rule B weights each one. Its return on the flagged day is finite and sets that
+day's weight, which earns the next day's return, and
+`TestTheFlaggedDaysAreKept` holds both.
+
+The module does not call the scale-break guard,
+`chan.series.refuse_window_crossing_a_break`, and its docstring says why. Over
+each member's own closes the guard refuses the window on exactly these two
+days, and over each member's own opens it passes. Refusing would withhold the
+run over two moves that traded. `TestTheScaleBreakDecision` runs both, and the
+comment block above `FLAGGED_IN_CHANS_MAT_FILES` in
+`tests/test_scale_breaks.py` records the decision. On the S&P 500 file the
+guard passes over each member's own rows, which is why Entry 8 does not call
+it. That reason does not hold here, so this entry gives its own.
+
+### The stocks with a missing price
+
+Eight of the 600 stocks miss a price somewhere in 2006, and
+`TestTheMissingPrices` holds each group.
+
+1. **Six have no 2006 price at all.** CENTA, FOR, GFG, PCX, PMC and ZEP.
+   PMC holds two companies under one symbol, as WYN does on the S&P 500
+   file, with an 851-day gap that spans the whole year. It carries a weight of
+   0 on every day of 2006.
+2. **Two start trading during the year.** CROX on 2006-02-08 and TRX.B on
+   2006-03-31. Neither has a gap after its first price.
+
+Rule B already weights a return that is not finite at 0, so none of these
+gaps reaches a weight. Handed the panel's columns rather than each member's
+own rows, the guard refuses on all eight. It refuses because it cannot read
+the days beside a gap, not because it found a change of scale.
+
+### What the size reading says
+
+The standard error answers one question: could one year of daily profits
+tell two universes' Sharpe ratios apart? With daily Sharpe ratios s₁ and s₂,
+their series' correlation ρ and T days, Memmel's variance of the difference
+is
+
+```text
+Var(ŝ₁ − ŝ₂) = (1/T) · [2(1 − ρ) + ½(s₁² + s₂² − 2 s₁ s₂ ρ²)]
+```
+
+The correlation matters because both reversals earn on the same market's
+moves. The two daily profit series correlate at 0.5258 on the closes and
+0.3663 on the opens, and a gap between positively correlated series has a
+smaller standard error than one between independent series. A Sharpe ratio
+does not change when a book is scaled, so the two books need no matching,
+unlike Entry 4's test of a mean difference.
+
+The price is the formula's assumption. It treats each day's profit as
+independent of the day before and normal, and a reversal's daily profits are
+neither. So the standard errors are approximations, and nothing here measures
+how far off they are. The closes' gap sits at z +3.1987, past the declared
+line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
+
+### What the entry concludes
+
+Three things, and the first is the finding.
+
+1. **On Chan's S&P 600 file the reversal earns more before costs than on his
+   S&P 500 file, at both prices.** That is the direction Chan's explanation
+   predicts, under the reading declared before the run.
+2. **One year separates the universes on the closes and not on the opens.**
+   The closes' gap is more than three times its standard error, and the
+   opens' gap is smaller than its standard error. So the direction on the
+   opens is a reading of a gap that one year cannot resolve.
+3. **After costs the small caps keep more, on a cost that flatters them.**
+   Every after-cost gap is positive. The run charges both universes the same
+   5 basis points, so these figures overstate what a trader in small caps
+   would keep relative to one in large caps.
+
+### What this entry cannot say
+
+Five things.
+
+**Anything about microcaps.** Chan's sentence names "small and microcap
+stocks". The S&P 600 holds small caps above an index floor and no
+microcaps. So the finding says the S&P 600's
+small caps carry more of the reversal's return than the S&P 500's large caps,
+and nothing about the stocks below the index.
+
+**What survivorship did.** Both files are survivors, the S&P 600 as of
+2008-01-14 and the S&P 500 as of 2007-11-23. A small cap that failed in 2006
+or 2007 is missing from the first file, and a reversal buys exactly the stocks
+that fell. Neither the size nor the sign of the effect is measured.
+[Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) and
+[issue 213](https://github.com/l3a0/quantitative-trading/issues/213) are where
+survivorship is priced.
+
+**Whether the gap holds in another year.** The run reads 2006 only, the year
+Chan's S&P 500 figures came from, and the standard error says what one year
+can resolve. A gap that points the same way in other years would be a
+different and stronger result.
+
+**What a trader in small caps would keep after costs.** The run charges both
+universes 5 basis points a side, while small caps cost more to trade. So the
+after-cost gaps flatter the S&P 600, and nothing here prices by how much.
+
+**Whether Khandani and Lo's 4.47 came from small caps.** Their universe and
+window are not this file's, so the S&P 600 reaching their figure or not says
+nothing about where their returns came from. The report prints 4.47 and judges
+it against nothing.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
 
 ## Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*
 
