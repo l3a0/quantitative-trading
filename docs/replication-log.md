@@ -9701,8 +9701,10 @@ hypothesis rather than a finding.
 IVV's members at each month-end from 2008-12 to 2026-08, is a holdout with a
 smaller survivor gap than this file's. The plan chose it before any number
 here was computed, and
-[issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs this
-exact specification and the amendment on it. Entry 49 carries that result.
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
+this entry's registered specification on it, with the changes that panel
+forces and under both amendments of 2026-10-11, this entry's and its own.
+Entry 49 carries that result.
 Its closes sit only in the owner's archive, so its figure pins run only where
 the archive is.
 
@@ -10031,15 +10033,15 @@ and 4709, the claim Entry 45 tests on Chan's own file. Shipped under
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526). Entry 45
 cannot say whether the rule held after the book, because Chan's file holds
 only the stocks still in the index in 2007 and its span sits inside the
-samples the low-beta literature used. This entry runs the same registered
-specification on IVV's members at each month-end from 2008-12, every holding
-month after Chan published.
+samples the low-beta literature used. This entry runs Entry 45's registered
+specification, with the changes the panel forces, on IVV's members at each
+month-end from 2008-12, every holding month after Chan published.
 
 Eleven rows, all derivable from
 [tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py), whose
 pins run only where the owner's data archive is and `QT_ARCHIVE_RUN=1` asks
-for them. Row 11 and the calendar's span in row 9 also hold on committed
-files alone, and those tests run everywhere.
+for them. Row 11, all but its 6,943, and the calendar's span in row 9 also
+hold on committed files alone, and those tests run everywhere.
 
 **Not decided.** "No gap in compounded growth detectable above about 0.2948 a
 year over 208 months, where the point estimate is -0.0590." That sentence is
@@ -10074,24 +10076,30 @@ the result, so they are stated here.
    each holds.
 2. **Membership at t.** A stock is a candidate when it is a member of the
    schedule that sets month t and that member-month passes the panel's
-   coverage check, with Example 7.7's year-earlier reason left out. Membership
-   at t + 1 is not asked for.
+   monthly coverage rule, with Example 7.7's year-earlier reason left out.
+   Membership at t + 1 is not asked for.
 3. **The holding month.** Each series stops at its last row that traded and
    moved. A stock that stops inside the holding month earns its return to its
    last close and holds cash after it. One whose last row is t, or that has no
-   close at t, or a hole at t + 1, is not eligible at t.
+   close at t, or a hole at t + 1, is not eligible at t. The first and the
+   last of those exclusions still read t + 1, which is not known at t. At the
+   208 formations kept they leave out 12 member-months whose last row is t and
+   4 with a hole at t + 1, beside the 97,667 covered there.
 4. **The span.** Formations run from 2008-12-31 to 2026-07-31, 212 of them,
    because the committed TB3MS ends at 2026-08. A day in the run with no SPY
    close would have stopped it, and none lacks one.
 
-**Every figure is about the members the coverage check keeps.** The panel
-has a smaller survivor gap than Chan's file, not none. 6,816 of the 107,115
-member-months fail the coverage check, and of the 2,187 member rows that
-fail it, only 697 carry a ticker still in the 2026-06-30 schedule. So the gap
-leans toward companies that left the index.
-Membership is each quarter-end schedule carried forward, so a change between
-schedules is dated up to two months late, or five around the missing
-2013-09-30 schedule.
+**Every figure is about the members the monthly rule keeps.** The panel has
+a smaller survivor gap than Chan's file, not none. On the series the run
+reads, each cut at its last row that traded, the monthly rule leaves out
+6,943 of the 107,115 member-months. 6,816 of those fail the row check
+against the filing, and 4,614 of the 6,816 carry a ticker absent from the
+2026-06-30 schedule. Of the 2,187 member rows that fail the row check, only
+697 carry a ticker still in that schedule. So the gap leans toward
+companies that left the index, though a ticker absent from the last schedule
+also marks a company that only changed its ticker. Membership is each
+quarter-end schedule carried forward, so a change between schedules is dated
+up to two months late, or five around the missing 2013-09-30 schedule.
 
 Row 1 is **registered**, under two amendments, both of 2026-10-11. The first
 is [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)'s, which reads a levered month losing more than its capital as
@@ -10126,33 +10134,33 @@ columns have nothing to hold in any row and are dropped, under
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
-| 1 | the claim: any levered month at −1 or below, else the Newey-West t of d against 1.645, over the months the skip leaves | no ruined month. Over 208 months, 12 times the mean of d is −0.0590, the Newey-West t is −0.4974 at lag 4, and the detectable gap Y is 0.2948. The worst levered month, December 2024, returned −0.8014 | `TestTheVerdict::test_the_claim_is_not_decided`, `::test_the_gap_its_newey_west_t_and_y`, `::test_the_wording` and `::test_no_month_is_ruined` |
+| 1 | the claim: any levered month at −1 or below, else the Newey-West t of d against 1.645, over the months the skip leaves | no ruined month. Over 208 months, 12 times the mean of d is −0.0590, the Newey-West t is −0.4974 at lag 4, and the detectable gap Y is 0.2948. The worst levered month, December 2024, returned −0.8014, at a k of 12.3588 on the low fifth's −0.0616 | `TestTheVerdict::test_the_claim_is_not_decided`, `::test_the_gap_its_newey_west_t_and_y`, `::test_the_wording`, `::test_no_month_is_ruined` and `::test_the_worst_month_levered_the_low_fifth_by_12_3588` |
 | 2 | each portfolio's Sharpe ratio on its monthly return over the bill, times √12 | levered low 0.5223, low 0.8607, high 0.6770 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` |
 | 3 | realised compounded growth, 12 times the mean monthly log return | levered low 0.1023, low 0.1069, high 0.1613, SPY 0.1378 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` and `::test_spys_growth` |
 | 4 | k over the 208 formations kept, and the low group's mean beta | k mean 3.8247, from 1.8988, formed 2015-12-31, to 27.9727, formed 2025-03-31. Low group 0.0563 to 0.7317 | `TestTheSideFigures::test_the_leverage_path` and `::test_the_low_groups_mean_beta_over_the_formations_kept` |
 | 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's | levered low 1.8316, low 0.5580, high 1.6461, SPY 1 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` |
 | 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 7.3632, Gaussian growth 0.0136 + 0.3704 = 0.3840, against the high portfolio's realised 0.1613 | `TestTheSideFigures::test_the_kelly_reading_labelled_look_ahead` |
-| 7 | member-months, covered members and eligible stocks over the 208 formations, and each portfolio's size. The run prints every formation's row | 104,600 member-months, 97,667 covered, 97,302 eligible with a beta. 389 to 501 eligible per formation, each portfolio 77 to 100, 19,377 stock-months each | `TestTheSideFigures::test_the_counts` |
+| 7 | member-months, covered members and eligible stocks over the 208 formations, and each portfolio's size. The run prints every formation's row | 104,600 member-months, 97,667 covered, 97,302 eligible with a beta. 389 to 501 eligible per formation, each portfolio 77 to 100, 19,377 stock-months each. The two exclusions that read t + 1 leave out 12 member-months whose last row is t and 4 with a hole at t + 1 | `TestTheSideFigures::test_the_counts` and `::test_the_exclusions_that_read_t_plus_1` |
 | 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 34 low and 321 high. The closes the run reads flag 820 days in 98 stocks | `TestTheScaleBreakDecision::test_34_low_and_321_high_stock_months_carry_a_flag` and `::test_820_flagged_days_in_98_stocks` |
 | 9 | the calendar | 4,695 days from 2008-01-02 to 2026-08-31, the first formation 252 rows in. 212 formations from 2008-12-31 to 2026-07-31. 121 series stop before their file's last row, and no close falls off the calendar | `TestTheRunsHelpers::test_the_frame_starts_252_rows_before_2008_12_31_and_ends_2026_08_31`, `TestTheWindow::test_212_formations_of_which_4_are_skipped_leave_208_months`, `::test_formed_2008_12_31_to_2026_03_31_held_to_2009_01_30_to_2026_04_30` and `TestTheVintages::test_121_series_stop_before_their_files_last_row_and_none_is_off_the_calendar` |
 | 10 | the formations the second amendment skips, with each group's mean beta | four, the last four: formed 2026-04-30, low −0.0037 and high 1.8278. Formed 2026-05-29, low −0.0652 and high 1.8696. Formed 2026-06-30, low −0.1429 and high 1.9202. Formed 2026-07-31, low −0.2083 and high 1.9536 | `TestTheWindow::test_the_four_skipped_formations_are_the_last_four` |
-| 11 | the survivor gap, on the committed members file | 6,816 of 107,115 member-months fail the coverage check. 697 of the 2,187 failing member rows carry a ticker in the 2026-06-30 schedule | `TestTheCoverageWithoutRank::test_the_survivor_label_counts` and `TestTheSideFigures::test_the_survivor_label` |
+| 11 | the survivor gap, on the committed members file and on the series the run cuts | 6,816 of 107,115 member-months fail the row check against the filing, and 4,614 of them carry a ticker absent from the 2026-06-30 schedule. 697 of the 2,187 failing member rows carry a ticker in that schedule. The monthly rule leaves out 6,927 member-months on the manifest's spans and 6,943 on the series the run cuts | `TestTheCoverageWithoutRank::test_the_survivor_label_counts` and `TestTheSideFigures::test_the_survivor_label` |
 
 ### The verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is the gap this test finds four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the coverage check keeps, which leans toward companies still in the index. |
+| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is the gap this test finds four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the monthly rule keeps, which leans toward companies still in the index. |
 | 2 | none, not a replication | The low fifth's Sharpe ratio is 0.8607 and the high fifth's 0.6770. Nothing tests the difference, so it neither confirms nor refutes location 4684's premise, and it decides nothing because the claim is about growth. |
 | 3 | none, not a replication | Unlevered, the high fifth compounded at 0.1613 a year, the low fifth at 0.1069 and SPY at 0.1378. Levered, the low fifth reached 0.1023, below its own unlevered growth. Nothing tests any of these gaps. |
-| 4 | none, not a replication | The low fifth's mean beta at formation stayed above 0.0563 over the formations kept, so k stayed below 27.9727, against Entry 45's 69.0762. |
+| 4 | none, not a replication | Over the formations kept, the low fifth's mean beta at formation bottomed at 0.0563 and k peaked at 27.9727, both at the formation of 2025-03-31, against Entry 45's 69.0762. |
 | 5 | none, not a replication | The levered low's realised beta of 1.8316 is above the high fifth's 1.6461, so after the fact the match overshot the beta it aimed at, as on Chan's file. The low fifth's 0.5580 sits inside the range its formations gave. SPY's is 1 by construction. |
 | 6 | none, not a replication | Look-ahead. The Kelly leverage can only be known from the whole sample, and the 0.3840 is the Gaussian growth r + S²/2, a formula on the sample's moments that no portfolio realised. The reading is reported because location 4709 means it, and it decides nothing. |
 | 7 | none, not a replication | Every formation kept fills both fifths, so the refusal for an empty portfolio never fires. |
 | 8 | none, not a replication | No window is refused, as `tests/test_scale_breaks.py` records for this panel. The high fifth holds 321 flagged stock-months and the low fifth 34. |
 | 9 | none, not a replication | The first formation is the one the registration named, and the 212 formations are the count the audit took from the calendar before the run. |
 | 10 | none, not a replication | The low fifth's mean beta fell through zero in the run's last four formations and kept falling, so the skips end the comparison in April 2026 rather than August. |
-| 11 | none, not a replication | The coverage check leaves out companies the archive cannot price, and most of those left the index. Which fifth that flatters is not measured here. |
+| 11 | none, not a replication | The row check against the filing fails mostly on tickers absent from the last schedule, 4,614 of 6,816 member-months, which marks a company that left the index or changed its ticker. Which fifth that flatters is not measured here. |
 
 ### The skipped formations
 
@@ -10170,13 +10178,13 @@ Two things, and the first is the verdict.
 1. **After the book, the rule is not decided on IVV's S&P 500.** Levered to
    the high fifth's beta, the low fifth's compounded growth trailed the
    unlevered high fifth's by 0.0590 a year, at a Newey-West t of −0.4974. The
-   test could only have detected a gap above about 0.29 a year, so the run
-   says little either way. That is Not decided, and it maps to
+   test finds a gap of 0.2948 a year four times in five, so the run says
+   little either way. That is Not decided, and it maps to
    `did not reproduce`.
 2. **The beta match did not ruin the portfolio here, and it came closest in
-   December 2024.** The low fifth's beta at formation stayed above 0.0563
-   over the formations kept, so k peaked at 27.9727 rather than Entry 45's
-   69.0762, and the worst levered month lost 0.8014 of the capital. In the
+   December 2024.** Over the formations kept, the low fifth's mean beta at
+   formation bottomed at 0.0563 and k peaked at 27.9727, against Entry 45's
+   69.0762. The worst levered month lost 0.8014 of the capital. In the
    last four formations the match had no leverage to offer at all. The low
    fifth's Sharpe ratio of 0.8607 against the high fifth's 0.6770 is an
    untested point estimate that decides nothing.
@@ -10185,16 +10193,18 @@ Two things, and the first is the verdict.
 
 Four things.
 
-**Whether a smaller gap exists.** A gap below about 0.29 a year would usually
-pass this test unseen, and the point estimate of −0.0590 sits well inside
-that. The panel holds no months beyond these.
+**Whether a smaller gap exists.** This test finds a gap below 0.2948 a year
+less than four times in five, and the point estimate of −0.0590 sits well
+inside that. The panel holds no months beyond these.
 
-**What survivorship does to either side.** 6,816 member-months fail the
-coverage check, mostly from companies that later left the index. Which fifth
-they would have joined is not measured here.
+**What survivorship does to either side.** 6,816 member-months fail the row
+check against the filing, and 4,614 of them carry a ticker absent from the
+2026-06-30 schedule, which marks a company that left the index or changed
+its ticker. Which fifth they would have joined is not measured here.
 
-**Whether fat tails are the cause of the worst month.** A k near 28 turned a
-low-fifth month into a loss of 0.8014 of the capital. Location 4700's caveat
+**Whether fat tails are the cause of the worst month.** In December 2024 a k
+of 12.3588 turned the low fifth's return of −0.0616 into a levered loss of
+0.8014 of the capital. Location 4700's caveat
 names the risk, and how near the run came to ruin depends on that month alone.
 
 **What the model's half of the argument says.** Location 4684's equal average

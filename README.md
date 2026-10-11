@@ -652,10 +652,13 @@ where they were first built. The other forty-three were built here.
     [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s skip amendment, both of
     2026-10-11, and the skip rule was ruled after the first skipped formation
     was visible. Every holding month comes after the book. Membership is the
-    members the coverage check keeps: 6,816 of 107,115 member-months fail
-    it, and those lean toward companies that left the index. Each quarter-end
-    schedule is carried forward, so a change between schedules is dated up to
-    two months late, or five around the missing 2013-09-30 schedule.
+    members the monthly coverage rule keeps, which leaves out 6,943 of
+    107,115 member-months. 6,816 of those fail the row check against the
+    filing, and 4,614 of the 6,816 carry a ticker absent from the 2026-06-30
+    schedule, which marks a company that left the index or changed its
+    ticker. Each quarter-end schedule is carried forward, so a change between
+    schedules is dated up to two months late, or five around the missing
+    2013-09-30 schedule.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1179,8 +1182,9 @@ the same claim on IVV's S&P 500 from 2008. It pins the verdict, the four
 skipped formations, the side figures, the counts, the flagged stock-months
 and the vintage, and those pins skip unless the archive is configured and
 `QT_ARCHIVE_RUN=1`. On frames built by hand it holds membership at t, the
-holding month of a stock that stops, the skip of a formation with no positive
-low-group beta, and the survivor gap read from the committed members file.
+holding month of a stock that stops, and the skip of a formation with no
+positive low-group beta. On the committed members file it holds the survivor
+gap and how the exclusions that read t + 1 split.
 
 All forty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there

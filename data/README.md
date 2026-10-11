@@ -260,7 +260,8 @@ every excess return subtracts, for
 [src/chan/low_beta_holdout.py](../src/chan/low_beta_holdout.py) reads it the
 same way for
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526). Its last
-month, 2026-08, is why that run's last holding month is August 2026.
+month, 2026-08, is why that run's last formation is 2026-07-31 and its frame
+ends on 2026-08-31.
 [Issue 187](https://github.com/l3a0/quantitative-trading/issues/187) is where
 storing it was decided.
 

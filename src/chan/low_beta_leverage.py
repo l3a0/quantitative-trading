@@ -110,9 +110,10 @@ only the case those rules left undefined. Registration rules out a
 specification tuned on this panel by this repo. It does not make 2000 to 2007
 a holdout: Chan wrote the claim in 2008 from "empirical studies", and the
 low-beta literature's own samples cover the span.
-[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs the
-same specification and amendment on IVV's S&P 500 from 2008 to 2026, which is
-a holdout, and
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
+issue 275's registered specification on IVV's S&P 500 from 2008 to 2026, with
+the changes that panel forces and under both amendments of 2026-10-11, the
+ruin amendment and its own skip amendment. That run is a holdout, and
 [issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
 rule on this file at leverage a broker would lend, as an exploratory run,
 because the ruin had been seen.
@@ -210,7 +211,7 @@ class UnreadableStandardError(Exception):
 
 @dataclass(frozen=True)
 class Portfolios:
-    """The 83 holding months of the three portfolios, and what each formation held.
+    """The holding months of the three portfolios, 83 on Chan's file, and what each formation held.
 
     Every tuple runs in formation order, and every series is indexed by
     ``held_to``, month-end t + 1. ``rf`` is that holding month's TB3MS over 12.
@@ -238,7 +239,8 @@ class Portfolios:
     high_members: tuple[tuple[str, ...], ...]
     #: Each eligible stock's beta at each formation, NaN where it has none.
     betas: pd.DataFrame
-    #: Formations left out under ``skip_non_positive``, none of them in any field above.
+    #: Formations left out under ``skip_non_positive``, in none of the per-formation
+    #: fields above. ``month_ends`` still lists every month-end.
     skipped: tuple[Skipped, ...] = ()
 
 

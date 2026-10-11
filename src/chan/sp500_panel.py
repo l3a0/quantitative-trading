@@ -7,7 +7,7 @@ to August 2026, and needs to know which members it can rank there. The mapping
 and the check live in :mod:`chan.fund_panel`, which the S&P 600 panel shares.
 This module binds IVV, the ``sp500`` cross-section and the members file at
 ``research/filings/ivv/members.csv``, and holds the month-by-month coverage
-rule, which only Example 7.7 reads.
+rule, which Example 7.7 and issue 526's holdout read.
 
 ```bash
 QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp500_panel fetch'
@@ -60,6 +60,10 @@ A member that misses carries one reason, tested in this order.
 4. ``rank``, when a year-earlier close is missing or untrusted.
 5. ``next``, when its series holds no close at the next month-end and does
    not end between the two month-ends.
+
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
+holdout, :mod:`chan.low_beta_holdout`, reads the rule with ``rank=False``,
+which drops the year-earlier closes of point 2 and so the ``rank`` reason.
 
 **Why a second committed table.** The report runs in CI, where no archive is,
 and it reads month-ends the check never looked at. The manifest's

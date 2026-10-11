@@ -8,10 +8,12 @@ than holding an unleveraged portfolio of high-beta stocks", on Chan's own S&P
 of [docs/replication-log.md](../../docs/replication-log.md) records the result.
 That file holds only the stocks still in the index in 2007, and its span sits
 inside the samples the low-beta literature already used.
-[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs the
-same registered specification on a panel with neither problem: IVV's members
-at each month-end from 2008-12 to 2026-08, read through
-:mod:`chan.sp500_panel`, with every holding month after Chan published.
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
+issue 275's registered specification, with the changes the panel forces, on a
+panel that has neither problem in the same form: IVV's members at each
+month-end from 2008-12 to 2026-08, read through :mod:`chan.sp500_panel`. Its
+survivor gap is smaller and measured, and every holding month comes after Chan
+published.
 
 Everything issue 275 registered carries over, its amendment of 2026-10-11
 reading a ruined month as the claim contradicted included, and
@@ -33,6 +35,9 @@ what changes and why. In short:
    next month-end. So a stock stopping strictly inside the holding month earns
    its return to its last close and holds cash after it, and one whose last
    row is t, or that has no close at t, or a hole at t + 1, is not eligible.
+   The first and the last of those exclusions still read t + 1, which is not
+   known at t, and at the 208 formations kept they leave out 12 and 4
+   member-months, which :class:`NextReads` lists.
 5. **The span.** Formations run from 2008-12-31 to 2026-07-31, because the
    committed TB3MS ends at 2026-08. The frame ends at 2026-08-31, so every day
    it holds has a bill rate, and it starts 252 rows before the first
@@ -58,9 +63,11 @@ the holding month, and the comment above ``FLAGGED_IN_CHANS_MAT_FILES`` in
 ``tests/test_scale_breaks.py`` records the decision for this panel too.
 
 **The survivor label.** This panel has a smaller survivor gap than Chan's
-file, not none. Member-months whose row fails the coverage check, and the
-member rows that fail it, are reported with how many of those rows carry a
-ticker still in the last schedule. Membership is each quarter-end schedule
+file, not none. The report gives the member-months the monthly rule of point
+3 leaves out, and the member-months and member rows that fail the row check
+against the filing, with how many carry a ticker absent from, or still in,
+the last schedule. A ticker absent from the last schedule marks a company
+that left the index or one that changed its ticker. Membership is each quarter-end schedule
 carried forward, so a change between schedules is dated up to two months late,
 or five around the missing 2013-09-30 schedule.
 
@@ -132,7 +139,7 @@ MARKET = "SPY"
 #: The first formation's month, the first month the panel covers.
 FIRST_FORMATION = sp500_panel.FIRST_MONTH
 
-#: The last holding month, the last the committed TB3MS holds a rate for.
+#: The last holding month the span allows, the last the committed TB3MS holds a rate for.
 LAST_HELD = pd.Period("2026-08", "M")
 
 
@@ -142,19 +149,40 @@ class HoldoutRefused(Exception):
 
 @dataclass(frozen=True)
 class SurvivorGap:
-    """How much of the panel the coverage check leaves out, and who.
+    """How much of the panel the monthly rule leaves out, and who.
 
     ``member_months`` counts every member at every month the panel covers, and
-    ``failed_member_months`` those whose row failed the check. ``failed_rows``
-    counts the member rows across every schedule that failed it, and
-    ``still_listed`` those whose ticker is in the last schedule.
+    ``left_out`` those the monthly rule of point 3 does not cover, for any
+    reason. ``failed_member_months`` counts the member-months whose row failed
+    the row check against the filing, and ``absent_member_months`` those of
+    them whose ticker is not in the last schedule. ``failed_rows`` counts the
+    member rows across every schedule that failed the row check, and
+    ``still_listed`` those whose ticker is in the last schedule. A ticker
+    absent from the last schedule belongs to a company that left the index or
+    one that changed its ticker, and the two are not told apart here.
     """
 
     member_months: int
+    left_out: int
     failed_member_months: int
+    absent_member_months: int
     failed_rows: int
     still_listed: int
     last_schedule: str
+
+
+@dataclass(frozen=True)
+class NextReads:
+    """The member-months point 4's two exclusions leave out at the formations kept.
+
+    Both read the month-end after the formation, t + 1. ``last_row_at_t`` lists
+    each member whose series' last row is t, and ``hole_at_t1`` each whose
+    series has no row at t + 1 but rows after it, as ``(month, ticker)``
+    pairs.
+    """
+
+    last_row_at_t: tuple[tuple[str, str], ...]
+    hole_at_t1: tuple[tuple[str, str], ...]
 
 
 @dataclass(frozen=True)
@@ -178,6 +206,7 @@ class Holdout:
     #: Rows inside the frame's span on a day the calendar lacks, stocks and SPY.
     off_calendar: int
     survivors: SurvivorGap
+    reads_next: NextReads
 
     @property
     def verdict(self) -> Verdict:
@@ -243,20 +272,62 @@ def refuse_uncovered(closes: pd.DataFrame, mask: pd.DataFrame) -> None:
 
 
 def survivor_gap(rows: tuple[MemberRow, ...], coverage: tuple[MonthCoverage, ...]) -> SurvivorGap:
-    """The member-months and member rows that fail the coverage check, for the label."""
-    failed = sum(
-        1 for month in coverage for reason in month.reasons if reason not in sp500_panel.MISSES
-    )
+    """What the monthly rule leaves out, and the member-months and rows failing the row check."""
+    by_key = {row.key: row for row in rows}
     last = sp500_panel.schedule_months()[-1][0]
     listed = {row.ticker for row in rows if row.report_date == last and row.ticker}
+    failed = [
+        by_key[key].ticker
+        for month in coverage
+        for key, reason in zip(month.missing, month.reasons, strict=True)
+        if reason not in sp500_panel.MISSES
+    ]
     failing = [row for row in rows if row.check != "pass"]
     return SurvivorGap(
         member_months=sum(month.members for month in coverage),
-        failed_member_months=failed,
+        left_out=sum(month.members - month.covered for month in coverage),
+        failed_member_months=len(failed),
+        absent_member_months=sum(1 for ticker in failed if ticker not in listed),
         failed_rows=len(failing),
         still_listed=sum(1 for row in failing if row.ticker in listed),
         last_schedule=last,
     )
+
+
+def next_reads(
+    rows: tuple[MemberRow, ...],
+    coverage: tuple[MonthCoverage, ...],
+    spans: dict[str, tuple[str, str]],
+    holes: frozenset[tuple[str, str]],
+    calendar: pd.DatetimeIndex,
+    formed: pd.DatetimeIndex,
+) -> NextReads:
+    """Split the ``next`` misses at the formations into a last row at t and a hole at t + 1.
+
+    ``spans`` are the ones the coverage was computed on. The coverage rule
+    gives ``next`` only to a member covered at t whose series ends at t or has
+    a hole at t + 1, so any other ``next`` is refused as a rule this split does
+    not know.
+    """
+    by_key = {row.key: row for row in rows}
+    kept = {day.to_period("M") for day in formed}
+    last_row, hole = [], []
+    for month in coverage:
+        period = pd.Period(month.month, "M")
+        if period not in kept:
+            continue
+        day = sp500_panel.month_end(calendar, period)
+        for key, reason in zip(month.missing, month.reasons, strict=True):
+            if reason != "next":
+                continue
+            ticker = by_key[key].ticker
+            if pd.Timestamp(spans[ticker][1]) == day:
+                last_row.append((month.month, ticker))
+            elif (ticker, str(period + 1)) in holes:
+                hole.append((month.month, ticker))
+            else:
+                raise HoldoutRefused(f"{ticker} misses {month.month} for next with neither cause")
+    return NextReads(tuple(last_row), tuple(hole))
 
 
 def skipped_line(portfolios: Portfolios) -> str:
@@ -317,10 +388,9 @@ def read_holdout(*, data_dir: Path | None = None, directory: Path | None = None)
     # With the rank reason left out, no member is linked to an earlier
     # schedule's row, so the links, which read every holdings file, are not
     # computed.
+    holes = sp500_panel.read_holes()
     coverage = tuple(
-        sp500_panel.monthly_coverage(
-            rows, spans, sp500_panel.read_holes(), calendar, previous={}, rank=False
-        )
+        sp500_panel.monthly_coverage(rows, spans, holes, calendar, previous={}, rank=False)
     )
     closes = stopped_closes(adjusted.reindex(days), stops, calendar).reindex(columns=symbols)
     spy = market_closes(market[MARKET], days)
@@ -345,6 +415,7 @@ def read_holdout(*, data_dir: Path | None = None, directory: Path | None = None)
         moved=moved,
         off_calendar=off_calendar(adjusted, days) + off_calendar(market, days),
         survivors=survivor_gap(rows, coverage),
+        reads_next=next_reads(rows, coverage, spans, holes, calendar, formed),
     )
 
 
@@ -482,9 +553,16 @@ def report(holdout: Holdout) -> None:
     )
     s = h.survivors
     print(
-        f"  Survivors: {s.failed_member_months} of {s.member_months} member-months fail the "
-        f"coverage check, and of the {s.failed_rows} member rows that fail it, {s.still_listed} "
-        f"carry a ticker still in the {s.last_schedule} schedule."
+        f"  Survivors: the monthly rule leaves out {s.left_out} of {s.member_months} "
+        f"member-months. {s.failed_member_months} of them fail the row check against the "
+        f"filing, {s.absent_member_months} of those with a ticker absent from the "
+        f"{s.last_schedule} schedule, and of the {s.failed_rows} member rows that fail it, "
+        f"{s.still_listed} carry a ticker still in that schedule."
+    )
+    n = h.reads_next
+    print(
+        f"  Read at t + 1: {len(n.last_row_at_t)} member-months whose last row is t and "
+        f"{len(n.hole_at_t1)} with a hole at t + 1 are left out at the formations kept."
     )
     print(
         "  Membership is each quarter-end schedule carried forward, so a change between "

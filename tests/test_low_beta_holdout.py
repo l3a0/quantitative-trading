@@ -30,7 +30,8 @@ The result is **registered**, under both amendments of 2026-10-11. The skip
 rule was chosen after the first non-positive formation, 2026-04-30, was
 visible, and before anything the criterion reads had been computed. Every
 holding month comes after the book, so the span is a holdout. Membership is
-only as complete as the coverage check allows, which the survivor label pins.
+only as complete as the monthly coverage rule allows, which the survivor label
+pins.
 
 The archive pins skip where no archive is configured or ``QT_ARCHIVE_RUN`` is
 not 1, the way ``tests/conftest.py``'s ``archive_skip_reason`` decides. Every
@@ -58,6 +59,7 @@ from chan.low_beta_holdout import (
     frame_days,
     market_closes,
     month_end_mask,
+    next_reads,
     refuse_uncovered,
     skipped_line,
     survivor_gap,
@@ -321,14 +323,80 @@ class TestTheCoverageWithoutRank:
         }
         assert sum(m.covered for m in unranked) == 100188
         assert sum(m.covered for m in ranked) + 1852 == 100188
+        assert sum(tally.values()) == 107115 - 100188 == 6927
 
     def test_the_survivor_label_counts(self) -> None:
-        """Point 9: 6,816 of 107,115 member-months fail, and 697 of 2,187 failing rows remain."""
+        """Point 9: the rule leaves out 6,927 of 107,115, and 6,816 fail the row check.
+
+        4,614 of the 6,816 carry a ticker absent from the 2026-06-30 schedule,
+        and 697 of the 2,187 failing rows carry one still in it.
+        """
         rows = sp500_panel.load()
-        gap = survivor_gap(tuple(rows), tuple(sp500_panel.coverage_from_committed(rows)))
-        assert (gap.failed_member_months, gap.member_months) == (6816, 107115)
+        args = (rows, sp500_panel.spans(), sp500_panel.read_holes(), sp500_panel.calendar())
+        unranked = sp500_panel.monthly_coverage(*args, previous={}, rank=False)
+        gap = survivor_gap(tuple(rows), tuple(unranked))
+        assert (gap.left_out, gap.member_months) == (6927, 107115)
+        assert (gap.failed_member_months, gap.absent_member_months) == (6816, 4614)
         assert (gap.still_listed, gap.failed_rows) == (697, 2187)
         assert gap.last_schedule == "2026-06-30"
+
+    def test_the_rank_reason_leaves_the_row_check_failures_unchanged(self) -> None:
+        rows = sp500_panel.load()
+        gap = survivor_gap(tuple(rows), tuple(sp500_panel.coverage_from_committed(rows)))
+        assert (gap.failed_member_months, gap.absent_member_months) == (6816, 4614)
+        assert gap.left_out == 6927 + 1852
+
+
+def formation_days(calendar: pd.DatetimeIndex) -> pd.DatetimeIndex:
+    """The 212 formation month-ends the span allows, 2008-12-31 to 2026-07-31."""
+    months = pd.period_range(sp500_panel.FIRST_MONTH, low_beta_holdout.LAST_HELD - 1, freq="M")
+    return pd.DatetimeIndex([sp500_panel.month_end(calendar, month) for month in months])
+
+
+class TestTheExclusionsThatReadTPlus1:
+    """Point 4 keeps two exclusions that read t + 1: a last row at t and a hole at t + 1.
+
+    On the manifest's spans, before each series is cut at its last row that
+    traded, the rule's ``next`` reason leaves out 14 member-months at the 212
+    formations, which is the count issue 526 cites from issue 336. They split
+    5 and 9. The run's cut moves both, so its own split, held below the archive
+    line, differs.
+    """
+
+    def test_the_audits_14_split_5_with_a_last_row_at_t_and_9_with_a_hole(self) -> None:
+        rows = sp500_panel.load()
+        calendar = sp500_panel.calendar()
+        args = (rows, sp500_panel.spans(), sp500_panel.read_holes(), calendar)
+        coverage = tuple(sp500_panel.monthly_coverage(*args, previous={}, rank=False))
+        reads = next_reads(tuple(rows), coverage, *args[1:], formation_days(calendar))
+        assert reads.last_row_at_t == (
+            ("2015-10", "HCBK"),
+            ("2016-05", "ARG"),
+            ("2018-05", "WYN"),
+            ("2018-09", "ANDV"),
+            ("2018-12", "SCG"),
+        )
+        assert len(reads.hole_at_t1) == 9
+        assert reads.hole_at_t1[0] == ("2012-05", "NVLS")
+
+    def test_only_the_formations_passed_are_read(self) -> None:
+        rows = sp500_panel.load()
+        calendar = sp500_panel.calendar()
+        args = (rows, sp500_panel.spans(), sp500_panel.read_holes(), calendar)
+        coverage = tuple(sp500_panel.monthly_coverage(*args, previous={}, rank=False))
+        days = formation_days(calendar)
+        reads = next_reads(tuple(rows), coverage, *args[1:], days[days <= "2016-12-31"])
+        assert [month for month, _ in reads.last_row_at_t] == ["2015-10", "2016-05"]
+
+    def test_a_next_miss_with_neither_cause_is_refused(self) -> None:
+        rows = sp500_panel.load()
+        calendar = sp500_panel.calendar()
+        args = (rows, sp500_panel.spans(), sp500_panel.read_holes(), calendar)
+        coverage = tuple(sp500_panel.monthly_coverage(*args, previous={}, rank=False))
+        with pytest.raises(HoldoutRefused, match="NVLS misses 2012-05 for next"):
+            next_reads(
+                tuple(rows), coverage, args[1], frozenset(), calendar, formation_days(calendar)
+            )
 
 
 class TestTheMarketLine:
@@ -491,6 +559,12 @@ class TestTheVerdict:
         pin(float(holdout.portfolios.levered.min()), -0.8014142983510244, "-0.8014")
         assert holdout.portfolios.levered.idxmin() == pd.Timestamp("2024-12-31")
 
+    def test_the_worst_month_levered_the_low_fifth_by_12_3588(self, holdout) -> None:
+        p = holdout.portfolios
+        worst = pd.Timestamp("2024-12-31")
+        pin(float(p.leverage[worst]), 12.358835874284544, "12.3588")
+        pin(float(p.low[worst]), -0.06157503682164154, "-0.0616")
+
 
 class TestTheSideFigures:
     """Point estimates nothing tests. They decide nothing."""
@@ -526,11 +600,19 @@ class TestTheSideFigures:
         # Indexed by the month-end each holding month ends on, so the highest k
         # was formed 2025-03-31 and the lowest 2015-12-31.
         assert (k.idxmin(), k.idxmax()) == (pd.Timestamp("2016-01-29"), pd.Timestamp("2025-04-30"))
+        p = holdout.portfolios
+        formed = dict(zip(p.held_to, p.formed, strict=True))
+        assert (formed[k.idxmin()], formed[k.idxmax()]) == (
+            pd.Timestamp("2015-12-31"),
+            pd.Timestamp("2025-03-31"),
+        ), SPEC
 
     def test_the_low_groups_mean_beta_over_the_formations_kept(self, holdout) -> None:
         low = holdout.portfolios.low_beta
         pin(float(low.min()), 0.05626349094593196, "0.0563")
         pin(float(low.max()), 0.7317092155167064, "0.7317")
+        # The low group's lowest mean beta and the highest k share a formation.
+        assert low.idxmin() == holdout.portfolios.leverage.idxmax() == pd.Timestamp("2025-04-30")
 
     def test_the_kelly_reading_labelled_look_ahead(self, holdout) -> None:
         reading = kelly(holdout.portfolios)
@@ -552,8 +634,32 @@ class TestTheSideFigures:
 
     def test_the_survivor_label(self, holdout) -> None:
         s = holdout.survivors
-        assert (s.failed_member_months, s.member_months) == (6816, 107115)
+        assert (s.left_out, s.member_months) == (6943, 107115), SPEC
+        assert (s.failed_member_months, s.absent_member_months) == (6816, 4614)
         assert (s.still_listed, s.failed_rows, s.last_schedule) == (697, 2187, "2026-06-30")
+
+    def test_the_exclusions_that_read_t_plus_1(self, holdout) -> None:
+        reads = holdout.reads_next
+        assert reads.last_row_at_t == (
+            ("2010-02", "PBG"),
+            ("2011-02", "MFE"),
+            ("2012-03", "MHS"),
+            ("2014-06", "FRX"),
+            ("2015-10", "HCBK"),
+            ("2016-06", "GAS"),
+            ("2016-06", "CPGX"),
+            ("2017-10", "LVLT"),
+            ("2018-05", "WYN"),
+            ("2018-09", "ANDV"),
+            ("2018-12", "SCG"),
+            ("2022-09", "DRE"),
+        ), SPEC
+        assert reads.hole_at_t1 == (
+            ("2012-05", "NVLS"),
+            ("2014-10", "WAG"),
+            ("2016-02", "PCL"),
+            ("2016-03", "CAM"),
+        ), SPEC
 
 
 class TestTheScaleBreakDecision:
@@ -587,6 +693,8 @@ class TestTheReport:
         assert "high             0.1613   0.6770   1.6461" in out
         assert "7.3632, Gaussian growth there r + S^2/2 = 0.0136 + 0.3704 = 0.3840" in out
         assert "34 low and 321 high stock-months of 38754" in out
-        assert "6816 of 107115 member-months" in out and "697 carry a ticker" in out
+        assert "leaves out 6943 of 107115 member-months. 6816 of them fail" in out
+        assert "4614 of those with a ticker absent" in out and "697 carry a ticker" in out
+        assert "12 member-months whose last row is t and 4 with a hole at t + 1" in out
         assert "quite wary of using too much leverage" in out
         assert "skip amendment" in out and "this is a holdout" in out
