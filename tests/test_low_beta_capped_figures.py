@@ -23,6 +23,7 @@ from statistics import NormalDist
 import numpy as np
 import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.colors import to_rgba
 from matplotlib.text import Text
 
 from chan import low_beta_capped_figures as module
@@ -194,6 +195,51 @@ class TestTheFigure:
         marker = _by_gid(drawn.axes[0].lines)["estimate"]
         assert f"{marker.get_xdata()[0]:.4f}" == "0.0934"
 
+    def test_what_is_handed_in_is_drawn_without_reading_or_building(
+        self, monkeypatch, tmp_path, sources, portfolios
+    ) -> None:
+        """A draw handed both inputs uses them rather than reading the vintages again."""
+
+        def refuse(*_a, **_k):
+            raise AssertionError("read or built although both were handed in")
+
+        monkeypatch.setattr(module, "read_sources", refuse)
+        monkeypatch.setattr(module, "build_portfolios", refuse)
+        drawn = make_low_beta_capped_figure(
+            out=tmp_path / LOW_BETA_CAPPED_FIGURE, portfolios=portfolios, sources=sources
+        )
+        assert len(drawn.axes) == 2
+
+
+def _heading_box(ax, renderer):
+    """The left-aligned heading in display pixels. ``ax.title`` is the empty centred one."""
+    heading = ax._left_title
+    assert heading.get_text() == _title(ax)
+    return heading.get_window_extent(renderer)
+
+
+class TestTheLayout:
+    """Each heading and axis label sits wholly below the text above it and above the text below.
+
+    The order is checked rather than only the overlap, because text pushed
+    past its neighbour or off the figure overlaps nothing and is still lost.
+    """
+
+    def test_the_first_heading_sits_below_the_title(self, figure, axes, renderer) -> None:
+        title = figure._suptitle.get_window_extent(renderer)
+        assert _heading_box(axes[2.0], renderer).y1 < title.y0
+
+    def test_the_second_heading_sits_below_the_first_panels_tick_labels(
+        self, axes, renderer
+    ) -> None:
+        ticks = axes[2.0].xaxis.get_tightbbox(renderer)
+        assert _heading_box(axes[5.0], renderer).y1 < ticks.y0
+
+    def test_the_gap_axis_label_sits_above_the_note(self, figure, axes, renderer) -> None:
+        (note,) = [t for t in figure.texts if t is not figure._suptitle]
+        label = axes[5.0].xaxis.label.get_window_extent(renderer)
+        assert label.y0 > note.get_window_extent(renderer).y1
+
 
 @pytest.mark.parametrize(
     ("ceiling", "figures"),
@@ -250,14 +296,25 @@ class TestEachPanel:
             tuple(int(GOOD[i : i + 2], 16) / 255 for i in (1, 3, 5))
         )
 
+    def test_the_baseline_is_the_floor_of_the_panel(self, axes, ceiling, figures) -> None:
+        """Both curves and the estimate stand on 0, so 0 is where the panel starts."""
+        ax = axes[ceiling]
+        assert ax.get_ylim()[0] == 0
+        zero = _by_gid(ax.lines)["zero"]
+        assert list(zero.get_ydata()) == [0, 0]
+        assert zero.get_color() == MUTED
+
     def test_the_point_estimate_is_marked_on_the_baseline(
         self, axes, results, ceiling, figures
     ) -> None:
+        """A marker on the floor would be cut in half by the frame, so it is drawn unclipped."""
         marker = _by_gid(axes[ceiling].lines)["estimate"]
         assert list(marker.get_ydata()) == [0]
         assert marker.get_xdata()[0] == results[ceiling].gap
         assert f"{marker.get_xdata()[0]:.4f}" == figures["gap"], spec(ceiling)
         assert marker.get_color() == LOST
+        assert (marker.get_marker(), marker.get_markersize()) == ("D", 8)
+        assert marker.get_clip_on() is False
         label = _by_gid(axes[ceiling].texts)["estimate-label"]
         assert label.get_text() == (
             f"point estimate {figures['gap']},\nNewey-West t {figures['t']}"
@@ -332,6 +389,18 @@ class TestTheLabels:
             assert texts["estimate-label"].xy == (c.gap, 0)
             assert texts["y-label"].xy == (c.detectable, max(alternative.get_ydata()))
             assert texts["line-label"].xy[0] == five_percent_line(c)
+
+    def test_each_label_takes_the_colour_of_what_it_names(self, axes) -> None:
+        """The line and the estimate are drawn in LOST, the curve centred on Y in INK."""
+        for ceiling, ax in axes.items():
+            texts = _by_gid(ax.texts)
+            colours = {gid: t.get_color() for gid, t in texts.items()}
+            assert colours == {"line-label": LOST, "y-label": INK, "estimate-label": LOST}, ceiling
+            rules = {
+                gid: texts[gid].arrow_patch.get_edgecolor() for gid in ("y-label", "estimate-label")
+            }
+            assert rules["y-label"] == pytest.approx(to_rgba(INK)), ceiling
+            assert rules["estimate-label"] == pytest.approx(to_rgba(LOST)), ceiling
 
     def test_the_line_label_sits_just_right_of_its_line(self, axes, results, renderer) -> None:
         for ceiling, ax in axes.items():

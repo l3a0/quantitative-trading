@@ -6424,7 +6424,8 @@ uv run python -m chan.low_beta_capped_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels, the legend and
-every line.
+every line. Each panel's heading clears the title or the tick labels above it,
+and the gap axis's label clears the note below it.
 
 ## Where the book's numbers come from
 

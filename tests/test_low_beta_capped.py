@@ -663,6 +663,12 @@ class TestThePostsHelpers:
             with pytest.raises(ValueError, match="Newey-West statistic is not computed"):
                 helper(ruined_at(5.0))
 
+    def test_a_t_of_0_refuses_and_names_the_months(self) -> None:
+        """A t of 0 hides the standard error, and the refusal counts the ceiling's own months."""
+        for helper in (yearly_standard_error, five_percent_line):
+            with pytest.raises(UnreadableStandardError, match="t of d is 0 over 7 months"):
+                helper(with_statistic(2.0, 0.0, 0.0, months=7))
+
 
 class TestTheBreakEvenSpread:
     def test_at_a_leverage_of_2_it_is_12_times_the_monthly_gap(self) -> None:
