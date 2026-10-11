@@ -749,10 +749,12 @@ The same rule also runs at leverage a broker would lend, and that capped run
 reaches no verdict.
 [Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) caps
 location 4684's beta match at 2, the overnight leverage Regulation T allows,
-and at 5, the most location 814 says portfolio margin lends on stocks held
-overnight. Neither ceiling ruins the portfolio. In point estimate the capped
-low fifth out-compounded the unlevered high fifth, by 0.0934 a year at a
-ceiling of 2 and 0.1659 at 5, with Newey-West t of 1.0715 and 1.2111.
+and at 5, from portfolio margin's "20 percent or less" at location 814. Five
+is the highest leverage the book puts a number on for stocks held overnight,
+and the "or less" leaves room for more. Neither ceiling ruins the portfolio.
+In point estimate the capped low fifth out-compounded the unlevered high
+fifth, by 0.0934 a year at a ceiling of 2 and 0.1659 at 5, with Newey-West t
+of 1.0715 and 1.2111.
 Benjamini-Hochberg across the two ceilings rejects neither in either
 direction, so neither ceiling is decided. Every figure is exploratory, because
 the ceilings were chosen after item 44's calendar, leverage path and ruin had
@@ -1323,9 +1325,10 @@ lie too far apart for its tolerance. It holds what the write-up
 measured after the run too: each ceiling's yearly standard error and 5
 percent line, that each point estimate falls short of its line and under half
 of its Y, June 2001's capped return at each ceiling, and the smallest leverage
-that would ruin any of the 83 months, with the two helpers behind the first
-of them on a hand-set statistic. The blog post about it is the exception, and
-what it says that nothing here asserts is listed below.
+that would ruin any of the 83 months. It also checks the two functions that
+compute the standard error and the line against a statistic set by hand. The
+blog post about it is the exception, and what it says that nothing here
+asserts is listed below.
 
 [tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py) does it for
 the same claim on IVV's S&P 500 from 2008. It pins the verdict, the four
@@ -6316,10 +6319,11 @@ line.
 [blog/capped-low-beta-lessons.md](blog/capped-low-beta-lessons.md) is a
 forty-fourth post, about Chan's rule at Kindle location 4709 of *Quantitative
 Trading* tested at the two ceilings on leverage his own text gives, 2 under
-Regulation T at locations 814 and 2836 and 5 under portfolio margin at
-location 814. Every figure in it is exploratory, and it says why: the plan
-came after Entry 45's figures had been seen, the file holds only survivors,
-and Chan prints no figure for the rule to reproduce. The post links the
+Regulation T at location 814, which location 2836 repeats for a retail account
+held overnight, and 5 under portfolio margin at location 814. Every figure in
+it is exploratory, and it says why: the plan came after Entry 45's figures had
+been seen, the file holds only survivors, and Chan prints no figure for the
+rule to reproduce. The post links the
 levered low-beta post for the setup and the Kelly leverage on SPY post rather
 than repeating them, and draws five lessons from Entry 48 of the replication
 log.
@@ -6327,13 +6331,13 @@ log.
 1. A plan written after the data was seen has to say what was seen. Entry
    45's unlevered growth of 0.1254 against 0.1183 and its Kelly leverage of
    9.9884 made a positive point estimate at either ceiling predictable.
-2. Capping the leverage removes the ruin. No month lost the capital at either
-   ceiling, the worst was July 2002 at −0.1479 and −0.3719, and no leverage
-   below 13.4118 would have ruined any of the 83 months.
+2. Capping the leverage removes the ruin. No month lost all the capital at
+   either ceiling, the worst was July 2002 at −0.1479 and −0.3719, and no
+   leverage below 13.4118 would have ruined any of the 83 months.
 3. A large point estimate can still be noise. The gaps of 0.0934 and 0.1659
    a year fall short of 5 percent lines at 0.1434 and 0.2254, and each is
    under half of its detectable gap Y, 0.2168 and 0.3407.
-4. Testing two ceilings costs a correction. Benjamini-Hochberg rejects
+4. Testing two ceilings costs a correction. Benjamini-Hochberg passes
    neither ceiling in either direction, and neither p-value, 0.1420 and
    0.1129, would pass a single test either.
 5. The borrowing rate is a hidden assumption. A spread over the bill rate of
@@ -6344,30 +6348,42 @@ Five groups of what it says are not pinned here.
 1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
    through [its committed notes](research/book-notes/quantitative-trading.md):
    "highly leveraged" at 4709, the beta match at 4684, Regulation T's
-   overnight leverage of 2, portfolio margin's 20 percent for a dollar-neutral
-   portfolio of large-cap stocks and its 50 percent for a long-only portfolio
-   of small-cap stocks at 814, and a retail account's 2 at 2836.
+   overnight leverage of 2, portfolio margin's 20 percent for a portfolio of
+   large-cap stocks hedged so that its long and short sides are equal in
+   value and its 50 percent for a long-only portfolio of small-cap stocks at
+   814, and a retail account's 2 at 2836.
 2. The plan's history rather than the data: that the plan was written on
    2026-10-11 before any capped number and after the five things Entry 45 had
    shown, the four outcomes and the wording of each, and that the plan would
    have sent both ceilings to a holdout only if one had held. Entry 48 of the
    replication log records each.
 3. Readings no test asserts: what Regulation T and portfolio margin are, that
-   a margin of 20 percent is a leverage of 5, that a broker might not lend 5
-   to a long-only portfolio, that growth rises with leverage up to the Kelly
-   leverage under a bell curve, which the Kelly post derives, that leverage
-   multiplies both the low fifth's excess return and its swings so t barely
-   moves, that 80 percent of a bell curve lies above 0.8416 standard
-   deviations below its centre, that two tests can find a false gap up to
-   nearly twice as often as one, the general Benjamini-Hochberg rule, that a
+   a margin of 20 percent is a leverage of 5, that 5 is the highest leverage
+   the book puts a number on for stocks held overnight and its "or less"
+   leaves room for more, that a broker might not lend 5 to a long-only
+   portfolio, and that growth rises with leverage up to the Kelly leverage
+   under a bell curve, which the Kelly post derives. Also that leverage
+   multiplies the low fifth's excess return and its swings by the same L,
+   while d also subtracts the high fifth's log return and log growth gives up
+   more to volatility as leverage rises, so nothing fixes t as leverage
+   changes. Also that 80 percent of a bell curve lies above 0.8416 standard
+   deviations below its centre, that a second one-sided test raises the chance
+   of a false gap to as much as twice as high, the general Benjamini-Hochberg
+   rule, and that the corrected test needs a gap at least as large as Y, and a
+   larger one unless the other ceiling also clears 5 percent. Last, that a
    higher mean leverage borrows more and so breaks even at a smaller spread,
-   and that Regulation T's maintenance margin of 25 percent calls a position
-   levered 2 after a fall of a third.
-4. Figures the post states in words or rounds from pinned ones, such as 37
-   percent for July 2002's −0.3719 at a ceiling of 5 and the line moving right
-   along with the point estimate. The p-value of 0.04 in Lesson 4 is an
-   illustration rather than a figure from the file. The figure's alt text
-   reads its curves approximately too.
+   that FINRA Rule 4210's maintenance margin of 25 percent calls a position
+   levered 2 after a fall of a third while Regulation T sets only the 50
+   percent needed to open it, and that a leverage of 5 at a margin of 20
+   percent leaves no cushion.
+4. Figures the post states in words or derives from pinned ones. The ratios
+   of about 1.78 and 1.57 divide ceiling 5's gap and standard error by ceiling
+   2's. The 2.5134 borrowed for each unit of capital is ceiling 5's mean
+   leverage of 3.5134 less 1, and 2.51 is that against ceiling 2's 1. The
+   0.0975 is 1 − 0.95², the chance that two independent 5 percent tests find
+   at least one false gap. The p-value of 0.04 in Lesson 4 is an illustration
+   rather than a figure from the file. The figure's alt text reads its curves
+   approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

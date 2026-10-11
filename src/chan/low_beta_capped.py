@@ -48,8 +48,9 @@ cost is charged. Two ceilings are tried, and both come from Chan's text.
    account to 2 overnight. k never falls below 2 on this panel, so this
    ceiling is a constant leverage of 2.
 2. **C = 5.** Location 814's portfolio margin "may require only 20 percent or
-   less of overnight margin", a leverage of 5, the most the book says any
-   broker lends on stocks held overnight.
+   less of overnight margin", a leverage of 5. That is the highest leverage
+   the book puts a number on for stocks held overnight, and its "or less"
+   leaves room for more.
 
 A :class:`chan.low_beta_leverage.Portfolios` whose ``levered`` and ``leverage``
 are both replaced carries each ceiling, so
@@ -115,9 +116,10 @@ quite wary of using too much leverage on normally low-beta stocks".
    2007.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
    spread measures by how much.
-5. **No margin call inside a month is modelled.** Under Regulation T's 25
+5. **No margin call inside a month is modelled.** Under FINRA Rule 4210's 25
    percent maintenance margin, a position levered 2 gets a call after a fall
    of a third within the month, and month-end closes cannot see that.
+   Regulation T sets only the 50 percent needed to open the position.
 
 If either ceiling holds, the plan's follow-up registers both, unchanged, on
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
@@ -608,7 +610,7 @@ def report(
     print("  3. Not a holdout. The low-beta literature's own samples cover 1999 to 2007.")
     print("  4. Borrowing at the bill rate flatters the levered side, by the spread above.")
     print(
-        "  5. No margin call inside a month is modelled. Under Regulation T's 25 percent "
+        "  5. No margin call inside a month is modelled. Under FINRA Rule 4210's 25 percent "
         "maintenance margin, a position levered 2"
     )
     print(

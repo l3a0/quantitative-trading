@@ -10523,8 +10523,9 @@ Five of the rules carry the result, so they are stated here.
    at the bill rate with no trading cost. C = 2 is Regulation T's overnight
    leverage, which location 814 gives and location 2836 repeats for a retail
    account. Because k never falls below 2.1826, it is a constant leverage of 2
-   here. C = 5 is location 814's portfolio margin of "20 percent or less", the
-   most the book says any broker lends on stocks held overnight.
+   here. C = 5 is location 814's portfolio margin of "20 percent or less". That
+   is the highest leverage the book puts a number on for stocks held
+   overnight, and its "or less" leaves room for more.
 3. **The statistic.** d = ln(1 + r_capped) − ln(1 + r_high) over the 83
    months, with its Newey-West t at the default lag. Twelve times the mean of d
    is the gap in realised compounded growth a year.
@@ -10610,8 +10611,8 @@ write-up measured after the run, which `TestWhatThePostMeasured` in
    half of its own Y. June 2001, which ruined the beta match, returned
    −0.0835 at a ceiling of 2 and −0.2132 at 5. The smallest leverage that
    would have ruined any of the 83 months is 13.4118, for July 2002, above
-   both ceilings. Measured after the run, so exploratory, and it decides
-   nothing.
+   both ceilings. The write-up measured these after the run, so they are
+   exploratory and decide nothing.
 
 ### What this entry cannot say
 
@@ -10635,9 +10636,10 @@ Five things, the plan's five limits.
    flatters the levered side. Row 7's break-even spread says how far the cost
    could rise before the point estimate reaches 0, and nothing about what a
    broker charged.
-5. **Whether a margin call came inside a month.** Under Regulation T's 25
+5. **Whether a margin call came inside a month.** Under FINRA Rule 4210's 25
    percent maintenance margin, a position levered 2 gets a call after a fall of
-   a third within the month, and month-end closes cannot see that.
+   a third within the month, and month-end closes cannot see that. Regulation
+   T sets only the 50 percent needed to open the position.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

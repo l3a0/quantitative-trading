@@ -282,7 +282,7 @@ class TestTheRun:
             "leverage, were seen before either ceiling was chosen."
         ) in out
         assert (
-            "5. No margin call inside a month is modelled. Under Regulation T's 25 percent "
+            "5. No margin call inside a month is modelled. Under FINRA Rule 4210's 25 percent "
             "maintenance margin, a position levered 2"
         ) in out
         assert (
