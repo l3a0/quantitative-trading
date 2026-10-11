@@ -489,7 +489,32 @@ class TestTheRules:
             500 / 60000 - ONE_WAY_COST * 1500 / 60000, abs=1e-15
         )
 
-    def test_the_calendars_intersect_in_the_script_s_order(self) -> None:
+    def test_legs_of_opposite_sign_add_to_the_gross(self) -> None:
+        """Short VX and long ES: the gross is 20,000 + 50,000, not their net of 30,000.
+
+        Every held row of the real run signs both legs alike, so only a frame
+        like this one tells the sum of the absolute values from the absolute
+        value of the sum.
+        """
+        held = np.array([[-1.0, 1.0], [-1.0, 1.0]])
+        values = np.array([[20000.0, 50000.0], [21000.0, 49000.0]])
+        assert daily_returns(held, values)[1] == pytest.approx(
+            -2000 / 70000 - ONE_WAY_COST * 2000 / 70000, abs=1e-15
+        )
+
+    def test_the_longest_drawdown_reads_the_test_s_rows_alone(self) -> None:
+        """A loss on the row before the test would stretch the drawdown to 4 rows."""
+        trade = RollReturnTrade(
+            hedge=1.0,
+            days=pd.date_range("2020-01-01", periods=5),
+            positions=np.zeros((5, 2)),
+            daily=np.array([-0.5, 0.1, -0.05, -0.05, 0.2]),
+            test=np.array([1, 2, 3, 4]),
+        )
+        assert trade.max_drawdown_days == 1
+
+    def test_the_common_days_are_the_ones_all_three_calendars_hold(self) -> None:
+        """The set the script's two ``intersect`` calls keep. Their order changes nothing."""
         index = pd.date_range("2020-01-01", periods=5)
         contracts = pd.DataFrame({"VX-2010F": range(5)}, index=index)
         vix = pd.Series(1.0, index=index[1:])
@@ -656,6 +681,11 @@ class TestTheReport:
             "held on 224 days, short on 196, long on 28, 32 entries from flat, each free"
         ) in printed
         assert "Exploratory." in printed
+
+    def test_it_prints_the_rule_s_threshold_and_the_annualising_days(self, printed) -> None:
+        assert "above 0.1 short both legs," in printed
+        assert "below −0.1 long both" in printed
+        assert "Annualised over 252 days." in printed
 
     def test_a_miss_is_reported_as_one(self) -> None:
         assert module._verdict(0.069065, HEDGED_COMMENT.apr) == "reproduced"
