@@ -21,7 +21,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
-from matplotlib.dates import date2num
+from matplotlib.dates import YearLocator, date2num
 
 from chan import cl_reversal_momentum_figures
 from chan.cl_reversal_momentum import EARLIER_SOURCE_FILE, four_rules, read_cl
@@ -34,6 +34,7 @@ from chan.cl_reversal_momentum_figures import (
     percent,
 )
 from chan.paths import FIGURES_DIR
+from chan.regime_figure import ACCENT, INK, LOST
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 
@@ -167,6 +168,23 @@ class TestTheCurves:
                 assert lines[name].get_color() == colour
                 assert handle.get_color() == colour
 
+    def test_each_rule_keeps_the_colour_the_alt_text_names(self, axes) -> None:
+        """The post's alt text calls the join black, momentum brown and reversal red."""
+        for ax in axes.values():
+            lines = _by_gid(ax.lines)
+            assert tuple(lines[name].get_color() for name in NAMES) == (INK, ACCENT, LOST)
+
+    def test_the_y_axis_reads_cumulative_return_in_percent(self, axes) -> None:
+        for ax in axes.values():
+            assert ax.get_ylabel() == "cumulative return"
+            assert ax.yaxis.get_major_formatter()(0.5, 0) == "50%"
+
+    def test_the_x_axis_ticks_each_year(self, axes) -> None:
+        for ax in axes.values():
+            assert isinstance(ax.xaxis.get_major_locator(), YearLocator)
+            tick = ax.xaxis.get_major_formatter()(date2num(pd.Timestamp("2010-01-01")), 0)
+            assert tick == "2010"
+
     def test_the_join_is_drawn_heavier(self, axes) -> None:
         for ax in axes.values():
             lines = _by_gid(ax.lines)
@@ -225,6 +243,11 @@ class TestTheFile:
 
     def test_the_committed_figure_exists(self) -> None:
         assert (FIGURES_DIR / JOIN_FIGURE).is_file()
+
+    def test_main_names_the_file_it_wrote(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr(cl_reversal_momentum_figures, "make_join_figure", lambda: None)
+        main()
+        assert capsys.readouterr().out == f"wrote {FIGURES_DIR / JOIN_FIGURE}\n"
 
     def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
         def fail(*_a, **_k):

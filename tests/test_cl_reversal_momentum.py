@@ -336,6 +336,7 @@ class TestTheJoinIsHalfOfEachRule:
         ties = before_cl.index[close == backshift(MOMENTUM_LOOKBACK, close)]
         assert list(ties) == [pd.Timestamp("2005-06-15"), pd.Timestamp("2007-04-17")]
         assert set(ties) <= set(differ)
+        assert not before.combination.positions[before_cl.index.isin(ties)].any()
         assert not (close == backshift(REVERSAL_LOOKBACK, close)).any()
 
     def test_before_the_two_rules_agree_on_162_of_958_rows(self, before_cl, before) -> None:
