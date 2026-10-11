@@ -173,6 +173,14 @@ class TestTheFigure:
         line = _by_gid(drawn.axes[0].lines)["draws"]
         np.testing.assert_array_equal(line.get_ydata(), growth_curve(sim, ruin_leverage(sim))[1])
 
+    def test_drawing_uses_the_returns_it_is_handed(self, tmp_path, saved) -> None:
+        """Halved returns are not the committed vintage, so a draw that re-read it fails here."""
+        entry, returns = saved
+        halved = returns * 0.5
+        drawn = make_monte_carlo_leverage_figure(out=tmp_path / FIGURE, saved=(entry, halved))
+        line = _by_gid(drawn.axes[0].lines)["saved"]
+        np.testing.assert_array_equal(line.get_ydata(), growth_curve(halved, LEVERAGE_MAX)[1])
+
 
 class TestTheGrowthPanel:
     """Figure 8.2 redrawn, on the declared seed's draws and on the 612 saved returns."""
@@ -248,6 +256,11 @@ class TestTheGrowthPanel:
         assert (low, high) == pytest.approx((21.558894, 26.757652), abs=5e-7)
         assert span.get_facecolor() == to_rgba(*module.KELLY_BAND_SHADE)
 
+    def test_the_kelly_band_is_a_faint_accent(self, axes) -> None:
+        """The shade is pinned as a literal, so a change to the constant fails here."""
+        (span,) = [p for p in axes["growth"].patches if p.get_gid() == "kelly-band"]
+        assert span.get_facecolor() == to_rgba(ACCENT, 0.14)
+
     def test_the_book_s_figures_stand_on_the_axis(self, axes) -> None:
         lines = _by_gid(axes["growth"].lines)
         assert {
@@ -257,7 +270,9 @@ class TestTheGrowthPanel:
             "book-fminbnd": 19.0,
             "book-optimum": 19.2,
         }
-        assert all(lines[g].get_color() == LOST for g in ("book-kelly", "book-optimum"))
+        assert all(
+            lines[g].get_color() == LOST for g in ("book-kelly", "book-fminbnd", "book-optimum")
+        )
         texts = _by_gid(axes["growth"].texts)
         assert texts["book-kelly-label"].get_text() == (
             "18.4, the book's Kelly\nand historical optimum"
@@ -265,6 +280,18 @@ class TestTheGrowthPanel:
         assert texts["book-optimum-label"].get_text() == (
             "19 and 19.2,\nthe book's simulated optimum"
         )
+
+    def test_the_book_s_ticks_reach_0_16_of_the_panel_height(self, axes) -> None:
+        """Heights are in axes coordinates, a share of the panel's height."""
+        lines = _by_gid(axes["growth"].lines)
+        for gid in ("book-kelly", "book-fminbnd", "book-optimum"):
+            assert list(lines[gid].get_ydata()) == [0.0, 0.16], gid
+
+    def test_the_cap_and_ruin_lines_stop_below_the_legend(self, axes) -> None:
+        """Heights are in axes coordinates, a share of the panel's height."""
+        lines = _by_gid(axes["growth"].lines)
+        for gid in ("cap", "ruin"):
+            assert list(lines[gid].get_ydata()) == [0.0, 0.8], gid
 
     def test_the_legend_names_each_series_and_mark(self, axes) -> None:
         assert _legend(axes["growth"]) == [

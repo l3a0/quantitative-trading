@@ -778,11 +778,27 @@ class TestWhatThePostMeasured:
     def test_a_seed_is_on_the_cap_exactly_when_its_ruin_leverage_is_20_or_more(
         self, result
     ) -> None:
+        """The claim compares the uncapped optimum with the ruin leverage, read directly.
+
+        Reading it through ``on_the_cap`` alone would let a property redefined
+        as ``ruin >= CAP`` compare the ruin leverage with itself and pass.
+        """
         runs = result.ensemble.runs
-        assert [run.on_the_cap for run in runs] == [run.ruin >= CAP for run in runs]
+        assert [run.uncapped >= CAP for run in runs] == [run.ruin >= CAP for run in runs]
+        assert [run.on_the_cap for run in runs] == [run.uncapped >= CAP for run in runs]
         free = result.ensemble.values("uncapped")[result.ensemble.values("ruin") >= CAP]
         assert len(free) == 158
         assert free.min() == pytest.approx(20.075698, abs=1e-6)
+
+    def test_on_the_cap_reads_the_uncapped_optimum_not_the_ruin_leverage(self, result) -> None:
+        """On these 200 seeds the two agree, so only a hand-built run tells them apart.
+
+        An optimum of 19.5 with ruin at 21 is a seed the capped search would
+        answer below the cap, so it is not on the cap.
+        """
+        run = replace(result.declared, uncapped=19.5, ruin=21.0)
+        assert not run.on_the_cap
+        assert replace(run, uncapped=20.5).on_the_cap
 
     def test_the_kelly_is_at_or_past_ruin_on_78_seeds_and_the_declared_one(self, result) -> None:
         """Lesson 4: at the Kelly some draw loses everything on these seeds."""
