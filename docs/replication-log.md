@@ -8263,9 +8263,10 @@ that blob's. Every location in this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
 Sixteen rows, all derivable from
-[tests/test_opening_gap.py](../tests/test_opening_gap.py) except two figures
-that [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
-derives. Row 8's 45 agreeing days of 1,996 come from
+[tests/test_opening_gap.py](../tests/test_opening_gap.py).
+[tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
+derives two of their figures as well, for the close alone. Row 8's 45
+agreeing days of 1,996 come from
 `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences`,
 and row 9's equal closes from
 `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`.
@@ -8295,7 +8296,7 @@ margin, and holds the position from the open to the close.
 **The script's figures reproduce, and they come from fading the jump rather
 than following it.** Line 23 earns `positions .* (op - cl) ./ op`, so a long
 profits when the price falls from the open. As written it gives the comment's
-0.1327 and 1.44, and the book's 13 percent and 1.4. With the sign location
+0.1327 and 1.44, and the book's 13 percent and 1.4. With the sign that location
 2965 describes, the same positions earn the same returns negated, an APR of
 −0.124236 and a Sharpe ratio of −1.441620.
 
@@ -8349,7 +8350,7 @@ arithmetic. Against the script, line by line:
 | 15 | `longs= op >= backshift(1, hi).*(1+entryZscore*stdretC2C90d);` | `longs= df['Open'] >= df['High'].shift()*(1+entryZscore*stdretC2C90d)` | The same test. |
 | 16 | `shorts=op <= backshift(1, lo).*(1-entryZscore*stdretC2C90d);` | `shorts=df['Open'] >= df['Low'].shift()*(1-entryZscore*stdretC2C90d)` | The port flips `<=` to `>=`, so a short qualifies on every day the open does not jump below the previous low by the margin. |
 | 18 to 21 | `positions(longs)=1;` then `positions(shorts)=-1;` | `positions[longs]=1` then `positions[shorts]=-1` | The same order, the short after the long. An open that clears the previous high also clears the previous low, so every long day passes the port's short test too, and the port's line 22 makes it short. The port never holds a long position. |
-| 23 | `ret=positions.*(op-cl)./op;` | `ret=positions*(df['Close']-df['Open'])/df['Open']` | The port takes the momentum sign, the one location 2965 describes. |
+| 23 | `ret=positions.*(op-cl)./op;` | `ret=positions*(df['Close']-df['Open'])/df['Open']` | The port takes the momentum sign, the one that location 2965 describes. |
 | 24 | `ret(isnan(ret))=0;` | none | No return is NaN on this file, so the missing line moves nothing. |
 | 26 | `prod(1+ret).^(252/length(ret))-1` and `mean(ret)*sqrt(252)/std(ret)` | `np.prod(1+ret)**(252/len(ret))-1` and `np.sqrt(252)*np.mean(ret)/np.std(ret)` | The APR is the same. `np.std` on a series divides by n, where MATLAB's `std` divides by n − 1. |
 | 33 | `calculateMaxDD(cumret)` | `calculateMaxDD(cumret.fillna(0))` | The port's `calculateMaxDD` is the script's loop. Under pandas 3 the port stops here, because the loop indexes the date-indexed `cumret` by position, so it no longer runs as shipped. |
@@ -8384,8 +8385,8 @@ script nor the port's, is evidence that an opening jump pays today.
 | 5 | The APR and the Sharpe ratio under the momentum reading | −0.124236 and −1.441620 | `TestTheClaim::test_the_momentum_reading_s_figures` and `::test_neither_lands_the_book` |
 | 6 | `calculateMaxDD(cumprod(1 + ret) − 1)` under each reading | literal −0.190023 over 287 days, momentum −0.651056 over 1,909 days | `TestBesideTheReplication::test_the_literal_reading_s_drawdown` and `::test_the_momentum_reading_s_drawdown` |
 | 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
-| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 agreeing days of 1,996, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` |
-| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, and for the equal closes, `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair` |
+| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 days of 1,996 on which each of the four fields agrees, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` for the close and `TestWhatThePostMeasures::test_the_2012_05_17_save_restates_every_field` for all four |
+| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
 | 10 | The port's rule, its `prod(1 + ret)^(252 / 2000) − 1`, and its `mean(ret) · √252 / std(ret)` with `np.std` dividing by n | APR 0.0748641057, Sharpe ratio 0.4948573171, and 0.4947335873 dividing by n − 1 | `TestChansPythonPort::test_row_10_the_apr_and_the_sharpe_ratio_over_n_reproduce_the_comment` and `::test_row_10_over_n_minus_1_the_sharpe_ratio_misses_the_comment` |
 | 11 | `calculateMaxDD(cumprod(1 + ret) − 1)` on the port's returns | −0.2336291171 over 789 days | `TestChansPythonPort::test_row_11_the_drawdown_and_its_days_reproduce_the_comment` |
 | 12 | The days the port holds each side, and the first day its spread is set | long on 0, short on 1,718, flat on 282, both tests passed on 278, first spread 2004-11-22 | `TestChansPythonPort::test_row_12_the_port_is_never_long` and `::test_the_port_s_spread_starts_on_2004_11_22_a_row_after_the_script_s` |
@@ -8402,11 +8403,11 @@ script nor the port's, is evidence that an opening jump pays today.
 | 2 | +0.00 | reproduced | 1.441620 rounds to the script's 1.44. |
 | 3 | +0 percent on the compounded APR, −0 percent on the arithmetic one | reproduced | The compounded APR and the arithmetic one both round to 13 percent, so the text's figure does not have to be assigned to one of them. |
 | 4 | +0.0 | reproduced | 1.441620 rounds to the book's 1.4. Rows 1 to 4 say the number lands on the script as shipped, and row 5 asks whether the claim behind it survives. |
-| 5 | −25 percent on the APR, −2.8 on the Sharpe ratio | did not reproduce | The rule location 2965 describes loses on Chan's own file under his own script, so the vintage explanation is spent. Its daily returns are the literal reading's negated, so the figures the text prints belong to the literal sign alone. |
+| 5 | −25 percent on the APR, −2.8 on the Sharpe ratio | did not reproduce | The rule that location 2965 describes loses on Chan's own file under his own script, so the vintage explanation is spent. Its daily returns are the literal reading's negated, so the figures the text prints belong to the literal sign alone. |
 | 6 | none | none, not a replication | Line 34 prints a drawdown, and no comment records a value for it. |
 | 7 | none | none, not a replication | No day qualifies both tests, so line 21's order decides nothing here. No open sits exactly on either threshold, so the tests being non-strict decides nothing either. `TestTheRules` holds both on synthetic days. |
-| 8 | none | none, not a replication | FSTX's close in this save agrees with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
-| 9 | none | none, not a replication | FSTX's close in this save equals the 2012-05-11 save's on every day they share, over a window that starts three trading days earlier still. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
+| 8 | none | none, not a replication | FSTX's open, high, low and close in this save each agree with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records for the close, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
+| 9 | none | none, not a replication | FSTX's open, high, low and close in this save each equal the 2012-05-11 save's on all 1,997 days they share, over a window that starts three trading days earlier still, so the two APRs differ by the window alone. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
 | 10 | +0.000000 on the APR, +0.000000 on the Sharpe ratio | reproduced | Both land on the comment at its six decimals, on the file the port reads, with the Sharpe ratio dividing by n as `np.std` does. Dividing by n − 1 gives 0.4947335873, which misses by −0.000123, so the divisor is part of the port's specification. That n − 1 figure is the 0.494734 that [issue 505](https://github.com/l3a0/quantitative-trading/issues/505) recorded from a scratch run guessing at the port's rule before the port was read. |
 | 11 | −0.000000 on the drawdown, 0 on its days | reproduced | The port's comment comes from the rule its text states, on Chan's own file. |
 | 12 | none | none, not a replication | Every one of the 278 days passing the long test also passes the port's short test, and the port assigns the short after the long, so it never holds a long position. It sells the open and buys the close on the 1,718 days the open does not jump below the previous low by the margin. |
@@ -8417,14 +8418,14 @@ script nor the port's, is evidence that an opening jump pays today.
 
 ### What the entry concludes
 
-Three things.
+Four things.
 
 1. **The script reproduces on Chan's own file, and the figure is the fade's.**
    Its two printed figures land at the decimals printed, and the book's two
    land at the precision Chan printed them. The return line that earns them
    sells an upward jump during the day and buys a downward one.
 2. **The text's momentum rule loses what the fade earns.** Under the sign
-   location 2965 describes, the same positions give an APR of −0.124236 and a
+   that location 2965 describes, the same positions give an APR of −0.124236 and a
    Sharpe ratio of −1.441620. The 13 percent and 1.4 do not support the claim
    they were printed beside.
 3. **Chan's Python port prints what its own rule computes, and that rule is
@@ -8433,7 +8434,26 @@ Three things.
    flips the script's short test, so it never holds a long position and sells
    the open on 1,718 of 2,000 days. Its APR and Sharpe ratio, which the
    Experiments page records as 7.5 percent and 0.49, therefore say nothing
-   about the rule location 2965 describes.
+   about the rule that location 2965 describes. Yet it is short on all 278
+   upward jumps, where short under its sign earns what the script's long
+   earns under the literal sign, so its returns there are the script's day
+   for day and sum to 0.749529. Its other 1,440 short days sum to −0.050957,
+   so its gain also comes from selling the upward jump.
+   `TestWhatThePostMeasures::test_the_port_earns_the_script_s_long_returns_on_every_upward_jump`
+   pins it, and the write-up found it.
+4. **The long days earn about three quarters of the return.** Split by the side
+   held, the literal reading's daily returns sum to 0.749529 on the 278 long
+   days and 0.271280 on the 191 short days, of 1.020809, and compound to
+   1.084422 and 0.290022. Each side alone, earning nothing on the other's
+   days, gives an APR of 0.096964 and a Sharpe ratio of 1.534735 for the long
+   days, and 0.032607 and 0.527473 for the short days. From the open to the
+   close, FSTX moved −0.002696 on average on the long days, closing below the
+   open on 163, and +0.001420 on the short days, closing above it on 108. On
+   the 1,441 flat days after the first 90 it moved +0.000025.
+   `TestWhatThePostMeasures` pins all of it, and the write-up found it. The
+   split comes from the rule's own two branches rather than a date picked
+   after the curve was seen, and it describes this sample without testing
+   anything.
 
 ### What this entry cannot say
 
@@ -8462,7 +8482,10 @@ reported on. A registered test would fix one rule first and run it on data
 after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/opening-gap-lessons.md](../blog/opening-gap-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.opening_gap_figures` redraws.
 
 ## Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*
 
