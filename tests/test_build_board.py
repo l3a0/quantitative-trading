@@ -964,6 +964,172 @@ def test_the_chain_bar_tells_direct_blockers_from_the_chain(
     assert line in text(ids, "chainbar")
 
 
+FREE_CLAIM = "can be taken on its own"
+
+
+def _with_fields(docs: dict, n: int, **fields: object) -> dict:
+    """The fixture with one card's fields replaced."""
+    for card in docs["tracker"]["items"]:
+        if card["n"] == n:
+            card.update(fields)
+    return docs
+
+
+def _picked(tmp_path: Path, docs: dict, card: int) -> str:
+    """What the chain bar says once a card is picked.
+
+    One call writes both bars, so the In flight copy has to match the build
+    order's. A second path writing only one of them would break that.
+    """
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path), click=card)
+    said = text(ids, "chainbar")
+    assert said == text(ids, "flowchain")
+    return said
+
+
+def _session_on(docs: dict, n: int) -> dict:
+    docs["working"]["items"].append({"n": n, "kind": "build"})
+    return docs
+
+
+def _merged_whole(docs: dict, n: int) -> dict:
+    docs["prs"]["items"].append(_pull(90602, n, "merged", linked=False, part_of=False))
+    return docs
+
+
+@pytest.mark.parametrize(
+    ("docs", "card", "reason"),
+    [
+        (
+            _with_fields(fixture_docs(), 90504, kind="decision"),
+            90504,
+            "it needs a decision rather than a session",
+        ),
+        (_with_fields(fixture_docs(), 90504, kind="deferred"), 90504, "it is deferred on purpose"),
+        (
+            _with_fields(fixture_docs(), 90504, kind="parent"),
+            90504,
+            "it is a parent whose children carry the work",
+        ),
+        (
+            _session_on(_with_fields(fixture_docs(), 90504, kind="ready"), 90504),
+            90504,
+            "it already has somebody on it",
+        ),
+        (
+            _merged_whole(_with_fields(fixture_docs(), 90504, kind="ready"), 90504),
+            90504,
+            "it has merged and needs only closing by hand",
+        ),
+        (
+            _with_needs(fixture_docs(), {90502: []}),
+            90501,
+            "it is already written and waiting on a review",
+        ),
+        (
+            _session_on(_with_fields(fixture_docs(), 90504, kind="deferred"), 90504),
+            90504,
+            "it is deferred on purpose and already has somebody on it",
+        ),
+    ],
+    ids=[
+        "decision",
+        "deferred",
+        "parent",
+        "session",
+        "close-by-hand",
+        "open-branch",
+        "deferred-with-session",
+    ],
+)
+def test_an_unlinked_card_the_board_holds_back_is_not_called_free(
+    tmp_path: Path, docs: dict, card: int, reason: str
+) -> None:
+    """Protects the chain bar from calling a card free that the board holds back.
+
+    The bar used to say any card with no open ``needs`` either way "can be
+    taken on its own", reading nothing but ``needs``. Fixture issue 90504 is
+    such a card, and the cases give it a kind word saying not to start it, a
+    build session, or a pull request merged with no ``Part of``. With 90502's
+    blocker removed, 90501 is one too and carries its open pull request. Each
+    reason is the one the board note's free list holds that card back for, in
+    the form a sentence about one card takes, and two reasons on one card are
+    joined with "and" because both apply to it.
+    """
+    said = _picked(tmp_path, docs, card)
+    assert FREE_CLAIM not in said
+    assert (
+        f"#{card} is linked to nothing else here, but it is not free to take, because {reason}."
+        in said
+    )
+
+
+def test_an_unlinked_card_with_nothing_holding_it_can_be_taken_on_its_own(
+    tmp_path: Path,
+) -> None:
+    """Protects the free claim where it is true, so a fix cannot simply delete it.
+
+    Fixture issue 90504 as ordinary work, with no session and no pull request,
+    is the one card the board note lists as free, and the bar says the same.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="ready")
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path), click=90504)
+    assert "out of 1 in the first column: #90504." in text(ids, "boardnote")
+    said = _picked(tmp_path, docs, 90504)
+    assert "#90504 is linked to nothing else here, so it can be taken on its own." in said
+
+
+def test_an_unlinked_card_of_no_listed_kind_says_only_what_its_links_show(
+    tmp_path: Path,
+) -> None:
+    """Protects the bar from claiming freedom for a kind the free list never reads.
+
+    A card blocked on data sits in the fourth column, which the board note's
+    free list does not cover, so neither a free claim nor a reason applies.
+    The bar says what the links show and stops.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="data")
+    said = _picked(tmp_path, docs, 90504)
+    assert said.startswith("#90504 is linked to nothing else here. Clear")
+
+
+@pytest.mark.parametrize(
+    ("after", "card", "line"),
+    [
+        (
+            {90504: [90502]},
+            90504,
+            "Nothing here blocks #90504 or waits on it, so it can be taken on its own. "
+            "It should land after #90502.",
+        ),
+        (
+            {90503: [90504]},
+            90504,
+            "Nothing here blocks #90504 or waits on it, so it can be taken on its own. "
+            "#90503 should land after it.",
+        ),
+    ],
+    ids=["holds-after", "named-by-after"],
+)
+def test_a_card_tied_by_an_ordering_is_not_called_linked_to_nothing(
+    tmp_path: Path, after: dict, card: int, line: str
+) -> None:
+    """Protects the bar from calling a card with a ``Board after:`` tie unlinked.
+
+    ``after`` is an ordering nothing enforces, so it leaves a card free to
+    take, and the board note's free list does not read it. It is still a link,
+    though, and the card itself says it should land after the issue it names.
+    So the bar names the ordering in both directions rather than saying the
+    card is linked to nothing.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="ready")
+    for n, names in after.items():
+        docs = _with_fields(docs, n, after=names)
+    said = _picked(tmp_path, docs, card)
+    assert "linked to nothing" not in said
+    assert line in said
+
+
 def test_counting_too_names_the_hidden_issues_after_a_named_card(tmp_path: Path) -> None:
     """Protects the freeing clause's prefix from pointing at the wrong cards.
 
