@@ -2,11 +2,19 @@
 #
 # Apply this template's GitHub-side policy to a repository.
 #
-# Two things live on GitHub rather than in tracked files, so a fresh clone of
-# the template carries neither: the branch ruleset that makes `main` require a
-# pull request, and the label set that the triage rule in CLAUDE.md expects to
-# exist. This script applies both, reading them from .github/rulesets/default.json
-# and .github/labels.json so the repo's own files stay the source of truth.
+# Four things live on GitHub rather than in tracked files, so a fresh clone of
+# the template carries none of them.
+#
+# 1. The branch ruleset that makes `main` require a pull request, read from
+#    .github/rulesets/default.json.
+# 2. The label set that the triage rule in CLAUDE.md expects to exist, read
+#    from .github/labels.json.
+# 3. CodeQL's default setup, which the ruleset's code scanning rule waits on.
+# 4. GitHub Pages, with GitHub Actions as its source, which the build board's
+#    workflow deploys to.
+#
+# Reading the first two from the repo's own files keeps those files the source
+# of truth.
 #
 # It is idempotent. Running it twice updates in place rather than duplicating.
 #
@@ -103,12 +111,30 @@ PY
 # --- Code scanning -----------------------------------------------------------
 # The ruleset carries a code_scanning rule naming CodeQL, and that rule needs
 # CodeQL to actually run. Without default setup enabled, the rule waits on a
-# tool that never reports. `actions` is in the language list because the
-# workflows are part of the attack surface, not only the Python.
+# tool that never reports.
+#
+# GitHub's API reads as if the PATCH sets the language list rather than adding
+# to it. Nothing here has tested that, so treat the list as what CodeQL scans
+# after a run, where a language left out stops being scanned. Each of the three
+# is here for its own reason.
+#
+# 1. `python` was detected, and it is most of the code.
+# 2. `actions` is chosen, because the workflows are part of the attack
+#    surface, not only the Python.
+# 3. `javascript-typescript` was detected, from
+#    .claude/skills/update-build-board/dom-stub.js and the build board's page,
+#    board.html, which is JavaScript.
+#
+# GitHub reports the live setup with `javascript` and `typescript` as well,
+# which are its aliases for the third. A run on 2026-10-11 sent these three and
+# GitHub still reported all five afterwards. GitHub adds a language when it
+# detects a new kind of file, and this list does not follow it, so compare it
+# with `gh api repos/<owner>/<repo>/code-scanning/default-setup` before a run.
+# A dry run prints the body it would send.
 #
 # The body goes in as JSON rather than as --raw-field pairs, because the
 # language list is an array and the flag form encodes it as strings.
-codeql_body='{"state":"configured","query_suite":"default","threat_model":"remote","languages":["actions","python"]}'
+codeql_body='{"state":"configured","query_suite":"default","threat_model":"remote","languages":["actions","javascript-typescript","python"]}'
 echo "code scanning: CodeQL default setup"
 if [[ -n "$dry_run" ]]; then
   echo "[dry-run] gh api --method PATCH repos/$repo/code-scanning/default-setup --input - <<< $codeql_body"
@@ -116,6 +142,29 @@ elif ! printf '%s' "$codeql_body" \
   | gh api --method PATCH "repos/$repo/code-scanning/default-setup" --input - >/dev/null 2>&1; then
   echo "  could not configure CodeQL. It needs code pushed and a language" >&2
   echo "  GitHub recognises, so re-run this script after the first push." >&2
+fi
+
+# --- Pages -------------------------------------------------------------------
+# .github/workflows/board.yml publishes the build board on GitHub Pages through
+# the github-pages environment, and its deploy job has nowhere to go until
+# Pages is on with GitHub Actions as its source rather than a branch. The site
+# is read first, so a repository already set that way is left alone and one
+# publishing from a branch is switched.
+#
+# The exit status decides whether a site exists, not the output. A repository
+# with no site answers 404, and `gh` prints that error's JSON body to stdout,
+# where `--jq` never runs, so the output alone would read as a source type.
+if ! pages_type="$(gh api "repos/$repo/pages" --jq .build_type 2>/dev/null)"; then
+  pages_type=""
+fi
+if [[ -z "$pages_type" ]]; then
+  echo "pages: enabling, source GitHub Actions"
+  run gh api --method POST "repos/$repo/pages" -f build_type=workflow >/dev/null
+elif [[ "$pages_type" != "workflow" ]]; then
+  echo "pages: switching source from $pages_type to GitHub Actions"
+  run gh api --method PUT "repos/$repo/pages" -f build_type=workflow >/dev/null
+else
+  echo "pages: already on, source GitHub Actions"
 fi
 
 # --- Reserved human steps ----------------------------------------------------
