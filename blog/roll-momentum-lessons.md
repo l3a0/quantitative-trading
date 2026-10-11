@@ -94,7 +94,7 @@ The margins are not equally strong. The APR margin of 0.000348 is small. On the 
 
 ### Where the Sharpe ratio’s margin comes from
 
-In this window Example 6.1 never leaves the market. From 25 trading days before the window to its end, TU always stood above its level 250 trading days earlier. So every tranche Example 6.1 opened was long, and all 25 are long on all 913 days. A rule that is fully long every day earns exactly the contract’s own return, so in this window Example 6.1’s rule is the same as buying TU and holding it.
+In this window Example 6.1 never leaves the market. From 25 trading days before the window to its end, TU always stood above its level 250 trading days earlier. So every tranche Example 6.1 opened was long, and all 25 are long on all 913 days. A rule that is fully long every day earns exactly the contract’s own return, so in this window Example 6.1’s rule is the same as buying TU and holding it. The [post on Example 1.1’s hypothesis tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-5-two-checks-added-afterwards-point-at-drift-not-kurtosis) reaches the same mechanism from another direction. On a series that drifts upward, the 250-day rule is long most of the time and collects the drift.
 
 The declared rule is that same long position with 341 days taken out. Over those 341 days, TU’s return compounds to −0.001244, close to nothing. Over the 572 days the rule is long, it compounds to 0.050629, which is the declared rule’s whole return. So the two rules earn almost the same. Their average annual returns, the mean daily return times 252 without compounding, are 0.013661 and 0.013351.
 
