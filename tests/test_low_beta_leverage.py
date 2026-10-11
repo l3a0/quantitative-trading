@@ -433,7 +433,9 @@ class TestTheRun:
         assert "each month as if freshly funded" in out
         assert "low              0.1254   1.0132   0.4292" in out
         assert "high             0.1183   0.4457   2.0671" in out
-        assert "SPY              0.0379" in out
+        assert f"{'SPY':<14} {0.0379:>8.4f} {'':>8} {1.0:>8.4f}" in out
+        assert "held to 2000-12-29 to 2007-10-31" in out
+        assert "against the high portfolio's realised 0.1183." in out
         assert "9.9884, Gaussian growth there r + S^2/2 = 0.0283 + 0.5132 = 0.5415" in out
         assert "2000-11-30        453    90    0.1582     1.5537   9.8220" in out
         assert "2001-04-30        456    91    0.0280     1.9349  69.0762" in out
@@ -537,6 +539,18 @@ class TestTheRule:
         p = build_portfolios(frame, spy(), bills)
         assert p.eligible[0] == 5
         assert p.high_members[0] == ("E",)
+        assert math.isnan(p.betas.loc[p.formed[0], "F"])
+
+    @pytest.mark.parametrize("behind", [BETA_DAYS, BETA_DAYS - 1])
+    def test_the_first_formation_needs_exactly_252_returns(self, behind: int) -> None:
+        """A month-end with 252 returns behind it forms, and one with 251 does not."""
+        bills = rates()
+        frame = panel(bills, A=0.5, B=1.0, C=1.5, D=2.0, E=2.5)
+        rows = row_month_ends(DAYS)
+        first = next(r for r in rows if r >= BETA_DAYS)
+        p = build_portfolios(frame.iloc[first - behind :], spy().iloc[first - behind :], bills)
+        later = DAYS[next(r for r in rows if r > first)]
+        assert p.formed[0] == (DAYS[first] if behind == BETA_DAYS else later)
 
     def test_the_fifths_take_the_floor(self) -> None:
         bills = rates()
@@ -716,6 +730,16 @@ class TestTheCriterion:
             "where the point estimate is 0.0120."
         )
 
+    def test_not_decided_quotes_a_negative_estimate_and_its_months(self) -> None:
+        result = Verdict(months=60, summary=summary(-0.001, -0.5))
+        assert result.line() == (
+            "No gap in compounded growth detectable above about 0.0597 a year over 60 months, "
+            "where the point estimate is -0.0120."
+        )
+
+    def test_holds_quotes_its_months(self) -> None:
+        assert "over 60 months." in Verdict(months=60, summary=summary(0.001, 2.0)).line()
+
     def test_a_mean_of_zero_has_no_standard_error(self) -> None:
         with pytest.raises(UnreadableStandardError, match="t of d is 0 over 83 months"):
             _ = Verdict(months=83, summary=summary(0.0, 0.0)).detectable
@@ -787,5 +811,29 @@ class TestTheRefusals:
 
         monkeypatch.setattr(low_beta_leverage, "run", refuse)
         monkeypatch.setattr("sys.argv", ["low_beta_leverage"])
-        with pytest.raises(SystemExit, match=re.escape(str(refusal))):
+        with pytest.raises(SystemExit, match=re.escape(str(refusal))) as exited:
             main()
+        assert exited.value.code == str(refusal)
+
+
+class TestTheUnruinedReport:
+    """The report's branch for a run with no ruined month, on a synthetic panel."""
+
+    def test_it_prints_d_t_lag_y_and_every_levered_figure(
+        self, sources, small: Portfolios, capsys
+    ) -> None:
+        members, _, spy_entry, _, bill_entry, _ = sources
+        result = verdict(small)
+        assert not result.by_ruin
+        report(members, spy_entry, bill_entry, small, (0, 0))
+        out = capsys.readouterr().out
+        assert (
+            f"mean x 12 {result.gap:.4f}, Newey-West t {result.t:.4f} at lag {result.lag}, "
+            f"Y {result.detectable:.4f}"
+        ) in out
+        assert (
+            f"{'levered low':<14} {growth(small.levered):>8.4f} "
+            f"{sharpe(small.levered, small.rf):>8.4f} {realised_beta(small.levered, small):>8.4f}\n"
+        ) in out
+        assert "registered before any number" in out
+        assert "not computed" not in out
