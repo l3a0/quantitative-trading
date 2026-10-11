@@ -669,8 +669,8 @@ class TestTheCommittedIndex:
         """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
 
         No filing was accepted before 06:00:43 Eastern on any day. So a time
-        read 4 or 5 hours late, as the plan audit found the submissions JSON
-        reads some filers, would put every filing accepted before the open
+        read 4 or 5 hours late, as a check made while planning the rerun found
+        the submissions JSON reads some filers, would put every filing accepted before the open
         inside the session, where R1 flags nothing for it.
         """
         times = sorted(release.accepted[11:] for release in index)
@@ -685,7 +685,16 @@ class TestTheCommittedIndex:
         assert len(late) == 343
 
     def test_apple_files_at_half_past_four_eastern(self, index) -> None:
-        """The JSON reads these as 8:30 p.m., which is the double conversion the audit found."""
+        """About 4:30 p.m. Eastern, which a double conversion would read as 8:30 or 9:30 p.m.
+
+        A check made while planning the rerun found the submissions JSON
+        reading some filers' times as if converted from Eastern twice. The
+        second conversion adds 4 hours under daylight saving time and 5 under
+        standard time. So the JSON would read the four filed under daylight
+        saving time as about 8:30 p.m., and the two in January, 2011-01-18 and
+        2012-01-24, as about 9:30 p.m. Nothing here reads the JSON, so those
+        two readings are not asserted.
+        """
         apple = [release.accepted for release in index if release.ticker == "AAPL"]
         assert apple == [
             "2011-01-18T16:30:27", "2011-04-20T16:30:30", "2011-07-19T16:29:56",

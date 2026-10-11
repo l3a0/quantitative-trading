@@ -135,6 +135,12 @@ The denominator stays 30 in every run, as the rule fixes it, although the
 derived calendars put more than 30 stocks on their busiest days. A day
 holding more than 30 positions is a book levered past one, which the figures
 carry as they stand.
+
+**What the post added.** The post on these lessons,
+``blog/pead-edgar-rerun-lessons.md``, split run A's return among groups of
+its stocks after the runs, through one helper. :func:`trade_returns` is each
+stock-day's signed return from the open to the close, so the post's pins and
+its figure, which :mod:`chan.pead_rerun_figures` draws, read one computation.
 """
 
 from __future__ import annotations
@@ -522,18 +528,19 @@ def trade_returns(drift: Drift, opens: pd.DataFrame, closes: pd.DataFrame) -> pd
     """Each stock-day's signed return from the open to the close, 0 where nothing is held.
 
     ``opens`` and ``closes`` are the frames the run read, and the result has
-    ``drift``'s days and their stocks. A return that is missing counts as 0,
-    as ``smartsum`` reads it, so each row summed and divided by 30 is that
-    day's return in ``drift.daily``. Each stock trades on its own gap and its
-    own deviation, so the columns of any set of stocks sum to what a run on
-    those stocks alone would give.
+    ``drift``'s days and their stocks. A return that is not finite, from a
+    missing price or a zero open, counts as 0, as ``smartsum`` reads it. So
+    each row with at least one finite return, summed and divided by 30, is
+    that day's ``drift.daily``. Each stock trades on its own gap and its own
+    deviation, so the columns of any set of stocks sum to what a run on those
+    stocks alone would give.
     """
     op = opens.loc[drift.days].to_numpy(dtype=float)
     cl = closes.loc[drift.days].to_numpy(dtype=float)
     with np.errstate(invalid="ignore", divide="ignore"):
         signed = drift.positions * (cl - op) / op
     return pd.DataFrame(
-        np.where(np.isnan(signed), 0.0, signed), index=drift.days, columns=opens.columns
+        np.where(np.isfinite(signed), signed, 0.0), index=drift.days, columns=opens.columns
     )
 
 

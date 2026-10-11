@@ -29,6 +29,12 @@ The archive pins skip where no archive is configured or ``QT_ARCHIVE_RUN`` is
 not 1, the way ``tests/conftest.py``'s ``archive_skip_reason`` decides for
 Example 7.1. Every other pin reads committed files and runs everywhere.
 
+``blog/pead-edgar-rerun-lessons.md`` quotes most of these figures, so a change
+to any of them moves that post too. ``TestWhatThePostMeasured`` holds the
+numbers the post added, all measured after the runs, and
+``TestTheTradeReturns`` holds the one helper they come through, on toy prices.
+``tests/test_pead_rerun_figures.py`` holds what the post's figure draws.
+
 Exploratory, all of it. The audit on issue 251 spent part of the sample
 before the registration, and it first ran here on 2026-10-10.
 """
@@ -36,6 +42,7 @@ before the registration, and it first ran here on 2026-10-10.
 from __future__ import annotations
 
 import itertools
+from collections import Counter
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -44,7 +51,7 @@ import pandas as pd
 import pytest
 
 from chan import pead_rerun
-from chan.archive import ArchiveUnavailable
+from chan.archive import ArchiveUnavailable, read_archive_manifest
 from chan.earnings_filings import Release, read_table, serialize_table
 from chan.pead import DENOMINATOR, TRADING_DAYS, Drift, pead
 from chan.pead_rerun import (
@@ -288,6 +295,14 @@ class TestTheTradeReturns:
         returns = pead_rerun.trade_returns(drift, opens, closes)
         assert (returns["Z"] == 0).all()
         assert returns.at[DAYS[2], "Y"] == 0.0
+
+    def test_a_zero_open_on_a_held_stock_counts_as_0(self) -> None:
+        """``smartsum`` skips any return that is not finite, an infinite one included."""
+        drift, opens, closes = self.toy()
+        opens.at[DAYS[2], "X"] = 0.0
+        returns = pead_rerun.trade_returns(drift, opens, closes)
+        assert returns.at[DAYS[2], "X"] == 0.0
+        assert np.isfinite(returns.to_numpy()).all()
 
     def test_it_has_the_runs_days_and_the_frames_stocks(self) -> None:
         drift, opens, closes = self.toy()
@@ -553,6 +568,12 @@ def a_trades(sources, runs) -> tuple[pd.DataFrame, pd.DataFrame]:
     return returns, pd.DataFrame(a.positions, index=a.days, columns=stocks)
 
 
+def cal_without_a_series(sources) -> list[str]:
+    """The 47 stocks of CAL outside U, in the order of Chan's files."""
+    u, cal = set(sources.universe("U")), set(sources.universe("CAL"))
+    return [s for s in sources.universe("ALL") if s in cal and s not in u]
+
+
 def to_annual(drift: Drift) -> float:
     """What one unit of summed trade return adds to a run's arithmetic annual return."""
     return TRADING_DAYS / (DENOMINATOR * len(drift.days))
@@ -613,6 +634,86 @@ class TestWhatThePostMeasured:
             "CAL, no checked series": (47, 103, 0.010803),
             "no checked CIK": (9, 20, 0.012261),
         }, f"{SPEC}; {AFTER_THE_RUNS}"
+
+    def test_why_the_47_stocks_of_cal_have_no_checked_series(self, sources) -> None:
+        """36 lack closes, 7 have no series proposed, and 4 hold another company's returns.
+
+        For ``missing``, ``days_over`` counts the closes Chan's file holds and
+        the series lacks, so 330 means none of the window's.
+        """
+        rows = {row.ticker: row for row in sources.table}
+        stocks = cal_without_a_series(sources)
+        assert Counter(rows[s].archive_check for s in stocks) == {
+            "missing": 36,
+            "none": 7,
+            "returns": 4,
+        }, AFTER_THE_RUNS
+        assert Counter(rows[s].days_over for s in stocks if rows[s].archive_check == "missing") == {
+            "330": 35,
+            "35": 1,
+        }
+        assert [s for s in stocks if rows[s].days_over == "35"] == ["EP"]
+        assert sorted(s for s in stocks if rows[s].archive_check == "returns") == [
+            "AGN", "CB", "JCI", "LSI",
+        ]  # fmt: skip
+
+    def test_each_series_lacking_closes_starts_inside_or_after_the_window(self, sources) -> None:
+        """Read from the committed manifest of the archive, so it runs everywhere.
+
+        35 of the 36 series start after 2012-04-24, so the archive holds none
+        of the window's closes under those tickers. EP's starts on 2011-02-23,
+        after the window's first 35 days. The 7 with no series proposed have
+        no line in the ``sp500`` cross-section at all.
+        """
+        entries = {e.symbol: e for e in read_archive_manifest() if e.cross_section == "sp500"}
+        rows = {row.ticker: row for row in sources.table}
+        stocks = cal_without_a_series(sources)
+        first = {
+            s: entries[rows[s].archive_ticker].first_date
+            for s in stocks
+            if rows[s].archive_check == "missing"
+        }
+        last_day = str(sources.window[-1].date())
+        assert last_day == "2012-04-24"
+        after = sorted(s for s, day in first.items() if day > last_day)
+        assert len(after) == 35 and "EP" not in after, AFTER_THE_RUNS
+        assert first["EP"] == "2011-02-23"
+        assert int((sources.window < "2011-02-23").sum()) == 35
+        assert (first["ALTR"], first["DELL"], first["DOW"]) == (
+            "2017-11-01", "2018-12-21", "2019-03-20",
+        )  # fmt: skip
+        none = [s for s in stocks if rows[s].archive_check == "none"]
+        assert len(none) == 7 and not any(s in entries for s in none)
+
+    def test_the_contributions_by_why_a_stock_is_outside_u(self, sources, runs) -> None:
+        """The 13 whose ticker is not tied to the right company carry 0.64 of the universe effect.
+
+        They are the 9 outside CAL and the 4 reused tickers whose series holds
+        another company's returns. The other 43 are the stocks of CAL whose
+        series lacks closes or was never proposed.
+        """
+        returns, positions = a_trades(sources, runs)
+        rows = {row.ticker: row for row in sources.table}
+        stocks = cal_without_a_series(sources)
+        outside_cal = [s for s in returns.columns if s not in set(sources.universe("CAL"))]
+        reused = [s for s in stocks if rows[s].archive_check == "returns"]
+        unpriced = [s for s in stocks if rows[s].archive_check in ("missing", "none")]
+        scale = to_annual(runs["A"])
+
+        def measured(group):
+            return (
+                len(group),
+                int((positions[group] != 0).to_numpy().sum()),
+                round(float(returns[group].to_numpy().sum()) * scale, 6),
+            )
+
+        assert measured(reused) == (4, 8, 0.002526), f"{SPEC}; {AFTER_THE_RUNS}"
+        assert measured(unpriced) == (43, 95, 0.008278), f"{SPEC}; {AFTER_THE_RUNS}"
+        untied = outside_cal + reused
+        assert measured(untied) == (13, 28, 0.014787), f"{SPEC}; {AFTER_THE_RUNS}"
+        effect = runs["A"].arithmetic_annual - runs["A_U"].arithmetic_annual
+        share = float(returns[untied].to_numpy().sum()) * scale / effect
+        assert round(share, 2) == 0.64, f"{SPEC}; {AFTER_THE_RUNS}"
 
     def test_the_stocks_outside_u_carry_0_35_of_a(self, runs) -> None:
         effect = runs["A"].arithmetic_annual - runs["A_U"].arithmetic_annual

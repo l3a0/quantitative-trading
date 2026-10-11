@@ -62,9 +62,9 @@ RERUN_FIGURE = "pead_edgar_rerun.png"
 GROUPS = ("U", "CAL, no checked series", "no checked CIK")
 #: How each group is drawn: its colour and what the legend calls it.
 GROUP_STYLE = {
-    "U": (INK, "the {n} stocks of U, with a checked CIK and a checked series"),
-    "CAL, no checked series": (ACCENT, "the {n} with a checked CIK and no checked series"),
-    "no checked CIK": (LOST, "the {n} with no checked CIK"),
+    "U": (INK, "the {n} stocks of U, with a checked filer and a checked series"),
+    "CAL, no checked series": (ACCENT, "the {n} with a checked filer and no checked series"),
+    "no checked CIK": (LOST, "the {n} with no checked filer"),
 }
 
 #: The day the stocks outside U add most to A, which the first panel marks.

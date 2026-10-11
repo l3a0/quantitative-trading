@@ -1,10 +1,12 @@
-# Chan’s post-earnings drift off his own files: the stocks nobody can tie to a company carry a third of its return
+# Chan’s post-earnings drift moves off his own files, and the 56 stocks EDGAR and a second vendor cannot confirm carry a third of its return
 
-*Chan’s post-earnings drift reproduces to the digit on his own files. Rerun on a calendar built from SEC filings and on another vendor’s prices, the figure moves for four reasons of very different size. The 56 stocks that cannot be tied to both a checked filer and a checked price series carry a third of the return. The calendar built from filings earns more, mostly by trading more. The vendor barely matters, except at the open.*
+*Chan’s post-earnings drift reproduces to the digit on his own files. Rerun on a calendar built from SEC filings and on another vendor’s prices, the figure moves for four reasons of very different size. The 56 stocks that a check against EDGAR or a check against the second vendor cannot confirm carry a third of the return, and the 13 whose ticker cannot be tied to the right company carry about two thirds of that. The calendar built from filings earns more, mostly by trading more. The vendor barely matters, except at the open.*
 
 ## Why rerun a figure that already reproduces
 
-Ernest Chan’s *Algorithmic Trading* trades the morning after an earnings announcement. A stock that announced after the previous close and opens well above or below that close is bought or shorted at the open, and the position is closed at the same day’s close. He reports an APR of 6.7 percent and a Sharpe ratio of 1.5 on the S&P 500 from January 2011 to April 2012 (Chan, 2013, location 3024). The [post on post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) teaches the rule, and shows that every figure Chan prints reproduces on the two files he published, one of prices and one of announcement flags.
+Ernest Chan’s *Algorithmic Trading* trades the morning after an earnings announcement. Call the move from one day’s close to the next day’s open the gap. A stock that announced after the previous close is bought at the open when its gap is at least half its moving deviation, the standard deviation of its gaps over the last 90 days. It is shorted when the gap is at most minus half that deviation. Each position is closed at the same day’s close. The [post on post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md#the-strategy-and-the-two-files) sets out the rule in full.
+
+The strategy sums each day’s returns across stocks and divides by a fixed 30, whatever the day holds, so every position gets a thirtieth of the capital. Chan reports an APR of 6.7 percent and a Sharpe ratio of 1.5 on the S&P 500 from January 2011 to April 2012 (Chan, 2013, location 3024). His APR is the arithmetic annual return, 252 times the average daily return. The Sharpe ratio is the average daily return over its standard deviation, times the square root of 252, so it measures return per unit of risk. The drift post shows that every figure Chan prints reproduces on the two files he published, one of prices and one of announcement flags.
 
 That reproduction checks his arithmetic on his files. The flag file is the weak one. It holds a 1 for each stock on each day it announced overnight, and nothing records how it was built. The book supplies a function that scraped a year of an earnings calendar from earnings.com, keeping only the announcements made “after the previous trading day’s market close and before today’s market open” (Chan, 2013, location 3002). That calendar cannot be fetched again today. So the drift post’s figures are figures on Chan’s flags, and the question is what happens to them off his files.
 
@@ -12,12 +14,12 @@ A calendar can be rebuilt from public records. A company that releases its earni
 
 This repository reran Chan’s rule, his script `pead.m` unchanged, on that calendar and on prices from a second vendor, and split the change in his figure among four differences. It found four things.
 
-1. **Tying a 2012 ticker to a company drops 56 stocks, and they carry a third of the return.** Chan’s arithmetic annual return of 0.066743 falls to 0.043678 on the 441 stocks that pass both checks.
+1. **A check against EDGAR and a check against a second vendor’s prices drop 56 stocks, and they carry a third of the return.** Chan’s arithmetic annual return of 0.066743 falls to 0.043678 on the 441 stocks that pass both. The 13 whose ticker cannot be tied to the right company carry about two thirds of the drop.
 2. **EDGAR’s timestamp needs the filing’s own header.** The time EDGAR’s data service reports is hours late for some filers, which would move a morning filer’s release into the trading session.
-3. **The calendar a trader could build earns more, mostly by trading more.** On the same stocks and prices it lifts the return from 0.054481 to 0.071050, and about three quarters of that comes from the extra trades.
+3. **The calendar a trader could build earns more, mostly by trading more.** On the same stocks and prices it lifts the return from 0.054481 to 0.071050, and three quarters to four fifths of that comes from the extra trades.
 4. **Another vendor’s closes and the price basis barely move the figure, and its opens can.** Three trades on a disputed open move one run more than the vendor and the price basis together.
 
-**Every result here is exploratory.** The comparison was written down before any number on these sources was seen, but an audit had already measured part of the sample to plan it, and the rule, the window and the divisor of 30 are Chan’s. The rerun can say where the figure moves off his files, and nothing about whether the drift pays today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+**Every result here is exploratory.** The comparison was written down before any number on these sources was seen. A check made while planning the rerun had already measured part of the sample, though, and the rule, the window and the divisor of 30 are Chan’s. The rerun can say where the figure moves off his files, and nothing about whether the drift pays today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The rerun and its four differences
 
@@ -33,11 +35,15 @@ Four things can differ from Chan’s files: the stocks, the calendar, the vendor
 **The calendar.** Both calendars read the time each filing was accepted, in Eastern time. Several filings on one day make one flag, and an amended filing is skipped.
 
 1. **R1** is the calendar a trader could have built before each open. A filing accepted before 9:30 a.m. on a trading day flags that day. One accepted at 4:00 p.m. or later, or on a day the market was shut, flags the next trading day. One accepted during the session flags nothing, because the gap from the close to the open came before it.
-2. **R5** is the calendar nearest Chan’s flags, chosen because it matched them best on a sample of 32 stocks. It flags a session filing on that same day, and moves a filing accepted after the date it reports back to the trading day after that date. Each of those two changes reads what a trader did not have before the open, so no figure on R5 is a tradable one.
+2. **R5** is the calendar nearest Chan’s flags, chosen because it matched them best on a sample of 32 stocks. It differs from R1 in two ways.
+   1. A filing accepted during the session flags that same day.
+   2. A filing accepted after the date of the event it reports flags the trading day after that event.
 
-**The vendor and the price basis.** The second vendor is Alpha Vantage, whose daily prices for the S&P 500 sit in the owner’s data archive, downloaded on 2026-10-05. Their license keeps them out of the repository. The adjusted prices, corrected for splits and dividends, are the like-for-like comparison, because Chan’s file is adjusted too. The raw prices are what traded on the day.
+   Each of those reads what a trader did not have before the open, so no figure on R5 is a tradable one.
 
-Ten runs cover the four differences, each Chan’s rule on one universe, one source of prices and one calendar. **The four on Alpha Vantage prices, C, D, E1 and E5, need the owner’s data archive, so a reader cannot rerun them.** The other six read only committed files.
+**The vendor and the price basis.** The second vendor is Alpha Vantage, whose daily prices for the S&P 500 sit in a private archive, downloaded on 2026-10-05. The vendor’s terms allow personal use only, so the prices stay out of the repository. The adjusted prices, corrected for splits and dividends, are the like-for-like comparison, because Chan’s file is adjusted too. The raw prices are what traded on the day.
+
+Ten runs cover the four differences, each Chan’s rule on one universe, one source of prices and one calendar. **The four on Alpha Vantage prices, C, D, E1 and E5, need the private archive, so a reader cannot rerun them.** The other six read only committed files.
 
 ```math
 \begin{array}{l|l|l|l|r|r|r}
@@ -55,9 +61,11 @@ Ten runs cover the four differences, each Chan’s rule on one universe, one sou
 \end{array}
 ```
 
-A is the drift post’s run, unchanged. Each effect is one run read against another. The universe effect is A_U against A, the calendar’s is B1 against A_CAL, the vendor’s is C against A_PX, and the price basis’s is D against C.
+Every figure and every difference in this post is rounded from its true value, so a sum or difference of the printed figures can miss by one in the last digit.
 
-One identity reads every row. `pead.m` sums each day’s returns across stocks and divides by a fixed 30, whatever the day holds, which the [drift post’s lesson on the 30](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md#lesson-3-the-30-and-the-leverage-are-facts-about-the-run) explains. So the arithmetic annual return, 252 times the average daily return over the 330 days, follows from the trades taken and their mean return alone.
+A is the drift post’s run, unchanged. Each effect is one run read against another. The universe effect is A_U against A, the calendar’s is B1 against A_CAL, the vendor’s is C against A_PX, and the effect of the price basis is D against C.
+
+Because `pead.m` divides each day by the fixed 30, which the [drift post’s lesson on the 30](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md#lesson-3-the-30-and-the-leverage-are-facts-about-the-run) explains, a run’s arithmetic annual return follows from the trades it takes and their mean return alone, over the 330 days of the window.
 
 ```math
 \text{arithmetic annual return} = \frac{\text{trades} \times \text{mean return per trade} \times 252}{30 \times 330}
@@ -65,14 +73,33 @@ One identity reads every row. `pead.m` sums each day’s returns across stocks a
 
 A run can raise its return by taking more trades or by earning more on each. The Sharpe ratio does not depend on the 30, because dividing every day by one number scales the mean and the standard deviation alike.
 
-## Lesson 1: tying a 2012 ticker to a company drops 56 stocks, and they carry a third of the return
+## Lesson 1: EDGAR and a second vendor cannot confirm 56 stocks, and they carry a third of the return
 
-A ticker names a listing, not a company, and tickers get reused. The SEC’s own table of tickers maps today’s symbols, so it sends Chan’s CB to Chubb Limited. In 2012 Chubb Limited was ACE, a different insurer, and it filed its own earnings releases in the window. Its filings are real, from the wrong company. Alpha Vantage files a company under its latest ticker, so its CB series holds ACE’s history too, and Chan’s UTX sits under RTX.
+A ticker names a listing, not a company, and tickers get reused. The SEC’s own table of tickers maps today’s symbols, so it sends Chan’s CB to Chubb Limited. In 2012 Chubb Limited was ACE, a different insurer, and it filed its own earnings releases in the window. Its filings are real, from the wrong company. Alpha Vantage files a company under its latest ticker, so its CB series holds ACE’s history too, and Chan’s UTX, United Technologies, sits under RTX.
 
 So each tie has a check that reads only what 2012 recorded.
 
-1. **The filer.** A filer passes when its name in EDGAR on 2012-03-30 matches exactly one holding in the iShares S&P 500 fund’s schedule of 2012-03-31, that holding’s price is within 3 percent of Chan’s close that day, and the filer released earnings under Item 2.02 in the window. ACE’s holding sits 5.92 percent above the old Chubb’s close, so ACE’s filer fails for CB, and the filer that passes is the old Chubb’s. Nine stocks fail. Five are missing from the fund’s schedule although Chan’s file holds them, and two of those carry another company’s filer as well. Cablevision’s proposed filer is BJ’s Wholesale, DuPont’s is the DuPont formed after 2015, NYSE Euronext’s name in EDGAR does not match, and Leucadia released nothing under Item 2.02.
-2. **The price series.** A series passes when its daily returns agree with Chan’s closes on all but a few days. Every series of the same company differs on at most 2 days. The four reused tickers that fail, CB among them, differ on 72 to 194. Searching the archive by returns rather than by ticker finds 48 companies filed under a later name.
+1. **The filer check, against EDGAR.** A filer passes when four things hold.
+   1. It was filing on 2012-03-30.
+   2. Its name in EDGAR on that day matches exactly one holding in the iShares S&P 500 fund’s schedule of 2012-03-31.
+   3. That holding’s price is within 3 percent of Chan’s close that day.
+   4. It released earnings under Item 2.02 in the window.
+
+   ACE’s holding sits 5.92 percent above the old Chubb’s close, so ACE’s filer fails for CB, and the filer that passes is the old Chubb’s.
+2. **The price-series check, against the second vendor.** A series passes when it holds a close on every day of the window on which Chan’s file holds one, and its daily returns agree with those of Chan’s closes on all but a few days. Every series of the same company differs on at most 2 days. The four reused tickers that fail, CB among them, differ on 72 to 194. Under Chan’s own tickers, 398 series pass. Searching the archive by returns rather than by ticker finds 48 more, companies filed under a later ticker, which makes PX’s 446.
+
+Nine stocks fail the filer check, in five ways.
+
+1. Five are missing from the fund’s schedule of 2012-03-31, though Chan’s file holds them. Two of those five also carry another company’s filer.
+2. Cablevision’s proposed filer is BJ’s Wholesale.
+3. DuPont’s is the DuPont formed after 2015, which was not filing on 2012-03-30.
+4. NYSE Euronext’s name in EDGAR does not match.
+5. Leucadia released nothing under Item 2.02.
+
+The 56 stocks outside U fail for two kinds of reason.
+
+1. **Thirteen cannot be tied to the right company.** They are the nine that fail the filer check and the four reused tickers whose series holds another company’s history.
+2. **Forty-three lack the prices to check.** The archive does not hold the company’s prices for the whole window under that ticker. Seven have no series there at all. For 35 the series under that ticker starts after the window ends on 2012-04-24, as ALTR’s starts on 2017-11-01, DELL’s on 2018-12-21 and DOW’s on 2019-03-20. El Paso’s starts on 2011-02-23 and lacks the window’s first 35 days.
 
 Each stock trades on its own gap and its own moving deviation, so dropping some stocks changes nothing about the trades of the rest. A on all 497 is therefore exactly A_U’s trades plus the trades of the 56 stocks outside U. The difference between the two runs is those 56 stocks’ contribution, all of it.
 
@@ -80,37 +107,38 @@ Each stock trades on its own gap and its own moving deviation, so dropping some 
 \begin{array}{l|r|r|r}
 \text{Stocks} & \text{Count} & \text{Trades} & \text{Contribution to A} \\ \hline
 \text{U, both checks pass} & 441 & 949 & 0.043678 \\
-\text{CAL without a checked series} & 47 & 103 & 0.010803 \\
-\text{no checked filer} & 9 & 20 & 0.012261 \\ \hline
+\text{fail the filer check} & 9 & 20 & 0.012261 \\
+\text{reused ticker, another company's series} & 4 & 8 & 0.002526 \\
+\text{no prices for the whole window} & 43 & 95 & 0.008278 \\ \hline
 \text{A, all} & 497 & 1{,}072 & 0.066743
 \end{array}
 ```
 
-The 56 stocks outside U take 123 of A’s 1,072 trades and add 0.023065, which is 0.35 of A’s return, about a third. The nine with no checked filer take 20 trades and add 0.012261 on their own, which is exactly A against A_CAL.
+The 56 stocks outside U take 123 of A’s 1,072 trades and add 0.023065, which is 0.35 of A’s return, about a third. The 13 that cannot be tied to the right company take 28 trades and add 0.014787, which is 0.64 of the 0.023065, about two thirds. The nine that fail the filer check add 0.012261 on their own, which is exactly A against A_CAL.
 
-**This split was measured after the runs, so it is exploratory.** The figure’s top panel builds A’s return day by day from the three groups.
+**This split was measured after the runs, so it is exploratory.** The figure’s top panel builds A’s return day by day from three groups. Its brass line joins the last two rows of the table, the 47 stocks that pass the filer check and have no checked series.
 
-![Two charts. The top chart shows three lines over 330 trading days from January 2011 to April 2012, each the running contribution of one group of stocks to run A’s arithmetic annual return, in percent. All three sit at zero until mid-May. A black line for the 441 stocks of U climbs to under 1 percent by late July, jumps to about 4 percent in early August, dips to about 2.2 percent in November, and ends at 0.043678. A red line for the 9 stocks with no checked filer steps up to about 0.9 percent on a dashed vertical line at 2011-08-04, rises to about 1.6 percent early in 2012, and ends at 0.012261. A brass line for the 47 stocks with a checked filer and no checked series wanders near zero and ends at 0.010803. A label at the dashed line says the stocks outside U add 0.010702 on that one day. The bottom chart plots each of six runs as a point, trades taken against mean return per trade. A sits at 1,072 trades and about 0.245 percent, A_CAL at 1,052 and 0.204 percent, A_PX at 964 and 0.216 percent, A_U at 949 and 0.181 percent, B1 at 1,291 and 0.216 percent, and B5 at 1,477 and 0.168 percent. Two dashed curves fall from left to right, each holding the return of A or of A_CAL fixed. Arrows run from A down to A_U, labelled the universe, and from A_CAL to B1 and to B5, labelled R1 and R5. B1 sits above both curves, and B5 between them. The title calls the figure exploratory, and the note says the four runs on the archive’s prices are left out.](../docs/figures/pead_edgar_rerun.png)
+![Two charts. The top chart shows three lines over 330 trading days from January 2011 to April 2012, each the running contribution of one group of stocks to run A’s arithmetic annual return, in percent. All three sit at zero until mid-May. A black line for the 441 stocks of U climbs to under 1 percent by late July, jumps to about 4 percent in early August, dips to about 2.2 percent in November, and ends at 0.043678. A red line for the 9 stocks with no checked filer steps up to about 0.9 percent on a dashed vertical line at 2011-08-04, rises to about 1.6 percent early in 2012, and ends at 0.012261. A brass line for the 47 stocks with a checked filer and no checked series stays near zero until August, steps up at the dashed line, and climbs mostly in 2012 to end at 0.010803. A label at the dashed line says the stocks outside U add 0.010702 on that one day. The bottom chart plots each of six runs as a point, trades taken against mean return per trade. A sits at 1,072 trades and about 0.245 percent, A_CAL at 1,052 and 0.203 percent, A_PX at 964 and 0.216 percent, A_U at 949 and 0.181 percent, B1 at 1,291 and 0.216 percent, and B5 at 1,477 and 0.168 percent. Two dashed curves fall from left to right, each holding the return of A or of A_CAL fixed. Arrows run from A down to A_U, labelled the universe, and from A_CAL to B1 and to B5, labelled R1 and R5. B1 sits above both curves, and B5 between them. The title calls the figure exploratory, and the note says the four runs on the archive’s prices are left out.](../docs/figures/pead_edgar_rerun.png)
 
 *The top panel splits A’s arithmetic annual return among three groups of its stocks. The black line is exactly run A_U, and the other two end on the 0.023065 the universe takes off. The bottom panel is Lesson 3’s evidence. Both panels read only committed files, so the four runs on the archive’s prices are not in the figure.*
 
-The dropped stocks’ return is concentrated. On 2011-08-04, the day of the drift post’s high, the stocks outside U add 0.010702, close to half of their 0.023065, through 8 trades. The largest is a short of MEMC Electronic Materials, Chan’s WFR, which earned 0.1108 from the open to the close. The five largest trades outside U are all shorts, all in the nine stocks with no checked filer, and they carry 0.54 of the outside sum.
+The dropped stocks’ return is concentrated. On 2011-08-04, the day A’s cumulative return reaches the high its longest drawdown starts from, the stocks outside U add 0.010702, close to half of their 0.023065, through 8 trades. The largest is a short of MEMC Electronic Materials, Chan’s WFR, which earned 0.1108 from the open to the close. The five largest trades outside U are all shorts, all in the nine stocks that fail the filer check, and they carry 0.54 of the outside sum.
 
 Per trade, the stocks outside U earn 0.007367 on average against 0.001808 inside. Welch’s t, which compares two means without assuming their spreads are equal, is 1.46 (Welch, 1947). That treats every trade as independent, and the trades of one August day are not, so chance cannot be ruled out. The rerun cannot say whether these stocks earn more for a reason or had a few good days.
 
-In Sharpe ratio the ranking flips. Dropping the 56 stocks takes 0.2094 off the Sharpe ratio, while R1’s calendar adds 0.3792. The universe moves the arithmetic return most, and the calendar moves the Sharpe ratio most.
+The universe moves the arithmetic return more than the calendar does, by 0.023065 against 0.016568. The Sharpe ratio ranks them the other way. Dropping the 56 stocks moves it by −0.2094, and R1’s calendar moves it by +0.3792.
 
 ## Lesson 2: EDGAR’s timestamp needs the filing’s own header
 
-The calendar is only as good as the time it reads. EDGAR’s data service, the submissions file at `data.sec.gov`, carries an acceptance time marked as UTC. Each filing also has a header file, `.hdr.sgml`, whose acceptance time is Eastern and matches the filing’s own index page.
+EDGAR’s data service, the submissions file at `data.sec.gov`, carries an acceptance time marked as UTC. Each filing also has a header file, `.hdr.sgml`, whose acceptance time is Eastern and matches the filing’s own index page.
 
-The audit that planned the rerun compared the two on a sample of 248 filings from 38 filers. In 175 the submissions file was true UTC. In the other 73 it sat a further 4 or 5 hours later, consistently within a filer, as if the time had been converted from Eastern twice. Apple was one of them. **That sample is not committed, and nothing in the repository pins its counts.** The index the rerun reads takes every time from the header instead, at the cost of one request per filing.
+A check made while planning the rerun compared the two on a sample of 248 filings from 38 filers. In 175 the submissions file was true UTC. In the other 73 it sat a further 4 or 5 hours later, as if the time had been converted from Eastern twice. The extra shift follows the season, 4 hours under daylight saving time and 5 under standard time, and a filer read late was read late on every filing in the sample. Apple was one of them. **That sample is not committed, and nothing in the repository pins its counts.** The index the rerun reads takes every time from the header instead, at the cost of one request per filing.
 
 What a late time does depends on when the filer files.
 
-1. **An evening filer loses nothing.** Each of Apple’s releases in the window was accepted at about 4:30 p.m. Eastern, which a double conversion turns into about 8:30 p.m. Both are after the close, so both flag the next morning.
-2. **A morning filer loses every release.** No filing in the index was accepted earlier than 06:00:43 Eastern on any day. Four or five hours on top of a time between that and 9:30 a.m. lands inside the session, where R1 flags nothing. The index holds 2,930 filings, and 1,460 of them were accepted before the open.
-3. **A filer during the session gains a wrong flag.** A filing from late morning onward moves past the 4:00 p.m. close and flags the next day, after the gap that should have carried its news. The index holds 405 accepted during the session.
+1. **An evening filer loses nothing.** Each of Apple’s releases in the window was accepted at about 4:30 p.m. Eastern. A double conversion turns the four filed under daylight saving time into about 8:30 p.m., and the two in January, on 2011-01-18 and 2012-01-24, into about 9:30 p.m. All are after the close, so all flag the next morning.
+2. **A morning filer loses every release.** No filing in the index was accepted earlier than 06:00:43 Eastern on any day. Read 4 or 5 hours late, every filing accepted between then and 9:30 a.m. lands inside the session, where R1 flags nothing. The index holds 2,930 filings, and 1,460 of them were accepted before the open. Nothing here counts how many of those 1,460 come from filers whose time reads late.
+3. **A filer during the session gains a wrong flag.** A filing accepted from 11:00 a.m. onward in winter, or from noon onward in summer, moves past the 4:00 p.m. close and flags the next day, after the gap that should have carried its news. The index holds 405 accepted during the session.
 
 ## Lesson 3: the calendar a trader could build earns more, mostly by trading more
 
@@ -125,23 +153,23 @@ The [drift post’s second lesson](https://github.com/l3a0/quantitative-trading/
 \end{array}
 ```
 
-R1 lifts the return by 0.016568 in two ways. It takes 1,291 trades against 1,052, and each earns 6 percent more on average. Because the divisor is a fixed 30, more trades at the same mean raise the return in proportion. Priced at Chan’s mean per trade, the extra trades are 0.75 of the gain, three quarters. Priced at R1’s own mean, they are 0.79, nearer four fifths. Either way most of the gain is volume.
+R1 lifts the return by 0.016568 in two ways. It takes 1,291 trades against 1,052, and each earns 0.002162 on average against 0.002035, about 6 percent more. Because the divisor is a fixed 30, more trades at the same mean raise the return in proportion. Priced at Chan’s mean per trade, the extra trades are 0.75 of the gain, three quarters. Priced at R1’s own mean, they are 0.79, nearer four fifths.
 
-The Sharpe ratio rises from 1.3253 to 1.7045, and that gain does not depend on the 30. R1 does earn more per unit of risk, on this one window.
+The Sharpe ratio rises from 1.3253 to 1.7045, and that gain does not depend on the 30. On this one window R1 earned more per unit of risk, and nothing here tests whether that gap exceeds chance.
 
-The extra trades have a price the return hides. On its busiest day B1 holds 49 positions, and on 4 days it holds more than 30. Each position still gets a thirtieth of the capital, so on those days the book is levered past one.
+On its busiest day B1 holds 49 positions, and on 4 days it holds more than 30. Each position still gets a thirtieth of the capital, so on those days the positions add up to more than the capital, and the strategy borrows the difference.
 
 R5, the calendar nearest Chan’s, gains only by trading more. It takes 1,477 trades at a mean of 0.001679, below Chan’s 0.002035, and its Sharpe ratio sits 0.0265 below A_CAL’s. It holds more than 30 positions on 10 days, and 55 on its busiest. In the figure’s bottom panel, B1 sits up and to the right of A_CAL, above the curve that holds A_CAL’s return fixed. B5 sits down and to the right, and clears that curve only because it takes more trades.
 
 ## Lesson 4: another vendor’s closes and the price basis barely move the figure, and its opens can
 
-**Every number in this lesson reads the owner’s archive of Alpha Vantage prices, so a reader cannot rerun it, and every one is exploratory.**
+**Every number in this lesson reads the private archive of Alpha Vantage prices, so a reader cannot rerun it, and every one is exploratory.**
 
 On PX’s 446 stocks with Chan’s flags, switching to Alpha Vantage’s adjusted prices moves the arithmetic annual return by +0.000107, run C against A_PX. Switching from adjusted to raw prices moves it by +0.000078 more, run D against C. Both are about a ten-thousandth.
 
-The price basis barely matters for a reason built into the code. Alpha Vantage adjusts only the close, so the adjusted open is the raw open times that day’s adjusted close over its raw close. The same factor scales both ends of the day, so a trade’s return from the open to the close is the same on either basis. That holds by construction, not because of anything the vendor does. The basis reaches only the overnight gap and its moving deviation, and through them which stocks are traded, 954 in D against 964 in C.
+The price basis barely matters because of how the rerun builds the adjusted open. Alpha Vantage adjusts only the close, so the rerun takes the adjusted open to be the raw open times that day’s adjusted close over its raw close. The same factor then scales both ends of the day, so a trade’s return from the open to the close is the same on either basis. The basis reaches only the overnight gap and its moving deviation, and through them which stocks are traded, 954 in D against 964 in C.
 
-The series check compares closes, and the rule trades from the open. Put on the same scale as Chan’s through the closes, 64 of the archive’s opens on PX’s stock-days lie more than 2 percent from his, across 56 stocks. The 2 percent was chosen after reading the data. Of the 64, 30 fall on 2011-10-27 and 24 on 2011-09-12. Many stocks disagreeing on the same day reads more like two vendors defining the open differently than like 54 separate errors.
+The series check compares closes, and the rule trades from the open. To compare the opens, each archive open is scaled by Chan’s close over the archive’s close that day. After that scaling, 64 of the archive’s opens on PX’s stock-days lie more than 2 percent from Chan’s, across 56 stocks. The 2 percent was chosen after reading the data. Of the 64, 30 fall on 2011-10-27 and 24 on 2011-09-12. Many stocks disagreeing on the same day reads more like two vendors defining the open differently than like 54 separate errors.
 
 Putting Chan’s open in place of each of the 64 moves C by +0.000015 and E1 by −0.000539. It moves E5 by −0.004566 in return and −0.1039 in Sharpe ratio, through three trades.
 
@@ -157,9 +185,9 @@ Put together on the 441 stocks of U, the archive’s prices on R1 give E1 an ari
 
 Five questions are beyond it.
 
-1. **Whether the drift pays after 2012.** The window, the rule and the 30 are Chan’s, and the audit had already looked at the sample. A test that could confirm the drift would fix the rule in writing and run it on later data.
+1. **Whether the drift pays after 2012.** The window, the rule and the 30 are Chan’s, and a check made while planning the rerun had already looked at the sample. A test that could confirm the drift would fix the rule in writing and run it on later data.
 2. **Whether the dropped stocks’ trades were one day’s luck.** Close to half their contribution falls on 2011-08-04, and the t of 1.46 assumes independent trades. More stocks tied to their filers and series, or another window, would be needed to tell.
-3. **When each release went out.** The acceptance time bounds the release from above. A company can put out its release before the filing that reports it, so a filing accepted in the session can follow a release before the open.
+3. **When each release went out.** A release goes out no later than the filing that reports it is accepted, and can go out earlier. So a filing accepted in the session can follow a release made before the open.
 4. **Whether a filing under the earnings item is an earnings release.** Item 2.02 is the item a release is filed under, and nothing here reads the filing’s text, so an 8-K carrying the item for another reason flags a day too.
 5. **Whose opens are right where the two vendors disagree.** The two days with dozens of disagreements look like two definitions of the open. Nothing here holds a third source to settle which one a trader could have traded at.
 
@@ -167,9 +195,9 @@ Five questions are beyond it.
 
 One habit for each lesson.
 
-1. **Tie every ticker to a company at the date of the data, and check the tie.** A lookup by today’s ticker can return real filings or prices from the wrong company, and the stocks that fail the check can carry a large share of a backtest’s return.
+1. **Tie every ticker to a company at the date of the data, and check the tie.** A lookup by today’s ticker can return real filings or prices from the wrong company. Check too that the vendor holds that company’s prices for the whole window, because a stock with no prices drops out as surely as one tied to the wrong company. The stocks that fail can carry a large share of a backtest’s return.
 2. **Read a filing’s time from the filing.** A field labelled UTC can be hours late for some filers, and the error drops a morning filer’s releases from a calendar that trades the open.
-3. **Split a return into trades and the mean per trade.** Under a fixed divisor, a calendar that flags more days earns more without trading any better, and the Sharpe ratio is the figure that says whether it does.
+3. **Split a return into trades and the mean per trade.** Under a fixed divisor, a calendar that flags more days earns more without trading any better. The Sharpe ratio does not depend on the divisor, so it is the figure to read for that question, though one window cannot settle it.
 4. **Check the price a strategy trades at, not only the price it is checked on.** A series that matches on every close can still disagree at the open, and one disputed open can move a figure more than the vendor does.
 
 ## References

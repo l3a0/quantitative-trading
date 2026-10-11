@@ -9848,9 +9848,9 @@ nothing.
    1.6585 against A_U's 0.043678 and 1.2815. Neither reaches Chan's 0.066743
    on all 497. E1 against A is −0.009254 in return and +0.1677 in Sharpe
    ratio, because the universe moves the return more than anything else.
-2. **The universe moves the figure most, and the vendor and the basis
-   barely move it, as the audit expected.** Dropping the stocks outside U
-   takes 0.023065 off the arithmetic return. The vendor and the basis move it
+2. **The universe moves the arithmetic return most, and the vendor and the
+   basis barely move it, as the audit expected.** Dropping the stocks outside
+   U takes 0.023065 off the arithmetic return. The vendor and the basis move it
    by about a ten-thousandth each. A same-day return from the open to the
    close does not depend on the basis, which moves only the overnight gap and
    its 90-day deviation, so D takes 954 trades where C takes 964 and earns
@@ -9886,18 +9886,27 @@ nothing.
    Each stock trades on its own gap and its own 90-day deviation, so
    dropping some stocks changes nothing about the trades of the rest. A is
    therefore A_U's trades plus those of the stocks outside U, and row 18 is
-   their contribution, all of it. It splits two ways.
-   1. The 47 stocks of CAL with no checked series take 103 trades and add
-      0.010803.
-   2. The 9 stocks with no checked CIK take 20 trades and add 0.012261,
+   their contribution, all of it. It splits three ways.
+   1. The 9 stocks with no checked CIK take 20 trades and add 0.012261,
       which is exactly A against A_CAL, read from the true value.
+   2. The 4 stocks of CAL whose series holds another company's returns,
+      AGN, CB, JCI and LSI, take 8 trades and add 0.002526.
+   3. The 43 stocks of CAL whose series lacks closes or was never proposed
+      take 95 trades and add 0.008278. 35 of those series start after
+      2012-04-24, EP's lacks the window's first 35 days, and 7 were never
+      proposed, since the `sp500` cross-section holds no series under their
+      tickers.
 
-   With U's 441 stocks, 949 trades and 0.043678, the three sum to A's
-   0.066743. The stocks outside U carry 0.35 of it. On 2011-08-04 they add
-   0.010702 through 8 trades, 0.46 of the universe effect on one day, and
-   the largest of those trades is WFR short at 0.1108. Their mean trade is
-   0.007367 over 123 against 0.001808 over U's 949, a Welch t of 1.46 that
-   treats every trade as independent, so chance is not ruled out.
+   The 47 stocks of CAL with no checked series are the last two groups,
+   with 103 trades adding 0.010803. With U's 441 stocks, 949 trades and
+   0.043678, the groups sum to A's 0.066743. The stocks outside U carry 0.35
+   of it. The 13 whose ticker is not tied to the right company, the first two
+   groups, take 28 trades and add 0.014787, 0.64 of the universe effect. On
+   2011-08-04 the stocks outside U add 0.010702 through 8 trades, 0.46 of the
+   universe effect on one day, and the largest of those trades is WFR short
+   at 0.1108. Their mean trade is 0.007367 over 123 against 0.001808 over
+   U's 949, a Welch t of 1.46 that treats every trade as independent, so
+   chance is not ruled out.
 
 ### What this entry cannot say
 

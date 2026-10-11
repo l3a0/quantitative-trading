@@ -177,9 +177,9 @@ class TestWhereTheUniverseEffectComesFrom:
     def test_the_legend_names_each_group_its_size_and_its_end(self, axes) -> None:
         labels = [t.get_text() for t in axes["contribution"].get_legend().get_texts()]
         assert labels == [
-            "the 441 stocks of U, with a checked CIK and a checked series, ending at 0.043678",
-            "the 47 with a checked CIK and no checked series, ending at 0.010803",
-            "the 9 with no checked CIK, ending at 0.012261",
+            "the 441 stocks of U, with a checked filer and a checked series, ending at 0.043678",
+            "the 47 with a checked filer and no checked series, ending at 0.010803",
+            "the 9 with no checked filer, ending at 0.012261",
         ]
 
     def test_the_colours(self, axes) -> None:
@@ -264,7 +264,11 @@ class TestTradesTimesTheirMean:
 
 class TestTheHelpers:
     def test_equal_return_solves_the_identity_for_the_mean(self) -> None:
-        """At 252 days of one trade each a day, a mean of 30 percent earns 0.3 × 252 / 30 a year."""
+        """One trade a day for 252 days, each earning 0.3, gives 2.52 a year.
+
+        Each day earns 0.3 over 30, which is 0.01, and 252 such days make 2.52.
+        Twice the trades earn the same at half the mean.
+        """
         assert equal_return(2.52, [252.0], 252)[0] == pytest.approx(0.3)
         assert equal_return(2.52, [504.0], 252)[0] == pytest.approx(0.15)
 
