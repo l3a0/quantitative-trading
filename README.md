@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-four replications run here, seventeen from Chan's *Quantitative Trading*
-and twenty-seven from his *Algorithmic Trading*. The first two were ported from the
+Forty-five replications run here, seventeen from Chan's *Quantitative Trading*
+and twenty-eight from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other forty-two were built here.
+where they were first built. The other forty-three were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -642,6 +642,27 @@ where they were first built. The other forty-two were built here.
     about the stocks still in the index on 2007-11-23. Beside the verdict, the
     low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
     untested point estimate, exploratory, and decides nothing.
+45. The VIX filter at location 3509 of *Algorithmic Trading*, which keeps
+    only the days after the VIX closed above 35 and reruns two rules on
+    them: item 18's buy on gap and item 40's opening gap rule on FSTX. Each
+    rule runs unchanged on Chan's own files, its calendar is joined to that
+    of Chan's `VIX.csv`, and the figures are 252 times the mean and the
+    Sharpe ratio over the days kept. Buy on gap keeps 190 days and gives
+    0.171924 and 1.417425, which round to the book's 17.2 percent and 1.4.
+    FSTX keeps 185 and gives 0.025730 and 0.164869 under the script's fading
+    sign, which round to the book's 2.6 percent and 0.16. The momentum sign
+    gives the same numbers negated. Beside the verdict, Welch's t on mean
+    daily return, the kept days against the other joined days, is 0.705402
+    for buy on gap and −0.684181 for FSTX's fade, with p of 0.481405 and
+    0.494679, treating each day as independent. So the claim that VIX above
+    35 warns the gap trader off rests on point estimates this test cannot
+    tell from noise, for either sign. It is exploratory and decides nothing.
+    No script ships for the filter. The FSTX alignment was chosen after six
+    were tried, and all six are recorded. Only the join lands 2.6 percent. The latest VIX close
+    before each day lands the Sharpe ratio but prints 2.5 percent, and the
+    two that read VIX on the trade's own date look ahead. Buy on gap's
+    figures are the same under any alignment that reads the previous day.
+    Every figure is exploratory.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1221,6 +1242,22 @@ of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
 
+[tests/test_vix_filter.py](tests/test_vix_filter.py) does it for the VIX
+filter. It pins both rules' figures on the days kept at six decimals against
+the book's four, and FSTX's under the momentum sign beside them. It pins each
+reading that misses with the reason it was set aside: the compounded APR, the
+zeroed days, and the five FSTX alignments besides the join. Those are the
+latest VIX close before each day, VIX forward-filled and moved one row, a
+shift on FSTX's own calendar, and the same day's close with and without a
+fill, which look ahead. It also pins the days each calendar keeps, the days each rule held
+a position, the unfiltered figures on the joined calendar, FSTX's rule
+run after the join keeping the same returns on the days kept, and Welch's t
+for the days kept against the rest. On synthetic
+series it holds the strict threshold, the previous joined day's close and a
+missing close qualifying nothing. It also holds VIX guarded on both sides of
+its flagged day, a planted doubling before that day refused, and a planted
+rescale under 1.6 times passing the guard and moving a figure.
+
 [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
 the same rule at leverage a broker would lend. It pins each ceiling's
 outcome, gap, t, both p-values, both decisions of the Benjamini-Hochberg
@@ -1235,7 +1272,7 @@ It also holds the refusal of a ceiling at or below 1, which borrows nothing,
 and the bisection's limit on halvings, which ends the search where the floats
 lie too far apart for its tolerance.
 
-All forty-four replications reach a verdict in
+All forty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1259,7 +1296,8 @@ trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the
 roll-return rule's on VX against ES, Entry 42 Example 7.4's own factors',
 Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
-and Entry 45 the levered low-beta claim's.
+Entry 45 the levered low-beta claim's, and Entry 47 the VIX filter's on buy on
+gap and on FSTX.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict. Entry 48 carries the
 levered low-beta rule at leverage a broker would lend, which is exploratory
@@ -2194,6 +2232,19 @@ It prints the three vintages, the verdict with every ruined month, and beside
 it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
 Gaussian growth, the flagged stock-months and a row for every formation, none
 of which decides anything.
+
+The VIX filter takes no option either, because location 3509 fixes the
+threshold and the two rules, and their scripts fix the files:
+
+```bash
+uv run python -m chan.vix_filter
+```
+
+It prints the three vintages, the days each calendar keeps once joined to
+VIX's, and both rules' figures on the days kept beside the book's with a
+verdict, FSTX under both signs. Then it prints the readings that miss beside
+the book's figures, and the days kept, the days held, the unfiltered figures
+and Welch's t, none of which carries a verdict.
 
 The same rule at leverage a broker would lend takes no option either, because
 the issue's plan fixed both ceilings and every rule before any capped number:

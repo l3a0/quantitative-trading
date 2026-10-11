@@ -382,6 +382,20 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: refused, holds the test's returns unchanged when VIX before then moves, and
 #: holds a planted break in VIX, ES or a contract refused.
 #:
+#: [Issue 359](https://github.com/l3a0/quantitative-trading/issues/359) decided
+#: how ``chan.vix_filter`` guards the three reads of *Algorithmic Trading*'s
+#: VIX filter on buy on gap and on FSTX. VIX's 2007-02-27, below, falls inside
+#: both windows, and unlike issue 357's case every close before it feeds the
+#: filter. So it guards VIX over two spans in each window, from the window's
+#: first joined day to 2007-02-26 and from 2007-02-27 to its last joined day,
+#: which together leave out only the flagged move. FSTX is guarded over its
+#: whole span through ``chan.opening_gap.read_sources``, as issue 358 decided.
+#: The stocks are read unguarded, as ``chan.buy_on_gap`` reads them, on issue
+#: 295's decision. ``TestTheGuard`` in ``tests/test_vix_filter.py`` records the
+#: four calls, holds the two spans clean and the flagged move the only one
+#: left out, holds a planted break in VIX on either side of the flag refused,
+#: and holds a rescale under 1.6 times passing unseen.
+#:
 #: [Issue 286](https://github.com/l3a0/quantitative-trading/issues/286) decided
 #: that ``chan.pca_factor_momentum`` refuses no window either, for the reason
 #: issue 21 gives ``chan.pca_factor``. It tests whether the revised MATLAB's
