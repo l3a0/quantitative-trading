@@ -7402,7 +7402,9 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/vx-calendar-spread-lessons.md](../blog/vx-calendar-spread-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
-figure, which `uv run python -m chan.vx_calendar_spread_figures` redraws.
+figure, which `uv run python -m chan.vx_calendar_spread_figures` redraws, and
+[blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md),
+which quotes the 126 of 847.
 
 ## Entry 36: TU momentum traded on the lagged roll return, Chan's *Algorithmic Trading*
 

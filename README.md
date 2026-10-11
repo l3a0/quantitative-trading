@@ -4146,9 +4146,9 @@ which trades crude oil's 12-month calendar spread on the z-score of its roll
 return. Chan reports a half-life of 36 days, stationarity "with 99 percent
 probability", and an APR of 8.3 percent with a Sharpe ratio of 1.3 from
 2008-01-02 to 2012-08-13. The post links the earlier calendar-spreads post,
-the spot and roll returns post, the USD.CAD post, the price-spread-ratio post
-and the VX against E-mini post rather than repeating them, and draws five lessons from Entry 34 of the
-replication log.
+the spot and roll returns post, the USD.CAD post, the price-spread-ratio post,
+the VX against E-mini post and the VIX calendar spread post rather than
+repeating them, and draws five lessons from Entry 34 of the replication log.
 
 1. The book's figures reproduce on Chan's own file, and the figures in the
    script's comment land only on a window starting a day later, found by a
@@ -4176,9 +4176,11 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the correlation is strong but not the
    one-for-one the model gives, that the ADF test's long-run reversion and the
    trade's short-run continuation can both hold of one series, that the half-life
-   measures a reversion the trade bets against, that the log of VIX's ratio of
-   back to front is its spread, and that any backtest inferring expiry from
-   the last price goes flat at the end of a file saved while contracts trade.
+   measures a reversion the trade bets against, that the log of a VIX pair's
+   ratio of far to near is that pair's log spread, that the book's ratio of
+   back to front most plainly reads the two nearest contracts, and that any
+   backtest inferring expiry from the last price goes flat at the end of a
+   file saved while contracts trade.
 4. Figures the post states in words or as percentages of pinned ones, such as
    8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
    about three days in four. The figure's alt text reads its curves and the
@@ -4189,10 +4191,12 @@ Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
 to
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
-for the figure's own numbers, or to
-[tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's 6,467
-days from 1986-11-03 and γ as −12 times the slope. Twelve things had no pin
-before it.
+for the figure's own numbers, to
+[tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) for the
+126 of 847 held days on which the VIX trade's near leg is the front contract,
+or to [tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's
+6,467 days from 1986-11-03 and γ as −12 times the slope. Twelve things had no
+pin before it.
 
 1. The held pair's log spread correlates with γ at −0.883910 on the window's
    1,097 held days, and at −0.893686 on all 1,429 held days of the file.
