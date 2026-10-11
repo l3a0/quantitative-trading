@@ -665,12 +665,37 @@ class TestTheCommittedIndex:
         after = sum(t >= "16:00:00" for t in times)
         assert (before, len(times) - before - after, after) == (1460, 405, 1065)
 
+    def test_the_earliest_and_latest_times_of_day_any_filing_was_accepted(self, index) -> None:
+        """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
+
+        No filing was accepted before 06:00:43 Eastern on any day. So a time
+        read 4 or 5 hours late, as a check made while planning the rerun found
+        the submissions JSON reads some filers, would put every filing accepted before the open
+        inside the session, where R1 flags nothing for it.
+        """
+        times = sorted(release.accepted[11:] for release in index)
+        assert (times[0], times[-1]) == ("06:00:43", "21:49:59")
+        early = [pd.Timestamp(f"2011-01-03 {t}") for t in times if t < "09:30:00"]
+        for hours in (4, 5):
+            shifted = [stamp + pd.Timedelta(hours=hours) for stamp in early]
+            assert min(shifted) >= pd.Timestamp("2011-01-03 09:30"), hours
+            assert max(shifted) < pd.Timestamp("2011-01-03 16:00"), hours
+
     def test_343_were_accepted_after_the_date_they_report(self, index) -> None:
         late = [r for r in index if r.report_date and r.accepted[:10] > r.report_date]
         assert len(late) == 343
 
     def test_apple_files_at_half_past_four_eastern(self, index) -> None:
-        """The JSON reads these as 8:30 p.m., which is the double conversion the audit found."""
+        """About 4:30 p.m. Eastern, which a double conversion would read as 8:30 or 9:30 p.m.
+
+        A check made while planning the rerun found the submissions JSON
+        reading some filers' times as if converted from Eastern twice. The
+        second conversion adds 4 hours under daylight saving time and 5 under
+        standard time. So the JSON would read the four filed under daylight
+        saving time as about 8:30 p.m., and the two in January, 2011-01-18 and
+        2012-01-24, as about 9:30 p.m. Nothing here reads the JSON, so those
+        two readings are not asserted.
+        """
         apple = [release.accepted for release in index if release.ticker == "AAPL"]
         assert apple == [
             "2011-01-18T16:30:27", "2011-04-20T16:30:30", "2011-07-19T16:29:56",
