@@ -155,6 +155,11 @@ def first_below(drawdowns: NDArray[np.float64], floor: float = FLOOR) -> int | N
     return int(below[0]) + 1 if below.size else None
 
 
+def days_below(drawdowns: NDArray[np.float64], floor: float = FLOOR) -> int:
+    """How many days the drawdown is strictly below ``floor``. A day exactly on it is not."""
+    return int(np.count_nonzero(drawdowns < floor))
+
+
 def deepest_day(drawdowns: NDArray[np.float64]) -> int:
     """The day, counted from 1, of the deepest drawdown, the first if several tie."""
     return int(np.argmin(drawdowns)) + 1
@@ -283,7 +288,7 @@ def _cppi_panel(ax, d: Drawn) -> None:
     )
     for gid, series, color, name in rows:
         start = first_below(series)
-        below = int(np.count_nonzero(series < FLOOR))
+        below = days_below(series)
         tail = (
             f"below {signed(FLOOR, 1)} on {below:,} days from day {start:,}"
             if start is not None

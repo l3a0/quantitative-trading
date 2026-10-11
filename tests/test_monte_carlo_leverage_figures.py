@@ -14,8 +14,10 @@ The figure reads the vintage and the specification that
 AUDCAD-UNEQUAL, basis return, saved 2018-12-26, 612 returns, and
 ``monteCarloOptimLeverage.m`` as :mod:`chan.monte_carlo_leverage` transcribes
 it. It draws the declared seed 20261012 only, and no further seed. Days are
-counted from 1 at the first draw. A growth rate is pinned at
-``rel=5e-7`` and a drawdown or a leverage at six decimals, as in that file.
+counted from 1 at the first draw. A growth rate is pinned by its seven
+printed digits, ``f"{g:.6e}"``, because ``rel=5e-7`` lets the seventh digit
+move by two either way. A drawdown or a leverage is pinned at six decimals, as
+in that file.
 
 Exploratory, like everything Entry 43 computes here. Every value this file
 pins that the run's tests did not already hold was measured by the write-up
@@ -54,6 +56,7 @@ from chan.monte_carlo_leverage_figures import (
     FLOOR,
     LEVERAGE_MAX,
     block_minima,
+    days_below,
     deepest_day,
     first_below,
     growth_curve,
@@ -179,7 +182,7 @@ class TestTheGrowthPanel:
     ) -> None:
         line = _by_gid(axes["growth"].lines)["draws"]
         x, y = line.get_xdata(), line.get_ydata()
-        assert len(x) == CURVE_POINTS
+        assert len(x) == CURVE_POINTS == 541
         assert x[0] == 0.0 and x[-1] < declared.ruin
         assert x[-1] == pytest.approx(declared.ruin * (1 - 1 / CURVE_POINTS), rel=1e-12)
         np.testing.assert_allclose(y, [np.mean(np.log1p(f * sim)) for f in x], rtol=1e-12)
@@ -207,13 +210,13 @@ class TestTheGrowthPanel:
         f, g = _point(axes["growth"], "uncapped")
         assert f == declared.uncapped
         assert f == pytest.approx(22.295382, abs=1e-6), SPEC
-        assert g == pytest.approx(4.801065e-03, rel=5e-7), SPEC
+        assert f"{g:.6e}" == "4.801065e-03", SPEC
 
     def test_the_script_s_answer_sits_on_the_cap(self, axes, declared, sim) -> None:
         f, g = _point(axes["growth"], "capped")
         assert f == declared.optimum
         assert f == pytest.approx(CAP, abs=1e-6)
-        assert g == pytest.approx(4.735998e-03, rel=5e-7), SPEC
+        assert f"{g:.6e}" == "4.735998e-03", SPEC
         assert g == pytest.approx(growth(CAP, sim), rel=1e-8)
         cap = _by_gid(axes["growth"].lines)["cap"]
         assert list(cap.get_xdata()) == [CAP] * 2 and cap.get_linestyle() == "--"
@@ -221,11 +224,11 @@ class TestTheGrowthPanel:
     def test_the_saved_returns_optimum_and_kelly(self, axes, returns) -> None:
         f, g = _point(axes["growth"], "historical")
         assert f == pytest.approx(23.721773, abs=1e-6), SPEC
-        assert g == pytest.approx(5.197618e-03, rel=5e-7), SPEC
+        assert f"{g:.6e}" == "5.197618e-03", SPEC
         kelly, at_kelly = _point(axes["growth"], "kelly")
         assert kelly == pytest.approx(23.845328, abs=5e-7), SPEC
         assert matches(kelly, SCRIPT_KELLY)
-        assert at_kelly == pytest.approx(5.197464e-03, rel=5e-7), SPEC
+        assert f"{at_kelly:.6e}" == "5.197464e-03", SPEC
         assert 0 < g - at_kelly < 2e-7
 
     def test_the_markers_are_accent_on_the_draws_and_muted_on_the_saved_returns(self, axes) -> None:
@@ -319,7 +322,7 @@ class TestTheCppiPanel:
         day, value = _point(axes["cppi"], "scripted-deepest")
         assert (day, f"{value:.6f}") == (37_071, "-0.848088"), SPEC
         assert first_below(accounts["scripted"]) == 303
-        assert int(np.count_nonzero(accounts["scripted"] < FLOOR)) == 5_681
+        assert days_below(accounts["scripted"]) == 5_681
 
     def test_the_scheme_s_deepest_drawdown_and_it_never_falls_below(self, axes, accounts) -> None:
         day, value = _point(axes["cppi"], "described-deepest")
@@ -333,7 +336,7 @@ class TestTheCppiPanel:
         day, value = _point(axes["cppi"], "full-deepest")
         assert (day, f"{value:.6f}") == (37_071, "-0.871216"), SPEC
         assert first_below(accounts["full"]) == 303
-        assert int(np.count_nonzero(accounts["full"] < FLOOR)) == 6_034
+        assert days_below(accounts["full"]) == 6_034
 
     @pytest.mark.parametrize("gid", ["scripted", "described", "full"])
     def test_each_deepest_marker_sits_on_its_step(self, axes, gid) -> None:
@@ -383,6 +386,9 @@ class TestTheCppiPanel:
         assert first_below(drawdowns) == 3
         assert deepest_day(drawdowns) == 5
         assert first_below(np.array([0.0, -0.4])) is None
+        assert days_below(drawdowns) == 3
+        assert days_below(np.array([0.0, -0.5, -0.5])) == 0
+        assert first_below(np.array([0.0, -0.5, -0.51])) == 3
         np.testing.assert_array_equal(block_minima(drawdowns, 2), [-0.1, -0.6, -0.7])
 
     def test_the_account_drawdowns_reach_max_drawdown(self, accounts, sim, declared) -> None:
