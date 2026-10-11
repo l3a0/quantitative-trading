@@ -5733,8 +5733,10 @@ script's own 23.845328 instead, because neither the population variance nor
 the mean of squared returns takes the saved series to 18.4. Entry 43 carries
 that figure, and its section
 [What the book's 18.4 most likely came from](#what-the-books-184-most-likely-came-from) gives the
-evidence that Chapter 8 ran on an older series, one that no series matching
-this example's printed Sharpe ratio and APR can be.
+evidence that Chapter 8 ran on a different series of returns, with a Kelly near
+18.4, that nobody holds and that no series matching this example's printed
+Sharpe ratio and APR can be. The evidence cannot tell when or how that series
+differed from the saved file.
 
 ### What this repo computed
 
@@ -9159,7 +9161,7 @@ on his file, and nothing about whether any leverage is safe to trade.
 | 12 | The full account's drawdown at f·D, and each CPPI form's account drawdown | −0.871216, the same figure as row 9, since f·D is f / 2. Box 8.6's loop gives −0.848088, band −0.902235 to −0.742510, and stays above −0.5 on 0 of 200 seeds. Location 3426's CPPI gives −0.495638, band −0.499628 to −0.489965, and stays above −0.5 on 200 of 200 | `TestRow12TheDrawdownCppiCaps` |
 | 13 | The Kelly of any daily series with a Sharpe ratio of 1.55 to 1.65 and an APR of 10.5 to 11.5 percent, under three compoundings, and the ensemble with the draws' mean moved so the Kelly is 18.4 | Kelly 21.558894 to 26.757652 when the APR compounds the log growth m − σ²/2, 22.065999 to 27.261771 when it compounds 1 + m exactly, and 20.891304 to 25.928571 when it is the simple 252·m. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 0.139130, 0.144937 or 0.149230 under the three. With the mean moved, λ is −1.222510e-03, the median uncapped optimum is 18.470198, 8 of 200 seeds sit on the cap, and rows 3, 8, 10 and 11 land. Row 3's band runs 17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2, and 16.339353 to 19.905622 on all 200. Row 9's band runs −0.953551 to −0.823942 | `TestRowGroup13TheEighteenPointFourGap` |
 | 14 | The type IV's parameters | m 3.254731, ν −0.897242, a 7.819013e-03 and λ −1.123894e-03, so moments exist only below order 5.509462 | `TestTheSampler::test_the_parameters` and `::test_moments_exist_only_below_order_5_51` |
-| 15 | The uncapped optimum, and the seeds whose ruin leverage is below 20 | 22.295382 on the declared seed, band 16.622019 to 24.865122 across all 200. 42 of 200 seeds, against an exact chance of 0.149180, within four binomial standard errors | `TestRows3And4TheSimulatedOptimum::test_the_declared_seed_s_uncapped_optimum` and `TestRow5TheMinimumAndTheRuinLeverage::test_the_share_of_seeds_ruined_below_the_cap` |
+| 15 | The uncapped optimum, and the seeds whose ruin leverage is below 20 | 22.295382 on the declared seed, band 16.622019 to 24.865122 across all 200. 42 of 200 seeds, against an exact chance of 0.149180, or 29.8 seeds. The 42 sit 2.414274 binomial standard errors above that, and 42 or more has an exact chance of 0.012871 | `TestRows3And4TheSimulatedOptimum::test_the_declared_seed_s_uncapped_optimum`, `TestRow5TheMinimumAndTheRuinLeverage::test_the_share_of_seeds_ruined_below_the_cap` and `TestWhatThePostMeasured::test_42_seeds_ruined_below_the_cap_sit_2_4_standard_errors_above_the_exact_chance` |
 | 16 | Location 3426's CPPI at f with D = 0.5 | growth 0.002436, band 0.002321 to 0.002814, which is 0.255285 below the full account's at f·D. Account drawdown −0.495638, band −0.499628 to −0.489965, as in row 12 | `TestBesideTheReplication::test_cppi_as_described_costs_about_a_quarter_of_the_growth` |
 | 17 | Script lines 37 and 65 to 80 on the saved returns, at the declared seed's f | growth at f·D 0.003421, drawdown −0.526211 at f / 1.4 and −0.396779 at f·D. Box 8.6's loop gives growth 0.003368 and drawdown −0.391438, and location 3426's CPPI growth 0.002673 and drawdown −0.332652 | `TestBesideTheReplication::test_the_script_s_historical_lines` |
 
@@ -9184,7 +9186,7 @@ six decimals the book prints.
 | 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 lands only because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
 | 13 | none | none, not a replication | No series matching Example 5.1's printed figures has a Kelly of 18.4, under any of the three compoundings. Moving the draws' mean to a Kelly of 18.4 lands rows 3, 8, 10 and 11, and lands row 3 under the declared band and the one row 3 now reads. |
 | 14 | none | none, not a replication | Moments exist only below order 5.51, so a draw's sample skewness has infinite variance. That is why the tests check the tail and the draws' mean and std rather than a draw's third and fourth moments. |
-| 15 | none | none, not a replication | The ruin leverage cut the capped search on 42 seeds. The exact chance gives 29.8, and the count is within four binomial standard errors of it. |
+| 15 | none | none, not a replication | The ruin leverage cut the capped search on 42 seeds. The exact chance gives 29.8. The count of 42 is 2.4 binomial standard errors above it, and a count of 42 or more has a chance of about 1.3 percent. |
 | 16 | none | none, not a replication | Keeping the floor costs about a quarter of the growth, far more than the scripted loop's 1.4 percent. |
 | 17 | none | none, not a replication | On the 612 historical returns at the declared seed's f of 20, neither CPPI form nor the full account at f·D comes near the floor. The deepest of the script's historical lines is the drawdown at f / 1.4. |
 
@@ -9241,9 +9243,10 @@ hold the shared tail, the band and the rule row 3 reads.
 ### What the book's 18.4 most likely came from
 
 Rows 1 and 6 did not reproduce on the file the script names, so the entry owes
-a reason. The evidence favors Chapter 8 having run on an older version of
-`ret` whose Kelly was near 18.4, which neither mirror holds. That is an
-inference rather than a held vintage, and row 13 is what it rests on.
+a reason. The evidence favors Chapter 8 having run on a different series of
+returns, with a Kelly near 18.4, that neither mirror holds. It cannot tell when
+or how that series differed from the saved file. That is an inference rather
+than a held vintage, and row 13 is what it rests on.
 
 1. **No series matching Example 5.1's printed figures reaches 18.4, however
    its APR compounds.** The Kelly is the Sharpe ratio per day over the daily
@@ -9254,8 +9257,8 @@ inference rather than a held vintage, and row 13 is what it rests on.
    moves the lower edge to 22.065999, and taking the APR as a simple 252·m
    moves it to 20.891304. So the edge depends on a convention the book does
    not state, and none of the three reaches 18.4. At a Sharpe ratio of 1.6, a
-   Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across the three. So the
-   older `ret` disagreed with Example 5.1's own printed figures as well as
+   Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across the three. So
+   that series disagreed with Example 5.1's own printed figures as well as
    with the saved file.
 2. **A Kelly near 18.4 lands most of the chapter's simulated figures.** Moving
    the draws' mean so that the Kelly is 18.4 moves only λ. On the same 200
@@ -9273,7 +9276,10 @@ them.
 
 ### What the entry concludes
 
-Three things.
+Four things. The last was measured by the write-up after the run, and
+`TestWhatThePostMeasured` in
+[tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
+pins it, along with the 2.4 standard errors in row 15.
 
 1. **The book's Kelly and historical optimum of 18.4 belong to a series
    nobody holds.** Chan's own saved returns give 23.845328 and 23.721773.
@@ -9299,6 +9305,24 @@ Three things.
    the book's pairing of a growth cost near 1.6 percent with a drawdown "by
    design" under 0.5 holds for neither form here. The loop gives the first and
    not the second, and the scheme gives the second and not the first.
+4. **The draws reach deeper than the history because there are more of
+   them, and that decides where the Kelly stands.** The least of the 612
+   saved returns is −0.022031, a ruin leverage of 45.390502, and the declared
+   seed's least draw of −0.043071 is 1.9550 times as deep. The fit's left
+   tail is not what makes the difference. The least of 612 draws from it, the
+   backtest's length, is at or below −0.022031 with a chance of only
+   0.091663, so the fit's tail is thinner than the history's, and the extra
+   depth comes from drawing about 163 times as many returns. The declared
+   seed's ruin leverage of 23.217362 is below the Kelly of 23.845328, so at
+   the Kelly one draw loses everything, and the same holds on 78 of the 200
+   seeds. The 30 seeds whose uncapped optimum is at or below 19.2 all have a
+   ruin leverage below 20, and a seed sits on the cap exactly when its ruin
+   leverage is 20 or more. On the saved returns the drawdown is −0.737560 at
+   the historical optimum and −0.739733 at the Kelly, against −0.991276 on
+   the draws at the optimum. Part of that gap is length alone. The deepest
+   drawdown can only grow as a path gets longer, so at the same daily risk a
+   path of 100,000 days is all but certain to reach deeper than one of 612.
+   Measured after the run.
 
 ### What this entry cannot say
 
@@ -9322,7 +9346,13 @@ The second rests on Chan's printed ruin leverage of 30.2, and nothing here
 can say more about his draws than that one figure.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/monte-carlo-leverage-lessons.md](../blog/monte-carlo-leverage-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.monte_carlo_leverage_figures` redraws.
+[blog/aud-cad-johansen-lessons.md](../blog/aud-cad-johansen-lessons.md) moves
+with it too, since its Lesson 1 states what
+`TestRowGroup13TheEighteenPointFourGap` found.
 
 ## Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*
 
