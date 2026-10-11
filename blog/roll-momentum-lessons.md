@@ -30,7 +30,7 @@ The −12 assumes adjacent contracts are a month apart. This post calls that the
 
 ### Example 6.1’s rule
 
-Example 6.1 trades in 25 tranches. A tranche is one twenty-fifth of the capital, opened on one day and held for 25. Each day opens a long tranche if the price is above its level 250 trading days back, or a short one if it is below, and the oldest tranche closes. So the position runs from 25 tranches short to 25 long, and each day’s return is the position’s profit divided by 25.
+Example 6.1 trades in 25 tranches. A tranche is one twenty-fifth of the capital, opened on one day and held for 25. Each day opens a long tranche if the price is above its level 250 trading days back, or a short one if it is below, and the oldest tranche closes. So the position runs from 25 tranches short to 25 long, and each day’s return is the position’s profit divided by 25. The [post on Example 6.1](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-momentum-lessons.md#the-strategy-and-the-file) explains the strategy and reproduces its figures on Chan’s file.
 
 ### The declared rule
 
@@ -106,7 +106,7 @@ So on this window the roll-return signal’s advantage is that it was out of the
 
 ### The book’s own comparison spans two windows
 
-The book sets its 2.5 percent, 2.1 and 1.1 percent against Example 6.1’s printed 1.7 percent, 1 and 2.5 percent. Those printed figures cover 2004-06-01 to 2012-05-11, while the new ones start in 2009. So the book compares two windows as well as two rules. On one window, the APR margin is 0.000348, far smaller than the gap between the printed 2.5 and 1.7 percent.
+The book sets its 2.5 percent, 2.1 and 1.1 percent against Example 6.1’s printed 1.7 percent, 1 and 2.5 percent. Those printed figures cover 2004-06-01 to 2012-05-11, which the [Example 6.1 post’s first lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-momentum-lessons.md#lesson-1-the-books-figures-come-from-the-full-window-not-the-line-the-script-runs) shows is the window they reproduce on, while the new ones start in 2009. So the book compares two windows as well as two rules. On one window, the APR margin is 0.000348, far smaller than the gap between the printed 2.5 and 1.7 percent.
 
 ## Lesson 3: a series nobody saved has to be rebuilt
 
