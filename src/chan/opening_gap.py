@@ -30,9 +30,9 @@ under ``public/img/book2/`` in the mirror
 ``e4bc46f``, and the same 35 lines sit under ``archived/matlab/`` in
 [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading)
 at ``4567024``. It loads ``inputDataOHLCDaily_20120517`` and keeps FSTX's
-column of ``op``, ``hi``, ``lo`` and ``cl``. Its closing comment prints
-``APR=    0.1327 Sharpe=1.44``. It also prints the drawdown, for which no
-comment records a value. It landed here for
+column of ``op``, ``hi``, ``lo`` and ``cl``. Its comment at line 27
+records what line 26 printed, ``APR=    0.1327 Sharpe=1.44``. Line 34 prints
+the drawdown too, and no comment records a value for it. It landed here for
 [issue 358](https://github.com/l3a0/quantitative-trading/issues/358).
 
 **The transcription.** Six steps, each mapped to the function that runs it.
@@ -54,12 +54,13 @@ The line numbers are the blob's.
 4. **Line 23**, :func:`daily_returns`. The script writes
    ``ret = positions .* (op − cl) ./ op``, held from the open to the close.
 5. **Line 24.** NaN set to 0, also in :func:`daily_returns`.
-6. **Lines 27 and 34**, :func:`figures`. ``prod(1 + ret)^(252 / n) − 1``
-   over all 2,000 rows, which is :func:`chan.khandani_lo_book_two.compounded_apr`,
-   and ``mean(ret) · √252 / std(ret)`` with MATLAB's own ``std``, which
-   divides by n − 1, which is :func:`chan.khandani_lo.plain_sharpe`. Neither
-   takes a risk-free rate or a cost. ``calculateMaxDD`` on
-   ``cumprod(1 + ret) − 1`` gives the drawdown line 34 prints.
+6. **Lines 26 to 34**, :func:`figures`. Line 26 prints
+   ``prod(1 + ret)^(252 / n) − 1`` over all 2,000 rows, which is
+   :func:`chan.khandani_lo_book_two.compounded_apr`, and
+   ``mean(ret) · √252 / std(ret)`` with MATLAB's own ``std``. That ``std``
+   divides by n − 1, so the ratio is :func:`chan.khandani_lo.plain_sharpe`.
+   Neither takes a risk-free rate or a cost. Line 33 runs ``calculateMaxDD``
+   on ``cumprod(1 + ret) − 1``, and line 34 prints the drawdown it gives.
    ``252 · mean(ret)`` is computed beside them, because location 3509 calls
    the 13 percent an annualized average return.
 
@@ -89,9 +90,10 @@ Chan's ``inputDataOHLCDaily_20120517.mat``, read through
 It is chan-mat, adjusted, saved 2012-05-18, and each of the open, high, low
 and close holds 2,000 days from 2004-07-16 to 2012-05-17, exactly the book's
 window. :func:`run` also reads FSTX from the 2012-05-11 and 2012-05-07 saves
-for two rows beside the replication, because FSTX moves between saves and
-only the 2012-05-17 one lands the comment. ``data/README.md`` records the
-moves.
+for two rows beside the replication. Each save holds a different 2,000-day
+window, the 2012-05-17 save also restates FSTX's prices, and only the
+2012-05-17 save lands the comment. ``data/README.md`` records how the saves
+differ.
 
 **The scale-break guard runs and refuses nothing.** :func:`read_sources`
 calls :func:`chan.series.refuse_window_crossing_a_break` on FSTX's closes
