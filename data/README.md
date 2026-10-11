@@ -934,6 +934,9 @@ reader takes the VX strip as well, the one strip it reads with no spot
 column. The unnumbered TU experiment, location 2690's revision of
 Example 6.1, reads the TU strip too, through `chan.roll_momentum` for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353).
+`GLD_GC.m`'s trade of GLD against gold futures runs here through
+`chan.gld_gc`, for
+[issue 355](https://github.com/l3a0/quantitative-trading/issues/355).
 [Issue 300](https://github.com/l3a0/quantitative-trading/issues/300) carries
 the decision behind the shape, and the build measured what follows.
 
@@ -1029,6 +1032,18 @@ the decision behind the shape, and the build measured what follows.
    basis is also what keeps them apart. The file also holds `hhmm`, 18,326
    times of day taking 27 values, against 761 closes, so it does not index
    them. `GLD_GC.m` loads `hhmm` but never uses it, so the lift drops it.
+   [Issue 355](https://github.com/l3a0/quantitative-trading/issues/355)
+   measured that the closes sit within minutes of GLD's 4 p.m. close, as the
+   file's name says, rather than at the 1:30 p.m. settlement *Algorithmic
+   Trading*'s location 2730 describes. The daily change in log(GC / GLD) has
+   a standard deviation of 0.000933, against 0.015660 for GLD's own daily
+   log return, which leaves room for at most 0.001775 of GLD's daily variance
+   in any gap between the two closes. The series also holds 9 US exchange
+   holidays that GLD lacks, so it is not a settlement series. It never equals
+   the GC close of `inputDataOHLCDaily_20120507.mat` on the 752 days the two
+   share, which says only that the two differ, because that save is shifted
+   at each roll. `tests/test_gld_gc.py` pins all three, and the replication
+   log's Entry 38 gives the reasoning.
 10. **The scale-break guard flags nothing.** It reads all 1,232 members as
     prices, because their basis is `raw`, and no close in any of them sits
     below 0.625 or above 1.6 times the one before.
@@ -1049,7 +1064,8 @@ as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
 mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
 price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
-on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. Example 3.1 is
+on GLD, USO, EWA and EWC, the SPY leg of Example 4.2, and the GLD leg of the
+trade against gold futures at location 2718. Example 3.1 is
 the first run to read it, GLD and USO alone, under
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
@@ -1066,6 +1082,8 @@ The Johansen tests of location 1922 read GLD, GDX and USO from it through
 script of Chan's behind them.
 The Kalman filter of Chapter 3 reads EWA and EWC through `chan.kalman_hedge`,
 for [issue 342](https://github.com/l3a0/quantitative-trading/issues/342).
+The trade against gold futures reads GLD through `chan.gld_gc`, for
+[issue 355](https://github.com/l3a0/quantitative-trading/issues/355).
 [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299)
 carries the measurements below.
 
@@ -1188,6 +1206,10 @@ and whose figures the book prints, as
 [issue 351](https://github.com/l3a0/quantitative-trading/issues/351) measured.
 It reads the 2012-05-17 save for one row beside the replication, because that
 is the save `correlationTest.m` loads.
+
+`chan.gld_gc` reads GC from the 2012-05-07 save, which `GLD_GC.m` never loads,
+to set it beside the 16:00 series the script reads, as
+[issue 355](https://github.com/l3a0/quantitative-trading/issues/355) measured.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

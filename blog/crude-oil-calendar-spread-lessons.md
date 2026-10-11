@@ -33,7 +33,7 @@ Six ideas set up everything that follows.
    F(t, T) = S(t)\, e^{\gamma (t - T)}
    ```
 
-   Chan’s Example 5.3 estimates γ on each day by regressing the log prices of the five nearest contracts on their time to maturity in months. γ is −12 times the slope, which turns a monthly rate into an annual one, so γ is positive in backwardation, where the far contracts are cheaper. On crude oil, the West Texas Intermediate (WTI) futures that trade as CL, γ moves slowly from day to day.
+   Chan’s Example 5.3 estimates γ on each day by regressing the log prices of the five nearest contracts on their time to maturity in months. γ is −12 times the slope, which turns a monthly rate into an annual one, so γ is positive in backwardation, where the far contracts are cheaper. On crude oil, the West Texas Intermediate (WTI) futures that trade as CL, γ moves slowly from day to day. The [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#the-model-and-the-files) works through the model and Chan’s estimates for five futures, and its Lesson 4 shows how far CL’s γ drifts.
 4. **The calendar spread.** A calendar spread is long one contract, meaning it has bought it, and short another, meaning it has sold it, on the same underlying commodity with a different expiry (Chan, 2013, location 2449). The two contracts are its legs. Under the model, the log value of a spread long the far contract, expiring at T₂, and short the near one, expiring at T₁, is
 
    ```math

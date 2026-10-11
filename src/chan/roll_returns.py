@@ -104,7 +104,9 @@ the full-length series and dropping them would lose the alignment.
    rather than loaded from the ``.mat``.
 2. The script reads one strip per run, chosen by editing its load line. This
    runs all five in Table 5.1's order.
-3. The plots are not carried. Figures 5.4 and 5.5 belong to the write-up.
+3. The plots are not carried. The run prints and draws nothing, and
+   :mod:`chan.roll_returns_figures` redraws Figure 5.5. Figure 5.4 is not
+   redrawn, because the book names its contracts and not its day.
 
 Every result here is exploratory. Reproducing Table 5.1 spends Chan's 1986 to
 2012 strips on a model he chose, so the run says whether his numbers reproduce
