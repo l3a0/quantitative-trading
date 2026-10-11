@@ -48,7 +48,9 @@ CONTENT = ("flightsec", "ordersec", "foot")
 # printed rather than returned: through `console.log` in node and osascript, and
 # through `print` in a bare JavaScriptCore shell, which has no console. The
 # page's loading banner arms a four-second timer when it has a copy to show, so
-# a no-op timer keeps node from waiting on it.
+# a no-op timer keeps node from waiting on it. When the prelude names a card in
+# `__CLICK`, the driver clicks it after the last step, which is the only way
+# the chain bar renders anything but its hint.
 DRIVER = """
 var __flush = async function () { for (var i = 0; i < 20; i++) { await null; } };
 (async function () {
@@ -64,6 +66,10 @@ var __flush = async function () { for (var i = 0; i < 20; i++) { await null; } }
         cb({ exists: doc !== null, data: function () { return doc; } });
       });
       await __flush();
+    }
+    if (typeof __CLICK === "number") {
+      store.board.onclick({ target: { closest: function (sel) {
+        return sel === ".tk" ? { dataset: { n: String(__CLICK) } } : null; } } });
     }
   } catch (e) { out.error = String(e && e.stack || e); }
   Object.keys(store).forEach(function (id) {
@@ -98,7 +104,7 @@ def _page_script(page: Path) -> str:
     return text[start:end]
 
 
-def _prelude(db: bool, steps: list[dict]) -> str:
+def _prelude(db: bool, steps: list[dict], click: int | None = None) -> str:
     """The fake platform, set up before the page's script runs.
 
     With ``db`` false there is no ``claude`` global at all, which is what a view
@@ -110,6 +116,8 @@ def _prelude(db: bool, steps: list[dict]) -> str:
         "var __SUBS = {};",
         f"var __STEPS = {json.dumps(steps)};",
     ]
+    if click is not None:
+        lines.append(f"var __CLICK = {int(click)};")
     if db:
         lines.append(
             "globalThis.claude = { use: function (cap) { return Promise.resolve("
@@ -119,9 +127,13 @@ def _prelude(db: bool, steps: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def run_page(tmp_path: Path, *, db: bool, steps: list[dict], page: Path = PAGE) -> dict:
+def run_page(
+    tmp_path: Path, *, db: bool, steps: list[dict], page: Path = PAGE, click: int | None = None
+) -> dict:
     """Execute the page and return each element's HTML and hidden state."""
-    script = STUB.read_text(encoding="utf-8") + _prelude(db, steps) + _page_script(page) + DRIVER
+    script = (
+        STUB.read_text(encoding="utf-8") + _prelude(db, steps, click) + _page_script(page) + DRIVER
+    )
     runner = tmp_path / "run.js"
     runner.write_text(script, encoding="utf-8")
     done = subprocess.run(
@@ -862,7 +874,10 @@ def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: P
 
     note = text(ids, "boardnote")
     assert "more than one thing" not in note
-    assert "Nothing waits on an issue that is itself waiting, so the graph is 1 level deep." in note
+    assert (
+        "Nothing waits on an issue that is itself waiting, so no card is more than 1 step behind."
+        in note
+    )
     assert "#90505 waits on 2 open issues at once, #90501 and #90504." in note
     board = text(ids, "board")
     assert "one thing has to land first" not in board
@@ -874,10 +889,10 @@ def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: P
 @pytest.mark.parametrize(
     ("needs", "sentence"),
     [
-        ({}, "2 cards wait on an issue that is itself waiting, so the graph is 2 levels deep."),
+        ({}, "2 cards wait on an issue that is itself waiting, and the deepest is 2 steps behind."),
         (
             {90504: [90503]},
-            "3 cards wait on an issue that is itself waiting, so the graph is 3 levels deep.",
+            "3 cards wait on an issue that is itself waiting, and the deepest is 3 steps behind.",
         ),
     ],
 )
@@ -926,7 +941,51 @@ def test_a_board_where_nothing_waits_says_no_depth(tmp_path: Path) -> None:
     docs = _with_needs(fixture_docs(), {90502: [], 90503: [], 90505: []})
     ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
     note = text(ids, "boardnote")
-    assert "level deep" not in note
-    assert "levels deep" not in note
+    assert "behind." not in note
     assert "waits on an issue that is itself waiting" not in note
     assert "No card here is waiting on another" in note
+
+
+def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> None:
+    """Protects the shallow branch's qualifier, which the deep branch already had.
+
+    Fixture issue 90503 waits on 90501 here and nothing else waits on anything.
+    The short view draws only 90502, so its second column is empty while a
+    hidden card sits one step behind. The sentence says it is counting hidden
+    cards, and the freeing clause after it then says it is counting them too.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90501], 90505: []})
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    note = text(ids, "boardnote")
+    assert (
+        "Counting the hidden issues, nothing waits on an issue that is itself waiting, "
+        "so no card is more than 1 step behind."
+    ) in note
+    assert "Counting them too, #90501" in note
+
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    assert "Counting the hidden issues" not in text(ids, "boardnote")
+
+
+@pytest.mark.parametrize(
+    ("needs", "card", "line"),
+    [
+        ({}, 90503, "#90503 · waits on 1 directly and 2 along the whole chain"),
+        ({}, 90501, "#90501 · 1 waiting on it directly and 3 along the whole chain"),
+        ({90505: [90501, 90504]}, 90505, "#90505 · waits on 2 Clear"),
+    ],
+)
+def test_the_chain_bar_tells_direct_blockers_from_the_chain(
+    tmp_path: Path, needs: dict, card: int, line: str
+) -> None:
+    """Protects the chain bar from counting a whole chain as blockers.
+
+    The fixture chains 90503 behind 90502 behind 90501, so 90503 waits on one
+    issue directly and two along the chain, and 90501 has one card waiting on
+    it directly and three in all. The bar used to say "waits on 2" for 90503,
+    while its own card named one issue. A card whose blockers wait on nothing
+    keeps the bare count, since the two numbers agree.
+    """
+    docs = _with_needs(fixture_docs(), needs)
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path), click=card)
+    assert line in text(ids, "chainbar")

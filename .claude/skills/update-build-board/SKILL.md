@@ -947,8 +947,13 @@ the script beside it. Each row after them says how it was found.
     The note now reads the longest chain from the depth map, names any card
     waiting on several open issues in a clause of its own, and says nothing
     about depth when no card waits on anything. The columns are headed by steps
-    along a chain rather than by things to land. So when a phrase can be read
-    as either of two quantities, check it against data where the two differ.
+    along a chain rather than by things to land, and the note counts in the
+    same steps. The review of that fix found the class in two more places. The
+    shallow branch never said when it was counting cards the short view hid,
+    which the deep branch already did. The chain bar said "waits on 2" for a
+    card whose own line named one issue, because it counted the whole chain.
+    So when a phrase can be read as either of two quantities, check it against
+    data where the two differ.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
