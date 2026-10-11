@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Thirty-seven replications run here, fifteen from Chan's *Quantitative Trading*
-and twenty-two from his *Algorithmic Trading*. The first two were ported from the
+Thirty-eight replications run here, fifteen from Chan's *Quantitative Trading*
+and twenty-three from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-five were built here.
+where they were first built. The other thirty-six were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -510,6 +510,21 @@ where they were first built. The other thirty-five were built here.
     after a scratch run saw results point at TU's drift rather than its
     kurtosis: a normal draw gives 1,165 of 10,000, and the type IV draws with
     the mean set to zero give 19. Every figure is exploratory.
+38. Long GLD and short gold futures, locations 2718 and 2730 of
+    *Algorithmic Trading*, on Chan's GC series and his book-two ETF file.
+    `GLD_GC.m` holds the pair every day over the 752 days both calendars
+    share, and every figure lands on the printed digits: an average annual
+    return of 0.019014, a Sharpe ratio of −0.066564, an APR of 0.019084, a
+    maximum drawdown of −0.0082465 lasting 91 days, and the text's 1.9 and
+    0.8 percent. The book says GLD's financing cost eats the return. The
+    three-month bill rate over the window averages 0.010141, which leaves
+    +0.008874 above it, and the bill rate is a floor on that cost, so the
+    claim is neither confirmed nor refuted. The GC file is read within
+    minutes of GLD's 4 p.m. close rather than at the 1:30 p.m. settlement
+    the book describes. It holds 9 US exchange holidays, so it is not a
+    settlement series, and its ratio to GLD barely moves from one day to the
+    next, which a gap of two and a half hours between the closes would not
+    allow. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -860,7 +875,15 @@ also holds that the third test as written leaves every simulated return at
 zero. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
 
-All thirty-seven replications reach a verdict in
+[tests/test_gld_gc.py](tests/test_gld_gc.py) does it for long GLD and short
+gold futures. It pins the five figures of `GLD_GC.m`'s closing comment and the
+text's two at six decimals and at the precision Chan printed, the financing
+row beside them, and the measurements that say the GC file is read at GLD's
+close. It also holds every step of the script on synthetic legs whose
+figures are worked out by hand, and the scale-break guard on each series it
+reads.
+
+All thirty-eight replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -878,7 +901,8 @@ Entry 29 the Johansen tests' on GLD, GDX and USO, Entry 30 Example
 5.2's, Entry 31 the crude oil rule's, Entry 32 the Kalman filter's on
 EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
-rule's on TU, and Entry 37 Example 1.1's hypothesis tests.
+rule's on TU, Entry 37 Example 1.1's hypothesis tests, and Entry 38 the
+trade of GLD against gold futures.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1676,6 +1700,18 @@ It prints the vintage and the seeds, then the five rows beside the book's or
 the script's figure. Rows 2 to 4 carry a landing band, and every row but row 5
 carries a verdict. The three rows added after the scratch run come last, and
 none of them carries a verdict.
+
+Long GLD and short gold futures takes no option, because `GLD_GC.m` has no
+parameter to set:
+
+```bash
+uv run python -m chan.gld_gc
+```
+
+It prints both legs' vintages and the days they share, the script's five
+figures and the text's two beside the book's with a verdict, then the bill
+rate over the window and the measurements of the GC series, none of which
+carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
