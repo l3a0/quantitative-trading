@@ -80,7 +80,8 @@ names them rather than copying them silently.
    contract whose prices stop and restart marks two expiries, and MATLAB's
    colon reads the first. No contract in this strip is all NaN or carries two
    marks, so :func:`front_ratio` refuses either rather than guess at which
-   reading Chan's run would have taken.
+   reading Chan's run would have taken. The function is read on this strip
+   alone, and other committed strips carry contracts it would refuse.
 2. **The contracts still trading on the file's last day.** 24 contracts are
    priced on 2012-05-02, the strip's last row, so each reads as expiring
    there. The front from 2012-04-09 is CL-2012M, the first of them. Its
@@ -95,9 +96,8 @@ names them rather than copying them silently.
    [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found
    that this file subtracts each dividend in dollars from every earlier close.
    That leaves the replication untouched, because Chan's script read the same
-   bytes. It does change what a holder of XLE earned, because a percentage
-   move on a close lowered by later dividends is larger in size than the
-   holder's.
+   bytes. It does change what a holder of XLE earned, and no second XLE
+   series over this window is committed to measure by how much.
 2. **The CL strip** from ``inputDataDaily_CL_20120502.mat``, basis ``raw``,
    saved 2012-05-03, 89 contracts from CL-2007F to CL-2014K over 2,867 days
    from 2000-11-20, with no spot column.

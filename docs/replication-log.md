@@ -7697,8 +7697,8 @@ Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
 Rationale*, Wiley, 2013, Kindle location 2734 and Figure 6.3, in Chapter 6.
 Shipped under [issue 356](https://github.com/l3a0/quantitative-trading/issues/356).
 The script is `XLE_CL_rollReturn.m`, in ericnberwick/EpchanPreview at
-`e4bc46f` under `public/img/book2/`, git blob `e9b8981`. Every location in
-this entry is in
+`e4bc46f` under `public/img/book2/`, git blob `e9b8981`, and the line
+numbers below are that blob's. Every location in this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
 Seven rows, all derivable from
@@ -7807,7 +7807,7 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What the entry concludes
 
-Three things.
+Two things.
 
 1. **The script's rule reproduces on Chan's own files.** Every figure its
    comment prints lands at the decimals printed, and the book's two land at
@@ -7816,25 +7816,27 @@ Three things.
    rule for deciding contango beyond location 2718's definition, so the rule
    here is the script's, and its APR and Sharpe ratio are the text's
    16 percent and "about 1".
-3. **The trade spends most of its days in contango.** On 1,129 of the 1,375
-   days with a ratio the position is short USO and long XLE. The entry does
-   not split the return between the two sides.
 
 ### What this entry cannot say
 
-Three things.
+Four things.
 
 **What a holder of XLE earned.** `inputData_ETF.mat` subtracts each dividend
 in dollars from every earlier close, which
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found.
 That leaves the replication untouched, because Chan's script read the same
-bytes. It does change what a holder of either ETF earned, and no second XLE
+bytes. It does change what a holder of XLE earned, and no second XLE
 series over this window is committed to measure by how much.
 
 **What the trade earned while it held a view.** The first 123 days carry no
 ratio, because the strip's first contract opens its front window on
 2006-10-20. The figures count those days as earning 0, as the script does,
 and this entry measures nothing over the shorter span.
+
+**Which standard deviation the Sharpe ratio divides by.** The run divides by
+n, as `chan.matlab_helpers.smartstd_book_two` does. Dividing by n − 1 gives
+1.046247, which also rounds to the script's 1.05, so this script's printout
+cannot tell the two apart.
 
 **Whether the trade works out of sample.** The rule and the window are
 Chan's, and the sample is the one he reported on. A registered test would fix

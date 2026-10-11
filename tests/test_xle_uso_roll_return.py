@@ -53,7 +53,8 @@ import pytest
 from chan import paths, roll_returns
 from chan import xle_uso_roll_return as module
 from chan.calendar_spread_reversion import calendar_schedule
-from chan.khandani_lo_book_two import matches
+from chan.khandani_lo_book_two import gap, matches
+from chan.matlab_helpers import smartmean
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
 from chan.vintage import VintageUnavailable
 from chan.vx_calendar_spread import held_pair_ratio
@@ -221,6 +222,29 @@ class TestTheSpecification:
         assert matches(100 * result.figures.apr, BOOK_APR_PERCENT)
         assert matches(result.figures.sharpe, BOOK_SHARPE)
 
+    def test_every_gap_is_zero_with_the_sign_the_log_prints(self, result) -> None:
+        """The replication log's verdict table, computed minus printed at the printed precision."""
+        f = result.figures
+        gaps = [
+            gap(f.average_annual_return, SCRIPT_AVERAGE_ANNUAL_RETURN),
+            gap(f.sharpe, SCRIPT_SHARPE),
+            gap(f.apr, SCRIPT_APR),
+            gap(f.max_drawdown, SCRIPT_MAX_DRAWDOWN),
+            gap(f.max_drawdown_days, SCRIPT_MAX_DRAWDOWN_DAYS),
+            gap(100 * f.apr, BOOK_APR_PERCENT),
+            gap(f.sharpe, BOOK_SHARPE),
+        ]
+        assert gaps == [0.0] * 7
+        assert [math.copysign(1, g) for g in gaps] == [1, -1, 1, 1, 1, -1, 1]
+
+    def test_dividing_by_n_minus_1_also_rounds_to_1_05(self, result) -> None:
+        """The printed Sharpe ratio cannot tell ``smartstd``'s n from n − 1."""
+        daily = result.daily
+        sharpe = math.sqrt(252) * smartmean(daily) / np.std(daily, ddof=1)
+        assert sharpe == pytest.approx(1.0462470218172839, abs=TIGHT)
+        assert matches(sharpe, SCRIPT_SHARPE)
+        assert result.figures.sharpe != pytest.approx(sharpe, abs=1e-4)
+
     def test_the_two_calendars_share_1498_days(self, closes, ratio, result) -> None:
         assert len(result.days) == 1498
         assert (result.days[0], result.days[-1]) == (WINDOW_START, WINDOW_END)
@@ -249,6 +273,7 @@ class TestTheSpecification:
         assert int((held == CONTANGO).all(axis=1).sum()) == 1129
         assert int((held == BACKWARDATION).all(axis=1).sum()) == 244
         assert result.flat == 125
+        assert int(np.isfinite(result.ratio).sum()) == 1375
         assert list(result.days[result.ratio == 1]) == [day("2008-02-07"), day("2008-08-07")]
 
     def test_cl_2007f_is_the_front_for_31_rows(self, ratio) -> None:

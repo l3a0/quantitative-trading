@@ -935,7 +935,7 @@ column. The unnumbered TU experiment, location 2690's revision of
 Example 6.1, reads the TU strip too, through `chan.roll_momentum` for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353).
 The XLE against USO trade at location 2734, `XLE_CL_rollReturn.m`, is the
-first run to read the CL strip named for 2012-05-02, through
+first replication to read the CL strip named for 2012-05-02, through
 `chan.xle_uso_roll_return` for
 [issue 356](https://github.com/l3a0/quantitative-trading/issues/356). It
 takes that strip's contracts through the same reader, which declares the
