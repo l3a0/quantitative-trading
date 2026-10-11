@@ -79,10 +79,12 @@ sign is first fixed by a rule, its largest weight positive. Then they count
 the days a vector's sign still flips and the days two factors swap rank, and
 compute the statistic on each day's own weights, with sign and rank matched,
 and with tomorrow's weights fitted on 251 days that leave today's return out.
-They also read PMC's weight on the days whose window holds its one large
-return, check that the program's ranking moves nowhere when the intercept is
-dropped, and find how close any stock comes to tying a factor.
-All of it was measured after the verdicts and decides nothing.
+A control fits tomorrow's weights on the 251 days ending today, the same
+length with today's return kept in. They also read PMC's weight on the days
+whose window holds its one large return and which factor carries it, check
+that the program's ranking moves nowhere when the intercept is dropped, and
+find how close any stock comes to tying a factor. All of it was measured
+after the verdicts and decides nothing.
 :mod:`chan.pca_factor_momentum_figures` draws the post's figure from them.
 
 ``tests/test_pca_factor_momentum.py`` is the single authority for every
@@ -448,20 +450,24 @@ class WeightStatistics:
       sign by :func:`match`.
     - ``left_out``: tomorrow's weights fitted on the 251 days before today,
       which leave today's return out, then matched.
+    - ``shortened``: tomorrow's weights fitted on the 251 days ending today,
+      which still hold today's return, then matched. It is the control for
+      ``left_out``, with the same window length and today's return kept in.
 
-    None of the three depends on the signs the library returns. ``own`` fixes
-    them by rule, and the other two match tomorrow's signs to today's.
+    None of the four depends on the signs the library returns. ``own`` fixes
+    them by rule, and the other three match tomorrow's signs to today's.
     """
 
     own: np.ndarray
     matched: np.ndarray
     left_out: np.ndarray
+    shortened: np.ndarray
 
 
 def weight_statistics(returns: np.ndarray, components: list[Decomposition]) -> WeightStatistics:
-    """The three statistics, from every decomposition :func:`daily_components` gives."""
+    """The four statistics, from every decomposition :func:`daily_components` gives."""
     components = [with_largest_weight_positive(d) for d in components]
-    today, own, matched, left_out = [], [], [], []
+    today, own, matched, left_out, shortened = [], [], [], [], []
     for d, after in zip(components[:-1], components[1:], strict=True):
         t = d.end
         today.append(_on_own_weights(returns, d, t))
@@ -472,11 +478,15 @@ def weight_statistics(returns: np.ndarray, components: list[Decomposition]) -> W
         unseen = decompose(returns, t, LOOKBACK - 1)  # rows t − 251 to t − 1
         order, signs = match(d, unseen)
         left_out.append(signs * _on_own_weights(returns, unseen, t + 1)[order])
+        seen = decompose(returns, t + 1, LOOKBACK - 1)  # rows t − 250 to t
+        order, signs = match(d, seen)
+        shortened.append(signs * _on_own_weights(returns, seen, t + 1)[order])
     today = np.array(today)
     return WeightStatistics(
         own=uncentred(today, np.array(own)),
         matched=uncentred(today, np.array(matched)),
         left_out=uncentred(today, np.array(left_out)),
+        shortened=uncentred(today, np.array(shortened)),
     )
 
 

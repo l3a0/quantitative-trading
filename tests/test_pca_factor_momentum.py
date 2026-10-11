@@ -32,7 +32,8 @@ set of columns takes 752 decompositions. Every pin reads that fixture, and the
 report's test prints from it rather than computing again. The write-up's pins
 in ``TestWhatThePostMeasured`` read two more module fixtures for the same
 reason, ``components`` for the 753 fitting days' decompositions and
-``weights`` for the 752 more that leave each pair day's return out.
+``weights`` for the 1,504 more, on the 251 days before each day t and on the
+251 days ending it.
 
 Exploratory. Testing a claim someone else chose spends the 2004 to 2008 sample
 on it. It first ran here on 2026-10-10.
@@ -345,7 +346,7 @@ def components(returns) -> list[Decomposition]:
 
 @pytest.fixture(scope="module")
 def weights(returns, components) -> WeightStatistics:
-    """752 more decompositions, on the 251 days before each pair day, so computed once."""
+    """1,504 more decompositions, on 251 days before and ending each day t, so computed once."""
     return weight_statistics(returns, components)
 
 
@@ -382,6 +383,37 @@ class TestWhatThePostMeasured:
     def test_two_factors_swap_rank_on_15_of_752_days(self, components) -> None:
         assert swap_days(components) == 15, f"{SPEC}; {AFTER_THE_RUN}"
 
+    def test_every_remaining_flip_moves_the_largest_weight_or_swaps_rank(
+        self, panel, components
+    ) -> None:
+        """A vector turns over when its largest weight moves to a stock it weighed the other way.
+
+        Of the 1, 14, 6, 22 and 24 flips, the stock holding the largest weight
+        changed between the two days on 1, 14, 6, 20 and 23. Each of the three
+        left falls on a day two or more factors swap rank, named by its
+        earlier day.
+        """
+        _, closes = panel
+        fixed = [with_largest_weight_positive(d) for d in components]
+        flips, moved, others = np.zeros(FACTORS, int), np.zeros(FACTORS, int), []
+        for earlier, later in zip(fixed[:-1], fixed[1:], strict=True):
+            swapped = bool((match(earlier, later)[0] != np.arange(FACTORS)).any())
+            for k in np.flatnonzero(np.diag(overlaps(earlier, later)) < 0):
+                flips[k] += 1
+                before = earlier.stocks[np.abs(earlier.vectors[:, k]).argmax()]
+                after = later.stocks[np.abs(later.vectors[:, k]).argmax()]
+                if before != after:
+                    moved[k] += 1
+                else:
+                    others.append((NAMES[k], str(closes.index[earlier.end].date()), swapped))
+        assert flips.tolist() == [1, 14, 6, 22, 24], SPEC
+        assert moved.tolist() == [1, 14, 6, 20, 23], f"{SPEC}; {AFTER_THE_RUN}"
+        assert others == [
+            ("PC4", "2005-06-15", True),
+            ("PC4", "2007-06-29", True),
+            ("PC5", "2007-08-01", True),
+        ], f"{SPEC}; {AFTER_THE_RUN}"
+
     def test_on_each_days_own_weights(self, weights) -> None:
         """A series rebuilt from each day's decomposition, each sign fixed by rule."""
         expected = (0.0326, -0.1105, -0.0283, -0.0315, 0.0025)
@@ -405,6 +437,15 @@ class TestWhatThePostMeasured:
         assert round(float(np.abs(weights.left_out - paired).max()), 4) == 0.0039, SPEC
         assert int(np.abs(weights.left_out - paired).argmax()) == 2, "PC3"
 
+    def test_a_251_day_window_that_holds_today_reads_like_the_matched_row(self, weights) -> None:
+        """The control for leaving today out: the same length, ending today rather than before it.
+
+        It lands beside the matched row rather than beside the test's, so the
+        shorter window is not what closes the gap. Leaving today out is.
+        """
+        expected = (0.0252, -0.0158, -0.0307, -0.0350, 0.0810)
+        assert weights.shortened == pytest.approx(expected, abs=FOUR), f"{SPEC}; {AFTER_THE_RUN}"
+
     def test_113_pair_days_hold_pmcs_one_days_return(self, panel, components) -> None:
         """Its window ends the day before, so 114 fitting days hold it and the last has no pair."""
         _, closes = panel
@@ -427,6 +468,65 @@ class TestWhatThePostMeasured:
         assert round(min(size for size, _ in largest), 4) == 0.5939, f"{SPEC}; {AFTER_THE_RUN}"
         carried = np.bincount([k for _, k in largest], minlength=FACTORS)
         assert carried.tolist() == [7, 103, 3, 0, 0], f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_pmc_takes_pc1_through_2007_08_10_and_pc2_from_2007_08_13(
+        self, panel, components
+    ) -> None:
+        """Its first seven days with a next day, at a weight between 0.9144 and 0.9223.
+
+        So on 2007-08-09 and 2007-08-10, the two days that carry PC2's
+        statistic, PC1 is PMC and PC2 is the factor that would otherwise be
+        PC1.
+        """
+        _, closes = panel
+        row = closes.index.get_loc(pd.Timestamp("2007-08-01"))
+        column = closes.columns.get_loc(SPLICED)
+        holding = windows_holding(components[:-1], row)
+        largest = [largest_loading(d, column) for d in holding]
+        days = [str(closes.index[d.end].date()) for d in holding]
+        on_pc1 = [day for day, (_, k) in zip(days, largest, strict=True) if k == 0]
+        assert on_pc1 == days[:7], f"{SPEC}; {AFTER_THE_RUN}"
+        assert days[:8] == [
+            "2007-08-02",
+            "2007-08-03",
+            "2007-08-06",
+            "2007-08-07",
+            "2007-08-08",
+            "2007-08-09",
+            "2007-08-10",
+            "2007-08-13",
+        ]
+        sizes = [size for size, _ in largest[:7]]
+        assert (round(min(sizes), 4), round(max(sizes), 4)) == (0.9144, 0.9223), SPEC
+        assert largest[7][1] == 1, "PC2 from 2007-08-13"
+
+    def test_without_pmc_the_same_two_days_carry_pc1(
+        self, panel, returns, results: Results
+    ) -> None:
+        """94.61 percent of PC1's squared products, on the days PC2 carries them with PMC.
+
+        On both days, the factor in PC2's place with PMC is the one in PC1's
+        place without it, to an overlap of 0.98 or more in size on the stocks
+        both runs keep.
+        """
+        pairs = results.unspliced.pairs
+        share, days = share_of_largest(pairs.today[:, 0] * pairs.tomorrow[:, 0], 2)
+        assert round(share, 4) == 0.9461, f"{SPEC}, without PMC; {AFTER_THE_RUN}"
+        assert [str(pairs.days[i].date()) for i in days] == ["2007-08-09", "2007-08-10"]
+        _, closes = panel
+        without = closes.drop(columns=[SPLICED])
+        returns_without = file_returns(without)
+        for day in ("2007-08-09", "2007-08-10"):
+            t = closes.index.get_loc(pd.Timestamp(day))
+            spliced = decompose(returns, t)
+            unspliced = decompose(returns_without, t)
+            _, mine, theirs = np.intersect1d(
+                closes.columns[spliced.stocks],
+                without.columns[unspliced.stocks],
+                return_indices=True,
+            )
+            overlap = spliced.vectors[mine, 1] @ unspliced.vectors[theirs, 0]
+            assert abs(overlap) >= 0.98, f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_dropping_the_intercept_moves_no_ranking_on_any_pair_day(
         self, returns, components
@@ -802,14 +902,14 @@ class TestThePostsHelpers:
         days = [_decomposition(m) for m in (unit, swapped, swapped, flipped)]
         assert swap_days(days) == 2
 
-    def test_the_three_statistics_by_hand(self, closes) -> None:
+    def test_the_four_statistics_by_hand(self, closes) -> None:
         returns = file_returns(closes)
         components = []
         for d in daily_components(returns):
             columns = np.arange(FACTORS)
             signs = np.sign(d.vectors[np.abs(d.vectors).argmax(axis=0), columns])
             components.append(Decomposition(d.end, d.stocks, d.vectors * signs, d.singular))
-        today, own, matched, left_out = [], [], [], []
+        today, own, matched, left_out, shortened = [], [], [], [], []
         for d, after in zip(components[:-1], components[1:], strict=True):
             t = d.end
             today.append(d.vectors.T @ returns[t, d.stocks])
@@ -822,15 +922,23 @@ class TestThePostsHelpers:
             vectors, _ = revised_matlab_components(window)  # every stock is priced from row 2
             order, signs = match(d, _decomposition(vectors))
             left_out.append(signs * (vectors.T @ returns[t + 1])[order])
+            window = returns[t - LOOKBACK + 2 : t + 1].T
+            assert window.shape[1] == LOOKBACK - 1
+            vectors, _ = revised_matlab_components(window)  # rows t − 250 to t, holding r_t
+            order, signs = match(d, _decomposition(vectors))
+            shortened.append(signs * (vectors.T @ returns[t + 1])[order])
         stats = weight_statistics(returns, components)
         np.testing.assert_allclose(stats.own, uncentred(np.array(today), np.array(own)))
         np.testing.assert_allclose(stats.matched, uncentred(np.array(today), np.array(matched)))
         np.testing.assert_allclose(
             stats.left_out, uncentred(np.array(today), np.array(left_out)), atol=1e-14
         )
+        np.testing.assert_allclose(
+            stats.shortened, uncentred(np.array(today), np.array(shortened)), atol=1e-14
+        )
 
     def test_no_statistic_depends_on_the_signs_the_library_returns(self, closes) -> None:
-        """Flip any vectors on any days, and all three statistics come back the same."""
+        """Flip any vectors on any days, and all four statistics come back the same."""
         returns = file_returns(closes)
         components = daily_components(returns)
         before = weight_statistics(returns, components)
@@ -847,6 +955,7 @@ class TestThePostsHelpers:
         np.testing.assert_array_equal(after.own, before.own)
         np.testing.assert_array_equal(after.matched, before.matched)
         np.testing.assert_array_equal(after.left_out, before.left_out)
+        np.testing.assert_array_equal(after.shortened, before.shortened)
 
     def test_the_rule_makes_each_vectors_largest_weight_positive(self, unit) -> None:
         mixed = unit * np.array([1.0, -1.0, 1.0, -1.0, -1.0])

@@ -42,7 +42,7 @@ from chan.pca_factor_momentum_figures import (
     factor_label,
     make_pca_factor_momentum_figure,
 )
-from chan.regime_figure import ACCENT, GOOD, INK, LOST
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
 from chan.series import load_panel
 from chan.vintage import VintageUnavailable
 
@@ -242,6 +242,7 @@ class TestTheWords:
         )
         assert "in the S&P 600 on 2008-01-14, so every figure here is about survivors." in note
         assert "A hollow dot sits at its percentile among the 578 stocks left without PMC." in note
+        assert "The shaded band is the same in both panels." in note
         assert "Panel 2 was measured after the verdicts and decides nothing." in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
@@ -323,6 +324,30 @@ class TestTheWaysPanel:
         paired = _by_gid(figure, 1)["paired"]
         assert paired.get_marker() == "o"
         assert same_color(paired.get_markerfacecolor(), INK)
+
+    @pytest.mark.parametrize(
+        ("field", "marker", "edge", "face"),
+        [
+            ("own", "o", MUTED, SURFACE),
+            ("matched", "s", MUTED, MUTED),
+            ("left_out", "D", ACCENT, ACCENT),
+            ("paired", "o", INK, INK),
+        ],
+    )
+    def test_each_way_wears_the_marker_the_alt_text_names(
+        self, figure, field, marker, edge, face
+    ) -> None:
+        """A hollow circle, a grey square, a brass diamond and a black dot, as the post says.
+
+        Written out rather than read from ``WAYS``, so a change there fails here.
+        """
+        drawn = _by_gid(figure, 1)[field]
+        assert drawn.get_marker() == marker
+        assert same_color(drawn.get_markeredgecolor(), edge)
+        assert same_color(drawn.get_markerfacecolor(), face)
+
+    def test_the_axis_names_what_it_measures(self, figure) -> None:
+        assert figure.axes[1].get_ylabel() == "uncentred correlation"
 
     def test_the_zero_line(self, figure) -> None:
         assert set(_by_gid(figure, 1)["zero"].get_ydata()) == {0}
