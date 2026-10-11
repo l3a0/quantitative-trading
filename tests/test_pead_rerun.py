@@ -37,13 +37,15 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import replace
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from chan import pead_rerun
-from chan.earnings_filings import Release
+from chan.archive import ArchiveUnavailable
+from chan.earnings_filings import Release, read_table, serialize_table
 from chan.pead import DENOMINATOR, TRADING_DAYS, Drift, pead
 from chan.pead_rerun import (
     Agreement,
@@ -53,6 +55,7 @@ from chan.pead_rerun import (
     r1_day,
     r5_day,
 )
+from chan.vintage import VintageUnavailable
 from tests.conftest import archive_skip_reason
 
 #: The trading days around Martin Luther King Day, Monday 2011-01-17.
@@ -474,6 +477,118 @@ class TestTheCommittedRuns:
             "no late rule": (0.064813, 1.2880),
             "dropped": (0.059903, 1.2407),
         }, SPEC
+
+
+def stand_in_prices(sources) -> pead_rerun.ArchivePrices:
+    """Chan's own prices for PX in the archive's shape, so the archive's code runs in CI.
+
+    The raw frames are copies, so a test can tell which frame a call was handed.
+    """
+    px = sources.universe("PX")
+    opens, closes = sources.opens.loc[sources.window, px], sources.closes.loc[sources.window, px]
+    return pead_rerun.ArchivePrices(
+        entries={},
+        adjusted_open=opens,
+        adjusted_close=closes,
+        raw_open=opens.copy(),
+        raw_close=closes.copy(),
+    )
+
+
+class TestTheWiring:
+    """How the runs, the guards, the reads and the report fit together, on committed files."""
+
+    def test_the_report_prints_the_universes_who_left_and_why(self, sources, runs, capsys):
+        pead_rerun.report(sources, runs, ["XYZ"], None)
+        out = capsys.readouterr().out
+        assert "stocks   ALL 497, CAL 488, PX 446, U 441" in out
+        assert "Not in CAL, 9:" in out
+        assert "    DD     dates" in out
+        assert "    AGN    returns" in out
+        assert "would refuse 1 of PX's 446 stocks: XYZ." in out
+        assert "both 1540, Chan's only 311, R1's only 914, neither 158,275" in out
+        assert "calendar, R5" in out
+
+    def test_run_prints_why_the_archive_runs_did_not_run(self, monkeypatch, capsys):
+        def absent(sources, directory=None):
+            raise ArchiveUnavailable("no archive here")
+
+        monkeypatch.setattr(pead_rerun, "read_archive", absent)
+        runs = pead_rerun.run()
+        assert sorted(runs) == sorted(COMMITTED)
+        assert "C, D, E1 and E5 did not run: no archive here" in capsys.readouterr().out
+
+    def test_run_reports_the_stocks_the_raw_guard_would_refuse(self, monkeypatch, capsys):
+        monkeypatch.setattr(pead_rerun, "read_archive", lambda s, d=None: stand_in_prices(s))
+        monkeypatch.setattr(pead_rerun, "archive_runs", lambda s, p: {})
+        monkeypatch.setattr(pead_rerun, "raw_breaks", lambda p, w: ["XYZ", "ZZZ"])
+        pead_rerun.run()
+        assert "would refuse 2 of PX's 446 stocks: XYZ, ZZZ." in capsys.readouterr().out
+
+    def test_the_archive_runs_guard_the_adjusted_open_and_close_once(self, sources, monkeypatch):
+        prices = stand_in_prices(sources)
+        seen = []
+        monkeypatch.setattr(
+            pead_rerun,
+            "guard_archive",
+            lambda entries, frames, window: seen.append([id(frame) for frame in frames]),
+        )
+        pead_rerun.archive_runs(sources, prices)
+        assert seen == [[id(prices.adjusted_open), id(prices.adjusted_close)]]
+
+    def test_the_committed_runs_call_the_scale_break_guard(self, sources, monkeypatch):
+        def refuse(*args, **kwargs):
+            raise RuntimeError("guarded")
+
+        monkeypatch.setattr(pead_rerun, "refuse_scale_breaks", refuse)
+        with pytest.raises(RuntimeError, match="guarded"):
+            pead_rerun.committed_runs(sources)
+
+    def test_a_table_in_another_order_is_refused(self, tmp_path):
+        """Every universe is a selection from the flag file's columns, by position."""
+        (tmp_path / "tickers.csv").write_bytes(serialize_table(list(reversed(read_table()))))
+        with pytest.raises(VintageUnavailable, match="in its order"):
+            pead_rerun.read_committed(record_dir=tmp_path)
+
+    def test_a_px_stock_the_archive_holds_no_series_for_is_refused(self, sources, tmp_path):
+        first = sources.table[0]
+        table = [
+            replace(row, archive_check="pass", archive_ticker="ZZZZ")
+            if row is first
+            else replace(row, archive_check="none")
+            for row in sources.table
+        ]
+        with pytest.raises(ArchiveUnavailable, match="hold no series"):
+            pead_rerun.read_archive(replace(sources, table=table), directory=tmp_path)
+
+    def test_the_archive_read_rescales_the_open_by_adjusted_over_raw_close(
+        self, sources, monkeypatch
+    ):
+        """A raw series at twice Chan's prices, adjusted back to his, gives his open back.
+
+        The ratio's direction, the two closes and the raw open's scale are
+        otherwise held only by the archive pins, which CI skips.
+        """
+        rows = {row.ticker: row for row in sources.table}
+        px = sources.universe("PX")
+        window = sources.window
+        frames = {
+            "open": sources.opens.loc[window, px] * 2,
+            "close": sources.closes.loc[window, px] * 2,
+            "adjusted_close": sources.closes.loc[window, px],
+        }
+
+        def read_cross_section(name, column, symbols, directory=None):
+            frame = frames[column].rename(columns={s: rows[s].archive_ticker for s in px})
+            return [SimpleNamespace(symbol=symbol) for symbol in symbols], frame[symbols]
+
+        monkeypatch.setattr(pead_rerun, "read_cross_section", read_cross_section)
+        prices = pead_rerun.read_archive(sources)
+        chans = sources.opens.loc[window, px]
+        pd.testing.assert_frame_equal(prices.adjusted_open, chans)
+        pd.testing.assert_frame_equal(prices.raw_open, chans * 2)
+        pd.testing.assert_frame_equal(prices.adjusted_close, sources.closes.loc[window, px])
+        pd.testing.assert_frame_equal(prices.raw_close, sources.closes.loc[window, px] * 2)
 
 
 class TestTheCalendarsAgainstChans:

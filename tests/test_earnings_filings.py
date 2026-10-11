@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 import pandas as pd
@@ -37,6 +38,7 @@ from chan.earnings_filings import (
     candidates,
     check_cik,
     check_series,
+    checked_archive,
     fetch,
     header_url,
     holding_price,
@@ -158,6 +160,21 @@ class TestTheNameOnADay:
         }
         assert name_on(both) == "CBS CORP"
 
+    def test_a_last_filing_listed_only_on_an_older_page_still_counts(self) -> None:
+        older = {
+            "name": "OLD CO",
+            "filings": {
+                "recent": {"filingDate": []},
+                "files": [{"filingFrom": "1994-01-01", "filingTo": "2013-06-30"}],
+            },
+        }
+        assert name_on(older) == "OLD CO"
+
+    def test_a_former_name_holds_through_the_day_its_span_ends(self) -> None:
+        span = {"from": "1993-01-27T00:00:00.000Z", "to": f"{PRICE_DAY}T00:00:00.000Z"}
+        ended = {**self.SUBMISSION, "formerNames": [{"name": "ACE LTD", **span}]}
+        assert name_on(ended) == "ACE LTD"
+
 
 class TestTheCikCheck:
     HOLDINGS = [("ACE Ltd.", 73.20), ("Chubb Corp. (The)", 69.11), ("Apple Inc.", 599.55)]
@@ -169,11 +186,18 @@ class TestTheCikCheck:
         """ACE's CIK against the old Chubb's close, which is what company_tickers.json proposes."""
         assert check_cik("ACE LTD", self.HOLDINGS, 69.11, 6) == ("price", 1)
 
-    def test_the_tolerance_is_inclusive_and_no_wider(self) -> None:
+    def test_a_close_just_inside_the_upper_bound_passes_and_one_outside_fails(self) -> None:
         inside = 69.11 / (1 + PRICE_TOLERANCE) * 1.0000001
         outside = 69.11 / (1 + PRICE_TOLERANCE) * 0.999
         assert check_cik("CHUBB CORP", self.HOLDINGS, inside, 6)[0] == "pass"
         assert check_cik("CHUBB CORP", self.HOLDINGS, outside, 6)[0] == "price"
+
+    def test_the_lower_bound_is_read_on_the_price_over_the_close(self) -> None:
+        """A price 2.95 percent under the close passes, though the close is 3.04 above it."""
+        assert check_cik("CHUBB CORP", self.HOLDINGS, 69.11 / 0.9705, 6) == ("pass", 2)
+
+    def test_a_missing_close_fails_on_the_price(self) -> None:
+        assert check_cik("CHUBB CORP", self.HOLDINGS, float("nan"), 6) == ("price", 2)
 
     def test_a_name_no_holding_carries_fails(self) -> None:
         assert check_cik("CONCHO RESOURCES INC", self.HOLDINGS, 69.11, 6) == ("name", None)
@@ -236,6 +260,19 @@ class TestTheArchiveCheck:
         chan = self.series([float("nan")] * 4 + [10.0] * 8)
         assert check_series(chan, chan.dropna()) == ("pass", 0)
 
+    def test_a_day_only_the_archive_holds_is_not_read(self) -> None:
+        """A close on a Saturday inside the window would move two returns if it were read."""
+        chan = self.series([10.0] * 12)
+        archive = pd.concat([chan, pd.Series([20.0], index=[pd.Timestamp("2011-01-08")])])
+        assert check_series(chan, archive.sort_index()) == ("pass", 0)
+
+    def test_a_row_rechecked_takes_the_outcome_and_the_count_the_check_gives(self) -> None:
+        """A stale ``days_over`` is replaced, not kept, so ``check`` can see it moved."""
+        chan = self.series(list(range(10, 22)))
+        stale = replace(ROW, archive_check="returns", days_over="9")
+        again = checked_archive(stale, chan, pd.DataFrame({"AAPL": chan * 2}))
+        assert (again.archive_check, again.days_over) == ("pass", "0")
+
 
 ACCESSION = "0000320193-11-000006"
 FILINGS = block(
@@ -270,6 +307,10 @@ class TestTheCandidates:
             }
         }
         assert pages_to_read(submission) == ["b.json", "c.json"]
+
+    def test_a_page_ending_on_the_first_day_is_read(self) -> None:
+        page = {"name": "e.json", "filingFrom": "2009-01-01", "filingTo": "2010-12-01"}
+        assert pages_to_read({"filings": {"files": [page]}}) == ["e.json"]
 
 
 class TestTheHeader:
@@ -394,6 +435,21 @@ class TestTheFetch:
         with pytest.raises(FilingRefused, match="the index records 2011-01-18T16:30:15"):
             self.run(tmp_path, served)
 
+    def test_a_header_whose_bytes_moved_and_whose_time_did_not_is_refused(self, tmp_path):
+        served = edgar()
+        self.run(tmp_path, served)
+        served[header_url(320193, ACCESSION)] = header(ACCESSION, "20110118163015") + b"\n"
+        with pytest.raises(FilingRefused, match="header sha256"):
+            self.run(tmp_path, served)
+
+    def test_a_filing_accepted_on_the_last_evening_and_filed_the_next_day_is_kept(self, tmp_path):
+        """The window is read on the acceptance date, inclusive, never on the filing date."""
+        late = "0000320193-12-000050"
+        served = edgar(page_filings=block((late, "8-K", "2.02", "2012-04-24", "2012-04-25")))
+        served[header_url(320193, late)] = header(late, "20120424183000")
+        releases, _, _ = self.run(tmp_path, served)
+        assert [(r.accession, r.accepted) for r in releases] == [(late, "2012-04-24T18:30:00")]
+
     def test_a_rerun_on_the_same_bytes_writes_the_same_index(self, tmp_path):
         served = edgar()
         self.run(tmp_path, served)
@@ -411,6 +467,29 @@ class TestTheTableFile:
         (tmp_path / "tickers.csv").write_text("ticker,cik\nAAPL,320193\n")
         with pytest.raises(ValueError, match="has columns"):
             read_table(tmp_path)
+
+
+class TestTheCheckCommand:
+    def test_a_row_whose_recorded_outcome_moved_is_listed(self, tmp_path, monkeypatch) -> None:
+        """With Chan's own closes standing in for the archive, a stale AAPL row is named."""
+        import chan.archive
+
+        rows = [
+            replace(row, archive_check="returns", days_over="99") if row.ticker == "AAPL" else row
+            for row in read_table()
+        ]
+        (tmp_path / "tickers.csv").write_bytes(serialize_table(rows))
+        closes = read_sources()[3]
+
+        def chans_closes(name, symbols=None, directory=None, **_):
+            frame = pd.DataFrame(
+                {s: closes[s] if s in closes.columns else float("nan") for s in symbols},
+                index=closes.index,
+            )
+            return [], frame
+
+        monkeypatch.setattr(chan.archive, "read_cross_section", chans_closes)
+        assert "AAPL" in earnings_filings.check(record_dir=tmp_path)
 
 
 @pytest.fixture(scope="module")
