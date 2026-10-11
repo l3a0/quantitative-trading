@@ -1,9 +1,15 @@
 """Pins for Chan's Examples 8.1 and 8.2, constant leverage and capped Kelly allocation.
 
-This file is the single authority for every number any prose surface quotes
-about these examples. ``docs/replication-log.md`` Entry 20 states those numbers
-and derives none of them, and ``src/chan/kelly_allocation.py`` carries the
-reasoning.
+This file is the single authority for every number a prose surface quotes
+about these examples. The one exception is
+``blog/capped-kelly-allocation-lessons.md``:
+``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
+and README lists what it says that nothing asserts. Every other figure the post
+quotes is pinned here, and :class:`TestBesideTheClaim`,
+:class:`TestWhereTheCornerStopsWinning` and :class:`TestTheLongOnlyLimit` hold
+the ones the entry's thirteen rows do not. ``docs/replication-log.md`` Entry 20
+states its numbers and derives none of them, and
+``src/chan/kelly_allocation.py`` carries the reasoning.
 
 Every pin names its specification, because a number alone does not say which
 of several plausible formulas produced it. Unless a class says otherwise, that
@@ -314,7 +320,12 @@ class TestTheNearMisses:
 
 
 class TestWhereTheCornerStopsWinning:
-    """Chan's "when Fmax is much smaller than" the total Kelly leverage, measured."""
+    """Where everything on strategy 2 stops being best.
+
+    That is where the "all" in location 3268's "most or all" ends. It is not
+    where "much smaller than" ends, because on these inputs strategy 2 keeps
+    most of the cap at every cap up to the total Kelly leverage.
+    """
 
     def test_the_threshold(self, cov) -> None:
         assert corner_threshold(MEANS, cov) == pytest.approx(2.448980, abs=5e-7)
@@ -346,6 +357,20 @@ class TestWhereTheCornerStopsWinning:
     def test_at_the_kelly_gross_the_optimum_is_the_kelly_pair(self, cov, kelly) -> None:
         best = best_allocation_at_cap(MEANS, cov, float(np.abs(kelly).sum()))
         assert best.leverages == pytest.approx(tuple(kelly), abs=1e-12)
+
+    def test_strategy_two_keeps_most_of_the_cap_up_to_the_kelly_gross(self, cov, kelly) -> None:
+        """Location 3268's "most" holds at every cap here, and only "all" ends at
+        the threshold. The shares are held at the three decimals the post prints."""
+        total = float(np.abs(kelly).sum())
+
+        def share(cap: float) -> float:
+            return best_allocation_at_cap(MEANS, cov, cap).leverages[1] / cap
+
+        assert share(corner_threshold(MEANS, cov)) == 1.0
+        assert _book(share(3.0), 3) == "0.882"
+        assert _book(share(4.0), 3) == "0.750"
+        assert _book(share(total), 3) == "0.525"
+        assert all(share(cap) > 0.5 for cap in np.linspace(0.01, total, 1_000))
 
 
 class TestTheKellyGrowthRate:
@@ -411,22 +436,66 @@ class TestCorrelatedStrategies:
 
 
 class TestTheLongOnlyLimit:
-    """The capped search is long-only, and here is a case where that binds.
+    """The capped search is long-only, and here is a case where that costs growth.
 
     Two strategies with means of 0.05 and 0.30, a volatility of 0.30 each and a
-    correlation of 0.95, under a cap of 4. The best long-only allocation puts
-    everything on strategy 2. A short hedge in strategy 1 inside the same gross
-    cap grows faster, so the docstring's restriction is a limit and not a theorem.
+    correlation of 0.95, under a cap of 4. The cap is a maximum, so the best
+    long-only allocation holds strategy 2 alone at its own Kelly leverage of
+    10/3, inside the cap, and grows at exactly 0.5. Spending the whole cap on
+    strategy 2, which is what :func:`best_allocation_at_cap` searches, grows at
+    0.48. A short hedge in strategy 1 inside the same gross cap grows faster than
+    both, so the module's restriction is a limit and not a theorem.
     """
 
     MEANS = (0.05, 0.30)
     COV = covariance((0.30, 0.30), 0.95)
     CAP = 4.0
 
-    def test_the_long_only_answer(self) -> None:
+    def _hedge(self) -> tuple[float, float]:
+        """The best split with strategy 1 short and the gross cap spent.
+
+        With ``F1 = F2 - cap`` the short's size and strategy 2's long sum to the
+        cap. Flipping strategy 1's sign turns that into the line
+        :func:`segment_stationary_point` solves, with strategy 1's mean and the
+        covariance negated.
+        """
+        flipped_means = (-self.MEANS[0], self.MEANS[1])
+        flipped_cov = self.COV * np.array([[1.0, -1.0], [-1.0, 1.0]])
+        f2 = segment_stationary_point(flipped_means, flipped_cov, self.CAP)
+        return (f2 - self.CAP, f2)
+
+    def _return(self, leverages) -> float:
+        return float(np.asarray(leverages, dtype=float) @ np.asarray(self.MEANS))
+
+    def _drag(self, leverages) -> float:
+        f = np.asarray(leverages, dtype=float)
+        return float(f @ self.COV @ f / 2.0)
+
+    def test_the_whole_cap_on_strategy_two(self) -> None:
         best = best_allocation_at_cap(self.MEANS, self.COV, self.CAP)
         assert best.leverages == (0.0, self.CAP)
         assert best.growth == pytest.approx(0.48, abs=1e-12)
+
+    def test_the_best_long_only_allocation_is_strategy_two_alone_inside_the_cap(self) -> None:
+        """Strategy 2 at ``m2 / c22`` grows at ``m2^2 / (2 c22)``, exactly 1/2,
+        and no long-only allocation with a gross at or below the cap does better."""
+        f2 = self.MEANS[1] / self.COV[1, 1]
+        assert f2 == pytest.approx(3.333333, abs=5e-7)
+        assert f2 < self.CAP
+        g = growth_rate((0.0, f2), self.MEANS, self.COV)
+        assert g == pytest.approx(0.5, abs=1e-12)
+        m, c = Fraction(30, 100), Fraction(30, 100) ** 2
+        assert m**2 / (2 * c) == Fraction(1, 2)
+        assert g > best_allocation_at_cap(self.MEANS, self.COV, self.CAP).growth
+        grid = np.linspace(0.0, self.CAP, 161)
+        best = max(
+            (growth_rate((a, b), self.MEANS, self.COV), a, b)
+            for a in grid
+            for b in grid
+            if a + b <= self.CAP + 1e-12
+        )
+        assert best[0] <= g
+        assert (best[1], best[2]) == pytest.approx((0.0, f2), abs=self.CAP / 160)
 
     def test_a_short_hedge_inside_the_cap_beats_it(self) -> None:
         g, f1, f2 = _gross_boundary_grid(self.MEANS, self.COV, self.CAP)
@@ -434,6 +503,39 @@ class TestTheLongOnlyLimit:
         assert f2 == pytest.approx(2.997151, abs=1e-3)
         assert g == pytest.approx(0.656501, abs=1e-6)
         assert abs(f1) + abs(f2) == pytest.approx(self.CAP, abs=1e-9)
+
+    def test_the_hedge_in_closed_form(self) -> None:
+        f1, f2 = self._hedge()
+        assert f1 == pytest.approx(-1.002849, abs=5e-7)
+        assert f2 == pytest.approx(2.997151, abs=5e-7)
+        assert abs(f1) + abs(f2) == pytest.approx(self.CAP, abs=1e-12)
+        assert growth_rate((f1, f2), self.MEANS, self.COV) == pytest.approx(0.656501, abs=5e-7)
+        g, *_ = _gross_boundary_grid(self.MEANS, self.COV, self.CAP)
+        assert growth_rate((f1, f2), self.MEANS, self.COV) >= g
+
+    def test_the_hedge_saves_more_drag_than_it_gives_up_in_return(self) -> None:
+        """Set against the whole cap on strategy 2. The return given up is the
+        short's own mean plus strategy 2's mean on the leverage the short
+        displaces under the gross cap."""
+        hedge, corner = self._hedge(), (0.0, self.CAP)
+        for leverages in (hedge, corner):
+            assert self._return(leverages) - self._drag(leverages) == pytest.approx(
+                growth_rate(leverages, self.MEANS, self.COV), abs=1e-15
+            )
+        assert self._return(corner) == pytest.approx(1.2, abs=1e-12)
+        assert self._drag(corner) == pytest.approx(0.72, abs=1e-12)
+        assert self._return(hedge) == pytest.approx(0.849003, abs=5e-7)
+        assert self._drag(hedge) == pytest.approx(0.192501, abs=5e-7)
+        saved = self._drag(corner) - self._drag(hedge)
+        given_up = self._return(corner) - self._return(hedge)
+        on_the_short = -hedge[0] * self.MEANS[0]
+        displaced = (self.CAP - hedge[1]) * self.MEANS[1]
+        assert saved == pytest.approx(0.527499, abs=5e-7)
+        assert given_up == pytest.approx(0.350997, abs=5e-7)
+        assert on_the_short == pytest.approx(0.050142, abs=5e-7)
+        assert displaced == pytest.approx(0.300855, abs=5e-7)
+        assert on_the_short + displaced == pytest.approx(given_up, abs=1e-12)
+        assert saved > given_up
 
 
 class TestTheInputsAreChecked:
@@ -469,6 +571,86 @@ class TestTheInputsAreChecked:
 
     def test_an_allocation_reports_its_gross_leverage(self) -> None:
         assert Allocation((-1.5, 0.5), 0.0).gross == 2.0
+
+
+class TestBesideTheClaim:
+    """Figures the blog post quotes that the entry's thirteen rows do not hold.
+
+    ``blog/capped-kelly-allocation-lessons.md`` splits the growth rate into
+    its two terms, the return ``F'M`` and the drag ``F'CF / 2``, to say why
+    the corner beats the proportional split. Each term is computed here from
+    the run's own leverages and covariance, and each pair is held to
+    :func:`growth_rate`, so a split that stopped adding up fails too.
+    """
+
+    @staticmethod
+    def _return(leverages) -> float:
+        return float(np.asarray(leverages, dtype=float) @ np.asarray(MEANS))
+
+    @staticmethod
+    def _drag(leverages, cov) -> float:
+        f = np.asarray(leverages, dtype=float)
+        return float(f @ cov @ f / 2.0)
+
+    def _split(self, leverages, cov) -> tuple[float, float]:
+        ret, drag = self._return(leverages), self._drag(leverages, cov)
+        assert ret - drag == pytest.approx(growth_rate(leverages, MEANS, cov), abs=1e-15)
+        return ret, drag
+
+    def test_the_sharpe_ratios(self, cov, kelly) -> None:
+        """Half the sum of their squares is the growth rate at Kelly, 2.135068."""
+        sharpes = [m / s for m, s in zip(MEANS, VOLS, strict=True)]
+        assert sharpes == pytest.approx([1.153846, 1.714286], abs=5e-7)
+        assert sum(x**2 for x in sharpes) / 2 == pytest.approx(
+            growth_rate(kelly, MEANS, cov), abs=1e-12
+        )
+
+    def test_at_kelly_the_drag_is_exactly_half_the_return(self, cov, kelly) -> None:
+        ret, drag = self._split(kelly, cov)
+        assert ret == pytest.approx(4.270136, abs=5e-7)
+        assert drag == pytest.approx(2.135068, abs=5e-7)
+        assert drag == pytest.approx(ret / 2, abs=1e-12)
+
+    def test_the_proportional_splits_return_and_drag(self, cov, kelly) -> None:
+        ret, drag = self._split(proportional_cap(kelly, MAX_LEVERAGE), cov)
+        assert ret == pytest.approx(0.914785, abs=5e-7)
+        assert drag == pytest.approx(0.097986, abs=5e-7)
+
+    def test_the_corners_return_and_drag(self, cov) -> None:
+        ret, drag = self._split(best_allocation_at_cap(MEANS, cov).leverages, cov)
+        assert ret == pytest.approx(1.2, abs=1e-12)
+        assert drag == pytest.approx(0.245, abs=1e-12)
+
+    def test_the_proportional_split_saves_less_drag_than_it_gives_up_in_return(
+        self, cov, kelly
+    ) -> None:
+        proportional = proportional_cap(kelly, MAX_LEVERAGE)
+        corner = best_allocation_at_cap(MEANS, cov).leverages
+        saved = self._drag(corner, cov) - self._drag(proportional, cov)
+        given_up = self._return(corner) - self._return(proportional)
+        assert saved == pytest.approx(0.147014, abs=5e-7)
+        assert given_up == pytest.approx(0.285215, abs=5e-7)
+
+    def test_the_corner_grows_1_169199_times_as_fast(self, cov, kelly) -> None:
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        proportional = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
+        assert corner / proportional == pytest.approx(1.169199, abs=5e-7)
+
+    def test_everything_on_strategy_one_grows_at_0_4648(self, cov) -> None:
+        """The other end of the curve Figure 8.1 plots, F2 = 0."""
+        assert growth_rate((MAX_LEVERAGE, 0.0), MEANS, cov) == pytest.approx(0.4648, abs=1e-12)
+
+    def test_the_share_of_the_uncapped_kelly_growth_each_keeps(self, cov, kelly) -> None:
+        at_kelly = growth_rate(kelly, MEANS, cov)
+        proportional = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        assert proportional / at_kelly == pytest.approx(0.382563, abs=5e-7)
+        assert corner / at_kelly == pytest.approx(0.447292, abs=5e-7)
+
+    def test_the_threshold_is_about_a_quarter_of_the_kelly_gross(self, cov, kelly) -> None:
+        """Where the "all" ends, as a share of the Kelly gross on Chan's inputs."""
+        ratio = corner_threshold(MEANS, cov) / float(np.abs(kelly).sum())
+        assert ratio == pytest.approx(0.262321, abs=5e-7)
 
 
 # ============================================================
