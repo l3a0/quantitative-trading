@@ -1,8 +1,18 @@
 """The pins for XLE against USO signed by crude oil's contango, *Algorithmic Trading* location 2734.
 
 This file is the single authority for every number a prose surface quotes
-about this replication. ``docs/replication-log.md`` Entry 39 carries the
-verdicts and points here row by row.
+about this replication, with one exception, in
+``blog/xle-uso-roll-return-lessons.md``. ``TestWhatThePostMeasures`` holds
+that post's own numbers. It also quotes three kinds of number held elsewhere.
+
+1. Its figure's labels, which ``tests/test_xle_uso_roll_return_figures.py``
+   holds.
+2. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
+3. SPY's close 14.98 below the price that traded and its 24 dividends, which
+   ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` holds.
+
+``docs/replication-log.md`` Entry 39 carries the verdicts and points here row
+by row.
 
 Every pin reads two vintages and one specification, so they are stated once
 here.
@@ -56,6 +66,7 @@ from chan.calendar_spread_reversion import calendar_schedule
 from chan.khandani_lo_book_two import gap, matches
 from chan.matlab_helpers import smartmean
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
+from chan.tu_momentum import figures
 from chan.vintage import VintageUnavailable
 from chan.vx_calendar_spread import held_pair_ratio
 from chan.xle_uso_roll_return import (
@@ -74,12 +85,15 @@ from chan.xle_uso_roll_return import (
     SCRIPT_SHARPE,
     STRIP_FILE,
     USO,
+    VIEWS,
     WINDOW_END,
     WINDOW_START,
     XLE,
     Arbitrage,
     arbitrage,
+    by_view,
     daily_returns,
+    fixed_view,
     front_ratio,
     main,
     positions,
@@ -285,6 +299,132 @@ class TestTheSpecification:
         )
 
 
+class TestWhatThePostMeasures:
+    """Pins added with ``blog/xle-uso-roll-return-lessons.md``, measured after the run.
+
+    Same vintages and specification as the module docstring states, over the
+    1,498 days both calendars hold unless a test names a shorter span. Each
+    describes this sample and tests nothing.
+    """
+
+    def test_the_40_row_start_decides_only_cl_2007f_s_window(self, contracts) -> None:
+        """Every later contract's own start falls on or before the row after the last front."""
+        priced = contracts.notna().to_numpy()
+        end = None
+        bound = []
+        for c, column in enumerate(contracts.columns[:-1]):
+            expiry = module._expiry(priced[:, c], column)
+            if end is not None and expiry - FRONT_START > end + 1:
+                bound.append(column)
+            end = expiry - FRONT_END
+        assert bound == []
+
+    def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(self, result) -> None:
+        strip = roll_returns.load_strip("CL")
+        # A different save: it holds a spot and runs to 2012-08-13.
+        assert {m.obtained for m in strip.members} == {"2012-08-14"}
+        assert strip.spot is not None and strip.contracts.index[-1] == day("2012-08-13")
+        later = front_ratio(strip.contracts)
+        defined = np.isfinite(result.ratio)
+        assert int(defined.sum()) == 1375
+        assert (later.loc[result.days[defined]].to_numpy() == result.ratio[defined]).all()
+
+    def test_each_leg_s_close_at_either_end_of_the_window(self, closes) -> None:
+        first, last = closes.loc[WINDOW_START], closes.loc[WINDOW_END]
+        assert (first[USO], last[USO], first[XLE], last[XLE]) == (69.54, 38.97, 51.97, 69.61)
+        assert f"{100 * (last[USO] / first[USO] - 1):.4f}" == "-43.9603"
+        assert f"{100 * (last[XLE] / first[XLE] - 1):.4f}" == "33.9427"
+
+    def test_the_front_is_the_nearest_contract_on_734_days_and_the_second_on_641(
+        self, contracts, result
+    ) -> None:
+        """Which of each day's priced contracts the script's front is, by its back-over-front."""
+        places = []
+        for d, value in zip(result.days, result.ratio, strict=True):
+            if not np.isfinite(value):
+                continue
+            row = contracts.loc[d].to_numpy()
+            priced = np.flatnonzero(np.isfinite(row))
+            nearest = [row[priced[k] + 1] / row[priced[k]] for k in (0, 1)]
+            assert (nearest[0] == value) != (nearest[1] == value)
+            places.append(1 if nearest[0] == value else 2)
+        assert (places.count(1), places.count(2)) == (734, 641)
+
+    def test_the_ratio_and_example_5_3_s_gamma_agree_on_1354_of_1373_days(self, result) -> None:
+        """γ on the 2012-08-13 save, positive in backwardation, against the ratio's view.
+
+        On the 2 days the ratio is exactly 1 it calls no view, and γ is
+        positive on both.
+        """
+        gamma = roll_returns.roll_returns(roll_returns.load_strip("CL").contracts)
+        defined = np.isfinite(result.ratio)
+        ratio = result.ratio[defined]
+        g = gamma.loc[result.days[defined]].to_numpy()
+        assert np.isfinite(g).all()
+        contango, backwardation = ratio > 1, ratio < 1
+        assert int((contango | backwardation).sum()) == 1373
+        assert int((contango & (g < 0)).sum() + (backwardation & (g > 0)).sum()) == 1354
+        assert int((contango & (g > 0)).sum()) == 13
+        assert int((backwardation & (g < 0)).sum()) == 6
+        assert (g[ratio == 1] > 0).all()
+
+    def test_from_the_first_ratio_the_apr_and_sharpe_rise_and_the_drawdown_holds(
+        self, result
+    ) -> None:
+        """From 2006-10-20, leaving out the 123 days that hold nothing."""
+        first = int(np.flatnonzero(np.isfinite(result.ratio))[0])
+        assert result.days[first] == day("2006-10-20")
+        f = figures(result.daily[first:])
+        assert f.apr == pytest.approx(0.17451291829545346, abs=TIGHT)
+        assert f.sharpe == pytest.approx(1.0926177430890052, abs=TIGHT)
+        assert f.max_drawdown == result.figures.max_drawdown
+        assert f.max_drawdown_days == result.figures.max_drawdown_days == 487
+
+    def test_after_its_first_entry_the_position_changes_on_19_days(self, result) -> None:
+        first = int(np.flatnonzero(result.positions.any(axis=1))[0])
+        changed = (np.diff(result.positions[first:], axis=0) != 0).any(axis=1)
+        assert result.days[first] == day("2006-10-20")
+        assert int(changed.sum()) == 19
+
+    def test_the_days_earning_on_each_view(self, closes, result) -> None:
+        views = by_view(closes, result)
+        assert list(views) == list(VIEWS) == ["contango", "backwardation"]
+        assert (views["contango"].days, views["backwardation"].days) == (1128, 244)
+
+    def test_each_view_s_compounded_and_summed_return(self, closes, result) -> None:
+        views = by_view(closes, result)
+        assert views["contango"].trade == pytest.approx(0.7902693674706385, abs=TIGHT)
+        assert views["backwardation"].trade == pytest.approx(0.343538634186189, abs=TIGHT)
+        assert views["contango"].summed == pytest.approx(0.6384202800284547, abs=TIGHT)
+        assert views["backwardation"].summed == pytest.approx(0.3081173566285138, abs=TIGHT)
+        assert result.daily.sum() == pytest.approx(0.9465376366569687, abs=TIGHT)
+        assert views["contango"].summed + views["backwardation"].summed == pytest.approx(
+            result.daily.sum(), abs=TIGHT
+        )
+
+    def test_each_leg_s_move_on_each_view_s_days(self, closes, result) -> None:
+        views = by_view(closes, result)
+        moves = {name: (f"{100 * v.uso:.4f}", f"{100 * v.xle:.4f}") for name, v in views.items()}
+        assert moves == {
+            "contango": ("-56.7754", "54.9091"),
+            "backwardation": ("70.2850", "-9.7061"),
+        }
+
+    def test_the_roll_return_each_view_s_ratio_implies(self, closes, result) -> None:
+        """``12 · ln(front / back) / 252`` summed, reading the two contracts as a month apart."""
+        views = by_view(closes, result)
+        assert views["contango"].roll == pytest.approx(-0.7660808253619001, abs=TIGHT)
+        assert views["backwardation"].roll == pytest.approx(0.07237958945892248, abs=TIGHT)
+        # USO's own log move on the same days, against which the roll return is read.
+        assert f"{math.log(1 + views['contango'].uso):.4f}" == "-0.8388"
+        assert f"{math.log(1 + views['backwardation'].uso):.4f}" == "0.5323"
+
+    def test_holding_contango_s_position_on_every_held_day(self, closes, result) -> None:
+        f = figures(fixed_view(closes, result))
+        assert f.apr == pytest.approx(0.04494895985018821, abs=TIGHT)
+        assert f.sharpe == pytest.approx(0.3645242431361169, abs=TIGHT)
+
+
 class TestTheQuirks:
     """The two quirks of the script's loop the module docstring names, on this strip."""
 
@@ -471,6 +611,56 @@ class TestTheRules:
         swapped = closes[[XLE, USO]]
         assert daily_returns(swapped, held).tolist() == daily_returns(closes, held).tolist()
         assert daily_returns(closes, held)[1] == pytest.approx(-0.05)
+
+    def _views_frame(self) -> tuple[pd.DataFrame, Arbitrage]:
+        """Contango, backwardation, flat on a ratio of exactly 1, then contango again."""
+        closes = self._closes([100.0, 110.0, 99.0, 99.0], [50.0, 50.0, 55.0, 55.0])
+        ratio = pd.Series([1.1, 0.9, 1.0, 1.1], index=closes.index)
+        return closes, arbitrage(closes, ratio)
+
+    def test_a_day_earns_on_the_view_held_the_day_before(self) -> None:
+        closes, traded = self._views_frame()
+        views = by_view(closes, traded)
+        # Row 1 earns contango's short USO on +10 percent, row 2 backwardation's
+        # long USO on −10 percent and short XLE on +10 percent, row 3 nothing.
+        assert (views["contango"].days, views["backwardation"].days) == (1, 1)
+        assert views["contango"].trade == pytest.approx(-0.05)
+        assert views["backwardation"].trade == pytest.approx(-0.1)
+        assert views["backwardation"].summed == pytest.approx(-0.1)
+
+    def test_each_leg_s_move_is_its_own_close_unsigned(self) -> None:
+        closes, traded = self._views_frame()
+        views = by_view(closes, traded)
+        assert (views["contango"].uso, views["contango"].xle) == pytest.approx((0.1, 0.0))
+        assert (views["backwardation"].uso, views["backwardation"].xle) == pytest.approx(
+            (-0.1, 0.1)
+        )
+
+    def test_the_roll_reads_the_ratio_that_set_the_view(self) -> None:
+        closes, traded = self._views_frame()
+        views = by_view(closes, traded)
+        assert views["contango"].roll == pytest.approx(12 * math.log(1 / 1.1) / 252)
+        assert views["backwardation"].roll == pytest.approx(12 * math.log(1 / 0.9) / 252)
+
+    def test_a_view_compounds_its_days_rather_than_adding_them(self) -> None:
+        closes = self._closes([100.0, 90.0, 81.0], [50.0, 50.0, 50.0])
+        traded = arbitrage(closes, pd.Series([1.1, 1.1, 1.1], index=closes.index))
+        views = by_view(closes, traded)
+        assert views["contango"].trade == pytest.approx(1.05 * 1.05 - 1)
+        assert views["contango"].summed == pytest.approx(0.1)
+        assert views["contango"].uso == pytest.approx(-0.19)
+        assert views["backwardation"].days == 0
+
+    def test_the_fixed_view_holds_contango_wherever_the_trade_holds_anything(self) -> None:
+        closes, traded = self._views_frame()
+        # Row 2 now earns contango's position held on row 1: short USO on −10
+        # percent and long XLE on +10 percent. Row 3 earns row 2's nothing.
+        assert np.allclose(fixed_view(closes, traded), [0.0, -0.05, 0.1, 0.0])
+
+    def test_the_fixed_view_is_the_trade_when_the_trade_holds_only_contango(self) -> None:
+        closes = self._closes([100.0, 90.0, 99.0], [50.0, 55.0, 50.0])
+        traded = arbitrage(closes, pd.Series([np.nan, 1.1, 1.2], index=closes.index))
+        assert fixed_view(closes, traded).tolist() == traded.daily.tolist()
 
     def test_only_the_days_both_calendars_hold_are_traded(self) -> None:
         closes = self._closes([100.0, 110.0, 121.0, 133.1], [50.0, 50.0, 50.0, 50.0])
