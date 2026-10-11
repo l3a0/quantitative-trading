@@ -851,6 +851,18 @@ class TestChansPythonPort:
         )
         assert python_port_sharpe(daily) != pytest.approx(figures(daily).sharpe)
 
+    def test_the_sharpe_ratio_keeps_a_negative_mean_s_sign(self) -> None:
+        """Every series pinned above has a positive mean, so this one does not."""
+        daily = np.array([0.0, -0.02, 0.01, 0.0])
+        expected = math.sqrt(252) * daily.mean() / daily.std(ddof=0)
+        assert expected < 0
+        assert python_port_sharpe(daily) == pytest.approx(expected)
+        # The mean is −0.0025 and the variance over n is 1.1875e-4.
+        assert python_port_sharpe(daily) == pytest.approx(
+            -math.sqrt(252) * 0.0025 / math.sqrt(1.1875e-4)
+        )
+        assert python_port_sharpe(daily) == pytest.approx(-3.641862, abs=SIX)
+
     def test_the_run_prints_the_port_beside_its_comments(self, printed) -> None:
         tail = printed[printed.index("Chan's Python port, gapFutures_FSTX.py, on the same save") :]
         assert TestTheReport._row(tail, "APR")[-3:] == ["0.074864", "0.074864", "reproduced"]
