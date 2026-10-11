@@ -232,6 +232,30 @@ class TestTheArithmetic:
         assert found.spread == pytest.approx(math.log(1.03) / 2, abs=1e-15)
         assert found.steps == 1
 
+    def test_the_largest_move_is_measured_in_size(self) -> None:
+        """A fall of ln(10.3 / 9.5) outweighs a rise of ln 1.03, so the largest move is the fall."""
+        days = ["2020-01-02", "2020-01-03", "2020-01-06"]
+        found = ratio_steps(
+            closes([10.0, 10.3, 9.5], days), closes([1.0, 1.0, 1.0], days), pd.DatetimeIndex(days)
+        )
+        assert found.largest == pytest.approx(math.log(10.3 / 9.5), abs=1e-15)
+        assert found.steps == 2
+
+    def test_a_move_of_exactly_the_step_is_not_past_it(self, monkeypatch) -> None:
+        """Past 2 percent means larger than it, so a move landing on the threshold is not counted.
+
+        No float close makes log(GC / GLD) move by exactly 0.02, so the threshold
+        is set to the move the synthetic legs make, through the same arithmetic
+        :func:`ratio_steps` uses.
+        """
+        days = ["2020-01-02", "2020-01-03"]
+        gc, gld = closes([10.0, 10.3], days), closes([1.0, 1.0], days)
+        move = float(np.diff(np.log(gc.to_numpy() / gld.to_numpy()))[0])
+        monkeypatch.setattr(module, "STEP", move)
+        assert ratio_steps(gc, gld, pd.DatetimeIndex(days)).steps == 0
+        monkeypatch.setattr(module, "STEP", np.nextafter(move, 0.0))
+        assert ratio_steps(gc, gld, pd.DatetimeIndex(days)).steps == 1
+
 
 class TestTheVintages:
     def test_gc_is_its_pinned_source(self, sources) -> None:
