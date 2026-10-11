@@ -7,7 +7,10 @@ which ``tests/test_roll_returns_figures.py`` holds, and the figures README
 lists as asserted nowhere. ``docs/replication-log.md`` carries the verdicts
 and points here row by row. The rows are the ones
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared
-before the build, under "The pins".
+before the build, under "The pins". ``blog/xle-uso-roll-return-lessons.md``
+quotes the 29 sign changes of CL's γ that
+``test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango`` pins,
+so a change to that pin moves that post too.
 
 Every pin on the committed files reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as

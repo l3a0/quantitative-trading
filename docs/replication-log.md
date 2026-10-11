@@ -7904,7 +7904,9 @@ trade on later data.
 
 ### What the entry concludes
 
-Three things.
+Five things. The last two were measured by the write-up after the run, and
+`TestWhatThePostMeasured` in [tests/test_gld_gc.py](../tests/test_gld_gc.py)
+pins them.
 
 1. **Chan's saves reproduce his script exactly.** All five figures of the
    closing comment and both of the text's land on the printed digits.
@@ -7919,9 +7921,25 @@ Three things.
    the backtest.
 3. **The bill rate leaves about half the return standing.** Over the window
    it averages 1.0141 percent against a return of 1.9014 percent. The book's
-   "close to zero" needs GLD's financing to sit about 0.89 percent a year
-   above the bill rate. Whether its holders paid that is not something this
-   repo holds data on.
+   "close to zero" needs GLD's financing to sit about 0.89 percentage points
+   a year above the bill rate. Whether its holders paid that is not
+   something this repo holds data on.
+4. **The 0.8 percent and the 91 days are two drawdowns.** The deepest runs
+   from a high on 2007-10-12 to a trough on 2007-11-12 and is recovered on
+   2007-11-14. Most of it is 2007-11-12 alone, when the trade lost 0.6771
+   percent as GLD fell 4.7213 percent and GC 4.0442 percent. That day is also
+   the 16:00 series' largest move in log(GC / GLD), the 0.007082 of row 11.
+   The 91 days run from 2009-08-28 to 2010-01-08 and reach only −0.40907
+   percent. Measured after the run.
+5. **The return fell with the bill rate, year by year.** S's average annual
+   return against the bill rate over the same months, leaving out the zeroed
+   first row, is 0.052235 against 0.036520 over August to December 2007,
+   0.027315 against 0.013650 in 2008, 0.005822 against 0.001500 in 2009, and
+   0.004458 against 0.001350 over January to August 2010. The margin shrinks
+   from 1.57 percentage points to 0.31, and the bill rate sat below 0.5
+   percent in 22 of the 37 months, from 2008-11. The split by year was chosen
+   after the run, so it is exploratory and carries no verdict. The cost of
+   carry is the usual explanation, and nothing here tests it.
 
 ### What this entry cannot say
 
@@ -7946,7 +7964,10 @@ the earliest gold futures series here starts in May 2004, the month that span
 ends.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/gld-gc-lessons.md](../blog/gld-gc-lessons.md) moves with it, since that
+post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.gld_gc_figures` redraws.
 
 ## Entry 39: XLE against USO signed by crude oil's contango, Chan's *Algorithmic Trading*
 
@@ -8064,7 +8085,7 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What the entry concludes
 
-Two things.
+Three things.
 
 1. **The script's rule reproduces on Chan's own files.** Every figure its
    comment prints lands at the decimals printed, and the book's two land at
@@ -8073,6 +8094,20 @@ Two things.
    rule for deciding contango beyond location 2718's definition, so the rule
    here is the script's, and its APR and Sharpe ratio are the text's
    16 percent and "about 1".
+3. **The backwardation days earn a third of the return.** Split by the view
+   held the day before, the trade earns on contango on 1,128 days and on
+   backwardation on 244. Their daily returns sum to 0.638420 and 0.308117 of
+   0.946538, and compound to 0.790269 and 0.343539. On the contango days USO
+   fell 0.567754 and the ratio implies a roll return of −0.766081 in log
+   terms, against USO's log move of −0.8388. On the backwardation days USO
+   rose 0.702850, or 0.5323 in log terms, and XLE fell 0.097061, while the
+   ratio implies 0.072380 in log terms, reading 12 · ln(front / back) as
+   contracts a month apart. Holding
+   contango's position on every day the trade holds anything gives an APR of
+   0.044949 and a Sharpe ratio of 0.364524. `TestWhatThePostMeasures` pins
+   all of it, and the write-up found it. The split comes from the rule's own
+   two views rather than a date picked after the curve was seen, and it
+   describes this sample without testing anything.
 
 ### What this entry cannot say
 
@@ -8087,8 +8122,12 @@ series over this window is committed to measure by how much.
 
 **What the trade earned while it held a view.** The first 123 days carry no
 ratio, because the strip's first contract opens its front window on
-2006-10-20. The figures count those days as earning 0, as the script does,
-and this entry measures nothing over the shorter span.
+2006-10-20. The figures count those days as earning 0, as the script does.
+Measured from 2006-10-20 instead, the APR is 0.174513 and the Sharpe ratio
+1.092618, and both drawdown figures are unchanged, which
+`TestWhatThePostMeasures::test_from_the_first_ratio_the_apr_and_sharpe_rise_and_the_drawdown_holds`
+pins. The book prints nothing for that span, so neither figure gets a
+verdict.
 
 **Which standard deviation the Sharpe ratio divides by.** The run divides by
 n, as `chan.matlab_helpers.smartstd_book_two` does. Dividing by n − 1 gives
@@ -8100,7 +8139,10 @@ Chan's, and the sample is the one he reported on. A registered test would fix
 the rule first and run it on data after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/xle-uso-roll-return-lessons.md](../blog/xle-uso-roll-return-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.xle_uso_roll_return_figures` redraws.
 
 ## Entry 40: the opening gap strategy on STOXX Europe 50 futures, Chan's *Algorithmic Trading*
 
