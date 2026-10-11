@@ -368,6 +368,9 @@ class TestTheCppiPanel:
         floor = _by_gid(axes["cppi"].lines)["floor"]
         assert list(floor.get_ydata()) == [-0.5, -0.5] and floor.get_linestyle() == "--"
 
+    def test_the_panel_spans_every_draw(self, axes) -> None:
+        assert axes["cppi"].get_xlim() == (0.0, 100_000.0)
+
     def test_every_step_fits_inside_the_panel(self, axes) -> None:
         low, high = axes["cppi"].get_ylim()
         for gid in ("scripted", "described", "full"):

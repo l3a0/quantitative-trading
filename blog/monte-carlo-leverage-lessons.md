@@ -1,31 +1,31 @@
-# Chan’s Kelly of 18.4 does not reproduce on his own returns, and the CPPI loop he prints breaks the floor it promises
+# Chan’s Kelly of 18.4 does not reproduce on his own returns, and the CPPI loop he prints breaks the floor his text promises
 
-*Chapter 8 of Algorithmic Trading picks a leverage by Monte Carlo, by the historical growth rate and with portfolio insurance. Chan’s saved returns give a Kelly of 23.8, not 18.4, and his insurance loop falls past the floor his scheme keeps.*
+*Chapter 8 of Algorithmic Trading finds a leverage by Monte Carlo and by historical growth, then caps the loss with portfolio insurance. Chan’s saved returns give a Kelly of 23.8, not 18.4, and his insurance loop falls past the floor his scheme keeps.*
 
-## Why choose a leverage three ways
+## Why find a leverage without the bell curve
 
-The leverage that grows capital fastest can still bring a loss of nearly everything along the way. Ernest Chan’s *Algorithmic Trading* makes that case in its Chapter 8. The usual answer to how much leverage to use is the Kelly leverage, the mean return over its variance. Chan calls it “best viewed as an upper bound”, because on returns that are not a bell curve it “would have bankrupted us even in backtest” (Chan, 2013, location 3235). The [post on capped Kelly allocation](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-kelly-allocation-lessons.md#why-a-leverage-cap-changes-the-answer) covers that warning and the growth rate it rests on, from the first half of the same chapter.
+The leverage that grows capital fastest can still bring a loss of nearly everything along the way. Ernest Chan’s *Algorithmic Trading* makes that case in its Chapter 8. A fall from the account’s previous high is a drawdown, written here as a negative fraction, so a drawdown of −0.5 leaves the account at half its previous high. The usual answer to how much leverage to use is the Kelly leverage, the mean return over its variance. Chan calls it “best viewed as an upper bound”, because on returns that are not a bell curve it “would have bankrupted us even in backtest” (Chan, 2013, location 3235). The [post on capped Kelly allocation](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-kelly-allocation-lessons.md#why-a-leverage-cap-changes-the-answer) covers that warning and the growth rate it rests on, from the first half of the same chapter.
 
-The Kelly formula assumes returns follow a bell curve. Chapter 8 then drops that assumption three ways.
+The Kelly formula assumes returns follow a bell curve. Chapter 8 gives two ways to find a leverage without that assumption, and one way to cap the loss at whatever leverage is chosen.
 
 1. **By Monte Carlo.** Draw many returns from a distribution fitted to the real ones, and find the leverage that grows the draws fastest. Chan says that where no formula exists, “This is where Monte Carlo simulations can help” (location 3280). The fitted distribution comes from the Pearson system (location 3319).
 2. **By the historical growth rate.** Find the same leverage on the returns that actually occurred, at the risk of fitting one history (location 3379).
-3. **With constant proportion portfolio insurance, CPPI.** Trade only a slice of the account, so a loss can never take more than that slice (location 3426).
+3. **With constant proportion portfolio insurance, CPPI.** This one does not choose the leverage. It trades only a slice of the account at the chosen leverage, so a loss can never take more than that slice (location 3426).
 
 Chan runs all three on the returns of Example 5.1, his trade of the Australian dollar against the Canadian dollar. He published the script, `monteCarloOptimLeverage.m`, and this repository transcribed it and ran it on the returns his earlier script saved. The results fall into six groups.
 
 1. **The book’s 18.4 does not reproduce on Chan’s own returns.** They give a Kelly of 23.845328 and a historical optimum of 23.721773, where the book prints 18.4 for both.
-2. **Example 5.1’s own printed figures rule 18.4 out.** Any series with that example’s Sharpe ratio and APR has a Kelly between 21.558894 and 26.757652.
+2. **Example 5.1’s own printed figures rule 18.4 out.** Any series with that example’s Sharpe ratio and APR has a Kelly of at least 20.891304, however its APR is compounded.
 3. **The script stops its search at 20.** On 158 of 200 seeds the answer is the cap itself. Whether the book’s 19 and 19.2 land depends on a band rule chosen after the seeds were seen.
-4. **The least of 100,000 draws is deeper than any day Chan traded.** On 78 of 200 seeds it puts the ruin leverage, where one day loses everything, at or below the Kelly.
+4. **The least of 100,000 draws is deeper than any day in Chan’s backtest, because there are about 163 times as many draws.** The fitted distribution’s left tail is thinner than his history’s. Even so, on 78 of 200 seeds the least draw puts the ruin leverage, where one day loses everything, at or below the Kelly.
 5. **Box 8.6’s CPPI loop breaks the floor the text says CPPI keeps.** The scheme the text describes keeps it, at a cost of about a quarter of the growth.
 6. **Most of the book’s drawdowns and growth rates miss their bands.**
 
-**Every result here is exploratory.** Chan chose the strategy, the fitted distribution and the method, and the reproduction spends his 612 returns on his choices. It can say whether his numbers follow from his file and his script, and nothing about whether any leverage is safe to trade. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+**Every result here is exploratory.** Chan chose the strategy, the fitted distribution and the method, and the reproduction tests those choices on the same 612 returns, with no fresh data. It can say whether his numbers follow from his file and his script, and nothing about whether any leverage is safe to trade. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The returns, the draws and the seeds
 
-**The returns.** Example 5.1 trades AUD.USD against CAD.USD in weights a Johansen test sets each day. Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 for it (location 2237). His script saved its 612 daily returns, from 2009-12-18 to 2012-04-26, and the [post on that example](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-johansen-lessons.md#lesson-1-every-figure-matches-because-every-return-does) found every one of them reproduced from his closes. Chapter 8 reads those saved returns, and so does this replication. That post also shows the Kelly leverage of these returns is 23.845328 when the variance divides by n − 1, as MATLAB’s does.
+**The returns.** Example 5.1 [trades AUD.USD against CAD.USD in weights a Johansen test sets each day](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-johansen-lessons.md#the-rule-and-the-files). Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 for it (location 2237). His script saved its 612 daily returns, from 2009-12-18 to 2012-04-26, and the [post on that example](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-johansen-lessons.md#lesson-1-every-figure-matches-because-every-return-does) found every one of them reproduced from his closes. Chapter 8 reads those saved returns, and so does this replication. That post also shows the Kelly leverage of these returns is 23.845328 when the variance divides by n − 1, where n is the number of returns, as MATLAB’s does.
 
 **The growth rate.** Leverage f turns a day’s return R into f·R. Compounding multiplies 1 + f·R across the days, so the growth per day is the average of its logarithm.
 
@@ -39,7 +39,9 @@ The [coin toss post](https://github.com/l3a0/quantitative-trading/blob/main/blog
 
 **The draws.** The script fits a distribution to the returns’ mean, standard deviation, skewness and kurtosis, and draws 100,000 returns from it. The [post on three hypothesis tests on TU momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#the-rule-the-file-and-the-three-tests) explains the Pearson system that does this and the number κ that picks its type. Here κ is 0.038081, which puts the returns in type IV, the type location 3342 names. The kurtosis is 7.821679, where a bell curve’s is 3, so the draws keep the fat tails the Kelly formula ignores. The fitted type IV has moments only below order 5.51, a sign of tails far heavier than a bell curve’s.
 
-**The seeds.** A seed is the number that fixes a run of random draws, so a rerun gives the same draws. The TU post’s [Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-2-a-simulated-count-lands-only-within-sampling-error-so-the-band-comes-first) explains why a simulated figure can only be judged against a range. Chan’s figures came from one set of draws nobody holds, and he warns they “are not exactly reproducible” (location 3399). So each simulated figure here comes from one declared seed, 20261012, and is judged against 200 further seeds, 20261013 to 20261212. The book’s figure lands when it sits between the 5th and 95th percentiles of the same quantity across those 200 seeds, a range called its band here. The criteria were written down before any draw on the declared seeds. Scratch runs on other seeds had seen results before then.
+**The seeds.** A seed is the number that fixes a run of random draws, so a rerun gives the same draws. The TU post’s [Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-2-a-simulated-count-lands-only-within-sampling-error-so-the-band-comes-first) explains why a simulated figure can only be judged against a range. Chan’s figures came from one set of draws nobody holds, and he warns they “are not exactly reproducible” (location 3399). So each simulated figure here comes from one declared seed, 20261012, and is judged against 200 further seeds, 20261013 to 20261212. The book’s figure lands when it sits between the 5th and 95th percentiles of the same quantity across those 200 seeds, a range called its band here. The criteria were written down before any draw on the declared seeds. Trial runs on other seeds, whose results were seen, came before the criteria were written.
+
+**The verdicts.** Rules written down before the draws give each of Chan’s figures a verdict. A figure computed without random draws **reproduced** when the computed value rounds to the book’s at the precision the book prints, and otherwise **did not reproduce**. A simulated figure outside its band did not reproduce. One inside its band reproduced when the declared seed’s value rounds to the book’s, and otherwise **reproduced with a gap**, with **the seed as the cause** of the gap, since Chan says his simulated figures cannot be reproduced exactly. A claim reproduced when the test written for it holds.
 
 **The script’s cap.** Line 22 searches for the best leverage with `fminbnd(minusGsim, 0, 20)`, MATLAB’s search over a bounded range. It never looks above 20. This replication runs the same search and also runs it without the cap, up to the ruin leverage, because Chan reports one figure from each.
 
@@ -57,9 +59,9 @@ Location 3342 says the returns give a Kelly leverage of 18.4. Location 3379 says
 \end{array}
 ```
 
-The gap is the computed figure minus the printed one. No vintage explanation is left. These are the returns Chan’s own script saved, and his `AUDCAD_unequal.m` prints the same 23.845328 for them.
+The gap is the computed figure minus the printed one. A different download of the data cannot explain the gap. These are the returns Chan’s own script saved, and his `AUDCAD_unequal.m` prints the same 23.845328 for them.
 
-The claim the two figures were printed to support still holds. The historical optimum sits −0.005182 below the Kelly in relative terms, within 0.52 percent, against the 1 percent the replication allowed in advance. So on this file the two methods agree, as Chan says, at about 23.8 rather than 18.4.
+The claim the two figures were printed to support still holds. The historical optimum sits 0.005182 below the Kelly in relative terms, within 0.52 percent, against the 1 percent the replication allowed in advance. So on this file the two methods agree, as Chan says, at about 23.8 rather than 18.4.
 
 ## Lesson 2: Example 5.1’s own figures rule 18.4 out
 
@@ -71,7 +73,7 @@ The Sharpe ratio S fixes the daily mean m as S·σ / √252, where σ is the dai
 f^{*} = \frac{m}{\sigma^{2}} = \frac{S}{\sqrt{252}\,\sigma}, \qquad 1 + \text{APR} = e^{\,252\,(m - \sigma^{2}/2)}
 ```
 
-The second equation compounds the log growth, the mean less half the variance. Across the rounding of the printed figures, a Sharpe ratio from 1.55 to 1.65 and an APR from 10.5 to 11.5 percent, the Kelly runs from 21.558894 to 26.757652. The book does not say how it compounded its APR, and the edge depends on it.
+The second equation compounds the log growth, the mean less half the variance. Across the rounding of the printed figures, a Sharpe ratio from 1.55 to 1.65 and an APR from 10.5 to 11.5 percent, the Kelly runs from 21.558894 to 26.757652. The book does not say how it compounded its APR, and the low end of that range depends on it.
 
 1. **Compounding the log growth**, as above, puts the lowest Kelly at 21.558894.
 2. **Compounding 1 + m exactly** each day puts it at 22.065999.
@@ -81,19 +83,19 @@ None reaches 18.4. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 13.
 
 A second check moves the draws instead. Shifting the fitted distribution’s mean so its Kelly is exactly 18.4, and keeping its spread and shape, changes only where it sits. On the same 200 seeds, the median uncapped optimum becomes 18.470198, close to the book’s 19 and 19.2. Under the shift the book’s simulated optimum, its drawdowns at the optimum and at a seventh of it, and both of its growth rates land. Only the drawdown at half the optimum still misses. Its −0.963 sits just past a band that runs to −0.953551.
 
-**This is an inference, and it is exploratory.** The evidence favors Chapter 8 having run on an older version of these returns, with a Kelly near 18.4, that nobody holds. That version would also disagree with Example 5.1’s own printed Sharpe ratio and APR. Scratch runs also tried variants of the saved series, and no test here holds them, so they are left out.
+**This is an inference, and it is exploratory.** The evidence favors Chapter 8 having run on a different series of returns, with a Kelly near 18.4, that nobody holds. That series would also disagree with Example 5.1’s own printed Sharpe ratio and APR. The evidence cannot tell when or how it differed from the saved file. Trial variants of the saved series, such as dropping the days whose return is zero or using log returns, reached no 18.4 either, and no test reruns them.
 
 ## Lesson 3: the script stops at 20, and the band for 19 and 19.2 changed after the seeds were seen
 
-The book reports two simulated optima. Location 3342 says `fminbnd` “yields an optimal f of 19”. Location 3399 calls the optimum “an unconstrained optimal f of 19.2”.
+Chapter 8 reports two simulated optima. Location 3342 says `fminbnd` “yields an optimal f of 19”. Location 3399 calls the optimum “an unconstrained optimal f of 19.2”.
 
-The script cannot return anything above 20. On the declared seed it returns the cap, and so it does on 158 of the 200 further seeds. Searched without the cap, the declared seed’s optimum is 22.295382. The 158 seeds split cleanly from the rest. Every seed whose ruin leverage is 20 or more has an uncapped optimum above 20, the lowest at 20.075698, so those are exactly the seeds that sit on the cap. Neither of the book’s figures sits on it, so both are judged against the uncapped optimum.
+On the declared seed the script returns its cap of 20, the most it can return, and so it does on 158 of the 200 further seeds. Searched without the cap, the declared seed’s optimum is 22.295382. The 158 seeds split cleanly from the rest. Every seed whose ruin leverage is 20 or more has an uncapped optimum above 20, the lowest at 20.075698, so those are exactly the seeds that sit on the cap. Neither of the book’s figures sits on it, so both are judged against the uncapped optimum.
 
-The question is which seeds to read the band from. The rule declared before any draw used all 200. Its band runs from 16.622019 to 24.865122, and both 19 and 19.2 land inside it.
+Reading the band needs a choice of seeds. The rule declared before any draw used all 200. Its band runs from 16.622019 to 24.865122, and both 19 and 19.2 land inside it.
 
-The low end of that band is not what it seems. The growth rate plunges as the leverage nears the ruin leverage, so a seed’s optimum always sits below it. A seed with one very deep draw has a low ruin leverage, and its optimum is held down with it. Thirty seeds have an uncapped optimum at or below 19.2, and 28 at or below 19. All 30 have a ruin leverage below 20, the largest 19.147175. The book’s figures land in the declared band only through those seeds. The capped band and the uncapped band also share their 5th percentile, 16.622019, the optimum of one such seed. The declared rule had set the capped band aside for exactly this reason and missed that the uncapped band shares the same seeds.
+A seed’s optimum always sits below its ruin leverage, because the growth rate plunges as the leverage nears it. A seed with one very deep draw has a low ruin leverage, and its optimum is held down with it. Thirty seeds have an uncapped optimum at or below 19.2, and 28 at or below 19. All 30 have a ruin leverage below 20, the largest 19.147175. The book’s figures land in the declared band only through those seeds. The band of the script’s capped optimum and the uncapped band also share their 5th percentile, 16.622019, a point between the optima of two such seeds. The declared rule had set the first band aside for exactly this reason and missed that the uncapped band shares the same seeds.
 
-So the rule changed in review, after the 200 seeds were seen. It now reads only the seeds whose ruin leverage is above the book’s own 30.2, the seeds whose worst draw is no deeper than Chan’s. Forty seeds qualify.
+So the rule changed after the 200 seeds were seen. It now reads only the seeds whose ruin leverage is above 30.2, the ruin leverage the book prints from its least draw of −0.0331. Those are the seeds whose worst draw is no deeper than the book’s. Forty seeds qualify.
 
 ```math
 \begin{array}{l|c|c}
@@ -111,9 +113,9 @@ One claim holds whichever band is read. Location 3342 calls the simulated optimu
 
 ![Two charts. The top chart redraws Figure 8.2, the growth rate per day against the leverage f from 0 to 27. A solid black curve for the 100,000 draws on seed 20261012 rises from zero to a peak of about 0.0048 near f of 22.3 and stops at a dotted vertical line at 23.217362, the draws’ ruin leverage. A grey curve for Chan’s 612 saved returns runs slightly above it, peaks near 0.0052 at about 23.7 and carries on to 27. A dashed vertical line at 20 marks the script’s cap, with a square marker where the black curve crosses it. A round marker shows the draws’ optimum without the cap, and a diamond and a triangle, almost on top of each other, show the saved returns’ optimum at 23.721773 and their Kelly at 23.845328. A shaded band from about 21.6 to 26.8 marks the Kelly range Example 5.1’s printed figures allow. Three short red ticks at the bottom mark the book’s 18.4, 19 and 19.2, all left of the band. The bottom chart plots the deepest drawdown in each 1,000 days of the draws for three accounts, with a dashed line at −0.5. A green step line for location 3426’s scheme stays above the line throughout. A red step line for Box 8.6’s loop dips below it in most stretches, deepest at −0.848088 on day 37,071, and a grey line for the full account at f·D runs just below the red one, deepest at −0.871216 on the same day. The title calls the figure exploratory.](../docs/figures/monte_carlo_leverage.png)
 
-*The top panel redraws the book’s Figure 8.2, “Expected Growth Rate g as Function of f”, on the declared seed, with the saved returns beside it. It adds the script’s cap, the ruin leverage where the draws’ curve ends, and the Kelly range from Lesson 2. The bottom panel is Lesson 5. Both read the declared seed only, because a picture built around one of Lesson 3’s two band rules would read as the rule.*
+*The top panel redraws the book’s Figure 8.2, “Expected Growth Rate g as Function of f”, on the declared seed, with the saved returns beside it. It adds the script’s cap, the ruin leverage where the draws’ curve ends, and the Kelly range from Lesson 2. The bottom panel is Lesson 5. Both read the declared seed only, because a picture built around one of Lesson 3’s two band rules would look like an endorsement of that rule.*
 
-## Lesson 4: the least of 100,000 draws is deeper than any day Chan traded
+## Lesson 4: the draws hold a worse day than Chan’s backtest because there are about 163 times as many
 
 Location 3342 reports the most negative simulated return as −0.0331, so any leverage above 30.2 “will result in total loss”. No seed can be expected to give that exact figure. The least of 100,000 draws has its own distribution, though, and it has a formula. The least draw is above x only when every draw is, so with F the fitted distribution’s chance of a draw at or below x:
 
@@ -121,11 +123,13 @@ Location 3342 reports the most negative simulated return as −0.0331, so any le
 P\bigl(\min R \le x\bigr) = 1 - \bigl(1 - F(x)\bigr)^{100{,}000}
 ```
 
-At −0.0331 that chance is 0.807083, inside the 5 to 95 percent the declaration allows, so the book’s figure lands. Its ruin leverage of 30.2 lands too, at 0.806406. The declared seed’s least draw is −0.043071, a gap of −0.0100, so both reproduced with a gap and the seed is the cause.
+At −0.0331 that chance is 0.807083, inside the 5 to 95 percent range set in advance, so the book’s figure lands. Its ruin leverage of 30.2 lands too, at 0.806406. The declared seed’s least draw is −0.043071, a gap of −0.0100, so both reproduced with a gap and the seed is the cause.
 
-The draws reach deeper than the history. The worst of Chan’s 612 saved returns is −0.022031, a ruin leverage of 45.390502. The declared seed’s least draw is 1.9550 times as deep, nearly twice, and its ruin leverage is 23.217362. That is below the Kelly of 23.845328, so at the Kelly one draw on that seed loses everything. The same holds on 78 of the 200 further seeds. The figure’s top panel shows it: the draws’ curve ends before the Kelly, while the saved returns’ curve passes it far from ruin. Across the 200 seeds, 42 have a ruin leverage below the script’s cap of 20. The exact formula gives a chance of 0.149180, about 29.8 seeds, and 42 is within four binomial standard errors of that.
+The draws hold a worse day than the history, and the count of draws is the reason. The worst of Chan’s 612 backtest returns is −0.022031, a ruin leverage of 45.390502. The declared seed’s least draw is 1.9550 times as deep, nearly twice, and its ruin leverage is 23.217362. A fatter tail in the fitted distribution does not explain it. With 612 draws in place of 100,000, the same formula gives a chance of 0.091663, about 9.2 percent, that the least is at or below −0.022031. So a sample from the fit the size of Chan’s backtest would rarely reach his worst day, and the fit’s left tail is thinner than his history’s. The extra depth comes from drawing about 163 times as many returns.
 
-Chan names this tradeoff himself. A simulated drawdown “may be so rare” that it would not happen in a million years, while the history is “far too limited” to hold the worst case (location 3417). Here the draws hold a worse day than any in the history, and that day decides where the growth curve ends.
+The declared seed’s ruin leverage is below the Kelly of 23.845328, so at the Kelly one draw on that seed loses everything. The same holds on 78 of the 200 further seeds. The figure’s top panel shows it: the draws’ curve ends before the Kelly, while the saved returns’ curve passes it far from ruin. Across the 200 seeds, 42 have a ruin leverage below the script’s cap of 20. The exact formula gives a chance of 0.149180, about 29.8 seeds. The count of 42 is 2.4 binomial standard errors above that, and the chance of 42 or more is about 1.3 percent.
+
+Chan names this tradeoff himself. A simulated drawdown “may be so rare” that it would not happen in a million years, while the history is “far too limited” to hold the worst case (location 3417).
 
 ## Lesson 5: Box 8.6’s loop breaks the floor the text says CPPI keeps
 
@@ -150,7 +154,7 @@ The floor has a price. The loop’s growth falls short of the full account’s a
 
 ## Lesson 6: most of the book’s drawdowns and growth rates miss their bands
 
-Location 3399 reports the drawdown at the optimum and at fractions of it, and location 3438 the two growth rates. Here each beside the declared seed and the band of the 200 further seeds.
+Location 3399 reports the drawdown at the optimum and at fractions of it, and location 3438 the two growth rates. The table sets each beside the declared seed’s value and the band of the 200 further seeds.
 
 ```math
 \begin{array}{l|r|r|c|l}
@@ -164,21 +168,21 @@ Location 3399 reports the drawdown at the optimum and at fractions of it, and lo
 \end{array}
 ```
 
-The drawdown at the optimum lands. The book’s “frightening −0.999” (location 3399) is what a growth-optimal leverage does to these draws. The drawdowns at half and a seventh of the optimum are deeper in the book than anywhere in their bands. Both of the book’s growth rates sit below theirs. Lesson 2’s shift moves all but the drawdown at half the optimum into their bands, which points the same way as the 18.4.
+The drawdown at the optimum lands. The book’s “frightening −0.999” (location 3399) is what a growth-optimal leverage does to these draws. The drawdowns at half and a seventh of the optimum are deeper in the book than anywhere in their bands. Both of the book’s growth rates sit below theirs. Shifting the draws to a Kelly of 18.4, as Lesson 2 does, moves all but the drawdown at half the optimum into their bands, which fits the inference there.
 
 Three details sit inside the table.
 
 1. **The leverage at a seventh.** The declared seed’s f / 7 is 2.857143, since its f is the cap. The book’s 2.7 is 19.2 over 7.
-2. **The claim of similar growth holds.** The two growth rates differ by 1.4 percent on the declared seed, and by less than 2 percent on all 200 seeds. The book’s own pair differs by 0.016238.
+2. **The claim of similar growth holds.** Lesson 5 gives the figures, 1.4 percent on the declared seed against the book’s near 1.6 percent. The gap stays under 2 percent on all 200 seeds.
 3. **Two prints of one quantity.** With D at 0.5, the full account at f·D is the account at f / 2. So the book’s “painful 0.9” (location 3438) and its −0.963 measure the same thing, and they disagree. The −0.9 lands only because one decimal covers anything from −0.95 to −0.85. The two most likely come from different runs, and the book reports at least two, the 19 and the 19.2.
 
-On Chan’s 612 real returns the drawdowns are far milder. At the historical optimum the deepest is −0.737560, and at the Kelly −0.739733. At the script’s f of 20 over 1.4 it is −0.526211. The draws at the optimum reach −0.991276.
+On Chan’s 612 real returns the drawdowns are far milder. At the historical optimum the deepest is −0.737560, and at the Kelly −0.739733. At f / 1.4, the leverage the script itself chooses for its drawdown on these returns, with f its capped optimum of 20, it is −0.526211. The draws at the optimum reach −0.991276. Part of that gap is length alone. The deepest drawdown can only grow as a path gets longer, so at the same daily risk a path of 100,000 days is all but certain to reach deeper than one of 612.
 
 ## What this replication cannot say
 
 Four questions are beyond it.
 
-1. **Which Pearson type `pearsrnd` drew from.** Type IV is inferred from the standard criterion and the book’s “type is 4”. These draws follow the script’s in distribution, not draw for draw.
+1. **Which Pearson type the script’s draws came from.** The script draws with `pearsrnd`, MATLAB’s Pearson random-number function. Type IV is inferred from the standard criterion and the book’s “type is 4”. These draws follow the script’s in distribution, not draw for draw.
 2. **What Chan’s returns were.** Lesson 2 shows a series with a Kelly near 18.4 lands most of the simulated figures, and that no series matching Example 5.1 has one. It cannot recover that series.
 3. **Whether any leverage here is safe to trade.** Every figure is computed on 612 days of one strategy or on draws fitted to them. Location 3417 notes that draws “miss some crucial serial correlations”, and nothing here measures them.
 4. **Which band the simulated optimum belongs against.** The declared band lands both of the book’s optima, and the band chosen afterwards lands neither. The second rests on one printed figure, the ruin leverage of 30.2.
@@ -190,7 +194,7 @@ One habit for each lesson.
 1. **Recompute a leverage from the returns before using it.** The book’s 18.4 sits 5.4 below what its own saved returns give, and only the returns can say which figure is theirs.
 2. **Check a figure against the others printed beside it.** A Sharpe ratio and an APR together fix the Kelly, so one inconsistent figure shows up without the data.
 3. **Read the bounds of a search.** An optimizer capped at 20 returns 20 whenever the answer lies past it, and the printout looks like an answer.
-4. **Find the worst day in the sample before trusting the curve.** One day decides the ruin leverage, and a simulation can hold a worse day than the history.
+4. **Find the worst day in the sample before trusting the curve.** One day decides the ruin leverage, and a simulation with many more draws than the history is likely to hold a worse day, even from a distribution whose tail is no fatter.
 5. **Run the code the text describes, not only the code printed beside it.** A loop that scales by the wrong drawdown gives up the guarantee that was the reason to use it.
 6. **Judge a simulated figure against a band of seeds, and write the band down first.** One seed’s figure says little, and a band chosen after the seeds were seen is only exploratory.
 

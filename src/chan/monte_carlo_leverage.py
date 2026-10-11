@@ -62,7 +62,8 @@ seed whose ruin leverage is below 20 is searched only up to it, and the report
 counts how many seeds that touches.
 
 **The declaration.** Issue 360 fixed these before any draw on its seeds.
-Scratch runs on other seeds had seen results.
+Trial runs on other seeds, whose results were seen, came before the criteria
+were written.
 
 1. The declared seed is :data:`SEED`, 20261012, and every seeded figure is
    computed on its draws.
@@ -85,13 +86,13 @@ declaration set the capped band aside because its lower tail is made of seeds
 whose low ruin leverage holds the optimum down. The uncapped band shares those
 seeds. A seed whose most negative draw is deep has a low ruin leverage, and
 the growth rate falls to minus infinity at the ruin leverage, so the uncapped
-optimum sits below it too. The two bands' 5th percentiles are the same seed's
-optimum. So the declared rule applies the clamping objection to one band and
-not the other. Row 3 is now judged against :func:`optimum_band`, the uncapped
-optimum across the seeds whose ruin leverage is above the book's 30.2, which
-are the seeds whose most negative draw is no deeper than Chan's. The report
-prints the declared band and its verdict beside it, and the change is
-exploratory like everything else here.
+optimum sits below it too. The two bands' 5th percentiles are the same value,
+a point between the optima of two such seeds. So the declared rule applies
+the clamping objection to one band and not the other. Row 3 is now judged
+against :func:`optimum_band`, the uncapped optimum across the seeds whose ruin
+leverage is above the book's 30.2, which are the seeds whose most negative
+draw is no deeper than Chan's. The report prints the declared band and its
+verdict beside it, and the change is exploratory like everything else here.
 
 **Two CPPI forms run, because the script's loop is not the prose's scheme.**
 Location 3426 sets aside D of the account, trades that subaccount at leverage
@@ -127,9 +128,10 @@ holds the evidence for where 18.4 came from.
    declared band and :func:`optimum_band`. Only the drawdown at half the
    optimum still misses.
 
-The evidence favors Chapter 8 having run on an older ``ret`` whose Kelly was
-near 18.4, which neither mirror holds and which disagrees with Example 5.1's
-printed figures. That is an inference, not a held vintage.
+The evidence favors Chapter 8 having run on a different series of returns,
+with a Kelly near 18.4, that neither mirror holds and that disagrees with
+Example 5.1's printed figures. The evidence cannot tell when or how that series
+differed from the saved file. That is an inference, not a held vintage.
 
 No sibling code was ported. The sibling's ``kelly_fraction`` searches the same
 growth rate on a grid too coarse to pin an optimum, and the sampler and the
@@ -139,10 +141,15 @@ Every result here is exploratory. Reproducing Chan's figures spends his 612
 returns on a method he chose. The run says whether his numbers reproduce on his
 file, and nothing about whether any leverage is safe to trade.
 
-:mod:`chan.monte_carlo_leverage_figures` draws the figure for the post on this
-entry. It reads the fit through :func:`pearson_fit` and each day's drawdown
-through :func:`account_drawdowns`, the same functions the run uses, so the
-figure and the run cannot drift apart.
+**What the post added.** The post on these lessons,
+``blog/monte-carlo-leverage-lessons.md``, has one figure, which
+:mod:`chan.monte_carlo_leverage_figures` draws, since the run prints its
+figures and draws nothing. The figure reads the fit through
+:func:`pearson_fit` and the Kelly through :func:`kelly`, the same functions the
+run uses. It reads each day's drawdown through :func:`account_drawdowns`, which
+shares :func:`chan.matlab_helpers.drawdown_path` with the run's
+:func:`max_drawdown`, and a test holds its least value equal to
+:func:`max_drawdown`'s. So the figure and the run cannot drift apart.
 """
 
 from __future__ import annotations
@@ -219,6 +226,16 @@ def rounding_band(printed: str, scale: float = 1.0) -> tuple[float, float]:
 #: The rounding bands of Example 5.1's printed Sharpe ratio and APR in percent, location 2237.
 SHARPE_BAND = rounding_band(BOOK_SHARPE)
 APR_BAND = rounding_band(BOOK_APR_PERCENT, scale=0.01)
+
+
+def kelly(returns: ArrayLike) -> float:
+    """The Kelly leverage ``mean / std²``, as ``AUDCAD_unequal.m`` computes it.
+
+    The variance divides by n − 1, where n is the number of returns, as
+    MATLAB's ``std`` does. The run and the post's figure both read it here.
+    """
+    values = np.asarray(returns, dtype=float)
+    return float(np.mean(values) / np.var(values, ddof=1))
 
 
 def ruin_leverage(returns: ArrayLike) -> float:
@@ -654,7 +671,7 @@ def monte_carlo_leverage(entry: VintageEntry, returns: NDArray[np.float64]) -> M
         moments=moments,
         params=params,
         kappa=pearson_kappa(moments.skewness, moments.kurtosis),
-        kelly=float(np.mean(returns) / np.var(returns, ddof=1)),
+        kelly=kelly(returns),
         historical=optimal_leverage(returns),
         historical_capped=optimal_leverage(returns, CAP),
         declared=declared,

@@ -26,14 +26,15 @@ seed's draws only.
    named in the legend.
 
 No panel reads the 200 further seeds. Row 3's band rule was chosen after
-those seeds were seen, and a picture built around one band would read as the
-rule rather than as one of two.
+those seeds were seen, and a picture built around one band would look like an
+endorsement of that rule rather than show one of two.
 
 Every value comes from :mod:`chan.monte_carlo_leverage`'s own functions,
 :func:`~chan.monte_carlo_leverage.pearson_fit`,
 :func:`~chan.monte_carlo_leverage.draws`,
 :func:`~chan.monte_carlo_leverage.growth`,
 :func:`~chan.monte_carlo_leverage.optimal_leverage`,
+:func:`~chan.monte_carlo_leverage.kelly`,
 :func:`~chan.monte_carlo_leverage.ruin_leverage`, the two CPPI forms and
 :func:`~chan.monte_carlo_leverage.account_drawdowns`, so the figure and the
 run read one computation::
@@ -66,6 +67,7 @@ from chan.monte_carlo_leverage import (
     draws,
     growth,
     implied_kelly_band,
+    kelly,
     optimal_leverage,
     pearson_fit,
     read_returns,
@@ -132,7 +134,7 @@ def drawn(saved: tuple[VintageEntry, NDArray[np.float64]] | None = None) -> Draw
         uncapped=optimal_leverage(sim),
         capped=capped,
         historical=optimal_leverage(returns),
-        kelly=float(np.mean(returns) / np.var(returns, ddof=1)),
+        kelly=kelly(returns),
         scripted=account_drawdowns(cppi_as_scripted(sim, capped)),
         described=account_drawdowns(cppi_as_described(sim, capped)),
         full=account_drawdowns(capped * D * sim),

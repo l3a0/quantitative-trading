@@ -38,6 +38,13 @@ book's rounding unnoticed. An optimum is pinned at 1e-6, because the search
 stops within about 3e-7 of the true optimum at a leverage of 20, and the
 uncapped ones are also held to the root of the growth rate's derivative.
 
+``blog/monte-carlo-leverage-lessons.md`` quotes most of these figures, so a
+change to any of them moves that post too. ``TestWhatThePostMeasured`` holds
+the numbers the post added, all measured after the run, and
+``TestThePostsHelpers`` holds the helpers the post's figure shares with the
+run. ``tests/test_monte_carlo_leverage_figures.py`` holds what the figure
+draws, including the growth rates and the drawdown days the post quotes.
+
 Exploratory. Reproducing Chan's figures spends his 612 returns on a method he
 chose. The boxes first ran on the declared seeds on 2026-10-10.
 """
@@ -52,7 +59,7 @@ from dataclasses import replace
 
 import numpy as np
 import pytest
-from scipy import integrate, optimize
+from scipy import integrate, optimize, stats
 
 from chan import monte_carlo_leverage as module
 from chan.aud_cad_johansen import SCRIPT_KELLY
@@ -95,6 +102,7 @@ from chan.monte_carlo_leverage import (
     growth,
     implied_kelly,
     implied_kelly_band,
+    kelly,
     lands_in_exact_distribution,
     lower_tail,
     max_drawdown,
@@ -373,13 +381,24 @@ class TestRows3And4TheSimulatedOptimum:
         assert np.count_nonzero(capped > CAP - 1e-6) == 158
 
     def test_the_declared_band_shares_the_capped_band_s_lower_tail(self, result) -> None:
-        """Why row 3's rule changed: both bands' 5th percentiles are one clamped seed's optimum."""
+        """Why row 3's rule changed: both bands share their 5th percentile.
+
+        numpy's linear percentile puts it between the 10th and 11th sorted
+        optima, and both of those seeds' ruin leverages are below 20, so a seed
+        held down by its ruin leverage sets both bands' low end.
+        """
         ens = result.ensemble
         uncapped, capped = ens.band("uncapped"), ens.band("optimum")
         assert uncapped.low == capped.low
         assert uncapped.low == pytest.approx(16.622019, abs=1e-6)
         ruin = ens.values("ruin")
         assert np.all(ruin[ens.values("uncapped") <= uncapped.low] < CAP)
+        order = np.argsort(ens.values("uncapped"))
+        tenth, eleventh = ens.values("uncapped")[order[9:11]]
+        assert tenth == pytest.approx(16.453115, abs=1e-6)
+        assert eleventh == pytest.approx(16.630909, abs=1e-6)
+        assert tenth < uncapped.low < eleventh
+        assert np.all(ruin[order[9:11]] < CAP)
 
     def test_under_the_declared_band_both_figures_land(self, result) -> None:
         """The declared rule's verdict, kept beside the one row 3 now reads."""
@@ -471,7 +490,10 @@ class TestRow5TheMinimumAndTheRuinLeverage:
         assert math.isfinite(growth(result.declared.ruin * (1 - 1e-9), declared_draws))
 
     def test_the_share_of_seeds_ruined_below_the_cap(self, result) -> None:
-        """Exactly 0.149180. The ensemble's 42 of 200 is within four binomial standard errors."""
+        """Exactly 0.149180, so about 29.8 of 200. The ensemble's 42 is 2.4 standard errors above.
+
+        ``TestWhatThePostMeasured`` pins how far above and the chance of 42 or more.
+        """
         p = result.ruin_below_cap_exact
         assert p == pytest.approx(0.149180, abs=5e-7)
         count = sum(run.ruin_below_cap for run in result.ensemble.runs)
@@ -717,6 +739,29 @@ class TestWhatThePostMeasured:
         assert ruin_leverage(returns) == pytest.approx(45.390502, abs=5e-7)
         assert result.declared.minimum / returns.min() == pytest.approx(1.9550, abs=5e-5)
 
+    def test_612_draws_from_the_fit_rarely_reach_the_saved_returns_least_day(
+        self, result, returns
+    ) -> None:
+        """Lesson 4: the fit's left tail is thinner than the history's, so the depth is the count.
+
+        The exact distribution of the least of 612 draws, the backtest's length,
+        puts the chance of one at or below −0.022031 at 0.091663. The least of
+        100,000 draws reaches deeper because there are 163 times as many.
+        """
+        p = minimum_below(result.params, float(returns.min()), len(returns))
+        assert p == pytest.approx(0.091663, abs=5e-7)
+        assert DRAWS / len(returns) == pytest.approx(163.4, abs=0.05)
+
+    def test_42_seeds_ruined_below_the_cap_sit_2_4_standard_errors_above_the_exact_chance(
+        self, result
+    ) -> None:
+        """Lesson 4: 42 of 200 against 200 × 0.149180, and the exact chance of 42 or more."""
+        p = result.ruin_below_cap_exact
+        count = sum(run.ruin_below_cap for run in result.ensemble.runs)
+        z = (count - 200 * p) / math.sqrt(200 * p * (1 - p))
+        assert z == pytest.approx(2.414274, abs=5e-7)
+        assert stats.binom.sf(count - 1, 200, p) == pytest.approx(0.012871, abs=5e-7)
+
     def test_the_seeds_at_or_below_the_book_s_optima_are_all_held_down_by_ruin(
         self, result
     ) -> None:
@@ -754,7 +799,22 @@ class TestWhatThePostMeasured:
 
 
 class TestThePostsHelpers:
-    """The two functions the figure and the run share, so neither drifts from the other."""
+    """The functions the figure shares with the run, so neither drifts from the other.
+
+    The figure reads the fit through ``pearson_fit`` and the Kelly through
+    ``kelly``, as the run does. It reads each day's drawdown through
+    ``account_drawdowns``, which shares ``drawdown_path`` with the run's
+    ``max_drawdown``, and a test here holds its least value equal to
+    ``max_drawdown``'s.
+    """
+
+    def test_kelly_is_the_run_s_and_the_script_s(self, result, returns) -> None:
+        assert kelly(returns) == result.kelly
+        assert matches(kelly(returns), SCRIPT_KELLY)
+
+    def test_kelly_on_returns_worked_by_hand(self) -> None:
+        """Mean 0.01 and n − 1 variance 0.0004 over 0.01, 0.03 and −0.01, so 25."""
+        assert kelly([0.01, 0.03, -0.01]) == pytest.approx(25.0, rel=1e-12)
 
     def test_pearson_fit_is_the_run_s_moments_and_parameters(self, result, returns) -> None:
         moments, params = pearson_fit(returns)

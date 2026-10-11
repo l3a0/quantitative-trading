@@ -613,7 +613,9 @@ where they were first built. The other forty-two were built here.
     The write-up measured after the run that the declared seed's least draw,
     −0.043071, is 1.9550 times as deep as the worst of the 612 saved returns,
     and that the Kelly lies at or past the ruin leverage on 78 of the 200
-    seeds. Every figure is exploratory.
+    seeds. The depth comes from the count of draws rather than a fatter tail,
+    since 612 draws from the fit reach that worst return with a chance of only
+    0.091663. Every figure is exploratory.
 44. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
     leveraged portfolio of low-beta stocks should generate higher long-term
     compounded growth than holding an unleveraged portfolio of high-beta
@@ -1128,11 +1130,15 @@ evidence on the book's 18.4: the Kelly band Example 5.1's printed figures
 allow under three compoundings, and the ensemble rerun with the Kelly set to
 18.4. It holds which band row 3 reads, and both CPPI forms refusing a NaN
 return. `TestWhatThePostMeasured` holds what the write-up measured after the
-run: the saved returns' least day and ruin leverage, the low seeds' ruin
-leverages, the split at the cap, the 78 seeds on which the Kelly ruins, and
-the saved returns' drawdowns at the optimum and the Kelly. It also holds the
-two helpers the figure shares with the run, `pearson_fit` and
-`account_drawdowns`.
+run: the saved returns' least day and ruin leverage, the chance that 612 draws
+from the fit reach that day, how far the 42 seeds ruined below the cap sit
+above the exact chance, the low seeds' ruin leverages, the split at the cap,
+the 78 seeds on which the Kelly ruins, and the saved returns' drawdowns at the
+optimum and the Kelly. `TestThePostsHelpers` holds the helpers the figure
+shares with the run. The run calls `pearson_fit` and `kelly` too, and
+`account_drawdowns` gives each day's drawdown through `drawdown_path`, which
+the run's `max_drawdown` shares, with a test holding its least value equal to
+`max_drawdown`'s.
 
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
 the levered low-beta claim. It pins the calendar, the leverage path, both
@@ -4241,8 +4247,10 @@ Five groups of what it says are not pinned here.
    classic linear mean-reverting strategy", the gross market value, "better
    results in hindsight", the 11 percent and 1.6 and the caption of Figure
    5.1 are at 2237. The Kelly leverage of 18.4 is at 3342. The book's 11
-   percent and 1.6 are pinned, and its words, its 9.58 and its 18.4 are
-   not.
+   percent and 1.6 are pinned, and so is its 18.4, as a book target in
+   `TestTheDeclaration::test_the_printed_figures` in
+   [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py).
+   Its words and its 9.58 are not.
 2. Facts about the script and the port rather than the data: the comments on
    lines 60 and 66 of `AUDCAD_unequal.m`, which ericnberwick/EpchanPreview
    holds at `e4bc46f`, that the script loads two minute files neither public
@@ -4267,12 +4275,12 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py), or to
 [tests/test_aud_cad_johansen_figures.py](tests/test_aud_cad_johansen_figures.py)
-for the figure's own numbers. The finding on 18.4 it cites from the Chapter 8
-post, that no series with Example 5.1's printed Sharpe ratio and APR reaches
-it under three ways of compounding the APR, traces to
-`TestRowGroup13TheEighteenPointFourGap` in
+for the figure's own numbers. The post also cites the Chapter 8 post's
+finding on 18.4, that no series with Example 5.1's printed Sharpe ratio and
+APR reaches it under three ways of compounding the APR, and that finding
+traces to `TestRowGroup13TheEighteenPointFourGap` in
 [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py). Six
-had no pin before it.
+of the post's numbers had no pin before the post.
 
 1. The three stretches the trace test's 26 windows fall in, which hold the 19
    two-relation windows, and the stretch the eigen test's 11 fall in.
@@ -5255,13 +5263,13 @@ regime map.
 
 [blog/monte-carlo-leverage-lessons.md](blog/monte-carlo-leverage-lessons.md)
 is a thirty-seventh post, about Chapter 8 of Chan's *Algorithmic Trading*,
-which chooses a leverage for Example 5.1's AUD.CAD returns three ways: by
-Monte Carlo on draws with the returns' four moments, by the optimum of the
-historical growth rate, and with constant proportion portfolio insurance
-(CPPI). The post links the capped Kelly allocation post, the AUD.USD against
-CAD.USD post, the coin toss post, the Kelly leverage on SPY post and the TU
-hypothesis tests post rather than repeating them, and draws six lessons from
-Entry 43 of the replication log.
+which finds a leverage for Example 5.1's AUD.CAD returns two ways, by Monte
+Carlo on draws with the returns' four moments and by the optimum of the
+historical growth rate, and caps the loss at the chosen leverage with
+constant proportion portfolio insurance (CPPI). The post links the capped
+Kelly allocation post, the AUD.USD against CAD.USD post, the coin toss post,
+the Kelly leverage on SPY post and the TU hypothesis tests post rather than
+repeating them, and draws six lessons from Entry 43 of the replication log.
 
 1. The book's Kelly and historical optimum of 18.4 do not reproduce. Chan's
    saved returns give 23.845328 and 23.721773, within 0.52 percent of each
@@ -5270,16 +5278,20 @@ Entry 43 of the replication log.
    26.757652, and the edge moves to 22.065999 or 20.891304 under the other two
    compoundings, so none reaches 18.4. Moving the draws' mean to a Kelly of
    18.4 puts the median uncapped optimum at 18.470198 and lands all but the
-   drawdown at half the optimum. The post labels the older returns an
-   inference.
+   drawdown at half the optimum. The post labels as an inference that
+   Chapter 8 ran on a different series of returns, with a Kelly near 18.4,
+   that nobody holds.
 3. The script's search stops at 20, and 158 of the 200 seeds sit on that cap,
    exactly the seeds whose ruin leverage is 20 or more. The 30 seeds whose
    uncapped optimum reaches 19.2 all ruin below 20. Under the declared band
    both of the book's optima land, and under the band chosen after the seeds
    were seen neither does. The post keeps both.
 4. The declared seed's least draw of −0.043071 is 1.9550 times as deep as the
-   worst saved return, −0.022031, and the Kelly lies at or past the ruin
-   leverage on 78 of the 200 seeds.
+   worst saved return, −0.022031, because there are about 163 times as many
+   draws. The least of 612 draws from the fit reaches −0.022031 with a chance
+   of only 0.091663, so the fit's tail is not the cause. The Kelly lies at or
+   past the ruin leverage on 78 of the 200 seeds, and the 42 seeds that ruin
+   below the cap sit 2.4 binomial standard errors above the exact chance.
 5. Box 8.6's loop falls to −0.848088 and below −0.5 on every seed, while the
    scheme location 3426 describes stays above −0.5 on every seed, at a cost of
    0.255285 of the growth.
@@ -5311,17 +5323,22 @@ Five groups of what it says are not pinned here.
    below order 5.51 mean tails far heavier than a bell curve's, that the
    account at the script's f moves ten times the unlevered returns so the
    loop barely cuts its order, that the book's −0.9 and −0.963 most likely
-   come from different runs, that Chapter 8 most likely ran on an older
-   version of the returns, that variants of the saved series were tried in
-   scratch runs and left out, and that a picture built around one band rule
-   would read as that rule.
+   come from different runs, that Chapter 8 most likely ran on a different
+   series of returns with a Kelly near 18.4 and that the evidence cannot tell
+   when or how it differed from the saved file, that trial variants of the
+   saved series reached no 18.4, that at the same daily risk a path of 100,000
+   days is all but certain to reach a deeper drawdown than one of 612, and
+   that a picture built around one band rule would look like an endorsement
+   of that rule.
 4. Figures the post rounds or states in words from pinned ones: 23.8, a gap
    of 5.4 below the saved returns, within 0.52 percent, 13.9 to 14.9 percent,
-   nearly twice as deep, 1.4 percent, about a quarter, the book's pair 1.6
-   percent apart, and one decimal covering −0.95 to −0.85. The growth rates
-   pinned at six significant figures are quoted at six decimals. The
-   figure's alt text reads its curves approximately too, such as a peak of
-   about 0.0048 near 22.3 and a band from about 21.6 to 26.8.
+   nearly twice as deep, about 163 times as many draws, about 9.2 percent,
+   about 29.8 seeds, 2.4 standard errors, about 1.3 percent, 1.4 percent,
+   about a quarter, the book's pair near 1.6 percent apart, and one decimal
+   covering −0.95 to −0.85. The growth rates pinned at six significant
+   figures are quoted at six decimals. The figure's alt text reads its curves
+   approximately too, such as a peak of about 0.0048 near 22.3 and a band
+   from about 21.6 to 26.8.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5330,8 +5347,8 @@ to
 [tests/test_monte_carlo_leverage_figures.py](tests/test_monte_carlo_leverage_figures.py)
 for the figure's own numbers. The 612 returns' dates, from 2009-12-18 to
 2012-04-26, trace to
-[tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py). Ten had no
-pin before it, all measured after the run.
+[tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py). Twelve of
+the post's numbers had no pin before the post, all measured after the run.
 
 1. The least of the 612 saved returns, −0.022031, and their ruin leverage,
    45.390502, with the declared seed's least draw 1.9550 times as deep.
@@ -5352,11 +5369,16 @@ pin before it, all measured after the run.
 9. Location 3426's scheme deepest on day 33,785 and never below −0.5.
 10. The full account at f·D deepest on day 37,071, below −0.5 on 6,034 days
     from day 303.
+11. The chance of 0.091663 that the least of 612 draws from the fit is at or
+    below the saved returns' least day.
+12. The 42 seeds that ruin below the cap sitting 2.414274 binomial standard
+    errors above the exact chance, with an exact chance of 0.012871 of 42 or
+    more.
 
 Its one figure is drawn from the committed vintage by
 [src/chan/monte_carlo_leverage_figures.py](src/chan/monte_carlo_leverage_figures.py),
 which reads it through the same `read_returns`, `pearson_fit`, `draws`,
-`growth`, `optimal_leverage` and CPPI functions as
+`growth`, `optimal_leverage`, `kelly` and CPPI functions as
 `python -m chan.monte_carlo_leverage`, and each day's drawdown through
 `account_drawdowns`. It draws two panels on the declared seed only.
 
