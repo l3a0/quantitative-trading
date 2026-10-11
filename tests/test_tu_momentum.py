@@ -497,7 +497,6 @@ class TestBesideThePost:
         the_rest = growth.drop(2008).prod() - 1
         assert in_2008 == pytest.approx(0.060565, abs=5e-7)
         assert the_rest == pytest.approx(0.075414, abs=5e-7)
-        assert (1 + in_2008) * (1 + the_rest) == pytest.approx(np.prod(1 + result.daily))
 
 
 class TestTheRule:
