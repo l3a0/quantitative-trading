@@ -531,8 +531,9 @@ function source() {
    question this page answers. */
 
 /* One entry per open branch, plus a merged or closed one while its issue stays
-   open, because the card still says what became of it. Moments 2 and 5 of the
-   skill keep both kinds. The array is the whole account of the pull requests
+   open, because the card still says what became of it. The generator keeps
+   both kinds, finding the merged and closed ones through each open issue's
+   links. The array is the whole account of the pull requests
    against open issues, so this comment carries the rules for reading it rather
    than a sentence naming today's branches, which is the first defect on the
    skill's list in the one place a reader cannot see it render.
@@ -696,9 +697,9 @@ function source() {
 /* Cards a session is already working, which the key's five states do not cover.
    An empty array reads as no information rather than as nobody working. Only a
    running session can add an entry, and only whoever added one can take it out,
-   so the entries are the one part of this page the update moments maintain only
-   in part. The skill's eighth moment, the hand-over, is the one that takes a build
-   session's entry out. An entry shapes three columns: the two session columns,
+   so the entries are the one part of this page that sessions maintain by hand,
+   as `working:` labels. The skill's hand-over moment is the one that takes a
+   build session's label off. An entry shapes three columns: the two session columns,
    and "Waiting on my review", where it holds a branch its session has not handed
    over.
 
