@@ -12,7 +12,8 @@ for IJR at every December 31 from 2007 to 2025, and
 [issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added IVV
 at every quarter-end from 2008-12-31 to 2026-06-30.
 [src/chan/fund_holdings.py](../../src/chan/fund_holdings.py) reads and writes
-it.
+it. The directory `earnings/` holds a second record, the Item 2.02 8-Ks of
+Chan's 497 stocks, which the section "The earnings filings" below describes.
 
 ## Why a filing is pinned by its accession
 
@@ -172,6 +173,63 @@ QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp500_panel check
 uv run python -m chan.sp500_panel report
 ```
 
+## The earnings filings
+
+`earnings/` holds a second kind of record. Example 7.2 trades a stock on the
+day it announced earnings, and the only calendar Chan saved is his own flag
+file. A company releasing its results files a Form 8-K carrying Item 2.02, and
+EDGAR records the minute it accepted each one.
+[Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) reads
+those filings for Chan's 497 stocks to rerun the example on a calendar nobody
+hand-collected, and
+[src/chan/earnings_filings.py](../../src/chan/earnings_filings.py) reads and
+writes them. They sit in their own directory with their own index, because
+`index.jsonl` above is read line by line into the fund record's fields.
+
+1. **`earnings/tickers.csv`** maps each ticker of Chan's flag file, in its
+   order, to the SEC's central index key, the CIK, and to the ticker the
+   owner's archive files the same company under.
+2. **`earnings/index.jsonl`** holds one line per stock and filing: every
+   original 8-K carrying Item 2.02 that EDGAR accepted from 2010-12-01 to
+   2012-04-24, for each stock whose CIK passed its check. Each line names the
+   ticker, the CIK, the accession, the form, the items, the `reportDate`, the
+   filing date, the Eastern acceptance time read from the filing's
+   `.hdr.sgml`, and the sha256 of that header file. The headers are not
+   committed.
+
+| Column of `tickers.csv` | What it holds |
+| --- | --- |
+| `ticker` | Chan's 2012 ticker |
+| `cik` | the CIK the route proposed, empty when none did |
+| `cik_source` | `tickers`, `tickers-archive`, `name`, `search` or `none` |
+| `edgar_name` | the CIK's EDGAR name on 2012-03-30 |
+| `ivv_row` | the row of `ivv/2012-03-31.csv` the name matched, counting from 1 |
+| `cik_check` | `pass`, `dates`, `name`, `price`, `silent` or `unmapped` |
+| `archive_ticker` | the `sp500` series proposed for the stock, empty when none was |
+| `archive_source` | `same`, `search` or `none` |
+| `archive_check` | `pass`, `returns`, `missing`, `ambiguous` or `none` |
+| `days_over` | how many of the 329 daily returns differ from Chan's by more than a point |
+
+The module's docstring says what each source and each check means. A CIK
+passes when it was filing on 2012-03-30, its EDGAR name that day matches one
+holding of IVV's 2012-03-31 schedule, that holding is priced within 3 percent
+of Chan's close, and it filed at least one Item 2.02 8-K in the window. A
+series passes when it holds every close Chan's file holds over the flag file's
+330 days and at most five of its daily returns differ by more than a point. A
+row that fails is not used, and the rerun lists it by ticker.
+
+```bash
+uv run python -m chan.earnings_filings fetch
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.earnings_filings check
+uv run python -m chan.pead_rerun
+```
+
+`fetch` reads the table, downloads each checked CIK's submissions and headers,
+and rewrites the index, refusing a header whose bytes differ from the ones the
+index records. `check` recomputes every archive check and writes nothing.
+[tests/test_earnings_filings.py](../../tests/test_earnings_filings.py) is the
+authority for every count about this directory.
+
 ## What reads it
 
 [tests/test_fund_holdings.py](../../tests/test_fund_holdings.py) is the
@@ -188,7 +246,8 @@ members file and holes file, including each month-end's coverage.
 the counts that need the run's own tenth: each year-end's ranked covered
 members and which missing members threaten each tenth.
 
-Two runs read this directory so far, both in `chan.equity_seasonals`.
+Three runs read this directory so far, two in `chan.equity_seasonals` and one
+in `chan.pead_rerun`.
 
 1. A replication runs Example 7.6 on the members of `ijr/2025-12-31.csv`,
    which Entry 7's rows 30 to 34 in
@@ -196,3 +255,5 @@ Two runs read this directory so far, both in `chan.equity_seasonals`.
 2. A registered experiment runs it on the members of every year-end from 2008
    to 2025 through `ijr/members.csv`, placing missing members by the holdings
    files, which Entry 7's rows 35 to 40 record.
+3. An exploratory rerun of Example 7.2 reads `earnings/` for its universes and
+   its calendars, which Entry 40 records.

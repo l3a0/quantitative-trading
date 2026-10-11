@@ -13,8 +13,9 @@ number on these sources was seen, in the comment
 https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515.
 Every run is **exploratory**, because the plan audit had already spent part of
 the sample measuring how much of the return each vendor could serve. What the
-registration fixes is followed here exactly, and the one place this module
-had to choose is named under "Deviations" below.
+registration fixes is followed here exactly. What it left open, and what a
+reader could take for a departure from it, is named under "Deviations and
+choices" below.
 
 1. The rule is :func:`chan.pead.pead`, with a lookback of 90, an entry of 0.5,
    a denominator of 30, 252-day annualisation, book two's ``smartstd`` and no
@@ -83,14 +84,33 @@ guard would refuse the run whose question is what such a day does to the
 figures. :func:`raw_breaks` counts the stocks it would refuse, and the report
 prints the count.
 
-**Deviations.** One choice the registration left open.
+**Deviations and choices.** No deviation from what the registration fixes.
+Four choices it left open, each of which moves a figure.
 
-1. The registration names no route for an archive ticker. The audit counted
-   399 same-company series by looking only under Chan's own ticker. Here the
-   check is run on every series in the ``sp500`` cross-section, so a renamed
-   company, such as Chan's UTX under the archive's RTX, joins PX when its
-   returns match. The check itself is unchanged in kind, and the table names
-   which route found each series.
+1. **The route to an archive series.** The audit counted 399 same-company
+   series by looking only under Chan's own ticker. Here the check is run on
+   every series in the ``sp500`` cross-section, so a renamed company, such as
+   Chan's UTX under the archive's RTX, joins PX when its returns match. PX
+   holds 446 stocks rather than 399, and the table names which route found
+   each series.
+2. **What a checked CIK is.** The registration says only "a checked CIK".
+   :func:`chan.earnings_filings.check_cik` reads IVV's schedule at
+   2012-03-31, so five stocks Chan's file holds and IVV did not then, AK
+   Steel, Compuware, Monster Worldwide, Tellabs and MEMC, leave CAL with
+   their CIKs right. Its fourth link drops Leucadia, whose CIK filed no Item
+   2.02 8-K in the window. Three more leave on the name: Cablevision, which
+   the schedule prints as "Cablevision NY Group", DuPont, which EDGAR's
+   company list spells "DUPONT E I DE NEMOURS", and NYSE Euronext, which
+   EDGAR files with no legal form.
+3. **The trading days.** The calendars move a filing to a trading day of the
+   committed raw SPY vintage, which agrees with Chan's price file on every
+   day from 2010-11-01 to 2012-04-24.
+4. **D runs without the scale-break guard**, for the reason above.
+
+The denominator stays 30 in every run, as the rule fixes it, although the
+derived calendars put more than 30 stocks on their busiest days. A day
+holding more than 30 positions is a book levered past one, which the figures
+carry as they stand.
 """
 
 from __future__ import annotations

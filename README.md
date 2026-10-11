@@ -552,6 +552,21 @@ null, at −2.3887 and −2.3168 against a 10% bar of −3.04, and the residual 
 moves both further from rejecting rather than closer. It is exploratory, and it
 says nothing about bonds beyond these two funds.
 
+A rerun of item 12 runs here too, and it is not a replication either. Item 12
+reproduces Chan's post-earnings drift on his own prices and flags, and
+[issue 251](https://github.com/l3a0/quantitative-trading/issues/251) asks what
+the same rule gives on a calendar nobody hand-collected and on prices from
+another vendor. The calendar comes from the Item 2.02 8-Ks EDGAR accepted for
+Chan's stocks, timed by each filing's header, and the prices from the owner's
+archive of Alpha Vantage files. On the 441 stocks with a checked CIK and a
+checked series, Chan's prices and flags give an arithmetic annual return of
+0.043678 and a Sharpe ratio of 1.2815, and the archive's prices on the
+calendar a trader could have built before each open give 0.057489 and 1.6585.
+Narrowing the 497 stocks to those 441 moves the figure most, by −0.023065, and
+the vendor and the price basis move it by about a ten-thousandth each. Every
+figure is exploratory, and Entry 40 in
+[docs/replication-log.md](docs/replication-log.md) carries them all.
+
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
 them is derived. The two blog posts about the pairs are the exceptions, and
@@ -637,6 +652,10 @@ first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
 miss. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py) does it for the rerun on
+EDGAR's calendar. It pins each registered run's figures, its trades and its
+busiest day, the attribution, and each calendar's cell-by-cell agreement with
+Chan's flags. The four runs on the archive's prices skip where no archive is.
 
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
@@ -947,7 +966,8 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, and Entry 39 the XLE against USO
-trade's.
+trade's. Entry 40 carries the rerun of Example 7.2 below, which chases no
+published figure and so reaches no verdict.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1123,6 +1143,16 @@ September 2012.
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
 experiment.
+
+The same directory holds a second record, `research/filings/earnings/`, the
+Item 2.02 8-Ks that EDGAR accepted for Chan's 497 stocks from 2010-12-01 to
+2012-04-24, which
+[issue 251](https://github.com/l3a0/quantitative-trading/issues/251) built
+and `src/chan/earnings_filings.py` reads. A ticker table beside the index maps
+each 2012 ticker to the SEC's CIK and to an archive series and records the
+check each mapping passed, and
+[tests/test_earnings_filings.py](tests/test_earnings_filings.py) pins it.
+`chan.pead_rerun` reads it to rerun Example 7.2 on that calendar.
 
 The coin flip reaches none of that. It records no vintage and reads no series,
 which is why it could ship before the recorder existed. The leverage examples
@@ -1397,6 +1427,21 @@ It prints both sources in a line each, the window, the rule, the busiest day
 beside the 30 Chan divides by, and each figure beside what `pead.m` and the
 book print. It refuses to run if the two files name different stocks, because
 the script pairs their columns by position.
+
+Its rerun on EDGAR's calendar and the archive's prices takes no option either,
+because the comparison was registered on
+[issue 251](https://github.com/l3a0/quantitative-trading/issues/251) before it
+ran:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.pead_rerun
+```
+
+It prints each of the ten registered runs, the attribution of the change to
+the universe, the calendar, the vendor and the price basis, each calendar's
+agreement with Chan's flags, and every stock left out of a universe with the
+check it failed. Without an archive it runs the six runs that read only
+committed files and says why the other four did not run.
 
 The reversal on the 2012 panel runs both of *Algorithmic Trading*'s examples
 at once, and takes no option, because `andrewlo_2007_2012.m` fixes the file,

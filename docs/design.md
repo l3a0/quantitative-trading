@@ -15,6 +15,7 @@ issue's own statement of what it waits on.
   - [A replication that reads the book's own tables](#a-replication-that-reads-the-books-own-tables)
   - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
   - [A record that reads a fund's filings](#a-record-that-reads-a-funds-filings)
+  - [A record that reads a company's earnings filings](#a-record-that-reads-a-companys-earnings-filings)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
@@ -699,6 +700,58 @@ Example 7.7 trades every month on quarterly schedules.
    NPORT-EX print whole dollars and whole shares, like an N-Q, and the
    2025-09-30 amendment prints cents, like an N-PORT.
 
+### A record that reads a company's earnings filings
+
+Example 7.2 trades a stock on the day it announced earnings, and the only
+calendar Chan saved is his own flag file, which catches three of Apple's five
+releases inside his window.
+[Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) reruns the
+example on a calendar nobody hand-collected. A company releasing its results
+files a Form 8-K carrying Item 2.02, and EDGAR records the second it accepted
+each one, so [src/chan/earnings_filings.py](../src/chan/earnings_filings.py)
+reads those filings into `research/filings/earnings/`.
+[tests/test_earnings_filings.py](../tests/test_earnings_filings.py) is the
+authority for every count quoted about it, and
+[research/filings/README.md](../research/filings/README.md) names its files.
+
+The section above holds unchanged. An accession pins what was read, so the
+record lives outside `data/`, the documents stay uncommitted, and the index
+names each accession beside the sha256 of the bytes read. Three things are
+new.
+
+1. **The time comes from each filing's header, not from the JSON.** The
+   submissions JSON's `acceptanceDateTime` is marked UTC, and the plan audit
+   on the issue found it shifted a further four or five hours for 73 of 248
+   filings, Apple's among them. `<ACCEPTANCE-DATETIME>` in the filing's
+   `.hdr.sgml` is Eastern and agrees with EDGAR's index page, so the index
+   records that. The price is one request per filing.
+2. **A ticker table maps Chan's 2012 tickers, and a check holds each row.**
+   A 2012 ticker is not today's, so `company_tickers.json` sends CB to ACE,
+   and EDGAR's full-text search fails on short tickers. The table follows
+   `ivv/members.csv` above: each row names the route that proposed its CIK
+   and its archive series, and the check that held it. A CIK passes when it
+   was filing on 2012-03-30, its EDGAR name that day matches exactly one
+   holding in IVV's 2012-03-31 schedule, that holding's price lies within 3
+   percent of Chan's close, and it filed at least one Item 2.02 8-K in the
+   window. The last link exists because a name does not pick out one CIK.
+   Westinghouse's old CIK still carries the name "CBS CORP". A series passes
+   when it holds every close Chan's file holds over the flag file's 330 days
+   and its daily returns match his on all but at most five of them. A row that fails is not used, and the rerun lists it by ticker.
+3. **The flags are derived in code rather than kept.** The issue first asked
+   for the calendar as an event vintage in Chan's shape. That would commit one
+   rule's reading of the filings as data, and the registration on the issue
+   runs two rules on the same filings. It would also have run `data/` past its
+   cap, which stood at 203.39 MB of 205. So the index keeps what EDGAR says,
+   and `chan.pead_rerun` turns it into a 0 or 1 for each of the flag file's
+   330 days, cell for cell against Chan's.
+
+The price of the IVV link is named rather than hidden. Five of Chan's stocks
+are not in IVV's schedule at 2012-03-31 even though his file holds them, and
+their CIKs cannot be checked, so they leave the calendar with their CIKs
+right: AK Steel, Compuware, Monster Worldwide, Tellabs and MEMC. Four more
+leave it for a spelling or a filing practice the check does not cover, and
+the test file names all nine.
+
 ## How work is cut and ordered
 
 The tracker carries the plan. Issues say what each deliverable is, milestones
@@ -916,3 +969,4 @@ change that cuts it.
 | `--dist loadgroup`, to keep every test reading `cpo_result` on one worker | Each xdist worker has its own session, so the session-scoped run of Example 7.1 in `tests/conftest.py` is built in every worker that draws a reader. A collection hook marking the readers into one group was built and then cut. `loadgroup` hands out every test outside a group one at a time, so each module-scoped fixture gets rebuilt on more workers, and every run would pay that to save CPU on an archive run that happened by hand and had never run in parallel. Since the owner's decision of 2026-10-05 the archive run happens in every Claude Code session where the archive is, which makes one build per run worth more. Moving the 16 pins into one file would give it under `loadfile` without `loadgroup`'s cost. `-n 0` builds the run once, and `tests/conftest.py` says so. CI's 4-core runner hit the job's 15-minute ceiling on the one commit that ran it, after reaching 65 percent of the suite in under three minutes. |
 | Collecting the slowest files first in the parallel suite | One run with the five slowest files named first took 172 seconds against 185 in the order pytest collects. One run each cannot resolve a 13-second gap, and keeping it would take a hook that reorders collection. The floor is the module fixture in `tests/test_pca_factor.py`, which took 128 to 131 seconds to build in that run once ten workers shared the cores. |
 | Keeping `chan.matlab_helpers`' list of callers and adding a test that compares it with the real imports | Ruled out by the owner on 2026-10-10, on [issue 443](https://github.com/l3a0/quantitative-trading/issues/443). The module docstring named which modules call which helper, and six modules had drifted out of it by `b44f751`, five missing outright and one named for only some of its helpers. A test would stop the drift, at the price of a test to maintain for something that is only documentation. [PR 446](https://github.com/l3a0/quantitative-trading/pull/446) replaced the list with a `grep` command that names every importing module. Later that day, on [issue 445](https://github.com/l3a0/quantitative-trading/issues/445), the owner ruled that a sentence about who uses something names the set by what its members share, or names one member as an example, and that no command replaces a list. The docstring now names one caller as an example, so nothing has to be kept current by hand. The price is that no surface names every caller, so a reader who needs them all searches the imports. |
+| Rerunning Example 7.2 on yfinance prices | Measured on [issue 251](https://github.com/l3a0/quantitative-trading/issues/251) in [the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515), with yfinance 1.7.0 over 2010-08-01 to 2012-05-01. It serves 338 of Chan's 497 stocks, renamed tickers included, and six of the tickers it answers hold another company's history. The 159 it cannot serve carry 0.048618 of the 0.066743 arithmetic return on Chan's own files, so a yfinance rerun would mostly measure losing them. The owner's archive already holds the `sp500` cross-section under the premise's exception for licensed bars, with 399 same-company series under Chan's own tickers, and committing yfinance prices would also run `data/` past its 205 MB cap. The price of the archive instead is the one the premise names for it: the rerun's figures on those prices never run in CI. |

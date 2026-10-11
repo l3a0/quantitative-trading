@@ -304,6 +304,10 @@ class TestTheCommittedRuns:
         sizes = {name: len(sources.universe(name)) for name in pead_rerun.UNIVERSES}
         assert sizes == {"ALL": 497, "CAL": 488, "PX": 446, "U": 441}
 
+    def test_the_spy_calendar_is_chans_over_the_days_the_filings_reach(self, sources) -> None:
+        spy = sources.days[(sources.days >= "2010-11-01") & (sources.days <= "2012-04-24")]
+        assert spy.equals(sources.closes.index[sources.closes.index >= "2010-11-01"])
+
     def test_the_attribution_without_the_archive(self, runs) -> None:
         expected = {label: EFFECTS[label] for label in ("universe", "calendar")}
         assert effects_of(runs) == expected, SPEC
