@@ -16,8 +16,9 @@ save's GC from ``inputdataohlcdaily_20120507/gc.csv``, chan-mat, adjusted,
 saved 2012-05-09, FRED's TB3MS downloaded 2026-09-30, and S, ``GLD_GC.m`` as
 shipped, over the 752 days from 2007-08-03 to 2010-08-02.
 
-Exploratory, like everything Entry 38 computes here, and the first panel's
-curves were measured after the run.
+Exploratory, like everything Entry 38 computes here. The first panel's
+curves were measured after the run. The second panel's spreads, largest moves
+and counts past 0.02 are Entry 38's row 11, declared before any figure.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ import pandas as pd
 import pytest
 from matplotlib.dates import date2num, num2date
 
+from chan import gld_gc as gld_gc_module
 from chan import gld_gc_figures as module
 from chan.gld_gc import RISK_FREE_RATE, bill_accrual, gld_gc, read_ohlc_gc, read_sources
 from chan.gld_gc_figures import (
@@ -100,8 +102,8 @@ class TestTheFigure:
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
             "Algorithmic Trading, locations 2718 and 2730. GC from "
             "inputData_GC_1600_20100802.mat, saved 2012-05-07,\nGLD from inputData_ETF.mat, "
-            "saved 2012-04-10, and FRED's TB3MS, downloaded 2026-09-30.\nMeasured after the run "
-            "on the book's window, with no cost charged."
+            "saved 2012-04-10, and FRED's TB3MS, downloaded 2026-09-30.\nThe top panel was "
+            "measured after the run, on the book's window, and no cost is charged."
         ]
 
     def test_drawing_with_no_sources_reads_the_committed_vintages(self, tmp_path, result) -> None:
@@ -192,6 +194,7 @@ class TestTheReturnBesideItsFinancing:
         assert marker.get_ydata()[0] == (np.cumprod(1 + result.daily) - 1)[on]
         assert marker.get_color() == LOST
         label = _by_gid(axes["financing"].texts)["trough-label"]
+        assert label.xy == (pd.Timestamp("2007-11-12"), marker.get_ydata()[0])
         assert label.get_text() == "the deepest drawdown, −0.82 percent, on 2007-11-12", SPEC
 
     def test_the_axis_spans_the_window_and_reads_a_percentage(self, axes) -> None:
@@ -253,20 +256,21 @@ class TestTheDailyChangeInTheRatio:
     def test_the_legend_counts_each_series_moves_past_0_02(self, axes) -> None:
         legend = [t.get_text() for t in axes["ratio"].get_legend().get_texts()]
         assert legend == [
-            "the OHLC save's GC, shifted at each roll, 20 moves past ±0.02",
+            "the OHLC series, shifted at each roll, 20 moves past ±0.02",
             "the 16:00 series the script reads, 0 moves past ±0.02",
         ], SPEC
 
     def test_the_largest_16_00_move_is_labelled_on_the_trough_day(self, axes) -> None:
         label = _by_gid(axes["ratio"].texts)["largest-label"]
         assert label.xy[0] == pd.Timestamp("2007-11-12")
+        assert f"{label.xy[1]:.6f}" == "0.007082", SPEC
         assert label.get_text() == ("the 16:00 series' largest move, 0.007082, on 2007-11-12"), SPEC
 
     def test_the_heading_names_both_spreads_and_the_ohlc_save_s_largest_move(self, axes) -> None:
         assert _title(axes["ratio"]) == (
             "The daily change in log(GC / GLD) over 751 days on each GC series. Its standard "
-            "deviation is 0.000933\non the 16:00 series and 0.009243 on the OHLC save's, whose "
-            "largest move, 0.097332, falls on 2008-09-18."
+            "deviation is 0.000933\non the 16:00 series and 0.009243 on the OHLC series, "
+            "whose largest move, 0.097332, falls on 2008-09-18."
         ), SPEC
 
     def test_the_axis_spans_the_window(self, axes) -> None:
@@ -329,6 +333,30 @@ class TestTheFile:
         # A redraw is deterministic, so a stray write would leave the bytes
         # the same. Only the modification time shows it.
         assert committed.stat().st_mtime_ns == touched
+
+    def test_every_read_goes_through_the_scale_break_guard_once(self, monkeypatch, tmp_path):
+        """GC, GLD and the OHLC series, each guarded over the window and read once."""
+        seen = []
+
+        def record(legs, *, start, end):
+            ((entry, _),) = legs
+            seen.append((entry.path, str(start.date()), str(end.date())))
+
+        monkeypatch.setattr(gld_gc_module, "refuse_window_crossing_a_break", record)
+        make_gld_gc_figure(out=tmp_path / GLD_GC_FIGURE)
+        assert seen == [
+            ("inputdata_gc_1600_20100802/gc.csv", "2007-08-03", "2010-08-02"),
+            ("inputdata_etf/gld.csv", "2007-08-03", "2010-08-02"),
+            ("inputdataohlcdaily_20120507/gc.csv", "2007-08-03", "2010-08-02"),
+        ]
+
+    def test_a_flagged_day_stops_the_figure(self, monkeypatch, tmp_path) -> None:
+        def refuse(legs, *, start, end):
+            raise WindowCrossesScaleBreak("inputdataohlcdaily_20120507/gc.csv changes scale")
+
+        monkeypatch.setattr(gld_gc_module, "refuse_window_crossing_a_break", refuse)
+        with pytest.raises(WindowCrossesScaleBreak, match="changes scale"):
+            make_gld_gc_figure(out=tmp_path / GLD_GC_FIGURE)
 
     def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
         def fail(*_a, **_k):

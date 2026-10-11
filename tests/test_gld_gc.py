@@ -545,6 +545,32 @@ class TestWhatThePostMeasured:
     def test_the_bill_rate_takes_0_533311_of_the_return(self, b1) -> None:
         share = b1.bill_rate / b1.average_annual_return
         assert f"{share:.6f}" == "0.533311", f"{SPEC}, against {B1_SPEC}; {AFTER_THE_RUN}"
+        assert f"{100 * share:.2f}" == "53.33", f"{SPEC}, against {B1_SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_bound_on_an_offset_is_about_2_6_minutes_of_a_24_hour_day(self, found) -> None:
+        """The bound of 0.001775 of a day's variance, read as a share of 1,440 minutes.
+
+        Reading variance as clock time assumes gold's variance accrues evenly
+        around the clock, which no test here measures.
+        """
+        assert f"{found.gap_share * 24 * 60:.1f}" == "2.6", f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_no_gold_futures_series_here_starts_before_2004_05_24(self) -> None:
+        """Location 2718's −4.9 percent runs to May 2004, so no file here can reproduce it.
+
+        The four OHLC saves are every GC series the repo holds besides the 16:00 one.
+        """
+        firsts = {
+            name: str(load_panel(name)[1]["GC"].dropna().index[0].date())
+            for name in (
+                "inputDataOHLCDaily_20120504.mat",
+                OHLC_SOURCE_FILE,
+                "inputDataOHLCDaily_20120511.mat",
+                "inputDataOHLCDaily_20120517.mat",
+            )
+        }
+        assert firsts[OHLC_SOURCE_FILE] == "2004-05-24", AFTER_THE_RUN
+        assert min(firsts.values()) == "2004-05-24", (firsts, AFTER_THE_RUN)
 
     def test_the_return_fell_with_the_bill_rate_year_by_year(self, result) -> None:
         """Each year's rows, less the zeroed first row, against the months they span."""

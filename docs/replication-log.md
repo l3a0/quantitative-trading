@@ -7892,9 +7892,9 @@ pins them.
    the backtest.
 3. **The bill rate leaves about half the return standing.** Over the window
    it averages 1.0141 percent against a return of 1.9014 percent. The book's
-   "close to zero" needs GLD's financing to sit about 0.89 percent a year
-   above the bill rate. Whether its holders paid that is not something this
-   repo holds data on.
+   "close to zero" needs GLD's financing to sit about 0.89 percentage points
+   a year above the bill rate. Whether its holders paid that is not
+   something this repo holds data on.
 4. **The 0.8 percent and the 91 days are two drawdowns.** The deepest runs
    from a high on 2007-10-12 to a trough on 2007-11-12 and is recovered on
    2007-11-14. Most of it is 2007-11-12 alone, when the trade lost 0.6771

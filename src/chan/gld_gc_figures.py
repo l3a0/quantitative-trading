@@ -12,14 +12,18 @@ asked for the post, and its plan set the two panels.
    compounded. The longest stretch below a high, the 91 days, is shaded, and
    the deepest drawdown's trough is marked.
 2. **The daily change in log(GC / GLD) on both GC series.** The 16:00 series
-   the script reads, over the OHLC save's continuous GC, with dashed lines at
-   plus and minus :data:`chan.gld_gc.STEP`. Both come through
-   :func:`chan.gld_gc.log_ratio_changes`, the computation
-   :func:`chan.gld_gc.ratio_steps` summarises.
+   the script reads, over the OHLC series, the continuous GC close in Chan's
+   file of daily opens, highs, lows and closes, with dashed lines at plus and
+   minus :data:`chan.gld_gc.STEP`. Both come through
+   :func:`chan.gld_gc.log_ratio_changes`, and their labels through
+   :func:`chan.gld_gc.ratio_steps`, which :func:`chan.gld_gc.identity` uses
+   for the same two summaries. Only the first panel was measured after the
+   run. Entry 38 declared the second panel's spreads, largest moves and
+   counts in advance.
 
 Every value comes from :func:`chan.gld_gc.read_sources`,
-:func:`chan.gld_gc.gld_gc` and :func:`chan.gld_gc.identity`, the run's own
-path, so the scale-break guard runs here too::
+:func:`chan.gld_gc.read_ohlc_gc` and :func:`chan.gld_gc.gld_gc`, the run's
+own path, so the scale-break guard runs here too, once for each file::
 
     uv run python -m chan.gld_gc_figures
 """
@@ -45,8 +49,8 @@ from chan.gld_gc import (
     Sources,
     bill_accrual,
     gld_gc,
-    identity,
     log_ratio_changes,
+    ratio_steps,
     read_ohlc_gc,
     read_sources,
 )
@@ -179,7 +183,8 @@ def _financing_panel(ax, result: GldGc, curves: dict[str, pd.Series]) -> None:
 def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
     at_1600 = log_ratio_changes(sources.gc, sources.gld, result.days)
     shifted = log_ratio_changes(ohlc, sources.gld, result.days)
-    found = identity(sources, result)
+    steps_1600 = ratio_steps(sources.gc, sources.gld, result.days)
+    steps_ohlc = ratio_steps(ohlc, sources.gld, result.days)
     ax.plot(
         shifted.index,
         shifted,
@@ -188,7 +193,7 @@ def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
         alpha=0.8,
         zorder=2,
         gid="ohlc",
-        label=f"the OHLC save's GC, shifted at each roll, {found.ohlc.steps} moves past ±{STEP:g}",
+        label=f"the OHLC series, shifted at each roll, {steps_ohlc.steps} moves past ±{STEP:g}",
     )
     ax.plot(
         at_1600.index,
@@ -197,8 +202,7 @@ def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
         lw=0.9,
         zorder=3,
         gid="1600",
-        label=f"the 16:00 series the script reads, {found.sampled_at_1600.steps} moves past "
-        f"±{STEP:g}",
+        label=f"the 16:00 series the script reads, {steps_1600.steps} moves past ±{STEP:g}",
     )
     for sign, gid in ((1, "step-up"), (-1, "step-down")):
         ax.axhline(sign * STEP, color=ACCENT, lw=1.0, ls="--", gid=gid)
@@ -220,9 +224,9 @@ def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
     _heading(
         ax,
         f"The daily change in log(GC / GLD) over {len(at_1600)} days on each GC series. Its "
-        f"standard deviation is {found.sampled_at_1600.spread:.6f}\non the 16:00 series and "
-        f"{found.ohlc.spread:.6f} on the OHLC save's, whose largest move, "
-        f"{found.ohlc.largest:.6f}, falls on {shifted.abs().idxmax().date()}.",
+        f"standard deviation is {steps_1600.spread:.6f}\non the 16:00 series and "
+        f"{steps_ohlc.spread:.6f} on the OHLC series, whose largest move, "
+        f"{steps_ohlc.largest:.6f}, falls on {shifted.abs().idxmax().date()}.",
     )
 
 
@@ -247,8 +251,8 @@ def make_gld_gc_figure(out: Path | None = None, sources: Sources | None = None) 
         f"Algorithmic Trading, locations 2718 and 2730. GC from {GC_SOURCE_FILE}, saved "
         f"{sources.gc_entry.obtained},\nGLD from {GLD_SOURCE_FILE}, saved "
         f"{sources.gld_entry.obtained}, and FRED's TB3MS, downloaded "
-        f"{bill_rates.bill_vintage().obtained}.\nMeasured after the run on the book's window, "
-        "with no cost charged.",
+        f"{bill_rates.bill_vintage().obtained}.\nThe top panel was measured after the run, on "
+        "the book's window, and no cost is charged.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.11)
     return _save(fig, out, GLD_GC_FIGURE)

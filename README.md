@@ -4743,17 +4743,20 @@ Five groups of what it says are not pinned here.
    `riskFreeRate=0.02/252` line, and that it holds the pair every day with
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the bill rate is a floor on financing
-   because a broker lends above it, that a gap's share of a day carries
+   because a broker lends above it, that an offset's share of a day carries
    roughly that share of the day's variance in a market trading nearly
-   around the clock, that a small reading error or a gap of minutes makes a
-   daily change reverse, and the cost of carry, cited from Hull as the usual
+   around the clock, that whatever else moves log(GC / GLD) does not cancel
+   an offset's moves, which the bound of 0.001775 rests on, that a small
+   reading error or an offset of minutes makes a daily change reverse, that
+   GC trades on COMEX, and the cost of carry, cited from Hull as the usual
    explanation and not tested.
 4. Figures the post states in words or rounded from pinned ones, such as
-   about half, about 0.89 percentage points, ten times as large, a tenth of a
-   day, the 91-day stretch about half as deep as the November 2007 fall, the
-   OHLC save moving most of the way back on 2008-09-19, and S rising by less
-   than a percentage point from 2008-12-31 to its high. The figure's alt text
-   reads its curves approximately too.
+   about half, ten times as large, the 150 minutes in two and a half hours,
+   the 91-day stretch about half as deep as the November 2007 fall, the OHLC
+   series moving most of the way back on 2008-09-19, and S rising by less
+   than a percentage point from 2008-12-31 to its high. The prose writes
+   pinned fractions in percent, such as 1.0141 percent for 0.010141. The
+   figure's alt text reads its curves approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -4765,7 +4768,8 @@ before it, all measured after the run.
 1. The Sharpe ratio of 1.284060 with no rate subtracted and 0.599257 at the
    window's bill rate over 252, the break-even rate at the mean return of
    1.9014 percent, and the script's 2 percent as 105.18 percent of the return.
-2. The bill rate's share of the return, 0.533311.
+2. The bill rate's share of the return, 0.533311, written in the post as
+   53.33 percent.
 3. S's average annual return against the bill rate by calendar year, 101,
    253, 251 and 146 rows, 0.052235 against 0.036520, 0.027315 against
    0.013650, 0.005822 against 0.001500 and 0.004458 against 0.001350, a margin
@@ -4776,9 +4780,11 @@ before it, all measured after the run.
    for GLD and −4.0442 for GC, and the longest stretch from 2009-08-28 to
    2010-01-08 at worst −0.40907 percent.
 5. The 16:00 series' largest move falling on 2007-11-12, its minimum of
-   −0.006626 and its lag-1 autocorrelation of −0.437059. The OHLC save's
-   largest move falling on 2008-09-18, its minimum of −0.075146 on 2008-09-19,
-   and its 8 moves past 0.02 up and 12 down.
+   −0.006626 and its lag-1 autocorrelation of −0.437059. The bound on an
+   offset between the two closes read as about 2.6 minutes of a 24-hour day.
+   The OHLC series' largest move falling on 2008-09-18, its minimum of
+   −0.075146 on 2008-09-19, and its 8 moves past 0.02 up and 12 down. No GC
+   series here starting before 2004-05-24, the OHLC series' first day.
 6. The three curves' ends, 0.058033 for S, 0.031057 for bills and 0.061413
    for 2 percent a year, S at 0.049260 and bills at 0.028733 on 2008-12-31,
    S's high of 0.058415 on 2010-07-27, and 2010-05-21 as the last day S stands
@@ -4786,15 +4792,15 @@ before it, all measured after the run.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/gld_gc_figures.py](src/chan/gld_gc_figures.py), which reads them
-through the same `read_sources`, `gld_gc` and `identity` as
-`python -m chan.gld_gc`, so the scale-break guard runs for it too. It draws
-two panels.
+through the same `read_sources`, `read_ohlc_gc`, `gld_gc` and
+`ratio_steps` as `python -m chan.gld_gc`, so the scale-break guard runs for it
+too, once for each file. It draws two panels.
 
 1. S's cumulative return beside bills accrued at each month's TB3MS over 252
    and the script's 2 percent a year, compounded, with the 91 days shaded and
    the deepest trough marked.
 2. The daily change in log(GC / GLD) on the 16:00 series and on the OHLC
-   save's GC, with dashed lines at plus and minus 0.02.
+   series, with dashed lines at plus and minus 0.02.
 
 ```bash
 uv run python -m chan.gld_gc_figures
