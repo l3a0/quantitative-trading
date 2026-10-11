@@ -353,12 +353,15 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: contract refused.
 #:
 #: [Issue 357](https://github.com/l3a0/quantitative-trading/issues/357) decided
-#: how ``chan.vx_es_roll_return`` guards its three reads for *Algorithmic
-#: Trading*'s VX against ES trade on VX's roll return, the first replication to
-#: read ``VIX.csv``. It reads the VX strip through
+#: how ``chan.vx_es_roll_return`` guards the three reads its trade takes for
+#: *Algorithmic Trading*'s VX against ES trade on VX's roll return, the first
+#: replication to read ``VIX.csv``. It reads the VX strip through
 #: ``chan.roll_returns.load_strip``, which guards every contract over its own
 #: rows. It guards ES over its own span in the 2012-05-07 save, as
-#: ``chan.vx_es.read_legs`` does. It guards VIX from the anchor to the last
+#: ``chan.vx_es.read_legs`` does. A fourth guarded read serves only the fitted
+#: hedge beside the replication: ``chan.vx_es.read_legs`` reads VX's continuous
+#: close and ES from the same save and guards each over its whole span, so a
+#: break in either refuses the run. It guards VIX from the anchor to the last
 #: common day, 2008-08-04 to 2012-05-07, the span the script's ``idx`` measures
 #: from, rather than over the whole common span from 2006-03-23. VIX flags
 #: 2007-02-27, below, so the whole span would refuse. That day sets a long

@@ -1232,7 +1232,10 @@ to set it beside the 16:00 series the script reads, as
 [issue 357](https://github.com/l3a0/quantitative-trading/issues/357). It is
 the first replication to read `VIX.csv`. It guards VIX from 2008-08-04, the
 day the script counts its training and test rows from. The file's one flagged
-day, 2007-02-27, falls before it, and no figure reads that day.
+day, 2007-02-27, falls before it, and no figure reads that day. The row
+beside the replication that trades the fitted hedge also reads VX's
+continuous close from the same save, through `chan.vx_es.read_legs`, which
+guards it and ES over their whole spans.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

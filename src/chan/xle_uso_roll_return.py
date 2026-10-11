@@ -91,7 +91,8 @@ names them rather than copying them silently.
    there. The front from 2012-04-09 is CL-2012M, the first of them. Its
    window starts on the row after CL-2012K's ends, so its own 40-row start
    does not bind, and its window stops at 2012-04-18. The last 10 rows get no
-   ratio, all after the trade's last day of 2012-04-09.
+   ratio, all after the trade's last day of 2012-04-09. The quirk does fire
+   on the VX strip, where :mod:`chan.vx_es_roll_return` names it.
 
 **The data.** Two committed vintages, both chan-mat.
 
@@ -240,23 +241,20 @@ def front_windows(contracts: pd.DataFrame) -> list[FrontWindow]:
     the previous front ended. A window whose start passes its end holds no
     row, and it is kept, because the next window starts after its end. A
     contract marking no expiry or two is refused, for the reason the module
-    docstring gives, and so is a first front window that would start before
-    the strip's first row.
+    docstring gives, and so is any front window that would start before the
+    strip's first row, which a strip whose expiries run out of delivery order
+    can give a later contract.
     """
     priced = np.isfinite(contracts.to_numpy(dtype=float))
     windows = []
     end = None
     for c, column in enumerate(contracts.columns[:-1]):
         expiry = _expiry(priced[:, c], column)
-        if end is None:
-            start = expiry - FRONT_START
-            if start < 0:
-                raise ValueError(
-                    f"{column}'s front window would start before the strip's first row, "
-                    f"at row {start}"
-                )
-        else:
-            start = max(end + 1, expiry - FRONT_START)
+        start = expiry - FRONT_START if end is None else max(end + 1, expiry - FRONT_START)
+        if start < 0:
+            raise ValueError(
+                f"{column}'s front window would start before the strip's first row, at row {start}"
+            )
         end = expiry - FRONT_END
         windows.append(FrontWindow(column=c, first=start, last=end, expiry=expiry))
     return windows

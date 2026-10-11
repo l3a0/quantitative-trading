@@ -7,9 +7,9 @@ Volatility rises when the stock market falls, so an E-mini S&P 500 future,
 ES, held the same way as the VX leg hedges most of the market's move. Every
 location below is in ``research/book-notes/algorithmic-trading.md``.
 
-1. **Location 2747** says no instrument holds VIX itself, and that ES, whose
-   roll return is about 1 percent a year, can stand in for a series that
-   moves against it.
+1. **Location 2747** says no ETF holds VIX, because a basket of options
+   replicating it is too expensive to keep, and that ES, whose roll return is
+   about 1 percent a year, can stand in for a series that moves against it.
 2. **Location 2754** gives the rule, after Simon and Campasano (2012). If the
    front VX contract is above VIX by 0.1 point times the trading days left to
    settlement, "short 0.3906 front contracts of VX and short 1 front contract
@@ -27,7 +27,7 @@ position rules, and its closing comment prints four figures for each.
 
 1. **Hedge 0.3906**, lines 47 and 55, commented out. Its comment, lines 81 to
    82, prints an APR of 0.069065, a Sharpe ratio of 1.002020, a maximum
-   drawdown of −0.075683 and a longest drawdown of 259 rows. The book's 6.9
+   drawdown of −0.075683 and a longest drawdown of 259 days. The book's 6.9
    percent and Sharpe ratio of 1 come from this rule.
 2. **Hedge [1, 1]**, lines 48 to 49 and 56 to 57, the live lines. One VX
    contract per ES contract. Its comment, lines 86 to 88, prints 0.293906,
@@ -72,10 +72,10 @@ both the APR and the Sharpe ratio, which :func:`run` prints beside the rest.
 transcription names them rather than copying them silently.
 
 1. **An entry from flat is free.** On the day a position opens from nothing,
-   yesterday's gross is 0, so the day's return is NaN and set to 0, and the
-   entry's cost is never charged. A held day is charged on its mark-to-market
-   move as well as on any trade, because line 68 takes the change in
-   ``positions·y`` rather than in ``positions``. The test holds 32 entries
+   yesterday's gross is 0, so the day's return is NaN and set to 0, and line
+   68 never charges the entry's cost. It charges a held day on its
+   mark-to-market move as well as on any trade, because it takes the change
+   in ``positions·y`` rather than in ``positions``. The test holds 32 entries
    from flat.
 2. **The file's last day reads as an expiry.** Eight contracts are priced on
    2012-05-07, the strip's last row, so each reads as expiring there.
@@ -84,7 +84,8 @@ transcription names them rather than copying them silently.
    hold nothing. The six contracts after it in the loop get windows that hold
    no row. Of the 71 contracts the loop reads, 65 hold a row.
 
-**The data.** Three committed vintages.
+**The data.** Four committed vintages. The trade reads the first three, and
+the fitted hedge beside it reads the fourth.
 
 1. **The VX strip** from ``inputDataDaily_VX_20120507.mat``, vendor
    chan-mat, basis ``raw``, saved 2012-05-08, 72 contracts from VX-2007F
@@ -97,20 +98,28 @@ transcription names them rather than copying them silently.
    ``adjusted``, saved 2012-05-09, 2,000 rows from 2004-06-02 to 2012-05-08.
    ES was rewritten between saves, so this save is part of the
    specification.
+4. **VX's continuous close** from the same 2012-05-07 save as ES, vendor
+   chan-mat, basis ``adjusted``, saved 2012-05-09, 2,000 rows from 2004-06-01
+   to 2012-05-08. :func:`fitted_hedge` reads it with ES through
+   :func:`chan.vx_es.read_legs` to fit the hedge the log's row 11 trades in
+   place of 0.3906. No figure under 0.3906 or [1, 1] reads it.
 
-The three calendars share all 1,543 of the strip's days, so every expiry is
+The trade's three calendars share all 1,543 of the strip's days, so every expiry is
 the strip's own. 2008-08-04 is the first of 948 days from the anchor.
 
 **The scale-break guard.** The strip is read through
 :func:`chan.roll_returns.load_strip`, which guards every contract over its
-own rows. ES is guarded over its own span in the 2012-05-07 save, as
-:func:`chan.vx_es.read_legs` does. VIX is guarded from the anchor to the last
+own rows. The run guards ES over its own span in the 2012-05-07 save, as
+:func:`chan.vx_es.read_legs` does, and guards VIX from the anchor to the last
 common day, 2008-08-04 to 2012-05-07, the span the script's ``idx`` measures
 from. VIX flags 2007-02-27, a real move from 11.15 to 18.31, so a guard over
 the whole common span would refuse. That day sets a long position, but no
 figure reads it. A position reads only its own day's VIX, and the first test
 return earns the position held at the close of 2010-07-28. Nothing flags
-over the guarded spans, so nothing is refused.
+over the guarded spans, so nothing is refused. :func:`chan.vx_es.read_legs`
+guards VX's continuous close and ES over their whole spans for the fitted
+hedge, and :func:`run` fits that hedge before it prints, so a break in either
+refuses the whole run. Neither flags a day.
 
 ``tests/test_vx_es_roll_return.py`` pins every figure. Every result here is
 exploratory. Reproducing Chan's figures spends his 2008 to 2012 sample on a
@@ -147,6 +156,7 @@ from chan.vx_es import (
     ES_POINT_VALUE,
     SOURCE_FILE,
     TRAINING_DAYS,
+    VX,
     VX_POINT_VALUE,
     anchored,
     fit_hedge,
@@ -192,7 +202,11 @@ BOOK_SHARPE = "1"
 
 @dataclass(frozen=True)
 class Sources:
-    """The three reads, each a vintage and its series."""
+    """The trade's three reads, each a vintage and its series.
+
+    The fitted hedge's read of VX's continuous close is the fourth, and
+    :func:`fitted_hedge` takes it.
+    """
 
     strip: Strip
     vix_member: VintageEntry
@@ -344,10 +358,16 @@ def read_sources(data_dir: Path | None = None) -> Sources:
     return Sources(strip=strip, vix_member=vix_member, vix=vix, es_member=es_member, es=es)
 
 
-def fitted_hedge(data_dir: Path | None = None) -> float:
-    """:mod:`chan.vx_es`'s hedge on the same 500 rows from the anchor, for the row beside."""
-    _, legs = read_legs(SOURCE_FILE, data_dir)
-    return fit_hedge(anchored(legs).iloc[:TRAINING_DAYS]).hedge
+def fitted_hedge(data_dir: Path | None = None) -> tuple[VintageEntry, float]:
+    """:mod:`chan.vx_es`'s hedge on the same 500 rows from the anchor, for the row beside.
+
+    It returns VX's continuous close's vintage with the hedge.
+    :func:`chan.vx_es.read_legs` guards that series and ES over their whole
+    spans, so a break in either refuses here.
+    """
+    members, legs = read_legs(SOURCE_FILE, data_dir)
+    vx_member = next(m for m in members if m.symbol == VX)
+    return vx_member, fit_hedge(anchored(legs).iloc[:TRAINING_DAYS]).hedge
 
 
 def _verdict(value: float, printed: str) -> str:
@@ -363,13 +383,19 @@ def report(
     hedged: RollReturnTrade,
     shipped: RollReturnTrade,
     fitted: RollReturnTrade,
+    fitted_member: VintageEntry,
 ) -> None:
-    """Print the vintages, both rules beside their comments, the text's two, and the counts."""
+    """Print the vintages, both rules beside their comments, the text's two, and the counts.
+
+    ``fitted_member`` is the vintage of VX's continuous close, which only the
+    fitted hedge reads.
+    """
     days, test = hedged.days, hedged.test_days
     print("VX against ES on VX's roll return, Algorithmic Trading location 2754")
     print(f"  strip     {panel_line(sources.strip.members)}")
     print(f"  vintage   {vintage_line(sources.vix_member)}")
     print(f"  vintage   {vintage_line(sources.es_member)}")
+    print(f"  vintage   {vintage_line(fitted_member)}, for the fitted hedge alone")
     print(f"  calendar  {days[0].date()} to {days[-1].date()}, {len(days)} days all three hold")
     print(f"  test      {test[0].date()} to {test[-1].date()}, {len(test)} days")
     print(
@@ -392,7 +418,7 @@ def report(
         ):
             print(f"    {name:<22} {value:>10.6f}  {string:>9}  {_verdict(value, string)}")
         print(
-            f"    {'Longest drawdown, rows':<22} {drawdown_days:>10d}  "
+            f"    {'Longest drawdown, days':<22} {drawdown_days:>10d}  "
             f"{printed.max_drawdown_days:>9}  {_verdict(drawdown_days, printed.max_drawdown_days)}"
         )
     print()
@@ -423,12 +449,13 @@ def report(
 
 
 def run(data_dir: Path | None = None) -> tuple[RollReturnTrade, RollReturnTrade]:
-    """Read the three vintages, run both rules, and print the report."""
+    """Read the trade's three vintages and the fitted hedge's fourth, run both rules, and print."""
     sources = read_sources(data_dir)
     hedged = roll_return_trade(sources, HEDGE)
     shipped = roll_return_trade(sources, SHIPPED_HEDGE)
-    fitted = roll_return_trade(sources, fitted_hedge(data_dir))
-    report(sources, hedged, shipped, fitted)
+    fitted_member, hedge = fitted_hedge(data_dir)
+    fitted = roll_return_trade(sources, hedge)
+    report(sources, hedged, shipped, fitted, fitted_member)
     return hedged, shipped
 
 

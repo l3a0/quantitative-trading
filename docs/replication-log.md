@@ -8102,9 +8102,10 @@ A VX future converges on the VIX index as it nears settlement, so a front
 contract priced well above VIX tends to fall toward it, and one priced well
 below tends to rise. That convergence is VX's roll return. Volatility rises
 when the stock market falls, so E-mini S&P 500 futures, ES, held the same
-way as VX hedge most of the market's move. Location 2747 says no instrument
-holds VIX itself, and that ES, whose roll return is about 1 percent a year,
-can stand in for a series that moves against it. Location 2754 gives the
+way as VX hedge most of the market's move. Location 2747 says no ETF holds
+VIX, because a basket of options replicating it is too expensive to keep, and
+that ES, whose roll return is about 1 percent a year, can stand in for a
+series that moves against it. Location 2754 gives the
 rule. If the front VX contract is above VIX by 0.1 point times the trading
 days left to settlement, "short 0.3906 front contracts of VX and short 1
 front contract of ES. Hold for one day." If it is below by that much, buy
@@ -8117,7 +8118,8 @@ script's commented lines.** The script carries two position rules. Its live
 lines, 48 to 49 and 56 to 57, hold one VX contract per ES contract, and its
 comment at lines 86 to 88 prints that rule's four figures. The lines holding
 0.3906 VX contracts, 47 and 55, are commented out, and the comment at lines
-81 to 82 prints theirs. The book's two figures round from the second block.
+81 to 82 prints theirs. The book's two figures round from the block at lines
+81 to 82.
 Each rule misses the other's printed APR by 0.224841 and its Sharpe ratio by
 2.261932, so the two blocks cannot be read as one run.
 
@@ -8130,10 +8132,12 @@ string at the decimals the string carries, which is
 `chan.khandani_lo_book_two.matches`. Nothing in it was chosen to fit the
 run.
 
-Every row reads three vintages and one of two specifications, so they are
-stated once here.
+Rows 1 to 10 read three vintages and one of two specifications, so they are
+stated once here. Row 11 also reads the fourth vintage below, and its
+specification is the fitted hedge rather than 0.3906 or [1, 1].
 
-1. **The vintages.** Three of Chan's book-two files.
+1. **The vintages.** Four of Chan's book-two files, the fourth read for row
+   11 alone.
    1. `data/inputdatadaily_vx_20120507/`, lifted from
       `inputDataDaily_VX_20120507.mat`, vendor `chan-mat`, basis `raw`, saved
       2012-05-08. It is one vintage per contract, 72 of them from VX-2007F to
@@ -8153,6 +8157,12 @@ stated once here.
       `inputDataOHLCDaily_20120507.mat`, vendor `chan-mat`, basis `adjusted`,
       saved 2012-05-09, 2,000 rows from 2004-06-02 to 2012-05-08. ES was
       rewritten between saves, so this save is part of the specification.
+   4. `data/inputdataohlcdaily_20120507/vx.csv`, VX's continuous close from
+      the same save as ES, vendor `chan-mat`, basis `adjusted`, saved
+      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. It serves only
+      row 11. `chan.vx_es.read_legs` reads it with ES to fit the hedge, and
+      guards each over its whole span and refuses nothing. The run fits that
+      hedge before it prints, so a flagged day in either would stop the run.
 2. **The specifications.** `VX_ES_rollreturn.m` as
    `chan.vx_es_roll_return` transcribes it, with one of two hedges: H, the
    0.3906 of lines 47 and 55, and U, the [1, 1] of the live lines. The three
@@ -8186,11 +8196,11 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 | 1 | The APR, H | 0.069065 | script line 81 |
 | 2 | The Sharpe ratio, H | 1.002020 | script line 81 |
 | 3 | The maximum drawdown, H | −0.075683 | script line 82 |
-| 4 | The longest drawdown, H | 259 rows | script line 82 |
+| 4 | The longest drawdown, H | 259 days | script line 82 |
 | 5 | The APR, U | 0.293906 | script line 87 |
 | 6 | The Sharpe ratio, U | 3.263952 | script line 87 |
 | 7 | The maximum drawdown, U | −0.035798 | script line 88 |
-| 8 | The longest drawdown, U | 59 rows | script line 88 |
+| 8 | The longest drawdown, U | 59 days | script line 88 |
 | 9 | The APR, book | "6.9 percent" | location 2754 |
 | 10 | The Sharpe ratio, book | "a Sharpe ratio of 1" | location 2754 |
 | 11 | The fitted hedge traded in place of 0.3906 | none, nothing prints it | n/a |
@@ -8202,7 +8212,7 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 | 1 | `prod(1 + r)^(252 / 448) − 1` under H | 0.069065 | `TestTheHedgedSpecification::test_the_apr` |
 | 2 | `√252 · mean(r) / std(r)` under H | 1.002020 | `TestTheHedgedSpecification::test_the_sharpe_ratio` |
 | 3 | `calculateMaxDD(cumprod(1 + r) − 1)` under H, the deepest drawdown | −0.075683 | `TestTheHedgedSpecification::test_the_maximum_drawdown` |
-| 4 | The same, the longest run of rows below a high | 259 | `TestTheHedgedSpecification::test_the_longest_drawdown` |
+| 4 | The same, the longest run of days below a high | 259 | `TestTheHedgedSpecification::test_the_longest_drawdown` |
 | 5 | Row 1 under U | 0.293906 | `TestTheShippedSpecification::test_the_apr` |
 | 6 | Row 2 under U | 3.263952 | `TestTheShippedSpecification::test_the_sharpe_ratio` |
 | 7 | Row 3 under U | −0.035798 | `TestTheShippedSpecification::test_the_maximum_drawdown` |
@@ -8218,11 +8228,11 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 | 1 | −0.000000 | reproduced | Exact at the six decimals the script prints. |
 | 2 | +0.000000 | reproduced | The same. |
 | 3 | +0.000000 | reproduced | The same. |
-| 4 | 0 rows | reproduced | Exact. |
+| 4 | 0 days | reproduced | Exact. |
 | 5 | +0.000000 | reproduced | Exact at the six decimals the script prints. |
 | 6 | −0.000000 | reproduced | The same. |
 | 7 | −0.000000 | reproduced | The same. |
-| 8 | 0 rows | reproduced | Exact. |
+| 8 | 0 days | reproduced | Exact. |
 | 9 | +0.0 percent | reproduced | 6.906464 percent rounds to the book's 6.9. |
 | 10 | +0 | reproduced | 1.002020 rounds to the book's 1. |
 | 11 | none | none, not a replication | Nothing prints a figure for the fitted hedge. Against rows 1 and 2's printed strings it misses by −0.000003 and −0.000042, so the script traded the rounded 0.3906 rather than the hedge Entry 28 fits, and the run takes the printed constant. |
@@ -8247,16 +8257,18 @@ Three things.
 
 **What the trade cost to enter.** On the day a position opens from flat,
 yesterday's gross is 0, so the day's return divides by 0, is set to 0, and
-the entry's cost is never charged. The test holds 32 such entries. A held
-day is charged on its mark-to-market move as well as on any trade. The
-figures copy both quirks, as the criterion asks, and this entry measures no
-other cost model in their place.
+the script never charges the entry's cost. The test holds 32 such entries.
+The script charges a held day on its mark-to-market move as well as on any
+trade. The figures copy the free entry and the charge on mark-to-market
+moves, as the criterion asks, and this entry measures no other cost model in
+their place.
 
 **What the trade did in its last ten days.** Eight contracts are priced on
 2012-05-07, the file's last day, so each reads as expiring there. VX-2012K's
 window ends on 2012-04-23, its days to settlement count to 2012-05-07 rather
 than to its real expiry, and the test's last 10 rows hold nothing. The
-figures count those rows as earning 0, as the script does.
+first of them, 2012-04-24, earns the position held at the 2012-04-23 close
+less its exit cost, and the script counts the other nine as earning 0.
 
 **Whether the trade works out of sample.** The rule, the hedge and the window
 are Chan's, and the sample is the one he reported on. A registered test would

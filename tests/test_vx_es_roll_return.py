@@ -4,10 +4,12 @@ This file is the single authority for every number a prose surface quotes
 about this replication. ``docs/replication-log.md`` Entry 41 carries the
 verdicts and points here row by row.
 
-Every pin reads three vintages and one of two specifications, so they are
-stated once here.
+Every pin but ``TestTheFittedHedge``'s reads three vintages and one of two
+specifications, so they are stated once here. ``TestTheFittedHedge`` reads
+the fourth vintage below as well, and its specification trades the fitted
+hedge in place of 0.3906 or [1, 1].
 
-- **Vintages.** Three of Chan's book-two files. Each one's identity is its
+- **Vintages.** Four of Chan's book-two files. Each one's identity is its
   row of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``.
 
   1. ``inputdatadaily_vx_20120507/``, from ``inputDataDaily_VX_20120507.mat``,
@@ -19,6 +21,10 @@ stated once here.
   3. ``inputdataohlcdaily_20120507/es.csv``, from
      ``inputDataOHLCDaily_20120507.mat``, chan-mat, basis ``adjusted``, saved
      2012-05-09. ES holds 2,000 rows from 2004-06-02 to 2012-05-08.
+  4. ``inputdataohlcdaily_20120507/vx.csv``, VX's continuous close from the
+     same save, chan-mat, basis ``adjusted``, saved 2012-05-09, 2,000 rows
+     from 2004-06-01 to 2012-05-08. ``fitted_hedge`` reads it with ES through
+     ``chan.vx_es.read_legs``, which guards both over their whole spans.
 
 - **The specifications.** ``VX_ES_rollreturn.m``, git blob ``849e0ac`` at
   EpchanPreview ``e4bc46f``, with one of two hedges. On the days all three
@@ -31,7 +37,8 @@ stated once here.
   basis point of the day's change in market value over the same gross, with
   NaN set to 0. The figures are taken over the 448 rows after the first 500
   from 2008-08-04: ``prod(1 + r)^(252 / n) − 1``, ``√252 · mean / std`` with
-  the std dividing by n − 1, and ``calculateMaxDD``, with no risk-free rate.
+  the standard deviation dividing by n − 1, and ``calculateMaxDD``, with no
+  risk-free rate.
 
   1. **H**, the hedge 0.3906 of the script's commented lines 47 and 55,
      whose figures its lines 81 to 82 print and the book's come from.
@@ -44,7 +51,7 @@ precision Chan printed, through ``matches``.
 
 Exploratory. Reproducing Chan's figures spends his 2008 to 2012 sample on a
 rule and a hedge he chose. A scratch run landed every figure before the
-criterion was written on the issue. The run first ran here on 2026-10-10.
+criterion was written on the issue. It first ran here on 2026-10-10.
 """
 
 from __future__ import annotations
@@ -114,7 +121,7 @@ def shipped(sources) -> RollReturnTrade:
 
 @pytest.fixture(scope="module")
 def fitted(sources) -> RollReturnTrade:
-    return roll_return_trade(sources, fitted_hedge())
+    return roll_return_trade(sources, fitted_hedge()[1])
 
 
 @pytest.fixture(scope="module")
@@ -369,6 +376,16 @@ class TestTheQuirks:
         assert not hedged.positions[-10:].any()
         assert hedged.days[-11] == day("2012-04-23")
 
+    def test_the_first_of_the_last_10_earns_its_exit_and_the_other_9_earn_0(
+        self, hedged, shipped
+    ) -> None:
+        """2012-04-24 earns the position held at the 2012-04-23 close, less its exit cost."""
+        assert hedged.test_days[-10] == day("2012-04-24")
+        assert hedged.test_daily[-10] == pytest.approx(-0.0005002160037572264, abs=TIGHT)
+        assert shipped.test_daily[-10] == pytest.approx(0.00539373151148049, abs=TIGHT)
+        assert (hedged.test_daily[-9:] == 0).all()
+        assert (shipped.test_daily[-9:] == 0).all()
+
     def test_an_entry_from_flat_pays_no_cost(self, sources, hedged) -> None:
         """With the cost charged on the entry's own gross, the APR would be lower."""
         contracts = sources.strip.contracts
@@ -590,7 +607,7 @@ class TestTheReport:
         apr = self._rows(printed, "APR ")
         sharpe = self._rows(printed, "Sharpe ratio")
         drawdown = self._rows(printed, "Maximum drawdown")
-        longest = self._rows(printed, "Longest drawdown, rows")
+        longest = self._rows(printed, "Longest drawdown, days")
         assert apr[0][-3:] == ["0.069065", "0.069065", "reproduced"]
         assert apr[1][-3:] == ["0.293906", "0.293906", "reproduced"]
         assert sharpe[0][-3:] == ["1.002020", "1.002020", "reproduced"]
@@ -629,6 +646,10 @@ class TestTheReport:
         assert "inputdatadaily_vx_20120507/" in printed
         assert "vix/vix.csv" in printed
         assert "inputdataohlcdaily_20120507/es.csv" in printed
+        assert (
+            "vintage   inputdataohlcdaily_20120507/vx.csv   chan-mat adjusted, saved 2012-05-09, "
+            "for the fitted hedge alone"
+        ) in printed
         assert "calendar  2006-03-23 to 2012-05-07, 1543 days all three hold" in printed
         assert "test      2010-07-29 to 2012-05-07, 448 days" in printed
         assert (

@@ -552,9 +552,9 @@ where they were first built. The other thirty-eight were built here.
     0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
     lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
     of 1. With one VX contract per ES contract, the rule the script ships,
-    they are 0.293906, 3.263952, −0.035798 and 59 days. The script traded the
-    printed 0.3906, because trading the fitted 0.390594 misses the APR and
-    the Sharpe ratio at their sixth decimal. An entry from flat pays no cost,
+    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
+    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
+    the script traded the printed 0.3906. An entry from flat pays no cost,
     as in the script. Every figure is exploratory.
 
 One more result runs here, and it is not a replication. The same passage names
@@ -1803,10 +1803,12 @@ fixes its three files, its threshold, its cost and its test:
 uv run python -m chan.vx_es_roll_return
 ```
 
-It prints the strip and both vintages, the four figures of each rule beside
-the script's comment with a verdict, the APR and the Sharpe ratio beside the
-book's with a verdict, the fitted hedge's figures with no verdict, and how
-many of the test's days are held, short, long and entered from flat.
+It prints the strip, the VIX and ES vintages, and the vintage of VX's
+continuous close that only the fitted hedge reads. Then it prints the four
+figures of each rule beside the script's comment with a verdict, the APR and
+the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
+with no verdict, and how many of the test's days are held, short, long and
+entered from flat.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
