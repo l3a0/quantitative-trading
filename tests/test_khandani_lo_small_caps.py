@@ -60,7 +60,10 @@ import pytest
 from chan import khandani_lo, paths
 from chan.khandani_lo import (
     BOOK_KHANDANI_LO,
+    ONE_WAY_COST,
+    TRADING_DAYS,
     chan_sharpe,
+    daily_book,
     daily_returns,
     plain_sharpe,
     reversal_weights,
@@ -80,6 +83,7 @@ from chan.khandani_lo_small_caps import (
     comparison,
     direction,
     main,
+    memmel_variance,
     points_chans_way,
     report,
     run,
@@ -504,6 +508,14 @@ class TestSharpeGapByHand:
         assert g.z == pytest.approx(g.gap / g.standard_error)
         assert not g.beyond_noise
 
+    def test_memmel_variance_is_the_worked_example(self) -> None:
+        """The formula on its own, at the hand example's daily ratios and correlation."""
+        assert memmel_variance(ROOT3 / 2, 1.5, 1 / ROOT3, 4) == pytest.approx(
+            HAND_VARIANCE, rel=1e-12
+        )
+        assert memmel_variance(0.0, 0.0, 0.0, 4) == 2 / 4
+        assert memmel_variance(0.3, 0.3, 1.0, 10) == pytest.approx(0.0, abs=1e-15)
+
     def test_swapping_the_series_flips_the_gap_and_keeps_the_error(self) -> None:
         ab, ba = sharpe_gap(HAND_A, HAND_B), sharpe_gap(HAND_B, HAND_A)
         assert ba.gap == pytest.approx(-ab.gap, rel=1e-12)
@@ -828,3 +840,100 @@ class TestTheReport:
         monkeypatch.setattr("chan.khandani_lo_small_caps.load_panel", broken)
         with pytest.raises(RuntimeError, match="a bug, not a refusal"):
             main()
+
+
+# --- what the write-up measured --------------------------------------------------------
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/khandani-lo-small-caps-lessons.md`` quotes that no row of Entry 44 declared.
+
+    The write-up measured every one of them after the run, on the same two
+    vintages, window and specification as the rows above, so each is
+    exploratory and none carries a verdict. The average day is the charged
+    specification's, ``chan.khandani_lo.daily_book``, each figure a daily mean
+    over that book's own mean gross position. The S&P 500's closes are the
+    exception, because ``TestWhatAnAverageDayCosts`` in
+    ``tests/test_khandani_lo.py`` already pins 0.5276, 7.2525, 1.4505 and
+    13.7453, and this class does not pin them twice.
+    """
+
+    @pytest.mark.parametrize(
+        ("book", "profit", "cost", "turnover", "multiple"),
+        [
+            ("small_closes", 6.7197, 7.3545, 1.4709, 1.0945),
+            ("small_opens", 11.8569, 7.3644, 1.4729, 0.6211),
+            ("large_opens", 8.9815, 7.3182, 1.4636, 0.8148),
+        ],
+    )
+    def test_the_average_day(self, result, book, profit, cost, turnover, multiple) -> None:
+        """Profit and cost in basis points of the position a day, turnover in books a day."""
+        day = daily_book(getattr(result, book))
+        assert day.profit * 1e4 == pytest.approx(profit, abs=5e-5), book
+        assert day.cost * 1e4 == pytest.approx(cost, abs=5e-5), book
+        assert day.turnover == pytest.approx(turnover, abs=5e-5), book
+        assert day.cost_per_profit == pytest.approx(multiple, abs=5e-5), book
+
+    def test_every_book_trades_about_the_same_and_pays_about_the_same(self, result) -> None:
+        """Turnover sits within 1.4505 to 1.4729 books a day, so the profit is what differs."""
+        days = [daily_book(getattr(result, b)) for b in ("small_closes", "small_opens")]
+        days += [daily_book(getattr(result, b)) for b in ("large_closes", "large_opens")]
+        turnovers = [d.turnover for d in days]
+        assert max(turnovers) - min(turnovers) < 0.025
+        for d in days:
+            assert d.cost == pytest.approx(d.turnover * ONE_WAY_COST, abs=1e-15)
+
+    @pytest.mark.parametrize(
+        ("book", "break_even"),
+        [
+            ("small_closes", "4.57"),
+            ("small_opens", "8.05"),
+            ("large_closes", "0.36"),
+            ("large_opens", "6.14"),
+        ],
+    )
+    def test_the_cost_a_side_at_which_each_book_breaks_even(self, result, book, break_even) -> None:
+        """The average day's profit over its turnover, in basis points of each unit traded.
+
+        At that cost a side the charged specification's mean daily profit is
+        0, so its Sharpe ratio is 0. The profit and the turnover share one
+        divisor, so the mean book cancels.
+        """
+        r = getattr(result, book)
+        day = daily_book(r)
+        found = day.profit / day.turnover
+        assert f"{found * 1e4:.2f}" == break_even, book
+        assert (r.pnl - r.traded * found).mean() == pytest.approx(0.0, abs=1e-15)
+
+    def test_the_open_lifts_the_s_and_p_500_far_more(self, result) -> None:
+        large = result.large_opens.before_costs - result.large_closes.before_costs
+        small = result.small_opens.before_costs - result.small_closes.before_costs
+        assert f"{large:.4f}" == "4.1693"
+        assert f"{small:.4f}" == "1.8966"
+
+    @staticmethod
+    def _daily(pnl: np.ndarray) -> float:
+        return float(pnl.mean() / pnl.std(ddof=1))
+
+    def test_without_the_correlation_the_closes_standard_error_would_be_1_4252(
+        self, result
+    ) -> None:
+        """Memmel's formula at a correlation of 0, against the measured 0.5258."""
+        a, b = result.small_closes.pnl, result.large_closes.pnl
+        variance = memmel_variance(self._daily(a), self._daily(b), 0, 251)
+        unrelated = math.sqrt(TRADING_DAYS * variance)
+        assert f"{unrelated:.4f}" == "1.4252"
+        assert f"{result.closes_gap.gap / unrelated:.4f}" == "2.2155"
+        assert result.closes_gap.standard_error < unrelated
+
+    def test_the_correlation_term_carries_almost_all_of_the_variance(self, result) -> None:
+        """2(1 − ρ) against the whole bracket, because daily Sharpe ratios are small."""
+        shares = {}
+        for price, gap in (("closes", result.closes_gap), ("opens", result.opens_gap)):
+            small = getattr(result, f"small_{price}").pnl
+            large = getattr(result, f"large_{price}").pnl
+            bracket = 251 * memmel_variance(
+                self._daily(small), self._daily(large), gap.correlation, 251
+            )
+            shares[price] = f"{2 * (1 - gap.correlation) / bracket:.2f}"
+        assert shares == {"closes": "0.98", "opens": "0.94"}
