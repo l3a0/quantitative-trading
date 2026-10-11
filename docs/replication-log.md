@@ -8470,12 +8470,14 @@ string at the decimals the string carries, which is
 `chan.khandani_lo_book_two.matches`. Nothing in it was chosen to fit the
 run.
 
-Rows 1 to 10 read three vintages and one of two specifications, so they are
-stated once here. Row 11 also reads the fourth vintage below, and its
+Rows 1 to 10 use three vintages as data and one of two specifications, so
+they are stated once here. Row 11 also uses the fourth vintage below, and its
 specification is the fitted hedge rather than 0.3906 or [1, 1].
 
-1. **The vintages.** Four of Chan's book-two files, the fourth read for row
-   11 alone.
+1. **The vintages.** Four of Chan's book-two files, the fourth used as data
+   for row 11 alone. Every row still checks all four against their checksums,
+   because loading ES reads every member of its 53-series save, the fourth
+   among them, so a changed or missing fourth refuses rows 1 to 10 too.
    1. `data/inputdatadaily_vx_20120507/`, lifted from
       `inputDataDaily_VX_20120507.mat`, vendor `chan-mat`, basis `raw`, saved
       2012-05-08. It is one vintage per contract, 72 of them from VX-2007F to
@@ -8487,8 +8489,9 @@ specification is the fitted hedge rather than 0.3906 or [1, 1].
       script reads its last column, `Adj Close`, which equals `Close` on every
       row. This is the first replication to read the file. The scale-break
       guard reads it from 2008-08-04 to 2012-05-07 and refuses nothing. The
-      file flags 2007-02-27, a real move from 11.15 to 18.31, which no figure
-      reads, as
+      file flags 2007-02-27, a real move from 11.15 to 18.31. It counts
+      among the front rows below VIX in conclusion 5, and no figure of the
+      trade's reads it, as
       `TestTheGuardAndTheReads::test_no_figure_reads_vix_before_the_test_s_first_held_close`
       holds.
    3. `data/inputdataohlcdaily_20120507/es.csv`, lifted from
@@ -8497,10 +8500,11 @@ specification is the fitted hedge rather than 0.3906 or [1, 1].
       rewritten between saves, so this save is part of the specification.
    4. `data/inputdataohlcdaily_20120507/vx.csv`, VX's continuous close from
       the same save as ES, vendor `chan-mat`, basis `adjusted`, saved
-      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. It serves only
-      row 11. `chan.vx_es.read_legs` reads it with ES to fit the hedge, and
-      guards each over its whole span and refuses nothing. The run fits that
-      hedge before it prints, so a flagged day in either would stop the run.
+      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. Only row 11 uses
+      its prices. `chan.vx_es.read_legs` reads it with ES to fit the
+      hedge, and guards each over its whole span and refuses nothing.
+      The run fits that hedge before it prints, so a flagged day in
+      either would stop the run.
 2. **The specifications.** `VX_ES_rollreturn.m` as
    `chan.vx_es_roll_return` transcribes it, with one of two hedges: H, the
    0.3906 of lines 47 and 55, and U, the [1, 1] of the live lines. The three
@@ -8525,7 +8529,8 @@ that fits the 0.3906 hedge. Over the test, H and U hold a position on 224 of
 the 448 days, short on 196 and long on 28, with 32 entries from flat.
 
 Every result here is **exploratory**. Reproducing Chan's figures spends his
-2008 to 2012 sample on a rule and a hedge he chose.
+2008 to 2012 sample on a rule Simon and Campasano proposed and a hedge he
+chose.
 
 ### What the book printed
 
@@ -8577,10 +8582,15 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What the entry concludes
 
-Three things.
+Six things. The last three were measured by the write-up after the run, and
+`TestWhatThePostMeasured` in
+[tests/test_vx_es_roll_return.py](../tests/test_vx_es_roll_return.py) pins
+them.
 
 1. **Both of the script's rules reproduce on Chan's own files.** All eight
-   figures its comments print land at the six decimals printed.
+   figures its comments print land at the precision printed, the APRs,
+   Sharpe ratios and maximum drawdowns to six decimals and the two day counts
+   exactly.
 2. **The book's figures come from the commented rule.** The script as it
    ships prints the [1, 1] block. The book's 6.9 percent and Sharpe ratio of
    1 round from the 0.3906 block, which is the rule the text describes, and
@@ -8588,6 +8598,30 @@ Three things.
 3. **The script traded the printed constant.** The hedge fitted on the same
    500 rows rounds to 0.3906, but trading it misses the script's sixth
    decimal on both the APR and the Sharpe ratio.
+4. **Every held stretch opens free.** The test's held days fall into 32
+   stretches, 25 short and 7 long, and no position changes sign without a
+   flat day between, so each of the 32 is an entry from flat. Under 0.3906,
+   setting each entry day's return to one basis point lost gives an APR of
+   0.067142 and a Sharpe ratio of 0.975830, and charging no cost at all gives
+   0.071248 and 1.030894. Measured after the run.
+5. **The window is out of sample for the hedge alone.** The hedge's 500 days,
+   2008-08-04 to 2010-07-28, are the trade's own first 500 from the anchor.
+   The 40-row start of the front window decides only VX-2007F's window, and
+   on the test's 438 front rows the script's front is the nearest priced
+   contract on 228 and the second-nearest on 210. The 0.1 threshold and the
+   window carry no statement that the test did not set them. Over the whole
+   calendar the front sits above VIX on 1,016 of the 1,369 front rows.
+   Measured after the run.
+6. **The hedge leaves the trade mostly in ES.** On the 224 held test days
+   the VX leg is a median 0.119966 of the gross under 0.3906 and 0.258710
+   under [1, 1]. Summed over the test, the VX leg earns 0.285954, the ES leg
+   −0.159336 and the cost 0.003634 under 0.3906, for 0.122984, and 0.605959,
+   −0.138046 and 0.003961 under [1, 1], for 0.463952. On 2011-08-08, the
+   0.3906 rule's worst day and its deepest drawdown's trough, both rules held
+   long, ES fell 7.3259 percent and VX-2011U rose 15.2672 percent, and the
+   rules lost 3.9889 and 0.3823 percent. On the 224 earning test days the
+   front's daily return correlates with ES's at −0.813746. Measured after
+   the run, so it describes one sample and tests no cause.
 
 ### What this entry cannot say
 
@@ -8598,8 +8632,8 @@ yesterday's gross is 0, so the day's return divides by 0, is set to 0, and
 the script never charges the entry's cost. The test holds 32 such entries.
 The script charges a held day on its mark-to-market move as well as on any
 trade. The figures copy the free entry and the charge on mark-to-market
-moves, as the criterion asks, and this entry measures no other cost model in
-their place.
+moves, as the criterion asks. Conclusion 4 sets two other cost models
+beside them, measured after the run, and neither is what a broker charged.
 
 **What the trade did in its last ten days.** Eight contracts are priced on
 2012-05-07, the file's last day, so each reads as expiring there. VX-2012K's
@@ -8608,12 +8642,16 @@ than to its real expiry, and the test's last 10 rows hold nothing. The
 first of them, 2012-04-24, earns the position held at the 2012-04-23 close
 less its exit cost, and the script counts the other nine as earning 0.
 
-**Whether the trade works out of sample.** The rule, the hedge and the window
-are Chan's, and the sample is the one he reported on. A registered test would
-fix the rule first and run it on data after 2012.
+**Whether the trade works out of sample.** The rule is Simon and
+Campasano's, the hedge and the window are Chan's, and the sample is the one
+he reported on. A registered test would fix the rule first and run it on data
+after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/vx-es-roll-return-lessons.md](../blog/vx-es-roll-return-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.vx_es_roll_return_figures` redraws.
 
 ## Entry 42: whether Example 7.4's own factor returns have momentum, Chan's *Quantitative Trading*
 
