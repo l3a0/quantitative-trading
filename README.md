@@ -6307,6 +6307,48 @@ regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels and of every
 line.
 
+[blog/build-board-on-github-lessons.md](blog/build-board-on-github-lessons.md)
+is a forty-fourth post, and the first about how the repository runs rather
+than about one of Chan's books. It reports the build board's move on
+2026-10-11 from a claude.ai artifact that every session wrote by hand to a
+GitHub Pages page that `.github/workflows/board.yml` rebuilds with
+`scripts/build_board.py`. It replicates nothing, so the replication log has no
+entry for it. It draws six lessons.
+
+1. Writing the page by hand cost a turn for every change, 240 updates in
+   1.887 days at about \$111 a day.
+2. The version check refused 77 writes across 57 of the 240 updates.
+3. 87 of 146 sub-agent reports ended with something still stale, and some
+   events, such as a merge from GitHub's web page, reached no session.
+4. The owner's ranking lived only in the artifact until a backfill moved it
+   onto labels and issue lines.
+5. The move cost \$101.80 and paid back in about 1.3 days, on an estimated
+   \$33.5 a day after it.
+6. The move added labels to keep up, two defects, new code and a page that
+   trails GitHub by a minute or more.
+
+None of its figures is pinned here. The cost figures come from Claude Code
+transcripts, which are private and machine-local, so they cannot be committed
+and no test can read them. The post quotes each figure as an unpinned
+measurement, with its window, date and method beside it where it first
+appears. Five groups of its figures fall under that rule.
+
+1. The figures before the move, from board-update turns over 2026-10-10
+   00:00Z to 2026-10-11 21:17Z priced at Claude Opus 5.5 list prices: 240
+   updates, \$209.63 in total, \$111.09 a day, the medians by kind of
+   update, and 77 refused writes across 57 updates.
+2. The figures after the move, an estimate from one label edit and one board
+   check, and the return table the post computes from them.
+3. The cost of the move, \$101.80 in five parts, and the earlier measurement
+   of about \$51 a day, quoted from
+   [issue 531](https://github.com/l3a0/quantitative-trading/issues/531).
+4. The counts that rest on transcripts alone: the 87 stale reports of 146 and
+   the two incidents of 2026-10-10 and 2026-10-11.
+5. Counts read from GitHub while the post was written: the board runs and
+   their timings, the `band:N` labels and `Board order:` lines, the line
+   counts of the script and its tests, and the cron runs not yet seen. GitHub
+   can show each of these again, but no test holds them.
+
 ## Where the book's numbers come from
 
 [research/book-notes](research/book-notes/README.md) holds verbatim Kindle

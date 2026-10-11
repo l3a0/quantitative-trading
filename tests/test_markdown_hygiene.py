@@ -176,6 +176,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/aud-cad-johansen-lessons.md",
         "blog/aud-cad-rollover-lessons.md",
         "blog/bollinger-band-lessons.md",
+        "blog/build-board-on-github-lessons.md",
         "blog/buy-on-gap-lessons.md",
         "blog/calendar-spreads-lessons.md",
         "blog/capped-kelly-allocation-lessons.md",
