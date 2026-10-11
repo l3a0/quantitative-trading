@@ -28,7 +28,9 @@ unless it names another, so they are stated once here.
 
 No script ships for location 3509. The FSTX alignment was chosen after six
 alignments and two averages were tried, and ``TestTheReadingsThatMiss`` pins
-the ones that were set aside, each with its reason.
+all five alignments and the average that were set aside, each with its
+reason. Two of the alignments read VIX on the trade's own date, which looks
+ahead, and ``TestTheRules`` holds which close each alignment reads.
 
 Each computed figure is held at six decimals, and each published figure at
 the precision Chan printed it, through ``matches``.
@@ -50,6 +52,7 @@ import pytest
 from chan import buy_on_gap, opening_gap, paths
 from chan import vix_filter as module
 from chan.khandani_lo_book_two import gap, matches
+from chan.matlab_helpers import backshift
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
 from chan.vintage import VintageUnavailable
 from chan.vix_filter import (
@@ -65,6 +68,7 @@ from chan.vix_filter import (
     VixFilter,
     as_of_reading,
     common_days,
+    forward_filled_reading,
     latest_close_before,
     main,
     own_calendar_reading,
@@ -72,6 +76,7 @@ from chan.vix_filter import (
     read_sources,
     reading,
     run,
+    same_day_reading,
     vix_filter,
     vix_filters,
 )
@@ -156,14 +161,14 @@ class TestTheVintages:
 
 
 class TestTheJoin:
-    """Row 10: the calendar each rule keeps once it is joined to VIX's."""
+    """Row 13: the calendar each rule keeps once it is joined to VIX's."""
 
     def test_buy_on_gap_keeps_all_1500_days(self, result) -> None:
         long = result.buy_on_gap
         assert (len(long.days), long.calendar_days) == (1500, 1500)
 
     def test_buy_on_gap_s_calendar_is_vix_s_over_its_span(self, sources) -> None:
-        """So every alignment reads the same close, and its figures cannot depend on one."""
+        """So every alignment that reads the previous day reads the same close."""
         days = sources.stocks["Close"].index
         assert sources.vix.loc[days[0] : days[-1]].index.equals(days)
 
@@ -295,7 +300,7 @@ class TestTheClaim:
 
 
 class TestTheReadingsThatMiss:
-    """Rows 6 to 9: each reading set aside, and why."""
+    """Rows 6 to 12: each reading set aside, and why."""
 
     def test_the_compounded_apr_prints_17_9_not_17_2(self, result) -> None:
         """Row 6. So location 3509's filtered figure is 252 times the mean.
@@ -343,6 +348,41 @@ class TestTheReadingsThatMiss:
         assert list(extra) == [day("2008-11-27"), day("2009-01-19"), day("2009-02-16")]
         assert result.literal.kept_days.difference(fstx_rule.days[keep]).empty
 
+    def test_vix_forward_filled_one_row_back_keeps_the_latest_close_s_days(
+        self, sources, result, fstx_rule
+    ) -> None:
+        """Row 10. The second alignment set aside gives the first one's figures, day for day."""
+        days = fstx_rule.days
+        filled = qualifies(sources.vix.reindex(days, method="ffill").to_numpy())
+        with np.errstate(invalid="ignore"):
+            latest = latest_close_before(days, sources.vix) > THRESHOLD
+        assert (filled == latest).all()
+        assert result.forward_filled == result.as_of
+        assert result.forward_filled.kept == 188
+
+    def test_the_forward_fill_and_the_latest_close_read_different_closes_on_23_days(
+        self, sources, fstx_rule
+    ) -> None:
+        """FSTX's first day, and 22 days after one the CBOE traded and Eurex did not.
+
+        None of them moves a close across 35. The nearest is 2009-05-04, which
+        reads 35.30 as the latest close and 36.50 forward-filled, both above.
+        """
+        days, vix = fstx_rule.days, sources.vix
+        filled = backshift(1, vix.reindex(days, method="ffill").to_numpy(dtype=float))
+        latest = latest_close_before(days, vix)
+        differ = np.flatnonzero(~((filled == latest) | (np.isnan(filled) & np.isnan(latest))))
+        assert len(differ) == 23
+        assert differ[0] == 0
+        assert np.isnan(filled[0])
+        assert latest[0] == vix.loc[day("2004-07-15")] < THRESHOLD
+        only_vix = vix.index.difference(days)
+        for row in differ[1:]:
+            assert ((only_vix > days[row - 1]) & (only_vix < days[row])).any()
+            assert (filled[row] > THRESHOLD) == (latest[row] > THRESHOLD)
+        nearest = days.get_loc(day("2009-05-04"))
+        assert (latest[nearest], filled[nearest]) == (35.30, 36.50)
+
     def test_the_own_calendar_reading_swaps_the_day_after_each_holiday_for_the_holiday(
         self, sources, result, fstx_rule
     ) -> None:
@@ -369,12 +409,54 @@ class TestTheReadingsThatMiss:
         assert gap(100 * own.average_annual_return, BOOK_FSTX_PERCENT) == 1.9
         assert gap(own.sharpe, BOOK_FSTX_SHARPE) == 0.13
 
-    def test_buy_on_gap_gives_the_same_figures_under_every_alignment(self, sources) -> None:
+    def test_same_day_vix_with_nan_on_holidays_is_negative(self, result) -> None:
+        """Row 11. The fourth alignment set aside, which looks ahead before any figure is read."""
+        same = result.same_day
+        assert same.kept == 185
+        assert same.average_annual_return == pytest.approx(-0.047063, abs=SIX)
+        assert same.sharpe == pytest.approx(-0.297416, abs=SIX)
+        assert gap(100 * same.average_annual_return, BOOK_FSTX_PERCENT) == -7.3
+        assert gap(same.sharpe, BOOK_FSTX_SHARPE) == -0.46
+
+    def test_same_day_vix_forward_filled_is_negative(self, result) -> None:
+        """Row 12. The fifth alignment set aside, which looks ahead before any figure is read."""
+        same = result.same_day_filled
+        assert same.kept == 188
+        assert same.average_annual_return == pytest.approx(-0.046312, abs=SIX)
+        assert same.sharpe == pytest.approx(-0.295046, abs=SIX)
+        assert gap(100 * same.average_annual_return, BOOK_FSTX_PERCENT) == -7.2
+        assert gap(same.sharpe, BOOK_FSTX_SHARPE) == -0.46
+
+    def test_the_same_day_readings_read_vix_on_the_trade_s_own_date(
+        self, sources, result, fstx_rule
+    ) -> None:
+        """Each day kept is one VIX closed above 35 on, a joined day before one the join keeps.
+
+        VIX closes at 16:15 New York time, after FSTX's open on that date, so
+        a position held from the open could not have read it.
+        """
+        days, vix, joined = fstx_rule.days, sources.vix, result.literal
+        with np.errstate(invalid="ignore"):
+            same = vix.reindex(days).to_numpy(dtype=float) > THRESHOLD
+            filled = vix.reindex(days, method="ffill").to_numpy(dtype=float) > THRESHOLD
+        assert list(days[same]) == list(joined.days[np.flatnonzero(joined.qualifies) - 1])
+        assert reading(fstx_rule.literal, same) == result.same_day
+        assert list(days[filled & ~same]) == [
+            day("2008-11-27"),
+            day("2009-01-19"),
+            day("2009-02-16"),
+        ]
+        assert reading(fstx_rule.literal, filled) == result.same_day_filled
+
+    def test_buy_on_gap_gives_the_same_figures_under_every_previous_day_alignment(
+        self, sources
+    ) -> None:
         stocks = sources.stocks
         long = buy_on_gap.buy_on_gap(stocks["Open"], stocks["Low"], stocks["Close"])
         joined = vix_filter("Buy on gap", long.days, long.daily, long.daily != 0, sources.vix)
         for other in (
             as_of_reading(long.days, long.daily, sources.vix),
+            forward_filled_reading(long.days, long.daily, sources.vix),
             own_calendar_reading(long.days, long.daily, sources.vix),
         ):
             assert other.kept == joined.kept == 190
@@ -392,7 +474,7 @@ class TestTheReadingsThatMiss:
 
 
 class TestBesideTheReplication:
-    """Rows 11 and 12, which no source prints."""
+    """Rows 14 and 15, which no source prints."""
 
     def test_both_rules_keep_the_days_from_2008_09_18_to_2011_11_10(self, result) -> None:
         for filtered in (result.buy_on_gap, result.literal):
@@ -446,7 +528,7 @@ class TestBesideTheReplication:
 
 
 class TestTheGuard:
-    """Row 13: VIX's flagged day, and why a break before the guarded span moves no figure."""
+    """Row 16: VIX's flagged day, and why a break before the guarded span moves no figure."""
 
     def test_vix_flags_2007_02_27_alone(self, sources) -> None:
         assert scale_breaks(sources.vix) == [FLAGGED_DAY]
@@ -625,6 +707,33 @@ class TestTheRules:
         assert as_of.kept == 3
         assert as_of.average_annual_return == pytest.approx(252 * (0.03 + 0.04 + 0.06) / 3)
 
+    def test_the_forward_fill_reads_the_rule_s_previous_day_not_a_later_vix_close(self) -> None:
+        """A close on a day only VIX traded is what the latest close reads, and not the fill."""
+        days = pd.DatetimeIndex(["2020-01-06", "2020-01-07", "2020-01-09", "2020-01-10"])
+        vix = pd.Series(
+            [40.0, 20.0, 40.0, 40.0],
+            index=pd.DatetimeIndex(["2020-01-06", "2020-01-07", "2020-01-08", "2020-01-09"]),
+        )
+        daily = np.array([0.01, 0.02, 0.03, 0.04])
+        # Thursday reads Wednesday's 40 as the latest close and Tuesday's 20 through the fill.
+        filled = forward_filled_reading(days, daily, vix)
+        assert filled.kept == 2
+        assert filled.average_annual_return == pytest.approx(252 * (0.02 + 0.04) / 2)
+        latest = as_of_reading(days, daily, vix)
+        assert latest.kept == 3
+        assert latest.average_annual_return == pytest.approx(252 * (0.02 + 0.03 + 0.04) / 3)
+
+    def test_the_same_day_readings_keep_the_day_whose_own_close_is_above_35(self) -> None:
+        """A close above 35 keeps its own row, where every other reading keeps the next."""
+        days, vix, daily = self._week()
+        same = same_day_reading(days, daily, vix, forward_fill=False)
+        assert same.kept == 2
+        assert same.average_annual_return == pytest.approx(252 * (0.02 + 0.05) / 2)
+        # The fill gives the missing third row the second row's 40, so it keeps 0.03 too.
+        filled = same_day_reading(days, daily, vix, forward_fill=True)
+        assert filled.kept == 3
+        assert filled.average_annual_return == pytest.approx(252 * (0.02 + 0.03 + 0.05) / 3)
+
     def test_a_day_before_vix_s_first_close_reads_nan(self) -> None:
         vix = pd.Series([40.0], index=pd.DatetimeIndex(["2020-01-07"]))
         days = pd.DatetimeIndex(["2020-01-06", "2020-01-07", "2020-01-08"])
@@ -720,6 +829,39 @@ class TestTheReport:
             "gap",
             "+0.13",
         ]
+        assert self._row(printed, "FSTX, literal, forward-filled, one row back")[-8:] == [
+            "188",
+            "0.025319",
+            "2.6",
+            "gap",
+            "-0.1",
+            "0.163555",
+            "0.16",
+            "reproduced",
+        ]
+        assert self._row(printed, "FSTX, literal, same-day VIX, NaN on holidays")[-9:] == [
+            "185",
+            "-0.047063",
+            "2.6",
+            "gap",
+            "-7.3",
+            "-0.297416",
+            "0.16",
+            "gap",
+            "-0.46",
+        ]
+        assert self._row(printed, "FSTX, literal, same-day VIX, forward-filled")[-9:] == [
+            "188",
+            "-0.046312",
+            "2.6",
+            "gap",
+            "-7.2",
+            "-0.295046",
+            "0.16",
+            "gap",
+            "-0.46",
+        ]
+        assert "The same-day rows look ahead." in printed
         assert self._row(printed, "Buy on gap, other days zeroed")[-9:] == [
             "1500",
             "0.021777",
@@ -759,7 +901,10 @@ class TestTheReport:
             "all 2000 days of Example 7.1: 252 x mean 0.128622, Sharpe ratio 1.441620",
         ):
             assert line in printed
-        assert "No script ships for location 3509" in printed
+        assert (
+            "No script ships for location 3509. The FSTX alignment was chosen after six were "
+            "tried, and the five set aside are above." in printed
+        )
         assert "Exploratory." in printed
 
     def test_a_miss_is_reported_as_one(self) -> None:

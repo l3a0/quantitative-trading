@@ -642,9 +642,12 @@ where they were first built. The other forty-three were built here.
     sign, which round to the book's 2.6 percent and 0.16. The momentum sign
     gives the same numbers negated, so the claim that VIX above 35 warns the
     gap trader off holds for the fade alone. No script ships for the
-    filter. The FSTX alignment was chosen after six were tried, and only the
-    join lands 2.6 percent, while buy on gap's figures are the same under any
-    alignment. Every figure is exploratory.
+    filter. The FSTX alignment was chosen after six were tried, and all six
+    are recorded. Only the join lands 2.6 percent. The latest VIX close
+    before each day lands the Sharpe ratio but prints 2.5 percent, and the
+    two that read VIX on the trade's own date look ahead. Buy on gap's
+    figures are the same under any alignment that reads the previous day.
+    Every figure is exploratory.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1153,8 +1156,10 @@ gap's formula.
 filter. It pins both rules' figures on the days kept at six decimals against
 the book's four, and FSTX's under the momentum sign beside them. It pins each
 reading that misses with the reason it was set aside: the compounded APR, the
-zeroed days, the latest VIX close before each day and a shift on FSTX's own
-calendar. It also pins the days each calendar keeps, the days each rule held
+zeroed days, and the five FSTX alignments besides the join. Those are the
+latest VIX close before each day, VIX forward-filled and moved one row, a
+shift on FSTX's own calendar, and the same day's close with and without a
+fill, which look ahead. It also pins the days each calendar keeps, the days each rule held
 a position, the unfiltered figures on the joined calendar, and FSTX's rule
 run after the join keeping the same returns on the days kept. On synthetic
 series it holds the strict threshold, the previous joined day's close and a

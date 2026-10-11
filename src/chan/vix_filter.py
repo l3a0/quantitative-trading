@@ -23,12 +23,13 @@ filter, so the specification below is inferred from the four printed
 figures rather than read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging before
-choosing one, and only the join below lands 2.6 percent. Three of the
-alignments and both averages are pinned in ``tests/test_vix_filter.py``, so a
-reader can see what each gives. Buy on gap's figures do not depend on the
-alignment, because every one of its 1,500 days is a VIX day and VIX has no
-day between its first and last that the panel lacks, so every alignment reads
-the same close. Every result here is exploratory.
+choosing one. All six alignments and both averages are pinned in
+``tests/test_vix_filter.py``, so a reader can see what each gives, and only
+the join below lands 2.6 percent. Buy on gap's figures do not depend on which
+previous close is read, because every one of its 1,500 days is a VIX day and
+VIX has no day between its first and last that the panel lacks, so every
+alignment that reads the previous day reads the same close. Every result here
+is exploratory.
 
 **The specification.** Three steps, each mapped to the function that runs it.
 
@@ -55,19 +56,35 @@ sentence.** Entry 18 of ``docs/replication-log.md`` found that the unfiltered
 misses. The filtered 17.2 percent is the arithmetic figure, and the
 compounded APR over the same 190 days prints as 17.9 percent.
 
-**Three more readings that miss**, each pinned with the reason it was set
-aside.
+**Zeroing the other days and averaging over the whole sample** misses. It
+gives buy on gap a figure of 2.2 percent, nowhere near 17.2, so the average
+is taken over the qualifying days alone.
 
-1. **Zeroing the other days and averaging over the whole sample** gives buy
-   on gap a figure of 2.2 percent, nowhere near 17.2, so the average is taken
-   over the qualifying days alone.
-2. **The latest VIX close strictly before each FSTX day**, with no calendar
+**The five alignments set aside**, each pinned with the reason. The first
+three read the day before, as the sentence asks, and the last two read the
+same day.
+
+1. **The latest VIX close strictly before each FSTX day**, with no calendar
    join, keeps 188 days. The three it adds are US holidays on which Eurex
    traded, and each reads the close before it. Its Sharpe ratio prints as
    0.16, and its return prints as 2.5 percent rather than 2.6.
+2. **VIX forward-filled onto FSTX's calendar and moved one row** keeps the
+   same 188 days as the latest close, so it gives the same figures. The two
+   do not always read the same close. After a day the CBOE traded and Eurex
+   did not, the latest close is that day's, while the forward fill reads
+   FSTX's previous day. No such day moves a close across 35.
 3. **A one-row shift on FSTX's own calendar**, with NaN where VIX has no
    close, keeps 185 days and lands neither figure. It keeps those three
    holidays and drops the day after each, which reads the holiday's NaN.
+4. **The same day's VIX close on FSTX's own calendar**, with NaN on US
+   holidays, keeps 185 days.
+5. **The same day's VIX close forward-filled onto FSTX's calendar** keeps
+   188, the three holidays included.
+
+The last two look ahead. The gap rule holds FSTX from the open to the close,
+and VIX closes at 16:15 New York time, hours after FSTX opens on the same
+date. So the sentence's "preceding day's VIX" rules them out before any figure
+is read, and both give a negative return and Sharpe ratio besides.
 
 **The seven FSTX days after VIX ends.** The join drops them, because VIX has
 no close on any of them. Under the latest-close reading they would read
@@ -174,7 +191,7 @@ def qualifies(vix_closes: ArrayLike) -> NDArray[np.bool_]:
 def latest_close_before(days: pd.DatetimeIndex, vix: pd.Series) -> NDArray[np.float64]:
     """The latest VIX close strictly before each day, NaN before VIX's first.
 
-    This is the second reading that misses. It joins no calendars, so a day
+    This is the first alignment set aside. It joins no calendars, so a day
     after a US holiday reads the close before the holiday, and a day after
     VIX's last close reads that close.
     """
@@ -203,20 +220,45 @@ def reading(daily: ArrayLike, keep: ArrayLike) -> Reading:
 
 
 def as_of_reading(days: pd.DatetimeIndex, daily: ArrayLike, vix: pd.Series) -> Reading:
-    """The second reading that misses: each day kept when the latest close before it is above 35."""
+    """The first alignment set aside: each day kept when the latest close before it is above 35."""
     with np.errstate(invalid="ignore"):
         keep = latest_close_before(days, vix) > THRESHOLD
     return reading(daily, keep)
 
 
 def own_calendar_reading(days: pd.DatetimeIndex, daily: ArrayLike, vix: pd.Series) -> Reading:
-    """The third reading that misses: one row back on the rule's own calendar.
+    """The third alignment set aside: one row back on the rule's own calendar.
 
     VIX is placed on the rule's days with NaN where it has no close, and
     :func:`qualifies` shifts it one row, so a day after a US holiday reads the
     holiday's NaN and qualifies nothing.
     """
     return reading(daily, qualifies(vix.reindex(days).to_numpy(dtype=float)))
+
+
+def forward_filled_reading(days: pd.DatetimeIndex, daily: ArrayLike, vix: pd.Series) -> Reading:
+    """The second alignment set aside: VIX forward-filled onto the rule's calendar, one row back.
+
+    A day after a US holiday reads the close before the holiday, as
+    :func:`as_of_reading` does. A day after one the CBOE traded and the rule
+    did not reads the rule's previous day, where :func:`as_of_reading` reads
+    the later close.
+    """
+    return reading(daily, qualifies(vix.reindex(days, method="ffill").to_numpy(dtype=float)))
+
+
+def same_day_reading(
+    days: pd.DatetimeIndex, daily: ArrayLike, vix: pd.Series, *, forward_fill: bool
+) -> Reading:
+    """The fourth and fifth alignments set aside: VIX above 35 on the same date.
+
+    Both look ahead. VIX closes at 16:15 New York time, after FSTX's open on the same date, so
+    a position taken at the open could not have read it. ``forward_fill``
+    gives a US holiday the close before it rather than NaN.
+    """
+    closes = vix.reindex(days, method="ffill" if forward_fill else None)
+    with np.errstate(invalid="ignore"):
+        return reading(daily, closes.to_numpy(dtype=float) > THRESHOLD)
 
 
 @dataclass(frozen=True)
@@ -343,16 +385,21 @@ def read_sources(data_dir: Path | None = None) -> Sources:
 class VixFilter:
     """Both rules filtered, FSTX under both readings of its return line, and the misses.
 
-    ``as_of`` and ``own_calendar`` are FSTX's literal reading under the second
-    and third readings that miss. ``fstx_full`` is Example 7.1's literal
-    figures on FSTX's full calendar, which location 3509 quotes unfiltered.
+    ``as_of``, ``forward_filled``, ``own_calendar``, ``same_day`` and
+    ``same_day_filled`` are FSTX's literal reading under the five alignments
+    set aside, in the module docstring's order. ``fstx_full`` is Example
+    7.1's literal figures on FSTX's full calendar, which location 3509 quotes
+    unfiltered.
     """
 
     buy_on_gap: Filtered
     literal: Filtered
     momentum: Filtered
     as_of: Reading
+    forward_filled: Reading
     own_calendar: Reading
+    same_day: Reading
+    same_day_filled: Reading
     fstx_full: opening_gap.Figures
 
 
@@ -369,7 +416,10 @@ def vix_filters(sources: Sources) -> VixFilter:
         literal=vix_filter("FSTX, literal", rule.days, rule.literal, held_gap, vix),
         momentum=vix_filter("FSTX, momentum", rule.days, rule.momentum, held_gap, vix),
         as_of=as_of_reading(rule.days, rule.literal, vix),
+        forward_filled=forward_filled_reading(rule.days, rule.literal, vix),
         own_calendar=own_calendar_reading(rule.days, rule.literal, vix),
+        same_day=same_day_reading(rule.days, rule.literal, vix, forward_fill=False),
+        same_day_filled=same_day_reading(rule.days, rule.literal, vix, forward_fill=True),
         fstx_full=rule.literal_figures,
     )
 
@@ -450,8 +500,26 @@ def report(sources: Sources, result: VixFilter) -> None:
             BOOK_FSTX_SHARPE,
         ),
         (
+            "FSTX, literal, forward-filled, one row back",
+            result.forward_filled,
+            BOOK_FSTX_PERCENT,
+            BOOK_FSTX_SHARPE,
+        ),
+        (
             "FSTX, literal, one row back on its calendar",
             result.own_calendar,
+            BOOK_FSTX_PERCENT,
+            BOOK_FSTX_SHARPE,
+        ),
+        (
+            "FSTX, literal, same-day VIX, NaN on holidays",
+            result.same_day,
+            BOOK_FSTX_PERCENT,
+            BOOK_FSTX_SHARPE,
+        ),
+        (
+            "FSTX, literal, same-day VIX, forward-filled",
+            result.same_day_filled,
             BOOK_FSTX_PERCENT,
             BOOK_FSTX_SHARPE,
         ),
@@ -466,6 +534,7 @@ def report(sources: Sources, result: VixFilter) -> None:
                 book,
             )
         )
+    print("  The same-day rows look ahead. VIX closes at 16:15 New York time, after FSTX's open.")
     print()
     print("Beside the replication. No source prints these, so none carries a verdict.")
     print(
@@ -493,8 +562,8 @@ def report(sources: Sources, result: VixFilter) -> None:
         "The stock prices hold only survivors."
     )
     print(
-        "  No script ships for location 3509, and the FSTX alignment was chosen after six "
-        "were tried."
+        "  No script ships for location 3509. The FSTX alignment was chosen after six were "
+        "tried, and the five set aside are above."
     )
     print("  Exploratory. docs/replication-log.md Entry 47 carries the verdicts.")
 

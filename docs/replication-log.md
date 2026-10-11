@@ -556,7 +556,7 @@ Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17,
-Entry 45's rows 2 to 9, and Entry 47's rows 10 to 14.
+Entry 45's rows 2 to 9, and Entry 47's rows 13 to 17.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -9933,16 +9933,16 @@ on gap and Example 7.1's opening gap rule on the VIX. Shipped under
 location in this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
-Fourteen rows, all derivable from
+Seventeen rows, all derivable from
 [tests/test_vix_filter.py](../tests/test_vix_filter.py) except Example 7.1's
-full-calendar figures in row 12, which
+full-calendar figures in row 15, which
 [tests/test_opening_gap.py](../tests/test_opening_gap.py) derives in
 `TestTheSpecification::test_252_times_the_mean_also_rounds_to_13_percent` and
-`::test_the_sharpe_ratio`. Ten rows do not match one printed figure to one
+`::test_the_sharpe_ratio`. Thirteen rows do not match one printed figure to one
 computation, and each says so in its own cells. Row 5 checks two printed
-figures against a second reading of FSTX's return line. Rows 6 to 9 check the
+figures against a second reading of FSTX's return line. Rows 6 to 12 check the
 printed figures against readings of the sentence that were set aside, and
-rows 10 to 14 carry no published figure.
+rows 13 to 17 carry no published figure.
 
 Chapter 8 argues that no one risk indicator suits every strategy, because a
 period that is risky for one rule can be the best period for another.
@@ -9968,15 +9968,29 @@ filter, so the specification is inferred from the printed figures rather than
 read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging, and saw
-their figures before choosing one. Only the join lands 2.6 percent. Rows 6 to
-9 pin the readings that miss, so a reader can see what each gives. The other
-three alignments are not recorded here, so this entry cannot say what they
-gave. The criterion is the one every earlier entry uses: a figure lands when
-the computed value rounds to the printed string at the decimals the string
-carries, which is `chan.khandani_lo_book_two.matches`. Buy on gap's figures do
-not depend on the alignment, because its 1,500 days are exactly VIX's days
-over the same span, so every alignment reads the same close for every day.
-FSTX's do, so its two rows are a fit found after the figures were seen.
+their figures before choosing one. Rows 7 to 12 pin the average and the five
+alignments set aside, so a reader can see what each gives.
+
+1. **The join** lands both figures, and it is the specification below.
+2. **The latest VIX close before each FSTX day**, row 8, lands the Sharpe
+   ratio and prints the return as 2.5 percent.
+3. **VIX forward-filled onto FSTX's calendar and moved one row**, row 10,
+   keeps the same 188 days as row 8 and so gives the same figures.
+4. **VIX moved one row on FSTX's own calendar**, row 9, lands neither.
+5. **The same day's VIX on FSTX's own calendar**, row 11, looks ahead.
+6. **The same day's VIX forward-filled**, row 12, looks ahead too.
+
+The last two are ruled out before any figure is read. The gap rule holds FSTX
+from the open to the close, and VIX closes at 16:15 New York time, hours after
+FSTX opens on the same date, while the sentence asks for the preceding day's
+close. Both give a negative return and Sharpe ratio besides. So only the join
+lands 2.6 percent. The criterion is the one every earlier entry uses: a figure
+lands when the computed value rounds to the printed string at the decimals
+the string carries, which is `chan.khandani_lo_book_two.matches`. Buy on
+gap's figures do not depend on which previous close is read, because its
+1,500 days are exactly VIX's days over the same span, so every alignment that
+reads the previous day reads the same close for every day. FSTX's do, so its
+two rows are a fit found after the figures were seen.
 
 Every row reads three vintages and one specification unless it names
 another, so they are stated once here.
@@ -10029,7 +10043,10 @@ rule today.
 | 7 | Rows 1 to 4, read as the other days set to 0 and every day averaged | 17.2 percent and 1.4, 2.6 percent and 0.16 | location 3509 |
 | 8 | Rows 3 and 4, read with the latest VIX close before each FSTX day | 2.6 percent and 0.16 | location 3509 |
 | 9 | Rows 3 and 4, read one row back on FSTX's own calendar | 2.6 percent and 0.16 | location 3509 |
-| 10 to 14 | The joined calendars, the qualifying days, the unfiltered figures, the guard, and the rule run after the join | none, as each row says | n/a |
+| 10 | Rows 3 and 4, read with VIX forward-filled onto FSTX's calendar and moved one row | 2.6 percent and 0.16 | location 3509 |
+| 11 | Rows 3 and 4, read with the same day's VIX on FSTX's own calendar | 2.6 percent and 0.16 | location 3509 |
+| 12 | Rows 3 and 4, read with the same day's VIX forward-filled onto FSTX's calendar | 2.6 percent and 0.16 | location 3509 |
+| 13 to 17 | The joined calendars, the qualifying days, the unfiltered figures, the guard, and the rule run after the join | none, as each row says | n/a |
 
 ### What this repo computed
 
@@ -10044,40 +10061,48 @@ rule today.
 | 7 | The other days set to 0, every joined day averaged | buy on gap 0.021777 and 0.503869 over 1,500 days, FSTX 0.002447 and 0.050969 over 1,945 | `TestTheReadingsThatMiss::test_zeroing_the_other_days_lands_neither_rule` |
 | 8 | Each FSTX day kept when the latest VIX close strictly before it is above 35, with no join | 188 days, 0.025319 and 0.163555 | `TestTheReadingsThatMiss::test_the_latest_close_before_each_day_prints_2_5` and `::test_the_latest_close_reading_adds_three_us_holidays` |
 | 9 | VIX placed on FSTX's 2,000 days with NaN where it has no close, then moved one row | 185 days, 0.045238 and 0.291589 | `TestTheReadingsThatMiss::test_one_row_back_on_fstx_s_own_calendar_lands_neither` and `::test_the_own_calendar_reading_swaps_the_day_after_each_holiday_for_the_holiday` |
-| 10 | The joined calendars | buy on gap 1,500 of 1,500, FSTX 1,945 of 2,000, losing 7 days after 2012-05-08 and 48 the CBOE did not trade | `TestTheJoin::test_buy_on_gap_keeps_all_1500_days`, `::test_fstx_keeps_1945_of_its_2000_days` and `::test_fstx_loses_7_days_after_vix_ends_and_48_the_cboe_did_not_trade`, and for the 7 days, `TestTheReadingsThatMiss::test_the_seven_days_after_vix_ends_could_not_qualify_either_way` |
-| 11 | The qualifying days, and the days each rule held a position on them | both from 2008-09-18 to 2011-11-10, after VIX's first close above 35 inside either window on 2008-09-17. Buy on gap held on 20 of 190, FSTX on 43 of 185, long on 21 and short on 22 | `TestBesideTheReplication::test_both_rules_keep_the_days_from_2008_09_18_to_2011_11_10`, `::test_vix_first_closes_above_35_inside_either_window_on_2008_09_17`, `::test_buy_on_gap_held_a_position_on_20_of_its_190_kept_days`, `::test_fstx_held_a_position_on_43_of_its_185_kept_days` and `::test_no_vix_close_sits_exactly_on_35` |
-| 12 | `252 · mean` and the Sharpe ratio over every joined day, and FSTX's over its full calendar | buy on gap 0.085279 and 1.537063, FSTX 0.139950 and 1.589197 joined, 0.128622 and 1.441620 on all 2,000 days | `TestBesideTheReplication::test_buy_on_gap_unfiltered_is_entry_18_s_because_the_calendar_is_unchanged` and `::test_the_join_moves_fstx_s_unfiltered_figures` |
-| 13 | VIX's largest close from 2004-07-15 to 2007-02-27, before the guarded span | 23.81, on 2006-06-13 | `TestTheGuard::test_vix_never_closes_above_23_81_before_the_guarded_span`, and for the flag and the guarded spans, `::test_vix_flags_2007_02_27_alone` and `::test_vix_is_guarded_from_2007_02_28_to_each_window_s_last_joined_day` |
-| 14 | FSTX's rule run on the 1,945 joined days instead of its own 2,000 | 11 joined days' returns move, and none of the 185 qualifying days' | `TestTheSpecification::test_the_rule_run_after_the_join_keeps_the_same_fstx_returns` |
+| 10 | VIX forward-filled onto FSTX's 2,000 days, then moved one row | 188 days, 0.025319 and 0.163555, the same days as row 8. The two read different closes on 23 days and none crosses 35 | `TestTheReadingsThatMiss::test_vix_forward_filled_one_row_back_keeps_the_latest_close_s_days` and `::test_the_forward_fill_and_the_latest_close_read_different_closes_on_23_days` |
+| 11 | Each FSTX day kept when VIX closed above 35 on the same date, NaN on US holidays | 185 days, −0.047063 and −0.297416 | `TestTheReadingsThatMiss::test_same_day_vix_with_nan_on_holidays_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
+| 12 | Each FSTX day kept when VIX closed above 35 on the same date, forward-filled | 188 days, −0.046312 and −0.295046 | `TestTheReadingsThatMiss::test_same_day_vix_forward_filled_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
+| 13 | The joined calendars | buy on gap 1,500 of 1,500, FSTX 1,945 of 2,000, losing 7 days after 2012-05-08 and 48 the CBOE did not trade | `TestTheJoin::test_buy_on_gap_keeps_all_1500_days`, `::test_fstx_keeps_1945_of_its_2000_days` and `::test_fstx_loses_7_days_after_vix_ends_and_48_the_cboe_did_not_trade`, and for the 7 days, `TestTheReadingsThatMiss::test_the_seven_days_after_vix_ends_could_not_qualify_either_way` |
+| 14 | The qualifying days, and the days each rule held a position on them | both from 2008-09-18 to 2011-11-10, after VIX's first close above 35 inside either window on 2008-09-17. Buy on gap held on 20 of 190, FSTX on 43 of 185, long on 21 and short on 22 | `TestBesideTheReplication::test_both_rules_keep_the_days_from_2008_09_18_to_2011_11_10`, `::test_vix_first_closes_above_35_inside_either_window_on_2008_09_17`, `::test_buy_on_gap_held_a_position_on_20_of_its_190_kept_days`, `::test_fstx_held_a_position_on_43_of_its_185_kept_days` and `::test_no_vix_close_sits_exactly_on_35` |
+| 15 | `252 · mean` and the Sharpe ratio over every joined day, and FSTX's over its full calendar | buy on gap 0.085279 and 1.537063, FSTX 0.139950 and 1.589197 joined, 0.128622 and 1.441620 on all 2,000 days | `TestBesideTheReplication::test_buy_on_gap_unfiltered_is_entry_18_s_because_the_calendar_is_unchanged` and `::test_the_join_moves_fstx_s_unfiltered_figures` |
+| 16 | VIX's largest close from 2004-07-15 to 2007-02-27, before the guarded span | 23.81, on 2006-06-13 | `TestTheGuard::test_vix_never_closes_above_23_81_before_the_guarded_span`, and for the flag and the guarded spans, `::test_vix_flags_2007_02_27_alone` and `::test_vix_is_guarded_from_2007_02_28_to_each_window_s_last_joined_day` |
+| 17 | FSTX's rule run on the 1,945 joined days instead of its own 2,000 | 11 joined days' returns move, and none of the 185 qualifying days' | `TestTheSpecification::test_the_rule_run_after_the_join_keeps_the_same_fstx_returns` |
 
 ### The verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | −0.0 percent | reproduced | 17.1924 percent rounds to the book's 17.2. Buy on gap's calendar is VIX's over its span, so this figure does not depend on how the two are aligned. |
+| 1 | −0.0 percent | reproduced | 17.1924 percent rounds to the book's 17.2. Buy on gap's calendar is VIX's over its span, so this figure does not depend on which previous close is read. |
 | 2 | +0.0 | reproduced | 1.417425 rounds to the book's 1.4. |
-| 3 | −0.0 percent | reproduced | 2.5730 percent rounds to the book's 2.6, under the join chosen after six alignments were tried. |
+| 3 | −0.0 percent | reproduced | 2.5730 percent rounds to the book's 2.6, under the join chosen after six alignments were tried. Rows 8 to 12 give the other five. |
 | 4 | +0.00 | reproduced | 0.164869 rounds to the book's 0.16, under the same join. |
 | 5 | −5.2 percent and −0.32 | did not reproduce | The rule location 2965 describes loses on the filtered days what the fade earns, on Chan's own file, so the vintage explanation is spent. As in Entry 40, the figures the book prints belong to the script's sign. |
 | 6 | +0.7 percent | did not reproduce | The compounded APR over the same days prints as 17.9 percent. What fails is that reading rather than Chan's number, which row 1 lands as `252 · mean`. |
 | 7 | −15.0 percent and −0.9 for buy on gap, −2.4 percent and −0.11 for FSTX | did not reproduce | Averaging the zeroed series over every day dilutes the filtered return by the share of days kept. What fails is that reading, so the average runs over the qualifying days alone. |
 | 8 | −0.1 percent and +0.00 | did not reproduce | The Sharpe ratio lands and the return prints as 2.5 percent. The join lands both, so the join is the reading kept. The three extra days are US holidays on which Eurex traded, 2008-11-27, 2009-01-19 and 2009-02-16. Each reads the close before it here, and the join drops them. |
 | 9 | +1.9 percent and +0.13 | did not reproduce | It keeps 185 days, as the join does, but not the same 185. It keeps row 8's three holidays and drops the day after each, which reads the holiday's missing close and qualifies nothing. |
-| 10 | none | none, not a replication | The 7 FSTX days after 2012-05-08 have no VIX close, so the join drops them. Under row 8's reading they would read 2012-05-08's close of 19.05, below 35, so none of them could qualify either way. |
-| 11 | none | none, not a replication | Buy on gap held nothing on 170 of its 190 qualifying days, so its filtered figures rest on 20 days of trading. No VIX close sits exactly on 35, so the strict test decides no day here, and `TestTheRules` holds it on synthetic closes. |
-| 12 | none | none, not a replication | The join leaves buy on gap's calendar unchanged, so its unfiltered figures are Entry 18's. It moves FSTX's to figures that print as 14 percent and 1.6, so location 3509's "around 13 percent and 1.4" is Example 7.1's full calendar, which Entry 40's rows 3 and 4 reproduce. The filtered and unfiltered FSTX figures therefore come from different calendars. |
-| 13 | none | none, not a replication | 23.81 is more than 11 points below the threshold, so a break before the guarded span could move a day into the filter only by raising a close by more than half again. |
-| 14 | none | none, not a replication | Once 55 days are gone, the rule's 90-day spread reads different rows, which moves the position on 11 joined days and on none of the qualifying days. So rows 3 and 4 cannot tell whether Chan filtered before or after running the rule. |
+| 10 | −0.1 percent and +0.00 | did not reproduce | Row 8's figures, because it keeps row 8's days. After a day the CBOE traded and Eurex did not, row 8 reads that day's close and this reading reads FSTX's previous day. The nearest call is 2009-05-04, which reads 35.30 one way and 36.50 the other, both above 35. |
+| 11 | −7.3 percent and −0.46 | did not reproduce | It reads VIX on the trade's own date, which closes at 16:15 New York time, after FSTX's open. That rules it out before the figures, which are negative. Each day it keeps is the joined day before one row 3 keeps. |
+| 12 | −7.2 percent and −0.46 | did not reproduce | It looks ahead as row 11 does. The forward fill adds row 8's three US holidays, each reading the close before it. |
+| 13 | none | none, not a replication | The 7 FSTX days after 2012-05-08 have no VIX close, so the join drops them. Under row 8's reading they would read 2012-05-08's close of 19.05, below 35, so none of them could qualify either way. |
+| 14 | none | none, not a replication | Buy on gap held nothing on 170 of its 190 qualifying days, so its filtered figures rest on 20 days of trading. No VIX close sits exactly on 35, so the strict test decides no day here, and `TestTheRules` holds it on synthetic closes. |
+| 15 | none | none, not a replication | The join leaves buy on gap's calendar unchanged, so its unfiltered figures are Entry 18's. It moves FSTX's to figures that print as 14 percent and 1.6, so location 3509's "around 13 percent and 1.4" is Example 7.1's full calendar, which Entry 40's rows 3 and 4 reproduce. The filtered and unfiltered FSTX figures therefore come from different calendars. |
+| 16 | none | none, not a replication | 23.81 is more than 11 points below the threshold, so a break before the guarded span could move a day into the filter only by raising a close by more than half again. |
+| 17 | none | none, not a replication | Once 55 days are gone, the rule's 90-day spread reads different rows, which moves the position on 11 joined days and on none of the qualifying days. So rows 3 and 4 cannot tell whether Chan filtered before or after running the rule. |
 
 ### What the entry concludes
 
 Three things.
 
 1. **Location 3509's four figures reproduce on Chan's own files.** Buy on
-   gap's do so under any alignment of the two calendars, because its days are
-   VIX's days. FSTX's do so under the join alone, which was chosen after six
-   alignments were tried, so its rows are a fit to the printed figures rather
-   than a test of them.
+   gap's do so under any alignment that reads the previous day's close,
+   because its days are VIX's days. FSTX's do so under the join alone, which
+   was chosen after six alignments were tried, so its rows are a fit to the
+   printed figures rather than a test of them. The latest close before each
+   day lands the Sharpe ratio and prints 2.5 percent, and the two same-day
+   alignments look ahead.
 2. **The filter's verdict on FSTX belongs to the fade.** The momentum sign
    the text describes earns each day's return negated, so it loses about 13
    percent a year over all its days and 2.6 percent on the days kept. For it
@@ -10095,9 +10120,9 @@ Three things.
 Four things.
 
 **What Chan's own code for the filter did.** No script ships for location
-3509. Six alignments were tried for FSTX before one was kept, and three of
-them are not recorded, so the entry cannot rule out a different alignment
-that also lands both figures.
+3509. Six alignments were tried for FSTX before one was kept, and rows 3, 4
+and 8 to 12 record what each gave. Only the join lands both figures among
+them, which cannot rule out a seventh alignment that also lands both.
 
 **Whether the filter guards either rule out of sample.** The threshold, the
 rules and the windows are Chan's, and every qualifying day falls between
