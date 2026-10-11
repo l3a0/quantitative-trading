@@ -61,9 +61,13 @@ from chan.pca_factor_momentum import (
     NAMES,
     OFTEN,
     Comparison,
+    Pairs,
+    Result,
     Results,
     Verdict,
+    _figures,
     benjamini_hochberg,
+    compute,
     compute_both,
     factor_pairs,
     main,
@@ -308,6 +312,18 @@ class TestTheReport:
         members, closes = panel
         report(members, closes, results)
         out = capsys.readouterr().out
+        lines = out.splitlines()
+        assert lines[0] == (
+            "Whether Example 7.4's own factor returns have momentum, on Chan's S&P 600 file"
+        )
+        assert lines[1] == (
+            "  closes   ijr_20080114/   chan-mat adjusted, saved 2008-01-15, "
+            "600 members lifted from IJR_20080114.mat"
+        )
+        assert lines[3] == (
+            "  rule     the revised MATLAB's components, lookback 252, 5 factors, "
+            "f_t = u_k . r_t and f_t+1 = u_k . r_t+1 on day t's vectors"
+        )
         assert "2004-01-15 to 2008-01-14, 1006 days, 600 stocks" in out
         assert "day t from 2005-01-18 to 2008-01-11, 752 pairs" in out
         assert "location 4051" in out
@@ -345,15 +361,43 @@ class TestTheReport:
             "but not above 0."
         ) in out
         assert out.count("Claim for") == 5
-        for line in ("Without PMC", "about survivors", "Exploratory.", "Entry 40"):
-            assert line in out, line
+        band = (
+            "  Band +/-1.96/sqrt(752) = 0.0715, where a series with no persistence stays inside "
+            "95 percent of the time. Decides nothing."
+        )
+        assert lines.count(band) == 2, "once with PMC and once without"
+        for line in (
+            "  Uncentred correlation of each day's factor return with the next day's",
+            "  Quartiles by linear interpolation. The percentile counts stocks strictly below. "
+            "NW t is one-sided, BH at q = 0.05.",
+            "  Each factor is judged on its own: above 0 and above the median stock, unrounded, "
+            "declared before any factor return was computed.",
+            "  Without PMC, whose two price histories forward-fill into one day's return",
+            "  The verdicts read the file as the program does, which forward-fills.",
+            "  The file holds only the companies in the index on 2008-01-14, "
+            "so every figure above is about survivors.",
+            "  Exploratory. Testing a claim someone else chose spends the 2004 to 2008 sample "
+            "on it, so this says whether",
+            "  the claim holds on this file and nothing about factor momentum today. "
+            "docs/replication-log.md Entry 40 carries the verdicts.",
+        ):
+            assert line in lines, line
 
     def test_run_reads_the_file_once_and_reports(
-        self, results: Results, monkeypatch, capsys
+        self, results: Results, panel, monkeypatch, capsys
     ) -> None:
-        monkeypatch.setattr(pca_factor_momentum, "compute_both", lambda closes: results)
+        """The closes ``run`` hands on are the Close column the pins read, not another field."""
+        handed = []
+
+        def capture(closes):
+            handed.append(closes)
+            return results
+
+        monkeypatch.setattr(pca_factor_momentum, "compute_both", capture)
         assert run() is results
         assert "Claim for PC1" in capsys.readouterr().out
+        (closes,) = handed
+        pd.testing.assert_frame_equal(closes, panel[1])
 
     def test_an_empty_data_directory_is_refused_before_any_decomposition(
         self, tmp_path, monkeypatch
@@ -499,6 +543,22 @@ class TestTheRules:
         returns = matlab_returns(frame.ffill().to_numpy(dtype=float))[LOOKBACK + 1 :, 7]
         assert stocks["S7"] == pytest.approx(float(uncentred(returns[:-1], returns[1:])))
 
+    def test_the_same_sign_share_counts_only_strictly_positive_products(self, closes) -> None:
+        """A day when every stock is flat makes two pairs' products exactly 0, and neither counts.
+
+        Every return on that day is 0, so its factor returns are 0. The pair
+        it is today in and the pair it is tomorrow in both multiply to 0,
+        which shares no sign, so at most two of the four pairs can count.
+        """
+        frame = closes.copy()
+        flat = LOOKBACK + 3
+        frame.iloc[flat] = frame.iloc[flat - 1]
+        result = compute(frame)
+        products = result.pairs.today * result.pairs.tomorrow
+        assert (products[1:3] == 0).all()
+        np.testing.assert_array_equal(result.same_sign * 4, (products[[0, 3]] > 0).sum(axis=0))
+        assert (result.same_sign <= 0.5).all()
+
     def test_the_comparison_reads_the_forward_filled_closes(self, closes) -> None:
         """A close missing after the first fitting day is filled, so its stock stays in."""
         frame = closes.copy()
@@ -540,6 +600,29 @@ class TestTheCriterion:
     def test_the_percentile_counts_strictly_below(self) -> None:
         c = Comparison(np.zeros(FACTORS), pd.Series([-1.0, 0.0, 1.0, 2.0]), pairs=752)
         assert c.percentile(0.0) == 25.0
+
+
+class TestTheFiguresRow:
+    def test_a_factor_that_survives_benjamini_hochberg_reads_yes(self, capsys) -> None:
+        """The file has no survivor, so only a constructed result shows the column saying yes."""
+        empty = np.zeros((0, FACTORS))
+        result = Result(
+            pairs=Pairs(pd.DatetimeIndex([]), empty, empty, np.zeros(0), np.zeros(0)),
+            comparison=Comparison(np.full(FACTORS, 0.1), pd.Series([0.0, 0.2]), pairs=752),
+            same_sign=np.full(FACTORS, 0.5),
+            t_newey_west=np.full(FACTORS, 1.0),
+            p_values=np.full(FACTORS, 0.2),
+            survives=np.array([False, True, False, False, False]),
+            intercept_uncentred=0.0,
+            intercept_pearson=0.0,
+        )
+        _figures(result)
+        rows = {
+            line.split()[0]: line.split()[-1]
+            for line in capsys.readouterr().out.splitlines()
+            if line.split()[0] in NAMES
+        }
+        assert rows == {"PC1": "no", "PC2": "yes", "PC3": "no", "PC4": "no", "PC5": "no"}
 
 
 class TestTheSignificance:
