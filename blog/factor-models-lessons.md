@@ -193,6 +193,7 @@ Six things.
 4. **What survivorship does to WML.** That needs a panel of the index as it stood each day, which has to be bought.
 5. **Whether the factors persist at another frequency or lag.** MKT and WML were computed on monthly returns, and Example 7.4’s factors on daily returns one day apart, each under rules fixed in advance.
 6. **Whether French’s published factors agree, and what his size and value factors, SMB and HML, do.** This repository holds neither French’s library nor the company size and book value those two factors need.
+
 ## What this means for a trader
 
 Three habits follow from the lessons above.
