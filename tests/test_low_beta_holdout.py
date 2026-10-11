@@ -144,6 +144,12 @@ class TestTheMembersKeyword:
         with pytest.raises(ValueError, match="increasing date order"):
             build_portfolios(closes, spy(), rates(), members=everyone(closes, ENDS[::-1]))
 
+    def test_a_month_end_listed_twice_is_refused(self) -> None:
+        closes = frame()
+        days = ENDS.append(ENDS[-1:])
+        with pytest.raises(ValueError, match="increasing date order"):
+            build_portfolios(closes, spy(), rates(), members=everyone(closes, days))
+
     def test_a_stock_with_no_column_in_the_mask_is_never_a_candidate(self) -> None:
         closes = frame()
         mask = everyone(closes).drop(columns="F")
@@ -230,11 +236,12 @@ class TestTheSkipAmendment:
         assert kept.eligible == tuple(
             count for day, count in zip(whole.formed, whole.eligible, strict=True) if day != HELD_TO
         )
-        assert kept.low_members == tuple(
-            held
-            for day, held in zip(whole.formed, whole.low_members, strict=True)
-            if day != HELD_TO
-        )
+        for name in ("low_members", "high_members"):
+            assert getattr(kept, name) == tuple(
+                held
+                for day, held in zip(whole.formed, getattr(whole, name), strict=True)
+                if day != HELD_TO
+            ), name
         assert list(kept.betas.index) == list(kept.formed)
         assert kept.window_start == tuple(
             start
@@ -257,6 +264,24 @@ class TestTheSkipAmendment:
         none = build_portfolios(closes, spy(), rates(0.06), members=mask.assign(N=False))
         assert "none is skipped" in skipped_line(none)
 
+    def test_two_skips_are_both_listed_and_the_line_names_the_first(self) -> None:
+        closes, mask = negative_in_one_month()
+        mask["N"] = mask.index.isin([HELD_TO, NEXT])
+        p = build_portfolios(closes, spy(), rates(0.06), members=mask, skip_non_positive=True)
+        assert [skip.formed for skip in p.skipped] == [HELD_TO, NEXT]
+        assert skipped_line(p).startswith(
+            "  2 formations skipped under issue 526's amendment of 2026-10-11, the first formed "
+            "2001-01-31:"
+        )
+
+    def test_a_low_group_mean_beta_of_exactly_zero_is_skipped(self) -> None:
+        """The amendment skips zero as well as below, since zero has no leverage either."""
+        closes = panel(rates(), Z=0.0, A=0.5, B=1.0, C=1.5, D=2.0, E=2.5)
+        mask = everyone(closes)
+        mask["Z"] = mask.index == HELD_TO
+        p = build_portfolios(closes, spy(), rates(), members=mask, skip_non_positive=True)
+        assert [(skip.formed, skip.low_beta) for skip in p.skipped] == [(HELD_TO, 0.0)]
+
 
 class TestTheRunsHelpers:
     def test_the_frame_starts_252_rows_before_2008_12_31_and_ends_2026_08_31(self) -> None:
@@ -265,6 +290,21 @@ class TestTheRunsHelpers:
         assert days[0] == pd.Timestamp("2008-01-02")
         assert days[-1] == pd.Timestamp("2026-08-31")
         assert len(days) == 4695
+
+    def test_a_calendar_short_of_252_rows_before_2008_12_31_is_refused(self) -> None:
+        calendar = sp500_panel.calendar()
+        short = calendar[calendar >= pd.Timestamp("2008-06-02")]
+        with pytest.raises(HoldoutRefused, match="rows before 2008-12-31, not 252"):
+            frame_days(short)
+
+    def test_a_close_on_a_day_the_calendar_lacks_is_counted(self) -> None:
+        """2001-01-04 is off the calendar and only A has a close there. 2001-01-08 is past it."""
+        days = pd.DatetimeIndex(["2001-01-02", "2001-01-03", "2001-01-05"])
+        series = pd.DataFrame(
+            {"A": [1.0, 2.0, 3.0, 4.0], "B": [1.0, np.nan, 3.0, 4.0]},
+            index=pd.DatetimeIndex(["2001-01-02", "2001-01-04", "2001-01-05", "2001-01-08"]),
+        )
+        assert low_beta_holdout.off_calendar(series, days) == 1
 
     def test_spy_missing_a_close_on_a_calendar_day_stops_the_run(self) -> None:
         market = spy().drop(pd.Timestamp("2001-03-15"))
@@ -279,6 +319,15 @@ class TestTheRunsHelpers:
         closes.loc[HELD_TO, "C"] = np.nan
         with pytest.raises(HoldoutRefused, match="covered member C has no close on 2001-01-31"):
             refuse_uncovered(closes, everyone(closes, ENDS[ENDS >= FORMED]))
+
+    def test_a_member_covered_at_t_only_is_still_refused_with_no_close_at_t_plus_1(self) -> None:
+        """Its formation reads t + 1, so the check cannot wait for the month that covers it."""
+        closes = frame()
+        closes.loc[HELD_TO, "C"] = np.nan
+        mask = everyone(closes, ENDS[ENDS >= FORMED])
+        mask.loc[HELD_TO, "C"] = False
+        with pytest.raises(HoldoutRefused, match="formed 2000-12-29: covered member C"):
+            refuse_uncovered(closes, mask)
 
     def test_an_uncovered_member_with_no_close_passes(self) -> None:
         closes = frame()
@@ -297,6 +346,15 @@ class TestTheRunsHelpers:
         assert mask.index[-1] == pd.Timestamp("2026-08-31")
         assert pd.Timestamp("2013-03-28") in mask.index
         assert int(mask.to_numpy().sum()) == sum(month.covered for month in coverage)
+
+    def test_main_prints_a_refusal_as_one_line(self, monkeypatch) -> None:
+        def refuse(**_: object) -> None:
+            raise HoldoutRefused("no")
+
+        monkeypatch.setattr(low_beta_holdout, "run", refuse)
+        monkeypatch.setattr("sys.argv", ["low_beta_holdout"])
+        with pytest.raises(SystemExit, match="^no$"):
+            low_beta_holdout.main()
 
 
 class TestTheCoverageWithoutRank:
@@ -422,6 +480,11 @@ class TestTheMarketLine:
 
     def test_spy_is_not_a_member_ticker(self) -> None:
         assert low_beta_holdout.MARKET not in sp500_panel.tickers(sp500_panel.load())
+
+    def test_spy_as_a_member_ticker_is_refused_before_any_read(self, monkeypatch) -> None:
+        monkeypatch.setattr(sp500_panel, "tickers", lambda rows: ["AAA", low_beta_holdout.MARKET])
+        with pytest.raises(HoldoutRefused, match="SPY is a member ticker"):
+            low_beta_holdout.read_holdout()
 
     def test_every_other_sp500_line_was_downloaded_2026_10_05(self) -> None:
         text = (DATA_DIR / "archive_vintages.jsonl").read_text(encoding="utf-8")
