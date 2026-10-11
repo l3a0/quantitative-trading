@@ -3,12 +3,15 @@
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it. ``docs/replication-log.md`` Entry 33
 carries the verdicts and points here row by row.
-``blog/usdcad-stationarity-lessons.md`` quotes USD.CAD's H at a ``maxT`` of
-24, which ``TestTheTwoTests`` pins here, so a change to that pin moves that
-post too. ``blog/tu-momentum-lessons.md`` teaches this example and quotes most
-of these pins, with the numbers it adds in ``TestBesideThePost`` and its
-figure's in ``tests/test_tu_momentum_figures.py``. README lists what the post
-says that nothing asserts.
+``blog/usdcad-stationarity-lessons.md`` quotes USD.CAD's H at a ``maxT`` of 24,
+which ``TestTheTwoTests`` pins here, so a change to that pin moves that post
+too. ``blog/tu-hypothesis-tests-lessons.md`` quotes the 49 pairs of lookback
+and hold the rule was picked from, which ``PERIODS`` and
+``TestTheCorrelationTable`` hold here. ``blog/tu-momentum-lessons.md`` teaches
+this example and quotes most of these pins, with the numbers it adds in
+``TestBesideThePost`` and its figure's in
+``tests/test_tu_momentum_figures.py``. README lists what the post says that
+nothing asserts.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.

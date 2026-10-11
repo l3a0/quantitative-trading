@@ -7548,8 +7548,8 @@ observed one. The book reads the second test's count as showing that "any
 random returns distribution with high kurtosis can be favorable to momentum
 strategies" (location 674).
 
-**The book's count reproduces, the script's does not, and the rows beside
-them point at TU's drift rather than its kurtosis.** The second test lands
+**The book's count reproduces, the script's does not, and two of the rows
+beside them point at TU's drift rather than its kurtosis.** The second test lands
 inside the band around the book's 1,166 and far outside the one around the
 script's 0.027500. Rows 6 to 8 were added after a scratch run had seen
 results, and they show that a normal draw gives the same count while removing
@@ -7644,7 +7644,7 @@ registered test of the drift reading and cannot confirm it.
 | 4 | +0 | reproduced | No draw of 100,000 reaches the observed mean, so the rule-of-three bound puts the p-value below 3e-05 at 95 percent. |
 | 5 | none | none, a finding | The count cannot fail, so it cannot reproduce anything. It is 0 because no draw writes to `pos_sim`, not because of any property of TU. |
 | 6 | none | none, not a replication | 277 lies inside the script's 243 to 307. Nothing in the script applies the observed positions to simulated returns, and the file has one commit, so the match is numerical rather than recovered history. |
-| 7 | none | none, not a replication | Removing the skewness and kurtosis leaves the count where row 2 put it, 1,165 against 1,221. |
+| 7 | none | none, not a replication | Removing the skewness and kurtosis moves the count little, 1,165 against 1,221. |
 | 8 | none | none, not a replication | Removing the drift takes the count from 1,221 to 19, close to the 0.001677 one-sided tail of row 1's Gaussian statistic. |
 
 ### What the entry concludes
@@ -7656,8 +7656,8 @@ Three things.
    book's count on Chan's own file, so location 665's figure is consistent
    with the test the script carries. The script's printed p-value lands only
    on row 6, a different test that nothing in the file runs.
-2. **On this file, the rows beside point at TU's drift rather than its
-   kurtosis as what drives the second test.** A normal draw with TU's mean and
+2. **On this file, two of the rows beside point at TU's drift rather than
+   its kurtosis as what drives the second test.** A normal draw with TU's mean and
    `std` gives 1,165 where type IV gives 1,221, so the shape location 674
    credits moves the count by little. Setting the mean to zero gives 19, near
    the Gaussian test's one-sided 0.001677. The mechanism is the rule itself. A
@@ -7696,7 +7696,10 @@ strategy and one future. A registered test would declare the drift reading
 first and run it on data this entry never loaded.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/tu-hypothesis-tests-lessons.md](../blog/tu-hypothesis-tests-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.tu_hypothesis_tests_figures` redraws.
 
 ## Entry 38: long GLD and short gold futures, Chan's *Algorithmic Trading*
 
