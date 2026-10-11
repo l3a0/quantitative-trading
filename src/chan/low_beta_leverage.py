@@ -423,11 +423,29 @@ def flagged_days(closes: pd.DataFrame) -> dict[str, list[pd.Timestamp]]:
     return flags
 
 
-def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, float]) -> Portfolios:
+def build_portfolios(
+    closes: pd.DataFrame,
+    spy: pd.Series,
+    bills: dict[str, float],
+    *,
+    members: pd.DataFrame | None = None,
+) -> Portfolios:
     """The low, high and levered portfolios over the window, from the panel, SPY and the bills.
 
     ``bills`` maps ``YYYY-MM`` to that month's average three-month rate as a
     decimal a year, which is what :func:`chan.bill_rates.monthly_rates` returns.
+
+    ``members`` is for a panel whose stocks come and go, which
+    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs.
+    It is a boolean frame indexed by month-end days, one column per stock, and
+    a stock is eligible at a formation only where its row there is true. Its
+    index replaces :func:`chan.series.row_month_ends` as the month-ends, so the
+    last holding month can end on the frame's last row, and a day the cut
+    calendar lacks is refused. The close at t + 1 is still asked for, so a
+    caller wanting a stopped stock to earn its return to its last close
+    carries that close to the next month-end first, as
+    :func:`chan.equity_seasonals.stopped_closes` does. Left out, every stock is
+    a candidate at every month-end, as on Chan's file.
     """
     cut = closes.loc[closes.index.isin(spy.index)]
     market = spy.loc[cut.index]
@@ -440,8 +458,20 @@ def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, floa
     market_excess = daily_excess(market.to_frame(), bills).to_numpy()[:, 0]
     at = cut.to_numpy()
     rows = row_month_ends(cut.index)
-    ends = cut.index[rows]
     symbols = np.array(cut.columns)
+    allowed = np.ones((len(rows), len(symbols)), dtype=bool)
+    if members is not None:
+        outside = members.index.difference(cut.index)
+        if len(outside):
+            raise VintageUnavailable(
+                f"{len(outside)} month-ends in the members frame are not on the panel's "
+                f"calendar, the first {outside[0].date()}"
+            )
+        if not members.index.is_monotonic_increasing or not members.index.is_unique:
+            raise ValueError("the members frame's month-ends are not in increasing date order")
+        rows = cut.index.get_indexer(members.index)
+        allowed = members.reindex(columns=cut.columns, fill_value=False).to_numpy(dtype=bool)
+    ends = cut.index[rows]
 
     formed, held_to, starts = [], [], []
     low, high, levered, rf, spy_month = [], [], [], [], []
@@ -454,7 +484,9 @@ def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, floa
         window = slice(row - BETA_DAYS + 1, row + 1)
         y = stock_excess[window]
         x = market_excess[window]
-        beta = np.array([fit_beta(y[:, j], x) for j in range(len(symbols))])
+        beta = np.array(
+            [fit_beta(y[:, j], x) if allowed[t, j] else math.nan for j in range(len(symbols))]
+        )
         ok = np.isfinite(beta) & np.isfinite(at[row]) & np.isfinite(at[next_row])
         count = int(ok.sum())
         size = count // GROUPS
